@@ -1,0 +1,115 @@
+      subroutine diffus(m,n,mm,nn,k1m,k1n)
+c
+c --- ------------------------------------------------------------------
+c --- diffusion of tracers
+c --- ------------------------------------------------------------------
+c
+      use mod_xc
+c
+      implicit none
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+#include "common_blocks.h"
+c
+      integer i,j,k,l,kn
+      real q
+c
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt
+#endif
+c
+      real hfharm
+      external hfharm
+c
+      real dpeps
+      parameter (dpeps=1.e-4)
+c
+      call xctilr(dp  (1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+#ifdef TRC
+      do nt=1,ntrc
+        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
+      enddo
+#endif
+c
+      do k=1,kk
+        kn=k+nn
+c
+c$OMP PARALLEL DO PRIVATE(q)
+        do j=0,jj+1
+          do l=1,isu(j)
+          do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
+            q=scuy(i,j)*2.*hfharm(max(dp(i-1,j,kn),dpeps),
+     .                            max(dp(i  ,j,kn),dpeps))
+            uflux2(i,j)=q*(saln(i-1,j,kn)-saln(i,j,kn))
+            uflux3(i,j)=q*(temp(i-1,j,kn)-temp(i,j,kn))
+#ifdef TRC
+            do nt=1,ntrc
+              uflxtr(nt,i,j)=q*(trc(i-1,j,k,nt)-trc(i,j,k,nt))
+            enddo
+#endif
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(q)
+        do j=0,jj+2
+          do l=1,isv(j)
+          do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
+            q=scvx(i,j)*2.*hfharm(max(dp(i,j-1,kn),dpeps),
+     .                            max(dp(i,j  ,kn),dpeps))
+            vflux2(i,j)=q*(saln(i,j-1,kn)-saln(i,j,kn))
+            vflux3(i,j)=q*(temp(i,j-1,kn)-temp(i,j,kn))
+#ifdef TRC
+            do nt=1,ntrc
+              vflxtr(nt,i,j)=q*(trc(i,j-1,k,nt)-trc(i,j,k,nt))
+            enddo
+#endif
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(q)
+        do j=0,jj+1
+          do l=1,isp(j)
+          do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+            q=temdff*delt1/(scp2(i,j)*max(dp(i,j,kn),dpeps))
+            saln(i,j,kn)=saln(i,j,kn)
+     .                  -q*(uflux2(i+1,j)-uflux2(i,j)
+     .                     +vflux2(i,j+1)-vflux2(i,j))
+            temp(i,j,kn)=temp(i,j,kn)
+     .                  -q*(uflux3(i+1,j)-uflux3(i,j)
+     .                     +vflux3(i,j+1)-vflux3(i,j))
+#ifdef TRC
+            do nt=1,ntrc
+              trc(i,j,k,nt)=trc(i,j,k,nt)
+     .                     -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
+     .                        +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
+            enddo
+#endif
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+      enddo
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'diffus:'
+        endif
+        call chksummsk(temp,ip,2*kk,'temp')
+        call chksummsk(saln,ip,2*kk,'saln')
+#ifdef TRC
+        do nt=1,ntrc
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        enddo
+#endif
+      endif
+c
+      return
+      end

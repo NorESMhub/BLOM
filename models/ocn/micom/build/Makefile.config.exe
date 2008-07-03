@@ -1,0 +1,58 @@
+# Target name
+TARGET=micom
+
+# Preprocessor defines
+MYCPPDEFS="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -DCOMPDIA -DCOMPRES"
+
+# Fortran compiler
+FC=ftn
+
+# C compiler
+CC=cc
+
+# Linker
+LD=$(FC)
+
+# Archiver
+AR=ar
+
+# List of directories and files to be searched for targets and dependencies
+TDLIST=../drivers/ccsm_cpl7/testtrg ../drivers/ccsm_cpl7 ../phy /work/apps/netcdf-3.6.2-cnl-pgi/include
+
+CCSMDIR=/work/matsbn/ccsm4/B_PRESENT_DAY
+
+# Include directory for modules
+MODINC=-I/work/apps/netcdf-3.6.2-cnl-pgi/include\
+       -I$(CCSMDIR)/lib/include
+
+# Directory list to search for library files
+LIBS=-L/work/apps/netcdf-3.6.2-cnl-pgi/lib -lnetcdf\
+     -L$(CCSMDIR)/lib -lmct\
+     -L$(CCSMDIR)/lib -lmpeu\
+     -L$(CCSMDIR)/lib -lcsm_share
+
+# External names
+EXTNAME=
+
+# Preprocessor flags
+CPPFLAGS=
+
+# Compiler flags
+#FFLAGS=-r8 -byteswapio -Kieee -C -Ktrap=fp -g\
+#       $(EXTNAME) $(MODINC)
+FFLAGS=-r8 -byteswapio -tp barcelona-64 -O3 -Kieee\
+       $(EXTNAME) $(MODINC)
+SFFLAGS=
+SF90FLAGS=-Mfree
+CFLAGS=-tp barcelona-64 -O3 -Kieee
+
+# Linker flags
+#LDFLAGS=-g $(LIBS)
+LDFLAGS=$(LIBS)
+
+# Archiver flags
+ARFLAGS=-r
+
+all: $(TARGET)
+depend:
+	mkmf -c $(MYCPPDEFS) -f -p $(TARGET) -t Makefile.config.exe $(TDLIST)

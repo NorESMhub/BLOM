@@ -1,0 +1,133 @@
+#! /bin/csh -f
+
+if !(-d $CASEROOT/Buildnml_Prestage) mkdir $CASEROOT/Buildnml_Prestage
+if !(-d $CASEROOT/Buildexe         ) mkdir $CASEROOT/Buildexe
+
+#------------------------------------------------------------------------------
+#  determine input data files and resolution dependent variables            
+#------------------------------------------------------------------------------
+
+if      ( $OCN_GRID ==  gx1v5) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID
+else
+  echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
+  exit -1
+endif
+
+#==============================================================================
+# Create resolved prestage data script
+#==============================================================================
+
+#set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
+#set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
+#set IDAY0    = `echo $RUN_STARTDATE | cut -c9-10 | sed -e 's/^0*//'`
+set YEAR0   = `echo $RUN_STARTDATE | cut -c1-4 `
+set MONTH0  = `echo $RUN_STARTDATE | cut -c6-7 `
+set DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
+
+if ($RUN_TYPE == startup )  then
+  if ($OCN_NCPL > 1) then 
+    echo "$0 ERROR: Unsupported coupling interval OCN_NCPL = $OCN_NCPL "
+    exit -1
+  else
+    @ DAY0 = $DAY0 + 1
+    set DAY0=`echo 0$DAY0 | tail -3c`
+  endif
+endif
+
+cat >! $CASEROOT/Buildnml_Prestage/micom.buildnml_prestage.csh << EOF
+#! /bin/csh -f 
+#==============================================================================
+# CCSM micom: build namelist and prestage data
+#==============================================================================
+
+#--- acquire env vars associated with this case ---
+source \$CASEROOT/env_conf         || exit -1
+source \$CASEROOT/env_run          || exit -1
+source \$CASEROOT/env_mach.\$MACH  || exit -1
+source \$CASEROOT/env_pes.\$MACH   || exit -1
+
+set exedir = \$EXEROOT/ccsm_se; cd \$exedir
+
+#------------------------------------------------------------------------------
+# specify input data files
+#------------------------------------------------------------------------------
+
+cp -f $INPUTPATH/patch.input .
+
+
+
+#------------------------------------------------------------------------------
+# Create resolved namelist
+#------------------------------------------------------------------------------
+
+cat >! ocn_in << EOF1
+     0     : First day of integration (i6)
+ 11000     : Last day of integration (i6)
+$YEAR0.$MONTH0.$DAY0 : Model date (i4,x,i2,x,i2)
+$YEAR0.$MONTH0.$DAY0 : Initial experiment date (i4,x,i2,x,i2)
+xxxx       : Experiment name (runid)
+  800.00   : Baroclinic time step (sec) (f8.2)
+   40.00   : Barotropic time step (sec) (f8.2)
+ 30        : 2D diag. (i3). Positive: days pr diag., Negative: diags. pr day
+ 30        : 3D diag. (i3). Positive: days pr diag., Negative: diags. pr day
+    0.00   : e-folding time scale (days) for SST relax., if 0 no relax. (f8.2)
+    0.00   : e-folding time scale (days) for SSS relax., if 0 no relax. (f8.2)
+false      : Apply diagnosed heat flux flag (l5)
+false      : Apply diagnosed freshwater flux flag (l5)
+false      : Diagnose heat flux flag (l5)
+false      : Diagnose freshwater flux flag (l5)
+$INPUTPATH/ : Path to input files (path)
+./         : Path to diagnostic files (path1)
+./         : Path to restart files (path2)
+./         : Path to synoptic NCEP fields (ncep_path)
+EOF1
+
+EOF
+
+#==============================================================================
+#  Create script to build executable
+#==============================================================================
+
+cat >! $CASEROOT/Buildexe/micom.buildexe.csh << EOF
+#! /bin/csh -f 
+
+source \$CASEROOT/env_conf         || exit -1
+source \$CASEROOT/env_run          || exit -1
+source \$CASEROOT/env_mach.\$MACH  || exit -1
+source \$CASEROOT/env_pes.\$MACH   || exit -1
+
+set exedir = \$EXEROOT/ccsm_se
+set objdir = \$OBJROOT/ocn/obj; cd \$objdir
+
+#------------------------------------------------------------------------------
+# Build the library
+#------------------------------------------------------------------------------
+
+\cat >! Filepath << EOF1
+\$CASEROOT/SourceMods/src.micom
+\$CODEROOT/ocn/micom/drivers/ccsm_cpl7
+\$CODEROOT/ocn/micom/phy
+EOF1
+
+if (\$BLDTYPE == 'TRUE') then
+  cp \$BLDROOT/mkDepends . || exit 2
+  cp \$BLDROOT/mkSrcfiles . || exit 2
+  set micomdefs="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -DCOMPDIA -DCOMPRES"
+  set THREAD = FALSE ;  if (\$NTHRDS_OCN > 1) set THREAD = TRUE
+  gmake complib -j \$GMAKE_J VPFILE=Filepath MODEL=micom \
+       MICOM_CPPDEFS="\$micomdefs" COMPLIB=\$objdir/../libmicom.a \
+       THREAD=\$THREAD DEPINC=$INCROOT -f  \$BLDROOT/Makefile MACFILE=\$CASEROOT/Macros.\$MACH  || exit 2
+  cp -p *comp_*.mod $LIBROOT/include/
+endif
+
+if !(-f \$objdir/../libmicom.a) then
+  echo "ERROR: micom library not available, check SETBLD"
+  exit -1
+endif
+
+EOF
+
+#==============================================================================
+# end of script
+#==============================================================================

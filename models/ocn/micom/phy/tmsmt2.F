@@ -1,0 +1,102 @@
+      subroutine tmsmt2(m,n,mm,nn,k1m,k1n)
+c
+c --- time smoothing of layer thickness, temperature and salinity
+c
+      use mod_xc
+c
+      implicit none
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+#include "common_blocks.h"
+c
+      real, dimension(1-nbdy:idm+nbdy) :: aux,pbfac
+      integer i,j,k,l,kn,km,kp
+      real pold,pmid,pnew
+c
+c$OMP PARALLEL DO PRIVATE(aux,pbfac,km,kn,kp,pold,pmid,pnew)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          aux(i)=0.
+          pbfac(i)=pb(i,j,m)/pb(i,j,n)
+        enddo
+        enddo
+        do k=1,kk
+          km=k+mm
+          kn=k+nn
+          kp=min(k+1,kk)
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            pold=max(0.,dpold(i,j,k))
+            pmid=max(0.,dp(i,j,km))
+            pnew=max(0.,dp(i,j,kn)*pbfac(i))
+            dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)
+            aux(i)=aux(i)+(dp(i,j,km)-pmid)			! diapyc.flux
+            diaflx(i,j,k )=diaflx(i,j,k )+aux(i)		! diapyc.flux
+            diaflx(i,j,kp)=diaflx(i,j,kp)-aux(i)		! diapyc.flux
+            pold=pold+epsil
+            pmid=pmid+epsil
+            pnew=pnew+epsil
+            temp(i,j,km)=(wts1*pmid*temp(i,j,km)
+     .                   +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn)))
+     .                   /(dp(i,j,km)+epsil)
+            saln(i,j,km)=(wts1*pmid*saln(i,j,km)
+     .                   +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn)))
+     .                   /(dp(i,j,km)+epsil)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+      call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
+c
+c$OMP PARALLEL DO
+      do j=-2,jj+2
+        do k=1,kk
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mm)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(km)
+      do j=-1,jj+2
+        do k=1,kk
+          km=k+mm
+          do l=1,isu(j)
+          do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+            dpu(i,j,km)=
+     .        max(0.,min(pbu(i,j,m),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(pbu(i,j,m),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+            dpv(i,j,km)=
+     .        max(0.,min(pbv(i,j,m),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
+     .              -min(pbv(i,j,m),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'tmsmt2:'
+        endif
+        call chksummsk(dp,ip,2*kk,'dp')
+        call chksummsk(temp,ip,2*kk,'temp')
+        call chksummsk(saln,ip,2*kk,'saln')
+        call chksummsk(diaflx,ip,kk,'diaflx')
+        call chksummsk(dpu,iu,2*kk,'dpu')
+        call chksummsk(dpv,iv,2*kk,'dpv')
+      endif
+c
+      return
+      end

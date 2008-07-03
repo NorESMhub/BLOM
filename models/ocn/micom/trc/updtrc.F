@@ -1,0 +1,19 @@
+      subroutine updtrc(m,n,mm,nn,k1m,k1n)
+c
+c --- ------------------------------------------------------------------
+c --- update tracers due to non-passive processes
+c --- ------------------------------------------------------------------
+c
+      use mod_xc
+c
+      implicit none
+c
+#include "param_trc.h"
+#include "common_trc.h"
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+c --- dummy routine, nothing done
+c
+      return
+      end

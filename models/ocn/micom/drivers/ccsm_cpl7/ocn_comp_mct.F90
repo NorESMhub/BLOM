@@ -1,0 +1,346 @@
+module ocn_comp_mct
+
+   ! -------------------------------------------------------------------
+   ! MICOM interface module for the ccsm cpl7 mct system
+   ! -------------------------------------------------------------------
+
+   ! CCSM  modules
+   use mct_mod
+   use esmf_mod, only : ESMF_Clock
+   use seq_cdata_mod, only : seq_cdata, seq_cdata_setptrs
+   use seq_infodata_mod, only : &
+      seq_infodata_type, seq_infodata_getdata, &
+      seq_infodata_putdata, seq_infodata_start_type_cont, &
+      seq_infodata_start_type_brnch, seq_infodata_start_type_start
+   use seq_flds_mod
+   use seq_flds_indices
+   use seq_timemgr_mod, only : &
+      seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
+      seq_timemgr_EClockDateInSync
+   use shr_file_mod, only : &
+      shr_file_getLogUnit, shr_file_getLogLevel, &
+      shr_file_setLogUnit, shr_file_setLogLevel
+   use shr_cal_mod, only : shr_cal_date2ymd
+   use shr_sys_mod, only : shr_sys_abort, shr_sys_flush
+   use perf_mod, only : t_startf, t_stopf
+
+   use types, only : r8
+   use data_mct, only : mpicom_mct, runid_mct
+   use mod_xc
+
+   implicit none
+
+   public :: ocn_init_mct, ocn_run_mct, ocn_final_mct
+   private :: ocn_SetGSMap_mct
+
+   private
+
+   integer, dimension(:), allocatable ::  &
+      perm          ! Permutation array to reorder points
+
+   real (r8), dimension(:,:,:), allocatable :: &
+      sbuff         ! Accumulated sum of send buffer quantities for
+                    ! averaging before being sent
+
+   integer :: &
+      nsend, &      ! Number of fields to be sent to coupler
+      nrecv, &      ! Number of fields to be received from coupler
+      ocn_cpl_dt    ! Coupling frequency
+
+   real (r8) :: &
+      tlast_coupled ! Time since last coupling
+
+   contains
+
+
+   subroutine ocn_init_mct(EClock, cdata_o, x2o_o, o2x_o, NLFilename)
+
+      ! Input/output arguments
+
+      type (ESMF_Clock)            , intent(in)    :: EClock
+      type (seq_cdata)             , intent(inout) :: cdata_o
+      type (mct_aVect)             , intent(inout) :: x2o_o, o2x_o
+      character (len=*), optional  , intent(in)    :: NLFilename ! Namelist filename
+      ! Local variables
+
+      type (mct_gsMap), pointer :: gsMap_ocn
+      type (mct_gGrid), pointer :: dom_ocn
+      type (seq_infodata_type), pointer :: infodata   ! Input init object
+      integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
+                 start_ymd, start_tod, start_year, start_day, start_month, &
+                 lsize
+      character (len=32) :: starttype
+      character (len=256) :: runtype
+
+      ! Default stdout
+      lp = 6
+
+      ! Set cdata pointers
+      call seq_cdata_setptrs(cdata_o, ID = OCNID, mpicom = mpicom_ocn, &
+                             gsMap = gsMap_ocn, dom = dom_ocn, &
+                             infodata = infodata)
+
+      ! Set communicator to be used by micom
+      mpicom_mct = mpicom_ocn
+
+      ! ----------------------------------------------------------------
+      ! Initialize the model run
+      ! ----------------------------------------------------------------
+
+      call seq_infodata_GetData( infodata, case_name = runid_mct )
+   
+      call seq_infodata_GetData( infodata, start_type = starttype)
+
+      if (    trim(starttype) == trim(seq_infodata_start_type_start)) then
+         runtype = "initial"
+      elseif (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
+         runtype = "continue"
+      elseif (trim(starttype) == trim(seq_infodata_start_type_brnch)) then
+         runtype = "branch"
+      else
+         write (lp,*) 'ocn_comp_mct ERROR: unknown starttype'
+         call shr_sys_flush(lp)
+         call shr_sys_abort()
+      endif
+
+      ! ----------------------------------------------------------------
+      ! Initialize micom
+      ! ----------------------------------------------------------------
+
+      call t_startf('micom_init')
+      call micom_init
+      call t_stopf('micom_init')
+
+      ! ----------------------------------------------------------------
+      ! Reset shr logging to my log file
+      ! ----------------------------------------------------------------
+
+      call shr_file_getLogUnit (shrlogunit)
+      call shr_file_getLogLevel(shrloglev)
+      call shr_file_setLogUnit (lp)
+
+      call shr_sys_flush(lp)
+
+      ! ----------------------------------------------------------------
+      ! Check for consistency of MICOM calender information and EClock
+      ! ----------------------------------------------------------------
+
+      ! This must be completed!
+
+      if (runtype == 'initial') then
+         call seq_timemgr_EClockGetData(EClock, &
+                                        start_ymd = start_ymd, &
+                                        start_tod = start_tod)
+         call shr_cal_date2ymd(start_ymd, start_year, start_month, start_day)
+         if (mnproc.eq.1) then
+            write (lp,'(a,i8,a2,i5,a2,i4.4,a1,i2.2,a1,i2.2)') &
+               ' ccsm initial date:           ',start_ymd,': ',start_tod,': ', &
+               start_year,'.',start_month,'.',start_day
+           call shr_sys_flush(lp)
+         endif
+      endif
+
+      ! ----------------------------------------------------------------
+      ! Initialize MCT attribute vectors and indices
+      ! ----------------------------------------------------------------
+
+      call t_startf ('micom_mct_init')
+
+      ! Initialize ocn gsMap
+
+      call ocn_SetGSMap_mct(mpicom_ocn, OCNID, gsMap_ocn)
+
+      ! Initialize mct ocn domain (needs ocn initialization info)
+   
+      call domain_mct(gsMap_ocn, dom_ocn, perm)
+   
+      ! Inialize mct attribute vectors
+
+      lsize = ii*jj
+   
+      call mct_aVect_init(x2o_o, rList = seq_flds_x2o_fields, lsize = lsize)
+      call mct_aVect_zero(x2o_o)
+   
+      call mct_aVect_init(o2x_o, rList = seq_flds_o2x_fields, lsize = lsize) 
+      call mct_aVect_zero(o2x_o)
+
+      nsend = mct_avect_nRattr(o2x_o)
+      nrecv = mct_avect_nRattr(x2o_o)
+
+      !-----------------------------------------------------------------
+      ! Get coupling frequency
+      !-----------------------------------------------------------------
+
+      call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt)
+
+      !-----------------------------------------------------------------
+      ! Send intial state to driver
+      !-----------------------------------------------------------------
+
+      allocate(sbuff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend))
+      tlast_coupled = 0._r8
+      call sum_sbuff(nsend, sbuff, tlast_coupled)
+      call export_mct(o2x_o, perm, nsend, sbuff, tlast_coupled)
+      call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
+                                ocnrof_prognostic = .true., &
+                                ocn_nx = itdm , ocn_ny = jtdm)
+
+      call t_stopf('micom_mct_init')
+
+
+      if (mnproc.eq.1) then
+        write (lp, *) 'micom: completed initialization!'
+      endif
+
+      !-----------------------------------------------------------------
+      ! Reset shr logging to original values
+      !-----------------------------------------------------------------
+
+      call shr_file_setLogUnit (shrlogunit)
+      call shr_file_setLogLevel(shrloglev)
+
+   end subroutine ocn_init_mct
+
+
+   subroutine ocn_run_mct(EClock, cdata_o, x2o_o, o2x_o)
+
+      ! Input/output arguments
+
+      type (ESMF_Clock), intent(in)    :: EClock
+      type (seq_cdata) , intent(inout) :: cdata_o
+      type (mct_aVect) , intent(inout) :: x2o_o
+      type (mct_aVect) , intent(inout) :: o2x_o
+
+      ! Local variables
+      integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
+
+      ! ----------------------------------------------------------------
+      ! Reset shr logging to my log file
+      ! ----------------------------------------------------------------
+
+      call shr_file_getLogUnit (shrlogunit)
+      call shr_file_getLogLevel(shrloglev)
+      call shr_file_setLogUnit (lp)
+
+      !-----------------------------------------------------------------
+      ! Advance the model in time over a coupling interval
+      !-----------------------------------------------------------------
+
+      micom_loop: do
+
+         if (nint(tlast_coupled).eq.0) then
+            ! Obtain import state from driver
+            call import_mct(x2o_o, perm)
+         endif
+      
+         ! Advance the model a time step
+         call micom_step
+
+         ! Add fields to send buffer sums
+         call sum_sbuff(nsend, sbuff, tlast_coupled)
+
+         if (nint(ocn_cpl_dt-tlast_coupled).eq.0) then
+            ! Return export state to driver and exit integration loop
+            call export_mct(o2x_o, perm, nsend, sbuff, tlast_coupled)
+            exit micom_loop
+         endif
+
+         if (mnproc.eq.1) then
+           call shr_sys_flush(lp)
+         endif
+
+      enddo micom_loop
+
+      !-----------------------------------------------------------------
+      ! if requested, write restart file
+      !-----------------------------------------------------------------
+
+      if (seq_timemgr_RestartAlarmIsOn(EClock)) then
+         call restart_wt
+      endif
+
+      !-----------------------------------------------------------------
+      ! check that internal clock is in sync with master clock
+      !-----------------------------------------------------------------
+
+      if (mnproc.eq.1) then
+         call modeltime(ymd, tod)
+         if (.not. seq_timemgr_EClockDateInSync(EClock, ymd, tod )) then
+            call seq_timemgr_EClockGetData(EClock, curr_ymd=ymd_sync, &
+               curr_tod=tod_sync )
+            write(lp,*)' micom ymd=',ymd     ,'  cice tod= ',tod
+            write(lp,*)' sync  ymd=',ymd_sync,'  sync tod= ',tod_sync
+            call shr_sys_abort( 'ocn_run_mct'// &
+               ":: Internal micom clock not in sync with Sync Clock")
+         endif
+      endif
+
+      !-----------------------------------------------------------------
+      ! Reset shr logging to original values
+      !-----------------------------------------------------------------
+
+      call shr_file_setLogUnit (shrlogunit)
+      call shr_file_setLogLevel(shrloglev)
+
+   end subroutine ocn_run_mct
+
+
+   subroutine ocn_final_mct()
+
+      deallocate(perm)
+      deallocate(sbuff)
+
+   end subroutine ocn_final_mct
+
+
+   subroutine ocn_SetGSMap_mct(mpicom_ocn, OCNID, gsMap_ocn)
+
+      ! Input/output arguments
+
+      integer         , intent(in)    :: mpicom_ocn
+      integer         , intent(in)    :: OCNID
+      type (mct_gsMap), intent(inout) :: gsMap_ocn
+
+      ! Local variables
+
+      integer, allocatable :: gindex(:)
+      integer :: i, j, n, lsize, gsize
+
+      ! ----------------------------------------------------------------
+      ! Build the MICOM grid numbering for MCT
+      ! NOTE:  Numbering scheme is: West to East and South to North
+      ! starting at south pole.  Should be the same as what's used
+      ! in SCRIP
+      ! ----------------------------------------------------------------
+
+      lsize = ii*jj
+      gsize = itdm*jtdm
+
+      allocate(gindex(lsize))
+
+      n = 0
+      do j = 1, jj
+         do i = 1, ii
+            n = n + 1
+            gindex(n) = (j0 + j - 1)*itdm + i0 + i
+         enddo
+      enddo
+
+      ! ----------------------------------------------------------------
+      ! reorder gindex to be in ascending order.
+      !  initialize a permutation array and sort gindex in-place
+      ! ----------------------------------------------------------------
+
+      allocate(perm(lsize))
+
+      call mct_indexset(perm)
+      call mct_indexsort(lsize, perm, gindex)
+      call mct_permute(gindex, perm, lsize)
+      call mct_gsMap_init(gsMap_ocn, gindex, mpicom_ocn, OCNID, lsize, gsize)
+
+      deallocate(gindex)
+
+   end subroutine ocn_SetGSMap_mct
+
+
+end module ocn_comp_mct
