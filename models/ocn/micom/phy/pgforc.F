@@ -96,6 +96,25 @@ c$OMP PARALLEL DO PRIVATE(kn,dphi,alpu,alpl)
       enddo
 c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO
+      do j=-1,jj+2
+        do l=1,isu(j)
+        do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
+          xixp_o(i,j)=xixp(i,j,n)
+          xixm_o(i,j)=xixm(i,j,n)
+          pgfxm_o(i,j)=pgfxm(i,j,n)
+        enddo
+        enddo
+        do l=1,isv(j)
+        do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
+          xiyp_o(i,j)=xiyp(i,j,n)
+          xiym_o(i,j)=xiym(i,j,n)
+          pgfym_o(i,j)=pgfym(i,j,n)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
 c$OMP PARALLEL DO PRIVATE(kup,kum,kvp,kvm,kn,prs,dphip,alpup,alplp,
 c$OMP+ dphim,alpum,alplm,cp,cm,q,phi_p,phi_m)
       do j=1,jj
@@ -224,7 +243,7 @@ c$OMP END PARALLEL DO
 c
       call xctilr(pb_p, 1,1, 1,1, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(q,kn)
       do j=1,jj
 c
         do l=1,isu(j)

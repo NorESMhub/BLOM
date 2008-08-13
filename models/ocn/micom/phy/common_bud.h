@@ -6,8 +6,9 @@ c
 #ifdef TRC
      .,trdp(ncalls)
 #endif
+     .,vol0,sf,tf
 c
-      real sdp,tdp,ddp
+      real sdp,tdp,ddp,vol0,sf,tf
 #ifdef TRC
       real trdp
 #endif

@@ -248,7 +248,8 @@ c
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
           pb(i,j,1)=p(i,j,kk+1)
           pb(i,j,2)=pb(i,j,1)
-          pb(i,j,3)=pb(i,j,1)
+          pb_mn(i,j,1)=pb(i,j,1)
+          pb_mn(i,j,2)=pb(i,j,1)
           pb_p(i,j)=pb(i,j,1)
         enddo
         enddo

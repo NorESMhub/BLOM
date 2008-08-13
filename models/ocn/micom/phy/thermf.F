@@ -441,6 +441,17 @@ c --- with a salt flux based on some reference salinities. Also convert
 c --- salt flux to MICOM units [10e-3 g cm-2 s-1]
 c --- ------------------------------------------------------------------
 c
+#ifdef ARCTIC
+      do j=jtdm-j0,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          util1(i,j)=0.
+          util2(i,j)=0.
+          util3(i,j)=0.
+        enddo
+        enddo
+      enddo
+#endif
       call xcsum(totsfl,util1,ip)
       call xcsum(totdvi,util2,ip)
       call xcsum(totwfl,util3,ip)

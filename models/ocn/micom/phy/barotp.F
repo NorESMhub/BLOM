@@ -15,8 +15,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t,umaxb,uminb,vmaxb,vminb,
      .  uglue,vglue
-      real q,wn,utndcy,vtndcy,damp
-      integer i,j,k,l,kn,nb,lll,ml,nl,ll,ns
+      real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy,damp
+      integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll,ns
       parameter (damp=1.e-6)  !  for simulating coastal wave breaking
 c
 c --- ------------------------------------------------------------------
@@ -78,6 +78,13 @@ c --- ------------------------------------------------------------------
 c --- potential vorticity of barotropic flow
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO
+      do j=-2,jj+3
+        do i=0,ii+1
+          pvtrop_o(i,j)=pvtrop(i,j,n)
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(q)
       do j=0,jj
         do l=1,isu(j)
@@ -129,7 +136,7 @@ c
       call xctilr(xiym(1-nbdy,1-nbdy,n), 1,1, 1,2, halo_vs)
 c
 #ifdef ARCTIC
-c --- with arctic patch, switch umaxb and uminb, vmaxb and vmaxb, xixp
+c --- with arctic patch, switch umaxb and uminb, vmaxb and vminb, xixp
 c --- and xixm, and xiyp and xiym in the halo region adjacent to the
 c --- arctic grid intersection
       if (nproc.eq.jpr) then
@@ -159,34 +166,36 @@ c --- time level so that the average barotropic transport for a
 c --- leap-frog baroclinic step can be predicted
 c --- ------------------------------------------------------------------
 c
-      do nb=1,2
+      do nb=1,5
 c
-        if (nb.eq.1) then
+        if     (nb.eq.1) then
+          lll0=1
+          ml=1
+          nl=2
+          woa=-1./lstep
+          wob=.5+(lll0-.5)/lstep
+          wna=0.
+          wnb=0.
 c$OMP PARALLEL DO
           do j=1,jj
             do i=1,ii
-              pb_t(i,j,1)=pb(i,j,m)
-              pb_t(i,j,2)=pb(i,j,3)
-              ubflx_t(i,j,1)=ubflx(i,j,m)
-              ubflx_t(i,j,2)=ubflx(i,j,3)
-              vbflx_t(i,j,1)=vbflx(i,j,m)
-              vbflx_t(i,j,2)=vbflx(i,j,3)
+              pb_t(i,j,ml)=pb_mn(i,j,ml)
+              pb_t(i,j,nl)=pb_mn(i,j,nl)
+              ubflx_t(i,j,ml)=ubflx_mn(i,j,ml)
+              ubflx_t(i,j,nl)=ubflx_mn(i,j,nl)
+              vbflx_t(i,j,ml)=vbflx_mn(i,j,ml)
+              vbflx_t(i,j,nl)=vbflx_mn(i,j,nl)
             enddo
           enddo
 c$OMP END PARALLEL DO
-        else
-c$OMP PARALLEL DO
-          do j=1,jj
-            do i=1,ii
-              pb_t(i,j,1)=pb(i,j,n)
-              pb_t(i,j,2)=pb(i,j,3)
-              ubflx_t(i,j,1)=ubflx(i,j,n)
-              ubflx_t(i,j,2)=ubflx(i,j,3)
-              vbflx_t(i,j,1)=vbflx(i,j,n)
-              vbflx_t(i,j,2)=vbflx(i,j,3)
-            enddo
-          enddo
-c$OMP END PARALLEL DO
+        elseif (nb.eq.2) then
+          woa=0.
+          wob=0.
+          wna=1./lstep
+          wnb=-(lll0-.5)/lstep
+        elseif (nb.eq.4) then
+          wna=0.
+          wnb=1.
         endif
 c
 c$OMP PARALLEL DO
@@ -216,302 +225,387 @@ c --- - scheme) in order to combine forward-backward scheme with
 c --- - leapfrog treatment of coriolis term, v-eqn must be solved before
 c --- - u-eqn every other time step
 c
-        ml=1
-        nl=2
+        do lll=lll0,lll0+lstep/2-1
 c
-        do lll=1,lstep,2
+          if (mod(lll,2).eq.1) then
 c
-          if (nb.eq.1) then
-            wn=(lll-.5)/real(lstep)
-          else
-            wn=1.
-          endif
+            wo=woa*lll+wob
+            wn=wna*lll+wnb
+            wm=1.-wo-wn
 c
-          call xctilr(pb_t, 1,2, 2,2, halo_ps)
-          call xctilr(ubflx_t, 1,2, 2,2, halo_uv)
-          call xctilr(vbflx_t, 1,2, 2,3, halo_vv)
+            call xctilr(pb_t, 1,2, 2,2, halo_ps)
+            call xctilr(ubflx_t, 1,2, 2,2, halo_uv)
+            call xctilr(vbflx_t, 1,2, 2,3, halo_vv)
 c
-c --- --- continuity equation
+c --- ----- continuity equation
 c
 c$OMP PARALLEL DO
 #ifdef NEST
-          do j=2,jj-2
-            do l=1,isp(j)
-            do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
+            do j=2,jj-2
+              do l=1,isp(j)
+              do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
 #else
-          do j=-1,jj+2
-            do l=1,isp(j)
-            do i=max(-1,ifp(j,l)),min(ii+1,ilp(j,l))
+            do j=-1,jj+2
+              do l=1,isp(j)
+              do i=max(-1,ifp(j,l)),min(ii+1,ilp(j,l))
 #endif
-              pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
-     .         -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
-     .                         +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
-     .          *scp2i(i,j)
+                pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
+     .           -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
+     .                           +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
+     .            *scp2i(i,j)
+              enddo
+              enddo
             enddo
-            enddo
-          enddo
 c$OMP END PARALLEL DO
 c
-c --- --- u momentum equation
+c --- ----- u momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
 #ifdef NEST
-          do j=2,jj-2
-            do l=1,isu(j)
-            do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
+            do j=2,jj-2
+              do l=1,isu(j)
+              do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
 #else
-          do j=-1,jj+2
-            do l=1,isu(j)
-            do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
+            do j=-1,jj+2
+              do l=1,isu(j)
+              do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
 #endif
 c
-              ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
-     .                     +(1.+wbaro)*ubflx_t(i,j,ml)
+                ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                       +(1.+wbaro)*ubflx_t(i,j,ml)
 c
-              q= (vbflx_t(i  ,j  ,ml)*scvxi(i  ,j  )
-     .           +vbflx_t(i  ,j+1,ml)*scvxi(i  ,j+1)
-     .           +vbflx_t(i-1,j  ,ml)*scvxi(i-1,j  )
-     .           +vbflx_t(i-1,j+1,ml)*scvxi(i-1,j+1))
-     .           *((1.-wn)*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
-     .            +    wn *(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
+                q= (vbflx_t(i  ,j  ,ml)*scvxi(i  ,j  )
+     .             +vbflx_t(i  ,j+1,ml)*scvxi(i  ,j+1)
+     .             +vbflx_t(i-1,j  ,ml)*scvxi(i-1,j  )
+     .             +vbflx_t(i-1,j+1,ml)*scvxi(i-1,j+1))
+     .             *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
+     .              +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
+     .              +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
 c
-              ubcors_t(i,j)=ubcors_t(i,j)+q
+                ubcors_t(i,j)=ubcors_t(i,j)+q
 c
-              utndcy=q+
-     .         ((1.-wn)*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
-     .                                -xixm(i,j,m)*pb_t(i-1,j,nl)))
-     .         +    wn *(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
-     .                                -xixm(i,j,n)*pb_t(i-1,j,nl))))
-     .         *scuxi(i,j)
+                utndcy=q+
+     .           (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                             -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .           +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                             -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .           +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                             -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .           *scuxi(i,j)
 c
-              ubflx_t(i,j,nl)=
-     .          (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
-     .         +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
-     .                          *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
-     .                         -uglue(i,j)*ubflx_t(i,j,ml))
-              ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
-     .                            ubflx_t(i,j,nl)))
+                ubflx_t(i,j,nl)=
+     .            (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .           +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                            *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                           -uglue(i,j)*ubflx_t(i,j,ml))
+                ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                              ubflx_t(i,j,nl)))
 c
+              enddo
+              enddo
             enddo
-            enddo
-          enddo
 c$OMP END PARALLEL DO
 c
-c --- --- v momentum equation
+c --- ----- v momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
 #ifdef NEST
-          do j=3,jj-2
-            do l=1,isv(j)
-            do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
+            do j=3,jj-2
+              do l=1,isv(j)
+              do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
 #else
-          do j=0,jj+2
-            do l=1,isv(j)
-            do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
+            do j=0,jj+2
+              do l=1,isv(j)
+              do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
 #endif
 c
-              vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
-     .                     +(1.+wbaro)*vbflx_t(i,j,ml)
+                vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
+     .                       +(1.+wbaro)*vbflx_t(i,j,ml)
 c
-              q=-(ubflx_t(i  ,j  ,nl)*scuyi(i  ,j  )
-     .           +ubflx_t(i+1,j  ,nl)*scuyi(i+1,j  )
-     .           +ubflx_t(i  ,j-1,nl)*scuyi(i  ,j-1)
-     .           +ubflx_t(i+1,j-1,nl)*scuyi(i+1,j-1))
-     .          *((1.-wn)*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
-     .           +    wn *(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
+                q=-(ubflx_t(i  ,j  ,nl)*scuyi(i  ,j  )
+     .             +ubflx_t(i+1,j  ,nl)*scuyi(i+1,j  )
+     .             +ubflx_t(i  ,j-1,nl)*scuyi(i  ,j-1)
+     .             +ubflx_t(i+1,j-1,nl)*scuyi(i+1,j-1))
+     .            *(wo*(pvtrop_o(i,j)+pvtrop_o(i+1,j))
+     .             +wm*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
+     .             +wn*(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
 c
-              vbcors_t(i,j)=vbcors_t(i,j)+q
+                vbcors_t(i,j)=vbcors_t(i,j)+q
 c
-              vtndcy=q+
-     .         ((1.-wn)*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
-     .                                -xiym(i,j,m)*pb_t(i,j-1,nl)))
-     .         +    wn *(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
-     .                                -xiym(i,j,n)*pb_t(i,j-1,nl))))
-     .         *scvyi(i,j)
+                vtndcy=q+
+     .           (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
+     .                             -xiym_o(i,j)*pb_t(i,j-1,nl)))
+     .           +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
+     .                             -xiym(i,j,m)*pb_t(i,j-1,nl)))
+     .           +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
+     .                             -xiym(i,j,n)*pb_t(i,j-1,nl))))
+     .           *scvyi(i,j)
 c
-              vbflx_t(i,j,nl)=
-     .          (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
-     .         +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
-     .                          *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
-     .                         -vglue(i,j)*vbflx_t(i,j,ml))
-              vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
-     .                            vbflx_t(i,j,nl)))
+                vbflx_t(i,j,nl)=
+     .            (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
+     .           +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
+     .                            *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
+     .                           -vglue(i,j)*vbflx_t(i,j,ml))
+                vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
+     .                              vbflx_t(i,j,nl)))
 c
+              enddo 
+              enddo 
             enddo 
-            enddo 
-          enddo 
 c$OMP END PARALLEL DO
 c
 #ifdef NEST
-          call btpnst(m,n,nl,lll,wn)
+            call btpnst(m,n,nl,lll,wn)
 #endif
 c
-          ll=ml
-          ml=nl
-          nl=ll
+            ll=ml
+            ml=nl
+            nl=ll
 c
-          if (nb.eq.1) then
-            wn=((lll+1)-.5)/real(lstep)
           else
-            wn=1.
-          endif
 c
-c --- --- continuity equation
+            wo=woa*lll+wob
+            wn=wna*lll+wnb
+            wm=1.-wo-wn
+c
+c --- ----- continuity equation
 c
 c$OMP PARALLEL DO
 #ifdef NEST
-          do j=2,jj-2
-            do l=1,isp(j)
-            do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
+            do j=2,jj-2
+              do l=1,isp(j)
+              do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
 #else
-          do j=0,jj+1
-            do l=1,isp(j)
-            do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
+            do j=0,jj+1
+              do l=1,isp(j)
+              do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
 #endif
-              pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
-     .         -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
-     .                         +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
-     .          *scp2i(i,j)
+                pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
+     .           -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
+     .                           +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
+     .            *scp2i(i,j)
+              enddo
+              enddo
             enddo
-            enddo
-          enddo
 c$OMP END PARALLEL DO
 c
-c --- --- v momentum equation
+c --- ----- v momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
 #ifdef NEST
-          do j=3,jj-2
-            do l=1,isv(j)
-            do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
+            do j=3,jj-2
+              do l=1,isv(j)
+              do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
 #else
-          do j=1,jj+1
-            do l=1,isv(j)
-            do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
+            do j=1,jj+1
+              do l=1,isv(j)
+              do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
 #endif
 c
-              vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
-     .                     +(1.+wbaro)*vbflx_t(i,j,ml)
+                vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
+     .                       +(1.+wbaro)*vbflx_t(i,j,ml)
 c
-              q=-(ubflx_t(i  ,j  ,ml)*scuyi(i  ,j  )
-     .           +ubflx_t(i+1,j  ,ml)*scuyi(i+1,j  )
-     .           +ubflx_t(i  ,j-1,ml)*scuyi(i  ,j-1)
-     .           +ubflx_t(i+1,j-1,ml)*scuyi(i+1,j-1))
-     .          *((1.-wn)*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
-     .           +    wn *(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
+                q=-(ubflx_t(i  ,j  ,ml)*scuyi(i  ,j  )
+     .             +ubflx_t(i+1,j  ,ml)*scuyi(i+1,j  )
+     .             +ubflx_t(i  ,j-1,ml)*scuyi(i  ,j-1)
+     .             +ubflx_t(i+1,j-1,ml)*scuyi(i+1,j-1))
+     .            *(wo*(pvtrop_o(i,j)+pvtrop_o(i+1,j))
+     .             +wm*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
+     .             +wn*(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
 c
-              vbcors_t(i,j)=vbcors_t(i,j)+q
+                vbcors_t(i,j)=vbcors_t(i,j)+q
 c
-              vtndcy=q+
-     .         ((1.-wn)*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
-     .                                -xiym(i,j,m)*pb_t(i,j-1,nl)))
-     .         +    wn *(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
-     .                                -xiym(i,j,n)*pb_t(i,j-1,nl))))
-     .         *scvyi(i,j)
+                vtndcy=q+
+     .           (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
+     .                             -xiym_o(i,j)*pb_t(i,j-1,nl)))
+     .           +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
+     .                             -xiym(i,j,m)*pb_t(i,j-1,nl)))
+     .           +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
+     .                             -xiym(i,j,n)*pb_t(i,j-1,nl))))
+     .           *scvyi(i,j)
 c
-              vbflx_t(i,j,nl)=
-     .          (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
-     .         +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
-     .                          *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
-     .                         -vglue(i,j)*vbflx_t(i,j,ml))
-              vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
-     .                            vbflx_t(i,j,nl)))
+                vbflx_t(i,j,nl)=
+     .            (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
+     .           +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
+     .                            *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
+     .                           -vglue(i,j)*vbflx_t(i,j,ml))
+                vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
+     .                              vbflx_t(i,j,nl)))
 c
+              enddo 
+              enddo 
             enddo 
-            enddo 
-          enddo 
 c$OMP END PARALLEL DO
 c
-c --- --- u momentum equation
+c --- ----- u momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
 #ifdef NEST
-          do j=2,jj-2
-            do l=1,isu(j)
-            do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
+            do j=2,jj-2
+              do l=1,isu(j)
+              do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
 #else
-          do j=1,jj
-            do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            do j=1,jj
+              do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
 #endif
 c
-              ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
-     .                     +(1.+wbaro)*ubflx_t(i,j,ml)
+                ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                       +(1.+wbaro)*ubflx_t(i,j,ml)
 c
-              q= (vbflx_t(i  ,j  ,nl)*scvxi(i  ,j  )
-     .           +vbflx_t(i  ,j+1,nl)*scvxi(i  ,j+1)
-     .           +vbflx_t(i-1,j  ,nl)*scvxi(i-1,j  )
-     .           +vbflx_t(i-1,j+1,nl)*scvxi(i-1,j+1))
-     .           *((1.-wn)*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
-     .            +    wn *(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
+                q= (vbflx_t(i  ,j  ,nl)*scvxi(i  ,j  )
+     .             +vbflx_t(i  ,j+1,nl)*scvxi(i  ,j+1)
+     .             +vbflx_t(i-1,j  ,nl)*scvxi(i-1,j  )
+     .             +vbflx_t(i-1,j+1,nl)*scvxi(i-1,j+1))
+     .             *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
+     .              +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
+     .              +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
 c
-              ubcors_t(i,j)=ubcors_t(i,j)+q
+                ubcors_t(i,j)=ubcors_t(i,j)+q
 c
-              utndcy=q+
-     .         ((1.-wn)*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
-     .                                -xixm(i,j,m)*pb_t(i-1,j,nl)))
-     .         +    wn *(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
-     .                                -xixm(i,j,n)*pb_t(i-1,j,nl))))
-     .         *scuxi(i,j)
+                utndcy=q+
+     .           (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                             -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .           +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                             -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .           +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                             -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .           *scuxi(i,j)
 c
-              ubflx_t(i,j,nl)=
-     .          (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
-     .         +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
-     .                          *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
-     .                         -uglue(i,j)*ubflx_t(i,j,ml))
-              ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
-     .                            ubflx_t(i,j,nl)))
+                ubflx_t(i,j,nl)=
+     .            (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .           +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                            *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                           -uglue(i,j)*ubflx_t(i,j,ml))
+                ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                              ubflx_t(i,j,nl)))
 c
+              enddo
+              enddo
             enddo
-            enddo
-          enddo
 c$OMP END PARALLEL DO
 c
 #ifdef NEST
-          call btpnst(m,n,nl,lll,wn)
+            call btpnst(m,n,nl,lll,wn)
 #endif
 c
-          ll=ml
-          ml=nl
-          nl=ll
+            ll=ml
+            ml=nl
+            nl=ll
+c
+          endif
 c
         enddo ! lll
 c
-        if (nb.eq.1) then
+        lll0=lll0+lstep/2
 c
+        if     (nb.eq.1) then
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              pb(i,j,m)=pb_t(i,j,ml)
+            enddo
+            enddo
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              pbu(i,j,m)=min(pb_t(i,j,ml),pb_t(i-1,j,ml))
+              ubflx(i,j,m)=ubflx_t(i,j,ml)
+              ub(i,j,m)=ubflx(i,j,m)/(pbu(i,j,m)*scuy(i,j))
+              ubflxs(i,j,n)=ubflxs(i,j,n)+ubflxs_t(i,j)
+              ubflxs(i,j,m)=ubflxs(i,j,3)+ubflxs_t(i,j)
+            enddo
+            enddo
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              pbv(i,j,m)=min(pb_t(i,j,ml),pb_t(i,j-1,ml))
+              vbflx(i,j,m)=vbflx_t(i,j,ml)
+              vb(i,j,m)=vbflx(i,j,m)/(pbv(i,j,m)*scvx(i,j))
+              vbflxs(i,j,n)=vbflxs(i,j,n)+vbflxs_t(i,j)
+              vbflxs(i,j,m)=vbflxs(i,j,3)+vbflxs_t(i,j)
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        elseif (nb.eq.2) then
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              pb_mn(i,j,ml)=pb_t(i,j,ml)
+              pb_mn(i,j,nl)=pb_t(i,j,nl)
+            enddo
+            enddo
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              ubflx_mn(i,j,ml)=ubflx_t(i,j,ml)
+              ubflx_mn(i,j,nl)=ubflx_t(i,j,nl)
+              ubflxs(i,j,m)=ubflxs(i,j,m)+ubflxs_t(i,j)
+              ubflxs(i,j,3)=ubflxs_t(i,j)
+              ubflxs_p(i,j,n)=ubflxs_t(i,j)
+              ubcors_p(i,j)=ubcors_t(i,j)
+            enddo
+            enddo
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vbflx_mn(i,j,ml)=vbflx_t(i,j,ml)
+              vbflx_mn(i,j,nl)=vbflx_t(i,j,nl)
+              vbflxs(i,j,m)=vbflxs(i,j,m)+vbflxs_t(i,j)
+              vbflxs(i,j,3)=vbflxs_t(i,j)
+              vbflxs_p(i,j,n)=vbflxs_t(i,j)
+              vbcors_p(i,j)=vbcors_t(i,j)
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        elseif (nb.eq.3) then
 c$OMP PARALLEL DO
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               pb(i,j,n)=pb_t(i,j,ml)
-              pb(i,j,3)=pb_t(i,j,nl)
             enddo
             enddo
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
               pbu(i,j,n)=min(pb_t(i,j,ml),pb_t(i-1,j,ml))
               ubflx(i,j,n)=ubflx_t(i,j,ml)
-              ubflx(i,j,3)=ubflx_t(i,j,nl)
               ub(i,j,n)=ubflx(i,j,n)/(pbu(i,j,n)*scuy(i,j))
-              ubflxs(i,j,n)=ubflxs_t(i,j)
-              ubcors(i,j,n)=ubcors_t(i,j)
+              ubflxs_p(i,j,m)=ubflxs(i,j,m)+ubflxs_t(i,j)
+              ubflxs_p(i,j,n)=ubflxs_p(i,j,n)+ubflxs_t(i,j)
+              ubcors_p(i,j)=ubcors_p(i,j)+ubcors_t(i,j)
             enddo
             enddo
             do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
               pbv(i,j,n)=min(pb_t(i,j,ml),pb_t(i,j-1,ml))
               vbflx(i,j,n)=vbflx_t(i,j,ml)
-              vbflx(i,j,3)=vbflx_t(i,j,nl)
               vb(i,j,n)=vbflx(i,j,n)/(pbv(i,j,n)*scvx(i,j))
-              vbflxs(i,j,n)=vbflxs_t(i,j)
-              vbcors(i,j,n)=vbcors_t(i,j)
+              vbflxs_p(i,j,m)=vbflxs(i,j,m)+vbflxs_t(i,j)
+              vbflxs_p(i,j,n)=vbflxs_p(i,j,n)+vbflxs_t(i,j)
+              vbcors_p(i,j)=vbcors_p(i,j)+vbcors_t(i,j)
             enddo
             enddo
           enddo
 c$OMP END PARALLEL DO
-c
-        else
-c
+        elseif (nb.eq.4) then
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              ubflxs_p(i,j,n)=ubflxs_p(i,j,n)+ubflxs_t(i,j)
+              ubcors_p(i,j)=ubcors_p(i,j)+ubcors_t(i,j)
+            enddo
+            enddo
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vbflxs_p(i,j,n)=vbflxs_p(i,j,n)+vbflxs_t(i,j)
+              vbcors_p(i,j)=vbcors_p(i,j)+vbcors_t(i,j)
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        elseif (nb.eq.5) then
 c$OMP PARALLEL DO
           do j=1,jj
             do l=1,isp(j)
@@ -522,20 +616,19 @@ c$OMP PARALLEL DO
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
               pbu_p(i,j)=min(pb_t(i,j,ml),pb_t(i-1,j,ml))
-              ubflxs_p(i,j)=ubflxs_t(i,j)
-              ubcors_p(i,j)=ubcors_t(i,j)
+              ubflxs_p(i,j,n)=ubflxs_p(i,j,n)+ubflxs_t(i,j)
+              ubcors_p(i,j)=ubcors_p(i,j)+ubcors_t(i,j)
             enddo
             enddo
             do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
               pbv_p(i,j)=min(pb_t(i,j,ml),pb_t(i,j-1,ml))
-              vbflxs_p(i,j)=vbflxs_t(i,j)
-              vbcors_p(i,j)=vbcors_t(i,j)
+              vbflxs_p(i,j,n)=vbflxs_p(i,j,n)+vbflxs_t(i,j)
+              vbcors_p(i,j)=vbcors_p(i,j)+vbcors_t(i,j)
             enddo
             enddo
           enddo
 c$OMP END PARALLEL DO
-c
         endif
 c
       enddo ! nb
@@ -544,23 +637,21 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'barotp:'
         endif
-        call chksummsk(pb,ip,3,'pb')
+        call chksummsk(pb,ip,2,'pb')
         call chksummsk(pbu,iu,2,'pbu')
-        call chksummsk(ubflx,iu,3,'ubflx')
+        call chksummsk(ubflx,iu,2,'ubflx')
         call chksummsk(ub,iu,2,'ub')
-        call chksummsk(ubflxs,iu,2,'ubflxs')
-        call chksummsk(ubcors,iu,2,'ubcors')
+        call chksummsk(ubflxs,iu,3,'ubflxs')
         call chksummsk(pbv,iv,2,'pbv')
-        call chksummsk(vbflx,iv,3,'vbflx')
+        call chksummsk(vbflx,iv,2,'vbflx')
         call chksummsk(vb,iv,2,'vb')
-        call chksummsk(vbflxs,iv,2,'vbflxs')
-        call chksummsk(vbcors,iv,2,'vbcors')
+        call chksummsk(vbflxs,iv,3,'vbflxs')
         call chksummsk(pb_p,ip,1,'pb_p')
         call chksummsk(pbu_p,iu,1,'pbu_p')
-        call chksummsk(ubflxs_p,iu,1,'ubflxs_p')
+        call chksummsk(ubflxs_p,iu,2,'ubflxs_p')
         call chksummsk(ubcors_p,iu,1,'ubcors_p')
         call chksummsk(pbv_p,iv,1,'pbv_p')
-        call chksummsk(vbflxs_p,iv,1,'vbflxs_p')
+        call chksummsk(vbflxs_p,iv,2,'vbflxs_p')
         call chksummsk(vbcors_p,iv,1,'vbcors_p')
       endif
 c

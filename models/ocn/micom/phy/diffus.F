@@ -21,8 +21,8 @@ c
       integer nt
 #endif
 c
-      real hfharm
-      external hfharm
+      real hfharm,sig
+      external hfharm,sig
 c
       real dpeps
       parameter (dpeps=1.e-4)
@@ -32,7 +32,7 @@ c
       call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
 #ifdef TRC
       do nt=1,ntrc
-        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
+        call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 2,2, halo_ps)
       enddo
 #endif
 c
@@ -91,6 +91,7 @@ c$OMP PARALLEL DO PRIVATE(q)
      .                        +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
             enddo
 #endif
+            sigma(i,j,kn)=sig(temp(i,j,kn),saln(i,j,kn))
           enddo
           enddo
         enddo

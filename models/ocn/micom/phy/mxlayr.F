@@ -398,10 +398,10 @@ c
         tndcyt=tndcyt+ttem(k)*delp(k)
         tndcys=tndcys+ssal(k)*delp(k)
       end do
-      q=100.*acurcy*pb(i,j,n)*g
+      q=100.*acurcy*pb_p(i,j)*g
       if (abs((surflx(i,j)+surrlx(i,j))*delt1*g+tndcyt*spcifh).gt.10.*q
      ..or.abs((salflx(i,j)+salrlx(i,j))*delt1*g+tndcys).gt.35.*q) then
-      q=1./pb(i,j,n)
+      q=1./pb_p(i,j)
         write (lp,'(i9,2i5,3x,a,2f9.5/22x,a,2f9.5)') nstep,i0+i,j0+j,
      .    'saln flux,tndcy:',
      .    q*(salflx(i,j)+salrlx(i,j))*delt1*g       ,q*tndcys,
@@ -456,8 +456,8 @@ c$OMP PARALLEL DO
  883  p(i,j,k+1)=p(i,j,k)+dp(i,j,k+nn)
 c$OMP END PARALLEL DO
 c
-      call xctilr(pbu(1-nbdy,1-nbdy,n), 1,1, 2,2, halo_us)
-      call xctilr(pbv(1-nbdy,1-nbdy,n), 1,1, 2,2, halo_vs)
+      call xctilr(pbu, 1,2, 2,2, halo_us)
+      call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
 c$OMP PARALLEL DO PRIVATE(kn)
       do j=-1,jj+2

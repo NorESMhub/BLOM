@@ -91,9 +91,6 @@ c --- -   <experiment name>_restphy_3.nc
                  call ncgeti('nyear0',nyearr)
                  call ncgetr('time0',time0)
                  call ncgetr('time',time)
-                 write (lp,*) path2(1:path2_len)//rstfnm
-                 write (lp,*) nday0,nmonth0,nyear0,nint(time-time0)
-                 write (lp,*) nyearr,nmonthr,ndayr,nyear,nmonth,nday
                  if (nint(time).eq.nday1.and.
      .             daydif(nyearr,nmonthr,ndayr,nyear,nmonth,nday).eq.
      .             nint(time-time0)) exit 
@@ -143,10 +140,9 @@ c
       call ncread('saln',saln,ip,1,0.)
       call ncread('sigma',sigma,ip,1,0.)
       call ncread('pgfx',pgfx,iuu,1,0.)
-      call ncread('pgfxo',pgfxo,iuu,1,0.)
       call ncread('pgfy',pgfy,ivv,1,0.)
-      call ncread('pgfyo',pgfyo,ivv,1,0.)
       call ncread('pb',pb,ip,1,0.)
+      call ncread('pb_mn',pb_mn,ip,1,0.)
       call ncread('pb_p',pb_p,ip,1,0.)
       call ncread('pbu',pbu,iuu,1,0.)
       call ncread('pbv',pbv,ivv,1,0.)
@@ -154,14 +150,16 @@ c
       call ncread('pbv_p',pbv_p,ivv,1,0.)
       call ncread('ub',ub,iuu,1,0.)
       call ncread('vb',vb,ivv,1,0.)
+      call ncread('uflx',uflx,iuu,1,0.)
+      call ncread('vflx',vflx,ivv,1,0.)
       call ncread('ubflx',ubflx,iuu,1,0.)
       call ncread('vbflx',vbflx,ivv,1,0.)
+      call ncread('ubflx_mn',ubflx_mn,iuu,1,0.)
+      call ncread('vbflx_mn',vbflx_mn,ivv,1,0.)
       call ncread('ubflxs',ubflxs,iuu,1,0.)
       call ncread('vbflxs',vbflxs,ivv,1,0.)
       call ncread('ubflxs_p',ubflxs_p,iuu,1,0.)
       call ncread('vbflxs_p',vbflxs_p,ivv,1,0.)
-      call ncread('ubcors',ubcors,iuu,1,0.)
-      call ncread('vbcors',vbcors,ivv,1,0.)
       call ncread('ubcors_p',ubcors_p,iuu,1,0.)
       call ncread('vbcors_p',vbcors_p,ivv,1,0.)
       call ncread('pvtrop',pvtrop,iqq,1,0.)
@@ -242,8 +240,8 @@ c --- read accumulated 2d fields restart file for monthly output
             write (lp,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file!'
             call ncfcls 
-            call xcstop('restart_rd') 
-            stop
+            call xcstop('(restart_rd)') 
+                   stop '(restart_rd)' 
          end if 
          call ncread('ub_dia',ub_dia,iuu,1,0.)
          call ncread('vb_dia',vb_dia,ivv,1,0.)
@@ -306,8 +304,8 @@ c --- read accumulated 3d fields restart file for monthly output
             write (lp,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file!'
             call ncfcls
-            call xcstop('restart_rd')
-            stop
+            call xcstop('(restart_rd)') 
+                   stop '(restart_rd)' 
          end if
          call ncread('uvel_dia',uvel_dia,iuu,1,0.)
          call ncread('vvel_dia',vvel_dia,ivv,1,0.)
@@ -349,8 +347,8 @@ c --- read diag. heat flux restart file if available
             write (lp,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file!'
             call ncfcls
-            call xcstop('restart_rd')
-            stop 
+            call xcstop('(restart_rd)') 
+                   stop '(restart_rd)' 
          end if
          call ncread('tflxdi',tflxdi,ip,1,0.)
          call ncgeti('nflxdi',nflxdi)
@@ -381,8 +379,8 @@ c --- read diag. salt flux restart file if available
             write (lp,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file!'
             call ncfcls
-            call xcstop('restart_rd')
-            stop 
+            call xcstop('(restart_rd)') 
+                   stop '(restart_rd)' 
          end if
          call ncread('sflxdi',sflxdi,ip,1,0.)
          call ncgeti('nflxdi',nflxdi)

@@ -28,6 +28,18 @@ c --- estimate diffusive flux by biharmonic thickness diffusion
 c --- (literally, interface depth diffusion)
 c --- ---------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(kn)
+      do j=-2,jj+3
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c$OMP PARALLEL DO
       do j=-1,jj+2
         do l=1,isu(j)
@@ -140,8 +152,8 @@ c$OMP END PARALLEL DO
 c
       call xctilr(u, 1,2*kk, 2,2, halo_uv)
       call xctilr(v, 1,2*kk, 2,2, halo_vv)
-      call xctilr(ubflxs_p, 1,1, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,1, 2,2, halo_vv)
+      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
+      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
       call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
       call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
 #ifdef TRC
@@ -162,7 +174,7 @@ c
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             utotm(i,j)=u(i,j,km)
-     .        +((ubflxs(i,j,m)+ubflxs_p(i,j))*dlt/pbu(i,j,m)
+     .        +(ubflxs_p(i,j,m)*dlt/pbu(i,j,m)
      .         +uflxdf(i,j,k)/max(onemm,dpu(i,j,kn)))/(delt1*scuy(i,j))
           enddo
           enddo
@@ -171,7 +183,7 @@ c
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             vtotm(i,j)=v(i,j,km)
-     .        +((vbflxs(i,j,m)+vbflxs_p(i,j))*dlt/pbv(i,j,m)
+     .        +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m)
      .         +vflxdf(i,j,k)/max(onemm,dpv(i,j,kn)))/(delt1*scvx(i,j))
           enddo
           enddo
@@ -187,8 +199,8 @@ c
      .             pbu(1-nbdy,1-nbdy,n),pbv(1-nbdy,1-nbdy,n),
      .             p(1-nbdy,1-nbdy,k+1),utotm,vtotm,delt1,isopyc,1,
      .             dp(1-nbdy,1-nbdy,kn),temp(1-nbdy,1-nbdy,kn),
-     .             saln(1-nbdy,1-nbdy,kn),uflx(1-nbdy,1-nbdy,k),
-     .             vflx(1-nbdy,1-nbdy,k)
+     .             saln(1-nbdy,1-nbdy,kn),uflx(1-nbdy,1-nbdy,km),
+     .             vflx(1-nbdy,1-nbdy,km)
 #ifdef TRC
      .            ,k,ntrc,trc
 #  ifdef ATRC
@@ -217,33 +229,35 @@ c$OMP PARALLEL DO PRIVATE(kn)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(km)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-          utotm(i,j)=dlt*(ubflxs(i,j,m)+ubflxs_p(i,j))
+          utotm(i,j)=dlt*ubflxs_p(i,j,m)
         enddo
         enddo
         do k=1,kk
+          km=k+mm
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            utotm(i,j)=utotm(i,j)-uflx(i,j,k)
+            utotm(i,j)=utotm(i,j)-uflx(i,j,km)
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(km)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          vtotm(i,j)=dlt*(vbflxs(i,j,m)+vbflxs_p(i,j))
+          vtotm(i,j)=dlt*vbflxs_p(i,j,m)
         enddo
         enddo
         do k=1,kk
+          km=k+mm
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vtotm(i,j)=vtotm(i,j)-vflx(i,j,k)
+            vtotm(i,j)=vtotm(i,j)-vflx(i,j,km)
           enddo
           enddo
         enddo
@@ -251,6 +265,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
       do k=1,kk
+        km=k+mm
         kn=k+nn
 c
 c$OMP PARALLEL DO
@@ -276,7 +291,7 @@ c$OMP PARALLEL DO
               enddo
 #endif
             endif
-            uflx(i,j,k)=uflx(i,j,k)+uflux(i,j)
+            uflx(i,j,km)=uflx(i,j,km)+uflux(i,j)
           enddo
           enddo
         enddo
@@ -304,7 +319,7 @@ c$OMP PARALLEL DO
               enddo
 #endif
             endif
-            vflx(i,j,k)=vflx(i,j,k)+vflux(i,j)
+            vflx(i,j,km)=vflx(i,j,km)+vflux(i,j)
           enddo
           enddo
         enddo
@@ -332,6 +347,7 @@ c$OMP PARALLEL DO PRIVATE(dpo,dpni)
      .           +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
             enddo
 #endif
+            if (dp(i,j,kn).lt.1.e-6) dp(i,j,kn)=0.
             p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
           enddo
           enddo
@@ -365,8 +381,8 @@ c
         call chksummsk(dp,ip,2*kk,'dp')
         call chksummsk(temp,ip,2*kk,'temp')
         call chksummsk(saln,ip,2*kk,'saln')
-        call chksummsk(uflx,iu,kk,'uflx')
-        call chksummsk(vflx,iv,kk,'vflx')
+        call chksummsk(uflx,iu,2*kk,'uflx')
+        call chksummsk(vflx,iv,2*kk,'vflx')
 #ifdef TRC
         do nt=1,ntrc
           call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')

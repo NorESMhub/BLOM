@@ -13,7 +13,6 @@ c
 #include "param_bud.h"
 #include "common_bud.h"
 c
-cbud  real vol0j(jdm),vol0
       integer i,j,k,l,m,n,mm,nn,km,nday1,nday2
       real q
 c
@@ -47,8 +46,8 @@ c --- ------------------------------------------------------------------
      .    ' Preproc. ident. check: Either CCSMCOUPLED, CLIM ',
      .    ', or SYN must be defined!'
       endif
-      call xcstop('(micom)')
-             stop '(micom)'
+      call xcstop('(micom_init)')
+             stop '(micom_init)'
 #endif
 c
 c --- ------------------------------------------------------------------
@@ -243,51 +242,61 @@ c
           call flush(lp)
       endif
 c
-cbud  do j=1,jj
-cbud    vol0j(j)=0.
-cbud  enddo
+      if (cnsvdi) then
 c$OMP PARALLEL DO
-cbud  do j=1,jj
-cbud    do l=1,isp(j)
-cbud    do i=ifp(j,l),ilp(j,l)
-cbud      vol0j(j)=vol0j(j)+pb(i,j,1)*scp2(i,j)
-cbud    enddo
-cbud    enddo
-cbud  enddo
+        do j=1,jj
+          do l=1,isp(j)
+          do i=ifp(j,l),ilp(j,l)
+            util1(i,j)=pb(i,j,1)*scp2(i,j)
+          enddo
+          enddo
+        enddo
 c$OMP END PARALLEL DO
-cbud  vol0=0.
-cbud  do j=1,jj
-cbud    vol0=vol0+vol0j(j)
-cbud  enddo
+#ifdef ARCTIC
+        do j=jtdm-j0,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=0.
+          enddo
+          enddo
+        enddo
+#endif
+        call xcsum(vol0,util1,ip)
+      endif
 c
 c --- ------------------------------------------------------------------
 c --- update some halos
 c --- ------------------------------------------------------------------
 c
-      m=mod(nstep  ,2)+1
-      call xctilr(ubflxs, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs, 1,2, 2,2, halo_vv)
+      call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
+      call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
       call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
-      call xctilr(pvtrop(1-nbdy,1-nbdy,m), 1,1, 1,3, halo_qs)
-      call xctilr(pgfxm(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_uv)
-      call xctilr(xixp(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_us)
-      call xctilr(xixm(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_us)
-      call xctilr(pgfym(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_vv)
-      call xctilr(xiyp(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_vs)
-      call xctilr(xiym(1-nbdy,1-nbdy,m), 1,1, 1,2, halo_vs)
+      call xctilr(pvtrop, 1,2, 1,3, halo_qs)
+      call xctilr(pgfxm, 1,2, 1,2, halo_uv)
+      call xctilr(xixp, 1,2, 1,2, halo_us)
+      call xctilr(xixm, 1,2, 1,2, halo_us)
+      call xctilr(pgfym, 1,2, 1,2, halo_vv)
+      call xctilr(xiyp, 1,2, 1,2, halo_vs)
+      call xctilr(xiym, 1,2, 1,2, halo_vs)
 c
 #ifdef ARCTIC
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection
       if (nproc.eq.jpr) then
         do j=jj+1,jj+2
-          do i=0,ii
-            q=xixp(i,j,m)
-            xixp(i,j,m)=xixm(i,j,m)
-            xixm(i,j,m)=q
-            q=xiyp(i,j,m)
-            xiyp(i,j,m)=xiym(i,j,m)
-            xiym(i,j,m)=q
+          do i=0,ii+1
+            q=xixp(i,j,1)
+            xixp(i,j,1)=xixm(i,j,1)
+            xixm(i,j,1)=q
+            q=xiyp(i,j,1)
+            xiyp(i,j,1)=xiym(i,j,1)
+            xiym(i,j,1)=q
+            q=xixp(i,j,2)
+            xixp(i,j,2)=xixm(i,j,2)
+            xixm(i,j,2)=q
+            q=xiyp(i,j,2)
+            xiyp(i,j,2)=xiym(i,j,2)
+            xiym(i,j,2)=q
           enddo
         enddo
       endif

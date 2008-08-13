@@ -58,15 +58,11 @@ c
  801  util2(i,j)=util2(i,j)+(v(i,j,kn)+v(i,j+1,kn))*(pbotl-ptopl)
 c
       do 803 i=max(0,ifp(j,l)),min(ii,ilp(j,l))
-      ubot=((ubflxs(i  ,j,n)+ubflxs(i  ,j,m))
-     .      /max(epsil,pbu(i  ,j,n)*scuy(i  ,j))
-     .     +(ubflxs(i+1,j,n)+ubflxs(i+1,j,m))
-     .      /max(epsil,pbu(i+1,j,n)*scuy(i+1,j)))*tsfac
+      ubot=(ubflxs_p(i  ,j,n)/max(epsil,pbu(i  ,j,n)*scuy(i  ,j))
+     .     +ubflxs_p(i+1,j,n)/max(epsil,pbu(i+1,j,n)*scuy(i+1,j)))*tsfac
      .    +util1(i,j)/thkbop
-      vbot=((vbflxs(i,j  ,n)+vbflxs(i,j  ,m))
-     .      /max(epsil,pbv(i,j  ,n)*scvx(i,j  ))
-     .     +(vbflxs(i,j+1,n)+vbflxs(i,j+1,m))
-     .      /max(epsil,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac
+      vbot=(vbflxs_p(i,j  ,n)/max(epsil,pbv(i,j  ,n)*scvx(i,j  ))
+     .     +vbflxs_p(i,j+1,n)/max(epsil,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac
      .    +util2(i,j)/thkbop
  803  drag(i,j)=min(.003*(.25*sqrt(ubot*ubot+vbot*vbot)+cbar)
      .          /(100.*thkbot),1./delt1)  !  units: 1/s
@@ -80,11 +76,11 @@ c$OMP PARALLEL DO
 c
       do 68 l=1,isu(j)
       do 68 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
- 68   ubrhs(i,j)=(ubcors(i,j,m)+ubcors_p(i,j))*tsfac
+ 68   ubrhs(i,j)=ubcors_p(i,j)*tsfac
 c
       do 69 l=1,isv(j)
       do 69 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
- 69   vbrhs(i,j)=(vbcors(i,j,m)+vbcors_p(i,j))*tsfac
+ 69   vbrhs(i,j)=vbcors_p(i,j)*tsfac
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO
@@ -149,28 +145,24 @@ c
       do 807 j=0,jj+1
       do 807 l=1,isu(j)
       do 807 i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
-      utotm(i,j)=u(i,j,km)+(ubflxs(i,j,m)+ubflxs_p(i,j))*tsfac
-     .                     /(pbu(i,j,m)*scuy(i,j))
+      utotm(i,j)=u(i,j,km)+ubflxs_p(i,j,m)*tsfac/(pbu(i,j,m)*scuy(i,j))
  807  uflux(i,j)=utotm(i,j)*max(dpu(i,j,km),cutoff)
 c
       do 808 j=-1,jj+2
       do 808 l=1,isu(j)
       do 808 i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
- 808  utotn(i,j)=u(i,j,kn)+(ubflxs(i,j,n)+ubflxs(i,j,m))*tsfac
-     .                     /(pbu(i,j,n)*scuy(i,j))
+ 808  utotn(i,j)=u(i,j,kn)+ubflxs_p(i,j,n)*tsfac/(pbu(i,j,n)*scuy(i,j))
 c
       do 809 j=0,jj+1
       do 809 l=1,isv(j)
       do 809 i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
-      vtotm(i,j)=v(i,j,km)+(vbflxs(i,j,m)+vbflxs_p(i,j))*tsfac
-     .                     /(pbv(i,j,m)*scvx(i,j))
+      vtotm(i,j)=v(i,j,km)+vbflxs_p(i,j,m)*tsfac/(pbv(i,j,m)*scvx(i,j))
  809  vflux(i,j)=vtotm(i,j)*max(dpv(i,j,km),cutoff)
 c
       do 810 j=-1,jj+2
       do 810 l=1,isv(j)
       do 810 i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
- 810  vtotn(i,j)=v(i,j,kn)+(vbflxs(i,j,n)+vbflxs(i,j,m))*tsfac
-     .                     /(pbv(i,j,n)*scvx(i,j))
+ 810  vtotn(i,j)=v(i,j,kn)+vbflxs_p(i,j,n)*tsfac/(pbv(i,j,n)*scvx(i,j))
 c
 c --- define auxiliary velocity fields (via,vib,uja,ujb) to implement
 c --- sidewall friction along near-vertical bottom slopes. wgtja,wgtjb,wgtia,

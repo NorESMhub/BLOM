@@ -76,29 +76,13 @@ c
 c ---  s w i t c h e s    (if set to .true., then...)
 c --- thermo      use thermodynamic forcing functions
 c
-      data thermo/.true./,csdiag/.false./
+      data thermo/.true./,csdiag/.false./,cnsvdi/.false./
 c
 c --- use 'huge' to initialize array portions that the code should never access
       data huge/1.e33/
 c
 c --- i/o file names
 c
-c     flnmdep = name/location of basin depth array
-c     flnmini = name/location of model initialization fields (dp,t,s)
-c     flnmfor = name/location of the forcing functions
-c     flnmdia = name/location of the diapycnal flux forcing fields
-c     flnmriv = name/location of freshwater (river runoff) fields
-c     flnmrsi = location (pathname) of restart file (input)
-c     flnmrso = location (pathname) of restart file (output)
-c     flnmarc = location (pathname) of archive files
-c     flnmovt = location (pathname) of ovtn.xxxxxx files
-
-ccc      data flnmdep/'/h/obelix2/bleck/micom/hybrid/depth.51x56'/
-ccc      data flnmrsi/'/h/menhir21/bleck/restart_in'/
-ccc      data flnmrso/'/h/menhir21/bleck/restart_out'/
-ccc      data flnmarc/'/h/menhir21/bleck/archv.000000'/
-ccc      data flnmovt/'/h/menhir21/bleck/'/
-ccc      data flnmfor/'/h/obelix2/bleck/micom/hybrid/'/
       data path /'./ '/
       data path1/'./ '/
       data path2/'./ '/

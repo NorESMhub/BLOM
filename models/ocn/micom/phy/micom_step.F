@@ -20,7 +20,7 @@ c
 #include "common_bud.h"
 #include "timing.h"
 c
-      real q,vol0,sf,tf
+      real q
       integer i,j,k,l,m,n,mm,nn,k1m,k1n
 c
       real step_time,
@@ -66,7 +66,7 @@ c --- advance tracers only every second time step
 #  endif
 #endif
 c
-cbud  call stdbud(1,n,nn,k1n)
+      if (cnsvdi) call stdbud(1,n,nn,k1n)
 c
 c --- Update calender
       call updcln(nstep)
@@ -130,7 +130,7 @@ cdiag write (lp,*) 'advdif...'
       call diffus(m,n,mm,nn,k1m,k1n)
       advdif_time=gettime()
 c
-cbud  call stdbud(2,n,nn,k1n)
+      if (cnsvdi) call stdbud(2,n,nn,k1n)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'sfcstr...'
@@ -163,21 +163,21 @@ cdiag write (lp,*) 'bclnst...'
 c     bclnst_time=gettime()
 #endif
 c
-cbud  call stdbud(3,n,nn,k1n)
+      if (cnsvdi) call stdbud(6,m,mm,k1m)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
       convec_time=gettime()
 c
-cbud  call stdbud(4,n,nn,k1n)
+      if (cnsvdi) call stdbud(3,n,nn,k1n)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'diapfl...'
       call diapfl(m,n,mm,nn,k1m,k1n)
       diapfl_time=gettime()
 c
-cbud  call stdbud(5,n,nn,k1n)
+      if (cnsvdi) call stdbud(4,n,nn,k1n)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'thermf...'
@@ -197,59 +197,79 @@ c --- update tracer due to non-passive processes
       if (mod(nstep+1,2).eq.1) call updtrc(m,n,mm,nn,k1m,k1n)
 #endif
 c
-cbud  call stdbud(6,n,nn,k1n)
+      if (cnsvdi) call stdbud(5,n,nn,k1n)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'tmsmt2...'
       call tmsmt2(m,n,mm,nn,k1m,k1n)
       tmsmt2_time=gettime()
 c
-cbud  call stdbud(7,m,mm,k1m)
+      if (cnsvdi) call stdbud(7,m,mm,k1m)
 c
-cbud  if (nstep.gt.nstep1+1) then
-cbud    open (11,file='salbud',position='append')
-cbud    write (11,'(i8,6e12.5)') nstep-1,
-cbud .    (sdp(2,m)-sdp(1,m))/vol0,(sdp(3,m)-sdp(2,m))/vol0,
-cbud .    (sdp(4,m)-sdp(3,m))/vol0,(sdp(5,m)-sdp(4,m))/vol0,
-cbud .    (sdp(6,m)-sdp(5,m)+sf*g)/vol0,(sdp(7,m)-sdp(6,m))/vol0
-cbud    close(11)
-cbud    open (11,file='tembud',position='append')
-cbud    write (11,'(i8,6e12.5)') nstep-1,
-cbud .    (tdp(2,m)-tdp(1,m))/vol0,(tdp(3,m)-tdp(2,m))/vol0,
-cbud .    (tdp(4,m)-tdp(3,m))/vol0,(tdp(5,m)-tdp(4,m))/vol0,
-cbud .    (tdp(6,m)-tdp(5,m)+tf*g/spcifh)/vol0,(tdp(7,m)-tdp(6,m))/vol0
-cbud    close(11)
-cbud    open (11,file='denbud',position='append')
-cbud    write (11,'(i8,6e12.5)') nstep-1,
-cbud .    (ddp(2,m)-ddp(1,m)),(ddp(3,m)-ddp(2,m)),(ddp(4,m)-ddp(3,m)),
-cbud .    (ddp(5,m)-ddp(4,m)),(ddp(6,m)-ddp(5,m)),(ddp(7,m)-ddp(6,m))
-cbud    close(11)
+      if (cnsvdi) then
+        if (mnproc.eq.1.and.nstep.gt.nstep1+1) then
+          open (11,file='salbud',position='append')
+          write (11,'(i8,6e12.4)') nstep-1,
+     .      (sdp(2,m)-sdp(1,m))/vol0,
+     .      (sdp(3,m)-sdp(2,m))/vol0,
+     .      (sdp(4,m)-sdp(3,m))/vol0,
+     .      (sdp(5,m)-sdp(4,m)+sf*g)/vol0,
+     .      (sdp(6,m)-sdp(5,m))/vol0,
+     .      (sdp(7,m)-sdp(6,m))/vol0
+          close(11)
+          open (11,file='tembud',position='append')
+          write (11,'(i8,6e12.4)') nstep-1,
+     .      (tdp(2,m)-tdp(1,m))/vol0,
+     .      (tdp(3,m)-tdp(2,m))/vol0,
+     .      (tdp(4,m)-tdp(3,m))/vol0,
+     .      (tdp(5,m)-tdp(4,m)+tf*g/spcifh)/vol0,
+     .      (tdp(6,m)-tdp(5,m))/vol0,
+     .      (tdp(7,m)-tdp(6,m))/vol0
+          close(11)
+          open (11,file='denbud',position='append')
+          write (11,'(i8,6e12.4)') nstep-1,
+     .      (ddp(2,m)-ddp(1,m)),(ddp(3,m)-ddp(2,m)),(ddp(4,m)-ddp(3,m)),
+     .      (ddp(5,m)-ddp(4,m)),(ddp(6,m)-ddp(5,m)),(ddp(7,m)-ddp(6,m))
+          close(11)
 #ifdef TRC
-cbud    if (m.eq.1) then
-cbud      open (11,file='trcbud',position='append')
-cbud      write (11,'(i8,6e12.5)') nstep,
-cbud .      (trdp(2)-trdp(1))/vol0,(trdp(3)-trdp(2))/vol0,
-cbud .      (trdp(4)-trdp(3))/vol0,(trdp(5)-trdp(4))/vol0,
-cbud .      (trdp(6)-trdp(5))/vol0,(trdp(7)-trdp(6))/vol0
-cbud      close(11)
-cbud      open (11,file='trcbudtot',position='append')
-cbud      write (11,'(i8,7e14.7)') nstep,
-cbud .      trdp(1)/vol0,trdp(2)/vol0,trdp(3)/vol0,
-cbud .      trdp(4)/vol0,trdp(5)/vol0,trdp(6)/vol0,trdp(7)/vol0
-cbud      close(11)
-cbud    endif
+          if (m.eq.1) then
+            open (11,file='trcbud',position='append')
+            write (11,'(i8,6e12.4)') nstep,
+     .        (trdp(2)-trdp(1))/vol0,(trdp(3)-trdp(2))/vol0,
+     .        (trdp(4)-trdp(3))/vol0,(trdp(5)-trdp(4))/vol0,
+     .        (trdp(6)-trdp(5))/vol0,(trdp(7)-trdp(6))/vol0
+            close(11)
+            open (11,file='trcbudtot',position='append')
+            write (11,'(i8,7e18.10)') nstep,
+     .        trdp(1)/vol0,trdp(2)/vol0,trdp(3)/vol0,
+     .        trdp(4)/vol0,trdp(5)/vol0,trdp(6)/vol0,trdp(7)/vol0
+            close(11)
+          endif
 #endif
-cbud  endif
-cbud  sf=0.
-cbud  tf=0.
-cbud  do j=1,jj
-cbud    do l=1,isp(j)
-cbud    do i=ifp(j,l),ilp(j,l)
-cbud      sf=sf+(salflx(i,j)+salrlx(i,j))*scp2(i,j)*delt1
-cbud      tf=tf+(surflx(i,j)+surrlx(i,j))*scp2(i,j)*delt1
-cbud    enddo
-cbud    enddo
-cbud  enddo
+        endif
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=(salflx(i,j)+salrlx(i,j))*scp2(i,j)*delt1
+            util2(i,j)=(surflx(i,j)+surrlx(i,j))*scp2(i,j)*delt1
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+#ifdef ARCTIC
+        do j=jtdm-j0,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=0.
+            util2(i,j)=0.
+          enddo
+          enddo
+        enddo
+#endif
+        call xcsum(sf,util1,ip)
+        call xcsum(tf,util2,ip)
+      endif
 c
       auxil_time=auxil_time+gettime()
 c
@@ -282,6 +302,13 @@ c --- - output restart files
 c --- ------------------------------------------------------------------
 c
         call restart_wt
+c
+#ifdef ARCTIC
+c --- this is needed to reproduce results after restart with arctic
+c --- patch
+      call xctilr(uflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
+      call xctilr(vflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
+#endif
 c
       endif
 #endif
@@ -387,6 +414,6 @@ c
       endif
 c
       delt1=baclin+baclin
-
+c
       return
       end

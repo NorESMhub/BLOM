@@ -2149,8 +2149,8 @@ c
                 if     (iisum(m,n).eq.1) then
                   i1sum(m,n) = i - nbdy - i0_pe(m,n)
                 endif
-              elseif (idhalo(2).eq.null_tile          .and.
-     &                i.gt.i0_pe(m,n)+ii_pe(m,n)      .and.
+              elseif ((idhalo(2).eq.null_tile.or.m.eq.mpe_e(n)) .and.
+     &                i.gt.i0_pe(m,n)+ii_pe(m,n)                .and.
      &                i.le.i0_pe(m,n)+ii_pe(m,n)+nbdy      ) then
                 iisum(m,n) = iisum(m,n) + 1
                 if     (iisum(m,n).eq.1) then
@@ -3064,12 +3064,10 @@ c
 c
 c     persistent communication handles.
 c
-      integer mpireqa(4*iqr),mpireqb(4),nreqa,
-     &        klmold,klnold,mhlold,nhlold,ityold
-      save    mpireqa,mpireqb,nreqa,
-     &        klmold,klnold,mhlold,nhlold,ityold
+      integer mpireqa(4*iqr),mpireqb(4),ilold,jlold,ityold,nreqa
+      save    mpireqa,mpireqb,ilold,jlold,ityold,nreqa
 c
-      data nreqa,klmold,klnold,mhlold,nhlold,ityold / 0,0,0,0,0,0 /
+      data ilold,jlold,ityold / 0,0,0 /
 #endif /* MPI */
 c
 c --- split large requests into smaller pieces
@@ -3267,21 +3265,13 @@ c
           else
             itynew = 1
           endif
-          if     (klnold.ne.(ld-l1+1) .or.
-     &            nhlold.ne.nhl       .or.
-     &            ityold.ne.itynew        ) then  !new mpi init needed
-#if defined(DEBUG_ALL)
-*           if     (mnproc.eq.1) then
-*             write(lp,'(a,4i6)') 'xctilr - nhl,l1,ld,itype = ',
-*    &                                      nhl,l1,ld,itype
-*           endif
-*           call xcsync(flush_lp)
-#endif
-            do i= 1,nreqa
-              call mpi_request_free(mpireqa(i), mpierr)
-            enddo
-            klnold = ld-l1+1
-            nhlold = nhl
+          if     (jlold.ne.l .or. ityold.ne.itynew) then
+            if     (jlold.ne.0) then
+              do i= 1,nreqa
+                call mpi_request_free(mpireqa(i), mpierr)
+              enddo
+            endif
+            jlold = l
             ityold = itynew
 c
 c           loop through all neigboring tiles.
@@ -3478,22 +3468,14 @@ c
      &          aj(1,4),l,MTYPER,idhalo(2), 9908,
      &          mpicomm, mpistat, mpierr)
 #else /* MPISRI */
-          if     (klmold.ne.(ld-l1+1) .or. mhlold.ne.mhl) then  !new mpi init
-#if defined(DEBUG_ALL)
-*           if     (mnproc.eq.1) then
-*             write(lp,'(a,3i6)') 'xctilr - mhl,l1,ld       = ',
-*    &                                      mhl,l1,ld
-*           endif
-*           call xcsync(flush_lp)
-#endif
-            if     (klmold.ne.0) then
+          if     (ilold.ne.l) then
+            if     (ilold.ne.0) then
               call mpi_request_free(mpireqb(1), mpierr)
               call mpi_request_free(mpireqb(2), mpierr)
               call mpi_request_free(mpireqb(3), mpierr)
               call mpi_request_free(mpireqb(4), mpierr)
             endif
-            klmold = ld-l1+1
-            mhlold = mhl
+            ilold = l
             call mpi_send_init(
      &            aj(1,1),l,MTYPER,idhalo(2), 9907,
      &            mpicomm, mpireqb(1), mpierr)

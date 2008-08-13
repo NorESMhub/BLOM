@@ -56,8 +56,8 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'Integrations days must be positive!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (nday2.lt.nday1) then
@@ -65,8 +65,8 @@ c
           write (lp,'(2a)') ' First day of integration must be less ',
      .      'than or equal to last day!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (nday1.eq.0.and.
@@ -76,8 +76,8 @@ c
      .      'model date and initial experiment date '
           write (lp,'(a)') ' must be equal!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (nyear.lt.nyear0.or.(nyear.eq.nyear0.and.nmonth.lt.nmonth0).or.
@@ -86,8 +86,8 @@ c
           write (lp,'(2a)') ' Model date must be greater or equal to ',
      .      'initial experiment date!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (mod(86400./baclin+epsil,1.).gt.2.*epsil) then
@@ -95,24 +95,24 @@ c
           write (lp,'(2a)') ' Must have an integer number of ',
      .     'baroclinic time steps pr. day!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (trxday.eq.0.and.ditflx) then
         if (mnproc.eq.1) then
           write (lp,*) 'trxday=0. and ditflx=.true.. Inconsistent!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
       if (srxday.eq.0.and.disflx) then
         if (mnproc.eq.1) then
           write (lp,*) 'srxday=0. and disflx=.true.. Inconsistent!'
         endif
-        call xcstop('(micom)')
-               stop '(micom)'
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
       endif
 c
 c --- trim the experiment id and paths
@@ -127,8 +127,8 @@ c --- trim the experiment id and paths
             write (lp,'(2a)') 'Place a colon after the end of useable ',
      .        'characters in runid!'
           endif
-          call xcstop('(micom)')
-                 stop '(micom)'
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
       enddo
       do m=n,80
@@ -144,8 +144,8 @@ c
             write (lp,'(2a)') 'Place a colon after the end of useable ',
      .        'characters in path!'
           endif
-          call xcstop('(micom)')
-                 stop '(micom)'
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
       enddo
       do m=n,80
@@ -160,8 +160,8 @@ c
             write (lp,'(2a)') 'Place a colon after the end of useable ',
      .        'characters in path1!'
           endif
-          call xcstop('(micom)')
-                 stop '(micom)'
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
       enddo
       do m=n,80
@@ -176,8 +176,8 @@ c
             write (lp,'(2a)') 'Place a colon after the end of useable ',
      .        'characters in path2!'
           endif
-          call xcstop('(micom)')
-                 stop '(micom)'
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
       enddo
       do m=n,80
@@ -193,8 +193,8 @@ c
             write (lp,'(2a)') 'Place a colon after the end of useable ',
      .        'characters in atm_path!'
           endif
-          call xcstop('(micom)')
-                 stop '(micom)'
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
       enddo
       do m=n,80

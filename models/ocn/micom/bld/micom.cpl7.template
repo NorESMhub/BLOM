@@ -63,11 +63,11 @@ cp -f $INPUTPATH/patch.input .
 
 cat >! ocn_in << EOF1
      0     : First day of integration (i6)
- 11000     : Last day of integration (i6)
+999999     : Last day of integration (i6)
 $YEAR0.$MONTH0.$DAY0 : Model date (i4,x,i2,x,i2)
 $YEAR0.$MONTH0.$DAY0 : Initial experiment date (i4,x,i2,x,i2)
 xxxx       : Experiment name (runid)
-  800.00   : Baroclinic time step (sec) (f8.2)
+ 1920.00   : Baroclinic time step (sec) (f8.2)
    40.00   : Barotropic time step (sec) (f8.2)
  30        : 2D diag. (i3). Positive: days pr diag., Negative: diags. pr day
  30        : 3D diag. (i3). Positive: days pr diag., Negative: diags. pr day

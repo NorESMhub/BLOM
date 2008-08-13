@@ -11,80 +11,97 @@ c
       integer ncall,n,nn,k1n
 c
       integer i,j,k,l,kn
-      real sdpj(jdm),tdpj(jdm),ddpj(jdm),volj(jdm)
-      real vol
+      real q,vol
 c
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
-      real trdpj(jdm)
 #endif
 c
       real sig
       external sig
 c
-      do j=1,jj
-        sdpj(j)=0.
-        tdpj(j)=0.
-        ddpj(j)=0.
-        volj(j)=0.
-      enddo
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isp(j)
-        do i=ifp(j,l),ilp(j,l)
-          sdpj(j)=sdpj(j)+saln(i,j,k1n)*dp(i,j,k1n)*scp2(i,j)
-          tdpj(j)=tdpj(j)+temp(i,j,k1n)*dp(i,j,k1n)*scp2(i,j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          util1(i,j)=0.
+          util2(i,j)=0.
+          util3(i,j)=0.
+          util4(i,j)=0.
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(kn,q)
+#ifdef ARCTIC
+      do j=1,min(jj,jtdm-j0-1)
+#else
+      do j=1,jj
+#endif
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          q=dp(i,j,k1n)*scp2(i,j)
+          util1(i,j)=util1(i,j)+saln(i,j,k1n)*q
+          util2(i,j)=util2(i,j)+temp(i,j,k1n)*q
         enddo
         enddo
         do k=2,kk
           kn=k+nn
           do l=1,isp(j)
-          do i=ifp(j,l),ilp(j,l)
-            sdpj(j)=sdpj(j)+saln(i,j,kn)*dp(i,j,kn)*scp2(i,j)
-            tdpj(j)=tdpj(j)+temp(i,j,kn)*dp(i,j,kn)*scp2(i,j)
-            ddpj(j)=ddpj(j)
-     .             +(sig(temp(i,j,kn),saln(i,j,kn))-sigmar(k))
-     .              *dp(i,j,kn)*scp2(i,j)
-            volj(j)=volj(j)+dp(i,j,kn)*scp2(i,j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            q=dp(i,j,kn)*scp2(i,j)
+            util1(i,j)=util1(i,j)+saln(i,j,kn)*q
+            util2(i,j)=util2(i,j)+temp(i,j,kn)*q
+            util3(i,j)=util3(i,j)
+     .        +(sig(temp(i,j,kn),saln(i,j,kn))-sigmar(k))*q
+            util4(i,j)=util4(i,j)+q
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
-      sdp(ncall,n)=0.
-      tdp(ncall,n)=0.
-      ddp(ncall,n)=0.
-      vol=0.
-      do j=1,jj
-        sdp(ncall,n)=sdp(ncall,n)+sdpj(j)
-        tdp(ncall,n)=tdp(ncall,n)+tdpj(j)
-        ddp(ncall,n)=ddp(ncall,n)+ddpj(j)
-        vol=vol+volj(j)
-      enddo
+c
+      call xcsum(sdp(ncall,n),util1,ip)
+      call xcsum(tdp(ncall,n),util2,ip)
+      call xcsum(ddp(ncall,n),util3,ip)
+      call xcsum(vol         ,util4,ip)
       ddp(ncall,n)=ddp(ncall,n)/vol
 c
 #ifdef TRC
       if (n.eq.1) then
+c
+c$OMP PARALLEL DO
         do j=1,jj
-          trdpj(j)=0.
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=0.
+          enddo
+          enddo
         enddo
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(kn,q)
+#ifdef ARCTIC
+        do j=1,min(jj,jtdm-j0-1)
+#else
         do j=1,jj
+#endif
           do k=1,kk
             kn=k+nn
             do l=1,isp(j)
-            do i=ifp(j,l),ilp(j,l)
-              trdpj(j)=trdpj(j)+trc(i,j,k,ntr)*dp(i,j,kn)*scp2(i,j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              q=dp(i,j,kn)*scp2(i,j)
+              util1(i,j)=util1(i,j)+trc(i,j,k,ntr)*q
             enddo
             enddo
           enddo
         enddo
 c$OMP END PARALLEL DO
-        trdp(ncall)=0.
-        do j=1,jj
-          trdp(ncall)=trdp(ncall)+trdpj(j)
-        enddo
+c
+        call xcsum(trdp(ncall),util1,ip)
+c
       endif
 #endif
 c

@@ -10,16 +10,32 @@ c
 c
 #include "common_blocks.h"
 c
-      real, dimension(1-nbdy:idm+nbdy) :: aux,pbfac
+      real, dimension(1-nbdy:idm+nbdy) :: aux,pbfaco,pbfacn
       integer i,j,k,l,kn,km,kp
       real pold,pmid,pnew
 c
-c$OMP PARALLEL DO PRIVATE(aux,pbfac,km,kn,kp,pold,pmid,pnew)
+c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           aux(i)=0.
-          pbfac(i)=pb(i,j,m)/pb(i,j,n)
+          pbfaco(i)=0.
+          pbfacn(i)=0.
+        enddo
+        enddo
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            pbfaco(i)=pbfaco(i)+dpold(i,j,k)
+            pbfacn(i)=pbfacn(i)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          pbfaco(i)=pb(i,j,m)/pbfaco(i)
+          pbfacn(i)=pb(i,j,m)/pbfacn(i)
         enddo
         enddo
         do k=1,kk
@@ -28,9 +44,9 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfac,km,kn,kp,pold,pmid,pnew)
           kp=min(k+1,kk)
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            pold=max(0.,dpold(i,j,k))
+            pold=max(0.,dpold(i,j,k)*pbfaco(i))
             pmid=max(0.,dp(i,j,km))
-            pnew=max(0.,dp(i,j,kn)*pbfac(i))
+            pnew=max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)
             aux(i)=aux(i)+(dp(i,j,km)-pmid)			! diapyc.flux
             diaflx(i,j,k )=diaflx(i,j,k )+aux(i)		! diapyc.flux

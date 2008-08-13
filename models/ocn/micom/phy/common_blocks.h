@@ -34,25 +34,29 @@ c
      .                dpuold,dpvold,told,sold,diaflx,tmxold,smxold,
      .                corio,potvor
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
+     .  uflx,vflx      ! horizontal mass fluxes
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  uflx,vflx,     ! horizontal mass fluxes
      .  uflxdf,vflxdf  ! horizontal diffusive mass fluxes
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,3) ::
-     .  pb,            ! bottom pressure
-     .  ubflx,vbflx    ! barotropic mass fluxes
+     .  ubflxs,vbflxs  ! barotropic mass flux sums
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
+     .  pb,            ! bottom pressure
+     .  ubflx,vbflx,   ! barotropic mass fluxes
+     .  pb_mn,         ! bottom pressure
+     .  ubflx_mn,vbflx_mn, ! barotropic mass fluxes
      .  pbu,pbv,       ! bottom pressure at velocity points
      .  ub,vb,         ! barotropic velocity components
-     .  ubflxs,vbflxs, ! barotropic mass flux sums
-     .  ubcors,vbcors, ! sums of barotropic coriolis terms
+     .  ubflxs_p,vbflxs_p, ! predicted barotropic mass flux sums
      .  pvtrop         ! potential vorticity of barotropic flow
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  pb_p,              ! predicted bottom pressure
      .  pbu_p,pbv_p,       ! predicted bottom pressure at velocity points
-     .  ubflxs_p,vbflxs_p, ! predicted barotropic mass flux sums
+     .  pvtrop_o,      ! potential vorticity of barotropic flow at old time lev.
      .  ubcors_p,vbcors_p, ! predicted sums of barotropic coriolis terms
      .  defor1,defor2, ! deformation components
      .  utotm,vtotm,   ! total (barotropic+baroclinic) ...
@@ -61,11 +65,12 @@ c
      .  uflux2,vflux2, ! more mass fluxes
      .  uflux3,vflux3  ! more mass fluxes
 c
-      common /micom2/ uflx,vflx,uflxdf,vflxdf,pb,ubflx,vbflx,pbu,pbv,
-     .                ub,vb,ubflxs,vbflxs,ubcors,vbcors,pvtrop,pb_p,
-     .                pbu_p,pbv_p,ubflxs_p,vbflxs_p,ubcors_p,vbcors_p,
-     .                defor1,defor2,utotm,vtotm,utotn,vtotn,uflux,vflux,
-     .                uflux2,vflux2,uflux3,vflux3
+      common /micom2/ uflx,vflx,uflxdf,vflxdf,ubflxs,vbflxs,pb,
+     .                ubflx,vbflx,pb_mn,ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,
+     .                ubflxs_p,vbflxs_p,pvtrop,pb_p,pbu_p,pbv_p,
+     .                pvtrop_o,ubcors_p,vbcors_p,defor1,defor2,
+     .                utotm,vtotm,utotn,vtotn,uflux,vflux,uflux2,vflux2,
+     .                uflux3,vflux3
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  pgfx,pgfy      ! horizontal pressure gradient force
@@ -79,6 +84,9 @@ c
      .  xiyp,xiym      ! PGF terms dependent on barotropic bottom pressure
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  pgfxm_o,pgfym_o,   ! PGF terms not dep. on barotr. bot. pres. at old ti.
+     .  xixp_o,xixm_o,     ! PGF terms dep. on barotr. bot. pres. at old tim. l.
+     .  xiyp_o,xiym_o,     ! PGF terms dep. on barotr. bot. pres. at old tim. l.
      .  util1,util2,   ! arrays for temporary storage
      .  util3,util4,   ! arrays for temporary storage
      .  scqx,scqy,     ! mesh size at q-points in x,y direction
@@ -94,7 +102,8 @@ c
      .  depths         ! water depth
 c
       common /micom3/ pgfx,pgfy,pgfxo,pgfyo,pgfxm,pgfym,xixp,xixm,
-     .                xiyp,xiym,util1,util2,util3,util4,scqx,scqy,
+     .                xiyp,xiym,pgfxm_o,pgfym_o,xixp_o,xixm_o,
+     .                xiyp_o,xiym_o,util1,util2,util3,util4,scqx,scqy,
      .                scpx,scpy,scux,scuy,scvx,scvy,scq2,scp2,scu2,scv2,
      .                scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
      .                depths
@@ -151,17 +160,18 @@ c --- 'sigjmp' = minimum density jump at mixed-layer bottom
 c --- 'acurcy' = permissible roundoff error in column integral calc.
 c --- 'thermo' = if set to .true., then use thermodynamic forcing functions
 c --- 'csdiag' = if set to .true., then output check sums
+c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
       real, dimension(kdm) :: sigmar,alphar
       real baclin,batrop,thkdff,veldff,temdff,viscos,diapyc,vertmx,
      .     slip,cbar,wuv1,wuv2,wts1,wts2,wbaro,wpgf,thkmin,thkbot,
      .     sigjmp,acurcy
-      logical thermo,csdiag
+      logical thermo,csdiag,cnsvdi
 c
       common /parms1/ sigmar,alphar,baclin,batrop,thkdff,veldff,temdff,
      .                viscos,diapyc,vertmx,slip,cbar,wuv1,wuv2,wts1,
      .                wts2,wbaro,wpgf,thkmin,thkbot,sigjmp,acurcy,
-     .                thermo,csdiag
+     .                thermo,csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
