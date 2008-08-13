@@ -17,7 +17,7 @@ c
 #include "common_trc.h"
 c
       integer nt
-      character*120 fname,trcname
+      character fname*120,trcnam*6
 c
       character startdate*20,timeunits*30
       real datenum
@@ -43,19 +43,17 @@ c
       call ncdims('x',itdm)
       call ncdims('y',jtdm)
 #endif 
-
+      call ncdims('kk',kk)
       call nctime(datenum,calendar,timeunits,startdate)
 c
       call ncputr('time',time,1)      
 c
       do nt=1,ntr
-        write(trcname,'(a3,i3.3)') 'trc',nt
+        write (trcnam,'(a3,i3.3)') 'trc',nt
 #ifdef COMPRES
-        call nccomp(trim(trcname),'pcomp time',trc(1-nbdy,1-nbdy,1,nt),
-     .    ip)
+        call nccomp(trcnam,'pcomp kk time',trc(1-nbdy,1-nbdy,1,nt),ip)
 #else
-        call ncwrtr(trim(trcname),'x y time',trc(1-nbdy,1-nbdy,1,nt),
-     .    ip,1)
+        call ncwrtr(trcnam,'x y kk time',trc(1-nbdy,1-nbdy,1,nt),ip,1)
 #endif
       enddo
 c 

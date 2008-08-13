@@ -16,7 +16,7 @@ c
 #include "common_trc.h"
 c
       integer nt
-      character*120 fname,trcname
+      character fname*120,trcnam*6
       logical fexist
       real rfexist
 c
@@ -40,8 +40,8 @@ c
           end if
         end if   
         do nt=1,ntr
-          write(trcname,'(a3,i3.3)') 'trc',nt 
-          call ncread(trim(trcname),trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
+          write (trcnam,'(a3,i3.3)') 'trc',nt
+          call ncread(trcnam,trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
         enddo
         call ncfcls 
       else
