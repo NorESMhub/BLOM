@@ -1695,9 +1695,6 @@ c
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
       real rmm_top,rmm_bot
-#  ifdef CCSMCOUPLED
-      logical exists
-#  endif
 c
 c     standard mpi (message passing) version.
 c
@@ -1715,16 +1712,6 @@ c
 c
       mnproc = mypei + 1  ! mnproc counts from 1
 c
-#  ifdef CCSMCOUPLED
-      if (mnproc.eq.1) then
-         inquire(file='ocn_modelio.nml',exist=exists)
-         if (exists) then
-            lp = shr_file_getUnit()
-            call shr_file_setIO('ocn_modelio.nml',lp)
-         endif
-      endif
-#  endif
-c
 #  if defined(DEBUG_ALL)
       write(lp,'(a,i5)') 'mnproc =',mnproc
       call xcsync(flush_lp)
@@ -1732,9 +1719,9 @@ c
 #elif defined(SHMEM)
       integer SHMEM_MYPE,SHMEM_NPES
 c
-      lp = 6
-c
 c     shmem version.
+c
+      lp = 6
 c
       call start_pes(0)
 c
@@ -1795,8 +1782,8 @@ c     periodic cases, the last non-empty tile can periodic wrap to the
 c     first tile in the row (i.e. trailing "empty" tiles can be null
 c     tiles, rather than all-land tiles).
 c
-      open(unit=99,file='patch.input')
-      read( 99,'(/8i6/)') ijpr,ipr,jpr,
+      open(unit=nfu,file='patch.input')
+      read(nfu,'(/8i6/)') ijpr,ipr,jpr,
      &                    itdm_in,jtdm_in,idm_in,jdm_in,nreg
       if     (ijpr.gt.ijqr .or. ipr.gt.iqr .or. jpr.gt.jqr) then
         if     (mnproc.eq.1) then
@@ -1851,8 +1838,8 @@ c
 c     individual tile rows.
 c
       do n= 1,jpr
-        read( 99,'(12x,8i6)') (i0_pe(m,n),m=1,ipr)  ! ispt=i0+1
-        read( 99,'(12x,8i6)') (ii_pe(m,n),m=1,ipr)  ! iipe
+        read(nfu,'(12x,8i6)') (i0_pe(m,n),m=1,ipr)  ! ispt=i0+1
+        read(nfu,'(12x,8i6)') (ii_pe(m,n),m=1,ipr)  ! iipe
         if (maxval(ii_pe(1:ipr,n)).le.0) then
           call xcstop('xcspmd: patch.input has an empty row')
           stop '(xcspmd)'
@@ -1894,9 +1881,9 @@ c
 c
 c     the generic tile column (must cover entire column).
 c
-      read( 99,*)
-      read( 99,'(12x,8i6)') (j0_pe(1,n),n=1,jpr)  ! jspt = io+1
-      read( 99,'(12x,8i6)') (jj_pe(1,n),n=1,jpr)  ! jjpe
+      read(nfu,*)
+      read(nfu,'(12x,8i6)') (j0_pe(1,n),n=1,jpr)  ! jspt = io+1
+      read(nfu,'(12x,8i6)') (jj_pe(1,n),n=1,jpr)  ! jjpe
       if     (j0_pe(1,1).ne.1) then
         call xcstop('xcspmd: patch.input for wrong jspt')
         stop '(xcspmd)'
@@ -1917,7 +1904,7 @@ c
         j0_pe(m,:) = j0_pe(1,:)
         jj_pe(m,:) = jj_pe(1,:)
       enddo
-      close(99)
+      close(nfu)
 c
 #if defined(MPI)
 c

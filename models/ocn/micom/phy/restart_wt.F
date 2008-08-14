@@ -58,26 +58,26 @@ c
      .        runid(1:runid_len),'_restphy_',
      .        mod(nint(min(nstep/diag3dfq,time))-1,3)+1,'.nc'
           endif
-          open (unit=12,file=path2(1:path2_len)//'rstdate.txt')
+          open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
           i=1
- 300      read (12,'(a)',end=301) rstdate_str(i)
+ 300      read (nfu,'(a)',end=301) rstdate_str(i)
           i=i+1
           goto 300
- 301      close (unit=12)
+ 301      close (unit=nfu)
           write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
      .      rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',nday,
      .      ', integration day ',nint(time)
           if (i.eq.1) then
-            open (unit=12,file=path2(1:path2_len)//'rstdate.txt')
-            write (12,'(a)') rstdate_str(1)(1:runid_len+54)
-            close (unit=12)
+            open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+            write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
+            close (unit=nfu)
           elseif (rstdate_str(max(1,i-2)).ne.rstdate_str(i).and.
      .            rstdate_str(i-1       ).ne.rstdate_str(i)) then
-            open (unit=12,file=path2(1:path2_len)//'rstdate.txt')
+            open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
             do j=max(1,i-2),i
-              write (12,'(a)') rstdate_str(j)(1:runid_len+54)
+              write (nfu,'(a)') rstdate_str(j)(1:runid_len+54)
             enddo
-            close (unit=12)
+            close (unit=nfu)
           endif
         endif
 #endif
@@ -491,9 +491,9 @@ c
 #ifdef CCSMCOUPLED
 c --- write restart filename to rpointer.ocn
       if (mnproc.eq.1) then
-        open (unit=12,file='rpointer.ocn')
-        write (12,'(a)') rstfnm
-        close (unit=12)
+        open (unit=nfu,file='rpointer.ocn')
+        write (nfu,'(a)') rstfnm
+        close (unit=nfu)
       endif
 #endif
 c

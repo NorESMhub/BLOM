@@ -208,42 +208,42 @@ c
 c
       if (cnsvdi) then
         if (mnproc.eq.1.and.nstep.gt.nstep1+1) then
-          open (11,file='salbud',position='append')
-          write (11,'(i8,6e12.4)') nstep-1,
+          open (unit=nfu,file='salbud',position='append')
+          write (nfu,'(i8,6e12.4)') nstep-1,
      .      (sdp(2,m)-sdp(1,m))/vol0,
      .      (sdp(3,m)-sdp(2,m))/vol0,
      .      (sdp(4,m)-sdp(3,m))/vol0,
      .      (sdp(5,m)-sdp(4,m)+sf*g)/vol0,
      .      (sdp(6,m)-sdp(5,m))/vol0,
      .      (sdp(7,m)-sdp(6,m))/vol0
-          close(11)
-          open (11,file='tembud',position='append')
-          write (11,'(i8,6e12.4)') nstep-1,
+          close (nfu)
+          open (unit=nfu,file='tembud',position='append')
+          write (nfu,'(i8,6e12.4)') nstep-1,
      .      (tdp(2,m)-tdp(1,m))/vol0,
      .      (tdp(3,m)-tdp(2,m))/vol0,
      .      (tdp(4,m)-tdp(3,m))/vol0,
      .      (tdp(5,m)-tdp(4,m)+tf*g/spcifh)/vol0,
      .      (tdp(6,m)-tdp(5,m))/vol0,
      .      (tdp(7,m)-tdp(6,m))/vol0
-          close(11)
-          open (11,file='denbud',position='append')
-          write (11,'(i8,6e12.4)') nstep-1,
+          close (nfu)
+          open (unit=nfu,file='denbud',position='append')
+          write (nfu,'(i8,6e12.4)') nstep-1,
      .      (ddp(2,m)-ddp(1,m)),(ddp(3,m)-ddp(2,m)),(ddp(4,m)-ddp(3,m)),
      .      (ddp(5,m)-ddp(4,m)),(ddp(6,m)-ddp(5,m)),(ddp(7,m)-ddp(6,m))
-          close(11)
+          close (nfu)
 #ifdef TRC
           if (m.eq.1) then
-            open (11,file='trcbud',position='append')
-            write (11,'(i8,6e12.4)') nstep,
+            open (unit=nfu,file='trcbud',position='append')
+            write (nfu,'(i8,6e12.4)') nstep,
      .        (trdp(2)-trdp(1))/vol0,(trdp(3)-trdp(2))/vol0,
      .        (trdp(4)-trdp(3))/vol0,(trdp(5)-trdp(4))/vol0,
      .        (trdp(6)-trdp(5))/vol0,(trdp(7)-trdp(6))/vol0
-            close(11)
-            open (11,file='trcbudtot',position='append')
-            write (11,'(i8,7e18.10)') nstep,
+            close (nfu)
+            open (unit=nfu,file='trcbudtot',position='append')
+            write (nfu,'(i8,7e18.10)') nstep,
      .        trdp(1)/vol0,trdp(2)/vol0,trdp(3)/vol0,
      .        trdp(4)/vol0,trdp(5)/vol0,trdp(6)/vol0,trdp(7)/vol0
-            close(11)
+            close (nfu)
           endif
 #endif
         endif

@@ -2,7 +2,6 @@
 c
 #ifdef CCSMCOUPLED
       use data_mct, only: mpicom_mct
-      use shr_file_mod, only : shr_file_getUnit, shr_file_setIO
 #endif
 c
       implicit none

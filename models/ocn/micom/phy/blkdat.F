@@ -81,7 +81,7 @@ c
 c --- use 'huge' to initialize array portions that the code should never access
       data huge/1.e33/
 c
-c --- i/o file names
+c --- i/o file names and unit
 c
       data path /'./ '/
       data path1/'./ '/

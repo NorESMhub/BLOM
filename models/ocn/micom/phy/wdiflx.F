@@ -23,7 +23,8 @@ c
      .    runid(1:runid_len),'_tflxdi_',nyear-1,'.uf'
         write (lp,'(2a)') 'Writing diagnosed heat flux to ',
      .    path1(1:path1_len)//fname
-        open(12,file=path1(1:path1_len)//fname,form='unformatted')
+        open (unit=nfu,file=path1(1:path1_len)//fname,
+     .        form='unformatted')
         do k=1,48
           if (nflxdi(k).gt.0) then
             fldmin=tflxdi(1,1,k)
@@ -46,10 +47,10 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
             i=nflxdi(k)
-            write(12) k,i,scale_factor,offset,fldout
+            write (nfu) k,i,scale_factor,offset,fldout
           endif
         enddo
-        close(12)
+        close (unit=nfu)
 c$OMP PARALLEL DO
         do k=1,48
           nflxdi(k)=0
@@ -67,7 +68,8 @@ c
      .    runid(1:runid_len),'_sflxdi_',nyear-1,'.uf'
         write (lp,'(2a)') 'Writing diagnosed salt flux to ',
      .    path1(1:path1_len)//fname
-        open(12,file=path1(1:path1_len)//fname,form='unformatted')
+        open (unit=nfu,file=path1(1:path1_len)//fname,
+     .        form='unformatted')
         do k=1,48
           if (nflxdi(k).gt.0) then
             fldmin=sflxdi(1,1,k)
@@ -90,10 +92,10 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
             i=nflxdi(k)
-            write(12) k,i,scale_factor,offset,fldout
+            write (nfu) k,i,scale_factor,offset,fldout
           endif
         enddo
-        close(12)
+        close (unit=nfu)
 c$OMP PARALLEL DO
         do k=1,48
           nflxdi(k)=0

@@ -6,7 +6,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
 #ifdef CCSMCOUPLED
-      use data_mct, only: runid_mct
+      use data_mct, only: runid_mct, runtype_mct
 #endif
 c
       implicit none
@@ -23,34 +23,57 @@ c
 #endif
 c
       integer i,j,m,n
+#ifdef CCSMCOUPLED
+      character*80 rstfnm
+#endif
 c
 #ifdef CCSMCOUPLED
-      open (unit=11,file='ocn_in',status='old',action='read')
+      open (unit=nfu,file='ocn_in',status='old',action='read')
 #else
-      open (unit=11,file='limits',status='old',action='read')
+      open (unit=nfu,file='limits',status='old',action='read')
 #endif
-      read (11,'(i6)') nday1       ! First day of integration
-      read (11,'(i6)') nday2       ! Last day of integration
-      read (11,'(i4,x,i2,x,i2)') nyear ,nmonth ,nday  ! Model date
-      read (11,'(i4,x,i2,x,i2)') nyear0,nmonth0,nday0 ! Initial experiment date
-      read (11,'(a)') runid        ! Experiment name
-      read (11,'(f8.2)') baclin    ! Baroclinic time step
-      read (11,'(f8.2)') batrop    ! Barotropic time step
-      read (11,'(i3)' ) i          ! time between 2D diagnostics
-      read (11,'(i3)' ) j          ! time between 3D diagnostics
-      read (11,'(f8.2)') trxday    ! Relax. time scale for SST, if 0 no relax.
-      read (11,'(f8.2)') srxday    ! Relax. time scale for SSS, if 0 no relax.
-      read (11,'(l5)') aptflx      ! Apply diagnosed heat flux flag
-      read (11,'(l5)') apsflx      ! Apply diagnosed freshwater flux flag
-      read (11,'(l5)') ditflx      ! Diagnose heat flux flag
-      read (11,'(l5)') disflx      ! Diagnose freshwater flux flag
-      read (11,'(a)') path         ! Path to input files
-      read (11,'(a)') path1        ! Path to diagnostic files
-      read (11,'(a)') path2        ! Path to restart files
+      read (nfu,'(i6)') nday1       ! First day of integration
+      read (nfu,'(i6)') nday2       ! Last day of integration
+      read (nfu,'(i4,x,i2,x,i2)') nyear ,nmonth ,nday  ! Model date
+      read (nfu,'(i4,x,i2,x,i2)') nyear0,nmonth0,nday0 ! Initial experiment date
+      read (nfu,'(a)') runid        ! Experiment name
+      read (nfu,'(f8.2)') baclin    ! Baroclinic time step
+      read (nfu,'(f8.2)') batrop    ! Barotropic time step
+      read (nfu,'(i3)' ) i          ! time between 2D diagnostics
+      read (nfu,'(i3)' ) j          ! time between 3D diagnostics
+      read (nfu,'(f8.2)') trxday    ! Relax. time scale for SST, if 0 no relax.
+      read (nfu,'(f8.2)') srxday    ! Relax. time scale for SSS, if 0 no relax.
+      read (nfu,'(l5)') aptflx      ! Apply diagnosed heat flux flag
+      read (nfu,'(l5)') apsflx      ! Apply diagnosed freshwater flux flag
+      read (nfu,'(l5)') ditflx      ! Diagnose heat flux flag
+      read (nfu,'(l5)') disflx      ! Diagnose freshwater flux flag
+      read (nfu,'(a)') path         ! Path to input files
+      read (nfu,'(a)') path1        ! Path to diagnostic files
+      read (nfu,'(a)') path2        ! Path to restart files
 #ifdef SYN
-      read (11,'(a)') atm_path     ! Path to synoptic atmospheric forcing files
+      read (nfu,'(a)') atm_path     ! Path to synoptic atmospheric forcing files
 #endif
-      close (unit=11)
+      close (unit=nfu)
+c
+#ifdef CCSMCOUPLED
+c --- override some information read from the micom namelist with
+c --- information received from the coupler
+      runid(1:80)=runid_mct(1:80)
+      if (runtype_mct.ne.'initial') then
+        open (unit=nfu,file='rpointer.ocn')
+        read (nfu,'(a)') rstfnm
+        close (unit=nfu)
+        n=1
+        do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+          n=n+1
+        enddo
+        n=n-1
+        read (rstfnm(n-19:n-16),'(i4)') nyear
+        read (rstfnm(n-14:n-13),'(i2)') nmonth
+        read (rstfnm(n-11:n-10),'(i2)') nday
+        read (rstfnm(n-8 :n-3 ),'(i6)') nday1
+      endif
+#endif
 c
       if (nday1.lt.0.or.nday2.lt.0) then
         if (mnproc.eq.1) then
@@ -116,9 +139,7 @@ c
       endif
 c
 c --- trim the experiment id and paths
-#ifdef CCSMCOUPLED
-      runid(1:80)=runid_mct(1:80)
-#else
+#ifndef CCSMCOUPLED
       n=1
       do while (runid(n:n).ne.':')
         n=n+1

@@ -28,13 +28,13 @@ c --- -------------------------
 c
       if (mnproc.eq.1) then
         write (lp,*) 'reading initial layer interfaces...'
-        open (unit=16,file=path(1:path_len)//'sep_z.dat',status='old',
+        open (unit=nfu,file=path(1:path_len)//'sep_z.dat',status='old',
      .        action='read')
-        read (16,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+        read (nfu,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
       endif
       do k=1,kk
         if (mnproc.eq.1) then
-          read (16,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+          read (nfu,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
         endif
         call xcaput(tmp2d,util1,1)
         do j=1,jj
@@ -45,7 +45,7 @@ c
           enddo
         enddo
       enddo
-      close (unit=16)
+      close (unit=nfu)
 c
       do j=1,jj
         do k=2,kk
@@ -65,12 +65,12 @@ c
 c
       if (mnproc.eq.1) then
         write (lp,*) 'reading initial temperature state...'
-        open (unit=16,file=path(1:path_len)//'sep_temp.dat',
+        open (unit=nfu,file=path(1:path_len)//'sep_temp.dat',
      .        status='old',action='read')
       endif
       do k=1,kk
         if (mnproc.eq.1) then
-          read (16,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+          read (nfu,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
         endif
         call xcaput(tmp2d,util1,1)
         do j=1,jj
@@ -81,15 +81,15 @@ c
           enddo
         enddo
       enddo
-      close (unit=16)
+      close (unit=nfu)
 c
       if (mnproc.eq.1) then
         write (lp,*) 'reading initial salinity state...'
-        open (unit=16,file=path(1:path_len)//'sep_saln.dat',
+        open (unit=nfu,file=path(1:path_len)//'sep_saln.dat',
      .        status='old',action='read')
       endif
       if (mnproc.eq.1) then
-        read (16,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+        read (nfu,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
       endif
       call xcaput(tmp2d,util1,1)
       do j=1,jj
@@ -99,7 +99,7 @@ c
         enddo
         enddo
       enddo
-      close (unit=16)
+      close (unit=nfu)
 c
 #ifndef CCSMCOUPLED
 c --- ------------------------------------------------------------------

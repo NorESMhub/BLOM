@@ -19,11 +19,22 @@ c
       real gettime
       external gettime
 c
+c --- set file unit
+#ifdef CCSMCOUPLED
+      call getnfu_ccsm
+#else
+      nfu=12
+#endif
+c
 c --- ------------------------------------------------------------------
 c --- Initialize SPMD processing
 c --- ------------------------------------------------------------------
 c
       call xcspmd
+c
+#ifdef CCSMCOUPLED
+      call setlog_ccsm
+#endif
 c
 c --- ------------------------------------------------------------------
 c --- Initialize timing

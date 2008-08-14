@@ -36,14 +36,13 @@ c
 c
       if (mnproc.eq.1) then
 c
-#ifdef CCSMCOUPLED
-c --- - read restart file name from rpointer.ocn
-        open (unit=12,file='rpointer.ocn')
-        read (12,'(a)') rstfnm
-        close (unit=12)
-#else
-c
 c --- - first try file name:
+#ifdef CCSMCOUPLED
+c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
+        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
+     .    runid(1:runid_len),'_restphy_',nyear,'-',nmonth,'-',nday,'_',
+     .    nday1,'.nc'
+#else
 c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
      .    runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,'_',

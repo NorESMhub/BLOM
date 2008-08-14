@@ -19,13 +19,14 @@ module ocn_comp_mct
       seq_timemgr_EClockDateInSync
    use shr_file_mod, only : &
       shr_file_getLogUnit, shr_file_getLogLevel, &
-      shr_file_setLogUnit, shr_file_setLogLevel
+      shr_file_setLogUnit, shr_file_setLogLevel, &
+      shr_file_getUnit, shr_file_freeUnit
    use shr_cal_mod, only : shr_cal_date2ymd
    use shr_sys_mod, only : shr_sys_abort, shr_sys_flush
    use perf_mod, only : t_startf, t_stopf
 
    use types, only : r8
-   use data_mct, only : mpicom_mct, runid_mct
+   use data_mct, only : mpicom_mct, runid_mct, runtype_mct
    use mod_xc
 
    implicit none
@@ -70,7 +71,6 @@ module ocn_comp_mct
                  start_ymd, start_tod, start_year, start_day, start_month, &
                  lsize
       character (len=32) :: starttype
-      character (len=256) :: runtype
 
       ! Default stdout
       lp = 6
@@ -92,11 +92,11 @@ module ocn_comp_mct
       call seq_infodata_GetData( infodata, start_type = starttype)
 
       if (    trim(starttype) == trim(seq_infodata_start_type_start)) then
-         runtype = "initial"
+         runtype_mct = "initial"
       elseif (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
-         runtype = "continue"
+         runtype_mct = "continue"
       elseif (trim(starttype) == trim(seq_infodata_start_type_brnch)) then
-         runtype = "branch"
+         runtype_mct = "branch"
       else
          write (lp,*) 'ocn_comp_mct ERROR: unknown starttype'
          call shr_sys_flush(lp)
@@ -127,7 +127,7 @@ module ocn_comp_mct
 
       ! This must be completed!
 
-      if (runtype == 'initial') then
+      if (runtype_mct == 'initial') then
          call seq_timemgr_EClockGetData(EClock, &
                                         start_ymd = start_ymd, &
                                         start_tod = start_tod)

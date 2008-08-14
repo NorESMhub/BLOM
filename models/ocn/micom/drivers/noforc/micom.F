@@ -43,9 +43,9 @@ c --- write check sum of layer thickness
       call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
 c
       if (mnproc.eq.1) then
-        open (unit=11,file='run.status',status='unknown')
-        write (11,*) 'success'
-        close (unit=11)
+        open (unit=nfu,file='run.status',status='unknown')
+        write (nfu,*) 'success'
+        close (unit=nfu)
       endif
       call xcstop('(normal)')
              stop '(normal)'
