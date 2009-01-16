@@ -94,11 +94,8 @@
      .        sbuff(i,j,index_o2x_So_t) + temp(i,j,k1n)*baclin
            sbuff(i,j,index_o2x_So_s) =
      .        sbuff(i,j,index_o2x_So_s) + saln(i,j,k1n)*baclin
-
-!jensd   Store only positive part of frzmlt (energy released by frazil ice 
-!        production)
            sbuff(i,j,index_o2x_Fioo_q) =
-     .        sbuff(i,j,index_o2x_Fioo_q) + max(0.,frzmlt(i,j))*baclin
+     .        sbuff(i,j,index_o2x_Fioo_q) + frzmlt(i,j)*baclin
          enddo
          enddo
       enddo

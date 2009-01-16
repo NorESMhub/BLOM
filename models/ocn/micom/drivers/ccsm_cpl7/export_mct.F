@@ -25,7 +25,6 @@
 
 #include "common_blocks.h"
 #include "common_geo.h"
-#include "common_forc.h"
 
       ! Local variables
 
@@ -90,19 +89,8 @@
      .         sbuff(i,j,index_o2x_So_t)*tfac + SHR_CONST_TKFRZ
             o2x_o%rAttr(index_o2x_So_s,n) =
      .         sbuff(i,j,index_o2x_So_s)*tfac
-!jensd -----------------------------------------------------------
-!  Only energy released by frazil ice production is stored in sbuff.
-!  Should be replace with the last frzmlt values where no ice has been formed. 
-!  frzmlt < 0 is only used as a flux limit in CICE, so the actual value is not 
-!  important for heat conservation. However, the energy used for freezing new 
-!  ice (frzmlt>0) should be stricly conserved between ocean and ice model. 
-!jensd -----------------------------------------------------------
-            if (sbuff(i,j,index_o2x_Fioo_q) > 0._r8) then
-               o2x_o%rAttr(index_o2x_Fioo_q,n) =
-     .              sbuff(i,j,index_o2x_Fioo_q)*tfac
-            else
-               o2x_o%rAttr(index_o2x_Fioo_q,n) = frzmlt(i,j)
-            end if
+            o2x_o%rAttr(index_o2x_Fioo_q,n) =
+     .         sbuff(i,j,index_o2x_Fioo_q)*tfac
          enddo
       enddo
 

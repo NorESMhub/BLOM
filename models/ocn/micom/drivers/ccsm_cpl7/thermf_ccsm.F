@@ -54,7 +54,7 @@ c --- --- must be heated
 c
 c --- --- Total heat flux from the ocean [W cm-2] (positive upwards).
 c --- --- Apply the freezing/melting potential if it cause a heating of
-c --- --- the ocean, store the energy used as frazil ice production
+c --- --- the ocean
           surflx(i,j)=-(swa(i,j)+nsf(i,j)+max(0.,frzmlt(i,j)))*1.e-4
 c
 c --- --- short wave heat flux from the ocean [W cm-2] (positive upwards)
