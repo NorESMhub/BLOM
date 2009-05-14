@@ -1,6 +1,9 @@
       subroutine mxlayr(m,n,mm,nn,k1m,k1n)
 c
-c --- version 2.8 -- cyclic and noncyclic b.c. combined
+c --- -----------------------------------------------------------------
+c --- Modify mixed layer depth by enforcing a turbulent kinetic energy
+c --- balance and apply surface forcing.
+c --- -----------------------------------------------------------------
 c
       use mod_xc
 c
@@ -12,419 +15,676 @@ c
 #include "common_eos.h"
 c
       real, dimension(kdm+1) :: pres
-      real, dimension(kdm) :: ttem,ssal,dens,delp
-      real sdot,tdp,sdp,thmxm,thmxn,sum1,sum2,value,turgen,
-     .     swfbas,swfup,swflo,
-     .     alfa,beta,dtemp,dsaln,buoyfl,em,en,thermg,
-     .     dpth,ekminv,obuinv,ex,alf1,alf2,cp1,cp3,ape,cc4,spe,
-     .     thkold,thknew,ustar3,
-     .     pnew,tmxl,smxl,tnew,snew,dpn,tn,sn,z,
-     .     a,b,c,d,e,f,thk,q,totem,tosal,
-     .     tndcyt,tndcys,corrh,corrs
-      integer i,j,k,l,kn,kbase,kbot
+      real, dimension(kdm) :: ttem,ssal,delp,dens,densr
+      real q,ustar3,alfa,beta,bfltot,bflpsw,pmxl,lui,lbi,lei,cus,
+     .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,
+     .     tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,
+     .     tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,thk
+      integer i,j,k,l,kn,nitr
 c
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
       real, dimension(ntr,kdm) :: ttrc
-      real, dimension(ntr) :: trdp,trmxl
+      real, dimension(ntr) :: trfsl,trdps
       integer nt
 #endif
 c
-      real dsigdt,dsigds,sofsig,sig,tsroot
-      external dsigdt,dsigds,sofsig,sig,tsroot
+      real sig0,dsigdt0,dsigds0,sig,p_alpha,p_p_alpha
+      external sig0,dsigdt0,dsigds0,sig,p_alpha,p_p_alpha
 c
-      real ea1,ea2,em1,em2,em3,em4,em5,athird,onemu,tlim,slim
-      parameter (ea1=.6,ea2=.3,em1=.45,em2=2.6,em3=1.9,em4=2.3,em5=.6,
-     .           athird=1./3.,onemu=.09806,tlim=5.,slim=1.)
+      real onemu
+      parameter (onemu=.09806)
 c
- 103  format (i9,2i5,a/(33x,i3,2f8.3,3p,f8.3,0p,f8.2,f8.1))
-cdiag if (itest.gt.0 .and. jtest.gt.0) write (lp,103) nstep,itest,jtest,
-cdiag.  '  entering mxlayr:  temp    saln    dens    thkns    dpth',
-cdiag.  (k,temp(itest,jtest,k+nn),saln(itest,jtest,k+nn),
-cdiag.  sigma(itest,jtest,k+nn),dp(itest,jtest,k+nn)/onem,
-cdiag.  p(itest,jtest,k+1)/onem,k=1,kk)
+c --- Parameters for Oberhuber (1993) TKE closure
+c ---  ustmin - minium value of ustar used in computing the length
+c ---           scales for wind and buoyancy induced mixing [cm/s]
+c ---  mldjmp - minimum density jump at the mixed layer base used in the
+c ---           computation of potential energy change due to
+c ---         - entrainment
+      real rm0,kappa,mu,ustmin,mldjmp
+      integer maxitr
+      parameter (rm0=1.25,kappa=.4,mu=1.,ustmin=.1,mldjmp=1.e-6,
+     .           maxitr=20)
 c
-c$OMP PARALLEL DO PRIVATE(thkold,thknew,ustar3,dpth,ekminv,obuinv,ex,
-c$OMP+ alf1,alf2,cp1,cp3,ape,cc4,spe,kn,pnew,ttem,ssal,dens,delp,pres,
-c$OMP+ q,tmxl,smxl,dpn,sn,tn,totem,tosal,tndcyt,tndcys,dtemp,
-c$OMP+ dsaln,tnew,snew,z,a,b,c,d,e,f,
-c$OMP+ thmxm,thmxn,sum1,sum2,value,kbase,tdp,sdp,sdot,turgen,
-c$OMP+ swfbas,swfup,swflo,
-c$OMP+ alfa,beta,
-c$OMP+ buoyfl,em,en,thermg,corrh,corrs,kbot
+c --- Parameters for the parameterization of restratification by mixed
+c --- layer eddies by Fox-Kemper et al. (2008):
+c ---   ce   - efficiency factor []
+c ---   rtau - reciprocal of timescale for momentum mixing across mixed
+c ---          layer [1/s]
+c ---   rlf  - reciprocal of length scale of mixed layer fronts [1/cm]
+c ---   ci   - constant that appears when integrating the shape function
+c ---          over the mixed layer depth []
+      real ce,rtau,rlf,ci
+      parameter (ce=.06,rtau=1./(2.*86400.),rlf=1./5.e5,ci=44./63.)
+c
+c --- ------------------------------------------------------------------
+c --- Compute squared lateral buoyancy gradient in the mixed layer and
+c --- store it in -util1-
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          util1(i,j)=g*alpha0*sig0(temp(i,j,k1n),saln(i,j,k1n))
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+      call xctilr(util1, 1,1, 1,1, halo_ps)
+c$OMP PARALLEL DO PRIVATE(q)
+      do j=1,jj
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+          q=(util1(i,j)-util1(i-1,j))*scuxi(i,j)
+          util2(i,j)=q*q
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(q)
+      do j=1,jj+1
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          q=(util1(i,j)-util1(i,j-1))*scvyi(i,j)
+          util3(i,j)=q*q
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          if     (ip(i-1,j)+ip(i+1,j).eq.2) then
+            util1(i,j)=.5*(util2(i,j)+util2(i+1,j))
+          elseif (ip(i-1,j).eq.1) then
+            util1(i,j)=util2(i  ,j)
+          elseif (ip(i+1,j).eq.1) then
+            util1(i,j)=util2(i+1,j)
+          else
+            util1(i,j)=0.
+          endif
+          if     (ip(i,j-1)+ip(i,j+1).eq.2) then
+            util1(i,j)=util1(i,j)+.5*(util3(i,j)+util3(i,j+1))
+          elseif (ip(i,j-1).eq.1) then
+            util1(i,j)=util1(i,j)+util3(i,j)
+          elseif (ip(i,j+1).eq.1) then
+            util1(i,j)=util1(i,j)+util3(i,j+1)
+          endif
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ pres,ttem,ssal,delp,dens,densr,
+c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pmxl,lui,lbi,lei,cus,
+c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,
+c$OMP+ tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,
+c$OMP+ tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
+c$OMP+ k,kn,nitr
 #ifdef TRC
-c$OMP+,ttrc,trdp,trmxl
+c$OMP+,ttrc,trfsl,trdps
 #endif
 c$OMP+ )
-      do 1 j=1,jj
-      do 1 l=1,isp(j)
-      do 1 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-c --- extract single column from 3-d fields
-      pres(1)=p(i,j,1)
-      do 7 k=1,kk
-      kn=k+nn
-      ttem(k)=temp(i,j,kn)
-      ssal(k)=saln(i,j,kn)
-      delp(k)=dp(i,j,kn)
-      pres(k+1)=pres(k)+delp(k)
-      dens(k)=sigmar(k)
+c --- --- Extract single column from 3-d fields
+          pres(1)=p(i,j,1)
+          do k=1,kk
+            kn=k+nn
+            ttem(k)=temp(i,j,kn)
+            ssal(k)=saln(i,j,kn)
+            delp(k)=dp(i,j,kn)
+            pres(k+1)=pres(k)+delp(k)
+            dens(k)=sigma(i,j,kn)
+            densr(k)=sigmar(i,j,k)
 #ifdef TRC
-      do nt=1,ntrc
-        ttrc(nt,k)=trc(i,j,k,nt)
-      enddo
+            do nt=1,ntrc
+              ttrc(nt,k)=trc(i,j,k,nt)
+            enddo
 #endif
- 7    continue
+          enddo
 c
-      dens(1)=sigma(i,j,k1n)
-c
-      thmxm=sigma(i,j,k1m)
-      thmxn=sigma(i,j,k1n)
-      thkold=delp(1)
-c
-      if (thermo) then
-c
-c --- store 'old' t/s column integral in totem/tosal (diagnostic use only)
-      totem=ttem(1)*delp(1)
-      tosal=ssal(1)*delp(1)
-      do k=kk,2,-1
-        totem=totem+ttem(k)*delp(k)
-        tosal=tosal+ssal(k)*delp(k)
-      end do
+c         if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+c           write (lp,*) 'mxlayr init'
+c           write (lp,*) 'kfpl',kfpla(i,j,n)
+c           do k=1,kk
+c             write (lp,'(i3,6e12.5)')
+c    .          k,delp(k)/onem,ttem(k),ssal(k),dens(k),densr(k),
+c    .          sig0(ttem(k),ssal(k))
+c           enddo
+c           write (lp,*)
+c         endif
 c
 c --- ------------------------------------------------------------------
-c --- compute temperature and salinity tendencies due to forcing
+c --- --- Compute the turbulent kinetic energy (TKE) balance of the
+c --- --- mixed layer.
 c --- ------------------------------------------------------------------
 c
-c --- if sdot < 0, mixed layer water will be detrained into isopycnic
-c --- layer defined in -kbase-. to prevent odd/even time step decoupling
-c --- of mixed- layer depth, determine -kbase- from -thmix- at 2
-c --- consecutive time levels.  also find deepest physical layer -kbot-
-c --- within a prescribed maximum radiation depth
+          ustar3=ustar(i,j)**3
 c
-      kbase=2
-      kbot=1
-      do k=2,kk
-        if (max(thmxm,thmxn)+sigjmp.ge.dens(k)) kbase=k+1
-        if (pres(k).lt.raddep*onem.and.delp(k).gt.onemu)
-     .    kbot=k
-      enddo
+c --- --- bfltot = total buoyancy flux [cm**2/sec**3]
+c --- --- bflpsw = buoyancy flux due to penetrating short-wave radiation
+c ---              [cm**2/sec**3]
+c --- --- note: surface density increases (column is destabilized) if
+c --- --- bfltot > 0
+          alfa=-alpha0*dsigdt0(ttem(1),ssal(1))
+          beta=alpha0*dsigds0(ttem(1),ssal(1))
+          bfltot=g*(alfa*surflx(i,j)/spcifh-beta*salflx(i,j))
+          bflpsw=g*alfa*(1.-redfac)*sswflx(i,j)/spcifh
 c
-c --- adjust temperature profile due to penetrating solar radiation
-      swfbas=(1.-redfac)*exp(-pres(kbase)/(betabl*onem))
-      swfup=swfbas
-      do k=kbase,kbot
-        swflo=(1.-redfac)*exp(-min(raddep*onem,pres(k+1))/(betabl*onem))
-        if (delp(k).gt.onemu) then
-          ttem(k)=ttem(k)
-     .           -(swfup-swflo)*sswflx(i,j)*delt1*g/(spcifh*delp(k))
-          swfup=swflo
-        endif
-      enddo
+          pmxl=pres(2)
+          q=alpha0/g
+          lui=abs(corio(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
+          if (bfltot.lt.0) then
+            lbi=lui
+          else
+            lbi=abs(corio(i,j))*q/(mu*max(ustmin,ustar(i,j)))
+          endif
+          lei=1./(onem*betabl)
+          cus=rm0*ustar3
+          cbftot=.5*bfltot*q
+          cbfpsw=.5*bflpsw*q
+          crs=ci*ce*util1(i,j)*q**3
+     .        *sqrt(scp2(i,j)/(corio(i,j)*corio(i,j)+rtau*rtau))*rlf
+c      
+          rm1=exp(-lui*pmxl)
+          rm2=exp(-lbi*pmxl)
+          q=lei*pmxl
+          rm3=exp(-q)
+          rm4=2./q
+          tke=cus*rm1
+     .       +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .        -crs*pmxl*pmxl)*pmxl
+c      
+          if (tke.lt.0.and.pmxl.gt.thkmin*onem) then
 c
-      thkold=delp(1)
+c --- -----------------------------------------------------------------
+c --- ----- If there is a TKE deficit in the mixed layer, reduce the
+c --- ----- mixed layer depth until the TKE balance is restored.
+c --- -----------------------------------------------------------------
 c
-c --- temperature and salinity tendencies for mixed layer due to forcing
-      dtemp=-(surflx(i,j)+surrlx(i,j)-(swfbas-swfup)*sswflx(i,j))
-     .       *delt1*g/(spcifh*thkold)
-      dsaln=-(salflx(i,j)+salrlx(i,j))*delt1*g/thkold
+            if (pres(2)*lbi.gt.1.) then
+              pmxl=1./lbi
+              dpmxl=min(pmxl-pres(1),pres(2)-pmxl,onecm)
+              pmxl=pmxl-.5*dpmxl
+            else
+              dpmxl=-onecm
+              pmxl=pres(2)+dpmxl
+            endif
+            tkeo=tke
+            nitr=0
+            do
+              nitr=nitr+1
+              rm1=exp(-lui*pmxl)
+              rm2=exp(-lbi*pmxl)
+              q=lei*max(onecm,pmxl)
+              rm3=exp(-q)
+              rm4=2./q
+              tke=cus*rm1
+     .           +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .            -crs*pmxl*pmxl)*pmxl
+              if (.not.(nitr.eq.1.and.pres(2)*lbi.gt.1.)) then
+                dtke=(tke-tkeo)/dpmxl
+                if (abs(dtke)<(abs(tke)+1.e-16)/delp(1)) then
+                  if (tke.lt.0.) then
+                    dpmxl=.5*(pres(1)-pmxl)
+                  else
+                    dpmxl=.5*(pres(2)-pmxl)
+                  endif
+                else
+                  dpmxl=max(pres(1)-pmxl,min(pres(2)-pmxl,-tke/dtke))
+                endif
+              endif
+              pmxl=pmxl+dpmxl
+              tkeo=tke
+              if (abs(dpmxl).lt.onemm.or.nitr.eq.maxitr) exit
+            enddo
+            if (nitr.eq.maxitr) then
+              write (lp,*) 'reached maxitr when detraining',i+i0,j+j0
+              write (lp,*) 'dpth=',pres(2)/onem,';'
+              write (lp,*) 'pmxl=',pmxl/onem,';'
+              write (lp,*) 'corio=',corio(i,j),';'
+              write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
+              write (lp,*) 'bfltot=',bfltot*1.e-4,';'
+              write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
+              write (lp,*) 'bg2=',util1(i,j),';'
+              write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
+              write (lp,*)
+c             call xchalt('(mxlayr)')
+c                    stop '(mxlayr)'
+            endif
 c
-c --- buoyfl = buoyancy flux, w_prime_buoyancy_prime_bar (cm**2/sec**3)
-c --- note: surface density increases (column is destabilized) if buoyfl > 0
-      alfa=-alpha0*dsigdt(ttem(1),ssal(1))
-      beta=alpha0*dsigds(ttem(1),ssal(1))
-      buoyfl=g*(alfa*(surflx(i,j)-(swfbas-swfup)*sswflx(i,j))/spcifh
-     .         -beta*salflx(i,j))
-c
-c --- ------------------------------------------------------------------
-c --- mixed layer entrainment/detrainment
-c --- ------------------------------------------------------------------
-c
-      ustar3=ustar(i,j)**3
-c
-c --- determine turb.kin.energy generation due to wind stirring (ustar3) and
-c --- diabatic forcing (buoyfl).
-c
-c - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-c
-c --- option 1 :   k r a u s  -  t u r n e r    mixed-layer t.k.e. closure
-c
-ccc   em=0.8*exp(-pres(2)/(50.*onem))   !   hadley centre choice (orig.: 1.25)
-ccc   en=0.15                           !   hadley centre choice (orig.: 0.4)
-ccc   thermg=.5*((en+1.)*buoyfl+(en-1.)*abs(buoyfl))
-ccc   turgen=delt1*(2.*em*g*ustar3/alpha0+thkold*thermg)/alpha0**2
-c
-c --- find monin-obukhov length in case of receding mixed layer (turgen < 0).
-c --- the monin-obukhov length is found by stipulating turgen = 0.
-c
-ccc   if (turgen.lt.0.) then
-ccc     thknew=-2.*em*g*ustar3/min(-epsil,alpha0*thermg)
-ccc   else
-ccc     thknew=thkold
-ccc   end if
-c
-c - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-c
-c --- option 2 :    g a s p a r   mixed-layer t.k.e. closure
-c
-      dpth=thkold/onecm
-      ekminv=abs(corio(i,j))/max(epsil,ustar(i,j))
-      obuinv=-buoyfl/max(epsil,ustar3)
-      ex=exp(max(-50.,min(50.,dpth*obuinv)))
-      alf1=ea1+ea2*max(1.,2.5*dpth*ekminv)*ex
-      alf2=ea1+ea2*ex
-      cp1=((1.-em5)*(alf1/alf2)+.5*em4)*athird
-      cp3=max(0.,(em4*(em2+em3)-(alf1/alf2)*(em2+em3-em3*em5))*athird)
-      ape=cp3*ustar3+cp1*dpth*buoyfl
-c
-      if(ape.lt.0.) then                                       ! detrainment
-      turgen=(g*delt1/alpha0**3)*ape
-      thknew=min(thkold,g*cp3/(alpha0*cp1*max(epsil,obuinv)))
-c
-      else                                                     ! entrainment
-      cc4=2.*em4/(em1*em1) * alf1*alf1
-      spe=(em2+em3)*ustar3+0.5*dpth*buoyfl
-      turgen=(g*delt1/alpha0**3)*(sqrt((.5*ape-cp1*spe)**2
-     .        +2.*cc4*ape*spe)-(.5*ape+cp1*spe))/(cc4-cp1)
-      thknew=thkold
-      end if
-c
-c - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-c
-c --- sum1,sum2 are used to evaluate pot.energy changes during entrainment
-      sum1=dens(1)*thkold
- 86   sum2=dens(1)*thkold**2
-c
-c --- find pnew in case of mixed layer deepening (turgen > 0).
-c --- entrain as many layers as needed to deplete -turgen-
-c
-      do 85 k=2,kk
-      kn=k+nn
-      value=min(pres(k+1),(2.*turgen+dens(k)*pres(k)**2-sum2)/
-     .                     max(epsil,dens(k)*pres(k)   -sum1))
-c --- stop iterating for 'pnew' as soon as pnew < k-th interface pressure
-      if (value.lt.pres(k)) value=thknew
-c --- substitute 'pnew' for monin-obukhov length if mixed layer is deepening
-      if (turgen.ge.0.) thknew=value
-c
-      sum1=sum1+dens(k)*delp(k)
- 85   sum2=sum2+dens(k)*(pres(k+1)**2-pres(k)**2)
-c
-      else				!  thermo = .false.
-c
-      surflx(i,j)=0.
-      surrlx(i,j)=0.
-      salflx(i,j)=0.
-      salrlx(i,j)=0.
-      thknew=thkold
-      dtemp=0.
-      dsaln=0.
-c
-      end if				!  thermo = .true. or .false.
-c
-cdiag if (i.eq.itest .and. j.eq.jtest .and. turgen.lt.0.)
-cdiag.  write (lp,'(i9,2i5,a,f8.2)') nstep,i,j,
-cdiag.  '  monin-obukhov length (m):',thknew/onem
-c
-c --- store (pnew - pold) in 'sdot'.
-c --- don't allow mixed layer to get too deep or too shallow.
-      sdot=min(pres(kk+1),max(thkmin*onem,thknew))-delp(1)
-      pnew=thkold+sdot
-c
-      tdp=0.
-      sdp=0.
+            pmxl=max(thkmin*onem,pmxl)
+            tfsl=ttem(1)
+            sfsl=ssal(1)
 #ifdef TRC
-      do nt=1,ntrc
-        trdp(nt)=0.
-      enddo
+            do nt=1,ntrc
+              trfsl(nt)=ttrc(nt,1)
+            enddo
+#endif
+            dpfsl=pres(2)-pmxl
+            delp(1)=pmxl-pres(1)
+c
+c --- ----- Apply forcing to the water column
+            pswbas=(1.-redfac)*exp(-lei*pmxl)
+            pswup=pswbas
+            pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(2)))
+            if (dpfsl.gt.onemu) then
+              tfsl=tfsl
+     .            -(pswup-pswlo)*sswflx(i,j)*delt1*g/(spcifh*dpfsl)
+              pswup=pswlo
+            endif
+            do k=2,kk
+              if (pres(k).lt.raddep*onem.and.delp(k).gt.onemu) then
+                pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(k+1)))
+                ttem(k)=ttem(k)
+     .                 -(pswup-pswlo)*sswflx(i,j)*delt1*g
+     .                  /(spcifh*delp(k))
+                dens(k)=sig(ttem(k),ssal(k))
+                pswup=pswlo
+              endif
+            enddo
+            q=delt1*g/delp(1)
+            ttem(1)=ttem(1)
+     .             -(surflx(i,j)+surrlx(i,j)-(pswbas-pswup)*sswflx(i,j))
+     .              *q/spcifh
+            ssal(1)=ssal(1)-(salflx(i,j)+salrlx(i,j))*q
+            dens(1)=sig(ttem(1),ssal(1))
+#ifdef TRC
+            do nt=1,ntrc
+              ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
+            enddo
 #endif
 c
-      do 43 k=2,kk
-c --- 'tdp,sdp' will be needed for temp./salin. mixing during entrainment
-      q=(min(pnew,pres(k+1))-min(pnew,pres(k)))
-      tdp=tdp+ttem(k)*q
-      sdp=sdp+ssal(k)*q
+            if (dpfsl.le.onemu) then
+              q=1./(dpfsl+delp(1))
+              ttem(1)=(tfsl*dpfsl+ttem(1)*delp(1))*q
+              ssal(1)=(sfsl*dpfsl+ssal(1)*delp(1))*q
+              dens(1)=sig(ttem(1),ssal(1))
 #ifdef TRC
-      do nt=1,ntrc
-        trdp(nt)=trdp(nt)+ttrc(nt,k)*q
-      enddo
+              do nt=1,ntrc
+                ttrc(nt,1)=(trfsl(nt)*dpfsl+ttrc(nt,1)*delp(1))*q
+              enddo
+#endif
+              delp(1)=dpfsl+delp(1)
+            else
+c
+c --- ----- - place the content of the fossil mixed layer in isopycnic
+c --- ----- - layers
+              k=min(kk,kfpla(i,j,n))
+c
+              if (k.eq.2) then
+                q=1./(dpfsl+delp(k))
+                ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
+                ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
+                dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                do nt=1,ntrc
+                  ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
+                enddo
+#endif
+                delp(k)=dpfsl+delp(k)
+              else
+                q=1./(dpfsl+delp(k))
+                ttmp=(tfsl*dpfsl+ttem(k)*delp(k))*q
+                stmp=(sfsl*dpfsl+ssal(k)*delp(k))*q
+                sigtmp=sig(ttmp,stmp)
+                sigfsl=sig(tfsl,sfsl)
+                if (sigtmp.ge.densr(k)) then
+                  if (sigfsl.gt.dens(k).and.
+     .                dens(k).le.dens(min(kk,k+1))) then
+                    k=k-1
+                    q=1./(dpfsl+delp(k))
+                    ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
+                    ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
+                    dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                    do nt=1,ntrc
+                      ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
+                    enddo
+#endif
+                    delp(k)=dpfsl+delp(k)
+                  else
+                    ttem(k)=ttmp
+                    ssal(k)=stmp
+                    dens(k)=sigtmp
+#ifdef TRC
+                    do nt=1,ntrc
+                      ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
+                    enddo
+#endif
+                    delp(k)=dpfsl+delp(k)
+                  endif
+                else
+                  if (delp(k).gt.onemu.and.dens(k).gt.densr(k).and.
+     .                sigfsl.lt.densr(k)-1.e-9) then
+                    dps=min(dpfsl,delp(k)*(dens(k)-densr(k))
+     .                                   /(densr(k)-sigfsl))
+                    q=1./(dps+delp(k))
+                    ttem(k)=(tfsl*dps+ttem(k)*delp(k))*q
+                    ssal(k)=(sfsl*dps+ssal(k)*delp(k))*q
+                    dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                    do nt=1,ntrc
+                      ttrc(nt,k)=(trfsl(nt)*dps+ttrc(nt,k)*delp(k))*q
+                    enddo
+#endif
+                    delp(k)=dps+delp(k)
+                    dpfsl=dpfsl-dps
+                    if (dpfsl.le.onemu) then
+                      q=1./(dpfsl+delp(1))
+                      ttem(1)=(tfsl*dpfsl+ttem(1)*delp(1))*q
+                      ssal(1)=(sfsl*dpfsl+ssal(1)*delp(1))*q
+                      dens(1)=sig(ttem(1),ssal(1))
+#ifdef TRC
+                      do nt=1,ntrc
+                        ttrc(nt,1)=(trfsl(nt)*dpfsl
+     .                             +ttrc(nt,1)*delp(1))*q
+                      enddo
+#endif
+                      delp(1)=dpfsl+delp(1)
+                    else
+                      k=k-1
+                      do while (sigfsl.lt.densr(k))
+                        if (k.eq.2) exit
+                        k=k-1
+                      enddo
+                      q=1./(dpfsl+delp(k))
+                      ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
+                      ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
+                      dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                      do nt=1,ntrc
+                        ttrc(nt,k)=(trfsl(nt)*dpfsl
+     .                             +ttrc(nt,k)*delp(k))*q
+                      enddo
+#endif
+                      delp(k)=dpfsl+delp(k)
+                    endif
+                  else
+                    k=k-1
+                    do while (sigfsl.lt.densr(k))
+                      if (k.eq.2) exit
+                      k=k-1
+                    enddo
+                    q=1./(dpfsl+delp(k))
+                    ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
+                    ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
+                    dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                    do nt=1,ntrc
+                      ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
+                    enddo
+#endif
+                    delp(k)=dpfsl+delp(k)
+                  endif
+                endif
+              endif
+c
+            endif
+c
+          else
+c
+            if (tke.lt.0.) then
+              pmxl=thkmin*onem
+              tdps=ttem(1)*delp(1)
+              sdps=ssal(1)*delp(1)
+#ifdef TRC
+              do nt=1,ntrc
+                trdps(nt)=ttrc(nt,1)*delp(1)
+              enddo
+#endif
+              k=kfpla(i,j,n)
+              do
+                q=min(pmxl,pres(k+1))-pres(k)
+                tdps=tdps+ttem(k)*q
+                sdps=sdps+ssal(k)*q
+#ifdef TRC
+                do nt=1,ntrc
+                  trdps(nt)=trdps(nt)+ttrc(nt,k)*q
+                enddo
+#endif
+                delp(k)=pres(k+1)-min(pmxl,pres(k+1))
+                if (k.eq.kk.or.pres(k+1).gt.pmxl) exit
+                k=k+1
+              enddo
+            else
+c
+c --- -----------------------------------------------------------------
+c --- ----- If there is a TKE surplus in the mixed layer, increase the
+c --- ----- mixed layer depth until the TKE balance is restored.
+c --- -----------------------------------------------------------------
+c
+              tmxl0=ttem(1)
+              smxl0=ssal(1)
+              dpe0=0.
+              tkeo=tke
+              k=kfpla(i,j,n)
+              tdps=ttem(1)*delp(1)
+              sdps=ssal(1)*delp(1)
+#ifdef TRC
+              do nt=1,ntrc
+                trdps(nt)=ttrc(nt,1)*delp(1)
+              enddo
+#endif
+              do
+                if (k.gt.kk) then
+                  exit
+                elseif (delp(k).lt.epsil) then
+                  k=k+1
+                else
+                  if (pres(k)*lbi.lt.1..and.pres(k+1)*lbi.gt.1.) then
+                    pmxl=1./lbi
+                    dpmxl=min(pmxl-pres(k),pres(k+1)-pmxl,onecm)
+                    pmxl=pmxl-.5*dpmxl
+                  else
+                    dpmxl=min(onecm,delp(k))
+                    pmxl=pres(k)+dpmxl
+                  endif
+                  nitr=0
+                  do
+                    nitr=nitr+1
+                    rm1=exp(-lui*pmxl)
+                    rm2=exp(-lbi*pmxl)
+                    q=lei*pmxl
+                    rm3=exp(-q)
+                    rm4=2./q
+                    tmxl=(tmxl0*(pres(k)-pres(1))
+     .                   +ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                    smxl=(smxl0*(pres(k)-pres(1))
+     .                   +ssal(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                    dpe=dpe0
+     .                 +max(.5*alpha0*alpha0*mldjmp
+     .                        *(pres(k)-pres(1))*(pmxl-pres(k)),
+     .                      p_p_alpha(pmxl,pres(1),tmxl,smxl)
+     .                     -p_p_alpha(pmxl,pres(k),ttem(k),ssal(k))
+     .                     -p_p_alpha(pres(k),pres(1),tmxl0,smxl0)
+     .                     -(pres(1)-pres(k))
+     .                      *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))
+     .                      *alpha0/(delt1*g)
+                    tke=cus*rm1
+     .                 +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .                  -crs*pmxl*pmxl)*pmxl
+     .                 -dpe
+                    if (.not.(nitr.eq.1.and.pres(k)*lbi.lt.1..and.
+     .                        pres(k+1)*lbi.gt.1.)) then
+                      dtke=(tke-tkeo)/dpmxl
+                      if (abs(dtke).lt.(abs(tke)+1.e-16)/delp(k)) then
+                        if (tke.lt.0.) then
+                          dpmxl=.5*(pres(k)-pmxl)
+                        else
+                          dpmxl=pres(k+1)-pmxl
+                        endif
+                      else
+                        dpmxl=max(pres(k)-pmxl,
+     .                            min(pres(k+1)-pmxl,-tke/dtke))
+                      endif
+                      dpmxl=max(max(thkmin*onem,pres(k))-pmxl,dpmxl)
+                    endif
+                    pmxl=pmxl+dpmxl
+                    tkeo=tke
+                    if (abs(dpmxl).lt.onemm.or.nitr.eq.maxitr) exit
+                  enddo
+                  if (nitr.eq.maxitr) then
+                    write (lp,*) 'reached maxitr when entraining',
+     .                           i+i0,j+j0
+                    write (lp,*) 'dpth=',pres(2)/onem,';'
+                    write (lp,*) 'pmxl=',pmxl/onem,';'
+                    write (lp,*) 'corio=',corio(i,j),';'
+                    write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
+                    write (lp,*) 'bfltot=',bfltot*1.e-4,';'
+                    write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
+                    write (lp,*) 'bg2=',util1(i,j),';'
+                    write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
+                    write (lp,*) 'pres(2)=',pres(2)/onem,';'
+                    do kn=kfpla(i,j,n),k
+                      write (lp,*) 'pres(',kn+1,')=',pres(kn+1)/onem,';'
+                    enddo
+                    write (lp,*) 'ttem(1)=',ttem(1),';'
+                    do kn=kfpla(i,j,n),k
+                      write (lp,*) 'ttem(',kn,')=',ttem(kn),';'
+                    enddo
+                    write (lp,*) 'ssal(1)=',ssal(1),';'
+                    do kn=kfpla(i,j,n),k
+                      write (lp,*) 'ssal(',kn,')=',ssal(kn),';'
+                    enddo
+c                   call xchalt('(mxlayr)')
+c                          stop '(mxlayr)'
+                  endif
+                  if (pmxl.lt.pres(k+1)-epsil.and.nitr.lt.maxitr) then
+                    tdps=tdps+ttem(k)*(pmxl-pres(k))
+                    sdps=sdps+ssal(k)*(pmxl-pres(k))
+#ifdef TRC
+                    do nt=1,ntrc
+                      trdps(nt)=trdps(nt)+ttrc(nt,k)*(pmxl-pres(k))
+                    enddo
+#endif
+                    pres(k)=pmxl
+                    delp(k)=pres(k+1)-pres(k)
+                    exit
+                  else
+                    tdps=tdps+ttem(k)*delp(k)
+                    sdps=sdps+ssal(k)*delp(k)
+#ifdef TRC
+                    do nt=1,ntrc
+                      trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
+                    enddo
+#endif
+                    pmxl=pres(k+1)
+                    tmxl=(tmxl0*(pres(k)-pres(1))
+     .                   +ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                    smxl=(smxl0*(pres(k)-pres(1))
+     .                   +ssal(k)*(pmxl-pres(k)))/(pmxl-pres(1))
+                    dpe=dpe0
+     .                 +max(.5*alpha0*alpha0*mldjmp
+     .                        *(pres(k)-pres(1))*(pmxl-pres(k)),
+     .                      p_p_alpha(pmxl,pres(1),tmxl,smxl)
+     .                     -p_p_alpha(pmxl,pres(k),ttem(k),ssal(k))
+     .                     -p_p_alpha(pres(k),pres(1),tmxl0,smxl0)
+     .                     -(pres(1)-pres(k))
+     .                      *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))
+     .                      *alpha0/(delt1*g)
+                    dpe0=dpe
+                    tmxl0=tmxl
+                    smxl0=smxl
+                    pres(k)=pmxl
+                    delp(k)=0.
+                    k=k+1
+                  endif
+                endif
+              enddo
+            endif
+c
+            pres(2)=min(pres(kk+1),pmxl)
+            delp(1)=pres(2)-pres(1)
+            q=1./delp(1)
+            ttem(1)=tdps*q
+            ssal(1)=sdps*q
+#ifdef TRC
+            do nt=1,ntrc
+              ttrc(nt,1)=trdps(nt)*q
+            enddo
 #endif
 c
-c --- if sdot > 0, remove water from layers about to be entrained.
-      q=delp(k)					! diapyc.flux
-      delp(k)=max(pres(k+1),pnew)-max(pres(k),pnew)
-      diaflx(i,j,k)=diaflx(i,j,k)+(delp(k)-q)	! diapyc.flux
- 43   continue
-c
-c --- increase temperature in thin layers where water is too cold to fit
-c --- into layer k
-c 
-      corrh=0.
-      corrs=0.
-      do 45 k=2,kk
-      if (delp(k).lt.onemm) then
-        q=ttem(k)
-        ttem(k)=max(ttem(k),temmin(k))
-        corrh=corrh+(ttem(k)-q)*delp(k)
-        q=ssal(k)
-        ssal(k)=sofsig(dens(k),ttem(k))
-        corrs=corrs+(ssal(k)-q)*delp(k)
-      end if
- 45   continue
-c
-c --- redistribute temp. and salin. during both de- and entrainment
-c
-      tmxl=ttem(1)+dtemp
-      smxl=ssal(1)+dsaln
+c --- ----- Apply forcing to the water column
+            pswbas=(1.-redfac)*exp(-lei*pres(2))
+            pswup=pswbas
+            do k=2,kk
+              if (pres(k).lt.raddep*onem.and.delp(k).gt.onemu) then
+                pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(k+1)))
+                ttem(k)=ttem(k)
+     .                 -(pswup-pswlo)*sswflx(i,j)*delt1*g
+     .                  /(spcifh*delp(k))
+                dens(k)=sig(ttem(k),ssal(k))
+                pswup=pswlo
+              endif
+            enddo
+            q=delt1*g/delp(1)
+            ttem(1)=ttem(1)
+     .             -(surflx(i,j)+surrlx(i,j)-(pswbas-pswup)*sswflx(i,j))
+     .              *q/spcifh
+            ssal(1)=ssal(1)-(salflx(i,j)+salrlx(i,j))*q
+            dens(1)=sig(ttem(1),ssal(1))
 #ifdef TRC
-      do nt=1,ntrc
-        trmxl(nt)=ttrc(nt,1)
-      enddo
+            do nt=1,ntrc
+              ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
+            enddo
 #endif
 c
-cdiag if (i.eq.itest.and.j.eq.jtest) write (lp,'(i9,2i5,a,3f7.3,f8.2)')
-cdiag.  nstep,i,j,'  t,s,sig,dp after diab.forcing',tmxl,smxl,
-cdiag.  sig(tmxl,smxl)*1000.,thkold/onem
+          endif
 c
-      if (sdot.ge.0.) then
+c --- --- Define first physical layer
+          k=2
+          dps=0.
+          do while (delp(k).lt.epsil)
+            dps=dps+delp(k)
+            delp(k)=0.
+            k=k+1
+            if (k.gt.kk) exit
+          enddo
+          if (k.gt.kk) then
+            delp(1)=delp(1)+dps
+          else
+            delp(k)=delp(k)+dps
+          endif
+          kfpla(i,j,n)=k
 c
-c --- (mixed layer  d e e p e n s)
-c
-cdiag if (i.eq.itest.and.j.eq.jtest) write (lp,'(i9,2i5,a,f9.3,a)')
-cdiag.  nstep,i,j,'  entrain',sdot/onem,' m of water'
-c
-      q=1./pnew
-      tmxl=(tmxl*thkold+tdp)*q
-      smxl=(smxl*thkold+sdp)*q
+c --- --- Put single column back into 3-d fields
+          do k=1,kk
+            kn=k+nn
+            temp(i,j,kn)=ttem(k)
+            saln(i,j,kn)=ssal(k)
+            sigma(i,j,kn)=dens(k)
+            diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
+            dp(i,j,kn)=delp(k)
 #ifdef TRC
-      do nt=1,ntrc
-        trmxl(nt)=(trmxl(nt)*thkold+trdp(nt))*q
-      enddo
+            do nt=1,ntrc 
+              trc(i,j,k,nt)=ttrc(nt,k)
+            enddo
 #endif
-      delp(1)=pnew
-      diaflx(i,j,1)=diaflx(i,j,1)+sdot ! diapyc.flux
+          enddo
 c
-      else if (sdot.lt.-onecm.and.-alfa*dtemp+beta*dsaln.lt.0.) then ! sdot < 0
+c         if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+c           write (lp,*) 'mxlayr final'
+c           write (lp,*) 'kfpl',kfpla(i,j,n)
+c           do k=1,kk
+c             kn=k+nn
+c             write (lp,'(i3,6e12.5)')
+c    .          k,dp(i,j,kn)/onem,temp(i,j,kn),saln(i,j,kn),
+c    .          sigma(i,j,kn),densr(k),sig0(temp(i,j,kn),saln(i,j,kn))
+c           enddo
+c           write (lp,*)
+c         endif
 c
-c --- (mixed layer  r e c e d e s)
-c
-      k=kbase
-      if (k.gt.kk) go to 27
-c
-      dpn=max(delp(k),0.)
-      sn=ssal(k)
-      tn=ttem(k)
-c
-cdiag if (i.eq.itest.and.j.eq.jtest)
-cdiag.  write (lp,'(i9,2i5,i3,a,2f9.4,f8.2)') nstep,i,j,k,
-cdiag.  '  t,s,dp before detrainment',tn,sn,dpn/onem
-c
-c --- distribute last time step's heating and freshwater flux over depth range
-c --- 'pnew' (monin-obukhov length). split fossil mixed layer (depth= -sdot=
-c --- thkold-pnew) into lower part ('lo') of depth z cooled and detrained into
-c --- layer k, and an upper part ('up') heated and/or freshened to match
-c --- temperature rise and/or salinity decrease in mixed layer.
-c
-      dtemp=dtemp*thkold/pnew
-      dsaln=dsaln*thkold/pnew
-      tnew=ttem(1)+dtemp
-      snew=ssal(1)+dsaln
-c
-c --- (t_lo,s_lo) differ from (tn,sn). main problem now is in maintaining
-c --- density in layer k during detrainment. This requires solving for z with
-c --- new (t,s) in layer k of the form t=(a*z+b)/(z+d), s=(e*z+f)/(z+d)
-c --- substituted into the functional form of potential density.
-      a=tnew
-      b=(tn*dpn+dtemp*sdot)/onem
-      c=1.
-      d=dpn/onem
-      e=snew
-      f=(sn*dpn+dsaln*sdot)/onem
-c
-      z=tsroot(a,b,c,d,e,f,sig(tn,sn),-sdot/onem,0.)
-c
-c --- does root fall into appropriate range?
-      if (z*onem+sdot.gt.0.) go to 27
-      if (z.le.0.005) go to 27
-      q=1./(z+d)
-      a=(a*z+b)*q
-      b=(e*z+f)*q
-      if (a.lt.min(tn,temmin(k)).or.
-     .    abs(ttem(1)-a).gt.tlim.or.abs(ssal(1)-b).gt.slim) go to 27
-c
-c --- ready to detrain lowest 'z' meters from mixed layer
-c
-      ttem(k)=a
-      ssal(k)=b
-#ifdef TRC
-      do nt=1,ntrc
-        ttrc(nt,k)=(ttrc(nt,1)*z+ttrc(nt,k)*d)*q
+        enddo
+        enddo
       enddo
-#endif
-c
-      sdot=-z*onem
-      delp(1)=thkold+sdot
-      delp(k)=dpn   -sdot
-      smxl=snew
-      tmxl=tnew
-      diaflx(i,j,1)=diaflx(i,j,1)+sdot				! diapyc.flux
-      diaflx(i,j,k)=diaflx(i,j,k)-sdot				! diapyc.flux
-c
-cdiag if (i.eq.itest.and.j.eq.jtest)
-cdiag.  write (lp,'(i9,2i5,i3,a,2f9.4,f8.2)') nstep,i,j,k,
-cdiag.  '  t,s,dp after  detrainment',ttem(k),ssal(k),
-cdiag.  delp(k)/onem
-c
-      end if				!  sdot > or < 0
-c
- 27   ttem(1)=tmxl
-      ssal(1)=smxl
-#ifdef TRC
-      do nt=1,ntrc 
-        ttrc(nt,1)=trmxl(nt)
-      enddo
-#endif
-c
-cdiag if (i.eq.itest.and.j.eq.jtest) write
-cdiag.  (lp,'(i9,2i5,i3,a,2f9.4,f8.2)') nstep,i,j,1,
-cdiag.  ' final mixed-layer t,s,dp ',tmxl,smxl,delp(1)/onem
-c
-c --- compare 'old' with 'new' t/s column integral (diagnostic use only)
-c
-      tndcyt=-totem-corrh
-      tndcys=-tosal-corrs
-      do k=kk,1,-1
-        tndcyt=tndcyt+ttem(k)*delp(k)
-        tndcys=tndcys+ssal(k)*delp(k)
-      end do
-      q=100.*acurcy*pb_p(i,j)*g
-      if (abs((surflx(i,j)+surrlx(i,j))*delt1*g+tndcyt*spcifh).gt.10.*q
-     ..or.abs((salflx(i,j)+salrlx(i,j))*delt1*g+tndcys).gt.35.*q) then
-      q=1./pb_p(i,j)
-        write (lp,'(i9,2i5,3x,a,2f9.5/22x,a,2f9.5)') nstep,i0+i,j0+j,
-     .    'saln flux,tndcy:',
-     .    q*(salflx(i,j)+salrlx(i,j))*delt1*g       ,q*tndcys,
-     .    'heat flux,tndcy:',
-     .    q*(surflx(i,j)+surrlx(i,j))*delt1*g/spcifh,q*tndcyt
-      end if
-c
-c --- put single column back into 3-d fields
-      do 8 k=1,kk
-      kn=k+nn
-      temp(i,j,kn)=ttem(k)
-      saln(i,j,kn)=ssal(k)
-      sigma(i,j,kn)=sig(ttem(k),ssal(k))
-      dp(i,j,kn)=delp(k)
-#ifdef TRC
-      do nt=1,ntrc 
-        trc(i,j,k,nt)=ttrc(nt,k)
-      enddo
-#endif
- 8    continue
-c
-c
- 1    continue
 c$OMP END PARALLEL DO
 c
 c --- store 'old' interface pressures in -pu,pv-
@@ -540,12 +800,6 @@ c
  97   v(i,j,kn)=v(i,j,k1n)*q+v(i,j,kn)*(1.-q)
 c$OMP END PARALLEL DO
 c
-cdiag if (itest.gt.0 .and. jtest.gt.0) write (lp,103) nstep,itest,jtest,
-cdiag.  '  exiting  mxlayr:  temp    saln    dens    thkns    dpth',
-cdiag.  (k,temp(itest,jtest,k+nn),saln(itest,jtest,k+nn),
-cdiag.  sigma(itest,jtest,k+nn),dp(itest,jtest,k+nn)/onem,
-cdiag.  p(itest,jtest,k+1)/onem,k=1,kk)
-c
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'mxlayr:'
@@ -571,18 +825,3 @@ c
 c
 c
 c> Revision history:
-c>
-c> June 1995 - removed restriction  'klist(i,j) .le. kk'
-c> June 1995 - added code for setting t/s in massless layers below mix.layer
-c> Oct. 1995 - removed bug created while changing klist (June 1995 revision):
-c>             'if (k.gt.kk) go to 26' now reads 'if (k.gt.kk) go to 27'
-c> May  1997 - changed -sdot- into local array
-c> Mar. 1998 - added -th3d-
-c> Nov. 1998 - fixed bug in computing tnew,snew in situations where z < 0.005
-c> Dec. 1998 - replaced dsaln by (s_up-s1) in definition of 'f'
-c> Feb. 1999 - limited 'tofsig' call in loop 45 to cases where saln < salmin
-c> Apr. 2000 - search for 3rd deg.polynomial roots done in double precision
-c> May  2000 - modified j-1,j+1 to accomodate both channel & closed basin b.c.
-c> June 2000 - changed loop hierarchy to have one overarching j/i loop
-c> July 2000 - added "min(pres(k+1),..." to calculation of -value- in loop 85
-c> Sep. 2000 - changed dimension of -dens- from (1:kdm) to (0:kdm)

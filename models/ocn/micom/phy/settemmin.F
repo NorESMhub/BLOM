@@ -11,14 +11,20 @@ c
 #include "common_blocks.h"
 #include "common_eos.h"
 c
-      integer k
+      integer i,j,k,l
       real gam,salfrz,a,b,c
 c
 #ifdef CCSMCOUPLED
 c
 c --- Set temmin to a constant freezing temperature for all layers
       do k=2,kk
-        temmin(k)=-1.8
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            temmin(i,j,k)=-1.8
+          enddo
+          enddo
+        enddo
       enddo
 #else
 c --- Let temmin be the freezing temperature of a given potential
@@ -29,18 +35,25 @@ c
       gam=-.0547
 c
       do k=2,kk
-        a=((ap14-ap24*sigmar(k))*gam+ap15-ap25*sigmar(k))*gam
-     .    +ap16-ap26*sigmar(k)
-        b=(ap12-ap22*sigmar(k))*gam+ap13-ap23*sigmar(k)
-        c=ap11-ap21*sigmar(k)
-        salfrz=(-b+sqrt(b*b-4.*a*c))/(2.*a)
-        temmin(k)=gam*salfrz
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            a=((ap14-ap24*sigmar(i,j,k))*gam
+     .        + ap15-ap25*sigmar(i,j,k) )*gam
+     .       +ap16-ap26*sigmar(i,j,k)
+            b=(ap12-ap22*sigmar(i,j,k))*gam+ap13-ap23*sigmar(i,j,k)
+            c=ap11-ap21*sigmar(i,j,k)
+            salfrz=(-b+sqrt(b*b-4.*a*c))/(2.*a)
+            temmin(i,j,k)=gam*salfrz
+          enddo
+          enddo
+        enddo
       enddo
 #endif
 c
-      if (mnproc.eq.1) then
+      if (mnproc.eq.ptest) then
         write (lp,'(a/(6(i5,f8.3)))') 'minimum temperature values:',
-     .    (k,temmin(k),k=2,kk)
+     .    (k,temmin(itest,jtest,k),k=2,kk)
       endif
 c
       return

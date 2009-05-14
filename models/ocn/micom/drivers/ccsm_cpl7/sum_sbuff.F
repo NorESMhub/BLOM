@@ -26,9 +26,6 @@
 
       ! External functions
 
-      real swtfrz
-      external swtfrz
-
       !-----------------------------------------------------------------
       ! Set send buffer to zero if this is the first call after a
       ! coupling interval
@@ -95,7 +92,7 @@
            sbuff(i,j,index_o2x_So_s) =
      .        sbuff(i,j,index_o2x_So_s) + saln(i,j,k1n)*baclin
            sbuff(i,j,index_o2x_Fioo_q) =
-     .        sbuff(i,j,index_o2x_Fioo_q) + frzmlt(i,j)*baclin
+     .        sbuff(i,j,index_o2x_Fioo_q) + frzpot(i,j)
          enddo
          enddo
       enddo

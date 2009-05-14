@@ -5,7 +5,7 @@ c --- ------------------------------------------------------------------
 c --- Read ice dynamics initial conditions from restart file
 c --- ------------------------------------------------------------------
 c
-      use mod_xc, only: mnproc
+      use mod_xc, only: mnproc,nfu
 c
       implicit none
 c
@@ -15,12 +15,9 @@ c
 #include "param_icedyn.h"
 #include "common_icedyn.h"
 c
-      integer iunit
       character fname*120
       logical fexist
       real time
-c
-      iunit=12
 c
       fname=path2(1:path2_len)//runid(1:runid_len)//'_restice'//
      .      rstfnm_ext
@@ -29,10 +26,10 @@ c
 c
       if (fexist) then
         if (mnproc.eq.1) then
-          open (unit=iunit,file=fname,form='unformatted')
+          open (unit=nfu,file=fname,form='unformatted')
           write (*,'(a,a)') ' reading ice dynamics restart file ',
      .                      trim(fname)
-          read (iunit) time
+          read (nfu) time
           if (nint(time).ne.nday1) then
             write (*,'(a,i6.6,a)')
      .        ' Warning! Integration day ',nint(time),
@@ -40,8 +37,8 @@ c
             write (*,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file'
           endif
-          read (iunit) lold,lnew,u,v
-          close (unit=iunit)
+          read (nfu) lold,lnew,u,v
+          close (unit=nfu)
         endif
       else
         if (mnproc.eq.1) then

@@ -14,38 +14,179 @@ c
 #  endif
 #  include "common_ice.h"
 #endif
+#include "netcdf.inc"
 c
       real, dimension(itdm,jtdm) :: tmp2d
-      integer i,j,k,l,kmin
-      real dphi,alpl,alpu,q
+      integer, dimension(3) :: start,count
+      integer i,j,k,l,status,ncid,dimid,varid
+      real q,dps
 c
       real swtfrz,sig,sofsig,getlpi
       external swtfrz,sig,sofsig,getlpi
 c
-c --- -------------------------
+c --- ------------------------------------------------------------------
 c --- mass field initialization
-c --- -------------------------
+c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
-        write (lp,*) 'reading initial layer interfaces...'
-        open (unit=nfu,file=path(1:path_len)//'sep_z.dat',status='old',
-     .        action='read')
-        read (nfu,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+        write (lp,'(2a)') ' reading initial condition from ',
+     .                    path(1:path_len)//'inicon.nc'
+        call flush(lp)
+c
+c --- - open netcdf file
+        status=nf_open(path(1:path_len)//'inicon.nc',nf_nowrite,
+     .                 ncid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_open: inicon.nc: ',
+     .                     nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+c
+c --- - check dimensions
+        status=nf_inq_dimid(ncid,'x',dimid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_dimid: x: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+        status=nf_inq_dimlen(ncid,dimid,i)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_dimlen: x: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+        status=nf_inq_dimid(ncid,'y',dimid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_dimid: y: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+        status=nf_inq_dimlen(ncid,dimid,j)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_dimlen: y: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+        if (i.ne.itdm.or.j.ne.jtdm) then
+          write (lp,*) 'wrong dimensions in inicon.nc'
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+c
+      endif
+c
+      start(1)=1
+      start(2)=1
+      count(1)=itdm
+      count(2)=jtdm
+      count(3)=1
+c
+c --- read reference potential density
+      if (mnproc.eq.1) then
+        status=nf_inq_varid(ncid,'sigma',varid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_varid: sigma: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
       endif
       do k=1,kk
         if (mnproc.eq.1) then
-          read (nfu,'(10f8.3)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
+          start(3)=k
+          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
+          if (status.ne.nf_noerr) then
+            write(lp,'(2a)') 'nf_get_vara_double: sigma: ',
+     .                       nf_strerror(status)
+            call xchalt('(inicon)')
+                   stop '(inicon)'
+          endif
         endif
-        call xcaput(tmp2d,util1,1)
+        call xcaput(tmp2d,sigmar(1-nbdy,1-nbdy,k),1)
+      enddo
+c
+c --- read potential temperature
+      if (mnproc.eq.1) then
+        status=nf_inq_varid(ncid,'temp',varid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_varid: temp: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+      endif
+      do k=1,kk
+        if (mnproc.eq.1) then
+          start(3)=k
+          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
+          if (status.ne.nf_noerr) then
+            write(lp,'(2a)') 'nf_get_vara_double: temp: ',
+     .                       nf_strerror(status)
+            call xchalt('(inicon)')
+                   stop '(inicon)'
+          endif
+        endif
+        call xcaput(tmp2d,temp(1-nbdy,1-nbdy,k),1)
+      enddo
+c
+c --- read salinity
+      if (mnproc.eq.1) then
+        status=nf_inq_varid(ncid,'saln',varid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_varid: saln: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+      endif
+      do k=1,kk
+        if (mnproc.eq.1) then
+          start(3)=k
+          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
+          if (status.ne.nf_noerr) then
+            write(lp,'(2a)') 'nf_get_vara_double: saln: ',
+     .                       nf_strerror(status)
+            call xchalt('(inicon)')
+                   stop '(inicon)'
+          endif
+        endif
+        call xcaput(tmp2d,saln(1-nbdy,1-nbdy,k),1)
+      enddo
+c
+c --- read layer thickness
+      if (mnproc.eq.1) then
+        status=nf_inq_varid(ncid,'dz',varid)
+        if (status.ne.nf_noerr) then
+          write(lp,'(2a)') 'nf_inq_varid: dz: ',nf_strerror(status)
+          call xchalt('(inicon)')
+                 stop '(inicon)'
+        endif
+      endif
+      do k=1,kk
+        if (mnproc.eq.1) then
+          start(3)=k
+          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
+          if (status.ne.nf_noerr) then
+            write(lp,'(2a)') 'nf_get_vara_double: dz: ',
+     .                       nf_strerror(status)
+            call xchalt('(inicon)')
+                   stop '(inicon)'
+          endif
+        endif
+        call xcaput(tmp2d,dp(1-nbdy,1-nbdy,k),1)
+      enddo
+c
+c --- convert unit of reference potential density from [kg/m^3] to
+c --- [g/cm^3] and construct interface depths from layer thicknesses
+c
+      do k=1,kk
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            p(i,j,k+1)=min(depths(i,j),util1(i,j))*1.e2
+            p(i,j,k+1)=min(depths(i,j)*1.e2,p(i,j,k)+dp(i,j,k)*1.e2)
+            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
           enddo
           enddo
         enddo
       enddo
-      close (unit=nfu)
 c
       do j=1,jj
         do k=2,kk
@@ -63,43 +204,11 @@ c
         enddo
       enddo
 c
-      if (mnproc.eq.1) then
-        write (lp,*) 'reading initial temperature state...'
-        open (unit=nfu,file=path(1:path_len)//'sep_temp.dat',
-     .        status='old',action='read')
-      endif
-      do k=1,kk
-        if (mnproc.eq.1) then
-          read (nfu,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
-        endif
-        call xcaput(tmp2d,util1,1)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            temp(i,j,k)=util1(i,j)
-          enddo
-          enddo
-        enddo
-      enddo
-      close (unit=nfu)
+c --- ------------------------------------------------------------------
+c --- set minimum physical temperature for each isopycnic layer
+c --- ------------------------------------------------------------------
 c
-      if (mnproc.eq.1) then
-        write (lp,*) 'reading initial salinity state...'
-        open (unit=nfu,file=path(1:path_len)//'sep_saln.dat',
-     .        status='old',action='read')
-      endif
-      if (mnproc.eq.1) then
-        read (nfu,'(10f8.4)') ((tmp2d(i,j),i=1,itdm),j=1,jtdm)
-      endif
-      call xcaput(tmp2d,util1,1)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          saln(i,j,1)=util1(i,j)
-        enddo
-        enddo
-      enddo
-      close (unit=nfu)
+      call settemmin
 c
 #ifndef CCSMCOUPLED
 c --- ------------------------------------------------------------------
@@ -110,8 +219,7 @@ c
       do 110 j=1,jj
       do 110 l=1,isp(j)
       do 110 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-      sigma(i,j,1)=sig(temp(i,j,1),saln(i,j,1))
-      if (ricclm(i,j,1).lt..5) then
+      if (ricclm(i,j,12).lt..05) then
       hicem(i,j)=0.
       ficem(i,j)=0.
       hsnwm(i,j)=0.
@@ -119,22 +227,8 @@ c
       tsi_tda(i,j)=temp(i,j,1)+t0deg
       else
       hicem(i,j)=2.
-      ficem(i,j)=min(fice_max,ricclm(i,j,1)) ! assuming start in January
+      ficem(i,j)=min(fice_max,ricclm(i,j,12)) ! assuming start in January
       hsnwm(i,j)=0.1
-      kmin=1
-      do 120 k=kk,2,-1
-        if (sigma(i,j,1)+sigjmp.lt.sigmar(k).and.
-     .      p(i,j,k+1)-p(i,j,k).gt.100.) kmin=k
- 120  continue
- 130  temp(i,j,1)=swtfrz(saln(i,j,1))
-      sigma(i,j,1)=sig(temp(i,j,1),saln(i,j,1))
-      if (kmin.gt.1) then
-        if (sigma(i,j,1)+sigjmp.gt.sigmar(kmin)) then
-          sigma(i,j,1)=sigmar(kmin)-sigjmp
-          saln(i,j,1)=sofsig(sigma(i,j,1),temp(i,j,1))
-          goto 130
-        endif
-      endif
       tsrfm(i,j)=sstclm(i,j,1)
       tsi_tda(i,j)=(sstclm(i,j,1)-(1.-ficem(i,j))*(temp(i,j,1)+t0deg))
      .             /ficem(i,j)
@@ -162,28 +256,22 @@ c
       do 10 l=1,isp(j)
       do 10 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
       temp(i,j,1)=max(swtfrz(saln(i,j,1)),temp(i,j,1))
-      tmxold(i,j,1)=temp(i,j,1)
-      tmxold(i,j,2)=temp(i,j,1)
-      smxold(i,j,1)=saln(i,j,1)
-      smxold(i,j,2)=saln(i,j,1)
       temp(i,j,1+kk)=temp(i,j,1)
       saln(i,j,1+kk)=saln(i,j,1)
       sigma(i,j,1)=sig(temp(i,j,1),saln(i,j,1))
       sigma(i,j,1+kk)=sigma(i,j,1)
       do 10 k=2,kk
-      temp(i,j,k)=max(temmin(k),temp(i,j,k))
-      saln(i,j,k   )=sofsig(sigmar(k),temp(i,j,k))
+      temp(i,j,k)=max(temmin(i,j,k),temp(i,j,k))
+      saln(i,j,k   )=sofsig(sigmar(i,j,k),temp(i,j,k))
       temp(i,j,k+kk)=temp(i,j,k)
       saln(i,j,k+kk)=saln(i,j,k)
       sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
       sigma(i,j,k+kk)=sigma(i,j,k)
  10   continue
 c
-      if (mnproc.eq.1) then
+      if (mnproc.eq.ptest) then
         write (lp,'('' sigmar(k)    :'',9f7.5/(15x,9f7.5))')
-     .     (sigmar(k),k=1,kk)
-        write (lp,'('' alphar(k)    :'',9f7.5/(15x,9f7.5))')
-     .     (alphar(k),k=1,kk)
+     .     (sigmar(itest,jtest,k),k=1,kk)
       endif
 c
 c --- ------------------------------------------------------------------
@@ -359,6 +447,7 @@ c --- ------------------------------------------------------------------
 c
       call pgforc(2,1,kk,0,kk+1,1)
 c
+c$OMP PARALLEL DO
       do j=1,jj
         do k=1,kk
           do l=1,isu(j)
@@ -386,8 +475,38 @@ c
           xiym(i,j,2)=xiym(i,j,1)
         enddo
         enddo
-c
       enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- define first physical interior layer
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(k,dps)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          k=2
+          dps=0.
+          do while (dp(i,j,k).lt.epsil)
+            dps=dps+dp(i,j,k)
+            dp(i,j,k)=0.
+            k=k+1
+            if (k.gt.kk) exit
+          enddo
+          if (k.gt.kk) then
+            dp(i,j,1)=dp(i,j,1)+dps
+            dp(i,j,1+kk)=dp(i,j,1)
+          else
+            dp(i,j,k)=dp(i,j,k)+dps
+            dp(i,j,k+kk)=dp(i,j,k)
+          endif
+          kfpla(i,j,1)=k
+          kfpla(i,j,2)=k
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- initialize variables related to forcing

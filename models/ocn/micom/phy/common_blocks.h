@@ -16,23 +16,21 @@ c
      .  phi            ! interface geopotential
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+     .  sigmar,        ! reference potential density
+     .  temmin,        ! minimum temperature allowed in an isopycnic layer
      .  dpold,         ! layer thickness at old time level
      .  dpuold,dpvold, ! layer thickness at u- and v-points at old time level
      .  told,          ! temperature at old time level
      .  sold,          ! salinity at old time level
      .  diaflx         ! time integral of diapycnal flux
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
-     .  tmxold,        ! old mixed layer temperature
-     .  smxold         ! old mixed layer salinity
-c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  corio,         ! coriolis parameter
      .  potvor         ! potential vorticity
 c
-      common /micom1/ u,v,dp,dpu,dpv,temp,saln,sigma,p,pu,pv,phi,dpold,
-     .                dpuold,dpvold,told,sold,diaflx,tmxold,smxold,
-     .                corio,potvor
+      common /micom1/ u,v,dp,dpu,dpv,temp,saln,sigma,p,pu,pv,phi,
+     .                sigmar,temmin,dpold,dpuold,dpvold,told,sold,
+     .                diaflx,corio,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  uflx,vflx      ! horizontal mass fluxes
@@ -122,15 +120,12 @@ c
      .  taux,tauy,     ! surface stress components
      .  ustar          ! friction velocity
 c
-      real, dimension(kdm) ::
-     .  temmin         ! minimum temperature allowed in an isopycnic layer
-c
-      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  klist          ! k-index of layer below mixed layer
+      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
+     .  kfpla          ! index of first physical layer
 c
       common /micom4/ uja,ujb,via,vib,udvmin,vdvmin,udamax,vdamax,sealv,
      .                surflx,surrlx,sswflx,salflx,salrlx,taux,tauy,
-     .                ustar,temmin,klist
+     .                ustar,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep1,nstep2,lstep
@@ -138,8 +133,6 @@ c
       common /varbls/ time,delt1,dlt,area,avgbot,
      .                nstep,nstep1,nstep2,lstep
 c
-c --- 'sigmar' = reference potential densities
-c --- 'alphar' = reference specific volumes
 c --- 'baclin' = baroclinic time step
 c --- 'batrop' = barotropic time step
 c --- 'thkdff' = diffusion velocity (cm/s) for thickness diffusion
@@ -156,22 +149,19 @@ c --- 'wbaro'  = weight for time smoothing of barotropic u,v,p field
 c --- 'wpgf'   = weight for time averaging of pressure gradient force
 c --- 'thkmin' = minimum mixed-layer thickness (m)
 c --- 'thkbot' = thickness of bottom boundary layer (pressure units)
-c --- 'sigjmp' = minimum density jump at mixed-layer bottom
 c --- 'acurcy' = permissible roundoff error in column integral calc.
-c --- 'thermo' = if set to .true., then use thermodynamic forcing functions
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
-      real, dimension(kdm) :: sigmar,alphar
       real baclin,batrop,thkdff,veldff,temdff,viscos,diapyc,vertmx,
      .     slip,cbar,wuv1,wuv2,wts1,wts2,wbaro,wpgf,thkmin,thkbot,
-     .     sigjmp,acurcy
-      logical thermo,csdiag,cnsvdi
+     .     acurcy
+      logical csdiag,cnsvdi
 c
-      common /parms1/ sigmar,alphar,baclin,batrop,thkdff,veldff,temdff,
+      common /parms1/ baclin,batrop,thkdff,veldff,temdff,
      .                viscos,diapyc,vertmx,slip,cbar,wuv1,wuv2,wts1,
-     .                wts2,wbaro,wpgf,thkmin,thkbot,sigjmp,acurcy,
-     .                thermo,csdiag,cnsvdi
+     .                wts2,wbaro,wpgf,thkmin,thkbot,acurcy,
+     .                csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

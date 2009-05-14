@@ -1,5 +1,5 @@
       subroutine remap(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,
-     .                 plo,u,v,dt,isopyc,mrg,
+     .                 plo,u,v,dt,mrg,
      .                 dp,temp,saln,uflx,vflx
 #ifdef TRC
      .                ,k,ntrc,trc
@@ -40,7 +40,6 @@ c ---   temp   - temperature.
 c ---   saln   - salinity.
 c ---   uflx   - u-component of mass flux.
 c ---   vflx   - v-component of mass flux.
-c ---   isopyc - flag indicating whether the layer is isopycnic or not.
 c ---   mrg    - margin of halo that must be valid upon return.
 c ---   k      - layer index
 c
@@ -48,7 +47,6 @@ c
      .  scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo,u,v,dp,temp,saln,
      .  uflx,vflx
       real dt
-      logical isopyc
       integer mrg
 #ifdef TRC
 #  include "param_trc.h"
@@ -66,8 +64,8 @@ c
      .  fsu,fsv
       real dxi,dyi,dpw,dpe,dps,dpn,dpsw,dpse,dpc,dpnw,dpne,dfmx,dmx,dmn,
      .     q,q1,q2,q3,q4,tfmx,tfmn,tmx,tmn,sfmx,sfmn,smx,smn,
-     .     xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,a,ax,ay,axx,ayy,axy,dl,fd,
-     .     qx,qy
+     .     xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,a,ax,ay,
+     .     axx,ayy,axy,dl,fd,qx,qy
       integer i,j,l,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne,nw
 #ifdef TRC
 #  ifdef ATRC
@@ -83,11 +81,6 @@ c
       integer nt
 #  endif
 #endif
-c
-c --- External functions.
-c
-      real dsigdt,dsigds
-      external dsigdt,dsigd
 c
 c --- Parameters:
 c ---   dpeps - small layer pressure thickness (equivalent to approx.
@@ -231,7 +224,8 @@ c --- --- center of mass coordinate.
             yd(i,j)=0.
           endif
 c
-c --- --- Compute limited gradient for temperature.
+c --- --- Compute limited gradients for temperature, salinity, and
+c --- --- density
           tx(i,j)=(temp(ie,j)-temp(iw,j))*dxi
           ty(i,j)=(temp(i,jn)-temp(i,js))*dyi
           q1=tx(i,j)*(-.5-xd(i,j))
@@ -241,69 +235,40 @@ c --- --- Compute limited gradient for temperature.
           tfmx=max(q1,q2)+max(q3,q4)
           if (tfmx.gt.0.) then
             tfmn=min(q1,q2)+min(q3,q4)
-            tmx=max(temp(isw,jsw),temp(i  ,js ),temp(ise,jse),
-     .              temp(iw ,j  )              ,temp(ie ,j  ),
-     .              temp(inw,jnw),temp(i  ,jn ),temp(ine,jne))
-            tmn=min(temp(isw,jsw),temp(i  ,js ),temp(ise,jse),
-     .              temp(iw ,j  )              ,temp(ie ,j  ),
-     .              temp(inw,jnw),temp(i  ,jn ),temp(ine,jne))
+            tmx=max(temp(isw,jsw),temp(i  ,js ),
+     .              temp(ise,jse),temp(iw ,j  ),
+     .              temp(ie ,j  ),temp(inw,jnw),
+     .              temp(i  ,jn ),temp(ine,jne))
+            tmn=min(temp(isw,jsw),temp(i  ,js ),
+     .              temp(ise,jse),temp(iw ,j  ),
+     .              temp(ie ,j  ),temp(inw,jnw),
+     .              temp(i  ,jn ),temp(ine,jne))
             q=max(0.,min(1.,(tmx-temp(i,j))/tfmx,(tmn-temp(i,j))/tfmn))
             tx(i,j)=tx(i,j)*q
             ty(i,j)=ty(i,j)*q
           endif
 c
-          if (isopyc) then
-c
-c --- ----- Compute limited gradient for salinity in the case of an
-c --- ----- isopycnic layer. The salinity gradient is related to the
-c --- ----- temperature gradient by dT*d(sig)/dT+dS*d(sig)/dS=0
-            q=-dsigdt(temp(i,j),saln(i,j))/dsigds(temp(i,j),saln(i,j))
-            sx(i,j)=q*tx(i,j)
-            sy(i,j)=q*ty(i,j)
-            q1=sx(i,j)*(-.5-xd(i,j))
-            q2=sx(i,j)*( .5-xd(i,j))
-            q3=sy(i,j)*(-.5-yd(i,j))
-            q4=sy(i,j)*( .5-yd(i,j))
-            sfmx=max(q1,q2)+max(q3,q4)
-            if (sfmx.gt.0.) then
-              sfmn=min(q1,q2)+min(q3,q4)
-              smx=max(saln(isw,jsw),saln(i  ,js ),saln(ise,jse),
-     .                saln(iw ,j  )              ,saln(ie ,j  ),
-     .                saln(inw,jnw),saln(i  ,jn ),saln(ine,jne))
-              smn=min(saln(isw,jsw),saln(i  ,js ),saln(ise,jse),
-     .                saln(iw ,j  )              ,saln(ie ,j  ),
-     .                saln(inw,jnw),saln(i  ,jn ),saln(ine,jne))
-              q=max(0.,min(1.,(smx-saln(i,j))/sfmx,
-     .                        (smn-saln(i,j))/sfmn))
-              tx(i,j)=tx(i,j)*q
-              ty(i,j)=ty(i,j)*q
-              sx(i,j)=sx(i,j)*q
-              sy(i,j)=sy(i,j)*q
-            endif
-          else
-c
-c --- ----- Compute limited gradient for salinity in the case of an
-c --- ----- non-isopycnic layer.
-            sx(i,j)=(saln(ie,j)-saln(iw,j))*dxi
-            sy(i,j)=(saln(i,jn)-saln(i,js))*dyi
-            q1=sx(i,j)*(-.5-xd(i,j))
-            q2=sx(i,j)*( .5-xd(i,j))
-            q3=sy(i,j)*(-.5-yd(i,j))
-            q4=sy(i,j)*( .5-yd(i,j))
-            sfmx=max(q1,q2)+max(q3,q4)
-            if (sfmx.gt.0.) then
-              sfmn=min(q1,q2)+min(q3,q4)
-              smx=max(saln(isw,jsw),saln(i  ,js ),saln(ise,jse),
-     .                saln(iw ,j  )              ,saln(ie ,j  ),
-     .                saln(inw,jnw),saln(i  ,jn ),saln(ine,jne))
-              smn=min(saln(isw,jsw),saln(i  ,js ),saln(ise,jse),
-     .                saln(iw ,j  )              ,saln(ie ,j  ),
-     .                saln(inw,jnw),saln(i  ,jn ),saln(ine,jne))
-              q=max(0.,min(1.,(smx-saln(i,j))/sfmx,
-     .                        (smn-saln(i,j))/sfmn))
-              sx(i,j)=sx(i,j)*q
-              sy(i,j)=sy(i,j)*q
-            endif
+          sx(i,j)=(saln(ie,j)-saln(iw,j))*dxi
+          sy(i,j)=(saln(i,jn)-saln(i,js))*dyi
+          q1=sx(i,j)*(-.5-xd(i,j))
+          q2=sx(i,j)*( .5-xd(i,j))
+          q3=sy(i,j)*(-.5-yd(i,j))
+          q4=sy(i,j)*( .5-yd(i,j))
+          sfmx=max(q1,q2)+max(q3,q4)
+          if (sfmx.gt.0.) then
+            sfmn=min(q1,q2)+min(q3,q4)
+            smx=max(saln(isw,jsw),saln(i  ,js ),
+     .              saln(ise,jse),saln(iw ,j  ),
+     .              saln(ie ,j  ),saln(inw,jnw),
+     .              saln(i  ,jn ),saln(ine,jne))
+            smn=min(saln(isw,jsw),saln(i  ,js ),
+     .              saln(ise,jse),saln(iw ,j  ),
+     .              saln(ie ,j  ),saln(inw,jnw),
+     .              saln(i  ,jn ),saln(ine,jne))
+            q=max(0.,min(1.,(smx-saln(i,j))/sfmx,
+     .                      (smn-saln(i,j))/sfmn))
+            sx(i,j)=sx(i,j)*q
+            sy(i,j)=sy(i,j)*q
           endif
 c
           td(i,j)=temp(i,j)-tx(i,j)*xd(i,j)-ty(i,j)*yd(i,j)

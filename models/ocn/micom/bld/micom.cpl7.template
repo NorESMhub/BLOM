@@ -8,7 +8,7 @@ if !(-d $CASEROOT/Buildexe         ) mkdir $CASEROOT/Buildexe
 #------------------------------------------------------------------------------
 
 if      ( $OCN_GRID ==  gx1v5) then
-  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20090508
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -20,9 +20,7 @@ partitioning_file = $INPUTPATH/patch.input
 EOF1
 if ($RUN_TYPE == startup )  then
 cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
-ini_saln_file = $INPUTPATH/sep_saln.dat
-ini_temp_file = $INPUTPATH/sep_temp.dat
-ini_z_file = $INPUTPATH/sep_z.dat
+inicon_file = $INPUTPATH/inicon.nc
 EOF1
 endif
 
@@ -115,7 +113,7 @@ if (\$BLDTYPE == 'TRUE') then
   cp \$BLDROOT/mkDepends . || exit 2
   cp \$BLDROOT/mkSrcfiles . || exit 2
   set SMP = FALSE ;  if (\$NTHRDS_OCN > 1) set SMP = TRUE
-  gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a SMP=\$SMP MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -DCOMPDIA -DCOMPRES" -f \$BLDROOT/Makefile || exit 2
+  gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a SMP=\$SMP MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -UCOMPDIA -DCOMPRES" -f \$BLDROOT/Makefile || exit 2
   cp -p *comp_*.mod $LIBROOT/include/
 endif
 

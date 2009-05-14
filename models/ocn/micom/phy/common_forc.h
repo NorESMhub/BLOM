@@ -52,7 +52,8 @@ c --- fields to be specified in getflux or import_mct
      .  slp,           ! sea level pressure
      .  abswnd,        ! wind speed at measurement height -zu-
      .  albw,          ! daily mean open water albedo
-     .  frzmlt,        ! freezing/melting potential
+     .  frzpot,        ! freezing potential
+     .  mltpot,        ! melting potential
      .  sfl,           ! salt flux
 c
 c --- fields to be specified in thermf
@@ -77,9 +78,9 @@ c --- time steps between surface forcing updates
       integer nfrco
 c
       common /frc2/ swa,nsf,dfl,lip,sop,eva,ztx,mty,rnf,ustarw,tsi,slp,
-     .              abswnd,albw,frzmlt,sfl,tsi_tda,tml_tda,sml_tda,
-     .              alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,rnfflx,
-     .              ntda,nfrco
+     .              abswnd,albw,frzpot,mltpot,sfl,tsi_tda,tml_tda,
+     .              sml_tda,alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,
+     .              rnfflx,ntda,nfrco
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,t0deg

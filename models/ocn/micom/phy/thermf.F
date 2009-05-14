@@ -23,6 +23,16 @@ c
      .     qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi,dvs,fwflx,
      .     hflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totdvi,totwfl,sflxc
+c
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt
+      real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  ttrsf,ttrav
+      real tottrsf,tottrav,trflxc
+#endif
+c
       real swtfrz,intpol
       external swtfrz,intpol
 c
@@ -353,6 +363,14 @@ c --- --- and area
           util2(i,j)=dvi*scp2(i,j)
           util3(i,j)=fwflx*scp2(i,j)
 c
+#ifdef TRC
+          do nt=1,ntrc
+            trflx(nt,i,j)=trc(i,j,1,nt)*fwflx
+            ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
+            ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
+          enddo
+#endif
+c
 c --- ------------------------------------------------------------------
 c --- --- Relaxation fluxes
 c --- ------------------------------------------------------------------
@@ -471,6 +489,40 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+#ifdef TRC
+      do nt=1,ntrc
+c
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=ttrsf(nt,i,j)
+            util2(i,j)=ttrav(nt,i,j)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+        call xcsum(tottrsf,util1,ip)
+        call xcsum(tottrav,util2,ip)
+c
+        tottrav=tottrav/area
+c
+        trflxc=(tottrav*totwfl-tottrsf)/area
+c
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            trflx(nt,i,j)=(trflx(nt,i,j)+trflxc)*1.e2/alpha0
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c 
+      enddo
+#endif
 c
 c --- ------------------------------------------------------------------
 c --- number of accumulated fields for flux calculations

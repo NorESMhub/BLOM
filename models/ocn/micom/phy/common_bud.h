@@ -10,5 +10,5 @@ c
 c
       real sdp,tdp,ddp,vol0,sf,tf
 #ifdef TRC
-      real trdp
+      real trdp,trf
 #endif

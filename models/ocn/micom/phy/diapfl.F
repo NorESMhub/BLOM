@@ -13,10 +13,7 @@ c
 #include "common_blocks.h"
 c
 c --- parameters:
-c ---   teps   - small temperature difference used in removing
-c ---            instabilitites [K]
 c ---   small  - small relative density increment []
-c ---   restmx - if true, restore mixed layer base to its initial depth
 c ---   dprmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2]
 c ---   thrgbt - thin region near bottom that will be mixed prior to
@@ -36,12 +33,11 @@ c ---   dsglc0 - critical local interface density difference [g/cm**3]
 c ---   maxflx - maximum interface flux [g/cm/s**2]
 c ---   dsig0  - apply a strong density restoration if the local density
 c ---            error is greater than dsig0 [g/cm**3]
-      real teps,small
-      logical restmx
+      real small
       real dprmin,thrgbt,dpdmin,ri0,nus0,nug0,nuls0,dpgc,dsglc0,maxflx,
      .     dsig0
-      parameter (teps=1.e-9,small=1.e-22,restmx=.false.,
-     .           dprmin=980.6,thrgbt=2.*98.06,dpdmin=98060.,ri0=1.,
+      parameter (small=1.e-22,
+     .           dprmin=980.6,thrgbt=2.*98.06,dpdmin=98060.,ri0=.7,
      .           nus0=50.,nug0=500.,nuls0=500.,dpgc=300.*98060.,
      .           dsglc0=1.e-5,maxflx=5.*98060.,dsig0=1.e-6)
 c
@@ -49,18 +45,18 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  du2u,du2l,dv2u,dv2l
       real, dimension(0:kdm) :: flxl,flxnzl
-      real, dimension(kdm+1) :: flxu,flxnzu,pn,po
+      real, dimension(kdm+1) :: pres,flxu,flxnzu,pn,po
       real, dimension(kdm) ::
      .  ttem,ssal,delp,dens,sigr,ri,dsglc,ttem_t,ssal_t,delp_t,dens_t,
-     .  sigr_t,ri_t,dsglc_t,pres,dsgiu,dsgil,delpn,aa,cc,dd,gam,uo,un
+     .  sigr_t,ri_t,dsglc_t,dsgiu,dsgil,delpn,aa,cc,dd,gam,uo,un
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  mskuu,mskul,mskvu,mskvl
       integer, dimension(kdm) :: ktil,ktilu,ktill
       logical, dimension(kdm) :: istil
       real esci,dpsum,tdp,sdp,dsig,alfa,beta,dentrg,tnew,snew,z,q,
-     .     a,b,c,d,e,f,delpml,ennsq,nus,flngth,flxmxu,flxmxl,
+     .     a,b,c,d,e,f,ennsq,nus,flngth,flxmxu,flxmxl,
      .     flxdru,flxdrl,bei,udpn,rmax_niter
-      integer i,j,k,l,kn,msum,kmin,kmax,ku,kl,kt,ntil,
+      integer i,j,k,l,kn,msum,kfpl,kmin,kmax,ku,kl,kt,ntil,
      .        ntl,ko,niter
       logical changed,done
 c
@@ -106,7 +102,7 @@ c
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          util1(i,j)=klist(i,j)
+          util1(i,j)=kfpla(i,j,n)
         enddo
         enddo
       enddo
@@ -114,7 +110,7 @@ c
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-          klist(i,j)=nint(util1(i,j))
+          kfpla(i,j,n)=nint(util1(i,j))
         enddo
         enddo
       enddo
@@ -131,7 +127,7 @@ c$OMP PARALLEL DO PRIVATE(kmin,kt,q)
         do j=1,jj
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            kmin=min(klist(i-1,j),klist(i,j))
+            kmin=min(kfpla(i-1,j,n),kfpla(i,j,n))
             if (k.lt.kmin.or.dpu(i,j,kn).lt.dprmin) then
               du2u(i,j)=0.
               du2l(i,j)=0.
@@ -172,7 +168,7 @@ c$OMP PARALLEL DO PRIVATE(kmin,kt,q)
         do j=1,jj+1
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            kmin=min(klist(i,j-1),klist(i,j))
+            kmin=min(kfpla(i,j-1,n),kfpla(i,j,n))
             if (k.lt.kmin.or.dpv(i,j,kn).lt.dprmin) then
               dv2u(i,j)=0.
               dv2l(i,j)=0.
@@ -215,13 +211,13 @@ c$OMP PARALLEL DO PRIVATE(msum,dsig)
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             rig(i,j,k)=-99.
-            if (k.ge.klist(i,j)) then
+            if (k.ge.kfpla(i,j,n)) then
               msum=mskuu(i  ,j)+mskul(i  ,j)
      .            +mskuu(i+1,j)+mskul(i+1,j)
      .            +mskvu(i,j  )+mskvl(i,j  )
      .            +mskvu(i,j+1)+mskvl(i,j+1)
               if (msum.gt.0) then
-                if     (k.eq.klist(i,j)) then
+                if     (k.eq.kfpla(i,j,n)) then
                   if (k.eq.kk) then
                     dsig=sigma(i,j,kn)-sigma(i,j,k1n)
                   else
@@ -251,12 +247,12 @@ c$OMP PARALLEL DO PRIVATE(kmin,kmax,ku,kt)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          kmin=klist(i,j)
+          kmin=kfpla(i,j,n)
           do while (rig(i,j,min(kk,kmin)).eq.-99..and.kmin.le.kk)
             kmin=kmin+1
           enddo
           if (kmin.le.kk) then
-            do k=klist(i,j)+1,kmin-1
+            do k=kfpla(i,j,n)+1,kmin-1
               rig(i,j,k)=rig(i,j,kmin)
             enddo
             kmax=kk
@@ -287,9 +283,9 @@ c
 c$OMP PARALLEL DO PRIVATE(ttem,ssal,delp,dens,sigr,ri,dsglc,ttem_t,
 c$OMP+ ssal_t,delp_t,dens_t,sigr_t,ri_t,dsglc_t,pres,dsgiu,dsgil,flxu,
 c$OMP+ flxl,flxnzu,flxnzl,delpn,aa,cc,dd,gam,dpsum,tdp,q,sdp,dsig,alfa,
-c$OMP+ beta,dentrg,tnew,snew,z,a,b,c,d,e,f,delpml,ennsq,nus,flngth,
-c$OMP+ flxmxu,flxmxl,flxdru,flxdrl,bei,ktil,ktilu,ktill,kn,kmin,kmax,
-c$OMP+ ku,kl,kt,ntil,ntl,niter,istil,changed,done
+c$OMP+ beta,dentrg,tnew,snew,z,a,b,c,d,e,f,ennsq,nus,flngth,
+c$OMP+ flxmxu,flxmxl,flxdru,flxdrl,bei,ktil,ktilu,ktill,k,kn,kfpl,kmin,
+c$OMP+ kmax,ku,kl,kt,ntil,ntl,niter,istil,changed,done
 #ifdef TRC
 c$OMP+,ttrc,ttrc_t,trdp
 #endif
@@ -300,13 +296,14 @@ c$OMP+ REDUCTION(max:rmax_niter)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
 c --- --- copy variables into 1d arrays
+          pres(1)=p(i,j,1)
           do k=1,kk
             kn=k+nn
             ttem(k)=temp(i,j,kn)
             ssal(k)=saln(i,j,kn)
             delp(k)=dp(i,j,kn)
             dens(k)=sigma(i,j,kn)
-            sigr(k)=sigmar(k)
+            sigr(k)=sigmar(i,j,k)
             ri(k)=rig(i,j,k)
 #ifdef TRC
             do nt=1,ntrc
@@ -350,21 +347,16 @@ c --- --- physical layer
 #endif
 c
 c --- --- locate range of physical layers
-          kmin=klist(i,j)-1
+          kfpl=kfpla(i,j,n)
+          kmin=kfpl+1
+          do while (delp(min(kk,kmin)).lt.epsil)
+            kmin=kmin+1
+            if (kmin.gt.kk) exit
+          enddo
           kmax=1
           do k=2,kk
             if (delp(k).gt.epsil) kmax=k
           enddo
-c
-          ttem(kmin)=ttem(1)
-          ssal(kmin)=ssal(1)
-          delp(kmin)=delp(1)
-          dens(kmin)=dens(1)
-#ifdef TRC
-          do nt=1,ntrc  
-            ttrc(nt,kmin)=ttrc(nt,1)
-          enddo
-#endif
 c
 c --- ------------------------------------------------------------------
 c --- --- remove instability due to nonlinear equation of state
@@ -377,6 +369,14 @@ c
 c
             changed=.false.
             niter=niter+1
+c           if (i.eq.itest.and.j.eq.jtest.and.mnproc.eq.ptest) then
+c             write (lp,*) 'diapfl: niter:',niter
+c             do k=kmin,kmax
+c               write (lp,'(i3,5e15.7)')
+c    .            k,delp(k)/onem,ttem(k),ssal(k),dens(k),sigr(k)
+c             enddo
+c             write (lp,*)
+c           endif
 c
             k=kmin
 c
@@ -385,166 +385,140 @@ c
               k=k+1
 c
               if (dens(k).lt.dens(k-1)) then
-                write (lp,*) '(dens(k).lt.dens(k-1))',
-     .                       i0+i,j0+j,k,kmin,kmax
-              endif
-              alfa=-alpha0*dsigdt(ttem(k),ssal(k))
-              beta= alpha0*dsigds(ttem(k),ssal(k))
+                write (lp,'(a,6i4)') ' diapfl: dens(k).lt.dens(k-1),',
+     .                       i0+i,j0+j,k,kfpl,kmin,kmax
+                if (dens(k).gt.epsil.or.dens(k-1).gt.epsil) then
+                  q=1./(delp(k)+delp(k-1))
+                  ttem(k)=(ttem(k)*delp(k)+ttem(k-1)*delp(k-1))*q
+                  ssal(k)=(ssal(k)*delp(k)+ssal(k-1)*delp(k-1))*q
+                  dens(k)=sig(ttem(k),ssal(k))
+#ifdef TRC
+                  do nt=1,ntrc
+                    ttrc(nt,k)=(ttrc(nt,k  )*delp(k  )
+     .                         +ttrc(nt,k-1)*delp(k-1))*q
+                  enddo
+#endif
+                  delp(k)=delp(k)+delp(k-1)
+                  delp(k-1)=0.
+                  if (k.eq.kmin+1) kmin=kmin+1
+                endif
+                dens(k-1)=min(dens(k)-epsil,max(dens(k-2)+epsil,
+     .                        sigr(k-1)))
+                ssal(k-1)=sofsig(dens(k-1),ttem(k-1))
+              else
 c
-              if (beta*(ssal(k)-ssal(k-1))
-     .           -alfa*(ttem(k)-ttem(k-1)).lt.0.) then
+                alfa=-alpha0*dsigdt(ttem(k),ssal(k))
+                beta= alpha0*dsigds(ttem(k),ssal(k))
 c
-                changed=.true.
+                if (beta*(ssal(k)-ssal(k-1))
+     .             -alfa*(ttem(k)-ttem(k-1)).lt.0.) then
 c
-                done=.false.
-                ku=k
+                  changed=.true.
 c
-                do while (.not.done)
-                  done=.true.
-                  ku=ku-1
+                  done=.false.
+                  dentrg=dens(k)
+                  ku=k
 c
-                  dentrg=min(dens(k),max(sigr(k),dens(ku)+epsil))
-                  if (abs(ttem(k)-ttem(ku)).lt.teps) then
-                    tnew=ttem(k)
-                    snew=sofsig(dentrg,tnew)
-                    z=max(0.,(snew-ssal(k))*delp(k)/(ssal(ku)-snew))
-                  else
+                  do while (.not.done)
+                    done=.true.
+                    ku=ku-1
+c
                     a=ttem(ku)-ttem(k)
-                    b=0.
+                    b=ttem(k)
                     c=0.
-                    d=a
+                    d=1.
                     e=ssal(ku)-ssal(k)
-                    f=ssal(k)*ttem(ku)-ssal(ku)*ttem(k)
-                    tnew=tsroot(a,b,c,d,e,f,dentrg,ttem(ku),-999.)
-                    if (abs(ttem(k)-tnew).ge.abs(ttem(k)-ttem(ku))) then
-                      write (lp,*) 'strange temp',i0+i,j0+j,k,ku,
-     .                             ttem(k),ttem(ku),tnew
-                      if (delp(k).lt.epsil.or.
-     .                    delp(k)+delp(ku).lt.epsil) then
+                    f=ssal(k)
+                    q=tsroot(a,b,c,d,e,f,dentrg,1.,-1.)
+                    if (q.lt.epsil.or.q.gt.1.-epsil) then
+                      if     (delp(k).lt.epsil.or.
+     .                        delp(k)+delp(ku).lt.epsil) then
                         z=0.
                         tnew=ttem(ku)
                         snew=sofsig(dentrg,tnew)
                       elseif (delp(ku).lt.epsil) then
                         z=epsil
+                      elseif (abs(q).lt.epsil) then
+                        if (ku.eq.k-1) then
+                          z=.1*delp(k)
+                          tnew=(ttem(k)*delp(k)+ttem(ku)*z)/(delp(k)+z)
+                          snew=(ssal(k)*delp(k)+ssal(ku)*z)/(delp(k)+z)
+                        else
+                          z=0.
+                          tnew=ttem(k)
+                          snew=ssal(k)
+                        endif
                       else
-                        z=.1*delp(ku)
-                        tnew=(ttem(k)*delp(k)+ttem(ku)*z)/(delp(k)+z)
-                        snew=(ssal(k)*delp(k)+ssal(ku)*z)/(delp(k)+z)
+                        z=delp(ku)+onem
                       endif
                     else
-                      snew=(ssal(k)*(ttem(ku)-tnew)
-     .                     +ssal(ku)*(tnew-ttem(k)))
-     .                     /(ttem(ku)-ttem(k))
-                      z=max(0.,(tnew-ttem(k))*delp(k)/(ttem(ku)-tnew))
+                      tnew=(ttem(ku)-ttem(k))*q+ttem(k)
+                      snew=(ssal(ku)-ssal(k))*q+ssal(k)
+                      z=delp(k)*q/(1.-q)
                     endif
-                  endif
 c
-                  if (ku.eq.kmin.and.z.gt.delp(ku)-thkmin*onem) then
+                    if (z.gt.delp(ku)) then
 c
-                    q=1./(delp(k)+delp(ku))
-                    ttem(ku)=(ttem(k)*delp(k)+ttem(ku)*delp(ku))*q
-                    ssal(ku)=(ssal(k)*delp(k)+ssal(ku)*delp(ku))*q
-                    dens(ku)=sig(ttem(ku),ssal(ku))
-#ifdef TRC
-                    do nt=1,ntrc
-                      ttrc(nt,ku)=(ttrc(nt,k )*delp(k )
-     .                            +ttrc(nt,ku)*delp(ku))*q
-                    enddo
-#endif
-                    delp(ku)=delp(k)+delp(ku)
-                    delp(k)=0.
-                    do while (dens(ku).gt.dens(min(kmax,kmin+1)).and.
-     .                        kmin.lt.kmax)
-                      kmin=kmin+1
-                      if (kmin.gt.k) then
-                        q=1./(delp(kmin)+delp(ku))
-                        ttem(ku)=(ttem(kmin)*delp(kmin)
-     .                           +ttem(ku)*delp(ku))*q
-                        ssal(ku)=(ssal(kmin)*delp(kmin)
-     .                           +ssal(ku)*delp(ku))*q
-                        dens(ku)=sig(ttem(ku),ssal(ku))
-#ifdef TRC
-                        do nt=1,ntrc
-                          ttrc(nt,ku)=(ttrc(nt,kmin)*delp(kmin)
-     .                                +ttrc(nt,ku)*delp(ku))*q
-                        enddo
-#endif
-                        delp(ku)=delp(kmin)+delp(ku)
-                        delp(kmin)=0.
-                        k=kmin
-                      endif
-                    enddo
-                    if (kmin.gt.ku) then
-                      ttem(kmin)=ttem(ku)
-                      ssal(kmin)=ssal(ku)
-                      dens(kmin)=dens(ku)
+                      q=1./(delp(k)+delp(ku))
+                      ttem(k)=(ttem(k)*delp(k)+ttem(ku)*delp(ku))*q
+                      ssal(k)=(ssal(k)*delp(k)+ssal(ku)*delp(ku))*q
+                      dens(k)=sig(ttem(k),ssal(k))
 #ifdef TRC
                       do nt=1,ntrc
-                        ttrc(nt,kmin)=ttrc(nt,ku)
+                        ttrc(nt,k)=(ttrc(nt,k )*delp(k )
+     .                             +ttrc(nt,ku)*delp(ku))*q
                       enddo
 #endif
-                      delp(kmin)=delp(ku)
+                      delp(k)=delp(k)+delp(ku)
+                      delp(ku)=0.
+                      if (ku.eq.kmin) then
+                        kmin=k
+                        ku=k
+                      else
+                        done=.false.
+                      endif
+c
+                    else
+c
+                      ttem(k)=tnew
+                      ssal(k)=snew
+                      dens(k)=sig(ttem(k),ssal(k))
+                      if (delp(k)+z.gt.epsil) then
+                        q=1./(delp(k)+z)
+#ifdef TRC
+                        do nt=1,ntrc  
+                          ttrc(nt,k)=(ttrc(nt,k)*delp(k)
+     .                               +ttrc(nt,ku)*z)*q
+                        enddo
+#endif
+                      endif
+                      delp(k)=delp(k)+z
+                      delp(ku)=delp(ku)-z
+c
                     endif
-                    ku=kmin
-                    ttem(k)=ttem(ku)
-                    ssal(k)=sofsig(dens(k),ttem(k))
-#ifdef TRC
-                    do nt=1,ntrc
-                      ttrc(nt,k)=ttrc(nt,ku)
-                    enddo
-#endif
 c
-                  elseif (z.gt.delp(ku)) then
-c
-                    q=1./(delp(k)+delp(ku))
-                    ttem(k)=(ttem(k)*delp(k)+ttem(ku)*delp(ku))*q
-                    ssal(k)=(ssal(k)*delp(k)+ssal(ku)*delp(ku))*q
-#ifdef TRC
-                    do nt=1,ntrc
-                      ttrc(nt,k)=(ttrc(nt,k )*delp(k )
-     .                           +ttrc(nt,ku)*delp(ku))*q
-                    enddo
-#endif
-                    delp(k)=delp(k)+delp(ku)
-                    delp(ku)=0.
-                    done=.false.
-c
-                  else
-c
-                    ttem(k)=tnew
-                    ssal(k)=snew
-                    dens(k)=sig(ttem(k),ssal(k))
-                    if (delp(k)+z.gt.epsil) then
-                      q=1./(delp(k)+z)
-#ifdef TRC
-                      do nt=1,ntrc  
-                        ttrc(nt,k)=(ttrc(nt,k)*delp(k)+ttrc(nt,ku)*z)*q
-                      enddo
-#endif
-                    endif
-                    delp(k)=delp(k)+z
-                    delp(ku)=delp(ku)-z
-c
-                  endif
-c
-                enddo
-c
-                do kt=ku+1,k-1
-                  q=real(kt-k)/real(ku-k)
-                  ttem(kt)=ttem(k)+q*(ttem(ku)-ttem(k))
-                  ssal(kt)=ssal(k)+q*(ssal(ku)-ssal(k))
-                  dens(kt)=sig(ttem(kt),ssal(kt))
-#ifdef TRC
-                  do nt=1,ntrc  
-                    ttrc(nt,kt)=ttrc(nt,k)+q*(ttrc(nt,ku)-ttrc(nt,k))
                   enddo
-#endif
-                enddo
 c
+                  do kt=ku+1,k-1
+                    q=real(kt-k)/real(ku-k)
+                    ttem(kt)=ttem(k)+q*(ttem(ku)-ttem(k))
+                    ssal(kt)=ssal(k)+q*(ssal(ku)-ssal(k))
+                    dens(kt)=sig(ttem(kt),ssal(kt))
+#ifdef TRC
+                    do nt=1,ntrc  
+                      ttrc(nt,kt)=ttrc(nt,k)+q*(ttrc(nt,ku)-ttrc(nt,k))
+                    enddo
+#endif
+                  enddo
+c
+                endif
               endif
             enddo
           enddo
 c
+          if (niter.eq.10) then
+            write (lp,*) 'diapfl: niter=10,',i0+i,j0+j
+          endif
           rmax_niter=max(rmax_niter,real(niter))
 c
 c --- ------------------------------------------------------------------
@@ -553,12 +527,9 @@ c --- ------------------------------------------------------------------
 c
           if (kmin.lt.kmax) then
 c
-            delpml=delp(kmin)
-c
 c --- ----- save lower interface pressure
-            pres(kmin)=delp(kmin)
-            do k=kmin+1,kmax
-              pres(k)=pres(k-1)+delp(k)
+            do k=1,kmax
+              pres(k+1)=pres(k)+delp(k)
             enddo
 c
 c --- ----- compute for each layer the minimum local density difference
@@ -599,13 +570,28 @@ c             write (*,*)
 c           endif
 c
             kl=kmax
-            do while (delp(kl).le.dpdmin)
+            do
               istil(kl)=.false.
-              kl=kl-1
+              if (delp(kl).gt.dpdmin) then
+                exit
+              else
+                kl=kl-1
+                if (kl.eq.kmin) exit
+              endif
             enddo
-            istil(kl)=.false.
+            ku=kmin
+            do
+              istil(ku)=.false.
+              if (delp(ku).gt.dpdmin) then
+                exit
+              else
+                ku=ku+1
+                if (ku.eq.kmax) exit
+              endif
+            enddo
+c
             ntil=0
-            do k=kl-1,kmin,-1
+            do k=kl-1,ku+1,-1
               if (delp(k).le.dpdmin) then
                 ntil=ntil+1
                 istil(k)=.true.
@@ -629,7 +615,7 @@ c
             if (ntil.gt.0) then
               ku=kl
               do k=kl-1,kmin,-1
-                if (delp(k).gt.dpdmin) then
+                if (.not.istil(k)) then
                   ku=ku-1
                   ttem(ku)=ttem(k)
                   ssal(ku)=ssal(k)
@@ -684,8 +670,8 @@ c
 c
 c --- --------- maximum diffusivity is increased near the bottom to
 c --- --------- provide additional mixing of gravity currents
-                q=(pres(kmax)-pres(k)+.5*delp(k))
-     .            /min(dpgc,.5*pres(kmax))
+                q=(pres(kmax+1)-pres(k)+.5*delp(k))
+     .            /min(dpgc,.5*pres(kmax+1))
                 q=max(0.,1.-q*q)
                 q=q*q*q
                 nus=q*nug0+(1.-q)*nus0
@@ -911,9 +897,8 @@ c
               enddo
 c
 c --- ------- save lower interface pressure
-              pres(kmin)=delp(kmin)
-              do k=kmin+1,kmax
-                pres(k)=pres(k-1)+delp(k)
+              do k=1,kmax
+                pres(k+1)=pres(k)+delp(k)
               enddo
 c
               do ntl=1,ntil
@@ -940,8 +925,8 @@ c
 c
 c --- ----------- maximum diffusivity is increased near the bottom to
 c --- ----------- provide additional mixing of gravity currents
-                  q=(pres(kmax)-pres(k)+.5*delp(k))
-     .              /min(dpgc,.5*pres(kmax))
+                  q=(pres(kmax+1)-pres(k)+.5*delp(k))
+     .              /min(dpgc,.5*pres(kmax+1))
                   q=max(0.,1.-q*q)
                   q=q*q*q
                   nus=q*nug0+(1.-q)*nus0
@@ -1115,63 +1100,11 @@ c    .                      ktil(max(1,nt-1))-ktil(nt)
 c             enddo
 c           endif
 c
-            if (restmx) then
-c
-c --- ------- restore mixed layer thickness
-              if (delp(kmin).lt.delpml) then
-                pres(kmin)=0.
-                do k=kmin,kmax
-                  pres(k+1)=pres(k)+delp(k)
-                enddo
-                tdp=ttem(kmin)*delp(kmin)
-                sdp=ssal(kmin)*delp(kmin)
-#ifdef TRC
-                do nt=1,ntrc  
-                  trdp(nt)=ttrc(nt,kmin)*delp(kmin)
-                enddo
-#endif
-                k=kmin+1
-                do while (pres(k).lt.delpml)
-                  q=min(pres(k+1),delpml)-pres(k)
-                  tdp=tdp+ttem(k)*q
-                  sdp=sdp+ssal(k)*q
-#ifdef TRC
-                  do nt=1,ntrc  
-                    trdp(nt)=trdp(nt)+ttrc(nt,k)*q
-                  enddo
-#endif
-                  delp(k)=max(pres(k+1),delpml)-max(pres(k),delpml)
-                  k=k+1
-                enddo
-                q=1./delpml
-                delp(kmin)=delpml
-                ttem(kmin)=tdp*q
-                ssal(kmin)=sdp*q
-#ifdef TRC
-                do nt=1,ntrc  
-                  ttrc(nt,kmin)=trdp(nt)*q
-                enddo
-#endif
-              endif
-c
-            endif
-c
           endif
 c
-c --- --- copy variables from 1d arrays back to main arrays and set t/s
-c --- --- in remaining massless layers
-          ttem(1)=ttem(kmin)
-          ssal(1)=ssal(kmin)
-          delp(1)=delp(kmin)
-          dens(1)=dens(kmin)
-#ifdef TRC
-          do nt=1,ntrc
-            ttrc(nt,1)=ttrc(nt,kmin)
-          enddo
-#endif
-          if (kmin.ge.kmax) then
+          if (kfpl.gt.kmax) then
             do k=2,kk
-              ttem(k)=max(ttem(1),temmin(k))
+              ttem(k)=max(ttem(1),temmin(i,j,k))
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
               delp(k)=0.
@@ -1182,14 +1115,14 @@ c --- --- in remaining massless layers
 #endif
             enddo
           else
-            do k=2,kmin
-              ttem(k)=ttem(kmin+1)
+            do k=2,kfpl-1
+              ttem(k)=ttem(kfpl)
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
               delp(k)=0.
 #ifdef TRC
               do nt=1,ntrc
-                ttrc(nt,k)=ttrc(nt,kmin+1)
+                ttrc(nt,k)=ttrc(nt,kfpl)
               enddo
 #endif
             enddo

@@ -235,9 +235,12 @@ c
           if (m.eq.1) then
             open (unit=nfu,file='trcbud',position='append')
             write (nfu,'(i8,6e12.4)') nstep,
-     .        (trdp(2)-trdp(1))/vol0,(trdp(3)-trdp(2))/vol0,
-     .        (trdp(4)-trdp(3))/vol0,(trdp(5)-trdp(4))/vol0,
-     .        (trdp(6)-trdp(5))/vol0,(trdp(7)-trdp(6))/vol0
+     .        (trdp(2)-trdp(1))/vol0,
+     .        (trdp(3)-trdp(2))/vol0,
+     .        (trdp(4)-trdp(3))/vol0,
+     .        (trdp(5)-trdp(4)+trf*g)/vol0,
+     .        (trdp(6)-trdp(5))/vol0,
+     .        (trdp(7)-trdp(6))/vol0
             close (nfu)
             open (unit=nfu,file='trcbudtot',position='append')
             write (nfu,'(i8,7e18.10)') nstep,
@@ -253,6 +256,9 @@ c$OMP PARALLEL DO
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             util1(i,j)=(salflx(i,j)+salrlx(i,j))*scp2(i,j)*delt1
             util2(i,j)=(surflx(i,j)+surrlx(i,j))*scp2(i,j)*delt1
+#ifdef TRC
+            util3(i,j)=trflx(ntr,i,j)*scp2(i,j)*delt1
+#endif
           enddo
           enddo
         enddo
@@ -263,12 +269,18 @@ c$OMP END PARALLEL DO
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             util1(i,j)=0.
             util2(i,j)=0.
+#ifdef TRC
+            util3(i,j)=0.
+#endif
           enddo
           enddo
         enddo
 #endif
         call xcsum(sf,util1,ip)
         call xcsum(tf,util2,ip)
+#ifdef TRC
+        call xcsum(trf,util3,ip)
+#endif
       endif
 c
       auxil_time=auxil_time+gettime()
@@ -278,6 +290,8 @@ c
 c --- output and diagnostic calculations
 c
 c ----------------------------------------------------------------------
+c
+      call chkvar(m,n,mm,nn,k1m,k1n)
 c
       call diaacc(m,n,mm,nn,k1m,k1n)
       diaacc_time=gettime()
@@ -292,35 +306,25 @@ c
 c
       endif
 c
-#ifndef CCSMCOUPLED
-      if (diag3dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
-     .    .not.diag3dmon.and.
-     .    mod(nstep,max(nint(diag3dfq),nstep_in_day)).eq.0) then
-c
-c --- ------------------------------------------------------------------
-c --- - output restart files
-c --- ------------------------------------------------------------------
-c
-        call restart_wt
-c
-#ifdef ARCTIC
-c --- this is needed to reproduce results after restart with arctic
-c --- patch
-      call xctilr(uflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
-      call xctilr(vflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
-#endif
-c
-      endif
-#endif
-c
       if (diag2dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
      .    .not.diag2dmon.and.mod(nstep+.5,diag2dfq).lt.1.) then
 c
 c --- ------------------------------------------------------------------
-c --- output 2D diagnostics
+c --- - output 2D diagnostics
 c --- ------------------------------------------------------------------
 c
-      call ncwrt2
+        call ncwrt2
+c
+      endif
+c
+      if (diag3dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
+     .    .not.diag3dmon.and.mod(nstep+.5,diag3dfq).lt.1.) then
+c
+c --- ------------------------------------------------------------------
+c --- - output 3D diagnostics
+c --- ------------------------------------------------------------------
+c
+        call ncwrt3
 c
       endif
 c
@@ -343,73 +347,87 @@ c --- update total time spent by various tasks
       diaacc_total_time=diaacc_total_time+diaacc_time
 c
       if (diag3dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
-     .    .not.diag3dmon.and.mod(nstep+.5,diag3dfq).lt.1.) then
+     .    .not.diag3dmon.and.
+     .    mod(nstep,max(nint(diag3dfq),nstep_in_day)).eq.0) then
+c
+#ifndef CCSMCOUPLED
+c --- ------------------------------------------------------------------
+c --- - output restart files
+c --- ------------------------------------------------------------------
+c
+        call restart_wt
+c
+#  ifdef ARCTIC
+c --- - this is needed to reproduce results after restart with arctic
+c --- - patch
+        call xctilr(uflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
+        call xctilr(vflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
+#  endif
+#endif
+c
+        io_time=gettime()
 c
 c --- ------------------------------------------------------------------
-c --- write timing diagnostics to standard out and output 3D diagnostics
+c --- - write timing diagnostics to standard out
 c --- ------------------------------------------------------------------
 c
-      if (mnproc.eq.1) then
-        write (lp,*) '*** write 3d ***'
-      endif
-      call ncwrt3
-      io_time=gettime()
+        io_total_time=io_total_time+io_time
+        step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
+     .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
+     .           +barotp_time+pbtcor_time+convec_time+diapfl_time
+     .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
+     .           +io_time
+        total_time=total_time+step_time
+        total_xio_time=total_xio_time+step_time-io_time
 c
-      io_total_time=io_total_time+io_time
-      step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
-     .         +advdif_time+sfcstr_time+momtum_time+pgforc_time
-     .         +barotp_time+pbtcor_time+convec_time+diapfl_time
-     .         +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
-     .         +io_time
-      total_time=total_time+step_time
-      total_xio_time=total_xio_time+step_time-io_time
-c
-      if (mnproc.eq.1) then
-        write (lp,'(f12.4,a,i8)') step_time, '  sec for step ', nstep
-        write (lp,'(f12.4,a,i8)') total_time/(nstep-nstep1),' Avg Time'
-        write (lp,'(f12.4,a,i8)')
-     .    total_xio_time/(nstep-nstep1),' Avg Time excluding IO'
-        write (lp,'(f12.4,a,i8)')
-     .    total_time,' Tot Time with contributions:'
-        q=100./total_time
-        write (lp,'(f12.4,a,i8)') auxil_total_time*q ,'% auxil '
-        write (lp,'(f12.4,a,i8)') getflx_total_time*q,'% getflx'
-        write (lp,'(f12.4,a,i8)') seaice_total_time*q,'% seaice'
-        write (lp,'(f12.4,a,i8)') tmsmt1_total_time*q,'% tmsmt1'
-        write (lp,'(f12.4,a,i8)') advdif_total_time*q,'% advdif'
-        write (lp,'(f12.4,a,i8)') sfcstr_total_time*q,'% sfcstr'
-        write (lp,'(f12.4,a,i8)') momtum_total_time*q,'% momtum'
-        write (lp,'(f12.4,a,i8)') pgforc_total_time*q,'% pgforc'
-        write (lp,'(f12.4,a,i8)') barotp_total_time*q,'% barotp'
-        write (lp,'(f12.4,a,i8)') pbtcor_total_time*q,'% pbtcor'
-        write (lp,'(f12.4,a,i8)') convec_total_time*q,'% convec'
-        write (lp,'(f12.4,a,i8)') diapfl_total_time*q,'% diapfl'
-        write (lp,'(f12.4,a,i8)') thermf_total_time*q,'% thermf'
-        write (lp,'(f12.4,a,i8)') mxlayr_total_time*q,'% mxlayr'
-        write (lp,'(f12.4,a,i8)') tmsmt2_total_time*q,'% tmsmt2'
-        write (lp,'(f12.4,a,i8)') diaacc_total_time*q,'% diaacc'
-        write (lp,'(f12.4,a,i8)') io_total_time*q    ,'% IO'
-      endif
+        if (mnproc.eq.1) then
+          write (lp,'(f12.4,a,i8)')
+     .      step_time, '  sec for step ', nstep
+          write (lp,'(f12.4,a,i8)')
+     .      total_time/(nstep-nstep1),' Avg Time'
+          write (lp,'(f12.4,a,i8)')
+     .      total_xio_time/(nstep-nstep1),' Avg Time excluding IO'
+          write (lp,'(f12.4,a,i8)')
+     .      total_time,' Tot Time with contributions:'
+          q=100./total_time
+          write (lp,'(f12.4,a,i8)') auxil_total_time*q ,'% auxil '
+          write (lp,'(f12.4,a,i8)') getflx_total_time*q,'% getflx'
+          write (lp,'(f12.4,a,i8)') seaice_total_time*q,'% seaice'
+          write (lp,'(f12.4,a,i8)') tmsmt1_total_time*q,'% tmsmt1'
+          write (lp,'(f12.4,a,i8)') advdif_total_time*q,'% advdif'
+          write (lp,'(f12.4,a,i8)') sfcstr_total_time*q,'% sfcstr'
+          write (lp,'(f12.4,a,i8)') momtum_total_time*q,'% momtum'
+          write (lp,'(f12.4,a,i8)') pgforc_total_time*q,'% pgforc'
+          write (lp,'(f12.4,a,i8)') barotp_total_time*q,'% barotp'
+          write (lp,'(f12.4,a,i8)') pbtcor_total_time*q,'% pbtcor'
+          write (lp,'(f12.4,a,i8)') convec_total_time*q,'% convec'
+          write (lp,'(f12.4,a,i8)') diapfl_total_time*q,'% diapfl'
+          write (lp,'(f12.4,a,i8)') thermf_total_time*q,'% thermf'
+          write (lp,'(f12.4,a,i8)') mxlayr_total_time*q,'% mxlayr'
+          write (lp,'(f12.4,a,i8)') tmsmt2_total_time*q,'% tmsmt2'
+          write (lp,'(f12.4,a,i8)') diaacc_total_time*q,'% diaacc'
+          write (lp,'(f12.4,a,i8)') io_total_time*q    ,'% IO'
+        endif
 c
       else
 c
 c --- ------------------------------------------------------------------
-c --- write time spent for current time step
+c --- - write time spent for current time step
 c --- ------------------------------------------------------------------
 c
-      io_time=gettime()
-      io_total_time=io_total_time+io_time
-      step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
-     .         +advdif_time+sfcstr_time+momtum_time+pgforc_time
-     .         +barotp_time+pbtcor_time+convec_time+diapfl_time
-     .         +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
-     .         +io_time
-      total_time=total_time+step_time
-      total_xio_time=total_xio_time+step_time-io_time
+        io_time=gettime()
+        io_total_time=io_total_time+io_time
+        step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
+     .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
+     .           +barotp_time+pbtcor_time+convec_time+diapfl_time
+     .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
+     .           +io_time
+        total_time=total_time+step_time
+        total_xio_time=total_xio_time+step_time-io_time
 c
-      if (mnproc.eq.1) then
-        write (lp,'(f12.4,a,i8)') step_time, '  sec for step ', nstep
-      endif
+        if (mnproc.eq.1) then
+          write (lp,'(f12.4,a,i8)') step_time, '  sec for step ', nstep
+        endif
 c
       endif
 c

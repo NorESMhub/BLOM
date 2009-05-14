@@ -55,7 +55,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
             util1(i,j)=util1(i,j)+saln(i,j,kn)*q
             util2(i,j)=util2(i,j)+temp(i,j,kn)*q
             util3(i,j)=util3(i,j)
-     .        +(sig(temp(i,j,kn),saln(i,j,kn))-sigmar(k))*q
+     .        +(sig(temp(i,j,kn),saln(i,j,kn))-sigmar(i,j,k))*q
             util4(i,j)=util4(i,j)+q
           enddo
           enddo

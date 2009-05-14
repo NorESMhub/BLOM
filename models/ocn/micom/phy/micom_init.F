@@ -134,20 +134,10 @@ c
 c
 #endif
 c --- ------------------------------------------------------------------
-c --- Define coefficients for equation of state functions, alphar, and
-c --- salmin
+c --- Define coefficients for equation of state functions
 c --- ------------------------------------------------------------------
 c
       call eosini
-c
-c --- layer specific volume is defined as  alphar=1/(1+sigmar)
-c
-      do 14 k=1,kk
-      sigmar(k)=sigmar(k)*1.e-3 ! [kg/m^3] -> [g/cm^3]
- 14   alphar(k)=1./(1.+sigmar(k))
-c
-c --- set minimum physical temperature for each isopycnic layer
-      call settemmin
 c
 c --- ------------------------------------------------------------------
 c --- Initialize diagnostic accumulation fields

@@ -32,6 +32,19 @@ c
       ap15=a15-ap25
       ap16=a16-ap26
 c
+      ap210=a21
+      ap220=a22
+      ap230=a23
+      ap240=a24
+      ap250=a25
+      ap260=a26
+      ap110=a11-ap210
+      ap120=a12-ap220
+      ap130=a13-ap230
+      ap140=a14-ap240
+      ap150=a15-ap250
+      ap160=a16-ap260
+c
       return
       end
 c
@@ -88,6 +101,25 @@ c
 c
 c --- ------------------------------------------------------------------
 c
+      real function sig0(th,s)
+c
+c --- potential density [g/cm^3] with reference pressure at the surface
+c --- in sigma units as a function of potential temperature and salinity
+c
+      implicit none
+c
+      real th,s
+c
+#include "common_eos.h"
+c
+      sig0=(ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s)
+     .    /(ap210+(ap220+ap240*th+ap250*s)*th+(ap230+ap260*s)*s)
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
       real function dsigdt(th,s)
 c
       implicit none
@@ -109,6 +141,27 @@ c
 c
 c --- ------------------------------------------------------------------
 c
+      real function dsigdt0(th,s)
+c
+      implicit none
+c
+      real th,s
+c
+#include "common_eos.h"
+c
+      real r1,r2i
+c
+      r1=ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s
+      r2i=1./(ap210+(ap220+ap240*th+ap250*s)*th+(ap230+ap260*s)*s)
+c
+      dsigdt0=(ap120+2.*ap140*th+ap150*s
+     .        -(ap220+2.*ap240*th+ap250*s)*r1*r2i)*r2i
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
       real function dsigds(th,s)
 c
       implicit none
@@ -124,6 +177,27 @@ c
 c
       dsigds=(ap13+ap15*th+2.*ap16*s
      .       -(ap23+ap25*th+2.*ap26*s)*r1*r2i)*r2i
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
+      real function dsigds0(th,s)
+c
+      implicit none
+c
+      real th,s
+c
+#include "common_eos.h"
+c
+      real r1,r2i
+c
+      r1=ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s
+      r2i=1./(ap210+(ap220+ap240*th+ap250*s)*th+(ap230+ap260*s)*s)
+c
+      dsigds0=(ap130+ap150*th+2.*ap160*s
+     .        -(ap230+ap250*th+2.*ap260*s)*r1*r2i)*r2i
 c
       return
       end
@@ -172,6 +246,92 @@ c
 c
 c --- ------------------------------------------------------------------
 c
+      real function p_alpha(p1,p2,th,s)
+c
+c --- integrate specific volume with respect to pressure
+c
+      implicit none
+c
+      real p1,p2,th,s
+c
+#include "common_eos.h"
+c
+      real r1_3,r1_5,r1_7,r1_9
+      parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.)
+c
+      real a1,a2,b1,b2,pm,r,q,qq
+c
+      a1=a11+(a12+a14*th+a15*s)*th+(a13+a16*s)*s
+      a2=a21+(a22+a24*th+a25*s)*th+(a23+a26*s)*s
+      b1=b11+b12*th+b13*s
+      b2=b21+b22*th+b23*s
+c
+c --- the analytic solution of the integral is
+c       p_alpha=(b2*(p2-p1)
+c               +(a2-a1*b2/b1)*log((a1+b1*p2)/(a1+b1*p1)))/b1
+c --- a truncated series expansion of the integral is used that provide
+c --- better computational efficiency and accuarcy for most relevant
+c --- parameters
+c
+      pm=.5*(p2+p1)
+      r=.5*(p2-p1)/(a1+b1*pm)
+      q=b1*r
+      qq=q*q
+c
+      p_alpha=2.*r*(a2+b2*pm
+     .             +(a2-a1*b2/b1)*qq*(r1_3+qq*(r1_5+qq*(r1_7+qq*r1_9))))
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
+      real function p_p_alpha(p1,p2,th,s)
+c
+c --- double integration of specific volume with respect to pressure
+c
+      implicit none
+c
+      real p1,p2,th,s
+c
+#include "common_eos.h"
+c
+      real r1_3,r1_5,r1_7,r1_9,r1_10
+      parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.,
+     .           r1_10=1./10.)
+c
+      real a1,a2,b1,b2,pm,dp,r,q
+c
+      a1=a11+(a12+a14*th+a15*s)*th+(a13+a16*s)*s
+      a2=a21+(a22+a24*th+a25*s)*th+(a23+a26*s)*s
+      b1=b11+b12*th+b13*s
+      b2=b21+b22*th+b23*s
+c
+c --- the analytic solution of the integral is
+c       p_p_alpha=(.5*b2*(p2-p1)**2
+c                 +(a2-a1*b2/b1)*((a1/b1+p2)*log((a1+b1*p2)/(a1+b1*p1))
+c                                -(p2-p1)))/b1
+c --- a truncated series expansion of the integral is used that provide
+c --- better computational efficiency and accuarcy for most relevant
+c --- parameters
+c
+      pm=.5*(p2+p1)
+      dp=.5*(p2-p1)
+      r=dp/(a1+b1*pm)
+      q=b1*r
+c
+      p_p_alpha=2.*dp*r*(a2+b2*pm
+     .                  +(a2-a1*b2/b1)*q*(r1_3+q*(r1_3+
+     .                                 q*(r1_5+q*(r1_5+
+     .                                 q*(r1_7+q*(r1_7+
+     .                                 q*(r1_9+q*(r1_9+
+     .                                 q* r1_10)))))))))
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
       subroutine delphi(p1,p2,th,s,dphi,alp1,alp2)
 c
 c --- integrate specific volume with respect to pressure to find the
@@ -183,17 +343,30 @@ c
 c
 #include "common_eos.h"
 c
-      real a1,a2,b1,b2,b1i,a1b1i
+      real r1_3,r1_5,r1_7,r1_9
+      parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.)
+c
+      real a1,a2,b1,b2,pm,r,q,qq
 c
       a1=a11+(a12+a14*th+a15*s)*th+(a13+a16*s)*s
       a2=a21+(a22+a24*th+a25*s)*th+(a23+a26*s)*s
       b1=b11+b12*th+b13*s
       b2=b21+b22*th+b23*s
-
-      b1i=1./b1
-      a1b1i=a1*b1i
 c
-      dphi=-(b2*(p2-p1)+(a2-a1b1i*b2)*log((a1b1i+p2)/(a1b1i+p1)))*b1i
+c --- the analytic solution of the integral is
+c       dphi=-(b2*(p2-p1)
+c             +(a2-a1*b2/b1)*log((a1+b1*p2)/(a1+b1*p1)))/b1
+c --- a truncated series expansion of the integral is used that provide
+c --- better computational efficiency and accuarcy for most relevant
+c --- parameters
+c
+      pm=.5*(p2+p1)
+      r=.5*(p2-p1)/(a1+b1*pm)
+      q=b1*r
+      qq=q*q
+c
+      dphi=-2.*r*(a2+b2*pm
+     .           +(a2-a1*b2/b1)*qq*(r1_3+qq*(r1_5+qq*(r1_7+qq*r1_9))))
 c
       alp1=(a2+b2*p1)/(a1+b1*p1)
       alp2=(a2+b2*p2)/(a1+b1*p2)

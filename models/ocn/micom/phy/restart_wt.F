@@ -22,6 +22,7 @@ c
       character rstfnm*80,rstfnm_ext*80,fnm*80
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv,iqq
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
       logical first
       data first /.true./
       save first,iuu,ivv,iqq
@@ -98,27 +99,27 @@ c
 c
 c --- define spatial and time dimensions
       if (first) then
-         first=.false.
-         do j=1,jj
-            do i=1,ii
-               if ((ip(i,j)+ip(i-1,j)).ge.1) then
-                  iuu(i,j)=1
-               else
-                  iuu(i,j)=0
-               end if
-               if ((ip(i,j)+ip(i,j-1)).ge.1) then
-                  ivv(i,j)=1
-               else
-                  ivv(i,j)=0
-               end if
-               if ((iu(i,j)+iv(i,j)+iu(i,j-1)+iv(i-1,j)).ge.1) then
-                  iqq(i,j)=1
-               else
-                  iqq(i,j)=0
-               end if
-            end do 
-         end do
-      end if
+        first=.false.
+        do j=1,jj
+          do i=1,ii
+            if ((ip(i,j)+ip(i-1,j)).ge.1) then
+              iuu(i,j)=1
+            else
+              iuu(i,j)=0
+            endif
+            if ((ip(i,j)+ip(i,j-1)).ge.1) then
+              ivv(i,j)=1
+            else
+              ivv(i,j)=0
+            endif
+            if ((iu(i,j)+iv(i,j)+iu(i,j-1)+iv(i-1,j)).ge.1) then
+              iqq(i,j)=1
+            else
+              iqq(i,j)=0
+            endif
+          enddo 
+        enddo
+      endif
 #ifdef COMPRES     
       call ncdimc('pcomp',ip,0)
       call ncdimc('qcomp',iqq,0)
@@ -136,6 +137,20 @@ c --- define spatial and time dimensions
 c
 c --- output model fields to restart file
       call ncputi('ntda',ntda,1)
+      call ncputi('nacc_phy2d',nacc_phy2d,1)
+      call ncputi('nacc_phy3d',nacc_phy3d,1)
+c
+      do j=1,jj
+        do i=1,ii
+          if (ip(i,j).eq.1) then
+            rkfpla(i,j,1)=real(kfpla(i,j,1))
+            rkfpla(i,j,2)=real(kfpla(i,j,2))
+          else
+            rkfpla(i,j,1)=0.
+            rkfpla(i,j,2)=0.
+          endif
+        enddo
+      enddo
 c
 #ifdef COMPRES 
       call nccomp('u','ucomp kk2 time',u,iuu)
@@ -144,6 +159,7 @@ c
       call nccomp('temp','pcomp kk2 time',temp,ip)
       call nccomp('saln','pcomp kk2 time',saln,ip)
       call nccomp('sigma','pcomp kk2 time',sigma,ip)
+      call nccomp('sigmar','pcomp kk time',sigmar,ip)
       call nccomp('pgfx','ucomp kk2 time',pgfx,iuu)
       call nccomp('pgfy','vcomp kk2 time',pgfy,ivv)
       call nccomp('pb','pcomp k2 time',pb,ip)
@@ -174,10 +190,9 @@ c
       call nccomp('xixm','ucomp k2 time',xixm,iuu)
       call nccomp('xiyp','vcomp k2 time',xiyp,ivv)
       call nccomp('xiym','vcomp k2 time',xiym,ivv)
-      call nccomp('tmxold','pcomp k2 time',tmxold,ip)
-      call nccomp('smxold','pcomp k2 time',smxold,ip)
       call nccomp('phi','pcomp time',phi(1-nbdy,1-nbdy,kk+1),ip)
       call nccomp('sealv','pcomp time',sealv,ip)
+      call nccomp('kfpla','pcomp k2 time',rkfpla,ip)
       call nccomp('hicem','pcomp time',hicem,ip)
       call nccomp('ficem','pcomp time',ficem,ip)
       call nccomp('tsrfm','pcomp time',tsrfm,ip)
@@ -197,6 +212,7 @@ c
       call ncwrtr('temp','x y kk2 time',temp,ip,1)
       call ncwrtr('saln','x y kk2 time',saln,ip,1)
       call ncwrtr('sigma','x y kk2 time',sigma,ip,1)
+      call ncwrtr('sigmar','x y kk time',sigmar,ip,1)
       call ncwrtr('pgfx','x y kk2 time',pgfx,iuu,1)
       call ncwrtr('pgfy','x y kk2 time',pgfy,ivv,1)
       call ncwrtr('pb','x y k2 time',pb,ip,1)
@@ -227,10 +243,9 @@ c
       call ncwrtr('xixm','x y k2 time',xixm,iuu,1)
       call ncwrtr('xiyp','x y k2 time',xiyp,ivv,1)
       call ncwrtr('xiym','x y k2 time',xiym,ivv,1)
-      call ncwrtr('tmxold','x y k2 time',tmxold,ip,1)
-      call ncwrtr('smxold','x y k2 time',smxold,ip,1)
       call ncwrtr('phi','x y time',phi(1-nbdy,1-nbdy,kk+1),ip,1)
       call ncwrtr('sealv','x y time',sealv,ip,1)
+      call ncwrtr('kfpla','x y k2 time',rkfpla,ip,1)
       call ncwrtr('hicem','x y time',hicem,ip,1)
       call ncwrtr('ficem','x y time',ficem,ip,1)
       call ncwrtr('tsrfm','x y time',tsrfm,ip,1)
@@ -269,6 +284,109 @@ c
 #  endif
 #endif
 c
+c --- write accumulated fields
+      if (nacc_phy2d.gt.0) then
+#ifdef COMPRES 
+        call nccomp('ub_dia','ucomp time',ub_dia,iuu)
+        call nccomp('vb_dia','vcomp time',vb_dia,ivv)
+        call nccomp('ztx_dia','ucomp time',ztx_dia,iuu)
+        call nccomp('mty_dia','vcomp time',mty_dia,ivv)
+        call nccomp('taux_dia','ucomp time',taux_dia,iuu)
+        call nccomp('tauy_dia','vcomp time',tauy_dia,ivv)
+        call nccomp('mxlu_dia','ucomp time',mxlu_dia,iuu)
+        call nccomp('mxlv_dia','vcomp time',mxlv_dia,ivv)
+        call nccomp('mldu_dia','ucomp time',mldu_dia,iuu)
+        call nccomp('mldv_dia','vcomp time',mldv_dia,ivv)
+        call nccomp('sealv_dia','pcomp time',sealv_dia,ip)
+        call nccomp('sigmx_dia','pcomp time',sigmx_dia,ip)
+        call nccomp('hice_dia','pcomp time',hice_dia,ip)
+        call nccomp('hsnw_dia','pcomp time',hsnw_dia,ip)
+        call nccomp('fice_dia','pcomp time',fice_dia,ip)
+        call nccomp('tsrf_dia','pcomp time',tsrf_dia,ip)
+        call nccomp('tice_dia','pcomp time',tice_dia,ip)
+        call nccomp('swa_dia','pcomp time',swa_dia,ip)
+        call nccomp('nsf_dia','pcomp time',nsf_dia,ip)
+        call nccomp('dfl_dia','pcomp time',dfl_dia,ip)
+        call nccomp('lip_dia','pcomp time',lip_dia,ip)
+        call nccomp('sop_dia','pcomp time',sop_dia,ip)
+        call nccomp('eva_dia','pcomp time',eva_dia,ip)
+        call nccomp('alb_dia','pcomp time',alb_dia,ip)
+        call nccomp('rnfflx_dia','pcomp time',rnfflx_dia,ip)
+        call nccomp('ustar_dia','pcomp time',ustar_dia,ip)
+        call nccomp('sss_dia','pcomp time',sss_dia,ip)
+        call nccomp('sst_dia','pcomp time',sst_dia,ip)
+        call nccomp('mld_dia','pcomp time',mld_dia,ip)
+        call nccomp('maxmld_dia','pcomp time',maxmld_dia,ip)
+        call nccomp('surflx_dia','pcomp time',surflx_dia,ip)
+        call nccomp('salflx_dia','pcomp time',salflx_dia,ip)
+        call nccomp('uice_dia','ucomp time',uice_dia,iuu)
+        call nccomp('vice_dia','vcomp time',vice_dia,ivv)
+#else 
+        call ncwrtr('ub_dia','x y time',ub_dia,iuu,1)
+        call ncwrtr('vb_dia','x y time',vb_dia,ivv,1)
+        call ncwrtr('ztx_dia','x y time',ztx_dia,iuu,1)
+        call ncwrtr('mty_dia','x y time',mty_dia,ivv,1)
+        call ncwrtr('taux_dia','x y time',taux_dia,iuu,1)
+        call ncwrtr('tauy_dia','x y time',tauy_dia,ivv,1)
+        call ncwrtr('mxlu_dia','x y time',mxlu_dia,iuu,1)
+        call ncwrtr('mxlv_dia','x y time',mxlv_dia,ivv,1)
+        call ncwrtr('mldu_dia','x y time',mldu_dia,iuu,1)
+        call ncwrtr('mldv_dia','x y time',mldv_dia,ivv,1)
+        call ncwrtr('sealv_dia','x y time',sealv_dia,ip,1)
+        call ncwrtr('sigmx_dia','x y time',sigmx_dia,ip,1)
+        call ncwrtr('hice_dia','x y time',hice_dia,ip,1)
+        call ncwrtr('hsnw_dia','x y time',hsnw_dia,ip,1)
+        call ncwrtr('fice_dia','x y time',fice_dia,ip,1)
+        call ncwrtr('tsrf_dia','x y time',tsrf_dia,ip,1)
+        call ncwrtr('tice_dia','x y time',tice_dia,ip,1)
+        call ncwrtr('swa_dia','x y time',swa_dia,ip,1)
+        call ncwrtr('nsf_dia','x y time',nsf_dia,ip,1)
+        call ncwrtr('dfl_dia','x y time',dfl_dia,ip,1)
+        call ncwrtr('lip_dia','x y time',lip_dia,ip,1)
+        call ncwrtr('sop_dia','x y time',sop_dia,ip,1)
+        call ncwrtr('eva_dia','x y time',eva_dia,ip,1)
+        call ncwrtr('alb_dia','x y time',alb_dia,ip,1)
+        call ncwrtr('rnfflx_dia','x y time',rnfflx_dia,ip,1)
+        call ncwrtr('ustar_dia','x y time',ustar_dia,ip,1)
+        call ncwrtr('sss_dia','x y time',sss_dia,ip,1)
+        call ncwrtr('sst_dia','x y time',sst_dia,ip,1)
+        call ncwrtr('mld_dia','x y time',mld_dia,ip,1)
+        call ncwrtr('maxmld_dia','x y time',maxmld_dia,ip,1)
+        call ncwrtr('surflx_dia','x y time',surflx_dia,ip,1)
+        call ncwrtr('salflx_dia','x y time',salflx_dia,ip,1)
+        call ncwrtr('uice_dia','x y time',uice_dia,iuu,1)
+        call ncwrtr('vice_dia','x y time',vice_dia,ivv,1)
+#endif
+      endif
+c
+      if (nacc_phy3d.gt.0) then
+#ifdef COMPRES
+        call nccomp('uvel_dia','ucomp kk time',uvel_dia,iuu)
+        call nccomp('vvel_dia','vcomp kk time',vvel_dia,ivv)
+        call nccomp('dpu_dia','ucomp kk time',dpu_dia,iuu)
+        call nccomp('dpv_dia','vcomp kk time',dpv_dia,ivv)
+        call nccomp('uflx_dia','ucomp kk time',uflx_dia,iuu)
+        call nccomp('vflx_dia','vcomp kk time',vflx_dia,ivv)
+        call nccomp('saln_dia','pcomp kk time',saln_dia,ip)
+        call nccomp('temp_dia','pcomp kk time',temp_dia,ip)
+        call nccomp('dp_dia','pcomp kk time',dp_dia,ip)
+        call nccomp('dz_dia','pcomp kk time',dz_dia,ip)
+        call nccomp('diaflx','pcomp kk time',diaflx,ip)
+#else
+        call ncwrtr('uvel_dia','x y kk time',uvel_dia,iuu,1)
+        call ncwrtr('vvel_dia','x y kk time',vvel_dia,ivv,1)
+        call ncwrtr('dpu_dia','x y kk time',dpu_dia,iuu,1)
+        call ncwrtr('dpv_dia','x y kk time',dpv_dia,ivv,1)
+        call ncwrtr('uflx_dia','x y kk time',uflx_dia,iuu,1)
+        call ncwrtr('vflx_dia','x y kk time',vflx_dia,ivv,1)
+        call ncwrtr('saln_dia','x y kk time',saln_dia,ip,1)
+        call ncwrtr('temp_dia','x y kk time',temp_dia,ip,1)
+        call ncwrtr('dp_dia','x y kk time',dp_dia,ip,1)
+        call ncwrtr('dz_dia','x y kk time',dz_dia,ip,1)
+        call ncwrtr('diaflx','x y kk time',diaflx,ip,1)
+#endif 
+      endif
+c
       call ncfcls
 c
 #ifdef ICEDYN
@@ -280,212 +398,60 @@ c
       call restart_trcwt(rstfnm_ext)
 #endif
 c
-c
-#ifdef CCSMCOUPLED
-      if (diag2dmon) then
-c
-c --- write accumulated 2d fields restart file for monthly output
-      fnm=path2(1:path2_len)//runid(1:runid_len)//'_diaacc2d'//
-     .    rstfnm_ext
-      if (mnproc.eq.1) write (lp,'(a,a)')
-     .  ' saving accumulated 2d fields restart file ',fnm
-      call ncfopn(fnm,'w')
-c
-#  ifdef COMPRES 
-      call ncdimc('pcomp',ip,0)
-      call ncdimc('ucomp',iuu,0)
-      call ncdimc('vcomp',ivv,0)
-#  else 
-      call ncdims('x',itdm)
-      call ncdims('y',jtdm)
-#  endif 
-      call nctime(datenum,calendar,timeunits,startdate)
-c
-      call ncputr('time',time,1)
-      call ncputi('nacc_phy2d',nacc_phy2d,1)
-c
-#  ifdef COMPRES 
-      call nccomp('ub_dia','ucomp time',ub_dia,iuu)
-      call nccomp('vb_dia','vcomp time',vb_dia,ivv)
-      call nccomp('ztx_dia','ucomp time',ztx_dia,iuu)
-      call nccomp('mty_dia','vcomp time',mty_dia,ivv)
-      call nccomp('taux_dia','ucomp time',taux_dia,iuu)
-      call nccomp('tauy_dia','vcomp time',tauy_dia,ivv)
-      call nccomp('mxlu_dia','ucomp time',mxlu_dia,iuu)
-      call nccomp('mxlv_dia','vcomp time',mxlv_dia,ivv)
-      call nccomp('mxldu_dia','ucomp time',mxldu_dia,iuu)
-      call nccomp('mxldv_dia','vcomp time',mxldv_dia,ivv)
-      call nccomp('sealv_dia','pcomp time',sealv_dia,ip)
-      call nccomp('sigmx_dia','pcomp time',sigmx_dia,ip)
-      call nccomp('hice_dia','pcomp time',hice_dia,ip)
-      call nccomp('hsnw_dia','pcomp time',hsnw_dia,ip)
-      call nccomp('fice_dia','pcomp time',fice_dia,ip)
-      call nccomp('tsrf_dia','pcomp time',tsrf_dia,ip)
-      call nccomp('tice_dia','pcomp time',tice_dia,ip)
-      call nccomp('swa_dia','pcomp time',swa_dia,ip)
-      call nccomp('nsf_dia','pcomp time',nsf_dia,ip)
-      call nccomp('dfl_dia','pcomp time',dfl_dia,ip)
-      call nccomp('lip_dia','pcomp time',lip_dia,ip)
-      call nccomp('sop_dia','pcomp time',sop_dia,ip)
-      call nccomp('eva_dia','pcomp time',eva_dia,ip)
-      call nccomp('alb_dia','pcomp time',alb_dia,ip)
-      call nccomp('rnfflx_dia','pcomp time',rnfflx_dia,ip)
-      call nccomp('ustar_dia','pcomp time',ustar_dia,ip)
-      call nccomp('sss_dia','pcomp time',sss_dia,ip)
-      call nccomp('sst_dia','pcomp time',sst_dia,ip)
-      call nccomp('mxld_dia','pcomp time',mxld_dia,ip)
-      call nccomp('surflx_dia','pcomp time',surflx_dia,ip)
-      call nccomp('salflx_dia','pcomp time',salflx_dia,ip)
-      call nccomp('uice_dia','ucomp time',uice_dia,iuu)
-      call nccomp('vice_dia','vcomp time',vice_dia,ivv)
-      call nccomp('convec_dia','pcomp time',convec_dia,ip)
-#  else 
-      call ncwrtr('ub_dia','x y time',ub_dia,iuu,1)
-      call ncwrtr('vb_dia','x y time',vb_dia,ivv,1)
-      call ncwrtr('ztx_dia','x y time',ztx_dia,iuu,1)
-      call ncwrtr('mty_dia','x y time',mty_dia,ivv,1)
-      call ncwrtr('taux_dia','x y time',taux_dia,iuu,1)
-      call ncwrtr('tauy_dia','x y time',tauy_dia,ivv,1)
-      call ncwrtr('mxlu_dia','x y time',mxlu_dia,iuu,1)
-      call ncwrtr('mxlv_dia','x y time',mxlv_dia,ivv,1)
-      call ncwrtr('mxldu_dia','x y time',mxldu_dia,iuu,1)
-      call ncwrtr('mxldv_dia','x y time',mxldv_dia,ivv,1)
-      call ncwrtr('sealv_dia','x y time',sealv_dia,ip,1)
-      call ncwrtr('sigmx_dia','x y time',sigmx_dia,ip,1)
-      call ncwrtr('hice_dia','x y time',hice_dia,ip,1)
-      call ncwrtr('hsnw_dia','x y time',hsnw_dia,ip,1)
-      call ncwrtr('fice_dia','x y time',fice_dia,ip,1)
-      call ncwrtr('tsrf_dia','x y time',tsrf_dia,ip,1)
-      call ncwrtr('tice_dia','x y time',tice_dia,ip,1)
-      call ncwrtr('swa_dia','x y time',swa_dia,ip,1)
-      call ncwrtr('nsf_dia','x y time',nsf_dia,ip,1)
-      call ncwrtr('dfl_dia','x y time',dfl_dia,ip,1)
-      call ncwrtr('lip_dia','x y time',lip_dia,ip,1)
-      call ncwrtr('sop_dia','x y time',sop_dia,ip,1)
-      call ncwrtr('eva_dia','x y time',eva_dia,ip,1)
-      call ncwrtr('alb_dia','x y time',alb_dia,ip,1)
-      call ncwrtr('rnfflx_dia','x y time',rnfflx_dia,ip,1)
-      call ncwrtr('ustar_dia','x y time',ustar_dia,ip,1)
-      call ncwrtr('sss_dia','x y time',sss_dia,ip,1)
-      call ncwrtr('sst_dia','x y time',sst_dia,ip,1)
-      call ncwrtr('mxld_dia','x y time',mxld_dia,ip,1)
-      call ncwrtr('surflx_dia','x y time',surflx_dia,ip,1)
-      call ncwrtr('salflx_dia','x y time',salflx_dia,ip,1)
-      call ncwrtr('uice_dia','x y time',uice_dia,iuu,1)
-      call ncwrtr('vice_dia','x y time',vice_dia,ivv,1)
-      call ncwrtr('convec_dia','x y time',convec_dia,ip,1)
-#  endif
-c
-      call ncfcls       
-      endif
-c
-      if (diag3dmon) then
-c
-c --- write accumulated 3d fields restart file for monthly output
-      fnm=path2(1:path2_len)//runid(1:runid_len)//'_diaacc3d'//
-     .    rstfnm_ext
-      if (mnproc.eq.1) write (lp,'(a,a)')
-     .  ' saving accumulated 3d fields restart file ',fnm
-      call ncfopn(fnm,'w')
-c
-#  ifdef COMPRES
-      call ncdimc('pcomp',ip,0)
-      call ncdimc('ucomp',iuu,0)
-      call ncdimc('vcomp',ivv,0)
-#  else
-      call ncdims('x',itdm)
-      call ncdims('y',jtdm)
-#  endif 
-      call ncdims('z',kk)
-      call nctime(datenum,calendar,timeunits,startdate)
-c
-      call ncputr('time',time,1)
-      call ncputi('nacc_phy3d',nacc_phy3d,1)
-c
-#  ifdef COMPRES
-      call nccomp('uvel_dia','ucomp z time',uvel_dia,iuu)
-      call nccomp('vvel_dia','vcomp z time',vvel_dia,ivv)
-      call nccomp('dpu_dia','ucomp z time',dpu_dia,iuu)
-      call nccomp('dpv_dia','vcomp z time',dpv_dia,ivv)
-      call nccomp('uflx_dia','ucomp z time',uflx_dia,iuu)
-      call nccomp('vflx_dia','vcomp z time',vflx_dia,ivv)
-      call nccomp('saln_dia','pcomp z time',saln_dia,ip)
-      call nccomp('temp_dia','pcomp z time',temp_dia,ip)
-      call nccomp('dp_dia','pcomp z time',dp_dia,ip)
-      call nccomp('dz_dia','pcomp z time',dz_dia,ip)
-      call nccomp('diaflx','pcomp z time',diaflx,ip)
-#  else
-      call ncwrtr('uvel_dia','x y z time',uvel_dia,iuu,1)
-      call ncwrtr('vvel_dia','x y z time',vvel_dia,ivv,1)
-      call ncwrtr('dpu_dia','x y z time',dpu_dia,iuu,1)
-      call ncwrtr('dpv_dia','x y z time',dpv_dia,ivv,1)
-      call ncwrtr('uflx_dia','x y z time',uflx_dia,iuu,1)
-      call ncwrtr('vflx_dia','x y z time',vflx_dia,ivv,1)
-      call ncwrtr('saln_dia','x y z time',saln_dia,ip,1)
-      call ncwrtr('temp_dia','x y z time',temp_dia,ip,1)
-      call ncwrtr('dp_dia','x y z time',dp_dia,ip,1)
-      call ncwrtr('dz_dia','x y z time',dz_dia,ip,1)
-      call ncwrtr('diaflx','x y z time',diaflx,ip,1)
-#  endif 
-c
-      call ncfcls       
-      endif
-#endif
-c
       if (ditflx) then
 c
-c --- write diag. heat flux restart file
-      fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
-      if (mnproc.eq.1) write (lp,'(a,a)')
-     .  ' saving diag. heat flux restart file ',fnm
-      call ncfopn(fnm,'w')
+c --- - write diag. heat flux restart file
+        fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
+        if (mnproc.eq.1) write (lp,'(a,a)')
+     .    ' saving diag. heat flux restart file ',fnm
+        call ncfopn(fnm,'w')
 c
 #ifdef COMPRES
-      call ncdimc('pcomp',ip,0)
+        call ncdimc('pcomp',ip,0)
 #else
-      call ncdims('x',itdm)
-      call ncdims('y',jtdm)
+        call ncdims('x',itdm)
+        call ncdims('y',jtdm)
 #endif 
-      call ncdims('week',48)
+        call ncdims('week',48)
 c
-      call ncputr('time',time,1)
-      call ncputi('nflxdi',nflxdi,48)
+        call ncputr('time',time,1)
+        call ncputi('nflxdi',nflxdi,48)
 c
 #ifdef COMPRES
-      call nccomp('tflxdi','pcomp week',tflxdi,ip)
+        call nccomp('tflxdi','pcomp week',tflxdi,ip)
 #else
-      call ncwrtr('tflxdi','x y week',tflxdi,ip,1)
+        call ncwrtr('tflxdi','x y week',tflxdi,ip,1)
 #endif 
 c       
-      call ncfcls   
+        call ncfcls   
       endif  
 c
       if (disflx) then
 c
-c --- write diag. salt flux restart file
-      fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
-      if (mnproc.eq.1) write (lp,'(a,a)')
-     .  ' saving diag. salt flux restart file ',fnm
-      call ncfopn(fnm,'w')
+c --- - write diag. salt flux restart file
+        fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
+        if (mnproc.eq.1) write (lp,'(a,a)')
+     .    ' saving diag. salt flux restart file ',fnm
+        call ncfopn(fnm,'w')
 c
 #ifdef COMPRES
-      call ncdimc('pcomp',ip,0)
+        call ncdimc('pcomp',ip,0)
 #else
-      call ncdims('x',itdm)
-      call ncdims('y',jtdm)
+        call ncdims('x',itdm)
+        call ncdims('y',jtdm)
 #endif 
-      call ncdims('week',48)
+        call ncdims('week',48)
 c
-      call ncputr('time',time,1)
-      call ncputi('nflxdi',nflxdi,48)
+        call ncputr('time',time,1)
+        call ncputi('nflxdi',nflxdi,48)
 c
 #ifdef COMPRES
-      call nccomp('sflxdi','pcomp week',sflxdi,ip)
+        call nccomp('sflxdi','pcomp week',sflxdi,ip)
 #else
-      call ncwrtr('sflxdi','x y week',sflxdi,ip,1)
+        call ncwrtr('sflxdi','x y week',sflxdi,ip,1)
 #endif 
 c       
-      call ncfcls
+        call ncfcls
       endif
 c
 #ifdef CCSMCOUPLED

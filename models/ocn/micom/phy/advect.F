@@ -11,8 +11,7 @@ c
       integer i,j,k,l,km,kn,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: pbmin
       real, dimension(1-nbdy:idm+nbdy) :: pbfac
-      real flxhi,q,dpo,dpni
-      logical isopyc
+      real flxhi,flxlo,q,dpo,dpni
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -24,8 +23,7 @@ c
       parameter (dpeps=1.e-4)
 c
 c --- ---------------------------------------------------------------------
-c --- estimate diffusive flux by biharmonic thickness diffusion
-c --- (literally, interface depth diffusion)
+c --- estimate diffusive flux by Laplacian interface depth diffusion
 c --- ---------------------------------------------------------------------
 c
 c$OMP PARALLEL DO PRIVATE(kn)
@@ -64,43 +62,16 @@ c
       do k=3,kk
         kn=k+nn
 c
-c$OMP PARALLEL DO
-        do j=-1,jj+2
-          do l=1,isp(j)
-          do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
-            if ((p(i,j,kk+1)-p(i,j,k)).lt.onem.or.
-     .          (p(i,j,k)-p(i,j,2)).lt.onem) then
-              util1(i,j)=0.
-              util2(i,j)=0.
-            else
-              util1(i,j)=p(i,j,k)-.5*(p(i-1,j,k)+p(i+1,j,k))
-              util2(i,j)=p(i,j,k)-.5*(p(i,j-1,k)+p(i,j+1,k))
-              if (util1(i,j).gt.0..and.
-     .            ((p(i-1,j,kk+1)-p(i-1,j,k)).lt.onem.or.
-     .             (p(i+1,j,kk+1)-p(i+1,j,k)).lt.onem)) util1(i,j)=0.
-              if (util2(i,j).gt.0..and.
-     .            ((p(i,j-1,kk+1)-p(i,j-1,k)).lt.onem.or.
-     .             (p(i,j+1,kk+1)-p(i,j+1,k)).lt.onem)) util2(i,j)=0.
-              if (util1(i,j).lt.0..and.
-     .            ((p(i-1,j,k)-p(i-1,j,2)).lt.onem.or.
-     .             (p(i+1,j,k)-p(i+1,j,2)).lt.onem)) util1(i,j)=0.
-              if (util2(i,j).lt.0..and.
-     .            ((p(i,j-1,k)-p(i,j-1,2)).lt.onem.or.
-     .             (p(i,j+1,k)-p(i,j+1,2)).lt.onem)) util2(i,j)=0.
-            endif
-          enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-c
-c$OMP PARALLEL DO PRIVATE(flxhi,q)
+c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
         do j=-1,jj+2
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
-            flxhi=.125*min(scp2(i-1,j),scp2(i,j))
-     .                *min(dpu(i,j,kn-1),dpu(i,j,kn))
-            q=min(flxhi,max(-flxhi,
-     .            delt1*thkdff*(util1(i-1,j)-util1(i,j))*scuy(i,j)))
+            flxhi= .125*min(dp(i-1,j,kn-1)*scp2(i-1,j),
+     .                      dp(i  ,j,kn  )*scp2(i  ,j))
+            flxlo=-.125*min(dp(i  ,j,kn-1)*scp2(i  ,j),
+     .                      dp(i-1,j,kn  )*scp2(i-1,j))
+            q=min(flxhi,max(flxlo,
+     .            delt1*thkdff*(p(i-1,j,k)-p(i,j,k))*scuy(i,j)))
             uflxdf(i,j,k-1)=uflxdf(i,j,k-1)+q
             uflxdf(i,j,k  )=-q
           enddo
@@ -108,14 +79,16 @@ c$OMP PARALLEL DO PRIVATE(flxhi,q)
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(flxhi,q)
+c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
         do j=0,jj+2
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
-            flxhi=.125*min(scp2(i,j-1),scp2(i,j))
-     .                *min(dpv(i,j,kn-1),dpv(i,j,kn))
-            q=min(flxhi,max(-flxhi,
-     .            delt1*thkdff*(util2(i,j-1)-util2(i,j))*scvx(i,j)))
+            flxhi= .125*min(dp(i,j-1,kn-1)*scp2(i,j-1),
+     .                      dp(i,j  ,kn  )*scp2(i,j  ))
+            flxlo=-.125*min(dp(i,j  ,kn-1)*scp2(i,j  ),
+     .                      dp(i,j-1,kn  )*scp2(i,j-1))
+            q=min(flxhi,max(flxlo,
+     .            delt1*thkdff*(p(i,j-1,k)-p(i,j,k))*scvx(i,j)))
             vflxdf(i,j,k-1)=vflxdf(i,j,k-1)+q
             vflxdf(i,j,k  )=-q
           enddo
@@ -162,7 +135,7 @@ c
       enddo
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(km,kn,isopyc)
+c$OMP PARALLEL DO PRIVATE(km,kn)
 c$OMP+FIRSTPRIVATE(utotm,vtotm)
       do k=1,kk
         km=k+mm
@@ -176,6 +149,7 @@ c
             utotm(i,j)=u(i,j,km)
      .        +(ubflxs_p(i,j,m)*dlt/pbu(i,j,m)
      .         +uflxdf(i,j,k)/max(onemm,dpu(i,j,kn)))/(delt1*scuy(i,j))
+            utotm(i,j)=max(-umax(i,j),min(umax(i,j),utotm(i,j)))
           enddo
           enddo
         enddo
@@ -185,19 +159,14 @@ c
             vtotm(i,j)=v(i,j,km)
      .        +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m)
      .         +vflxdf(i,j,k)/max(onemm,dpv(i,j,kn)))/(delt1*scvx(i,j))
+            vtotm(i,j)=max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
           enddo
           enddo
         enddo
 c
-        if (k.eq.1) then
-          isopyc=.false.
-        else
-          isopyc=.true.
-        endif
-c
         call remap(scuy,scvx,scp2i,scp2,pbmin,
      .             pbu(1-nbdy,1-nbdy,n),pbv(1-nbdy,1-nbdy,n),
-     .             p(1-nbdy,1-nbdy,k+1),utotm,vtotm,delt1,isopyc,1,
+     .             p(1-nbdy,1-nbdy,k+1),utotm,vtotm,delt1,1,
      .             dp(1-nbdy,1-nbdy,kn),temp(1-nbdy,1-nbdy,kn),
      .             saln(1-nbdy,1-nbdy,kn),uflx(1-nbdy,1-nbdy,km),
      .             vflx(1-nbdy,1-nbdy,km)

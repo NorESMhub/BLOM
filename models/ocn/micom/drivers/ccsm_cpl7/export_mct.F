@@ -23,8 +23,8 @@
 
       ! Include files
 
-#include "common_blocks.h"
 #include "common_geo.h"
+#include "common_forc.h"
 
       ! Local variables
 
@@ -89,8 +89,13 @@
      .         sbuff(i,j,index_o2x_So_t)*tfac + SHR_CONST_TKFRZ
             o2x_o%rAttr(index_o2x_So_s,n) =
      .         sbuff(i,j,index_o2x_So_s)*tfac
-            o2x_o%rAttr(index_o2x_Fioo_q,n) =
-     .         sbuff(i,j,index_o2x_Fioo_q)*tfac
+            if (sbuff(i,j,index_o2x_Fioo_q) > 0._r8) then
+              o2x_o%rAttr(index_o2x_Fioo_q,n) =
+     .           sbuff(i,j,index_o2x_Fioo_q)*tfac
+            else
+              o2x_o%rAttr(index_o2x_Fioo_q,n) =
+     .           mltpot(i,j)*tfac
+            endif
          enddo
       enddo
 

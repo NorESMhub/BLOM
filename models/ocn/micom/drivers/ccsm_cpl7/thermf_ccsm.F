@@ -16,6 +16,15 @@ c
       integer i,j,l
       real fwflx,totsfl,totwfl,sflxc
 c
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt
+      real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  ttrsf,ttrav
+      real tottrsf,tottrav,trflxc
+#endif
+c
       real swtfrz
       external swtfrz
 c
@@ -46,16 +55,20 @@ c --- ------------------------------------------------------------------
 c --- --- Heat fluxes
 c --- ------------------------------------------------------------------
 c
-c --- --- Freezing/melting potential [W m-2]. A positive flux means the
-c --- --- ocean surface has a temperature below freezing temperature and
-c --- --- must be heated
-          frzmlt(i,j)=(swtfrz(saln(i,j,k1n))-temp(i,j,k1n))
-     .                *spcifh*dp(i,j,k1n)/(g*delt1)*1.e4
+c --- --- Freezing/melting potential [J m-2]. A positive flux means the ocean
+c --- --- surface has a temperature below freezing temperature and must
+c --- --- be heated. Note the freezing potential is multiplied by 1/2
+c --- --- due to the leap-frog time stepping. The melting potential uses
+c --- --- time averaged quantities since it is not accumulated.
+          frzpot(i,j)=max(0.,swtfrz(saln(i,j,k1n))-temp(i,j,k1n))
+     .                *spcifh*dp(i,j,k1n)/(2.*g)*1.e4
+          mltpot(i,j)=min(0.,swtfrz(.5*(saln(i,j,k1m)+saln(i,j,k1n)))
+     .                      -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
+     .                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
 c
 c --- --- Total heat flux from the ocean [W cm-2] (positive upwards).
-c --- --- Apply the freezing/melting potential if it cause a heating of
-c --- --- the ocean
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+max(0.,frzmlt(i,j)))*1.e-4
+c --- --- Apply the freezing potential
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+frzpot(i,j)/baclin)*1.e-4
 c
 c --- --- short wave heat flux from the ocean [W cm-2] (positive upwards)
           sswflx(i,j)=-swa(i,j)*1.e-4
@@ -67,6 +80,18 @@ c
 c --- --- set to zero!
           surrlx(i,j)=0.
           salrlx(i,j)=0.
+c
+#ifdef TRC
+c --- ------------------------------------------------------------------
+c --- --- Virtual tracer fluxes
+c --- ------------------------------------------------------------------
+c
+          do nt=1,ntrc
+            trflx(nt,i,j)=trc(i,j,1,nt)*fwflx
+            ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
+            ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
+          enddo
+#endif
 c
 c --- -------------------------------------------------------------------
 c --- --- Friction velocity (cm/s)
@@ -101,6 +126,44 @@ c
         enddo
         enddo
       enddo
+c
+#ifdef TRC
+c --- ------------------------------------------------------------------
+c --- Compute correction to the virtual tracer flux
+c --- ------------------------------------------------------------------
+c
+      do nt=1,ntrc
+c
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=ttrsf(nt,i,j)
+            util2(i,j)=ttrav(nt,i,j)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+        call xcsum(tottrsf,util1,ip)
+        call xcsum(tottrav,util2,ip)
+c
+        tottrav=tottrav/area
+c
+        trflxc=(tottrav*totwfl-tottrsf)/area
+c
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            trflx(nt,i,j)=(trflx(nt,i,j)+trflxc)*1.e2/alpha0
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c 
+      enddo
+#endif
 c
       return
       end
