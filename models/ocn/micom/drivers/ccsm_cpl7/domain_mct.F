@@ -102,7 +102,7 @@
       do j = 1, jj
          do i = 1, ii
             n = n + 1
-            rdata(n) = real(ip(i,j), kind = r8)
+            rdata(n) = real(cplmsk(i,j), kind = r8)
          enddo
       enddo
       call mct_gGrid_importRattr(dom_ocn, "mask", rdata, lsize) 

@@ -120,6 +120,6 @@
       ! permute in-place before returning the output state
       !-----------------------------------------------------------------
 
-      call mct_aVect_permute(o2x_o,perm)
+      call mct_aVect_permute(o2x_o, perm)
 
       end subroutine export_mct
