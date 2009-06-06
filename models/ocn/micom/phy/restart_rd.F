@@ -19,7 +19,7 @@ c
 #include "common_ice.h"
 #include "common_dia.h"
 c
-      real rntda
+      real rtmp
       integer i,j,ndayr,nmonthr,nyearr
       character rstfnm*80,rstfnm_ext*80,fnm*80
 c
@@ -183,13 +183,13 @@ c
       call ncread('alb_tda',alb_tda,ip,1,0.)
       call ncread('fice_tda',fice_tda,ip,1,0.)
 c
-      rntda=0.
+      rtmp=0.
       if (mnproc.eq.1) then
         call ncgeti('ntda',ntda)
-        rntda=ntda
+        rtmp=ntda
       endif
-      call xcmaxr(rntda)
-      ntda=rntda
+      call xcmaxr(rtmp)
+      ntda=nint(rtmp)
 c
       call ncread('rnfres',rnfres,ip,1,0.)
 c
@@ -206,7 +206,13 @@ c
 #endif
 c
 c --- read accumulated fields
-      call ncgeti('nacc_phy2d',nacc_phy2d)
+      rtmp=0.
+      if (mnproc.eq.1) then
+        call ncgeti('nacc_phy2d',nacc_phy2d)
+        rtmp=nacc_phy2d
+      endif
+      call xcmaxr(rtmp)
+      nacc_phy2d=nint(rtmp)
       if (nacc_phy2d.gt.0) then
         call ncread('ub_dia',ub_dia,iuu,1,0.)
         call ncread('vb_dia',vb_dia,ivv,1,0.)
@@ -217,7 +223,7 @@ c --- read accumulated fields
         call ncread('mxlu_dia',mxlu_dia,iuu,1,0.)
         call ncread('mxlv_dia',mxlv_dia,ivv,1,0.)
         call ncread('mldu_dia',mldu_dia,iuu,1,0.)
-        call ncread('mldu_dia',mldv_dia,ivv,1,0.)
+        call ncread('mldv_dia',mldv_dia,ivv,1,0.)
         call ncread('sealv_dia',sealv_dia,ip,1,0.)
         call ncread('sigmx_dia',sigmx_dia,ip,1,0.)
         call ncread('hice_dia',hice_dia,ip,1,0.)
@@ -227,6 +233,7 @@ c --- read accumulated fields
         call ncread('tice_dia',tice_dia,ip,1,0.)
         call ncread('swa_dia',swa_dia,ip,1,0.)
         call ncread('nsf_dia',nsf_dia,ip,1,0.)
+        call ncread('dfl_dia',dfl_dia,ip,1,0.)
         call ncread('lip_dia',lip_dia,ip,1,0.)
         call ncread('sop_dia',sop_dia,ip,1,0.)
         call ncread('eva_dia',eva_dia,ip,1,0.)
@@ -243,7 +250,13 @@ c --- read accumulated fields
         call ncread('vice_dia',vice_dia,ivv,1,0.)
       endif
 c
-      call ncgeti('nacc_phy3d',nacc_phy3d)
+      rtmp=0.
+      if (mnproc.eq.1) then
+        call ncgeti('nacc_phy3d',nacc_phy3d)
+        rtmp=nacc_phy3d
+      endif
+      call xcmaxr(rtmp)
+      nacc_phy3d=nint(rtmp)
       if (nacc_phy3d.gt.0) then
         call ncread('uvel_dia',uvel_dia,iuu,1,0.)
         call ncread('vvel_dia',vvel_dia,ivv,1,0.)
