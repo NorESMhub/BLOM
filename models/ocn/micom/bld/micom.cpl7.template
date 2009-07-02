@@ -35,7 +35,7 @@ set YEAR0   = `echo $RUN_STARTDATE | cut -c1-4 `
 set MONTH0  = `echo $RUN_STARTDATE | cut -c6-7 `
 set DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
 
-if ($RUN_TYPE == startup )  then
+if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
   if ($OCN_NCPL > 1) then 
     echo "$0 ERROR: Unsupported coupling interval OCN_NCPL = $OCN_NCPL "
     exit -1

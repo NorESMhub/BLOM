@@ -35,13 +35,20 @@ c
 c
       if (mnproc.eq.1) then
 c
-c --- - first try file name:
 #ifdef CCSMCOUPLED
-c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .    runid(1:runid_len),'_restphy_',nyear,'-',nmonth,'-',nday,'_',
-     .    nday1,'.nc'
+c --- - get file name from rpointer.ocn
+        inquire(file='rpointer.ocn',exist=fexist)
+        if (fexist) then
+          open (unit=nfu,file='rpointer.ocn')
+          read (nfu,'(a)') rstfnm
+          close (unit=nfu)
+        else
+          write (lp,*) 'Could not find file rpointer.ocn!'
+          call xchalt('(restart_rd)')
+          stop '(restart_rd)' 
+        endif
 #else
+c --- - first try file name:
 c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
      .    runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,'_',

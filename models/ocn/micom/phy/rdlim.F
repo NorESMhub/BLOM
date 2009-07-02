@@ -25,6 +25,7 @@ c
       integer i,j,m,n
 #ifdef CCSMCOUPLED
       character*80 rstfnm
+      logical fexist
 #endif
 c
 #ifdef CCSMCOUPLED
@@ -57,9 +58,11 @@ c
 c
 #ifdef CCSMCOUPLED
 c --- override some information read from the micom namelist with
-c --- information received from the coupler
+c --- information received from the coupler and from the restart file
+c --- pointer if it exists
       runid(1:80)=runid_mct(1:80)
-      if (runtype_mct.ne.'initial') then
+      inquire(file='rpointer.ocn',exist=fexist)
+      if (fexist) then
         open (unit=nfu,file='rpointer.ocn')
         read (nfu,'(a)') rstfnm
         close (unit=nfu)
@@ -68,10 +71,14 @@ c --- information received from the coupler
           n=n+1
         enddo
         n=n-1
-        read (rstfnm(n-19:n-16),'(i4)') nyear
-        read (rstfnm(n-14:n-13),'(i2)') nmonth
-        read (rstfnm(n-11:n-10),'(i2)') nday
-        read (rstfnm(n-8 :n-3 ),'(i6)') nday1
+        if (runtype_mct.eq.'initial') then
+          read (rstfnm(n-8 :n-3 ),'(i6)') nday1
+        else
+          read (rstfnm(n-19:n-16),'(i4)') nyear
+          read (rstfnm(n-14:n-13),'(i2)') nmonth
+          read (rstfnm(n-11:n-10),'(i2)') nday
+          read (rstfnm(n-8 :n-3 ),'(i6)') nday1
+        endif
       endif
 #endif
 c
