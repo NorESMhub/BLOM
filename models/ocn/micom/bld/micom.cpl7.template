@@ -8,7 +8,7 @@ if !(-d $CASEROOT/Buildexe         ) mkdir $CASEROOT/Buildexe
 #------------------------------------------------------------------------------
 
 if      ( $OCN_GRID ==  gx1v5) then
-  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20090518
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20090715
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
