@@ -12,7 +12,7 @@ c
 c
       real, dimension(1-nbdy:idm+nbdy) :: aux,pbfaco,pbfacn
       integer i,j,k,l,kn,km,kp
-      real pold,pmid,pnew
+      real pold,pmid,pnew,q
 c
 c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew)
       do j=1,jj
@@ -80,22 +80,24 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(km)
+c$OMP PARALLEL DO PRIVATE(km,q)
       do j=-1,jj+2
         do k=1,kk
           km=k+mm
           do l=1,isu(j)
           do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,km)=
-     .        max(0.,min(pbu(i,j,m),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(pbu(i,j,m),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,km)=
-     .        max(0.,min(pbv(i,j,m),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
-     .              -min(pbv(i,j,m),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
           enddo
           enddo
         enddo

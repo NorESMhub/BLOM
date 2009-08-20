@@ -90,8 +90,8 @@ c$OMP PARALLEL DO PRIVATE(q)
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
           q=2./(pb_p(i,j)+pb_p(i-1,j))
-          pvtrop(i,j  ,n)=corio(i,j  )*q
-          pvtrop(i,j+1,n)=corio(i,j+1)*q
+          pvtrop(i,j  ,n)=corioq(i,j  )*q
+          pvtrop(i,j+1,n)=corioq(i,j+1)*q
         enddo
         enddo
       enddo
@@ -101,8 +101,8 @@ c$OMP PARALLEL DO PRIVATE(q)
         do l=1,isv(j)
         do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
           q=2./(pb_p(i,j)+pb_p(i,j-1))
-          pvtrop(i  ,j,n)=corio(i  ,j)*q
-          pvtrop(i+1,j,n)=corio(i+1,j)*q
+          pvtrop(i  ,j,n)=corioq(i  ,j)*q
+          pvtrop(i+1,j,n)=corioq(i+1,j)*q
         enddo
         enddo
       enddo
@@ -112,8 +112,8 @@ c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isq(j)
         do i=max(1,ifq(j,l)),min(ii,ilq(j,l))
-          pvtrop(i,j,n)=corio(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  )
-     .                                +pb_p(i,j-1)+pb_p(i-1,j-1))
+          pvtrop(i,j,n)=corioq(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  )
+     .                                 +pb_p(i,j-1)+pb_p(i-1,j-1))
         enddo
         enddo
       enddo

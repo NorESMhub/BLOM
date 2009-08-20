@@ -200,14 +200,14 @@ c --- vorticity, pot.vort., defor. at lateral boundary points
       i=ifv(j,l)
       if (i.ge.1.and.i.le.ii+1) then
         vort(i  ,j)= vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i  ,j)
-        potvor(i  ,j)=(vort(i  ,j)+corio(i  ,j))*8.
+        potvor(i  ,j)=(vort(i  ,j)+corioq(i  ,j))*8.
      .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
      .                     dpmx(i,j),dpmx(i+1,j))
       endif
       i=ilv(j,l)
       if (i.ge.0.and.i.le.ii) then
         vort(i+1,j)=-vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i+1,j)
-        potvor(i+1,j)=(vort(i+1,j)+corio(i+1,j))*8.
+        potvor(i+1,j)=(vort(i+1,j)+corioq(i+1,j))*8.
      .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
      .                     dpmx(i,j),dpmx(i+1,j))
       endif
@@ -230,14 +230,14 @@ c
       j=jfu(i,l)
       if (j.ge.1.and.j.le.jj+1) then
         vort(i,j  )=-utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j  )
-        potvor(i,j  )=(vort(i,j  )+corio(i,j  ))*8.
+        potvor(i,j  )=(vort(i,j  )+corioq(i,j  ))*8.
      .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
      .                     dpmx(i,j),dpmx(i,j+1))
       endif
       j=jlu(i,l)
       if (j.ge.0.and.j.le.jj) then
         vort(i,j+1)= utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j+1)
-        potvor(i,j+1)=(vort(i,j+1)+corio(i,j+1))*8.
+        potvor(i,j+1)=(vort(i,j+1)+corioq(i,j+1))*8.
      .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
      .                     dpmx(i,j),dpmx(i,j+1))
       endif
@@ -271,7 +271,7 @@ c
       vort(i,j)=(vtotm(i,j)*scvy(i,j)-vtotm(i-1,j)*scvy(i-1,j)
      .          -utotm(i,j)*scux(i,j)+utotm(i,j-1)*scux(i,j-1))
      .          *scq2i(i,j)
- 64   potvor(i,j)=(vort(i,j)+corio(i,j)) * 8.
+ 64   potvor(i,j)=(vort(i,j)+corioq(i,j)) * 8.
      .   /max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
      .            dp(i,j-1,km)+dp(i-1,j-1,km))
      .   ,dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),dpmx(i,j-1),dpmx(i,j+1))

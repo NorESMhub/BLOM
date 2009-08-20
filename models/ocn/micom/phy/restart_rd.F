@@ -275,6 +275,9 @@ c
         call ncread('temp_dia',temp_dia,ip,1,0.)
         call ncread('dp_dia',dp_dia,ip,1,0.)
         call ncread('dz_dia',dz_dia,ip,1,0.)
+        call ncread('difint_dia',difint_dia,ip,1,0.)
+        call ncread('difiso_dia',difiso_dia,ip,1,0.)
+        call ncread('difdia_dia',difdia_dia,ip,1,0.)
         call ncread('diaflx',diaflx,ip,1,0.)
       endif
 c

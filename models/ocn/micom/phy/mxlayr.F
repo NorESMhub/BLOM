@@ -14,13 +14,13 @@ c
 #include "common_blocks.h"
 #include "common_eos.h"
 c
-      real, dimension(kdm+1) :: pres
-      real, dimension(kdm) :: ttem,ssal,delp,dens,densr
+      real, dimension(kdm+1) :: pres,po,pn
+      real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
       real q,ustar3,alfa,beta,bfltot,bflpsw,pmxl,lui,lbi,lei,cus,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,
      .     tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,
-     .     tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,thk
-      integer i,j,k,l,kn,nitr
+     .     tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,udpn
+      integer i,j,k,l,kn,nitr,ko
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -36,7 +36,7 @@ c
       real onemu
       parameter (onemu=.09806)
 c
-c --- Parameters for Oberhuber (1993) TKE closure
+c --- Parameters for Oberhuber (1993) TKE closure:
 c ---  ustmin - minium value of ustar used in computing the length
 c ---           scales for wind and buoyancy induced mixing [cm/s]
 c ---  mldjmp - minimum density jump at the mixed layer base used in the
@@ -60,7 +60,7 @@ c ---          over the mixed layer depth []
 c
 c --- ------------------------------------------------------------------
 c --- Compute squared lateral buoyancy gradient in the mixed layer and
-c --- store it in -util1-
+c --- store it in -util1-.
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO
@@ -133,7 +133,7 @@ c$OMP+ )
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-c --- --- Extract single column from 3-d fields
+c --- --- Extract single column from 3-d fields.
           pres(1)=p(i,j,1)
           do k=1,kk
             kn=k+nn
@@ -149,17 +149,6 @@ c --- --- Extract single column from 3-d fields
             enddo
 #endif
           enddo
-c
-c         if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-c           write (lp,*) 'mxlayr init'
-c           write (lp,*) 'kfpl',kfpla(i,j,n)
-c           do k=1,kk
-c             write (lp,'(i3,6e12.5)')
-c    .          k,delp(k)/onem,ttem(k),ssal(k),dens(k),densr(k),
-c    .          sig0(ttem(k),ssal(k))
-c           enddo
-c           write (lp,*)
-c         endif
 c
 c --- ------------------------------------------------------------------
 c --- --- Compute the turbulent kinetic energy (TKE) balance of the
@@ -180,18 +169,18 @@ c --- --- bfltot > 0
 c
           pmxl=pres(2)
           q=alpha0/g
-          lui=abs(corio(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
+          lui=abs(coriop(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
           if (bfltot.lt.0) then
             lbi=lui
           else
-            lbi=abs(corio(i,j))*q/(mu*max(ustmin,ustar(i,j)))
+            lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
           lei=1./(onem*betabl)
           cus=rm0*ustar3
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
           crs=ci*ce*util1(i,j)*q**3
-     .        *sqrt(scp2(i,j)/(corio(i,j)*corio(i,j)+rtau*rtau))*rlf
+     .        *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
 c      
           rm1=exp(-lui*pmxl)
           rm2=exp(-lbi*pmxl)
@@ -249,7 +238,7 @@ c
               write (lp,*) 'reached maxitr when detraining',i+i0,j+j0
               write (lp,*) 'dpth=',pres(2)/onem,';'
               write (lp,*) 'pmxl=',pmxl/onem,';'
-              write (lp,*) 'corio=',corio(i,j),';'
+              write (lp,*) 'corio=',coriop(i,j),';'
               write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
               write (lp,*) 'bfltot=',bfltot*1.e-4,';'
               write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
@@ -271,7 +260,7 @@ c
             dpfsl=pres(2)-pmxl
             delp(1)=pmxl-pres(1)
 c
-c --- ----- Apply forcing to the water column
+c --- ----- Apply forcing to the water column.
             pswbas=(1.-redfac)*exp(-lei*pmxl)
             pswup=pswbas
             pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(2)))
@@ -315,8 +304,8 @@ c
               delp(1)=dpfsl+delp(1)
             else
 c
-c --- ----- - place the content of the fossil mixed layer in isopycnic
-c --- ----- - layers
+c --- ------- Place the content of the fossil mixed layer in isopycnic
+c --- ------- layers.
               k=min(kk,kfpla(i,j,n))
 c
               if (k.eq.2) then
@@ -457,8 +446,8 @@ c
             else
 c
 c --- -----------------------------------------------------------------
-c --- ----- If there is a TKE surplus in the mixed layer, increase the
-c --- ----- mixed layer depth until the TKE balance is restored.
+c --- ------- If there is a TKE surplus in the mixed layer, increase
+c --- ------- the mixed layer depth until the TKE balance is restored.
 c --- -----------------------------------------------------------------
 c
               tmxl0=ttem(1)
@@ -536,7 +525,7 @@ c
      .                           i+i0,j+j0
                     write (lp,*) 'dpth=',pres(2)/onem,';'
                     write (lp,*) 'pmxl=',pmxl/onem,';'
-                    write (lp,*) 'corio=',corio(i,j),';'
+                    write (lp,*) 'corio=',coriop(i,j),';'
                     write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
                     write (lp,*) 'bfltot=',bfltot*1.e-4,';'
                     write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
@@ -612,7 +601,7 @@ c
             enddo
 #endif
 c
-c --- ----- Apply forcing to the water column
+c --- ----- Apply forcing to the water column.
             pswbas=(1.-redfac)*exp(-lei*pres(2))
             pswup=pswbas
             do k=2,kk
@@ -639,7 +628,7 @@ c --- ----- Apply forcing to the water column
 c
           endif
 c
-c --- --- Define first physical layer
+c --- --- Define first physical layer.
           k=2
           dps=0.
           do while (delp(k).lt.epsil)
@@ -655,7 +644,7 @@ c --- --- Define first physical layer
           endif
           kfpla(i,j,n)=k
 c
-c --- --- Put single column back into 3-d fields
+c --- --- Put single column back into 3-d fields.
           do k=1,kk
             kn=k+nn
             temp(i,j,kn)=ttem(k)
@@ -670,18 +659,6 @@ c --- --- Put single column back into 3-d fields
 #endif
           enddo
 c
-c         if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-c           write (lp,*) 'mxlayr final'
-c           write (lp,*) 'kfpl',kfpla(i,j,n)
-c           do k=1,kk
-c             kn=k+nn
-c             write (lp,'(i3,6e12.5)')
-c    .          k,dp(i,j,kn)/onem,temp(i,j,kn),saln(i,j,kn),
-c    .          sigma(i,j,kn),densr(k),sig0(temp(i,j,kn),saln(i,j,kn))
-c           enddo
-c           write (lp,*)
-c         endif
-c
         enddo
         enddo
       enddo
@@ -695,11 +672,11 @@ c$OMP PARALLEL DO
 c
         do 881 l=1,isu(j)
         do 881 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
- 881    pu(i,j,k)=min(pbu(i,j,n),.5*(p(i  ,j,k)+p(i-1,j,k)))
+ 881    pu(i,j,k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
 c
         do 880 l=1,isv(j)
         do 880 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
- 880    pv(i,j,k)=min(pbv(i,j,n),.5*(p(i,j  ,k)+p(i,j-1,k)))
+ 880    pv(i,j,k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
       end do
 c$OMP END PARALLEL DO
  882  continue
@@ -716,89 +693,130 @@ c$OMP PARALLEL DO
  883  p(i,j,k+1)=p(i,j,k)+dp(i,j,k+nn)
 c$OMP END PARALLEL DO
 c
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
-c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(kn,q)
       do j=-1,jj+2
         do k=1,kk
           kn=k+nn
           do l=1,isu(j)
           do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(pbu(i,j,n),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(pbu(i,j,n),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(pbv(i,j,n),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
-     .              -min(pbv(i,j,n),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
-c --- redistribute momentum in the vertical.
-c --- homogenize (u,v) over depth range defined in -util1,util2-
+c$OMP PARALLEL DO PRIVATE(kn,uo,po,pn,ko,un,udpn)
+      do j=1,jj
 c
-c --- thk>0 activates momentum diffusion across mixed-layer interface
-      thk=vertmx*onecm*delt1
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          do k=1,kk
+            kn=k+nn
+            uo(k)=u(i,j,kn)
+          enddo
+          po(1)=0.
+          pn(1)=0.
+          do k=2,kk+1
+            po(k)=pu(i,j,k)
+            pn(k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
+          enddo
 c
-c$OMP PARALLEL DO PRIVATE(delp,kn,q)
-      do 97 j=1,jj
+          ko=1
+          do kn=1,kk
+            if (pn(kn+1)-pn(kn).eq.0.) then
+              un(kn)=0.
+            else
+              udpn=0.
+              do while (pn(kn+1).gt.po(ko+1))
+                udpn=udpn+uo(ko)*(po(ko+1)-max(po(ko),pn(kn)))
+                ko=ko+1
+              enddo
+              un(kn)=(udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn))))
+     .               /(pn(kn+1)-pn(kn))
+            endif
+          enddo
+          do k=1,kk
+            kn=k+nn
+            u(i,j,kn)=un(k)
+          enddo
 c
-      do 83 l=1,isu(j)
+        enddo
+        enddo
 c
-      do 822 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-      util1(i,j)=max(dpu(i,j,k1n),pu(i,j,2)+thk)
-      uflux(i,j)=0.
- 822  util3(i,j)=0.
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do k=1,kk
+            kn=k+nn
+            uo(k)=v(i,j,kn)
+          enddo
+          po(1)=0.
+          pn(1)=0.
+          do k=2,kk+1
+            po(k)=pv(i,j,k)
+            pn(k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
+          enddo
 c
-      do 82 k=1,kk
-      do 82 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-      delp(1)=max(0.,min(util1(i,j),pu(i,j,k+1))
-     .              -min(util1(i,j),pu(i,j,k  )))
-      uflux(i,j)=uflux(i,j)+u(i,j,k+nn)*delp(1)
- 82   util3(i,j)=util3(i,j)            +delp(1)
+          ko=1
+          do kn=1,kk
+            if (pn(kn+1)-pn(kn).eq.0.) then
+              un(kn)=0.
+            else
+              udpn=0.
+              do while (pn(kn+1).gt.po(ko+1))
+                udpn=udpn+uo(ko)*(po(ko+1)-max(po(ko),pn(kn)))
+                ko=ko+1
+              enddo
+              un(kn)=(udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn))))
+     .               /(pn(kn+1)-pn(kn))
+            endif
+          enddo
+          do k=1,kk
+            kn=k+nn
+            v(i,j,kn)=un(k)
+          enddo
 c
-      do 83 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
- 83   u(i,j,k1n)=uflux(i,j)/util3(i,j)
-c
-      do 84 l=1,isv(j)
-c
-      do 844 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-      util2(i,j)=max(dpv(i,j,k1n),pv(i,j,2)+thk)
-      vflux(i,j)=0.
- 844  util4(i,j)=0.
-c
-      do 80 k=1,kk
-      do 80 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-      delp(1)=max(0.,min(util2(i,j),pv(i,j,k+1))
-     .              -min(util2(i,j),pv(i,j,k  )))
-      vflux(i,j)=vflux(i,j)+v(i,j,k+nn)*delp(1)
- 80   util4(i,j)=util4(i,j)            +delp(1)
-c
-      do 84 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
- 84   v(i,j,k1n)=vflux(i,j)/util4(i,j)
-c
-      do 97 k=2,kk
-      kn=k+nn
-c
-      do 96 l=1,isu(j)
-      do 96 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-      pu(i,j,k)=pu(i,j,k-1)+dpu(i,j,kn-1)
-      q=max(0.,min(1.,(util1(i,j)-pu(i,j,k))/(dpu(i,j,kn)+epsil)))
- 96   u(i,j,kn)=u(i,j,k1n)*q+u(i,j,kn)*(1.-q)
-c
-      do 97 l=1,isv(j)
-      do 97 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-      pv(i,j,k)=pv(i,j,k-1)+dpv(i,j,kn-1)
-      q=max(0.,min(1.,(util2(i,j)-pv(i,j,k))/(dpv(i,j,kn)+epsil)))
- 97   v(i,j,kn)=v(i,j,k1n)*q+v(i,j,kn)*(1.-q)
+        enddo
+        enddo
+      enddo
 c$OMP END PARALLEL DO
+c     do j=1,jj
+c       do l=1,isu(j)
+c       do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+c         q=0.
+c         do k=1,kk
+c           kn=k+nn
+c           q=q+u(i,j,kn)*dpu(i,j,kn)
+c         enddo
+c         if (abs(q).gt.1.e-4) then
+c           write (lp,*) 'mxlayr: u imbalance:',q,i,j
+c         endif
+c       enddo
+c       enddo
+c       do l=1,isv(j)
+c       do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+c         q=0.
+c         do k=1,kk
+c           kn=k+nn
+c           q=q+v(i,j,kn)*dpv(i,j,kn)
+c         enddo
+c         if (abs(q).gt.1.e-4) then
+c           write (lp,*) 'mxlayr: v imbalance:',q,i,j
+c         endif
+c       enddo
+c       enddo
+c     enddo
 c
       if (csdiag) then
         if (mnproc.eq.1) then

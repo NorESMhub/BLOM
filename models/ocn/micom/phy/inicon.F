@@ -360,21 +360,23 @@ c
         enddo
       enddo
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(q)
       do j=-1,jj+2
         do k=1,kk
           do l=1,isu(j)
           do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,k)=
-     .        max(0.,min(pbu(i,j,1),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(pbu(i,j,1),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,k)=
-     .        max(0.,min(pbv(i,j,1),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
-     .              -min(pbv(i,j,1),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
           enddo
           enddo
         enddo
@@ -407,8 +409,8 @@ c$OMP PARALLEL DO PRIVATE(q)
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
           q=2./(pb_p(i,j)+pb_p(i-1,j))
-          pvtrop(i,j  ,1)=corio(i,j  )*q
-          pvtrop(i,j+1,1)=corio(i,j+1)*q
+          pvtrop(i,j  ,1)=corioq(i,j  )*q
+          pvtrop(i,j+1,1)=corioq(i,j+1)*q
           pvtrop(i,j  ,2)=pvtrop(i,j  ,1)
           pvtrop(i,j+1,2)=pvtrop(i,j+1,1)
         enddo
@@ -420,8 +422,8 @@ c$OMP PARALLEL DO PRIVATE(q)
         do l=1,isv(j)
         do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
           q=2./(pb_p(i,j)+pb_p(i,j-1))
-          pvtrop(i  ,j,1)=corio(i  ,j)*q
-          pvtrop(i+1,j,1)=corio(i+1,j)*q
+          pvtrop(i  ,j,1)=corioq(i  ,j)*q
+          pvtrop(i+1,j,1)=corioq(i+1,j)*q
           pvtrop(i  ,j,2)=pvtrop(i  ,j,1)
           pvtrop(i+1,j,2)=pvtrop(i+1,j,1)
         enddo
@@ -433,8 +435,8 @@ c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isq(j)
         do i=max(1,ifq(j,l)),min(ii,ilq(j,l))
-          pvtrop(i,j,1)=corio(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  )
-     .                                +pb_p(i,j-1)+pb_p(i-1,j-1))
+          pvtrop(i,j,1)=corioq(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  )
+     .                                 +pb_p(i,j-1)+pb_p(i-1,j-1))
           pvtrop(i,j,2)=pvtrop(i,j,1)
         enddo
         enddo

@@ -20,9 +20,10 @@ c
       real dnseps
       parameter (dnseps=1.e-12)
 c
-      real, dimension(kdm) :: ttem,ssal,delp,dens,densr
-      real tdps,sdps,dps,ttmp,stmp,dtmp,q
-      integer i,j,k,l,kn,kfpl,kfplo,kmix
+      real, dimension(kdm+1) :: po,pn
+      real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
+      real tdps,sdps,dps,ttmp,stmp,dtmp,q,udpn
+      integer i,j,k,l,kn,kfpl,kfplo,kmix,ko
       logical done
 c
 #ifdef TRC
@@ -62,17 +63,6 @@ c --- --- Copy variables into 1d arrays
             enddo
 #endif
           enddo
-c
-c         if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-c           write (lp,*) 'convec init'
-c           write (lp,*) 'kfpl',kfpla(i,j,n)
-c           do k=1,kk
-c             write (lp,'(i3,6e12.5)')
-c    .          k,delp(k)/onem,ttem(k),ssal(k),dens(k),densr(k),
-c    .          rho(0.,ttem(k),ssal(k))-1.
-c           enddo
-c           write (lp,*)
-c         endif
 c
 c --- ------------------------------------------------------------------
 c --- --- Define first physical interior layer
@@ -185,10 +175,8 @@ c
             do while (.not.done)
               niter=niter+1
               if (niter.eq.100) then
-                write (lp,*) 'convec: no convergence!',i+i0,j+j0
+                write (lp,*) 'micom: convec: no convergence!',i+i0,j+j0
                 exit
-c               call xchalt('(convec)')
-c                      stop('(convec)')
               endif
 c
               done=.true.
@@ -261,78 +249,7 @@ c --- ------- pressure at the surface
                 enddo
               endif
 c
-c             if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-c               write (lp,*) 'convec niter',niter
-c               write (lp,*) 'kfpl',kfpl
-c               do k=1,kk
-c                 write (lp,'(i3,6e12.5)')
-c    .              k,delp(k)/onem,ttem(k),ssal(k),dens(k),densr(k),
-c    .              sig0(ttem(k),ssal(k))
-c               enddo
-c               write (lp,*)
-c             endif
-c
-c --- ------- Remove instabilities between layers below surface mixed
-c --- ------- layers
-              do k=kfpl+1,kk-1
-                if (min(densr(k+1),dens(k+1))
-     .             -max(densr(k  ),dens(k  )).lt.dnseps) then
-                  done=.false.
-                  if (delp(k).gt.epsil.or.delp(k+1).gt.epsil) then
-                    q=1./(delp(k)+delp(k+1))
-                    ttmp=(ttem(k)*delp(k)+ttem(k+1)*delp(k+1))*q
-                    stmp=(ssal(k)*delp(k)+ssal(k+1)*delp(k+1))*q
-                    dtmp=sig(ttmp,stmp)
-                    if (abs(dtmp-densr(k)).lt.abs(dtmp-densr(k+1))) then
-                      ttem(k)=ttmp
-                      ssal(k)=stmp
-                      dens(k)=dtmp
-#ifdef TRC
-                      do nt=1,ntrc
-                        ttrc(nt,k)=(ttrc(nt,k  )*delp(k  )
-     .                             +ttrc(nt,k+1)*delp(k+1))*q
-                      enddo
-#endif
-                      delp(k)=delp(k)+delp(k+1)
-                      dens(k+1)=densr(k+1)
-                      ssal(k+1)=sofsig(dens(k+1),ttem(k+1))
-                      delp(k+1)=0.
-                    else
-                      ttem(k+1)=ttmp
-                      ssal(k+1)=stmp
-                      dens(k+1)=dtmp
-#ifdef TRC
-                      do nt=1,ntrc
-                        ttrc(nt,k+1)=(ttrc(nt,k  )*delp(k  )
-     .                             +ttrc(nt,k+1)*delp(k+1))*q
-                      enddo
-#endif
-                      delp(k+1)=delp(k)+delp(k+1)
-                      dens(k)=densr(k)
-                      ssal(k)=sofsig(dens(k),ttem(k))
-                      delp(k)=0.
-                    endif
-                  else
-                    dens(k)=densr(k)
-                    ssal(k)=sofsig(dens(k),ttem(k))
-                    dens(k+1)=densr(k+1)
-                    ssal(k+1)=sofsig(dens(k+1),ttem(k+1))
-                  endif
-                endif
-              enddo
-c
             enddo
-c
-c           if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-c             write (lp,*) 'convec final'
-c             write (lp,*) 'kfpl',kfpl
-c             do k=1,kk
-c               write (lp,'(i3,6e12.5)')
-c    .            k,delp(k)/onem,ttem(k),ssal(k),dens(k),densr(k),
-c    .            rho(0.,ttem(k),ssal(k))-1.
-c             enddo
-c             write (lp,*)
-c           endif
 c
           endif
 c
@@ -345,6 +262,7 @@ c
             sigma(i,j,kn)=dens(k)
             diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
             dp(i,j,kn)=delp(k)
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
 #ifdef TRC
             do nt=1,ntrc
               trc(i,j,k,nt)=ttrc(nt,k)
@@ -356,6 +274,137 @@ c
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- Redistribute momentum
+c --- ------------------------------------------------------------------
+c
+      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+c
+c$OMP PARALLEL DO PRIVATE(kn,uo,po,pn,ko,un,udpn)
+      do j=1,jj
+c
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          do k=1,kk
+            kn=k+nn
+            uo(k)=u(i,j,kn)
+          enddo
+          po(1)=0.
+          pn(1)=0.
+          do k=2,kk+1
+            po(k)=pu(i,j,k)
+            pn(k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
+          enddo
+c
+          ko=1
+          do kn=1,kk
+            if (pn(kn+1)-pn(kn).eq.0.) then
+              un(kn)=0.
+            else
+              udpn=0.
+              do while (pn(kn+1).gt.po(ko+1))
+                udpn=udpn+uo(ko)*(po(ko+1)-max(po(ko),pn(kn)))
+                ko=ko+1
+              enddo
+              un(kn)=(udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn))))
+     .               /(pn(kn+1)-pn(kn))
+            endif
+          enddo
+          do k=1,kk
+            kn=k+nn
+            u(i,j,kn)=un(k)
+          enddo
+c
+        enddo
+        enddo
+c
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do k=1,kk
+            kn=k+nn
+            uo(k)=v(i,j,kn)
+          enddo
+          po(1)=0.
+          pn(1)=0.
+          do k=2,kk+1
+            po(k)=pv(i,j,k)
+            pn(k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
+          enddo
+c
+          ko=1
+          do kn=1,kk
+            if (pn(kn+1)-pn(kn).eq.0.) then
+              un(kn)=0.
+            else
+              udpn=0.
+              do while (pn(kn+1).gt.po(ko+1))
+                udpn=udpn+uo(ko)*(po(ko+1)-max(po(ko),pn(kn)))
+                ko=ko+1
+              enddo
+              un(kn)=(udpn+uo(ko)*(pn(kn+1)-max(po(ko),pn(kn))))
+     .               /(pn(kn+1)-pn(kn))
+            endif
+          enddo
+          do k=1,kk
+            kn=k+nn
+            v(i,j,kn)=un(k)
+          enddo
+c
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(kn,q)
+      do j=1,jj
+        do k=1,kk
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
+            dpu(i,j,kn)=
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
+            dpv(i,j,kn)=
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c     do j=1,jj
+c       do l=1,isu(j)
+c       do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+c         q=0.
+c         do k=1,kk
+c           kn=k+nn
+c           q=q+u(i,j,kn)*dpu(i,j,kn)
+c         enddo
+c         if (abs(q).gt.1.e-4) then
+c           write (lp,*) 'convec: u imbalance:',q,i,j
+c         endif
+c       enddo
+c       enddo
+c       do l=1,isv(j)
+c       do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+c         q=0.
+c         do k=1,kk
+c           kn=k+nn
+c           q=q+v(i,j,kn)*dpv(i,j,kn)
+c         enddo
+c         if (abs(q).gt.1.e-4) then
+c           write (lp,*) 'convec: v imbalance:',q,i,j
+c         endif
+c       enddo
+c       enddo
+c     enddo
 c
       if (csdiag) then
         if (mnproc.eq.1) then

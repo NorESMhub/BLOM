@@ -17,6 +17,12 @@ endif
 cat > $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
 grid_file = $INPUTPATH/grid.nc
 partitioning_file = $INPUTPATH/patch.input
+ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
+ncep_height_file = $INPUTPATH/hgt.sfc.nc
+ice_clim_file = $INPUTPATH/icec_1968-1996.uf
+sst_clim_file = $INPUTPATH/skt_1968-1996.uf
+sss_clim_file = $INPUTPATH/sss_nodc.dat
+tidal_dissipation_file = $INPUTPATH/tidal_dissipation.nc
 EOF1
 if ($RUN_TYPE == startup )  then
 cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1

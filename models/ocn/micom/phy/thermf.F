@@ -12,9 +12,7 @@ c
 #include "common_ice.h"
 #include "common_forc.h"
 #include "common_geo.h"
-#if defined(SYN)
-#  include "common_clndr.h"
-#endif
+#include "common_clndr.h"
 c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real dt,h2o_snw,fwf_fac,rnf_fac,sag_fac,y,
@@ -58,11 +56,7 @@ c --- Set various constants
 c
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
-#if   defined(CLIM)
-      y=mod(time,360.)/7.5
-#elif defined(SYN)
       y=(real(nday_of_year-1)+mod(time,1.))*48./real(nday_in_year)
-#endif
       m3=int(y)+1
       y=y-real(m3-1)
       m1=mod(m3+45,48)+1
@@ -71,12 +65,8 @@ c --- and salt relaxation fluxes
       m5=mod(m3+ 1,48)+1
 c
 c --- Find time level for diagnosing heat and salt relaxation fluxes
-#if   defined(CLIM)
-      k=int(mod(time,360.)/7.5)+1
-#elif defined(SYN)
       k=int((real(nday_of_year-1)+mod(time,1.))*48.
      .      /real(nday_in_year))+1
-#endif
 c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c

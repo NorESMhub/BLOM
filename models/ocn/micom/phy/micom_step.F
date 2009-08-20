@@ -74,11 +74,7 @@ c
 c --- ------------------------------------------------------------------
 c --- Set parameters for time interpolation of climatological fields
 c --- ------------------------------------------------------------------
-#if   defined(CLIM)
-      x=mod(time,360.)/30.
-#elif defined(SYN)
       x=(real(nday_of_year-1)+mod(time,1.))*12./real(nday_in_year)
-#endif
       l3=int(x)+1
       x=x-real(l3-1)
       l1=mod(l3+ 9,12)+1
@@ -126,6 +122,8 @@ cdiag write (lp,*) 'tmsmt1...'
       tmsmt1_time=gettime()
 c
 cdiag write (lp,*) 'advdif...'
+      call difest(m,n,mm,nn,k1m,k1n)
+      call intdif(m,n,mm,nn,k1m,k1n)
       call advect(m,n,mm,nn,k1m,k1n)
       call diffus(m,n,mm,nn,k1m,k1n)
       advdif_time=gettime()
@@ -149,22 +147,11 @@ cdiag write (lp,*) 'momtum...'
       call momtum(m,n,mm,nn,k1m,k1n)
       momtum_time=gettime()
 c
-cdiag write (lp,*) 'barotp...'
-      call barotp(m,n,mm,nn,k1m,k1n)
-      barotp_time=gettime()
-c
-cdiag write (lp,*) 'pbtcor...'
-      call pbtcor(m,n,mm,nn,k1m,k1n)
-      pbtcor_time=gettime()
-c
 #ifdef NEST
 cdiag write (lp,*) 'bclnst...'
       call bclnst(m,n,mm,nn,k1m,k1n)
 c     bclnst_time=gettime()
 #endif
-c
-      if (cnsvdi) call stdbud(6,m,mm,k1m)
-      auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
@@ -198,6 +185,17 @@ c --- update tracer due to non-passive processes
 #endif
 c
       if (cnsvdi) call stdbud(5,n,nn,k1n)
+      auxil_time=auxil_time+gettime()
+c
+cdiag write (lp,*) 'barotp...'
+      call barotp(m,n,mm,nn,k1m,k1n)
+      barotp_time=gettime()
+c
+cdiag write (lp,*) 'pbtcor...'
+      call pbtcor(m,n,mm,nn,k1m,k1n)
+      pbtcor_time=gettime()
+c
+      if (cnsvdi) call stdbud(6,m,mm,k1m)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'tmsmt2...'

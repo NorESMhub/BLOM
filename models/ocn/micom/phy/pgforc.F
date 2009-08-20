@@ -34,35 +34,34 @@ c$OMP PARALLEL DO PRIVATE(kn)
       enddo
 c$OMP END PARALLEL DO
 c
-      call xctilr(pbu_p,  1,1, 1,1, halo_us)
-      call xctilr(pbv_p,  1,1, 1,1, halo_vs)
-c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(kn,q)
       do j=1,jj
         do k=1,kk
           kn=k+nn
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
             dpuold(i,j,k)=dpu(i,j,kn)
+            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(pbu_p(i,j),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(pbu_p(i,j),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
             pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,kn)
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(kn,q)
       do j=1,jj+1
         do k=1,kk
           kn=k+nn
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             dpvold(i,j,k)=dpv(i,j,kn)
+            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(pbv_p(i,j),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
-     .              -min(pbv_p(i,j),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
             pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,kn)
           enddo
           enddo

@@ -291,10 +291,10 @@ c
         write (lp,'(a,a60)')   'atm_path:  ',atm_path
 #endif
 c
-        write (lp,101) thkdff,temdff,veldff,viscos,diapyc,vertmx
+        write (lp,101) veldff,viscos
  101    format (' turb. flux parameters:',1p/
-     .    ' thkdff,temdff,veldff =',3e9.2/
-     .    ' viscos,diapyc,vertmx =',3e9.2)
+     .    ' veldff =',e9.2/
+     .    ' viscos =',e9.2)
         call flush(lp)
       endif
 c

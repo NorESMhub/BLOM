@@ -107,22 +107,20 @@ c --- ------------------------------------------------------------------
 c --- Initialization of sea ice dynamics
 c --- ------------------------------------------------------------------
 c
-      call iniicedyn(scpx,scpy,corio)
+      call iniicedyn(scpx,scpy,corioq)
 #endif
 c
 c --- ------------------------------------------------------------------
 c --- Set up forcing functions
 c --- ------------------------------------------------------------------
 c
-#ifndef CCSMCOUPLED
       call forfun
-#  ifdef CLIM
+#ifdef CLIM
       call forfun_clim
       call chwbud
-#  endif
-#  ifdef SYN
+#endif
+#ifdef SYN
       call forfun_syn
-#  endif
 #endif
 c
 #ifdef NEST
@@ -193,8 +191,6 @@ c --- Set layer thickness at u,v points
 c --- ------------------------------------------------------------------
 c
       call xctilr(dp, 1,2*kk, 3,3, halo_ps)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
       do m=1,2
         mm=(m-1)*kk
@@ -211,22 +207,24 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(km)
+c$OMP PARALLEL DO PRIVATE(km,q)
         do j=-1,jj+2
           do k=1,kk
             km=k+mm
             do l=1,isu(j)
             do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+              q=min(p(i,j,kk+1),p(i-1,j,kk+1))
               dpu(i,j,km)=
-     .          max(0.,min(pbu(i,j,m),.5*(p(i  ,j,k+1)+p(i-1,j,k+1))) 
-     .                -min(pbu(i,j,m),.5*(p(i  ,j,k  )+p(i-1,j,k  ))))
+     .          max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
+     .                -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
             enddo
             enddo
             do l=1,isv(j)
             do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+              q=min(p(i,j,kk+1),p(i,j-1,kk+1))
               dpv(i,j,km)=
-     .          max(0.,min(pbv(i,j,m),.5*(p(i,j  ,k+1)+p(i,j-1,k+1)))
-     .                -min(pbv(i,j,m),.5*(p(i,j  ,k  )+p(i,j-1,k  ))))
+     .          max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+     .                -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
             enddo
             enddo
           enddo
@@ -247,7 +245,7 @@ c
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
-          do i=ifp(j,l),ilp(j,l)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             util1(i,j)=pb(i,j,1)*scp2(i,j)
           enddo
           enddo

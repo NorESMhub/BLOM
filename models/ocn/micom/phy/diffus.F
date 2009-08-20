@@ -21,8 +21,8 @@ c
       integer nt
 #endif
 c
-      real hfharm,sig
-      external hfharm,sig
+      real sig
+      external sig
 c
       real dpeps
       parameter (dpeps=1.e-4)
@@ -35,6 +35,7 @@ c
         call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 2,2, halo_ps)
       enddo
 #endif
+      call xctilr(difiso, 1,kk, 2,2, halo_ps)
 c
       do k=1,kk
         kn=k+nn
@@ -43,8 +44,9 @@ c$OMP PARALLEL DO PRIVATE(q)
         do j=0,jj+1
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
-            q=scuy(i,j)*2.*hfharm(max(dp(i-1,j,kn),dpeps),
-     .                            max(dp(i  ,j,kn),dpeps))
+            q=delt1*.5*(difiso(i-1,j,k)+difiso(i,j,k))
+     .        *scuy(i,j)*scuxi(i,j)
+     .        *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
             uflux2(i,j)=q*(saln(i-1,j,kn)-saln(i,j,kn))
             uflux3(i,j)=q*(temp(i-1,j,kn)-temp(i,j,kn))
 #ifdef TRC
@@ -60,8 +62,9 @@ c$OMP PARALLEL DO PRIVATE(q)
         do j=0,jj+2
           do l=1,isv(j)
           do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
-            q=scvx(i,j)*2.*hfharm(max(dp(i,j-1,kn),dpeps),
-     .                            max(dp(i,j  ,kn),dpeps))
+            q=delt1*.5*(difiso(i,j-1,k)+difiso(i,j,k))
+     .        *scvx(i,j)*scvyi(i,j)
+     .        *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
             vflux2(i,j)=q*(saln(i,j-1,kn)-saln(i,j,kn))
             vflux3(i,j)=q*(temp(i,j-1,kn)-temp(i,j,kn))
 #ifdef TRC
@@ -77,7 +80,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         do j=0,jj+1
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-            q=temdff*delt1/(scp2(i,j)*max(dp(i,j,kn),dpeps))
+            q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
             saln(i,j,kn)=saln(i,j,kn)
      .                  -q*(uflux2(i+1,j)-uflux2(i,j)
      .                     +vflux2(i,j+1)-vflux2(i,j))

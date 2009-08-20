@@ -371,6 +371,9 @@ c
         call nccomp('temp_dia','pcomp kk time',temp_dia,ip)
         call nccomp('dp_dia','pcomp kk time',dp_dia,ip)
         call nccomp('dz_dia','pcomp kk time',dz_dia,ip)
+        call nccomp('difint_dia','pcomp kk time',difint_dia,ip)
+        call nccomp('difiso_dia','pcomp kk time',difiso_dia,ip)
+        call nccomp('difdia_dia','pcomp kk time',difdia_dia,ip)
         call nccomp('diaflx','pcomp kk time',diaflx,ip)
 #else
         call ncwrtr('uvel_dia','x y kk time',uvel_dia,iuu,1)
@@ -383,6 +386,9 @@ c
         call ncwrtr('temp_dia','x y kk time',temp_dia,ip,1)
         call ncwrtr('dp_dia','x y kk time',dp_dia,ip,1)
         call ncwrtr('dz_dia','x y kk time',dz_dia,ip,1)
+        call ncwrtr('difint_dia','x y kk time',difint_dia,ip,1)
+        call ncwrtr('difiso_dia','x y kk time',difiso_dia,ip,1)
+        call ncwrtr('difdia_dia','x y kk time',difdia_dia,ip,1)
         call ncwrtr('diaflx','x y kk time',diaflx,ip,1)
 #endif 
       endif
