@@ -62,10 +62,10 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  pup,dx,dy,xd,yd,tx,ty,td,sx,sy,sd,cu,cv,cuc,cvc,fdu,fdv,ftu,ftv,
      .  fsu,fsv
-      real dxi,dyi,dpw,dpe,dps,dpn,dpsw,dpse,dpc,dpnw,dpne,dfmx,dmx,dmn,
-     .     q,q1,q2,q3,q4,tfmx,tfmn,tmx,tmn,sfmx,sfmn,smx,smn,
-     .     xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,a,ax,ay,
-     .     axx,ayy,axy,dl,fd,qx,qy
+      real dxi,dyi,dpw,dpe,dps,dpn,dpsw,dpse,dpc,dpnw,dpne,
+     .     dgmx,dfmx,dfmn,q,q1,q2,q3,q4,tgmx,tgmn,tfmx,tfmn,
+     .     sgmx,sgmn,sfmx,sfmn,xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,
+     .     a,ax,ay,axx,ayy,axy,dl,fd,qx,qy
       integer i,j,l,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne,nw
 #ifdef TRC
 #  ifdef ATRC
@@ -199,27 +199,29 @@ c
 c
 c --- --- Compute limited gradient for layer pressure thickness and
 c --- --- center of mass coordinate.
-          dpw=max(dpeps,min(pbmin(i,j)-pup(iw ,j  ),dp(iw ,j  )))
-          dpe=max(dpeps,min(pbmin(i,j)-pup(ie ,j  ),dp(ie ,j  )))
-          dps=max(dpeps,min(pbmin(i,j)-pup(i  ,js ),dp(i  ,js )))
-          dpn=max(dpeps,min(pbmin(i,j)-pup(i  ,jn ),dp(i  ,jn )))
+          dpsw=max(dpeps,min(pbmin(i,j)-pup(isw,jsw),dp(isw,jsw)))
+          dps =max(dpeps,min(pbmin(i,j)-pup(i  ,js ),dp(i  ,js )))
+          dpse=max(dpeps,min(pbmin(i,j)-pup(ise,jse),dp(ise,jse)))
+          dpw =max(dpeps,min(pbmin(i,j)-pup(iw ,j  ),dp(iw ,j  )))
+          dpc =max(dpeps,min(pbmin(i,j)-pup(i  ,j  ),dp(i  ,j  )))
+          dpe =max(dpeps,min(pbmin(i,j)-pup(ie ,j  ),dp(ie ,j  )))
+          dpnw=max(dpeps,min(pbmin(i,j)-pup(inw,jnw),dp(inw,jnw)))
+          dpn =max(dpeps,min(pbmin(i,j)-pup(i  ,jn ),dp(i  ,jn )))
+          dpne=max(dpeps,min(pbmin(i,j)-pup(ine,jne),dp(ine,jne)))
           dx(i,j)=(dpe-dpw)*dxi
           dy(i,j)=(dpn-dps)*dyi
-          dfmx=.5*(abs(dx(i,j))+abs(dy(i,j)))
-          if (dfmx.gt.0.) then
-            dpsw=max(dpeps,min(pbmin(i,j)-pup(isw,jsw),dp(isw,jsw)))
-            dpse=max(dpeps,min(pbmin(i,j)-pup(ise,jse),dp(ise,jse)))
-            dpc =max(dpeps,min(pbmin(i,j)-pup(i  ,j  ),dp(i  ,j  )))
-            dpnw=max(dpeps,min(pbmin(i,j)-pup(inw,jnw),dp(inw,jnw)))
-            dpne=max(dpeps,min(pbmin(i,j)-pup(ine,jne),dp(ine,jne)))
-            dmx=max(dpsw,dps ,dpse,dpw ,dpe ,dpnw,dpn ,dpne)
-            dmn=min(dpsw,dps ,dpse,dpw ,dpe ,dpnw,dpn ,dpne)
-            q=max(0.,min(1.,min(dmx-dpc,dpc-dmn)/dfmx))
+          dgmx=.5*(abs(dx(i,j))+abs(dy(i,j)))
+          dfmx=max(0.,max(dpsw,dps,dpse,dpw,dpe,dpnw,dpn,dpne)-dpc)
+          dfmn=min(0.,min(dpsw,dps,dpse,dpw,dpe,dpnw,dpn,dpne)-dpc)
+          if (dfmx.gt.0..and.dfmn.lt.0.) then
+            q=min(dfmx/max(dfmx,dgmx),dfmn/min(dfmn,-dgmx))
             dx(i,j)=dx(i,j)*q
             dy(i,j)=dy(i,j)*q
             xd(i,j)=dx(i,j)/(12.*dp(i,j))
             yd(i,j)=dy(i,j)/(12.*dp(i,j))
           else
+            dx(i,j)=0.
+            dy(i,j)=0.
             xd(i,j)=0.
             yd(i,j)=0.
           endif
@@ -232,20 +234,27 @@ c --- --- density
           q2=tx(i,j)*( .5-xd(i,j))
           q3=ty(i,j)*(-.5-yd(i,j))
           q4=ty(i,j)*( .5-yd(i,j))
-          tfmx=max(q1,q2)+max(q3,q4)
-          if (tfmx.gt.0.) then
-            tfmn=min(q1,q2)+min(q3,q4)
-            tmx=max(temp(isw,jsw),temp(i  ,js ),
-     .              temp(ise,jse),temp(iw ,j  ),
-     .              temp(ie ,j  ),temp(inw,jnw),
-     .              temp(i  ,jn ),temp(ine,jne))
-            tmn=min(temp(isw,jsw),temp(i  ,js ),
-     .              temp(ise,jse),temp(iw ,j  ),
-     .              temp(ie ,j  ),temp(inw,jnw),
-     .              temp(i  ,jn ),temp(ine,jne))
-            q=max(0.,min(1.,(tmx-temp(i,j))/tfmx,(tmn-temp(i,j))/tfmn))
+          tgmx=max(q1,q2)+max(q3,q4)
+          tgmn=min(q1,q2)+min(q3,q4)
+          tfmx=max(0.,max(temp(isw,jsw),temp(i  ,js ),
+     .                    temp(ise,jse),temp(iw ,j  ),
+     .                    temp(ie ,j  ),temp(inw,jnw),
+     .                    temp(i  ,jn ),temp(ine,jne))
+     .               -temp(i,j))
+          tfmn=min(0.,min(temp(isw,jsw),temp(i  ,js ),
+     .                    temp(ise,jse),temp(iw ,j  ),
+     .                    temp(ie ,j  ),temp(inw,jnw),
+     .                    temp(i  ,jn ),temp(ine,jne))
+     .               -temp(i,j))
+          if (tfmx.gt.0..and.tfmn.lt.0.) then
+            q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
             tx(i,j)=tx(i,j)*q
             ty(i,j)=ty(i,j)*q
+            td(i,j)=temp(i,j)-tx(i,j)*xd(i,j)-ty(i,j)*yd(i,j)
+          else
+            tx(i,j)=0.
+            ty(i,j)=0.
+            td(i,j)=temp(i,j)
           endif
 c
           sx(i,j)=(saln(ie,j)-saln(iw,j))*dxi
@@ -254,25 +263,28 @@ c
           q2=sx(i,j)*( .5-xd(i,j))
           q3=sy(i,j)*(-.5-yd(i,j))
           q4=sy(i,j)*( .5-yd(i,j))
-          sfmx=max(q1,q2)+max(q3,q4)
-          if (sfmx.gt.0.) then
-            sfmn=min(q1,q2)+min(q3,q4)
-            smx=max(saln(isw,jsw),saln(i  ,js ),
-     .              saln(ise,jse),saln(iw ,j  ),
-     .              saln(ie ,j  ),saln(inw,jnw),
-     .              saln(i  ,jn ),saln(ine,jne))
-            smn=min(saln(isw,jsw),saln(i  ,js ),
-     .              saln(ise,jse),saln(iw ,j  ),
-     .              saln(ie ,j  ),saln(inw,jnw),
-     .              saln(i  ,jn ),saln(ine,jne))
-            q=max(0.,min(1.,(smx-saln(i,j))/sfmx,
-     .                      (smn-saln(i,j))/sfmn))
+          sgmx=max(q1,q2)+max(q3,q4)
+          sgmn=min(q1,q2)+min(q3,q4)
+          sfmx=max(0.,max(saln(isw,jsw),saln(i  ,js ),
+     .                    saln(ise,jse),saln(iw ,j  ),
+     .                    saln(ie ,j  ),saln(inw,jnw),
+     .                    saln(i  ,jn ),saln(ine,jne))
+     .               -saln(i,j))
+          sfmn=min(0.,min(saln(isw,jsw),saln(i  ,js ),
+     .                    saln(ise,jse),saln(iw ,j  ),
+     .                    saln(ie ,j  ),saln(inw,jnw),
+     .                    saln(i  ,jn ),saln(ine,jne))
+     .               -saln(i,j))
+          if (sfmx.gt.0..and.sfmn.lt.0.) then
+            q=min(sfmx/max(sfmx,sgmx),sfmn/min(sfmn,sgmn))
             sx(i,j)=sx(i,j)*q
             sy(i,j)=sy(i,j)*q
+            sd(i,j)=saln(i,j)-sx(i,j)*xd(i,j)-sy(i,j)*yd(i,j)
+          else
+            sx(i,j)=0.
+            sy(i,j)=0.
+            sd(i,j)=saln(i,j)
           endif
-c
-          td(i,j)=temp(i,j)-tx(i,j)*xd(i,j)-ty(i,j)*yd(i,j)
-          sd(i,j)=saln(i,j)-sx(i,j)*xd(i,j)-sy(i,j)*yd(i,j)
 #ifdef TRC
 #  ifdef ATRC
 c
@@ -284,24 +296,29 @@ c --- --- Compute limited gradient for tracers.
             q2=trx(nt,i,j)*( .5-xd(i,j))
             q3=try(nt,i,j)*(-.5-yd(i,j))
             q4=try(nt,i,j)*( .5-yd(i,j))
-            tfmx=max(q1,q2)+max(q3,q4)
-            if (tfmx.gt.0.) then
-              tfmn=min(q1,q2)+min(q3,q4)
-              tmx=max(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-              tmn=min(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-              q=max(0.,min(1.,(tmx-trc(i,j,k,nt))/tfmx,
-     .                        (tmn-trc(i,j,k,nt))/tfmn))
+            tgmx=max(q1,q2)+max(q3,q4)
+            tgmn=min(q1,q2)+min(q3,q4)
+            tfmx=max(0.,max(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
+     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
+     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
+     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
+     .                 -trc(i,j,k,nt))
+            tfmn=min(0.,min(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
+     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
+     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
+     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
+     .                 -trc(i,j,k,nt))
+            if (tfmx.gt.0..and.tfmn.lt.0.) then
+              q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
               trx(nt,i,j)=trx(nt,i,j)*q
               try(nt,i,j)=try(nt,i,j)*q
+              trd(nt,i,j)=trc(i,j,k,nt)
+     .                   -trx(nt,i,j)*xd(i,j)-try(nt,i,j)*yd(i,j)
+            else
+              trx(nt,i,j)=0.
+              try(nt,i,j)=0.
+              trd(nt,i,j)=trc(i,j,k,nt)
             endif
-            trd(nt,i,j)=trc(i,j,k,nt)
-     .                 -trx(nt,i,j)*xd(i,j)-try(nt,i,j)*yd(i,j)
           enddo
 c
 c --- --- Compute limited gradient for age tracers.
@@ -316,23 +333,28 @@ c --- --- Compute limited gradient for age tracers.
             q2=agx(nt,i,j)*( .5-xdt)
             q3=agy(nt,i,j)*(-.5-ydt)
             q4=agy(nt,i,j)*( .5-ydt)
-            tfmx=max(q1,q2)+max(q3,q4)
-            if (tfmx.gt.0.) then
-              tfmn=min(q1,q2)+min(q3,q4)
-              tmx=max(ag(nt,isw,jsw),ag(nt,i  ,js ),
-     .                ag(nt,ise,jse),ag(nt,iw ,j  ),
-     .                ag(nt,ie ,j  ),ag(nt,inw,jnw),
-     .                ag(nt,i  ,jn ),ag(nt,ine,jne))
-              tmn=min(ag(nt,isw,jsw),ag(nt,i  ,js ),
-     .                ag(nt,ise,jse),ag(nt,iw ,j  ),
-     .                ag(nt,ie ,j  ),ag(nt,inw,jnw),
-     .                ag(nt,i  ,jn ),ag(nt,ine,jne))
-              q=max(0.,min(1.,(tmx-ag(nt,i,j))/tfmx,
-     .                        (tmn-ag(nt,i,j))/tfmn))
+            tgmx=max(q1,q2)+max(q3,q4)
+            tgmn=min(q1,q2)+min(q3,q4)
+            tfmx=max(0.,max(ag(nt,isw,jsw),ag(nt,i  ,js ),
+     .                      ag(nt,ise,jse),ag(nt,iw ,j  ),
+     .                      ag(nt,ie ,j  ),ag(nt,inw,jnw),
+     .                      ag(nt,i  ,jn ),ag(nt,ine,jne))
+     .                 -ag(nt,i,j))
+            tfmn=min(0.,min(ag(nt,isw,jsw),ag(nt,i  ,js ),
+     .                      ag(nt,ise,jse),ag(nt,iw ,j  ),
+     .                      ag(nt,ie ,j  ),ag(nt,inw,jnw),
+     .                      ag(nt,i  ,jn ),ag(nt,ine,jne))
+     .                 -ag(nt,i,j))
+            if (tfmx.gt.0..and.tfmn.lt.0.) then
+              q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
               agx(nt,i,j)=agx(nt,i,j)*q
               agy(nt,i,j)=agy(nt,i,j)*q
+              agd(nt,i,j)=ag(nt,i,j)-agx(nt,i,j)*xdt-agy(nt,i,j)*ydt
+            else
+              agx(nt,i,j)=0.
+              agy(nt,i,j)=0.
+              agd(nt,i,j)=ag(nt,i,j)
             endif
-            agd(nt,i,j)=ag(nt,i,j)-agx(nt,i,j)*xdt-agy(nt,i,j)*ydt
           enddo
 #else
 c
@@ -344,24 +366,29 @@ c --- --- Compute limited gradient for tracers.
             q2=trx(nt,i,j)*( .5-xd(i,j))
             q3=try(nt,i,j)*(-.5-yd(i,j))
             q4=try(nt,i,j)*( .5-yd(i,j))
-            tfmx=max(q1,q2)+max(q3,q4)
-            if (tfmx.gt.0.) then
-              tfmn=min(q1,q2)+min(q3,q4)
-              tmx=max(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-              tmn=min(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-              q=max(0.,min(1.,(tmx-trc(i,j,k,nt))/tfmx,
-     .                        (tmn-trc(i,j,k,nt))/tfmn))
+            tgmx=max(q1,q2)+max(q3,q4)
+            tgmn=min(q1,q2)+min(q3,q4)
+            tfmx=max(0.,max(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
+     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
+     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
+     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
+     .                 -trc(i,j,k,nt))
+            tfmn=min(0.,min(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
+     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
+     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
+     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
+     .                 -trc(i,j,k,nt))
+            if (tfmx.gt.0..and.tfmn.lt.0.) then
+              q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
               trx(nt,i,j)=trx(nt,i,j)*q
               try(nt,i,j)=try(nt,i,j)*q
+              trd(nt,i,j)=trc(i,j,k,nt)
+     .                   -trx(nt,i,j)*xd(i,j)-try(nt,i,j)*yd(i,j)
+            else
+              trx(nt,i,j)=0.
+              try(nt,i,j)=0.
+              trd(nt,i,j)=trc(i,j,k,nt)
             endif
-            trd(nt,i,j)=trc(i,j,k,nt)
-     .                 -trx(nt,i,j)*xd(i,j)-try(nt,i,j)*yd(i,j)
           enddo
 #  endif
 #endif
