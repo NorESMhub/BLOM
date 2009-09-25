@@ -284,6 +284,14 @@ c
 #  endif
 #endif
 c
+#ifdef COMPRES 
+      call nccomp('frzpot','pcomp time',frzpot,ip)
+      call nccomp('mltpot','pcomp time',mltpot,ip)
+#else
+      call ncwrtr('frzpot','x y time',frzpot,ip,1)
+      call ncwrtr('mltpot','x y time',mltpot,ip,1)
+#endif
+c
 c --- write accumulated fields
       if (nacc_phy2d.gt.0) then
 #ifdef COMPRES 
@@ -306,19 +314,25 @@ c --- write accumulated fields
         call nccomp('tice_dia','pcomp time',tice_dia,ip)
         call nccomp('swa_dia','pcomp time',swa_dia,ip)
         call nccomp('nsf_dia','pcomp time',nsf_dia,ip)
+        call nccomp('hmltfz_dia','pcomp time',hmltfz_dia,ip)
         call nccomp('dfl_dia','pcomp time',dfl_dia,ip)
         call nccomp('lip_dia','pcomp time',lip_dia,ip)
         call nccomp('sop_dia','pcomp time',sop_dia,ip)
         call nccomp('eva_dia','pcomp time',eva_dia,ip)
+        call nccomp('fmltfz_dia','pcomp time',fmltfz_dia,ip)
+        call nccomp('sfl_dia','pcomp time',sfl_dia,ip)
         call nccomp('alb_dia','pcomp time',alb_dia,ip)
         call nccomp('rnfflx_dia','pcomp time',rnfflx_dia,ip)
+        call nccomp('rfiflx_dia','pcomp time',rfiflx_dia,ip)
         call nccomp('ustar_dia','pcomp time',ustar_dia,ip)
+        call nccomp('abswnd_dia','pcomp time',abswnd_dia,ip)
         call nccomp('sss_dia','pcomp time',sss_dia,ip)
         call nccomp('sst_dia','pcomp time',sst_dia,ip)
         call nccomp('mld_dia','pcomp time',mld_dia,ip)
         call nccomp('maxmld_dia','pcomp time',maxmld_dia,ip)
         call nccomp('surflx_dia','pcomp time',surflx_dia,ip)
         call nccomp('salflx_dia','pcomp time',salflx_dia,ip)
+        call nccomp('brnflx_dia','pcomp time',brnflx_dia,ip)
         call nccomp('uice_dia','ucomp time',uice_dia,iuu)
         call nccomp('vice_dia','vcomp time',vice_dia,ivv)
 #else 
@@ -341,19 +355,25 @@ c --- write accumulated fields
         call ncwrtr('tice_dia','x y time',tice_dia,ip,1)
         call ncwrtr('swa_dia','x y time',swa_dia,ip,1)
         call ncwrtr('nsf_dia','x y time',nsf_dia,ip,1)
+        call ncwrtr('hmltfz_dia','x y time',hmltfz_dia,ip,1)
         call ncwrtr('dfl_dia','x y time',dfl_dia,ip,1)
         call ncwrtr('lip_dia','x y time',lip_dia,ip,1)
         call ncwrtr('sop_dia','x y time',sop_dia,ip,1)
         call ncwrtr('eva_dia','x y time',eva_dia,ip,1)
+        call ncwrtr('fmltfz_dia','x y time',fmltfz_dia,ip,1)
+        call ncwrtr('sfl_dia','x y time',sfl_dia,ip,1)
         call ncwrtr('alb_dia','x y time',alb_dia,ip,1)
         call ncwrtr('rnfflx_dia','x y time',rnfflx_dia,ip,1)
+        call ncwrtr('rfiflx_dia','x y time',rfiflx_dia,ip,1)
         call ncwrtr('ustar_dia','x y time',ustar_dia,ip,1)
+        call ncwrtr('abswnd_dia','x y time',abswnd_dia,ip,1)
         call ncwrtr('sss_dia','x y time',sss_dia,ip,1)
         call ncwrtr('sst_dia','x y time',sst_dia,ip,1)
         call ncwrtr('mld_dia','x y time',mld_dia,ip,1)
         call ncwrtr('maxmld_dia','x y time',maxmld_dia,ip,1)
         call ncwrtr('surflx_dia','x y time',surflx_dia,ip,1)
         call ncwrtr('salflx_dia','x y time',salflx_dia,ip,1)
+        call ncwrtr('brnflx_dia','x y time',brnflx_dia,ip,1)
         call ncwrtr('uice_dia','x y time',uice_dia,iuu,1)
         call ncwrtr('vice_dia','x y time',vice_dia,ivv,1)
 #endif

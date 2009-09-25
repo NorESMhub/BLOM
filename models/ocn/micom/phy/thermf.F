@@ -14,13 +14,15 @@ c
 #include "common_geo.h"
 #include "common_clndr.h"
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
+c
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real dt,h2o_snw,fwf_fac,rnf_fac,sag_fac,y,
+      real dt,cpsw,rnf_fac,sag_fac,y,
      .     tml,sml,hml,tice_f,hice_min,fice,hice,hsnw,tsrf,fice0,hice0,
      .     hsnw0,qsww,qnsw,tice,albi,tsmlt,albi_h,qswi,dh,qsnwf,fcond,
      .     qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi,dvs,fwflx,
-     .     hflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totdvi,totwfl,sflxc
+     .     sstc,rice,trxflx,sssc,srxflx,
+     .     totsfl,totwfl,sflxc
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -47,12 +49,10 @@ c --- equal to the ratio of ice and snow heat of fusion
       endif
 c
 c --- Set various constants
-      dt=baclin                          ! Time step
-      h2o_snw=1000./rhosnw               ! Volume converting factor
-                                         ! between water and snow
-      fwf_fac=1.e-3/86400.               ! Conversion factor mm/day -> m/s
+      dt=baclin                         ! Time step
+      cpsw=spcifh*1.e3                  ! Specific heat of seawater
       rnf_fac=baclin/real(nrfets*86400) ! Runoff reservoar detrainment rate
-      sag_fac=exp(-gamma*dt)             ! Snow aging rate
+      sag_fac=exp(-gamma*dt)            ! Snow aging rate
 c
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
@@ -73,7 +73,7 @@ c
 c$OMP PARALLEL DO PRIVATE(tml,sml,hml,tice_f,hice_min,fice,hice,hsnw,
 c$OMP+  tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,albi_h,qswi,dh,
 c$OMP+  qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi,
-c$OMP+  dvs,fwflx,hflx,sstc,rice,trxflx,sssc,srxflx) SHARED(x,y)
+c$OMP+  dvs,fwflx,sstc,rice,trxflx,sssc,srxflx) SHARED(x,y)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -175,7 +175,7 @@ c --- ----- Solar heat flux trough the open water fraction
             qsww=swa(i,j)*(1.-albw(i,j))/(1.-alb(i,j))
 c
 c --- ----- Update snow thickness due to precipitation
-            dh=sop(i,j)*fwf_fac*h2o_snw*dt
+            dh=sop(i,j)*dt/rhosnw
             hsnw=hsnw+dh
 c
 c --- ----- Heat flux from snow to ice to balance the latent heat of
@@ -329,33 +329,43 @@ c --- --- added will by discharged).
           rnfres(i,j)=rnfres(i,j)+rnf(i,j)
           rnfflx(i,j)=rnfres(i,j)*rnf_fac
           rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
+          rfiflx(i,j)=rfi(i,j)
 c
-c --- --- Fresh water flux to the ocean
-          fwflx=(eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j))*fwf_fac
-     .         -dvs/(h2o_snw*dt)
+c --- --- Fresh water flux due to melting/freezing [kg m-2 s-1]
+c --- --- (positive downwards)
+          fmltfz(i,j)=-(dvi*rhoice+dvs*rhosnw)/dt
 c
-c --- --- Heat flux to the ocean
-          hflx=swa(i,j)+nsf(i,j)+(dvi*fusi+dvs*fuss)/dt
+c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
+          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j)+rfiflx(i,j)
+     .         +fmltfz(i,j)
 c
-c --- --- Convert heat flux to MICOM type [W cm-2] (positive upwards)
-          surflx(i,j)=-hflx*spcifh*100./(cpsw*rhowat)     
+c --- --- Salt flux [kg m-2 s-1] (positive downwards)
+          sfl(i,j)=-sice*dvi*rhoice/dt*1.e-3
 c
-c --- --- Short-wave heat flux from the ocean [W cm-2] (positive
+c --- --- Salt flux due to brine rejection of freezing sea
+c --- --- ice [kg m-2 m-1] (positive downwards)
+          brnflx(i,j)=max(0.,-sml*fmltfz(i,j)*1.e-3+sfl(i,j))
+c
+c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
+          vrtsfl(i,j)=-sml*fwflx*1.e-3
+c
+c --- --- Store area weighted virtual salt flux and fresh water flux
+          util1(i,j)=vrtsfl(i,j)*scp2(i,j)
+          util2(i,j)=fwflx*scp2(i,j)
+c
+c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
+          hmltfz(i,j)=(dvi*fusi+dvs*fuss)/dt
+c
+c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
+c
+c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
 c --- --- upwards)
-          sswflx(i,j)=-qsww*(1.-fice0)*spcifh*100./(cpsw*rhowat)
-c
-c --- --- Salt flux from ocean [kg m-2 s-1] (positive upwards)
-          salflx(i,j)=sml*fwflx-max(0.,sml-sice)*dvi/dt
-c
-c --- --- Accumulate salt flux, ice volume change, fresh water flux,
-c --- --- and area
-          util1(i,j)=salflx(i,j)*scp2(i,j)
-          util2(i,j)=dvi*scp2(i,j)
-          util3(i,j)=fwflx*scp2(i,j)
+          sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
 c
 #ifdef TRC
           do nt=1,ntrc
-            trflx(nt,i,j)=trc(i,j,1,nt)*fwflx
+            trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx*1.e-3
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
           enddo
@@ -444,9 +454,10 @@ c
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- Compute correction to the salt flux so it is globally consistent
-c --- with a salt flux based on some reference salinities. Also convert
-c --- salt flux to MICOM units [10e-3 g cm-2 s-1]
+c --- Compute correction to the virtual salt flux so it is globally
+c --- consistent with a salt flux based on some reference salinity.
+c --- Also combine virtual and true salt flux and convert salt fluxes
+c --- used later to unit [10e-3 g cm-2 s-1] and positive upwards.
 c --- ------------------------------------------------------------------
 c
 #ifdef ARCTIC
@@ -455,26 +466,27 @@ c
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           util1(i,j)=0.
           util2(i,j)=0.
-          util3(i,j)=0.
         enddo
         enddo
       enddo
 #endif
       call xcsum(totsfl,util1,ip)
-      call xcsum(totdvi,util2,ip)
-      call xcsum(totwfl,util3,ip)
+      call xcsum(totwfl,util2,ip)
 c
-c --- Correction for salt flux
-      sflxc=(srefg*totwfl-(srefi-sice)*totdvi/dt-totsfl)/area
-cdiag if (mnproc.eq.1) then
-cdiag   write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
-cdiag endif
+c --- Correction for the virtual salt flux [kg m-2 s-1]
+      sflxc=(-sref*totwfl*1.e-3-totsfl)/area
+      if (mnproc.eq.1) then
+        write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
+      endif
 c
+c --- Apply the virtual salt flux correction and the compute the total
+c --- salt flux by combining the virtual and true salt flux
 c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j)=(salflx(i,j)+sflxc)*1.e2/alpha0
+          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2
+          brnflx(i,j)=-brnflx(i,j)*1.e2
         enddo
         enddo
       enddo
@@ -494,18 +506,29 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
+#ifdef ARCTIC
+        do j=jtdm-j0,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=0.
+            util2(i,j)=0.
+          enddo
+          enddo
+        enddo
+#endif
+c
         call xcsum(tottrsf,util1,ip)
         call xcsum(tottrav,util2,ip)
 c
         tottrav=tottrav/area
 c
-        trflxc=(tottrav*totwfl-tottrsf)/area
+        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
 c
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=(trflx(nt,i,j)+trflxc)*1.e2/alpha0
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*1.e2
           enddo
           enddo
         enddo

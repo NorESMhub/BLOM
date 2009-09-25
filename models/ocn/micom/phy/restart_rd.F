@@ -212,6 +212,9 @@ c
       call ncread('rhoa',rhoa,ip,1,0.)
 #endif
 c
+      call ncread('frzpot',frzpot,ip,1,0.)
+      call ncread('mltpot',mltpot,ip,1,0.)
+c
 c --- read accumulated fields
       rtmp=0.
       if (mnproc.eq.1) then
@@ -240,19 +243,25 @@ c --- read accumulated fields
         call ncread('tice_dia',tice_dia,ip,1,0.)
         call ncread('swa_dia',swa_dia,ip,1,0.)
         call ncread('nsf_dia',nsf_dia,ip,1,0.)
+        call ncread('hmltfz_dia',hmltfz_dia,ip,1,0.)
         call ncread('dfl_dia',dfl_dia,ip,1,0.)
         call ncread('lip_dia',lip_dia,ip,1,0.)
         call ncread('sop_dia',sop_dia,ip,1,0.)
         call ncread('eva_dia',eva_dia,ip,1,0.)
+        call ncread('fmltfz_dia',fmltfz_dia,ip,1,0.)
+        call ncread('sfl_dia',sfl_dia,ip,1,0.)
         call ncread('alb_dia',alb_dia,ip,1,0.)
         call ncread('rnfflx_dia',rnfflx_dia,ip,1,0.)
+        call ncread('rfiflx_dia',rfiflx_dia,ip,1,0.)
         call ncread('ustar_dia',ustar_dia,ip,1,0.)
+        call ncread('abswnd_dia',abswnd_dia,ip,1,0.)
         call ncread('sss_dia',sss_dia,ip,1,0.)
         call ncread('sst_dia',sst_dia,ip,1,0.)
         call ncread('mld_dia',mld_dia,ip,1,0.)
         call ncread('maxmld_dia',maxmld_dia,ip,1,0.)
         call ncread('surflx_dia',surflx_dia,ip,1,0.)
         call ncread('salflx_dia',salflx_dia,ip,1,0.)
+        call ncread('brnflx_dia',brnflx_dia,ip,1,0.)
         call ncread('uice_dia',uice_dia,iuu,1,0.)
         call ncread('vice_dia',vice_dia,ivv,1,0.)
       endif

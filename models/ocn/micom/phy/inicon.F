@@ -7,8 +7,8 @@ c
       implicit none
 c
 #include "common_blocks.h"
+#include "common_forc.h"
 #ifndef CCSMCOUPLED
-#  include "common_forc.h"
 #  if defined(CLIM) || defined(SYN)
 #    include "common_asf.h"
 #  endif
@@ -250,6 +250,20 @@ c
  140  ssv_tda(i,j)=0.
 c
       ntda=1
+c
+#else
+c --- ------------------------------------------------------------------
+c --- Initialize variables used when coupled to CCSM
+c --- ------------------------------------------------------------------
+c
+      do j=1,jj
+        do l=1,isp(j)
+        do i=ifp(j,l),ilp(j,l)
+          frzpot(i,j)=0.
+          mltpot(i,j)=0.
+        enddo
+        enddo
+      enddo
 #endif
 c
       do 10 j=1,jj

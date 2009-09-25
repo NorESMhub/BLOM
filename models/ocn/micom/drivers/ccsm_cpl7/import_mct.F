@@ -101,61 +101,85 @@
                sop(i,j) = mval
                eva(i,j) = mval
                rnf(i,j) = mval
+               rfi(i,j) = mval
+               fmltfz(i,j) = mval
                sfl(i,j) = mval
                swa(i,j) = mval
                nsf(i,j) = mval
+               hmlt(i,j) = mval
                slp(i,j) = mval
                ficem(i,j) = mval
+               abswnd(i,j) = mval
             elseif (cplmsk(i,j) == 0) then
                lip(i,j) = 0._r8
                sop(i,j) = 0._r8
                eva(i,j) = 0._r8
                rnf(i,j) = 0._r8
+               rfi(i,j) = 0._r8
+               fmltfz(i,j) = 0._r8
                sfl(i,j) = 0._r8
                swa(i,j) = 0._r8
                nsf(i,j) = 0._r8
+               hmlt(i,j) = 0._r8
                slp(i,j) = fval
                ficem(i,j) = fval
+               abswnd(i,j) = fval
             else
 
-               ! Liquid water flux, positive downwards (kg/m^2/s)
+               ! Liquid water flux, positive downwards [kg/m^2/s]
                lip(i,j) = x2o_o%rAttr(index_x2o_Foxx_rain,n)
-     .                  + x2o_o%rAttr(index_x2o_Foxx_meltw,n)
 
-               ! Solid precipitation, positive downwards (kg/m^2/s)
+               ! Solid precipitation, positive downwards [kg/m^2/s]
                sop(i,j) = x2o_o%rAttr(index_x2o_Foxx_snow,n)
 
-               ! Evaporation, positive downwards (kg/m^2/s)
+               ! Evaporation, positive downwards [kg/m^2/s]
                eva(i,j) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
 
-               ! Runoff, positive downwards (kg/m^2/s)
+               ! Liquid runoff, positive downwards [kg/m^2/s]
                rnf(i,j) = x2o_o%rAttr(index_x2o_Forr_roff,n)
 
-               ! Salt flux, positive downwards (kg/m^2/s)
+               ! Frozen runoff, positive downwards [kg/m^2/s]
+               rfi(i,j) = x2o_o%rAttr(index_x2o_Forr_ioff,n)
+
+               ! Fresh water due to melting/freezing, positive downwards
+               ! [kg/m^2/s]
+               fmltfz(i,j) = x2o_o%rAttr(index_x2o_Foxx_meltw,n)
+
+               ! Salt flux, positive downwards [kg/m^2/s]
                sfl(i,j) = x2o_o%rAttr(index_x2o_Foxx_salt,n)
 
-               ! Shortwave heat flux, positive downwards (W/m^2)
+               ! Shortwave heat flux, positive downwards [W/m^2]
                swa(i,j) = x2o_o%rAttr(index_x2o_Foxx_swnet,n)
 
-               ! Total heat flux, positive downwards (W/m^2)
+               ! Non-solar heat flux, positive downwards [W/m^2]
+               if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+                 write (lp,*) 'eva*latvap,lat',
+     .             x2o_o%rAttr(index_x2o_Foxx_evap,n)*SHR_CONST_LATVAP,
+     .             x2o_o%rAttr(index_x2o_Foxx_lat,n)
+               endif
                nsf(i,j) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
      .                    *SHR_CONST_LATVAP
      .                  + x2o_o%rAttr(index_x2o_Foxx_sen,n)
      .                  + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
      .                  + x2o_o%rAttr(index_x2o_Foxx_lwdn,n)
-     .                  + x2o_o%rAttr(index_x2o_Foxx_melth,n)
-     .                  - x2o_o%rAttr(index_x2o_Foxx_snow,n)
+     .                  - ( x2o_o%rAttr(index_x2o_Foxx_snow,n)
+     .                    + x2o_o%rAttr(index_x2o_Forr_ioff,n))
      .                    *SHR_CONST_LATICE
 
-               ! Sea level pressure (kg/m/s^2)
+               ! Heat flux due to melting, positive downwards [W/m^2]
+               hmlt(i,j) = x2o_o%rAttr(index_x2o_Foxx_melth,n)
+
+               ! Sea level pressure [kg/m/s^2]
                slp(i,j) = x2o_o%rAttr(index_x2o_Sa_pslv,n)
 
-               ! Fields that are not used
+               ! Ice fraction []
                ficem(i,j) = x2o_o%rAttr(index_x2o_Si_ifrac,n)
-               util1(i,j) = x2o_o%rAttr(index_x2o_Sx_duu10n,n)
+
+               ! 10m wind speed [m/s]
+               abswnd(i,j) = sqrt(x2o_o%rAttr(index_x2o_Sx_duu10n,n))
 
                ! Diagnostics
-               dfl(i,j) = 0.
+               dfl(i,j) = 0._r8
 
             endif
 
@@ -164,6 +188,7 @@
 
       call fill_global(mval, fval, halo_ps, slp)
       call fill_global(mval, fval, halo_ps, ficem)
+      call fill_global(mval, fval, halo_ps, abswnd)
 
       if (index_x2o_Sa_co2prog > 0) then
          n = 0
@@ -176,11 +201,30 @@
          enddo
       endif
       
-      do j=1,jj
-         do i=1,ii
-            surrlx(i,j)=0.
-            salrlx(i,j)=0.
+      do j = 1, jj
+         do i = 1, ii
+            surrlx(i,j) = 0._r8
+            salrlx(i,j) = 0._r8
          enddo
       enddo
+
+      if (csdiag) then
+         if (mnproc.eq.1) then
+           write (lp,*) 'import_mct:'
+         endif
+         call chksummsk(lip,ip,1,'lip')
+         call chksummsk(sop,ip,1,'sop')
+         call chksummsk(eva,ip,1,'eva')
+         call chksummsk(rnf,ip,1,'rnf')
+         call chksummsk(rfi,ip,1,'rfi')
+         call chksummsk(fmltfz,ip,1,'fmltfz')
+         call chksummsk(sfl,ip,1,'sfl')
+         call chksummsk(swa,ip,1,'swa')
+         call chksummsk(nsf,ip,1,'nsf')
+         call chksummsk(hmlt,ip,1,'hmlt')
+         call chksummsk(slp,ip,1,'slp')
+         call chksummsk(ficem,ip,1,'ficem')
+         call chksummsk(abswnd,ip,1,'abswnd')
+      endif
 
       end subroutine import_mct

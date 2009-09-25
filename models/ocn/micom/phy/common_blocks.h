@@ -123,6 +123,7 @@ c
      .  surrlx,        ! surface relaxation thermal energy flux
      .  sswflx,        ! surface solar energy flux
      .  salflx,        ! surface salinity flux
+     .  brnflx,        ! surface brine flux
      .  salrlx,        ! surface relaxation salinity flux
      .  taux,tauy,     ! surface stress components
      .  ustar,         ! friction velocity
@@ -133,7 +134,7 @@ c
 c
       common /micom4/ difint,difiso,difdia,uja,ujb,via,vib,
      .                udvmin,vdvmin,udamax,vdamax,sealv,
-     .                surflx,surrlx,sswflx,salflx,salrlx,
+     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,
      .                taux,tauy,ustar,twedon,kfpla
 c
       real time,delt1,dlt,area,avgbot

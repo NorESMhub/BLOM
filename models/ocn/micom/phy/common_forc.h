@@ -37,16 +37,21 @@ c
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c
-c --- fields to be specified in getflux or import_mct
+c --- various surface state and flux fields
      .  swa,           ! solar heat flux
      .  nsf,           ! non-solar heat flux
+     .  hmltfz,        ! heat flux due to melting/freezing
+     .  hmlt,          ! heat flux due to melting
      .  dfl,           ! derivative of non-solar heat flux by surface temp.
      .  lip,           ! liquid water flux
      .  sop,           ! solid precipitation
      .  eva,           ! evaporation
+     .  rnf,           ! runoff, liquid
+     .  rfi,           ! runoff, frozen
+     .  fmltfz,        ! fresh water flux due to melting/freezing
+     .  sfl,           ! salt flux
      .  ztx,           ! u component of wind stress
      .  mty,           ! v component of wind stress
-     .  rnf,           ! runoff
      .  ustarw,        ! friction velocity for open water
      .  tsi,           ! averaged snow/ice surface temperature
      .  slp,           ! sea level pressure
@@ -54,7 +59,6 @@ c --- fields to be specified in getflux or import_mct
      .  albw,          ! daily mean open water albedo
      .  frzpot,        ! freezing potential
      .  mltpot,        ! melting potential
-     .  sfl,           ! salt flux
 c
 c --- fields to be specified in thermf
      .  tsi_tda,       ! accumulated snow/ice surface temperature
@@ -69,7 +73,10 @@ c --- albedo
      .  alb,         
 c
      .  rnfres,        ! runoff reservoar
-     .  rnfflx         ! runoff freshwater flux taken out of the reservoar
+     .  rnfflx,        ! liquid runoff freshwater flux taken out of the
+                       ! reservoar
+     .  rfiflx         ! frozen runoff freshwater flux taken out of the
+                       ! reservoar
 c
 c --- accumulation number
       integer ntda
@@ -77,10 +84,10 @@ c
 c --- time steps between surface forcing updates
       integer nfrco
 c
-      common /frc2/ swa,nsf,dfl,lip,sop,eva,ztx,mty,rnf,ustarw,tsi,slp,
-     .              abswnd,albw,frzpot,mltpot,sfl,tsi_tda,tml_tda,
-     .              sml_tda,alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,
-     .              rnfflx,ntda,nfrco
+      common /frc2/ swa,nsf,hmltfz,hmlt,dfl,lip,sop,eva,rnf,rfi,fmltfz,
+     .              sfl,ztx,mty,ustarw,tsi,slp,abswnd,albw,frzpot,
+     .              mltpot,tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,
+     .              ssu_tda,ssv_tda,alb,rnfres,rnfflx,rfiflx,ntda,nfrco
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,t0deg

@@ -16,10 +16,11 @@ c
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
-      real q,ustar3,alfa,beta,bfltot,bflpsw,pmxl,lui,lbi,lei,cus,
-     .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,
-     .     tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,
-     .     tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,udpn
+      real q,ustar3,alfa,beta,bfltot,bflpsw,bflbrn,pradd,pbrnd,pmxl,lui,
+     .     lbi,lei,cus,cbftot,cbfpsw,cbfbrn,crs,rm1,rm2,rm3,rm4,tke,
+     .     dpmxl,tkeo,dtke,tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,brnbas,
+     .     brnup,brnlo,ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,
+     .     sdps,tmxl,smxl,dpe,dps,udpn
       integer i,j,k,l,kn,nitr,ko
 c
 #ifdef TRC
@@ -39,13 +40,16 @@ c
 c --- Parameters for Oberhuber (1993) TKE closure:
 c ---  ustmin - minium value of ustar used in computing the length
 c ---           scales for wind and buoyancy induced mixing [cm/s]
+c ---  brndep - maximum depth of brine plume decent [m]
 c ---  mldjmp - minimum density jump at the mixed layer base used in the
 c ---           computation of potential energy change due to
-c ---         - entrainment
-      real rm0,kappa,mu,ustmin,mldjmp
+c ---           entrainment
+c ---  maxitr - maximum number of iterations allowed in the computation
+c ---           of TKE balance
+      real rm0,kappa,mu,ustmin,brndep,mldjmp
       integer maxitr
-      parameter (rm0=1.25,kappa=.4,mu=1.,ustmin=.1,mldjmp=1.e-6,
-     .           maxitr=20)
+      parameter (rm0=1.25,kappa=.4,mu=1.,ustmin=.1,brndep=1.,
+     .           mldjmp=1.e-6,maxitr=20)
 c
 c --- Parameters for the parameterization of restratification by mixed
 c --- layer eddies by Fox-Kemper et al. (2008):
@@ -120,10 +124,10 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,
-c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pmxl,lui,lbi,lei,cus,
-c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,
-c$OMP+ tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,
-c$OMP+ tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
+c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,bflbrn,pradd,pbrnd,pmxl,lui,lbi,
+c$OMP+ lei,cus,cbftot,cbfpsw,cbfbrn,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,
+c$OMP+ dtke,tfsl,sfsl,dpfsl,pswbas,pswup,pswlo,brnbas,brnup,brnlo,ttmp,
+c$OMP+ stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
 c$OMP+ k,kn,nitr
 #ifdef TRC
 c$OMP+,ttrc,trfsl,trdps
@@ -160,12 +164,17 @@ c
 c --- --- bfltot = total buoyancy flux [cm**2/sec**3]
 c --- --- bflpsw = buoyancy flux due to penetrating short-wave radiation
 c ---              [cm**2/sec**3]
+c --- --- bflbrn = buoyancy flux due brine flux [cm**2/sec**3]
 c --- --- note: surface density increases (column is destabilized) if
 c --- --- bfltot > 0
           alfa=-alpha0*dsigdt0(ttem(1),ssal(1))
           beta=alpha0*dsigds0(ttem(1),ssal(1))
           bfltot=g*(alfa*surflx(i,j)/spcifh-beta*salflx(i,j))
           bflpsw=g*alfa*(1.-redfac)*sswflx(i,j)/spcifh
+          bflbrn=-g*beta*brnflx(i,j)
+c
+          pradd=raddep*onem
+          pbrnd=min(brndep*onem,pres(kk+1))
 c
           pmxl=pres(2)
           q=alpha0/g
@@ -179,6 +188,7 @@ c
           cus=rm0*ustar3
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
+          cbfbrn=.5*bflbrn*q
           crs=ci*ce*util1(i,j)*q**3
      .        *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
 c      
@@ -188,7 +198,8 @@ c
           rm3=exp(-q)
           rm4=2./q
           tke=cus*rm1
-     .       +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .       +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3)
+     .         -cbfbrn*max(0.,1.-pmxl/pbrnd))*rm2
      .        -crs*pmxl*pmxl)*pmxl
 c      
           if (tke.lt.0.and.pmxl.gt.thkmin*onem) then
@@ -216,7 +227,8 @@ c
               rm3=exp(-q)
               rm4=2./q
               tke=cus*rm1
-     .           +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .           +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3)
+     .             -cbfbrn*max(0.,1.-pmxl/pbrnd))*rm2
      .            -crs*pmxl*pmxl)*pmxl
               if (.not.(nitr.eq.1.and.pres(2)*lbi.gt.1.)) then
                 dtke=(tke-tkeo)/dpmxl
@@ -263,27 +275,38 @@ c
 c --- ----- Apply forcing to the water column.
             pswbas=(1.-redfac)*exp(-lei*pmxl)
             pswup=pswbas
-            pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(2)))
+            pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(2)))
+            brnbas=max(0.,1.-pmxl/pbrnd)
+            brnup=brnbas
+            brnlo=max(0.,1.-pres(2)/pbrnd)
             if (dpfsl.gt.onemu) then
-              tfsl=tfsl
-     .            -(pswup-pswlo)*sswflx(i,j)*delt1*g/(spcifh*dpfsl)
+              q=delt1*g/dpfsl
+              tfsl=tfsl-(pswup-pswlo)*sswflx(i,j)*q/spcifh
+              sfsl=sfsl-(brnup-brnlo)*brnflx(i,j)*q
               pswup=pswlo
+              brnup=brnlo
             endif
             do k=2,kk
-              if (pres(k).lt.raddep*onem.and.delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(k+1)))
-                ttem(k)=ttem(k)
-     .                 -(pswup-pswlo)*sswflx(i,j)*delt1*g
-     .                  /(spcifh*delp(k))
-                dens(k)=sig(ttem(k),ssal(k))
-                pswup=pswlo
+              if (delp(k).gt.onemu) then
+                if (pres(k).lt.pradd.or.pres(k).lt.pbrnd) then
+                  q=delt1*g/delp(k)
+                  pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                  brnlo=max(0.,1.-pres(k+1)/pbrnd)
+                  ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
+                  ssal(k)=ssal(k)-(brnup-brnlo)*brnflx(i,j)*q
+                  dens(k)=sig(ttem(k),ssal(k))
+                  pswup=pswlo
+                  brnup=brnlo
+                endif
               endif
             enddo
             q=delt1*g/delp(1)
             ttem(1)=ttem(1)
-     .             -(surflx(i,j)+surrlx(i,j)-(pswbas-pswup)*sswflx(i,j))
-     .              *q/spcifh
-            ssal(1)=ssal(1)-(salflx(i,j)+salrlx(i,j))*q
+     .             -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j)
+     .              +surrlx(i,j))*q/spcifh
+            ssal(1)=ssal(1)
+     .             -(salflx(i,j)-(brnbas-brnup)*brnflx(i,j)
+     .              +salrlx(i,j))*q
             dens(1)=sig(ttem(1),ssal(1))
 #ifdef TRC
             do nt=1,ntrc
@@ -498,7 +521,8 @@ c
      .                      *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))
      .                      *alpha0/(delt1*g)
                     tke=cus*rm1
-     .                 +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
+     .                 +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3)
+     .                   -cbfbrn*max(0.,1.-pmxl/pbrnd))*rm2
      .                  -crs*pmxl*pmxl)*pmxl
      .                 -dpe
                     if (.not.(nitr.eq.1.and.pres(k)*lbi.lt.1..and.
@@ -604,21 +628,29 @@ c
 c --- ----- Apply forcing to the water column.
             pswbas=(1.-redfac)*exp(-lei*pres(2))
             pswup=pswbas
+            brnbas=max(0.,1.-pres(2)/pbrnd)
+            brnup=brnbas
             do k=2,kk
-              if (pres(k).lt.raddep*onem.and.delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(raddep*onem,pres(k+1)))
-                ttem(k)=ttem(k)
-     .                 -(pswup-pswlo)*sswflx(i,j)*delt1*g
-     .                  /(spcifh*delp(k))
-                dens(k)=sig(ttem(k),ssal(k))
-                pswup=pswlo
+              if (delp(k).gt.onemu) then
+                if (pres(k).lt.pradd.or.pres(k).lt.pbrnd) then
+                  q=delt1*g/delp(k)
+                  pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                  brnlo=max(0.,1.-pres(k+1)/pbrnd)
+                  ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
+                  ssal(k)=ssal(k)-(brnup-brnlo)*brnflx(i,j)*q
+                  dens(k)=sig(ttem(k),ssal(k))
+                  pswup=pswlo
+                  brnup=brnlo
+                endif
               endif
             enddo
             q=delt1*g/delp(1)
             ttem(1)=ttem(1)
-     .             -(surflx(i,j)+surrlx(i,j)-(pswbas-pswup)*sswflx(i,j))
-     .              *q/spcifh
-            ssal(1)=ssal(1)-(salflx(i,j)+salrlx(i,j))*q
+     .             -(surflx(i,j)-(pswbas-pswup)*sswflx(i,j)
+     .              +surrlx(i,j))*q/spcifh
+            ssal(1)=ssal(1)
+     .             -(salflx(i,j)-(brnbas-brnup)*brnflx(i,j)
+     .              +salrlx(i,j))*q
             dens(1)=sig(ttem(1),ssal(1))
 #ifdef TRC
             do nt=1,ntrc

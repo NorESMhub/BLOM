@@ -14,8 +14,10 @@ c
 #include "common_ice.h"
 #include "common_clndr.h"
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
+c
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real y,fwflx,tml,sml,hml,tice_f,sstc,rice,trxflx,sssc,srxflx,
+      real y,tml,sml,dpml,hml,tice_f,fwflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totwfl,sflxc
 c
 #ifdef TRC
@@ -47,10 +49,20 @@ c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ fwflx,tml,sml,hml,tice_f,sstc,rice,trxflx,sssc,srxflx)
+c$OMP+ tml,sml,dpml,hml,tice_f,fwflx,sstc,rice,trxflx,sssc,srxflx)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+c
+c --- ------------------------------------------------------------------
+c --- --- Set some quantities
+c --- ------------------------------------------------------------------
+c
+          tml=temp(i,j,k1n)+t0deg
+          sml=saln(i,j,k1n)
+          dpml=dp(i,j,k1n)
+          hml=dpml/onem
+          tice_f=swtfrz(sml)+t0deg
 c
 c --- ------------------------------------------------------------------
 c --- --- Fresh water and salt fluxes
@@ -59,16 +71,21 @@ c
 c --- --- Copy runoff flux to rnfflx for consistency with uncoupled
 c --- --- configuration
           rnfflx(i,j)=rnf(i,j)
+          rfiflx(i,j)=rfi(i,j)
 c
-c --- --- Fresh water flux to the ocean [m/s]
-          fwflx=(eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j))*1.e-3
+c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
+          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j)+rfiflx(i,j)
+     .         +fmltfz(i,j)
 c
-c --- --- Virtual salt flux from ocean [kg m-2 s-1] (positive upwards)
-          salflx(i,j)=saln(i,j,k1n)*fwflx
+c --- --- Salt flux due to brine rejection of freezing sea
+c --- --- ice [kg m-2 m-1] (positive downwards)
+          brnflx(i,j)=max(0.,-sml*fmltfz(i,j)*1.e-3+sfl(i,j))
 c
-c --- --- Accumulate area weighted virtual salt flux and fresh water
-c --- --- flux
-          util1(i,j)=salflx(i,j)*scp2(i,j)
+c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
+          vrtsfl(i,j)=-sml*fwflx*1.e-3
+c
+c --- --- Store area weighted virtual salt flux and fresh water flux
+          util1(i,j)=vrtsfl(i,j)*scp2(i,j)
           util2(i,j)=fwflx*scp2(i,j)
 c
 c --- ------------------------------------------------------------------
@@ -80,27 +97,24 @@ c --- --- surface has a temperature below freezing temperature and must
 c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
-          frzpot(i,j)=max(0.,swtfrz(saln(i,j,k1n))-temp(i,j,k1n))
-     .                *spcifh*dp(i,j,k1n)/(2.*g)*1.e4
+          frzpot(i,j)=max(0.,tice_f-tml)*spcifh*dpml/(2.*g)*1.e4
           mltpot(i,j)=min(0.,swtfrz(.5*(saln(i,j,k1m)+saln(i,j,k1n)))
      .                      -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
      .                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
 c
-c --- --- Total heat flux from the ocean [W cm-2] (positive upwards).
-c --- --- Apply the freezing potential
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+frzpot(i,j)/baclin)*1.e-4
+c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
+          hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
 c
-c --- --- short wave heat flux from the ocean [W cm-2] (positive upwards)
+c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
+c
+c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
+c --- --- upwards)
           sswflx(i,j)=-swa(i,j)*1.e-4
 c
 c --- ------------------------------------------------------------------
 c --- --- Relaxation fluxes
 c --- ------------------------------------------------------------------
-c
-          tml=temp(i,j,k1n)+t0deg
-          sml=saln(i,j,k1n)
-          hml=dp(i,j,k1n)/onem
-          tice_f=swtfrz(sml)+t0deg
 c
           surrlx(i,j)=0.
 c
@@ -159,11 +173,11 @@ c --- --- relaxation flux
 c
 #ifdef TRC
 c --- ------------------------------------------------------------------
-c --- --- Virtual tracer fluxes
+c --- --- Virtual tracer fluxes (positive downwards)
 c --- ------------------------------------------------------------------
 c
           do nt=1,ntrc
-            trflx(nt,i,j)=trc(i,j,1,nt)*fwflx
+            trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
           enddo
@@ -182,9 +196,9 @@ c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- Compute correction to the virtual salt flux so it is globally
-c --- consistent with a salt flux based on some reference salinity and
-c --- add salt flux recieved from coupler. Also convert salt flux to
-c --- MICOM units [10e-3 g cm-2 s-1]
+c --- consistent with a salt flux based on some reference salinity.
+c --- Also combine virtual and true salt flux and convert salt fluxes
+c --- used later to unit [10e-3 g cm-2 s-1] and positive upwards.
 c --- ------------------------------------------------------------------
 c
 #ifdef ARCTIC
@@ -200,27 +214,26 @@ c
       call xcsum(totsfl,util1,ip)
       call xcsum(totwfl,util2,ip)
 c
-c --- Correction for salt flux
-      sflxc=(srefg*totwfl-totsfl)/area
+c --- Correction for the virtual salt flux [kg m-2 s-1]
+      sflxc=(-sref*totwfl*1.e-3-totsfl)/area
       if (mnproc.eq.1) then
         write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
       endif
 c
+c --- Apply the virtual salt flux correction and the compute the total
+c --- salt flux by combining the virtual and true salt flux
 c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j)=(salflx(i,j)+sflxc-sfl(i,j))*1.e2/alpha0
+          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2
+          brnflx(i,j)=-brnflx(i,j)*1.e2
         enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
 #ifdef TRC
-c --- ------------------------------------------------------------------
-c --- Compute correction to the virtual tracer flux
-c --- ------------------------------------------------------------------
-c
       do nt=1,ntrc
 c
 c$OMP PARALLEL DO
@@ -234,18 +247,29 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
+#ifdef ARCTIC
+        do j=jtdm-j0,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=0.
+            util2(i,j)=0.
+          enddo
+          enddo
+        enddo
+#endif
+c
         call xcsum(tottrsf,util1,ip)
         call xcsum(tottrav,util2,ip)
 c
         tottrav=tottrav/area
 c
-        trflxc=(tottrav*totwfl-tottrsf)/area
+        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
 c
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=(trflx(nt,i,j)+trflxc)*1.e2/alpha0
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*1.e2
           enddo
           enddo
         enddo
@@ -253,6 +277,21 @@ c$OMP END PARALLEL DO
 c 
       enddo
 #endif
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'thermf_ccsm:'
+        endif
+        call chksummsk(surflx,ip,1,'surflx')
+        call chksummsk(sswflx,ip,1,'sswflx')
+        call chksummsk(salflx,ip,1,'salflx')
+        call chksummsk(brnflx,ip,1,'brnflx')
+        call chksummsk(surrlx,ip,1,'surrlx')
+        call chksummsk(salrlx,ip,1,'salrlx')
+        call chksummsk(ustar,ip,1,'ustar')
+        call chksummsk(frzpot,ip,1,'frzpot')
+        call chksummsk(mltpot,ip,1,'mltpot')
+      endif
 c
       return
       end
