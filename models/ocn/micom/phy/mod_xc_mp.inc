@@ -1685,8 +1685,7 @@ c     the patch distribution file, 'patch.input'.
 c*
 c**********
 c
-      integer i,idm_in,itdm_in,
-     &        j,jdm_in,jtdm_in,l,m,mm,mn,mypei,n,npesi
+      integer i,j,l,m,mm,mn,mypei,n,npesi
 c
 #if defined(MPI)
       include 'mpif.h'
@@ -1782,43 +1781,20 @@ c     periodic cases, the last non-empty tile can periodic wrap to the
 c     first tile in the row (i.e. trailing "empty" tiles can be null
 c     tiles, rather than all-land tiles).
 c
-      open(unit=nfu,file='patch.input')
-      read(nfu,'(/8i6/)') ijpr,ipr,jpr,
-     &                    itdm_in,jtdm_in,idm_in,jdm_in,nreg
-      if     (ijpr.gt.ijqr .or. ipr.gt.iqr .or. jpr.gt.jqr) then
-        if     (mnproc.eq.1) then
-          write(lp,'(a,3i5)') 'input: ijpr,ipr,jpr =',ijpr,ipr,jpr
-          write(lp,'(a,3i5)') 'param: ijqr,iqr,jqr =',ijqr,iqr,jqr
-          call flush(lp)
-        endif
-        call xcstop('xcspmd: patch.input for wrong ipr,jpr,ijpr')
-        stop '(xcspmd)'
-      elseif (itdm_in.ne.itdm .or. jtdm_in.ne.jtdm) then
-        if     (mnproc.eq.1) then
-          write(lp,'(a,2i5)') 'input: itdm,jtdm =',itdm_in,jtdm_in
-          write(lp,'(a,2i5)') 'param: itdm,jtdm =',itdm,   jtdm
-          call flush(lp)
-        endif
-        call xcstop('xcspmd: patch.input for wrong itdm,jtdm')
-        stop '(xcspmd)'
-      elseif (idm_in.gt.idm .or. jdm_in.gt.jdm) then
-        if     (mnproc.eq.1) then
-          write(lp,'(a,2i5)') 'input: idm,jdm =',idm_in,jdm_in
-          write(lp,'(a,2i5)') 'param: idm,jdm =',idm,   jdm
-          call flush(lp)
-        endif
-        call xcstop('xcspmd: patch.input for wrong idm,jdm')
-        stop '(xcspmd)'
+      ijpr=ijqr
+      ipr=iqr
+      jpr=jqr
 #if defined(ARCTIC)
-      elseif (nreg.ne.2) then  ! not arctic
+      if     (nreg.ne.2) then  ! not arctic
         if     (mnproc.eq.1) then
           write(lp,'(a,i5)') 'input: nreg =',nreg
           call flush(lp)
         endif
         call xcstop('xcspmd: patch.input must be for arctic')
         stop '(xcspmd)'
+      endif
 #else
-      elseif (nreg.eq.2) then  ! arctic
+      if     (nreg.eq.2) then  ! arctic
         if     (mnproc.eq.1) then
           write(lp,'(a,i5)') 'input: nreg =',nreg
           call flush(lp)
@@ -1832,21 +1808,16 @@ c
         endif
         call xcstop('xcspmd: patch.input for wrong nreg')
         stop '(xcspmd)'
-#endif /* ARCTIC:else */
       endif
+#endif /* ARCTIC:else */
 c
 c     individual tile rows.
 c
       do n= 1,jpr
-        read(nfu,'(12x,8i6)') (i0_pe(m,n),m=1,ipr)  ! ispt=i0+1
-        read(nfu,'(12x,8i6)') (ii_pe(m,n),m=1,ipr)  ! iipe
         if (maxval(ii_pe(1:ipr,n)).le.0) then
-          call xcstop('xcspmd: patch.input has an empty row')
+          call xcstop('xcspmd: decomposition has an empty row')
           stop '(xcspmd)'
         endif
-        do m= 1,ipr
-          i0_pe(m,n) = i0_pe(m,n) - 1
-        enddo
       enddo
 #if defined(ARCTIC)
 c
@@ -1881,30 +1852,20 @@ c
 c
 c     the generic tile column (must cover entire column).
 c
-      read(nfu,*)
-      read(nfu,'(12x,8i6)') (j0_pe(1,n),n=1,jpr)  ! jspt = io+1
-      read(nfu,'(12x,8i6)') (jj_pe(1,n),n=1,jpr)  ! jjpe
-      if     (j0_pe(1,1).ne.1) then
-        call xcstop('xcspmd: patch.input for wrong jspt')
+      if     (j0_pe(1,1).ne.0) then
+        call xcstop('xcspmd: decomposition has wrong j0_pe')
         stop '(xcspmd)'
       endif 
-      j0_pe(1,1) = 0
       do n= 2,jpr
-        j0_pe(1,n) = j0_pe(1,n) - 1
         if (j0_pe(1,n).ne.j0_pe(1,n-1)+jj_pe(1,n-1)) then
-          call xcstop('xcspmd: patch.input non-contiguous')
+          call xcstop('xcspmd: decomposition is non-contiguous')
           stop '(xcspmd)'
         endif
       enddo
       if     (j0_pe(1,jpr)+jj_pe(1,jpr).ne.jtdm) then
-        call xcstop('xcspmd: patch.input for wrong jjpe')
+        call xcstop('xcspmd: decomposition has wrong jj_pe')
         stop '(xcspmd)'
       endif 
-      do m= 2,ipr
-        j0_pe(m,:) = j0_pe(1,:)
-        jj_pe(m,:) = jj_pe(1,:)
-      enddo
-      close(nfu)
 c
 #if defined(MPI)
 c

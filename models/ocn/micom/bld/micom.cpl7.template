@@ -16,7 +16,6 @@ endif
 
 cat > $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
 grid_file = $INPUTPATH/grid.nc
-partitioning_file = $INPUTPATH/patch.input
 ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
 ncep_height_file = $INPUTPATH/hgt.sfc.nc
 ice_clim_file = $INPUTPATH/icec_1968-1996.uf
@@ -60,14 +59,6 @@ cat >! $CASEROOT/Buildnml_Prestage/micom.buildnml_prestage.csh << EOF
 set exedir = \$EXEROOT/ccsm_se; cd \$exedir
 
 #------------------------------------------------------------------------------
-# specify input data files
-#------------------------------------------------------------------------------
-
-cp -f $INPUTPATH/patch.input .
-
-
-
-#------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------
 
@@ -104,18 +95,35 @@ cat >! $CASEROOT/Buildexe/micom.buildexe.csh << EOF
 
 set exedir = \$EXEROOT/ccsm_se
 set objdir = \$OBJROOT/ocn/obj; cd \$objdir
+set dimdir = \$objdir/dimensions
+
+#------------------------------------------------------------------------------
+# Make dimensions.F
+#------------------------------------------------------------------------------
+
+mkdir -p \$dimdir
+set kdm = `cat \$CODEROOT/ocn/micom/bld/\$OCN_GRID/kdm`
+\$CASEROOT/Tools/Templates/micom_dimensions -n \$NTASKS_OCN -k \$kdm -d \$CODEROOT/ocn/micom/bld/\$OCN_GRID
+set recompile = FALSE
+cmp -s dimensions.F \$dimdir/dimensions.F || set recompile = TRUE
+if (\$recompile == 'TRUE') then
+  mv dimensions.F \$dimdir
+else
+  rm dimensions.F
+endif
 
 #------------------------------------------------------------------------------
 # Build the library
 #------------------------------------------------------------------------------
 
 \cat >! Filepath << EOF1
+\$dimdir
 \$CASEROOT/SourceMods/src.micom
 \$CODEROOT/ocn/micom/drivers/ccsm_cpl7
 \$CODEROOT/ocn/micom/phy
 EOF1
 
-if (\$BLDTYPE == 'TRUE') then
+if (\$BLDTYPE == 'TRUE' || \$recompile == 'TRUE') then
   cp \$BLDROOT/mkDepends . || exit 2
   cp \$BLDROOT/mkSrcfiles . || exit 2
   set SMP = FALSE ;  if (\$NTHRDS_OCN > 1) set SMP = TRUE

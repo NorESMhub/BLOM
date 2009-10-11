@@ -1,5 +1,6 @@
       module mod_xc
 c
+      use dimensions
 #ifdef CCSMCOUPLED
       use data_mct, only: mpicom_mct
 #endif
@@ -9,19 +10,59 @@ c
 c --- HYCOM communication interface.
 c --- see README.src.mod_xc for more details.
 c
-      include 'dimensions.h'
+c --- mxthrd= maximum number of OpenMP threads
+      integer    mxthrd
+      parameter (mxthrd=8)  ! NOMP=0,1
+c
+c --- halo size
+      integer    nbdy
+      parameter (nbdy=3)
+c
+c --- OpenMP will allocate jblk rows to each thread in turn
+      integer    jblk
+      parameter (jblk=(jdm+2*nbdy+mxthrd-1)/mxthrd)
+c
+c --- how far out the halo is valid (margin<=nbdy)
+      integer      margin
+      common/edge/ margin
+      save  /edge/
+c
+c --- actual extent of this tile is (i0+1:i0+ii,j0+1:j0+jj,1:kk)
+      integer      i0,j0,ii,jj
+      common/dimi/ i0,j0,ii,jj
+      save  /dimi/
+      integer      kk
+      parameter   (kk=kdm)
+c
+c --- ms-1  = max. number of interruptions of any tile row or column by land
+      integer    ms
+      parameter (ms=100)  ! should be enough for any region
+c
+c --- information in /gindex/ keeps do loops from running into land
+      integer, dimension (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     &         ip,iu,iv,iq,cplmsk
+      integer, dimension (1-nbdy:jdm+nbdy,ms) :: 
+     &         ifp,ilp,ifq,ilq,ifu,ilu,ifv,ilv
+      integer, dimension (1-nbdy:idm+nbdy,ms) :: 
+     &         jfp,jlp,jfq,jlq,jfu,jlu,jfv,jlv
+      integer, dimension (1-nbdy:jdm+nbdy) :: 
+     &         isp,isq,isu,isv
+      integer, dimension (1-nbdy:idm+nbdy) :: 
+     &         jsp,jsq,jsu,jsv
+      common/gindex/ ip,iu,iv,iq,cplmsk,
+     &               ifp,ilp,isp,jfp,jlp,jsp,ifq,ilq,isq,jfq,jlq,jsq,
+     &               ifu,ilu,isu,jfu,jlu,jsu,ifv,ilv,isv,jfv,jlv,jsv
+      save  /gindex/
+c
+c --- line printer unit (stdout) and file unit
+      integer        lp,nfu
+      common/linepr/ lp,nfu
+      save  /linepr/
+c-----------------------------------------------------------------------------
 c
 c --- tile dimensions and tile numbers (counting from 1), see xcspmd
       integer, public, save      :: ipr,  jpr,  ijpr,
      &                              mproc,nproc,mnproc
-c
-c --- region type (-1==unknown,
-c ---               0==  closed/closed,
-c ---               1==periodic/closed,
-c ---               2==periodic/arctic,
-c ---               3==periodic/periodic
-c ---               4==  closed/periodic)
-      integer, public, save      :: nreg
 c
 c --- timers on, usually and default .true.
       logical, public, save      :: timer_on=.true.
@@ -61,8 +102,6 @@ c
 c --- private message passing data structures, see xcspmd
       integer, private, save :: idproc( 0: iqr+1,0:jqr+1),
      &                          idproc1(0:ijqr+1),idhalo(2),
-     &                          i0_pe(iqr,jqr),ii_pe(iqr,jqr),
-     &                          j0_pe(iqr,jqr),jj_pe(iqr,jqr),
      &                          mpe_1(     jqr),
      &                          mpe_e(     jqr),
      &                          mpe_i(itdm,jqr),npe_j(jtdm)
