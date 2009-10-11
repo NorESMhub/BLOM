@@ -210,8 +210,11 @@
 
       if (csdiag) then
          if (mnproc.eq.1) then
-           write (lp,*) 'import_mct:'
+            write (lp,*) 'import_mct:'
          endif
+         call chksummsk(ustarw,ip,1,'ustarw')
+         call chksummsk(ztx,iu,1,'ztx')
+         call chksummsk(mty,iv,1,'mty')
          call chksummsk(lip,ip,1,'lip')
          call chksummsk(sop,ip,1,'sop')
          call chksummsk(eva,ip,1,'eva')

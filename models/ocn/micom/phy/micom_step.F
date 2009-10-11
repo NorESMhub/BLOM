@@ -255,7 +255,7 @@ c$OMP PARALLEL DO
             util1(i,j)=(salflx(i,j)+salrlx(i,j))*scp2(i,j)*delt1
             util2(i,j)=(surflx(i,j)+surrlx(i,j))*scp2(i,j)*delt1
 #ifdef TRC
-            util3(i,j)=trflx(ntr,i,j)*scp2(i,j)*delt1
+            util3(i,j)=trflx(1,i,j)*scp2(i,j)*delt1
 #endif
           enddo
           enddo

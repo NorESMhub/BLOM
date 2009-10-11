@@ -93,7 +93,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               q=dp(i,j,kn)*scp2(i,j)
-              util1(i,j)=util1(i,j)+trc(i,j,k,ntr)*q
+              util1(i,j)=util1(i,j)+trc(i,j,k,1)*q
             enddo
             enddo
           enddo

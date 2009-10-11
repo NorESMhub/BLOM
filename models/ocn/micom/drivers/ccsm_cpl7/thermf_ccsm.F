@@ -177,7 +177,7 @@ c --- --- Virtual tracer fluxes (positive downwards)
 c --- ------------------------------------------------------------------
 c
           do nt=1,ntrc
-            trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx
+            trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx*1.e-3
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
           enddo
@@ -288,10 +288,14 @@ c
         call chksummsk(brnflx,ip,1,'brnflx')
         call chksummsk(surrlx,ip,1,'surrlx')
         call chksummsk(salrlx,ip,1,'salrlx')
+        call chksummsk(rnfflx,ip,1,'rnfflx')
+        call chksummsk(rfiflx,ip,1,'rfiflx')
+        call chksummsk(hmltfz,ip,1,'hmltfz')
         call chksummsk(ustar,ip,1,'ustar')
         call chksummsk(frzpot,ip,1,'frzpot')
         call chksummsk(mltpot,ip,1,'mltpot')
       endif
+c
 c
       return
       end

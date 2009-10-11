@@ -14,6 +14,55 @@ c
       integer i,j,k,l,kn,km,kp
       real pold,pmid,pnew,q
 c
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      real, dimension(ntr) :: trbudo
+      real trbudn
+      integer nt,nat
+#endif
+c
+#ifdef TRC
+      if (n.eq.2) then
+c
+c --- - compute tracer budgets before time smoothing
+c
+        do nt=1,ntr-natr
+c
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util1(i,j)=0.
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(km)
+#ifdef ARCTIC
+          do j=1,min(jj,jtdm-j0-1)
+#else
+          do j=1,jj
+#endif
+            do k=1,kk
+              km=k+mm
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                util1(i,j)=util1(i,j)+trc(i,j,k,nt)*dp(i,j,km)*scp2(i,j)
+              enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+          call xcsum(trbudo(nt),util1,ip)
+c
+        enddo
+c
+      endif
+#endif
+c
 c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew)
       do j=1,jj
         do l=1,isp(j)
@@ -65,6 +114,77 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew)
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+#ifdef TRC
+      if (n.eq.2) then
+c
+c --- - compute tracer budgets after time smoothing and correct tracer
+c --- - fields to ensure conservation
+c
+        do nt=1,ntr-natr
+c
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util1(i,j)=0.
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(km)
+#ifdef ARCTIC
+          do j=1,min(jj,jtdm-j0-1)
+#else
+          do j=1,jj
+#endif
+            do k=1,kk
+              km=k+mm
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                util1(i,j)=util1(i,j)+trc(i,j,k,nt)*dp(i,j,km)*scp2(i,j)
+              enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+          call xcsum(trbudn,util1,ip)
+          q=trbudo(nt)/max(1.e-14,trbudn)
+c
+          nat=ntr-natr+nt
+          if (nat.le.natr) then
+c$OMP PARALLEL DO
+            do j=1,jj
+              do k=1,kk
+                do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                  trc(i,j,k,nt)=trc(i,j,k,nt)*q
+                  trc(i,j,k,nat)=trc(i,j,k,nat)*q
+                enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          else
+c$OMP PARALLEL DO
+            do j=1,jj
+              do k=1,kk
+                do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                  trc(i,j,k,nt)=trc(i,j,k,nt)*q
+                enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          endif
+c
+        enddo
+c
+      endif
+#endif
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 c
