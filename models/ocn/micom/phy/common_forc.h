@@ -59,6 +59,8 @@ c --- various surface state and flux fields
      .  albw,          ! daily mean open water albedo
      .  frzpot,        ! freezing potential
      .  mltpot,        ! melting potential
+     .  atmco2,        ! atmospheric co2 concentration
+     .  flxco2,        ! air-sea co2 flux
 c
 c --- fields to be specified in thermf
      .  tsi_tda,       ! accumulated snow/ice surface temperature
@@ -86,8 +88,9 @@ c --- time steps between surface forcing updates
 c
       common /frc2/ swa,nsf,hmltfz,hmlt,dfl,lip,sop,eva,rnf,rfi,fmltfz,
      .              sfl,ztx,mty,ustarw,tsi,slp,abswnd,albw,frzpot,
-     .              mltpot,tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,
-     .              ssu_tda,ssv_tda,alb,rnfres,rnfflx,rfiflx,ntda,nfrco
+     .              mltpot,atmco2,flxco2,tsi_tda,tml_tda,sml_tda,
+     .              alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,rnfflx,
+     .              rfiflx,ntda,nfrco
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,t0deg

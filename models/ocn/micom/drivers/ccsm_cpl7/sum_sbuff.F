@@ -102,7 +102,7 @@
             do l = 1, isp(j)
             do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
                sbuff(i,j,index_o2x_Faoo_fco2) =
-     .            sbuff(i,j,index_o2x_Faoo_fco2) + 0._r8
+     .            sbuff(i,j,index_o2x_Faoo_fco2) + flxco2(i,j)*baclin
             enddo
             enddo
          enddo

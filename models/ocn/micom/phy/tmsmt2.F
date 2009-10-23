@@ -19,7 +19,10 @@ c
 #  include "common_trc.h"
       real, dimension(ntr) :: trbudo
       real trbudn
-      integer nt,nat
+      integer nt
+#  ifdef ATRC
+      integer nat
+#  endif
 #endif
 c
 #ifdef TRC
@@ -27,7 +30,11 @@ c
 c
 c --- - compute tracer budgets before time smoothing
 c
+#  ifdef ATRC
         do nt=1,ntr-natr
+#  else
+        do nt=1,ntr
+#  endif
 c
 c$OMP PARALLEL DO
           do j=1,jj
@@ -40,11 +47,11 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(km)
-#ifdef ARCTIC
+#  ifdef ARCTIC
           do j=1,min(jj,jtdm-j0-1)
-#else
+#  else
           do j=1,jj
-#endif
+#  endif
             do k=1,kk
               km=k+mm
               do l=1,isp(j)
@@ -121,7 +128,11 @@ c
 c --- - compute tracer budgets after time smoothing and correct tracer
 c --- - fields to ensure conservation
 c
+#  ifdef ATRC
         do nt=1,ntr-natr
+#  else
+        do nt=1,ntr
+#  endif
 c
 c$OMP PARALLEL DO
           do j=1,jj
@@ -134,11 +145,11 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(km)
-#ifdef ARCTIC
+#  ifdef ARCTIC
           do j=1,min(jj,jtdm-j0-1)
-#else
+#  else
           do j=1,jj
-#endif
+#  endif
             do k=1,kk
               km=k+mm
               do l=1,isp(j)
@@ -153,6 +164,7 @@ c
           call xcsum(trbudn,util1,ip)
           q=trbudo(nt)/max(1.e-14,trbudn)
 c
+#  ifdef ATRC
           nat=ntr-natr+nt
           if (nat.le.natr) then
 c$OMP PARALLEL DO
@@ -180,6 +192,19 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           endif
+#  else
+c$OMP PARALLEL DO
+          do j=1,jj
+            do k=1,kk
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                trc(i,j,k,nt)=trc(i,j,k,nt)*q
+              enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+#  endif
 c
         enddo
 c

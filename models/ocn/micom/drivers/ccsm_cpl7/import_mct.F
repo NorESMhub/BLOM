@@ -178,9 +178,6 @@
                ! 10m wind speed [m/s]
                abswnd(i,j) = sqrt(x2o_o%rAttr(index_x2o_Sx_duu10n,n))
 
-               ! Diagnostics
-               dfl(i,j) = 0._r8
-
             endif
 
          enddo
@@ -195,19 +192,33 @@
          do j = 1, jj
             do i = 1, ii
                n = n + 1
-               ! Only for testing!!!
-               dfl(i,j) = x2o_o%rAttr(index_x2o_Sa_co2prog,n)
+               if     (ip(i,j) == 0) then
+                  atmco2(i,j) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  atmco2(i,j) = fval
+               else
+                  ! Atmospheric co2 concentration [ppmv?]
+                  atmco2(i,j) = x2o_o%rAttr(index_x2o_Sa_co2prog,n)
+               endif
             enddo
          enddo
+         call fill_global(mval, fval, halo_ps, atmco2)
+         if (mnproc.eq.1)
+     .      write (lp,*) 'import_mct: atmospheric co2 read'
+      else
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  atmco2(i,j) = mval
+               else
+                  atmco2(i,j) = -1
+               endif
+            enddo
+         enddo
+         if (mnproc.eq.1)
+     .      write (lp,*) 'import_mct: atmospheric co2 not read'
       endif
       
-      do j = 1, jj
-         do i = 1, ii
-            surrlx(i,j) = 0._r8
-            salrlx(i,j) = 0._r8
-         enddo
-      enddo
-
       if (csdiag) then
          if (mnproc.eq.1) then
             write (lp,*) 'import_mct:'

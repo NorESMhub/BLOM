@@ -13,7 +13,12 @@ c
 c
       integer m,n,mm,nn,k1m,k1n
 c
-c --- dummy routine, nothing done
+#ifdef HAMOCC
+      call hamocc_step(m,n,mm,nn,k1m,k1n)
+#endif
+#ifdef IAGE
+      call iage_step(m,n,mm,nn,k1m,k1n)
+#endif
 c
       return
       end

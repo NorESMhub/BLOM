@@ -8,7 +8,7 @@ if !(-d $CASEROOT/Buildexe         ) mkdir $CASEROOT/Buildexe
 #------------------------------------------------------------------------------
 
 if      ( $OCN_GRID ==  gx1v5) then
-  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20090715
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20091001
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -28,6 +28,14 @@ cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
 EOF1
 endif
+set tracers = (`echo \$MICOM_TRACER_MODULES`)
+foreach module (\$tracers)
+  if (\$module == ecosys) then
+cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
+dust_file = $INPUTPATH/INPDUST_mhw.nc
+EOF1
+  endif
+end
 
 #==============================================================================
 # Create resolved prestage data script
@@ -96,6 +104,13 @@ cat >! $CASEROOT/Buildexe/micom.buildexe.csh << EOF
 set exedir = \$EXEROOT/ccsm_se
 set objdir = \$OBJROOT/ocn/obj; cd \$objdir
 set dimdir = \$objdir/dimensions
+set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
+
+set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -UCOMPDIA -DCOMPRES"
+set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
+set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
+set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC"
+set cpp_iage = "-DIAGE"
 
 #------------------------------------------------------------------------------
 # Make dimensions.F
@@ -123,12 +138,32 @@ endif
 \$CODEROOT/ocn/micom/phy
 EOF1
 
+set cpp_ocn = "\$cpp_phy"
+if (\$#tracers == 0) then
+  set cpp_ocn = "\$cpp_ocn \$cpp_notracer"
+else
+  echo \$CODEROOT/ocn/micom/trc >> Filepath
+  set cpp_ocn = "\$cpp_ocn \$cpp_tracer"
+  foreach module (\$tracers)
+    if      (\$module == iage) then
+      echo \$CODEROOT/ocn/micom/iage >> Filepath
+      set cpp_ocn = "\$cpp_ocn \$cpp_iage"
+    else if (\$module == ecosys) then
+      echo \$CODEROOT/ocn/micom/hamocc >> Filepath
+      set cpp_ocn = "\$cpp_ocn \$cpp_ecosys"
+    else
+      echo \$0": tracer module \$module is not recognized!"
+      exit -1
+    endif
+  end
+endif
+
 if (\$BLDTYPE == 'TRUE' || \$recompile == 'TRUE') then
   cp \$BLDROOT/mkDepends . || exit 2
   cp \$BLDROOT/mkSrcfiles . || exit 2
   set SMP = FALSE ;  if (\$NTHRDS_OCN > 1) set SMP = TRUE
-  gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a SMP=\$SMP MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -UCOMPDIA -DCOMPRES" -f \$BLDROOT/Makefile || exit 2
-  cp -p *comp_*.mod $LIBROOT/include/
+  gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a SMP=\$SMP MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="\$cpp_ocn" -f \$BLDROOT/Makefile || exit 2
+  cp -p *comp_*.mod \$LIBROOT/include/
 endif
 
 if !(-f \$LIBROOT/libocn.a) then
