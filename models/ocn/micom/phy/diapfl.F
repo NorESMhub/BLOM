@@ -17,16 +17,20 @@ c ---   dsgmnr - minimum ratio of linearized density jump to target
 c ---            density jump across a layer interface []
 c ---   dfeps  - small number used in the estimation of flux change
 c ---            limit []
-      real dsgmnr,dfeps
-      parameter (dsgmnr=.1,dfeps=1.e-12)
+c ---   gbbl   - efficientcy factor for bottom boundary layer mixing []
+c ---   kappa  - von Karman constant []
+c ---   ustmin - minimum value of ustar used in computing the length
+c ---            scale bottom boundary layer mixing [cm/s]
+      real dsgmnr,dfeps,gbbl,kappa,ustmin
+      parameter (dsgmnr=.1,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.01)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fpug,fplg
       real, dimension(kdm) ::
      .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fc,dsgu,dsgl,dsghm,dsg,
      .  dsgui,dsgli,fcmaxu,fmaxu,fcmaxl,fmaxl,fcmax,fmax,f,f0,fold,
      .  h,gtd,uc
-      real c,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,atd,
-     .     maxdf,dtd
+      real c,nubbl,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,
+     .     atd,maxdf,dtd
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: kming
       integer i,j,k,l,kn,kfpl,kmin,kmax,kfil,kl,kfmaxu
       logical done,dwnwrd,remfmx
@@ -50,8 +54,8 @@ c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fc,dsgu,dsgl,dsghm,dsg,
 c$OMP+ dsgui,dsgli,fcmaxu,fmaxu,fcmaxl,fmaxl,fcmax,fmax,f,f0,fold,h,gtd,
-c$OMP+ dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,
-c$OMP+ k,kn,kfpl,kmin,kmax,kfil,kl,kfmaxu,done,dwnwrd,remfmx,
+c$OMP+ nubbl,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,atd,
+c$OMP+ maxdf,dtd,k,kn,kfpl,kmin,kmax,kfil,kl,kfmaxu,done,dwnwrd,remfmx,
 c$OMP+ ttem0,ssal0,delp0,dens0,sigr0,nu0,niter
 #ifdef TRC
 c$OMP+,ttrc
@@ -141,6 +145,20 @@ c
             fpl(kmax)=0.
 c
             if (kfil.le.kmax) then
+c
+              if (kfil.lt.kmax) then
+c
+c --- --------- Bottom boundary mixing is parameterized by assuming that
+c --- --------- a part of the energy extracted from the mean flow by the
+c --- --------- bottom drag drives diapycnal mixing.
+                k=kmax-1
+                nubbl=gbbl*ustarb(i,j)**3
+     .                *exp(-(delp(k+1)+.5*delp(k))*abs(coriop(i,j))
+     .                      *alpha0/(kappa*max(ustmin,ustarb(i,j))*g))
+     .                /(alpha0*g*(sigr(k+1)-sigr(k)))
+                nu(k)=max(nu(k),nubbl)
+                difdia(i,j,k)=nu(k)
+              endif
 c
 c --- ------- Compute linearized density jumps across upper and lower
 c --- ------- interfaces of layers, average density jumps for layers,

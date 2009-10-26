@@ -8,35 +8,43 @@ c --- Contact person: mats@nersc.no
 c --- ---------------------------------------------
 c
       use mod_xc
+      use data_mct
 c
       implicit none
 c
 #include "common_blocks.h"
+#ifdef MPI
+#  include "mpif.h"
+#endif
 c
-      integer i,j,l
+      integer i
+c
+#ifdef MPI
+      call mpi_init
+      mpicom_mct=mpi_comm_world
+#endif
+c
+      open (unit=nfu,file='ocn_in',status='old',action='read')
+      read (nfu,'(i6)') i
+      read (nfu,*)
+      read (nfu,*)
+      read (nfu,*)
+      read (nfu,'(a)') runid_mct    ! Experiment name
+      close (unit=nfu)
+      if (i.eq.0) then
+        runtype_mct='initial'
+      else
+        runtype_mct='continue'
+      endif
 c
 c --- initialize the model
       call micom_init
 c
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          surflx(i,j)=0.
-          surrlx(i,j)=0.
-          sswflx(i,j)=0.
-          salflx(i,j)=0.
-          salrlx(i,j)=0.
-          taux(i,j)=0.
-          tauy(i,j)=0.
-          ustar(i,j)=0.
-        enddo
-        enddo
-      enddo
-c
 c --- advance the model from time step nstep1 to nstep2
       micom_loop: do
         call micom_step
-        if (nstep.eq.nstep2) exit micom_loop
+c       if (nstep.eq.nstep2) exit micom_loop
+        if (nstep.eq.nstep1+2) exit micom_loop
       enddo micom_loop
 c
 c --- write check sum of layer thickness

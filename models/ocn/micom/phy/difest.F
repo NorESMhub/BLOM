@@ -11,6 +11,7 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
+#include "common_geo.h"
 c
 c --- parameters:
 c ---   iidtyp - type of interface and isopycnal diffusivities. If
@@ -22,7 +23,7 @@ c ---   bddtyp - type of background diapycnal diffusivity. If bddtyp=1
 c ---            the diffusivity is a constant divided by the
 c ---            Brunt-Vaisala frequency, if bddtyp=2 the diffusivity is
 c ---            parameterized due to tidally driven mixing.
-c ---   dprmin - smallest layer thickness allowed in evaluating
+c ---   dpbmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2].
 c ---   bvfeps - small value of Brunt-Vaisala frequency [1/s].
 c ---   thkdff - diffusive velocity for thickness diffusion [cm/s].
@@ -33,6 +34,8 @@ c ---            parameterization [].
 c ---   eggam  - the parameter gamma in the Eden and Greatbatch (2008)
 c ---            parameterization [].
 c ---   egmndf - minimum diffusivity in the Eden and Greatbatch (2008)
+c ---            parameterization [cm**2/s].
+c ---   egmxdf - maximum diffusivity in the Eden and Greatbatch (2008)
 c ---            parameterization [cm**2/s].
 c ---   egidfq - factor relating the isopycnal diffusivity to the layer
 c ---            interface diffusivity in the Eden and Greatbatch (2008)
@@ -63,15 +66,16 @@ c ---            the mixed layer [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bddtyp
-      real dprmin,bvfeps,thkdff,temdff,egc,eggam,egmndf,egidfq,ri0,nus0,
-     .     nug0,diapyc,tdmk0,tdmq,tdmgam,tdmls,nubmin,nubmax,nusmax,
-     .     dpgc,dpdfav,dpnbav
-      parameter (iidtyp=2,bddtyp=2,dprmin=980.6,bvfeps=1.e-9,thkdff=.5,
-     .           temdff=.35,egc=1.,eggam=200.,egmndf=100.e4,egidfq=1.,
-     .           ri0=.7,nus0=50.,nug0=2500.,diapyc=1.2e-3,tdmk0=.1,
-     .           tdmq=1./3.,tdmgam=.2,tdmls=500.*98060.,nubmin=.1,
-     .           nubmax=1000.,nusmax=1.,dpgc=300.*98060.,
-     .           dpdfav=25.*98060.,dpnbav=250.*98060.)
+      real dptmin,dpbmin,bvfeps,thkdff,temdff,egc,eggam,egmndf,egmxdf,
+     .     egidfq,ri0,nus0,nug0,diapyc,tdmk0,tdmq,tdmgam,tdmls,nubmin,
+     .     nubmax,nusmax,dpgc,dpdfav,dpnbav
+      parameter (iidtyp=2,bddtyp=2,dptmin=98060.,dpbmin=980.6,
+     .           bvfeps=1.e-9,thkdff=.5,temdff=.35,egc=1.,eggam=200.,
+     .           egmndf=100.e4,egmxdf=7500.e4,egidfq=1.,ri0=.7,
+     .           nus0=50.,nug0=2500.,diapyc=1.2e-3,tdmk0=.1,tdmq=1./3.,
+     .           tdmgam=.2,tdmls=500.*98060.,nubmin=.1,nubmax=1000.,
+     .           nusmax=1.,dpgc=300.*98060.,dpdfav=100.*98060.,
+     .           dpnbav=250.*98060.)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
@@ -90,6 +94,11 @@ c
 c
       real rho,sig
       external rho,sig
+c
+cdiag real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+cdiag.  tmp3d_1,tmp3d_2,tmp3d_3,tmp3d_4,tmp3d_5
+cdiag real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+cdiag.  tmp2d_1,tmp2d_2,tmp2d_3,tmp2d_4,tmp2d_5
 c
 c$OMP PARALLEL DO PRIVATE(kn)
       do j=-2,jj+3
@@ -112,6 +121,7 @@ c$OMP PARALLEL DO
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           util1(i,j)=kfpla(i,j,n)
+cdiag     tmp2d_1(i,j)=kfpla(i,j,n)
         enddo
         enddo
       enddo
@@ -132,7 +142,7 @@ c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          kfpl(i)=min(kfpla(i,j-1,n),kfpla(i,j,n))
+          kfpl(i)=kk+1
           klpl(i)=1
         enddo
         enddo
@@ -140,7 +150,16 @@ c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
           kn=k+nn
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (dpv(i,j,kn).gt.dprmin) klpl(i)=k
+            if (dpv(i,j,kn).gt.dpbmin) klpl(i)=k
+          enddo
+          enddo
+        enddo
+        do k=kk,3,-1
+          kn=k+nn
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            if (k.gt.min(kfpla(i,j-1,n),kfpla(i,j,n))+1.and.
+     .          dpv(i,j,kn).gt.dptmin) kfpl(i)=k
           enddo
           enddo
         enddo
@@ -154,9 +173,9 @@ c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
           kn=k+nn
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (k.gt.kfpl(i).and.k.le.klpl(i).and.
-     .          klpl(i)-kfpl(i).ge.2) then
-              if     (k.eq.kfpl(i)+1) then
+            if (k.ge.kfpl(i).and.k.le.klpl(i).and.
+     .          klpl(i)-kfpl(i).ge.1) then
+              if     (k.eq.kfpl(i)) then
                 q=v(i,j,kn+1)-v(i,j,kn)
                 q=q*q
                 dv2(i,j,k)=q
@@ -177,17 +196,16 @@ c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
       enddo
 c$OMP END PARALLEL DO
 c
-c     util1=-100.
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ kfpl,klpl,kn,du2,mdu2,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,
-c$OMP+ bvfbot,dps,drho,bvfsq,dfints,dfisos,dfdias,rig,egr,rhisc,els,
-c$OMP+ dx2,dy2,nus,nub,tdmf)
+c$OMP+ bvfbot,dps,drho,bvfsq,dfints,dfisos,dfdias,rig,egr,rhisc,els,dx2,
+c$OMP+ dy2,nus,nub,tdmf)
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-          kfpl(i)=min(kfpla(i-1,j,n),kfpla(i,j,n))
+          kfpl(i)=kk+1
           klpl(i)=1
         enddo
         enddo
@@ -195,7 +213,16 @@ c ----- Compute squared vertical velocity gradients of u-component
           kn=k+nn
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (dpu(i,j,kn).gt.dprmin) klpl(i)=k
+            if (dpu(i,j,kn).gt.dpbmin) klpl(i)=k
+          enddo
+          enddo
+        enddo
+        do k=kk,3,-1
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            if (k.gt.min(kfpla(i-1,j,n),kfpla(i,j,n))+1.and.
+     .          dpu(i,j,kn).gt.dptmin) kfpl(i)=k
           enddo
           enddo
         enddo
@@ -209,9 +236,9 @@ c ----- Compute squared vertical velocity gradients of u-component
           kn=k+nn
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (k.gt.kfpl(i).and.k.le.klpl(i).and.
-     .          klpl(i)-kfpl(i).ge.2) then
-              if     (k.eq.kfpl(i)+1) then
+            if (k.ge.kfpl(i).and.k.le.klpl(i).and.
+     .          klpl(i)-kfpl(i).ge.1) then
+              if     (k.eq.kfpl(i)) then
                 q=u(i,j,kn+1)-u(i,j,kn)
                 q=q*q
                 du2(i,k)=q
@@ -230,27 +257,11 @@ c ----- Compute squared vertical velocity gradients of u-component
           enddo
         enddo
 c
-c ----- Locate range of physical interior layers
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          kfpl(i)=kfpla(i,j,n)
-          klpl(i)=1
-        enddo
-        enddo
-        do k=2,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (dp(i,j,kn).gt.dprmin) klpl(i)=k
-          enddo
-          enddo
-        enddo
-c
 c ----- Compute the first baroclinic rossby radius of deformation using
 c ----- the WKB approximation by Chelton at al. (1998).
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          pup(i)=.5*(3.*p(i,j,2)-p(i,j,min(kk,kfpl(i))+1))
+          pup(i)=.5*(3.*p(i,j,2)-p(i,j,min(kk,kfpla(i,j,n))+1))
           tup(i)=temp(i,j,k1n)
           sup(i)=saln(i,j,k1n)
           cr(i)=0.
@@ -260,7 +271,7 @@ c ----- the WKB approximation by Chelton at al. (1998).
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.ge.kfpl(i)) then
+            if (k.ge.kfpla(i,j,n)) then
               if (p(i,j,kk+1)-p(i,j,k+1).lt.epsil) then
                 plo=p(i,j,kk+1)
               else
@@ -284,8 +295,34 @@ c ----- the WKB approximation by Chelton at al. (1998).
           cr(i)=alpha0*cr(i)/pi
           bcrrd(i)=min(cr(i)/max(1.e-24,abs(coriop(i,j))),
      .                 sqrt(cr(i)/(2.*max(1.e-24,betafp(i,j)))))
+cdiag     tmp2d_2(i,j)=bcrrd(i)
           afeql(i)=max(abs(coriop(i,j)),sqrt(2.*betafp(i,j)*cr(i)))
+cdiag     tmp2d_3(i,j)=afeql(i)
         enddo
+        enddo
+c
+c ----- Locate range of physical interior layers
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          kfpl(i)=kk+1
+          klpl(i)=1
+        enddo
+        enddo
+        do k=2,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (dp(i,j,kn).gt.dpbmin) klpl(i)=k
+          enddo
+          enddo
+        enddo
+        do k=kk,3,-1
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (k.gt.kfpla(i,j,n)+1.and.dp(i,j,kn).gt.dptmin) kfpl(i)=k
+          enddo
+          enddo
         enddo
 c
 c ----- Compute local gradient richardson number and Brunt-Vaisala
@@ -300,9 +337,9 @@ c ----- frequency squared.
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.gt.kfpl(i).and.k.le.klpl(i).and.
-     .          klpl(i)-kfpl(i).ge.2) then
-              if     (k.eq.kfpl(i)+1) then
+            if (k.ge.kfpl(i).and.k.le.klpl(i).and.
+     .          klpl(i)-kfpl(i).ge.1) then
+              if     (k.eq.kfpl(i)) then
                 q=max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1))
      .                  -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
                 drho=q
@@ -319,6 +356,7 @@ c
 c --- ------- Brunt-Vaisala frequency squared.
               bvfsq(i,k)=max(bvfeps*bvfeps,
      .                       g*g*drho/max(epsil,dp(i,j,kn)))
+cdiag         tmp3d_1(i,j,k)=bvfsq(i,k)
 c
               q=(mdu2(i,k)*du2(i,k)+mdu2(i+1,k)*du2(i+1,k))
      .          /max(1,mdu2(i,k)+mdu2(i+1,k))
@@ -327,6 +365,7 @@ c
 c
 c --- ------- Local gradient Richardson number
               rig(i,k)=alpha0*alpha0*drho*dp(i,j,kn)/max(1.e-9,q)
+cdiag         tmp3d_2(i,j,k)=rig(i,k)
 c
 c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
 c --- ------- bottom
@@ -359,8 +398,6 @@ c       endif
           if (dps(i).gt.0.) then
             bvfbot(i)=bvfbot(i)/dps(i)
           endif
-c         util1(i,j)=bvfbot(i)
-c         util2(i,j)=dps(i)
           dps(i)=0.
         enddo
         enddo
@@ -368,8 +405,8 @@ c         util2(i,j)=dps(i)
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if(k.gt.kfpl(i).and.k.le.klpl(i).and.
-     .         klpl(i)-kfpl(i).ge.2) then
+            if(k.ge.kfpl(i).and.k.le.klpl(i).and.
+     .         klpl(i)-kfpl(i).ge.1) then
 c
 c --- ------------------------------------------------------------------
 c --- ------- Layer interface and isopycnal diffusivities
@@ -388,19 +425,23 @@ c --- --------- Type 2: Diffusivities are parameterized according
 c --- --------- to Eden and Greatbatch (2008).
 c
 c --- --------- Eady growth rate.
-                egr=afeql(i)/sqrt(rig(i,k)+eggam)
+                egr=sqrt(hshrsq(i,j,k)
+     .                  +afeql(i)*afeql(i)/(rig(i,k)+eggam))
+cdiag           tmp3d_3(i,j,k)=egr
 c
 c --- --------- Rhines scale.
                 rhisc=egr/max(1.e-24,betafp(i,j))
+cdiag           tmp3d_4(i,j,k)=rhisc
 c
 c --- --------- Eddy length scale.
                 els=min(bcrrd(i),rhisc)
+cdiag           tmp3d_5(i,j,k)=els
 c
 c --- --------- Layer interface and isopycnic diffusivity.
                 dx2=scux(i,j)*scux(i,j)
                 dy2=scuy(i,j)*scuy(i,j)
                 difint(i,j,k)=min(.9*.5*dx2*dy2/(max(1.,dx2+dy2)*delt1),
-     .                        max(egmndf,egc*egr*els*els))
+     .                            egmxdf,max(egmndf,egc*egr*els*els))
                 difiso(i,j,k)=difint(i,j,k)*egidfq
 c
               endif
@@ -458,7 +499,7 @@ c --- ------- Total diapycnal diffusivity.
 c
 c --- ------- Accumulate diffusivities in a region below the first
 c --- ------- physical layer
-              q=max(0.,min(p(i,j,kfpl(i)+1)+dpdfav,p(i,j,k+1))-p(i,j,k))
+              q=max(0.,min(p(i,j,kfpl(i))+dpdfav,p(i,j,k+1))-p(i,j,k))
               dps(i)=dps(i)+q
               dfints(i)=dfints(i)+difint(i,j,k)*q
               dfisos(i)=dfisos(i)+difiso(i,j,k)*q
@@ -495,7 +536,7 @@ c
         do k=kk-1,1,-1
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.le.kfpl(i)) then
+            if (k.lt.kfpl(i)) then
               difint(i,j,k)=dfints(i)
               difiso(i,j,k)=dfisos(i)
               difdia(i,j,k)=dfdias(i)
@@ -507,18 +548,29 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c     open (11,file='difest.uf',form='unformatted')
-c     write (11) dp(1:idm,1:jdm,1+nn:kk+nn)
-c     write (10) bcrrd(1:idm,1:jdm)
-c     write (10) coriop(1:idm,1:jdm)
-c     write (10) afeql(1:idm,1:jdm)
-c     write (11) rig(1:idm,1:jdm,:)
-c     write (11) egr(1:idm,1:jdm,:)
-c     write (11) rhisc(1:idm,1:jdm,:)
-c     write (11) els(1:idm,1:jdm,:)
-c     write (11) difint(1:idm,1:jdm,:)
-c     close (11)
-c     stop
+cdiag call ncfopn('difest.nc','w')
+cdiag call ncdims('x',itdm)
+cdiag call ncdims('y',jtdm)
+cdiag call ncdims('z',kdm)
+cdiag call ncwrtr('coriop','x y',coriop,ip,1)
+cdiag call ncwrtr('betafp','x y',betafp,ip,1)
+cdiag call ncwrtr('kfpla','x y',tmp2d_1,ip,1)
+cdiag call ncwrtr('bcrrd','x y',tmp2d_2,ip,1)
+cdiag call ncwrtr('afeql','x y',tmp2d_3,ip,1)
+cdiag call ncwrtr('dp','x y z',dp(1-nbdy,1-nbdy,k1n),ip,1)
+cdiag call ncwrtr('temp','x y z',temp(1-nbdy,1-nbdy,k1n),ip,1)
+cdiag call ncwrtr('saln','x y z',saln(1-nbdy,1-nbdy,k1n),ip,1)
+cdiag call ncwrtr('u','x y z',u(1-nbdy,1-nbdy,k1n),iu,1)
+cdiag call ncwrtr('v','x y z',v(1-nbdy,1-nbdy,k1n),iv,1)
+cdiag call ncwrtr('bvfsq','x y z',tmp3d_1,ip,1)
+cdiag call ncwrtr('rig','x y z',tmp3d_2,ip,1)
+cdiag call ncwrtr('egr','x y z',tmp3d_3,ip,1)
+cdiag call ncwrtr('rhisc','x y z',tmp3d_4,ip,1)
+cdiag call ncwrtr('els','x y z',tmp3d_5,ip,1)
+cdiag call ncwrtr('difint','x y z',difint,ip,1)
+cdiag call ncwrtr('difdia','x y z',difdia,ip,1)
+cdiag call ncwrtr('hshrsq','x y z',hshrsq,ip,1)
+cdiag call ncfcls
 c
       if (csdiag) then
         if (mnproc.eq.1) then

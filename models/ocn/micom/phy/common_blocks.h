@@ -111,7 +111,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  difint,        ! layer interface diffusivity
      .  difiso,        ! isopycnal diffusivity
-     .  difdia         ! diapycnal diffusivity
+     .  difdia,        ! diapycnal diffusivity
+     .  hshrsq         ! horizontal shear squared
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  uja,ujb,       ! velocities at lateral ...
@@ -126,16 +127,17 @@ c
      .  brnflx,        ! surface brine flux
      .  salrlx,        ! surface relaxation salinity flux
      .  taux,tauy,     ! surface stress components
-     .  ustar,         ! friction velocity
+     .  ustar,         ! surface friction velocity
+     .  ustarb,        ! bottom friction velocity
      .  twedon         ! tidal wave energy diffipation over buoyancy frequency
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
-      common /micom4/ difint,difiso,difdia,uja,ujb,via,vib,
+      common /micom4/ difint,difiso,difdia,hshrsq,uja,ujb,via,vib,
      .                udvmin,vdvmin,udamax,vdamax,sealv,
      .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,
-     .                taux,tauy,ustar,twedon,kfpla
+     .                taux,tauy,ustar,ustarb,twedon,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep1,nstep2,lstep
@@ -149,6 +151,7 @@ c --- 'veldff' = diffusion velocity (cm/s) for momentum dissipation
 c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
 c --- slip = +1  for free-slip boundary cond., slip = -1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
+c --- 'cb'     = coefficient of quadratic bottom friction
 c --- 'wuv1/2' = weights for time smoothing of u,v field
 c --- 'wts1/2' = weights for time smoothing of t,s field
 c --- 'wbaro'  = weight for time smoothing of barotropic u,v,p field
@@ -159,12 +162,12 @@ c --- 'acurcy' = permissible roundoff error in column integral calc.
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
-      real baclin,batrop,veldff,viscos,slip,cbar,wuv1,wuv2,wts1,wts2,
+      real baclin,batrop,veldff,viscos,slip,cbar,cb,wuv1,wuv2,wts1,wts2,
      .     wbaro,wpgf,thkmin,thkbot,acurcy
       logical csdiag,cnsvdi
 c
-      common /parms1/ baclin,batrop,veldff,viscos,slip,cbar,wuv1,wuv2,
-     .                wts1,wts2,wbaro,wpgf,thkmin,thkbot,acurcy,
+      common /parms1/ baclin,batrop,veldff,viscos,slip,cbar,cb,wuv1,
+     .                wuv2,wts1,wts2,wbaro,wpgf,thkmin,thkbot,acurcy,
      .                csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...

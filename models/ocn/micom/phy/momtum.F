@@ -13,7 +13,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  drag,ubrhs,vbrhs,stress,dpmx,visc,vort,wgtia,wgtib,wgtja,wgtjb, 
      .  dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,uflux1,vflux1
-      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,
+      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,ubbl,
      .     dpxy,dpia,dpib,dpja,dpjb,visca,viscb,q,botstr,pgf
       integer i,j,k,l,kn,km,kan
       character text*20
@@ -41,7 +41,7 @@ c$OMP END PARALLEL DO
 c
 c --- bottom drag (standard bulk formula)
 c
-c$OMP PARALLEL DO PRIVATE(kn,pbotl,ptopl,ubot,vbot)
+c$OMP PARALLEL DO PRIVATE(kn,pbotl,ptopl,ubot,vbot,ubbl)
       do 803 j=0,jj
       do 803 l=1,isp(j)
 c
@@ -64,8 +64,10 @@ c
       vbot=(vbflxs_p(i,j  ,n)/max(epsil,pbv(i,j  ,n)*scvx(i,j  ))
      .     +vbflxs_p(i,j+1,n)/max(epsil,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac
      .    +util2(i,j)/thkbop
- 803  drag(i,j)=min(.003*(.25*sqrt(ubot*ubot+vbot*vbot)+cbar)
-     .          /(100.*thkbot),1./delt1)  !  units: 1/s
+      ubbl=.5*sqrt(ubot*ubot+vbot*vbot)
+      q=cb*(ubbl+cbar)
+      drag(i,j)=q*g/(alpha0*thkbop)
+ 803  ustarb(i,j)=sqrt(q*ubbl)
 c$OMP END PARALLEL DO
 c
 c --- store r.h.s. of barotropic u/v eqn. in -ubrhs,vbrhs-
@@ -105,11 +107,11 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO
 c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,
-c$OMP+  potvor,defor2,j,defor1,dl2uja,dl2ujb,dl2via,dl2vib,visc,dpxy,
+c$OMP+  potvor,j,defor1,dl2uja,dl2ujb,dl2via,dl2vib,visc,dpxy,
 c$OMP+  dpja,dpjb,visca,viscb,stress,ptopl,pbotl,uflux1,botstr,pgf,
 c$OMP+  dpia,dpib,vflux1,q)
-c$OMP+FIRSTPRIVATE(utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,dl2u,
-c$OMP+  via,vib,dl2v,uflux2,uflux3,vflux2,vflux3)
+c$OMP+FIRSTPRIVATE(defor2,utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,
+c$OMP+  dl2u,via,vib,dl2v,uflux2,uflux3,vflux2,vflux3)
       do 9 k=1,kk
       km=k+mm
       kn=k+nn
@@ -283,6 +285,14 @@ c
      .            +ujb(i,j-1)*scux(i,j)-uja(i,j)*scux(i,j-1))**2
      .            *scq2i(i,j)
 c
+      do 66 j=1,jj
+      do 66 l=1,isp(j)
+      do 66 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+ 66   hshrsq(i,j,k)=.25*(defor2(i  ,j  )*scq2i(i  ,j  )
+     .                  +defor2(i+1,j  )*scq2i(i+1,j  )
+     .                  +defor2(i  ,j+1)*scq2i(i  ,j  )
+     .                  +defor2(i+1,j+1)*scq2i(i+1,j+1))
+c
 c --- define auxiliary del2 fields (dl2via,dl2vib,dl2uja,dl2ujb) to imple-
 c --- ment biharmonic sidewall friction along near-vertical bottom slopes.
 c
@@ -389,11 +399,13 @@ c
       ptopl=min(pbu(i,j,m),.5*(p(i,j,k  )+p(i-1,j,k  )))
       pbotl=min(pbu(i,j,m),.5*(p(i,j,k+1)+p(i-1,j,k+1)))
 c
-c --- bottom boundary layer stress. stress profile is assumed linear
-      botstr=-utotn(i,j)*.5*(drag(i,j)+drag(i-1,j))*
-     .     (max(pbu(i,j,m)-thkbop,          pbotl       )
-     .     -max(pbu(i,j,m)-thkbop,min(ptopl,pbotl-onemm)))
-     .     /max(dpu(i,j,km),onemm)
+c --- bottom boundary layer stress. stress profile is assumed linear and
+c --- the drag is treated implicitly
+      q=.5*(drag(i,j)+drag(i-1,j))*
+     .  (max(pbu(i,j,m)-thkbop,          pbotl       )
+     .  -max(pbu(i,j,m)-thkbop,min(ptopl,pbotl-onemm)))
+     .  /max(dpu(i,j,km),onemm)
+      botstr=-utotn(i,j)*q/(1.+delt1*q)
 c
 c --- time averaged pressure gradient term
       pgf=(1.-2.*wpgf)*pgfx(i,j,km)+wpgf*(pgfxo(i,j,k)+pgfx(i,j,kn))
@@ -503,11 +515,13 @@ c
       ptopl=min(pbv(i,j,m),.5*(p(i,j,k  )+p(i,j-1,k  )))
       pbotl=min(pbv(i,j,m),.5*(p(i,j,k+1)+p(i,j-1,k+1)))
 c
-c --- bottom boundary layer stress. stress profile is assumed linear
-      botstr=-vtotn(i,j)*.5*(drag(i,j)+drag(i,j-1))*
-     .     (max(pbv(i,j,m)-thkbop,          pbotl       )
-     .     -max(pbv(i,j,m)-thkbop,min(ptopl,pbotl-onemm)))
-     .     /max(dpv(i,j,km),onemm)
+c --- bottom boundary layer stress. stress profile is assumed linear and
+c --- the drag is treated implicitly
+      q=.5*(drag(i,j)+drag(i,j-1))*
+     .  (max(pbv(i,j,m)-thkbop,          pbotl       )
+     .  -max(pbv(i,j,m)-thkbop,min(ptopl,pbotl-onemm)))
+     .  /max(dpv(i,j,km),onemm)
+      botstr=-vtotn(i,j)*q/(1.+delt1*q)
 c
 c --- time averaged pressure gradient term
       pgf=(1.-2.*wpgf)*pgfy(i,j,km)+wpgf*(pgfyo(i,j,k)+pgfy(i,j,kn))

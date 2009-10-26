@@ -10,7 +10,7 @@ c
 c
 c --- 'veldff' = diffusion velocity (cm/s) for momentum dissipation
 c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
-      data veldff/1.0/,viscos/0.5/
+      data veldff/2.0/,viscos/0.5/
 c
 c --- 'thkmin' = minimum mixed-layer thickness (m)
 c --- 'acurcy' = permissible roundoff error in column integral calc.
@@ -18,8 +18,9 @@ c --- 'acurcy' = permissible roundoff error in column integral calc.
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
+c --- 'cb'     = coefficient of quadratic bottom friction
 c --- 'thkbot' = thickness of bottom boundary layer (m)
-      data slip/-1./,cbar/10./,thkbot/10./
+      data slip/-1./,cbar/5./,cb/.002/,thkbot/10./
 c
 c --- weights for time smoothing
 ccc      data wuv1,wuv2/.5,.25/
