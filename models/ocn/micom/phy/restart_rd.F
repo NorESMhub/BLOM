@@ -147,7 +147,6 @@ c
       call ncread('sigmar',sigmar,ip,1,0.)
       call ncread('pgfx',pgfx,iuu,1,0.)
       call ncread('pgfy',pgfy,ivv,1,0.)
-      call ncread('hshrsq',hshrsq,ip,1,0.)
       call ncread('pb',pb,ip,1,0.)
       call ncread('pb_mn',pb_mn,ip,1,0.)
       call ncread('pb_p',pb_p,ip,1,0.)

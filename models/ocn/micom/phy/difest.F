@@ -53,6 +53,9 @@ c ---            [cm**2/s].
 c ---   tdmq   - tidal dissipation efficiency [].
 c ---   tdmgam - tidal driven mixing efficiency [].
 c ---   tdmls  - tidal driven mixing length scale [g/cm/s**2].
+c ---   tdmf30 - coriolis parameter at 30N [1/s].
+c ---   tdmn0  - reference stratification in the parameterization of
+c ---            latitude dependent background diapycnal mixing [1/s].
 c ---   nubmin - minimum diapycnal diffusivity [cm**2/s].
 c ---   nubmax - maximum background diapycnal diffusivity [cm**2/s].
 c ---   nusmax - maximum diapycnal diffusivity in the first physical
@@ -67,22 +70,22 @@ c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bddtyp
       real dptmin,dpbmin,bvfeps,thkdff,temdff,egc,eggam,egmndf,egmxdf,
-     .     egidfq,ri0,nus0,nug0,diapyc,tdmk0,tdmq,tdmgam,tdmls,nubmin,
-     .     nubmax,nusmax,dpgc,dpdfav,dpnbav
+     .     egidfq,ri0,nus0,nug0,diapyc,tdmk0,tdmq,tdmgam,tdmls,tdmf30,
+     .     tdmn0,nubmin,nubmax,nusmax,dpgc,dpdfav,dpnbav
       parameter (iidtyp=2,bddtyp=2,dptmin=98060.,dpbmin=980.6,
-     .           bvfeps=1.e-9,thkdff=.5,temdff=.35,egc=1.,eggam=200.,
-     .           egmndf=100.e4,egmxdf=7500.e4,egidfq=1.,ri0=.7,
+     .           bvfeps=1.e-9,thkdff=.5,temdff=.35,egc=1.5,eggam=200.,
+     .           egmndf=100.e4,egmxdf=1500.e4,egidfq=1.,ri0=.7,
      .           nus0=50.,nug0=2500.,diapyc=1.2e-3,tdmk0=.1,tdmq=1./3.,
-     .           tdmgam=.2,tdmls=500.*98060.,nubmin=.1,nubmax=1000.,
-     .           nusmax=1.,dpgc=300.*98060.,dpdfav=100.*98060.,
-     .           dpnbav=250.*98060.)
+     .           tdmgam=.2,tdmls=500.*98060.,tdmf30=7.2722e-5,
+     .           tdmn0=5.24e-3,nubmin=.001,nubmax=1000.,nusmax=1.,
+     .           dpgc=300.*98060.,dpdfav=100.*98060.,dpnbav=250.*98060.)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
      .  du2,bvfsq,rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,dfisos,dfdias
+     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,tdmk,dfints,dfisos,dfdias
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mdv2
       integer, dimension(1-nbdy:idm+nbdy,kdm) ::
@@ -90,7 +93,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,drho,plo,tlo,slo,egr,rhisc,els,dx2,dy2,nus,nub,tdmf
+      real q,drho,plo,tlo,slo,egr,rhisc,els,nus,nub,tdmf
 c
       real rho,sig
       external rho,sig
@@ -198,8 +201,8 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ kfpl,klpl,kn,du2,mdu2,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,
-c$OMP+ bvfbot,dps,drho,bvfsq,dfints,dfisos,dfdias,rig,egr,rhisc,els,dx2,
-c$OMP+ dy2,nus,nub,tdmf)
+c$OMP+ bvfbot,dps,drho,bvfsq,tdmk,dfints,dfisos,dfdias,rig,egr,rhisc,
+c$OMP+ els,nus,nub,tdmf)
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component
@@ -379,7 +382,19 @@ c --- ------- bottom
           enddo
         enddo
 c
-c ----- Compute layer interface, isopycnal, and diapycnal diffusivities
+c --- - Compute latitude dependent background diffusivity and
+c --- - diffusivity weigth to reduce eddy diffusivity when the Rossby
+c --- - radius is resolved by the grid
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          q=max(1.e-9,abs(coriop(i,j)))
+          tdmk(i)=tdmk0*q/tdmf30*log(2.*tdmn0/q)/log(2.*tdmn0/tdmf30)
+          q=bcrrd(i)/sqrt(scpx(i,j)*scpx(i,j)+scpy(i,j)*scpy(i,j))
+          difwgt(i,j)=1./(1.+q**4)
+        enddo
+        enddo
+c
+c --- - Compute layer interface, isopycnal, and diapycnal diffusivities
 c       endif
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -425,8 +440,7 @@ c --- --------- Type 2: Diffusivities are parameterized according
 c --- --------- to Eden and Greatbatch (2008).
 c
 c --- --------- Eady growth rate.
-                egr=sqrt(hshrsq(i,j,k)
-     .                  +afeql(i)*afeql(i)/(rig(i,k)+eggam))
+                egr=afeql(i)/sqrt(rig(i,k)+eggam)
 cdiag           tmp3d_3(i,j,k)=egr
 c
 c --- --------- Rhines scale.
@@ -438,10 +452,9 @@ c --- --------- Eddy length scale.
 cdiag           tmp3d_5(i,j,k)=els
 c
 c --- --------- Layer interface and isopycnic diffusivity.
-                dx2=scux(i,j)*scux(i,j)
-                dy2=scuy(i,j)*scuy(i,j)
-                difint(i,j,k)=min(.9*.5*dx2*dy2/(max(1.,dx2+dy2)*delt1),
-     .                            egmxdf,max(egmndf,egc*egr*els*els))
+                difint(i,j,k)=
+     .            min(difmxp(i,j),egmxdf,
+     .                max(egmndf,egc*egr*els*els*difwgt(i,j)))
                 difiso(i,j,k)=difint(i,j,k)*egidfq
 c
               endif
@@ -489,8 +502,8 @@ c --- --------- driven mixing.
                   tdmf=(exp(p(i,j,k+1)/tdmls)-exp(p(i,j,k)/tdmls))
      .                 /(dp(i,j,kn)*(exp(p(i,j,kk+1)/tdmls)-1.))
                 endif
-                nub=tdmk0+g*tdmq*tdmgam*twedon(i,j)*bvfbot(i)*tdmf
-     .                    /bvfsq(i,k)
+                nub=tdmk(i)+g*tdmq*tdmgam*twedon(i,j)*bvfbot(i)*tdmf
+     .                      /bvfsq(i,k)
               endif
               nub=max(nubmin,min(nubmax,nub))
 c
@@ -569,7 +582,6 @@ cdiag call ncwrtr('rhisc','x y z',tmp3d_4,ip,1)
 cdiag call ncwrtr('els','x y z',tmp3d_5,ip,1)
 cdiag call ncwrtr('difint','x y z',difint,ip,1)
 cdiag call ncwrtr('difdia','x y z',difdia,ip,1)
-cdiag call ncwrtr('hshrsq','x y z',hshrsq,ip,1)
 cdiag call ncfcls
 c
       if (csdiag) then

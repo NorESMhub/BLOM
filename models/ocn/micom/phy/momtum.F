@@ -105,6 +105,8 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
  8    continue
 c
+      call xctilr(difwgt,  1,1, 2,2, halo_ps)
+c
 c$OMP PARALLEL DO
 c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,
 c$OMP+  potvor,j,defor1,dl2uja,dl2ujb,dl2via,dl2vib,visc,dpxy,
@@ -285,14 +287,6 @@ c
      .            +ujb(i,j-1)*scux(i,j)-uja(i,j)*scux(i,j-1))**2
      .            *scq2i(i,j)
 c
-      do 66 j=1,jj
-      do 66 l=1,isp(j)
-      do 66 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
- 66   hshrsq(i,j,k)=.25*(defor2(i  ,j  )*scq2i(i  ,j  )
-     .                  +defor2(i+1,j  )*scq2i(i+1,j  )
-     .                  +defor2(i  ,j+1)*scq2i(i  ,j  )
-     .                  +defor2(i+1,j+1)*scq2i(i+1,j+1))
-c
 c --- define auxiliary del2 fields (dl2via,dl2vib,dl2uja,dl2ujb) to imple-
 c --- ment biharmonic sidewall friction along near-vertical bottom slopes.
 c
@@ -317,9 +311,11 @@ c
       do 37 j=0,jj+1
       do 37 l=1,isu(j)
       do 37 i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
- 37   visc(i,j)=max(udvmin(i,j),
-     .              viscos*sqrt(.5*(defor1(i,j)+defor1(i-1,j)
-     .                             +defor2(i,j)+defor2(i,j+1))))
+      q=.5*(difwgt(i-1,j)+difwgt(i,j))
+ 37   visc(i,j)=max( q*veldff+(1.-q)*vdfflo,
+     .              (q*viscos+(1.-q)*visclo)
+     .              *sqrt(.5*(defor1(i,j)+defor1(i-1,j)
+     .                       +defor2(i,j)+defor2(i,j+1))))
 c
       do 822 j=1,jj
 c
@@ -337,8 +333,7 @@ c
       if (iu(i,j)+iu(i+1,j).gt.0) then
        dpxy=max(dpu(i  ,j,km),onemm)
        dpib=max(dpu(i+1,j,km),onemm)
-       uflux1(i,j)=min(min(udamax(i,j),udamax(i+1,j))*dt1inv,
-     .                 (visc(i,j)+visc(i+1,j))*scpy(i,j))
+       uflux1(i,j)=min(difmxp(i,j),(visc(i,j)+visc(i+1,j))*scpy(i,j))
      .             *hfharm(dpxy,dpib)*(dl2u(i,j)-dl2u(i+1,j))
       endif
  824  continue
@@ -364,11 +359,9 @@ c
       else
         viscb=visc(i,j+1)
       end if
-      uflux2(i,j)=min(min(udamax(i,j),udamax(i,j-1))*dt1inv,
-     .                (visc(i,j)+visca)*scqx(i,j  ))
+      uflux2(i,j)=min(difmxq(i,j  ),(visc(i,j)+visca)*scqx(i,j  ))
      .            *hfharm(dpja,dpxy)*(dl2uja(i,j)-dl2u(i,j))
- 822  uflux3(i,j)=min(min(udamax(i,j),udamax(i,j+1))*dt1inv,
-     .                (visc(i,j)+viscb)*scqx(i,j+1))
+ 822  uflux3(i,j)=min(difmxq(i,j+1),(visc(i,j)+viscb)*scqx(i,j+1))
      .            *hfharm(dpjb,dpxy)*(dl2u(i,j)-dl2ujb(i,j))
 c
       if (k.eq.1) then
@@ -431,9 +424,11 @@ c
       do 38 j=0,jj+1
       do 38 l=1,isv(j)
       do 38 i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
- 38   visc(i,j)=max(vdvmin(i,j),
-     .              viscos*sqrt(.5*(defor1(i,j)+defor1(i,j-1)
-     .                             +defor2(i,j)+defor2(i+1,j))))
+      q=.5*(difwgt(i,j-1)+difwgt(i,j))
+ 38   visc(i,j)=max( q*veldff+(1.-q)*vdfflo,
+     .              (q*viscos+(1.-q)*visclo)
+     .              *sqrt(.5*(defor1(i,j)+defor1(i,j-1)
+     .                       +defor2(i,j)+defor2(i+1,j))))
 c
       do 821 i=0,ii+1
       do 821 l=1,jsv(i)
@@ -451,8 +446,7 @@ c
       if (iv(i,j)+iv(i,j+1).gt.0) then
        dpxy=max(dpv(i,j  ,km),onemm)
        dpjb=max(dpv(i,j+1,km),onemm)
-       vflux1(i,j)=min(min(vdamax(i,j),vdamax(i,j+1))*dt1inv,
-     .                 (visc(i,j)+visc(i,j+1))*scpx(i,j))
+       vflux1(i,j)=min(difmxp(i,j),(visc(i,j)+visc(i,j+1))*scpx(i,j))
      .             *hfharm(dpxy,dpjb)*(dl2v(i,j)-dl2v(i,j+1))
       endif
  825  continue
@@ -480,11 +474,9 @@ c
       else
         viscb=visc(i+1,j)
       end if
-      vflux2(i,j)=min(min(vdamax(i,j),vdamax(i-1,j))*dt1inv,
-     .                (visc(i,j)+visca)*scqy(i  ,j))
+      vflux2(i,j)=min(difmxq(i  ,j),(visc(i,j)+visca)*scqy(i  ,j))
      .            *hfharm(dpia,dpxy)*(dl2via(i,j)-dl2v(i,j))
- 823  vflux3(i,j)=min(min(vdamax(i,j),vdamax(i+1,j))*dt1inv,
-     .                (visc(i,j)+viscb)*scqy(i,j+1))
+ 823  vflux3(i,j)=min(difmxq(i+1,j),(visc(i,j)+viscb)*scqy(i+1,j))
      .            *hfharm(dpib,dpxy)*(dl2v(i,j)-dl2vib(i,j))
 c
       if (k.eq.1) then

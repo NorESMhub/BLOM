@@ -9,8 +9,10 @@ c
 #include "common_blocks.h"
 c
 c --- 'veldff' = diffusion velocity (cm/s) for momentum dissipation
+c --- 'vdfflo' same as veldff but used when Rossby radius is resolved
 c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
-      data veldff/2.0/,viscos/0.5/
+c --- 'visclo' same as viscos but used when Rossby radius is resolved
+      data veldff/2.0/,vdfflo/0.4/,viscos/0.5/,visclo/0.1/
 c
 c --- 'thkmin' = minimum mixed-layer thickness (m)
 c --- 'acurcy' = permissible roundoff error in column integral calc.

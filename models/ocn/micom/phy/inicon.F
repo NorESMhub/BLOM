@@ -525,23 +525,6 @@ c$OMP PARALLEL DO PRIVATE(k,dps)
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- initialize horizontal shear squared
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO
-      do j=1,jj
-        do k=1,kk
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            hshrsq(i,j,k)=0.
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c
-c --- ------------------------------------------------------------------
 c --- initialize variables related to forcing
 c --- ------------------------------------------------------------------
 c
