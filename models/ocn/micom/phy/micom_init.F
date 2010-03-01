@@ -5,6 +5,7 @@ c --- initialize the model
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_dia
 c
       implicit none
 c
@@ -141,8 +142,7 @@ c --- ------------------------------------------------------------------
 c --- Initialize diagnostic accumulation fields
 c --- ------------------------------------------------------------------
 c
-      call diaini2d
-      call diaini3d
+      call diaini
 c
 c --- ------------------------------------------------------------------
 c --- Set up initial conditions or start from restart file

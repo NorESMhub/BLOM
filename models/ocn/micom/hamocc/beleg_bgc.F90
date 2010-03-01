@@ -54,7 +54,6 @@
       USE mo_biomod
       USE mo_sedmnt
       USE mo_control_bgc
-      USE mo_bgcmean
       use mo_param1_bgc 
       
 !      USE MO_COMMO1
@@ -103,11 +102,6 @@
 !
       ldtbgc = 0
 !
-!  Initialize 2D and 3D time step counter.
-!
-      meancnt_bgc_2D = 0
-      meancnt_bgc_3D = 0
-      nacc_bgc2d     = 0
 !
 #ifndef DIFFAT            
          atm_co2 = 278.
@@ -704,55 +698,6 @@
       ENDDO
       ENDDO
 
-!
-! Values for bgcmean
-!
-      DO  l=1,nbgct2d
-      DO  j=1,kpje
-      DO  i=1,kpie 
-         bgct2d(i,j,l) = 0.
-      ENDDO
-      ENDDO
-      ENDDO
-
-      
-      DO  l=1,nbgcm2d
-      DO  j=1,kpje
-      DO  i=1,kpie 
-         bgcm2d(i,j,l) = 0.
-      ENDDO
-      ENDDO
-      ENDDO
-      
-      DO l=1,nbgcm3d
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-         bgcm3d(i,j,k,l) = 0.
-      ENDDO
-      ENDDO
-      ENDDO 
-      ENDDO
-      
-      DO l=1,nbgct_sed
-      DO k=1,ks
-      DO j=1,kpje
-      DO i=1,kpie
-         bgct_sed(i,j,k,l) = 0.
-      ENDDO
-      ENDDO
-      ENDDO 
-      ENDDO
-
-!      DO l=1,nbgct3d
-!      DO k=1,kpke
-!      DO j=1,kpje
-!      DO i=1,kpie      
-!         bgct3d(i,j,k,l) = 0.
-!      ENDDO
-!      ENDDO
-!      ENDDO
-!      ENDDO
 !
 ! values for sediment fluxes
 !

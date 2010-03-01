@@ -863,13 +863,9 @@
       DO i    =1,kpie
       DO j    =1,kpje
          IF (omask(i,j) .le. 0.5 ) THEN
-            DO k=1,8
-               IF ( chemcm(i,j,k,kmon) .NE. rmasko ) THEN
-!                 WRITE(io_stdo_bgc,*) 'chemcm,i,j,k,kmon:',            &
-!     &		                       chemcm(i,j,k,kmon),i,j,k,kmon
-                 chemcm_t(i,j,k)  =   rmasko
-               ENDIF
-            ENDDO
+           DO k=1,8
+             chemcm_t(i,j,k)  =   rmasko
+           ENDDO
          ELSE
            chemcm_t(i,j,1) = chemcm(i,j,1,kmon)
            chemcm_t(i,j,2) = chemcm(i,j,2,kmon)
@@ -878,7 +874,7 @@
            chemcm_t(i,j,5) = chemcm(i,j,5,kmon)
            chemcm_t(i,j,6) = chemcm(i,j,6,kmon)
            chemcm_t(i,j,7) = chemcm(i,j,7,kmon)
-	   chemcm_t(i,j,8) = chemcm(i,j,8,kmon)
+           chemcm_t(i,j,8) = chemcm(i,j,8,kmon)
          ENDIF
       ENDDO
       ENDDO

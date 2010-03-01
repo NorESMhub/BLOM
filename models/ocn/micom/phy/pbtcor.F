@@ -111,6 +111,8 @@ c$OMP PARALLEL DO
 #endif
             endif
             uflx(i,j,kn)=uflx(i,j,kn)+uflux(i,j)
+            usflx(i,j,kn)=usflx(i,j,kn)+uflux2(i,j)
+            utflx(i,j,kn)=utflx(i,j,kn)+uflux3(i,j)+273.15*uflux(i,j)
           enddo
           enddo
         enddo
@@ -139,6 +141,8 @@ c$OMP PARALLEL DO
 #endif
             endif
             vflx(i,j,kn)=vflx(i,j,kn)+vflux(i,j)
+            vsflx(i,j,kn)=vsflx(i,j,kn)+vflux2(i,j)
+            vtflx(i,j,kn)=vtflx(i,j,kn)+vflux3(i,j)+273.15*vflux(i,j)
           enddo
           enddo
         enddo

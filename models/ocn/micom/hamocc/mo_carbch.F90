@@ -37,10 +37,8 @@
       
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: chemcm
-!#ifdef DIFFAT      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
-!#endif
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: hi
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: OmegaC 
@@ -240,7 +238,7 @@
 
         ALLOCATE (akw3(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory akw3'
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
+!#if defined(DIFFAT) || defined(CCSMCOUPLED)
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atm ...'
@@ -261,7 +259,7 @@
 
         ALLOCATE (atmflx(kpie,kpje,natm),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atmflx'
-#endif	
+!#endif	
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atdifv ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie

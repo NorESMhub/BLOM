@@ -11,7 +11,6 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_dia.h"
 c
 c --- parameters:
 c ---   dnseps - minimum density difference between interior layers

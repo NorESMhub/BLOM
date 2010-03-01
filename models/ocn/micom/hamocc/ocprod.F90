@@ -56,12 +56,13 @@
 
       USE mo_control_bgc
       USE mo_bgcmean
+      use mod_xc , only : isp,ifp,ilp
 
       implicit none
 
       INTEGER :: kplmon,kpie,kpje,kpke
       INTEGER :: i,j,k,l,kab1
-      INTEGER :: kk,kdonor,found
+      INTEGER :: kinv,kdonor,found
       REAL :: ptho (kpie,kpje,kpke)
       REAL :: pddpo(kpie,kpje,kpke)
       REAL :: pdpio(kpie,kpje,kpke)
@@ -91,7 +92,10 @@
       REAL :: rl13, rl14
       REAL :: rocean13, rocean14, flui13, flui14
       REAL :: fcal13,fcal14
-      REAL :: d13C, d14C, dd14C
+      REAL :: d14C
+!ib 
+      REAL, DIMENSION(kpie,kpje,kpke) :: d13C, dd14C
+!ib
 !#endif
 #ifdef AGG
       REAL :: fphy
@@ -109,6 +113,26 @@
       REAL :: fTSFac,fTMFac,fTopF,fTopM,wphy,wphyup,wnosup,wnos
 #endif 
 !ka      REAL :: psum0,psum1,pinv0,pinv1,dpinv
+!ib
+      INTEGER, DIMENSION(kpie,kpje)   :: ind1,ind2
+      REAL, DIMENSION(kpie,kpje,ddm)  :: wghts
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_dmsprod 
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_dms_bac
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_dms_uv 
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_export 
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_expoca 
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_exposi 
+      REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_phosy
+ 
+!kma
+      aux2d_dmsprod (:,:)=0. 
+      aux2d_dms_bac(:,:)=0. 
+      aux2d_dms_uv (:,:)=0.  
+      aux2d_export (:,:)=0.  
+      aux2d_expoca (:,:)=0.  
+      aux2d_exposi (:,:)=0.  
+
+!ib
 !
 ! Constant parameters
 !
@@ -181,14 +205,14 @@
         ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
 !ka flux of nutrients, C & alkalinity from land into surface layer
 !ka constant flux calculated in beleg_bgc 
-        ocetra(i,j,1,isco212)=                                         &
-     &  ocetra(i,j,1,isco212)+sco212_sfc*dtb*pdpio(i,j,1)
-        ocetra(i,j,1,ialkali)=                                         &
-     &  ocetra(i,j,1,ialkali)+alkali_sfc*dtb*pdpio(i,j,1)
-        ocetra(i,j,1,iphosph)=                                         &
-     &  ocetra(i,j,1,iphosph)+phosph_sfc*dtb*pdpio(i,j,1)
-        ocetra(i,j,1,iano3)  =                                         &
-     &  ocetra(i,j,1,iano3)  +ano3_sfc  *dtb*pdpio(i,j,1)
+!        ocetra(i,j,1,isco212)=                                         &
+!     &  ocetra(i,j,1,isco212)+sco212_sfc*dtb*pdpio(i,j,1)
+!        ocetra(i,j,1,ialkali)=                                         &
+!     &  ocetra(i,j,1,ialkali)+alkali_sfc*dtb*pdpio(i,j,1)
+!        ocetra(i,j,1,iphosph)=                                         &
+!     &  ocetra(i,j,1,iphosph)+phosph_sfc*dtb*pdpio(i,j,1)
+!        ocetra(i,j,1,iano3)  =                                         &
+!     &  ocetra(i,j,1,iano3)  +ano3_sfc  *dtb*pdpio(i,j,1)
 !        ocetra(i,j,1,isilica)=                                         &
 !     &  ocetra(i,j,1,isilica)+silica_sfc*dtb*pdpio(i,j,1)
        endif      
@@ -199,74 +223,85 @@
 !
 ! averaging monthly stocks and flows
 ! 
-      
-!$OMP PARALLEL DO PRIVATE(d13C,d14C,dd14C) 
-      DO j=1,kpje
-      DO i=1,kpie
-         IF(omask(i,j).GT.0.5) THEN
-      DO k=1,kpke
 
-            bgcm3d(i,j,k,jphyto)  = 			&
-     &      bgcm3d(i,j,k,jphyto)  + ocetra(i,j,k,iphy)   *pddpo(i,j,k)
-            bgcm3d(i,j,k,jgrazer) = 			&
-     &      bgcm3d(i,j,k,jgrazer) + ocetra(i,j,k,izoo)   *pddpo(i,j,k)
-            bgcm3d(i,j,k,jphosph) = 			&
-     &      bgcm3d(i,j,k,jphosph) + ocetra(i,j,k,iphosph)*pddpo(i,j,k)
-            bgcm3d(i,j,k,joxygen) = 			&
-     &      bgcm3d(i,j,k,joxygen) + ocetra(i,j,k,ioxygen)*pddpo(i,j,k)
-            bgcm3d(i,j,k,jiron)   = 			&
-     &      bgcm3d(i,j,k,jiron)   + ocetra(i,j,k,iiron)  *pddpo(i,j,k)
-            bgcm3d(i,j,k,jano3)   = 			&
-     &      bgcm3d(i,j,k,jano3)   + ocetra(i,j,k,iano3)  *pddpo(i,j,k)
-            bgcm3d(i,j,k,jalkali) = 			&
-     &      bgcm3d(i,j,k,jalkali) + ocetra(i,j,k,ialkali)*pddpo(i,j,k) 
-            bgcm3d(i,j,k,jsilica) = 			&
-     &      bgcm3d(i,j,k,jsilica) + ocetra(i,j,k,isilica)*pddpo(i,j,k)
-            bgcm3d(i,j,k,jdic)    = 			&
-     &      bgcm3d(i,j,k,jdic)    + ocetra(i,j,k,isco212)*pddpo(i,j,k)
-            bgcm3d(i,j,k,jdoc)    = 			&
-     &      bgcm3d(i,j,k,jdoc)    + ocetra(i,j,k,idoc)   *pddpo(i,j,k)
-!            bgcm3d(i,j,k,jdms)    = 			&
-!     &      bgcm3d(i,j,k,jdms)    + ocetra(i,j,k,idms) 
-            bgcm3d(i,j,k,jpoc)    = 			&
-     &      bgcm3d(i,j,k,jpoc)    + ocetra(i,j,k,idet)  *pddpo(i,j,k)
-            bgcm3d(i,j,k,jcalc)   = 			&
-     &      bgcm3d(i,j,k,jcalc)   + ocetra(i,j,k,icalc) *pddpo(i,j,k) 
-            bgcm3d(i,j,k,jopal)   = 			&
-     &      bgcm3d(i,j,k,jopal)   + ocetra(i,j,k,iopal) *pddpo(i,j,k)
-            bgcm3d(i,j,k,jco3 )   = 			&
-     &      bgcm3d(i,j,k,jco3 )   + co3(i,j,k)          *pddpo(i,j,k) 
-            bgcm3d(i,j,k,jph  )   = 			&
-     &      bgcm3d(i,j,k,jph  )   + hi(i,j,k)           *pddpo(i,j,k) 
-!            bgcm3d(i,j,k,jomegac) = 			&
-!     &      bgcm3d(i,j,k,jomegac) + OmegaC(i,j,k)       *pddpo(i,j,k) 
- 
-! delta notation for 13C, 14C (js 6.3.2006)
+!ib
+! accumulate layer diagnostics
+       call acclyr(jdp,pddpo,pddpo,0)
+       call acclyr(jphyto,ocetra(1,1,1,iphy),pddpo,1)   
+       call acclyr(jgrazer,ocetra(1,1,1,izoo),pddpo,1) 
+       call acclyr(jphosph,ocetra(1,1,1,iphosph),pddpo,1)
+       call acclyr(joxygen,ocetra(1,1,1,ioxygen),pddpo,1)
+       call acclyr(jiron,ocetra(1,1,1,iiron),pddpo,1)    
+       call acclyr(jano3,ocetra(1,1,1,iano3),pddpo,1)    
+       call acclyr(jalkali,ocetra(1,1,1,ialkali),pddpo,1)
+       call acclyr(jsilica,ocetra(1,1,1,isilica),pddpo,1)
+       call acclyr(jdic,ocetra(1,1,1,isco212),pddpo,1)    
+       call acclyr(jdoc,ocetra(1,1,1,idoc),pddpo,1)       
+       call acclyr(jpoc,ocetra(1,1,1,idet),pddpo,1)       
+       call acclyr(jcalc,ocetra(1,1,1,icalc),pddpo,1)    
+       call acclyr(jopal,ocetra(1,1,1,iopal),pddpo,1)    
+       call acclyr(jco3,co3,pddpo,1)                      
+       call acclyr(jph,hi,pddpo,1)         
 #ifdef __c_isotopes
-            d13C = ((ocetra(i,j,k,isco213)/ocetra(i,j,k,isco212)) -1.) *1000.
-            bgcm3d(i,j,k,jdic13)  = bgcm3d(i,j,k,jdic13)+d13C*pddpo(i,j,k)
-
-!            bgcm3d(i,j,k,jdic13)  =                     &
-!     &      bgcm3d(i,j,k,jdic13)  + ocetra(i,j,k,isco213)*pddpo(i,j,k)
-
-            d14C = ((ocetra(i,j,k,isco214)/ocetra(i,j,k,isco212)) -1.) *1000.
-            dd14C = d14C - 2.* (d13C + 25.) * (1.+ d14C *1.e-3)
-            bgcm3d(i,j,k,jdic14)  = bgcm3d(i,j,k,jdic14)+dd14C*pddpo(i,j,k)
- 
-!            bgcm3d(i,j,k,jdic14)  =                     &
-!     &      bgcm3d(i,j,k,jdic14)  + ocetra(i,j,k,isco214)*pddpo(i,j,k)
-#endif
-#ifdef AGG
-            bgcm3d(i,j,k,jnos)    = 			&
-	    bgcm3d(i,j,k,jnos)    + ocetra(i,j,k,inos)     *pddpo(i,j,k)
-#endif     
-
-      ENDDO
-         ENDIF
-      ENDDO
+!$OMP PARALLEL DO PRIVATE(d14C) 
+      DO j=1,kpje
+        DO i=1,kpie
+          IF(omask(i,j).GT.0.5) THEN
+            DO k=1,kpke
+! delta notation for 13C, 14C (js 6.3.2006)
+              d13C(i,j,k)  = ((ocetra(i,j,k,isco213)/                   &
+     &                       ocetra(i,j,k,isco212)) -1.) *1000.
+              d14C         = ((ocetra(i,j,k,isco214)/                   &
+     &                       ocetra(i,j,k,isco212)) -1.) *1000.
+              dd14C(i,j,k) = d14C - 2.* (d13C(i,j,k) + 25.) *           &
+     &                       (1.+ d14C *1.e-3)
+            ENDDO
+          ENDIF
+        ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-      
+       call acclyr(jdic13,d13C,pddpo,1)                 
+       call acclyr(jdic14,dd14C,pddpo,1)                
+#endif     
+#ifdef AGG
+       call acclyr(jnos,ocetra(1,1,1,inos),pddpo,1)      
+#endif     
+
+! accumulate level diagnostics
+      IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
+     &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
+     &  jlvlco3+jlvlph+jlvldic13+jlvldic14+jlvlnos).NE.0) &
+     &  THEN
+        DO k=1,kpke
+          call bgczlv(pddpo,k,ind1,ind2,wghts)
+          call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
+          call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
+          call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,     &
+     &      wghts)
+          call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,     &
+     &      wghts)
+          call acclvl(jlvliron,ocetra(1,1,1,iiron),k,ind1,ind2,wghts)
+          call acclvl(jlvlano3,ocetra(1,1,1,iano3),k,ind1,ind2,wghts)
+          call acclvl(jlvlalkali,ocetra(1,1,1,ialkali),k,ind1,ind2,     &
+     &      wghts)
+          call acclvl(jlvlsilica,ocetra(1,1,1,isilica),k,ind1,ind2,     &
+     &      wghts)
+          call acclvl(jlvldic,ocetra(1,1,1,isco212),k,ind1,ind2,wghts)
+          call acclvl(jlvldoc,ocetra(1,1,1,idoc),k,ind1,ind2,wghts)
+          call acclvl(jlvlpoc,ocetra(1,1,1,idet),k,ind1,ind2,wghts)
+          call acclvl(jlvlcalc,ocetra(1,1,1,icalc),k,ind1,ind2,wghts)
+          call acclvl(jlvlopal,ocetra(1,1,1,iopal),k,ind1,ind2,wghts)
+          call acclvl(jlvlco3,co3,k,ind1,ind2,wghts)
+          call acclvl(jlvlph,hi,k,ind1,ind2,wghts)
+#ifdef __c_isotopes
+          call acclvl(jlvldic13,d13C,k,ind1,ind2,wghts)
+          call acclvl(jlvldic14,dd14C,k,ind1,ind2,wghts)
+#endif     
+#ifdef AGG
+          call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
+#endif     
+        ENDDO
+      ENDIF
 
 
 !
@@ -605,30 +640,22 @@
 !
 ! add up for total inventory
 !
-         expoor(i,j)=expoor(i,j)+bdp*export*rcar	
+         expoor(i,j)=expoor(i,j)+bdp*export*rcar
          expoca(i,j)=expoca(i,j)+bdp*delcar
          exposi(i,j)=exposi(i,j)+bdp*delsil
 !
 ! write output for bgcmean
 !
 
-
-         bgcm2d(i,j,jdmsprod)  = bgcm2d(i,j,jdmsprod)             &
-     &  	                           + dmsprod*bdp
-         bgcm2d(i,j,jdms_bac)  = bgcm2d(i,j,jdms_bac)             &
-     &                                     + dms_bac*bdp
-         bgcm2d(i,j,jdms_uv)   = bgcm2d(i,j,jdms_uv)              &
-     &                                     + dms_uv*bdp
-         bgcm2d(i,j,jexport)   = bgcm2d(i,j,jexport)              &
-     &  	                           + export*rcar*bdp
-         bgcm2d(i,j,jexpoca)   = bgcm2d(i,j,jexpoca)              &
-     &  	                           + delcar*bdp
-         bgcm2d(i,j,jexposi)   = bgcm2d(i,j,jexposi)              &
-     &  	                           + delsil*bdp
-
-!ka primary production in g C m-2
-         bgcm3d(i,j,k,jphosy)  = bgcm3d(i,j,k,jphosy)             & 
-     &                         +(phosy*rcar*bdp)*bdp
+!kma
+         aux2d_dmsprod(i,j)   = aux2d_dmsprod(i,j)+dmsprod*bdp 
+         aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*bdp 
+         aux2d_dms_uv(i,j)    = aux2d_dms_uv (i,j)+dms_uv*bdp 
+         aux2d_export(i,j)    = aux2d_export(i,j) +export*rcar*bdp 
+         aux2d_expoca(i,j)    = aux2d_expoca(i,j) +delcar*bdp
+         aux2d_exposi(i,j)    = aux2d_exposi(i,j) +delsil*bdp 
+!kma primary production in g C m-2
+         aux3d_phosy(i,j,k)   = phosy*rcar*(bdp/pddpo(i,j,k))  
 
 !      psum1=                                                          &
 !     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy)     &
@@ -642,6 +669,26 @@
 100   CONTINUE   ! kwrbioz
 1     CONTINUE   ! kpie, kpje
 !$OMP END PARALLEL DO
+
+!ib
+! Accumulate 2d diagnostics 
+       call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
+       call accsrf(jdms_bac,aux2d_dms_bac,omask,0)  
+       call accsrf(jdms_uv,aux2d_dms_uv,omask,0)     
+       call accsrf(jexport,aux2d_export,omask,0)      
+       call accsrf(jexpoca,aux2d_expoca,omask,0)     
+       call accsrf(jexposi,aux2d_exposi,omask,0)     
+
+! Accumulate primary production 
+      call acclyr(jphosy,aux3d_phosy,pddpo,1)
+      IF (SUM(jlvlphosy).NE.0) THEN
+        DO k=1,kpke
+          call bgczlv(pddpo,k,ind1,ind2,wghts)
+          call acclvl(jlvlphosy,aux3d_phosy,k,ind1,ind2,wghts)
+        ENDDO
+      ENDIF
+!ib
+
 
 !      pinv1=0.0
 !      DO j=1,kpje
@@ -1531,9 +1578,9 @@
            kdonor=k-1
          else
            found=0
-           do kk=k-1,1,-1
-             if (pddpo(i,j,k).gt.1.e-6.and.found.eq.0) then
-               kdonor=k
+           do kinv=k-1,1,-1
+             if (pddpo(i,j,kinv).gt.1.e-6.and.found.eq.0) then
+               kdonor=kinv
                found=1
              endif 
            enddo

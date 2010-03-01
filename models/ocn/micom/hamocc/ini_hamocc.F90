@@ -72,10 +72,10 @@
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
-      USE mo_bgcmean
       USE mo_control_bgc
       use mo_param1_bgc 
       use mod_xc, only: mnproc,lp,nfu
+      use mo_bgcmean
 #ifdef PDYNAMIC_BGC
       use mo_dynamic
 #endif /* PDYNAMIC_BGC */ 
@@ -85,7 +85,7 @@
 !      INTEGER :: pyears,pmonts,kpie,kpje,kpke
       INTEGER :: kplyear,kplmonth,kplday,kpldtoce
       INTEGER :: kpaufr,kpicycli,kpndtrun,k,l
-      INTEGER :: ii,jj,kk,i,j
+      INTEGER :: i,j
       
       REAL :: pddpo(kpie,kpje,kpke)
       REAL :: ptho (kpie,kpje,kpke)
@@ -116,11 +116,6 @@
       write(io_stdo_bgc,*) 'dims',kpie,kpje,kpke,pmonts
       write(io_stdo_bgc,*) 'time',kplyear,kplmonth,kplday,kpldtoce
       write(io_stdo_bgc,*) 'time step',pdt
-      write(io_stdo_bgc,*) 'saln,temp',psao(40,40,1),ptho(40,40,1)
-      write(io_stdo_bgc,*) 'dp,dx,dy',pddpo(40,40,1),pdlxp(40,40),pdlyp(40,40)
-      write(io_stdo_bgc,*) 'pu,pw',ptiestu(40,40,1),ptiestw(40,40,2)
-      write(io_stdo_bgc,*) 'lat,lon',pgiph(40,40),pgila(40,40),omask(40,40)
-      write(io_stdo_bgc,*) 'dummy_tr in',dummy_tr(40,40,1,3)
       endif
 !                    
 ! Set control constants ( mo_control_bgc )
@@ -136,8 +131,6 @@
 ! Initialize some namelist parameters
 !
       isac = 1
-      mean_2D_day = 0
-      mean_3D_month = 0
 
 !
 ! Initialize time step counter of run.
@@ -226,66 +219,6 @@
 !
       dummy_tr(1:kpie,1:kpje,:,:)=ocetra(:,:,:,:)
 
-      DO j=1,kpje
-      DO i=1,kpie
-         IF(omask(i,j).GT.0.5) THEN
-      DO k=1,kpke
-
-           bgcm3d(i,j,k,jphyto)  = 			&
-     &      bgcm3d(i,j,k,jphyto)  + ocetra(i,j,k,iphy)
-            bgcm3d(i,j,k,jgrazer) = 			&
-     &      bgcm3d(i,j,k,jgrazer) + ocetra(i,j,k,izoo)
-            bgcm3d(i,j,k,jphosph) = 			&
-     &      bgcm3d(i,j,k,jphosph) + ocetra(i,j,k,iphosph)
-            bgcm3d(i,j,k,joxygen) = 			&
-     &      bgcm3d(i,j,k,joxygen) + ocetra(i,j,k,ioxygen)
-            bgcm3d(i,j,k,jiron)   = 			&
-     &      bgcm3d(i,j,k,jiron)   + ocetra(i,j,k,iiron) 
-            bgcm3d(i,j,k,jano3)   = 			&
-     &      bgcm3d(i,j,k,jano3)   + ocetra(i,j,k,iano3)
-            bgcm3d(i,j,k,jalkali) = 			&
-     &      bgcm3d(i,j,k,jalkali) + ocetra(i,j,k,ialkali) 
-            bgcm3d(i,j,k,jsilica) = 			&
-     &      bgcm3d(i,j,k,jsilica) + ocetra(i,j,k,isilica)
-            bgcm3d(i,j,k,jdic)    = 			&
-     &      bgcm3d(i,j,k,jdic)    + ocetra(i,j,k,isco212)
-            bgcm3d(i,j,k,jdoc)    = 			&
-     &      bgcm3d(i,j,k,jdoc)    + ocetra(i,j,k,idoc)  
-!            bgcm3d(i,j,k,jdms)    = 			&
-!     &      bgcm3d(i,j,k,jdms)    + ocetra(i,j,k,idms) 
-            bgcm3d(i,j,k,jpoc)    = 			&
-     &      bgcm3d(i,j,k,jpoc)    + ocetra(i,j,k,idet)
-            bgcm3d(i,j,k,jcalc)    = 			&
-     &      bgcm3d(i,j,k,jcalc)    + ocetra(i,j,k,icalc) 
-            bgcm3d(i,j,k,jopal)    = 			&
-     &      bgcm3d(i,j,k,jopal)    + ocetra(i,j,k,iopal) 
-#ifdef __c_isotopes
-            bgcm3d(i,j,k,jdic13)  =                     &
-     &      bgcm3d(i,j,k,jdic13)  + ocetra(i,j,k,isco213)
-            bgcm3d(i,j,k,jdic14)  =                     &
-     &      bgcm3d(i,j,k,jdic14)  + ocetra(i,j,k,isco214)
-#endif
-#ifdef AGG
-            bgcm3d(i,j,k,jnos)    = 			&
-	    bgcm3d(i,j,k,jnos)    + ocetra(i,j,k,inos)  
-#endif   
-
-      ENDDO
-         ENDIF
-      ENDDO
-      ENDDO
-!
-!      call ncwrt3_bgc(bgcm3d)
-!
-      DO l=1,nbgcm3d
-      DO j=1,kpje
-      DO i=1,kpie
-      DO k=1,kpke
-            bgcm3d(i,j,k,l)  = 0.
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
 
       RETURN
       END

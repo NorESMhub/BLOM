@@ -71,25 +71,385 @@ set exedir = \$EXEROOT/ccsm_se; cd \$exedir
 #------------------------------------------------------------------------------
 
 cat >! ocn_in << EOF1
-     0     : First day of integration (i6)
-999999     : Last day of integration (i6)
-$YEAR0.$MONTH0.$DAY0 : Model date (i4,x,i2,x,i2)
-$YEAR0.$MONTH0.$DAY0 : Initial experiment date (i4,x,i2,x,i2)
-xxxx       : Experiment name (runid)
- 1920.00   : Baroclinic time step (sec) (f8.2)
-   40.00   : Barotropic time step (sec) (f8.2)
- 30        : 2D diag. (i3). Positive: days pr diag., Negative: diags. pr day
- 30        : 3D diag. (i3). Positive: days pr diag., Negative: diags. pr day
-    0.00   : e-folding time scale (days) for SST relax., if 0 no relax. (f8.2)
-    0.00   : e-folding time scale (days) for SSS relax., if 0 no relax. (f8.2)
-false      : Apply diagnosed heat flux flag (l5)
-false      : Apply diagnosed freshwater flux flag (l5)
-false      : Diagnose heat flux flag (l5)
-false      : Diagnose freshwater flux flag (l5)
-$INPUTPATH/ : Path to input files (path)
-./         : Path to diagnostic files (path1)
-./         : Path to restart files (path2)
-./         : Path to synoptic NCEP fields (ncep_path)
+! LIMITS NAMELIST
+!
+! CONTENTS:
+!
+! NDAY1    : First day of integration (i)
+! NDAY2    : Last day of integration (i)
+! IDATE    : Model date in YYYYMMDD (i)
+! IDATE0   : Initial experiment date in YYYYMMDD (i)
+! RUNID    : Experiment name (a)
+! BACLIN   : Baroclinic time step (sec) (f)
+! BATROP   : Barotropic time step (sec) (f)
+! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
+! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
+! APTFLX   : Apply diagnosed heat flux flag (l)
+! APSFLX   : Apply diagnosed freshwater flux flag (l)
+! DITFLX   : Diagnose heat flux flag (l)
+! DISFLX   : Diagnose freshwater flux flag (l)
+! PATH     : Path to input files (a)
+! PATH1    : Path to diagnostic files (a)
+! PATH2    : Path to restart files (a)
+! ATM_PATH : Path to synoptic NCEP fields (a)
+! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
+! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
+!            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
+! RSTCMP   : Compression flag for restart file (i)
+&LIMITS
+  NDAY1    = 0,
+  NDAY2    = 999999,
+  IDATE    = ${YEAR0}${MONTH0}${DAY0},
+  IDATE0   = ${YEAR0}${MONTH0}${DAY0},
+  RUNID    = 'xxxx',
+  BACLIN   = 1800.,
+  BATROP   =  36.,
+  TRXDAY   = 0.,
+  SRXDAY   = 0.,
+  APTFLX   = .false.,
+  APSFLX   = .false.,
+  DITFLX   = .false.,
+  DISFLX   = .false.,
+  PATH     = "${INPUTPATH}/",
+  PATH1    = './',
+  PATH2    = './',
+  ATM_PATH = './',
+  RSTFRQ   =  1,
+  RSTFMT   =  1,
+  RSTCMP   =  1
+/
+
+! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
+!
+! Description:
+!   Micom supports multiple output groups for its diagnostic output.
+!   Each output group is represented by one column in the namlist and may
+!   have its own output format, averaging period, and file frequency.
+!   The maximum number of output groups is currently limited to 10 but
+!   can be changed easily in mod_dia.F.
+!
+!   The output precision can be choosen on a per-variable basis.
+!
+!   Multiple time-slices can be written to the same output file
+!   provided that no variable is written in packed data format
+!   (i.e. as int2 with scale factor and offset).
+!
+!   Compression of the output (i.e. storage of only wet points)
+!   and the file format can be choosen on a per-file basis.
+!
+!   All time periods are specified in number of days for positive
+!   integer values and fraction of day for negative integer values.
+!   The length of the actual calendar month is used if 30 is written.
+!   The length of the actual calendar year is used if 365 is written.
+!   A variable is not written when 0 is specified.
+!
+! Namelist acronyms:
+!   GLB_     - global parameters i.e. valid for entire output group
+!   SRF_     - surface variables (includes all 2d fields)
+!   LYR_     - 3d fields with sigma layers as vertical coordinate
+!   LVL_     - 3d fields with levitus leves as vertical coordinate
+!   MSC_     - miscellanous, non-gridded fields
+!
+! Global parameters:
+!   FNAMETAG - tag used in file name (c10) 
+!   AVEPERIO - average period in days (i) 
+!   FILEFREQ - how often to start a new file in days (i) 
+!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
+!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
+!
+! Arguments for diagnostic variables:
+!   0        - variable is not written
+!   2        - variable is written as int2 with scale factor and offset
+!   4        - variable is written as real4
+!   8        - variable is written as real8
+!
+! Output variables:
+!   ALB      - albedo
+!   DFL      - derivative of non-solar heat flux by surface temperature
+!              [W m-2 K-1]
+!   EVA      - evaporation [kg m-2 s-1]
+!   FICE     - fractional ice cover [%]
+!   HICE     - weighted ice thickness [m]
+!   HSNW     - weighted snow thickness [m]
+!   IAGE     - ice age [d]
+!   LIP      - liquid precipitation [kg m-2 s-1]
+!   MAXMLD   - maximum mixed layer pressure thickness [m]
+!   MLD      - mixed layer pressure thickness [m]
+!   MLDU     - mixed layer pressure thickness at u-point [m]
+!   MLDV     - mixed layer pressure thickness at v-point [m]
+!   MTY      - v-component of wind stress [N m-2]
+!   MXLU     - weighted u-component of total velocity [m s-1]
+!   MXLV     - weighted v-component of total velocity [m s-1]
+!   NSF      - non-solar heat flux [W m-2]
+!   RNFFLX   - surface runoff [kg m-2 s-1]
+!   SALFLX   - salt flux received by the ocean [kg m-2 s-1]
+!   SEALV    - sea level height [m]
+!   SIGMX    - mixed layer density [kg m-3]
+!   SOP      - solid precipitation [kg m-2 s-1]
+!   SSS      - sea surface salinity [kg m-3]
+!   SST      - weighted sea surface temperature [degC]
+!   MLD      - mixed layer pressure thickness [m]
+!   SURFLX   - heat flux received by the ocean [W m-2]
+!   SALFLX   - salt flux received by the ocean [kg m-2 s-1]
+!   BRNFLX   - brine flux received by the ocean [kg m-2 s-1]
+!   DIAFLX   - diapycnal volume flux [m s-1]
+!   DIFDIA   - diapycnal diffusivity [log10(m2 s-1)]
+!   DIFINT   - layer interface diffusivity [log10(m2 s-1)]
+!   DIFISO   - isopycnal diffusivity [log10(m2 s-1)]
+!   DP       - layer pressure thickness [Pa]
+!   DPU      - layer pressure thickness at u-point [Pa]
+!   DPV      - layer pressure thickness at v-point [Pa]
+!   DZ       - layer geopotential thickness [m]
+!   SALN     - weighted salinity [kg m-3]
+!   TEMP     - weighted temperature [degC]
+!   UB       - u-component of barotopic velocity [m s-1]
+!   UVEL     - weighted u-component of total velocity [m-s]
+!   UFLX     - u-component of mass flux [kg m-2 s-1]
+!   UTFLX    - u-component of heat flux [K kg m-2 s-1]
+!   USFLX    - u-component of salt flux [kg m-2 s-1]
+!   UB       - v-component of barotopic velocity [m s-1]
+!   VVEL     - weighted v-component of total velocity [m s-1]
+!   VFLX     - v-component of mass flux [kg m-2 s-1]
+!   VTFLX    - v-component of heat flux [K kg m-2 s-1]
+!   VSFLX    - u-component of salt flux [kg m-2 s-1]
+!   WFLX     - w-component of mass flux [kg m-2 s-1]
+!   WFLX2    - w-component of mass flux squared [kg2 m-4 s-2]
+!   MHFLX    - meridional heat flux [W]
+!   MSFLX    - meridional salt flux [kg s-1]
+!   MMFLX    - meridional overturning streamfunction [kg s-1]
+!   VOLTR    - mass transport through pre-defined sections [kg s-1]
+!
+&DIAPHY
+  GLB_FNAMETAG ='phyd','phym', 
+  GLB_AVEPERIO =   1,  30,
+  GLB_FILEFREQ =  30,  30,
+  GLB_COMPFLAG =   0,   0,
+  GLB_NCFORMAT =   0,   0,
+  SRF_ABSWND   =   0,   2,
+  SRF_ALB      =   0,   0,
+  SRF_BRNFLX   =   0,   2,
+  SRF_DFL      =   0,   2,
+  SRF_EVA      =   0,   2,
+  SRF_FMLTFZ   =   0,   2,
+  SRF_FICE     =   0,   2,
+  SRF_HICE     =   0,   0,
+  SRF_HMLTFZ   =   0,   2,
+  SRF_HSNW     =   0,   0,
+  SRF_IAGE     =   0,   0,
+  SRF_LIP      =   0,   2,
+  SRF_MAXMLD   =   4,   2,
+  SRF_MLD      =   0,   2,
+  SRF_MLDU     =   0,   0,
+  SRF_MLDV     =   0,   0,
+  SRF_MTY      =   0,   2,
+  SRF_MXLU     =   0,   2,
+  SRF_MXLV     =   0,   2,
+  SRF_NSF      =   0,   2,
+  SRF_RFIFLX   =   0,   2,
+  SRF_RNFFLX   =   0,   2,
+  SRF_SALFLX   =   0,   2,
+  SRF_SEALV    =   4,   2,
+  SRF_SFL      =   0,   2,
+  SRF_SIGMX    =   0,   2,
+  SRF_SOP      =   0,   2,
+  SRF_SSS      =   0,   2,
+  SRF_SST      =   4,   2,
+  SRF_SURFLX   =   0,   2,
+  SRF_SWA      =   0,   2,
+  SRF_TAUX     =   0,   2,
+  SRF_TAUY     =   0,   2,
+  SRF_TICE     =   0,   0,
+  SRF_TSRF     =   0,   0,
+  SRF_UB       =   0,   2,
+  SRF_UICE     =   0,   0,
+  SRF_USTAR    =   0,   2,
+  SRF_VB       =   0,   2,
+  SRF_VICE     =   0,   0,
+  SRF_ZTX      =   0,   2,
+  LYR_DIAFLX   =   0,   0,
+  LYR_DIFDIA   =   0,   2,
+  LYR_DIFINT   =   0,   2,
+  LYR_DIFISO   =   0,   2,
+  LYR_DP       =   0,   2,
+  LYR_DZ       =   0,   2,
+  LYR_SALN     =   0,   2,
+  LYR_TEMP     =   0,   2,
+  LYR_TRC      =   0,   0,
+  LYR_UFLX     =   0,   2,
+  LYR_UTFLX    =   0,   2,
+  LYR_USFLX    =   0,   2,
+  LYR_UVEL     =   0,   2,
+  LYR_VFLX     =   0,   2,
+  LYR_VTFLX    =   0,   2,
+  LYR_VSFLX    =   0,   2,
+  LYR_VVEL     =   0,   2,
+  LYR_WFLX     =   0,   2,
+  LYR_WFLX2    =   0,   2,
+  LVL_DIAFLX   =   0,   0,
+  LVL_DIFDIA   =   0,   2,
+  LVL_DIFINT   =   0,   2,
+  LVL_DIFISO   =   0,   2,
+  LVL_DZ       =   0,   2,
+  LVL_SALN     =   0,   2,
+  LVL_TEMP     =   0,   2,
+  LVL_TRC      =   0,   0,
+  LVL_UFLX     =   0,   2,
+  LVL_UTFLX    =   0,   2,
+  LVL_USFLX    =   0,   2,
+  LVL_UVEL     =   0,   2,
+  LVL_VFLX     =   0,   2,
+  LVL_VTFLX    =   0,   2,
+  LVL_VSFLX    =   0,   2,
+  LVL_VVEL     =   0,   2,
+  LVL_WFLX2    =   0,   2,
+  LVL_WFLX     =   0,   2,
+  MSC_MHFLX    =   0,   2,
+  MSC_MSFLX    =   0,   2,
+  MSC_MMFLXL   =   0,   2,
+  MSC_MMFLXD   =   0,   2,
+  MSC_VOLTR    =   0,   2
+/
+
+!3D HIGH PRIORITY
+!   DIC            - Dissolved carbon (dissic) [mol C m-3]
+!   ALKALI         - Alkalinity (talk) [eq m-3]
+!   PH             - Ph (ph) [-log10([h+])]
+!   OXYGEN         - Oxygen (o2) [mol O2 m-3]
+!   ANO3           - Nitrate (no3) [mol N m-3]
+!   PHOSPH         - Phosphorus (po4) [mol P m-3]
+!   IRON           - Dissolved iron (dfe) [mol Fe m-3]
+!   SILICA         - Silicate (si) [mol Si m-3]
+!
+!3D MEDIUM PRIORITY
+!   DOC            - Dissolved organic carbon (dissoc) [mol C m-3]
+!   PHYTO          - Phytoplankton (phyc) [mol C m-3]
+!   GRAZER         - Zooplankton (zooc) [mol C m-3]
+!   POC            - Detrius (detoc) [mol C m-3]
+!   CALC           - CaCO3 shells (calc) [mol C m-3]
+!
+!3D LOW PRIORITY
+!   PHOSY          - Primary production (pp) [mol C m-3 s-1]
+!
+!3D NOT REQUESTED
+!   OPAL           - Opal shells (opal) [mol Si m-3]
+!   CO3            - Carbonate ions (co3) [mol C m-3]
+!   OMEGAC         - Saturation state (omegac) [1]
+!   DIC13          - Dissolved C13 (dissic13) [mol C m-3]
+!   DIC14          - Dissolved C14 (dissic14) [mol C m-3]
+!   DP             - Layer thickness (pddpo) [m]
+!   NOS            - ???  (nos) [???]
+!
+!2D HIGH PRIORITY
+!   EXPORT         - Export production (epc100) [mol C m-2 s-1]
+!   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
+!   PCO2           - Surface PCO2 (spco2) [uatm]
+!   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
+!   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
+!
+!2D NOT REQUESTED
+!   KWCO2          - ??? (kwco2) [???]
+!   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
+!   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
+!   DMSPROD        - DMS production (dmsprod) [???]
+!   DMS_BAC        - ??? (dms_bac) [???]
+!   DMS_UV         - ??? (dms_uv) [???]
+!   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
+!   ATMCO2         - Atmospheric CO2 (atmco2) [ppm]
+!   ATMO2          - Atmospheric O2 (atmo2) [ppm]
+!   ATMN2          - Atmospheric N2 (atmn2) [ppm]
+!
+!SEDIMENTS
+!   POWAIC         - (powdic) [mol C m-3]
+!   POWAAL         - (powalk) [eq m-3]
+!   POWAPH         - (powpho) [eq m-3]
+!   POWAOX         - (powox) [mol O2 m-3]
+!   POWN2          - (pown2) [mol N2 m-3]
+!   POWNO3         - (powno3)[mol N m-3]
+!   POWASI         - (powsi) [mol Si m-3]
+!   SSSO12         - (ssso12) [mol m-3]
+!   SSSSIL         - (ssssil) [mol Si m-3]
+!   SSSC12         - (sssc12) [mol C m-3]
+!   SSSTER         - (ssster) [mol m-3]
+!
+&DIABGC
+  GLB_FNAMETAG       ='bgcd','bgcm','bgcy',
+  GLB_AVEPERIO       =  1, 30,365,
+  GLB_FILEFREQ       = 30, 30,365,
+  GLB_COMPFLAG       =  0,  0,  0,
+  GLB_NCFORMAT       =  0,  0,  0,
+  GLB_INVENTORY      =  0,  1,  0,
+  SRF_KWCO2          =  0,  2,  2,
+  SRF_PCO2           =  4,  2,  2,
+  SRF_DMSFLUX        =  0,  2,  2,
+  SRF_CO2FXD         =  4,  2,  2,
+  SRF_CO2FXU         =  4,  2,  2,
+  SRF_OXFLUX         =  4,  2,  2,
+  SRF_NIFLUX         =  4,  2,  2,
+  SRF_DMS            =  0,  2,  2,
+  SRF_DMSPROD        =  0,  2,  2,
+  SRF_DMS_BAC        =  0,  2,  2,
+  SRF_DMS_UV         =  0,  2,  2,
+  SRF_EXPORT         =  0,  2,  2,
+  SRF_EXPOSI         =  0,  2,  2,
+  SRF_EXPOCA         =  0,  2,  2,
+  SRF_ATMCO2         =  4,  2,  2,
+  SRF_ATMO2          =  4,  2,  2,
+  SRF_ATMN2          =  4,  2,  2,
+  LYR_PHYTO          =  0,  2,  0,
+  LYR_GRAZER         =  0,  2,  0,
+  LYR_DOC            =  0,  2,  0,
+  LYR_PHOSY          =  0,  2,  0,
+  LYR_PHOSPH         =  0,  2,  0,
+  LYR_OXYGEN         =  0,  2,  0,
+  LYR_IRON           =  0,  2,  0,
+  LYR_ANO3           =  0,  2,  0,
+  LYR_ALKALI         =  0,  2,  0,
+  LYR_SILICA         =  0,  2,  0,
+  LYR_DIC            =  0,  2,  0,
+  LYR_POC            =  0,  2,  0,
+  LYR_CALC           =  0,  2,  0,
+  LYR_OPAL           =  0,  2,  0,
+  LYR_CO3            =  0,  2,  0,
+  LYR_PH             =  0,  2,  0,
+  LYR_OMEGAC         =  0,  2,  0,
+  LYR_DIC13          =  0,  2,  0,
+  LYR_DIC14          =  0,  2,  0,
+  LYR_DP             =  0,  2,  0,
+  LYR_NOS            =  0,  2,  0,
+  LVL_PHYTO          =  0,  0,  2,
+  LVL_GRAZER         =  0,  0,  2,
+  LVL_DOC            =  0,  0,  2,
+  LVL_PHOSY          =  0,  0,  2,
+  LVL_PHOSPH         =  0,  0,  2,
+  LVL_OXYGEN         =  0,  0,  2,
+  LVL_IRON           =  0,  0,  2,
+  LVL_ANO3           =  0,  0,  2,
+  LVL_ALKALI         =  0,  0,  2,
+  LVL_SILICA         =  0,  0,  2,
+  LVL_DIC            =  0,  0,  2,
+  LVL_POC            =  0,  0,  2,
+  LVL_CALC           =  0,  0,  2,
+  LVL_OPAL           =  0,  0,  2,
+  LVL_CO3            =  0,  0,  2,
+  LVL_PH             =  0,  0,  2,
+  LVL_OMEGAC         =  0,  0,  2,
+  LVL_DIC13          =  0,  0,  2,
+  LVL_DIC14          =  0,  0,  2,
+  LVL_NOS            =  0,  0,  2,
+  SDM_POWAIC         =  0,  0,  2,
+  SDM_POWAAL         =  0,  0,  2,
+  SDM_POWAPH         =  0,  0,  2,
+  SDM_POWAOX         =  0,  0,  2,
+  SDM_POWN2          =  0,  0,  2,
+  SDM_POWNO3         =  0,  0,  2,
+  SDM_POWASI         =  0,  0,  2,
+  SDM_SSSO12         =  0,  0,  2,
+  SDM_SSSSIL         =  0,  0,  2,
+  SDM_SSSC12         =  0,  0,  2,
+  SDM_SSSTER         =  0,  0,  2
+/
 EOF1
 
 EOF
@@ -106,7 +466,7 @@ set objdir = \$OBJROOT/ocn/obj; cd \$objdir
 set dimdir = \$objdir/dimensions
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
 
-set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -UCOMPDIA -DCOMPRES"
+set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -DLEVITUS2X"
 set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
 set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
 set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC"

@@ -1,6 +1,6 @@
       subroutine remap(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,
      .                 plo,u,v,dt,mrg,
-     .                 dp,temp,saln,uflx,vflx
+     .                 dp,temp,saln,uflx,vflx,utflx,vtflx,usflx,vsflx
 #ifdef TRC
      .                ,k,ntrc,trc
 #  ifdef ATRC
@@ -40,12 +40,16 @@ c ---   temp   - temperature.
 c ---   saln   - salinity.
 c ---   uflx   - u-component of mass flux.
 c ---   vflx   - v-component of mass flux.
+c ---   utflx  - u-component of heat flux.
+c ---   vtflx  - v-component of heat flux.
+c ---   usflx  - u-component of salt flux.
+c ---   vsflx  - v-component of salt flux.
 c ---   mrg    - margin of halo that must be valid upon return.
 c ---   k      - layer index
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo,u,v,dp,temp,saln,
-     .  uflx,vflx
+     .  uflx,vflx,utflx,vtflx,usflx,vsflx
       real dt
       integer mrg
 #ifdef TRC
@@ -844,8 +848,10 @@ c
 c
           endif
 c
-c --- --- u-component of mass flux.
+c --- --- u-component of mass, heat and salt flux.
           uflx(i,j)=fdu(i,j)
+          utflx(i,j)=ftu(i,j)+273.15*fdu(i,j)
+          usflx(i,j)=fsu(i,j)
 c
         enddo
         enddo
@@ -1219,8 +1225,10 @@ c
 c
           endif
 c
-c --- --- v-component of mass flux.
+c --- --- v-component of mass, heat and salt flux.
           vflx(i,j)=fdv(i,j)
+          vtflx(i,j)=ftv(i,j)+273.15*fdv(i,j)
+          vsflx(i,j)=fsv(i,j)
 c
         enddo
         enddo

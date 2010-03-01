@@ -1,7 +1,7 @@
-      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                       &
-     &    pfswr,psicomo,ptho,psao,pddpo,pdlxp,pdlyp,ptiestu,ptiestw,   &
-     &    pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,kmonlen,   &
-     &    kldtmon,kldtday,omask,dummy_tr,ndtr,bgc3dwrt,bgc2dwrt,       &
+      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                        &
+     &    pfswr,psicomo,ptho,psao,pddpo,pdlxp,pdlyp,ptiestu,ptiestw,    &
+     &    pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,kmonlen,    &
+     &    kldtmon,kldtday,omask,dummy_tr,ndtr,                          &
      &    days_in_yr)       
 
 !**********************************************************************
@@ -63,14 +63,13 @@
 !      REAL zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
       REAL omask(kpie,kpje)
       REAL dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ndtr)
-      REAL bgc3dwrt,bgc2dwrt
       INTEGER :: kplyear,kplmon,kplday,kmonlen,kldtmon,kldtday
       INTEGER :: days_in_yr
 
       REAL emissions
 
       IF (mnproc.eq.1) THEN
-      write(io_stdo_bgc,*) 'HAMOCC'
+      write(io_stdo_bgc,*) 'HAMOCC',KLDTDAY,KLDTMON,LDTRUNBGC,NDTDAYBGC
       ENDIF
 
 !
@@ -115,6 +114,7 @@
 !--------------------------------------------------------------------
 ! Pass atmospheric co2
 
+#if defined(DIFFAT) || defined(CCSMCOUPLED)
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
@@ -126,8 +126,9 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
+#endif 
 
-#ifdef PBGC_CK_TIMESTEP   
+#ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
@@ -239,7 +240,7 @@
 !$OMP PARALLEL DO
       do J=1,kpje
       do I=1,kpie
- 	if (OMASK(I,J) .gt. 0.5 ) then
+        if (OMASK(I,J) .gt. 0.5 ) then
           OCETRA(I,J,K,L)=MAX(0.,OCETRA(I,J,K,L))
         endif
       enddo
@@ -294,27 +295,13 @@
 
 !      
 #ifdef DIFFAT     
-      CALL SATM_STEP(atmflx,atm)
 !      write(lp,*) 'SATM_STEP'
-!$OMP PARALLEL DO 
-      do j=1,kpje
-      do i=1,kpie
-        bgcm2d(i,j,jatmco2)=bgcm2d(i,j,jatmco2)+atm(i,j,iatmco2)
-        bgcm2d(i,j,jatmo2) =bgcm2d(i,j,jatmo2) +atm(i,j,iatmo2)
-        bgcm2d(i,j,jatmn2) =bgcm2d(i,j,jatmn2) +atm(i,j,iatmn2)
-      enddo
-      enddo
-!$OMP END PARALLEL DO
-!      call xcstop('(hamocc4bcn)')
-!             stop('(hamocc4bcn)')
-#elif CCSMCOUPLED
-!$OMP PARALLEL DO 
-      do j=1,kpje
-      do i=1,kpie
-        bgcm2d(i,j,jatmco2)=bgcm2d(i,j,jatmco2)+atm(i,j,iatmco2)
-      enddo
-      enddo
-!$OMP END PARALLEL DO
+      CALL SATM_STEP(atmflx,atm)
+      call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
+      call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
+      call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
+#elif defined(CCSMCOUPLED)
+      call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
 #endif
 !
 #ifdef PBGC_CK_TIMESTEP 
@@ -342,49 +329,30 @@
 !      call INVENTORY_BGC(kpie,kpje,kpke)
 #endif	 
 
-      IF(MOD(ldtrunbgc,ndtdaybgc) .EQ. 0 ) THEN
+      IF(KLDTDAY .EQ. 1) THEN
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)                                          &
-     &   'Sediment shifting at runstep ',ldtrunbgc,' ...'
+     &   'Sediment shifting ...'
          ENDIF
 
          CALL SEDSHI(kpie,kpje,omask)
 
       ENDIF
 
-!js sediment
-      DO k=1,ks
-!$OMP PARALLEL DO 
-      DO j=1,kpje
-      DO i=1,kpie
-         IF(omask(i,j).GT.0.5) THEN
-             bgct_sed(i,j,k,jpowaic)  =                      &
-     &       bgct_sed(i,j,k,jpowaic)  + powtra(i,j,k,ipowaic)
-             bgct_sed(i,j,k,jpowaal)  =                      &
-     &       bgct_sed(i,j,k,jpowaal)  + powtra(i,j,k,ipowaal)
-             bgct_sed(i,j,k,jpowaph)  =                      &
-     &       bgct_sed(i,j,k,jpowaph)  + powtra(i,j,k,ipowaph)
-             bgct_sed(i,j,k,jpowaox)  =                      &
-     &       bgct_sed(i,j,k,jpowaox)  + powtra(i,j,k,ipowaox)
-             bgct_sed(i,j,k,jpown2)   =                      &
-     &       bgct_sed(i,j,k,jpown2)   + powtra(i,j,k,ipown2)
-             bgct_sed(i,j,k,jpowno3)  =                      &
-     &       bgct_sed(i,j,k,jpowno3)  + powtra(i,j,k,ipowno3)
-             bgct_sed(i,j,k,jpowasi)  =                      &
-     &       bgct_sed(i,j,k,jpowasi)  + powtra(i,j,k,ipowasi)
-             bgct_sed(i,j,k,jssso12)  =                      &
-     &       bgct_sed(i,j,k,jssso12)  + sedlay(i,j,k,issso12)
-             bgct_sed(i,j,k,jssssil)  =                      &
-     &       bgct_sed(i,j,k,jssssil)  + sedlay(i,j,k,issssil)
-             bgct_sed(i,j,k,jsssc12)  =                      &
-     &       bgct_sed(i,j,k,jsssc12)  + sedlay(i,j,k,isssc12)
-             bgct_sed(i,j,k,jssster)  =                      &
-     &       bgct_sed(i,j,k,jssster)  + sedlay(i,j,k,issster)
-         ENDIF
-      ENDDO
-      ENDDO
-!$OMP END PARALLEL DO
-      ENDDO
+!     accumulate sediments
+      DO l=1,nbgc 
+        call accsdm(jpowaic,powtra(1,1,1,ipowaic))
+        call accsdm(jpowaal,powtra(1,1,1,ipowaal))
+        call accsdm(jpowaph,powtra(1,1,1,ipowaph))
+        call accsdm(jpowaox,powtra(1,1,1,ipowaox))
+        call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
+        call accsdm(jpowno3,powtra(1,1,1,ipowno3))
+        call accsdm(jpowasi,powtra(1,1,1,ipowasi))
+        call accsdm(jssso12,sedlay(1,1,1,issso12))
+        call accsdm(jssssil,sedlay(1,1,1,issssil))
+        call accsdm(jsssc12,sedlay(1,1,1,isssc12))
+        call accsdm(jssster,sedlay(1,1,1,issster))
+      ENDDO 
 
 !
 #ifdef PBGC_CK_TIMESTEP 
@@ -401,10 +369,12 @@
 ! pass tracer fields out to ocean model 
 !
       dummy_tr(1:kpie,1:kpje,:,:)=ocetra(:,:,:,:)
+
 !
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
+#if defined(DIFFAT) || defined(CCSMCOUPLED)
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
@@ -412,31 +382,21 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
+#endif	 
+
 
 !---------------------------------------------------------------------
 ! write output files
 !
-      nacc_bgc2d=nacc_bgc2d+1
-      if (bgc3dwrt.gt.0.5) then
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-      call ncwrt3_bgc(bgcm3d)
-      call ncwrt3_sed(bgct_sed,nacc_bgc2d)
-      endif
-      if (bgc2dwrt.gt.0.5) then
-!      do i=1,kpie
-!      do j=1,kpje
-!         if(omask(i,j).gt.0.5) then
-!           bgcm2d(i,j,1)=float(kwrbioz(i,j))
-!           bgcm2d(i,j,2)=ptiestu(i,j,kwrbioz(i,j))
-!           bgcm2d(i,j,3)=ptiestw(i,j,kwrbioz(i,j)+1)
-!         endif
-!      enddo
-!      enddo
-      call ncwrt2_bgc(bgcm2d,nbgcm2d,nacc_bgc2d)
-      nacc_bgc2d=0 
-      endif
-!      write(io_stdo_bgc,*) 'WRITE'
+      DO l=1,nbgc 
+        nacc_bgc(l)=nacc_bgc(l)+1
+        if (bgcwrt(l).gt.0.5) then
+          if (GLB_INVENTORY(l).ne.0)                                    & 
+     &      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+          call ncwrt_bgc(l)
+          nacc_bgc(l)=0 
+        endif
+      ENDDO
 !
 !--------------------------------------------------------------------
 

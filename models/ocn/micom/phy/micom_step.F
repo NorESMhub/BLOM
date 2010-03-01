@@ -5,12 +5,12 @@ c --- integrate a model time step
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_dia
 c
       implicit none
 c
 #include "common_blocks.h"
 #include "common_clndr.h"
-#include "common_dia.h"
 #include "common_forc.h"
 #ifdef TRC
 #  include "param_trc.h"
@@ -304,27 +304,17 @@ c
 c
       endif
 c
-      if (diag2dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
-     .    .not.diag2dmon.and.mod(nstep+.5,diag2dfq).lt.1.) then
 c
 c --- ------------------------------------------------------------------
-c --- - output 2D diagnostics
+c --- - output of MICOM diagnostics
 c --- ------------------------------------------------------------------
 c
-        call ncwrt2
-c
-      endif
-c
-      if (diag3dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
-     .    .not.diag3dmon.and.mod(nstep+.5,diag3dfq).lt.1.) then
-c
-c --- ------------------------------------------------------------------
-c --- - output 3D diagnostics
-c --- ------------------------------------------------------------------
-c
-        call ncwrt3
-c
-      endif
+      do i=1,nphy 
+        if (((diagann_phy(i).and.nday_of_year.eq.1.or.diagmon_phy(i)
+     .    .and.nday.eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.
+     .    (diagann_phy(i).or.diagmon_phy(i)).and.
+     .    mod(nstep+.5,diagfq_phy(i)).lt.1.) call diaout(i)
+      enddo
 c
 c --- update total time spent by various tasks
       auxil_total_time=auxil_total_time+auxil_time
@@ -344,9 +334,9 @@ c --- update total time spent by various tasks
       tmsmt2_total_time=tmsmt2_total_time+tmsmt2_time
       diaacc_total_time=diaacc_total_time+diaacc_time
 c
-      if (diag3dmon.and.(mod(nstep,nstep_in_day).eq.0.and.nday.eq.1).or.
-     .    .not.diag3dmon.and.
-     .    mod(nstep,max(nint(diag3dfq),nstep_in_day)).eq.0) then
+      if (((rstann.and.nday_of_year.eq.1.or.rstmon.and.nday
+     .  .eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.(rstann
+     .  .or.rstmon).and.mod(nstep+.5,rstfrq).lt.1.) then
 c
 #ifndef CCSMCOUPLED
 c --- ------------------------------------------------------------------
@@ -359,7 +349,11 @@ c
 c --- - this is needed to reproduce results after restart with arctic
 c --- - patch
         call xctilr(uflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
+        call xctilr(utflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
+        call xctilr(usflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
         call xctilr(vflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
+        call xctilr(vtflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
+        call xctilr(vsflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
 #  endif
 #endif
 c

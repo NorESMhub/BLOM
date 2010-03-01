@@ -35,7 +35,9 @@ c
      .                diaflx,corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
-     .  uflx,vflx      ! horizontal mass fluxes
+     .  uflx,vflx,     ! horizontal mass fluxes
+     .  utflx,vtflx,   ! horizontal heat fluxes
+     .  usflx,vsflx    ! horizontal salt fluxes
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  uflxdf,vflxdf  ! horizontal diffusive mass fluxes
@@ -65,12 +67,12 @@ c
      .  uflux2,vflux2, ! more mass fluxes
      .  uflux3,vflux3  ! more mass fluxes
 c
-      common /micom2/ uflx,vflx,uflxdf,vflxdf,ubflxs,vbflxs,pb,
-     .                ubflx,vbflx,pb_mn,ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,
-     .                ubflxs_p,vbflxs_p,pvtrop,pb_p,pbu_p,pbv_p,
-     .                pvtrop_o,ubcors_p,vbcors_p,defor1,defor2,
-     .                utotm,vtotm,utotn,vtotn,uflux,vflux,uflux2,vflux2,
-     .                uflux3,vflux3
+      common /micom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,uflxdf,vflxdf,
+     .                ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,ubflx_mn,
+     .                vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,pvtrop,
+     .                pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,vbcors_p,
+     .                defor1,defor2,utotm,vtotm,utotn,vtotn,uflux,vflux,
+     .                uflux2,vflux2,uflux3,vflux3
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  pgfx,pgfy      ! horizontal pressure gradient force

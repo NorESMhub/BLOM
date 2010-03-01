@@ -74,7 +74,7 @@
 !      USE mo_timeser_bgc
       USE mo_control_bgc
       USE mo_bgcmean
-      use mo_param1_bgc 
+      USE mo_param1_bgc 
 
       implicit none
       INTEGER :: i,j,k,l,kpie,kpje,kpke
@@ -143,6 +143,27 @@
 #ifdef ANTC14
       REAL :: fantc14d,fantc14u
 #endif
+!IB 
+      INTEGER, DIMENSION(kpie,kpje) :: ind1,ind2
+      REAL, DIMENSION(kpie,kpje,ddm) :: wghts
+      REAL, DIMENSION(kpie,kpje) :: aux2d_co2fxd
+      REAL, DIMENSION(kpie,kpje) :: aux2d_co2fxu
+      REAL, DIMENSION(kpie,kpje) :: aux2d_pco2
+      REAL, DIMENSION(kpie,kpje) :: aux2d_kwco2
+      REAL, DIMENSION(kpie,kpje) :: aux2d_oxflux
+      REAL, DIMENSION(kpie,kpje) :: aux2d_niflux
+      REAL, DIMENSION(kpie,kpje) :: aux2d_dmsflux
+      REAL, DIMENSION(kpie,kpje) :: aux2d_dms
+      aux2d_co2fxd=0
+      aux2d_co2fxu=0
+      aux2d_pco2=0
+      aux2d_kwco2=0
+      aux2d_oxflux=0
+      aux2d_niflux=0
+      aux2d_dmsflux=0
+      aux2d_dms=0
+!IB 
+
 
 !      WRITE(*,*) 'CARCHM called with REDUCED :',                     &
 !     &           kpie,kpje,kpke,pddpo(40,40,1),psao(40,40,1),        &
@@ -361,31 +382,32 @@
        kwdms = (1-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660/scdms)**0.5 
        kwo2  = (1-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660/sco2)**0.5 
 
-#ifdef DIFFAT	 	 
-	 atco2 = atm(i,j,iatmco2)
-	 ato2  = atm(i,j,iatmo2)
-	 atn2  = atm(i,j,iatmn2)
+#ifdef DIFFAT      
+         atco2 = atm(i,j,iatmco2)
+         ato2  = atm(i,j,iatmo2)
+         atn2  = atm(i,j,iatmn2)
 #ifdef __c_isotopes
-	 atc13 = atm(i,j,iatmc13)
-	 atc14 = atm(i,j,iatmc14)
+         atc13 = atm(i,j,iatmc13)
+         atc14 = atm(i,j,iatmc14)
 #endif
 #elif CCSMCOUPLED
-	 atco2 = atm(i,j,iatmco2)
-	 ato2  = atm_o2
-	 atn2  = atm_n2
+         atco2 = atm(i,j,iatmco2)
+         ato2  = atm_o2
+         atn2  = atm_n2
 #ifdef __c_isotopes
-	 atc13 = atco2*atm_c13/atm_co2
-	 atc14 = atco2*atm_c14/atm_co2
+         atc13 = atco2*atm_c13/atm_co2
+         atc14 = atco2*atm_c14/atm_co2
 #endif
 #else
-	 atco2 = atm_co2
-	 ato2  = atm_o2 
-	 atn2  = atm_n2 
+         atco2 = atm_co2
+         ato2  = atm_o2
+         atn2  = atm_n2
 #ifdef __c_isotopes
          atc13=  atm_c13
          atc14=  atm_c14
 #endif /*__c_isotopes*/
-#endif	 
+#endif
+
 
        fluxd=atco2*kwco2*dtbgc*Kh*1e-6 ! JT replaced ak0 with Kh*1e-6
        fluxu=pco2 *kwco2*dtbgc*Kh*1e-6 ! JT replaced ak0 with Kh*1e-6
@@ -411,7 +433,7 @@
 	 flux14d=atc14*kwco2*dtbgc*Kh*1e-6              ! *ppao(i,j)/101300.
          flux14u=pco2 *kwco2*dtbgc*Kh*1e-6*Roc14*0.987  ! *ppao(i,j)/101300. (twofold fractionation through evaporation)
 #endif /*__c_isotopes*/
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
+#if defined(DIFFAT) || defined(CCSMCOUPLED) 	   
 !         atm(i,j,iatmco2)=atm(i,j,iatmco2)+(fluxu-fluxd)*contppm
          atmflx(i,j,iatmco2)=(fluxu-fluxd)*contppm
 #ifdef __c_isotopes
@@ -459,15 +481,14 @@
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
 
-       bgcm2d(i,j,jco2fxd)=bgcm2d(i,j,jco2fxd)+fluxd
-       bgcm2d(i,j,jco2fxu)=bgcm2d(i,j,jco2fxu)+fluxu
-       bgcm2d(i,j,jpco2)  =bgcm2d(i,j,jpco2)  +pco2
-       bgcm2d(i,j,jkwco2) =bgcm2d(i,j,jkwco2) +kwco2*Kh*1e-6 ! JT replaced ak0 with Kh*1e-6
-
-       bgcm2d(i,j,joxflux)=bgcm2d(i,j,joxflux)+oxflux+0.5*n2oflux
-       bgcm2d(i,j,jniflux)=bgcm2d(i,j,jniflux)+niflux+n2oflux
-       bgcm2d(i,j,jdmsflux)=bgcm2d(i,j,jdmsflux) + dmsflux
-       bgcm2d(i,j,jdms)=bgcm2d(i,j,jdms) + ocetra(i,j,1,idms)*pddpo(i,j,1)
+       aux2d_co2fxd(i,j)  = aux2d_co2fxd(i,j)  + fluxd 
+       aux2d_co2fxu(i,j)  = aux2d_co2fxu(i,j)  + fluxu 
+       aux2d_pco2(i,j)    = aux2d_pco2(i,j)    + pco2 
+       aux2d_kwco2(i,j)   = aux2d_kwco2(i,j)   + kwco2*Kh*1e-6 ! JT replaced ak0 with Kh*1e-6
+       aux2d_oxflux(i,j)  = aux2d_oxflux(i,j)  + oxflux + 0.5 * n2oflux
+       aux2d_niflux(i,j)  = aux2d_niflux(i,j)  + niflux + n2oflux
+       aux2d_dmsflux(i,j) = aux2d_dmsflux(i,j) + dmsflux
+       aux2d_dms(i,j)     = aux2d_dms(i,j)     + ocetra(i,j,1,idms) 
       endif
 
 !JT      B = ( -1636.75 + 12.0408 * tk - 0.0327957 * ( tk * tk ) + 0.0000316528 * ( tk * tk * tk ) ) * 1.e-6
@@ -478,8 +499,6 @@
       OmegaC(i,j,k) = omega / Kspc
 !JT Convert from mol/m^3 to kmol/m^3
       OmegaC(i,j,k) = OmegaC(i,j,k)/1000.
-            bgcm3d(i,j,k,jomegac) = 			&
-     &      bgcm3d(i,j,k,jomegac) + OmegaC(i,j,k)       *pddpo(i,j,k) 
 !      ocetra(i,j,k,iomegac)=OmegaC(i,j,k)
 !  Determine BetaD (from Seacarb software)
 !JT      ahkb = ah1 + Kb;
@@ -503,6 +522,29 @@
       ENDDO
 !$OMP END PARALLEL DO
 !End of Tjiputra update====================================================================
+!IB
+! Accumulate diagnostic 2d variables   
+      call accsrf(jco2fxd,aux2d_co2fxd,omask,0) 
+      call accsrf(jco2fxd,aux2d_co2fxd,omask,0)
+      call accsrf(jco2fxu,aux2d_co2fxu,omask,0)
+      call accsrf(jpco2,aux2d_pco2,omask,0)
+      call accsrf(jkwco2,aux2d_kwco2,omask,0)
+      call accsrf(joxflux,aux2d_oxflux,omask,0)
+      call accsrf(jniflux,aux2d_niflux,omask,0)
+      call accsrf(jdmsflux,aux2d_dmsflux,omask,0)
+      call accsrf(jdms,aux2d_dms,omask,0)
+
+! Accumulate diagnostic layer variables 
+      call acclyr(jomegac,OmegaC,pddpo,1)
+
+! Accumulate diagnostic level variables 
+      IF (sum(jlvlomegac).NE.0) THEN
+        DO k=1,kpke
+          call bgczlv(pddpo,k,ind1,ind2,wghts)
+          call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
+        ENDDO 
+      ENDIF
+!IB
 
 !      if(ldtrunbgc.eq.540)then
 !       WRITE(*,*)'JT MONTH, CO2FLX (kmol/month)',kplmon,annCO2flx

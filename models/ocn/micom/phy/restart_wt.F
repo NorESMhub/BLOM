@@ -5,6 +5,8 @@ c --- Write model state to restart files
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_dia
+      use mod_nctools
 c
       implicit none
 c
@@ -15,11 +17,12 @@ c
 #  include "common_asf.h"
 #endif
 #include "common_ice.h"
-#include "common_dia.h"
 c
-      integer i,j
-      character*80, dimension(4) :: rstdate_str
-      character rstfnm*80,rstfnm_ext*80,fnm*80
+      integer i,j,n
+      character(len=80), dimension(4) :: rstdate_str
+      character(len=80) :: rstfnm,rstfnm_ext,fnm
+      character(len=2) :: c2
+      character(len=5)  :: c5p,c5u,c5v,c5q
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv,iqq
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
@@ -34,7 +37,7 @@ c --- set time information
       timeunits='hours since 0001-01-01 00:00'
       write(startdate,'(i4,a1,i2,a1,i2,a6)')
      .  nyear0,'-',nmonth0,'-',nday0,' 00:00'
-      datenum=(time-.5*diag2dfq/nstep_in_day-time0)*24.
+      datenum=(time-.5*rstfrq/nstep_in_day-time0)*24.
 c
 c --- formulate restart name and open restart file
 c
@@ -46,18 +49,19 @@ c
      .    nint(time),'.nc'
 c
 #elif defined(CLIM) || defined(SYN)
-        if (nday_of_year-max(1,nint(diag3dfq/nstep_in_day)).le.0) then
+        if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) 
+     .     then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
      .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
      .      '_',nint(time),'.nc'
         else
-          if (diag3dmon) then
+          if (rstmon) then
             write (rstfnm,'(2a,i1,a)')
      .        runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
           else
             write (rstfnm,'(2a,i1,a)')
      .        runid(1:runid_len),'_restphy_',
-     .        mod(nint(min(nstep/diag3dfq,time))-1,3)+1,'.nc'
+     .        mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
           endif
           open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
           i=1
@@ -88,12 +92,18 @@ c
         write (lp,'(a,a)')
      .    ' saving restart file ',path2(1:path2_len)//rstfnm
 c
-        call ncfopn(path2(1:path2_len)//rstfnm,'w')
-        call ncputi('nday0',nday0,1)
-        call ncputi('nmonth0',nmonth0,1)
-        call ncputi('nyear0',nyear0,1)
-        call ncputr('time0',time0,1)
-        call ncputr('time',time,1)
+        if (rstfmt.eq.1) then 
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1)
+        elseif (rstfmt.eq.2) then
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1)
+        else
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1)
+        endif
+        call ncputi('nday0',nday0)
+        call ncputi('nmonth0',nmonth0)
+        call ncputi('nyear0',nyear0)
+        call ncputr('time0',time0)
+        call ncputr('time',time)
 c
       endif
 c
@@ -120,25 +130,37 @@ c --- define spatial and time dimensions
           enddo 
         enddo
       endif
-#ifdef COMPRES     
-      call ncdimc('pcomp',ip,0)
-      call ncdimc('qcomp',iqq,0)
-      call ncdimc('ucomp',iuu,0)
-      call ncdimc('vcomp',ivv,0)
-#else 
-      call ncdims('x',itdm)
-      call ncdims('y',jtdm)
-#endif 
+      if (rstcmp) then 
+        call ncdimc('pcomp',ip,0)
+        call ncdimc('qcomp',iqq,0)
+        call ncdimc('ucomp',iuu,0)
+        call ncdimc('vcomp',ivv,0)
+        c5p='pcomp'
+        c5u='ucomp'
+        c5v='vcomp'
+        c5q='qcomp'
+      else
+        call ncdims('x',itdm)
+        call ncdims('y',jtdm)
+        c5p='x y'
+        c5u='x y'
+        c5v='x y'
+        c5q='x y'
+      endif 
       call ncdims('k2',2)
       call ncdims('k3',3)
       call ncdims('kk',kk)
       call ncdims('kk2',2*kk)
+      call ncdims('plev',ddm)
+      call ncputr('plev',depthslev)
       call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- output model fields to restart file
-      call ncputi('ntda',ntda,1)
-      call ncputi('nacc_phy2d',nacc_phy2d,1)
-      call ncputi('nacc_phy3d',nacc_phy3d,1)
+      call ncputi('ntda',ntda)
+      do n=1,nphy 
+        write(c2,'(i2.2)') n
+        call ncputi('nacc_phy'//c2,nacc_phy(n))
+      enddo 
 c
       do j=1,jj
         do i=1,ii
@@ -152,266 +174,279 @@ c
         enddo
       enddo
 c
-#ifdef COMPRES 
-      call nccomp('u','ucomp kk2 time',u,iuu)
-      call nccomp('v','vcomp kk2 time',v,ivv)
-      call nccomp('dp','pcomp kk2 time',dp,ip)
-      call nccomp('temp','pcomp kk2 time',temp,ip)
-      call nccomp('saln','pcomp kk2 time',saln,ip)
-      call nccomp('sigma','pcomp kk2 time',sigma,ip)
-      call nccomp('sigmar','pcomp kk time',sigmar,ip)
-      call nccomp('pgfx','ucomp kk2 time',pgfx,iuu)
-      call nccomp('pgfy','vcomp kk2 time',pgfy,ivv)
-      call nccomp('pb','pcomp k2 time',pb,ip)
-      call nccomp('pb_mn','pcomp k2 time',pb_mn,ip)
-      call nccomp('pb_p','pcomp time',pb_p,ip)
-      call nccomp('pbu','ucomp k2 time',pbu,iuu)
-      call nccomp('pbv','vcomp k2 time',pbv,ivv)
-      call nccomp('pbu_p','ucomp time',pbu_p,iuu)
-      call nccomp('pbv_p','vcomp time',pbv_p,ivv)
-      call nccomp('ub','ucomp k2 time',ub,iuu)
-      call nccomp('vb','vcomp k2 time',vb,ivv)
-      call nccomp('uflx','ucomp kk2 time',uflx,iuu)
-      call nccomp('vflx','vcomp kk2 time',vflx,ivv)
-      call nccomp('ubflx','ucomp k2 time',ubflx,iuu)
-      call nccomp('vbflx','vcomp k2 time',vbflx,ivv)
-      call nccomp('ubflx_mn','ucomp k2 time',ubflx_mn,iuu)
-      call nccomp('vbflx_mn','vcomp k2 time',vbflx_mn,ivv)
-      call nccomp('ubflxs','ucomp k3 time',ubflxs,iuu)
-      call nccomp('vbflxs','vcomp k3 time',vbflxs,ivv)
-      call nccomp('ubflxs_p','ucomp k2 time',ubflxs_p,iuu)
-      call nccomp('vbflxs_p','vcomp k2 time',vbflxs_p,ivv)
-      call nccomp('ubcors_p','ucomp time',ubcors_p,iuu)
-      call nccomp('vbcors_p','vcomp time',vbcors_p,ivv)
-      call nccomp('pvtrop','qcomp k2 time',pvtrop,iqq)
-      call nccomp('pgfxm','ucomp k2 time',pgfxm,iuu)
-      call nccomp('pgfym','vcomp k2 time',pgfym,ivv)
-      call nccomp('xixp','ucomp k2 time',xixp,iuu)
-      call nccomp('xixm','ucomp k2 time',xixm,iuu)
-      call nccomp('xiyp','vcomp k2 time',xiyp,ivv)
-      call nccomp('xiym','vcomp k2 time',xiym,ivv)
-      call nccomp('phi','pcomp time',phi(1-nbdy,1-nbdy,kk+1),ip)
-      call nccomp('sealv','pcomp time',sealv,ip)
-      call nccomp('kfpla','pcomp k2 time',rkfpla,ip)
-      call nccomp('hicem','pcomp time',hicem,ip)
-      call nccomp('ficem','pcomp time',ficem,ip)
-      call nccomp('tsrfm','pcomp time',tsrfm,ip)
-      call nccomp('hsnwm','pcomp time',hsnwm,ip)
-      call nccomp('ticem','pcomp time',ticem,ip)
-      call nccomp('iagem','pcomp time',iagem,ip)
-      call nccomp('tsi_tda','pcomp time',tsi_tda,ip)
-      call nccomp('tml_tda','pcomp time',tml_tda,ip)
-      call nccomp('sml_tda','pcomp time',sml_tda,ip)
-      call nccomp('alb_tda','pcomp time',alb_tda,ip)
-      call nccomp('fice_tda','pcomp time',fice_tda,ip)
-      call nccomp('rnfres','pcomp time',rnfres,ip)
-#else
-      call ncwrtr('u','x y kk2 time',u,iuu,1)
-      call ncwrtr('v','x y kk2 time',v,ivv,1)
-      call ncwrtr('dp','x y kk2 time',dp,ip,1)
-      call ncwrtr('temp','x y kk2 time',temp,ip,1)
-      call ncwrtr('saln','x y kk2 time',saln,ip,1)
-      call ncwrtr('sigma','x y kk2 time',sigma,ip,1)
-      call ncwrtr('sigmar','x y kk time',sigmar,ip,1)
-      call ncwrtr('pgfx','x y kk2 time',pgfx,iuu,1)
-      call ncwrtr('pgfy','x y kk2 time',pgfy,ivv,1)
-      call ncwrtr('pb','x y k2 time',pb,ip,1)
-      call ncwrtr('pb_mn','x y k2 time',pb_mn,ip,1)
-      call ncwrtr('pb_p','x y time',pb_p,ip,1)
-      call ncwrtr('pbu','x y k2 time',pbu,iuu,1)
-      call ncwrtr('pbv','x y k2 time',pbv,ivv,1)
-      call ncwrtr('pbu_p','x y time',pbu_p,iuu,1)
-      call ncwrtr('pbv_p','x y time',pbv_p,ivv,1)
-      call ncwrtr('ub','x y k2 time',ub,iuu,1)
-      call ncwrtr('vb','x y k2 time',vb,ivv,1)
-      call ncwrtr('uflx','x y kk2 time',uflx,iuu,1)
-      call ncwrtr('vflx','x y kk2 time',vflx,ivv,1)
-      call ncwrtr('ubflx','x y k2 time',ubflx,iuu,1)
-      call ncwrtr('vbflx','x y k2 time',vbflx,ivv,1)
-      call ncwrtr('ubflx_mn','x y k2 time',ubflx_mn,iuu,1)
-      call ncwrtr('vbflx_mn','x y k2 time',vbflx_mn,ivv,1)
-      call ncwrtr('ubflxs','x y k3 time',ubflxs,iuu,1)
-      call ncwrtr('vbflxs','x y k3 time',vbflxs,ivv,1)
-      call ncwrtr('ubflxs_p','x y k2 time',ubflxs_p,iuu,1)
-      call ncwrtr('vbflxs_p','x y k2 time',vbflxs_p,ivv,1)
-      call ncwrtr('ubcors_p','x y time',ubcors_p,iuu,1)
-      call ncwrtr('vbcors_p','x y time',vbcors_p,ivv,1)
-      call ncwrtr('pvtrop','x y k2 time',pvtrop,iqq,1)
-      call ncwrtr('pgfxm','x y k2 time',pgfxm,iuu,1)
-      call ncwrtr('pgfym','x y k2 time',pgfym,ivv,1)
-      call ncwrtr('xixp','x y k2 time',xixp,iuu,1)
-      call ncwrtr('xixm','x y k2 time',xixm,iuu,1)
-      call ncwrtr('xiyp','x y k2 time',xiyp,ivv,1)
-      call ncwrtr('xiym','x y k2 time',xiym,ivv,1)
-      call ncwrtr('phi','x y time',phi(1-nbdy,1-nbdy,kk+1),ip,1)
-      call ncwrtr('sealv','x y time',sealv,ip,1)
-      call ncwrtr('kfpla','x y k2 time',rkfpla,ip,1)
-      call ncwrtr('hicem','x y time',hicem,ip,1)
-      call ncwrtr('ficem','x y time',ficem,ip,1)
-      call ncwrtr('tsrfm','x y time',tsrfm,ip,1)
-      call ncwrtr('hsnwm','x y time',hsnwm,ip,1)
-      call ncwrtr('ticem','x y time',ticem,ip,1)
-      call ncwrtr('iagem','x y time',iagem,ip,1)
-      call ncwrtr('tsi_tda','x y time',tsi_tda,ip,1)
-      call ncwrtr('tml_tda','x y time',tml_tda,ip,1)
-      call ncwrtr('sml_tda','x y time',sml_tda,ip,1)
-      call ncwrtr('alb_tda','x y time',alb_tda,ip,1)
-      call ncwrtr('fice_tda','x y time',fice_tda,ip,1)
-      call ncwrtr('rnfres','x y time',rnfres,ip,1)
-#endif 
+      call wrtrst('u',trim(c5u)//' kk2 time',u,iuu)
+      call wrtrst('v',trim(c5v)//' kk2 time',v,ivv)
+      call wrtrst('dp',trim(c5p)//' kk2 time',dp,ip)
+      call wrtrst('temp',trim(c5p)//' kk2 time',temp,ip)
+      call wrtrst('saln',trim(c5p)//' kk2 time',saln,ip)
+      call wrtrst('sigma',trim(c5p)//' kk2 time',sigma,ip)
+      call wrtrst('sigmar',trim(c5p)//' kk time',sigmar,ip)
+      call wrtrst('pgfx',trim(c5u)//' kk2 time',pgfx,iuu)
+      call wrtrst('pgfy',trim(c5v)//' kk2 time',pgfy,ivv)
+      call wrtrst('pb',trim(c5p)//' k2 time',pb,ip)
+      call wrtrst('pb_mn',trim(c5p)//' k2 time',pb_mn,ip)
+      call wrtrst('pb_p',trim(c5p)//' time',pb_p,ip)
+      call wrtrst('pbu',trim(c5u)//' k2 time',pbu,iuu)
+      call wrtrst('pbv',trim(c5v)//' k2 time',pbv,ivv)
+      call wrtrst('pbu_p',trim(c5u)//' time',pbu_p,iuu)
+      call wrtrst('pbv_p',trim(c5v)//' time',pbv_p,ivv)
+      call wrtrst('ub',trim(c5u)//' k2 time',ub,iuu)
+      call wrtrst('vb',trim(c5v)//' k2 time',vb,ivv)
+      call wrtrst('uflx',trim(c5u)//' kk2 time',uflx,iuu)
+      call wrtrst('utflx',trim(c5u)//' kk2 time',utflx,iuu)
+      call wrtrst('usflx',trim(c5u)//' kk2 time',usflx,iuu)
+      call wrtrst('vflx',trim(c5v)//' kk2 time',vflx,ivv)
+      call wrtrst('vtflx',trim(c5v)//' kk2 time',vtflx,ivv)
+      call wrtrst('vsflx',trim(c5v)//' kk2 time',vsflx,ivv)
+      call wrtrst('ubflx',trim(c5u)//' k2 time',ubflx,iuu)
+      call wrtrst('vbflx',trim(c5v)//' k2 time',vbflx,ivv)
+      call wrtrst('ubflx_mn',trim(c5u)//' k2 time',ubflx_mn,iuu)
+      call wrtrst('vbflx_mn',trim(c5v)//' k2 time',vbflx_mn,ivv)
+      call wrtrst('ubflxs',trim(c5u)//' k3 time',ubflxs,iuu)
+      call wrtrst('vbflxs',trim(c5v)//' k3 time',vbflxs,ivv)
+      call wrtrst('ubflxs_p',trim(c5u)//' k2 time',ubflxs_p,iuu)
+      call wrtrst('vbflxs_p',trim(c5v)//' k2 time',vbflxs_p,ivv)
+      call wrtrst('ubcors_p',trim(c5u)//' time',ubcors_p,iuu)
+      call wrtrst('vbcors_p',trim(c5v)//' time',vbcors_p,ivv)
+      call wrtrst('pvtrop',trim(c5q)//' k2 time',pvtrop,iqq)
+      call wrtrst('pgfxm',trim(c5u)//' k2 time',pgfxm,iuu)
+      call wrtrst('pgfym',trim(c5v)//' k2 time',pgfym,ivv)
+      call wrtrst('xixp',trim(c5u)//' k2 time',xixp,iuu)
+      call wrtrst('xixm',trim(c5u)//' k2 time',xixm,iuu)
+      call wrtrst('xiyp',trim(c5v)//' k2 time',xiyp,ivv)
+      call wrtrst('xiym',trim(c5v)//' k2 time',xiym,ivv)
+      call wrtrst('phi',trim(c5p)//' time',phi(1-nbdy,1-nbdy,kk+1),ip)
+      call wrtrst('sealv',trim(c5p)//' time',sealv,ip)
+      call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
+      call wrtrst('hicem',trim(c5p)//' time',hicem,ip)
+      call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
+      call wrtrst('tsrfm',trim(c5p)//' time',tsrfm,ip)
+      call wrtrst('hsnwm',trim(c5p)//' time',hsnwm,ip)
+      call wrtrst('ticem',trim(c5p)//' time',ticem,ip)
+      call wrtrst('iagem',trim(c5p)//' time',iagem,ip)
+      call wrtrst('tsi_tda',trim(c5p)//' time',tsi_tda,ip)
+      call wrtrst('tml_tda',trim(c5p)//' time',tml_tda,ip)
+      call wrtrst('sml_tda',trim(c5p)//' time',sml_tda,ip)
+      call wrtrst('alb_tda',trim(c5p)//' time',alb_tda,ip)
+      call wrtrst('fice_tda',trim(c5p)//' time',fice_tda,ip)
+      call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
 c
 #if defined(CLIM) || defined(SYN)
-#  ifdef COMPRES 
-      call nccomp('cd_d','pcomp time',cd_d,ip)
-      call nccomp('ch_d','pcomp time',ch_d,ip)
-      call nccomp('ce_d','pcomp time',ce_d,ip)
-      call nccomp('wg2_d','pcomp time',wg2_d,ip)
-      call nccomp('cd_m','pcomp time',cd_m,ip)
-      call nccomp('ch_m','pcomp time',ch_m,ip)
-      call nccomp('ce_m','pcomp time',ce_m,ip)
-      call nccomp('wg2_m','pcomp time',wg2_m,ip)
-      call nccomp('rhoa','pcomp time',rhoa,ip)
-#  else
-      call ncwrtr('cd_d','x y time',cd_d,ip,1)
-      call ncwrtr('ch_d','x y time',ch_d,ip,1)
-      call ncwrtr('ce_d','x y time',ce_d,ip,1)
-      call ncwrtr('wg2_d','x y time',wg2_d,ip,1)
-      call ncwrtr('cd_m','x y time',cd_m,ip,1)
-      call ncwrtr('ch_m','x y time',ch_m,ip,1)
-      call ncwrtr('ce_m','x y time',ce_m,ip,1)
-      call ncwrtr('wg2_m','x y time',wg2_m,ip,1)
-      call ncwrtr('rhoa','x y time',rhoa,ip,1)
-#  endif
+      call wrtrst('cd_d',trim(c5p)//' time',cd_d,ip)
+      call wrtrst('ch_d',trim(c5p)//' time',ch_d,ip)
+      call wrtrst('ce_d',trim(c5p)//' time',ce_d,ip)
+      call wrtrst('wg2_d',trim(c5p)//' time',wg2_d,ip)
+      call wrtrst('cd_m',trim(c5p)//' time',cd_m,ip)
+      call wrtrst('ch_m',trim(c5p)//' time',ch_m,ip)
+      call wrtrst('ce_m',trim(c5p)//' time',ce_m,ip)
+      call wrtrst('wg2_m',trim(c5p)//' time',wg2_m,ip)
+      call wrtrst('rhoa',trim(c5p)//' time',rhoa,ip)
 #endif
 c
-#ifdef COMPRES 
-      call nccomp('frzpot','pcomp time',frzpot,ip)
-      call nccomp('mltpot','pcomp time',mltpot,ip)
-#else
-      call ncwrtr('frzpot','x y time',frzpot,ip,1)
-      call ncwrtr('mltpot','x y time',mltpot,ip,1)
-#endif
+      call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
+      call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
 c
 c --- write accumulated fields
-      if (nacc_phy2d.gt.0) then
-#ifdef COMPRES 
-        call nccomp('ub_dia','ucomp time',ub_dia,iuu)
-        call nccomp('vb_dia','vcomp time',vb_dia,ivv)
-        call nccomp('ztx_dia','ucomp time',ztx_dia,iuu)
-        call nccomp('mty_dia','vcomp time',mty_dia,ivv)
-        call nccomp('taux_dia','ucomp time',taux_dia,iuu)
-        call nccomp('tauy_dia','vcomp time',tauy_dia,ivv)
-        call nccomp('mxlu_dia','ucomp time',mxlu_dia,iuu)
-        call nccomp('mxlv_dia','vcomp time',mxlv_dia,ivv)
-        call nccomp('mldu_dia','ucomp time',mldu_dia,iuu)
-        call nccomp('mldv_dia','vcomp time',mldv_dia,ivv)
-        call nccomp('sealv_dia','pcomp time',sealv_dia,ip)
-        call nccomp('sigmx_dia','pcomp time',sigmx_dia,ip)
-        call nccomp('hice_dia','pcomp time',hice_dia,ip)
-        call nccomp('hsnw_dia','pcomp time',hsnw_dia,ip)
-        call nccomp('fice_dia','pcomp time',fice_dia,ip)
-        call nccomp('tsrf_dia','pcomp time',tsrf_dia,ip)
-        call nccomp('tice_dia','pcomp time',tice_dia,ip)
-        call nccomp('swa_dia','pcomp time',swa_dia,ip)
-        call nccomp('nsf_dia','pcomp time',nsf_dia,ip)
-        call nccomp('hmltfz_dia','pcomp time',hmltfz_dia,ip)
-        call nccomp('dfl_dia','pcomp time',dfl_dia,ip)
-        call nccomp('lip_dia','pcomp time',lip_dia,ip)
-        call nccomp('sop_dia','pcomp time',sop_dia,ip)
-        call nccomp('eva_dia','pcomp time',eva_dia,ip)
-        call nccomp('fmltfz_dia','pcomp time',fmltfz_dia,ip)
-        call nccomp('sfl_dia','pcomp time',sfl_dia,ip)
-        call nccomp('alb_dia','pcomp time',alb_dia,ip)
-        call nccomp('rnfflx_dia','pcomp time',rnfflx_dia,ip)
-        call nccomp('rfiflx_dia','pcomp time',rfiflx_dia,ip)
-        call nccomp('ustar_dia','pcomp time',ustar_dia,ip)
-        call nccomp('abswnd_dia','pcomp time',abswnd_dia,ip)
-        call nccomp('sss_dia','pcomp time',sss_dia,ip)
-        call nccomp('sst_dia','pcomp time',sst_dia,ip)
-        call nccomp('mld_dia','pcomp time',mld_dia,ip)
-        call nccomp('maxmld_dia','pcomp time',maxmld_dia,ip)
-        call nccomp('surflx_dia','pcomp time',surflx_dia,ip)
-        call nccomp('salflx_dia','pcomp time',salflx_dia,ip)
-        call nccomp('brnflx_dia','pcomp time',brnflx_dia,ip)
-        call nccomp('uice_dia','ucomp time',uice_dia,iuu)
-        call nccomp('vice_dia','vcomp time',vice_dia,ivv)
-#else 
-        call ncwrtr('ub_dia','x y time',ub_dia,iuu,1)
-        call ncwrtr('vb_dia','x y time',vb_dia,ivv,1)
-        call ncwrtr('ztx_dia','x y time',ztx_dia,iuu,1)
-        call ncwrtr('mty_dia','x y time',mty_dia,ivv,1)
-        call ncwrtr('taux_dia','x y time',taux_dia,iuu,1)
-        call ncwrtr('tauy_dia','x y time',tauy_dia,ivv,1)
-        call ncwrtr('mxlu_dia','x y time',mxlu_dia,iuu,1)
-        call ncwrtr('mxlv_dia','x y time',mxlv_dia,ivv,1)
-        call ncwrtr('mldu_dia','x y time',mldu_dia,iuu,1)
-        call ncwrtr('mldv_dia','x y time',mldv_dia,ivv,1)
-        call ncwrtr('sealv_dia','x y time',sealv_dia,ip,1)
-        call ncwrtr('sigmx_dia','x y time',sigmx_dia,ip,1)
-        call ncwrtr('hice_dia','x y time',hice_dia,ip,1)
-        call ncwrtr('hsnw_dia','x y time',hsnw_dia,ip,1)
-        call ncwrtr('fice_dia','x y time',fice_dia,ip,1)
-        call ncwrtr('tsrf_dia','x y time',tsrf_dia,ip,1)
-        call ncwrtr('tice_dia','x y time',tice_dia,ip,1)
-        call ncwrtr('swa_dia','x y time',swa_dia,ip,1)
-        call ncwrtr('nsf_dia','x y time',nsf_dia,ip,1)
-        call ncwrtr('hmltfz_dia','x y time',hmltfz_dia,ip,1)
-        call ncwrtr('dfl_dia','x y time',dfl_dia,ip,1)
-        call ncwrtr('lip_dia','x y time',lip_dia,ip,1)
-        call ncwrtr('sop_dia','x y time',sop_dia,ip,1)
-        call ncwrtr('eva_dia','x y time',eva_dia,ip,1)
-        call ncwrtr('fmltfz_dia','x y time',fmltfz_dia,ip,1)
-        call ncwrtr('sfl_dia','x y time',sfl_dia,ip,1)
-        call ncwrtr('alb_dia','x y time',alb_dia,ip,1)
-        call ncwrtr('rnfflx_dia','x y time',rnfflx_dia,ip,1)
-        call ncwrtr('rfiflx_dia','x y time',rfiflx_dia,ip,1)
-        call ncwrtr('ustar_dia','x y time',ustar_dia,ip,1)
-        call ncwrtr('abswnd_dia','x y time',abswnd_dia,ip,1)
-        call ncwrtr('sss_dia','x y time',sss_dia,ip,1)
-        call ncwrtr('sst_dia','x y time',sst_dia,ip,1)
-        call ncwrtr('mld_dia','x y time',mld_dia,ip,1)
-        call ncwrtr('maxmld_dia','x y time',maxmld_dia,ip,1)
-        call ncwrtr('surflx_dia','x y time',surflx_dia,ip,1)
-        call ncwrtr('salflx_dia','x y time',salflx_dia,ip,1)
-        call ncwrtr('brnflx_dia','x y time',brnflx_dia,ip,1)
-        call ncwrtr('uice_dia','x y time',uice_dia,iuu,1)
-        call ncwrtr('vice_dia','x y time',vice_dia,ivv,1)
-#endif
-      endif
-c
-      if (nacc_phy3d.gt.0) then
-#ifdef COMPRES
-        call nccomp('uvel_dia','ucomp kk time',uvel_dia,iuu)
-        call nccomp('vvel_dia','vcomp kk time',vvel_dia,ivv)
-        call nccomp('dpu_dia','ucomp kk time',dpu_dia,iuu)
-        call nccomp('dpv_dia','vcomp kk time',dpv_dia,ivv)
-        call nccomp('uflx_dia','ucomp kk time',uflx_dia,iuu)
-        call nccomp('vflx_dia','vcomp kk time',vflx_dia,ivv)
-        call nccomp('saln_dia','pcomp kk time',saln_dia,ip)
-        call nccomp('temp_dia','pcomp kk time',temp_dia,ip)
-        call nccomp('dp_dia','pcomp kk time',dp_dia,ip)
-        call nccomp('dz_dia','pcomp kk time',dz_dia,ip)
-        call nccomp('difint_dia','pcomp kk time',difint_dia,ip)
-        call nccomp('difiso_dia','pcomp kk time',difiso_dia,ip)
-        call nccomp('difdia_dia','pcomp kk time',difdia_dia,ip)
-        call nccomp('diaflx','pcomp kk time',diaflx,ip)
-#else
-        call ncwrtr('uvel_dia','x y kk time',uvel_dia,iuu,1)
-        call ncwrtr('vvel_dia','x y kk time',vvel_dia,ivv,1)
-        call ncwrtr('dpu_dia','x y kk time',dpu_dia,iuu,1)
-        call ncwrtr('dpv_dia','x y kk time',dpv_dia,ivv,1)
-        call ncwrtr('uflx_dia','x y kk time',uflx_dia,iuu,1)
-        call ncwrtr('vflx_dia','x y kk time',vflx_dia,ivv,1)
-        call ncwrtr('saln_dia','x y kk time',saln_dia,ip,1)
-        call ncwrtr('temp_dia','x y kk time',temp_dia,ip,1)
-        call ncwrtr('dp_dia','x y kk time',dp_dia,ip,1)
-        call ncwrtr('dz_dia','x y kk time',dz_dia,ip,1)
-        call ncwrtr('difint_dia','x y kk time',difint_dia,ip,1)
-        call ncwrtr('difiso_dia','x y kk time',difiso_dia,ip,1)
-        call ncwrtr('difdia_dia','x y kk time',difdia_dia,ip,1)
-        call ncwrtr('diaflx','x y kk time',diaflx,ip,1)
-#endif 
-      endif
+      do n=1,nphy 
+        write(c2,'(i2.2)') n
+        if (nacc_phy(n).ne.0) then
+          if (ACC_UB(n)    .ne.0) call wrtrst('ub_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_UB(n)),iuu)
+          if (ACC_VB(n)    .ne.0) call wrtrst('vb_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_VB(n)),ivv)
+          if (ACC_ZTX(n)   .ne.0) call wrtrst('ztx_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_ZTX(n)),iuu)
+          if (ACC_MTY(n)   .ne.0) call wrtrst('mty_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_MTY(n)),ivv)
+          if (ACC_TAUX(n)  .ne.0) call wrtrst('taux_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu)
+          if (ACC_TAUY(n)  .ne.0) call wrtrst('tauy_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv)
+          if (ACC_MXLU(n)  .ne.0) call wrtrst('mxlu_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu)
+          if (ACC_MXLV(n)  .ne.0) call wrtrst('mxlv_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv)
+          if (ACC_MLDU(n)  .ne.0) call wrtrst('mldu_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu)
+          if (ACC_MLDV(n)  .ne.0) call wrtrst('mldv_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv)
+          if (ACC_SEALV(n) .ne.0) call wrtrst('sealv_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SEALV(n)),ip)
+          if (ACC_SIGMX(n) .ne.0) call wrtrst('sigmx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip)
+          if (ACC_HICE(n)  .ne.0) call wrtrst('hice_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip)
+          if (ACC_IAGE(n)  .ne.0) call wrtrst('iage_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_IAGE(n)),ip)
+          if (ACC_HSNW(n)  .ne.0) call wrtrst('hsnw_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip)
+          if (ACC_FICE(n)  .ne.0) call wrtrst('fice_phy'//c2, 
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip)
+          if (ACC_TSRF(n)  .ne.0) call wrtrst('tsrf_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip)
+          if (ACC_TICE(n)  .ne.0) call wrtrst('tice_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip)
+          if (ACC_SWA(n)   .ne.0) call wrtrst('swa_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SWA(n)),ip)
+          if (ACC_NSF(n)   .ne.0) call wrtrst('nsf_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_NSF(n)),ip)
+          if (ACC_DFL(n)   .ne.0) call wrtrst('dfl_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_DFL(n)),ip)
+          if (ACC_LIP(n)   .ne.0) call wrtrst('lip_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_LIP(n)),ip)
+          if (ACC_SOP(n)   .ne.0) call wrtrst('sop_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SOP(n)),ip)
+          if (ACC_EVA(n)   .ne.0) call wrtrst('eva_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_EVA(n)),ip)
+          if (ACC_ABSWND(n)   .ne.0) call wrtrst('abswnd_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip)
+          if (ACC_ALB(n)   .ne.0) call wrtrst('alb_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip)
+          if (ACC_SFL(n)   .ne.0) call wrtrst('sfl_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip)
+          if (ACC_BRNFLX(n)   .ne.0) call wrtrst('brnflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip)
+          if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
+          if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip)
+          if (ACC_RFIFLX(n).ne.0) call wrtrst('rfiflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip)
+          if (ACC_RNFFLX(n).ne.0) call wrtrst('rnfflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip)
+          if (ACC_USTAR(n) .ne.0) call wrtrst('ustar_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip)
+          if (ACC_SSS(n)   .ne.0) call wrtrst('sss_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip)
+          if (ACC_SST(n)   .ne.0) call wrtrst('sst_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip)
+          if (ACC_MLD(n)   .ne.0) call wrtrst('mld_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip)
+          if (ACC_MAXMLD(n).ne.0) call wrtrst('maxmld_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip)
+          if (ACC_SURFLX(n).ne.0) call wrtrst('surflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip)
+          if (ACC_SALFLX(n).ne.0) call wrtrst('salflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip)
+          if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
+          if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv)
+          if (ACC_IVOLU(n)  .ne.0) call wrtrst('ivolu_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu)
+          if (ACC_IVOLV(n)  .ne.0) call wrtrst('ivolv_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv)
+          if (ACC_UVEL(n)  .ne.0) call wrtrst('uvel_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)),
+     .      iuu)
+          if (ACC_VVEL(n)  .ne.0) call wrtrst('vvel_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VVEL(n)),
+     .      ivv)
+          if (ACC_DPU(n)   .ne.0) call wrtrst('dpu_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DPU(n)),
+     .      iuu)
+          if (ACC_DPV(n)   .ne.0) call wrtrst('dpv_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DPV(n)),
+     .      ivv)
+          if (ACC_UFLX(n)  .ne.0) call wrtrst('uflx_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UFLX(n)),
+     .      iuu)
+          if (ACC_VFLX(n)  .ne.0) call wrtrst('vflx_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VFLX(n)),
+     .      ivv)
+          if (ACC_UTFLX(n) .ne.0) call wrtrst('utflx_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UTFLX(n)),
+     .      iuu)
+          if (ACC_VTFLX(n) .ne.0) call wrtrst('vtflx_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VTFLX(n)),
+     .      ivv)
+          if (ACC_USFLX(n) .ne.0) call wrtrst('usflx_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_USFLX(n)),
+     .      iuu)
+          if (ACC_VSFLX(n) .ne.0) call wrtrst('vsflx_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VSFLX(n)),
+     .      ivv)
+          if (ACC_SALN(n)  .ne.0) call wrtrst('saln_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_SALN(n)),
+     .      ip)
+          if (ACC_TEMP(n)  .ne.0) call wrtrst('temp_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_TEMP(n)),
+     .      ip)
+          if (ACC_DP(n)    .ne.0) call wrtrst('dp_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)),ip)
+          if (ACC_DZ(n)    .ne.0) call wrtrst('dz_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DZ(n)),ip)
+          if (ACC_DIAFLX(n).ne.0) call wrtrst('diaflx_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIAFLX(n)),
+     .      ip)
+          if (ACC_DIFDIA(n).ne.0) call wrtrst('difdia_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),
+     .      ip)
+          if (ACC_DIFINT(n).ne.0) call wrtrst('difint_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),
+     .      ip)
+          if (ACC_DIFISO(n).ne.0) call wrtrst('difiso_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFISO(n)),
+     .      ip)
+          if (ACC_WFLX(n)    .ne.0) call wrtrst('wflx_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),
+     .      ip)
+          if (ACC_WFLX2(n)    .ne.0) call wrtrst('wflx2_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),
+     .      ip)
+          if (ACC_WFLXLVL(n)    .ne.0) call wrtrst('wflxlvl_phy'//c2,
+     .      trim(c5p)//' plev time',
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip)
+          if (ACC_WFLX2LVL(n)    .ne.0) call wrtrst('wflx2lvl_phy'//c2,
+     .      trim(c5p)//' plev time',
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
+          if (ACC_UVELLVL(n) .ne.0) call wrtrst('uvellvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UVELLVL(n)),iuu)
+          if (ACC_VVELLVL(n) .ne.0) call wrtrst('vvellvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VVELLVL(n)),ivv)
+          if (ACC_UFLXLVL(n) .ne.0) call wrtrst('uflxlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UFLXLVL(n)),iuu)
+          if (ACC_VFLXLVL(n) .ne.0) call wrtrst('vflxlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1
+     .      ,ACC_VFLXLVL(n)),ivv)
+          if (ACC_UTFLXLVL(n).ne.0) call wrtrst('utflxlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UTFLXLVL(n)),iuu)
+          if (ACC_VTFLXLVL(n).ne.0) call wrtrst('vtflxlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VTFLXLVL(n)),ivv)
+          if (ACC_USFLXLVL(n).ne.0) call wrtrst('usflxlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_USFLXLVL(n)),iuu)
+          if (ACC_VSFLXLVL(n).ne.0) call wrtrst('vsflxlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VSFLXLVL(n)),ivv)
+          if (ACC_SALNLVL(n) .ne.0) call wrtrst('salnlvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_SALNLVL(n)),ip)
+          if (ACC_TEMPLVL(n) .ne.0) call wrtrst('templvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_TEMPLVL(n)),ip)
+          if (ACC_DZLVL(n)    .ne.0) call wrtrst('dzlvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DZLVL(n)),ip)
+          if (ACC_DIAFLXLVL(n).ne.0) call wrtrst('diaflxlvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIAFLXLVL(n)),ip)
+          if (ACC_DIFDIALVL(n).ne.0) call wrtrst('difdialvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFDIALVL(n)),ip)
+          if (ACC_DIFINTLVL(n).ne.0) call wrtrst('difintlvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFINTLVL(n)),ip)
+          if (ACC_DIFISOLVL(n).ne.0) call wrtrst('difisolvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFISOLVL(n)),ip)
+        endif
+      enddo
 c
       call ncfcls
 c
@@ -430,24 +465,26 @@ c --- - write diag. heat flux restart file
         fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. heat flux restart file ',fnm
-        call ncfopn(fnm,'w')
+        if (rstfmt.eq.1) then 
+          call ncfopn(fnm,'w','6',1)
+        elseif (rstfmt.eq.2) then
+          call ncfopn(fnm,'w','h',1)
+        else
+          call ncfopn(fnm,'w','c',1)
+        endif
 c
-#ifdef COMPRES
-        call ncdimc('pcomp',ip,0)
-#else
-        call ncdims('x',itdm)
-        call ncdims('y',jtdm)
-#endif 
+        if (rstcmp) then 
+          call ncdimc('pcomp',ip,0)
+        else
+          call ncdims('x',itdm)
+          call ncdims('y',jtdm)
+        endif
         call ncdims('week',48)
 c
-        call ncputr('time',time,1)
-        call ncputi('nflxdi',nflxdi,48)
+        call ncputr('time',time)
+        call ncputi('nflxdi',nflxdi)
 c
-#ifdef COMPRES
-        call nccomp('tflxdi','pcomp week',tflxdi,ip)
-#else
-        call ncwrtr('tflxdi','x y week',tflxdi,ip,1)
-#endif 
+        call wrtrst('tflxdi',trim(c5p)//' week',tflxdi,ip)
 c       
         call ncfcls   
       endif  
@@ -458,24 +495,26 @@ c --- - write diag. salt flux restart file
         fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. salt flux restart file ',fnm
-        call ncfopn(fnm,'w')
+        if (rstfmt.eq.1) then 
+          call ncfopn(fnm,'w','6',1)
+        elseif (rstfmt.eq.2) then
+          call ncfopn(fnm,'w','h',1)
+        else
+          call ncfopn(fnm,'w','c',1)
+        endif
 c
-#ifdef COMPRES
-        call ncdimc('pcomp',ip,0)
-#else
-        call ncdims('x',itdm)
-        call ncdims('y',jtdm)
-#endif 
+        if (rstcmp) then 
+          call ncdimc('pcomp',ip,0)
+        else
+          call ncdims('x',itdm)
+          call ncdims('y',jtdm)
+        endif
         call ncdims('week',48)
 c
-        call ncputr('time',time,1)
-        call ncputi('nflxdi',nflxdi,48)
+        call ncputr('time',time)
+        call ncputi('nflxdi',nflxdi)
 c
-#ifdef COMPRES
-        call nccomp('sflxdi','pcomp week',sflxdi,ip)
-#else
-        call ncwrtr('sflxdi','x y week',sflxdi,ip,1)
-#endif 
+        call wrtrst('sflxdi',trim(c5p)//' week',sflxdi,ip)
 c       
         call ncfcls
       endif
@@ -490,4 +529,28 @@ c --- write restart filename to rpointer.ocn
 #endif
 c
       return
+      end
+
+
+
+      subroutine wrtrst(vnm,dims,fld,msk)
+c
+c --- ------------------------------------------------------------------
+      use mod_xc
+      use mod_nctools
+c
+      implicit none
+c 
+      character(len=*) :: vnm,dims
+      real, dimension(*) :: fld
+      integer, dimension(*) :: msk
+c
+c
+c --- Write data in compressed or uncompressed format
+      if (dims(2:5).eq.'comp') then 
+        call nccomp(vnm,dims,fld,msk,1.,0.,8)
+      else
+        call ncwrtr(vnm,dims,fld,msk,1,1.,0.,8)
+      endif
+c
       end

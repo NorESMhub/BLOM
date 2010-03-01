@@ -94,6 +94,8 @@ c
      .             dp(1-nbdy,1-nbdy,kn),temp(1-nbdy,1-nbdy,kn),
      .             saln(1-nbdy,1-nbdy,kn),uflx(1-nbdy,1-nbdy,km),
      .             vflx(1-nbdy,1-nbdy,km)
+     .            ,utflx(1-nbdy,1-nbdy,km),vtflx(1-nbdy,1-nbdy,km)
+     .            ,usflx(1-nbdy,1-nbdy,km),vsflx(1-nbdy,1-nbdy,km)
 #ifdef TRC
      .            ,k,ntrc,trc
 #  ifdef ATRC
@@ -185,6 +187,8 @@ c$OMP PARALLEL DO
 #endif
             endif
             uflx(i,j,km)=uflx(i,j,km)+uflux(i,j)
+            usflx(i,j,km)=usflx(i,j,km)+uflux2(i,j)
+            utflx(i,j,km)=utflx(i,j,km)+uflux3(i,j)+273.15*uflux(i,j)
           enddo
           enddo
         enddo
@@ -213,6 +217,8 @@ c$OMP PARALLEL DO
 #endif
             endif
             vflx(i,j,km)=vflx(i,j,km)+vflux(i,j)
+            vsflx(i,j,km)=vsflx(i,j,km)+vflux2(i,j)
+            vtflx(i,j,km)=vtflx(i,j,km)+vflux3(i,j)+273.15*vflux(i,j)
           enddo
           enddo
         enddo

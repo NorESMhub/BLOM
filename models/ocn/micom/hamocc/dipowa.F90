@@ -45,12 +45,11 @@
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
-      USE mo_bgcmean
       use mo_param1_bgc 
 
       USE mo_control_bgc
 
-implicit none
+      implicit none
 
       INTEGER :: i,j,k,l,iv
       INTEGER :: kpie,kpje,kpke

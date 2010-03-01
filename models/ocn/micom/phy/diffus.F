@@ -12,7 +12,7 @@ c
 c
 #include "common_blocks.h"
 c
-      integer i,j,k,l,kn
+      integer i,j,k,l,kn,km
       real q
 c
 #ifdef TRC
@@ -39,6 +39,7 @@ c
 c
       do k=1,kk
         kn=k+nn
+        km=k+mm
 c
 c$OMP PARALLEL DO PRIVATE(q)
         do j=0,jj+1
@@ -54,6 +55,8 @@ c$OMP PARALLEL DO PRIVATE(q)
               uflxtr(nt,i,j)=q*(trc(i-1,j,k,nt)-trc(i,j,k,nt))
             enddo
 #endif
+            usflx(i,j,km)=usflx(i,j,km)+uflux2(i,j)
+            utflx(i,j,km)=utflx(i,j,km)+uflux3(i,j)
           enddo
           enddo
         enddo
@@ -72,6 +75,8 @@ c$OMP PARALLEL DO PRIVATE(q)
               vflxtr(nt,i,j)=q*(trc(i,j-1,k,nt)-trc(i,j,k,nt))
             enddo
 #endif
+            vsflx(i,j,km)=vsflx(i,j,km)+vflux2(i,j)
+            vtflx(i,j,km)=vtflx(i,j,km)+vflux3(i,j)
           enddo
           enddo
         enddo

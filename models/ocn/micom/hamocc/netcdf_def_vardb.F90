@@ -58,7 +58,7 @@
       INTEGER kcid,kcvarid,kdims,kcdims(kdims)                          &
      &       ,kunitl,klong,kshort,klabel,kunit
 
-      REAL*4 pmissing
+      REAL pmissing
 
       CHARACTER*(*) yshort, yunit, ylong
 
@@ -122,7 +122,7 @@
 ! 
 
       ncstat = NF_PUT_ATT_DOUBLE                                        &
-     &(kcid,kcvarid,'missing_value',NF_FLOAT,1,pmissing)
+     &(kcid,kcvarid,'missing_value',NF_DOUBLE,1,pmissing)
       IF ( ncstat .NE. NF_NOERR ) THEN
          WRITE(kunit,*) 'Problems with definition of missing value:'
          WRITE(kunit,*) 'kcid     : ',kcid

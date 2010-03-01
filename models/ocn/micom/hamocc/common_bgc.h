@@ -36,9 +36,8 @@ c
 c----------------------------------------------------------------------
 
       c o m m o n /bgc_hamocc2/
-     . pgila,pgiph,bgc3dwrt,bgc2dwrt,dp_dia_bgc
+     . pgila,pgiph,bgc3dwrt,bgc2dwrt
 
       real pgila(2*idm,2*jdm),pgiph(2*idm,2*jdm)
       real bgc3dwrt,bgc2dwrt
-      real dp_dia_bgc(idm,jdm,kdm)
 
