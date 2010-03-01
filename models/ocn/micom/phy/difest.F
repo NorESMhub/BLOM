@@ -19,10 +19,13 @@ c ---            iidtyp=1 the diffusivities are diffusive velocities
 c ---            multiplied by the local horizontal grid scale, if
 c ---            iidtyp=2 the diffusivities are parameterized according
 c ---            to Eden and Greatbatch (2008).
-c ---   bddtyp - type of background diapycnal diffusivity. If bddtyp=1
-c ---            the diffusivity is a constant divided by the
-c ---            Brunt-Vaisala frequency, if bddtyp=2 the diffusivity is
-c ---            parameterized due to tidally driven mixing.
+c ---   bdmtyp - type of background diapycnal mixing. If bdmtyp=1
+c ---            the background diffusivity is a constant divided by the
+c ---            Brunt-Vaisala frequency, if bdmtyp=2 the background
+c ---            diffusivity is constant.
+c ---   bdmldp - If bdmldp=1, make the background mixing latitude
+c ---            dependent according to Gregg et al. (2003).
+c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
 c ---   dpbmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2].
 c ---   bvfeps - small value of Brunt-Vaisala frequency [1/s].
@@ -46,15 +49,14 @@ c ---   nus0   - maximum shear driven diapycnal diffusivity
 c ---            [cm**2/s].
 c ---   nug0   - maximum gravity current diapycnal diffusivity
 c ---            [cm**2/s].
-c ---   diapyc - background diapycnal diffusivity times buoyancy
+c ---   bdmc1  - background diapycnal diffusivity times buoyancy
 c ---            frequency [cm**2/s**2].
-c ---   tdmk0  - minimum diffusivity due to tidally driven mixing
-c ---            [cm**2/s].
+c ---   bdmc2  - background diapycnal diffusivity [cm**2/s].
 c ---   tdmq   - tidal dissipation efficiency [].
 c ---   tdmgam - tidal driven mixing efficiency [].
 c ---   tdmls  - tidal driven mixing length scale [g/cm/s**2].
-c ---   tdmf30 - coriolis parameter at 30N [1/s].
-c ---   tdmn0  - reference stratification in the parameterization of
+c ---   cori30 - coriolis parameter at 30N [1/s].
+c ---   bvf0   - reference stratification in the parameterization of
 c ---            latitude dependent background diapycnal mixing [1/s].
 c ---   nubmin - minimum diapycnal diffusivity [cm**2/s].
 c ---   nubmax - maximum background diapycnal diffusivity [cm**2/s].
@@ -68,24 +70,25 @@ c ---            to estimate diffusivities in first physical layer and
 c ---            the mixed layer [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
-      integer iidtyp,bddtyp
+      integer iidtyp,bdmtyp,bdmldp,tdmflg
       real dptmin,dpbmin,bvfeps,thkdff,temdff,egc,eggam,egmndf,egmxdf,
-     .     egidfq,ri0,nus0,nug0,diapyc,tdmk0,tdmq,tdmgam,tdmls,tdmf30,
-     .     tdmn0,nubmin,nubmax,nusmax,dpgc,dpdfav,dpnbav
-      parameter (iidtyp=2,bddtyp=2,dptmin=98060.,dpbmin=980.6,
-     .           bvfeps=1.e-9,thkdff=.5,temdff=.35,egc=1.5,eggam=200.,
-     .           egmndf=100.e4,egmxdf=1500.e4,egidfq=1.,ri0=.7,
-     .           nus0=50.,nug0=2500.,diapyc=1.2e-3,tdmk0=.1,tdmq=1./3.,
-     .           tdmgam=.2,tdmls=500.*98060.,tdmf30=7.2722e-5,
-     .           tdmn0=5.24e-3,nubmin=.001,nubmax=1000.,nusmax=1.,
-     .           dpgc=300.*98060.,dpdfav=100.*98060.,dpnbav=250.*98060.)
+     .     egidfq,ri0,nus0,nug0,bdmc1,bdmc2,tdmq,tdmgam,tdmls,cori30,
+     .     bvf0,nubmin,nubmax,nusmax,dpgc,dpdfav,dpnbav
+      parameter (iidtyp=2,bdmtyp=1,bdmldp=1,tdmflg=1,dptmin=98060.,
+     .           dpbmin=980.6,bvfeps=1.e-9,thkdff=.5,temdff=.35,egc=1.,
+     .           eggam=200.,egmndf=100.e4,egmxdf=1500.e4,egidfq=1.,
+     .           ri0=.7,nus0=50.,nug0=2500.,bdmc1=1.2e-3,bdmc2=.1,
+     .           tdmq=1./3.,tdmgam=.2,tdmls=500.*98060.,
+     .           cori30=7.2722e-5,bvf0=5.24e-3,nubmin=.001,nubmax=1000.,
+     .           nusmax=10.,dpgc=300.*98060.,dpdfav=100.*98060.,
+     .           dpnbav=250.*98060.)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,bvfsq,rig
+     .  du2,bvfsq,bvf,rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,tdmk,dfints,dfisos,dfdias
+     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,dfisos,dfdias
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mdv2
       integer, dimension(1-nbdy:idm+nbdy,kdm) ::
@@ -93,7 +96,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,drho,plo,tlo,slo,egr,rhisc,els,nus,nub,tdmf
+      real q,drho,plo,tlo,slo,egr,rhisc,els,nus,nub,nut,tdmf
 c
       real rho,sig
       external rho,sig
@@ -201,8 +204,8 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ kfpl,klpl,kn,du2,mdu2,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,
-c$OMP+ bvfbot,dps,drho,bvfsq,tdmk,dfints,dfisos,dfdias,rig,egr,rhisc,
-c$OMP+ els,nus,nub,tdmf)
+c$OMP+ bvfbot,dps,drho,bvfsq,bvf,dfints,dfisos,dfdias,rig,egr,
+c$OMP+ rhisc,els,nus,nub,nut,tdmf)
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component
@@ -356,10 +359,13 @@ c ----- frequency squared.
                 drho=tup(i)
               endif
 c
-c --- ------- Brunt-Vaisala frequency squared.
+c --- ------- Brunt-Vaisala frequency squared
               bvfsq(i,k)=max(bvfeps*bvfeps,
      .                       g*g*drho/max(epsil,dp(i,j,kn)))
 cdiag         tmp3d_1(i,j,k)=bvfsq(i,k)
+c
+c --- ------- Brunt-Vaisala frequency
+              bvf(i,k)=sqrt(bvfsq(i,k))
 c
               q=(mdu2(i,k)*du2(i,k)+mdu2(i+1,k)*du2(i+1,k))
      .          /max(1,mdu2(i,k)+mdu2(i+1,k))
@@ -374,7 +380,7 @@ c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
 c --- ------- bottom
               q=max(0.,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
               if (q.gt.0.) then
-                bvfbot(i)=bvfbot(i)+sqrt(bvfsq(i,k))*q
+                bvfbot(i)=bvfbot(i)+bvf(i,k)*q
                 dps(i)=dps(i)+q
               endif
             endif
@@ -387,8 +393,6 @@ c --- - diffusivity weigth to reduce eddy diffusivity when the Rossby
 c --- - radius is resolved by the grid
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          q=max(1.e-9,abs(coriop(i,j)))
-          tdmk(i)=tdmk0*q/tdmf30*log(2.*tdmn0/q)/log(2.*tdmn0/tdmf30)
           q=bcrrd(i)/sqrt(scpx(i,j)*scpx(i,j)+scpy(i,j)*scpy(i,j))
           difwgt(i,j)=1./(1.+q**4)
         enddo
@@ -460,7 +464,7 @@ c
               endif
 c
 c --- ------------------------------------------------------------------
-c --- ------- Shear driven diapycnal diffusivity.
+c --- ------- Shear driven diapycnal mixing.
 c --- ------------------------------------------------------------------
 c
               if (rig(i,k).lt.ri0) then
@@ -483,18 +487,36 @@ c --- --------- gradient richardson number.
               endif
 c
 c --- ------------------------------------------------------------------
-c --- ------- Background diapycnal diffusivity.
+c --- ------- Background diapycnal mixing.
 c --- ------------------------------------------------------------------
 c
-              if (bddtyp.eq.1) then
+              if     (bdmtyp.eq.1) then
 c
-c --- --------- Type 1: Diffusivity is a constant divided by
+c --- --------- Type 1: Background diffusivity is a constant divided by
 c --- --------- Brunt-Vaisala frequency.
-                nub=diapyc/sqrt(bvfsq(i,k))
-              else
+                nub=bdmc1/bvf(i,k)
+              elseif (bdmtyp.eq.2) then
 c
-c --- --------- Type 2: Diffusivity is parameterized due to tidally
-c --- --------- driven mixing.
+c --- --------- Type 2: Background diffusivity is a constant
+                nub=bdmc2
+              else
+                nub=0.
+              endif
+c
+c --- ------------------------------------------------------------------
+c --- ------- Latitude dependency of background diapycnal mixing
+c --- ------------------------------------------------------------------
+c
+              if (bdmldp.eq.1) then
+                q=max(1.e-9,abs(coriop(i,j)))
+                nub=nub*q/cori30*log(2.*bvf(i,k)/q)/log(2.*bvf0/cori30)
+              endif
+c
+c --- ------------------------------------------------------------------
+c --- ------- Tidally driven diapycnal mixing
+c --- ------------------------------------------------------------------
+c
+              if (tdmflg.eq.1) then
                 if (dp(i,j,kn).lt.epsil) then
                   tdmf=exp(p(i,j,k)/tdmls)
      .                 /(tdmls*(exp(p(i,j,kk+1)/tdmls)-1.))
@@ -502,13 +524,13 @@ c --- --------- driven mixing.
                   tdmf=(exp(p(i,j,k+1)/tdmls)-exp(p(i,j,k)/tdmls))
      .                 /(dp(i,j,kn)*(exp(p(i,j,kk+1)/tdmls)-1.))
                 endif
-                nub=tdmk(i)+g*tdmq*tdmgam*twedon(i,j)*bvfbot(i)*tdmf
-     .                      /bvfsq(i,k)
+                nut=g*tdmq*tdmgam*twedon(i,j)*bvfbot(i)*tdmf/bvfsq(i,k)
+              else
+                nut=0.
               endif
-              nub=max(nubmin,min(nubmax,nub))
 c
 c --- ------- Total diapycnal diffusivity.
-              difdia(i,j,k)=nub+nus
+              difdia(i,j,k)=nus+max(nubmin,min(nubmax,nub+nut))
 c
 c --- ------- Accumulate diffusivities in a region below the first
 c --- ------- physical layer
@@ -516,7 +538,7 @@ c --- ------- physical layer
               dps(i)=dps(i)+q
               dfints(i)=dfints(i)+difint(i,j,k)*q
               dfisos(i)=dfisos(i)+difiso(i,j,k)*q
-              dfdias(i)=dfdias(i)+difdia(i,j,k)*q
+              dfdias(i)=dfdias(i)+max(nubmin,min(nubmax,nub))*q
 c
             else
               difint(i,j,k)=difint(i,j,k-1)
@@ -583,6 +605,8 @@ cdiag call ncwrtr('els','x y z',tmp3d_5,ip,1)
 cdiag call ncwrtr('difint','x y z',difint,ip,1)
 cdiag call ncwrtr('difdia','x y z',difdia,ip,1)
 cdiag call ncfcls
+cdiag call xcstop('(difest)')
+cdiag        stop '(difest)'
 c
       if (csdiag) then
         if (mnproc.eq.1) then

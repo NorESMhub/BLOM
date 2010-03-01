@@ -15,19 +15,22 @@ c
 c --- Parameters:
 c ---   dsgmnr - minimum ratio of linearized density jump to target
 c ---            density jump across a layer interface []
+c ---   fcmxr  - maximum ratio of density restoration flux to the
+c ---            estimated mean diapycnal flux
 c ---   dfeps  - small number used in the estimation of flux change
 c ---            limit []
 c ---   gbbl   - efficientcy factor for bottom boundary layer mixing []
 c ---   kappa  - von Karman constant []
 c ---   ustmin - minimum value of ustar used in computing the length
 c ---            scale bottom boundary layer mixing [cm/s]
-      real dsgmnr,dfeps,gbbl,kappa,ustmin
-      parameter (dsgmnr=.1,dfeps=1.e-12,gbbl=.2,kappa=.4,ustmin=.01)
+      real dsgmnr,fcmxr,dfeps,gbbl,kappa,ustmin
+      parameter (dsgmnr=.1,fcmxr=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,
+     .           ustmin=.01)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fpug,fplg
       real, dimension(kdm) ::
-     .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fc,dsgu,dsgl,dsghm,dsg,
-     .  dsgui,dsgli,fcmaxu,fmaxu,fcmaxl,fmaxl,fcmax,fmax,f,f0,fold,
+     .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
+     .  dsgui,dsgli,fmax,f,f0,fold,
      .  h,gtd,uc
       real c,nubbl,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,
      .     atd,maxdf,dtd
@@ -52,11 +55,11 @@ c --- Constant in the diffusion equation
       c=g*g*delt1/(alpha0*alpha0)
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fc,dsgu,dsgl,dsghm,dsg,
-c$OMP+ dsgui,dsgli,fcmaxu,fmaxu,fcmaxl,fmaxl,fcmax,fmax,f,f0,fold,h,gtd,
-c$OMP+ nubbl,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,atd,
-c$OMP+ maxdf,dtd,k,kn,kfpl,kmin,kmax,kfil,kl,kfmaxu,done,dwnwrd,remfmx,
-c$OMP+ ttem0,ssal0,delp0,dens0,sigr0,nu0,niter
+c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
+c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,nubbl,dsgdt,dsgds,q,dpsu,dpsl,
+c$OMP+ dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,kfpl,kmin,kmax,kfil,
+c$OMP+ kl,kfmaxu,done,dwnwrd,remfmx,ttem0,ssal0,delp0,dens0,sigr0,nu0,
+c$OMP+ niter
 #ifdef TRC
 c$OMP+,ttrc
 #endif
@@ -133,7 +136,7 @@ c
 c
             fpu(kmin)=0.
             fpl(kmin)=min(dpsu,dpsl,
-     .                    2.*c*nu(kmin)/max(onem,delp(kmin)+delp(kfpl)))
+     .                    c*nu(kmin)/max(onem,delp(kfpl)))
             do k=kfpl,kfil-1
               fpu(k)=fpl(k-1)
               kl=min(kmax,k+1)
@@ -168,7 +171,7 @@ c --- ------- limited so their absolute value is guaranteed to be less
 c --- ------- than the buoyancy flux due to diffusion.
               k=kfil-1
               dsgli(k)=1.
-              fc(k)=-fpl(k)
+              fcl(k)=-fpl(k)
               do k=kfil,kmax-1
                 dsgdt=dsigdt(ttem(k),ssal(k))
                 dsgds=dsigds(ttem(k),ssal(k))
@@ -185,11 +188,21 @@ c               dsg(k)=dsghm(k)
                 dsgli(k)=1./dsgl(k)
                 q=.25*(sqrt(delp(k)*delp(k)
      .                     +4.*c*nu(k)*dsg(k)*(dsgui(k)+dsgli(k)))
-     .                -delp(k))*dsghm(k)
-                if (dens(k-1).lt.sigr(k).and.dens(k+1).gt.sigr(k)) then
-                  fc(k)=min(q,max(-q,.5*(dens(k)-sigr(k))*delp(k)))
+     .                -delp(k))*dsghm(k)*fcmxr
+                if (dens(k).gt.sigr(k)) then
+                  fcl(k)=0.
+                  if (dens(k-1).lt.sigr(k)) then
+                    fcu(k)=min(q,(dens(k)-sigr(k))*delp(k))
+                  else
+                    fcu(k)=0.
+                  endif
                 else
-                  fc(k)=0.
+                  fcu(k)=0.
+                  if (dens(k+1).gt.sigr(k)) then
+                    fcl(k)=max(-q,(dens(k)-sigr(k))*delp(k))
+                  else
+                    fcl(k)=0.
+                  endif
                 endif
               enddo
               k=kmax
@@ -200,58 +213,41 @@ c               dsg(k)=dsghm(k)
      .                   +dsgds*(ssal(k)-ssal(k-1)))
               dsgui(k)=1./dsgu(k)
               if (dens(k).gt.sigr(k).and.dens(k-1).lt.sigr(k)) then
-                fpu(k)=min(delp(k-1),(dens(k)-sigr(k))*delp(k)*dsgui(k))
+                fpu(k)=min(delp(k-1),
+     .                     (dens(k)-sigr(k))*delp(k)*dsgui(k))
               else
                 fpu(k)=0.
               endif
-              fc(k)=fpu(k)*dsgu(k)
+              fcu(k)=fpu(k)*dsgu(k)
 c
 c --- ------- Find maximum allowable buoyancy fluxes and further limit
 c --- ------- the flux corrections to keep layer interfaces within the
 c --- ------- fluid domain.
-              k=kfil-1
-              fcmaxu(k)=fc(k)
-              fmaxu(k)=0.
-              k=kmax
-              fcmaxl(k)=fc(k)
-              fmaxl(k)=0.
+              fmax(kfil-1)=0.
+              fmax(kmax)=0.
               done=.false.
               niter=0
               do while (.not.done)
                 done=.true.
                 dpsu=0.
                 dpsl=0.
-                do k=kfil,kmax-1
-                  dpsu=dpsu+delp(k-1)
-                  q=((fmaxu(k-1)-fcmaxu(k-1))*dsgli(k-1)+dpsu)*dsgu(k)
-                  fcmaxu(k)=min(.5*q,fc(k))
-                  fmaxu(k)=q-fcmaxu(k)
-                enddo
                 do k=kmax-1,kfil,-1
                   dpsl=dpsl+delp(k+1)
-                  q=((fmaxl(k+1)+fcmaxl(k+1))*dsgui(k+1)+dpsl)*dsgl(k)
-                  fcmaxl(k)=max(-.5*q,fc(k))
-                  fmaxl(k)=q+fcmaxl(k)
+                  q=((fmax(k+1)+fcu(k+1))*dsgui(k+1)+dpsl)*dsgl(k)
+                  fcl(k)=max(-q,fcl(k))
+                  fmax(k)=q+fcl(k)
                 enddo
                 kfmaxu=0
                 do k=kfil,kmax-1
-                  if     (fmaxu(k)+fcmaxu(k).le.fmaxl(k)+fcmaxl(k).and.
-     .                    fmaxu(k)-fcmaxu(k).le.fmaxl(k)-fcmaxl(k)) then
-                    fmax(k)=fmaxu(k)
-                    fcmax(k)=fcmaxu(k)
-                    kfmaxu=k
-                  elseif (fmaxu(k)+fcmaxu(k).ge.fmaxl(k)+fcmaxl(k).and.
-     .                    fmaxu(k)-fcmaxu(k).ge.fmaxl(k)-fcmaxl(k)) then
-                    fmax(k)=fmaxl(k)
-                    fcmax(k)=fcmaxl(k)
-                  else
-                    if (abs(fcmaxu(k)).lt.abs(fcmaxl(k))) then
-                      fc(k)=fcmaxu(k)
-                    else
-                      fc(k)=fcmaxl(k)
-                    endif
+                  dpsu=dpsu+delp(k-1)
+                  q=((fmax(k-1)-fcl(k-1))*dsgli(k-1)+dpsu)*dsgu(k)
+                  if (fcu(k).gt.q) then
+                    fcu(k)=q
                     done=.false.
-                    exit
+                  endif
+                  if (fmax(k).gt.q-fcu(k)) then
+                    fmax(k)=q-fcu(k)
+                    kfmaxu=k
                   endif
                 enddo
                 if (niter.eq.100) then
@@ -265,9 +261,6 @@ c --- ------- fluid domain.
                   close (10)
                   exit
                 endif
-              enddo
-              do k=kfil,kmax-1
-                fc(k)=fcmax(k)
               enddo
 c
 c --- ------- Make a first guess for buoyancy fluxes and set some
@@ -283,8 +276,8 @@ c --- ------- boundary conditions
      .                           *(dsgui(k)+dsgli(k)))*dsghm(k),
      .                   c*nu(k)*dsg(k)/max(epsil,delp(k)))
                 fold(k)=f(k)
-                h(k)=fc(k)*(dsgui(k)-dsgli(k))
-     .              +fc(k-1)*dsgli(k-1)-fc(k+1)*dsgui(k+1)
+                h(k)=fcu(k  )*dsgui(k  )-fcl(k  )*dsgli(k  )
+     .              +fcl(k-1)*dsgli(k-1)-fcu(k+1)*dsgui(k+1)
                 dflim=max(dflim,fmax(k))
               enddo
               k=kmax
@@ -394,7 +387,7 @@ c
 c
 c --- --------------- Find the backward solution of the layer buoyancy
 c --- --------------- flux, assuming no dependency on adjacent layer
-c --- --------------- fluxes and the sensitivity of the layer flux to
+c --- --------------- fluxes, and the sensitivity of the layer flux to
 c --- --------------- changes in the fluxes of adjacent layers.
                       q=f(k-1)*dsgli(k-1)+f0(k+1)*dsgui(k+1)
      .                 -delp(k)-h(k)
@@ -475,8 +468,8 @@ c --- --------- iteration.
 c
 c --- ------- Compute the mass fluxes
               do k=kfil,kmax-1
-                fpu(k)=(f(k)+fc(k))*dsgui(k)
-                fpl(k)=(f(k)-fc(k))*dsgli(k)
+                fpu(k)=(f(k)+fcu(k))*dsgui(k)
+                fpl(k)=(f(k)-fcl(k))*dsgli(k)
               enddo
 c
             endif
