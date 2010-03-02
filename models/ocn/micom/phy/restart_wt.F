@@ -153,7 +153,7 @@ c --- define spatial and time dimensions
       call ncdims('kk2',2*kk)
       call ncdims('plev',ddm)
       call ncputr('plev',depthslev)
-      call nctime(datenum,calendar,timeunits,startdate)
+      call ncdims('time',1)
 c
 c --- output model fields to restart file
       call ncputi('ntda',ntda)
