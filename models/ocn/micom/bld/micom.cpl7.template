@@ -1,20 +1,28 @@
 #! /bin/csh -f
 
-if !(-d $CASEROOT/Buildnml_Prestage) mkdir $CASEROOT/Buildnml_Prestage
-if !(-d $CASEROOT/Buildexe         ) mkdir $CASEROOT/Buildexe
+#==============================================================================
+# Generate the following scripts and files:
+#  micom.input_data_list -- list of required input data files
+#  micom.buildnml.csh    -- script that generates a model namelist
+#  micom.buildexe.csh    -- build script
+#==============================================================================
+
+if !(-d $CASEBUILD  ) mkdir $CASEBUILD
 
 #------------------------------------------------------------------------------
-#  determine input data files and resolution dependent variables            
+# Generate micom.input_data_list
 #------------------------------------------------------------------------------
 
 if      ( $OCN_GRID ==  gx1v5) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20091216
+else if ( $OCN_GRID ==  gx1v6) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20100210
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
 
-cat > $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
+cat > $CASEBUILD/micom.input_data_list << EOF1
 grid_file = $INPUTPATH/grid.nc
 ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
 ncep_height_file = $INPUTPATH/hgt.sfc.nc
@@ -22,24 +30,27 @@ ice_clim_file = $INPUTPATH/icec_1968-1996.uf
 sst_clim_file = $INPUTPATH/skt_1968-1996.uf
 sss_clim_file = $INPUTPATH/sss_nodc.dat
 tidal_dissipation_file = $INPUTPATH/tidal_dissipation.nc
+meridional_transport_index_file = $INPUTPATH/mertraindex.dat
+meridional_transport_basin_file = $INPUTPATH/mertraoceans.dat
+section_index_file = $INPUTPATH/secindex.dat
 EOF1
 if ($RUN_TYPE == startup )  then
-cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
+cat >> $CASEBUILD/micom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
 EOF1
 endif
 set tracers = (`echo \$MICOM_TRACER_MODULES`)
 foreach module (\$tracers)
   if (\$module == ecosys) then
-cat >> $CASEROOT/Buildnml_Prestage/micom.input_data_list << EOF1
+cat >> $CASEBUILD/micom.input_data_list << EOF1
 dust_file = $INPUTPATH/INPDUST_mhw.nc
 EOF1
   endif
 end
 
-#==============================================================================
-# Create resolved prestage data script
-#==============================================================================
+#------------------------------------------------------------------------------
+# Generate micom.buildnml.csh
+#------------------------------------------------------------------------------
 
 #set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
 #set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
@@ -58,13 +69,13 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
   endif
 endif
 
-cat >! $CASEROOT/Buildnml_Prestage/micom.buildnml_prestage.csh << EOF
+cat >! $CASEBUILD/micom.buildnml.csh << EOF
 #! /bin/csh -f 
 #==============================================================================
-# CCSM micom: build namelist and prestage data
+# CCSM micom: build namelist
 #==============================================================================
 
-set exedir = \$EXEROOT/ccsm_se; cd \$exedir
+set exedir = \$EXEROOT/run; cd \$exedir
 
 #------------------------------------------------------------------------------
 # Create resolved namelist
@@ -454,14 +465,14 @@ EOF1
 
 EOF
 
-#==============================================================================
-#  Create script to build executable
-#==============================================================================
+#------------------------------------------------------------------------------
+# Generate micom.buildexe.csh
+#------------------------------------------------------------------------------
 
-cat >! $CASEROOT/Buildexe/micom.buildexe.csh << EOF
+cat >! $CASEBUILD/micom.buildexe.csh << EOF
 #! /bin/csh -f 
 
-set exedir = \$EXEROOT/ccsm_se
+set exedir = \$EXEROOT/run
 set objdir = \$OBJROOT/ocn/obj; cd \$objdir
 set dimdir = \$objdir/dimensions
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
@@ -494,7 +505,7 @@ endif
 \cat >! Filepath << EOF1
 \$dimdir
 \$CASEROOT/SourceMods/src.micom
-\$CODEROOT/ocn/micom/drivers/ccsm_cpl7
+\$CODEROOT/ocn/micom/drivers/cpl_mct
 \$CODEROOT/ocn/micom/phy
 EOF1
 
@@ -518,16 +529,10 @@ else
   end
 endif
 
-if (\$BLDTYPE == 'TRUE' || \$recompile == 'TRUE') then
-  cp \$BLDROOT/mkDepends . || exit 2
-  cp \$BLDROOT/mkSrcfiles . || exit 2
-  set SMP = FALSE ;  if (\$NTHRDS_OCN > 1) set SMP = TRUE
-  gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a SMP=\$SMP MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="\$cpp_ocn" -f \$BLDROOT/Makefile || exit 2
-  cp -p *comp_*.mod \$LIBROOT/include/
-endif
+gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="\$cpp_ocn" -f \$BLDROOT/Makefile || exit 2
 
 if !(-f \$LIBROOT/libocn.a) then
-  echo "ERROR: micom library not available, check SETBLD"
+  echo "ERROR: micom library not available"
   exit -1
 endif
 
