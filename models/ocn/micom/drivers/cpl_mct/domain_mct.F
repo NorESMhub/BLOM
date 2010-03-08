@@ -69,11 +69,14 @@
       ! Fill in correct values for domain components
       ! ----------------------------------------------------------------
 
+      ! A correction for north pole mapping of velocity fields in the
+      ! coupler requires longitudes in the range [0, 360) degrees to
+      ! work.
       n = 0
       do j = 1, jj
          do i = 1, ii
             n = n + 1
-            rdata(n) = plon(i,j)
+            rdata(n) = modulo(plon(i,j), 360._r8)
          enddo
       enddo
       call mct_gGrid_importRattr(dom_ocn, "lon", rdata, lsize) 
