@@ -125,12 +125,13 @@
       REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_phosy
  
 !kma
-      aux2d_dmsprod (:,:)=0. 
+      aux2d_dmsprod(:,:)=0. 
       aux2d_dms_bac(:,:)=0. 
       aux2d_dms_uv (:,:)=0.  
       aux2d_export (:,:)=0.  
       aux2d_expoca (:,:)=0.  
       aux2d_exposi (:,:)=0.  
+      aux3d_phosy  (:,:,:)=0.
 
 !ib
 !
