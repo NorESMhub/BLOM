@@ -39,7 +39,7 @@ c
      .               ,bgc_dp,bgc_t,bgc_s,bgc_dx,bgc_dy,bgc_pu,bgc_pw
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
-     .               ,pgila,pgiph,omask,trc,ntr
+     .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
      .               ,runid,runid_len,path,path_len,path2,path2_len)
 c
 #else
@@ -63,7 +63,7 @@ c
      .               ,bgc_dp,bgc_t,bgc_s,bgc_dx,bgc_dy,bgc_pu,bgc_pw
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
-     .               ,pgila,pgiph,omask,trc,ntr
+     .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
      .               ,runid,runid_len,path,path_len,path2,path2_len)
 c
 #endif

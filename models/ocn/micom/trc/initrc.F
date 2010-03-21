@@ -11,8 +11,8 @@ c
 #ifdef HAMOCC
       call hamocc_init
 #endif
-#ifdef IAGE
-      call iage_init
+#ifdef IDLAGE
+      call idlage_init
 #endif
 c
       return

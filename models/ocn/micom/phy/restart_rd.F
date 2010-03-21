@@ -34,6 +34,11 @@ c
       data first /.true./
       save first,iuu,ivv,iqq
 c
+#if defined(TRC) && defined(IDLAGE)
+#  include "param_trc.h"
+#  include "common_trc.h"
+#endif
+c
       if (mnproc.eq.1) then
 c
 #ifdef CCSMCOUPLED
@@ -73,8 +78,9 @@ c
      .        nyearr,'.',nmonthr,'.',ndayr,' to ',
      .        nyear0,'.',nmonth0,'.',nday0
           elseif (nint(time0).ne.nday1-i) then
-            write (lp,'(a)') ' Warning! Integration day corresponding'
-     .        //             ' to initial experiment'
+            write (lp,'(2a)')
+     .       ' Warning! Integration day corresponding to initial',
+     .       ' experiment'
             write (lp,'(a,i6,a,i6)')
      .        ' date changed from ',nint(time0),' to ',nday1-i
             time0=nday1-i
@@ -219,6 +225,25 @@ c
 c
       call ncread('frzpot',frzpot,ip,1,0.)
       call ncread('mltpot',mltpot,ip,1,0.)
+c
+#if defined(TRC) && defined(IDLAGE)
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('idlage')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('idlage',trc(1-nbdy,1-nbdy,1,itriag),ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: Ideal age tracer is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        call idlage_init
+      endif
+#endif
 c
 c --- read accumulated fields
       do n=1,nphy        

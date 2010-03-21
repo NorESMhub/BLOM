@@ -111,11 +111,11 @@ c --- Namelist
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,
+     . LYR_WFLX2  ,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,   
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_IDLAGE ,  
      . MSC_MHFLX  ,MSC_MMFLXL ,MSC_MMFLXD ,MSC_MSFLX  ,MSC_VOLTR  , 
      . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT
       character(len=10), dimension(nphymax), save :: GLB_FNAMETAG
@@ -128,7 +128,7 @@ c --- Namelist
      . ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,
      . ACC_SWA    ,ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,
      . ACC_UB     ,ACC_UICE   ,ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,
-     . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,
+     . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
      . ACC_UFLX   ,ACC_UTFLX  ,ACC_USFLX  ,ACC_UVEL   ,ACC_VFLX   ,
@@ -137,7 +137,7 @@ c --- Namelist
      . ACC_DZLVL    ,ACC_SALNLVL  ,ACC_TEMPLVL  ,ACC_UFLXLVL      ,
      . ACC_UTFLXLVL ,ACC_USFLXLVL ,ACC_UVELLVL  ,ACC_VFLXLVL      ,
      . ACC_VTFLXLVL ,ACC_VSFLXLVL ,ACC_VVELLVL  ,ACC_WFLXLVL      ,
-     . ACC_WFLX2LVL ,ACC_UFLXOLD  ,ACC_VFLXOLD  ,        
+     . ACC_WFLX2LVL ,ACC_UFLXOLD  ,ACC_VFLXOLD  ,ACC_UTILLVL      ,     
      . ACC_MHFLX  ,ACC_MMFLXL ,ACC_MMFLXD ,ACC_MSFLX  ,ACC_VOLTR 
       namelist /DIAPHY/
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_DFL    ,SRF_EVA    ,
@@ -153,11 +153,11 @@ c --- Namelist
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,
+     . LYR_WFLX2  ,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,          
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_IDLAGE ,          
      . MSC_MHFLX  ,MSC_MMFLXL ,MSC_MMFLXD ,MSC_MSFLX  ,MSC_VOLTR  ,
      . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT, 
      . GLB_FNAMETAG
@@ -573,6 +573,15 @@ c
 c
 c --- End loop over io groups
       enddo
+c 
+c --- Assign buffer positions for utility fields
+      ACC_UTIL=0 
+      nphylyr=nphylyr+1
+      ACC_UTIL(1)=nphylyr 
+c
+      ACC_UTILLVL=0 
+      nphylvl=nphylvl+1
+      ACC_UTILLVL(1)=nphylvl 
 c 
 c --- Allocate buffers
       istatsum=0
@@ -1110,13 +1119,15 @@ c
 
 
 
-      subroutine diaout(iogrp)
+      subroutine diaout(iogrp,m,n,mm,nn,k1m,k1n)
 c
 c --- -------------------------------------
 c --- Write high frequency diagnostic fields
 c --- -------------------------------------
 c
       implicit none
+c
+      integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
 #include "common_clndr.h"
@@ -1135,16 +1146,12 @@ c
       real datenum,rnacc
       save fname,irec
 c
-#if defined(TRC) && defined(TRCDIA)
+#if defined(TRC) && defined(IDLAGE)
 #  include "param_trc.h"
 #  include "common_trc.h"
-#  include "common_trcdia.h"
-      integer nt
-#  ifdef ATRC
-      integer nat
-      real treps
-      parameter (treps=1.e-14)
-#  endif
+      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts,
+     .   wghtsflx
 #endif
 c
 c --- prepare output fields
@@ -1154,7 +1161,7 @@ c --- prepare output fields
 c
       rnacc=1./real(nacc_phy(iogrp))
       cmpflg=GLB_COMPFLAG(iogrp)
-c
+c 
 c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MHFLX(iogrp)+
      .  ACC_MSFLX(iogrp).ne.0)
@@ -1655,6 +1662,36 @@ c
 c --- store section transports 
       if (MSC_VOLTR(iogrp).ne.0)
      .  call ncwrt1('voltr','section time',voltr_dia)
+c
+c 
+c --- ideal age tracer 
+#if defined(TRC) && defined(IDLAGE)
+      call inilyr(ACC_UTIL(1),'p',0.)
+      call acclyr(ACC_UTIL,trc(1-nbdy,1-nbdy,1,itriag),
+     .  dp(1-nbdy,1-nbdy,k1m),0,'p')
+      call wrtlyr(ACC_UTIL(1),LYR_IDLAGE(iogrp),1.,0.,
+     .  cmpflg,ip,'p','idlage','Ideal age',
+     .  'sea_water_age_since_surface_contact','s')
+c
+      call inilyr(ACC_UTIL(1),'p',0.)
+      call acclyr(ACC_UTIL,dp(1-nbdy,1-nbdy,k1m),
+     .  dp(1-nbdy,1-nbdy,k1m),0,'p')
+      call wrtlyr(ACC_UTIL(1),LYR_IDLAGE(iogrp),1.,0.,
+     .  cmpflg,ip,'p','dp_trc','Layer pressure thickness',' ','Pa')
+c
+      if (LVL_IDLAGE(iogrp).ne.0) then
+        call inilvl(ACC_UTILLVL(1),'p',0.)
+        do k=1,kk
+          call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
+          call acclvl(ACC_UTILLVL,trc(1-nbdy,1-nbdy,1,itriag),'p',
+     .      k,ind1,ind2,wghts)
+        enddo
+        call msklvl(ACC_UTILLVL(1),'p')
+        call wrtlvl(ACC_UTILLVL(1),LVL_IDLAGE(iogrp),
+     .  1.,0.,cmpflg,ip,'p','idlagelvl','Ideal age',
+     .   'sea_water_age_since_surface_contact','s')
+      endif
+#endif
 c
 c --- close netcdf file
       call ncfcls

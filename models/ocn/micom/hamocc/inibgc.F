@@ -27,7 +27,7 @@ cka initialise 2D arrays for HAMOCC interface
 c        
       do k=1,kk
 c
-      do nt=1,ntr
+      do nt=itrbgc,itrbgc+ntrbgc-1
          trc(i,j,k,nt)=0.
       enddo
 c

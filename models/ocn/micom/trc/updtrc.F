@@ -16,8 +16,8 @@ c
 #ifdef HAMOCC
       call hamocc_step(m,n,mm,nn,k1m,k1n)
 #endif
-#ifdef IAGE
-      call iage_step(m,n,mm,nn,k1m,k1n)
+#ifdef IDLAGE
+      call idlage_step(m,n,mm,nn,k1m,k1n)
 #endif
 c
       return

@@ -214,6 +214,7 @@ cat >! ocn_in << EOF1
 !   DZ       - layer geopotential thickness [m]
 !   SALN     - weighted salinity [kg m-3]
 !   TEMP     - weighted temperature [degC]
+!   IDLAGE   - ideal age tracer [yr]
 !   UB       - u-component of barotopic velocity [m s-1]
 !   UVEL     - weighted u-component of total velocity [m-s]
 !   UFLX     - u-component of mass flux [kg m-2 s-1]
@@ -286,6 +287,7 @@ cat >! ocn_in << EOF1
   LYR_DZ       =   0,   2,
   LYR_SALN     =   0,   2,
   LYR_TEMP     =   0,   2,
+  LYR_IDLAGE   =   0,   2,
   LYR_TRC      =   0,   0,
   LYR_UFLX     =   0,   2,
   LYR_UTFLX    =   0,   2,
@@ -304,6 +306,7 @@ cat >! ocn_in << EOF1
   LVL_DZ       =   0,   2,
   LVL_SALN     =   0,   2,
   LVL_TEMP     =   0,   2,
+  LVL_IDLAGE   =   0,   2,
   LVL_TRC      =   0,   0,
   LVL_UFLX     =   0,   2,
   LVL_UTFLX    =   0,   2,
@@ -481,7 +484,7 @@ set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -DLEVITUS2X"
 set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
 set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
 set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC"
-set cpp_iage = "-DIAGE"
+set cpp_idlage = "-DIDLAGE"
 
 #------------------------------------------------------------------------------
 # Make dimensions.F
@@ -517,8 +520,8 @@ else
   set cpp_ocn = "\$cpp_ocn \$cpp_tracer"
   foreach module (\$tracers)
     if      (\$module == iage) then
-      echo \$CODEROOT/ocn/micom/iage >> Filepath
-      set cpp_ocn = "\$cpp_ocn \$cpp_iage"
+      echo \$CODEROOT/ocn/micom/idlage >> Filepath
+      set cpp_ocn = "\$cpp_ocn \$cpp_idlage"
     else if (\$module == ecosys) then
       echo \$CODEROOT/ocn/micom/hamocc >> Filepath
       set cpp_ocn = "\$cpp_ocn \$cpp_ecosys"

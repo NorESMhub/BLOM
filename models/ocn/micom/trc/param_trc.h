@@ -1,12 +1,19 @@
 c
 c --- ------------------------------------------------------------------
 c --- Parameters related to tracers:
-c ---   ntrhamocc  - number of tracers for HAMOCC
-c ---   ntriage    - number of tracers for ideal age tracer
-c ---   ntr        - total number of tracers
+c ---   ntrocn  - number of ocean tracers
+c ---   ntrbgc  - number of HAMOCC tracers
+c ---   ntriag  - number of ideal age tracers
+c ---   ntr     - total number of tracers
 c --- ------------------------------------------------------------------
 c
-      integer ntrhamocc,ntriage,ntr
+      integer ntrocn,ntrbgc,ntriag,ntr
+c
+c --- ------------------------------------------------------------------
+c --- Ocean tracers, not including HAMOCC and ideal age tracers
+c --- ------------------------------------------------------------------
+c
+      parameter (ntrocn=0)
 c
 c --- ------------------------------------------------------------------
 c --- HAMOCC tracers
@@ -44,26 +51,26 @@ c --- Non-advected (fast sinking) HAMOCC tracers
 #  endif
 c
 c --- Total number of HAMOCC tracers
-      parameter (ntrhamocc=ntraad+i_base+i_iso)
+      parameter (ntrbgc=ntraad+i_base+i_iso)
 #else
-      parameter (ntrhamocc=0)
+      parameter (ntrbgc=0)
 #endif
 c
 c --- ------------------------------------------------------------------
-c --- Ideal age tracers
+c --- Ideal age tracer
 c --- ------------------------------------------------------------------
 c
-#ifdef IAGE
-      parameter (ntriage=1)
+#ifdef IDLAGE
+      parameter (ntriag=1)
 #else
-      parameter (ntriage=0)
+      parameter (ntriag=0)
 #endif
 c
 c --- ------------------------------------------------------------------
 c --- Total number of tracers
 c --- ------------------------------------------------------------------
 c
-      parameter (ntr=ntrhamocc+ntriage)
+      parameter (ntr=ntrocn+ntrbgc+ntriag)
 c
 #ifdef ATRC
 c
@@ -73,5 +80,27 @@ c ---   natr  - number of age tracers
 c --- ------------------------------------------------------------------
 c
       integer natr
-      parameter (natr=1)
+      parameter (natr=0)
+#endif
+c
+c --- ------------------------------------------------------------------
+c --- Set tracer indexes of first HAMOCC tracer and ideal age tracer
+c --- ------------------------------------------------------------------
+c
+#ifdef HAMOCC
+      integer itrbgc
+#  ifdef ATRC
+      parameter (itrbgc=ntrocn-natr+1)
+#  else
+      parameter (itrbgc=ntrocn+1)
+#  endif
+#endif
+c
+#ifdef IDLAGE
+      integer itriag
+#  ifdef ATRC
+      parameter (itriag=ntrocn-natr+ntrbgc+1)
+#  else
+      parameter (itriag=ntrocn+ntrbgc+1)
+#  endif
 #endif

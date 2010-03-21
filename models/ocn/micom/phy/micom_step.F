@@ -313,7 +313,8 @@ c
         if (((diagann_phy(i).and.nday_of_year.eq.1.or.diagmon_phy(i)
      .    .and.nday.eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.
      .    (diagann_phy(i).or.diagmon_phy(i)).and.
-     .    mod(nstep+.5,diagfq_phy(i)).lt.1.) call diaout(i)
+     .    mod(nstep+.5,diagfq_phy(i)).lt.1.) 
+     .    call diaout(i,m,n,mm,nn,k1m,k1n)
       enddo
 c
 c --- update total time spent by various tasks

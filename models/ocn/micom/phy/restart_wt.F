@@ -33,6 +33,11 @@ c
       character startdate*20,timeunits*30
       real datenum
 c
+#if defined(TRC) && defined(IDLAGE)
+#  include "param_trc.h"
+#  include "common_trc.h"
+#endif
+c
 c --- set time information
       timeunits='hours since 0001-01-01 00:00'
       write(startdate,'(i4,a1,i2,a1,i2,a6)')
@@ -245,6 +250,11 @@ c
 c
       call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
       call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
+c
+#if defined(TRC) && defined(IDLAGE)
+      call wrtrst('idlage',trim(c5p)//' kk time',
+     .            trc(1-nbdy,1-nbdy,1,itriag),ip)
+#endif
 c
 c --- write accumulated fields
       do n=1,nphy 

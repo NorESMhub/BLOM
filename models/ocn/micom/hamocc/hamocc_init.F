@@ -16,7 +16,7 @@ c
 #include "common_geo.h"
 #include "common_trc.h"
 c
-      integer i,j,k,l,nt
+      integer i,j
       real q
 c
 cka initialise arrays for dynamic part of BGC
@@ -40,7 +40,7 @@ c
      .               ,bgc_dp,bgc_t,bgc_s,bgc_dx,bgc_dy,bgc_pu,bgc_pw
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
-     .               ,pgila,pgiph,omask,trc,ntr
+     .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
 c     .               ,bgc_slvl,bgc_hsnw,bgc_hice
      .               ,runid,runid_len,path,path_len,path2,path2_len)
 c

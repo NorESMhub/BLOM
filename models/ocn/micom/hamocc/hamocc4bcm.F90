@@ -1,7 +1,7 @@
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                        &
      &    pfswr,psicomo,ptho,psao,pddpo,pdlxp,pdlyp,ptiestu,ptiestw,    &
      &    pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,kmonlen,    &
-     &    kldtmon,kldtday,omask,dummy_tr,ndtr,                          &
+     &    kldtmon,kldtday,omask,dummy_tr,ntr,ntrbgc,itrbgc,             &
      &    days_in_yr)       
 
 !**********************************************************************
@@ -44,7 +44,7 @@
       use mod_xc
 
       implicit none
-      INTEGER :: kpie,kpje,kpke,kpbe,i,j,k,l,ndtr,ntr
+      INTEGER :: kpie,kpje,kpke,kpbe,i,j,k,l,ntr,ntrbgc,itrbgc
 
       REAL pfswr  (kpie,kpje)
       REAL psicomo(kpie,kpje)
@@ -62,7 +62,7 @@
       REAL ptiestw(kpie,kpje,kpke+1)
 !      REAL zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
       REAL omask(kpie,kpje)
-      REAL dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ndtr)
+      REAL dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
       INTEGER :: kplyear,kplmon,kplday,kmonlen,kldtmon,kldtday
       INTEGER :: days_in_yr
 
@@ -87,7 +87,7 @@
 !--------------------------------------------------------------------
 ! pass tracer fields in from ocean model
 !
-      ocetra(:,:,:,:)=dummy_tr(1:kpie,1:kpje,:,:)
+      ocetra(:,:,:,:)=dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
 
       DO k=1,kpke
 !$OMP PARALLEL DO
@@ -368,7 +368,7 @@
 !--------------------------------------------------------------------
 ! pass tracer fields out to ocean model 
 !
-      dummy_tr(1:kpie,1:kpje,:,:)=ocetra(:,:,:,:)
+      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
 
 !
 !--------------------------------------------------------------------

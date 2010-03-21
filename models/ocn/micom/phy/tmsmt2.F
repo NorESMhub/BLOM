@@ -31,9 +31,9 @@ c
 c --- - compute tracer budgets before time smoothing
 c
 #  ifdef ATRC
-        do nt=1,ntr-natr
+        do nt=1,ntr-ntriag-natr
 #  else
-        do nt=1,ntr
+        do nt=1,ntr-ntriag
 #  endif
 c
 c$OMP PARALLEL DO
@@ -129,9 +129,9 @@ c --- - compute tracer budgets after time smoothing and correct tracer
 c --- - fields to ensure conservation
 c
 #  ifdef ATRC
-        do nt=1,ntr-natr
+        do nt=1,ntr-ntriag-natr
 #  else
-        do nt=1,ntr
+        do nt=1,ntr-ntriag
 #  endif
 c
 c$OMP PARALLEL DO

@@ -1,7 +1,7 @@
       SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke&
      &            ,kpbe,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw    &
      &            ,kplyear,kplmonth,kplday,kpldtoce,pmonts             &
-     &            ,pgila,pgiph,omask,dummy_tr,ndtr                     &
+     &            ,pgila,pgiph,omask,dummy_tr,ntr,ntrbgc,itrbgc        &
      &            ,rid,rid_len,path,path_len,path2,path2_len)      
 !      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke&
 !     &           ,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw          &
@@ -81,7 +81,7 @@
 #endif /* PDYNAMIC_BGC */ 
  
       implicit none
-      INTEGER :: kpie,kpje,kpke,kpbe,pmonts,ndtr
+      INTEGER :: kpie,kpje,kpke,kpbe,pmonts,ntr,ntrbgc,itrbgc
 !      INTEGER :: pyears,pmonts,kpie,kpje,kpke
       INTEGER :: kplyear,kplmonth,kplday,kpldtoce
       INTEGER :: kpaufr,kpicycli,kpndtrun,k,l
@@ -97,7 +97,7 @@
       REAL :: pgiph(kpie*2,kpje*2)
       REAL :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
       REAL :: omask(kpie,kpje)
-      REAL :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ndtr)
+      REAL :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
 !      REAL :: zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
       REAL :: pdt
       character*(*) rid,path,path2
@@ -166,7 +166,6 @@
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-!     ocetra(:,:,:,:)=dummy_tr(1:kpie,1:kpje,:,:)
       ocetra(:,:,:,:)=0.
  
       CALL BELEG_BGC(kpie,kpje,kpke,psao,ptho,pddpo,ptiestu,    &
@@ -217,7 +216,7 @@
 !
 ! Fill dummy_tr with HAMOCC initialised ocetra to pass to MICOM       
 !
-      dummy_tr(1:kpie,1:kpje,:,:)=ocetra(:,:,:,:)
+      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
 
 
       RETURN
