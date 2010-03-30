@@ -1,7 +1,8 @@
       subroutine convec(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- Remove static instabilitites from the water column
+c --- Remove static instabilitites between the mixed layer and interior
+c --- layers
 c --- ------------------------------------------------------------------
 c
       use mod_xc
@@ -11,13 +12,6 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-c
-c --- parameters:
-c ---   dnseps - minimum density difference between interior layers
-c ---            [g/cm^3]
-c
-      real dnseps
-      parameter (dnseps=1.e-12)
 c
       real, dimension(kdm+1) :: po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
@@ -181,8 +175,9 @@ c
               done=.true.
 c
 c --- ------- Remove instabilities between the mixed layer and interior
-c --- ------- layers by considering potential density with reference
-c --- ------- pressure at the surface
+c --- ------- layers by considering the potential density jump across
+c --- ------- the mixed layer base with reference pressure at the
+c --- ------- interface
               tdps=ttem(1)*delp(1)
               sdps=ssal(1)*delp(1)
               dps=delp(1)
@@ -254,6 +249,7 @@ c
 c
           kfpla(i,j,n)=kfpl
 c
+c --- --- Copy 1d arrays to 3d arrays
           do k=1,kk
             kn=k+nn
             temp(i,j,kn)=ttem(k)
