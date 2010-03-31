@@ -40,7 +40,8 @@ c
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
      .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
-     .               ,runid,runid_len,path,path_len,path2,path2_len)
+     .               ,runid,runid_len,rstfnm_ext,path,path_len
+     .               ,path2,path2_len)
 c
 #else
 cka initialise arrays for dynamic part of BGC
@@ -64,7 +65,8 @@ c
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
      .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
-     .               ,runid,runid_len,path,path_len,path2,path2_len)
+     .               ,runid,runid_len,resfnm_ext,path,path_len
+     .               ,path2,path2_len)
 c
 #endif
 c

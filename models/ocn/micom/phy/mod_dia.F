@@ -197,7 +197,7 @@ c
       real epsil
       parameter (epsil=1.e-11)
 c
-      integer ny,nm,nd,nhour,dayfrac
+      integer ny,nm,nd,ns
 c
       if (diagfq+epsil.gt.1.) then
         ny=nyear
@@ -215,7 +215,7 @@ c
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
         endif
-#elif defined(SYN) || defined(CCSMCOUPLED)
+#elif defined(SYN)
         if (diagmon) then
           call pstdat(ny,nm,nd,1)
           write(fname,'(4a,i4.4,a,i2.2,a)')
@@ -229,24 +229,35 @@ c
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
         endif
+#elif defined(CCSMCOUPLED)
+        if (diagmon) then
+          call pstdat(ny,nm,nd,1)
+          write(fname,'(4a,i4.4,a,i2.2,a)')
+     .      runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+        elseif (diagann) then
+          call pstdat(ny,nm,nd,1)
+          write(fname,'(4a,i4.4,a)')
+     .      runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+        else
+          call pstdat(ny,nm,nd,nint(diagfq))
+          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
+     .      runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'.nc'
+        endif
 #endif
       else
         ny=nyear
         nm=nmonth
         nd=nday
         if (mod(time+epsil,1.).lt.2*epsil) call pstdat(ny,nm,nd,1)
-        if (24.*diagfq+epsil.gt.1.and.
-     .      mod(24.*diagfq+epsil,1.).lt.2*epsil) then
-          nhour=nint((mod(time-epsil,1.)-diagfq)*24.)
-          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i2.2,a)')
-     .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'_',nhour,
-     .      '.nc'
-        else
-          dayfrac=nint(mod(time-diagfq+epsil,1.)*10000.)
-          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i4.4,a)')
-     .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.',
-     .      dayfrac,'.nc'
-        endif
+        ns=nint(86400.*mod(time,1.))
+#ifdef CCSMCOUPLED
+        write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'.',ns,
+     .    '.nc'
+#else
+        write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.',ns,'.nc'
+#endif
       endif
       end
 

@@ -18,7 +18,7 @@ c
 
       CALL AUFW_BGC(idm,jdm,kdm,bgc_dp,pgila,pgiph,bgc_pu            
      .             ,nyear,nmonth,nday,nstep/nphys,omask
-     .             ,runid,runid_len,path2,path2_len)
+     .             ,runid,runid_len,rstfnm_ext,path2,path2_len)
 c
       return
       end

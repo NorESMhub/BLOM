@@ -1,6 +1,6 @@
       SUBROUTINE AUFR_BGC(kpie,kpje,kpke,pddpo,kplyear,kplmon     &
      &                    ,kplday,kpldtoce,omask,rid,rid_len      &
-     &                    ,path,path_len)
+     &                    ,rstfnm_ext,path,path_len)
 
 !$Source: /scratch/local1/m212047/patrick/SRC_MPI/src_hamocc/RCS/aufr_bgc.f90,v $\\
 !$Revision: 1.1 $\\
@@ -94,7 +94,7 @@
       INTEGER :: restdtoce           !  time step number from bgc ocean file
 
       character rstfnm*80
-      character*(*) rid,path
+      character*(*) rid,rstfnm_ext,path
       integer rid_len,path_len
 
 #ifdef PNETCDF                
@@ -106,13 +106,11 @@
 !
       IF(mnproc==1) THEN
 
-      write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a)')                      &
-     &  rid(1:rid_len),'_rest_b_',kplyear,'.',kplmon,'.',kplday,'.nc'
-!ka hardwire filename when restarting daily NCEP forcing
-!      write (rstfnm,'(a16,i2.2,a1,i2.2,a3)')                 &
-!     &  'H06_rest_b_2007.',kplmon,'.',kplday,'.nc'
-!      write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-!      call ncfopn(path(1:path_len)//rstfnm,ncid)
+#ifdef CCSMCOUPLED
+      rstfnm=rid(1:rid_len)//'.micom.rbgc'//rstfnm_ext
+#else
+      rstfnm=rid(1:rid_len)//'_rest_b'//rstfnm_ext
+#endif
 
         ncstat = NF_OPEN(path(1:path_len)//rstfnm,NF_NOWRITE, ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN

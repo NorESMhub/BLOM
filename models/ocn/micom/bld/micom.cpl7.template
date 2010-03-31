@@ -233,7 +233,7 @@ cat >! ocn_in << EOF1
 !   VOLTR    - mass transport through pre-defined sections [kg s-1]
 !
 &DIAPHY
-  GLB_FNAMETAG ='phyd','phym', 
+  GLB_FNAMETAG ='hd','hm', 
   GLB_AVEPERIO =   1,  30,
   GLB_FILEFREQ =  30,  30,
   GLB_COMPFLAG =   0,   0,
@@ -388,7 +388,7 @@ cat >! ocn_in << EOF1
 !   SSSTER         - (ssster) [mol m-3]
 !
 &DIABGC
-  GLB_FNAMETAG       ='bgcd','bgcm','bgcy',
+  GLB_FNAMETAG       ='hbgcd','hbgcm','hbgcy',
   GLB_AVEPERIO       =  1, 30,365,
   GLB_FILEFREQ       = 30, 30,365,
   GLB_COMPFLAG       =  0,  0,  0,

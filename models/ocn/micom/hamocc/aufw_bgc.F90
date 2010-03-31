@@ -1,6 +1,6 @@
       SUBROUTINE AUFW_BGC(kpie,kpje,kpke,pddpo,pgila,pgiph,ptiestu   &
      &                    ,kplyear,kplmon,kplday,kpldtoce,omask      &
-     &                    ,rid,rid_len,path,path_len)
+     &                    ,rid,rid_len,rstfnm_ext,path,path_len)
 
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/aufw_bgc.f90,v $\\
 !$Revision: 1.3 $\\
@@ -88,7 +88,7 @@
       INTEGER  i,j,k,l,kmon,jj,ii,kk,kt
 
       character rstfnm*80
-      character*(*) rid,path
+      character*(*) rid,rstfnm_ext,path
       integer rid_len,path_len
       REAL omask(kpie,kpje)    
 
@@ -222,8 +222,11 @@
       IF(mnproc==1) THEN
 
 
-      write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a)')                       &
-     &  rid(1:rid_len),'_rest_b_',kplyear,'.',kplmon,'.',kplday,'.nc'
+#ifdef CCSMCOUPLED
+      rstfnm=rid(1:rid_len)//'.micom.rbgc'//rstfnm_ext
+#else
+      rstfnm=rid(1:rid_len)//'_rest_b'//rstfnm_ext
+#endif
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       ncstat = NF_CREATE(path(1:path_len)//rstfnm,NF_CLOBBER, ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN

@@ -8,6 +8,7 @@ c
       use mod_dia
 #ifdef CCSMCOUPLED
       use data_mct, only: runid_mct, runtype_mct
+      use mod_nctools
 #endif
 c
       implicit none
@@ -202,10 +203,23 @@ c --- pointer if it exists
         if (runtype_mct.eq.'initial') then
           read (rstfnm(n-8 :n-3 ),'(i6)') nday1
         else
-          read (rstfnm(n-19:n-16),'(i4)') nyear
-          read (rstfnm(n-14:n-13),'(i2)') nmonth
-          read (rstfnm(n-11:n-10),'(i2)') nday
-          read (rstfnm(n-8 :n-3 ),'(i6)') nday1
+          read (rstfnm(n-18:n-15),'(i4)') nyear
+          read (rstfnm(n-13:n-12),'(i2)') nmonth
+          read (rstfnm(n-10:n-9 ),'(i2)') nday
+          time=0.
+          if (mnproc.eq.1) then
+            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+            if (fexist) then
+              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+              call ncgetr('time',time)
+            else
+              write (lp,*) 'Could not find proper restart file!'
+              call xchalt('(rdlim)')
+              stop '(rdlim)' 
+            endif
+          endif
+          call xcmaxr(time)
+          nday1=nint(time)
         endif
       endif
 #endif

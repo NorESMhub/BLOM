@@ -49,9 +49,9 @@ c
       if (mnproc.eq.1) then
 c
 #if defined(CCSMCOUPLED)
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .    runid(1:runid_len),'_restphy_',nyear,'-',nmonth,'-',nday,'_',
-     .    nint(time),'.nc'
+        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,'_',
+     .    nint(86400.*mod(time,1.)),'.nc'
 c
 #elif defined(CLIM) || defined(SYN)
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) 
@@ -472,7 +472,12 @@ c
       if (ditflx) then
 c
 c --- - write diag. heat flux restart file
+#ifdef CCSMCOUPLED
+        fnm=path2(1:path2_len)//runid(1:runid_len)//'.micom.rtflx'//
+     .      rstfnm_ext
+#else
         fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
+#endif
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. heat flux restart file ',fnm
         if (rstfmt.eq.1) then 
@@ -502,7 +507,12 @@ c
       if (disflx) then
 c
 c --- - write diag. salt flux restart file
+#ifdef CCSMCOUPLED
+        fnm=path2(1:path2_len)//runid(1:runid_len)//'.micom.rsflx'//
+     .      rstfnm_ext
+#else
         fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
+#endif
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. salt flux restart file ',fnm
         if (rstfmt.eq.1) then 
