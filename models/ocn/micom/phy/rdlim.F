@@ -195,31 +195,29 @@ c --- pointer if it exists
         open (unit=nfu,file='rpointer.ocn')
         read (nfu,'(a)') rstfnm
         close (unit=nfu)
-        n=1
-        do while (n.lt.80.and.rstfnm(n:n).ne.' ')
-          n=n+1
-        enddo
-        n=n-1
-        if (runtype_mct.eq.'initial') then
-          read (rstfnm(n-8 :n-3 ),'(i6)') nday1
-        else
+        time=0.
+        if (mnproc.eq.1) then
+          inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+          if (fexist) then
+            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+            call ncgetr('time',time)
+          else
+            write (lp,*) 'Could not find proper restart file!'
+            call xchalt('(rdlim)')
+            stop '(rdlim)' 
+          endif
+        endif
+        call xcmaxr(time)
+        nday1=nint(time)
+        if (runtype_mct.ne.'initial') then
+          n=1
+          do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+            n=n+1
+          enddo
+          n=n-1
           read (rstfnm(n-18:n-15),'(i4)') nyear
           read (rstfnm(n-13:n-12),'(i2)') nmonth
           read (rstfnm(n-10:n-9 ),'(i2)') nday
-          time=0.
-          if (mnproc.eq.1) then
-            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-            if (fexist) then
-              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
-              call ncgetr('time',time)
-            else
-              write (lp,*) 'Could not find proper restart file!'
-              call xchalt('(rdlim)')
-              stop '(rdlim)' 
-            endif
-          endif
-          call xcmaxr(time)
-          nday1=nint(time)
         endif
       endif
 #endif
