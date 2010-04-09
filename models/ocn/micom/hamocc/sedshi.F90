@@ -203,7 +203,7 @@
      &        +clafa*burial(i,j,issster)
 
 ! fill the last active layer
-        refill=seddef/buried 
+        refill=seddef/(buried+1.e-10) 
         frac = porsol(ks)*seddw(ks) !changed k to ks, ik
         
         sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)                  &

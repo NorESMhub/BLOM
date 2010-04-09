@@ -485,8 +485,8 @@
        aux2d_co2fxu(i,j)  = aux2d_co2fxu(i,j)  + fluxu 
        aux2d_pco2(i,j)    = aux2d_pco2(i,j)    + pco2 
        aux2d_kwco2(i,j)   = aux2d_kwco2(i,j)   + kwco2*Kh*1e-6 ! JT replaced ak0 with Kh*1e-6
-       aux2d_oxflux(i,j)  = aux2d_oxflux(i,j)  + oxflux + 0.5 * n2oflux
-       aux2d_niflux(i,j)  = aux2d_niflux(i,j)  + niflux + n2oflux
+       aux2d_oxflux(i,j)  = aux2d_oxflux(i,j)  + oxflux 
+       aux2d_niflux(i,j)  = aux2d_niflux(i,j)  + niflux
        aux2d_dmsflux(i,j) = aux2d_dmsflux(i,j) + dmsflux
        aux2d_dms(i,j)     = aux2d_dms(i,j)     + ocetra(i,j,1,idms) 
       endif
@@ -524,7 +524,6 @@
 !End of Tjiputra update====================================================================
 !IB
 ! Accumulate diagnostic 2d variables   
-      call accsrf(jco2fxd,aux2d_co2fxd,omask,0) 
       call accsrf(jco2fxd,aux2d_co2fxd,omask,0)
       call accsrf(jco2fxu,aux2d_co2fxu,omask,0)
       call accsrf(jpco2,aux2d_pco2,omask,0)

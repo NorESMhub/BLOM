@@ -121,7 +121,7 @@
       grami=1.e-10              !i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
 
 !ik addded parameter definition; taken from OCPROD.F
-      remido=0.025*dtb      !1/d -remineralization rate (of DOM)
+      remido=0.03*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
       zinges=0.5            !dimensionless fraction -assimilation efficiency
       epsher=0.8            !dimensionless fraction -fraction of grazing egested
@@ -148,22 +148,17 @@
       bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
 
 !sinking speed
-!ka      wpoc  = 1.*dtb       !m/d  iris : 5.
-!ka      wcal  = 3.*dtb       !m/d 
-!ka      wopal = 3.*dtb       !m/d  iris : 60
-      wpoc  = 5.*dtb       !m/d  iris : 5.
+      wpoc  = 10.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
       wopal = 50.*dtb       !m/d  iris : 60
-!ka      wopal = 30.*dtb       !m/d  iris : 60
 
       
 ! deep see remineralisation constants
 
-      drempoc  = 0.025*dtb     !1/d
-      dremdoc  = 0.004*dtb      !1/d
-      dphymor  = 0.1 *dtb      !1/d
+      drempoc  = 0.02*dtb     !1/d
+      dremdoc  = 0.003*dtb      !1/d
+      dphymor  = 0.07 *dtb      !1/d
       dzoomor  = 0.02*dtb      !1/d
-!      dremopal = 0.005*dtb      !1/d
       dremopal = 0.01*dtb      !1/d
       dremn2o  = 0.01*dtb       !1/d
       dremsul  = 0.005*dtb            ! remineralization rate for sulphate reduction 
