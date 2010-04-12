@@ -340,19 +340,17 @@
       ENDIF
 
 !     accumulate sediments
-      DO l=1,nbgc 
-        call accsdm(jpowaic,powtra(1,1,1,ipowaic))
-        call accsdm(jpowaal,powtra(1,1,1,ipowaal))
-        call accsdm(jpowaph,powtra(1,1,1,ipowaph))
-        call accsdm(jpowaox,powtra(1,1,1,ipowaox))
-        call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
-        call accsdm(jpowno3,powtra(1,1,1,ipowno3))
-        call accsdm(jpowasi,powtra(1,1,1,ipowasi))
-        call accsdm(jssso12,sedlay(1,1,1,issso12))
-        call accsdm(jssssil,sedlay(1,1,1,issssil))
-        call accsdm(jsssc12,sedlay(1,1,1,isssc12))
-        call accsdm(jssster,sedlay(1,1,1,issster))
-      ENDDO 
+      call accsdm(jpowaic,powtra(1,1,1,ipowaic))
+      call accsdm(jpowaal,powtra(1,1,1,ipowaal))
+      call accsdm(jpowaph,powtra(1,1,1,ipowaph))
+      call accsdm(jpowaox,powtra(1,1,1,ipowaox))
+      call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
+      call accsdm(jpowno3,powtra(1,1,1,ipowno3))
+      call accsdm(jpowasi,powtra(1,1,1,ipowasi))
+      call accsdm(jssso12,sedlay(1,1,1,issso12))
+      call accsdm(jssssil,sedlay(1,1,1,issssil))
+      call accsdm(jsssc12,sedlay(1,1,1,isssc12))
+      call accsdm(jssster,sedlay(1,1,1,issster))
 
 !
 #ifdef PBGC_CK_TIMESTEP 
