@@ -248,11 +248,11 @@ c
         ny=nyear
         nm=nmonth
         nd=nday
-        if (mod(time+epsil,1.).lt.2*epsil) call pstdat(ny,nm,nd,1)
-        ns=nint(86400.*mod(time,1.))
+        if (mod(nint(time*86400.),86400).eq.0) call pstdat(ny,nm,nd,1)
+        ns=mod(nint((time-diagfq)*86400.),86400)
 #ifdef CCSMCOUPLED
         write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'.',ns,
+     .    runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'-',ns,
      .    '.nc'
 #else
         write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')

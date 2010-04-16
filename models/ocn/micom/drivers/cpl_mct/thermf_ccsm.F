@@ -34,7 +34,9 @@ c
 c
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
-      y=(real(nday_of_year-1)+mod(time,1.))*48./real(nday_in_year)
+      y=(real(nday_of_year-1)
+     .  +real(mod(nint(time*86400.),86400))/86400.)*48.
+     .  /real(nday_in_year)
       m3=int(y)+1
       y=y-real(m3-1)
       m1=mod(m3+45,48)+1
@@ -43,7 +45,8 @@ c --- and salt relaxation fluxes
       m5=mod(m3+ 1,48)+1
 c
 c --- Find time level for diagnosing heat and salt relaxation fluxes
-      k=int((real(nday_of_year-1)+mod(time,1.))*48.
+      k=int((real(nday_of_year-1)
+     .      +real(mod(nint(time*86400.),86400))/86400.)*48.
      .      /real(nday_in_year))+1
 c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1

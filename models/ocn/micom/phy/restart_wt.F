@@ -50,8 +50,8 @@ c
 c
 #if defined(CCSMCOUPLED)
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,'_',
-     .    nint(86400.*mod(time,1.)),'.nc'
+     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,'-',
+     .    mod(nint(time*86400.),86400),'.nc'
 c
 #elif defined(CLIM) || defined(SYN)
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) 

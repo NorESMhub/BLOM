@@ -74,7 +74,9 @@ c
 c --- ------------------------------------------------------------------
 c --- Set parameters for time interpolation of climatological fields
 c --- ------------------------------------------------------------------
-      x=(real(nday_of_year-1)+mod(time,1.))*12./real(nday_in_year)
+      x=(real(nday_of_year-1)
+     .  +real(mod(nint(time*86400.),86400))/86400.)*12.
+     .  /real(nday_in_year)
       l3=int(x)+1
       x=x-real(l3-1)
       l1=mod(l3+ 9,12)+1
