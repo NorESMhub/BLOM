@@ -168,8 +168,8 @@ c --- Namelist
 
 
 
-      subroutine diafnm(runid,runid_len,ctag,time,diagfq,diagmon,diagann
-     .  ,fname)
+      subroutine diafnm(runid,runid_len,ctag,nstep,diagfq,diagmon
+     .  ,diagann,fname)
 c
 c --- ------------------------------------------------------------------
 c --- Description: creates file name for the diagnostic output
@@ -178,7 +178,7 @@ c --- Arguments:
 c ---   char runid     (in)    : acronym of simulation 
 c ---   int  runid_len (in)    : actual length of runid 
 c ---   char ctag      (in)    : string used in middle of file name 
-c ---   real time      (in)    : MICOM time step 
+c ---   int nstep      (in)    : MICOM time step 
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
@@ -190,8 +190,8 @@ c
 #include "common_clndr.h"
 c
       character runid*(*),ctag*(*),fname*(*)
-      integer runid_len
-      real time,diagfq
+      integer runid_len,nstep
+      real diagfq
       logical diagmon,diagann
 c
       real epsil
@@ -248,8 +248,9 @@ c
         ny=nyear
         nm=nmonth
         nd=nday
-        if (mod(nint(time*86400.),86400).eq.0) call pstdat(ny,nm,nd,1)
-        ns=mod(nint((time-diagfq)*86400.),86400)
+        if (mod(nstep,nstep_in_day).eq.0) call pstdat(ny,nm,nd,1)
+        ns=nint(nint(mod(nstep+.5-diagfq,nstep_in_day)/diagfq)
+     .          *diagfq/nstep_in_day*86400)
 #ifdef CCSMCOUPLED
         write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .    runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'-',ns,
@@ -1257,7 +1258,7 @@ c --- set time information
 c
 c --- create file name 
       if (.not.append2file(iogrp)) then
-        call diafnm(runid,runid_len,trim(GLB_FNAMETAG(IOGRP)),time,
+        call diafnm(runid,runid_len,trim(GLB_FNAMETAG(IOGRP)),nstep,
      .  filefq_phy(iogrp)/real(nstep_in_day),filemon_phy(iogrp),
      .  fileann_phy(iogrp),fname(iogrp))
         append2file(iogrp)=.true.
