@@ -216,38 +216,46 @@ c --- initialize variables for the thermodynamic ice model and make
 c --- surface conditions consistent with the ice cover
 c --- ------------------------------------------------------------------
 c
-      do 110 j=1,jj
-      do 110 l=1,isp(j)
-      do 110 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-      if (ricclm(i,j,12).lt..05) then
-      hicem(i,j)=0.
-      ficem(i,j)=0.
-      hsnwm(i,j)=0.
-      tsrfm(i,j)=temp(i,j,1)+t0deg
-      tsi_tda(i,j)=temp(i,j,1)+t0deg
-      else
-      hicem(i,j)=2.
-      ficem(i,j)=min(fice_max,ricclm(i,j,12)) ! assuming start in January
-      hsnwm(i,j)=0.1
-      tsrfm(i,j)=sstclm(i,j,1)
-      tsi_tda(i,j)=(sstclm(i,j,1)-(1.-ficem(i,j))*(temp(i,j,1)+t0deg))
-     .             /ficem(i,j)
-      iagem(i,j)=0.
-      endif
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          if (ricclm(i,j,12).lt..05) then
+            hicem(i,j)=0.
+            ficem(i,j)=0.
+            hsnwm(i,j)=0.
+            tsrfm(i,j)=temp(i,j,1)+t0deg
+            tsi_tda(i,j)=temp(i,j,1)+t0deg
+          else
+            hicem(i,j)=2.
+            ficem(i,j)=min(fice_max,ricclm(i,j,12)) ! assuming start in January
+            hsnwm(i,j)=0.1
+            tsrfm(i,j)=sstclm(i,j,1)
+            tsi_tda(i,j)=(sstclm(i,j,1)
+     .                   -(1.-ficem(i,j))*(temp(i,j,1)+t0deg))/ficem(i,j)
+            iagem(i,j)=0.
+          endif
 c
-      ticem(i,j)=tsrfm(i,j)
-      tml_tda(i,j)=temp(i,j,1)+t0deg
-      sml_tda(i,j)=saln(i,j,1)
-      alb_tda(i,j)=albs_f*ficem(i,j)+albw_d*(1.-ficem(i,j))
- 110  fice_tda(i,j)=ficem(i,j)
+          ticem(i,j)=tsrfm(i,j)
+          tml_tda(i,j)=temp(i,j,1)+t0deg
+          sml_tda(i,j)=saln(i,j,1)
+          alb_tda(i,j)=albs_f*ficem(i,j)+albw_d*(1.-ficem(i,j))
+          fice_tda(i,j)=ficem(i,j)
+        enddo
+        enddo
+      enddo
 c
-      do 140 j=1,jj
-      do 150 l=1,isu(j)
-      do 150 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
- 150  ssu_tda(i,j)=0.
-      do 140 l=1,isv(j)
-      do 140 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
- 140  ssv_tda(i,j)=0.
+      do j=1,jj
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          ssu_tda(i,j)=0.
+        enddo
+        enddo
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          ssv_tda(i,j)=0.
+        enddo
+        enddo
+      enddo
 c
       ntda=1
 c
@@ -266,22 +274,29 @@ c
       enddo
 #endif
 c
-      do 10 j=1,jj
-      do 10 l=1,isp(j)
-      do 10 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-      temp(i,j,1)=max(swtfrz(saln(i,j,1)),temp(i,j,1))
-      temp(i,j,1+kk)=temp(i,j,1)
-      saln(i,j,1+kk)=saln(i,j,1)
-      sigma(i,j,1)=sig(temp(i,j,1),saln(i,j,1))
-      sigma(i,j,1+kk)=sigma(i,j,1)
-      do 10 k=2,kk
-      temp(i,j,k)=max(temmin(i,j,k),temp(i,j,k))
-      saln(i,j,k   )=sofsig(sigmar(i,j,k),temp(i,j,k))
-      temp(i,j,k+kk)=temp(i,j,k)
-      saln(i,j,k+kk)=saln(i,j,k)
-      sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-      sigma(i,j,k+kk)=sigma(i,j,k)
- 10   continue
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          do k=1,2
+            temp(i,j,k)=max(swtfrz(saln(i,j,k)),temp(i,j,k))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+            sigma(i,j,k+kk)=sigma(i,j,k)
+          enddo
+          do k=3,kk
+            temp(i,j,k)=max(temmin(i,j,k),temp(i,j,k))
+            saln(i,j,k   )=sofsig(sigmar(i,j,k),temp(i,j,k))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+            sigma(i,j,k+kk)=sigma(i,j,k)
+          enddo
+          ustar(i,j)=0.
+          buoyfl(i,j)=0.
+        enddo
+        enddo
+      enddo
 c
       if (mnproc.eq.ptest) then
         write (lp,'('' sigmar(k)    :'',9f7.5/(15x,9f7.5))')
@@ -502,17 +517,18 @@ c$OMP PARALLEL DO PRIVATE(k,dps)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          k=2
+          k=3
           dps=0.
           do while (dp(i,j,k).lt.epsil)
             dps=dps+dp(i,j,k)
             dp(i,j,k)=0.
+            dp(i,j,k+kk)=0.
             k=k+1
             if (k.gt.kk) exit
           enddo
           if (k.gt.kk) then
-            dp(i,j,1)=dp(i,j,1)+dps
-            dp(i,j,1+kk)=dp(i,j,1)
+            dp(i,j,2)=dp(i,j,2)+dps
+            dp(i,j,2+kk)=dp(i,j,2)
           else
             dp(i,j,k)=dp(i,j,k)+dps
             dp(i,j,k+kk)=dp(i,j,k)
@@ -529,19 +545,22 @@ c --- initialize variables related to forcing
 c --- ------------------------------------------------------------------
 c
 #if !defined(CCSMCOUPLED) && (defined(CLIM) || defined(SYN))
-      do 300 j=1,jj
-      do 300 l=1,isp(j)
-      do 300 i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-      cd_d(i,j)=cd_r
-      ch_d(i,j)=ch_r
-      ce_d(i,j)=ce_r
-      wg2_d(i,j)=wg2_r*1.e-4
-      cd_m(i,j)=cd_r
-      ch_m(i,j)=ch_r
-      ce_m(i,j)=ce_r
-      wg2_m(i,j)=wg2_r*1.e-4
-      rhoa(i,j)=rhoa_r*1.e3
- 300  rnfres(i,j)=0.
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          cd_d(i,j)=cd_r
+          ch_d(i,j)=ch_r
+          ce_d(i,j)=ce_r
+          wg2_d(i,j)=wg2_r*1.e-4
+          cd_m(i,j)=cd_r
+          ch_m(i,j)=ch_r
+          ce_m(i,j)=ce_r
+          wg2_m(i,j)=wg2_r*1.e-4
+          rhoa(i,j)=rhoa_r*1.e3
+          rnfres(i,j)=0.
+        enddo
+        enddo
+      enddo
 #endif
 c
       if (mnproc.eq.ptest) then

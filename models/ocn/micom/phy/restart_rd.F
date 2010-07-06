@@ -188,6 +188,8 @@ c
       call ncread('xiym',xiym,ivv,1,0.)
       call ncread('phi',phi(1-nbdy,1-nbdy,kk+1),ip,1,0.)
       call ncread('sealv',sealv,ip,1,0.)
+      call ncread('ustar',ustar,ip,1,0.)
+      call ncread('buoyfl',buoyfl,ip,1,0.)
       call ncread('kfpla',rkfpla,ip,1,0.)
       call ncread('hicem',hicem,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)

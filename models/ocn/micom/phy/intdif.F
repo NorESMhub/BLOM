@@ -23,6 +23,7 @@ c$OMP PARALLEL DO
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
           uflxdf(i,j,1)=0.
           uflxdf(i,j,2)=0.
+          uflxdf(i,j,3)=0.
         enddo
         enddo
       enddo
@@ -33,12 +34,13 @@ c$OMP PARALLEL DO
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
           vflxdf(i,j,1)=0.
           vflxdf(i,j,2)=0.
+          vflxdf(i,j,3)=0.
         enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
-      do k=3,kk
+      do k=4,kk
         kn=k+nn
 c
 c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)

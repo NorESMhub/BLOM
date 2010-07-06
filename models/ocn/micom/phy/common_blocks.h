@@ -131,14 +131,17 @@ c
      .  taux,tauy,     ! surface stress components
      .  ustar,         ! surface friction velocity
      .  ustarb,        ! bottom friction velocity
-     .  twedon         ! tidal wave energy diffipation over buoyancy frequency
+     .  buoyfl,        ! surface buoyancy flux
+     .  twedon,        ! tidal wave energy diffipation over buoyancy frequency
+     .  pbrnda         ! brine plume pressure depth
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
       common /micom4/ difint,difiso,difdia,uja,ujb,via,vib,difmxp,
      .                difmxq,difwgt,sealv,surflx,surrlx,sswflx,salflx,
-     .                brnflx,salrlx,taux,tauy,ustar,ustarb,twedon,kfpla
+     .                brnflx,salrlx,taux,tauy,ustar,ustarb,buoyfl,
+     .                twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep1,nstep2,lstep
@@ -159,19 +162,20 @@ c --- 'wuv1/2' = weights for time smoothing of u,v field
 c --- 'wts1/2' = weights for time smoothing of t,s field
 c --- 'wbaro'  = weight for time smoothing of barotropic u,v,p field
 c --- 'wpgf'   = weight for time averaging of pressure gradient force
-c --- 'thkmin' = minimum mixed-layer thickness (m)
+c --- 'mltmin' = minimum mixed-layer thickness (m)
+c --- 'thktop' = thickness of top layer (m)
 c --- 'thkbot' = thickness of bottom boundary layer (pressure units)
 c --- 'acurcy' = permissible roundoff error in column integral calc.
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
       real baclin,batrop,veldff,vdfflo,viscos,visclo,slip,cbar,cb,
-     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,thkmin,thkbot,acurcy
+     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy
       logical csdiag,cnsvdi
 c
       common /parms1/ baclin,batrop,veldff,vdfflo,viscos,visclo,slip,
-     .                cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,wpgf,thkmin,
-     .                thkbot,acurcy,csdiag,cnsvdi
+     .                cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,
+     .                thktop,thkbot,acurcy,csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

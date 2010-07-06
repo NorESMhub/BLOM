@@ -14,9 +14,10 @@ c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
 c --- 'visclo' same as viscos but used when Rossby radius is resolved
       data veldff/2.0/,vdfflo/0.4/,viscos/0.5/,visclo/0.1/
 c
-c --- 'thkmin' = minimum mixed-layer thickness (m)
+c --- 'mltmin' = minimum mixed-layer thickness (m)
+c --- 'thktop' = thickness of top layer (m)
 c --- 'acurcy' = permissible roundoff error in column integral calc.
-      data thkmin/10./,acurcy/1.e-10/
+      data mltmin/20./,thktop/10./,acurcy/1.e-10/
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law

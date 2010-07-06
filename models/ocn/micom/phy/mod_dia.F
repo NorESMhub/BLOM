@@ -84,17 +84,20 @@ c --- Levitus levels
 #endif 
 c
 c --- Zonally integrated diagnostics 
-      integer,  save :: lmax 
-      integer,  parameter :: padsize=100,ldm=max(itdm,jtdm)+padsize,
-     .  sdm=ldm,odm=3 
-      real,  save, dimension(ldm,kdm,odm) :: mmflx_dia
-      real,  save, dimension(ldm,ddm,odm) :: mmflxd_dia
-      real,  save, dimension(ldm,odm) :: mhflx_dia,msflx_dia 
+      integer, save :: lmax 
+      integer, parameter :: ldm=itdm+jtdm,sdm=ldm,odm=3,slenmax=50 
+      real, save, dimension(ldm) :: mtlat
+      real, save, dimension(kdm) :: sigmar1 
+      real, save, dimension(ldm,kdm,odm) :: mmflxl
+      real, save, dimension(ldm,ddm,odm) :: mmflxd
+      real, save, dimension(ldm,odm) :: mhflx,msflx
+      character(len=slenmax), save, dimension(3) :: region_name
 c
 c --- Section transports 
-      integer,  save :: sec_num
-      integer,  parameter :: max_sec=40
-      real,  save, dimension(max_sec) :: voltr_dia
+      integer, save :: sec_num
+      integer, parameter :: max_sec=400
+      character(len=slenmax), save :: sec_name(max_sec)
+      real, save, dimension(max_sec) :: voltr
 c
 c --- Namelist 
       integer, dimension(nphymax), save ::
@@ -106,7 +109,7 @@ c --- Namelist
      . SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,
      . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
      . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX    ,
+     . SRF_ZTX    ,SRF_BRNPD  ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
@@ -128,7 +131,7 @@ c --- Namelist
      . ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,
      . ACC_SWA    ,ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,
      . ACC_UB     ,ACC_UICE   ,ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,
-     . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
+     . ACC_ZTX    ,ACC_BRNPD  ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
      . ACC_UFLX   ,ACC_UTFLX  ,ACC_USFLX  ,ACC_UVEL   ,ACC_VFLX   ,
@@ -148,7 +151,7 @@ c --- Namelist
      . SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,
      . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
      . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX,
+     . SRF_ZTX    ,SRF_BRNPD  ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
@@ -178,7 +181,7 @@ c --- Arguments:
 c ---   char runid     (in)    : acronym of simulation 
 c ---   int  runid_len (in)    : actual length of runid 
 c ---   char ctag      (in)    : string used in middle of file name 
-c ---   int nstep      (in)    : MICOM time step 
+c ---   real time      (in)    : MICOM time step 
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
@@ -331,8 +334,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_IVOLV(n)    = SRF_VICE(n)
         ACC_LIP(n)      = SRF_LIP(n)
         ACC_MAXMLD(n)   = SRF_MAXMLD(n)
-        ACC_MLD(n)      = SRF_MLD(n)    + SRF_SSS(n)    + SRF_SST(n)   +
-     .                    SRF_MXLU(n)   + SRF_MXLV(n)   + SRF_SIGMX(n)
+        ACC_MLD(n)      = SRF_MLD(n)
         ACC_MLDU(n)     = SRF_MLDU(n)   + SRF_MXLU(n)
         ACC_MLDV(n)     = SRF_MLDV(n)   + SRF_MXLV(n)
         ACC_MTY(n)      = SRF_MTY(n)
@@ -360,6 +362,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_VB(n)       = SRF_VB(n)
         ACC_VICE(n)     = SRF_VICE(n)
         ACC_ZTX(n)      = SRF_ZTX(n)
+        ACC_BRNPD(n)    = SRF_BRNPD(n)
         ACC_DIAFLX(n)   = LYR_DIAFLX(n)
         ACC_DIAFLXLVL(n)= LVL_DIAFLX(n)
         ACC_DIFDIA(n)   = LYR_DIFDIA(n)
@@ -502,6 +505,8 @@ c --- - Determine position in buffer
          ACC_VICE(n)=nphysrf*min(1,ACC_VICE(n))
         if (ACC_ZTX(n).ne.0) nphysrf=nphysrf+1
          ACC_ZTX(n)=nphysrf*min(1,ACC_ZTX(n))
+        if (ACC_BRNPD(n).ne.0) nphysrf=nphysrf+1
+         ACC_BRNPD(n)=nphysrf*min(1,ACC_BRNPD(n))
 c
         if (ACC_DIAFLX(n).ne.0) nphylyr=nphylyr+1
          ACC_DIAFLX(n)=nphylyr*min(1,ACC_DIAFLX(n))
@@ -611,41 +616,49 @@ c --- Allocate buffers
       endif
 c
 c --- Set buffers to zero (ocean+land+halo) 
-      do n=1,nphysrf
-        do j=jmn,jmx
+c$OMP PARALLEL DO
+      do j=jmn,jmx
+        do n=1,nphysrf
           do i=imn,imx
             physrf(i,j,n)=0.
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
-      do n=1,nphylyr
-        do k=1,kdm
-          do j=jmn,jmx
+c$OMP PARALLEL DO
+      do j=jmn,jmx
+        do n=1,nphylyr
+          do k=1,kdm
             do i=imn,imx
               phylyr(i,j,k,n)=0.
             enddo
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
-      do n=1,nphylvl
-        do k=1,ddm
-          do j=jmn,jmx
+c$OMP PARALLEL DO
+      do j=jmn,jmx
+        do n=1,nphylvl
+          do k=1,ddm
             do i=imn,imx
               phylvl(i,j,k,n)=0.
             enddo
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO
+      do j=jmn,jmx
         do k=1,kdm
-          do j=jmn,jmx
-            do i=imn,imx
-              diaflx(i,j,k)=0.
-            enddo
+          do i=imn,imx
+            diaflx(i,j,k)=0.
           enddo
         enddo
+      enddo
+c$OMP END PARALLEL DO
 c
 c --- Load bathymetry into module mod_dia (used for vertical 
 c --- interpolation in MICOM and HAMOCC)
@@ -695,7 +708,8 @@ c
      .  wghtsflx
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
      .  dz,dummy
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: util5,util6
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: util5,util6,
+     .  util7
 c
 c --- Increase counter 
       do iogrp=1,nphy
@@ -754,6 +768,18 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
+      if (sum(ACC_MLD(1:nphy)).ne.0) then
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util7(i,j)=dp(i,j,1+mm)+dp(i,j,2+mm)
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
 c --- maximum mixed layer pressure thickness [g/cm/s^2]
       do iogrp=1,nphy
         if (ACC_MAXMLD(iogrp).ne.0) then
@@ -762,7 +788,8 @@ c$OMP PARALLEL DO
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 physrf(i,j,ACC_MAXMLD(iogrp))=
-     .            max(physrf(i,j,ACC_MAXMLD(iogrp)),dp(i,j,k1m))
+     .            max(physrf(i,j,ACC_MAXMLD(iogrp)),
+     .                dp(i,j,1+mm)+dp(i,j,2+mm))
               enddo
             enddo
           enddo
@@ -771,45 +798,45 @@ c$OMP END PARALLEL DO
       enddo
 c
       if (sum(ACC_UVEL(1:nphy)+ACC_UVELLVL(1:nphy)).ne.0) then
-        do k=1,kk
-          km=k+mm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
+            km=k+mm
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 uvel(i,j,k)=u(i,j,km)+ub(i,j,m)
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
       if (sum(ACC_VVEL(1:nphy)+ACC_VVELLVL(1:nphy)).ne.0) then
-        do k=1,kk
-          km=k+mm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
+            km=k+mm
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 vvel(i,j,k)=v(i,j,km)+vb(i,j,m)
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
       if (sum(ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
-        do k=1,kk
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 dz(i,j,k)=phi(i,j,k)-phi(i,j,k+1)
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
 c
 c --- ------------------------------------------------------------------
@@ -854,8 +881,8 @@ c
 c --- sea level height [cm]
       call accsrf(ACC_SEALV,sealv,dummy,0,'p')
 c
-c --- weighted mixed layer density (sigma units times pressure units)
-      call accsrf(ACC_SIGMX,sigma,dp(1-nbdy,1-nbdy,k1m),1,'p')
+c --- mixed layer density (sigma units)
+      call accsrf(ACC_SIGMX,sigma(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
 c --- weighted ice thickness [m]
       call accsrf(ACC_HICE,hicem,ficem,1,'p')
@@ -920,16 +947,14 @@ c
 c --- absolute wind speed [m s-1]
       call accsrf(ACC_ABSWND,abswnd,dummy,0,'p')
 c
-c --- weighted sea surface salinity [psu g cm-1 s-2]
-      call accsrf(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+c --- sea surface salinity [psu]
+      call accsrf(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
-c --- weighted sea surface temperature [degC g cm-1 s-2]
-      call accsrf(ACC_SST,temp(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+c --- sea surface temperature [degC]
+      call accsrf(ACC_SST,temp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
 c --- mixed layer pressure thickness [g/cm/s^2]
-      call accsrf(ACC_MLD,dp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
+      call accsrf(ACC_MLD,util7,dummy,0,'p')
 c
 c --- heat flux received by the ocean [W/m^2]
       call accsrf(ACC_SURFLX,util5,dummy,0,'p')
@@ -939,6 +964,9 @@ c --- salt flux received by the ocean [10^-3 g/cm^2/s]
 c
 c --- brine flux received by the ocean [10^-3 g/cm^2/s]
       call accsrf(ACC_BRNFLX,brnflx,dummy,0,'p')
+c
+c --- brine plume pressure depth [g/cm/s^2]
+      call accsrf(ACC_BRNPD,pbrnda,dummy,0,'p')
 c
 c --- ------------------------------------------------------------------
 c --- accumulate 3d diagnostic variables
@@ -1006,17 +1034,15 @@ c --- ------------------------------------------------------------------
 c
       do iogrp=1,nphy 
         if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
-          do k=1,ddm
 c$OMP PARALLEL DO
-            do j=1,jj
+          do j=1,jj+1
+            do k=1,ddm
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
                   phylvl(i,j,k,ACC_UFLXOLD(iogrp))=
      .              phylvl(i,j,k,ACC_UFLXLVL(iogrp))
                 enddo
               enddo
-            enddo  
-            do j=1,jj+1 
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
                   phylvl(i,j,k,ACC_VFLXOLD(iogrp))=
@@ -1024,8 +1050,8 @@ c$OMP PARALLEL DO
                 enddo
               enddo
             enddo  
-c$OMP END PARALLEL DO
           enddo 
+c$OMP END PARALLEL DO
         endif
       enddo
 c
@@ -1114,17 +1140,17 @@ c --- Accumulate vertical velocity
 c 
 c --- Reset diaflx 
       if (sum(ACC_DIAFLX(1:nphy)).ne.0) then
-        do k=1,kdm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kdm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 diaflx(i,j,k)=0.
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       end
@@ -1168,7 +1194,7 @@ c
 c
 c --- prepare output fields
       if (mnproc.eq.1)
-     .  write (lp,'(a,f6.2,a)') 'diaout_phy: fields averaged over ',
+     .  write (lp,'(a,f6.2,a)') 'diaout: fields averaged over ',
      .  real(nacc_phy(iogrp))/nstep_in_day,' days'
 c
       rnacc=1./real(nacc_phy(iogrp))
@@ -1177,17 +1203,14 @@ c
 c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MHFLX(iogrp)+
      .  ACC_MSFLX(iogrp).ne.0)
-     .  call diamer(iogrp,mmflx_dia,mmflxd_dia,mhflx_dia,msflx_dia)
-      if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp,voltr_dia)
+     .  call diamer(iogrp)
+      if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp)
 c
 c --- finalize accumulation of 2d fields
       call finsrf(ACC_HICE(iogrp),ACC_FICE(iogrp),'p')
       call finsrf(ACC_HSNW(iogrp),ACC_FICE(iogrp),'p')
       call finsrf(ACC_MXLU(iogrp),ACC_MLDU(iogrp),'u')
       call finsrf(ACC_MXLV(iogrp),ACC_MLDV(iogrp),'v')
-      call finsrf(ACC_SIGMX(iogrp),ACC_MLD(iogrp),'p')
-      call finsrf(ACC_SSS(iogrp),ACC_MLD(iogrp),'p')
-      call finsrf(ACC_SST(iogrp),ACC_MLD(iogrp),'p')
       call finsrf(ACC_UICE(iogrp),ACC_IVOLU(iogrp),'u')
       call finsrf(ACC_VICE(iogrp),ACC_IVOLV(iogrp),'v')
 c
@@ -1320,6 +1343,8 @@ c --- define output dimensions
       call ncdims('sigma',kdm)
       call ncdims('depth',ddm)
       call ncdims('region',odm)
+      call ncdims('bounds',2) 
+      call ncdims('slenmax',slenmax)
 c
       if (ACC_VOLTR(iogrp).ne.0) then
         if ((sec_num.gt.0.and.sec_num.le.max_sec).or.mnproc.ne.1) then
@@ -1343,8 +1368,43 @@ c
 c
       call nctime(datenum,calendar,timeunits,startdate)
 c
+c --- write auxillary dimension information 
+      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MHFLX(iogrp)+
+     .  MSC_MSFLX(iogrp)+MSC_VOLTR(iogrp).ne.0) then 
+        call ncwrt1('lat','lat',mtlat)  
+        call ncattr('long_name','Latitude')
+        call ncattr('standard_name','latitude')
+        call ncattr('units','degree_north')
+      endif 
+      if (MSC_MMFLXL(iogrp).ne.0) then 
+        call ncwrt1('sigma','sigma',sigmar1)
+        call ncattr('long_name','Potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
+      endif 
+      if (MSC_MMFLXD(iogrp).ne.0) then 
+        call ncwrt1('depth','depth',depthslev)
+        call ncattr('long_name','z level')
+        call ncattr('units','m')
+        call ncattr('positive','down')
+        call ncattr('bounds','depth_bnds')
+        call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
+      endif 
+      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp).ne.0) then
+        region_name(1)='atlantic_arctic_ocean'
+        region_name(2)='indian_pacific_ocean'
+        region_name(3)='global_ocean'
+        call ncwrtc('region','slenmax region',region_name)  
+        call ncattr('long_name','Region name') 
+      endif
+      if (MSC_MHFLX(iogrp)+MSC_MSFLX(iogrp).ne.0) then 
+        call ncwrtc('section','slenmax section',sec_name)
+        call ncattr('long_name','Section name') 
+      endif 
+c
 c --- write 2d fields
-      call wrtsrf(ACC_SIGMX(iogrp),SRF_SIGMX(iogrp),1e3,
+      call wrtsrf(ACC_SIGMX(iogrp),SRF_SIGMX(iogrp),rnacc*1e3,
      ,  0.,cmpflg,ip,'p','sigmx','Mixed layer density',' ','kg m-3')
 c
       call wrtsrf(ACC_UB(iogrp),SRF_UB(iogrp),rnacc*1e-2,
@@ -1470,10 +1530,13 @@ c
      .  1./onem,0.,cmpflg,ip,'p','maxmld','Maximum mixed layer depth',
      .  ' ','m')
 c
-      call wrtsrf(ACC_SST(iogrp),SRF_SST(iogrp),1.,0.,
+      call wrtsrf(ACC_BRNPD(iogrp),SRF_BRNPD(iogrp),rnacc/onem,
+     .  0.,cmpflg,ip,'p','brnpd','Brine plume depth',' ','m')
+c
+      call wrtsrf(ACC_SST(iogrp),SRF_SST(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','sst','Ocean surface temperature',' ','degC')
 c
-      call wrtsrf(ACC_SSS(iogrp),SRF_SSS(iogrp),1.,0.,
+      call wrtsrf(ACC_SSS(iogrp),SRF_SSS(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','sss','Ocean surface salinity',' ','kg m-3')
 c
       call wrtsrf(ACC_MXLU(iogrp),SRF_MXLU(iogrp),1e-2,0.,
@@ -1662,19 +1725,37 @@ c
       endif
 c
 c --- store meridional transports 
-      if (MSC_MMFLXL(iogrp).ne.0) call ncwrt1('mmflxl',
-     .  'lat sigma region time',mmflx_dia(1:lmax,1:kdm,1:odm))
-      if (MSC_MMFLXD(iogrp).ne.0) call ncwrt1('mmflxd',
-     .  'lat depth region time',mmflxd_dia(1:lmax,1:ddm,1:odm))
-      if (MSC_MHFLX(iogrp).ne.0) call ncwrt1('mhflx','lat region time'
-     .  ,mhflx_dia(1:lmax,1:odm))
-      if (MSC_MSFLX(iogrp).ne.0) call ncwrt1('msflx','lat region time'
-     .  ,msflx_dia(1:lmax,1:odm))
+      if (MSC_MMFLXL(iogrp).ne.0) then 
+        call ncwrt1('mmflxl','lat sigma region time',
+     .    mmflxl(1:lmax,1:kdm,1:odm))
+        call ncattr('long_name',
+     .    'Overturning stream-function on isopycnic layers') 
+        call ncattr('units','kg s-1')  
+      endif
+      if (MSC_MMFLXD(iogrp).ne.0) then 
+        call ncwrt1('mmflxd','lat depth region time',
+     .    mmflxd(1:lmax,1:ddm,1:odm))
+        call ncattr('long_name',
+     .    'Overturning stream-function on z-levels') 
+        call ncattr('units','kg s-1')  
+      endif
+      if (MSC_MHFLX(iogrp).ne.0) then 
+        call ncwrt1('mhflx','lat region time',mhflx(1:lmax,1:odm))
+        call ncattr('long_name','Meridional heat flux') 
+        call ncattr('units','W') 
+      endif
+      if (MSC_MSFLX(iogrp).ne.0) then 
+        call ncwrt1('msflx','lat region time',msflx(1:lmax,1:odm))
+        call ncattr('long_name','Meridional salt flux') 
+        call ncattr('units','kg s-1') 
+      endif
 c
 c --- store section transports 
-      if (MSC_VOLTR(iogrp).ne.0)
-     .  call ncwrt1('voltr','section time',voltr_dia)
-c
+      if (MSC_VOLTR(iogrp).ne.0) then       
+        call ncwrt1('voltr','section time',voltr)
+        call ncattr('long_name','Section transports')
+        call ncattr('units','kg m-3 s-1')
+      endif
 c 
 c --- ideal age tracer 
 #if defined(TRC) && defined(IDLAGE)
@@ -1750,6 +1831,7 @@ c
       call inisrf(ACC_SALFLX(iogrp),'p',0.)
       call inisrf(ACC_ABSWND(iogrp),'p',0.)
       call inisrf(ACC_BRNFLX(iogrp),'p',0.)
+      call inisrf(ACC_BRNPD(iogrp),'p',0.)
       call inisrf(ACC_FMLTFZ(iogrp),'p',0.)
       call inisrf(ACC_HMLTFZ(iogrp),'p',0.)
       call inisrf(ACC_RFIFLX(iogrp),'p',0.)
@@ -1806,22 +1888,22 @@ c
 
 
 
-      subroutine diasec(iogrp,voltr)
+      subroutine diasec(iogrp)
 c
       implicit none
 c
 #include "common_blocks.h"
 
       integer :: iogrp
+c
       integer :: n,i,j,k,s,l
       integer :: iostatus
       integer :: nsi(max_sec),isi(max_sec,sdm),jsi(max_sec,sdm),
      .           usi(max_sec,sdm),vsi(max_sec,sdm),equat_sec
-      character :: sec_name(max_sec)*114,char120*120
+      character(len=120) :: char120
       logical :: iniflg=.true.
-      save isi,jsi,usi,vsi,iniflg,equat_sec,iniflg
+      save nsi,isi,jsi,usi,vsi,iniflg,equat_sec
 c
-      real, dimension(max_sec) :: voltr
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .       uflx_cum,vflx_cum,uflx_cum350,vflx_cum350
       real, dimension(itdm,jtdm) :: uflx_cumt,vflx_cumt
@@ -1832,6 +1914,7 @@ c --- ------------------------------------------------------------------
 c --- read section information
 c --- ------------------------------------------------------------------
       if (mnproc.eq.1.and.iniflg) then
+        equat_sec=-1
         open(nfu,file=path(1:path_len)//'secindex.dat',status='old')
         sec_num=0
         do
@@ -1858,6 +1941,7 @@ c --- ------------------------------------------------------------------
       endif
 c      
 c --- Prepare 2d field   
+c$OMP PARALLEL DO
       do j=1,jj
         do i=1,ii
           uflx_cum(i,j)=0.
@@ -1866,44 +1950,43 @@ c --- Prepare 2d field
           vflx_cum350(i,j)=0.
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- Compute accumulated transports
-      do k=1,ddm
-         do j=1,jj
-           do l=1,isu(j)
-             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-               uflx_cum(i,j)=uflx_cum(i,j)+
-     .           phylvl(i,j,k,ACC_UFLXLVL(iogrp))
-     .           *0.5e-3/(g*baclin*nacc_phy(iogrp))
-             enddo
-           enddo
-           do l=1,isv(j)
-             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-               vflx_cum(i,j)=vflx_cum(i,j)+
-     .           phylvl(i,j,k,ACC_VFLXLVL(iogrp))
-     .           *0.5e-3/(g*baclin*nacc_phy(iogrp))
-             enddo
-           enddo
-         enddo
+c$OMP PARALLEL DO
+      do j=1,jj
+        do k=1,ddm
+          do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              uflx_cum(i,j)=uflx_cum(i,j)+
+     .          phylvl(i,j,k,ACC_UFLXLVL(iogrp))
+     .          *0.5e-3/(g*baclin*nacc_phy(iogrp))
+            enddo
+          enddo
+          do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vflx_cum(i,j)=vflx_cum(i,j)+
+     .          phylvl(i,j,k,ACC_VFLXLVL(iogrp))
+     .          *0.5e-3/(g*baclin*nacc_phy(iogrp))
+            enddo
+          enddo
 c
 c --- -- the upper 350 m  for equatorial_undercurrent
-         if (k.eq.12) then
-           do j=1,jj
-             do l=1,isu(j)
-               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                 uflx_cum350(i,j)= uflx_cum(i,j)
-               enddo
-             enddo
-           enddo
-           do j=1,jj
-             do l=1,isv(j)
-               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                 vflx_cum350(i,j)= vflx_cum(i,j)
-               enddo
-             enddo
-           enddo
-         endif
+          if (k.eq.12) then
+            do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                uflx_cum350(i,j)= uflx_cum(i,j)
+              enddo
+            enddo
+            do l=1,isv(j)
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vflx_cum350(i,j)= vflx_cum(i,j)
+              enddo
+            enddo
+          endif
+        enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- Collect data on master node
       call xcaget(uflx_cumt,uflx_cum,1)
@@ -1939,36 +2022,30 @@ c
 
 
 
-      subroutine diamer(iogrp,mmflxl,mmflxd,mhflx,msflx)
+      subroutine diamer(iogrp)
 c
       implicit none
 c
 #include "common_blocks.h"
 #include "common_forc.h"
-c 
-      integer :: iogrp,i,j,k,l,o,s,iostatus,iind1,jind1,uflg1,
-     .  vflg1,nind1,nind(ldm),iind(sdm,ldm),jind(sdm,ldm),kmax(ldm,odm)
-      integer(kind=2), dimension(sdm,ldm) :: uflg,vflg
-      integer(kind=2), dimension(itdm,jtdm) :: oflg
 c
-      real :: epsilflx 
-      real, dimension(ldm) :: mtlat
-      real, dimension(ldm,odm) :: mhflx,msflx,mmflx_last
-      real, dimension(ldm,kdm,odm) :: mmflxl
-      real, dimension(ldm,ddm,odm) :: mmflxd
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: 
-     .  umflx_cum,vmflx_cum,utflx_cum,vtflx_cum,usflx_cum,vsflx_cum
-      real, dimension(itdm,jtdm) :: umflx_cumt,vmflx_cumt,utflx_cumt,
-     .  vtflx_cumt,usflx_cumt,vsflx_cumt,depthst
+      integer :: iogrp
+c 
+      integer :: i,j,k,l,o,s,iostatus,iind1,jind1,uflg1,vflg1,nind1,
+     .  nind(ldm),iind(sdm,ldm),jind(sdm,ldm),kmax(ldm,odm)
+      integer(kind=2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
+c
+      real :: r,mmflx_last(ldm,odm)
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: umflx_cum=0.,
+     .  vmflx_cum=0.,utflx_cum=0.,vtflx_cum=0.,usflx_cum=0.,vsflx_cum=0.
+      real, dimension(itdm,jtdm) :: depthst,umflx_cumt=0.,vmflx_cumt=0.,
+     .  utflx_cumt=0.,vtflx_cumt=0.,usflx_cumt=0.,vsflx_cumt=0.
 c
       character :: c20*20
 c
-      logical :: iniflg=.true.
+      logical :: iniflg=.true.,lsigmar1=.false.
 c
-      save nind,iind,jind,oflg,uflg,vflg,kmax,depthst
-c
-c --- Set threshold for masking 
-      epsilflx=1e5*epsil
+      save nind,iind,jind,oflg,uflg,vflg,kmax,depthst,iniflg,lsigmar1
 c
       if (iniflg.and.mnproc.eq.1) then
 c
@@ -1983,6 +2060,17 @@ c --- - Read ocean masks from metraoceans.dat
         write(c20,*) '(',jtdm,'i1)'
         read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
         close(nfu)
+c 
+c --- - Merge ocean regions (1=Atlantic+Arctic+Southern,2=Indian+Pacific)
+        do j=1,jtdm
+          do i=1,itdm
+            if (oflg(i,j).eq.2) then 
+              oflg(i,j)=1
+            elseif (oflg(i,j).gt.2) then 
+              oflg(i,j)=2
+            endif 
+          enddo 
+        enddo
 c
 c --- - Read section file metraindex.dat
         open(nfu,file=path(1:path_len)//'mertraindex.dat',status='old')
@@ -2029,33 +2117,46 @@ c --- - Read section file metraindex.dat
           endif
         enddo
         close(nfu)
+c
+c --- - Extract reference density and convert units g cm-3 -> kg m-3
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+               do k=1,kdm
+                 sigmar1(k)=1e3*sigmar(i,j,k)
+               enddo  
+               lsigmar1=.true.
+               exit
+            enddo
+            if (lsigmar1) exit 
+          enddo 
+          if (lsigmar1) exit 
+        enddo
+c
       end if
 c
 c --- Compute vertical integrated heat and salt transports 
 c
+      r=spcifh*0.5e-3/(g*baclin*nacc_phy(iogrp))
+c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-            utflx_cum(i,j)=phylyr(i,j,1,ACC_UTFLX(iogrp))*spcifh*0.5e-3/
-     .        (g*baclin*nacc_phy(iogrp))
+            utflx_cum(i,j)=phylyr(i,j,1,ACC_UTFLX(iogrp))*r
             usflx_cum(i,j)=phylyr(i,j,1,ACC_USFLX(iogrp))
           enddo
         enddo
         do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vtflx_cum(i,j)=phylyr(i,j,1,ACC_VTFLX(iogrp))*spcifh*0.5e-3/
-     .        (g*baclin*nacc_phy(iogrp))
+            vtflx_cum(i,j)=phylyr(i,j,1,ACC_VTFLX(iogrp))*r
             vsflx_cum(i,j)=phylyr(i,j,1,ACC_VSFLX(iogrp))
           enddo
         enddo
-      enddo
-      do k=2,kk
-        do j=1,jj
+        do k=2,kk
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
               utflx_cum(i,j)=utflx_cum(i,j)+
-     .          phylyr(i,j,k,ACC_UTFLX(iogrp))*
-     .          spcifh*0.5e-3/(g*baclin*nacc_phy(iogrp))
+     .          phylyr(i,j,k,ACC_UTFLX(iogrp))*r
               usflx_cum(i,j)=usflx_cum(i,j)+
      .          phylyr(i,j,k,ACC_USFLX(iogrp))
             enddo
@@ -2063,14 +2164,14 @@ c
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
               vtflx_cum(i,j)=vtflx_cum(i,j)+
-     .          phylyr(i,j,k,ACC_VTFLX(iogrp))*
-     .          spcifh*0.5e-3/(g*baclin*nacc_phy(iogrp))
+     .          phylyr(i,j,k,ACC_VTFLX(iogrp))*r
               vsflx_cum(i,j)=vsflx_cum(i,j)+
      .          phylyr(i,j,k,ACC_VSFLX(iogrp))
             enddo
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call xcaget(utflx_cumt,utflx_cum,1)
       call xcaget(vtflx_cumt,vtflx_cum,1)
@@ -2083,10 +2184,9 @@ c
             msflx(l,o)=0.
           enddo 
           do s=1,nind(l) 
-c --- --- - Merge Arctic with Atlantic and Pacific with Indian Ocean 
             i=iind(s,l)
             j=jind(s,l)
-            o=nint((oflg(i,j)+0.5)*0.5)
+            o=oflg(i,j)
             mhflx(l,o)=mhflx(l,o)+
      .        uflg(s,l)*utflx_cumt(i,j)+vflg(s,l)*vtflx_cumt(i,j)
             msflx(l,o)=msflx(l,o)+
@@ -2103,10 +2203,12 @@ c --- --- Set land to fill value
               msflx(l,o)=nf90_fill_double
             endif
           enddo
-c --- --- Mask Southern Ocean from Atlantic overturning 
-          if (oflg(i,j).eq.1.and.j.lt.jtdm/2) then 
+c --- --- Mask Southern Ocean for Atlantic region 
+          if (mtlat(l).lt.-34.) then 
             mhflx(l,1)=nf90_fill_double
+            mhflx(l,2)=nf90_fill_double
             msflx(l,1)=nf90_fill_double
+            msflx(l,2)=nf90_fill_double
           endif
         enddo
       endif
@@ -2119,6 +2221,7 @@ c --- Compute overturning stream function at isopycnic layer interfaces
           enddo
         enddo
       endif 
+c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -2131,21 +2234,25 @@ c --- Compute overturning stream function at isopycnic layer interfaces
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
+      r=0.5e-3/(g*baclin*nacc_phy(iogrp))
       do k=1,kk
+c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-              umflx_cum(i,j)=umflx_cum(i,j)+phylyr(i,j,k,
-     .          ACC_UFLX(iogrp))*0.5e-3/(g*baclin*nacc_phy(iogrp))
+              umflx_cum(i,j)=umflx_cum(i,j)+
+     .          r*phylyr(i,j,k,ACC_UFLX(iogrp))
             enddo
           enddo
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vmflx_cum(i,j)=vmflx_cum(i,j)+phylyr(i,j,k,
-     .          ACC_VFLX(iogrp))*0.5e-3/(g*baclin*nacc_phy(iogrp))
+              vmflx_cum(i,j)=vmflx_cum(i,j)+
+     .          r*phylyr(i,j,k,ACC_VFLX(iogrp))
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcaget(umflx_cumt,umflx_cum,1)
         call xcaget(vmflx_cumt,vmflx_cum,1)
         if (mnproc.eq.1) then
@@ -2154,10 +2261,9 @@ c --- Compute overturning stream function at isopycnic layer interfaces
               mmflxl(l,k,o)=0.
             enddo
             do s=1,nind(l)
-c --- --- --- Merge Arctic with Atlantic and Pacific with Indian Ocean 
               i=iind(s,l)
               j=jind(s,l)
-              o=nint((oflg(i,j)+0.5)*0.5)
+              o=oflg(i,j)
               mmflxl(l,k,o)=mmflxl(l,k,o)+
      .          uflg(s,l)*umflx_cumt(i,j)+vflg(s,l)*vmflx_cumt(i,j)
             enddo
@@ -2166,16 +2272,18 @@ c --- --- --- Merge Arctic with Atlantic and Pacific with Indian Ocean
             enddo
 c --- --- - Set land to fill value
             do o=1,odm
-              if (abs(mmflxl(l,k,o)-mmflx_last(l,o)).lt.epsilflx) then 
+              if (abs(mmflxl(l,k,o)-mmflx_last(l,o)).lt.1e5*epsil) then 
                 mmflx_last(l,o)=mmflxl(l,k,o)
                 mmflxl(l,k,o)=nf90_fill_double
               else
                 mmflx_last(l,o)=mmflxl(l,k,o)
               endif
             enddo
-c --- --- - Mask Southern Ocean from Atlantic overturning 
-            if (oflg(i,j).eq.1.and.j.lt.jtdm/2) mmflxl(l,k,1)=
-     .        nf90_fill_double
+c --- --- - Mask Southern Ocean  
+            if (mtlat(l).lt.-34.) then
+              mmflxl(l,k,1)=nf90_fill_double 
+              mmflxl(l,k,2)=nf90_fill_double 
+            endif
           enddo
         endif
       enddo
@@ -2194,7 +2302,7 @@ c --- Prepare depth mask
             do s=1,nind(l)
               i=iind(s,l)
               j=jind(s,l)
-              o=nint((oflg(i,j)+0.5)*0.5)
+              o=oflg(i,j)
               if(depthslev_bnds(1,k).lt.depthst(i,j)) kmax(l,o)=k
             enddo 
             do o=1,odm-1
@@ -2204,6 +2312,7 @@ c --- Prepare depth mask
         enddo
       endif
 c
+c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -2216,23 +2325,25 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
+      r=0.5e-3/(g*baclin*nacc_phy(iogrp))
       do k=1,ddm
+c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
               umflx_cum(i,j)=umflx_cum(i,j)+
-     .          phylvl(i,j,k,ACC_UFLXLVL(iogrp))*
-     .          0.5e-3/(g*baclin*nacc_phy(iogrp))
+     .          r*phylvl(i,j,k,ACC_UFLXLVL(iogrp))
             enddo
           enddo
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
               vmflx_cum(i,j)=vmflx_cum(i,j)+
-     .          phylvl(i,j,k,ACC_VFLXLVL(iogrp))*
-     .          0.5e-3/(g*baclin*nacc_phy(iogrp))
+     .          r*phylvl(i,j,k,ACC_VFLXLVL(iogrp))
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcaget(umflx_cumt,umflx_cum,1)
         call xcaget(vmflx_cumt,vmflx_cum,1)
         if (mnproc.eq.1) then
@@ -2241,10 +2352,9 @@ c
               mmflxd(l,k,o)=0.
             enddo
             do s=1,nind(l)
-c --- --- --- Merge Arctic with Atlantic and Pacific with Indian Ocean 
               i=iind(s,l)
               j=jind(s,l)
-              o=nint((oflg(i,j)+0.5)*0.5)
+              o=oflg(i,j)
               mmflxd(l,k,o)=mmflxd(l,k,o)+ 
      .          uflg(s,l)*umflx_cumt(i,j)+vflg(s,l)*vmflx_cumt(i,j)
             enddo
@@ -2255,9 +2365,11 @@ c --- --- - Set land to fill value
             do o=1,odm 
               if (kmax(l,o).lt.k) mmflxd(l,k,o)=nf90_fill_double
             enddo
-c --- --- - Mask Southern Ocean from Atlantic overturning 
-            if (oflg(i,j).eq.1.and.j.lt.jtdm/2) mmflxd(l,k,1)=
-     .        nf90_fill_double
+c --- --- - Mask Southern Ocean for Atlantic region 
+            if (mtlat(l).lt.-34.) then 
+              mmflxd(l,k,1)=nf90_fill_double 
+              mmflxd(l,k,2)=nf90_fill_double 
+            endif
           enddo
         endif
       enddo
@@ -2318,9 +2430,9 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- - Compute pressure at layer interfaces  
-        do k=1,kk
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 pp(i,j,k+1)=pp(i,j,k)+dp(i,j,k+mm)
@@ -2331,8 +2443,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
 c
 c --- - Compute upward vertical mass flux as divergence of horizontal 
 c --- - mass fluxes 
@@ -2415,23 +2527,23 @@ c --- Computation of vertical mass flux at levitus layer interfaces
       if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
 c
 c --- - Get u,v transports on levitus levels and integrate divergance
-        do j=1,jj 
+c$OMP PARALLEL DO
+        do j=1,jj+1
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
               uflxcumlev(i,j)=0.
             enddo
           enddo
-        enddo  
-        do j=1,jj+1 
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
               vflxcumlev(i,j)=0.
             enddo
           enddo
         enddo  
+c$OMP END PARALLEL DO
         do k=1,ddm
-c$OMP PARALLEL DO PRIVATE(wflx)
-          do j=1,jj 
+c$OMP PARALLEL DO
+          do j=1,jj+1 
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
                 uflxcumlev(i,j)=uflxcumlev(i,j)+
@@ -2439,8 +2551,6 @@ c$OMP PARALLEL DO PRIVATE(wflx)
      .            phylvl(i,j,k,ACC_UFLXOLD(iogrp))
               enddo
             enddo
-          enddo  
-          do j=1,jj+1 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
                 vflxcumlev(i,j)=vflxcumlev(i,j)+
@@ -2449,6 +2559,8 @@ c$OMP PARALLEL DO PRIVATE(wflx)
               enddo
             enddo
           enddo  
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(wflx)
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
@@ -2502,9 +2614,9 @@ c --- Sort out stuff related to time stepping
 c
 c --- Adjust bounds of levitus levels according to model bathymetry
       if (iniflg) then
-        do d=1,ddm
+        do j=1,jj+1
 c$OMP PARALLEL DO  
-          do j=1,jj+1
+          do d=1,ddm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                  dlevp(i,j,d)=max(dzeps,min(pbath(i,j),
@@ -2523,8 +2635,8 @@ c$OMP PARALLEL DO
      .             depthslev_bnds(2,d))-depthslev_bnds(1,d))
               enddo
             enddo
-c$OMP END PARALLEL DO
           enddo
+c$OMP END PARALLEL DO
         enddo
         iniflg=.false.
       endif
@@ -2533,29 +2645,21 @@ c
 c --- Compute top and bottom depths of density layers 
       if (k.eq.1) then
         if (gridid.eq.'p') then
-c$OMP PARALLEL DO  
+c$OMP PARALLEL DO PRIVATE(kml)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 zbot(i,j,1)=dp(i,j,k1m)
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-            kml=kl+mm
-c$OMP PARALLEL DO  
-            do j=1,jj
+            do kl=2,kk
+              kml=kl+mm
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl-1)+dp(i,j,kml)
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
-          enddo
-c$OMP PARALLEL DO  
-          do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 zbot(i,j,1)=zbot(i,j,1)*pbath(i,j)/zbot(i,j,kk)
@@ -2563,11 +2667,7 @@ c$OMP PARALLEL DO
                 ind1(i,j)=1
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-c$OMP PARALLEL DO  
-            do j=1,jj
+            do kl=2,kk
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl)*pbath(i,j)/zbot(i,j,kk)
@@ -2575,32 +2675,24 @@ c$OMP PARALLEL DO
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
           enddo
+c$OMP END PARALLEL DO
         elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO  
+c$OMP PARALLEL DO PRIVATE(kml)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 zbot(i,j,1)=max(dpu(i,j,k1m),dpeps)
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-            kml=kl+mm
-c$OMP PARALLEL DO  
-            do j=1,jj
+            do kl=2,kk
+              kml=kl+mm
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl-1)+max(dpu(i,j,kml),dpeps)
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
-          enddo
-c$OMP PARALLEL DO  
-          do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 zbot(i,j,1)=zbot(i,j,1)*ubath(i,j)/zbot(i,j,kk)
@@ -2608,11 +2700,7 @@ c$OMP PARALLEL DO
                 ind1(i,j)=1
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-c$OMP PARALLEL DO  
-            do j=1,jj
+            do kl=2,kk
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl)*ubath(i,j)/zbot(i,j,kk)
@@ -2620,32 +2708,24 @@ c$OMP PARALLEL DO
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
           enddo
+c$OMP END PARALLEL DO
         elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO  
+c$OMP PARALLEL DO PRIVATE(kml)
           do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 zbot(i,j,1)=max(dpv(i,j,k1m),dpeps)
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-            kml=kl+mm
-c$OMP PARALLEL DO  
-            do j=1,jj+1
+            do kl=2,kk
+              kml=kl+mm
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl-1)+max(dpv(i,j,kml),dpeps)
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
-          enddo
-c$OMP PARALLEL DO  
-          do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 zbot(i,j,1)=zbot(i,j,1)*vbath(i,j)/zbot(i,j,kk)
@@ -2653,11 +2733,7 @@ c$OMP PARALLEL DO
                 ind1(i,j)=1
               enddo
             enddo
-          enddo
-c$OMP END PARALLEL DO
-          do kl=2,kk
-c$OMP PARALLEL DO  
-            do j=1,jj+1
+            do kl=2,kk
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                   zbot(i,j,kl)=zbot(i,j,kl)*vbath(i,j)/zbot(i,j,kk)
@@ -2665,8 +2741,8 @@ c$OMP PARALLEL DO
                 enddo
               enddo
             enddo
-c$OMP END PARALLEL DO
           enddo
+c$OMP END PARALLEL DO
         else
           write(lp,'(a)') 'cannot identify grid'
           flush(lp)
@@ -2711,8 +2787,7 @@ c$OMP PARALLEL DO PRIVATE(r)
                   if (depthslev_bnds(2,d).lt.ztop(i,j,k)) then
                     ind1(i,j)=d+1
                     cycle
-                  elseif (depthslev_bnds(1,d).gt.zbot(i,j,k))
-     .             then
+                  elseif (depthslev_bnds(1,d).gt.zbot(i,j,k)) then
                     exit
                   endif
                   ind2(i,j)=d
@@ -2856,51 +2931,51 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-        do k=1,kk 
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk 
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 phylyr(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-        do k=1,kk 
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 phylyr(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-        do k=1,kk 
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk 
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 phylyr(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       else
-        do k=1,kk 
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk 
             do i=1,ii
               phylyr(i,j,k,pos)=inival
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       end
@@ -2930,51 +3005,51 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-        do k=1,ddm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 phylvl(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-        do k=1,ddm
 c$OMP PARALLEL DO
-          do j=1,jj+1
+        do j=1,jj+1
+          do k=1,ddm
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 phylvl(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-        do k=1,ddm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 phylvl(i,j,k,pos)=inival
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       else
-        do k=1,ddm
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do i=1,ii
               phylvl(i,j,k,pos)=inival
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       end
@@ -3112,21 +3187,21 @@ c --- Check whether field should be accumulated
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-            do k=1,kdm
 c$OMP PARALLEL DO 
-              do j=1,jj
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isu(j)
                   do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           else
-            do k=1,kdm
 c$OMP PARALLEL DO 
-              do j=1,jj
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isu(j)
                   do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
@@ -3134,22 +3209,22 @@ c$OMP PARALLEL DO
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-            do k=1,kdm
 c$OMP PARALLEL DO 
-              do j=1,jj
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           else
             do k=1,kdm
 c$OMP PARALLEL DO 
@@ -3166,21 +3241,21 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-            do k=1,kdm
 c$OMP PARALLEL DO 
-              do j=1,jj
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           else
-            do k=1,kdm
 c$OMP PARALLEL DO 
-              do j=1,jj
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
@@ -3188,8 +3263,8 @@ c$OMP PARALLEL DO
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           endif 
         else
           stop 'cannot identify grid '//gridid
@@ -3364,9 +3439,9 @@ c --- Check whether field should be initialised
       if (posacc.eq.0) return
 c
       if (gridid.eq.'u') then
-        do k=1,kk
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
@@ -3378,12 +3453,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-        do k=1,kk
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
@@ -3395,12 +3470,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-        do k=1,kk
 c$OMP PARALLEL DO
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
@@ -3412,8 +3487,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       else
         stop 'cannot identify grid '//gridid
       endif
@@ -3778,9 +3853,9 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-        do k=1,kk
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 if (phylyr(i,j,k,pos).lt.epsil) then
@@ -3791,12 +3866,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-        do k=1,kk
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 if (phylyr(i,j,k,pos).lt.epsil) then
@@ -3807,12 +3882,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-        do k=1,kk
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (phylyr(i,j,k,pos).lt.epsil) then
@@ -3823,8 +3898,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       else
         stop 'cannot identify grid '//gridid
       endif
@@ -3857,9 +3932,9 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-        do k=1,ddm
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 if (phylvl(i,j,k,pos).lt.epsil) then
@@ -3870,12 +3945,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-        do k=1,ddm
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 if (phylvl(i,j,k,pos).lt.epsil) then
@@ -3886,12 +3961,12 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-        do k=1,ddm
 c$OMP PARALLEL DO 
-          do j=1,jj
+        do j=1,jj
+          do k=1,ddm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (phylvl(i,j,k,pos).lt.epsil) then
@@ -3902,8 +3977,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
       else
         stop 'cannot identify grid '//gridid
       endif
@@ -3948,11 +4023,7 @@ c$OMP PARALLEL DO
             kmaxu(i,j)=0
             kmaxv(i,j)=0
           enddo
-c$OMP END PARALLEL DO
-        enddo
-        do k=1,ddm
-c$OMP PARALLEL DO
-          do j=1,jj
+          do k=1,ddm
             do i=1,ii
               if (depths(i,j).gt.depthslev_bnds(1,k)) kmaxp(i,j)=k
               if (min(depths(i,j),depths(i-1,j)).gt.depthslev_bnds(1,k))
@@ -3961,8 +4032,8 @@ c$OMP PARALLEL DO
      .          kmaxv(i,j)=k
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
         iniflg=.false.
       endif
 c

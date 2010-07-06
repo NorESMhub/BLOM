@@ -38,7 +38,7 @@ c --- set time information
 c
 c --- get file name
       if (.not.append2file(iogrp)) then
-        call diafnm(runid,runid_len,trim(GLB_FNAMETAG(iogrp)),time,
+        call diafnm(runid,runid_len,trim(GLB_FNAMETAG(iogrp)),nstep,
      .    filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
      .    fileann_bgc(iogrp),fname(iogrp))
         append2file(iogrp)=.true.

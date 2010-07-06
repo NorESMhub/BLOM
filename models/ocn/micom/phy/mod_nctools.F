@@ -36,6 +36,7 @@ c    ncgeti        - reads a skalar or vector in integer format
 c
 c    ncread        - reads a 2d or 3d field 
 c
+c    ncwrtc        - writes a string array 
 c    ncwrti        - writes a 2d or 3d field as int4 
 c    ncwrtr        - writes a 2d or 3d field as real8 
 c    ncpack        - writes a 2d or 3d field in packed format as int2 
@@ -47,7 +48,6 @@ c                    as int2 with scale factor and offset
 c
 c    ncerro        - displays error massage
 c    ncsevl        - evaluates strings with deliminators ' ',':' and '-'
-c    ncslen        - corrects intrinsic function len for white spaces
 c    ncdnum        - computes a reference number for a given date
 c    ncinqv        - inquires if variable exits 
 c
@@ -87,7 +87,7 @@ c
       module procedure ncgetis,ncgetiv 
       end interface 
 c
-c --- Declare some global variables  
+c --- Declare global variables  
       logical, private, save :: flgpad 
       integer, private, save :: ncid,rhid,status,rec
 c
@@ -121,41 +121,35 @@ c
 c --- - Open file        
         rec=1
         if (faccess(1:1).eq.'r') then 
-          status=nf90_open(fnm,nf90_nowrite,ncid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncfopn')
+          call ncerro(nf90_open(fnm,nf90_nowrite,ncid))
         elseif (irec.ne.1) then
           status=nf90_open(fnm,nf90_write,ncid)
           if (status.ne.nf90_noerr) then
             if (frmt(1:1).eq.'6') then 
-              status=nf90_create(fnm,OR(nf90_clobber,
-     .         nf90__64bit_offset),ncid)
+              call ncerro(nf90_create(fnm,OR(nf90_clobber,
+     .         nf90__64bit_offset),ncid))
             elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
-              status=nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
-     .          ncid)
+              call ncerro(nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
+     .          ncid))
             else 
-              status=nf90_create(fnm,nf90_clobber,ncid)
+              call ncerro(nf90_create(fnm,nf90_clobber,ncid))
             endif
-            if (status.ne.nf90_noerr) call ncerro(status,'ncfopn')
           else
-            status=nf90_redef(ncid)
-            if (status.ne.nf90_noerr) call ncerro(status,'ncfopn')
+            call ncerro(nf90_redef(ncid))
             rec=irec
           endif              
-          status=nf90_set_fill(ncid,nf90_nofill,oldmode)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncfopn')
+          call ncerro(nf90_set_fill(ncid,nf90_nofill,oldmode))
         else 
           if (frmt(1:1).eq.'6') then 
-            status=nf90_create(fnm,OR(nf90_clobber,
-     .        nf90__64bit_offset),ncid)
+            call ncerro(nf90_create(fnm,OR(nf90_clobber,
+     .        nf90__64bit_offset),ncid))
           elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
-            status=nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
-     .        ncid)
+            call ncerro(nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
+     .        ncid))
           else 
-            status=nf90_create(fnm,nf90_clobber,ncid)
+            call ncerro(nf90_create(fnm,nf90_clobber,ncid))
           endif
-          if (status.ne.nf90_noerr) call ncerro(status,'ncfopn')
-          status=nf90_set_fill(ncid,nf90_nofill,oldmode)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncfopn')
+          call ncerro(nf90_set_fill(ncid,nf90_nofill,oldmode))
         endif
 c
 c --- - Set variable id to global (needed for global attributes)
@@ -184,8 +178,7 @@ c
       implicit none
 c
       if (mnproc.eq.1) then 
-        status=nf90_close(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncfcls')
+        call ncerro(nf90_close(ncid))
       endif 
 c
       end
@@ -209,10 +202,8 @@ c
       character*(*) :: dnm 
 c
 c --- define dimension
-      if (mnproc.eq.1.and.rec.eq.1) then 
-        status=nf90_def_dim(ncid,dnm,dim,dimid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncdims')
-      endif 
+      if (mnproc.eq.1.and.rec.eq.1)  
+     .  call ncerro(nf90_def_dim(ncid,dnm,dim,dimid))
 c
       end
 
@@ -266,21 +257,17 @@ c
             enddo 
           enddo  
         endif  
-        status=nf90_def_dim(ncid,dnm,n,dimid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncdimc')
+        call ncerro(nf90_def_dim(ncid,dnm,n,dimid))
         if(flg.eq.1)then
-          status=nf90_def_var(ncid,dnm,nf90_int,dimid,rhid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncdimc')
+          call ncerro(nf90_def_var(ncid,dnm,nf90_int,dimid,rhid))
           if(flgpad)then 
-            status=nf90_enddef(ncid)
+            call ncerro(nf90_enddef(ncid))
           else
-            status=nf90_enddef(ncid,40960,4,0,4)
+            call ncerro(nf90_enddef(ncid,40960,4,0,4))
             flgpad=.true.
           endif 
-          status=nf90_put_var(ncid,rhid,ivec(1:n))
-          if(status.ne.nf90_noerr) call ncerro(status,'ncdimc')
-          status=nf90_redef(ncid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncdimc')
+          call ncerro(nf90_put_var(ncid,rhid,ivec(1:n)))
+          call ncerro(nf90_redef(ncid))
         endif 
       endif
 c
@@ -303,14 +290,10 @@ c ----------------------------------------------------------------------
 c
       implicit none
 c
-      integer ncslen
       character*(*) attname,attrib
-      external function ncslen
 c
-      if (mnproc.eq.1.and.rec.eq.1) then 
-        status=nf90_put_att(ncid,rhid,attname,attrib)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncattr')
-      endif 
+      if (mnproc.eq.1.and.rec.eq.1)  
+     .  call ncerro(nf90_put_att(ncid,rhid,attname,attrib))
 c
       end
 
@@ -332,10 +315,8 @@ c
       character*(*) vnm
       real rval 
 c
-      if (mnproc.eq.1.and.rec.eq.1) then
-        status=nf90_put_att(ncid,nf90_global,vnm,rval)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncputrs')
-      endif
+      if (mnproc.eq.1.and.rec.eq.1) 
+     .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
 c
       end
 
@@ -357,10 +338,8 @@ c
       character*(*) vnm
       real rval(:)
 c
-      if (mnproc.eq.1.and.rec.eq.1) then
-        status=nf90_put_att(ncid,nf90_global,vnm,rval)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncputrv')
-      endif
+      if (mnproc.eq.1.and.rec.eq.1) 
+     .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
 c
       end
 
@@ -382,10 +361,8 @@ c
       character*(*) vnm
       integer ival
 c
-      if (mnproc.eq.1.and.rec.eq.1) then
-        status=nf90_put_att(ncid,nf90_global,vnm,ival)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncputis')
-      endif
+      if (mnproc.eq.1.and.rec.eq.1) 
+     .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
 c
       end
 
@@ -407,10 +384,8 @@ c
       character*(*) vnm
       integer ival(:)
 c
-      if (mnproc.eq.1.and.rec.eq.1) then
-        status=nf90_put_att(ncid,nf90_global,vnm,ival)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncputiv')
-      endif
+      if (mnproc.eq.1.and.rec.eq.1) 
+     .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
 c
       end
 
@@ -432,11 +407,8 @@ c
       character*(*) :: vnm
       real :: rval
 c
-      if (mnproc.eq.1) then
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetrs')
-        status=nf90_get_att(ncid,nf90_global,vnm,rval)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetrs')
-      endif
+      if (mnproc.eq.1) 
+     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
 c
       end
 
@@ -458,11 +430,8 @@ c
       character*(*) :: vnm
       real :: rval(:)
 c
-      if (mnproc.eq.1) then
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetrv')
-        status=nf90_get_att(ncid,nf90_global,vnm,rval)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetrv')
-      endif
+      if (mnproc.eq.1) 
+     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
 c
       end
 
@@ -484,11 +453,8 @@ c
       character*(*) :: vnm
       integer :: ival 
 c
-      if(mnproc.eq.1)then
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetr')
-        status=nf90_get_att(ncid,nf90_global,vnm,ival)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgeti')
-      endif
+      if(mnproc.eq.1)
+     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 c
       end
 
@@ -510,11 +476,8 @@ c
       character*(*) :: vnm
       integer :: ival(:)
 c
-      if(mnproc.eq.1)then
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgetr')
-        status=nf90_get_att(ncid,nf90_global,vnm,ival)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncgeti')
-      endif
+      if(mnproc.eq.1)
+     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 c
       end
 
@@ -545,36 +508,28 @@ c ----------------------------------------------------------------------
 c
       implicit none
 c
-      integer :: dimid,ncslen,bstrn,sstrn,strind(2,10),days,by,bm,bd,bh,
+      integer :: dimid,bstrn,sstrn,strind(2,10),days,by,bm,bd,bh,
      .   sy,sm,sd,sh
       character*(*) :: calendar,units,startdate
       real :: datenum,caloffset
-      external function ncslen
       data by/1/,bm/1/,bd/1/,bh/0/,sy/1/,sm/1/,sd/1/,sh/0/
 c
       if (mnproc.eq.1) then 
 c --- define time dimension
       if (rec.eq.1) then 
-        status=nf90_def_dim(ncid,'time',nf90_unlimited,dimid)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+        call ncerro(nf90_def_dim(ncid,'time',nf90_unlimited,dimid))
       else 
-        status=nf90_inq_dimid(ncid,'time',dimid)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+        call ncerro(nf90_inq_dimid(ncid,'time',dimid))
       endif 
 c
 c --- define time coordinate variable
       if (rec.eq.1) then 
-        status=nf90_def_var(ncid,'time',nf90_double,dimid,rhid)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
-        status=nf90_put_att(ncid,rhid,'long_name','time')
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
-        status=nf90_put_att(ncid,rhid,'units',units)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
-        status=nf90_put_att(ncid,rhid,'calendar',calendar)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+        call ncerro(nf90_def_var(ncid,'time',nf90_double,dimid,rhid))
+        call ncerro(nf90_put_att(ncid,rhid,'long_name','time'))
+        call ncerro(nf90_put_att(ncid,rhid,'units',units))
+        call ncerro(nf90_put_att(ncid,rhid,'calendar',calendar))
       else 
-        status=nf90_inq_varid(ncid,'time',rhid)
-        if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+        call ncerro(nf90_inq_varid(ncid,'time',rhid))
       endif 
 c
 c --- analyse units string
@@ -607,18 +562,15 @@ c --- calculate calendar offset
 c
 c --- Change to data mode and write time
       if(flgpad)then 
-        status=nf90_enddef(ncid)
+        call ncerro(nf90_enddef(ncid))
       else
-        status=nf90_enddef(ncid,40960,4,0,4)
+        call ncerro(nf90_enddef(ncid,40960,4,0,4))
         flgpad=.true.
       endif 
-      if (status.ne.nf90_noerr) call ncerro(status,'nctime')
-      status=nf90_put_var(ncid,rhid,datenum,(/rec/))
-      if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+      call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
 c
 c --- Switch back to define mode
-      status=nf90_redef(ncid)
-      if (status.ne.nf90_noerr) call ncerro(status,'nctime')
+      call ncerro(nf90_redef(ncid))
 c
       endif 
 c
@@ -634,7 +586,7 @@ c       Reads 2d or 3d field.
 c
 c --- Arguments:
 c       char(*)      vnm    (in)  -  variable name
-c       real(...)    fld    (out) -  field array with dimension
+c       real(...)    fld    (out) -  field with dimension
 c                                    (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,:)
 c       integer(...) msk    (in)  -  field mask, if mskflg=1 then the 
 c                                    dimensions assumed to be 
@@ -649,14 +601,13 @@ c
       character*100 :: dimname 
       integer :: i,j,ij,k,kd,n,ndm
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer ndims,dimid,dimids(maxdm),dimlen,strn,ncslen,
-     .        strind(2,maxdm),msk(*),mskflg
+      integer ndims,dimid,dimids(maxdm),dimlen,strn,strind(2,maxdm),
+     .  msk(*),mskflg
       integer, dimension(maxdm) :: start,count
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
       real, dimension(itdm,jtdm) :: rfldt,rmskt
       real, dimension(itdm*jtdm) :: rfldtcmp
       real :: rkd,fill,fld(*),ofs,scf,rcmpflg
-      external function ncslen
 c
 c --- Initialise fields
       rcmpflg=0.
@@ -672,18 +623,15 @@ c --- Inquire dimensions, ect.
         if(status.ne.nf90_noerr) then 
           write(lp,*) 'WARNINIG: Problems reading variable ',trim(vnm)
           call flush(lp)
-          call ncerro(status,'ncread')
+          call ncerro(status)
         endif
-        status=nf90_inquire_variable(ncid,rhid,ndims=ndims)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncread')
-        status=nf90_inquire_variable(ncid,rhid,dimids=dimids)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncread')
+        call ncerro(nf90_inquire_variable(ncid,rhid,ndims=ndims))
+        call ncerro(nf90_inquire_variable(ncid,rhid,dimids=dimids))
         ndm=1
         do n=1,ndims
-          status=nf90_inquire_dimension(ncid,dimids(n),len=dimlen)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncread')
-          status=nf90_inquire_dimension(ncid,dimids(n),name=dimname)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncread')
+          call ncerro(nf90_inquire_dimension(ncid,dimids(n),len=dimlen))
+          call ncerro(nf90_inquire_dimension(ncid,dimids(n),
+     .      name=dimname))
           if(dimname(2:5).eq.'comp') rcmpflg=1. 
           if (nint(n+rcmpflg).eq.3) rkd=dimlen
           ndm=ndm*dimlen
@@ -727,8 +675,7 @@ c --- Get data
             count(2)=jtdm
           endif
           if(rcmpflg.gt.0.5)then 
-            status=nf90_get_var(ncid,rhid,rfldtcmp,start,count)
-            if(status.ne.nf90_noerr) call ncerro(status,'ncread')
+            call ncerro(nf90_get_var(ncid,rhid,rfldtcmp,start,count))
             n=0 
             do j=1,jtdm
               do i=1,itdm
@@ -739,8 +686,7 @@ c --- Get data
               enddo
             enddo  
           else
-            status=nf90_get_var(ncid,rhid,rfldt,start,count)
-            if(status.ne.nf90_noerr) call ncerro(status,'ncread')
+            call ncerro(nf90_get_var(ncid,rhid,rfldt,start,count))
           endif  
         endif
         call xcaput(rfldt,rfld,1)
@@ -801,7 +747,7 @@ c
 c --- Arguments:
 c       char(*)  vnm    (in) -  variable name
 c       char(*)  dims   (in) -  axes string, e.g. 'x y z time'
-c       real(*)  fld    (in) -  field array with dimension
+c       real(*)  fld    (in) -  field with dimension
 c       int(*)   msk    (in) -  field mask, if mskflg=1 the dimension
 c                               is assumed (idm+2*nbdy)*(jdm+2*nbdy)
 c       integer  mskflg (in) -  flag indicating the presence of a mask
@@ -816,8 +762,7 @@ c
       integer :: i,j,ij,ijk,k,kd,n
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer, dimension(maxdm) :: start,count
-      integer dimid,dimids(maxdm),strn,ncslen,
-     .        strind(2,maxdm),msk(*),mskflg     
+      integer dimid,dimids(maxdm),strn,strind(2,maxdm),msk(*),mskflg    
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld
       real, dimension(itdm,jtdm) :: rfldt
       real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rkd,ruvflg
@@ -826,7 +771,6 @@ c
       integer*2 fill,i2max,i2min,vrng(2)
       parameter(rfill=nf90_fill_double,fill=-32768,i2max=32767, 
      .  i2min=-i2max)
-      external function ncslen
 c
 c --- Initialise fields
       ruvflg=0.
@@ -851,24 +795,20 @@ c --- define variable
             start(strn)=1
          endif 
          do n=1,strn
-            status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .        dimid)
-            if (status.ne.nf90_noerr) call ncerro(status,'ncpack')
+            call ncerro(nf90_inq_dimid(ncid,
+     .        dims(strind(1,n):strind(2,n)),dimid))
             dimids(n)=dimid
             if ((n.eq.strn.and.c4.ne.'time').or.
-     .        (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) then
-              status=nf90_inquire_dimension(ncid,dimid,len=kd)
-              if (status.ne.nf90_noerr) call ncerro(status,'ncpack')
-            endif 
+     .        (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) 
+     .        call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
             if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
          enddo
          rkd=kd
          if (rec.eq.1) then 
-           status=nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),rhid)
-           if (status.ne.nf90_noerr) call ncerro(status,'ncpack')
+           call ncerro(nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),
+     .       rhid))
          else 
-           status=nf90_inq_varid(ncid,vnm,rhid)
-           if (status.ne.nf90_noerr) call ncerro(status,'ncpack')
+           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
          endif
       endif
       call xcmaxr(ruvflg)
@@ -947,24 +887,18 @@ c
 c --- Define attributes
       if (mnproc.eq.1) then 
         if (rec.eq.1) then 
-          status=nf90_put_att(ncid,rhid,'_FillValue',fill)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
-          status=nf90_put_att(ncid,rhid,'valid_range',vrng)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
-          status=nf90_put_att(ncid,rhid,'actual_range',arng)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
-          status=nf90_put_att(ncid,rhid,'scale_factor',scf)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
-          status=nf90_put_att(ncid,rhid,'add_offset',ofs)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
+          call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
+          call ncerro(nf90_put_att(ncid,rhid,'valid_range',vrng))
+          call ncerro(nf90_put_att(ncid,rhid,'actual_range',arng))
+          call ncerro(nf90_put_att(ncid,rhid,'scale_factor',scf))
+          call ncerro(nf90_put_att(ncid,rhid,'add_offset',ofs))
         endif
         if(flgpad)then 
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
-        if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
       endif
 c
 c --- Prepare and write output field
@@ -1020,15 +954,13 @@ c$OMP PARALLEL DO
             enddo 
           enddo 
 c$OMP END PARALLEL DO
-          status=nf90_put_var(ncid,rhid,fldout,start,count)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
+          call ncerro(nf90_put_var(ncid,rhid,fldout,start,count))
         endif 
       enddo 
 c
 c --- Put file back to define mode
       if(mnproc.eq.1)then
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
+        call ncerro(nf90_redef(ncid))
         write(lp,*) trim(vnm),arng
       endif
 c
@@ -1047,7 +979,7 @@ c
 c --- Arguments:
 c       char(*)  vnm  (in) -  variable name
 c       char(*)  dims (in) -  axes string, e.g. 'pcomp z time'
-c       real(*)  fld  (in) -  field array with dimension
+c       real(*)  fld  (in) -  field with dimension
 c                             (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kd)
 c       int(*)   msk  (in) -  field mask with dimensions 
 c                             (idm+2*nbdy)*(jdm+2*nbdy)  
@@ -1063,15 +995,14 @@ c
       integer :: i,j,ij,ijk,k,kd,n,prec
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer, dimension(maxdm) :: start,count
-      integer dimid,dimids(maxdm),dimlen(maxdm),strn,ncslen,
-     .        strind(2,maxdm),msk(*)     
+      integer dimid,dimids(maxdm),dimlen(maxdm),strn,strind(2,maxdm),
+     .  msk(*)     
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk   
       real, dimension(itdm,jtdm) :: rfldt,rmskt
       real, dimension(itdm*jtdm) :: fldout
       real(kind=4), dimension(itdm*jtdm) :: fldoutr4
       real :: fld(*),rkd,sfac,offs
       real, parameter :: fill=nf90_fill_double 
-      external function ncslen
 c 
 c --- Initialise fields
       rkd=1.
@@ -1091,42 +1022,33 @@ c --- define variable
           start(strn)=1
         endif
         do n=1,strn
-          status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid)
-          if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimid))
           dimids(n)=dimid
-          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') then
-            status=nf90_inquire_dimension(ncid,dimid,len=kd)
-            if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
-          endif 
+          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') 
+     .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
         rkd=kd
         if (rec.eq.1) then 
           if (prec.ne.4) then         
-            status=nf90_def_var(ncid,vnm,nf90_double,dimids(1:strn),
-     .       rhid)
-            if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
-            status=nf90_put_att(ncid,rhid,'_FillValue',fill)
-            if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
+            call ncerro(nf90_def_var(ncid,vnm,nf90_double,
+     .       dimids(1:strn),rhid))
+            call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
           else 
-            status=nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),rhid)
-            if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
-            status=nf90_put_att(ncid,rhid,'_FillValue',SNGL(fill))
-            if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
+            call ncerro(nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),
+     .        rhid))
+            call ncerro(nf90_put_att(ncid,rhid,'_FillValue',SNGL(fill)))
           endif 
-          status=nf90_put_att(ncid,rhid,'compress','x y')
-          if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
+          call ncerro(nf90_put_att(ncid,rhid,'compress','x y'))
         else
-          status=nf90_inq_varid(ncid,vnm,rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'nccomp')
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif
         if(flgpad)then 
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
-        if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
       endif
       call xcmaxr(rkd)
       kd=nint(rkd) 
@@ -1167,7 +1089,7 @@ c --- Prepare output field
             enddo 
             start(2)=max(start(2),k)
             count(1)=n
-            status=nf90_put_var(ncid,rhid,fldout,start,count)
+            call ncerro(nf90_put_var(ncid,rhid,fldout,start,count))
           else
             do j=1,jtdm
               do i=1,itdm
@@ -1179,17 +1101,13 @@ c --- Prepare output field
             enddo 
             start(2)=max(start(2),k)
             count(1)=n
-            status=nf90_put_var(ncid,rhid,fldoutr4,start,count)
+            call ncerro(nf90_put_var(ncid,rhid,fldoutr4,start,count))
           endif  
-          if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
         endif 
       enddo 
 c
 c --- Put file back to define mode
-      if(mnproc.eq.1)then
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccomp')
-      endif
+      if(mnproc.eq.1) call ncerro(nf90_redef(ncid))
 c
       end
 
@@ -1207,7 +1125,7 @@ c
 c --- Arguments:
 c       char(*)  vnm  (in) -  variable name
 c       char(*)  dims (in) -  axes string, e.g. 'pcomp z time'
-c       real(*)  fld  (in) -  field array with dimension
+c       real(*)  fld  (in) -  field with dimension
 c                             (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kd)
 c       int(*)   msk  (in) -  field mask with dimensions 
 c                             (idm+2*nbdy)*(jdm+2*nbdy)  
@@ -1221,8 +1139,7 @@ c
       integer :: i,j,ij,ijk,ijdm,k,kd,n
       integer, parameter :: maxdm=5
       integer, dimension(maxdm) :: start,count
-      integer dimid,dimids(maxdm),strn,ncslen,
-     .        strind(2,maxdm),msk(*)     
+      integer dimid,dimids(maxdm),strn,strind(2,maxdm),msk(*)     
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
       real, dimension(itdm,jtdm) :: rfldt,rmskt
       real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rkd,ruvflg
@@ -1231,7 +1148,6 @@ c
       integer*2 i2fill,i2max,i2min,vrng(2)
       parameter(rfill=nf90_fill_double,i2fill=-32768,i2max=32767,
      .  i2min=-i2max)
-      external function ncslen
 c
 c --- Initialise fields
       ruvflg=0.
@@ -1253,23 +1169,19 @@ c --- define variable
           start(strn)=1
         endif
         do n=1,strn
-          status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid)
-          if (status.ne.nf90_noerr) call ncerro(status,'nccopa')
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimid))
           dimids(n)=dimid
-          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') then
-            status=nf90_inquire_dimension(ncid,dimid,len=kd)
-            if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
-          endif 
+          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') 
+     .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
           if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
         enddo
         rkd=kd
         if (rec.eq.1) then 
-          status=nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'nccopa')
+          call ncerro(nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),
+     .      rhid))
         else
-          status=nf90_inq_varid(ncid,vnm,rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'nccopa')
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif 
       endif
       call xcmaxr(ruvflg)
@@ -1318,25 +1230,18 @@ c$OMP END PARALLEL DO
 c
 c --- Define attributes
       if (mnproc.eq.1) then
-        status=nf90_put_att(ncid,rhid,'_FillValue',i2fill)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncpack')
-        status=nf90_put_att(ncid,rhid,'valid_range',vrng)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
-        status=nf90_put_att(ncid,rhid,'actual_range',arng)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
-        status=nf90_put_att(ncid,rhid,'scale_factor',scf)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
-        status=nf90_put_att(ncid,rhid,'add_offset',ofs)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
-        status=nf90_put_att(ncid,rhid,'compress','x y')
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
+        call ncerro(nf90_put_att(ncid,rhid,'_FillValue',i2fill))
+        call ncerro(nf90_put_att(ncid,rhid,'valid_range',vrng))
+        call ncerro(nf90_put_att(ncid,rhid,'actual_range',arng))
+        call ncerro(nf90_put_att(ncid,rhid,'scale_factor',scf))
+        call ncerro(nf90_put_att(ncid,rhid,'add_offset',ofs))
+        call ncerro(nf90_put_att(ncid,rhid,'compress','x y'))
         if(flgpad)then 
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
       endif
 c
 c --- get mask for the full domain
@@ -1379,19 +1284,84 @@ c$OMP END PARALLEL DO
           enddo 
           start(2)=max(start(2),k) 
           count(1)=n 
-          status=nf90_put_var(ncid,rhid,fldout,start,count)
-          if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
+          call ncerro(nf90_put_var(ncid,rhid,fldout,start,count))
         endif 
       enddo 
 c
 c --- Put file back to define mode
       if(mnproc.eq.1)then
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'nccopa')
+        call ncerro(nf90_redef(ncid))
         write(lp,*) trim(vnm),arng
       endif
 c
       end 
+
+
+
+      subroutine ncwrtc(vnm,dims,fld) 
+c
+c ----------------------------------------------------------------------
+c --- Description:
+c       Writes a string array to nc-file. 
+c
+c --- Arguments:
+c       char(*)  vnm       (in) -  variable name
+c       char(*)  dims      (in) -  string with dimension names
+c       char(*)  fld(*)    (in) -  input field 
+c
+      implicit none 
+c
+      character(len=*) :: vnm,dims,fld(*) 
+c
+      integer :: n,ns,slenmax  
+      integer, parameter :: maxdm=5 
+      integer :: dimids(maxdm),strn,strind(2,maxdm)
+c
+      if (mnproc.eq.1) then
+c --- - inquire dimensions
+        call ncsevl(dims,strn,strind) 
+        if (strn.gt.2) then  
+          write(lp,*) 'ncwrtc: number of dimensions has to be <=2'  
+          call flush(lp)
+          call xchalt('(ncerro)')
+          stop '(ncerro)'
+        endif
+        do n=1,strn
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimids(n)))
+        enddo 
+        if (strn.eq.1) then 
+          ns=1
+        else 
+          call ncerro(nf90_inquire_dimension(ncid,dimids(1),
+     .      len=slenmax))
+          call ncerro(nf90_inquire_dimension(ncid,dimids(2),len=ns))
+        endif
+c
+c --- - define variable
+        call ncerro(nf90_def_var(ncid,vnm,nf90_char,dimids(1:strn),
+     .    rhid))
+c
+c --- - leave define mode 
+        if(flgpad)then 
+          call ncerro(nf90_enddef(ncid))
+        else
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
+          flgpad=.true.
+        endif 
+c
+c --- - write data 
+        do n=1,ns
+           call ncerro(nf90_put_var(ncid,rhid,fld(n)(1:slenmax)//'X',
+     .       (/1,n/),(/slenmax,1/))) 
+        end do 
+          
+c --- - switch back to define mode
+        call ncerro(nf90_redef(ncid))
+c
+      endif
+c
+      end
 
 
 
@@ -1404,7 +1374,7 @@ c
 c --- Arguments:
 c       char(*)  vnm       (in) -  variable name
 c       char(*)  dims      (in) -  axes string, e.g. 'pcomp z time'
-c       real(*)  fld       (in) -  field array with dimension
+c       real(*)  fld       (in) -  field with dimension
 c                                  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kd)
 c       int(*)   msk       (in) -  field mask with dimensions 
 c                                  (idm+2*nbdy)*(jdm+2*nbdy) 
@@ -1419,8 +1389,8 @@ c
       character*(*) :: vnm,dims 
       integer :: i,j,ij,ijk,k,kd,n
       integer, parameter :: maxdm=5,ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer dimid,dimids(maxdm),strn,ncslen,prec,
-     .        strind(2,maxdm),msk(*),mskflg     
+      integer dimid,dimids(maxdm),strn,prec,strind(2,maxdm),msk(*),
+     .  mskflg     
       integer, dimension(maxdm) :: istart,icount
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk   
       real, dimension(itdm,jtdm) :: rfldt,rmskt
@@ -1428,7 +1398,6 @@ c
       real :: rkd,fld(*),sfac,offs,fldmin,fldmax
       real, parameter :: fill=nf90_fill_double
       character c4*4 
-      external function ncslen
 c
 c --- Initialise fields
       rkd=1.
@@ -1450,46 +1419,41 @@ c --- define variable
           istart(strn)=1
         endif
         do n=1,strn
-          status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimid))
           dimids(n)=dimid
-          if ((n.eq.strn.and.c4.ne.'time').or.
-     .      (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) then
-            status=nf90_inquire_dimension(ncid,dimid,len=kd)
-            if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
-          endif 
+          if (n.gt.2.and.
+     .        ((n.eq.strn.and.c4.ne.'time').or.
+     .         (n.eq.strn-1.and.c4.eq.'time')))
+     .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
         rkd=kd
         if (rec.eq.1) then 
           if (prec.ne.4) then 
-            status=nf90_def_var(ncid,vnm,nf90_double,dimids(1:strn),
-     .        rhid)
+            call ncerro(nf90_def_var(ncid,vnm,nf90_double,
+     .        dimids(1:strn),rhid))
           else 
-            status=nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),rhid)
+            call ncerro(nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),
+     .        rhid))
           endif 
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
           if(mskflg.eq.1)then
             if (prec.ne.4) then
-              status=nf90_put_att(ncid,rhid,'_FillValue',
-     .          nf90_fill_double)
-              if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
+              call ncerro(nf90_put_att(ncid,rhid,'_FillValue',
+     .          nf90_fill_double))
             else
-              status=nf90_put_att(ncid,rhid,'_FillValue',nf90_fill_real)
-              if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
+              call ncerro(nf90_put_att(ncid,rhid,'_FillValue',
+     .          nf90_fill_real))
             endif
           endif
         else 
-          status=nf90_inq_varid(ncid,vnm,rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif 
         if(flgpad)then 
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
       endif
       call xcmaxr(rkd)
       kd=nint(rkd) 
@@ -1533,8 +1497,7 @@ c$OMP END PARALLEL DO
         call xcaget(rfldt,rfld,1)  
         if (mnproc.eq.1) then
           if (prec.ne.4) then 
-c$OMP PARALLEL DO 
-            if (sfac.ne.1.or.offs.ne.0.) then   
+            if (sfac.ne.1..or.offs.ne.0.) then   
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm
@@ -1556,9 +1519,9 @@ c$OMP PARALLEL DO
               enddo
 c$OMP END PARALLEL DO
             endif
-            status=nf90_put_var(ncid,rhid,rfldt,istart,icount)
+            call ncerro(nf90_put_var(ncid,rhid,rfldt,istart,icount))
           else
-            if (sfac.ne.1.or.offs.ne.0.) then   
+            if (sfac.ne.1..or.offs.ne.0.) then   
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm                
@@ -1583,9 +1546,8 @@ c$OMP PARALLEL DO
               enddo
 c$OMP END PARALLEL DO
             endif
-            status=nf90_put_var(ncid,rhid,r4fldt,istart,icount)
+            call ncerro(nf90_put_var(ncid,rhid,r4fldt,istart,icount))
           endif
-          if (status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
         endif 
       enddo 
       call xcminr(fldmin)
@@ -1593,10 +1555,8 @@ c$OMP END PARALLEL DO
 c
 c --- Put file back to define mode
       if (mnproc.eq.1) then
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrtr')
-        write(lp,*) trim(vnm),(fldmin*sfac+offs),
-     .   (fldmax*sfac+offs)
+        call ncerro(nf90_redef(ncid))
+        write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
       endif
 c
       end
@@ -1612,7 +1572,7 @@ c
 c --- Arguments:
 c       char(*)    vnm       (in) -  variable name
 c       char(*)    dims      (in) -  axes string, e.g. 'pcomp z time'
-c       integer(*) fld       (in) -  field array with dimension
+c       integer(*) fld       (in) -  field with dimension
 c                                   (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kd)
 c       integer(*) msk       (in) -  field mask with dimensions 
 c                                   (idm+2*nbdy)*(jdm+2*nbdy) 
@@ -1624,14 +1584,13 @@ c
       character*(*) :: vnm,dims 
       integer :: i,j,ij,k,kd,n
       integer, parameter :: maxdm=5,ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer :: dimid,dimids(maxdm),strn,ncslen,
-     .  strind(2,maxdm),msk(*),mskflg,fld(*)     
+      integer :: dimid,dimids(maxdm),strn,strind(2,maxdm),msk(*),mskflg,
+     .  fld(*)     
       integer, dimension(maxdm) :: start,count
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk   
       real, dimension(itdm,jtdm) :: rfldt,rmskt
       real :: rkd,fill
       character c4*4
-      external function ncslen
 c
 c --- Initialise fields
       rkd=1.
@@ -1654,35 +1613,29 @@ c --- define variable
           start(strn)=1
         endif
         do n=1,strn
-          status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrti')
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimid))
           dimids(n)=dimid
           if ((n.eq.strn.and.c4.ne.'time').or.
-     .      (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) then
-            status=nf90_inquire_dimension(ncid,dimid,len=kd)
-            if(status.ne.nf90_noerr) call ncerro(status,'ncwrti')
-          endif 
+     .      (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) 
+     .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
         rkd=kd
         if (rec.eq.1) then 
-          status=nf90_def_var(ncid,vnm,nf90_int,dimids(1:strn),rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncwrti')
+          call ncerro(nf90_def_var(ncid,vnm,nf90_int,dimids(1:strn),
+     .      rhid))
         else 
-          status=nf90_inq_varid(ncid,vnm,rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncwrti')
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif 
         if (mskflg.eq.1) then
-          status=nf90_put_att(ncid,rhid,'_FillValue',fill)
+          call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
         endif
-        if (status.ne.nf90_noerr) call ncerro(status,'ncwrti')
         if (flgpad) then 
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrti')
       endif
       call xcmaxr(rkd)
       kd=nint(rkd) 
@@ -1718,16 +1671,12 @@ c --- Prepare output field
               if(rmskt(i,j).lt.0.5) rfldt(i,j)=fill
             enddo
           enddo
-          status=nf90_put_var(ncid,rhid,rfldt,start,count)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrti')
+          call ncerro(nf90_put_var(ncid,rhid,rfldt,start,count))
         endif
       enddo
 c
 c --- Put file back to define mode
-      if (mnproc.eq.1) then
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrti')
-      endif
+      if (mnproc.eq.1) call ncerro(nf90_redef(ncid))
 c
       end
 
@@ -1742,7 +1691,7 @@ c
 c --- Arguments:
 c       char(*)  vnm       (in) -  variable name
 c       char(*)  dims      (in) -  axes string, e.g. 'pcomp z time'
-c       real(*)  fld       (in) -  input field array with dimension
+c       real(*)  fld       (in) -  input field  
 c ----------------------------------------------------------------------
 c
       implicit none
@@ -1750,41 +1699,35 @@ c
       character*(*) :: vnm,dims
 c
       integer, parameter :: maxdm=5
-      integer :: n,nmax,ncslen,strind(2,maxdm),ndims
+      integer :: n,nmax,strind(2,maxdm),ndims
       integer, dimension(maxdm) :: start,count,dimids,dimlen
 c
-      real :: fld(*)
-      real, parameter :: fill=1e36 
-c
-      external function ncslen
+      real :: fld(*),fill
 c
       if(mnproc.eq.1)then
 c
 c --- - Define variable 
+        fill=nf90_fill_double 
         call ncsevl(dims,ndims,strind)
         do n=1,ndims
-          status=nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n))
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
-          status=nf90_inquire_dimension(ncid,dimids(n),len=dimlen(n))
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
+          call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .      dimids(n)))
+          call ncerro(nf90_inquire_dimension(ncid,dimids(n),
+     .      len=dimlen(n)))
         enddo
         if (rec.eq.1) then
-          status=nf90_def_var(ncid,vnm,nf90_double,dimids(1:ndims),rhid)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
-          status=nf90_put_att(ncid,rhid,'_FillValue',fill)
-          if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
+          call ncerro(nf90_def_var(ncid,vnm,nf90_double,dimids(1:ndims),
+     .      rhid))
+          call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
         else 
-          status=nf90_inq_varid(ncid,vnm,rhid)
-          if (status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif
         if(flgpad)then
-          status=nf90_enddef(ncid)
+          call ncerro(nf90_enddef(ncid))
         else
-          status=nf90_enddef(ncid,40960,4,0,4)
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
 c
 c --- - Prepare start and count
         do n=1,maxdm
@@ -1803,12 +1746,11 @@ c --- - Prepare start and count
         endif
 c
 c --- - Write data to file 
-        status=nf90_put_var(ncid,rhid,fld(1:product(count)),start,count)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
+        call ncerro(nf90_put_var(ncid,rhid,fld(1:product(count)),start,
+     .    count))
 c
 c --- - Put file back to define mode
-        status=nf90_redef(ncid)
-        if(status.ne.nf90_noerr) call ncerro(status,'ncwrt1')
+        call ncerro(nf90_redef(ncid))
 c
       endif
 c
@@ -1822,25 +1764,26 @@ c ----------------------------------------------------------------------
 
  
 
-      subroutine ncerro(status,strg)
+      subroutine ncerro(ncstatus)
 c
 c ----------------------------------------------------------------------
 c --- Description:
-c       Display error massages related to the netcdf library routines
+c       Display netcdf error massages  
 c
 c --- Arguments:
-c       char(*) strg (in) -  name of subroutine where the error occured
+c       int ncstatus (in) -  netcdf status 
 c ----------------------------------------------------------------------
 c
       implicit none
 c
-      integer status
-      character*(*) strg
+      integer ncstatus
 c
-      write(lp,*) strg,': ',nf90_strerror(status)
-      call flush(lp)
-      call xchalt('(ncerro)')
-             stop '(ncerro)'
+      if (ncstatus.ne.nf90_noerr) then 
+        write(lp,*) 'NetCDF error: ',nf90_strerror(ncstatus)
+        call flush(lp)
+        call xchalt('(ncerro)')
+        stop '(ncerro)'
+      endif 
 c
       end
 
@@ -1889,32 +1832,6 @@ c
       strgn=int(strgn/2.)
 c
       end
-
-
-
-      integer function ncslen(str)
-c
-c ----------------------------------------------------------------------
-c --- Description:
-c       ncslen(str) returns the length minus the number of white spaces
-c       of the string str.
-c
-c --- Arguments:
-c       character*(*) str (in) - string to evaluate
-c ----------------------------------------------------------------------
-c
-      implicit none
-c
-      character*(*) str
-      integer n
-c
-      ncslen=0
-      do n=len(str),1,-1
-         if(str(n:n).ne.' '.and.ncslen.eq.0) ncslen=n
-      enddo
-c
-      end
-
 
 
       subroutine nccaln(days,calendar,y1,m1,d1,y2,m2,d2)

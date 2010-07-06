@@ -66,7 +66,7 @@ c --- advance tracers only every second time step
 #  endif
 #endif
 c
-      if (cnsvdi) call stdbud(1,n,nn,k1n)
+      if (cnsvdi) call stdbud(1,n,nn)
 c
 c --- Update calender
       call updcln(nstep)
@@ -129,7 +129,7 @@ cdiag write (lp,*) 'advdif...'
       call diffus(m,n,mm,nn,k1m,k1n)
       advdif_time=gettime()
 c
-      if (cnsvdi) call stdbud(2,n,nn,k1n)
+      if (cnsvdi) call stdbud(2,n,nn)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'sfcstr...'
@@ -158,14 +158,14 @@ cdiag write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
       convec_time=gettime()
 c
-      if (cnsvdi) call stdbud(3,n,nn,k1n)
+      if (cnsvdi) call stdbud(3,n,nn)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'diapfl...'
       call diapfl(m,n,mm,nn,k1m,k1n)
       diapfl_time=gettime()
 c
-      if (cnsvdi) call stdbud(4,n,nn,k1n)
+      if (cnsvdi) call stdbud(4,n,nn)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'thermf...'
@@ -185,7 +185,7 @@ c --- update tracer due to non-passive processes
       if (mod(nstep+1,2).eq.1) call updtrc(m,n,mm,nn,k1m,k1n)
 #endif
 c
-      if (cnsvdi) call stdbud(5,n,nn,k1n)
+      if (cnsvdi) call stdbud(5,n,nn)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'barotp...'
@@ -196,14 +196,14 @@ cdiag write (lp,*) 'pbtcor...'
       call pbtcor(m,n,mm,nn,k1m,k1n)
       pbtcor_time=gettime()
 c
-      if (cnsvdi) call stdbud(6,m,mm,k1m)
+      if (cnsvdi) call stdbud(6,m,mm)
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'tmsmt2...'
       call tmsmt2(m,n,mm,nn,k1m,k1n)
       tmsmt2_time=gettime()
 c
-      if (cnsvdi) call stdbud(7,m,mm,k1m)
+      if (cnsvdi) call stdbud(7,m,mm)
 c
       if (cnsvdi) then
         if (mnproc.eq.1.and.nstep.gt.nstep1+1) then

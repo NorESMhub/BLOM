@@ -61,7 +61,7 @@ c --- ------------------------------------------------------------------
 c --- --- Define first physical interior layer
 c --- ------------------------------------------------------------------
 c
-          k=2
+          k=3
           dps=0.
           do while (delp(k).lt.epsil)
             dps=dps+delp(k)
@@ -70,7 +70,7 @@ c
             if (k.gt.kk) exit
           enddo
           if (k.gt.kk) then
-            delp(1)=delp(1)+dps
+            delp(2)=delp(2)+dps
           else
             delp(k)=delp(k)+dps
           endif
@@ -141,7 +141,7 @@ c
               dtmp=sig(ttmp,stmp)
               kfpl=kk
               do while (dtmp.lt.densr(kfpl))
-                if (kfpl.eq.2) exit
+                if (kfpl.eq.3) exit
                 kfpl=kfpl-1
               enddo
               ttem(kfpl)=ttmp
@@ -174,20 +174,20 @@ c
 c
               done=.true.
 c
-c --- ------- Remove instabilities between the mixed layer and interior
-c --- ------- layers by considering the potential density jump across
-c --- ------- the mixed layer base with reference pressure at the
+c --- ------- Remove instabilities between the lower mixed layer and
+c --- ------- interior layers by considering the potential density jump
+c --- ------- across the mixed layer base with reference pressure at the
 c --- ------- interface
-              tdps=ttem(1)*delp(1)
-              sdps=ssal(1)*delp(1)
-              dps=delp(1)
+              tdps=ttem(2)*delp(2)
+              sdps=ssal(2)*delp(2)
+              dps=delp(2)
 #ifdef TRC
               do nt=1,ntrc
-                trdps(nt)=ttrc(nt,1)*delp(1)
+                trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
-              ttmp=ttem(1)
-              stmp=ssal(1)
+              ttmp=ttem(2)
+              stmp=ssal(2)
               k=kfpl
               do while (rho(dps,ttmp,stmp).gt.
      .                  rho(dps,ttem(k),ssal(k)).or.
@@ -208,12 +208,12 @@ c --- ------- interface
               enddo
               kmix=k-1
               if (kmix.ge.kfpl) then
-                ttem(1)=ttmp
-                ssal(1)=stmp
-                dens(1)=sig(ttem(1),ssal(1))
+                ttem(2)=ttmp
+                ssal(2)=stmp
+                dens(2)=sig(ttem(2),ssal(2))
 #ifdef TRC
                 do nt=1,ntrc
-                  ttrc(nt,1)=trdps(nt)*q
+                  ttrc(nt,2)=trdps(nt)*q
                 enddo
 #endif
                 dps=0.
@@ -222,22 +222,22 @@ c --- ------- interface
                   delp(k)=0.
                 enddo
                 k=kmix
-                do while (dens(1).lt.densr(k))
-                  if (k.eq.2) exit
+                do while (dens(2).lt.densr(k))
+                  if (k.eq.3) exit
                   k=k-1
                 enddo
                 kfpl=k
-                ttem(kfpl)=ttem(1)
-                ssal(kfpl)=ssal(1)
-                dens(kfpl)=dens(1)
+                ttem(kfpl)=ttem(2)
+                ssal(kfpl)=ssal(2)
+                dens(kfpl)=dens(2)
                 delp(kfpl)=dps
 #ifdef TRC
                 do nt=1,ntrc
-                  ttrc(nt,kfpl)=ttrc(nt,1)
+                  ttrc(nt,kfpl)=ttrc(nt,2)
                 enddo
 #endif
                 do k=kfpl+1,kmix
-                  ttem(k)=ttem(1)
+                  ttem(k)=ttem(2)
                   dens(k)=densr(k)
                   ssal(k)=sofsig(dens(k),ttem(k))
                 enddo

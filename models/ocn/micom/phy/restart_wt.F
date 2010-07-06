@@ -222,6 +222,8 @@ c
       call wrtrst('xiym',trim(c5v)//' k2 time',xiym,ivv)
       call wrtrst('phi',trim(c5p)//' time',phi(1-nbdy,1-nbdy,kk+1),ip)
       call wrtrst('sealv',trim(c5p)//' time',sealv,ip)
+      call wrtrst('ustar',trim(c5p)//' time',ustar,ip)
+      call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
       call wrtrst('hicem',trim(c5p)//' time',hicem,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)

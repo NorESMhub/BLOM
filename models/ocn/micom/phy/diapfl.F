@@ -16,26 +16,31 @@ c --- Parameters:
 c ---   dsgmnr - minimum ratio of linearized density jump to target
 c ---            density jump across a layer interface []
 c ---   fcmxr  - maximum ratio of density restoration flux to the
-c ---            estimated mean diapycnal flux
+c ---            estimated mean diapycnal flux []
+c ---   dsgcr0 - gradually reduce the limiting of the density
+c ---            restoration flux if the ratio of reference density
+c ---            deviation to local vertical reference density
+c ---            difference is greater than dsgcr0 []
 c ---   dfeps  - small number used in the estimation of flux change
 c ---            limit []
 c ---   gbbl   - efficientcy factor for bottom boundary layer mixing []
 c ---   kappa  - von Karman constant []
 c ---   ustmin - minimum value of ustar used in computing the length
 c ---            scale bottom boundary layer mixing [cm/s]
-      real dsgmnr,fcmxr,dfeps,gbbl,kappa,ustmin
-      parameter (dsgmnr=.1,fcmxr=.25,dfeps=1.e-12,gbbl=.2,kappa=.4,
-     .           ustmin=.01)
+      real dsgmnr,fcmxr,dsgcr0,dfeps,gbbl,kappa,ustmin
+      parameter (dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,
+     .           kappa=.4,ustmin=.01)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fpug,fplg
       real, dimension(kdm) ::
      .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
-     .  dsgui,dsgli,fmax,f,f0,fold,
-     .  h,gtd,uc
-      real c,nubbl,dsgdt,dsgds,q,dpsu,dpsl,dflim,ctd,bitd,r,s,t,dfdg,
-     .     atd,maxdf,dtd
+     .  dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc
+      real, dimension(kdm+1) :: pres
+      real c,delpu,delpl,nubbl,dsgdt,dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,
+     .     s,t,dfdg,atd,maxdf,dtd
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: kming
-      integer i,j,k,l,kn,kfpl,kmin,kmax,kfil,kl,kfmaxu
+      integer i,j,k,l,kn,kfpl,kmin,kmax,kl,kfmaxu
+      logical, dimension(kdm) :: rstdns
       logical done,dwnwrd,remfmx
 c
       real dsigdt,dsigds,sig,sofsig
@@ -56,10 +61,10 @@ c --- Constant in the diffusion equation
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
-c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,nubbl,dsgdt,dsgds,q,dpsu,dpsl,
-c$OMP+ dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,kfpl,kmin,kmax,kfil,
-c$OMP+ kl,kfmaxu,done,dwnwrd,remfmx,ttem0,ssal0,delp0,dens0,sigr0,nu0,
-c$OMP+ niter
+c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,pres,delpu,delpl,nubbl,dsgdt,
+c$OMP+ dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,
+c$OMP+ kfpl,kmin,kmax,kl,kfmaxu,rstdns,done,dwnwrd,remfmx,ttem0,ssal0,
+c$OMP+ delp0,dens0,sigr0,nu0,niter
 #ifdef TRC
 c$OMP+,ttrc
 #endif
@@ -77,6 +82,7 @@ c --- --- Copy variables into 1d arrays.
             dens(k)=sigma(i,j,kn)
             sigr(k)=sigmar(i,j,k)
             nu(k)=difdia(i,j,k)
+            rstdns(k)=.true.
 cdiag
             ttem0(k)=ttem(k)
             ssal0(k)=ssal(k)
@@ -94,7 +100,7 @@ cdiag
 c
 c --- --- Locate range of physical layers.
           kfpl=kfpla(i,j,n)
-          kmin=kfpl-1
+          kmin=kfpl-2
           kmax=1
           do k=2,kk
             if (delp(k).gt.epsil) kmax=k
@@ -104,52 +110,53 @@ c
 c
 c --- ----- Locate first layer where potential density should be kept
 c --- ----- close to the reference potential density.
-            if (kfpl.eq.kmax) then
-              kfil=kfpl+1
-            else
-              if (dens(kfpl).lt..5*(sigr(kfpl)+sigr(kfpl+1))) then
-                kfil=kfpl+1
-              else
-                kfil=kfpl+2
+            rstdns(kfpl)=.false.
+            if (kfpl.ne.kmax) then
+              if (dens(kfpl).gt..5*(sigr(kfpl)+sigr(kfpl+1))) then
+                rstdns(kfpl+1)=.false.
               endif
             endif
 c
-c --- ----- Copy mixed layer variables to the layer with index kmin
-            delp(kmin)=delp(1)
-            ttem(kmin)=ttem(1)
-            ssal(kmin)=ssal(1)
-            nu(kmin)=nu(1)
+c --- ----- Copy mixed layer variables to the layers with indexes kmin
+c --- ----- and kmin+1
+            delp(kmin+1)=delp(2)
+            delp(kmin  )=delp(1)
+            ttem(kmin+1)=ttem(2)
+            ttem(kmin  )=ttem(1)
+            ssal(kmin+1)=ssal(2)
+            ssal(kmin  )=ssal(1)
+            nu(kmin+1)=nu(2)
+            nu(kmin  )=nu(1)
 #ifdef TRC
             do nt=1,ntrc
-              ttrc(nt,kmin)=ttrc(nt,1)
+              ttrc(nt,kmin+1)=ttrc(nt,2)
+              ttrc(nt,kmin  )=ttrc(nt,1)
             enddo
 #endif
 c
-c --- ----- Compute mass fluxes between the mixed layer and the layers
-c --- ----- where maintenance of potential density is not required.
-c
-            dpsu=delp(kmin)
-            dpsl=0.
-            do k=kmin+1,kmax
-              dpsl=dpsl+delp(k)
+c --- ----- Find interface pressure
+            pres(kmin)=0.
+            do k=kmin,kmax
+              pres(k+1)=pres(k)+delp(k)
             enddo
 c
-            fpu(kmin)=0.
-            fpl(kmin)=min(dpsu,dpsl,
-     .                    c*nu(kmin)/max(onem,delp(kfpl)))
-            do k=kfpl,kfil-1
-              fpu(k)=fpl(k-1)
-              kl=min(kmax,k+1)
-              dpsu=dpsu+delp(k)
-              dpsl=dpsl-delp(k)
-              fpl(k)=min(dpsu,dpsl,
-     .                   2.*c*nu(kmin)/max(onem,delp(k)+delp(kl)))
-            enddo
+c --- ----- Compute mass flux between the layers in the mixed layers and
+c --- ----- at the mixed layer base.  
+            k=kmin
+            fpu(k)=0.
+            fpl(k)=min(pres(k+1),pres(kmax+1)-pres(k+1),
+     .                 c*nu(k)*2./(delp(k)+delp(k+1)))
+            k=kmin+1
+            fpu(k)=fpl(k-1)
+            delpu=max(onem,delp(k))
+            delpl=max(onem,delp(k+1))
+            fpl(k)=min(pres(k+1),pres(kmax+1)-pres(k+1),
+     .                 c*nu(k)*(delpu+delpl)/(2.*delpu*delpl))
             fpl(kmax)=0.
 c
-            if (kfil.le.kmax) then
+            if (kfpl.le.kmax) then
 c
-              if (kfil.lt.kmax) then
+              if (kfpl.lt.kmax) then
 c
 c --- --------- Bottom boundary mixing is parameterized by assuming that
 c --- --------- a part of the energy extracted from the mean flow by the
@@ -169,40 +176,62 @@ c --- ------- and buoyancy flux corrections to nudge the layer density
 c --- ------- towards the reference density. The flux corrections are
 c --- ------- limited so their absolute value is guaranteed to be less
 c --- ------- than the buoyancy flux due to diffusion.
-              k=kfil-1
+              k=kfpl-1
               dsgli(k)=1.
               fcl(k)=-fpl(k)
-              do k=kfil,kmax-1
-                dsgdt=dsigdt(ttem(k),ssal(k))
-                dsgds=dsigds(ttem(k),ssal(k))
-                dsgu(k)=max(dsgmnr*(sigr(k)-sigr(k-1)),
-     .                      dsgdt*(ttem(k)-ttem(k-1))
-     .                     +dsgds*(ssal(k)-ssal(k-1)))
-                dsgl(k)=max(dsgmnr*(sigr(k+1)-sigr(k)),
-     .                      dsgdt*(ttem(k+1)-ttem(k))
-     .                     +dsgds*(ssal(k+1)-ssal(k)))
-                dsghm(k)=2.*dsgu(k)*dsgl(k)/(dsgu(k)+dsgl(k))
-                dsg(k)=.5*(dsgu(k)+dsgl(k))
-c               dsg(k)=dsghm(k)
-                dsgui(k)=1./dsgu(k)
-                dsgli(k)=1./dsgl(k)
-                q=.25*(sqrt(delp(k)*delp(k)
-     .                     +4.*c*nu(k)*dsg(k)*(dsgui(k)+dsgli(k)))
-     .                -delp(k))*dsghm(k)*fcmxr
-                if (dens(k).gt.sigr(k)) then
-                  fcl(k)=0.
-                  if (dens(k-1).lt.sigr(k)) then
-                    fcu(k)=min(q,(dens(k)-sigr(k))*delp(k))
+              do k=kfpl,kmax-1
+                if (rstdns(k)) then
+                  dsgdt=dsigdt(ttem(k),ssal(k))
+                  dsgds=dsigds(ttem(k),ssal(k))
+                  dsgu(k)=max(dsgmnr*(sigr(k)-sigr(k-1)),
+     .                        dsgdt*(ttem(k)-ttem(k-1))
+     .                       +dsgds*(ssal(k)-ssal(k-1)))
+                  dsgl(k)=max(dsgmnr*(sigr(k+1)-sigr(k)),
+     .                        dsgdt*(ttem(k+1)-ttem(k))
+     .                       +dsgds*(ssal(k+1)-ssal(k)))
+                  dsghm(k)=2.*dsgu(k)*dsgl(k)/(dsgu(k)+dsgl(k))
+                  dsg(k)=.5*(dsgu(k)+dsgl(k))
+c                 dsg(k)=dsghm(k)
+                  dsgui(k)=1./dsgu(k)
+                  dsgli(k)=1./dsgl(k)
+                  fcmx=.25*(sqrt(delp(k)*delp(k)
+     .                          +4.*c*nu(k)*dsg(k)*(dsgui(k)+dsgli(k)))
+     .                     -delp(k))*dsghm(k)*fcmxr
+                  dsgc=dens(k)-sigr(k)
+                  if (dsgc.gt.0.) then
+                    fcl(k)=0.
+                    if (dens(k-1).lt.sigr(k)) then
+                      q=max(0.,(dens(k)-sigr(k+1))
+     .                         /((sigr(k)-sigr(k+1))*(1.-dsgcr0)))
+                      q=max(0.,1.-q*q)
+                      q=q*q*q
+                      fcu(k)=dsgc*delp(k)
+                      fcu(k)=min(q*fcu(k)+(1.-q)*fcmx,fcu(k))
+                    else
+                      fcu(k)=0.
+                    endif
                   else
                     fcu(k)=0.
+                    if (dens(k+1).gt.sigr(k)) then
+                      q=max(0.,(dens(k)-sigr(k-1))
+     .                         /((sigr(k)-sigr(k-1))*(1.-dsgcr0)))
+                      q=max(0.,1.-q*q)
+                      q=q*q*q
+                      fcl(k)=dsgc*delp(k)
+                      fcl(k)=max(q*fcl(k)-(1.-q)*fcmx,fcl(k))
+                    else
+                      fcl(k)=0.
+                    endif
                   endif
                 else
+                  dsgu(k)=1.
+                  dsgl(k)=1.
+                  dsghm(k)=1.
+                  dsg(k)=1.
+                  dsgui(k)=1.
+                  dsgli(k)=1.
+                  fcl(k)=0.
                   fcu(k)=0.
-                  if (dens(k+1).gt.sigr(k)) then
-                    fcl(k)=max(-q,(dens(k)-sigr(k))*delp(k))
-                  else
-                    fcl(k)=0.
-                  endif
                 endif
               enddo
               k=kmax
@@ -223,24 +252,22 @@ c
 c --- ------- Find maximum allowable buoyancy fluxes and further limit
 c --- ------- the flux corrections to keep layer interfaces within the
 c --- ------- fluid domain.
-              fmax(kfil-1)=0.
+              fmax(kfpl-1)=0.
               fmax(kmax)=0.
               done=.false.
               niter=0
               do while (.not.done)
                 done=.true.
-                dpsu=0.
-                dpsl=0.
-                do k=kmax-1,kfil,-1
-                  dpsl=dpsl+delp(k+1)
-                  q=((fmax(k+1)+fcu(k+1))*dsgui(k+1)+dpsl)*dsgl(k)
+                do k=kmax-1,kfpl,-1
+                  q=((fmax(k+1)+fcu(k+1))*dsgui(k+1)
+     .              +pres(kmax+1)-pres(k+1))*dsgl(k)
                   fcl(k)=max(-q,fcl(k))
                   fmax(k)=q+fcl(k)
                 enddo
                 kfmaxu=0
-                do k=kfil,kmax-1
-                  dpsu=dpsu+delp(k-1)
-                  q=((fmax(k-1)-fcl(k-1))*dsgli(k-1)+dpsu)*dsgu(k)
+                do k=kfpl,kmax-1
+                  q=((fmax(k-1)-fcl(k-1))*dsgli(k-1)
+     .              +pres(k)-pres(kfpl))*dsgu(k)
                   if (fcu(k).gt.q) then
                     fcu(k)=q
                     done=.false.
@@ -265,12 +292,12 @@ c --- ------- fluid domain.
 c
 c --- ------- Make a first guess for buoyancy fluxes and set some
 c --- ------- boundary conditions
-              k=kfil-1
+              k=kfpl-1
               f0(k)=0.
               f(k)=0.
               gtd(k)=0.
               dflim=0.
-              do k=kfil,kmax-1
+              do k=kfpl,kmax-1
                 f(k)=min(fmax(k),
      .                   .5*sqrt(c*nu(k)*dsg(k)
      .                           *(dsgui(k)+dsgli(k)))*dsghm(k),
@@ -301,7 +328,7 @@ c --- ----------- Do a downward first pass.
                   ctd=0.
                   bitd=1.
                   remfmx=.false.
-                  do k=kfil,kmax-1
+                  do k=kfpl,kmax-1
 c
                     if (remfmx) then
                       gtd(k)=0.
@@ -366,7 +393,7 @@ c
 c --- ----------- Complete the solving of the tridiagonal set of
 c --- ----------- equations and find the maximum flux change.
                   maxdf=0.
-                  do k=kmax-1,kfil,-1
+                  do k=kmax-1,kfpl,-1
                     f(k)=min(fmax(k),f(k)-gtd(k+1)*f(k+1))
                     maxdf=max(maxdf,abs(f(k)-fold(k)))
                     fold(k)=f(k)
@@ -377,7 +404,7 @@ c --- ----------- Do a upward first pass.
                   atd=0.
                   bitd=1.
                   remfmx=.false.
-                  do k=kmax-1,kfil,-1
+                  do k=kmax-1,kfpl,-1
 c
                     if (remfmx) then
                       gtd(k)=0.
@@ -442,7 +469,7 @@ c
 c --- ----------- Complete the solving of the tridiagonal set of
 c --- ----------- equations and find the maximum flux change.
                   maxdf=0.
-                  do k=kfil,kmax-1
+                  do k=kfpl,kmax-1
                     f(k)=min(fmax(k),f(k)-gtd(k-1)*f(k-1))
                     maxdf=max(maxdf,abs(f(k)-fold(k)))
                     fold(k)=f(k)
@@ -467,10 +494,11 @@ c --- --------- iteration.
               enddo
 c
 c --- ------- Compute the mass fluxes
-              do k=kfil,kmax-1
+              do k=kfpl,kmax-1
                 fpu(k)=(f(k)+fcu(k))*dsgui(k)
                 fpl(k)=(f(k)-fcl(k))*dsgli(k)
               enddo
+              fpu(kfpl)=fpl(kmin+1)
 c
             endif
 c
@@ -503,43 +531,52 @@ c --- ----- backward integration forming a tridiagonal set of equations.
               enddo
 #endif
             enddo
-            do k=kfil-1,kmax-1
+            do k=kfpl,kmax-1
               delp(k)=max(0.,delp(k)+fpu(k)+fpl(k)-fpl(k-1)-fpu(k+1))
             enddo
             delp(kmax)=max(0.,delp(kmax)+fpu(kmax)-fpl(kmax-1))
 c
-c --- ----- Copy variables back to the mixed layer from the layer with index
-c --- ----- kmin
+c --- ----- Copy variables back to the mixed layers from the layers with
+c --- ----- index kmin and kmin+1
+            ttem(1)=ttem(kmin  )
+            ttem(2)=ttem(kmin+1)
+            ssal(1)=ssal(kmin  )
+            ssal(2)=ssal(kmin+1)
+            dens(1)=dens(kmin  )
+            dens(2)=dens(kmin+1)
             if (kmin.gt.1) then
-              ttem(1)=ttem(kmin)
-              ssal(1)=ssal(kmin)
-              dens(1)=dens(kmin)
-              delp(kmin)=0.
-#ifdef TRC
-              do nt=1,ntrc
-                ttrc(nt,1)=ttrc(nt,kmin)
-              enddo
-#endif
+              if (kmin.eq.2) then
+                delp(2)=delp(kmin+1)
+                delp(kmin+1)=0.
+              else
+                delp(kmin  )=0.
+              endif
             endif
+#ifdef TRC
+            do nt=1,ntrc
+              ttrc(nt,1)=ttrc(nt,kmin  )
+              ttrc(nt,2)=ttrc(nt,kmin+1)
+            enddo
+#endif
 c
           endif
 c
 c --- --- Fill massless layers with resonable values of temperature,
 c --- --- salinity, and tracers
           if (kfpl.gt.kmax) then
-            do k=2,kk
-              ttem(k)=max(ttem(1),temmin(i,j,k))
+            do k=3,kk
+              ttem(k)=max(ttem(2),temmin(i,j,k))
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
               delp(k)=0.
 #ifdef TRC
               do nt=1,ntrc
-                ttrc(nt,k)=ttrc(nt,1)
+                ttrc(nt,k)=ttrc(nt,2)
               enddo
 #endif
             enddo
           else
-            do k=2,kfpl-1
+            do k=3,kfpl-1
               ttem(k)=ttem(kfpl)
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
@@ -653,9 +690,11 @@ c --- --- anything in this water column.
           if (kmin.lt.kmax) then
 c
 c --- ----- Copy vertical column variables into 1d arrays.
-            uc(kmin)=u(i,j,k1n)
-            delp(kmin)=dpu(i,j,k1n)
-            do k=kmin+1,kmax
+            uc(kmin+1)=u(i,j,k1n+1)
+            uc(kmin  )=u(i,j,k1n  )
+            delp(kmin+1)=dpu(i,j,k1n+1)
+            delp(kmin  )=dpu(i,j,k1n  )
+            do k=kmin+2,kmax
               kn=k+nn
               uc(k)=u(i,j,kn)
               delp(k)=dpu(i,j,kn)
@@ -694,8 +733,9 @@ c --- ----- integration forming a tridiagonal set of equations.
             enddo
 c
 c --- ----- Put velocity back in main array.
-            u(i,j,k1n)=uc(kmin)
-            do k=kmin+1,kmax
+            u(i,j,k1n  )=uc(kmin  )
+            u(i,j,k1n+1)=uc(kmin+1)
+            do k=kmin+2,kmax
               u(i,j,k+nn)=uc(k)
             enddo
 c
@@ -729,9 +769,11 @@ c --- --- anything in this water column.
           if (kmin.lt.kmax) then
 c
 c --- ----- Copy vertical column variables into 1d arrays.
-            uc(kmin)=v(i,j,k1n)
-            delp(kmin)=dpv(i,j,k1n)
-            do k=kmin+1,kmax
+            uc(kmin+1)=v(i,j,k1n+1)
+            uc(kmin  )=v(i,j,k1n  )
+            delp(kmin+1)=dpv(i,j,k1n+1)
+            delp(kmin  )=dpv(i,j,k1n  )
+            do k=kmin+2,kmax
               kn=k+nn
               uc(k)=v(i,j,kn)
               delp(k)=dpv(i,j,kn)
@@ -770,8 +812,9 @@ c --- ----- integration forming a tridiagonal set of equations.
             enddo
 c
 c --- ----- Put velocity back in main array.
-            v(i,j,k1n)=uc(kmin)
-            do k=kmin+1,kmax
+            v(i,j,k1n  )=uc(kmin  )
+            v(i,j,k1n+1)=uc(kmin+1)
+            do k=kmin+2,kmax
               v(i,j,k+nn)=uc(k)
             enddo
 c

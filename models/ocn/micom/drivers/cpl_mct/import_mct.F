@@ -5,8 +5,7 @@
       use mct_mod
 !     use seq_flds_mod
       use seq_flds_indices
-      use shr_const_mod, only:
-     .   SHR_CONST_RHOSW, SHR_CONST_LATVAP, SHR_CONST_LATICE
+      use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE
       use types, only : r8
       use mod_xc
 
@@ -152,13 +151,7 @@
                swa(i,j) = x2o_o%rAttr(index_x2o_Foxx_swnet,n)
 
                ! Non-solar heat flux, positive downwards [W/m^2]
-               if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-                 write (lp,*) 'eva*latvap,lat',
-     .             x2o_o%rAttr(index_x2o_Foxx_evap,n)*SHR_CONST_LATVAP,
-     .             x2o_o%rAttr(index_x2o_Foxx_lat,n)
-               endif
-               nsf(i,j) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
-     .                    *SHR_CONST_LATVAP
+               nsf(i,j) = x2o_o%rAttr(index_x2o_Foxx_lat,n)
      .                  + x2o_o%rAttr(index_x2o_Foxx_sen,n)
      .                  + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
      .                  + x2o_o%rAttr(index_x2o_Foxx_lwdn,n)

@@ -1,4 +1,4 @@
-      subroutine stdbud(ncall,n,nn,k1n)
+      subroutine stdbud(ncall,n,nn)
 c
       use mod_xc
 c
@@ -8,7 +8,7 @@ c
 #include "param_bud.h"
 #include "common_bud.h"
 c
-      integer ncall,n,nn,k1n
+      integer ncall,n,nn
 c
       integer i,j,k,l,kn
       real q,vol
@@ -40,14 +40,17 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
 #else
       do j=1,jj
 #endif
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          q=dp(i,j,k1n)*scp2(i,j)
-          util1(i,j)=util1(i,j)+saln(i,j,k1n)*q
-          util2(i,j)=util2(i,j)+temp(i,j,k1n)*q
+        do k=1,2
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            q=dp(i,j,kn)*scp2(i,j)
+            util1(i,j)=util1(i,j)+saln(i,j,kn)*q
+            util2(i,j)=util2(i,j)+temp(i,j,kn)*q
+          enddo
+          enddo
         enddo
-        enddo
-        do k=2,kk
+        do k=3,kk
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
