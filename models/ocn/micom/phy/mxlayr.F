@@ -18,7 +18,7 @@ c
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
       real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,
      .     lbi,lei,cus,cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,
-     .     dtke,tfsl,sfsl,dpfsl,dpt,pbrnd,pswbas,
+     .     dtke,tfsl,sfsl,dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,pswbas,
      .     pswup,pswlo,brnbas,brnup,brnlo,ttmp,stmp,sigtmp,sigfsl,
      .     tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,udpn
       integer i,j,k,l,kn,nitr,ko
@@ -67,8 +67,8 @@ c ---          over the mixed layer depth []
       parameter (ce=.06,rtau=1./(2.*86400.),rlf=1./5.e5,ci=44./63.)
 c
 c --- Parameters for brine plume parameterization
-      real bppdsg
-      parameter (bppdsg=.5e-3)
+      real bppdrh
+      parameter (bppdrh=.4e-3)
 c
 c --- ------------------------------------------------------------------
 c --- Compute squared lateral buoyancy gradient in the mixed layer and
@@ -139,7 +139,7 @@ c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,
 c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
 c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,tfsl,sfsl,
-c$OMP+ dpfsl,dpt,pbrnd,pswbas,pswup,pswlo,brnbas,
+c$OMP+ dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,pswbas,pswup,pswlo,brnbas,
 c$OMP+ brnup,brnlo,ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,
 c$OMP+ tmxl,smxl,dpe,dps,k,kn,nitr
 #ifdef TRC
@@ -311,12 +311,23 @@ c --- ----- Restore top layer to its reference pressure thickness
             delp(1)=thktop*onem
 c
 c --- ----- Find the brine plume depth
+            pup=pres(3)
+            drhup=0.
             k=kfpla(i,j,n)
             do while (k.le.kk)
-              if (dens(k)-dens(1).gt.bppdsg) exit
+              plo=pres(k)+.5*delp(k)
+              drhlo=rho(plo,ttem(k),ssal(k))-rho(plo,ttem(1),ssal(1))
+              if (drhlo.gt.bppdrh) exit
               k=k+1
+              pup=plo
+              drhup=drhlo
             enddo
-            pbrnd=pres(k)
+            if (k.gt.kk) then
+              pbrnd=pres(kk+1)
+            else
+              pbrnd=((drhlo-bppdrh)*pup+(bppdrh-drhup)*plo)
+     .              /(drhlo-drhup)
+            endif
             pbrnda(i,j)=pbrnd
 c
 c --- ----- Apply forcing to the water column.
@@ -710,12 +721,23 @@ c --- ----- Restore top layer to its reference pressure thickness
             pres(2)=pres(1)+delp(1)
 c
 c --- ----- Find the brine plume depth
+            pup=pres(3)
+            drhup=0.
             k=kfpla(i,j,n)
             do while (k.le.kk)
-              if (dens(k)-dens(1).gt.bppdsg) exit
+              plo=pres(k)+.5*delp(k)
+              drhlo=rho(plo,ttem(k),ssal(k))-rho(plo,ttem(1),ssal(1))
+              if (drhlo.gt.bppdrh) exit
               k=k+1
+              pup=plo
+              drhup=drhlo
             enddo
-            pbrnd=pres(k)
+            if (k.gt.kk) then
+              pbrnd=pres(kk+1)
+            else
+              pbrnd=((drhlo-bppdrh)*pup+(bppdrh-drhup)*plo)
+     .              /(drhlo-drhup)
+            endif
             pbrnda(i,j)=pbrnd
 c
 c --- ----- Apply forcing to the water column.

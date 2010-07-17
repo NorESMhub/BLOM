@@ -109,6 +109,7 @@
       io_stdi_bgc = 5       !  standard in.
       io_rsti_bgc = nfu     !  restart in. 
       io_rsto_bgc = nfu     !  restart out.
+      io_nml = nfu          !  namelist
 
       if (mnproc.eq.1) then
       write(io_stdo_bgc,*) 'HAMOCC initialisation'

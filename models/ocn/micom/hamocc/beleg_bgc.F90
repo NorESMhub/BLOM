@@ -93,6 +93,10 @@
       REAL :: xpi,rad,radi,rmissing
       integer p_joff,p_ioff
 
+#ifdef CCSMCOUPLED
+      namelist /bgcnml/ atm_co2
+#endif
+
       xpi       = 4.*ATAN(1.)
       rad       = xpi/180.
       radi      = 1./rad
@@ -104,7 +108,20 @@
 !
 !
 #ifndef DIFFAT            
+#ifdef CCSMCOUPLED
+!
+! Obtain the CCSM value of atmospheric co2 concentration.
+!
+      open (unit=io_nml,file='ocn_in',status='old',action='read',      &
+     &      recl=80)
+      read (unit=io_nml,nml=BGCNML)
+      close (unit=io_nml)
+#else
          atm_co2 = 278.
+#endif
+      IF (mnproc.eq.1) THEN
+        write(io_stdo_bgc,*) 'HAMOCC: atmospheric co2:',atm_co2
+      ENDIF
 #ifdef __c_isotopes
          atm_c13 = 276.2 ! preindustrial atmospheric d13c=-6.5 permil --> 276.2ppm? test js 15082006 ok.
                         ! piston velocity ~8m/yr -> equilibration time atmosphere/ocean ~500 years

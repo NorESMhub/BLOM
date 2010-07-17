@@ -231,7 +231,8 @@ c
             hsnwm(i,j)=0.1
             tsrfm(i,j)=sstclm(i,j,1)
             tsi_tda(i,j)=(sstclm(i,j,1)
-     .                   -(1.-ficem(i,j))*(temp(i,j,1)+t0deg))/ficem(i,j)
+     .                   -(1.-ficem(i,j))*(temp(i,j,1)+t0deg))
+     .                   /ficem(i,j)
             iagem(i,j)=0.
           endif
 c

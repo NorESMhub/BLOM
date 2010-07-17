@@ -130,6 +130,15 @@ cat >! ocn_in << EOF1
   RSTCMP   =  1
 /
 
+! BGCNML NAMELIST
+!
+! CONTENTS:
+!
+! ATM_CO2  : Atmospheric CO2 concentration [ppmv]
+&BGCNML
+  ATM_CO2  = $CCSM_CO2_PPMV
+/
+
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
 ! Description:
@@ -279,6 +288,7 @@ cat >! ocn_in << EOF1
   SRF_VB       =   0,   2,
   SRF_VICE     =   0,   0,
   SRF_ZTX      =   0,   2,
+  SRF_BRNPD    =   0,   2,
   LYR_DIAFLX   =   0,   0,
   LYR_DIFDIA   =   0,   2,
   LYR_DIFINT   =   0,   2,

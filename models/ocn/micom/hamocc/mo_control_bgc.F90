@@ -29,6 +29,8 @@
       INTEGER :: io_rsti_bgc           !  restart in. 
       INTEGER :: io_rsto_bgc           !  restart out. 
 
+      INTEGER :: io_nml                !  namelist
+
 ! Control variables
 
       REAL    :: dtbgc            !  time step length [sec].

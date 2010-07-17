@@ -252,7 +252,7 @@ c
         nm=nmonth
         nd=nday
         if (mod(nstep,nstep_in_day).eq.0) call pstdat(ny,nm,nd,1)
-        ns=nint(nint(mod(nstep+.5-diagfq,nstep_in_day)/diagfq)
+        ns=nint(nint(mod(nstep+.5-diagfq,real(nstep_in_day))/diagfq)
      .          *diagfq/nstep_in_day*86400)
 #ifdef CCSMCOUPLED
         write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
