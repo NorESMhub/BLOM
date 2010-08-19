@@ -1,4 +1,4 @@
-      subroutine restart_trcwt(rstfnm_ext)
+      subroutine restart_trcwt(rstfnm_ocn)
 c
 c --- ------------------------------------------------------------------
 c --- Write tracer state to restart file
@@ -8,10 +8,10 @@ c
 c
       implicit none
 c
-      character rstfnm_ext*(*)
+      character rstfnm_ocn*(*)
 c
 #ifdef HAMOCC
-      call restart_hamoccwt(rstfnm_ext)
+      call restart_hamoccwt(rstfnm_ocn)
 #endif
 c
       return

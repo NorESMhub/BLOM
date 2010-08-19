@@ -1,4 +1,4 @@
-      subroutine restart_hamoccrd(nday1,rstfnm_ext)
+      subroutine restart_hamoccrd(nday1,rstfnm_ocn)
 c
 cka initialisation of HAMOCC      
 c
@@ -14,7 +14,7 @@ c
 #include "common_trc.h"
 c
       integer i,j,k,l,nt,nday1
-      character rstfnm_ext*(*)
+      character rstfnm_ocn*(*)
       real q
 
 #ifdef RESTART_BGC
@@ -40,7 +40,7 @@ c
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
      .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
-     .               ,runid,runid_len,rstfnm_ext,path,path_len
+     .               ,rstfnm_ocn,path,path_len
      .               ,path2,path2_len)
 c
 #else
@@ -65,7 +65,7 @@ c
      .               ,nyear,nmonth,nday,nstep1/nphys,pmonts
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
      .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
-     .               ,runid,runid_len,resfnm_ext,path,path_len
+     .               ,rstfnm_ocn,path,path_len
      .               ,path2,path2_len)
 c
 #endif

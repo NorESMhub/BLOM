@@ -2,7 +2,7 @@
      &            ,kpbe,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw    &
      &            ,kplyear,kplmonth,kplday,kpldtoce,pmonts             &
      &            ,pgila,pgiph,omask,dummy_tr,ntr,ntrbgc,itrbgc        &
-     &            ,rid,rid_len,rstfnm_ext,path,path_len,path2,path2_len)
+     &            ,rstfnm_ocn,path,path_len,path2,path2_len)
 !      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke&
 !     &           ,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw          &
 !     &           ,kplyear,kplmonth,kplday,kpldtoce,pyears,pmonts       &
@@ -100,8 +100,8 @@
       REAL :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
 !      REAL :: zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
       REAL :: pdt
-      character*(*) rid,rstfnm_ext,path,path2
-      integer rid_len,path_len,path2_len
+      character*(*) rstfnm_ocn,path,path2
+      integer path_len,path2_len
 
 ! Define io units
 
@@ -189,8 +189,8 @@
 !
       IF(kpaufr.eq.1) THEN
          CALL AUFR_BGC(kpie,kpje,kpke,pddpo,kplyear,kplmonth,   &
-     &                 kplday,kpldtoce,omask,rid,rid_len,       &
-     &                 rstfnm_ext,path2,path2_len)
+     &                 kplday,kpldtoce,omask,                   &
+     &                 rstfnm_ocn,path2,path2_len)
       ENDIF
 
 ! aufsetz! (for initialization of 14C)

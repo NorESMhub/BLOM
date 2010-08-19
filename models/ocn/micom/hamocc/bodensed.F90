@@ -113,7 +113,7 @@
 ! the following section is to include the SEDIMENT ACCELERATION
 ! mechanism to accelerate the sediment:
 
-      sedac = 1./float(isac)
+      sedac = 1./real(isac)
 
 ! determine total solid sediment thickness sumsed
 ! and reduced sediment volume

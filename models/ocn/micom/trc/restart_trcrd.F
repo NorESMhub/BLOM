@@ -1,4 +1,4 @@
-      subroutine restart_trcrd(nday1,rstfnm_ext)
+      subroutine restart_trcrd(nday1,rstfnm_ocn)
 c
 c --- ------------------------------------------------------------------
 c --- Read tracer initial conditions from restart file
@@ -8,11 +8,11 @@ c
 c
       implicit none
 c
-      character rstfnm_ext*(*)
+      character rstfnm_ocn*(*)
       integer nday1
 c
 #ifdef HAMOCC
-      call restart_hamoccrd(nday1,rstfnm_ext)
+      call restart_hamoccrd(nday1,rstfnm_ocn)
 #endif
 c
       return

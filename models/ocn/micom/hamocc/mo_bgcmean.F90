@@ -1513,8 +1513,8 @@
           DO i=1,ii
             kmax(i,j)=0
           ENDDO
-!$OMP END PARALLEL DO
         ENDDO
+!$OMP END PARALLEL DO
         DO k=1,ddm
 !$OMP PARALLEL DO
           DO j=1,jj
@@ -1570,8 +1570,8 @@
      &             depthslev_bnds(2,d))-depthslev_bnds(1,d))
               ENDDO
             ENDDO
-!$OMP END PARALLEL DO
           ENDDO
+!$OMP END PARALLEL DO
         ENDDO
         iniflg=.false.
       ENDIF

@@ -1,6 +1,6 @@
       SUBROUTINE AUFW_BGC(kpie,kpje,kpke,pddpo,pgila,pgiph,ptiestu   &
      &                    ,kplyear,kplmon,kplday,kpldtoce,omask      &
-     &                    ,rid,rid_len,rstfnm_ext,path,path_len)
+     &                    ,rstfnm_ocn,path,path_len)
 
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/aufw_bgc.f90,v $\\
 !$Revision: 1.3 $\\
@@ -88,8 +88,8 @@
       INTEGER  i,j,k,l,kmon,jj,ii,kk,kt
 
       character rstfnm*80
-      character*(*) rid,rstfnm_ext,path
-      integer rid_len,path_len
+      character*(*) rstfnm_ocn,path
+      integer path_len
       REAL omask(kpie,kpje)    
 
 #ifdef PNETCDF
@@ -107,9 +107,6 @@
 
 #endif
 
-     IF (mnproc.eq.1) THEN
-     write(io_stdo_bgc,*) path,path_len,rid
-     ENDIF
 !
 ! Check of fields written to restart file.
 !
@@ -221,12 +218,32 @@
 !
       IF(mnproc==1) THEN
 
-
 #ifdef CCSMCOUPLED
-      rstfnm=rid(1:rid_len)//'.micom.rbgc'//rstfnm_ext
+        i=1
+        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+          i=i+1
+          if (i+8.gt.len(rstfnm_ocn)) then
+            write (io_stdo_bgc,*)                                    &
+     &        'Could not generate restart file name!'
+            call xchalt('(aufr_bgc)')
+            stop '(aufr_bgc)'
+          endif
+        enddo
+        rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
 #else
-      rstfnm=rid(1:rid_len)//'_rest_b'//rstfnm_ext
+        i=1
+        do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
+          i=i+1
+          if (i+8.gt.len(rstfnm_ocn)) then
+            write (io_stdo_bgc,*)                                    &
+     &        'Could not generate restart file name!'
+            call xchalt('(aufr_bgc)')
+            stop '(aufr_bgc)'
+          endif
+        enddo
+        rstfnm=rstfnm_ocn(1:i-1)//'_rest_b_'//rstfnm_ocn(i+9:)
 #endif
+
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       ncstat = NF_CREATE(path(1:path_len)//rstfnm,NF_CLOBBER, ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN

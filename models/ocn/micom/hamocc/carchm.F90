@@ -581,7 +581,11 @@
 !        (saturation really depends on temperature/DIC/alkalinity)
 !
         DO 111 k=2,kpke
+#ifdef __c_isotopes
 !$OMP PARALLEL DO PRIVATE(supsat,undsa,dissol,r13,r14)
+#else
+!$OMP PARALLEL DO PRIVATE(supsat,undsa,dissol)
+#endif
         DO 11 j=1,kpje
         DO 11 i=1,kpie
          IF(omask(i,j).GT.0.5.and.pddpo(i,j,k).GT.1.e-12) THEN

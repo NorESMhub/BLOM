@@ -20,9 +20,9 @@ c
 c
       integer i,j,n
       character(len=80), dimension(4) :: rstdate_str
-      character(len=80) :: rstfnm,rstfnm_ext,fnm
+      character(len=80) :: rstfnm,fnm
       character(len=2) :: c2
-      character(len=5)  :: c5p,c5u,c5v,c5q
+      character(len=5) :: c5p,c5u,c5v,c5q
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv,iqq
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
@@ -92,10 +92,8 @@ c
         endif
 #endif
 c
-        rstfnm_ext=rstfnm(runid_len+9:80)
-c
         write (lp,'(a,a)')
-     .    ' saving restart file ',path2(1:path2_len)//rstfnm
+     .    ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
 c
         if (rstfmt.eq.1) then 
           call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1)
@@ -463,31 +461,30 @@ c
       call ncfcls
 c
 #ifdef ICEDYN
-      call restart_icewt(runid,runid_len,time,rstfnm_ext,
-     .                   path2,path2_len)
+      call restart_icewt(time,rstfnm,path2,path2_len)
 #endif
 c
 #ifdef TRC
-      call restart_trcwt(rstfnm_ext)
+      call restart_trcwt(rstfnm)
 #endif
 c
       if (ditflx) then
 c
 c --- - write diag. heat flux restart file
 #ifdef CCSMCOUPLED
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'.micom.rtflx'//
-     .      rstfnm_ext
+        fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
 #else
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
+        fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
 #endif
         if (mnproc.eq.1) write (lp,'(a,a)')
-     .    ' saving diag. heat flux restart file ',fnm
+     .    ' saving diag. heat flux restart file ',
+     .    trim(path2(1:path2_len)//fnm)
         if (rstfmt.eq.1) then 
-          call ncfopn(fnm,'w','6',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','6',1)
         elseif (rstfmt.eq.2) then
-          call ncfopn(fnm,'w','h',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','h',1)
         else
-          call ncfopn(fnm,'w','c',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','c',1)
         endif
 c
         if (rstcmp) then 
@@ -510,19 +507,19 @@ c
 c
 c --- - write diag. salt flux restart file
 #ifdef CCSMCOUPLED
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'.micom.rsflx'//
-     .      rstfnm_ext
+        fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
 #else
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
+        fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
 #endif
         if (mnproc.eq.1) write (lp,'(a,a)')
-     .    ' saving diag. salt flux restart file ',fnm
+     .    ' saving diag. salt flux restart file ',
+     .    path2(1:path2_len)//trim(fnm)
         if (rstfmt.eq.1) then 
-          call ncfopn(fnm,'w','6',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','6',1)
         elseif (rstfmt.eq.2) then
-          call ncfopn(fnm,'w','h',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','h',1)
         else
-          call ncfopn(fnm,'w','c',1)
+          call ncfopn(path2(1:path2_len)//fnm,'w','c',1)
         endif
 c
         if (rstcmp) then 

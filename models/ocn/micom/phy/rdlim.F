@@ -178,12 +178,30 @@ c --- convert integer dates
       nmonth0=abs(idate0)/100-abs(nyear0)*100
       nday0=abs(idate0)-abs(nyear0)*10000-nmonth0*100
 c
-c --- add ":" to strings
-      runid=trim(runid)//':'
-      path=trim(path)//':'
-      path1=trim(path1)//':'
-      path2=trim(path2)//':'
-      atm_path=trim(atm_path)//':'
+c --- set path lengths
+      path_len=1
+      do while (path_len.lt.80.and.path(path_len:path_len).ne.' ')
+        path_len=path_len+1
+      enddo
+      path_len=path_len-1
+      path1_len=1
+      do while (path1_len.lt.80.and.path1(path1_len:path1_len).ne.' ')
+        path1_len=path1_len+1
+      enddo
+      path1_len=path1_len-1
+      path2_len=1
+      do while (path2_len.lt.80.and.path2(path2_len:path2_len).ne.' ')
+        path2_len=path2_len+1
+      enddo
+      path2_len=path2_len-1
+#ifdef SYN
+      atm_path_len=1
+      do while (atm_path_len.lt.80.and.
+     .          atm_path(atm_path_len:atm_path_len).ne.' ')
+        atm_path_len=atm_path_len+1
+      enddo
+      atm_path_len=atm_path_len-1
+#endif
 c
 #ifdef CCSMCOUPLED
 c --- override some information read from the micom namelist with
@@ -221,6 +239,13 @@ c --- pointer if it exists
         endif
       endif
 #endif
+c
+c --- set experiment id length
+      runid_len=1
+      do while (runid_len.lt.80.and.runid(runid_len:runid_len).ne.' ')
+        runid_len=runid_len+1
+      enddo
+      runid_len=runid_len-1
 c
       if (nday1.lt.0.or.nday2.lt.0) then
         if (mnproc.eq.1) then
@@ -284,91 +309,6 @@ c
         call xcstop('(rdlim)')
                stop '(rdlim)'
       endif
-c
-c --- trim the experiment id and paths
-#ifndef CCSMCOUPLED
-      n=1
-      do while (runid(n:n).ne.':')
-        n=n+1
-        if (n.gt.80) then
-          if (mnproc.eq.1) then
-            write (lp,'(2a)') 'Place a colon after the end of useable ',
-     .        'characters in runid!'
-          endif
-          call xcstop('(rdlim)')
-                 stop '(rdlim)'
-        endif
-      enddo
-      do m=n,80
-        runid(m:m)=' '
-      enddo
-#endif
-c
-      n=1
-      do while (path(n:n).ne.':')
-        n=n+1
-        if (n.gt.80) then
-          if (mnproc.eq.1) then
-            write (lp,'(2a)') 'Place a colon after the end of useable ',
-     .        'characters in path!'
-          endif
-          call xcstop('(rdlim)')
-                 stop '(rdlim)'
-        endif
-      enddo
-      do m=n,80
-        path(m:m)=' '
-      enddo
-c
-      n=1
-      do while (path1(n:n).ne.':')
-        n=n+1
-        if (n.gt.80) then
-          if (mnproc.eq.1) then
-            write (lp,'(2a)') 'Place a colon after the end of useable ',
-     .        'characters in path1!'
-          endif
-          call xcstop('(rdlim)')
-                 stop '(rdlim)'
-        endif
-      enddo
-      do m=n,80
-        path1(m:m)=' '
-      enddo
-c
-      n=1
-      do while (path2(n:n).ne.':')
-        n=n+1
-        if (n.gt.80) then
-          if (mnproc.eq.1) then
-            write (lp,'(2a)') 'Place a colon after the end of useable ',
-     .        'characters in path2!'
-          endif
-          call xcstop('(rdlim)')
-                 stop '(rdlim)'
-        endif
-      enddo
-      do m=n,80
-        path2(m:m)=' '
-      enddo
-#ifdef SYN
-c
-      n=1
-      do while (atm_path(n:n).ne.':')
-        n=n+1
-        if (n.gt.80) then
-          if (mnproc.eq.1) then
-            write (lp,'(2a)') 'Place a colon after the end of useable ',
-     .        'characters in atm_path!'
-          endif
-          call xcstop('(rdlim)')
-                 stop '(rdlim)'
-        endif
-      enddo
-      do m=n,80
-        atm_path(m:m)=' '
-      enddo
-#endif
 c
 c --- get time steps in a day
       nstep_in_day=nint(86400./baclin)
@@ -465,36 +405,6 @@ c --- updates
 #  elif defined(SYN)
       nfrco=1             ! every time step with synoptic forcing
 #  endif
-#endif
-c
-c --- set experiment id and path lengths
-      runid_len=1
-      do while (runid_len.lt.80.and.runid(runid_len:runid_len).ne.' ')
-        runid_len=runid_len+1
-      enddo
-      runid_len=runid_len-1
-      path_len=1
-      do while (path_len.lt.80.and.path(path_len:path_len).ne.' ')
-        path_len=path_len+1
-      enddo
-      path_len=path_len-1
-      path1_len=1
-      do while (path1_len.lt.80.and.path1(path1_len:path1_len).ne.' ')
-        path1_len=path1_len+1
-      enddo
-      path1_len=path1_len-1
-      path2_len=1
-      do while (path2_len.lt.80.and.path2(path2_len:path2_len).ne.' ')
-        path2_len=path2_len+1
-      enddo
-      path2_len=path2_len-1
-#ifdef SYN
-      atm_path_len=1
-      do while (atm_path_len.lt.80.and.
-     .          atm_path(atm_path_len:atm_path_len).ne.' ')
-        atm_path_len=atm_path_len+1
-      enddo
-      atm_path_len=atm_path_len-1
 #endif
 c
 c --- model is to be integrated from time step 'nstep1' to 'nstep2'

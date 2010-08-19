@@ -43,7 +43,7 @@ c
 c     .               ,plon,plat,omask,ocetra,nocetra,th3d
      .               ,pgila,pgiph,omask,trc,ntr,ntrbgc,itrbgc
 c     .               ,bgc_slvl,bgc_hsnw,bgc_hice
-     .               ,runid,runid_len,cdummy,path,path_len
+     .               ,cdummy,path,path_len
      .               ,path2,path2_len)
 c
 #ifdef DIFFAT

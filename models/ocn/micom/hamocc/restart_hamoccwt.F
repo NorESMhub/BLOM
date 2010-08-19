@@ -1,4 +1,4 @@
-      subroutine restart_hamoccwt(rstfnm_ext)
+      subroutine restart_hamoccwt(rstfnm_ocn)
 c
 cka write restart for HAMOCC      
 c
@@ -14,11 +14,11 @@ c
 #include "common_trc.h"
 c
       integer nt
-      character rstfnm_ext*(*)
+      character rstfnm_ocn*(*)
 
       CALL AUFW_BGC(idm,jdm,kdm,bgc_dp,pgila,pgiph,bgc_pu            
      .             ,nyear,nmonth,nday,nstep/nphys,omask
-     .             ,runid,runid_len,rstfnm_ext,path2,path2_len)
+     .             ,rstfnm_ocn,path2,path2_len)
 c
       return
       end

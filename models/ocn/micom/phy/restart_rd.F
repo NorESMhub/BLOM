@@ -22,7 +22,8 @@ c
 c
       real rtmp
       integer i,j,n,ndayr,nmonthr,nyearr
-      character rstfnm*80,rstfnm_ext*80,fnm*80,c2*2
+      character(len=80) :: rstfnm,fnm
+      character(len=2) :: c2
 c
       integer daydif
       external daydif
@@ -115,9 +116,7 @@ c --- -   <experiment name>_restphy_3.nc
           endif 
         endif 
 c
-        rstfnm_ext=rstfnm(runid_len+9:80)
-c
-        write (lp,'(2a)') ' reading restart file ',rstfnm
+        write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
 c
       endif
 c
@@ -435,26 +434,30 @@ c
       call settemmin
 c
 #ifdef ICEDYN
-      call restart_icerd(runid,runid_len,nday1,rstfnm_ext,
-     .                   path2,path2_len)
+      call restart_icerd(nday1,rstfnm,path2,path2_len)
 #endif
 c
 #ifdef TRC
-      call restart_trcrd(nday1,rstfnm_ext)
+      call restart_trcrd(nday1,rstfnm)
 #endif
 c
       if (ditflx) then
 c
 c --- - read diag. heat flux restart file if available
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'_tflx'//rstfnm_ext
-        inquire(file=fnm,exist=fexist)
+#ifdef CCSMCOUPLED
+        fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+#else
+        fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
+#endif
+        inquire(file=path2(1:path2_len)//fnm,exist=fexist)
         rfexist=0.
         if (mnproc.eq.1.and.fexist) rfexist=1.
         call xcmaxr(rfexist)
         if (rfexist.gt.0.5) then
-          call ncfopn(fnm,'r',' ',1)
+          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
           if (mnproc.eq.1) write (lp,'(a,a)')
-     .      ' reading diag. heat flux restart file ',fnm
+     .      ' reading diag. heat flux restart file ',
+     .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
@@ -478,15 +481,20 @@ c
       if (disflx) then
 c
 c --- - read diag. salt flux restart file if available
-        fnm=path2(1:path2_len)//runid(1:runid_len)//'_sflx'//rstfnm_ext
-        inquire(file=fnm,exist=fexist)
+#ifdef CCSMCOUPLED
+        fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+#else
+        fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
+#endif
+        inquire(file=path2(1:path2_len)//fnm,exist=fexist)
         rfexist=0.
         if (mnproc.eq.1.and.fexist) rfexist=1.
         call xcmaxr(rfexist)
         if (rfexist.gt.0.5) then
-          call ncfopn(fnm,'r',' ',1)
+          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
           if (mnproc.eq.1) write (lp,'(a,a)')
-     .      ' reading diag. salt flux restart file ',fnm
+     .      ' reading diag. salt flux restart file ',
+     .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
