@@ -1033,7 +1033,7 @@
           CALL nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs)
         ELSE
-          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
      &      sfac,offs)
         ENDIF
       ELSEIF (frmt.EQ.4) THEN
@@ -1041,7 +1041,7 @@
           CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,4)
         ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
      &      sfac,offs,4)
         ENDIF
       ELSEIF (frmt.EQ.8) THEN
@@ -1049,7 +1049,7 @@
           CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,8)
         ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
      &      sfac,offs,8)
         ENDIF
       ELSE

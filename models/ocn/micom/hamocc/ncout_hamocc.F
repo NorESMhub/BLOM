@@ -5,7 +5,7 @@ c --- output routine for HAMOCC diagnostic fields
 c --- -------------------------------------------
 c
       use mod_xc
-      use mod_dia, only : diafnm
+      use mod_dia, only : diafnm,sigmar1
       use mo_control_bgc, only : dtbgc
       use mo_bgcmean
 c      
@@ -83,8 +83,21 @@ c --- define spatial and time dimensions
       call ncdims('sigma',kdm)
       call ncdims('depth',ddm)
       call ncdims('ks',ks)
+      call ncdims('bounds',2)
       call nctime(datenum,calendar,timeunits,startdate)
-
+c
+c --- write auxillary dimension information 
+      call ncwrt1('sigma','sigma',sigmar1)
+      call ncattr('long_name','Potential density')
+      call ncattr('standard_name','sea_water_sigma_theta')
+      call ncattr('units','kg m-3')
+      call ncattr('positive','down')
+      call ncwrt1('depth','depth',depthslev)
+      call ncattr('long_name','z level')
+      call ncattr('units','m')
+      call ncattr('positive','down')
+      call ncattr('bounds','depth_bnds')
+      call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
