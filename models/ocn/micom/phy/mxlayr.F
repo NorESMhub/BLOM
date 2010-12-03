@@ -18,9 +18,10 @@ c
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
       real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,tfsl,
-     .     sfsl,dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,tup,sup,
-     .     dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
-     .     sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,udpn
+     .     sfsl,dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,
+     .     sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,
+     .     sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
+     .     udpn
       integer i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
 c
 #ifdef TRC
@@ -152,9 +153,10 @@ c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
 c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
 c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,tfsl,sfsl,
-c$OMP+ dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,tup,sup,dsgdt,dsgds,
-c$OMP+ bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,sigfsl,tmxl0,
-c$OMP+ smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,k,kn,kfpl,nitr,kmax,kfmax
+c$OMP+ dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,dup,
+c$OMP+ dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
+c$OMP+ sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
+c$OMP+ k,kn,kfpl,nitr,kmax,kfmax
 #ifdef TRC
 c$OMP+,ttrc,trfsl,trdps
 #endif
@@ -339,7 +341,7 @@ c --- ----- Apply brine forcing to the water column below surface layer
             if (brnflx(i,j).lt.0.) then
               if (kfpl.gt.kmax) then
                 if (dpfsl.gt.onemu) then
-                  bpmldp=min(bpmndp,pres(3)-(pmxl-delp(2)))
+                  bpmldp=min(bpmndp,dpfsl+delp(2))
                   q=brnflx(i,j)*delt1*g/bpmldp
                   ssal(2)=ssal(2)-q*max(0.,bpmldp-dpfsl)/delp(2)
                   sfsl=sfsl-q*min(dpfsl,bpmldp)/dpfsl
@@ -371,45 +373,70 @@ c --- ----- Apply brine forcing to the water column below surface layer
                 pbrnda(i,j)=pbrnd
                 k=kfpl
                 bcwsum=0.
+                bdpsum=0.
                 tup=tfsl
                 sup=sfsl
+                dup=sig(tfsl,sfsl)
                 do while (k.lt.kmax.and.pres(k+1).lt.pbrnd)
+                  if (k.eq.kfpl.or.dup.lt.densr(k)) then
+                    dsgdt=dsigdt(ttem(k),ssal(k))
+                    dsgds=dsigds(ttem(k),ssal(k))
+                    bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
+     .                        dsgdt*(ttem(k)-tup)
+     .                       +dsgds*(ssal(k)-sup))
+     .                    /(dsgds*max(bpdpmn,delp(k)))
+                    bcwsum=bcwsum+bc(k)*delp(k)
+                    bdpsum=bdpsum+delp(k)
+                  else
+                    bc(k)=0.
+                  endif
+                  tup=ttem(k)
+                  sup=ssal(k)
+                  dup=dens(k)
+                  k=k+1
+                enddo
+                if (k.eq.kfpl.or.dup.lt.densr(k)) then
                   dsgdt=dsigdt(ttem(k),ssal(k))
                   dsgds=dsigds(ttem(k),ssal(k))
                   bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
      .                      dsgdt*(ttem(k)-tup)
      .                     +dsgds*(ssal(k)-sup))
-     .                  /(dsgds*max(bpdpmn,delp(k)))
+     .                  *max(bpdpmn,pbrnd-pres(k))
+     .                  /(dsgds*max(bpdpmn,delp(k))**2)
                   bcwsum=bcwsum+bc(k)*delp(k)
-                  tup=ttem(k)
-                  sup=ssal(k)
-                  k=k+1
-                enddo
-                dsgdt=dsigdt(ttem(k),ssal(k))
-                dsgds=dsigds(ttem(k),ssal(k))
-                bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
-     .                    dsgdt*(ttem(k)-tup)
-     .                   +dsgds*(ssal(k)-sup))
-     .                *max(bpdpmn,pbrnd-pres(k))
-     .                /(dsgds*max(bpdpmn,delp(k))**2)
-                bcwsum=bcwsum+bc(k)*delp(k)
+                  bdpsum=bdpsum+delp(k)
+                else
+                  bc(k)=0.
+                endif
                 kfmax=k
-                bpmldp=min(bpmndp,pbrnd-(pmxl-delp(2)))
-                if (pbrnd-pres(3).lt.bpmldp) then
-                  q=brnflx(i,j)*delt1*g/bpmldp
-                  ssal(2)=ssal(2)-q*max(0.,pmxl-(pbrnd-bpmldp))/delp(2)
+                if (bdpsum.le.epsil) then
                   if (dpfsl.gt.onemu) then
-                    sfsl=sfsl-q*min(dpfsl,pres(3)-(pbrnd-bpmldp))/dpfsl
-                    bpc=q*(pbrnd-pres(3))/bcwsum
+                    bpmldp=min(bpmndp,dpfsl+delp(2))
+                    q=brnflx(i,j)*delt1*g/bpmldp
+                    ssal(2)=ssal(2)-q*max(0.,bpmldp-dpfsl)/delp(2)
+                    sfsl=sfsl-q*min(dpfsl,bpmldp)/dpfsl
                   else
-                    bpc=q*(pbrnd-pmxl)/bcwsum
+                    ssal(2)=ssal(2)-brnflx(i,j)*delt1*g/delp(2)
                   endif
                 else
-                  bpc=brnflx(i,j)*delt1*g/bcwsum
+                  if (bdpsum.lt.bpmndp) then
+                    bpmldp=min(bpmndp,bdpsum+dpfsl+delp(2))
+                    q=brnflx(i,j)*delt1*g/bpmldp
+                    ssal(2)=ssal(2)
+     .                     -q*max(0.,bpmldp-bdpsum-dpfsl)/delp(2)
+                    if (dpfsl.gt.onemu) then
+                      sfsl=sfsl-q*min(dpfsl,bpmldp-bdpsum)/dpfsl
+                      bpc=q*bdpsum/bcwsum
+                    else
+                      bpc=q*(bdpsum+dpfsl)/bcwsum
+                    endif
+                  else
+                    bpc=brnflx(i,j)*delt1*g/bcwsum
+                  endif
+                  do k=kfpl,kfmax
+                    ssal(k)=ssal(k)-bpc*bc(k)
+                  enddo
                 endif
-                do k=kfpl,kfmax
-                  ssal(k)=ssal(k)-bpc*bc(k)
-                enddo
               endif
             endif
 c
@@ -812,7 +839,7 @@ c
               if (delp(k).gt.epsil) kmax=k
             enddo
             kfmax=0
-
+c
 c --- ----- Apply brine forcing to the water column below surface layer
             pbrnda(i,j)=0.
             if (brnflx(i,j).lt.0.) then
@@ -843,40 +870,57 @@ c --- ----- Apply brine forcing to the water column below surface layer
                 pbrnda(i,j)=pbrnd
                 k=kfpl
                 bcwsum=0.
+                bdpsum=0.
                 tup=ttem(2)
                 sup=ssal(2)
+                dup=sig(ttem(2),ssal(2))
                 do while (k.lt.kmax.and.pres(k+1).lt.pbrnd)
+                  if (k.eq.kfpl.or.dup.lt.densr(k)) then
+                    dsgdt=dsigdt(ttem(k),ssal(k))
+                    dsgds=dsigds(ttem(k),ssal(k))
+                    bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
+     .                        dsgdt*(ttem(k)-tup)
+     .                       +dsgds*(ssal(k)-sup))
+     .                    /(dsgds*max(bpdpmn,delp(k)))
+                    bcwsum=bcwsum+bc(k)*delp(k)
+                    bdpsum=bdpsum+delp(k)
+                  else
+                    bc(k)=0.
+                  endif
+                  tup=ttem(k)
+                  sup=ssal(k)
+                  dup=dens(k)
+                  k=k+1
+                enddo
+                if (k.eq.kfpl.or.dup.lt.densr(k)) then
                   dsgdt=dsigdt(ttem(k),ssal(k))
                   dsgds=dsigds(ttem(k),ssal(k))
                   bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
      .                      dsgdt*(ttem(k)-tup)
      .                     +dsgds*(ssal(k)-sup))
-     .                  /(dsgds*max(bpdpmn,delp(k)))
+     .                  *max(bpdpmn,pbrnd-pres(k))
+     .                  /(dsgds*max(bpdpmn,delp(k))**2)
                   bcwsum=bcwsum+bc(k)*delp(k)
-                  tup=ttem(k)
-                  sup=ssal(k)
-                  k=k+1
-                enddo
-                dsgdt=dsigdt(ttem(k),ssal(k))
-                dsgds=dsigds(ttem(k),ssal(k))
-                bc(k)=max(dsgmnr*(densr(k)-densr(k-1)),
-     .                    dsgdt*(ttem(k)-tup)
-     .                   +dsgds*(ssal(k)-sup))
-     .                *max(bpdpmn,pbrnd-pres(k))
-     .                /(dsgds*max(bpdpmn,delp(k))**2)
-                bcwsum=bcwsum+bc(k)*delp(k)
-                kfmax=k
-                bpmldp=min(bpmndp,pbrnd-(pres(3)-delp(2)))
-                if (pbrnd-pres(3).lt.bpmldp) then
-                  q=brnflx(i,j)*delt1*g/bpmldp
-                  ssal(2)=ssal(2)-q*(pres(3)-(pbrnd-bpmldp))/delp(2)
-                  bpc=q*(pbrnd-pres(3))/bcwsum
+                  bdpsum=bdpsum+delp(k)
                 else
-                  bpc=brnflx(i,j)*delt1*g/bcwsum
+                  bc(k)=0.
                 endif
-                do k=kfpl,kfmax
-                  ssal(k)=ssal(k)-bpc*bc(k)
-                enddo
+                kfmax=k
+                if (bdpsum.le.epsil) then
+                  ssal(2)=ssal(2)-brnflx(i,j)*delt1*g/delp(2)
+                else
+                  if (bdpsum.lt.bpmndp) then
+                    bpmldp=min(bpmndp,bdpsum+delp(2))
+                    q=brnflx(i,j)*delt1*g/bpmldp
+                    ssal(2)=ssal(2)-q*(bpmldp-bdpsum)/delp(2)
+                    bpc=q*bdpsum/bcwsum
+                  else
+                    bpc=brnflx(i,j)*delt1*g/bcwsum
+                  endif
+                  do k=kfpl,kfmax
+                    ssal(k)=ssal(k)-bpc*bc(k)
+                  enddo
+                endif
               endif
             endif
 c

@@ -36,7 +36,7 @@ c --- 2d and 3d diagnostic variables
 c
 c --- Levitus levels 
 #ifndef LEVITUS2X 
-      integer, parameter :: ddm=35
+      integer, parameter :: ddm=35,k350=12,w350=1.  
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0010.0,0020.0,0030.0,0050.0,0075.0,0100.0,0125.0,0150.0, 
      .  0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0, 
@@ -53,7 +53,7 @@ c --- Levitus levels
      .  2750.0,3250.0,3250.0,3750.0,3750.0,4250.0,4250.0,4750.0,4750.0,
      .  5250.0,5250.0,5750.0,5750.0,6250.0,6250.0,8000.0/),(/2,ddm/))
 #else 
-      integer, parameter :: ddm=70
+      integer, parameter :: ddm=70,k350=25,w350=0.5
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0005.0,0010.0,0015.0,0020.0,0025.0,0030.0,0040.0,0050.0, 
      .  0062.5,0075.0,0087.5,0100.0,0112.5,0125.0,0137.5,0150.0,0175.0, 
@@ -281,9 +281,10 @@ c
 #include "param_trc.h"
 #endif
 c
-      integer :: i,j,k,l,n,istat,istatsum
+      integer :: i,j,k,l,n,istat,istatsum,i1,j1,ncid,rhid
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
-      logical fexist
+      logical fexist,lsigmar1
+      real, dimension (itdm,jtdm) :: tmp2d
 c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
@@ -334,7 +335,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_IVOLV(n)    = SRF_VICE(n)
         ACC_LIP(n)      = SRF_LIP(n)
         ACC_MAXMLD(n)   = SRF_MAXMLD(n)
-        ACC_MLD(n)      = SRF_MLD(n)
+        ACC_MLD(n)      = SRF_MLD(n)    + MSC_MMFLXL(n)
         ACC_MLDU(n)     = SRF_MLDU(n)   + SRF_MXLU(n)
         ACC_MLDV(n)     = SRF_MLDV(n)   + SRF_MXLV(n)
         ACC_MTY(n)      = SRF_MTY(n)
@@ -347,7 +348,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_SALFLX(n)   = SRF_SALFLX(n)
         ACC_SEALV(n)    = SRF_SEALV(n)
         ACC_SFL(n)      = SRF_SFL(n)
-        ACC_SIGMX(n)    = SRF_SIGMX(n)
+        ACC_SIGMX(n)    = SRF_SIGMX(n)  + MSC_MMFLXL(n)   
         ACC_SOP(n)      = SRF_SOP(n)
         ACC_SSS(n)      = SRF_SSS(n)
         ACC_SST(n)      = SRF_SST(n)
@@ -414,7 +415,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LYR_WFLX2(n)
         ACC_MHFLX(n)    = MSC_MHFLX(n)
         ACC_MSFLX(n)    = MSC_MSFLX(n)
-        ACC_MMFLXL(n)   = MSC_MMFLXL(n)
+        ACC_MMFLXL(n)   = MSC_MMFLXL(n) 
         ACC_MMFLXD(n)   = MSC_MMFLXD(n)
         ACC_VOLTR(n)    = MSC_VOLTR(n)
 c
@@ -682,6 +683,34 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+c --- Extract reference density and convert units g cm-3 -> kg m-3
+      sigmar1=-99.
+      if (mnproc.eq.1) then
+        call ncerro(nf90_open(path(1:path_len)//'inicon.nc',
+     .    nf90_nowrite,ncid))
+        call ncerro(nf90_inq_varid(ncid,'sigma',rhid))
+c --- - Read surface density and find first ocean grid cell
+        call ncerro(nf90_get_var(ncid,rhid,tmp2d,start=(/1,1,1/),
+     .    count=(/itdm,jtdm,1/)))
+        lsigmar1=.false.
+        do j=1,jtdm
+          do i=1,itdm
+            if (tmp2d(i,j).gt.0) then
+              i1=i
+              j1=j 
+              lsigmar1=.true.
+              exit
+            endif
+          enddo
+          if (lsigmar1) exit
+        enddo
+c --- - Read density vector and close ini-file
+        call ncerro(nf90_get_var(ncid,rhid,sigmar1,start=(/i1,j1,1/),
+     .    count=(/1,1,kk/)))
+        call ncerro(nf90_close(ncid))
+        write(lp,*) 'sigma layers=',sigmar1 
+      endif
 c
       end
 
@@ -1202,8 +1231,7 @@ c
 c 
 c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MHFLX(iogrp)+
-     .  ACC_MSFLX(iogrp).ne.0)
-     .  call diamer(iogrp)
+     .  ACC_MSFLX(iogrp).ne.0)   call diamer(iogrp)
       if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp)
 c
 c --- finalize accumulation of 2d fields
@@ -1369,39 +1397,41 @@ c
       call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
-      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MHFLX(iogrp)+
-     .  MSC_MSFLX(iogrp)+MSC_VOLTR(iogrp).ne.0) then 
-        call ncwrt1('lat','lat',mtlat)  
-        call ncattr('long_name','Latitude')
-        call ncattr('standard_name','latitude')
-        call ncattr('units','degree_north')
-      endif 
-      if (MSC_MMFLXL(iogrp).ne.0) then 
-        call ncwrt1('sigma','sigma',sigmar1)
-        call ncattr('long_name','Potential density')
-        call ncattr('standard_name','sea_water_sigma_theta')
-        call ncattr('units','kg m-3')
-        call ncattr('positive','down')
-      endif 
-      if (MSC_MMFLXD(iogrp).ne.0) then 
-        call ncwrt1('depth','depth',depthslev)
-        call ncattr('long_name','z level')
-        call ncattr('units','m')
-        call ncattr('positive','down')
-        call ncattr('bounds','depth_bnds')
-        call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
-      endif 
-      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp).ne.0) then
-        region_name(1)='atlantic_arctic_ocean'
-        region_name(2)='indian_pacific_ocean'
-        region_name(3)='global_ocean'
-        call ncwrtc('region','slenmax region',region_name)  
-        call ncattr('long_name','Region name') 
+      if (irec(iogrp).eq.1) then
+        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MHFLX(iogrp)+
+     .    MSC_MSFLX(iogrp)+MSC_VOLTR(iogrp).ne.0) then 
+          call ncwrt1('lat','lat',mtlat)  
+          call ncattr('long_name','Latitude')
+          call ncattr('standard_name','latitude')
+          call ncattr('units','degree_north')
+        endif 
+        if (MSC_MMFLXL(iogrp).ne.0) then 
+          call ncwrt1('sigma','sigma',sigmar1)
+          call ncattr('long_name','Potential density')
+          call ncattr('standard_name','sea_water_sigma_theta')
+          call ncattr('units','kg m-3')
+          call ncattr('positive','down')
+        endif 
+        if (MSC_MMFLXD(iogrp).ne.0) then 
+          call ncwrt1('depth','depth',depthslev)
+          call ncattr('long_name','z level')
+          call ncattr('units','m')
+          call ncattr('positive','down')
+          call ncattr('bounds','depth_bnds')
+          call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
+        endif 
+        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp).ne.0) then
+          region_name(1)='atlantic_arctic_ocean'
+          region_name(2)='indian_pacific_ocean'
+          region_name(3)='global_ocean'
+          call ncwrtc('region','slenmax region',region_name)  
+          call ncattr('long_name','Region name') 
+        endif
+        if (MSC_MHFLX(iogrp)+MSC_MSFLX(iogrp).ne.0) then 
+          call ncwrtc('section','slenmax section',sec_name)
+          call ncattr('long_name','Section name') 
+        endif 
       endif
-      if (MSC_MHFLX(iogrp)+MSC_MSFLX(iogrp).ne.0) then 
-        call ncwrtc('section','slenmax section',sec_name)
-        call ncattr('long_name','Section name') 
-      endif 
 c
 c --- write 2d fields
       call wrtsrf(ACC_SIGMX(iogrp),SRF_SIGMX(iogrp),rnacc*1e3,
@@ -1972,15 +2002,28 @@ c$OMP PARALLEL DO
           enddo
 c
 c --- -- the upper 350 m  for equatorial_undercurrent
-          if (k.eq.12) then
+          if (k.eq.k350-1) then
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                uflx_cum350(i,j)= uflx_cum(i,j)
+                uflx_cum350(i,j)=uflx_cum(i,j)
               enddo
             enddo
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                vflx_cum350(i,j)= vflx_cum(i,j)
+                vflx_cum350(i,j)=vflx_cum(i,j)
+              enddo
+            enddo
+          elseif (k.eq.k350) then 
+            do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                uflx_cum350(i,j)=uflx_cum350(i,j)+
+     .            w350*(uflx_cum(i,j)-uflx_cum350(i,j))
+              enddo
+            enddo
+            do l=1,isv(j)
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vflx_cum350(i,j)=vflx_cum350(i,j)+
+     .            w350*(vflx_cum(i,j)-vflx_cum350(i,j))
               enddo
             enddo
           endif
@@ -2032,7 +2075,8 @@ c
       integer :: iogrp
 c 
       integer :: i,j,k,l,o,s,iostatus,iind1,jind1,uflg1,vflg1,nind1,
-     .  nind(ldm),iind(sdm,ldm),jind(sdm,ldm),kmax(ldm,odm)
+     .  nind(ldm),iind(sdm,ldm),jind(sdm,ldm),kmax(ldm,odm),
+     .  kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
       integer(kind=2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
 c
       real :: r,mmflx_last(ldm,odm)
@@ -2043,9 +2087,9 @@ c
 c
       character :: c20*20
 c
-      logical :: iniflg=.true.,lsigmar1=.false.
+      logical :: iniflg=.true.
 c
-      save nind,iind,jind,oflg,uflg,vflg,kmax,depthst,iniflg,lsigmar1
+      save nind,iind,jind,oflg,uflg,vflg,kmax,depthst,iniflg
 c
       if (iniflg.and.mnproc.eq.1) then
 c
@@ -2117,21 +2161,6 @@ c --- - Read section file metraindex.dat
           endif
         enddo
         close(nfu)
-c
-c --- - Extract reference density and convert units g cm-3 -> kg m-3
-        do j=1,jj
-          do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-               do k=1,kdm
-                 sigmar1(k)=1e3*sigmar(i,j,k)
-               enddo  
-               lsigmar1=.true.
-               exit
-            enddo
-            if (lsigmar1) exit 
-          enddo 
-          if (lsigmar1) exit 
-        enddo
 c
       end if
 c
@@ -2214,13 +2243,13 @@ c --- --- Mask Southern Ocean for Atlantic region
       endif
 c
 c --- Compute overturning stream function at isopycnic layer interfaces
-      if (mnproc.eq.1) then
-        do o=1,odm
-          do l=1,lmax
-            mmflx_last(l,o)=0.
-          enddo
+c$OMP PARALLEL DO
+      do o=1,odm
+        do l=1,lmax
+          mmflx_last(l,o)=0.
         enddo
-      endif 
+      enddo
+c$OMP END PARALLEL DO
 c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isu(j)
@@ -2235,20 +2264,69 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
+      r=1./real(nacc_phy(iogrp))
+      kmxl=0
+c$OMP PARALLEL DO PRIVATE(k)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          k=1
+          do while (physrf(i,j,ACC_SIGMX(IOGRP))*r.ge.sigmar(i,j,k))
+            k=k+1
+            if (k.eq.kk) exit
+          enddo
+          kmxl(i,j)=k
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          util1(i,j)=kmxl(i,j)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+      call xctilr(util1, 1,1, 1,1, halo_ps)
+c$OMP PARALLEL DO
+      do j=0,jj+1
+        do l=1,isp(j)
+        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+          kmxl(i,j)=nint(util1(i,j))
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
       r=0.5e-3/(g*baclin*nacc_phy(iogrp))
       do k=1,kk
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-              umflx_cum(i,j)=umflx_cum(i,j)+
-     .          r*phylyr(i,j,k,ACC_UFLX(iogrp))
+              if (k.gt.2) then
+                umflx_cum(i,j)=umflx_cum(i,j)+
+     .            r*phylyr(i,j,k,ACC_UFLX(iogrp))
+              endif
+              if (k.eq.min(kmxl(i-1,j),kmxl(i,j))) then
+                umflx_cum(i,j)=umflx_cum(i,j)+
+     .            r*(phylyr(i,j,1,ACC_UFLX(iogrp))
+     .              +phylyr(i,j,2,ACC_UFLX(iogrp)))
+              endif
             enddo
           enddo
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vmflx_cum(i,j)=vmflx_cum(i,j)+
-     .          r*phylyr(i,j,k,ACC_VFLX(iogrp))
+              if (k.gt.2) then
+                vmflx_cum(i,j)=vmflx_cum(i,j)+
+     .            r*phylyr(i,j,k,ACC_VFLX(iogrp))
+              endif
+              if (k.eq.min(kmxl(i,j-1),kmxl(i,j))) then
+                vmflx_cum(i,j)=vmflx_cum(i,j)+
+     .            r*(phylyr(i,j,1,ACC_VFLX(iogrp))
+     .              +phylyr(i,j,2,ACC_VFLX(iogrp)))
+              endif
             enddo
           enddo
         enddo
@@ -2272,13 +2350,14 @@ c$OMP END PARALLEL DO
             enddo
 c --- --- - Set land to fill value
             do o=1,odm
-              if (abs(mmflxl(l,k,o)-mmflx_last(l,o)).lt.1e5*epsil) then 
+              if (abs(mmflxl(l,k,o)-mmflx_last(l,o)).lt.1e5*epsil) then
                 mmflx_last(l,o)=mmflxl(l,k,o)
                 mmflxl(l,k,o)=nf90_fill_double
               else
                 mmflx_last(l,o)=mmflxl(l,k,o)
               endif
             enddo
+c
 c --- --- - Mask Southern Ocean  
             if (mtlat(l).lt.-34.) then
               mmflxl(l,k,1)=nf90_fill_double 
