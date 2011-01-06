@@ -976,7 +976,7 @@ c
 c --- absolute wind speed [m s-1]
       call accsrf(ACC_ABSWND,abswnd,dummy,0,'p')
 c
-c --- sea surface salinity [psu]
+c --- sea surface salinity [g kg-1]
       call accsrf(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
 c --- sea surface temperature [degC]
@@ -1010,10 +1010,10 @@ c
 c --- u-component of mass flux [g*cm/s^2]
       call acclyr(ACC_UFLX,uflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
-c --- u-component of heat flux [???]
+c --- u-component of heat flux [K*g*cm/s^2]
       call acclyr(ACC_UTFLX,utflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
-c --- u-component of salt flux [kg m-2 s-1]
+c --- u-component of salt flux [g^2*cm/kg/s^2]
       call acclyr(ACC_USFLX,usflx(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
 c --- weighted v-component of total velocity [g/s^3]
@@ -1025,17 +1025,17 @@ c
 c --- v-component of mass flux [g*cm/s^2]
       call acclyr(ACC_VFLX,vflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
-c --- v-component of heat flux [???]
+c --- v-component of heat flux [K*g*cm/s^2]
       call acclyr(ACC_VTFLX,vtflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
-c --- u-component of salt flux [kg m-2 s-1]
+c --- u-component of salt flux [g^2*cm/kg/s^2]
       call acclyr(ACC_VSFLX,vsflx(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
-c --- weighted salinity [psu*g/cm/s^2]
+c --- weighted salinity [g^2/kg/cm/s^2]
       call acclyr(ACC_SALN,saln(1-nbdy,1-nbdy,k1m),
      .  dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- weighted temperature [(deg C)*g/cm/s^2]
+c --- weighted temperature [degC*g/cm/s^2]
       call acclyr(ACC_TEMP,temp(1-nbdy,1-nbdy,k1m),
      .  dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
@@ -1096,11 +1096,11 @@ c --- --- u-component of mass flux [g*cm/s^2]
           call acclvl(ACC_UFLXLVL,uflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
      .      ind2,wghtsflx)
 c
-c --- --- u-component of heat flux [???]
+c --- --- u-component of heat flux [K*g*cm/s^2]
           call acclvl(ACC_UTFLXLVL,utflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
      .      ind2,wghtsflx)
 c
-c --- --- u-component of salt flux [kg m-2 s-1]
+c --- --- u-component of salt flux [g^2*cm/kg/s^2]
           call acclvl(ACC_USFLXLVL,usflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
      .      ind2,wghtsflx)
         enddo
@@ -1118,11 +1118,11 @@ c --- --- v-component of mass flux [g*cm/s^2]
           call acclvl(ACC_VFLXLVL,vflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
      .      ind2,wghtsflx)
 c
-c --- --- v-component of heat flux [???]
+c --- --- v-component of heat flux [K*g*cm/s^2]
           call acclvl(ACC_VTFLXLVL,vtflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
      .      ind2,wghtsflx)
 c
-c --- --- v-component of salt flux [kg m-2 s-1]
+c --- --- v-component of salt flux [g^2*cm/kg/s^2]
           call acclvl(ACC_VSFLXLVL,vsflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
      .      ind2,wghtsflx)
         enddo
@@ -1135,7 +1135,7 @@ c
         do k=1,kk
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
-c --- --- salinity [psu*g/cm/s^2]
+c --- --- salinity [g^2/kg/cm/s^2]
           call acclvl(ACC_SALNLVL,saln(1-nbdy,1-nbdy,k1m),'p',k,ind1
      .      ,ind2,wghts)
 c
@@ -1567,7 +1567,7 @@ c
      .  cmpflg,ip,'p','sst','Ocean surface temperature',' ','degC')
 c
       call wrtsrf(ACC_SSS(iogrp),SRF_SSS(iogrp),rnacc,0.,
-     .  cmpflg,ip,'p','sss','Ocean surface salinity',' ','kg m-3')
+     .  cmpflg,ip,'p','sss','Ocean surface salinity',' ','g kg-1')
 c
       call wrtsrf(ACC_MXLU(iogrp),SRF_MXLU(iogrp),1e-2,0.,
      .  cmpflg,iuu,'u','mxlu','Mixed layer velocity x-component',' ',
@@ -1591,7 +1591,7 @@ c
 c
       call wrtlyr(ACC_SALN(iogrp),LYR_SALN(iogrp),1.,0.,
      .  cmpflg,ip,'p','saln','Salinity','Ocean salinity',
-     .  'kg m-3')
+     .  'g kg-1')
 c
       call wrtlyr(ACC_UVEL(iogrp),LYR_UVEL(iogrp),1e-2,
      .  0.,cmpflg,iuu,'u','uvel','Velocity x-component',' ',
@@ -1610,19 +1610,19 @@ c
      .  'Mass flux in y-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_UTFLX(iogrp),LYR_UTFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,iuu,'u','uhflx',
-     .  'Heat flux in x-direction',' ','W m-2')
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhflx',
+     .  'Heat flux in x-direction',' ','W')
 c
       call wrtlyr(ACC_VTFLX(iogrp),LYR_VTFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ivv,'v','vhflx',
-     .  'Heat flux in y-direction',' ','W m-2')
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhflx',
+     .  'Heat flux in y-direction',' ','W')
 c
       call wrtlyr(ACC_USFLX(iogrp),LYR_USFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,iuu,'u','usflx',
+     .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usflx',
      .  'Salt flux in x-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_VSFLX(iogrp),LYR_VSFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ivv,'v','vsflx',
+     .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsflx',
      .  'Salt flux in y-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_WFLX(iogrp),LYR_WFLX(iogrp),
@@ -1678,7 +1678,7 @@ c
 c
       call wrtlvl(ACC_SALNLVL(iogrp),LVL_SALN(iogrp),
      .  rnacc,0.,cmpflg,ip,'p','salnlvl','Salinity',
-     .  'Ocean salinity','kg m-3')
+     .  'Ocean salinity','g kg-1')
 c
       call wrtlvl(ACC_UVELLVL(iogrp),LVL_UVEL(iogrp),
      .  rnacc*1e-2,0.,cmpflg,iuu,'u','uvellvl',
@@ -1697,19 +1697,19 @@ c
      .  'Mass flux in y-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_UTFLXLVL(iogrp),LVL_UTFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,iuu,'u','uhflxlvl',
-     .  'Heat flux in x-direction',' ','W m-2')
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhflxlvl',
+     .  'Heat flux in x-direction',' ','W')
 c
       call wrtlvl(ACC_VTFLXLVL(iogrp),LVL_VTFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ivv,'v','vhflxlvl',
-     .  'Heat flux in y-direction',' ','kg s-1')
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhflxlvl',
+     .  'Heat flux in y-direction',' ','W')
 c
       call wrtlvl(ACC_USFLXLVL(iogrp),LVL_USFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,iuu,'u','usflxlvl',
+     .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usflxlvl',
      .  'Salt flux in x-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_VSFLXLVL(iogrp),LVL_VSFLX(iogrp),
-     .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ivv,'v','vsflxlvl',
+     .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsflxlvl',
      .  'Salt flux in y-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_WFLXLVL(iogrp),LVL_WFLX(iogrp),
@@ -1784,7 +1784,7 @@ c --- store section transports
       if (MSC_VOLTR(iogrp).ne.0) then       
         call ncwrt1('voltr','section time',voltr)
         call ncattr('long_name','Section transports')
-        call ncattr('units','kg m-3 s-1')
+        call ncattr('units','kg s-1')
       endif
 c 
 c --- ideal age tracer 
@@ -1794,7 +1794,7 @@ c --- ideal age tracer
      .  dp(1-nbdy,1-nbdy,k1m),0,'p')
       call wrtlyr(ACC_UTIL(1),LYR_IDLAGE(iogrp),1.,0.,
      .  cmpflg,ip,'p','idlage','Ideal age',
-     .  'sea_water_age_since_surface_contact','s')
+     .  'sea_water_age_since_surface_contact','year')
 c
       call inilyr(ACC_UTIL(1),'p',0.)
       call acclyr(ACC_UTIL,dp(1-nbdy,1-nbdy,k1m),
@@ -1812,7 +1812,7 @@ c
         call msklvl(ACC_UTILLVL(1),'p')
         call wrtlvl(ACC_UTILLVL(1),LVL_IDLAGE(iogrp),
      .  1.,0.,cmpflg,ip,'p','idlagelvl','Ideal age',
-     .   'sea_water_age_since_surface_contact','s')
+     .   'sea_water_age_since_surface_contact','year')
       endif
 #endif
 c
@@ -2079,7 +2079,7 @@ c
      .  kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
       integer(kind=2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
 c
-      real :: r,mmflx_last(ldm,odm)
+      real :: r,q,mmflx_last(ldm,odm)
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: umflx_cum=0.,
      .  vmflx_cum=0.,utflx_cum=0.,vtflx_cum=0.,usflx_cum=0.,vsflx_cum=0.
       real, dimension(itdm,jtdm) :: depthst,umflx_cumt=0.,vmflx_cumt=0.,
@@ -2166,19 +2166,20 @@ c
 c
 c --- Compute vertical integrated heat and salt transports 
 c
-      r=spcifh*0.5e-3/(g*baclin*nacc_phy(iogrp))
+      r=spcifh*0.5/(g*baclin*nacc_phy(iogrp))
+      q=0.5e-6/(g*baclin*nacc_phy(iogrp))
 c$OMP PARALLEL DO
       do j=1,jj
         do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             utflx_cum(i,j)=phylyr(i,j,1,ACC_UTFLX(iogrp))*r
-            usflx_cum(i,j)=phylyr(i,j,1,ACC_USFLX(iogrp))
+            usflx_cum(i,j)=phylyr(i,j,1,ACC_USFLX(iogrp))*q
           enddo
         enddo
         do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             vtflx_cum(i,j)=phylyr(i,j,1,ACC_VTFLX(iogrp))*r
-            vsflx_cum(i,j)=phylyr(i,j,1,ACC_VSFLX(iogrp))
+            vsflx_cum(i,j)=phylyr(i,j,1,ACC_VSFLX(iogrp))*q
           enddo
         enddo
         do k=2,kk
@@ -2187,7 +2188,7 @@ c$OMP PARALLEL DO
               utflx_cum(i,j)=utflx_cum(i,j)+
      .          phylyr(i,j,k,ACC_UTFLX(iogrp))*r
               usflx_cum(i,j)=usflx_cum(i,j)+
-     .          phylyr(i,j,k,ACC_USFLX(iogrp))
+     .          phylyr(i,j,k,ACC_USFLX(iogrp))*q
             enddo
           enddo
           do l=1,isv(j)
@@ -2195,7 +2196,7 @@ c$OMP PARALLEL DO
               vtflx_cum(i,j)=vtflx_cum(i,j)+
      .          phylyr(i,j,k,ACC_VTFLX(iogrp))*r
               vsflx_cum(i,j)=vsflx_cum(i,j)+
-     .          phylyr(i,j,k,ACC_VSFLX(iogrp))
+     .          phylyr(i,j,k,ACC_VSFLX(iogrp))*q
             enddo
           enddo
         enddo

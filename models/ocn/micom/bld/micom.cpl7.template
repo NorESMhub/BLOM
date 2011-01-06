@@ -250,7 +250,7 @@ cat >! ocn_in << EOF1
   SRF_ABSWND   =   0,   2,
   SRF_ALB      =   0,   0,
   SRF_BRNFLX   =   0,   2,
-  SRF_DFL      =   0,   2,
+  SRF_DFL      =   0,   0,
   SRF_EVA      =   0,   2,
   SRF_FMLTFZ   =   0,   2,
   SRF_FICE     =   0,   2,
