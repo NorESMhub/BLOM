@@ -850,7 +850,7 @@ c
 c
 c --- --- u-component of mass, heat and salt flux.
           uflx(i,j)=fdu(i,j)
-          utflx(i,j)=ftu(i,j)+273.15*fdu(i,j)
+          utflx(i,j)=ftu(i,j)
           usflx(i,j)=fsu(i,j)
 c
         enddo
@@ -1227,7 +1227,7 @@ c
 c
 c --- --- v-component of mass, heat and salt flux.
           vflx(i,j)=fdv(i,j)
-          vtflx(i,j)=ftv(i,j)+273.15*fdv(i,j)
+          vtflx(i,j)=ftv(i,j)
           vsflx(i,j)=fsv(i,j)
 c
         enddo

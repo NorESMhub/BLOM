@@ -293,21 +293,21 @@ c --- diagnostics
         write (lp,*) 'Could not find file ',
      .                path(1:path_len)//'mertraoceans.dat','!'
         call xchalt('(diaini)')
-        stop '(diaini)'
+               stop '(diaini)'
       endif
       inquire(file=path(1:path_len)//'mertraindex.dat',exist=fexist)
       if (.not.fexist) then
         write (lp,*) 'Could not find file ',
      .                path(1:path_len)//'mertraindex.dat','!'
         call xchalt('(diaini)')
-        stop '(diaini)'
+               stop '(diaini)'
       endif
       inquire(file=path(1:path_len)//'secindex.dat',exist=fexist)
       if (.not.fexist) then
         write (lp,*) 'Could not find file ',
      .                path(1:path_len)//'secindex.dat','!'
         call xchalt('(diaini)')
-        stop '(diaini)'
+               stop '(diaini)'
       endif
 c
       nphysrf=0
@@ -2098,20 +2098,29 @@ c --- - Read ocean masks from metraoceans.dat
      .       status='old')
         read(nfu,'(2i6)') i,j
         if (i.ne.itdm.or.j.ne.jtdm) then
-          call xcstop('(diamer)')
-          stop 'diamer: incorrect indexes in mertraoceans.dat!'
+          write(lp,*) 'wrong dimensions in mertraoceans.dat'
+          call xchalt('(diamer)')
+                 stop '(diamer)'
         endif
         write(c20,*) '(',jtdm,'i1)'
         read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
         close(nfu)
 c 
-c --- - Merge ocean regions (1=Atlantic+Arctic+Southern,2=Indian+Pacific)
+c --- - Merge ocean regions (1=Atlantic+Arctic,2=Indian+Pacific,3=Global Ocean)
         do j=1,jtdm
           do i=1,itdm
-            if (oflg(i,j).eq.2) then 
+            if     (oflg(i,j).eq.1) then 
+              oflg(i,j)=3
+            elseif (oflg(i,j).eq.2) then 
               oflg(i,j)=1
-            elseif (oflg(i,j).gt.2) then 
+            elseif (oflg(i,j).eq.3) then 
               oflg(i,j)=2
+            elseif (oflg(i,j).eq.4) then 
+              oflg(i,j)=2
+            elseif (oflg(i,j).ne.0) then 
+              write(lp,*) 'unknown region index in mertraoceans.dat'
+              call xchalt('(diamer)')
+                     stop '(diamer)'
             endif 
           enddo 
         enddo
@@ -2128,15 +2137,17 @@ c --- - Read section file metraindex.dat
             read(c20(9:15),'(f7.3)') mtlat(l)
             read(c20(16:20),'(i7)') nind1
           else
-            call xcstop('(diamer)')
-            stop 'diamer: problem in mertraindex.dat'
+            write(lp,*) 'problem in mertraindex.dat'
+            call xchalt('(diamer)')
+                   stop '(diamer)'
           endif
           nind(l)=0
           do s=1,nind1
             read(nfu,'(a)',iostat=iostatus) c20
             if (iostatus.ne.0) then
-              call xcstop('(diamer)')
-              stop 'diamer: section too short?'
+              write(lp,*) 'section too short?'
+              call xchalt('(diamer)')
+                     stop '(diamer)'
             endif
             read(c20,'(i3,i4,2i3)') iind1,jind1,uflg1,vflg1
             if (oflg(iind1,jind1).ne.0) then
@@ -2150,14 +2161,16 @@ c --- - Read section file metraindex.dat
                 write(lp,*) 'iind=',iind(nind(l),l),' itdm=',itdm
                 write(lp,*) 'jind=',jind(nind(l),l),' jtdm=',jtdm
                 call flush(lp)
-                call xcstop('(diamer)')
-                stop 'diamer: indices out of range!'
+                write(lp,*) 'indices out of range!'
+                call xchalt('(diamer)')
+                       stop '(diamer)'
               endif
             endif
           enddo
           if (lmax.gt.ldm) then
-            call xcstop('(diamer)')
-            stop 'diamer: too many or too long sections!'
+            write(lp,*) 'too many or too long sections!'
+            call xchalt('(diamer)')
+                   stop '(diamer)'
           endif
         enddo
         close(nfu)

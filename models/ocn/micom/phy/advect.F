@@ -188,7 +188,7 @@ c$OMP PARALLEL DO
             endif
             uflx(i,j,km)=uflx(i,j,km)+uflux(i,j)
             usflx(i,j,km)=usflx(i,j,km)+uflux2(i,j)
-            utflx(i,j,km)=utflx(i,j,km)+uflux3(i,j)+273.15*uflux(i,j)
+            utflx(i,j,km)=utflx(i,j,km)+uflux3(i,j)
           enddo
           enddo
         enddo
@@ -218,7 +218,7 @@ c$OMP PARALLEL DO
             endif
             vflx(i,j,km)=vflx(i,j,km)+vflux(i,j)
             vsflx(i,j,km)=vsflx(i,j,km)+vflux2(i,j)
-            vtflx(i,j,km)=vtflx(i,j,km)+vflux3(i,j)+273.15*vflux(i,j)
+            vtflx(i,j,km)=vtflx(i,j,km)+vflux3(i,j)
           enddo
           enddo
         enddo
