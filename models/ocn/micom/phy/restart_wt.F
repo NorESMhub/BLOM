@@ -133,7 +133,7 @@ c --- define spatial and time dimensions
           enddo 
         enddo
       endif
-      if (rstcmp) then 
+      if (rstcmp.eq.1) then 
         call ncdimc('pcomp',ip,0)
         call ncdimc('qcomp',iqq,0)
         call ncdimc('ucomp',iuu,0)
@@ -487,7 +487,7 @@ c --- - write diag. heat flux restart file
           call ncfopn(path2(1:path2_len)//fnm,'w','c',1)
         endif
 c
-        if (rstcmp) then 
+        if (rstcmp.eq.1) then 
           call ncdimc('pcomp',ip,0)
         else
           call ncdims('x',itdm)
@@ -522,7 +522,7 @@ c --- - write diag. salt flux restart file
           call ncfopn(path2(1:path2_len)//fnm,'w','c',1)
         endif
 c
-        if (rstcmp) then 
+        if (rstcmp.eq.1) then 
           call ncdimc('pcomp',ip,0)
         else
           call ncdims('x',itdm)

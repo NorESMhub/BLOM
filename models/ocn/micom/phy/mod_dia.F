@@ -263,7 +263,7 @@ c
      .    runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.',ns,'.nc'
 #endif
       endif
-      end
+      end subroutine diafnm
 
 
 
@@ -613,7 +613,9 @@ c --- Allocate buffers
      .  allocate(phylvl(imn:imx,jmn:jmx,ddm,nphylvl),stat=istat)
       istatsum=istatsum+istat
       if (istatsum.ne.0) then
-        stop 'cannot allocate enough memory'
+        write (lp,*) 'Cannot allocate enough memory!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c
 c --- Set buffers to zero (ocean+land+halo) 
@@ -712,7 +714,7 @@ c --- - Read density vector and close ini-file
         write(lp,*) 'sigma layers=',sigmar1 
       endif
 c
-      end
+      end subroutine diaini
 
 
 
@@ -1182,7 +1184,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      end
+      end subroutine diaacc
 
 
 
@@ -1378,20 +1380,24 @@ c
         if ((sec_num.gt.0.and.sec_num.le.max_sec).or.mnproc.ne.1) then
           call ncdims('section',sec_num)
         else
-          write(lp,*) 'sec_num=',sec_num,' max_sec=',max_sec
-          stop 'diaout: wrong number of sections?'
+          write (lp,*) 'Illegal number of sections: sec_num=',sec_num,
+     .                 ' max_sec=',max_sec
+          call xchalt('(diaout)')
+                 stop '(diaout)'
         endif
       endif
 c
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MHFLX(iogrp)+
-     .  ACC_MSFLX(iogrp).ne.0)
-     .  then
-         if ((lmax.gt.0.and.lmax.le.ldm).or.mnproc.gt.1) then
-           call ncdims('lat',lmax)
-         else
-           write(lp,*) 'lmax=',lmax,' ldm=',ldm
-           stop 'diaout: wrong overturning dimension lmax'
-         endif
+     .    ACC_MSFLX(iogrp).ne.0) then
+        if ((lmax.gt.0.and.lmax.le.ldm).or.mnproc.gt.1) then
+          call ncdims('lat',lmax)
+        else
+          write (lp,*)
+     .      'Illegal dimension of meridional diagnostics: lmax=',lmax,
+     .      ' ldm=',ldm
+          call xchalt('(diaout)')
+                 stop '(diaout)'
+        endif
       endif
 c
       call nctime(datenum,calendar,timeunits,startdate)
@@ -1914,7 +1920,7 @@ c
 c --- reset accumulation counter 
       nacc_phy(iogrp)=0
 c
-      end
+      end subroutine diaout
 
 
 
@@ -2061,7 +2067,7 @@ c --- Compute section transports
         enddo
       endif
 c
-      end
+      end subroutine diasec
 
 
 
@@ -2469,7 +2475,7 @@ c --- --- - Mask Southern Ocean for Atlantic region
 c
       if (iniflg) iniflg=.false.
 c
-      end
+      end subroutine diamer
 
 
 
@@ -2670,7 +2676,7 @@ c$OMP END PARALLEL DO
         enddo
       endif
 c
-      end
+      end subroutine diavfl
 
 
 
@@ -2837,9 +2843,10 @@ c$OMP PARALLEL DO PRIVATE(kml)
           enddo
 c$OMP END PARALLEL DO
         else
-          write(lp,'(a)') 'cannot identify grid'
+          write (lp,'(a)') 'cannot identify grid'
           flush(lp)
-          stop 'stop in sigma2z'
+          call xchalt('(diazlv)')
+                 stop '(diazlv)'
         endif
       endif
 c
@@ -2922,12 +2929,13 @@ c$OMP PARALLEL DO PRIVATE(r)
 c$OMP END PARALLEL DO
 c
       else
-        write(lp,'(a)') 'cannot identify grid'
+        write (lp,'(a)') 'cannot identify grid'
         flush(lp)
-        stop 'stop in diazlv'
+        call xchalt('(diazlv)')
+               stop '(diazlv)'
       endif
 c
-      end       
+      end subroutine diazlv
 
 
 c --- ------------------------------------------------------------------
@@ -2997,7 +3005,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      end            
+      end subroutine inisrf
 
 
 
@@ -3071,7 +3079,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      end
+      end subroutine inilyr
 
 
 
@@ -3145,7 +3153,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      end
+      end subroutine inilvl
 
 
 
@@ -3244,12 +3252,14 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
           endif 
         else
-          stop 'cannot identify grid '//gridid
+          write (lp,*) 'cannot identify grid '//gridid//'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
         endif
 c
       enddo
 c   
-      end
+      end subroutine accsrf
 
 
 
@@ -3360,12 +3370,14 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
           endif 
         else
-          stop 'cannot identify grid '//gridid
+          write (lp,*) 'cannot identify grid '//gridid//'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
         endif
 c
       enddo
 c   
-      end
+      end subroutine acclyr
 
 
 
@@ -3438,11 +3450,13 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         else
-          stop 'cannot identify grid '//gridid
+          write (lp,*) 'cannot identify grid '//gridid//'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
         endif
       enddo
 c     
-      end
+      end subroutine acclvl
 
 
       
@@ -3502,10 +3516,12 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c     
-      end
+      end subroutine finsrf
      
 
 
@@ -3583,10 +3599,12 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c     
-      end
+      end subroutine finlyr
 
 
 
@@ -3661,7 +3679,9 @@ c --- Check output format
      .      1,sfac,offs,8)
         endif
       else
-        stop 'unknown output format '
+        write (lp,*) 'unknown output format!'
+        call xchalt('(wrtsrf)')
+               stop '(wrtsrf)'
       endif
 c
 c --- Define attributes
@@ -3672,7 +3692,7 @@ c --- Define attributes
      .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
       call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
-      end
+      end subroutine wrtsrf
 
 
 
@@ -3747,7 +3767,9 @@ c --- Check output format
      .      2,sfac,offs,8)
         endif
       else
-        stop 'unknown output format '
+        write (lp,*) 'unknown output format!'
+        call xchalt('(wrtlyr)')
+               stop '(wrtlyr)'
       endif
 c
 c --- Define attributes
@@ -3758,7 +3780,7 @@ c --- Define attributes
      .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
       call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
-      end
+      end subroutine wrtlyr
 
 
 
@@ -3833,7 +3855,9 @@ c --- Check output format
      .      2,sfac,offs,8)
         endif
       else
-        stop 'unknown output format '
+        write (lp,*) 'unknown output format!'
+        call xchalt('(wrtlvl)')
+               stop '(wrtlvl)'
       endif
 c
 c --- Define attributes
@@ -3844,7 +3868,7 @@ c --- Define attributes
      .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
       call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
-      end
+      end subroutine wrtlvl
 
 
 
@@ -3915,10 +3939,12 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c
-      end
+      end subroutine logsrf
 
 
       subroutine loglyr(pos,gridid,sfac,offs)
@@ -3994,10 +4020,12 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c
-      end
+      end subroutine loglyr
 
 
       subroutine loglvl(pos,gridid,sfac,offs)
@@ -4073,10 +4101,12 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c
-      end
+      end subroutine loglvl
 
 
       subroutine msklvl(pos,gridid)
@@ -4161,9 +4191,11 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-        stop 'cannot identify grid '//gridid
+        write (lp,*) 'cannot identify grid '//gridid//'!'
+        call xchalt('(diaini)')
+               stop '(diaini)'
       endif
 c
-      end
+      end subroutine msklvl
  
       end module mod_dia

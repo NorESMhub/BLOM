@@ -726,7 +726,7 @@ c --- ----- integration forming a tridiagonal set of equations.
               ctd=-fpl(k)*q
               dtd=delp(k)*q
               bitd=1./(1.-atd*gtd(k))
-              uc(k)=(dtd*uc(k)-atd*uc(max(1,k-1)))*bitd
+              uc(k)=(dtd*uc(k)-atd*uc(max(kmin,k-1)))*bitd
             enddo
             do k=kmax-1,kmin,-1
               uc(k)=uc(k)-gtd(k+1)*uc(k+1)
@@ -805,7 +805,7 @@ c --- ----- integration forming a tridiagonal set of equations.
               ctd=-fpl(k)*q
               dtd=delp(k)*q
               bitd=1./(1.-atd*gtd(k))
-              uc(k)=(dtd*uc(k)-atd*uc(max(1,k-1)))*bitd
+              uc(k)=(dtd*uc(k)-atd*uc(max(kmin,k-1)))*bitd
             enddo
             do k=kmax-1,kmin,-1
               uc(k)=uc(k)-gtd(k+1)*uc(k+1)

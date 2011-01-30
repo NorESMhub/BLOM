@@ -73,19 +73,19 @@ c
 c
       interface ncputr 
       module procedure ncputrs,ncputrv 
-      end interface 
+      end interface ncputr
 c
       interface ncputi 
       module procedure ncputis,ncputiv 
-      end interface 
+      end interface ncputi
 c
       interface ncgetr 
       module procedure ncgetrs,ncgetrv 
-      end interface 
+      end interface ncgetr
 c
       interface ncgeti 
       module procedure ncgetis,ncgetiv 
-      end interface 
+      end interface ncgeti
 c
 c --- Declare global variables  
       logical, private, save :: flgpad 
@@ -164,7 +164,7 @@ c --- - Initialise header padding
 c
       endif 
 c
-      end 
+      end subroutine ncfopn
 
 
 
@@ -181,7 +181,7 @@ c
         call ncerro(nf90_close(ncid))
       endif 
 c
-      end
+      end subroutine ncfcls
 
 
 
@@ -205,7 +205,7 @@ c --- define dimension
       if (mnproc.eq.1.and.rec.eq.1)  
      .  call ncerro(nf90_def_dim(ncid,dnm,dim,dimid))
 c
-      end
+      end subroutine ncdims
 
 
 
@@ -271,7 +271,7 @@ c
         endif 
       endif
 c
-      end
+      end subroutine ncdimc
 
 
 
@@ -295,7 +295,7 @@ c
       if (mnproc.eq.1.and.rec.eq.1)  
      .  call ncerro(nf90_put_att(ncid,rhid,attname,attrib))
 c
-      end
+      end subroutine ncattr
 
 
 
@@ -318,7 +318,7 @@ c
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
 c
-      end
+      end subroutine ncputrs
 
 
 
@@ -341,7 +341,7 @@ c
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
 c
-      end
+      end subroutine ncputrv
 
 
 
@@ -364,7 +364,7 @@ c
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
 c
-      end
+      end subroutine ncputis
 
 
 
@@ -387,7 +387,7 @@ c
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
 c
-      end
+      end subroutine ncputiv
 
 
 
@@ -410,7 +410,7 @@ c
       if (mnproc.eq.1) 
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
 c
-      end
+      end subroutine ncgetrs
 
 
 
@@ -433,7 +433,7 @@ c
       if (mnproc.eq.1) 
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
 c
-      end
+      end subroutine ncgetrv
 
 
 
@@ -456,7 +456,7 @@ c
       if(mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 c
-      end
+      end subroutine ncgetis
 
 
 
@@ -479,7 +479,7 @@ c
       if(mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 c
-      end
+      end subroutine ncgetiv
 
 
 
@@ -574,7 +574,7 @@ c --- Switch back to define mode
 c
       endif 
 c
-      end
+      end subroutine nctime
  
 
 
@@ -733,7 +733,7 @@ c --- Get data
         endif        
       enddo 
 c
-      end
+      end subroutine ncread
 
 
  
@@ -964,7 +964,7 @@ c --- Put file back to define mode
         write(lp,*) trim(vnm),arng
       endif
 c
-      end
+      end subroutine ncpack
 
 
 
@@ -1003,6 +1003,7 @@ c
       real(kind=4), dimension(itdm*jtdm) :: fldoutr4
       real :: fld(*),rkd,sfac,offs
       real, parameter :: fill=nf90_fill_double 
+      real(kind=4) :: fillr4
 c 
 c --- Initialise fields
       rkd=1.
@@ -1037,7 +1038,8 @@ c --- define variable
           else 
             call ncerro(nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),
      .        rhid))
-            call ncerro(nf90_put_att(ncid,rhid,'_FillValue',SNGL(fill)))
+            fillr4=fill
+            call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fillr4))
           endif 
           call ncerro(nf90_put_att(ncid,rhid,'compress','x y'))
         else
@@ -1109,7 +1111,7 @@ c
 c --- Put file back to define mode
       if(mnproc.eq.1) call ncerro(nf90_redef(ncid))
 c
-      end
+      end subroutine nccomp
 
 
 
@@ -1294,7 +1296,7 @@ c --- Put file back to define mode
         write(lp,*) trim(vnm),arng
       endif
 c
-      end 
+      end subroutine nccopa
 
 
 
@@ -1361,7 +1363,7 @@ c --- - switch back to define mode
 c
       endif
 c
-      end
+      end subroutine ncwrtc
 
 
 
@@ -1559,7 +1561,7 @@ c --- Put file back to define mode
         write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
       endif
 c
-      end
+      end subroutine ncwrtr
 
 
 
@@ -1678,7 +1680,7 @@ c
 c --- Put file back to define mode
       if (mnproc.eq.1) call ncerro(nf90_redef(ncid))
 c
-      end
+      end subroutine ncwrti
 
 
       
@@ -1754,7 +1756,7 @@ c --- - Put file back to define mode
 c
       endif
 c
-      end
+      end subroutine ncwrt1
 
 
 
@@ -1785,7 +1787,7 @@ c
         stop '(ncerro)'
       endif 
 c
-      end
+      end subroutine ncerro
 
 
 
@@ -1831,7 +1833,7 @@ c
       endif
       strgn=int(strgn/2.)
 c
-      end
+      end subroutine ncsevl
 
 
       subroutine nccaln(days,calendar,y1,m1,d1,y2,m2,d2)
@@ -1885,7 +1887,7 @@ c
       endif
       days=n2-n1
 c
-      end
+      end subroutine nccaln
 
 
 
@@ -1937,7 +1939,7 @@ c
          ndays=(y-1)*366+acc_leap(month)+day
       endif
 c
-      end
+      end subroutine ncdnum
 
 
 
@@ -1969,7 +1971,7 @@ c
          endif 
       endif
 c
-      end
+      end function ncinqa
 
 
 
@@ -1995,6 +1997,6 @@ c
          ncinqv=.true. 
       endif 
 c
-      end     
+      end function ncinqv
 
       end module mod_nctools

@@ -146,7 +146,7 @@ c --- Compute log10 of phosphate
 c
 c --- Store 2d fields
       call wrtsrf(jkwco2(iogrp),SRF_KWCO2(iogrp),rnacc,0.,cmpflg,       
-     .  'kwco2','???',' ','???')
+     .  'kwco2',' ',' ',' ')
       call wrtsrf(jpco2(iogrp),SRF_PCO2(iogrp),rnacc,0.,cmpflg,         
      .  'pco2','Surface PCO2',' ','uatm')
       call wrtsrf(jdmsflux(iogrp),SRF_DMSFLUX(iogrp),rnacc*1e3/dtbgc,0.,
@@ -160,13 +160,13 @@ c --- Store 2d fields
       call wrtsrf(jniflux(iogrp),SRF_NIFLUX(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'fgn2','Nitrogen flux',' ','mol N2 m-2 s-1')
       call wrtsrf(jdms(iogrp),SRF_DMS(iogrp),rnacc,0.,cmpflg,           
-     .  'dms','DMS',' ','???')
+     .  'dms','DMS',' ',' ')
       call wrtsrf(jdmsprod(iogrp),SRF_DMSPROD(iogrp),rnacc,0.,cmpflg,   
-     .  'dmsprod','DMS production',' ','???')
+     .  'dmsprod','DMS production',' ',' ')
       call wrtsrf(jdms_bac(iogrp),SRF_DMS_BAC(iogrp),rnacc,0.,cmpflg,   
-     .  'dms_bac','DMS ???',' ','???')
+     .  'dms_bac',' ',' ',' ')
       call wrtsrf(jdms_uv(iogrp),SRF_DMS_UV(iogrp),rnacc,0.,cmpflg,     
-     .  'dms_uv','DMS',' ','???')
+     .  'dms_uv','DMS',' ',' ')
       call wrtsrf(jexport(iogrp),SRF_EXPORT(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'epc100','Export production',' ','mol C m-2 s-1')
       call wrtsrf(jexposi(iogrp),SRF_EXPOSI(iogrp),rnacc*1e3/dtbgc,0.,

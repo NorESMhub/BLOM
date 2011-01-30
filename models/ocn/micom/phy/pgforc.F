@@ -165,7 +165,7 @@ c
             cp=.25*(p(i  ,j,k+1)+p(i  ,j,k))
             cm=.25*(p(i-1,j,k+1)+p(i-1,j,k))
             q=prs/(cp+cm)
-c           if (i.eq.itest.and.j.eq.jtest) write (*,*) 'u',k,q
+c           if (i.eq.itest.and.j.eq.jtest) write (lp,*) 'u',k,q
             cp=q*cp
             cm=q*cm
 c
@@ -212,7 +212,7 @@ c
             cp=.25*(p(i,j  ,k+1)+p(i,j  ,k))
             cm=.25*(p(i,j-1,k+1)+p(i,j-1,k))
             q=prs/(cp+cm)
-c           if (i.eq.itest.and.j.eq.jtest) write (*,*) 'v',k,q
+c           if (i.eq.itest.and.j.eq.jtest) write (lp,*) 'v',k,q
             cp=q*cp
             cm=q*cm
 c

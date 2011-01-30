@@ -130,11 +130,11 @@ contains
       enddo
 !$OMP END PARALLEL DO
 
-      deallocate(o_poly_area(nop))
-      deallocate(a_poly_area(nap))
-      deallocate(oa_poly_area(noap))
-      deallocate(o_oa_poly_area(nop))
-      deallocate(a_oa_poly_area(nap))
+      deallocate(o_poly_area)
+      deallocate(a_poly_area)
+      deallocate(oa_poly_area)
+      deallocate(o_oa_poly_area)
+      deallocate(a_oa_poly_area)
       
    end subroutine remap_init
 
