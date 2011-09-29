@@ -32,8 +32,9 @@ c
 #endif
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
-     .  trxday,srxday,aptflx,apsflx,ditflx,disflx,path,path1,path2,
-     .  atm_path,rstfrq,rstfmt,rstcmp
+     .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,
+     .  trxday,srxday,aptflx,apsflx,ditflx,disflx,smtfrc,
+     .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp
 c
 c --- read namelists from limits file
       GLB_AVEPERIO=-999
@@ -56,12 +57,21 @@ c --- print namelist on stdout
         write (lp,*) 'RUNID',RUNID
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
+        write (lp,*) 'VDFVHI',VDFVHI
+        write (lp,*) 'VDFVLO',VDFVLO
+        write (lp,*) 'VDFCHI',VDFCHI
+        write (lp,*) 'VDFCLO',VDFCLO
+        write (lp,*) 'VISCHI',VISCHI
+        write (lp,*) 'VISCLO',VISCLO
+        write (lp,*) 'CBAR',CBAR
+        write (lp,*) 'CB',CB
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'APTFLX',APTFLX
         write (lp,*) 'APSFLX',APSFLX
         write (lp,*) 'DITFLX',DITFLX
         write (lp,*) 'DISFLX',DISFLX
+        write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'PATH',PATH
         write (lp,*) 'PATH1',PATH1
         write (lp,*) 'PATH2',PATH2
@@ -364,12 +374,21 @@ c
         write (lp,'(a,a60)')   'runid:             ',runid
         write (lp,'(a,f10.4)') 'baclin:            ',baclin
         write (lp,'(a,f10.4)') 'batrop:            ',batrop
+        write (lp,'(a,f10.4)') 'vdfvhi:            ',vdfvhi
+        write (lp,'(a,f10.4)') 'vdfvlo:            ',vdfvlo
+        write (lp,'(a,f10.4)') 'vdfchi:            ',vdfchi
+        write (lp,'(a,f10.4)') 'vdfclo:            ',vdfclo
+        write (lp,'(a,f10.4)') 'vischi:            ',vischi
+        write (lp,'(a,f10.4)') 'visclo:            ',visclo
+        write (lp,'(a,f10.4)') 'cbar:              ',cbar
+        write (lp,'(a,f10.4)') 'cb:                ',cb
         write (lp,'(a,f10.4)') 'trxday:            ',trxday
         write (lp,'(a,f10.4)') 'srxday:            ',srxday
         write (lp,'(a,l10)')   'aptflx:            ',aptflx
         write (lp,'(a,l10)')   'apsflx:            ',apsflx
         write (lp,'(a,l10)')   'ditflx:            ',ditflx
         write (lp,'(a,l10)')   'disflx:            ',disflx
+        write (lp,'(a,l10)')   'smtfrc:            ',smtfrc
         write (lp,'(a,a60)')   'path:      ',path
         write (lp,'(a,a60)')   'path1:     ',path1
         write (lp,'(a,a60)')   'path2:     ',path2
@@ -377,10 +396,11 @@ c
         write (lp,'(a,a60)')   'atm_path:  ',atm_path
 #endif
 c
-        write (lp,101) veldff,viscos
+        write (lp,101) vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo
  101    format (' turb. flux parameters:',1p/
-     .    ' veldff =',e9.2/
-     .    ' viscos =',e9.2)
+     .    ' vdfvhi =',e9.2,' vdfvlo =',e9.2/
+     .    ' vdfchi =',e9.2,' vdfclo =',e9.2/
+     .    ' vischi =',e9.2,' visclo =',e9.2)
         write (lp,'(a,f10.4)') 'rstfrq:            ',rstfrq
         write (lp,'(a,l10)')   'rstmon:            ',rstmon
         write (lp,'(a,l10)')   'rstann:            ',rstann
@@ -396,16 +416,6 @@ c --- lstep   m u s t   be even.
      .    lstep
         call flush(lp)
       endif
-c
-#ifndef CCSMCOUPLED
-c --- 'nfrco' = number of baroclinic time steps between surface forcing
-c --- updates
-#  if   defined(CLIM)
-      nfrco=nstep_in_day  ! once pr. day with climatological forcing
-#  elif defined(SYN)
-      nfrco=1             ! every time step with synoptic forcing
-#  endif
-#endif
 c
 c --- model is to be integrated from time step 'nstep1' to 'nstep2'
       nstep1=nday1*nstep_in_day

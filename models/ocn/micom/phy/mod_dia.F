@@ -387,7 +387,8 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LYR_WFLX2(n)
         ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
      .                    LVL_WFLX(n)   + LVL_WFLX2(n)
-        ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
+        ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)  +
+     .                    LYR_WFLX2(n)
         ACC_UTFLX(n)    = LYR_UTFLX(n)  + MSC_MHFLX(n)
         ACC_UTFLXLVL(n) = LVL_UTFLX(n)
         ACC_USFLX(n)    = LYR_USFLX(n)  + MSC_MSFLX(n)
@@ -398,7 +399,8 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LYR_WFLX2(n)
         ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
      .                    LVL_WFLX(n)   + LVL_WFLX2(n)
-        ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
+        ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)  +
+     .                    LYR_WFLX2(n)
         ACC_VTFLX(n)    = LYR_VTFLX(n)  + MSC_MHFLX(n)
         ACC_VTFLXLVL(n) = LVL_VTFLX(n)
         ACC_VSFLX(n)    = LYR_VSFLX(n)  + MSC_MSFLX(n)

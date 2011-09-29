@@ -67,7 +67,6 @@
 !     .
 !
 !**********************************************************************
-
       USE mo_carbch
       USE mo_biomod
       USE mo_sedmnt
@@ -219,9 +218,11 @@
       IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.1.e-12) THEN
        t = ptho(i,j,k)
        tk = 273.15 + t
-       s = psao(i,j,k)
+       s = MAX(25.,psao(i,j,k))
        R = RHO2(MAX(25.,s),ptho(i,j,k),0.)
-       prb = 1.025E-1*ptiestu(i,j,k) ! pressure in unit bars
+!JT       prb = 1.025E-1*ptiestu(i,j,k) ! pressure in unit bars
+!JT 98060 = onem
+       prb = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars
        invtk = 1.0 / tk
        dlogtk = log(tk)
        is = 19.924 * s / ( 1000. - 1.005 * s )
@@ -435,7 +436,8 @@
 #endif /*__c_isotopes*/
 #if defined(DIFFAT) || defined(CCSMCOUPLED) 	   
 !         atm(i,j,iatmco2)=atm(i,j,iatmco2)+(fluxu-fluxd)*contppm
-         atmflx(i,j,iatmco2)=(fluxu-fluxd)*contppm
+!jt         atmflx(i,j,iatmco2)=(fluxu-fluxd)*contppm
+         atmflx(i,j,iatmco2)=(fluxu-fluxd)
 #ifdef __c_isotopes
 !         atm(i,j,iatmc13)=atm(i,j,iatmc13)+(flux13u-flux13d)*contppm
 !         atm(i,j,iatmc14)=atm(i,j,iatmc14)+(flux14u-flux14d)*contppm
@@ -498,7 +500,9 @@
 !JT      OmegaA(i,j,k) = omega / Kspa
       OmegaC(i,j,k) = omega / Kspc
 !JT Convert from mol/m^3 to kmol/m^3
-      OmegaC(i,j,k) = OmegaC(i,j,k)/1000.
+!JT 11 July 2011      OmegaC(i,j,k) = OmegaC(i,j,k)/1000.
+!JT 11 July 2011 corrected because omegaC is uniteless
+
 !      ocetra(i,j,k,iomegac)=OmegaC(i,j,k)
 !  Determine BetaD (from Seacarb software)
 !JT      ahkb = ah1 + Kb;
@@ -592,8 +596,12 @@
 !update on dissolution of caco3 based on OmegaC concentration
            supsat=co3(i,j,k)-co3(i,j,k)/OmegaC(i,j,k)
 ! OLD           supsat=co3(i,j,k)-97.*aksp(i,j,k)
+!JT omegaC=([CO3]*[Ca])/([CO3]sat*[Ca]sat)
+!   Following Sarmiento and Gruber book, assumed that [Ca]=[Ca]sat
+!   Thus, [CO3]sat=[CO3]/OmegaC. 
            undsa=MAX(0.,-supsat)
-           dissol=MIN(undsa,0.02*ocetra(i,j,k,icalc))
+!JT old           dissol=MIN(undsa,0.02*ocetra(i,j,k,icalc))
+           dissol=MIN(undsa,0.05*ocetra(i,j,k,icalc))
 #ifdef __c_isotopes
            r13=dissol*ocetra(i,j,k,icalc13)                        &
       &             /(ocetra(i,j,k,icalc)+1.e-25)

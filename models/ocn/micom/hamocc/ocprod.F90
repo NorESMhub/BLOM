@@ -150,16 +150,26 @@
 
 ! Almost half of the SWR is absorbed in the surface layer. --> *0.6
 ! Implicit, it's faster then: abs_bgc(i,j,k)=abs_bgc(i,j,k-1)*exp(-atten*pddpo(i,j,k-1))
-
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'beginning of OCRPOD '
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif   
 !$OMP PARALLEL DO PRIVATE(absorption,atten,kab1)
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).GT.0.5) THEN
          atten=atten_w+atten_c*max(0.,ocetra(i,j,1,iphy))
          absorption=1.
-         abs_bgc(i,j,1)=((absorption/atten)*                            &
-     &                  (1.-exp(-atten*MIN(pddpo(i,j,1),100.))))        &
-     &                  /MIN(pddpo(i,j,1),100.)
+!JT
+         abs_bgc(i,j,1)=absorption
+!         abs_bgc(i,j,1)=((absorption/atten)*                            &
+!     &                  (1.-exp(-atten*MIN(pddpo(i,j,1),100.))))        &
+!     &                  /MIN(pddpo(i,j,1),100.)
          kab1=1
 #ifdef FB_BGC_OCE     
          abs_oce(i,j,1)=1.
@@ -671,6 +681,15 @@
 1     CONTINUE   ! kpie, kpje
 !$OMP END PARALLEL DO
 
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'in OCRPOD after 1st bio prod'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif 
 !ib
 ! Accumulate 2d diagnostics 
        call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
@@ -773,6 +792,10 @@
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                docrem=MIN(dremdoc*ocetra(i,j,k,idoc),                 &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+               if (docrem.lt.0.) then
+                write(*,*)'negative doc remineralization',docrem
+                docrem=0.;
+               endif
                phyrem=MIN(0.5*dphymor*phythresh,                       &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                detref=pocrem/(ocetra(i,j,k,idet)+1.e-20)                      ! 'detritus remineralized fraction' (?)
@@ -906,7 +929,15 @@
  201   CONTINUE     
 !$OMP END PARALLEL DO
 
-
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'in OCRPOD after poc remin'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif 
 !$OMP PARALLEL DO                                                   &
 !$OMP&PRIVATE(remin,remin2o,rem13,rem14,detref,detrl,rl13,rl14,bdp,dp_ez) 
        DO 30 j=1,kpje
@@ -916,7 +947,9 @@
          IF(ocetra(i,j,k,ioxygen).LT.5.e-7.and.pddpo(i,j,k).gt.1.e-12) THEN
 
 ! depth of euphotic zone
-      dp_ez=90.0
+!JT
+      dp_ez=100.0
+!      dp_ez=90.0
       if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k+1)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
@@ -1010,7 +1043,15 @@
          ENDIF
 30    CONTINUE
 !$OMP END PARALLEL DO
-
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'in OCRPOD after remin n2o'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif 
 !sulphate reduction   ! introduced 11.5.2007 to improve poc-remineralisation in the 
 !                       oxygen minimum zone in the subsurface equatorial Pacific
 !                       assumption of endless pool of SO4 (typical concentration are on the order of mmol/l)
@@ -1028,7 +1069,9 @@
             IF(ocetra(i,j,k,ioxygen).lt.3.e-6.and.ocetra(i,j,k,iano3).lt.3.e-6) THEN
 
 ! depth of euphotic zone
-      dp_ez=90.0
+!JT
+      dp_ez=100.0
+!JT      dp_ez=90.0
       if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k+1)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
@@ -1100,7 +1143,15 @@
 301    CONTINUE
 !$OMP END PARALLEL DO
 !    end sulphate reduction
-
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'in OCRPOD after sulphate reduction '
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif 
 #ifdef AGG
        DO  k=1,kpke
          DO j=1,kpje
@@ -1765,7 +1816,15 @@
 10      CONTINUE
 12    CONTINUE
 !$OMP END PARALLEL DO
-
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'in OCRPOD after sinking poc '
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
+     &                  ,0)
+!      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif 
 !$OMP PARALLEL DO
       DO 33 j=1,kpje
       DO 33 i=1,kpie

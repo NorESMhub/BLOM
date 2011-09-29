@@ -312,8 +312,8 @@ c
       do 37 l=1,isu(j)
       do 37 i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
       q=.5*(difwgt(i-1,j)+difwgt(i,j))
- 37   visc(i,j)=max( q*veldff+(1.-q)*vdfflo,
-     .              (q*viscos+(1.-q)*visclo)
+ 37   visc(i,j)=max( q*vdfvhi+(1.-q)*vdfvlo,
+     .              (q*vischi+(1.-q)*visclo)
      .              *sqrt(.5*(defor1(i,j)+defor1(i-1,j)
      .                       +defor2(i,j)+defor2(i,j+1))))
 c
@@ -425,8 +425,8 @@ c
       do 38 l=1,isv(j)
       do 38 i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
       q=.5*(difwgt(i,j-1)+difwgt(i,j))
- 38   visc(i,j)=max( q*veldff+(1.-q)*vdfflo,
-     .              (q*viscos+(1.-q)*visclo)
+ 38   visc(i,j)=max( q*vdfvhi+(1.-q)*vdfvlo,
+     .              (q*vischi+(1.-q)*visclo)
      .              *sqrt(.5*(defor1(i,j)+defor1(i,j-1)
      .                       +defor2(i,j)+defor2(i+1,j))))
 c

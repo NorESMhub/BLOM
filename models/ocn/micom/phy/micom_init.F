@@ -116,12 +116,13 @@ c --- Set up forcing functions
 c --- ------------------------------------------------------------------
 c
       call forfun
-#ifdef CLIM
+#if   defined(CLIM)
       call forfun_clim
       call chwbud
-#endif
-#ifdef SYN
+#elif defined(SYN)
       call forfun_syn
+#elif defined(CCSMCOUPLED)
+      call forfun_ccsm
 #endif
 c
 #ifdef NEST

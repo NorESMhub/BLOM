@@ -93,21 +93,16 @@ c
       call rdotr
 #endif
 c
-#ifndef CCSMCOUPLED
 c --- ------------------------------------------------------------------
 c --- Get surface fluxes
 c --- ------------------------------------------------------------------
 c
-      if (mod(nstep-1,nfrco).eq.0) then
-#  if   defined(CLIM)
-      if (mnproc.eq.1) then
-        write (lp,*) 'getflux...'
-      endif
+#if   defined(CLIM)
       call getflux_clim
-#  elif defined(SYN)
+#elif defined(SYN)
       call getflux_syn
-#  endif
-      endif
+#elif defined(CCSMCOUPLED)
+      call getflux_ccsm
 #endif
 c
       getflx_time=gettime()

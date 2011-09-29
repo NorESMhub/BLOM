@@ -36,7 +36,7 @@ c
         open (unit=nfu,file=path2(1:path2_len)//rstfnm,
      .        form='unformatted',status='unknown',action='write')
         write (nfu) time
-        write (nfu) lold,lnew,u,v
+        write (nfu) lold,lnew,u,v,uwat2l,vwat2l,gradhx2l,gradhy2l
         close (unit=nfu)
       endif
 c

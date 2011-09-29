@@ -31,9 +31,12 @@ c
 c --- flags concerning diagnosed heat and salt fluxes
       logical aptflx,apsflx,ditflx,disflx
 c
+c --- flag for smoothing of CCSM forcing fields
+      logical smtfrc
+c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
      .              nflxdi,trxday,srxday,x,l1,l2,l3,l4,l5,aptflx,
-     .              apsflx,ditflx,disflx
+     .              apsflx,ditflx,disflx,smtfrc
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c
@@ -83,14 +86,11 @@ c
 c --- accumulation number
       integer ntda
 c
-c --- time steps between surface forcing updates
-      integer nfrco
-c
       common /frc2/ swa,nsf,hmltfz,hmlt,dfl,lip,sop,eva,rnf,rfi,fmltfz,
      .              sfl,ztx,mty,ustarw,tsi,slp,abswnd,albw,frzpot,
      .              mltpot,atmco2,flxco2,tsi_tda,tml_tda,sml_tda,
      .              alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,rnfflx,
-     .              rfiflx,ntda,nfrco
+     .              rfiflx,ntda
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,t0deg

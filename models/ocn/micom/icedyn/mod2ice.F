@@ -80,11 +80,11 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       call xcaget(tmp2d,tmp1,1)
       if (mnproc.eq.1) then
-        call intp_mu2iq(itdm,jtdm,vm,tmp2d,uwat)
+        call intp_mu2iq(itdm,jtdm,vm,tmp2d,uwat2l(1,0,lnew))
       endif
       call xcaget(tmp2d,tmp2,1)
       if (mnproc.eq.1) then
-        call intp_mv2iq(itdm,jtdm,vm,tmp2d,vwat)
+        call intp_mv2iq(itdm,jtdm,vm,tmp2d,vwat2l(1,0,lnew))
       endif
 c
       call xctilr(sealv, 1,1, 1,1, halo_ps)
@@ -116,11 +116,11 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       call xcaget(tmp2d,tmp1,1)
       if (mnproc.eq.1) then
-        call intp_mu2iq(itdm,jtdm,vm,tmp2d,gradhx)
+        call intp_mu2iq(itdm,jtdm,vm,tmp2d,gradhx2l(1,0,lnew))
       endif
       call xcaget(tmp2d,tmp2,1)
       if (mnproc.eq.1) then
-        call intp_mv2iq(itdm,jtdm,vm,tmp2d,gradhy)
+        call intp_mv2iq(itdm,jtdm,vm,tmp2d,gradhy2l(1,0,lnew))
       endif
 c
 c --- ------------------------------------------------------------------------

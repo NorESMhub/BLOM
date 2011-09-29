@@ -18,10 +18,10 @@ c
 c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real dt,cpsw,rnf_fac,sag_fac,y,
-     .     tml,sml,hml,tice_f,hice_min,fice,hice,hsnw,tsrf,fice0,hice0,
-     .     hsnw0,qsww,qnsw,tice,albi,tsmlt,albi_h,qswi,dh,qsnwf,fcond,
-     .     qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi,dvs,fwflx,
-     .     sstc,rice,trxflx,sssc,srxflx,
+     .     dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
+     .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
+     .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
+     .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totwfl,sflxc
 c
 #ifdef TRC
@@ -70,19 +70,29 @@ c --- Time level for diagnosing heat and salt relaxation fluxes
 c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
-c$OMP PARALLEL DO PRIVATE(tml,sml,hml,tice_f,hice_min,fice,hice,hsnw,
-c$OMP+  tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,albi_h,qswi,dh,
-c$OMP+  qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,volice,df,dvi,
-c$OMP+  dvs,fwflx,sstc,rice,trxflx,sssc,srxflx) SHARED(x,y)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,fice,
+c$OMP+ hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,
+c$OMP+ albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,
+c$OMP+ volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx)
+c$OMP+ SHARED(x,y)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-c --- --- Initialize variables describing the state of the mixed layer
-c --- --- and ice/snow fraction
-          tml=temp(i,j,k1n)+t0deg
-          sml=saln(i,j,k1n)
-          hml=dp(i,j,k1n)/onem
+c --- --- Initialize variables describing the state of the ocean top
+c --- --- layer, the mixed layer and ice/snow fraction
+          dpotl=dp(i,j,k1n)
+          hotl=dpotl/onem
+          totl=temp(i,j,k1n)+t0deg
+          sotl=saln(i,j,k1n)
+c
+          dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
+          hmxl=dpmxl/onem
+          tmxl=(temp(i,j,1+nn)*dp(i,j,1+nn)
+     .         +temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
+          smxl=(saln(i,j,1+nn)*dp(i,j,1+nn)
+     .         +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
 c
           fice=ficem(i,j)
           hice=hicem(i,j)
@@ -94,7 +104,7 @@ c
           hsnw0=hsnw
 c
 c --- --- Freezing point of sea water (in k)
-          tice_f=swtfrz(sml)+t0deg
+          tice_f=swtfrz(sotl)+t0deg
 c
 c --- --- Minmimum ice thickness
           if (plat(i,j).gt.0.) then
@@ -124,8 +134,8 @@ c --- ----- Non solar heat flux that enters the ocean
             qnsw=nsf(i,j)
 c
 c --- ----- Set surface temperature and ice surface temperature
-            tsrf=tml
-            tice=tml
+            tsrf=totl
+            tice=totl
 c
           else
 c
@@ -192,10 +202,10 @@ c --- ----- flux that enters the open water fraction
               qnsw=nsf(i,j)
               qdamp=0.
             else
-              tsrf=(qswi+nsf(i,j)-dfl(i,j)*(tsi(i,j)+(1.-fice)*tml)
+              tsrf=(qswi+nsf(i,j)-dfl(i,j)*(tsi(i,j)+(1.-fice)*totl)
      .             +fcond*tice_f)
      .             /(fcond-dfl(i,j)*(2.-fice))
-              qnsw=nsf(i,j)+dfl(i,j)*fice*(tml-min(tsrf,tsmlt))
+              qnsw=nsf(i,j)+dfl(i,j)*fice*(totl-min(tsrf,tsmlt))
               qdamp=dfl(i,j)*(min(tsrf,tsmlt)-tsi(i,j))
             endif
 c
@@ -205,7 +215,7 @@ c --- ----- surface
             if (tsrf.gt.tsmlt) then
               tsrf=tsmlt
               qsmlt=qswi+nsf(i,j)
-     .             +dfl(i,j)*((1.-fice)*(tsrf-tml)+tsrf-tsi(i,j))
+     .             +dfl(i,j)*((1.-fice)*(tsrf-totl)+tsrf-tsi(i,j))
      .             +fcond*(tice_f-tsrf)
             else
               qsmlt=0.
@@ -216,7 +226,7 @@ c --- ----- Set ice surface temperature
 c
 c --- ----- Heat flux from ocean to ice (Maykut and McPhee 1995)
             qo2i=rhowat*cpsw*cwi*max(ustari(i,j),.2e-2)
-     .           *min(tice_f-tml,0.)+cuc*max(tice_f-tml,0.)
+     .           *min(tice_f-totl,0.)+cuc*max(tice_f-totl,0.)
 c
 c --- ----- Heat budget at bottom of ice
             qbot=-fcond*(tice_f-tsrf)-qo2i-qdamp+qsnwf
@@ -254,14 +264,14 @@ c --- ------------------------------------------------------------------
 c
 c --- --- Predict temperature change in mixed layer after a leapfrog
 c --- --- time step due to heat fluxes
-          swfac=1.-(1.-redfac)*exp(-hml/betabl)
-          dtml=(swfac*qsww+qnsw)*2.*dt/(cpsw*rhowat*hml)
+          swfac=1.-(1.-redfac)*exp(-hotl/betabl)
+          dtml=(swfac*qsww+qnsw)*2.*dt/(cpsw*rhowat*hotl)
 c
-          if     (tml+dtml.lt.tice_f) then
+          if     (totl+dtml.lt.tice_f) then
 c
 c --- ----- Heat flux required to change the mixed layer temperature
 c --- ----- to the freezing point after a leapfrog time step
-            q=.5*(tice_f-tml)*cpsw*rhowat*hml/dt
+            q=.5*(tice_f-totl)*cpsw*rhowat*hotl/dt
 c
 c --- ----- Ice volume that has to freeze to balance the heat budget
             volice=-(qsww+qnsw-q)*(1.-fice)*dt/fusi
@@ -308,8 +318,8 @@ c --- --- Accumutate variables to produce averages in flux calculations
 c --- ------------------------------------------------------------------
 c
           alb_tda(i,j)=alb_tda(i,j)+alb(i,j)
-          tml_tda(i,j)=tml_tda(i,j)+tml
-          sml_tda(i,j)=sml_tda(i,j)+sml
+          tml_tda(i,j)=tml_tda(i,j)+totl
+          sml_tda(i,j)=sml_tda(i,j)+sotl
           fice_tda(i,j)=fice_tda(i,j)+fice
           tsi_tda(i,j)=tsi_tda(i,j)+tsrf
 c
@@ -344,10 +354,10 @@ c --- --- Salt flux [kg m-2 s-1] (positive downwards)
 c
 c --- --- Salt flux due to brine rejection of freezing sea
 c --- --- ice [kg m-2 m-1] (positive downwards)
-          brnflx(i,j)=max(0.,-sml*fmltfz(i,j)*1.e-3+sfl(i,j))
+          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*1.e-3+sfl(i,j))
 c
 c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
-          vrtsfl(i,j)=-sml*fwflx*1.e-3
+          vrtsfl(i,j)=-sotl*fwflx*1.e-3
 c
 c --- --- Store area weighted virtual salt flux and fresh water flux
           util1(i,j)=vrtsfl(i,j)*scp2(i,j)
@@ -384,8 +394,8 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
             rice=intpol(ricclm(i,j,l1),ricclm(i,j,l2),ricclm(i,j,l3),
      .                  ricclm(i,j,l4),ricclm(i,j,l5),x)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*hml/(trxday*86400.)
-     .             *min(1.,50./hml)*min(1.5,max(-1.5,sstc-tml))
+            trxflx=spcifh*100.*hmxl/(trxday*86400.)
+     .             *min(1.,50./hmxl)*min(1.5,max(-1.5,sstc-tmxl))
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -410,8 +420,8 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday.gt.epsil) then
             sssc=intpol(sssclm(i,j,l1),sssclm(i,j,l2),sssclm(i,j,l3),
      .                  sssclm(i,j,l4),sssclm(i,j,l5),x)
-            srxflx=100.*hml/(srxday*86400.)
-     .             *min(1.,50./hml)*min( .5,max( -.5,sssc-sml))
+            srxflx=100.*hmxl/(srxday*86400.)
+     .             *min(1.,50./hmxl)*min( .5,max( -.5,sssc-smxl))
             salrlx(i,j)=-srxflx
           else
             srxflx=0.

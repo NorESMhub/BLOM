@@ -116,6 +116,7 @@ c --- finalize accumulation
       call finlyr(jopal(iogrp),jdp(iogrp))
       call finlyr(jco3(iogrp),jdp(iogrp))
       call finlyr(jph(iogrp),jdp(iogrp))
+      call finlyr(jomegac(iogrp),jdp(iogrp))
 c
 c --- Mask sea floor in level data
       call msklvl(jlvldic(iogrp),depths)

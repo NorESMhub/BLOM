@@ -4,10 +4,9 @@
       ! Uses modules
       
       use mct_mod
-!     use seq_flds_mod
-      use seq_flds_indices
       use shr_const_mod, only: SHR_CONST_TKFRZ
       use types, only : r8
+      use micom_cpl_indices
       use mod_xc
 
       implicit none
@@ -103,15 +102,18 @@
       ! Pack co2 flux (kg CO2/m^2/s), if requested
       ! ----------------------------------------------------------------
 
-      if (index_o2x_Faoo_fco2 > 0) then
+      if (index_o2x_Faoo_fco2_ocn > 0) then
         n = 0
          do j = 1, jj
             do i = 1, ii
                n = n + 1
-               o2x_o%rAttr(index_o2x_Faoo_fco2,n) = 
-     .            sbuff(i,j,index_o2x_Faoo_fco2)*tfac
+               o2x_o%rAttr(index_o2x_Faoo_fco2_ocn,n) = 
+     .            sbuff(i,j,index_o2x_Faoo_fco2_ocn)*tfac
             enddo
          enddo
+      else
+         if (mnproc.eq.1)
+     .      write (lp,*) 'export_mct: co2 flux not sent to coupler'
       endif
 
       tlast_coupled = 0._r8

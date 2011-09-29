@@ -13,7 +13,6 @@ module ocn_comp_mct
       seq_infodata_putdata, seq_infodata_start_type_cont, &
       seq_infodata_start_type_brnch, seq_infodata_start_type_start
    use seq_flds_mod
-   use seq_flds_indices
    use seq_timemgr_mod, only : &
       seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
       seq_timemgr_EClockDateInSync
@@ -26,6 +25,7 @@ module ocn_comp_mct
    use perf_mod, only : t_startf, t_stopf
 
    use types, only : r8
+   use micom_cpl_indices
    use data_mct, only : mpicom_mct, runid_mct, runtype_mct
    use mod_xc
 
@@ -86,6 +86,8 @@ module ocn_comp_mct
       ! ----------------------------------------------------------------
       ! Initialize the model run
       ! ----------------------------------------------------------------
+
+      call micom_cpl_indices_set()
 
       call seq_infodata_GetData( infodata, case_name = runid_mct )
    

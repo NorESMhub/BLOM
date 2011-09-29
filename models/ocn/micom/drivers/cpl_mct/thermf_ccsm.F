@@ -17,8 +17,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
 c
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real y,tml,sml,dpml,hml,tice_f,fwflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totwfl,sflxc
+      real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
+     .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -49,7 +49,8 @@ c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ tml,sml,dpml,hml,tice_f,fwflx,sstc,rice,trxflx,sssc,srxflx)
+c$OMP+ dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,sstc,rice,
+c$OMP+ trxflx,sssc,srxflx)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -58,11 +59,21 @@ c --- ------------------------------------------------------------------
 c --- --- Set some quantities
 c --- ------------------------------------------------------------------
 c
-          tml=temp(i,j,k1n)+t0deg
-          sml=saln(i,j,k1n)
-          dpml=dp(i,j,k1n)
-          hml=dpml/onem
-          tice_f=swtfrz(sml)+t0deg
+c --- --- ocean top layer quantities
+          dpotl=dp(i,j,k1n)
+          hotl=dpotl/onem
+          totl=temp(i,j,k1n)+t0deg
+          sotl=saln(i,j,k1n)
+c
+c --- --- ocean mixed layer quantities
+          dpmxl=dp(i,j,1+nn)+dp(i,j,2+nn)
+          hmxl=dpmxl/onem
+          tmxl=(temp(i,j,1+nn)*dp(i,j,1+nn)
+     .         +temp(i,j,2+nn)*dp(i,j,2+nn))/dpmxl+t0deg
+          smxl=(saln(i,j,1+nn)*dp(i,j,1+nn)
+     .         +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
+c
+          tice_f=swtfrz(sotl)+t0deg
 c
 c --- ------------------------------------------------------------------
 c --- --- Fresh water and salt fluxes
@@ -79,10 +90,10 @@ c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
 c
 c --- --- Salt flux due to brine rejection of freezing sea
 c --- --- ice [kg m-2 m-1] (positive downwards)
-          brnflx(i,j)=max(0.,-sml*fmltfz(i,j)*1.e-3+sfl(i,j))
+          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*1.e-3+sfl(i,j))
 c
 c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
-          vrtsfl(i,j)=-sml*fwflx*1.e-3
+          vrtsfl(i,j)=-sotl*fwflx*1.e-3
 c
 c --- --- Store area weighted virtual salt flux and fresh water flux
           util1(i,j)=vrtsfl(i,j)*scp2(i,j)
@@ -97,7 +108,7 @@ c --- --- surface has a temperature below freezing temperature and must
 c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
-          frzpot(i,j)=max(0.,tice_f-tml)*spcifh*dpml/(2.*g)*1.e4
+          frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*1.e4
           mltpot(i,j)=min(0.,swtfrz(.5*(saln(i,j,k1m)+saln(i,j,k1n)))
      .                      -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
      .                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
@@ -125,8 +136,8 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
             rice=intpol(ricclm(i,j,l1),ricclm(i,j,l2),ricclm(i,j,l3),
      .                  ricclm(i,j,l4),ricclm(i,j,l5),x)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*hml/(trxday*86400.)
-     .             *min(1.,50./hml)*min(1.5,max(-1.5,sstc-tml))
+            trxflx=spcifh*100.*hmxl/(trxday*86400.)
+     .             *min(1.,50./hmxl)*min(1.5,max(-1.5,sstc-tmxl))
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -151,8 +162,8 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday.gt.epsil) then
             sssc=intpol(sssclm(i,j,l1),sssclm(i,j,l2),sssclm(i,j,l3),
      .                  sssclm(i,j,l4),sssclm(i,j,l5),x)
-            srxflx=100.*hml/(srxday*86400.)
-     .             *min(1.,50./hml)*min( .5,max( -.5,sssc-sml))
+            srxflx=100.*hmxl/(srxday*86400.)
+     .             *min(1.,50./hmxl)*min( .5,max( -.5,sssc-smxl))
             salrlx(i,j)=-srxflx
           else
             srxflx=0.

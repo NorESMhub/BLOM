@@ -16,6 +16,9 @@ c
 #if defined(CLIM) || defined(SYN)
 #  include "common_asf.h"
 #endif
+#ifdef CCSMCOUPLED
+#  include "common_ccsm.h"
+#endif
 #include "common_ice.h"
 c
       integer i,j,n
@@ -164,6 +167,9 @@ c --- output model fields to restart file
         write(c2,'(i2.2)') n
         call ncputi('nacc_phy'//c2,nacc_phy(n))
       enddo 
+#ifdef CCSMCOUPLED
+      call ncputi('ll2',ll2)
+#endif
 c
       do j=1,jj
         do i=1,ii
@@ -248,8 +254,29 @@ c
       call wrtrst('rhoa',trim(c5p)//' time',rhoa,ip)
 #endif
 c
+#ifdef CCSMCOUPLED
+      call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
+      call wrtrst('ztx_da',trim(c5p)//' k2 time',ztx_da,ip)
+      call wrtrst('mty_da',trim(c5p)//' k2 time',mty_da,ip)
+      call wrtrst('lip_da',trim(c5p)//' k2 time',lip_da,ip)
+      call wrtrst('sop_da',trim(c5p)//' k2 time',sop_da,ip)
+      call wrtrst('eva_da',trim(c5p)//' k2 time',eva_da,ip)
+      call wrtrst('rnf_da',trim(c5p)//' k2 time',rnf_da,ip)
+      call wrtrst('rfi_da',trim(c5p)//' k2 time',rfi_da,ip)
+      call wrtrst('fmltfz_da',trim(c5p)//' k2 time',fmltfz_da,ip)
+      call wrtrst('sfl_da',trim(c5p)//' k2 time',sfl_da,ip)
+      call wrtrst('swa_da',trim(c5p)//' k2 time',swa_da,ip)
+      call wrtrst('nsf_da',trim(c5p)//' k2 time',nsf_da,ip)
+      call wrtrst('hmlt_da',trim(c5p)//' k2 time',hmlt_da,ip)
+      call wrtrst('slp_da',trim(c5p)//' k2 time',slp_da,ip)
+      call wrtrst('ficem_da',trim(c5p)//' k2 time',ficem_da,ip)
+      call wrtrst('abswnd_da',trim(c5p)//' k2 time',abswnd_da,ip)
+      call wrtrst('atmco2_da',trim(c5p)//' k2 time',atmco2_da,ip)
+#endif
+c
       call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
       call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
+      call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
 c
 #if defined(TRC) && defined(IDLAGE)
       call wrtrst('idlage',trim(c5p)//' kk time',

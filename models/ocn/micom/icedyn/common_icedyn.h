@@ -64,9 +64,12 @@
 !   gradhy:     y-component of ocean surface tilt
 !-----------------------------------------------------------------------
       common /frc/ tauxw(L,0:M),tauyw(L,0:M),
+     &             uwat2l(L,0:M,2),vwat2l(L,0:M,2),
      &             uwat(L,0:M),vwat(L,0:M),
+     &             gradhx2l(L,0:M,2),gradhy2l(L,0:M,2),
      &             gradhx(L,0:M),gradhy(L,0:M)
-      real tauxw,tauyw,uwat,vwat,gradhx,gradhy
+      real tauxw,tauyw,uwat2l,vwat2l,uwat,vwat,gradhx2l,gradhy2l,
+     &     gradhx,gradhy
 !-----------------------------------------------------------------------
 ! Viscosity parameters
 !   Pstar:      empirical ice strength parameter [N/m**2]

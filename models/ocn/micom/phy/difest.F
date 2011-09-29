@@ -16,6 +16,7 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
+#include "common_ice.h"
 #include "common_forc.h"
 #include "common_geo.h"
 c
@@ -32,6 +33,8 @@ c ---            diffusivity is constant.
 c ---   bdmldp - If bdmldp=1, make the background mixing latitude
 c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
+c ---   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
+c ---            due to internal wave damping under sea-ice.
 c ---   dpbmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2].
 c ---   drhomn - minimum density difference in evaluations the
@@ -63,9 +66,16 @@ c ---            stability is weak [cm**2/s].
 c ---   bdmc1  - background diapycnal diffusivity times buoyancy
 c ---            frequency [cm**2/s**2].
 c ---   bdmc2  - background diapycnal diffusivity [cm**2/s].
+c ---   iwdfac - internal wave dissipation factor under sea ice [].
 c ---   dmxeff - diapycnal mixing efficiency [].
 c ---   tdmq   - tidal dissipation efficiency [].
-c ---   tdmls  - tidal driven mixing length scale [g/cm/s**2].
+c ---   tdmls0 - tidal driven mixing length scale below critical
+c ---            latitude [g/cm/s**2].
+c ---   tdmls1 - tidal driven mixing length scale above critical
+c ---            latitude [g/cm/s**2].
+c ---   tdclat - critical latitude for tide M2 propagation [].
+c ---   tddlat - latitudinal transition zone for different tidal driven
+c ---            mixing length scales near the critical latitude.
 c ---   cori30 - coriolis parameter at 30N [1/s].
 c ---   bvf0   - reference stratification in the parameterization of
 c ---            latitude dependent background diapycnal mixing [1/s].
@@ -81,21 +91,22 @@ c ---            layers used to estimate diapycnal diffusivities in the
 c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
-      integer iidtyp,bdmtyp,bdmldp,tdmflg
+      integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,egc,eggam,egmndf,egmxdf,
-     .     egidfq,ri0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,dmxeff,tdmq,
-     .     tdmls,cori30,bvf0,nubmin,dpgc,dpdiav,dpddav,dpnbav,ustmin,
-     .     kappa,bfeps,sleps,zetas,as,cs
-      parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,dptmin=98060.,
-     .           dpbmin=980.6,drhomn=6.e-6,thkdff=.5,temdff=.35,egc=1.,
-     .           eggam=200.,egmndf=100.e4,egmxdf=1500.e4,egidfq=1.,
-     .           ri0=.7,nus0=50.,nug0=2500.,drho0=6.e-6,nuls0=500.,
-     .           bdmc1=1.2e-3,bdmc2=.1,dmxeff=.2,tdmq=1./3.,
-     .           tdmls=500.*98060.,cori30=7.2722e-5,bvf0=5.24e-3,
-     .           nubmin=.001,dpgc=300.*98060.,dpdiav=100.*98060.,
-     .           dpddav=10.*98060.,dpnbav=250.*98060.,ustmin=.1,
-     .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
-     .           cs=98.96)
+     .     egidfq,ri0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
+     .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori30,bvf0,nubmin,dpgc,
+     .     dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
+      parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
+     .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
+     .           temdff=.35,egc=1.,eggam=200.,egmndf=100.e4,
+     .           egmxdf=1500.e4,egidfq=1.,ri0=.7,nus0=50.,nug0=2500.,
+     .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
+     .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
+     .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
+     .           cori30=7.2722e-5,bvf0=5.24e-3,nubmin=.001,
+     .           dpgc=300.*98060.,dpdiav=100.*98060.,dpddav=10.*98060.,
+     .           dpnbav=250.*98060.,ustmin=.1,kappa=.4,bfeps=1.e-12,
+     .           sleps=.1,zetas=-1.,as=-28.86,cs=98.96)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
@@ -581,11 +592,14 @@ c --- --------- Type 2: Background diffusivity is a constant
               else
                 nub=0.
               endif
+              if (iwdflg.eq.1) then
+                nub=nub*(1.+(iwdfac-1.)*ficem(i,j))
+              endif
 c
 c --- ------- Latitude dependency of background diapycnal mixing
               if (bdmldp.eq.1) then
                 q=max(1.e-9,abs(coriop(i,j)))
-                nub=nub*q/cori30*log(2.*bvf(i,k)/q)/log(2.*bvf0/cori30)
+                nub=nub*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
               endif
 c
               nub=max(nubmin,nub)
@@ -612,12 +626,13 @@ c --- --------- gradient richardson number.
 c
 c --- ------- Tidally driven diapycnal mixing
               if (tdmflg.eq.1) then
+                q=.5*(tanh(4.*(abs(plat(i,j))-tdclat)/tddlat-2.)+1.)
+                q=(1.-q)*tdmls0+q*tdmls1
                 if (dp(i,j,kn).lt.epsil) then
-                  tdmf=exp(p(i,j,k)/tdmls)
-     .                 /(tdmls*(exp(p(i,j,kk+1)/tdmls)-1.))
+                  tdmf=exp(p(i,j,k)/q)/(q*(exp(p(i,j,kk+1)/q)-1.))
                 else
-                  tdmf=(exp(p(i,j,k+1)/tdmls)-exp(p(i,j,k)/tdmls))
-     .                 /(dp(i,j,kn)*(exp(p(i,j,kk+1)/tdmls)-1.))
+                  tdmf=(exp(p(i,j,k+1)/q)-exp(p(i,j,k)/q))
+     .                 /(dp(i,j,kn)*(exp(p(i,j,kk+1)/q)-1.))
                 endif
                 nut=g*tdmq*dmxeff*twedon(i,j)*bvfbot(i)*tdmf/bvfsq(i,k)
               else
@@ -688,7 +703,7 @@ c --- - Diffusivity at the lower interface of the top layer
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-c --- --- Lower boundd friction velocity
+c --- --- Lower bounded friction velocity
           ust=max(ustmin,ustar(i,j))
 c
 c --- --- Monin-Obukhov length scale
@@ -699,15 +714,15 @@ c --- --- Mixed layer thickness
           h=(p(i,j,3)-p(i,j,1))/onecm
 c
 c --- --- Dimensionless vertical coordinate in the boundary layer
-          sg=thktop*1.e2/h
+          sg=(p(i,j,2)-p(i,j,1))/(p(i,j,3)-p(i,j,1))
 c
 c --- --- Velocity scale
           if (mols.lt.0.) then
             zeta=min(sleps,sg)*h/mols
             if (zeta.gt.zetas) then
-              phis=sqrt(1.-16.*zeta)
+              phis=(1.-16.*zeta)**(-1./2.)
             else
-              phis=(as-cs*zeta)**(1./3.)
+              phis=(as-cs*zeta)**(-1./3.)
             endif
           else
             zeta=sg*h/mols
@@ -721,6 +736,7 @@ c
 c       if (j.eq.jtest) then
 c         i=itest
 c         write (lp,*) 'h=',(p(i,j,3)-p(i,j,1))/onecm*1.e-2
+c         write (lp,*) 'd=',(p(i,j,2)-p(i,j,1))/onecm*1.e-2
 c         write (lp,*) 'ustar=',ustar(i,j)*1.e-2
 c         write (lp,*) 'bf=',buoyfl(i,j)*1.e-4
 c         write (lp,*) 'K=',difdia(i,j,1)*1.e-4

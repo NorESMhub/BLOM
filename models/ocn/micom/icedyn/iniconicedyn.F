@@ -31,6 +31,14 @@ c----------------------------------------------------------------------
             v(i,j,2) = 0.0
             u(i,j,3) = 0.0
             v(i,j,3) = 0.0
+            uwat2l(i,j,1) = 0.0
+            vwat2l(i,j,1) = 0.0
+            uwat2l(i,j,2) = 0.0
+            vwat2l(i,j,2) = 0.0
+            gradhx2l(i,j,1) = 0.0
+            gradhy2l(i,j,1) = 0.0
+            gradhx2l(i,j,2) = 0.0
+            gradhy2l(i,j,2) = 0.0
   105   continue
 c$OMP END PARALLEL DO
 

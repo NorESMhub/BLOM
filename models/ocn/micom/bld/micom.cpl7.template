@@ -17,6 +17,8 @@ if      ( $OCN_GRID ==  gx1v5) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20091216
 else if ( $OCN_GRID ==  gx1v6) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
+else if ( $OCN_GRID ==  gx3v7) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -69,6 +71,44 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
   endif
 endif
 
+if      ( $OCN_GRID ==  gx1v5) then
+  set BACLIN = 1800.
+  set BATROP = 36.
+  set VDFVHI = 2.
+  set VDFVLO = .4
+  set VDFCHI = 5000.e4
+  set VDFCLO = 300.e4
+  set VISCHI = .5
+  set VISCLO = .1
+  set CBAR   = 5.
+  set CB     = .002
+else if ( $OCN_GRID ==  gx1v6) then
+  set BACLIN = 1800.
+  set BATROP = 36.
+  set VDFVHI = 2.
+  set VDFVLO = .4
+  set VDFCHI = 5000.e4
+  set VDFCLO = 300.e4
+  set VISCHI = .5
+  set VISCLO = .1
+  set CBAR   = 5.
+  set CB     = .002
+else if ( $OCN_GRID ==  gx3v7) then
+  set BACLIN = 3600.
+  set BATROP = 72.
+  set VDFVHI = 2.
+  set VDFVLO = .4
+  set VDFCHI = 5000.e4
+  set VDFCLO = 300.e4
+  set VISCHI = 2.
+  set VISCLO = .1
+  set CBAR   = 10.
+  set CB     = .003
+else
+  echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
+  exit -1
+endif
+
 cat >! $CASEBUILD/micom.buildnml.csh << EOF
 #! /bin/csh -f 
 #==============================================================================
@@ -93,12 +133,21 @@ cat >! ocn_in << EOF1
 ! RUNID    : Experiment name (a)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
+! VDFVHI   : Diffusion velocity for momentum dissipation (cm/s) (f)
+! VDFVLO   : Diffusion velocity for momentum dissipation (cm/s) (f)
+! VDFCHI   : Diffusivity for momentum dissipation (cm**2/s) (f)
+! VDFCLO   : Diffusivity for momentum dissipation (cm**2/s) (f)
+! VISCHI   : Nondimensional parameter in deformation-dependent viscosity (f)
+! VISCLO   : Nondimensional parameter in deformation-dependent viscosity (f)
+! CBAR     : rms flow speed for linear bottom friction law (cm/s) (f)
+! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! APTFLX   : Apply diagnosed heat flux flag (l)
 ! APSFLX   : Apply diagnosed freshwater flux flag (l)
 ! DITFLX   : Diagnose heat flux flag (l)
 ! DISFLX   : Diagnose freshwater flux flag (l)
+! SMTFRC   : Smooth CCSM forcing (l)
 ! PATH     : Path to input files (a)
 ! PATH1    : Path to diagnostic files (a)
 ! PATH2    : Path to restart files (a)
@@ -113,14 +162,23 @@ cat >! ocn_in << EOF1
   IDATE    = ${YEAR0}${MONTH0}${DAY0},
   IDATE0   = ${YEAR0}${MONTH0}${DAY0},
   RUNID    = 'xxxx',
-  BACLIN   = 1800.,
-  BATROP   =  36.,
+  BACLIN   = ${BACLIN},
+  BATROP   = ${BATROP},
+  VDFVHI   = ${VDFVHI},
+  VDFVLO   = ${VDFVLO},
+  VDFCHI   = ${VDFCHI},
+  VDFCLO   = ${VDFCLO},
+  VISCHI   = ${VISCHI},
+  VISCLO   = ${VISCLO},
+  CBAR     = ${CBAR},
+  CB       = ${CB},
   TRXDAY   = 0.,
   SRXDAY   = 0.,
   APTFLX   = .false.,
   APSFLX   = .false.,
   DITFLX   = .false.,
   DISFLX   = .false.,
+  SMTFRC   = .true.,
   PATH     = "${INPUTPATH}/",
   PATH1    = './',
   PATH2    = './',
@@ -489,11 +547,18 @@ set exedir = \$EXEROOT/run
 set objdir = \$OBJROOT/ocn/obj; cd \$objdir
 set dimdir = \$objdir/dimensions
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
+set co2type = (\`echo \$MICOM_CO2_TYPE\`)
 
 set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -DLEVITUS2X"
 set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
 set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
-set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC"
+if (\$co2type == constant) then
+ set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -UPROGCO2 -UDIAGCO2"
+else if (\$co2type == prognostic) then
+ set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -DPROGCO2 -UDIAGCO2"
+else if (\$co2type == diagnostic) then
+ set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -UPROGCO2 -DDIAGCO2"
+endif
 set cpp_idlage = "-DIDLAGE"
 
 #------------------------------------------------------------------------------
@@ -518,6 +583,7 @@ endif
 \cat >! Filepath << EOF1
 \$dimdir
 \$CASEROOT/SourceMods/src.micom
+\$CODEROOT/ocn/micom/drivers/cpl_share
 \$CODEROOT/ocn/micom/drivers/cpl_mct
 \$CODEROOT/ocn/micom/phy
 EOF1

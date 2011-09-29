@@ -3,7 +3,7 @@
       ! Uses modules
       
       use types, only : r8
-      use seq_flds_indices
+      use micom_cpl_indices
       use mod_xc
 
       implicit none
@@ -97,12 +97,13 @@
          enddo
       enddo
 
-      if (index_o2x_Faoo_fco2 > 0) then
+      if (index_o2x_Faoo_fco2_ocn > 0) then
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
-               sbuff(i,j,index_o2x_Faoo_fco2) =
-     .            sbuff(i,j,index_o2x_Faoo_fco2) + flxco2(i,j)*baclin
+               sbuff(i,j,index_o2x_Faoo_fco2_ocn) =
+     .            sbuff(i,j,index_o2x_Faoo_fco2_ocn)
+     .          + flxco2(i,j)*baclin
             enddo
             enddo
          enddo

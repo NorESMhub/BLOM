@@ -47,7 +47,7 @@ c
             write (*,'(a,i6.6,a)')
      .        ' start day ',nday1,' in limits file'
           endif
-          read (nfu) lold,lnew,u,v
+          read (nfu) lold,lnew,u,v,uwat2l,vwat2l,gradhx2l,gradhy2l
           close (unit=nfu)
         else
           write (*,*) 'Warning! No ice dynamics restart file found.'

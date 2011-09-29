@@ -18,10 +18,13 @@ c
 #if defined(CLIM) || defined(SYN)
 #  include "common_asf.h"
 #endif
+#ifdef CCSMCOUPLED
+#  include "common_ccsm.h"
+#endif
 #include "common_ice.h"
 c
       real rtmp
-      integer i,j,n,ndayr,nmonthr,nyearr
+      integer i,j,n,ndayr,nmonthr,nyearr,l
       character(len=80) :: rstfnm,fnm
       character(len=2) :: c2
 c
@@ -224,8 +227,74 @@ c
       call ncread('rhoa',rhoa,ip,1,0.)
 #endif
 c
+#ifdef CCSMCOUPLED
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('ustarw_da')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('ustarw_da',ustarw_da,ip,1,0.)
+        call ncread('ztx_da',ztx_da,ip,1,0.)
+        call ncread('mty_da',mty_da,ip,1,0.)
+        call ncread('lip_da',lip_da,ip,1,0.)
+        call ncread('sop_da',sop_da,ip,1,0.)
+        call ncread('eva_da',eva_da,ip,1,0.)
+        call ncread('rnf_da',rnf_da,ip,1,0.)
+        call ncread('rfi_da',rfi_da,ip,1,0.)
+        call ncread('fmltfz_da',fmltfz_da,ip,1,0.)
+        call ncread('sfl_da',sfl_da,ip,1,0.)
+        call ncread('swa_da',swa_da,ip,1,0.)
+        call ncread('nsf_da',nsf_da,ip,1,0.)
+        call ncread('hmlt_da',hmlt_da,ip,1,0.)
+        call ncread('slp_da',slp_da,ip,1,0.)
+        call ncread('ficem_da',ficem_da,ip,1,0.)
+        call ncread('abswnd_da',abswnd_da,ip,1,0.)
+        call ncread('atmco2_da',atmco2_da,ip,1,0.)
+        rtmp=0.
+        if (mnproc.eq.1) then
+          call ncgeti('ll2',ll2)
+          rtmp=ll2
+        endif
+        call xcmaxr(rtmp)
+        ll2=nint(rtmp)
+        ll1=3-ll2
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: time levels for interpolation of forcing fields is'
+          write (lp,*)
+     .     'not read from restart file.'
+        endif
+        ll1=1
+        ll2=1
+      endif
+#endif
+c
       call ncread('frzpot',frzpot,ip,1,0.)
       call ncread('mltpot',mltpot,ip,1,0.)
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('flxco2')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('flxco2',flxco2,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: Air-sea CO2 flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do j=1,jj
+          do l=1,isp(j)
+          do i=ifp(j,l),ilp(j,l)
+            flxco2(i,j)=0.
+          enddo
+          enddo
+        enddo
+      endif
 c
 #if defined(TRC) && defined(IDLAGE)
       rtmp=0.

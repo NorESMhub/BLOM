@@ -8,22 +8,14 @@ c
 c
 #include "common_blocks.h"
 c
-c --- 'veldff' = diffusion velocity (cm/s) for momentum dissipation
-c --- 'vdfflo' same as veldff but used when Rossby radius is resolved
-c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
-c --- 'visclo' same as viscos but used when Rossby radius is resolved
-      data veldff/2.0/,vdfflo/0.4/,viscos/0.5/,visclo/0.1/
-c
 c --- 'mltmin' = minimum mixed-layer thickness (m)
-c --- 'thktop' = thickness of top layer (m)
+c --- 'thktop' = maximum thickness of top layer (m)
 c --- 'acurcy' = permissible roundoff error in column integral calc.
-      data mltmin/20./,thktop/10./,acurcy/1.e-10/
+      data mltmin/5./,thktop/10./,acurcy/1.e-10/
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
-c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
-c --- 'cb'     = coefficient of quadratic bottom friction
 c --- 'thkbot' = thickness of bottom boundary layer (m)
-      data slip/-1./,cbar/5./,cb/.002/,thkbot/10./
+      data slip/-1./,thkbot/10./
 c
 c --- weights for time smoothing
 ccc      data wuv1,wuv2/.5,.25/
@@ -58,7 +50,7 @@ c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
      .     betabl/23./
 c
 c --- 'itest,jtest' = grid point where detailed diagnostics are desired
-      data itest,jtest/192,192/
+      data itest,jtest/60,60/
 c
 c ---  s w i t c h e s    (if set to .true., then...)
 c

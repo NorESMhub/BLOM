@@ -115,6 +115,19 @@
 ! Pass atmospheric co2
 
 #if defined(DIFFAT) || defined(CCSMCOUPLED)
+#if defined(PROGCO2) || defined(DIAGCO2)
+!$OMP PARALLEL DO
+      DO  j=1,kpje
+      DO  i=1,kpie
+        atm(i,j,iatmco2)=patmco2(i,j)
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+         if (mnproc.eq.1) then 
+           write (io_stdo_bgc,*) 'jt: getting x2o co2'
+         endif
+
+#else
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
@@ -126,6 +139,7 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
+#endif
 #endif 
 
 #ifdef PBGC_CK_TIMESTEP

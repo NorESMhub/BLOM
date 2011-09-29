@@ -151,10 +151,12 @@ c
 c
 c --- 'baclin' = baroclinic time step
 c --- 'batrop' = barotropic time step
-c --- 'veldff' = diffusion velocity (cm/s) for momentum dissipation
-c --- 'vdfflo' same as veldff but used when Rossby radius is resolved
-c --- 'viscos' is nondimensional, used in deformation-dependent viscosity
-c --- 'visclo' same as viscos but used when Rossby radius is resolved
+c --- 'vdfvhi' = diffusion velocity (cm/s) for momentum dissipation
+c --- 'vdfvlo' same as vdfvhi but used when Rossby radius is resolved
+c --- 'vdfchi' = diffusivity (cm**2/s) for momentum dissipation
+c --- 'vdfclo' same as vdfchi but used when Rossby radius is resolved
+c --- 'vischi' is nondimensional, used in deformation-dependent viscosity
+c --- 'visclo' same as vischi but used when Rossby radius is resolved
 c --- slip = +1  for free-slip boundary cond., slip = -1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
 c --- 'cb'     = coefficient of quadratic bottom friction
@@ -169,13 +171,14 @@ c --- 'acurcy' = permissible roundoff error in column integral calc.
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
-      real baclin,batrop,veldff,vdfflo,viscos,visclo,slip,cbar,cb,
-     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy
+      real baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,slip,
+     .     cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,
+     .     acurcy
       logical csdiag,cnsvdi
 c
-      common /parms1/ baclin,batrop,veldff,vdfflo,viscos,visclo,slip,
-     .                cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,
-     .                thktop,thkbot,acurcy,csdiag,cnsvdi
+      common /parms1/ baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,
+     .                visclo,slip,cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,
+     .                wpgf,mltmin,thktop,thkbot,acurcy,csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

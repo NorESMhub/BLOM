@@ -145,7 +145,8 @@ c --- ----- at the mixed layer base.
             k=kmin
             fpu(k)=0.
             fpl(k)=min(pres(k+1),pres(kmax+1)-pres(k+1),
-     .                 c*nu(k)*2./(delp(k)+delp(k+1)))
+     .                 c*nu(k)*(delp(k)+delp(k+1))
+     .                 /(2.*delp(k)*delp(k+1)))
             k=kmin+1
             fpu(k)=fpl(k-1)
             delpu=max(onem,delp(k))

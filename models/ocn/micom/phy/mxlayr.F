@@ -18,10 +18,10 @@ c
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
       real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,tfsl,
-     .     sfsl,dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,
-     .     sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,
-     .     sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
-     .     udpn
+     .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
+     .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
+     .     ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,
+     .     dpe,dps,udpn
       integer i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
 c
 #ifdef TRC
@@ -153,8 +153,8 @@ c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
 c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
 c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tke,dpmxl,tkeo,dtke,tfsl,sfsl,
-c$OMP+ dpfsl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,dup,
-c$OMP+ dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
+c$OMP+ dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,
+c$OMP+ dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
 c$OMP+ sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
 c$OMP+ k,kn,kfpl,nitr,kmax,kfmax
 #ifdef TRC
@@ -301,8 +301,9 @@ c
             delp(2)=pmxl-pres(2)
 c
 c --- ----- Restore top layer to its reference pressure thickness
-            if (delp(1).gt.thktop*onem) then
-              dpt=delp(1)-thktop*onem
+            dptopl=min(thktop*onem,.5*(pmxl-pres(1)))
+            if (delp(1).gt.dptopl) then
+              dpt=delp(1)-dptopl
               q=1./(delp(2)+dpt)
               ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
               ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
@@ -313,7 +314,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #endif
               delp(2)=delp(2)+dpt
             else
-              dpt=thktop*onem-delp(1)
+              dpt=dptopl-delp(1)
               q=1./(delp(1)+dpt)
               ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
               ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
@@ -324,7 +325,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #endif
               delp(2)=delp(2)-dpt
             endif
-            delp(1)=thktop*onem
+            delp(1)=dptopl
 c
 c --- ------------------------------------------------------------------
 c --- ----- Apply forcing to the water column
@@ -804,8 +805,9 @@ c
             enddo
 c
 c --- ----- Restore top layer to its reference pressure thickness
-            if (delp(1).gt.thktop*onem) then
-              dpt=delp(1)-thktop*onem
+            dptopl=min(thktop*onem,.5*(pres(3)-pres(1)))
+            if (delp(1).gt.dptopl) then
+              dpt=delp(1)-dptopl
               q=1./(delp(2)+dpt)
               ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
               ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
@@ -816,7 +818,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #endif
               delp(2)=delp(2)+dpt
             else
-              dpt=thktop*onem-delp(1)
+              dpt=dptopl-delp(1)
               q=1./(delp(1)+dpt)
               ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
               ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
@@ -827,7 +829,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #endif
               delp(2)=delp(2)-dpt
             endif
-            delp(1)=thktop*onem
+            delp(1)=dptopl
             pres(2)=pres(1)+delp(1)
 c
 c --- ------------------------------------------------------------------

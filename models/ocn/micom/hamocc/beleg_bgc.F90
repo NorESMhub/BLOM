@@ -160,21 +160,24 @@
 #endif
 
 ! half sat. constants, note that the units are kmol/m3 !
-      bkphy  = 1.e-7    !i.e. 0.04 mmol P/m3
+!JT      bkphy  = 1.e-7    !i.e. 0.04 mmol P/m3
+      bkphy  = 2.e-7    !i.e. 0.04 mmol P/m3
       bkzoo  = 4.e-8    !i.e. 0.04 mmol P/m3
-      bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
+      bkopal = 1.5e-6    !i.e. 1.0 mmol Si/m3
 
 !sinking speed
-      wpoc  = 15.*dtb       !m/d  iris : 5.
+!JT      wpoc  = 10.*dtb       !m/d  iris : 5.
+      wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
-      wopal = 50.*dtb       !m/d  iris : 60
+!JT      wopal = 50.*dtb       !m/d  iris : 60
+      wopal = 30.*dtb       !m/d  iris : 60
 
       
 ! deep see remineralisation constants
 
-      drempoc  = 0.02*dtb     !1/d
-      dremdoc  = 0.003*dtb      !1/d
-      dphymor  = 0.07 *dtb      !1/d
+      drempoc  = 0.03*dtb     !1/d
+      dremdoc  = 0.004*dtb      !1/d
+      dphymor  = 0.1*dtb      !1/d
       dzoomor  = 0.02*dtb      !1/d
       dremopal = 0.01*dtb      !1/d
       dremn2o  = 0.01*dtb       !1/d
@@ -548,7 +551,11 @@
 !  Initial values for aquatic (advected) ocean tracers
 ! 
 !ka calculate average profile for DIC,Alk,P,N,Si,O  
-      call profile(kpie,kpje,kpke,ptiestu,omask)
+!      call profile(kpie,kpje,kpke,ptiestu,omask)
+
+! Initialise ocean tracers with WOA and GLODAP data
+      call profile_gd(kpie,kpje,kpke,gila_g,giph_g,ptiestu,omask,TRIM(path))
+
 
       DO k=1,kpke
       DO j=1,kpje
@@ -563,7 +570,8 @@
 !         ocetra(i,j,k,iano3)  =ocetra(i,j,k,iphosph)*rnit 
 !         ocetra(i,j,k,iano3)  =2.17e-6*rnit ! old 32.e-6
 !         ocetra(i,j,k,isilica)=1.2e-4
-         ocetra(i,j,k,idoc)   =1.e-10
+!JT         ocetra(i,j,k,idoc)   =1.e-10
+         ocetra(i,j,k,idoc)   =100*1.e-10
          ocetra(i,j,k,iphy)   =1.e-8 
          ocetra(i,j,k,izoo)   =1.e-8 
          ocetra(i,j,k,idet)   =1.e-8 
@@ -683,7 +691,8 @@
          sedlay(i,j,k,isssc14)=1.e-8
 #endif
          sedlay(i,j,k,issster)=30.
-         sedlay(i,j,k,issssil)=3.
+!JT         sedlay(i,j,k,issssil)=3.
+         sedlay(i,j,k,issssil)=1.e-8
          sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
       ELSE
          powtra(i,j,k,ipowno3)=rmasks
