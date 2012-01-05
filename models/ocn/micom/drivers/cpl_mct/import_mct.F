@@ -244,7 +244,7 @@
             enddo
          enddo
          call fill_global(mval, fval, halo_ps,
-     .                    atmco2(1-nbdy,1-nbdy,ll2))
+     .                    atmco2_da(1-nbdy,1-nbdy,ll2))
          if (mnproc.eq.1)
      .      write (lp,*) 'import_mct: diag. atmospheric co2 read'
       else
