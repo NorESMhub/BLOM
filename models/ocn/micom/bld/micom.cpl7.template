@@ -13,11 +13,11 @@ if !(-d $CASEBUILD  ) mkdir $CASEBUILD
 # Generate micom.input_data_list
 #------------------------------------------------------------------------------
 
-if      ( $OCN_GRID ==  gx1v5) then
+if      ($OCN_GRID == gx1v5) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20091216
-else if ( $OCN_GRID ==  gx1v6) then
+else if ($OCN_GRID == gx1v6) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
-else if ( $OCN_GRID ==  gx3v7) then
+else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
@@ -71,7 +71,7 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
   endif
 endif
 
-if      ( $OCN_GRID ==  gx1v5) then
+if      ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
   set BACLIN = 1800.
   set BATROP = 36.
   set VDFVHI = 2.
@@ -82,18 +82,7 @@ if      ( $OCN_GRID ==  gx1v5) then
   set VISCLO = .1
   set CBAR   = 5.
   set CB     = .002
-else if ( $OCN_GRID ==  gx1v6) then
-  set BACLIN = 1800.
-  set BATROP = 36.
-  set VDFVHI = 2.
-  set VDFVLO = .4
-  set VDFCHI = 5000.e4
-  set VDFCLO = 300.e4
-  set VISCHI = .5
-  set VISCLO = .1
-  set CBAR   = 5.
-  set CB     = .002
-else if ( $OCN_GRID ==  gx3v7) then
+else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
   set VDFVHI = 2.
@@ -549,7 +538,15 @@ set dimdir = \$objdir/dimensions
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
 set co2type = (\`echo \$MICOM_CO2_TYPE\`)
 
-set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST -DLEVITUS2X"
+set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST"
+if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6) then
+ set cpp_diag = "-DLEVITUS2X"
+else if (\$OCN_GRID == gx3v7) then
+ set cpp_diag = "-ULEVITUS2X"
+else
+  echo "\$0 ERROR: Cannot deal with GRID = \$OCN_GRID "
+  exit -1
+endif
 set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
 set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
 if (\$co2type == constant) then
@@ -588,7 +585,7 @@ endif
 \$CODEROOT/ocn/micom/phy
 EOF1
 
-set cpp_ocn = "\$cpp_phy"
+set cpp_ocn = "\$cpp_phy \$cpp_diag"
 if (\$#tracers == 0) then
   set cpp_ocn = "\$cpp_ocn \$cpp_notracer"
 else
