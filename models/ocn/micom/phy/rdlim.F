@@ -32,7 +32,7 @@ c
 #endif
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
-     .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,
+     .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,cwbdts,cwbdls,
      .  trxday,srxday,aptflx,apsflx,ditflx,disflx,smtfrc,
      .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp
 c
@@ -65,6 +65,8 @@ c --- print namelist on stdout
         write (lp,*) 'VISCLO',VISCLO
         write (lp,*) 'CBAR',CBAR
         write (lp,*) 'CB',CB
+        write (lp,*) 'CWBDTS',CWBDTS
+        write (lp,*) 'CWBDLS',CWBDLS
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'APTFLX',APTFLX
@@ -382,6 +384,8 @@ c
         write (lp,'(a,f10.4)') 'visclo:            ',visclo
         write (lp,'(a,f10.4)') 'cbar:              ',cbar
         write (lp,'(a,f10.4)') 'cb:                ',cb
+        write (lp,'(a,f10.4)') 'cwbdts:            ',cwbdts
+        write (lp,'(a,f10.4)') 'cwbdls:            ',cwbdls
         write (lp,'(a,f10.4)') 'trxday:            ',trxday
         write (lp,'(a,f10.4)') 'srxday:            ',srxday
         write (lp,'(a,l10)')   'aptflx:            ',aptflx

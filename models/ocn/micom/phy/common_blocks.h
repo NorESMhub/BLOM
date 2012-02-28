@@ -160,6 +160,8 @@ c --- 'visclo' same as vischi but used when Rossby radius is resolved
 c --- slip = +1  for free-slip boundary cond., slip = -1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
 c --- 'cb'     = coefficient of quadratic bottom friction
+c --- 'cwbdts' = coastal wave breaking damping resiprocal time scale (1/s)
+c --- 'cwbdls' = coastal wave breaking damping length scale (m)
 c --- 'wuv1/2' = weights for time smoothing of u,v field
 c --- 'wts1/2' = weights for time smoothing of t,s field
 c --- 'wbaro'  = weight for time smoothing of barotropic u,v,p field
@@ -172,13 +174,14 @@ c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
       real baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,slip,
-     .     cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,
-     .     acurcy
+     .     cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,
+     .     thktop,thkbot,acurcy
       logical csdiag,cnsvdi
 c
       common /parms1/ baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,
-     .                visclo,slip,cbar,cb,wuv1,wuv2,wts1,wts2,wbaro,
-     .                wpgf,mltmin,thktop,thkbot,acurcy,csdiag,cnsvdi
+     .                visclo,slip,cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,
+     .                wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy,
+     .                csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

@@ -730,110 +730,124 @@ c
       mhl = max(0,min(mh,nbdy))
       nhl = max(0,min(nh,nbdy))
 c
-      if     (nhl.gt.0) then
-        do k= l1,ld
+      do k= l1,ld
 c
-c         southern boundary is closed.
+c       southern boundary is closed.
 c
-          do j= 1,nhl
-            do i= 1,ii
-              a(i,1-j,k) = vland
-            enddo
+        do j= 1,nhl
+          do i= 1,ii
+            a(i,1-j,k) = vland
           enddo
+        enddo
 c
-          if     (itype.lt.10) then
+        if     (itype.lt.10) then
 c
-c           scalar field
+c         scalar field
 c
-            if     (itype.eq. 1) then
+          if     (itype.eq. 1) then
 c
-c             p-grid
+c           p-grid
 c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  a(i,jj+j,k) = a(io,jj-1-j,k)
-                enddo
+            do j= 0,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                a(i,jj+j,k) = a(io,jj-1-j,k)
               enddo
-            elseif (itype.eq. 2) then
+            enddo
+          elseif (itype.eq. 2) then
 c
-c             q-grid
+c           q-grid
 c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  a(i,jj+j,k) = a(io,jj-j,k)
-                enddo
+            do i= ii/2+1,ii
+              io = mod(ii-(i-1),ii)+1
+              a(i,jj,k) = a(io,jj,k)
+            enddo
+            do j= 1,nhl
+              do i= 1,ii
+                io = mod(ii-(i-1),ii)+1
+                a(i,jj+j,k) = a(io,jj-j,k)
               enddo
-            elseif (itype.eq. 3) then
+            enddo
+          elseif (itype.eq. 3) then
 c
-c             u-grid
+c           u-grid
 c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  a(i,jj+j,k) = a(io,jj-1-j,k)
-                enddo
+            do j= 0,nhl
+              do i= 1,ii
+                io = mod(ii-(i-1),ii)+1
+                a(i,jj+j,k) = a(io,jj-1-j,k)
               enddo
-            else
-c
-c             v-grid
-c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  a(i,jj+j,k) = a(io,jj-j,k)
-                enddo
-              enddo
-            endif
+            enddo
           else
 c
-c           vector field, swap sign
+c           v-grid
 c
-            if     (itype.eq.11) then
-c
-c             p-grid
-c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  a(i,jj+j,k) = -a(io,jj-1-j,k)
-                enddo
+            do i= ii/2+1,ii
+              io = ii-mod(i-1,ii)
+              a(i,jj,k) = a(io,jj,k)
+            enddo
+            do j= 1,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                a(i,jj+j,k) = a(io,jj-j,k)
               enddo
-            elseif (itype.eq.12) then
-c
-c             q-grid
-c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  a(i,jj+j,k) = -a(io,jj-j,k)
-                enddo
-              enddo
-            elseif (itype.eq.13) then
-c
-c             u-grid
-c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  a(i,jj+j,k) = -a(io,jj-1-j,k)
-                enddo
-              enddo
-            else
-c
-c             v-grid
-c
-              do j= 1,nhl
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  a(i,jj+j,k) = -a(io,jj-j,k)
-                enddo
-              enddo
-            endif
+            enddo
           endif
-        enddo
-      endif
+        else
+c
+c         vector field, swap sign
+c
+          if     (itype.eq.11) then
+c
+c           p-grid
+c
+            do j= 0,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                a(i,jj+j,k) = -a(io,jj-1-j,k)
+              enddo
+            enddo
+          elseif (itype.eq.12) then
+c
+c           q-grid
+c
+            do i= ii/2+1,ii
+              io = mod(ii-(i-1),ii)+1
+              a(i,jj,k) = -a(io,jj,k)
+            enddo
+            do j= 1,nhl
+              do i= 1,ii
+                io = mod(ii-(i-1),ii)+1
+                a(i,jj+j,k) = -a(io,jj-j,k)
+              enddo
+            enddo
+          elseif (itype.eq.13) then
+c
+c           u-grid
+c
+            do j= 0,nhl
+              do i= 1,ii
+                io = mod(ii-(i-1),ii)+1
+                a(i,jj+j,k) = -a(io,jj-1-j,k)
+              enddo
+            enddo
+          else
+c
+c           v-grid
+c
+            do i= ii/2+1,ii
+              io = ii-mod(i-1,ii)
+              a(i,jj,k) = -a(io,jj,k)
+            enddo
+            do j= 1,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                a(i,jj+j,k) = -a(io,jj-j,k)
+              enddo
+            enddo
+          endif
+        endif
+      enddo
 c
       if     (mhl.gt.0) then
         do k= 1,ld

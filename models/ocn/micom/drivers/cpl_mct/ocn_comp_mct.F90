@@ -44,6 +44,9 @@ module ocn_comp_mct
                     ! averaging before being sent
 
    integer :: &
+      lsize, &      ! Size of attribute vector
+      jjcpl, &      ! y-dimension of local ocean domain to send/receive fields
+                    ! to coupler
       nsend, &      ! Number of fields to be sent to coupler
       nrecv, &      ! Number of fields to be received from coupler
       ocn_cpl_dt    ! Coupling frequency
@@ -68,8 +71,7 @@ module ocn_comp_mct
       type (mct_gGrid), pointer :: dom_ocn
       type (seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
-                 start_ymd, start_tod, start_year, start_day, start_month, &
-                 lsize
+                 start_ymd, start_tod, start_year, start_day, start_month
       character (len=32) :: starttype
 
       ! Default stdout
@@ -134,7 +136,7 @@ module ocn_comp_mct
                                         start_ymd = start_ymd, &
                                         start_tod = start_tod)
          call shr_cal_date2ymd(start_ymd, start_year, start_month, start_day)
-         if (mnproc.eq.1) then
+         if (mnproc == 1) then
             write (lp,'(a,i8,a2,i5,a2,i4.4,a1,i2.2,a1,i2.2)') &
                ' ccsm initial date:           ',start_ymd,': ',start_tod,': ', &
                start_year,'.',start_month,'.',start_day
@@ -153,13 +155,15 @@ module ocn_comp_mct
       call ocn_SetGSMap_mct(mpicom_ocn, OCNID, gsMap_ocn)
 
       ! Initialize mct ocn domain (needs ocn initialization info)
+
+      if (mnproc == 1) then
+         write (lp, *) 'micom: ocn_init_mct: lsize', lsize
+      endif
    
-      call domain_mct(gsMap_ocn, dom_ocn, perm)
+      call domain_mct(gsMap_ocn, dom_ocn, lsize, perm, jjcpl)
    
       ! Inialize mct attribute vectors
 
-      lsize = ii*jj
-   
       call mct_aVect_init(x2o_o, rList = seq_flds_x2o_fields, lsize = lsize)
       call mct_aVect_zero(x2o_o)
    
@@ -182,15 +186,21 @@ module ocn_comp_mct
       allocate(sbuff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend))
       tlast_coupled = 0._r8
       call sum_sbuff(nsend, sbuff, tlast_coupled)
-      call export_mct(o2x_o, perm, nsend, sbuff, tlast_coupled)
-      call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
-                                ocnrof_prognostic = .true., &
-                                ocn_nx = itdm , ocn_ny = jtdm)
+      call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
+      if (nreg == 2) then
+        call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
+                                  ocnrof_prognostic = .true., &
+                                  ocn_nx = itdm , ocn_ny = jtdm-1)
+      else
+        call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
+                                  ocnrof_prognostic = .true., &
+                                  ocn_nx = itdm , ocn_ny = jtdm)
+      endif
 
       call t_stopf('micom_mct_init')
 
 
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
         write (lp, *) 'micom: completed initialization!'
       endif
 
@@ -230,9 +240,9 @@ module ocn_comp_mct
 
       micom_loop: do
 
-         if (nint(tlast_coupled).eq.0) then
+         if (nint(tlast_coupled) == 0) then
             ! Obtain import state from driver
-            call import_mct(x2o_o, perm)
+            call import_mct(x2o_o, lsize, perm, jjcpl)
          endif
       
          ! Advance the model a time step
@@ -241,13 +251,14 @@ module ocn_comp_mct
          ! Add fields to send buffer sums
          call sum_sbuff(nsend, sbuff, tlast_coupled)
 
-         if (nint(ocn_cpl_dt-tlast_coupled).eq.0) then
+         if (nint(ocn_cpl_dt-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
-            call export_mct(o2x_o, perm, nsend, sbuff, tlast_coupled)
+            call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, &
+                            tlast_coupled)
             exit micom_loop
          endif
 
-         if (mnproc.eq.1) then
+         if (mnproc == 1) then
            call shr_sys_flush(lp)
          endif
 
@@ -265,7 +276,7 @@ module ocn_comp_mct
       ! check that internal clock is in sync with master clock
       !-----------------------------------------------------------------
 
-      if (mnproc.eq.1) then
+      if (mnproc == 1) then
          call modeltime(ymd, tod)
          if (.not. seq_timemgr_EClockDateInSync(EClock, ymd, tod )) then
             call seq_timemgr_EClockGetData(EClock, curr_ymd=ymd_sync, &
@@ -306,7 +317,7 @@ module ocn_comp_mct
       ! Local variables
 
       integer, allocatable :: gindex(:)
-      integer :: i, j, n, lsize, gsize
+      integer :: i, j, n, gsize
 
       ! ----------------------------------------------------------------
       ! Build the MICOM grid numbering for MCT
@@ -315,13 +326,24 @@ module ocn_comp_mct
       ! in SCRIP
       ! ----------------------------------------------------------------
 
-      lsize = ii*jj
-      gsize = itdm*jtdm
+      if (nreg == 2 .and. nproc == jpr) then
+         jjcpl = jj - 1
+      else
+         jjcpl = jj
+      endif
+
+      lsize = ii*jjcpl
+
+      if (nreg == 2) then
+        gsize = itdm*(jtdm-1)
+      else
+        gsize = itdm*jtdm
+      endif
 
       allocate(gindex(lsize))
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             gindex(n) = (j0 + j - 1)*itdm + i0 + i

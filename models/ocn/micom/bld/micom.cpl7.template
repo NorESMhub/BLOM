@@ -19,6 +19,8 @@ else if ($OCN_GRID == gx1v6) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
 else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
+else if ( $OCN_GRID == tnx1v1) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -82,6 +84,8 @@ if      ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
   set VISCLO = .1
   set CBAR   = 5.
   set CB     = .002
+  set CWBDTS = 5.e-5
+  set CWBDLS = 25.
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
@@ -93,6 +97,21 @@ else if ($OCN_GRID == gx3v7) then
   set VISCLO = .1
   set CBAR   = 10.
   set CB     = .003
+  set CWBDTS = 5.e-5
+  set CWBDLS = 25.
+else if ( $OCN_GRID ==  tnx1v1) then
+  set BACLIN = 3200.
+  set BATROP = 64.
+  set VDFVHI = 2.
+  set VDFVLO = .4
+  set VDFCHI = 5000.e4
+  set VDFCLO = 300.e4
+  set VISCHI = .5
+  set VISCLO = .1
+  set CBAR   = 5.
+  set CB     = .002
+  set CWBDTS = 5.e-5
+  set CWBDLS = 25.
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -130,6 +149,8 @@ cat >! ocn_in << EOF1
 ! VISCLO   : Nondimensional parameter in deformation-dependent viscosity (f)
 ! CBAR     : rms flow speed for linear bottom friction law (cm/s) (f)
 ! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
+! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s)
+! CWBDLS   : Coastal wave breaking damping length scale (m)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! APTFLX   : Apply diagnosed heat flux flag (l)
@@ -161,6 +182,8 @@ cat >! ocn_in << EOF1
   VISCLO   = ${VISCLO},
   CBAR     = ${CBAR},
   CB       = ${CB},
+  CWBDTS   = ${CWBDTS},
+  CWBDLS   = ${CWBDLS},
   TRXDAY   = 0.,
   SRXDAY   = 0.,
   APTFLX   = .false.,
@@ -538,8 +561,17 @@ set dimdir = \$objdir/dimensions
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
 set co2type = (\`echo \$MICOM_CO2_TYPE\`)
 
-set cpp_phy = "-DCCSMCOUPLED -DMPI -UARCTIC -DNCEP -UICEDYN -UNEST"
-if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6) then
+
+set cpp_base = "-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UNEST"
+if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == gx3v7) then
+  set cpp_grid = "-UARCTIC"
+else if (\$OCN_GRID ==  tnx1v1) then
+  set cpp_grid = "-DARCTIC"
+else
+  echo "\$0 ERROR: Cannot deal with GRID = \$OCN_GRID "
+  exit -1
+endif
+if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1) then
  set cpp_diag = "-DLEVITUS2X"
 else if (\$OCN_GRID == gx3v7) then
  set cpp_diag = "-ULEVITUS2X"
@@ -585,7 +617,7 @@ endif
 \$CODEROOT/ocn/micom/phy
 EOF1
 
-set cpp_ocn = "\$cpp_phy \$cpp_diag"
+set cpp_ocn = "\$cpp_base \$cpp_grid \$cpp_diag"
 if (\$#tracers == 0) then
   set cpp_ocn = "\$cpp_ocn \$cpp_notracer"
 else

@@ -2987,8 +2987,8 @@ c*
 c**********
 c
       integer    ilen,jlen
-      parameter (ilen= idm        *kdm*nbdy+64,
-     &           jlen=(jdm+2*nbdy)*kdm*nbdy+64)
+      parameter (ilen= idm        *kdm*(nbdy+1)+64,
+     &           jlen=(jdm+2*nbdy)*kdm* nbdy   +64)
 c
 c     halo buffer (in common for enhanced MPI safety).
 c
@@ -2997,10 +2997,10 @@ c
       save  /xctilr4/
 c
       real            aia
-      common/xctilra/ aia(kdm*nbdy+64,2)
+      common/xctilra/ aia(kdm*(nbdy+1)+64,2)
       save  /xctilra/
 c
-      integer i,io,itynew,j,k,l,lg0,ls0,lm,m,mhl,nhl
+      integer i,io,j,k,l,lts,lbs,lbr,ltr,las,lar,lg0,ls0,lm,m,mhl,nhl
       real    sarc
 c
 #if defined(MPI)
@@ -3010,12 +3010,17 @@ c
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
 c
-c     persistent communication handles.
+c     communication handles.
 c
-      integer mpireqa(4*iqr),mpireqb(4),ilold,jlold,ityold,nreqa
-      save    mpireqa,mpireqb,ilold,jlold,ityold,nreqa
+      integer mpireqa(4*iqr),mpireqb(4),
+     &        ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold,
+     &        nreqa
+      save    mpireqa,mpireqb,
+     &        ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold,
+     &        nreqa
 c
-      data ilold,jlold,ityold / 0,0,0 /
+      data ilold,ltsold,lbsold,lbrold,ltrold,lasold,larold
+     &     / 0,0,0,0,0,0,0 /
 #endif /* MPI */
 c
 c --- split large requests into smaller pieces
@@ -3045,213 +3050,329 @@ c
         sarc = -1.0
       endif
 c
-      if     (nhl.gt.0) then
-        if     (ipr.eq.1 .and. jpr.eq.1) then
-          do k= l1,ld
+      if     (ipr.eq.1 .and. jpr.eq.1) then
+        do k= l1,ld
+          do j= 1,nhl
+            do i= 1,ii
+              a(i,1-j,k) = vland
+            enddo
+          enddo
+          if     (itype.eq.1 .or. itype.eq.11) then
+            do j= 0,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                if     (a(io,jj-1-j,k).ne.vland) then
+                  a(i,jj+j,k) = sarc*a(io,jj-1-j,k)
+                else
+                  a(i,jj+j,k) = vland
+                endif
+              enddo !i
+            enddo !j
+          elseif (itype.eq.2 .or. itype.eq.12) then
+            do i= ii/2+1,ii
+              io = mod(ii-(i-1),ii)+1
+              if     (a(io,jj,k).ne.vland) then
+                a(i,jj,k) = sarc*a(io,jj,k)
+              else
+                a(i,jj,k) = vland
+              endif
+            enddo !i
             do j= 1,nhl
               do i= 1,ii
-                a(i, 1-j,k) = vland
-              enddo
-              if     (itype.eq.1 .or. itype.eq.11) then
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  if     (a(io,jj-1-j,k).ne.vland) then
-                    a(i,jj+j,k) = sarc*a(io,jj-1-j,k)
-                  else
-                    a(i,jj+j,k) = vland
-                  endif
-                enddo !i
-              elseif (itype.eq.2 .or. itype.eq.12) then
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  if     (a(io,jj-j,k).ne.vland) then
-                    a(i,jj+j,k) = sarc*a(io,jj-j,k)
-                  else
-                    a(i,jj+j,k) = vland
-                  endif
-                enddo !i
-              elseif (itype.eq.3 .or. itype.eq.13) then
-                do i= 1,ii
-                  io = mod(ii-(i-1),ii)+1
-                  if     (a(io,jj-1-j,k).ne.vland) then
-                    a(i,jj+j,k) = sarc*a(io,jj-1-j,k)
-                  else
-                    a(i,jj+j,k) = vland
-                  endif
-                enddo !i
-              elseif (itype.eq.4 .or. itype.eq.14) then
-                do i= 1,ii
-                  io = ii-mod(i-1,ii)
-                  if     (a(io,jj-j,k).ne.vland) then
-                    a(i,jj+j,k) = sarc*a(io,jj-j,k)
-                  else
-                    a(i,jj+j,k) = vland
-                  endif
-                enddo !i
-              endif !itype
+                io = mod(ii-(i-1),ii)+1
+                if     (a(io,jj-j,k).ne.vland) then
+                  a(i,jj+j,k) = sarc*a(io,jj-j,k)
+                else
+                  a(i,jj+j,k) = vland
+                endif
+              enddo !i
+            enddo !j
+          elseif (itype.eq.3 .or. itype.eq.13) then
+            do j= 0,nhl
+              do i= 1,ii
+                io = mod(ii-(i-1),ii)+1
+                if     (a(io,jj-1-j,k).ne.vland) then
+                  a(i,jj+j,k) = sarc*a(io,jj-1-j,k)
+                else
+                  a(i,jj+j,k) = vland
+                endif
+              enddo !i
+            enddo !j
+          elseif (itype.eq.4 .or. itype.eq.14) then
+            do i= ii/2+1,ii
+              io = ii-mod(i-1,ii)
+              if     (a(io,jj,k).ne.vland) then
+                a(i,jj,k) = sarc*a(io,jj,k)
+              else
+                a(i,jj,k) = vland
+              endif
+            enddo !i
+            do j= 1,nhl
+              do i= 1,ii
+                io = ii-mod(i-1,ii)
+                if     (a(io,jj-j,k).ne.vland) then
+                  a(i,jj+j,k) = sarc*a(io,jj-j,k)
+                else
+                  a(i,jj+j,k) = vland
+                endif
+              enddo !i
+            enddo !j
+          endif !itype
+        enddo !k
+      else
+        lts = 0
+        lbs = 0
+        lbr = 0
+        ltr = 0
+        las = 0
+        lar = 0
+        if     (nproc.ne.jpr) then
+          if     (nhl.gt.0) then
+            do i= 1,ii  ! outer loop to simplify multiple neighbor case
+              do k= l1,ld
+                do j= 1,nhl
+                  lts = lts + 1
+                  ai(lts,1) = a(i,jj+1-j,k)
+                  ai(lts,2) = a(i,     j,k)
+                  ai(lts,3) = vland
+                  ai(lts,4) = vland
+                enddo !j
+              enddo !k
+            enddo !i
+            lbs = lts
+            lbr = lts
+            ltr = lts
+          endif
+        elseif (itype.eq.1 .or. itype.eq.11) then !p-grid
+          do i= 1,ii  ! outer loop to simplify multiple neighbor case
+            io = ii+1-i !ii:1:-1
+            do k= l1,ld
+              do j= 0,nhl
+                lts = lts + 1
+                if     (a(io,jj-1-j,k).ne.vland) then
+                  ai(lts,1) = sarc*a(io,jj-1-j,k)
+                else
+                  ai(lts,1) = vland
+                endif
+                ai(lts,4) = vland
+              enddo !j
+              do j= 1,nhl
+                lbs = lbs + 1
+                ai(lbs,2) = a(i,j,k)
+                ai(lbs,3) = vland
+              enddo !j
+            enddo !k
+          enddo !i
+          lbr = lbs
+          ltr = lts
+        elseif (itype.eq.3 .or. itype.eq.13) then  !u-grid
+          do i= 1,ii  ! outer loop to simplify multiple neighbor case
+            io = ii+2-i !ii+1:2:-1
+            do k= l1,ld
+              do j= 0,nhl
+                lts = lts + 1
+                if     (a(io,jj-1-j,k).ne.vland) then
+                  ai(lts,1) = sarc*a(io,jj-1-j,k)
+                else
+                  ai(lts,1) = vland
+                endif
+                ai(lts,4) = vland
+              enddo !j
+              do j= 1,nhl
+                lbs = lbs + 1
+                ai(lbs,2) = a(i,j,k)
+                ai(lbs,3) = vland
+              enddo !j
+            enddo !k
+          enddo !i
+          lbr = lbs
+          ltr = lts
+          do k= l1,ld
+            do j= 0,nhl
+              las = las + 1
+              if     (a(1,jj-1-j,k).ne.vland) then
+                aia(las,1) = sarc*a(1,jj-1-j,k)
+              else
+                aia(las,1) = vland
+              endif
+              aia(las,2) = vland
             enddo !j
           enddo !k
-        else
-          if     (nproc.ne.jpr) then
-            l = 0
-            do i= 1,ii  ! outer loop to simplify multiple neighbor case
-              do k= l1,ld
-                do j= 1,nhl
-                  l = l + 1
-                  ai(l,1) = a(i,jj+1-j,k)
-                  ai(l,2) = a(i,     j,k)
-                  ai(l,3) = vland
-                  ai(l,4) = vland
-                enddo !j
-              enddo !k
-            enddo !i
-          elseif (itype.eq.1 .or. itype.eq.11) then !p-grid
-            l = 0
-            do i= 1,ii  ! outer loop to simplify multiple neighbor case
-              io = ii+1-i !ii:1:-1
-              do k= l1,ld
-                do j= 1,nhl
-                  l = l + 1
-                  if     (a(io,jj-1-j,k).ne.vland) then
-                    ai(l,1) = sarc*a(io,jj-1-j,k)
-                  else
-                    ai(l,1) = vland
-                  endif
-                  ai(l,2) = a(i,j,k)
-                  ai(l,3) = vland
-                  ai(l,4) = vland
-                enddo !j
-              enddo !k
-            enddo !i
-          elseif (itype.eq.3 .or. itype.eq.13) then  !u-grid
-            l = 0
+          lar = las
+        elseif (itype.eq.2 .or. itype.eq.12) then  !q-grid
+          if (mproc.gt.ipr/2) then
             do i= 1,ii  ! outer loop to simplify multiple neighbor case
               io = ii+2-i !ii+1:2:-1
               do k= l1,ld
                 do j= 1,nhl
-                  l = l + 1
-                  if     (a(io,jj-1-j,k).ne.vland) then
-                    ai(l,1) = sarc*a(io,jj-1-j,k)
-                  else
-                    ai(l,1) = vland
-                  endif
-                  ai(l,2) = a(i,j,k)
-                  ai(l,3) = vland
-                  ai(l,4) = vland
-                enddo !j
-              enddo !k
-            enddo !i
-            l = 0
-            do k= l1,ld
-              do j= 1,nhl
-                l = l + 1
-                if     (a(1,jj-1-j,k).ne.vland) then
-                  aia(l,1) = sarc*a(1,jj-1-j,k)
-                else
-                  aia(l,1) = vland
-                endif
-                aia(l,2) = vland
-              enddo !j
-            enddo !k
-          elseif (itype.eq.2 .or. itype.eq.12) then  !q-grid
-            l = 0
-            do i= 1,ii  ! outer loop to simplify multiple neighbor case
-              io = ii+2-i !ii+1:2:-1
-              do k= l1,ld
-                do j= 1,nhl
-                  l = l + 1
+                  lts = lts + 1
                   if     (a(io,jj-j,k).ne.vland) then
-                    ai(l,1) = sarc*a(io,jj-j,k)
+                    ai(lts,1) = sarc*a(io,jj-j,k)
                   else
-                    ai(l,1) = vland
+                    ai(lts,1) = vland
                   endif
-                  ai(l,2) = a(i,j,k)
-                  ai(l,3) = vland
-                  ai(l,4) = vland
+                  ai(lts,2) = a(i,j,k)
+                  ai(lts,3) = vland
+                enddo !j
+                do j= 0,nhl
+                  ltr = ltr + 1
+                  ai(ltr,4) = vland
                 enddo !j
               enddo !k
             enddo !i
-            l = 0
+            lbs = lts
+            lbr = lts
             do k= l1,ld
-              do j= 1,nhl
-                l = l + 1
-                if     (a(1,jj-j,k).ne.vland) then
-                  aia(l,1) = sarc*a(1,jj-j,k)
-                else
-                  aia(l,1) = vland
-                endif
-                aia(l,2) = vland
+              do j= 0,nhl
+                lar = lar + 1
+                aia(lar,2) = vland
               enddo !j
             enddo !k
-          else  !v-grid
-            l = 0
+          else
+            do i= 1,ii  ! outer loop to simplify multiple neighbor case
+              io = ii+2-i !ii+1:2:-1
+              do k= l1,ld
+                do j= 0,nhl
+                  lts = lts + 1
+                  if     (a(io,jj-j,k).ne.vland) then
+                    ai(lts,1) = sarc*a(io,jj-j,k)
+                  else
+                    ai(lts,1) = vland
+                  endif
+                enddo !j
+                do j= 1,nhl
+                  lbs = lbs + 1
+                  ai(lbs,2) = a(i,j,k)
+                  ai(lbs,3) = vland
+                  ai(lbs,4) = vland
+                enddo !j
+              enddo !k
+            enddo !i
+            lbr = lbs
+            ltr = lbs
+            do k= l1,ld
+              do j= 1,nhl
+                lar = lar + 1
+                aia(lar,2) = vland
+              enddo !j
+            enddo !k
+          endif
+          if (mod(ipr+1-mproc,ipr)+1.le.ipr/2) then
+            do k= l1,ld
+              do j= 1,nhl
+                las = las + 1
+                if     (a(1,jj-j,k).ne.vland) then
+                  aia(las,1) = sarc*a(1,jj-j,k)
+                else
+                  aia(las,1) = vland
+                endif
+              enddo !j
+            enddo !k
+          else
+            do k= l1,ld
+              do j= 0,nhl
+                las = las + 1
+                if     (a(1,jj-j,k).ne.vland) then
+                  aia(las,1) = sarc*a(1,jj-j,k)
+                else
+                  aia(las,1) = vland
+                endif
+              enddo !j
+            enddo !k
+          endif
+        else  !v-grid
+          if (mproc.gt.ipr/2) then
             do i= 1,ii  ! outer loop to simplify multiple neighbor case
               io = ii+1-i  !ii:1:-1
               do k= l1,ld
                 do j= 1,nhl
-                  l = l + 1
+                  lts = lts + 1
                   if     (a(io,jj-j,k).ne.vland) then
-                    ai(l,1) = sarc*a(io,jj-j,k)
+                    ai(lts,1) = sarc*a(io,jj-j,k)
                   else
-                    ai(l,1) = vland
+                    ai(lts,1) = vland
                   endif
-                  ai(l,2) = a(i,j,k)
-                  ai(l,3) = vland
-                  ai(l,4) = vland
+                  ai(lts,2) = a(i,j,k)
+                  ai(lts,3) = vland
+                enddo !j
+                do j= 0,nhl
+                  ltr = ltr + 1
+                  ai(ltr,4) = vland
                 enddo !j
               enddo !k
             enddo !i
-          endif  !itype
-*         write(lp,'(a,6i6)') 'xctilr - nhl,l1,ld,ii,l,mnproc = ',
-*    &                                  nhl,l1,ld,ii,l,mnproc
-*         call xcsync(flush_lp)
+            lbs = lts
+            lbr = lts
+          else
+            do i= 1,ii  ! outer loop to simplify multiple neighbor case
+              io = ii+1-i  !ii:1:-1
+              do k= l1,ld
+                do j= 0,nhl
+                  lts = lts + 1
+                  if     (a(io,jj-j,k).ne.vland) then
+                    ai(lts,1) = sarc*a(io,jj-j,k)
+                  else
+                    ai(lts,1) = vland
+                  endif
+                enddo !j
+                do j= 1,nhl
+                  lbs = lbs + 1
+                  ai(lbs,2) = a(i,j,k)
+                  ai(lbs,3) = vland
+                  ai(lbs,4) = vland
+                enddo !j
+              enddo !k
+            enddo !i
+            lbr = lbs
+            ltr = lbs
+          endif
+        endif  !itype
 c
 #if defined(MPI)
-          if     (itype.eq.2 .or. itype.eq.12 .or.        !q-grid
-     &            itype.eq.3 .or. itype.eq.13     ) then  !u-grid
-            itynew = 2
-          else
-            itynew = 1
-          endif
-          if     (jlold.ne.l .or. ityold.ne.itynew) then
-            if     (jlold.ne.0) then
-              do i= 1,nreqa
+        if (lts.ne.ltsold .or. lbs.ne.lbsold .or. lbr.ne.lbrold .or.
+     &      ltr.ne.ltrold .or. las.ne.lasold .or. lar.ne.larold) then
+          if (ltsold + lbsold + lbrold + 
+     &        ltrold + lasold + larold.ne.0) then
+            do i= 1,nreqa
                 call mpi_request_free(mpireqa(i), mpierr)
-              enddo
-            endif
-            jlold = l
-            ityold = itynew
+            enddo
+          endif
+          ltsold = lts
+          lbsold = lbs
+          lbrold = lbr
+          ltrold = ltr
+          lasold = las
+          larold = lar
 c
-c           loop through all neigboring tiles.
+c         loop through all neigboring tiles.
 c
-            l = 0
+          l = 0
+          if (lts.gt.0) then
             do m= 1,mm_top
-              l   = l + 1
-              ls0 = i0_st(m)*nhl*(ld-l1+1)
-              lm  = ii_st(m)*nhl*(ld-l1+1)
+              l = l + 1
               if     (nproc.ne.jpr) then
+                ls0 = i0_st(m)*nhl*(ld-l1+1)
+                lm  = ii_st(m)*nhl*(ld-l1+1)
                 call mpi_send_init(
      &            ai(ls0+1,1),lm,MTYPER,
      &            idproc(m0_top+m,nproc+1), 9905,
      &            mpicomm, mpireqa(l), mpierr)
               else !arctic
                 call mpi_send_init(
-     &            ai(ls0+1,1),lm,MTYPER,
+     &            ai(1,1),lts,MTYPER,
      &            idproc(m0_top+m,nproc+1), 99051,
      &            mpicomm, mpireqa(l), mpierr)
               endif
             enddo
-            if     (nproc.eq.jpr) then !arctic
-              if     (itype.eq.2 .or. itype.eq.12 .or.        !q-grid
-     &                itype.eq.3 .or. itype.eq.13     ) then  !u-grid
-                l   = l + 1
-                lm  = nhl*(ld-l1+1)
-                call mpi_send_init(
-     &            aia(1,1),lm,MTYPER,
-     &            idproc(mod(ipr+1-mproc,ipr)+1,nproc), 99052,
-     &            mpicomm, mpireqa(l), mpierr)
-              endif !q-grid,u-grid
-            endif
+          endif ! lts.gt.0
+          if (las.gt.0) then
+            l = l + 1
+            call mpi_send_init(
+     &        aia(1,1),las,MTYPER,
+     &        idproc(mod(ipr+1-mproc,ipr)+1,nproc), 99052,
+     &        mpicomm, mpireqa(l), mpierr)
+          endif ! las.gt.0
+          if (lbs.gt.0) then
             do m= 1,mm_bot
               l   = l + 1
               ls0 = i0_sb(m)*nhl*(ld-l1+1)
@@ -3260,33 +3381,33 @@ c
      &          ai(ls0+1,2),lm,MTYPER,idproc(m0_bot+m,nproc-1), 9906,
      &          mpicomm, mpireqa(l), mpierr)
             enddo
+          endif ! lbs.gt.0
+          if (ltr.gt.0) then
             do m= 1,mm_top
               l   = l + 1
-              ls0 = i0_st(m)*nhl*(ld-l1+1)
-              lm  = ii_st(m)*nhl*(ld-l1+1)
               if     (nproc.ne.jpr) then
+                ls0 = i0_st(m)*nhl*(ld-l1+1)
+                lm  = ii_st(m)*nhl*(ld-l1+1)
                 call mpi_recv_init(
      &            ai(ls0+1,4),lm,MTYPER,
      &            idproc(m0_top+m,nproc+1), 9906,
      &            mpicomm, mpireqa(l), mpierr)
               else !arctic
                 call mpi_recv_init(
-     &            ai(ls0+1,4),lm,MTYPER,
+     &            ai(1,4),ltr,MTYPER,
      &            idproc(m0_top+m,nproc+1), 99051,
      &            mpicomm, mpireqa(l), mpierr)
               endif
             enddo
-            if     (nproc.eq.jpr) then !arctic
-              if     (itype.eq.2 .or. itype.eq.12 .or.        !q-grid
-     &                itype.eq.3 .or. itype.eq.13     ) then  !u-grid
-                l   = l + 1
-                lm  = nhl*(ld-l1+1)
-                call mpi_recv_init(
-     &            aia(1,2),lm,MTYPER,
-     &            idproc(mod(ipr+1-mproc,ipr)+1,nproc), 99052,
-     &            mpicomm, mpireqa(l), mpierr)
-              endif !q-grid,u-grid
-            endif
+          endif ! ltr.gt.0
+          if (lar.gt.0) then
+            l = l + 1
+            call mpi_recv_init(
+     &        aia(1,2),lar,MTYPER,
+     &        idproc(mod(ipr+1-mproc,ipr)+1,nproc), 99052,
+     &        mpicomm, mpireqa(l), mpierr)
+          endif ! lar.gt.0
+          if (lbr.gt.0) then
             do m= 1,mm_bot
               l   = l + 1
               ls0 = i0_sb(m)*nhl*(ld-l1+1)
@@ -3295,43 +3416,43 @@ c
      &          ai(ls0+1,3),lm,MTYPER,idproc(m0_bot+m,nproc-1), 9905,
      &          mpicomm, mpireqa(l), mpierr)
             enddo
-            nreqa = l
-          endif
-          if     (nreqa.gt.0) then
-            call mpi_startall(nreqa, mpireqa,          mpierr)
-            call mpi_waitall( nreqa, mpireqa, mpistat, mpierr)
-          endif
+          endif ! lbr.gt.0
+          nreqa = l
+        endif
+        if     (nreqa.gt.0) then
+          call mpi_startall(nreqa, mpireqa,          mpierr)
+          call mpi_waitall( nreqa, mpireqa, mpistat, mpierr)
+        endif
 #elif defined(SHMEM)
-          BARRIER
+        BARRIER
 c
-c         loop through all neigboring tiles.
+c       loop through all neigboring tiles.
 c
+        if (ltr.gt.0) then
           do m= 1,mm_top
             if     (idproc(m0_top+m,nproc+1).ne.null_tile) then
-              lg0 = i0_gt(m)*nhl*(ld-l1+1)
-              ls0 = i0_st(m)*nhl*(ld-l1+1)
-              lm  = ii_st(m)*nhl*(ld-l1+1)
               if     (nproc.ne.jpr) then
+                lg0 = i0_gt(m)*nhl*(ld-l1+1)
+                ls0 = i0_st(m)*nhl*(ld-l1+1)
+                lm  = ii_st(m)*nhl*(ld-l1+1)
                 call SHMEM_GETR(ai(ls0+1,4),
      &                          ai(lg0+1,2),lm,
      &                          idproc(m0_top+m,nproc+1))
               else !arctic
-                call SHMEM_GETR(ai(ls0+1,4),
-     &                          ai(lg0+1,1),lm,  !buffer 1
+                call SHMEM_GETR(ai(1,4),
+     &                          ai(1,1),ltr,  !buffer 1
      &                          idproc(m0_top+m,nproc+1))
               endif
             endif
           enddo
-          if     (nproc.eq.jpr) then !arctic
-            if     (itype.eq.2 .or. itype.eq.12 .or.        !q-grid
-     &              itype.eq.3 .or. itype.eq.13     ) then  !u-grid
-              lm  = nhl*(ld-l1+1)
-              call SHMEM_GETR(aia(1,2),
-     &                        aia(1,1),lm,
-     &                        idproc(mod(ipr+1-mproc)+1,nproc))
-            endif !q-grid,u-grid
-          endif
+        endif ! ltr.gt.0
+        if (lar.gt.0) then
+          call SHMEM_GETR(aia(1,2),
+     &                    aia(1,1),lar,
+     &                    idproc(mod(ipr+1-mproc,ipr)+1,nproc))
+        endif ! lar.gt.0
 c
+        if (lbr.gt.0) then
           do m= 1,mm_bot
             if     (idproc(m0_bot+m,nproc-1).ne.null_tile) then
               lg0 = i0_gb(m)*nhl*(ld-l1+1)
@@ -3341,32 +3462,82 @@ c
      &                        ai(lg0+1,1),lm, idproc(m0_bot+m,nproc-1))
             endif
           enddo
+        endif ! lbr.gt.0
 #endif  /* MPI:SHMEM */
 c
-          if     (nproc.eq.jpr) then  !arctic
-            if     (itype.eq.2 .or. itype.eq.12 .or.        !q-grid
-     &              itype.eq.3 .or. itype.eq.13     ) then  !u-grid
-              l  = 0
+        if     (nproc.ne.jpr) then  !arctic
+          if (lbr.gt.0) then
+            lbr = 0
+            do i= 1,ii  ! outer loop to simplify multiple neighbor case
               do k= l1,ld
                 do j= 1,nhl
-                  l  = l  + 1
-                  ai(l,4) = aia(l,2)
-                enddo !j
-              enddo !k
-            endif !q-grid,u-grid
-          endif !arctic
-          l = 0
-          do i= 1,ii  ! outer loop to simplify multiple neighbor case
-            do k= l1,ld
-              do j= 1,nhl
-                l = l + 1
-                a(i, 1-j,k) = ai(l,3)
-                a(i,jj+j,k) = ai(l,4)
+                  lbr = lbr + 1
+                  a(i, 1-j,k) = ai(lbr,3)
+                  a(i,jj+j,k) = ai(lbr,4)
+                enddo
               enddo
             enddo
-          enddo
-        endif  ! jpr.eq.1:else
-      endif  ! nhl.gt.0
+          endif ! lbr.gt.0
+        else !arctic
+          if (lar.gt.0) then
+            lar  = 0
+            if (itype.eq.3 .or. itype.eq.13 .or. mproc.gt.ipr/2) then
+              do k= l1,ld
+                do j= 0,nhl
+                  lar  = lar + 1
+                  ai(lar,4) = aia(lar,2)
+                enddo !j
+              enddo !k
+            else
+              do k= l1,ld
+                do j= 1,nhl
+                  lar  = lar + 1
+                  ai(lar,4) = aia(lar,2)
+                enddo !j
+              enddo !k
+            endif
+          endif ! lar.gt.0
+          if (ltr.gt.0) then
+            if     (lbr.eq.0) then
+              ltr = 0
+              do i= 1,ii  ! outer loop to simplify multiple neighbor case
+                do k= l1,ld
+                  do j= 0,nhl
+                    ltr = ltr + 1
+                    a(i,jj+j,k) = ai(ltr,4)
+                  enddo
+                enddo
+              enddo
+            elseif (ltr.gt.lbr) then
+              lbr = 0
+              ltr = 0
+              do i= 1,ii  ! outer loop to simplify multiple neighbor case
+                do k= l1,ld
+                  do j= 0,nhl
+                    ltr = ltr + 1
+                    a(i,jj+j,k) = ai(ltr,4)
+                  enddo
+                  do j= 1,nhl
+                    lbr = lbr + 1
+                    a(i, 1-j,k) = ai(lbr,3)
+                  enddo
+                enddo
+              enddo
+            else
+              lbr = 0
+              do i= 1,ii  ! outer loop to simplify multiple neighbor case
+                do k= l1,ld
+                  do j= 1,nhl
+                    lbr = lbr + 1
+                    a(i, 1-j,k) = ai(lbr,3)
+                    a(i,jj+j,k) = ai(lbr,4)
+                  enddo
+                enddo
+              enddo
+            endif
+          endif ! ltr.gt.0
+        endif !arctic
+      endif  ! ipr.eq.1 .and. jpr.eq.1
 c
       if     (mhl.gt.0) then
         if     (ipr.eq.1) then

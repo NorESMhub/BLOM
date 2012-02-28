@@ -252,16 +252,7 @@ c$OMP PARALLEL DO
           enddo
         enddo
 c$OMP END PARALLEL DO
-#ifdef ARCTIC
-        do j=jtdm-j0,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=0.
-          enddo
-          enddo
-        enddo
-#endif
-        call xcsum(vol0,util1,ip)
+        call xcsum(vol0,util1,ips)
       endif
 c
 c --- ------------------------------------------------------------------
@@ -279,28 +270,38 @@ c
       call xctilr(xiyp, 1,2, 1,2, halo_vs)
       call xctilr(xiym, 1,2, 1,2, halo_vs)
 c
-#ifdef ARCTIC
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection
-      if (nproc.eq.jpr) then
-        do j=jj+1,jj+2
+      if (nreg.eq.2.and.nproc.eq.jpr) then
+        do j=jj,jj+2
           do i=0,ii+1
             q=xixp(i,j,1)
             xixp(i,j,1)=xixm(i,j,1)
             xixm(i,j,1)=q
-            q=xiyp(i,j,1)
-            xiyp(i,j,1)=xiym(i,j,1)
-            xiym(i,j,1)=q
             q=xixp(i,j,2)
             xixp(i,j,2)=xixm(i,j,2)
             xixm(i,j,2)=q
+          enddo
+        enddo
+        do i=max(0,itdm/2-i0+1),ii+1
+          q=xiyp(i,jj,1)
+          xiyp(i,jj,1)=xiym(i,jj,1)
+          xiym(i,jj,1)=q
+          q=xiyp(i,jj,2)
+          xiyp(i,jj,2)=xiym(i,jj,2)
+          xiym(i,jj,2)=q
+        enddo
+        do j=jj+1,jj+2
+          do i=0,ii+1
+            q=xiyp(i,j,1)
+            xiyp(i,j,1)=xiym(i,j,1)
+            xiym(i,j,1)=q
             q=xiyp(i,j,2)
             xiyp(i,j,2)=xiym(i,j,2)
             xiym(i,j,2)=q
           enddo
         enddo
       endif
-#endif
 c
 c --- print seconds elapsed since last call to system_clock (Time 0)
       if (mnproc.eq.1) then

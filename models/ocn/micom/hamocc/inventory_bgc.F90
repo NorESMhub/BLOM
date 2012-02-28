@@ -87,7 +87,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(ztotvol,ztmp1,ip)
+      CALL xcsum(ztotvol,ztmp1,ips)
 
       DO l=1,npowtra
 
@@ -105,7 +105,7 @@
          ENDDO
          ENDDO
 
-         CALL xcsum(zpowtrato(l),ztmp1,ip)
+         CALL xcsum(zpowtrato(l),ztmp1,ips)
 
       ENDDO
 
@@ -140,7 +140,7 @@
          ENDDO
          ENDDO
 
-         CALL xcsum(zsedlayto(l),ztmp1,ip)
+         CALL xcsum(zsedlayto(l),ztmp1,ips)
 
       ENDDO
 
@@ -152,7 +152,7 @@
          ENDDO
          ENDDO
 
-         CALL xcsum(zburial(l),ztmp1,ip)
+         CALL xcsum(zburial(l),ztmp1,ips)
 
       ENDDO
 
@@ -170,7 +170,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zsedhplto,ztmp1,ip)
+      CALL xcsum(zsedhplto,ztmp1,ips)
 
 
 
@@ -213,7 +213,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(ztotvol,ztmp1,ip)
+      CALL xcsum(ztotvol,ztmp1,ips)
 
       DO l=1,nocetra
 
@@ -236,7 +236,7 @@
          ENDDO
          ENDDO
 
-         CALL xcsum(zocetrato(l),ztmp1,ip)
+         CALL xcsum(zocetrato(l),ztmp1,ips)
 
       ENDDO
     
@@ -276,8 +276,8 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zhito ,ztmp1,ip)
-      CALL xcsum(zco3to,ztmp2,ip)
+      CALL xcsum(zhito ,ztmp1,ips)
+      CALL xcsum(zco3to,ztmp2,ips)
  
 !      IF (mnproc.eq.1) THEN
 !      WRITE(io_stdo_bgc,*) ' '
@@ -305,8 +305,8 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(ztotvol,ztmp1,ip)
-      CALL xcsum(zalkali,ztmp2,ip)
+      CALL xcsum(ztotvol,ztmp1,ips)
+      CALL xcsum(zalkali,ztmp2,ips)
     
 !      IF (mnproc.eq.1) THEN
 !      WRITE(io_stdo_bgc,*) ' '
@@ -362,7 +362,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(co2flux,ztmp1,ip)
+      CALL xcsum(co2flux,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -370,7 +370,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(so2flux,ztmp1,ip)
+      CALL xcsum(so2flux,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -378,7 +378,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(sn2flux,ztmp1,ip)
+      CALL xcsum(sn2flux,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -386,7 +386,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(sn2oflux,ztmp1,ip)
+      CALL xcsum(sn2oflux,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -394,7 +394,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(ztotarea,ztmp1,ip)
+      CALL xcsum(ztotarea,ztmp1,ips)
 
 #ifdef DIFFAT
       DO j=1,kpje
@@ -403,7 +403,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zatmco2,ztmp1,ip)
+      CALL xcsum(zatmco2,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -411,7 +411,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zatmo2,ztmp1,ip)
+      CALL xcsum(zatmo2,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -419,7 +419,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zatmn2,ztmp1,ip)
+      CALL xcsum(zatmn2,ztmp1,ips)
 #elif CCSMCOUPLED
       DO j=1,kpje
       DO i=1,kpie
@@ -427,7 +427,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zatmco2,ztmp1,ip)
+      CALL xcsum(zatmco2,ztmp1,ips)
 #else
       zatmco2 = 0.
       zatmo2 = 0.
@@ -460,7 +460,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zprorca,ztmp1,ip)
+      CALL xcsum(zprorca,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -468,7 +468,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zprcaca,ztmp1,ip)
+      CALL xcsum(zprcaca,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -476,7 +476,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zsilpro,ztmp1,ip)
+      CALL xcsum(zsilpro,ztmp1,ips)
 
 !      IF (mnproc.eq.1) THEN
 !      WRITE(io_stdo_bgc,*) ' '  
@@ -583,7 +583,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zprorca,ztmp1,ip)
+      CALL xcsum(zprorca,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -591,7 +591,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zprcaca,ztmp1,ip)
+      CALL xcsum(zprcaca,ztmp1,ips)
 
       DO j=1,kpje
       DO i=1,kpie
@@ -599,7 +599,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(zsilpro,ztmp1,ip)
+      CALL xcsum(zsilpro,ztmp1,ips)
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) ' '      
@@ -616,7 +616,7 @@
         ENDDO
         ENDDO
 
-        CALL xcsum(sum,ztmp1,ip)
+        CALL xcsum(sum,ztmp1,ips)
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'No. ',l,' ',sum
       ENDIF
@@ -635,7 +635,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(sum,ztmp1,ip)
+      CALL xcsum(sum,ztmp1,ips)
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'carbon   : ',sum
@@ -647,7 +647,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(sum,ztmp1,ip)
+      CALL xcsum(sum,ztmp1,ips)
 
      IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'carbonate: ',sum
@@ -659,7 +659,7 @@
       ENDDO
       ENDDO
 
-      CALL xcsum(sum,ztmp1,ip)
+      CALL xcsum(sum,ztmp1,ips)
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'silitat  : ',sum

@@ -470,18 +470,8 @@ c --- Also combine virtual and true salt flux and convert salt fluxes
 c --- used later to unit [10e-3 g cm-2 s-1] and positive upwards.
 c --- ------------------------------------------------------------------
 c
-#ifdef ARCTIC
-      do j=jtdm-j0,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          util1(i,j)=0.
-          util2(i,j)=0.
-        enddo
-        enddo
-      enddo
-#endif
-      call xcsum(totsfl,util1,ip)
-      call xcsum(totwfl,util2,ip)
+      call xcsum(totsfl,util1,ips)
+      call xcsum(totwfl,util2,ips)
 c
 c --- Correction for the virtual salt flux [kg m-2 s-1]
       sflxc=(-sref*totwfl*1.e-3-totsfl)/area
@@ -516,19 +506,8 @@ c          enddo
 c        enddo
 cc$OMP END PARALLEL DO
 cc
-c#ifdef ARCTIC
-c        do j=jtdm-j0,jj
-c          do l=1,isp(j)
-c          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c            util1(i,j)=0.
-c            util2(i,j)=0.
-c          enddo
-c          enddo
-c        enddo
-c#endif
-cc
-c        call xcsum(tottrsf,util1,ip)
-c        call xcsum(tottrav,util2,ip)
+c        call xcsum(tottrsf,util1,ips)
+c        call xcsum(tottrav,util2,ips)
 cc
 c        tottrav=tottrav/area
 cc

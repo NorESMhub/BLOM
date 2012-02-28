@@ -15,9 +15,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t,umaxb,uminb,vmaxb,vminb,
      .  uglue,vglue
-      real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy,damp
+      real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy
       integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll,ns
-      parameter (damp=1.e-6)  !  for simulating coastal wave breaking
 c
 c --- ------------------------------------------------------------------
 c --- initialize barotropic velocity sums, determine maximum allowable
@@ -31,7 +30,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
           umaxb(i,j)=0.
           uminb(i,j)=0.
-          uglue(i,j)=damp*exp(1.-pbu(i,j,m)/(25.*onem))
+          uglue(i,j)=cwbdts*exp(1.-pbu(i,j,m)/(cwbdls*onem))
         enddo
         enddo
         do k=1,kk
@@ -53,7 +52,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
           vmaxb(i,j)=0.
           vminb(i,j)=0.
-          vglue(i,j)=damp*exp(1.-pbv(i,j,m)/(25.*onem))
+          vglue(i,j)=cwbdts*exp(1.-pbv(i,j,m)/(cwbdls*onem))
         enddo
         enddo
         do k=1,kk
@@ -135,29 +134,39 @@ c
       call xctilr(xiyp(1-nbdy,1-nbdy,n), 1,1, 1,2, halo_vs)
       call xctilr(xiym(1-nbdy,1-nbdy,n), 1,1, 1,2, halo_vs)
 c
-#ifdef ARCTIC
 c --- with arctic patch, switch umaxb and uminb, vmaxb and vminb, xixp
 c --- and xixm, and xiyp and xiym in the halo region adjacent to the
 c --- arctic grid intersection
-      if (nproc.eq.jpr) then
-        do j=jj+1,jj+2
+      if (nreg.eq.2.and.nproc.eq.jpr) then
+        do j=jj,jj+2
           do i=0,ii+1
             q=umaxb(i,j)
             umaxb(i,j)=uminb(i,j)
             uminb(i,j)=q
-            q=vmaxb(i,j)
-            vmaxb(i,j)=vminb(i,j)
-            vminb(i,j)=q
             q=xixp(i,j,n)
             xixp(i,j,n)=xixm(i,j,n)
             xixm(i,j,n)=q
+          enddo
+        enddo
+        do i=max(0,itdm/2-i0+1),ii+1
+          q=vmaxb(i,jj)
+          vmaxb(i,jj)=vminb(i,jj)
+          vminb(i,jj)=q
+          q=xiyp(i,jj,n)
+          xiyp(i,jj,n)=xiym(i,jj,n)
+          xiym(i,jj,n)=q
+        enddo
+        do j=jj+1,jj+2
+          do i=0,ii+1
+            q=vmaxb(i,j)
+            vmaxb(i,j)=vminb(i,j)
+            vminb(i,j)=q
             q=xiyp(i,j,n)
             xiyp(i,j,n)=xiym(i,j,n)
             xiym(i,j,n)=q
           enddo
         enddo
       endif
-#endif
 c
 c --- ------------------------------------------------------------------
 c --- advance barotropic equations from baroclinic time level -m- to

@@ -257,23 +257,10 @@ c$OMP PARALLEL DO
           enddo
         enddo
 c$OMP END PARALLEL DO
-#ifdef ARCTIC
-        do j=jtdm-j0,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=0.
-            util2(i,j)=0.
+        call xcsum(sf,util1,ips)
+        call xcsum(tf,util2,ips)
 #ifdef TRC
-            util3(i,j)=0.
-#endif
-          enddo
-          enddo
-        enddo
-#endif
-        call xcsum(sf,util1,ip)
-        call xcsum(tf,util2,ip)
-#ifdef TRC
-        call xcsum(trf,util3,ip)
+        call xcsum(trf,util3,ips)
 #endif
       endif
 c

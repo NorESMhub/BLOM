@@ -35,11 +35,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(kn,q)
-#ifdef ARCTIC
-      do j=1,min(jj,jtdm-j0-1)
-#else
       do j=1,jj
-#endif
         do k=1,2
           kn=k+nn
           do l=1,isp(j)
@@ -66,10 +62,10 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
       enddo
 c$OMP END PARALLEL DO
 c
-      call xcsum(sdp(ncall,n),util1,ip)
-      call xcsum(tdp(ncall,n),util2,ip)
-      call xcsum(ddp(ncall,n),util3,ip)
-      call xcsum(vol         ,util4,ip)
+      call xcsum(sdp(ncall,n),util1,ips)
+      call xcsum(tdp(ncall,n),util2,ips)
+      call xcsum(ddp(ncall,n),util3,ips)
+      call xcsum(vol         ,util4,ips)
       ddp(ncall,n)=ddp(ncall,n)/vol
 c
 #ifdef TRC
@@ -86,11 +82,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(kn,q)
-#ifdef ARCTIC
-        do j=1,min(jj,jtdm-j0-1)
-#else
         do j=1,jj
-#endif
           do k=1,kk
             kn=k+nn
             do l=1,isp(j)
@@ -103,7 +95,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
         enddo
 c$OMP END PARALLEL DO
 c
-        call xcsum(trdp(ncall),util1,ip)
+        call xcsum(trdp(ncall),util1,ips)
 c
       endif
 #endif

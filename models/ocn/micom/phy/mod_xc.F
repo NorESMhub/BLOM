@@ -40,7 +40,7 @@ c --- ms-1  = max. number of interruptions of any tile row or column by land
 c
 c --- information in /gindex/ keeps do loops from running into land
       integer, dimension (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     &         ip,iu,iv,iq,cplmsk
+     &         ip,iu,iv,iq,ips,cplmsk
       integer, dimension (1-nbdy:jdm+nbdy,ms) :: 
      &         ifp,ilp,ifq,ilq,ifu,ilu,ifv,ilv
       integer, dimension (1-nbdy:idm+nbdy,ms) :: 
@@ -49,7 +49,7 @@ c --- information in /gindex/ keeps do loops from running into land
      &         isp,isq,isu,isv
       integer, dimension (1-nbdy:idm+nbdy) :: 
      &         jsp,jsq,jsu,jsv
-      common/gindex/ ip,iu,iv,iq,cplmsk,
+      common/gindex/ ip,iu,iv,iq,ips,cplmsk,
      &               ifp,ilp,isp,jfp,jlp,jsp,ifq,ilq,isq,jfq,jlq,jsq,
      &               ifu,ilu,isu,jfu,jlu,jsu,ifv,ilv,isv,jfv,jlv,jsv
       save  /gindex/

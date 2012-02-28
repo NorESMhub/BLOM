@@ -1,4 +1,4 @@
-      subroutine export_mct(o2x_o, perm, nsend, sbuff,
+      subroutine export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff,
      .                      tlast_coupled)
 
       ! Uses modules
@@ -14,7 +14,9 @@
       ! Input/output arguments
 
       type (mct_aVect)         , intent(inout) :: o2x_o
-      integer, dimension(ii*jj), intent(in)    :: perm
+      integer                  , intent(in)    :: lsize
+      integer, dimension(lsize), intent(in)    :: perm
+      integer                  , intent(in)    :: jjcpl
       integer                  , intent(in)    :: nsend
       real (r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
      .   intent(in) :: sbuff
@@ -47,7 +49,7 @@
      .            1,1, 1,1, halo_vv)
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             utmp = .5_r8*( sbuff(i  ,j,index_o2x_So_u)
@@ -81,7 +83,7 @@
       ! ----------------------------------------------------------------
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             o2x_o%rAttr(index_o2x_So_t,n) =
@@ -104,7 +106,7 @@
 
       if (index_o2x_Faoo_fco2_ocn > 0) then
         n = 0
-         do j = 1, jj
+         do j = 1, jjcpl
             do i = 1, ii
                n = n + 1
                o2x_o%rAttr(index_o2x_Faoo_fco2_ocn,n) = 

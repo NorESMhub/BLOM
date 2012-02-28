@@ -1,4 +1,4 @@
-      subroutine import_mct(x2o_o, perm)
+      subroutine import_mct(x2o_o, lsize, perm, jjcpl)
 
       ! Uses modules
       
@@ -12,8 +12,10 @@
 
       ! Input/output arguments
 
-      type (mct_aVect), intent(inout) :: x2o_o
-      integer, dimension(ii*jj), intent(in)    :: perm
+      type (mct_aVect)         , intent(inout) :: x2o_o
+      integer                  , intent(in)    :: lsize
+      integer, dimension(lsize), intent(in)    :: perm
+      integer                  , intent(in)    :: jjcpl
 
       ! Include files
 
@@ -51,7 +53,7 @@
       ! Unpack
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             if     (ip(i,j) == 0) then
@@ -101,7 +103,7 @@
       enddo
       
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             if     (ip(i,j) == 0) then
@@ -186,6 +188,19 @@
          enddo
       enddo
 
+      if (nreg == 2) then
+         call xctilr(lip_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(sop_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(eva_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(rnf_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(rfi_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(fmltfz_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(sfl_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(swa_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(nsf_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(hmlt_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+      endif
+
       call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,ll2))
       call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,ll2))
       call fill_global(mval, fval, halo_ps,
@@ -194,7 +209,7 @@
 #ifdef PROGCO2
       if (index_x2o_Sa_co2prog > 0) then
          n = 0
-         do j = 1, jj
+         do j = 1, jjcpl
             do i = 1, ii
                n = n + 1
                if     (ip(i,j) == 0) then
@@ -229,7 +244,7 @@
 #elif defined(DIAGCO2)
       if (index_x2o_Sa_co2diag > 0) then
          n = 0
-         do j = 1, jj
+         do j = 1, jjcpl
             do i = 1, ii
                n = n + 1
                if     (ip(i,j) == 0) then

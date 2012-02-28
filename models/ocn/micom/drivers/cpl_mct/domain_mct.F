@@ -1,4 +1,4 @@
-      subroutine domain_mct(gsMap_ocn, dom_ocn, perm)
+      subroutine domain_mct(gsMap_ocn, dom_ocn, lsize, perm, jjcpl)
 
       ! Uses modules
       
@@ -14,7 +14,9 @@
 
       type (mct_gsMap)         , intent(in)    :: gsMap_ocn
       type (mct_ggrid)         , intent(inout) :: dom_ocn
-      integer, dimension(ii*jj), intent(in)    :: perm
+      integer                  , intent(in)    :: lsize
+      integer, dimension(lsize), intent(in)    :: perm
+      integer                  , intent(in)    :: jjcpl
 
       ! Include files
 
@@ -25,7 +27,7 @@
 
       integer, pointer :: idata(:)
       real (r8), pointer :: rdata(:)
-      integer lsize, i, j, n
+      integer i, j, n
       real (r8) :: radius
 
       ! ----------------------------------------------------------------
@@ -33,8 +35,6 @@
       ! lat/lon in degrees,  area in radians^2, mask is 1 (ocean), 
       ! 0 (non-ocean)
       ! ----------------------------------------------------------------
-
-      lsize = ii*jj
 
       call mct_gGrid_init(GGrid = dom_ocn,
      .                    CoordChars = trim(seq_flds_dom_coord),
@@ -73,7 +73,7 @@
       ! coupler requires longitudes in the range [0, 360) degrees to
       ! work.
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             rdata(n) = modulo(plon(i,j), 360._r8)
@@ -82,7 +82,7 @@
       call mct_gGrid_importRattr(dom_ocn, "lon", rdata, lsize) 
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             rdata(n) = plat(i,j)
@@ -93,7 +93,7 @@
       radius = SHR_CONST_REARTH*1.e2_r8 ! Earth's radius in cm
       
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             rdata(n) = scp2(i,j)/(radius*radius)
@@ -102,7 +102,7 @@
       call mct_gGrid_importRattr(dom_ocn, "area", rdata, lsize) 
 
       n = 0
-      do j = 1, jj
+      do j = 1, jjcpl
          do i = 1, ii
             n = n + 1
             rdata(n) = real(cplmsk(i,j), kind = r8)
