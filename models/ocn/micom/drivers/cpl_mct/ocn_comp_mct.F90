@@ -37,22 +37,26 @@ module ocn_comp_mct
    private
 
    integer, dimension(:), allocatable ::  &
-      perm          ! Permutation array to reorder points
+      perm              ! Permutation array to reorder points
 
    real (r8), dimension(:,:,:), allocatable :: &
-      sbuff         ! Accumulated sum of send buffer quantities for
-                    ! averaging before being sent
+      sbuff             ! Accumulated sum of send buffer quantities for
+                        ! averaging before being sent
 
    integer :: &
-      lsize, &      ! Size of attribute vector
-      jjcpl, &      ! y-dimension of local ocean domain to send/receive fields
-                    ! to coupler
-      nsend, &      ! Number of fields to be sent to coupler
-      nrecv, &      ! Number of fields to be received from coupler
-      ocn_cpl_dt    ! Coupling frequency
+      lsize, &          ! Size of attribute vector
+      jjcpl, &          ! y-dimension of local ocean domain to send/receive
+                        ! fields to coupler
+      nsend, &          ! Number of fields to be sent to coupler
+      nrecv, &          ! Number of fields to be received from coupler
+      ocn_cpl_dt        ! Coupling frequency
 
    real (r8) :: &
-      tlast_coupled ! Time since last coupling
+      tlast_coupled, &  ! Time since last coupling
+      precip_fact       ! Correction factor for precipitation and runoff
+
+   logical :: &
+      lsend_precip_fact ! Flag for sending precipitation/runoff factor
 
    contains
 
@@ -70,6 +74,7 @@ module ocn_comp_mct
       type (mct_gsMap), pointer :: gsMap_ocn
       type (mct_gGrid), pointer :: dom_ocn
       type (seq_infodata_type), pointer :: infodata   ! Input init object
+      real (r8) :: precadj
       integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
                  start_ymd, start_tod, start_year, start_day, start_month
       character (len=32) :: starttype
@@ -140,7 +145,7 @@ module ocn_comp_mct
             write (lp,'(a,i8,a2,i5,a2,i4.4,a1,i2.2,a1,i2.2)') &
                ' ccsm initial date:           ',start_ymd,': ',start_tod,': ', &
                start_year,'.',start_month,'.',start_day
-           call shr_sys_flush(lp)
+            call shr_sys_flush(lp)
          endif
       endif
 
@@ -183,18 +188,23 @@ module ocn_comp_mct
       ! Send intial state to driver
       !-----------------------------------------------------------------
 
+      call getprecipfact_mct(lsend_precip_fact, precip_fact)
+      if ( lsend_precip_fact )  then
+         precadj = precip_fact * 1.0e6_r8  
+         call seq_infodata_PutData( infodata, precip_fact=precadj)
+      endif
       allocate(sbuff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend))
       tlast_coupled = 0._r8
-      call sum_sbuff(nsend, sbuff, tlast_coupled)
+      call sumsbuff_mct(nsend, sbuff, tlast_coupled)
       call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, tlast_coupled)
       if (nreg == 2) then
-        call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
-                                  ocnrof_prognostic = .true., &
-                                  ocn_nx = itdm , ocn_ny = jtdm-1)
+         call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
+                                   ocnrof_prognostic = .true., &
+                                   ocn_nx = itdm , ocn_ny = jtdm-1)
       else
-        call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
-                                  ocnrof_prognostic = .true., &
-                                  ocn_nx = itdm , ocn_ny = jtdm)
+         call seq_infodata_PutData(infodata, ocn_prognostic = .true., &
+                                   ocnrof_prognostic = .true., &
+                                   ocn_nx = itdm , ocn_ny = jtdm)
       endif
 
       call t_stopf('micom_mct_init')
@@ -224,6 +234,8 @@ module ocn_comp_mct
       type (mct_aVect) , intent(inout) :: o2x_o
 
       ! Local variables
+      type(seq_infodata_type), pointer :: infodata   ! Input init object
+      real (r8) :: precadj
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
 
       ! ----------------------------------------------------------------
@@ -233,6 +245,8 @@ module ocn_comp_mct
       call shr_file_getLogUnit (shrlogunit)
       call shr_file_getLogLevel(shrloglev)
       call shr_file_setLogUnit (lp)
+
+      call seq_cdata_setptrs(cdata_o, infodata=infodata)
 
       !-----------------------------------------------------------------
       ! Advance the model in time over a coupling interval
@@ -249,7 +263,7 @@ module ocn_comp_mct
          call micom_step
 
          ! Add fields to send buffer sums
-         call sum_sbuff(nsend, sbuff, tlast_coupled)
+         call sumsbuff_mct(nsend, sbuff, tlast_coupled)
 
          if (nint(ocn_cpl_dt-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
@@ -259,10 +273,16 @@ module ocn_comp_mct
          endif
 
          if (mnproc == 1) then
-           call shr_sys_flush(lp)
+            call shr_sys_flush(lp)
          endif
 
       enddo micom_loop
+
+      call getprecipfact_mct(lsend_precip_fact, precip_fact)
+      if ( lsend_precip_fact ) then
+         precadj = precip_fact * 1.0e6_r8  
+         call seq_infodata_PutData( infodata, precip_fact=precadj )
+      endif
 
       !-----------------------------------------------------------------
       ! if requested, write restart file
@@ -335,9 +355,9 @@ module ocn_comp_mct
       lsize = ii*jjcpl
 
       if (nreg == 2) then
-        gsize = itdm*(jtdm-1)
+         gsize = itdm*(jtdm-1)
       else
-        gsize = itdm*jtdm
+         gsize = itdm*jtdm
       endif
 
       allocate(gindex(lsize))

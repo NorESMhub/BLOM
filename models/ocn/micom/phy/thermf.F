@@ -423,6 +423,7 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
             srxflx=100.*hmxl/(srxday*86400.)
      .             *min(1.,50./hmxl)*min( .5,max( -.5,sssc-smxl))
             salrlx(i,j)=-srxflx
+            util3(i,j)=salrlx(i,j)*scp2(i,j)
           else
             srxflx=0.
           endif
@@ -491,6 +492,23 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+c --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
+c --- so the net input of salt in grid cells connected to the world
+c --- ocean is zero
+      if (srxday.gt.epsil.and.srxbal) then
+        call xcsum(totsfl,util3,ipwocn)
+        sflxc=-totsfl/area
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            salrlx(i,j)=salrlx(i,j)+sflxc
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
 c
 #ifdef TRC
       do nt=1,ntrc

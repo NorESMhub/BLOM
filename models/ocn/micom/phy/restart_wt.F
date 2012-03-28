@@ -162,6 +162,9 @@ c --- define spatial and time dimensions
       call ncdims('time',1)
 c
 c --- output model fields to restart file
+      if (sprfac) then
+        call ncputr('prfac',prfac)
+      endif
       call ncputi('ntda',ntda)
       do n=1,nphy 
         write(c2,'(i2.2)') n
@@ -241,6 +244,11 @@ c
       call wrtrst('alb_tda',trim(c5p)//' time',alb_tda,ip)
       call wrtrst('fice_tda',trim(c5p)//' time',fice_tda,ip)
       call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
+c
+      if (sprfac) then
+        call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
+        call wrtrst('pracc',trim(c5p)//' time',pracc,ip)
+      endif
 c
 #if defined(CLIM) || defined(SYN)
       call wrtrst('cd_d',trim(c5p)//' time',cd_d,ip)

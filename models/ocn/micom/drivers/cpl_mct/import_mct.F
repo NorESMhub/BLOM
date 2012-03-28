@@ -26,8 +26,8 @@
       ! Local parameters
 
       real (r8), parameter ::
-     .  mval = -1.e12_r8,
-     .  fval = -1.e13_r8
+     .   mval = -1.e12_r8,
+     .   fval = -1.e13_r8
 
       ! Local variables
 

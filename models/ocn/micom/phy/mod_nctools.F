@@ -1618,8 +1618,9 @@ c --- define variable
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
      .      dimid))
           dimids(n)=dimid
-          if ((n.eq.strn.and.c4.ne.'time').or.
-     .      (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) 
+          if (n.gt.2.and.
+     .        ((n.eq.strn.and.c4.ne.'time').or.
+     .         (n.eq.strn-1.and.c4.eq.'time')))
      .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
         rkd=kd

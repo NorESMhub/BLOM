@@ -1,4 +1,4 @@
-      subroutine sum_sbuff(nsend, sbuff, tlast_coupled)
+      subroutine sumsbuff_mct(nsend, sbuff, tlast_coupled)
 
       ! Uses modules
       
@@ -57,14 +57,14 @@
       do j = 1, jj
          do l = 1, isu(j)
          do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
-           sbuff(i,j,index_o2x_So_u) =
-     .        sbuff(i,j,index_o2x_So_u)
-     .      + ( u(i,j,k1n) 
-     .        + (ubflxs(i,j,m) + ubflxs(i,j,n))*dlt
-     .          /(pbu(i,j,n)*scuy(i,j)*delt1))*baclin
-           sbuff(i,j,index_o2x_So_dhdx) =
-     .        sbuff(i,j,index_o2x_So_dhdx)
-     .      + (sealv(i,j)-sealv(i-1,j))*scuxi(i,j)*baclin
+            sbuff(i,j,index_o2x_So_u) =
+     .         sbuff(i,j,index_o2x_So_u)
+     .       + ( u(i,j,k1n) 
+     .         + (ubflxs(i,j,m) + ubflxs(i,j,n))*dlt
+     .           /(pbu(i,j,n)*scuy(i,j)*delt1))*baclin
+            sbuff(i,j,index_o2x_So_dhdx) =
+     .         sbuff(i,j,index_o2x_So_dhdx)
+     .       + (sealv(i,j)-sealv(i-1,j))*scuxi(i,j)*baclin
          enddo
          enddo
       enddo
@@ -72,14 +72,14 @@
       do j = 1, jj
          do l = 1, isv(j)
          do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
-           sbuff(i,j,index_o2x_So_v) =
-     .        sbuff(i,j,index_o2x_So_v)
-     .      + ( v(i,j,k1n) 
-     .        + (vbflxs(i,j,m) + vbflxs(i,j,n))*dlt
-     .          /(pbv(i,j,n)*scvx(i,j)*delt1))*baclin
-           sbuff(i,j,index_o2x_So_dhdy) =
-     .        sbuff(i,j,index_o2x_So_dhdy)
-     .      + (sealv(i,j)-sealv(i,j-1))*scvyi(i,j)*baclin
+            sbuff(i,j,index_o2x_So_v) =
+     .         sbuff(i,j,index_o2x_So_v)
+     .       + ( v(i,j,k1n) 
+     .         + (vbflxs(i,j,m) + vbflxs(i,j,n))*dlt
+     .           /(pbv(i,j,n)*scvx(i,j)*delt1))*baclin
+            sbuff(i,j,index_o2x_So_dhdy) =
+     .         sbuff(i,j,index_o2x_So_dhdy)
+     .       + (sealv(i,j)-sealv(i,j-1))*scvyi(i,j)*baclin
          enddo
          enddo
       enddo
@@ -87,12 +87,12 @@
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
-           sbuff(i,j,index_o2x_So_t) =
-     .        sbuff(i,j,index_o2x_So_t) + temp(i,j,k1n)*baclin
-           sbuff(i,j,index_o2x_So_s) =
-     .        sbuff(i,j,index_o2x_So_s) + saln(i,j,k1n)*baclin
-           sbuff(i,j,index_o2x_Fioo_q) =
-     .        sbuff(i,j,index_o2x_Fioo_q) + frzpot(i,j)
+            sbuff(i,j,index_o2x_So_t) =
+     .         sbuff(i,j,index_o2x_So_t) + temp(i,j,k1n)*baclin
+            sbuff(i,j,index_o2x_So_s) =
+     .         sbuff(i,j,index_o2x_So_s) + saln(i,j,k1n)*baclin
+            sbuff(i,j,index_o2x_Fioo_q) =
+     .         sbuff(i,j,index_o2x_Fioo_q) + frzpot(i,j)
          enddo
          enddo
       enddo
@@ -115,4 +115,4 @@
 
       tlast_coupled = tlast_coupled + baclin
 
-      end subroutine sum_sbuff
+      end subroutine sumsbuff_mct

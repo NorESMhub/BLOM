@@ -29,14 +29,20 @@ c --- interpolation parameters for monthly climatological fields
       integer l1,l2,l3,l4,l5
 c
 c --- flags concerning diagnosed heat and salt fluxes
-      logical aptflx,apsflx,ditflx,disflx
+      logical aptflx,apsflx,ditflx,disflx,srxbal
 c
 c --- flag for smoothing of CCSM forcing fields
       logical smtfrc
 c
+c --- flag for sending precipitation/runoff factor to CCSM coupler
+      logical sprfac
+c
+c --- Source for monthly SSS climatological field
+      character*80 srxsrc
+c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
      .              nflxdi,trxday,srxday,x,l1,l2,l3,l4,l5,aptflx,
-     .              apsflx,ditflx,disflx,smtfrc
+     .              apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,srxsrc
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c
@@ -77,11 +83,19 @@ c
 c --- albedo
      .  alb,         
 c
+c --- fields related to temporal smoothing of runoff
      .  rnfres,        ! runoff reservoar
      .  rnfflx,        ! liquid runoff freshwater flux taken out of the
                        ! reservoar
-     .  rfiflx         ! frozen runoff freshwater flux taken out of the
+     .  rfiflx,        ! frozen runoff freshwater flux taken out of the
                        ! reservoar
+c
+c --- accumulation fields for balancing fresh water budget
+     .  eiacc,         ! accumulation of evaporation and sea-ice melt./freezing
+     .  pracc          ! accumulation of precipitation and runoff
+c
+c --- correction factor for precipitation and runoff
+      real prfac
 c
 c --- accumulation number
       integer ntda
@@ -90,7 +104,7 @@ c
      .              sfl,ztx,mty,ustarw,tsi,slp,abswnd,albw,frzpot,
      .              mltpot,atmco2,flxco2,tsi_tda,tml_tda,sml_tda,
      .              alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,rnfflx,
-     .              rfiflx,ntda
+     .              rfiflx,eiacc,pracc,prfac,ntda
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,t0deg

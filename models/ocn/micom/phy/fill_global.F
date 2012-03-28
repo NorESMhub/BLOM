@@ -13,18 +13,15 @@ c
       integer itype
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: field
 c
-      integer niter_max
-      parameter (niter_max=100)
-c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tmp
-      real sum,done
-      integer i,j,mbdy,niter,num,il,jl
+      real sum,done,changed
+      integer i,j,mbdy,num,il,jl
 c
       mbdy=1
       done=0.
-      niter=0
+      changed=1.
 c
-      do while (done.eq.0.)
+      do while (changed.eq.1.)
 c
         if (mbdy.eq.1) then
           mbdy=nbdy
@@ -34,15 +31,10 @@ c
         endif
 c
         done=1.
-        niter=niter+1
-        if (niter.eq.niter_max) then
-          if (mnproc.eq.1) then
-            write(lp,*) 'fill_global: filling failed!'
-          endif
-          return
-        endif
+        changed=0.
 c
-c$OMP PARALLEL DO PRIVATE(sum,num,jl,il) REDUCTION(min:done)
+c$OMP PARALLEL DO PRIVATE(sum,num,jl,il)
+c$OMP+REDUCTION(min:done) REDUCTION(max:changed)
         do j=1-mbdy+1,jj+mbdy-1
           do i=1-mbdy+1,ii+mbdy-1
             if (abs(field(i,j)).eq.abs(fill_value)) then
@@ -59,6 +51,7 @@ c$OMP PARALLEL DO PRIVATE(sum,num,jl,il) REDUCTION(min:done)
                 enddo
               enddo
               if (num.gt.0) then
+                changed=max(1.,changed)
                 tmp(i,j)=sum/real(num)
               else
                 tmp(i,j)=field(i,j)
@@ -79,8 +72,16 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
         call xcminr(done)
+        call xcmaxr(changed)
 c
       enddo
+c
+      if (done.eq.0.) then
+        if (mnproc.eq.1) then
+          write(lp,*) 'fill_global: filling failed!'
+        endif
+        return
+      endif
 c
       return
       end

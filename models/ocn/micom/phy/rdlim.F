@@ -33,8 +33,8 @@ c
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
      .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,cwbdts,cwbdls,
-     .  trxday,srxday,aptflx,apsflx,ditflx,disflx,smtfrc,
-     .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp
+     .  trxday,srxday,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,
+     .  sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp
 c
 c --- read namelists from limits file
       GLB_AVEPERIO=-999
@@ -54,7 +54,7 @@ c --- print namelist on stdout
         write (lp,*) 'NDAY2',NDAY2
         write (lp,*) 'IDATE',IDATE
         write (lp,*) 'IDATE0',IDATE0
-        write (lp,*) 'RUNID',RUNID
+        write (lp,*) 'RUNID ',trim(RUNID)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'VDFVHI',VDFVHI
@@ -73,11 +73,14 @@ c --- print namelist on stdout
         write (lp,*) 'APSFLX',APSFLX
         write (lp,*) 'DITFLX',DITFLX
         write (lp,*) 'DISFLX',DISFLX
+        write (lp,*) 'SRXBAL',SRXBAL
+        write (lp,*) 'SRXSRC ',trim(SRXSRC)
         write (lp,*) 'SMTFRC',SMTFRC
-        write (lp,*) 'PATH',PATH
-        write (lp,*) 'PATH1',PATH1
-        write (lp,*) 'PATH2',PATH2
-        write (lp,*) 'ATM_PATH',ATM_PATH
+        write (lp,*) 'SPRFAC',SPRFAC
+        write (lp,*) 'PATH ',trim(PATH)
+        write (lp,*) 'PATH1 ',trim(PATH1)
+        write (lp,*) 'PATH2 ',trim(PATH2)
+        write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
@@ -322,6 +325,14 @@ c
                stop '(rdlim)'
       endif
 c
+      if (srxsrc.ne.'PHC3.0'.and.srxsrc.ne.'CORE') then
+        if (mnproc.eq.1) then
+          write (lp,*) 'srxsrc must be either ''PHC3.0'' or ''CORE''!'
+        endif
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
+      endif
+c
 c --- get time steps in a day
       nstep_in_day=nint(86400./baclin)
 c
@@ -392,7 +403,9 @@ c
         write (lp,'(a,l10)')   'apsflx:            ',apsflx
         write (lp,'(a,l10)')   'ditflx:            ',ditflx
         write (lp,'(a,l10)')   'disflx:            ',disflx
+        write (lp,'(a,a50)')   'srxsrc:            ',srxsrc
         write (lp,'(a,l10)')   'smtfrc:            ',smtfrc
+        write (lp,'(a,l10)')   'sprfac:            ',sprfac
         write (lp,'(a,a60)')   'path:      ',path
         write (lp,'(a,a60)')   'path1:     ',path1
         write (lp,'(a,a60)')   'path2:     ',path2

@@ -200,6 +200,8 @@ cdiag write (lp,*) 'tmsmt2...'
 c
       if (cnsvdi) call stdbud(7,m,mm)
 c
+      if (sprfac) call fwbbal(m,n,mm,nn,k1m,k1n)
+c
       if (cnsvdi) then
         if (mnproc.eq.1.and.nstep.gt.nstep1+1) then
           open (unit=nfu,file='salbud',position='append')

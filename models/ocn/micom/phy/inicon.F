@@ -267,7 +267,7 @@ c --- ------------------------------------------------------------------
 c
       do j=1,jj
         do l=1,isp(j)
-        do i=ifp(j,l),ilp(j,l)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           frzpot(i,j)=0.
           mltpot(i,j)=0.
           flxco2(i,j)=0.
@@ -545,6 +545,18 @@ c
 c --- ------------------------------------------------------------------
 c --- initialize variables related to forcing
 c --- ------------------------------------------------------------------
+c
+      if (sprfac) then
+        prfac=1.
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            eiacc(i,j)=0.
+            pracc(i,j)=0.
+          enddo
+          enddo
+        enddo
+      endif
 c
 #if !defined(CCSMCOUPLED) && (defined(CLIM) || defined(SYN))
       do j=1,jj

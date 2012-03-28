@@ -215,6 +215,35 @@ c
 c
       call ncread('rnfres',rnfres,ip,1,0.)
 c
+      if (sprfac) then
+        rtmp=0.
+        if (mnproc.eq.1) then
+          if (ncinqa('prfac')) rtmp=1.
+        endif
+        call xcmaxr(rtmp)
+        if (rtmp.gt..5) then
+          call ncgetr('prfac',prfac)
+          call ncread('eiacc',eiacc,ip,1,0.)
+          call ncread('pracc',pracc,ip,1,0.)
+        else
+          if (mnproc.eq.1) then
+            write (lp,*)
+     .        'Warning: fields needed for balancing fresh water '//
+     .        'budget are not read'
+            write (lp,*) 'from restart file and will be initialized.'
+          endif
+          prfac=1.
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              eiacc(i,j)=0.
+              pracc(i,j)=0.
+            enddo
+            enddo
+          enddo
+        endif
+      endif
+c
 #if defined(CLIM) || defined(SYN)
       call ncread('cd_d',cd_d,ip,1,0.)
       call ncread('ch_d',ch_d,ip,1,0.)
@@ -289,7 +318,7 @@ c
         endif
         do j=1,jj
           do l=1,isp(j)
-          do i=ifp(j,l),ilp(j,l)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             flxco2(i,j)=0.
           enddo
           enddo

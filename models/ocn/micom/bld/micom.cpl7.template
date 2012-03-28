@@ -73,6 +73,12 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
   endif
 endif
 
+if ($MICOM_COUPLING  =~ *partial*) then
+  set LSEND_PRECIP_FACT = .true.
+else
+  set LSEND_PRECIP_FACT = .false.
+endif
+
 if      ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
   set BACLIN = 1800.
   set BATROP = 36.
@@ -157,7 +163,10 @@ cat >! ocn_in << EOF1
 ! APSFLX   : Apply diagnosed freshwater flux flag (l)
 ! DITFLX   : Diagnose heat flux flag (l)
 ! DISFLX   : Diagnose freshwater flux flag (l)
+! SRXBAL   : Balance the SSS relaxation (l)
+! SRXSRC   : SSS climatology used for relax. Valid opts. 'PHC3.0' or 'CORE' (a)
 ! SMTFRC   : Smooth CCSM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to CCSM coupler (l)
 ! PATH     : Path to input files (a)
 ! PATH1    : Path to diagnostic files (a)
 ! PATH2    : Path to restart files (a)
@@ -190,7 +199,10 @@ cat >! ocn_in << EOF1
   APSFLX   = .false.,
   DITFLX   = .false.,
   DISFLX   = .false.,
+  SRXBAL   = .true.,
+  SRXSRC   = 'CORE',
   SMTFRC   = .true.,
+  SPRFAC   = ${LSEND_PRECIP_FACT},
   PATH     = "${INPUTPATH}/",
   PATH1    = './',
   PATH2    = './',
