@@ -86,8 +86,8 @@ if      ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
   set VDFVLO = .4
   set VDFCHI = 5000.e4
   set VDFCLO = 300.e4
-  set VISCHI = 1.5
-  set VISCLO = .3
+  set VISCHI = .5
+  set VISCLO = .5
   set CBAR   = 5.
   set CB     = .002
   set CWBDTS = 5.e-5
@@ -100,7 +100,7 @@ else if ($OCN_GRID == gx3v7) then
   set VDFCHI = 5000.e4
   set VDFCLO = 300.e4
   set VISCHI = 2.
-  set VISCLO = .1
+  set VISCLO = .5
   set CBAR   = 10.
   set CB     = .003
   set CWBDTS = 5.e-5
@@ -112,8 +112,8 @@ else if ( $OCN_GRID ==  tnx1v1) then
   set VDFVLO = .4
   set VDFCHI = 5000.e4
   set VDFCLO = 300.e4
-  set VISCHI = 1.5
-  set VISCLO = .3
+  set VISCHI = .5
+  set VISCLO = .5
   set CBAR   = 5.
   set CB     = .002
   set CWBDTS = 5.e-5
