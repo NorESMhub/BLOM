@@ -101,15 +101,15 @@ c --- Section transports
 c
 c --- Namelist 
       integer, dimension(nphymax), save ::
-     . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_DFL    ,SRF_EVA    ,
-     . SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,SRF_HSNW   ,
-     . SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,SRF_MLDU   ,
-     . SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,SRF_NSF    ,
-     . SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SEALV  ,SRF_SFL    ,
-     . SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,
-     . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
-     . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX    ,SRF_BRNPD  ,
+     . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
+     . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
+     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
+     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
+     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
+     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
+     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
+     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
@@ -123,15 +123,16 @@ c --- Namelist
      . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT
       character(len=10), dimension(nphymax), save :: GLB_FNAMETAG
       integer, dimension(nphymax), save ::
-     . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_DFL    ,ACC_EVA    ,
-     . ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,ACC_HSNW   ,
-     . ACC_IAGE   ,ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,ACC_MLDU   ,
-     . ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,ACC_MXLV   ,ACC_NSF    ,
-     . ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SEALV  ,ACC_SFL    ,
-     . ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,
-     . ACC_SWA    ,ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,
-     . ACC_UB     ,ACC_UICE   ,ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,
-     . ACC_ZTX    ,ACC_BRNPD  ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
+     . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    ,
+     . ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,
+     . ACC_HSNW   ,ACC_IAGE   ,ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,
+     . ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,ACC_MXLV   ,
+     . ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,
+     . ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,
+     . ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_TAUX   ,
+     . ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UICE   ,
+     . ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,ACC_ZTX    ,
+     . ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
      . ACC_UFLX   ,ACC_UTFLX  ,ACC_USFLX  ,ACC_UVEL   ,ACC_VFLX   ,
@@ -143,15 +144,15 @@ c --- Namelist
      . ACC_WFLX2LVL ,ACC_UFLXOLD  ,ACC_VFLXOLD  ,ACC_UTILLVL      ,     
      . ACC_MHFLX  ,ACC_MMFLXL ,ACC_MMFLXD ,ACC_MSFLX  ,ACC_VOLTR 
       namelist /DIAPHY/
-     . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_DFL    ,SRF_EVA    ,
-     . SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,SRF_HSNW   ,
-     . SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,SRF_MLDU   ,
-     . SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,SRF_NSF    ,
-     . SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SEALV  ,SRF_SFL    ,
-     . SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,
-     . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
-     . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX    ,SRF_BRNPD  ,
+     . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
+     . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
+     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
+     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
+     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
+     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
+     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
+     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UVEL   ,
@@ -322,6 +323,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_ABSWND(n)   = SRF_ABSWND(n)
         ACC_ALB(n)      = SRF_ALB(n)
         ACC_BRNFLX(n)   = SRF_BRNFLX(n)
+        ACC_BRNPD(n)    = SRF_BRNPD(n)
         ACC_DFL(n)      = SRF_DFL(n)
         ACC_EVA(n)      = SRF_EVA(n)
         ACC_FMLTFZ(n)   = SRF_FMLTFZ(n)
@@ -345,7 +347,9 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_RFIFLX(n)   = SRF_RFIFLX(n)
         ACC_RNFFLX(n)   = SRF_RNFFLX(n)
         ACC_SURFLX(n)   = SRF_SURFLX(n)
+        ACC_SURRLX(n)   = SRF_SURRLX(n)
         ACC_SALFLX(n)   = SRF_SALFLX(n)
+        ACC_SALRLX(n)   = SRF_SALRLX(n)
         ACC_SEALV(n)    = SRF_SEALV(n)
         ACC_SFL(n)      = SRF_SFL(n)
         ACC_SIGMX(n)    = SRF_SIGMX(n)  + MSC_MMFLXL(n)   
@@ -363,7 +367,6 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_VB(n)       = SRF_VB(n)
         ACC_VICE(n)     = SRF_VICE(n)
         ACC_ZTX(n)      = SRF_ZTX(n)
-        ACC_BRNPD(n)    = SRF_BRNPD(n)
         ACC_DIAFLX(n)   = LYR_DIAFLX(n)
         ACC_DIAFLXLVL(n)= LVL_DIAFLX(n)
         ACC_DIFDIA(n)   = LYR_DIFDIA(n)
@@ -428,6 +431,8 @@ c --- - Determine position in buffer
          ACC_ALB(n)=nphysrf*min(1,ACC_ALB(n)) 
         if (ACC_BRNFLX(n).ne.0) nphysrf=nphysrf+1 
          ACC_BRNFLX(n)=nphysrf*min(1,ACC_BRNFLX(n))
+        if (ACC_BRNPD(n).ne.0) nphysrf=nphysrf+1
+         ACC_BRNPD(n)=nphysrf*min(1,ACC_BRNPD(n))
         if (ACC_DFL(n).ne.0) nphysrf=nphysrf+1
          ACC_DFL(n)=nphysrf*min(1,ACC_DFL(n)) 
         if (ACC_EVA(n).ne.0) nphysrf=nphysrf+1
@@ -472,8 +477,12 @@ c --- - Determine position in buffer
          ACC_RNFFLX(n)=nphysrf*min(1,ACC_RNFFLX(n))
         if (ACC_SURFLX(n).ne.0) nphysrf=nphysrf+1 
          ACC_SURFLX(n)=nphysrf*min(1,ACC_SURFLX(n))
+        if (ACC_SURRLX(n).ne.0) nphysrf=nphysrf+1 
+         ACC_SURRLX(n)=nphysrf*min(1,ACC_SURRLX(n))
         if (ACC_SALFLX(n).ne.0) nphysrf=nphysrf+1 
          ACC_SALFLX(n)=nphysrf*min(1,ACC_SALFLX(n))
+        if (ACC_SALRLX(n).ne.0) nphysrf=nphysrf+1 
+         ACC_SALRLX(n)=nphysrf*min(1,ACC_SALRLX(n))
         if (ACC_SEALV(n).ne.0) nphysrf=nphysrf+1 
          ACC_SEALV(n)=nphysrf*min(1,ACC_SEALV(n))
         if (ACC_SFL(n).ne.0) nphysrf=nphysrf+1
@@ -508,8 +517,6 @@ c --- - Determine position in buffer
          ACC_VICE(n)=nphysrf*min(1,ACC_VICE(n))
         if (ACC_ZTX(n).ne.0) nphysrf=nphysrf+1
          ACC_ZTX(n)=nphysrf*min(1,ACC_ZTX(n))
-        if (ACC_BRNPD(n).ne.0) nphysrf=nphysrf+1
-         ACC_BRNPD(n)=nphysrf*min(1,ACC_BRNPD(n))
 c
         if (ACC_DIAFLX(n).ne.0) nphylyr=nphylyr+1
          ACC_DIAFLX(n)=nphylyr*min(1,ACC_DIAFLX(n))
@@ -742,7 +749,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
      .  dz,dummy
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: util5,util6,
-     .  util7
+     .  util7,util8,util9
 c
 c --- Increase counter 
       do iogrp=1,nphy
@@ -788,13 +795,48 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_SURFLX(1:nphy)+ACC_SALFLX(1:nphy)).ne.0) then
+      if (sum(ACC_SURFLX(1:nphy)).ne.0) then
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              util5(i,j)=-surflx(i,j)-surrlx(i,j)
-              util6(i,j)=-salflx(i,j)-salrlx(i,j)
+              util5(i,j)=-surflx(i,j)
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      if (sum(ACC_SALFLX(1:nphy)).ne.0) then
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util6(i,j)=-salflx(i,j)
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      if (sum(ACC_SURRLX(1:nphy)).ne.0) then
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util7(i,j)=-surrlx(i,j)
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      if (sum(ACC_SALRLX(1:nphy)).ne.0) then
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              util8(i,j)=-salrlx(i,j)
             enddo
           enddo
         enddo
@@ -806,7 +848,7 @@ c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              util7(i,j)=dp(i,j,1+mm)+dp(i,j,2+mm)
+              util9(i,j)=dp(i,j,1+mm)+dp(i,j,2+mm)
             enddo
           enddo
         enddo
@@ -987,13 +1029,19 @@ c --- sea surface temperature [degC]
       call accsrf(ACC_SST,temp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 c
 c --- mixed layer pressure thickness [g/cm/s^2]
-      call accsrf(ACC_MLD,util7,dummy,0,'p')
+      call accsrf(ACC_MLD,util9,dummy,0,'p')
 c
 c --- heat flux received by the ocean [W/m^2]
       call accsrf(ACC_SURFLX,util5,dummy,0,'p')
 c
 c --- salt flux received by the ocean [10^-3 g/cm^2/s]
       call accsrf(ACC_SALFLX,util6,dummy,0,'p')
+c
+c --- restoring heat flux received by the ocean [W/m^2]
+      call accsrf(ACC_SURRLX,util7,dummy,0,'p')
+c
+c --- restoring salt flux received by the ocean [10^-3 g/cm^2/s]
+      call accsrf(ACC_SALRLX,util8,dummy,0,'p')
 c
 c --- brine flux received by the ocean [10^-3 g/cm^2/s]
       call accsrf(ACC_BRNFLX,brnflx,dummy,0,'p')
@@ -1498,6 +1546,10 @@ c
      .  rnacc*1e4,0.,cmpflg,ip,'p','hflx',
      .  'Heat flux received by ocean',' ','W m-2')
 c
+      call wrtsrf(ACC_SURRLX(iogrp),SRF_SURRLX(iogrp),
+     .  rnacc*1e4,0.,cmpflg,ip,'p','hrflx',
+     .  'Restoring heat flux received by ocean',' ','W m-2')
+c
       call wrtsrf(ACC_LIP(iogrp),SRF_LIP(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','lip','Liquid precipitation',' ','kg m-2 s-1')
 c
@@ -1520,6 +1572,10 @@ c
       call wrtsrf(ACC_SALFLX(iogrp),SRF_SALFLX(iogrp),
      .  rnacc*1e-2,0.,cmpflg,ip,'p','sflx',
      .  'Salt flux received by ocean',' ','kg m-2 s-1')
+c
+      call wrtsrf(ACC_SALRLX(iogrp),SRF_SALRLX(iogrp),
+     .  rnacc*1e-2,0.,cmpflg,ip,'p','srflx',
+     .  'Restoring salt flux received by ocean',' ','kg m-2 s-1')
 c
       call wrtsrf(ACC_BRNFLX(iogrp),SRF_BRNFLX(iogrp),
      .  rnacc*(-1e-2),0.,cmpflg,ip,'p','bflx','Brine flux',' ',
@@ -1866,7 +1922,9 @@ c
       call inisrf(ACC_MLD(iogrp),'p',0.)
       call inisrf(ACC_MAXMLD(iogrp),'p',0.)
       call inisrf(ACC_SURFLX(iogrp),'p',0.)
+      call inisrf(ACC_SURRLX(iogrp),'p',0.)
       call inisrf(ACC_SALFLX(iogrp),'p',0.)
+      call inisrf(ACC_SALRLX(iogrp),'p',0.)
       call inisrf(ACC_ABSWND(iogrp),'p',0.)
       call inisrf(ACC_BRNFLX(iogrp),'p',0.)
       call inisrf(ACC_BRNPD(iogrp),'p',0.)
@@ -2630,21 +2688,15 @@ c
 c --- - Get u,v transports on levitus levels and integrate divergance
 c$OMP PARALLEL DO
         do j=1,jj+1
-          do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
-              uflxcumlev(i,j)=0.
-            enddo
-          enddo
-          do l=1,isv(j)
-            do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
-              vflxcumlev(i,j)=0.
-            enddo
+          do i=1,ii+1
+            uflxcumlev(i,j)=0.
+            vflxcumlev(i,j)=0.
           enddo
         enddo  
 c$OMP END PARALLEL DO
         do k=1,ddm
 c$OMP PARALLEL DO
-          do j=1,jj+1 
+          do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
                 uflxcumlev(i,j)=uflxcumlev(i,j)+
@@ -2652,6 +2704,10 @@ c$OMP PARALLEL DO
      .            phylvl(i,j,k,ACC_UFLXOLD(iogrp))
               enddo
             enddo
+          enddo  
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO
+          do j=1,jj+1 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
                 vflxcumlev(i,j)=vflxcumlev(i,j)+

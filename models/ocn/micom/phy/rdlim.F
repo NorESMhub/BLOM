@@ -33,8 +33,9 @@ c
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
      .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,cwbdts,cwbdls,
-     .  trxday,srxday,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,
-     .  sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp
+     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
+     .  disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,
+     .  rstfrq,rstfmt,rstcmp
 c
 c --- read namelists from limits file
       GLB_AVEPERIO=-999
@@ -69,6 +70,10 @@ c --- print namelist on stdout
         write (lp,*) 'CWBDLS',CWBDLS
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
+        write (lp,*) 'TRXDPT',TRXDPT
+        write (lp,*) 'SRXDPT',SRXDPT
+        write (lp,*) 'TRXLIM',TRXLIM
+        write (lp,*) 'SRXLIM',SRXLIM
         write (lp,*) 'APTFLX',APTFLX
         write (lp,*) 'APSFLX',APSFLX
         write (lp,*) 'DITFLX',DITFLX
@@ -91,6 +96,12 @@ c --- determine number of io groups and print namelist
       do n=1,nphymax 
         if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
       end do     
+      if (trxday.eq.0.) then
+        SRF_SURRLX(1:nphy)=0
+      endif
+      if (srxday.eq.0.) then
+        SRF_SALRLX(1:nphy)=0
+      endif
       if (mnproc.eq.1) then
         write(lp,'(a)') ' ' 
         write(lp,'(a)') 'MICOM IO_NAMELIST ' 
@@ -102,6 +113,7 @@ c --- determine number of io groups and print namelist
         write(lp,*) 'SRF_ABSWND  ',SRF_ABSWND(1:nphy)
         write(lp,*) 'SRF_ALB     ',SRF_ALB(1:nphy)
         write(lp,*) 'SRF_BRNFLX  ',SRF_BRNFLX(1:nphy)
+        write(lp,*) 'SRF_BRNPD   ',SRF_BRNPD(1:nphy)
         write(lp,*) 'SRF_DFL     ',SRF_DFL(1:nphy)
         write(lp,*) 'SRF_EVA     ',SRF_EVA(1:nphy)
         write(lp,*) 'SRF_FMLTFZ  ',SRF_FMLTFZ(1:nphy)
@@ -127,6 +139,7 @@ c --- determine number of io groups and print namelist
         write(lp,*) 'SRF_RFIFLX  ',SRF_RFIFLX(1:nphy)
         write(lp,*) 'SRF_RNFFLX  ',SRF_RNFFLX(1:nphy)
         write(lp,*) 'SRF_SALFLX  ',SRF_SALFLX(1:nphy)
+        write(lp,*) 'SRF_SALRLX  ',SRF_SALRLX(1:nphy)
         write(lp,*) 'SRF_SEALV   ',SRF_SEALV(1:nphy)
         write(lp,*) 'SRF_SFL     ',SRF_SFL(1:nphy)
         write(lp,*) 'SRF_SIGMX   ',SRF_SIGMX(1:nphy)
@@ -134,6 +147,7 @@ c --- determine number of io groups and print namelist
         write(lp,*) 'SRF_SSS     ',SRF_SSS(1:nphy)
         write(lp,*) 'SRF_SST     ',SRF_SST(1:nphy)
         write(lp,*) 'SRF_SURFLX  ',SRF_SURFLX(1:nphy)
+        write(lp,*) 'SRF_SURRLX  ',SRF_SURRLX(1:nphy)
         write(lp,*) 'SRF_SWA     ',SRF_SWA(1:nphy)
         write(lp,*) 'SRF_TAUX    ',SRF_TAUX(1:nphy)
         write(lp,*) 'SRF_TAUY    ',SRF_TAUY(1:nphy)
@@ -399,6 +413,10 @@ c
         write (lp,'(a,f10.4)') 'cwbdls:            ',cwbdls
         write (lp,'(a,f10.4)') 'trxday:            ',trxday
         write (lp,'(a,f10.4)') 'srxday:            ',srxday
+        write (lp,'(a,f10.4)') 'trxdpt:            ',trxdpt
+        write (lp,'(a,f10.4)') 'srxdpt:            ',srxdpt
+        write (lp,'(a,f10.4)') 'trxlim:            ',trxlim
+        write (lp,'(a,f10.4)') 'srxlim:            ',srxlim
         write (lp,'(a,l10)')   'aptflx:            ',aptflx
         write (lp,'(a,l10)')   'apsflx:            ',apsflx
         write (lp,'(a,l10)')   'ditflx:            ',ditflx

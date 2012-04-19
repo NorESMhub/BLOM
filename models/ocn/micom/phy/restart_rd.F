@@ -216,13 +216,14 @@ c
       call ncread('rnfres',rnfres,ip,1,0.)
 c
       if (sprfac) then
-        rtmp=0.
+        prfac=-1.
         if (mnproc.eq.1) then
-          if (ncinqa('prfac')) rtmp=1.
+          if (ncinqa('prfac')) then
+            call ncgetr('prfac',prfac)
+          endif
         endif
-        call xcmaxr(rtmp)
-        if (rtmp.gt..5) then
-          call ncgetr('prfac',prfac)
+        call xcmaxr(prfac)
+        if (prfac.gt.0.) then
           call ncread('eiacc',eiacc,ip,1,0.)
           call ncread('pracc',pracc,ip,1,0.)
         else
@@ -499,8 +500,12 @@ c --- read accumulated fields
      .      physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip,1,0.)
           if (ACC_SURFLX(n).ne.0) call ncread('surflx_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip,1,0.)
+          if (ACC_SURRLX(n).ne.0) call ncread('surrlx_phy'//c2,
+     .      physrf(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip,1,0.)
           if (ACC_SALFLX(n).ne.0) call ncread('salflx_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip,1,0.)
+          if (ACC_SALRLX(n).ne.0) call ncread('salrlx_phy'//c2,
+     .      physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip,1,0.)
           if (ACC_ABSWND(n).ne.0) call ncread('abswnd_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
           if (ACC_BRNFLX(n).ne.0) call ncread('brnflx_phy'//c2,

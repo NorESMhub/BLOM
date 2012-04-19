@@ -98,7 +98,7 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .     dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
       parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
      .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
-     .           temdff=.35,egc=1.,eggam=200.,egmndf=300.e4,
+     .           temdff=.35,egc=1.,eggam=200.,egmndf=100.e4,
      .           egmxdf=1500.e4,egidfq=1.,ri0=.7,nus0=50.,nug0=2500.,
      .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,

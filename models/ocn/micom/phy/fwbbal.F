@@ -39,8 +39,6 @@ c
 c --- Compute new correction factor at the end of a year and reset
 c --- accumulation arrays
       if (nday_of_year.eq.1.and.mod(nstep,nstep_in_day).eq.0) then
-c     if (nday.eq.1.and.mod(nstep,nstep_in_day).eq.0) then
-c     if (mod(nstep,nstep_in_day).eq.0) then
 c
 c --- - Weight the accumulated fluxes with grid cell area and do global
 c --- - sums, but only including grid cells connected to the world ocean.
@@ -77,6 +75,14 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
+      endif
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'fwbbal:'
+        endif
+        call chksummsk(eiacc,ip,1,'eiacc')
+        call chksummsk(pracc,ip,1,'pracc')
       endif
 c
       return

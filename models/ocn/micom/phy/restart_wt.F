@@ -371,8 +371,12 @@ c --- write accumulated fields
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip)
           if (ACC_SURFLX(n).ne.0) call wrtrst('surflx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip)
+          if (ACC_SURRLX(n).ne.0) call wrtrst('surrlx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip)
           if (ACC_SALFLX(n).ne.0) call wrtrst('salflx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip)
+          if (ACC_SALRLX(n).ne.0) call wrtrst('salrlx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip)
           if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
      .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
           if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,

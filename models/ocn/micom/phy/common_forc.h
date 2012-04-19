@@ -24,12 +24,21 @@ c
 c --- e-folding relaxation time scales
       real trxday,srxday
 c
+c --- maximum mixed layer depth for e-folding relaxation
+      real trxdpt,srxdpt
+c
+c --- maximum absolute values for SST/SSS difference in relaxation
+      real trxlim,srxlim
+c
 c --- interpolation parameters for monthly climatological fields
       real x
       integer l1,l2,l3,l4,l5
 c
 c --- flags concerning diagnosed heat and salt fluxes
-      logical aptflx,apsflx,ditflx,disflx,srxbal
+      logical aptflx,apsflx,ditflx,disflx
+c
+c --- flags for balancing the SSS relaxation
+      logical srxbal
 c
 c --- flag for smoothing of CCSM forcing fields
       logical smtfrc
@@ -41,8 +50,10 @@ c --- Source for monthly SSS climatological field
       character*80 srxsrc
 c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
-     .              nflxdi,trxday,srxday,x,l1,l2,l3,l4,l5,aptflx,
-     .              apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,srxsrc
+     .              nflxdi,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
+     .              x,l1,l2,l3,l4,l5,
+     .              aptflx,apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,
+     .              srxsrc
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c

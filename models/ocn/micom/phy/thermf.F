@@ -22,7 +22,7 @@ c
      .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
      .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totwfl,sflxc
+     .     totsfl,totwfl,sflxc,totsrp,totsrn
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -394,8 +394,8 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
             rice=intpol(ricclm(i,j,l1),ricclm(i,j,l2),ricclm(i,j,l3),
      .                  ricclm(i,j,l4),ricclm(i,j,l5),x)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*hmxl/(trxday*86400.)
-     .             *min(1.,50./hmxl)*min(1.5,max(-1.5,sstc-tmxl))
+            trxflx=spcifh*100.*min(hmxl,trxdpt)/(trxday*86400.)
+     .                        *min(trxlim,max(-trxlim,sstc-tmxl))
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -420,10 +420,11 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday.gt.epsil) then
             sssc=intpol(sssclm(i,j,l1),sssclm(i,j,l2),sssclm(i,j,l3),
      .                  sssclm(i,j,l4),sssclm(i,j,l5),x)
-            srxflx=100.*hmxl/(srxday*86400.)
-     .             *min(1.,50./hmxl)*min( .5,max( -.5,sssc-smxl))
+            srxflx=100.*min(hmxl,srxdpt)/(srxday*86400.)
+     .                 *min(srxlim,max(-srxlim,sssc-smxl))
             salrlx(i,j)=-srxflx
-            util3(i,j)=salrlx(i,j)*scp2(i,j)
+            util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
+            util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
           else
             srxflx=0.
           endif
@@ -497,17 +498,35 @@ c --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
 c --- so the net input of salt in grid cells connected to the world
 c --- ocean is zero
       if (srxday.gt.epsil.and.srxbal) then
-        call xcsum(totsfl,util3,ipwocn)
-        sflxc=-totsfl/area
+        call xcsum(totsrp,util3,ipwocn)
+        call xcsum(totsrn,util4,ipwocn)
+        if (abs(totsrp).gt.abs(totsrn)) then
+          q=-totsrn/totsrp
 c$OMP PARALLEL DO
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            salrlx(i,j)=salrlx(i,j)+sflxc
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (salrlx(i,j).gt.0..and.ipwocn(i,j).eq.1) then
+                salrlx(i,j)=q*salrlx(i,j)
+              endif
+            enddo
+            enddo
           enddo
-          enddo
-        enddo
 c$OMP END PARALLEL DO
+        else
+          q=-totsrp/totsrn
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (salrlx(i,j).lt.0..and.ipwocn(i,j).eq.1) then
+                salrlx(i,j)=q*salrlx(i,j)
+              endif
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        endif
       endif
 c
 #ifdef TRC
