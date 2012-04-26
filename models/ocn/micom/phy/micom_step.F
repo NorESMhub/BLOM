@@ -72,8 +72,24 @@ c --- Update calender
       call updcln(nstep)
 c
 c --- ------------------------------------------------------------------
+c --- Update some flux halos the first time step of a day to reproduce
+c --- results after restart with arctic
+c --- ------------------------------------------------------------------
+c
+      if (nreg.eq.2.and.mod(nstep,nstep_in_day).eq.1) then
+        if (mnproc.eq.1) write (lp,*) 'micom_step: update flux halos'
+        call xctilr(uflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
+        call xctilr(utflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
+        call xctilr(usflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
+        call xctilr(vflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
+        call xctilr(vtflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
+        call xctilr(vsflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
+      endif
+c
+c --- ------------------------------------------------------------------
 c --- Set parameters for time interpolation of climatological fields
 c --- ------------------------------------------------------------------
+c
       x=(nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*12.
      .  /real(nday_in_year)
       l3=int(x)+1
@@ -330,17 +346,6 @@ c --- - output restart files
 c --- ------------------------------------------------------------------
 c
         call restart_wt
-c
-#  ifdef ARCTIC
-c --- - this is needed to reproduce results after restart with arctic
-c --- - patch
-        call xctilr(uflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
-        call xctilr(utflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
-        call xctilr(usflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_uv)
-        call xctilr(vflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
-        call xctilr(vtflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
-        call xctilr(vsflx(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_vv)
-#  endif
 #endif
 c
         io_time=gettime()
