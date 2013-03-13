@@ -396,6 +396,14 @@ c --- read accumulated fields
      .      phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),ip,1,0.)
           if (ACC_DIFISO(n).ne.0) call ncread('difiso_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_DIFISO(n)),ip,1,0.)
+          if (ACC_WFLX(n)    .ne.0) call ncread('wflx_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),ip,1,0.)
+          if (ACC_WFLX2(n)    .ne.0) call ncread('wflx2_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),ip,1,0.)
+          if (ACC_WFLXLVL(n)    .ne.0) call ncread('wflxlvl_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
+          if (ACC_WFLX2LVL(n)    .ne.0) call ncread('wflx2lvl_phy'//c2,
+     .       phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
           if (ACC_UVELLVL(n).ne.0) call ncread('uvellvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)),iuu,1,0.)
           if (ACC_UFLXLVL(n).ne.0) call ncread('uflxlvl_phy'//c2,

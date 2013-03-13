@@ -19,7 +19,7 @@
       integer                  , intent(in)    :: jjcpl
       integer                  , intent(in)    :: nsend
       real (r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
-     .   intent(in) :: sbuff
+     .   intent(inout) :: sbuff
       real (r8)                , intent(inout) :: tlast_coupled
 
       ! Include files

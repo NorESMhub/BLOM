@@ -671,7 +671,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,q,ctd,bitd,gtd,atd,ctd,dtd)
+c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,q,ctd,bitd,gtd,atd,dtd)
       do j=1,jj
 c
 c --- - Mixing of u-component.
