@@ -48,15 +48,15 @@ c$OMP PARALLEL DO PRIVATE(q)
             q=delt1*.5*(difiso(i-1,j,k)+difiso(i,j,k))
      .        *scuy(i,j)*scuxi(i,j)
      .        *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
-            uflux2(i,j)=q*(saln(i-1,j,kn)-saln(i,j,kn))
-            uflux3(i,j)=q*(temp(i-1,j,kn)-temp(i,j,kn))
+            usflld(i,j,km)=q*(saln(i-1,j,kn)-saln(i,j,kn))
+            utflld(i,j,km)=q*(temp(i-1,j,kn)-temp(i,j,kn))
 #ifdef TRC
             do nt=1,ntrc
               uflxtr(nt,i,j)=q*(trc(i-1,j,k,nt)-trc(i,j,k,nt))
             enddo
 #endif
-            usflx(i,j,km)=usflx(i,j,km)+uflux2(i,j)
-            utflx(i,j,km)=utflx(i,j,km)+uflux3(i,j)
+            usflx(i,j,km)=usflx(i,j,km)+usflld(i,j,km)
+            utflx(i,j,km)=utflx(i,j,km)+utflld(i,j,km)
           enddo
           enddo
         enddo
@@ -68,15 +68,15 @@ c$OMP PARALLEL DO PRIVATE(q)
             q=delt1*.5*(difiso(i,j-1,k)+difiso(i,j,k))
      .        *scvx(i,j)*scvyi(i,j)
      .        *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
-            vflux2(i,j)=q*(saln(i,j-1,kn)-saln(i,j,kn))
-            vflux3(i,j)=q*(temp(i,j-1,kn)-temp(i,j,kn))
+            vsflld(i,j,km)=q*(saln(i,j-1,kn)-saln(i,j,kn))
+            vtflld(i,j,km)=q*(temp(i,j-1,kn)-temp(i,j,kn))
 #ifdef TRC
             do nt=1,ntrc
               vflxtr(nt,i,j)=q*(trc(i,j-1,k,nt)-trc(i,j,k,nt))
             enddo
 #endif
-            vsflx(i,j,km)=vsflx(i,j,km)+vflux2(i,j)
-            vtflx(i,j,km)=vtflx(i,j,km)+vflux3(i,j)
+            vsflx(i,j,km)=vsflx(i,j,km)+vsflld(i,j,km)
+            vtflx(i,j,km)=vtflx(i,j,km)+vtflld(i,j,km)
           enddo
           enddo
         enddo
@@ -87,11 +87,11 @@ c$OMP PARALLEL DO PRIVATE(q)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
             q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
             saln(i,j,kn)=saln(i,j,kn)
-     .                  -q*(uflux2(i+1,j)-uflux2(i,j)
-     .                     +vflux2(i,j+1)-vflux2(i,j))
+     .                  -q*(usflld(i+1,j,km)-usflld(i,j,km)
+     .                     +vsflld(i,j+1,km)-vsflld(i,j,km))
             temp(i,j,kn)=temp(i,j,kn)
-     .                  -q*(uflux3(i+1,j)-uflux3(i,j)
-     .                     +vflux3(i,j+1)-vflux3(i,j))
+     .                  -q*(utflld(i+1,j,km)-utflld(i,j,km)
+     .                     +vtflld(i,j+1,km)-vtflld(i,j,km))
 #ifdef TRC
             do nt=1,ntrc
               trc(i,j,k,nt)=trc(i,j,k,nt)

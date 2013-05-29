@@ -122,6 +122,7 @@ c --- - Open file
         rec=1
         if (faccess(1:1).eq.'r') then 
           call ncerro(nf90_open(fnm,nf90_nowrite,ncid))
+          rec=irec
         elseif (irec.ne.1) then
           status=nf90_open(fnm,nf90_write,ncid)
           if (status.ne.nf90_noerr) then

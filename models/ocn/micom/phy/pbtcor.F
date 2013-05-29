@@ -26,8 +26,6 @@ c
 c
       call xctilr(ubflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_uv)
       call xctilr(vbflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_vv)
-      call xctilr(temp(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
 #ifdef TRC
       do nt=1,ntr-ntrc
         call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 1,1, halo_ps)

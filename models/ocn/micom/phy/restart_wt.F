@@ -207,9 +207,19 @@ c
       call wrtrst('uflx',trim(c5u)//' kk2 time',uflx,iuu)
       call wrtrst('utflx',trim(c5u)//' kk2 time',utflx,iuu)
       call wrtrst('usflx',trim(c5u)//' kk2 time',usflx,iuu)
+      call wrtrst('umfltd',trim(c5u)//' kk2 time',umfltd,iuu)
+      call wrtrst('utfltd',trim(c5u)//' kk2 time',utfltd,iuu)
+      call wrtrst('utflld',trim(c5u)//' kk2 time',utflld,iuu)
+      call wrtrst('usfltd',trim(c5u)//' kk2 time',usfltd,iuu)
+      call wrtrst('usflld',trim(c5u)//' kk2 time',usflld,iuu)
       call wrtrst('vflx',trim(c5v)//' kk2 time',vflx,ivv)
       call wrtrst('vtflx',trim(c5v)//' kk2 time',vtflx,ivv)
       call wrtrst('vsflx',trim(c5v)//' kk2 time',vsflx,ivv)
+      call wrtrst('vmfltd',trim(c5v)//' kk2 time',vmfltd,ivv)
+      call wrtrst('vtfltd',trim(c5v)//' kk2 time',vtfltd,ivv)
+      call wrtrst('vtflld',trim(c5v)//' kk2 time',vtflld,ivv)
+      call wrtrst('vsfltd',trim(c5v)//' kk2 time',vsfltd,ivv)
+      call wrtrst('vsflld',trim(c5v)//' kk2 time',vsflld,ivv)
       call wrtrst('ubflx',trim(c5u)//' k2 time',ubflx,iuu)
       call wrtrst('vbflx',trim(c5v)//' k2 time',vbflx,ivv)
       call wrtrst('ubflx_mn',trim(c5u)//' k2 time',ubflx_mn,iuu)
@@ -351,6 +361,8 @@ c --- write accumulated fields
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip)
           if (ACC_BRNFLX(n)   .ne.0) call wrtrst('brnflx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip)
+          if (ACC_BRNPD(n)   .ne.0) call wrtrst('brnpd_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip)
           if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
           if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
@@ -415,6 +427,36 @@ c --- write accumulated fields
           if (ACC_VSFLX(n) .ne.0) call wrtrst('vsflx_phy'//c2,
      .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VSFLX(n)),
      .      ivv)
+          if (ACC_UMFLTD(n).ne.0) call wrtrst('umfltd_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UMFLTD(n)),
+     .      iuu)
+          if (ACC_VMFLTD(n).ne.0) call wrtrst('vmfltd_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTD(n)),
+     .      ivv)
+          if (ACC_UTFLTD(n).ne.0) call wrtrst('utfltd_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UTFLTD(n)),
+     .      iuu)
+          if (ACC_VTFLTD(n).ne.0) call wrtrst('vtfltd_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VTFLTD(n)),
+     .      ivv)
+          if (ACC_UTFLLD(n).ne.0) call wrtrst('utflld_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UTFLLD(n)),
+     .      iuu)
+          if (ACC_VTFLLD(n).ne.0) call wrtrst('vtflld_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VTFLLD(n)),
+     .      ivv)
+          if (ACC_USFLTD(n).ne.0) call wrtrst('usfltd_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_USFLTD(n)),
+     .      iuu)
+          if (ACC_VSFLTD(n).ne.0) call wrtrst('vsfltd_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VSFLTD(n)),
+     .      ivv)
+          if (ACC_USFLLD(n).ne.0) call wrtrst('usflld_phy'//c2,
+     .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_USFLLD(n)),
+     .      iuu)
+          if (ACC_VSFLLD(n).ne.0) call wrtrst('vsflld_phy'//c2,
+     .      trim(c5v)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_VSFLLD(n)),
+     .      ivv)
           if (ACC_SALN(n)  .ne.0) call wrtrst('saln_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_SALN(n)),
      .      ip)
@@ -437,18 +479,18 @@ c --- write accumulated fields
           if (ACC_DIFISO(n).ne.0) call wrtrst('difiso_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFISO(n)),
      .      ip)
-          if (ACC_WFLX(n)    .ne.0) call wrtrst('wflx_phy'//c2,
+          if (ACC_WFLX(n)  .ne.0) call wrtrst('wflx_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),
      .      ip)
-          if (ACC_WFLX2(n)    .ne.0) call wrtrst('wflx2_phy'//c2,
+          if (ACC_WFLX2(n) .ne.0) call wrtrst('wflx2_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),
      .      ip)
-          if (ACC_WFLXLVL(n)    .ne.0) call wrtrst('wflxlvl_phy'//c2,
+          if (ACC_WFLXLVL(n).ne.0) call wrtrst('wflxlvl_phy'//c2,
      .      trim(c5p)//' plev time',
-     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip)
-          if (ACC_WFLX2LVL(n)    .ne.0) call wrtrst('wflx2lvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip)
+          if (ACC_WFLX2LVL(n).ne.0) call wrtrst('wflx2lvl_phy'//c2,
      .      trim(c5p)//' plev time',
-     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
           if (ACC_UVELLVL(n) .ne.0) call wrtrst('uvellvl_phy'//c2,
      .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_UVELLVL(n)),iuu)
@@ -473,6 +515,36 @@ c --- write accumulated fields
           if (ACC_VSFLXLVL(n).ne.0) call wrtrst('vsflxlvl_phy'//c2,
      .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_VSFLXLVL(n)),ivv)
+          if (ACC_UMFLTDLVL(n).ne.0) call wrtrst('umfltdlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UMFLTDLVL(n)),iuu)
+          if (ACC_VMFLTDLVL(n).ne.0) call wrtrst('vmfltdlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VMFLTDLVL(n)),ivv)
+          if (ACC_UTFLTDLVL(n).ne.0) call wrtrst('utfltdlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UTFLTDLVL(n)),iuu)
+          if (ACC_VTFLTDLVL(n).ne.0) call wrtrst('vtfltdlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VTFLTDLVL(n)),ivv)
+          if (ACC_UTFLLDLVL(n).ne.0) call wrtrst('utflldlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_UTFLLDLVL(n)),iuu)
+          if (ACC_VTFLLDLVL(n).ne.0) call wrtrst('vtflldlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VTFLLDLVL(n)),ivv)
+          if (ACC_USFLTDLVL(n).ne.0) call wrtrst('usfltdlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_USFLTDLVL(n)),iuu)
+          if (ACC_VSFLTDLVL(n).ne.0) call wrtrst('vsfltdlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VSFLTDLVL(n)),ivv)
+          if (ACC_USFLLDLVL(n).ne.0) call wrtrst('usflldlvl_phy'//c2,
+     .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_USFLLDLVL(n)),iuu)
+          if (ACC_VSFLLDLVL(n).ne.0) call wrtrst('vsflldlvl_phy'//c2,
+     .      trim(c5v)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_VSFLLDLVL(n)),ivv)
           if (ACC_SALNLVL(n) .ne.0) call wrtrst('salnlvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_SALNLVL(n)),ip)

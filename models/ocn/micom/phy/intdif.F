@@ -12,18 +12,20 @@ c
 c
 #include "common_blocks.h"
 c
-      integer i,j,k,l,kn
+      integer i,j,k,l,km,kn
       real flxhi,flxlo,q
 c
       call xctilr(difint, 1,kk, 2,2, halo_ps)
+      call xctilr(temp(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
+      call xctilr(saln(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
 c
 c$OMP PARALLEL DO
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
-          uflxdf(i,j,1)=0.
-          uflxdf(i,j,2)=0.
-          uflxdf(i,j,3)=0.
+          umfltd(i,j,1+mm)=0.
+          umfltd(i,j,2+mm)=0.
+          umfltd(i,j,3+mm)=0.
         enddo
         enddo
       enddo
@@ -32,15 +34,16 @@ c$OMP PARALLEL DO
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
-          vflxdf(i,j,1)=0.
-          vflxdf(i,j,2)=0.
-          vflxdf(i,j,3)=0.
+          vmfltd(i,j,1+mm)=0.
+          vmfltd(i,j,2+mm)=0.
+          vmfltd(i,j,3+mm)=0.
         enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
       do k=4,kk
+        km=k+mm
         kn=k+nn
 c
 c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
@@ -55,8 +58,8 @@ c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
      .            +difint(i-1,j,k  )+difint(i,j,k  ))
             q=min(flxhi,max(flxlo,
      .            delt1*q*(p(i-1,j,k)-p(i,j,k))*scuy(i,j)*scuxi(i,j)))
-            uflxdf(i,j,k-1)=uflxdf(i,j,k-1)+q
-            uflxdf(i,j,k  )=-q
+            umfltd(i,j,km-1)=umfltd(i,j,km-1)+q
+            umfltd(i,j,km  )=-q
           enddo
           enddo
         enddo
@@ -74,8 +77,36 @@ c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
      .            +difint(i,j-1,k  )+difint(i,j,k  ))
             q=min(flxhi,max(flxlo,
      .            delt1*q*(p(i,j-1,k)-p(i,j,k))*scvx(i,j)*scvyi(i,j)))
-            vflxdf(i,j,k-1)=vflxdf(i,j,k-1)+q
-            vflxdf(i,j,k  )=-q
+            vmfltd(i,j,km-1)=vmfltd(i,j,km-1)+q
+            vmfltd(i,j,km  )=-q
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+      enddo
+c
+c --- diagnose diffusive flux components of heat and salt
+c
+      do k=1,kk
+        km=k+mm
+c
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            utfltd(i,j,km)=.5*umfltd(i,j,km)
+     .                     *(temp(i-1,j,km)+temp(i,j,km))
+            usfltd(i,j,km)=.5*umfltd(i,j,km)
+     .                     *(saln(i-1,j,km)+saln(i,j,km))
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vtfltd(i,j,km)=.5*vmfltd(i,j,km)
+     .                     *(temp(i,j-1,km)+temp(i,j,km))
+            vsfltd(i,j,km)=.5*vmfltd(i,j,km)
+     .                     *(saln(i,j-1,km)+saln(i,j,km))
           enddo
           enddo
         enddo
@@ -87,8 +118,12 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'intdif:'
         endif
-        call chksummsk(uflxdf,iu,kk,'uflxdf')
-        call chksummsk(vflxdf,iv,kk,'vflxdf')
+        call chksummsk(umfltd(1-nbdy,1-nbdy,k1m),iu,kk,'umfltd')
+        call chksummsk(vmfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vmfltd')
+        call chksummsk(utfltd(1-nbdy,1-nbdy,k1m),iu,kk,'utfltd')
+        call chksummsk(vtfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vtfltd')
+        call chksummsk(usfltd(1-nbdy,1-nbdy,k1m),iu,kk,'usfltd')
+        call chksummsk(vsfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vsfltd')
       endif
 c
       return

@@ -24,7 +24,7 @@ c
 #include "common_ice.h"
 c
       real rtmp
-      integer i,j,n,ndayr,nmonthr,nyearr,l
+      integer i,j,k,n,ndayr,nmonthr,nyearr,l
       character(len=80) :: rstfnm,fnm
       character(len=2) :: c2
 c
@@ -168,9 +168,261 @@ c
       call ncread('uflx',uflx,iuu,1,0.)
       call ncread('utflx',utflx,iuu,1,0.)
       call ncread('usflx',usflx,iuu,1,0.)
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('umfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('umfltd',umfltd,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''umfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (iuu(i,j).eq.1) then
+                umfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('utfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('utfltd',utfltd,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''utfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (iuu(i,j).eq.1) then
+                utfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('utflld')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('utflld',utflld,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''utflld'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (iuu(i,j).eq.1) then
+                utflld(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('usfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('usfltd',usfltd,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''usfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (iuu(i,j).eq.1) then
+                usfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('usflld')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('usflld',usflld,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''usflld'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (iuu(i,j).eq.1) then
+                usflld(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
       call ncread('vflx',vflx,ivv,1,0.)
       call ncread('vtflx',vtflx,ivv,1,0.)
       call ncread('vsflx',vsflx,ivv,1,0.)
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('vmfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('vmfltd',vmfltd,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vmfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (ivv(i,j).eq.1) then
+                vmfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('vtfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('vtfltd',vtfltd,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vtfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (ivv(i,j).eq.1) then
+                vtfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('vtflld')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('vtflld',vtflld,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vtflld'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (ivv(i,j).eq.1) then
+                vtflld(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('vsfltd')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('vsfltd',vsfltd,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vsfltd'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (ivv(i,j).eq.1) then
+                vsfltd(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('vsflld')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('vsflld',vsflld,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vsflld'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,2*kk
+          do j=1,jj
+            do i=1,ii
+              if (ivv(i,j).eq.1) then
+                vsflld(i,j,k)=0.
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+c
       call ncread('ubflx',ubflx,iuu,1,0.)
       call ncread('vbflx',vbflx,ivv,1,0.)
       call ncread('ubflx_mn',ubflx_mn,iuu,1,0.)
@@ -380,6 +632,26 @@ c --- read accumulated fields
      .      phylyr(1-nbdy,1-nbdy,1,ACC_USFLX(n)),iuu,1,0.)
           if (ACC_VSFLX(n).ne.0) call ncread('vsflx_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_VSFLX(n)),ivv,1,0.)
+          if (ACC_UMFLTD(n).ne.0) call ncread('umfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_UMFLTD(n)),iuu,1,0.)
+          if (ACC_VMFLTD(n).ne.0) call ncread('vmfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTD(n)),ivv,1,0.)
+          if (ACC_UTFLTD(n).ne.0) call ncread('utfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_UTFLTD(n)),iuu,1,0.)
+          if (ACC_VTFLTD(n).ne.0) call ncread('vtfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_VTFLTD(n)),ivv,1,0.)
+          if (ACC_UTFLLD(n).ne.0) call ncread('utflld_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_UTFLLD(n)),iuu,1,0.)
+          if (ACC_VTFLLD(n).ne.0) call ncread('vtflld_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_VTFLLD(n)),ivv,1,0.)
+          if (ACC_USFLTD(n).ne.0) call ncread('usfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_USFLTD(n)),iuu,1,0.)
+          if (ACC_VSFLTD(n).ne.0) call ncread('vsfltd_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_VSFLTD(n)),ivv,1,0.)
+          if (ACC_USFLLD(n).ne.0) call ncread('usflld_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_USFLLD(n)),iuu,1,0.)
+          if (ACC_VSFLLD(n).ne.0) call ncread('vsflld_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_VSFLLD(n)),ivv,1,0.)
           if (ACC_SALN(n).ne.0) call ncread('saln_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_SALN(n)),ip,1,0.)
           if (ACC_TEMP(n).ne.0) call ncread('temp_phy'//c2,
@@ -401,25 +673,45 @@ c --- read accumulated fields
           if (ACC_WFLX2(n)    .ne.0) call ncread('wflx2_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),ip,1,0.)
           if (ACC_WFLXLVL(n)    .ne.0) call ncread('wflxlvl_phy'//c2,
-     .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
           if (ACC_WFLX2LVL(n)    .ne.0) call ncread('wflx2lvl_phy'//c2,
-     .       phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
+     .       phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
           if (ACC_UVELLVL(n).ne.0) call ncread('uvellvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)),iuu,1,0.)
-          if (ACC_UFLXLVL(n).ne.0) call ncread('uflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),iuu,1,0.)
-          if (ACC_UTFLXLVL(n).ne.0) call ncread('utflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_UTFLXLVL(n)),iuu,1,0.)
-          if (ACC_USFLXLVL(n).ne.0) call ncread('usflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_USFLXLVL(n)),iuu,1,0.)
           if (ACC_VVELLVL(n).ne.0) call ncread('vvellvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_VVELLVL(n)),ivv,1,0.)
+          if (ACC_UFLXLVL(n).ne.0) call ncread('uflxlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),iuu,1,0.)
           if (ACC_VFLXLVL(n).ne.0) call ncread('vflxlvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),ivv,1,0.)
+          if (ACC_UTFLXLVL(n).ne.0) call ncread('utflxlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_UTFLXLVL(n)),iuu,1,0.)
           if (ACC_VTFLXLVL(n).ne.0) call ncread('vtflxlvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_VTFLXLVL(n)),ivv,1,0.)
+          if (ACC_USFLXLVL(n).ne.0) call ncread('usflxlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_USFLXLVL(n)),iuu,1,0.)
           if (ACC_VSFLXLVL(n).ne.0) call ncread('vsflxlvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_VSFLXLVL(n)),ivv,1,0.)
+          if (ACC_UMFLTDLVL(n).ne.0) call ncread('umfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_UMFLTDLVL(n)),iuu,1,0.)
+          if (ACC_VMFLTDLVL(n).ne.0) call ncread('vmfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_VMFLTDLVL(n)),ivv,1,0.)
+          if (ACC_UTFLTDLVL(n).ne.0) call ncread('utfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_UTFLTDLVL(n)),iuu,1,0.)
+          if (ACC_VTFLTDLVL(n).ne.0) call ncread('vtfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_VTFLTDLVL(n)),ivv,1,0.)
+          if (ACC_UTFLLDLVL(n).ne.0) call ncread('utflldlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_UTFLLDLVL(n)),iuu,1,0.)
+          if (ACC_VTFLLDLVL(n).ne.0) call ncread('vtflldlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_VTFLLDLVL(n)),ivv,1,0.)
+          if (ACC_USFLTDLVL(n).ne.0) call ncread('usfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_USFLTDLVL(n)),iuu,1,0.)
+          if (ACC_VSFLTDLVL(n).ne.0) call ncread('vsfltdlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_VSFLTDLVL(n)),ivv,1,0.)
+          if (ACC_USFLLDLVL(n).ne.0) call ncread('usflldlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_USFLLDLVL(n)),iuu,1,0.)
+          if (ACC_VSFLLDLVL(n).ne.0) call ncread('vsflldlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_VSFLLDLVL(n)),ivv,1,0.)
           if (ACC_SALNLVL(n).ne.0) call ncread('salnlvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_SALNLVL(n)),ip,1,0.)
           if (ACC_TEMPLVL(n).ne.0) call ncread('templvl_phy'//c2,
@@ -518,6 +810,8 @@ c --- read accumulated fields
      .      physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
           if (ACC_BRNFLX(n).ne.0) call ncread('brnflx_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip,1,0.)
+          if (ACC_BRNPD(n).ne.0) call ncread('brnpd_phy'//c2,
+     .      physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip,1,0.)
           if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
           if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,

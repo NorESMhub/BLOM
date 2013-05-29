@@ -72,7 +72,7 @@ c
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             utotm(i,j)=u(i,j,km)
      .        +(ubflxs_p(i,j,m)*dlt/pbu(i,j,m)
-     .         +uflxdf(i,j,k)/max(onemm,dpu(i,j,kn)))/(delt1*scuy(i,j))
+     .         +umfltd(i,j,km)/max(onemm,dpu(i,j,kn)))/(delt1*scuy(i,j))
             utotm(i,j)=max(-umax(i,j),min(umax(i,j),utotm(i,j)))
           enddo
           enddo
@@ -82,7 +82,7 @@ c
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             vtotm(i,j)=v(i,j,km)
      .        +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m)
-     .         +vflxdf(i,j,k)/max(onemm,dpv(i,j,kn)))/(delt1*scvx(i,j))
+     .         +vmfltd(i,j,km)/max(onemm,dpv(i,j,kn)))/(delt1*scvx(i,j))
             vtotm(i,j)=max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
           enddo
           enddo

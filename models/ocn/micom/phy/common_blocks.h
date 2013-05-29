@@ -39,8 +39,12 @@ c
      .  utflx,vtflx,   ! horizontal heat fluxes
      .  usflx,vsflx    ! horizontal salt fluxes
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  uflxdf,vflxdf  ! horizontal diffusive mass fluxes
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
+     .  umfltd,vmfltd, ! horizontal mass fluxes due to thickness diffusion
+     .  utfltd,vtfltd, ! horizontal heat fluxes due to thickness diffusion
+     .  utflld,vtflld, ! horizontal heat fluxes due to lateral diffusion
+     .  usfltd,vsfltd, ! horizontal salt fluxes due to thickness diffusion
+     .  usflld,vsflld  ! horizontal salt fluxes due to lateral diffusion
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,3) ::
      .  ubflxs,vbflxs  ! barotropic mass flux sums
@@ -67,12 +71,13 @@ c
      .  uflux2,vflux2, ! more mass fluxes
      .  uflux3,vflux3  ! more mass fluxes
 c
-      common /micom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,uflxdf,vflxdf,
-     .                ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,ubflx_mn,
-     .                vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,pvtrop,
-     .                pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,vbcors_p,
-     .                defor1,defor2,utotm,vtotm,utotn,vtotn,uflux,vflux,
-     .                uflux2,vflux2,uflux3,vflux3
+      common /micom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,umfltd,vmfltd,
+     .                utfltd,vtfltd,utflld,vtflld,usfltd,vsfltd,usflld,
+     .                vsflld,ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,
+     .                ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,
+     .                pvtrop,pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,
+     .                vbcors_p,defor1,defor2,utotm,vtotm,utotn,vtotn,
+     .                uflux,vflux,uflux2,vflux2,uflux3,vflux3
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  pgfx,pgfy      ! horizontal pressure gradient force
