@@ -12,6 +12,9 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
+#ifdef TKE
+#  include "common_tke.h"
+#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -222,42 +225,59 @@ c
         if (mnproc.eq.1.and.nstep.gt.nstep1+1) then
           open (unit=nfu,file='salbud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
-     .      (sdp(2,m)-sdp(1,m))/vol0,
-     .      (sdp(3,m)-sdp(2,m))/vol0,
-     .      (sdp(4,m)-sdp(3,m))/vol0,
-     .      (sdp(5,m)-sdp(4,m)+sf*g)/vol0,
-     .      (sdp(6,m)-sdp(5,m))/vol0,
-     .      (sdp(7,m)-sdp(6,m))/vol0
+     .      (sdp(2,m)-sdp(1,m))/mass0,
+     .      (sdp(3,m)-sdp(2,m))/mass0,
+     .      (sdp(4,m)-sdp(3,m))/mass0,
+     .      (sdp(5,m)-sdp(4,m)+sf*g)/mass0,
+     .      (sdp(6,m)-sdp(5,m))/mass0,
+     .      (sdp(7,m)-sdp(6,m))/mass0
           close (nfu)
           open (unit=nfu,file='tembud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
-     .      (tdp(2,m)-tdp(1,m))/vol0,
-     .      (tdp(3,m)-tdp(2,m))/vol0,
-     .      (tdp(4,m)-tdp(3,m))/vol0,
-     .      (tdp(5,m)-tdp(4,m)+tf*g/spcifh)/vol0,
-     .      (tdp(6,m)-tdp(5,m))/vol0,
-     .      (tdp(7,m)-tdp(6,m))/vol0
+     .      (tdp(2,m)-tdp(1,m))/mass0,
+     .      (tdp(3,m)-tdp(2,m))/mass0,
+     .      (tdp(4,m)-tdp(3,m))/mass0,
+     .      (tdp(5,m)-tdp(4,m)+tf*g/spcifh)/mass0,
+     .      (tdp(6,m)-tdp(5,m))/mass0,
+     .      (tdp(7,m)-tdp(6,m))/mass0
           close (nfu)
-          open (unit=nfu,file='denbud',position='append')
+#ifdef TKE
+          open (unit=nfu,file='tkebud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
-     .      (ddp(2,m)-ddp(1,m)),(ddp(3,m)-ddp(2,m)),(ddp(4,m)-ddp(3,m)),
-     .      (ddp(5,m)-ddp(4,m)),(ddp(6,m)-ddp(5,m)),(ddp(7,m)-ddp(6,m))
+     .      (tkedp(2,m)-tkedp(1,m))/mass0,
+     .      (tkedp(3,m)-tkedp(2,m))/mass0,
+     .      (tkedp(4,m)-tkedp(3,m))/mass0,
+     .      (tkedp(5,m)-tkedp(4,m))/mass0,
+     .      (tkedp(6,m)-tkedp(5,m))/mass0,
+     .      (tkedp(7,m)-tkedp(6,m))/mass0
           close (nfu)
+#  ifdef GLS
+          open (unit=nfu,file='glsbud',position='append')
+          write (nfu,'(i8,6e12.4)') nstep-1,
+     .      (glsdp(2,m)-glsdp(1,m))/mass0,
+     .      (glsdp(3,m)-glsdp(2,m))/mass0,
+     .      (glsdp(4,m)-glsdp(3,m))/mass0,
+     .      (glsdp(5,m)-glsdp(4,m))/mass0,
+     .      (glsdp(6,m)-glsdp(5,m))/mass0,
+     .      (glsdp(7,m)-glsdp(6,m))/mass0
+          close (nfu)
+#  endif
+#endif
 #ifdef TRC
           if (m.eq.1) then
             open (unit=nfu,file='trcbud',position='append')
             write (nfu,'(i8,6e12.4)') nstep,
-     .        (trdp(2)-trdp(1))/vol0,
-     .        (trdp(3)-trdp(2))/vol0,
-     .        (trdp(4)-trdp(3))/vol0,
-     .        (trdp(5)-trdp(4)+trf*g)/vol0,
-     .        (trdp(6)-trdp(5))/vol0,
-     .        (trdp(7)-trdp(6))/vol0
+     .        (trdp(2)-trdp(1))/mass0,
+     .        (trdp(3)-trdp(2))/mass0,
+     .        (trdp(4)-trdp(3))/mass0,
+     .        (trdp(5)-trdp(4)+trf*g)/mass0,
+     .        (trdp(6)-trdp(5))/mass0,
+     .        (trdp(7)-trdp(6))/mass0
             close (nfu)
             open (unit=nfu,file='trcbudtot',position='append')
             write (nfu,'(i8,7e18.10)') nstep,
-     .        trdp(1)/vol0,trdp(2)/vol0,trdp(3)/vol0,
-     .        trdp(4)/vol0,trdp(5)/vol0,trdp(6)/vol0,trdp(7)/vol0
+     .        trdp(1)/mass0,trdp(2)/mass0,trdp(3)/mass0,
+     .        trdp(4)/mass0,trdp(5)/mass0,trdp(6)/mass0,trdp(7)/mass0
             close (nfu)
           endif
 #endif

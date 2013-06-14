@@ -24,6 +24,10 @@ c
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totwfl,sflxc,totsrp,totsrn
 c
+#ifdef TKE
+#  include "param_tke.h"
+#  include "common_tke.h"
+#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -373,6 +377,14 @@ c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
 c
+#ifdef TKE
+          tkeflx(i,j)=0.
+#  ifdef GLS
+          gls_psiflx(i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)*
+     .                     (tke(i,j,k1n)**gls_m)*(vonKar**gls_n)*
+     .                     Zos**(gls_n-1.)
+#  endif
+#endif
 #ifdef TRC
           do nt=1,ntrc
             trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx*1.e-3

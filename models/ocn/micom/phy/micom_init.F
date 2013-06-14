@@ -139,6 +139,14 @@ c --- ------------------------------------------------------------------
 c
       call eosini
 c
+#ifdef TKE
+c --- ------------------------------------------------------------------
+c --- Initialize second order turbulence closure closure
+c --- ------------------------------------------------------------------
+c
+      call initke
+c
+#endif
 c --- ------------------------------------------------------------------
 c --- Initialize diagnostic accumulation fields
 c --- ------------------------------------------------------------------
@@ -252,7 +260,7 @@ c$OMP PARALLEL DO
           enddo
         enddo
 c$OMP END PARALLEL DO
-        call xcsum(vol0,util1,ips)
+        call xcsum(mass0,util1,ips)
       endif
 c
 c --- ------------------------------------------------------------------

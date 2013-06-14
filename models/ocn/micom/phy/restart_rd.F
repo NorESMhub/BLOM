@@ -38,6 +38,9 @@ c
       data first /.true./
       save first,iuu,ivv,iqq
 c
+#if defined TKE
+#  include "common_tke.h"
+#endif
 #if defined(TRC) && defined(IDLAGE)
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -578,6 +581,103 @@ c
         enddo
       endif
 c
+#ifdef TKE
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('tke')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('tke',tke,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: TKE is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to tke_min.'
+        endif
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('gls_psi')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('gls_psi',gls_psi,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: gls_psi is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to gls_psi_min.'
+        endif
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('L_scale')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('L_scale',L_scale,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: L_scale is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to Ls_unlmt_min.'
+        endif
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('difdia')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('difdia',difdia,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: difdia is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do k=1,kk
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              difdia(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+      endif
+c
+      rtmp=0.
+      if (mnproc.eq.1) then
+        if (ncinqv('ustarb')) rtmp=1.
+      endif
+      call xcmaxr(rtmp)
+      if (rtmp.gt..5) then
+        call ncread('ustarb',ustarb,ip,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: ustarb is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            ustarb(i,j)=0.
+          enddo
+          enddo
+        enddo
+      endif
+#endif
 #if defined(TRC) && defined(IDLAGE)
       rtmp=0.
       if (mnproc.eq.1) then
@@ -668,14 +768,16 @@ c --- read accumulated fields
      .      phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),ip,1,0.)
           if (ACC_DIFISO(n).ne.0) call ncread('difiso_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_DIFISO(n)),ip,1,0.)
-          if (ACC_WFLX(n)    .ne.0) call ncread('wflx_phy'//c2,
+          if (ACC_WFLX(n).ne.0) call ncread('wflx_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),ip,1,0.)
-          if (ACC_WFLX2(n)    .ne.0) call ncread('wflx2_phy'//c2,
+          if (ACC_WFLX2(n).ne.0) call ncread('wflx2_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),ip,1,0.)
-          if (ACC_WFLXLVL(n)    .ne.0) call ncread('wflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
-          if (ACC_WFLX2LVL(n)    .ne.0) call ncread('wflx2lvl_phy'//c2,
-     .       phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
+#if defined TKE
+          if (ACC_TKE(n).ne.0) call ncread('tke_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),ip,1,0.)
+          if (ACC_GLS_PSI(n).ne.0) call ncread('gls_psi_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)),ip,1,0.)
+#endif
           if (ACC_UVELLVL(n).ne.0) call ncread('uvellvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)),iuu,1,0.)
           if (ACC_VVELLVL(n).ne.0) call ncread('vvellvl_phy'//c2,
@@ -726,6 +828,16 @@ c --- read accumulated fields
      .      phylvl(1-nbdy,1-nbdy,1,ACC_DIFINTLVL(n)),ip,1,0.)
           if (ACC_DIFISOLVL(n).ne.0) call ncread('difisolvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_DIFISOLVL(n)),ip,1,0.)
+          if (ACC_WFLXLVL(n).ne.0) call ncread('wflxlvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
+          if (ACC_WFLX2LVL(n).ne.0) call ncread('wflx2lvl_phy'//c2,
+     .       phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
+#if defined TKE
+          if (ACC_TKELVL(n).ne.0) call ncread('tkelvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)),ip,1,0.)
+          if (ACC_GLS_PSILVL(n).ne.0) call ncread('gls_psilvl_phy'//c2,
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)),ip,1,0.)
+#endif
           if (ACC_UB(n).ne.0) call ncread('ub_phy'//c2,
      .      physrf(1-nbdy,1-nbdy,ACC_UB(n)),iuu,1,0.)
           if (ACC_VB(n).ne.0) call ncread('vb_phy'//c2,

@@ -117,13 +117,14 @@ c --- Namelist
      . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
      . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_IDLAGE ,
+     . LYR_WFLX2  ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
      . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
      . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_IDLAGE ,
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_TKE    ,LVL_GLS_PSI,
+     . LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  , 
@@ -146,14 +147,15 @@ c --- Namelist
      . ACC_UTFLLD ,ACC_USFLTD ,ACC_USFLLD ,ACC_UVEL   ,ACC_VFLX   ,
      . ACC_VTFLX  ,ACC_VSFLX  ,ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,
      . ACC_VSFLTD ,ACC_VSFLLD ,ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,
+     . ACC_TKE    ,ACC_GLS_PSI,
      . ACC_DIAFLXLVL,ACC_DIFDIALVL,ACC_DIFINTLVL,ACC_DIFISOLVL,
      . ACC_DZLVL    ,ACC_SALNLVL  ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,
      . ACC_UTFLXLVL ,ACC_USFLXLVL ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,
      . ACC_UTFLLDLVL,ACC_USFLTDLVL,ACC_USFLLDLVL,ACC_UVELLVL  ,
      . ACC_VFLXLVL  ,ACC_VTFLXLVL ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,
      . ACC_VTFLTDLVL,ACC_VTFLLDLVL,ACC_VSFLTDLVL,ACC_VSFLLDLVL,
-     . ACC_VVELLVL  ,ACC_WFLXLVL  ,ACC_WFLX2LVL ,
-     . ACC_UFLXOLD  ,ACC_VFLXOLD  ,ACC_UTILLVL  ,     
+     . ACC_VVELLVL  ,ACC_WFLXLVL  ,ACC_WFLX2LVL ,ACC_TKELVL   ,
+     . ACC_GLS_PSILVL,ACC_UFLXOLD ,ACC_VFLXOLD  ,ACC_UTILLVL  ,     
      . ACC_MMFLXL ,ACC_MMFLXD ,ACC_MMFTDL ,ACC_MMFTDD ,ACC_MHFLX  ,
      . ACC_MHFTD  ,ACC_MHFLD  ,ACC_MSFLX  ,ACC_MSFTD  ,ACC_MSFLD  ,
      . ACC_VOLTR 
@@ -173,13 +175,14 @@ c --- Namelist
      . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
      . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_IDLAGE ,
+     . LYR_WFLX2  ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
      . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
      . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_IDLAGE ,
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_TKE    ,LVL_GLS_PSI,
+     . LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  ,
@@ -298,9 +301,6 @@ c
 c
 #include "common_blocks.h"
 #include "common_clndr.h"
-#ifdef TRC
-#include "param_trc.h"
-#endif
 c
       integer :: i,j,k,l,n,istat,istatsum,i1,j1,ncid,rhid
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
@@ -395,9 +395,13 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_DIFINTLVL(n)= LVL_DIFINT(n)
         ACC_DIFISO(n)   = LYR_DIFISO(n)
         ACC_DIFISOLVL(n)= LVL_DIFISO(n)
-        ACC_DP(n)       = LYR_DP(n)     + LYR_SALN(n)   + LYR_TEMP(n)  +
-     .                    LYR_TRC(n)    + LVL_SALN(n)   + LVL_TEMP(n)  +
-     .                    LVL_TRC(n)
+        ACC_DP(n)       = LYR_DP(n)     +
+     .                    LYR_SALN(n)   + LYR_TEMP(n)   + LYR_TRC(n)   +
+     .                    LYR_DIFDIA(n) + LYR_DIFINT(n) + LYR_DIFISO(n)+
+     .                    LYR_TKE(n)    + LYR_GLS_PSI(n)+
+     .                    LVL_SALN(n)   + LVL_TEMP(n)   + LVL_TRC(n)   +
+     .                    LVL_DIFDIA(n) + LVL_DIFINT(n) + LVL_DIFISO(n)+
+     .                    LVL_TKE(n)    + LVL_GLS_PSI(n)
         ACC_DPU(n)      = LYR_DPU(n)    + LYR_UVEL(n)
         ACC_DPV(n)      = LYR_DPV(n)    + LYR_VVEL(n)
         ACC_DZ(n)       = LYR_DZ(n)
@@ -458,6 +462,10 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LVL_WFLX2(n)
         ACC_WFLX2LVL(n) = LVL_WFLX2(n)  + LVL_WFLX(n)   + LYR_WFLX(n)  +
      .                    LYR_WFLX2(n)
+        ACC_TKE(n)      = LYR_TKE(n)
+        ACC_TKELVL(n)   = LVL_TKE(n)
+        ACC_GLS_PSI(n)  = LYR_GLS_PSI(n)
+        ACC_GLS_PSILVL(n) = LVL_GLS_PSI(n)
         ACC_MMFLXL(n)   = MSC_MMFLXL(n) 
         ACC_MMFLXD(n)   = MSC_MMFLXD(n)
         ACC_MMFTDL(n)   = MSC_MMFTDL(n) 
@@ -624,6 +632,10 @@ c
          ACC_WFLX(n)=nphylyr*min(1,ACC_WFLX(n))
         if (ACC_WFLX2(n).ne.0) nphylyr=nphylyr+1
          ACC_WFLX2(n)=nphylyr*min(1,ACC_WFLX2(n))
+        if (ACC_TKE(n).ne.0) nphylyr=nphylyr+1
+         ACC_TKE(n)=nphylyr*min(1,ACC_TKE(n))
+        if (ACC_GLS_PSI(n).ne.0) nphylyr=nphylyr+1
+         ACC_GLS_PSI(n)=nphylyr*min(1,ACC_GLS_PSI(n))
 c
         if (ACC_DIAFLXLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_DIAFLXLVL(n)=nphylvl*min(1,ACC_DIAFLXLVL(n))
@@ -683,6 +695,10 @@ c
          ACC_WFLXLVL(n)=nphylvl*min(1,ACC_WFLXLVL(n))
         if (ACC_WFLX2LVL(n).ne.0) nphylvl=nphylvl+1
          ACC_WFLX2LVL(n)=nphylvl*min(1,ACC_WFLX2LVL(n))
+        if (ACC_TKELVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_TKELVL(n)=nphylvl*min(1,ACC_TKELVL(n))
+        if (ACC_GLS_PSILVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_GLS_PSILVL(n)=nphylvl*min(1,ACC_GLS_PSILVL(n))
 c
 c --- End loop over io groups
       enddo
@@ -826,6 +842,9 @@ c
 #include "common_blocks.h"
 #include "common_forc.h"
 #include "common_ice.h"
+#if defined TKE
+#  include "common_tke.h"
+#endif
 c
       integer d,i,j,k,l,km,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
@@ -1225,6 +1244,16 @@ c
 c --- diapycnal diffusivity [cm^2/s]
       call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
+#if defined TKE
+c --- weighted tke [cm2/s2*g/cm/s^2]
+      call acclyr(ACC_TKE,tke(1-nbdy,1-nbdy,k1m),
+     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+c
+c --- weighted gls_psi [cm2/s3*g/cm/s^2]
+      call acclyr(ACC_GLS_PSI,gls_psi(1-nbdy,1-nbdy,k1m),
+     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+c
+#endif
 c --- ------------------------------------------------------------------
 c --- accumulate 3d diagnostic variables on Levitus levels 
 c --- ------------------------------------------------------------------
@@ -1345,6 +1374,7 @@ c
       if (sum(ACC_SALNLVL(1:nphy)+ACC_TEMPLVL(1:nphy)+
      .  ACC_DIAFLXLVL(1:nphy)+ACC_DIFDIALVL(1:nphy)+
      .  ACC_DIFINTLVL(1:nphy)+ACC_DIFISOLVL(1:nphy)+
+     .  ACC_TKELVL(1:nphy)+ACC_GLS_PSILVL(1:nphy)+
      .  ACC_DZLVL(1:nphy)).ne.0) then
         do k=1,kk
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
@@ -1369,8 +1399,19 @@ c
 c --- --- diapycnal diffusivity [cm^2/s]
           call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
 c
-c --- --- diapycnal diffusivity [cm^2/s]
+#if defined TKE
+c --- --- tke [cm2/s2*g/cm/s^2]
+          call acclvl(ACC_TKELVL,tke(1-nbdy,1-nbdy,k1m),'p',k,ind1
+     .      ,ind2,wghts)
+c
+c --- --- gls_psi [cm2/s3*g/cm/s^2]
+          call acclvl(ACC_GLS_PSILVL,gls_psi(1-nbdy,1-nbdy,k1m),'p',
+     .       k,ind1,ind2,wghts)
+c
+#endif
+c --- --- layer geopotential thickness [cm^2/s^2]
           call acclvl(ACC_DZLVL,dz,'p',k,ind1,ind2,wghts)
+c
         enddo
       endif
 c
@@ -1467,6 +1508,10 @@ c --- finalize accumulation of layer fields
       call finlyr(ACC_DIFDIA(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFINT(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFISO(iogrp),ACC_DP(iogrp),'p')
+#if defined TKE
+      call finlyr(ACC_TKE(iogrp),ACC_DP(iogrp),'p')
+      call finlyr(ACC_GLS_PSI(iogrp),ACC_DP(iogrp),'p')
+#endif
 c 
 c --- compute log10 of diffusivities
       if (LYR_DIFDIA(iogrp).eq.2)
@@ -1511,6 +1556,10 @@ c --- mask sea floor of level fields
       call msklvl(ACC_TEMPLVL(iogrp),'p')
       call msklvl(ACC_WFLXLVL(iogrp),'p')
       call msklvl(ACC_WFLX2LVL(iogrp),'p')
+#if defined TKE
+      call msklvl(ACC_TKELVL(iogrp),'p')
+      call msklvl(ACC_GLS_PSILVL(iogrp),'p')
+#endif
 c 
 c --- get instantaneous values for ice age 
       if (ACC_IAGE(iogrp).ne.0) then
@@ -1963,6 +2012,16 @@ c
      .    'm2 s-1')
       endif
 c
+#if defined TKE 
+      call wrtlyr(ACC_TKE(iogrp),LYR_TKE(iogrp),1e-4,0.,
+     .  cmpflg,ip,'p','tke','TKE','Turbulent kinetic energy',
+     .  'm2 s-2')
+c
+      call wrtlyr(ACC_GLS_PSI(iogrp),LYR_GLS_PSI(iogrp),1.e-4,0.,
+     .  cmpflg,ip,'p','gls_psi','GLS_PSI','Generic length scale',
+     .  'm2 s-3')
+c
+#endif
 c --- Write 3d depth fields
       call wrtlvl(ACC_DZLVL(iogrp),LVL_DZ(iogrp),
      .  rnacc*1e-2/g,0.,cmpflg,ip,'p','dzlvl','Layer thickness',' ',
@@ -2099,6 +2158,17 @@ c
      .    0.,cmpflg,ip,'p','difdialvl','Diapycnal diffusivity',' ',
      .    'm2 s-1')
       endif
+c
+#if defined TKE 
+      call wrtlvl(ACC_TKELVL(iogrp),LVL_TKE(iogrp),
+     .  1e-4,0.,cmpflg,ip,'p','tkelvl','TKE',
+     .  'Turbulent Kinetic Energy','m2 s-2')
+c
+      call wrtlvl(ACC_GLS_PSILVL(iogrp),LVL_GLS_PSI(iogrp),
+     .  1e-4,0.,cmpflg,ip,'p','gls_psilvl','GLS_PSI',
+     .  'Generic length scale','m2 s-3')
+c
+#endif
 c
 c --- store meridional transports 
       if (MSC_MMFLXL(iogrp).ne.0) then 
@@ -2287,6 +2357,10 @@ c
       call inilyr(ACC_DIFISO(iogrp),'p',0.)
       call inilyr(ACC_WFLX(iogrp),'p',0.)
       call inilyr(ACC_WFLX2(iogrp),'p',0.)
+#if defined TKE
+      call inilyr(ACC_TKE(iogrp),'p',0.)
+      call inilyr(ACC_GLS_PSI(iogrp),'p',0.)
+#endif
 c
 c --- initialsation of 3d level fields
       call inilvl(ACC_UVELLVL(iogrp),'u',0.)
@@ -2318,6 +2392,10 @@ c
       call inilvl(ACC_TEMPLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLXLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLX2LVL(iogrp),'p',0.)
+#if defined TKE
+      call inilyr(ACC_TKELVL(iogrp),'p',0.)
+      call inilyr(ACC_GLS_PSILVL(iogrp),'p',0.)
+#endif
 c
 c --- reset accumulation counter 
       nacc_phy(iogrp)=0
@@ -2488,13 +2566,7 @@ c
       integer(kind=2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ucum,vcum
-c    .  umflx_cum=0.,vmflx_cum=0.,umfltd_cum=0.,vmfltd_cum=0.,
-c    .  utflx_cum=0.,vtflx_cum=0.,utfltd_cum=0.,vtfltd_cum=0.,
-c    .  utflld_cum=0.,vtflld_cum=0.,usflx_cum=0.,vsflx_cum=0.,
-c    .  usfltd_cum=0.,vsfltd_cum=0.,usflld_cum=0.,vsflld_cum=0.,
       real, dimension(itdm,jtdm) :: depthst,ucumg,vcumg
-c    .  umflx_cumt=0.,vmflx_cumt=0.,umfltd_cumt=0.,vmfltd_cumt=0.,
-c    .  utflx_cumt=0.,vtflx_cumt=0.,usflx_cumt=0.,vsflx_cumt=0.,depthst
       real, dimension(ldm,odm) :: mflx_lo,mflx_last_lo
       real :: r
 c
@@ -2591,6 +2663,15 @@ c
       end if
 c
 c --- Compute vertical integrated heat and salt transports 
+c
+c$OMP PARALLEL DO
+      do j=1,jj
+        do i=1,ii
+          ucum(i,j)=0.
+          vcum(i,j)=0.
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c
       do nfld=1,6
 c

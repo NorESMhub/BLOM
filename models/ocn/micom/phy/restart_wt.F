@@ -36,6 +36,9 @@ c
       character startdate*20,timeunits*30
       real datenum
 c
+#if defined TKE
+#  include "common_tke.h"
+#endif
 #if defined(TRC) && defined(IDLAGE)
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -296,6 +299,13 @@ c
       call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
       call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
 c
+#if defined TKE
+      call wrtrst('tke',trim(c5p)//' kk2 time',tke,ip)
+      call wrtrst('gls_psi',trim(c5p)//' kk2 time',gls_psi,ip)
+      call wrtrst('L_scale',trim(c5p)//' kk time',L_scale,ip)
+      call wrtrst('difdia',trim(c5p)//' kk time',difdia,ip)
+      call wrtrst('ustarb',trim(c5p)//' time',ustarb,ip)
+#endif
 #if defined(TRC) && defined(IDLAGE)
       call wrtrst('idlage',trim(c5p)//' kk time',
      .            trc(1-nbdy,1-nbdy,1,itriag),ip)
@@ -485,12 +495,14 @@ c --- write accumulated fields
           if (ACC_WFLX2(n) .ne.0) call wrtrst('wflx2_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),
      .      ip)
-          if (ACC_WFLXLVL(n).ne.0) call wrtrst('wflxlvl_phy'//c2,
-     .      trim(c5p)//' plev time',
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip)
-          if (ACC_WFLX2LVL(n).ne.0) call wrtrst('wflx2lvl_phy'//c2,
-     .      trim(c5p)//' plev time',
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
+#if defined TKE
+          if (ACC_TKE(n)  .ne.0) call wrtrst('tke_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),
+     .      ip)
+          if (ACC_GLS_PSI(n).ne.0) call wrtrst('gls_psi_phy'//c2,
+     .     trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_GLS_PSI(n)),
+     .      ip)
+#endif
           if (ACC_UVELLVL(n) .ne.0) call wrtrst('uvellvl_phy'//c2,
      .      trim(c5u)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_UVELLVL(n)),iuu)
@@ -566,6 +578,20 @@ c --- write accumulated fields
           if (ACC_DIFISOLVL(n).ne.0) call wrtrst('difisolvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_DIFISOLVL(n)),ip)
+          if (ACC_WFLXLVL(n).ne.0) call wrtrst('wflxlvl_phy'//c2,
+     .      trim(c5p)//' plev time',
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip)
+          if (ACC_WFLX2LVL(n).ne.0) call wrtrst('wflx2lvl_phy'//c2,
+     .      trim(c5p)//' plev time',
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
+#if defined TKE
+          if (ACC_TKELVL(n).ne.0) call wrtrst('tkelvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_TKELVL(n)),ip)
+          if(ACC_GLS_PSILVL(n).ne.0) call wrtrst('gls_psilvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_GLS_PSILVL(n)),ip)
+#endif
         endif
       enddo
 c

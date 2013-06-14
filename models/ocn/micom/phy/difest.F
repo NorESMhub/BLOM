@@ -129,6 +129,12 @@ c
       real rho,sig
       external rho,sig
 c
+#ifdef TKE
+#  include "param_tke.h"
+#  include "common_tke.h"
+      real gls_c3,tke_prod,tke_buoy,tke_epsilon,gls_prod,gls_buoy,
+     .     gls_diss,Ls_unlmt,Ls_lmt,tke_Q,gls_Q,Gm,Gh,Sm,Sh,cff,ql
+#endif
 #ifdef DIAG
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  tmp3d_1,tmp3d_2,tmp3d_3,tmp3d_4,tmp3d_5,tmp3d_6,
@@ -432,6 +438,18 @@ c --- ------- Local gradient Richardson number
 #ifdef DIAG
               tmp3d_2(i,j,k)=rig(i,k)
 #endif
+#ifdef TKE
+              if (dp(i,j,kn).gt.dpbmin) then
+                Buoy(i,j,k)=-difdia(i,j,k)*bvfsq(i,k)
+                h=max(onem,dp(i,j,kn))*alpha0/g
+                Shear2(i,j,k)=max(1.e-9,q)/(h*h)
+                Prod(i,j,k)=difdia(i,j,k)*Pr_t*Shear2(i,j,k)
+              else
+                Buoy(i,j,k)=0.
+                Shear2(i,j,k)=1.e-9
+                Prod(i,j,k)=0.
+              endif
+#endif
 c
 c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
 c --- ------- bottom
@@ -604,6 +622,7 @@ c --- ------- Latitude dependency of background diapycnal mixing
 c
               nub=max(nubmin,nub)
 c
+#ifndef TKE
 c --- ------- Shear driven diapycnal mixing.
               if (rig(i,k).lt.ri0) then
 c
@@ -623,6 +642,123 @@ c --- --------- gradient richardson number.
               else
                 nus=0.
               endif
+#else
+              if (bvfsq(i,k).gt.0.) then  ! stable stratification
+                gls_c3=gls_c3minus
+              else                        ! unstable stratification
+                gls_c3=gls_c3plus
+              endif
+#  ifndef GLS
+              gls_psi(i,j,kn)=max((gls_c1*Prod(i,j,k)
+     .                            +gls_c3*Buoy(i,j,k))/gls_c2,
+     .                            gls_psi_min)
+#  endif              
+              tke_epsilon=cmu_fac2*tke(i,j,kn)**(1.5+gls_m/gls_n)
+     .                    *gls_psi(i,j,kn)**(-1./gls_n)
+              tke_prod=Prod(i,j,k)
+              tke_buoy=Buoy(i,j,k)
+              tke_Q=tke_epsilon/tke(i,j,kn)
+#  ifdef GLS
+              gls_prod=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c1*Prod(i,j,k)
+              gls_buoy=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c3*Buoy(i,j,k)
+              gls_diss=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c2*tke_epsilon
+              gls_Q=gls_diss/gls_psi(i,j,kn)
+#  endif
+#  ifdef GLS
+              if (gls_prod+gls_buoy.ge.0.) then
+                gls_psi(i,j,kn)=
+     .            (gls_psi(i,j,kn)+delt1*(gls_prod+gls_buoy))
+     .            /(1.+delt1*gls_Q)
+              else
+                gls_psi(i,j,kn)=
+     .            (gls_psi(i,j,kn)+delt1*gls_prod)
+     .            /(1.+delt1*(gls_Q-(gls_buoy/gls_psi(i,j,kn))))
+              endif
+              gls_psi(i,j,kn)=max(gls_psi(i,j,kn),gls_psi_min)
+#  endif
+              q=.56**(.5*gls_n)*gls_cmu0**gls_p
+     .          *tke(i,j,kn)**(gls_m+.5*gls_n)
+     .          *bvf(i,k)**(-gls_n)
+              if (gls_n.lt.0.) then
+                gls_psi(i,j,kn)=max(gls_psi(i,j,kn),q)
+              else
+                gls_psi(i,j,kn)=min(gls_psi(i,j,kn),q)
+              endif
+c
+              tke_epsilon=cmu_fac2*tke(i,j,kn)**(1.5+gls_m/gls_n)
+     .                    *gls_psi(i,j,kn)**(-1./gls_n)
+              tke_Q=tke_epsilon/tke(i,j,kn)
+c
+              if (tke_prod+tke_buoy.ge.0.) then
+                tke(i,j,kn)=(tke(i,j,kn)+delt1*(tke_prod+tke_buoy))
+     .                      /(1.+delt1*tke_Q)
+              else
+                tke(i,j,kn)=(tke(i,j,kn)+delt1*tke_prod)
+     .                      /(1.+delt1*(tke_Q-(tke_buoy/tke(i,j,kn))))
+                tke(i,j,kn)=max(tke(i,j,kn),tke_min)
+              endif
+c
+c --- ------- Bottom Boundary Conditions
+              if (k.eq.kmax(i,j)) then
+                ust=max(ustarb(i,j),ustmin)
+                tke(i,j,kn)=max(tke_min,(ust/gls_cmu0)**2)
+#  ifdef GLS
+                gls_psi(i,j,kn)=max(gls_psi_min,
+     .                              (gls_cmu0**(gls_p-2.*gls_m))
+     .                              *(ust**(2.*gls_m))
+     .                              *(kappa*1.e2)**gls_n)
+#  endif
+              endif
+c
+              Ls_unlmt=max(Ls_unlmt_min,
+     .                     cmu_fac1*gls_psi(i,j,kn)**(gls_exp1)
+     .                     *tke(i,j,kn)**(-tke_exp1))
+
+              if (bvfsq(i,k).gt.0.) then  ! stable stratification
+                Ls_lmt=min(Ls_unlmt,
+     .                     sqrt(.56*tke(i,j,kn)/max(bvfsq(i,k),1.e-10)))
+c               Ls_lmt=Ls_unlmt
+              else                        ! unstable stratification
+                Ls_lmt=Ls_unlmt
+              endif
+c
+c --- ------- Compute nondimensional stability functions for tracers
+c --- ------- (Sh) and momentum (Sm). Canuto-A
+              Gh=min(gls_Gh0,-bvfsq(i,k)*Ls_lmt*Ls_lmt/(2.*tke(i,j,kn)))
+              Gh=min(Gh,(Gh-(Gh-gls_Ghcri)**2)
+     .                  /(Gh+gls_Gh0-2.*gls_Ghcri))
+              Gh=max(Gh,gls_Ghmin)
+c
+c --- ------- Compute shear number.
+              Gm=(gls_b0/gls_fac6-gls_b1*Gh+gls_b3*gls_fac6*(Gh**2))
+     .           /(gls_b2-gls_b4*gls_fac6*Gh)
+              Gm=min(Gm,Shear2(i,j,k)*Ls_lmt*Ls_lmt/(2.*tke(i,j,kn)))
+c
+c --- ------- Compute stability functions
+              cff=gls_b0-gls_b1*gls_fac6*Gh+gls_b2*gls_fac6*Gm
+     .           +gls_b3*gls_fac6**2*Gh**2-gls_b4*gls_fac6**2*Gh*Gm
+     .           +gls_b5*gls_fac6**2*Gm*Gm
+              Sm=(gls_s0-gls_s1*gls_fac6*Gh+gls_s2*gls_fac6*Gm)/cff
+              Sh=(gls_s4-gls_s5*gls_fac6*Gh+gls_s6*gls_fac6*Gm)/cff
+              Sm=max(Sm,0.)
+              Sh=max(Sh,0.)
+c
+c --- ------- Relate Canuto stability to MICOM notation
+              Sm=Sm*cmu_fac3/gls_cmu0**3
+              Sh=Sh*cmu_fac3/gls_cmu0**3
+c
+              ql=sqrt2*.5*(Ls_lmt+L_scale(i,j,k))*sqrt(tke(i,j,kn))
+c
+              nus=Sh*ql
+c             nus=Sh*(tke(i,j,k)*tke(i,j,k))/gls_psi(i,j,k)
+              L_scale(i,j,k)=max(Ls_lmt,Ls_unlmt_min)
+#  ifdef GLS
+c
+c --- ------- Recompute gls based on limited length scale
+              gls_psi(i,j,kn)=max(gls_cmu0**gls_p*tke(i,j,kn)**gls_m
+     .                            *L_scale(i,j,k)**gls_n,gls_psi_min)
+#  endif
+#endif
 c
 c --- ------- Tidally driven diapycnal mixing
               if (tdmflg.eq.1) then
@@ -666,6 +802,16 @@ c --- ------- physical layer
 c
             else
               difdia(i,j,k)=difdia(i,j,k-1)
+#ifdef TKE
+c             tke(i,j,kn)=tke_min
+c             L_scale(i,j,k)=Ls_unlmt_min
+              tke(i,j,kn)=tke(i,j,kn-1)
+              L_scale(i,j,k)=L_scale(i,j,k-1)
+#  ifdef GLS
+c             gls_psi(i,j,kn)=gls_psi_min
+              gls_psi(i,j,kn)=gls_psi(i,j,kn-1)
+#  endif
+#endif
             endif
           enddo
           enddo
@@ -686,7 +832,7 @@ c
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (k.lt.kfil(i,j)) then
               if (k.gt.2.and.kfil(i,j).le.kk.and.
-     .            p(i,j,kfil(i,j))-p(i,j,3).gt.epsil) then
+     .            p(i,j,min(kk,kfil(i,j)))-p(i,j,3).gt.epsil) then
                 q=.5*(p(i,j,k+1)+p(i,j,k))
                 difdia(i,j,k)=((q-p(i,j,3))*dfddsl(i)
      .                        +(p(i,j,kfil(i,j))-q)*dfddsu(i))
@@ -733,14 +879,6 @@ c
           difdia(i,j,1)=h*ws*sg*(1.-sg)**2
         enddo
         enddo
-c       if (j.eq.jtest) then
-c         i=itest
-c         write (lp,*) 'h=',(p(i,j,3)-p(i,j,1))/onecm*1.e-2
-c         write (lp,*) 'd=',(p(i,j,2)-p(i,j,1))/onecm*1.e-2
-c         write (lp,*) 'ustar=',ustar(i,j)*1.e-2
-c         write (lp,*) 'bf=',buoyfl(i,j)*1.e-4
-c         write (lp,*) 'K=',difdia(i,j,1)*1.e-4
-c       endif
 c
       enddo
 c$OMP END PARALLEL DO
@@ -773,6 +911,13 @@ c
       call ncwrtr('nus','x y z',tmp3d_8,ip,1,1.,0.,8)
       call ncwrtr('nut','x y z',tmp3d_9,ip,1,1.,0.,8)
       call ncwrtr('nuls','x y z',tmp3d_10,ip,1,1.,0.,8)
+#  ifdef TKE
+      call ncwrtr('tke','x y z',tke(1-nbdy,1-nbdy,k1n),ip,1,1.,0.,8)
+#    ifdef GLS
+      call ncwrtr('gls_psi','x y z',gls_psi(1-nbdy,1-nbdy,k1n),
+     .            ip,1,1.,0.,8)
+#    endif
+#  endif
       call ncfcls
       call xcstop('(difest)')
              stop '(difest)'
@@ -785,6 +930,12 @@ c
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
         call chksummsk(difdia,ip,kk,'difdia')
+#ifdef TKE
+        call chksummsk(tke,ip,2*kk,'tke')
+#  ifdef GLS
+        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
+#  endif
+#endif
       endif
 c
       return

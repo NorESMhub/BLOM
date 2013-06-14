@@ -347,7 +347,9 @@ cat >! ocn_in << EOF1
 !   VSFLLD   - salt flux due to lateral diffusion in y-direction [kg s-1]
 !   VVEL     - velocity x-component [m s-1]
 !   WFLX     - vertical mass flux [kg s-1]
-!   WFLX2    - vertical mass flux squared[kg2 s-2]
+!   WFLX2    - vertical mass flux squared [kg2 s-2]
+!   TKE      - turbulent kinetic energy [m2 s-2]
+!   GLS_PSI  - generic length scale [m2 s-3]
 !   IDLAGE   - ideal age [year]
 !   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
 !   MMFLXD   - MOC on z-levels [kg s-1]
@@ -440,6 +442,8 @@ cat >! ocn_in << EOF1
   LYR_VVEL     =   0,   2,
   LYR_WFLX     =   0,   2,
   LYR_WFLX2    =   0,   2,
+  LYR_TKE      =   0,   2,
+  LYR_GLS_PSI  =   0,   2,
   LYR_IDLAGE   =   0,   2,
   LVL_DIAFLX   =   0,   0,
   LVL_DIFDIA   =   0,   2,
@@ -469,6 +473,8 @@ cat >! ocn_in << EOF1
   LVL_VVEL     =   0,   2,
   LVL_WFLX     =   0,   2,
   LVL_WFLX2    =   0,   2,
+  LVL_TKE      =   0,   2,
+  LVL_GLS_PSI  =   0,   2,
   LVL_IDLAGE   =   0,   2,
   MSC_MMFLXL   =   0,   2,
   MSC_MMFLXD   =   0,   2,
@@ -636,37 +642,9 @@ cat >! $CASEBUILD/micom.buildexe.csh << EOF
 set exedir = \$EXEROOT/run
 set objdir = \$OBJROOT/ocn/obj; cd \$objdir
 set dimdir = \$objdir/dimensions
+set turbclo = (\`echo \$MICOM_TURBULENT_CLOSURE\`)
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
 set co2type = (\`echo \$MICOM_CO2_TYPE\`)
-
-
-set cpp_base = "-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UNEST"
-if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == gx3v7) then
-  set cpp_grid = "-UARCTIC"
-else if (\$OCN_GRID ==  tnx1v1) then
-  set cpp_grid = "-DARCTIC"
-else
-  echo "\$0 ERROR: Cannot deal with GRID = \$OCN_GRID "
-  exit -1
-endif
-if      (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1) then
- set cpp_diag = "-DLEVITUS2X"
-else if (\$OCN_GRID == gx3v7) then
- set cpp_diag = "-ULEVITUS2X"
-else
-  echo "\$0 ERROR: Cannot deal with GRID = \$OCN_GRID "
-  exit -1
-endif
-set cpp_notracer = "-UTRC -UATRC -UTRCDIA"
-set cpp_tracer = "-DTRC -UATRC -UTRCDIA"
-if (\$co2type == constant) then
- set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -UPROGCO2 -UDIAGCO2"
-else if (\$co2type == prognostic) then
- set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -DPROGCO2 -UDIAGCO2"
-else if (\$co2type == diagnostic) then
- set cpp_ecosys = "-DHAMOCC -UAGG -UANTC14 -U__c_isotopes -UDEBUG -UDIFFAT -UDIFFATMB -UEMS_CO2 -UFB_BGC_OCE -DNOMPI -UPBGC_CK_TIMESTEP -UPCFC -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC -UPROGCO2 -DDIAGCO2"
-endif
-set cpp_idlage = "-DIDLAGE"
 
 #------------------------------------------------------------------------------
 # Make dimensions.F
@@ -684,7 +662,7 @@ else
 endif
 
 #------------------------------------------------------------------------------
-# Build the library
+# Set list of file paths and resolve C preprocessor macros
 #------------------------------------------------------------------------------
 
 \cat >! Filepath << EOF1
@@ -695,25 +673,69 @@ endif
 \$CODEROOT/ocn/micom/phy
 EOF1
 
-set cpp_ocn = "\$cpp_base \$cpp_grid \$cpp_diag"
-if (\$#tracers == 0) then
-  set cpp_ocn = "\$cpp_ocn \$cpp_notracer"
-else
+set cpp_ocn = "-DCCSMCOUPLED -DMPI -DNCEP"
+if (\$OCN_GRID == tnx1v1) then
+  set cpp_ocn = "\$cpp_ocn -DARCTIC"
+endif
+if (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1) then
+  set cpp_ocn = "\$cpp_ocn -DLEVITUS2X"
+endif
+if (\$#turbclo != 0) then
+  set twoeq = FALSE
+  set oneeq = FALSE
+  foreach option (\$turbclo)
+    if      (\$option == twoeq) then
+      set cpp_ocn = "\$cpp_ocn -DTKE -DGLS -DTKEDFF"
+      set twoeq = TRUE
+    else if (\$option == oneeq) then
+      set cpp_ocn = "\$cpp_ocn -DTKE -DTKEDFF"
+      set oneeq = TRUE
+    else if (\$option == advection) then
+      set cpp_ocn = "\$cpp_ocn -DTKEADV"
+    else if (\$option == isodif) then
+      set cpp_ocn = "\$cpp_ocn -DTKEIDF"
+    else
+      echo \$0": Turbulent closure option \$option is not recognized!"
+      exit -1
+    endif
+  end
+  if (\$twoeq == 'FALSE' && \$oneeq == 'FALSE') then
+    echo \$0": For turbulent closure either twoeq or oneeq must be provided as options!"
+    exit -1
+  endif
+  if (\$twoeq == 'TRUE' && \$oneeq == 'TRUE') then
+    echo \$0": Do not use both twoeq and oneeq as options for turbulent closure!"
+    exit -1
+  endif
+endif
+if (\$#tracers != 0) then
   echo \$CODEROOT/ocn/micom/trc >> Filepath
-  set cpp_ocn = "\$cpp_ocn \$cpp_tracer"
+  set cpp_ocn = "\$cpp_ocn -DTRC"
   foreach module (\$tracers)
     if      (\$module == iage) then
       echo \$CODEROOT/ocn/micom/idlage >> Filepath
-      set cpp_ocn = "\$cpp_ocn \$cpp_idlage"
+      set cpp_ocn = "\$cpp_ocn -DIDLAGE"
     else if (\$module == ecosys) then
       echo \$CODEROOT/ocn/micom/hamocc >> Filepath
-      set cpp_ocn = "\$cpp_ocn \$cpp_ecosys"
+      set cpp_ocn = "\$cpp_ocn -DHAMOCC -DNOMPI -DPDYNAMIC_BGC -DPNETCDF -DRESTART_BGC"
+      if (\$co2type == prognostic) then
+        set cpp_ocn = "\$cpp_ocn -DPROGCO2"
+      else if (\$co2type == diagnostic) then
+        set cpp_ocn = "\$cpp_ocn -DDIAGCO2"
+      else if (\$co2type != constant) then
+        echo \$0": CO2 type \$co2type is not recognized!"
+        exit -1
+      endif
     else
       echo \$0": tracer module \$module is not recognized!"
       exit -1
     endif
   end
 endif
+
+#------------------------------------------------------------------------------
+# Build the library
+#------------------------------------------------------------------------------
 
 gmake complib -j \$GMAKE_J MODEL=micom COMPLIB=\$LIBROOT/libocn.a MACFILE=\$CASEROOT/Macros.\$MACH USER_CPPDEFS="\$cpp_ocn" -f \$BLDROOT/Makefile || exit 2
 

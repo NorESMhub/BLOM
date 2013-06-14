@@ -13,6 +13,9 @@ c
       real, dimension(1-nbdy:idm+nbdy) :: pbfac
       real dpo,dpni
 c
+#if defined(TKE) && defined(TKEADV)
+#  include "common_tke.h"
+#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -53,6 +56,12 @@ c
       call xctilr(pbv, 1,2, 2,2, halo_vs)
       call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
       call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
+#if defined(TKE) && defined(TKEADV)
+      call xctilr(tke(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
+#  ifdef GLS
+      call xctilr(gls_psi(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
+#  endif
+#endif
 #ifdef TRC
       do nt=1,ntrc
         call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 3,3, halo_ps)
@@ -96,6 +105,13 @@ c
      .             vflx(1-nbdy,1-nbdy,km)
      .            ,utflx(1-nbdy,1-nbdy,km),vtflx(1-nbdy,1-nbdy,km)
      .            ,usflx(1-nbdy,1-nbdy,km),vsflx(1-nbdy,1-nbdy,km)
+#if defined(TKE) && defined(TKEADV)
+     .            ,tke(1-nbdy,1-nbdy,kn)
+
+#  ifdef GLS
+     .            ,gls_psi(1-nbdy,1-nbdy,kn)
+#  endif
+#endif
 #ifdef TRC
      .            ,k,ntrc,trc
 #  ifdef ATRC
@@ -171,6 +187,12 @@ c$OMP PARALLEL DO
               uflux(i,j)=utotm(i,j)*dp(i-1,j,kn)/p(i-1,j,kk+1)
               uflux2(i,j)=uflux(i,j)*saln(i-1,j,kn)
               uflux3(i,j)=uflux(i,j)*temp(i-1,j,kn)
+#if defined(TKE) && defined(TKEADV)
+              uflxtke(i,j)=uflux(i,j)*tke(i-1,j,kn)
+#  ifdef GLS
+              uflxgls_psi(i,j)=uflux(i,j)*gls_psi(i-1,j,kn)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,k,nt)
@@ -180,6 +202,12 @@ c$OMP PARALLEL DO
               uflux(i,j)=utotm(i,j)*dp(i  ,j,kn)/p(i  ,j,kk+1)
               uflux2(i,j)=uflux(i,j)*saln(i  ,j,kn)
               uflux3(i,j)=uflux(i,j)*temp(i  ,j,kn)
+#if defined(TKE) && defined(TKEADV)
+              uflxtke(i,j)=uflux(i,j)*tke(i  ,j,kn)
+#  ifdef GLS
+              uflxgls_psi(i,j)=uflux(i,j)*gls_psi(i  ,j,kn)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,k,nt)
@@ -201,6 +229,12 @@ c$OMP PARALLEL DO
               vflux(i,j)=vtotm(i,j)*dp(i,j-1,kn)/p(i,j-1,kk+1)
               vflux2(i,j)=vflux(i,j)*saln(i,j-1,kn)
               vflux3(i,j)=vflux(i,j)*temp(i,j-1,kn)
+#if defined(TKE) && defined(TKEADV)
+              vflxtke(i,j)=vflux(i,j)*tke(i,j-1,kn)
+#  ifdef GLS
+              vflxgls_psi(i,j)=vflux(i,j)*gls_psi(i,j-1,kn)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,k,nt)
@@ -210,6 +244,12 @@ c$OMP PARALLEL DO
               vflux(i,j)=vtotm(i,j)*dp(i,j  ,kn)/p(i,j  ,kk+1)
               vflux2(i,j)=vflux(i,j)*saln(i,j  ,kn)
               vflux3(i,j)=vflux(i,j)*temp(i,j  ,kn)
+#if defined(TKE) && defined(TKEADV)
+              vflxtke(i,j)=vflux(i,j)*tke(i,j  ,kn)
+#  ifdef GLS
+              vflxgls_psi(i,j)=vflux(i,j)*gls_psi(i,j  ,kn)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,k,nt)
@@ -239,6 +279,17 @@ c$OMP PARALLEL DO PRIVATE(dpo,dpni)
             temp(i,j,kn)=(dpo*temp(i,j,kn)
      .                   -(uflux3(i+1,j)-uflux3(i,j)
      .                    +vflux3(i,j+1)-vflux3(i,j))*scp2i(i,j))*dpni
+#if defined(TKE) && defined(TKEADV)
+            tke(i,j,kn)=(dpo*tke(i,j,kn)
+     .                  -(uflxtke(i+1,j)-uflxtke(i,j)
+     .                   +vflxtke(i,j+1)-vflxtke(i,j))*scp2i(i,j))*dpni
+#  ifdef GLS
+            gls_psi(i,j,kn)=(dpo*gls_psi(i,j,kn)
+     .                      -(uflxgls_psi(i+1,j)-uflxgls_psi(i,j)
+     .                       +vflxgls_psi(i,j+1)-vflxgls_psi(i,j))
+     .                       *scp2i(i,j))*dpni
+#  endif
+#endif
 #ifdef TRC
             do nt=1,ntrc
               trc(i,j,k,nt)=(dpo*trc(i,j,k,nt)
@@ -282,6 +333,12 @@ c
         call chksummsk(saln,ip,2*kk,'saln')
         call chksummsk(uflx,iu,2*kk,'uflx')
         call chksummsk(vflx,iv,2*kk,'vflx')
+#if defined(TKE) && defined(TKEADV)
+        call chksummsk(tke,ip,2*kk,'tke')
+#  ifdef GLS
+        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
+#  endif
+#endif
 #ifdef TRC
         do nt=1,ntrc
           call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')

@@ -49,6 +49,14 @@ c
       real, dimension(kdm) :: ttem0,ssal0,delp0,dens0,sigr0,nu0
       integer niter
 c
+#if defined(TKE) && defined(TKEDDF)
+#  include "param_tke.h"
+#  include "common_tke.h"
+      real, dimension(kdm) :: ttke
+#  ifdef GLS
+      real, dimension(kdm) :: tgls
+#  endif
+#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -65,6 +73,12 @@ c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,pres,delpu,delpl,nubbl,dsgdt,
 c$OMP+ dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,
 c$OMP+ kfpl,kmin,kmax,kl,kfmaxu,rstdns,done,dwnwrd,remfmx,ttem0,ssal0,
 c$OMP+ delp0,dens0,sigr0,nu0,niter
+#if defined(TKE) && defined(TKEDDF)
+c$OMP+,ttke
+#  ifdef GLS
+c$OMP+,tgls
+#  endif
+#endif
 #ifdef TRC
 c$OMP+,ttrc
 #endif
@@ -91,6 +105,12 @@ cdiag
             sigr0(k)=sigr(k)
             nu0(k)=nu(k)
 cdiag
+#if defined(TKE) && defined(TKEDDF)
+            ttke(k)=tke(i,j,kn)
+#  ifdef GLS
+            tgls(k)=gls_psi(i,j,kn)
+#  endif
+#endif
 #ifdef TRC
             do nt=1,ntrc
               ttrc(nt,k)=trc(i,j,k,nt)
@@ -127,6 +147,14 @@ c --- ----- and kmin+1
             ssal(kmin  )=ssal(1)
             nu(kmin+1)=nu(2)
             nu(kmin  )=nu(1)
+#if defined(TKE) && defined(TKEDDF)
+            ttke(kmin+1)=ttke(2)
+            ttke(kmin  )=ttke(1)
+#  ifdef GLS
+            tgls(kmin+1)=tgls(2)
+            tgls(kmin  )=tgls(1)
+#  endif
+#endif
 #ifdef TRC
             do nt=1,ntrc
               ttrc(nt,kmin+1)=ttrc(nt,2)
@@ -516,6 +544,12 @@ c --- ----- backward integration forming a tridiagonal set of equations.
               bitd=1./(1.-atd*gtd(k))
               ssal(k)=(dtd*ssal(k)-atd*ssal(max(1,k-1)))*bitd
               ttem(k)=(dtd*ttem(k)-atd*ttem(max(1,k-1)))*bitd
+#if defined(TKE) && defined(TKEDDF)
+              ttke(k)=(dtd*ttke(k)-atd*ttke(max(1,k-1)))*bitd
+#  ifdef GLS
+              tgls(k)=(dtd*tgls(k)-atd*tgls(max(1,k-1)))*bitd
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 ttrc(nt,k)=(dtd*ttrc(nt,k)-atd*ttrc(nt,max(1,k-1)))*bitd
@@ -526,6 +560,12 @@ c --- ----- backward integration forming a tridiagonal set of equations.
               ssal(k)=ssal(k)-gtd(k+1)*ssal(k+1)
               ttem(k)=ttem(k)-gtd(k+1)*ttem(k+1)
               dens(k)=sig(ttem(k),ssal(k))
+#if defined(TKE) && defined(TKEDDF)
+              ttke(k)=ttke(k)-gtd(k+1)*ttke(k+1)
+#  ifdef GLS
+              tgls(k)=tgls(k)-gtd(k+1)*tgls(k+1)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 ttrc(nt,k)=ttrc(nt,k)-gtd(k+1)*ttrc(nt,k+1)
@@ -553,6 +593,14 @@ c --- ----- index kmin and kmin+1
                 delp(kmin  )=0.
               endif
             endif
+#if defined(TKE) && defined(TKEDDF)
+            ttke(1)=ttke(kmin  )
+            ttke(2)=ttke(kmin+1)
+#  ifdef GLS
+            tgls(1)=tgls(kmin  )
+            tgls(2)=tgls(kmin+1)
+#  endif
+#endif
 #ifdef TRC
             do nt=1,ntrc
               ttrc(nt,1)=ttrc(nt,kmin  )
@@ -570,6 +618,12 @@ c --- --- salinity, and tracers
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
               delp(k)=0.
+#if defined(TKE) && defined(TKEDDF)
+              ttke(k)=max(ttke(2),tke_min)
+#  ifdef GLS
+              tgls(k)=max(tgls(2),gls_psi_min)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 ttrc(nt,k)=ttrc(nt,2)
@@ -582,6 +636,12 @@ c --- --- salinity, and tracers
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
               delp(k)=0.
+#if defined(TKE) && defined(TKEDDF)
+              ttke(k)=ttke(kfpl)
+#  ifdef GLS
+              tgls(k)=tgls(kfpl)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 ttrc(nt,k)=ttrc(nt,kfpl)
@@ -592,6 +652,12 @@ c --- --- salinity, and tracers
               ttem(k)=ttem(kmax)
               dens(k)=sigr(k)
               ssal(k)=sofsig(dens(k),ttem(k))
+#if defined(TKE) && defined(TKEDDF)
+              ttke(k)=ttke(kmax)
+#  ifdef GLS
+              tgls(k)=tgls(kmax)
+#  endif
+#endif
 #ifdef TRC
               do nt=1,ntrc
                 ttrc(nt,k)=ttrc(nt,kmax)
@@ -609,6 +675,12 @@ c --- --- Copy 1d arrays to 3d arrays
             dp(i,j,kn)=delp(k)
             sigma(i,j,kn)=dens(k)
             p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+#if defined(TKE) && defined(TKEDDF)
+            tke(i,j,kn)=max(ttke(k),tke_min)
+#  ifdef GLS
+            gls_psi(i,j,kn)=max(tgls(k),gls_psi_min)
+#  endif
+#endif
 #ifdef TRC
             do nt=1,ntrc
               trc(i,j,k,nt)=ttrc(nt,k)
@@ -671,7 +743,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,q,ctd,bitd,gtd,atd,dtd)
+c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,q,ctd,bitd,gtd,atd,ctd,dtd)
       do j=1,jj
 c
 c --- - Mixing of u-component.
@@ -896,6 +968,12 @@ c
         call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(u,iu,2*kk,'u')
         call chksummsk(v,iv,2*kk,'v')
+#if defined(TKE) && defined(TKEDDF)
+        call chksummsk(tke,ip,2*kk,'tke')
+#  ifdef GLS
+        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
+#  endif
+#endif
 #ifdef TRC
         do nt=1,ntrc
           call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
