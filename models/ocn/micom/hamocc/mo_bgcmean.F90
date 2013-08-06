@@ -37,7 +37,7 @@
      & SRF_NIFLUX        ,SRF_DMS           ,SRF_DMSPROD       ,        &
      & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
      & SRF_EXPOSI        ,SRF_EXPOCA        ,SRF_ATMCO2        ,        &
-     & SRF_ATMO2         ,SRF_ATMN2         ,                           &
+     & SRF_ATMO2         ,SRF_ATMN2         ,SRF_N2OFX         ,        &
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -45,6 +45,7 @@
      & LYR_CALC          ,LYR_OPAL          ,LYR_CO3           ,        &
      & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
      & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
+     & LYR_N2O           ,                                              &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -52,6 +53,7 @@
      & LVL_CALC          ,LVL_OPAL          ,LVL_CO3           ,        &
      & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
      & LVL_DIC14         ,LVL_DP            ,LVL_NOS           ,        &
+     & LVL_N2O           ,                                              &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -65,7 +67,7 @@
      & SRF_NIFLUX        ,SRF_DMS           ,SRF_DMSPROD       ,        &
      & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
      & SRF_EXPOSI        ,SRF_EXPOCA        ,SRF_ATMCO2        ,        &
-     & SRF_ATMO2         ,SRF_ATMN2         ,                           &
+     & SRF_ATMO2         ,SRF_ATMN2         ,SRF_N2OFX         ,        &
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -73,6 +75,7 @@
      & LYR_CALC          ,LYR_OPAL          ,LYR_CO3           ,        &
      & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
      & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
+     & LYR_N2O           ,                                              &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -80,6 +83,7 @@
      & LVL_CALC          ,LVL_OPAL          ,LVL_CO3           ,        &
      & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
      & LVL_DIC14         ,LVL_NOS           ,                           &
+     & LVL_N2O           ,                                              &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -111,6 +115,7 @@
      &          jco2fxu    ,                                            &
      &          joxflux    ,                                            &
      &          jniflux    ,                                            &
+     &          jn2ofx     ,                                            &
      &          jdms       ,                                            &
      &          jdmsprod   ,                                            &
      &          jdms_bac   ,                                            &
@@ -150,6 +155,7 @@
      &          jco3    ,                                               &
      &          jph     ,                                               &
      &          jomegac ,                                               &
+     &          jn2o    ,                                               &
      &          jlvlphyto  ,                                            &
      &          jlvlgrazer ,                                            &
      &          jlvldoc    ,                                            &
@@ -166,7 +172,8 @@
      &          jlvlopal   ,                                            &
      &          jlvlco3    ,                                            &
      &          jlvlph     ,                                            &
-     &          jlvlomegac
+     &          jlvlomegac ,                                            &
+     &          jlvln2o 
     
 
       INTEGER, SAVE :: i_iso_m3d,ilvl_iso_m3d
@@ -327,6 +334,8 @@
         jexpoca(n)=i_bsc_m2d*min(1,SRF_EXPOCA(n))
         IF (SRF_EXPOSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
+        IF (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
       ENDDO 
 
       i_atm_m2d=i_bsc_m2d
@@ -385,6 +394,8 @@
         jomegac(n)=i_bsc_m3d*min(1,LYR_OMEGAC(n))
         IF (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnos(n)=i_bsc_m3d*min(1,LYR_NOS(n))
+        IF (LYR_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jn2o(n)=i_bsc_m3d*min(1,LYR_N2O(n))
         IF (LYR_DP(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
 
@@ -424,6 +435,8 @@
         jlvlomegac(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAC(n))
         IF (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
+        IF (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvln2o(n)=ilvl_bsc_m3d*min(1,LVL_N2O(n))
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 

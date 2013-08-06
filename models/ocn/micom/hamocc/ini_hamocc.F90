@@ -79,6 +79,9 @@
 #ifdef PDYNAMIC_BGC
       use mo_dynamic
 #endif /* PDYNAMIC_BGC */ 
+#ifdef RIV_GNEWS
+      use mo_riverinpt
+#endif
  
       implicit none
       INTEGER :: kpie,kpje,kpke,kpbe,pmonts,ntr,ntrbgc,itrbgc
@@ -164,6 +167,10 @@
 !
       CALL BODENSED(kpie,kpje,kpke,pddpo)
 
+!JT
+!JT Initialize atmospheric tracers
+!JT
+      atm(:,:,:)=0.
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
@@ -183,6 +190,13 @@
 
       CALL CHEMCON(-13,kpie,kpje,kpke,psao,ptho,                &
      &     pddpo,pdlxp,pdlyp,ptiestu,kplmonth,omask)
+
+!
+! Initialise river input (added by Ingo Bethke on 2013.06.07)
+!
+#ifdef RIV_GNEWS
+      call INI_RIVERINPT(path,path_len)
+#endif
      
 !                        
 ! Read restart fields from restart file

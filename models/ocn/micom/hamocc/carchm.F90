@@ -71,7 +71,7 @@
       USE mo_biomod
       USE mo_sedmnt
 !      USE mo_timeser_bgc
-      USE mo_control_bgc
+      USE mo_control_bgc, dummy1 => ldtrunbgc, dummy2 => ndtdaybgc 
       USE mo_bgcmean
       USE mo_param1_bgc 
 
@@ -107,7 +107,7 @@
       REAL :: zprb,zprb2,deltav,deltak,borat,sti,ft,tc,ta,sit,pt,ah1
       REAL :: hso4,hsi,hf,hpo4,ab,aw,ac,ah2o,ah2,erel,RHO2,cu,cb,cc
       REAL :: co2(kpie,kpje,kpke),hco3(kpie,kpje,kpke)
-      REAL :: R,B,fco2,omega,OmegaA(kpie,kpje,kpke)
+      REAL :: R,B,fco2,omega
 !      REAL :: R,B,fco2,omega,OmegaA(kpie,kpje,kpke),OmegaC(kpie,kpje,kpke)
       REAL :: &
         rgas = 83.131, &
@@ -162,7 +162,10 @@
       aux2d_dmsflux=0
       aux2d_dms=0
 !IB 
-
+!JT
+      OmegaC=0.
+      atmflx=0.
+!JT  
 
 !      WRITE(*,*) 'CARCHM called with REDUCED :',                     &
 !     &           kpie,kpje,kpke,pddpo(40,40,1),psao(40,40,1),        &
@@ -478,6 +481,7 @@
        atmflx(i,j,iatmo2)=(oxflux + 0.5*n2oflux)*contppm
        atmflx(i,j,iatmn2)=(niflux + n2oflux) *contppm
 #endif	 
+       atmflx(i,j,iatmn2o)=n2oflux *contppm
 
 ! Surface flux of dms
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
@@ -536,15 +540,18 @@
       call accsrf(jniflux,aux2d_niflux,omask,0)
       call accsrf(jdmsflux,aux2d_dmsflux,omask,0)
       call accsrf(jdms,aux2d_dms,omask,0)
+      call accsrf(jn2ofx,atmflx(1,1,iatmn2o),omask,0)
 
 ! Accumulate diagnostic layer variables 
       call acclyr(jomegac,OmegaC,pddpo,1)
+      call acclyr(jn2o,ocetra(1,1,1,ian2o),pddpo,1) 
 
 ! Accumulate diagnostic level variables 
       IF (sum(jlvlomegac).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
+          call acclvl(jlvln2o,ocetra(1,1,1,ian2o),k,ind1,ind2,wghts)          
         ENDDO 
       ENDIF
 !IB

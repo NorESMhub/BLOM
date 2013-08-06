@@ -175,17 +175,29 @@ c --- 'mltmin' = minimum mixed-layer thickness (m)
 c --- 'thktop' = thickness of top layer (m)
 c --- 'thkbot' = thickness of bottom boundary layer (pressure units)
 c --- 'acurcy' = permissible roundoff error in column integral calc.
+c --- 'egc'    = the parameter c in the Eden and Greatbatch (2008)
+c ---            parameterization
+c --- 'eggam'  = the parameter gamma in the Eden and Greatbatch (2008)
+c ---            parameterization [].
+c --- 'egmndf' = minimum diffusivity in the Eden and Greatbatch (2008)
+c ---            parameterization [cm**2/s].
+c --- 'egmxdf' = maximum diffusivity in the Eden and Greatbatch (2008)
+c ---            parameterization [cm**2/s]
+c --- 'egidfq' = factor relating the isopycnal diffusivity to the layer
+c ---            interface diffusivity in the Eden and Greatbatch (2008)
+c ---            parameterization. egidfq=difint/difiso
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
       real baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,slip,
      .     cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,
-     .     thktop,thkbot,acurcy
+     .     thktop,thkbot,acurcy,egc,eggam,egmndf,egmxdf,egidfq
       logical csdiag,cnsvdi
 c
       common /parms1/ baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,
      .                visclo,slip,cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,
      .                wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy,
+     .                egc,eggam,egmndf,egmxdf,egidfq,
      .                csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...

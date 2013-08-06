@@ -117,6 +117,7 @@ c --- finalize accumulation
       call finlyr(jco3(iogrp),jdp(iogrp))
       call finlyr(jph(iogrp),jdp(iogrp))
       call finlyr(jomegac(iogrp),jdp(iogrp))
+      call finlyr(jn2o(iogrp),jdp(iogrp))
 c
 c --- Mask sea floor in level data
       call msklvl(jlvldic(iogrp),depths)
@@ -137,6 +138,7 @@ c --- Mask sea floor in level data
       call msklvl(jlvlomegac(iogrp),depths)
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
+      call msklvl(jlvln2o(iogrp),depths)
 #ifdef AGG
       call msklvl(jlvlnos(iogrp),depths)
 #endif  
@@ -184,6 +186,8 @@ c --- Store 2d fields
       call wrtsrf(jatmn2(iogrp),SRF_ATMN2(iogrp),rnacc,0.,cmpflg,       
      .  'atmn2','Atmospheric N2',' ','ppm')
 #endif 
+      call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,
+     .  cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
 c
 c --- Store 3d layer fields
       call wrtlyr(jdp(iogrp),LYR_DP(iogrp),rnacc,0.,cmpflg, 
@@ -232,6 +236,8 @@ c --- Store 3d layer fields
       call wrtlyr(jnos(iogrp),LYR_NOS(iogrp),1.,0.,cmpflg,              
      .  'nos','NOS',' ','???')
 #endif
+      call wrtlyr(jn2o(iogrp),LYR_N2O(iogrp),1e3,0.,cmpflg,            
+     .  'n2o','N2O',' ','mol N2O m-3')
 c
 c --- Store 3d level fields
       call wrtlvl(jlvldic(iogrp),LVL_DIC(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -278,6 +284,8 @@ c --- Store 3d level fields
       call wrtlvl(jlvlnos(iogrp),LVL_NOS(iogrp),rnacc,0.,cmpflg,       
      .  'noslvl','NOS',' ','???')
 #endif
+      call wrtlvl(jlvln2o(iogrp),LVL_N2O(iogrp),rnacc*1e3,0.,cmpflg,      
+     .  'n2olvl','N2O',' ','mol N2O m-3')
 c
 c --- Store sediment fields
       call wrtsdm(jpowaic(iogrp),SDM_POWAIC(iogrp),rnacc*1e3,0.,cmpflg,
@@ -314,6 +322,7 @@ c --- Initialise fields
       call inisrf(jco2fxu(iogrp),0.)       
       call inisrf(joxflux(iogrp),0.)       
       call inisrf(jniflux(iogrp),0.)       
+      call inisrf(jn2ofx(iogrp),0.)       
       call inisrf(jdms(iogrp),0.)  
       call inisrf(jdmsprod(iogrp),0.)       
       call inisrf(jdms_bac(iogrp),0.)       
@@ -352,6 +361,7 @@ c
 #ifdef AGG
       call inilyr(jnos(iogrp),0.)  
 #endif  
+      call inilyr(jn2o(iogrp),0.)       
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -375,6 +385,7 @@ c
 #ifdef AGG
       call inilvl(jlvlnos(iogrp),0.)
 #endif  
+      call inilvl(jlvln2o(iogrp),0.)       
 c
       call inisdm(jpowaic(iogrp),0.)       
       call inisdm(jpowaal(iogrp),0.)       

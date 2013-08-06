@@ -21,6 +21,8 @@ else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
 else if ( $OCN_GRID == tnx1v1) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
+else if ( $OCN_GRID == tnx2v1) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -43,18 +45,264 @@ cat >> $CASEBUILD/micom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
 EOF1
 endif
-set tracers = (`echo \$MICOM_TRACER_MODULES`)
-foreach module (\$tracers)
-  if (\$module == ecosys) then
+set tracers = (`echo $MICOM_TRACER_MODULES`)
+set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
+foreach module ($tracers)
+  if ($module == ecosys) then
 cat >> $CASEBUILD/micom.input_data_list << EOF1
 dust_file = $INPUTPATH/INPDUST_mhw.nc
 EOF1
+    if ($rivnutr == TRUE) then
+cat >> $CASEBUILD/micom.input_data_list << EOF1
+river_file = $INPUTPATH/riv_in.txt
+EOF1
+    endif
   endif
 end
+
 
 #------------------------------------------------------------------------------
 # Generate micom.buildnml.csh
 #------------------------------------------------------------------------------
+
+# set LIMITS defaults
+set BACLIN   = 1800.
+set BATROP   = 36.
+set VDFVHI   = 2.
+set VDFVLO   = .4
+set VDFCHI   = 5000.e4
+set VDFCLO   = 300.e4
+set VISCHI   = .5
+set VISCLO   = .5
+set CBAR     = 5.
+set CB       = .002
+set CWBDTS   = 5.e-5
+set CWBDLS   = 25.
+set EGC      = 1.0
+set EGGAM    = 200.
+set EGMNDF   = 100.e4
+set EGMXDF   = 1500.e4
+set EGIDFQ   = 1.
+set TRXDAY   = 0.
+set SRXDAY   = 0.
+set TRXDPT   = 1.
+set SRXDPT   = 1.
+set TRXLIM   = 1.5
+set SRXLIM   = .5
+set APTFLX   = .false.
+set APSFLX   = .false.
+set DITFLX   = .false.
+set DISFLX   = .false.
+set SRXBAL   = .false.
+set SRXSRC   = "'CORE'"
+set SMTFRC   = .true.
+set SPRFAC   = .false.
+set RSTFRQ   =  1
+set RSTFMT   =  1
+set RSTCMP   =  1
+# set BGCNML defaults
+set ATM_CO2  = $CCSM_CO2_PPMV
+# set DAIPHY defaults 
+set GLB_FNAMETAG = "'hd','hm'"  
+set GLB_AVEPERIO =  '1,  30'
+set GLB_FILEFREQ = '30,  30'
+set GLB_COMPFLAG =  '0,   0'
+set GLB_NCFORMAT =  '0,   0'
+set SRF_ABSWND   =  '0,   2'
+set SRF_ALB      =  '0,   0'
+set SRF_BRNFLX   =  '0,   2'
+set SRF_BRNPD    =  '0,   2'
+set SRF_DFL      =  '0,   0'
+set SRF_EVA      =  '0,   2'
+set SRF_FICE     =  '0,   2'
+set SRF_FMLTFZ   =  '0,   2'
+set SRF_HICE     =  '0,   0'
+set SRF_HMLTFZ   =  '0,   2'
+set SRF_HSNW     =  '0,   0'
+set SRF_IAGE     =  '0,   0'
+set SRF_LIP      =  '0,   2'
+set SRF_MAXMLD   =  '4,   2'
+set SRF_MLD      =  '0,   2'
+set SRF_MLDU     =  '0,   0'
+set SRF_MLDV     =  '0,   0'
+set SRF_MTY      =  '0,   2'
+set SRF_MXLU     =  '0,   2'
+set SRF_MXLV     =  '0,   2'
+set SRF_NSF      =  '0,   2'
+set SRF_RFIFLX   =  '0,   2'
+set SRF_RNFFLX   =  '0,   2'
+set SRF_SALFLX   =  '0,   2'
+set SRF_SALRLX   =  '0,   2'
+set SRF_SEALV    =  '4,   2'
+set SRF_SFL      =  '0,   2'
+set SRF_SOP      =  '0,   2'
+set SRF_SIGMX    =  '0,   2'
+set SRF_SSS      =  '0,   2'
+set SRF_SST      =  '4,   2'
+set SRF_SURFLX   =  '0,   2'
+set SRF_SURRLX   =  '0,   2'
+set SRF_SWA      =  '0,   2'
+set SRF_TAUX     =  '0,   2'
+set SRF_TAUY     =  '0,   2'
+set SRF_TICE     =  '0,   0'
+set SRF_TSRF     =  '0,   0'
+set SRF_UB       =  '0,   2'
+set SRF_UICE     =  '0,   0'
+set SRF_USTAR    =  '0,   2'
+set SRF_VB       =  '0,   2'
+set SRF_VICE     =  '0,   0'
+set SRF_ZTX      =  '0,   2'
+set LYR_DIAFLX   =  '0,   0'
+set LYR_DIFDIA   =  '0,   2'
+set LYR_DIFINT   =  '0,   2'
+set LYR_DIFISO   =  '0,   2'
+set LYR_DP       =  '0,   2'
+set LYR_DZ       =  '0,   2'
+set LYR_SALN     =  '0,   2'
+set LYR_TEMP     =  '0,   2'
+set LYR_TRC      =  '0,   0'
+set LYR_UFLX     =  '0,   2'
+set LYR_UTFLX    =  '0,   2'
+set LYR_USFLX    =  '0,   2'
+set LYR_UMFLTD   =  '0,   0'
+set LYR_UTFLTD   =  '0,   0'
+set LYR_UTFLLD   =  '0,   0'
+set LYR_USFLTD   =  '0,   0'
+set LYR_USFLLD   =  '0,   0'
+set LYR_UVEL     =  '0,   2'
+set LYR_VFLX     =  '0,   2'
+set LYR_VTFLX    =  '0,   2'
+set LYR_VSFLX    =  '0,   2'
+set LYR_VMFLTD   =  '0,   0'
+set LYR_VTFLTD   =  '0,   0'
+set LYR_VTFLLD   =  '0,   0'
+set LYR_VSFLTD   =  '0,   0'
+set LYR_VSFLLD   =  '0,   0'
+set LYR_VVEL     =  '0,   2'
+set LYR_WFLX     =  '0,   2'
+set LYR_WFLX2    =  '0,   2'
+set LYR_TKE      =  '0,   2'
+set LYR_GLS_PSI  =  '0,   2'
+set LYR_IDLAGE   =  '0,   2'
+set LVL_DIAFLX   =  '0,   0'
+set LVL_DIFDIA   =  '0,   2'
+set LVL_DIFINT   =  '0,   2'
+set LVL_DIFISO   =  '0,   2'
+set LVL_DZ       =  '0,   2'
+set LVL_SALN     =  '0,   2'
+set LVL_TEMP     =  '0,   2'
+set LVL_TRC      =  '0,   0'
+set LVL_UFLX     =  '0,   2'
+set LVL_UTFLX    =  '0,   2'
+set LVL_USFLX    =  '0,   2'
+set LVL_UMFLTD   =  '0,   0'
+set LVL_UTFLTD   =  '0,   0'
+set LVL_UTFLLD   =  '0,   0'
+set LVL_USFLTD   =  '0,   0'
+set LVL_USFLLD   =  '0,   0'
+set LVL_UVEL     =  '0,   2'
+set LVL_VFLX     =  '0,   2'
+set LVL_VTFLX    =  '0,   2'
+set LVL_VSFLX    =  '0,   2'
+set LVL_VMFLTD   =  '0,   0'
+set LVL_VTFLTD   =  '0,   0'
+set LVL_VTFLLD   =  '0,   0'
+set LVL_VSFLTD   =  '0,   0'
+set LVL_VSFLLD   =  '0,   0'
+set LVL_VVEL     =  '0,   2'
+set LVL_WFLX     =  '0,   2'
+set LVL_WFLX2    =  '0,   2'
+set LVL_TKE      =  '0,   2'
+set LVL_GLS_PSI  =  '0,   2'
+set LVL_IDLAGE   =  '0,   2'
+set MSC_MMFLXL   =  '0,   2'
+set MSC_MMFLXD   =  '0,   2'
+set MSC_MMFTDL   =  '0,   2'
+set MSC_MMFTDD   =  '0,   2'
+set MSC_MHFLX    =  '0,   2'
+set MSC_MHFTD    =  '0,   2'
+set MSC_MHFLD    =  '0,   2'
+set MSC_MSFLX    =  '0,   2'
+set MSC_MSFTD    =  '0,   2'
+set MSC_MSFLD    =  '0,   2'
+set MSC_VOLTR    =  '0,   2'
+# set DIABGC defaults
+set BGC_FNAMETAG  = "'hbgcm','hbgcy'"
+set BGC_AVEPERIO  = '30,365'
+set BGC_FILEFREQ  = '30,365'
+set BGC_COMPFLAG  = '0,  0'
+set BGC_NCFORMAT  = '0,  0'
+set BGC_INVENTORY = '1,  0'
+set SRF_KWCO2     = '2,  2'
+set SRF_PCO2      = '2,  2'
+set SRF_DMSFLUX   = '2,  2'
+set SRF_CO2FXD    = '2,  2'
+set SRF_CO2FXU    = '2,  2'
+set SRF_OXFLUX    = '2,  2'
+set SRF_NIFLUX    = '2,  2'
+set SRF_DMS       = '2,  2'
+set SRF_DMSPROD   = '2,  2'
+set SRF_DMS_BAC   = '2,  2'
+set SRF_DMS_UV    = '2,  2'
+set SRF_EXPORT    = '2,  2'
+set SRF_EXPOSI    = '2,  2'
+set SRF_EXPOCA    = '2,  2'
+set SRF_ATMCO2    = '2,  2'
+set SRF_ATMO2     = '2,  2'
+set SRF_ATMN2     = '2,  2'
+set LYR_PHYTO     = '2,  0'
+set LYR_GRAZER    = '2,  0'
+set LYR_DOC       = '2,  0'
+set LYR_PHOSY     = '2,  0'
+set LYR_PHOSPH    = '2,  0'
+set LYR_OXYGEN    = '2,  0'
+set LYR_IRON      = '2,  0'
+set LYR_ANO3      = '2,  0'
+set LYR_ALKALI    = '2,  0'
+set LYR_SILICA    = '2,  0'
+set LYR_DIC       = '2,  0'
+set LYR_POC       = '2,  0'
+set LYR_CALC      = '2,  0'
+set LYR_OPAL      = '2,  0'
+set LYR_CO3       = '2,  0'
+set LYR_PH        = '2,  0'
+set LYR_OMEGAC    = '2,  0'
+set LYR_DIC13     = '2,  0'
+set LYR_DIC14     = '2,  0'
+set BGC_DP        = '2,  0'
+set LYR_NOS       = '2,  0'
+set LVL_PHYTO     = '0,  2'
+set LVL_GRAZER    = '0,  2'
+set LVL_DOC       = '0,  2'
+set LVL_PHOSY     = '0,  2'
+set LVL_PHOSPH    = '0,  2'
+set LVL_OXYGEN    = '0,  2'
+set LVL_IRON      = '0,  2'
+set LVL_ANO3      = '0,  2'
+set LVL_ALKALI    = '0,  2'
+set LVL_SILICA    = '0,  2'
+set LVL_DIC       = '0,  2'
+set LVL_POC       = '0,  2'
+set LVL_CALC      = '0,  2'
+set LVL_OPAL      = '0,  2'
+set LVL_CO3       = '0,  2'
+set LVL_PH        = '0,  2'
+set LVL_OMEGAC    = '0,  2'
+set LVL_DIC13     = '0,  2'
+set LVL_DIC14     = '0,  2'
+set LVL_NOS       = '0,  2'
+set SDM_POWAIC    = '0,  2'
+set SDM_POWAAL    = '0,  2'
+set SDM_POWAPH    = '0,  2'
+set SDM_POWAOX    = '0,  2'
+set SDM_POWN2     = '0,  2'
+set SDM_POWNO3    = '0,  2'
+set SDM_POWASI    = '0,  2'
+set SDM_SSSO12    = '0,  2'
+set SDM_SSSSIL    = '0,  2'
+set SDM_SSSC12    = '0,  2'
+set SDM_SSSTER    = '0,  2'
+
 
 #set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
 #set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
@@ -79,45 +327,59 @@ else
   set LSEND_PRECIP_FACT = .false.
 endif
 
-if      ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
+if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
   set BACLIN = 1800.
   set BATROP = 36.
-  set VDFVHI = 2.
-  set VDFVLO = .4
-  set VDFCHI = 5000.e4
-  set VDFCLO = 300.e4
-  set VISCHI = .5
-  set VISCLO = .5
-  set CBAR   = 5.
-  set CB     = .002
-  set CWBDTS = 5.e-5
-  set CWBDLS = 25.
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-  set VDFVHI = 2.
-  set VDFVLO = .4
-  set VDFCHI = 5000.e4
-  set VDFCLO = 300.e4
-  set VISCHI = 2.
-  set VISCLO = .5
-  set CBAR   = 10.
-  set CB     = .003
-  set CWBDTS = 5.e-5
-  set CWBDLS = 25.
 else if ( $OCN_GRID ==  tnx1v1) then
   set BACLIN = 3200.
   set BATROP = 64.
-  set VDFVHI = 2.
-  set VDFVLO = .4
-  set VDFCHI = 5000.e4
-  set VDFCLO = 300.e4
-  set VISCHI = .5
-  set VISCLO = .5
-  set CBAR   = 5.
-  set CB     = .002
-  set CWBDTS = 5.e-5
-  set CWBDLS = 25.
+else if ( $OCN_GRID ==  tnx2v1) then
+  set BACLIN = 4800.
+  set BATROP = 96.
+  set EGC    = 0.5
+  set EGMXDF = 1000.e4
+  set GLB_FNAMETAG = "'hm','hy'"
+  set GLB_AVEPERIO = '30, 365'
+  set GLB_FILEFREQ = '30, 365'
+  set SRF_BRNFLX   =  '0,   0'
+  set SRF_BRNPD    =  '0,   0'
+  set SRF_FICE     =  '2,   0'
+  set SRF_FMLTFZ   =  '0,   0'
+  set SRF_HMLTFZ   =  '0,   0'
+  set SRF_MAXMLD   =  '2,   0'
+  set SRF_MLD      =  '2,   0'
+  set SRF_SEALV    =  '2,   2'
+  set SRF_SSS      =  '2,   0'
+  set SRF_SST      =  '2,   0'
+  set SRF_USTAR    =  '0,   0'
+  set LYR_DIFDIA   =  '0,   0'
+  set LYR_DIFINT   =  '0,   0'
+  set LYR_DIFISO   =  '0,   0'
+  set LYR_DP       =  '0,   0'
+  set LYR_DZ       =  '0,   0'
+  set LYR_SALN     =  '0,   0'
+  set LYR_TEMP     =  '0,   0'
+  set LYR_UVEL     =  '0,   0'
+  set LYR_VVEL     =  '0,   0'
+  set LYR_WFLX     =  '0,   0'
+  set LYR_WFLX2    =  '0,   0'
+  set LVL_DIFDIA   =  '0,   0'
+  set LVL_DIFINT   =  '0,   0'
+  set LVL_DIFISO   =  '0,   0'
+  set LVL_DZ       =  '0,   0'
+  set LVL_SALN     =  '2,   0'
+  set LVL_TEMP     =  '2,   0'
+  set LVL_UFLX     =  '0,   0'
+  set LVL_UTFLX    =  '0,   0'
+  set LVL_USFLX    =  '0,   0'
+  set LVL_VFLX     =  '0,   0'
+  set LVL_VTFLX    =  '0,   0'
+  set LVL_VSFLX    =  '0,   0'
+  set LVL_WFLX     =  '0,   2'
+  set LVL_WFLX2    =  '0,   0'
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -157,6 +419,13 @@ cat >! ocn_in << EOF1
 ! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
 ! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
 ! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
+! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
+! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
+! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
+!            interface diffusivity in the Eden and Greatbatch (2008)
+!            parameterization. egidfq=difint/difiso () (f)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
@@ -197,27 +466,32 @@ cat >! ocn_in << EOF1
   CB       = ${CB},
   CWBDTS   = ${CWBDTS},
   CWBDLS   = ${CWBDLS},
-  TRXDAY   = 0.,
-  SRXDAY   = 0.,
-  TRXDPT   = 1.,
-  SRXDPT   = 1.,
-  TRXLIM   = 1.5,
-  SRXLIM   = .5,
-  APTFLX   = .false.,
-  APSFLX   = .false.,
-  DITFLX   = .false.,
-  DISFLX   = .false.,
-  SRXBAL   = .false.,
-  SRXSRC   = 'CORE',
-  SMTFRC   = .true.,
-  SPRFAC   = ${LSEND_PRECIP_FACT},
+  EGC      = ${EGC},
+  EGGAM    = ${EGGAM},
+  EGMNDF   = ${EGMNDF},
+  EGMXDF   = ${EGMXDF},
+  EGIDFQ   = ${EGIDFQ},
+  TRXDAY   = ${TRXDAY},
+  SRXDAY   = ${SRXDAY},
+  TRXDPT   = ${TRXDPT},
+  SRXDPT   = ${SRXDPT},
+  TRXLIM   = ${TRXLIM},
+  SRXLIM   = ${SRXLIM},
+  APTFLX   = ${APTFLX},
+  APSFLX   = ${APSFLX},
+  DITFLX   = ${DITFLX},
+  DISFLX   = ${DISFLX},
+  SRXBAL   = ${SRXBAL},
+  SRXSRC   = ${SRXSRC},
+  SMTFRC   = ${SMTFRC},
+  SPRFAC   = ${SPRFAC},
   PATH     = "${INPUTPATH}/",
   PATH1    = './',
   PATH2    = './',
   ATM_PATH = './',
-  RSTFRQ   =  1,
-  RSTFMT   =  1,
-  RSTCMP   =  1
+  RSTFRQ   = ${RSTFRQ},
+  RSTFMT   = ${RSTFMT},
+  RSTCMP   = ${RSTCMP}
 /
 
 ! BGCNML NAMELIST
@@ -364,129 +638,129 @@ cat >! ocn_in << EOF1
 !   VOLTR    - section transports [kg s-1]
 !
 &DIAPHY
-  GLB_FNAMETAG ='hd','hm', 
-  GLB_AVEPERIO =   1,  30,
-  GLB_FILEFREQ =  30,  30,
-  GLB_COMPFLAG =   0,   0,
-  GLB_NCFORMAT =   0,   0,
-  SRF_ABSWND   =   0,   2,
-  SRF_ALB      =   0,   0,
-  SRF_BRNFLX   =   0,   2,
-  SRF_BRNPD    =   0,   2,
-  SRF_DFL      =   0,   0,
-  SRF_EVA      =   0,   2,
-  SRF_FICE     =   0,   2,
-  SRF_FMLTFZ   =   0,   2,
-  SRF_HICE     =   0,   0,
-  SRF_HMLTFZ   =   0,   2,
-  SRF_HSNW     =   0,   0,
-  SRF_IAGE     =   0,   0,
-  SRF_LIP      =   0,   2,
-  SRF_MAXMLD   =   4,   2,
-  SRF_MLD      =   0,   2,
-  SRF_MLDU     =   0,   0,
-  SRF_MLDV     =   0,   0,
-  SRF_MTY      =   0,   2,
-  SRF_MXLU     =   0,   2,
-  SRF_MXLV     =   0,   2,
-  SRF_NSF      =   0,   2,
-  SRF_RFIFLX   =   0,   2,
-  SRF_RNFFLX   =   0,   2,
-  SRF_SALFLX   =   0,   2,
-  SRF_SALRLX   =   0,   2,
-  SRF_SEALV    =   4,   2,
-  SRF_SFL      =   0,   2,
-  SRF_SOP      =   0,   2,
-  SRF_SIGMX    =   0,   2,
-  SRF_SSS      =   0,   2,
-  SRF_SST      =   4,   2,
-  SRF_SURFLX   =   0,   2,
-  SRF_SURRLX   =   0,   2,
-  SRF_SWA      =   0,   2,
-  SRF_TAUX     =   0,   2,
-  SRF_TAUY     =   0,   2,
-  SRF_TICE     =   0,   0,
-  SRF_TSRF     =   0,   0,
-  SRF_UB       =   0,   2,
-  SRF_UICE     =   0,   0,
-  SRF_USTAR    =   0,   2,
-  SRF_VB       =   0,   2,
-  SRF_VICE     =   0,   0,
-  SRF_ZTX      =   0,   2,
-  LYR_DIAFLX   =   0,   0,
-  LYR_DIFDIA   =   0,   2,
-  LYR_DIFINT   =   0,   2,
-  LYR_DIFISO   =   0,   2,
-  LYR_DP       =   0,   2,
-  LYR_DZ       =   0,   2,
-  LYR_SALN     =   0,   2,
-  LYR_TEMP     =   0,   2,
-  LYR_TRC      =   0,   0,
-  LYR_UFLX     =   0,   2,
-  LYR_UTFLX    =   0,   2,
-  LYR_USFLX    =   0,   2,
-  LYR_UMFLTD   =   0,   0,
-  LYR_UTFLTD   =   0,   0,
-  LYR_UTFLLD   =   0,   0,
-  LYR_USFLTD   =   0,   0,
-  LYR_USFLLD   =   0,   0,
-  LYR_UVEL     =   0,   2,
-  LYR_VFLX     =   0,   2,
-  LYR_VTFLX    =   0,   2,
-  LYR_VSFLX    =   0,   2,
-  LYR_VMFLTD   =   0,   0,
-  LYR_VTFLTD   =   0,   0,
-  LYR_VTFLLD   =   0,   0,
-  LYR_VSFLTD   =   0,   0,
-  LYR_VSFLLD   =   0,   0,
-  LYR_VVEL     =   0,   2,
-  LYR_WFLX     =   0,   2,
-  LYR_WFLX2    =   0,   2,
-  LYR_TKE      =   0,   2,
-  LYR_GLS_PSI  =   0,   2,
-  LYR_IDLAGE   =   0,   2,
-  LVL_DIAFLX   =   0,   0,
-  LVL_DIFDIA   =   0,   2,
-  LVL_DIFINT   =   0,   2,
-  LVL_DIFISO   =   0,   2,
-  LVL_DZ       =   0,   2,
-  LVL_SALN     =   0,   2,
-  LVL_TEMP     =   0,   2,
-  LVL_TRC      =   0,   0,
-  LVL_UFLX     =   0,   2,
-  LVL_UTFLX    =   0,   2,
-  LVL_USFLX    =   0,   2,
-  LVL_UMFLTD   =   0,   0,
-  LVL_UTFLTD   =   0,   0,
-  LVL_UTFLLD   =   0,   0,
-  LVL_USFLTD   =   0,   0,
-  LVL_USFLLD   =   0,   0,
-  LVL_UVEL     =   0,   2,
-  LVL_VFLX     =   0,   2,
-  LVL_VTFLX    =   0,   2,
-  LVL_VSFLX    =   0,   2,
-  LVL_VMFLTD   =   0,   0,
-  LVL_VTFLTD   =   0,   0,
-  LVL_VTFLLD   =   0,   0,
-  LVL_VSFLTD   =   0,   0,
-  LVL_VSFLLD   =   0,   0,
-  LVL_VVEL     =   0,   2,
-  LVL_WFLX     =   0,   2,
-  LVL_WFLX2    =   0,   2,
-  LVL_TKE      =   0,   2,
-  LVL_GLS_PSI  =   0,   2,
-  LVL_IDLAGE   =   0,   2,
-  MSC_MMFLXL   =   0,   2,
-  MSC_MMFLXD   =   0,   2,
-  MSC_MMFTDL   =   0,   2,
-  MSC_MMFTDD   =   0,   2,
-  MSC_MHFLX    =   0,   2,
-  MSC_MHFTD    =   0,   2,
-  MSC_MHFLD    =   0,   2,
-  MSC_MSFLX    =   0,   2,
-  MSC_MSFTD    =   0,   2,
-  MSC_MSFLD    =   0,   2,
-  MSC_VOLTR    =   0,   2
+  GLB_FNAMETAG = ${GLB_FNAMETAG}, 
+  GLB_AVEPERIO = ${GLB_AVEPERIO},
+  GLB_FILEFREQ = ${GLB_FILEFREQ},
+  GLB_COMPFLAG = ${GLB_COMPFLAG},
+  GLB_NCFORMAT = ${GLB_NCFORMAT},
+  SRF_ABSWND   = ${SRF_ABSWND},
+  SRF_ALB      = ${SRF_ALB},
+  SRF_BRNFLX   = ${SRF_BRNFLX},
+  SRF_BRNPD    = ${SRF_BRNPD},
+  SRF_DFL      = ${SRF_DFL},
+  SRF_EVA      = ${SRF_EVA},
+  SRF_FICE     = ${SRF_FICE},
+  SRF_FMLTFZ   = ${SRF_FMLTFZ},
+  SRF_HICE     = ${SRF_HICE},
+  SRF_HMLTFZ   = ${SRF_HMLTFZ},
+  SRF_HSNW     = ${SRF_HSNW},
+  SRF_IAGE     = ${SRF_IAGE},
+  SRF_LIP      = ${SRF_LIP},
+  SRF_MAXMLD   = ${SRF_MAXMLD},
+  SRF_MLD      = ${SRF_MLD},
+  SRF_MLDU     = ${SRF_MLDU},
+  SRF_MLDV     = ${SRF_MLDV},
+  SRF_MTY      = ${SRF_MTY},
+  SRF_MXLU     = ${SRF_MXLU},
+  SRF_MXLV     = ${SRF_MXLV},
+  SRF_NSF      = ${SRF_NSF},
+  SRF_RFIFLX   = ${SRF_RFIFLX},
+  SRF_RNFFLX   = ${SRF_RNFFLX},
+  SRF_SALFLX   = ${SRF_SALFLX},
+  SRF_SALRLX   = ${SRF_SALRLX},
+  SRF_SEALV    = ${SRF_SEALV},
+  SRF_SFL      = ${SRF_SFL},
+  SRF_SOP      = ${SRF_SOP},
+  SRF_SIGMX    = ${SRF_SIGMX},
+  SRF_SSS      = ${SRF_SSS},
+  SRF_SST      = ${SRF_SST},
+  SRF_SURFLX   = ${SRF_SURFLX},
+  SRF_SURRLX   = ${SRF_SURRLX},
+  SRF_SWA      = ${SRF_SWA},
+  SRF_TAUX     = ${SRF_TAUX},
+  SRF_TAUY     = ${SRF_TAUY},
+  SRF_TICE     = ${SRF_TICE},
+  SRF_TSRF     = ${SRF_TSRF},
+  SRF_UB       = ${SRF_UB},
+  SRF_UICE     = ${SRF_UICE},
+  SRF_USTAR    = ${SRF_USTAR},
+  SRF_VB       = ${SRF_VB},
+  SRF_VICE     = ${SRF_VICE},
+  SRF_ZTX      = ${SRF_ZTX},
+  LYR_DIAFLX   = ${LYR_DIAFLX},
+  LYR_DIFDIA   = ${LYR_DIFDIA},
+  LYR_DIFINT   = ${LYR_DIFINT},
+  LYR_DIFISO   = ${LYR_DIFISO},
+  LYR_DP       = ${LYR_DP},
+  LYR_DZ       = ${LYR_DZ},
+  LYR_SALN     = ${LYR_SALN},
+  LYR_TEMP     = ${LYR_TEMP},
+  LYR_TRC      = ${LYR_TRC},
+  LYR_UFLX     = ${LYR_UFLX},
+  LYR_UTFLX    = ${LYR_UTFLX},
+  LYR_USFLX    = ${LYR_USFLX},
+  LYR_UMFLTD   = ${LYR_UMFLTD},
+  LYR_UTFLTD   = ${LYR_UTFLTD},
+  LYR_UTFLLD   = ${LYR_UTFLLD},
+  LYR_USFLTD   = ${LYR_USFLTD},
+  LYR_USFLLD   = ${LYR_USFLLD},
+  LYR_UVEL     = ${LYR_UVEL},
+  LYR_VFLX     = ${LYR_VFLX},
+  LYR_VTFLX    = ${LYR_VTFLX},
+  LYR_VSFLX    = ${LYR_VSFLX},
+  LYR_VMFLTD   = ${LYR_VMFLTD},
+  LYR_VTFLTD   = ${LYR_VTFLTD},
+  LYR_VTFLLD   = ${LYR_VTFLLD},
+  LYR_VSFLTD   = ${LYR_VSFLTD},
+  LYR_VSFLLD   = ${LYR_VSFLLD},
+  LYR_VVEL     = ${LYR_VVEL},
+  LYR_WFLX     = ${LYR_WFLX},
+  LYR_WFLX2    = ${LYR_WFLX2},
+  LYR_TKE      = ${LYR_TKE},
+  LYR_GLS_PSI  = ${LYR_GLS_PSI},
+  LYR_IDLAGE   = ${LYR_IDLAGE},
+  LVL_DIAFLX   = ${LVL_DIAFLX},
+  LVL_DIFDIA   = ${LVL_DIFDIA},
+  LVL_DIFINT   = ${LVL_DIFINT},
+  LVL_DIFISO   = ${LVL_DIFISO},
+  LVL_DZ       = ${LVL_DZ},
+  LVL_SALN     = ${LVL_SALN},
+  LVL_TEMP     = ${LVL_TEMP},
+  LVL_TRC      = ${LVL_TRC},
+  LVL_UFLX     = ${LVL_UFLX},
+  LVL_UTFLX    = ${LVL_UTFLX},
+  LVL_USFLX    = ${LVL_USFLX},
+  LVL_UMFLTD   = ${LVL_UMFLTD},
+  LVL_UTFLTD   = ${LVL_UTFLTD},
+  LVL_UTFLLD   = ${LVL_UTFLLD},
+  LVL_USFLTD   = ${LVL_USFLTD},
+  LVL_USFLLD   = ${LVL_USFLLD},
+  LVL_UVEL     = ${LVL_UVEL},
+  LVL_VFLX     = ${LVL_VFLX},
+  LVL_VTFLX    = ${LVL_VTFLX},
+  LVL_VSFLX    = ${LVL_VSFLX},
+  LVL_VMFLTD   = ${LVL_VMFLTD},
+  LVL_VTFLTD   = ${LVL_VTFLTD},
+  LVL_VTFLLD   = ${LVL_VTFLLD},
+  LVL_VSFLTD   = ${LVL_VSFLTD},
+  LVL_VSFLLD   = ${LVL_VSFLLD},
+  LVL_VVEL     = ${LVL_VVEL},
+  LVL_WFLX     = ${LVL_WFLX},
+  LVL_WFLX2    = ${LVL_WFLX2},
+  LVL_TKE      = ${LVL_TKE},
+  LVL_GLS_PSI  = ${LVL_GLS_PSI},
+  LVL_IDLAGE   = ${LVL_IDLAGE},
+  MSC_MMFLXL   = ${MSC_MMFLXL},
+  MSC_MMFLXD   = ${MSC_MMFLXD},
+  MSC_MMFTDL   = ${MSC_MMFTDL},
+  MSC_MMFTDD   = ${MSC_MMFTDD},
+  MSC_MHFLX    = ${MSC_MHFLX},
+  MSC_MHFTD    = ${MSC_MHFTD},
+  MSC_MHFLD    = ${MSC_MHFLD},
+  MSC_MSFLX    = ${MSC_MSFLX},
+  MSC_MSFTD    = ${MSC_MSFTD},
+  MSC_MSFLD    = ${MSC_MSFLD},
+  MSC_VOLTR    = ${MSC_VOLTR}
 /
 
 !3D HIGH PRIORITY
@@ -552,81 +826,81 @@ cat >! ocn_in << EOF1
 !   SSSTER         - (ssster) [mol m-3]
 !
 &DIABGC
-  GLB_FNAMETAG       ='hbgcm','hbgcy',
-  GLB_AVEPERIO       = 30,365,
-  GLB_FILEFREQ       = 30,365,
-  GLB_COMPFLAG       =  0,  0,
-  GLB_NCFORMAT       =  0,  0,
-  GLB_INVENTORY      =  1,  0,
-  SRF_KWCO2          =  2,  2,
-  SRF_PCO2           =  2,  2,
-  SRF_DMSFLUX        =  2,  2,
-  SRF_CO2FXD         =  2,  2,
-  SRF_CO2FXU         =  2,  2,
-  SRF_OXFLUX         =  2,  2,
-  SRF_NIFLUX         =  2,  2,
-  SRF_DMS            =  2,  2,
-  SRF_DMSPROD        =  2,  2,
-  SRF_DMS_BAC        =  2,  2,
-  SRF_DMS_UV         =  2,  2,
-  SRF_EXPORT         =  2,  2,
-  SRF_EXPOSI         =  2,  2,
-  SRF_EXPOCA         =  2,  2,
-  SRF_ATMCO2         =  2,  2,
-  SRF_ATMO2          =  2,  2,
-  SRF_ATMN2          =  2,  2,
-  LYR_PHYTO          =  2,  0,
-  LYR_GRAZER         =  2,  0,
-  LYR_DOC            =  2,  0,
-  LYR_PHOSY          =  2,  0,
-  LYR_PHOSPH         =  2,  0,
-  LYR_OXYGEN         =  2,  0,
-  LYR_IRON           =  2,  0,
-  LYR_ANO3           =  2,  0,
-  LYR_ALKALI         =  2,  0,
-  LYR_SILICA         =  2,  0,
-  LYR_DIC            =  2,  0,
-  LYR_POC            =  2,  0,
-  LYR_CALC           =  2,  0,
-  LYR_OPAL           =  2,  0,
-  LYR_CO3            =  2,  0,
-  LYR_PH             =  2,  0,
-  LYR_OMEGAC         =  2,  0,
-  LYR_DIC13          =  2,  0,
-  LYR_DIC14          =  2,  0,
-  LYR_DP             =  2,  0,
-  LYR_NOS            =  2,  0,
-  LVL_PHYTO          =  0,  2,
-  LVL_GRAZER         =  0,  2,
-  LVL_DOC            =  0,  2,
-  LVL_PHOSY          =  0,  2,
-  LVL_PHOSPH         =  0,  2,
-  LVL_OXYGEN         =  0,  2,
-  LVL_IRON           =  0,  2,
-  LVL_ANO3           =  0,  2,
-  LVL_ALKALI         =  0,  2,
-  LVL_SILICA         =  0,  2,
-  LVL_DIC            =  0,  2,
-  LVL_POC            =  0,  2,
-  LVL_CALC           =  0,  2,
-  LVL_OPAL           =  0,  2,
-  LVL_CO3            =  0,  2,
-  LVL_PH             =  0,  2,
-  LVL_OMEGAC         =  0,  2,
-  LVL_DIC13          =  0,  2,
-  LVL_DIC14          =  0,  2,
-  LVL_NOS            =  0,  2,
-  SDM_POWAIC         =  0,  2,
-  SDM_POWAAL         =  0,  2,
-  SDM_POWAPH         =  0,  2,
-  SDM_POWAOX         =  0,  2,
-  SDM_POWN2          =  0,  2,
-  SDM_POWNO3         =  0,  2,
-  SDM_POWASI         =  0,  2,
-  SDM_SSSO12         =  0,  2,
-  SDM_SSSSIL         =  0,  2,
-  SDM_SSSC12         =  0,  2,
-  SDM_SSSTER         =  0,  2
+  GLB_FNAMETAG       = ${BGC_FNAMETAG},
+  GLB_AVEPERIO       = ${BGC_AVEPERIO},
+  GLB_FILEFREQ       = ${BGC_FILEFREQ},
+  GLB_COMPFLAG       = ${BGC_COMPFLAG},
+  GLB_NCFORMAT       = ${BGC_NCFORMAT},
+  GLB_INVENTORY      = ${BGC_INVENTORY},
+  SRF_KWCO2          = ${SRF_KWCO2},
+  SRF_PCO2           = ${SRF_PCO2},
+  SRF_DMSFLUX        = ${SRF_DMSFLUX},
+  SRF_CO2FXD         = ${SRF_CO2FXD},
+  SRF_CO2FXU         = ${SRF_CO2FXU},
+  SRF_OXFLUX         = ${SRF_OXFLUX},
+  SRF_NIFLUX         = ${SRF_NIFLUX},
+  SRF_DMS            = ${SRF_DMS},
+  SRF_DMSPROD        = ${SRF_DMSPROD},
+  SRF_DMS_BAC        = ${SRF_DMS_BAC},
+  SRF_DMS_UV         = ${SRF_DMS_UV},
+  SRF_EXPORT         = ${SRF_EXPORT},
+  SRF_EXPOSI         = ${SRF_EXPOSI},
+  SRF_EXPOCA         = ${SRF_EXPOCA},
+  SRF_ATMCO2         = ${SRF_ATMCO2},
+  SRF_ATMO2          = ${SRF_ATMO2},
+  SRF_ATMN2          = ${SRF_ATMN2},
+  LYR_PHYTO          = ${LYR_PHYTO},
+  LYR_GRAZER         = ${LYR_GRAZER},
+  LYR_DOC            = ${LYR_DOC},
+  LYR_PHOSY          = ${LYR_PHOSY},
+  LYR_PHOSPH         = ${LYR_PHOSPH},
+  LYR_OXYGEN         = ${LYR_OXYGEN},
+  LYR_IRON           = ${LYR_IRON},
+  LYR_ANO3           = ${LYR_ANO3},
+  LYR_ALKALI         = ${LYR_ALKALI},
+  LYR_SILICA         = ${LYR_SILICA},
+  LYR_DIC            = ${LYR_DIC},
+  LYR_POC            = ${LYR_POC},
+  LYR_CALC           = ${LYR_CALC},
+  LYR_OPAL           = ${LYR_OPAL},
+  LYR_CO3            = ${LYR_CO3},
+  LYR_PH             = ${LYR_PH},
+  LYR_OMEGAC         = ${LYR_OMEGAC},
+  LYR_DIC13          = ${LYR_DIC13},
+  LYR_DIC14          = ${LYR_DIC14},
+  LYR_DP             = ${BGC_DP},
+  LYR_NOS            = ${LYR_NOS},
+  LVL_PHYTO          = ${LVL_PHYTO},
+  LVL_GRAZER         = ${LVL_GRAZER},
+  LVL_DOC            = ${LVL_DOC},
+  LVL_PHOSY          = ${LVL_PHOSY},
+  LVL_PHOSPH         = ${LVL_PHOSPH},
+  LVL_OXYGEN         = ${LVL_OXYGEN},
+  LVL_IRON           = ${LVL_IRON},
+  LVL_ANO3           = ${LVL_ANO3},
+  LVL_ALKALI         = ${LVL_ALKALI},
+  LVL_SILICA         = ${LVL_SILICA},
+  LVL_DIC            = ${LVL_DIC},
+  LVL_POC            = ${LVL_POC},
+  LVL_CALC           = ${LVL_CALC},
+  LVL_OPAL           = ${LVL_OPAL},
+  LVL_CO3            = ${LVL_CO3},
+  LVL_PH             = ${LVL_PH},
+  LVL_OMEGAC         = ${LVL_OMEGAC},
+  LVL_DIC13          = ${LVL_DIC13},
+  LVL_DIC14          = ${LVL_DIC14},
+  LVL_NOS            = ${LVL_NOS},
+  SDM_POWAIC         = ${SDM_POWAIC},
+  SDM_POWAAL         = ${SDM_POWAAL},
+  SDM_POWAPH         = ${SDM_POWAPH},
+  SDM_POWAOX         = ${SDM_POWAOX},
+  SDM_POWN2          = ${SDM_POWN2},
+  SDM_POWNO3         = ${SDM_POWNO3},
+  SDM_POWASI         = ${SDM_POWASI},
+  SDM_SSSO12         = ${SDM_SSSO12},
+  SDM_SSSSIL         = ${SDM_SSSSIL},
+  SDM_SSSC12         = ${SDM_SSSC12},
+  SDM_SSSTER         = ${SDM_SSSTER}
 /
 EOF1
 
@@ -645,6 +919,7 @@ set dimdir = \$objdir/dimensions
 set turbclo = (\`echo \$MICOM_TURBULENT_CLOSURE\`)
 set tracers = (\`echo \$MICOM_TRACER_MODULES\`)
 set co2type = (\`echo \$MICOM_CO2_TYPE\`)
+set rivnutr = (\`echo \$MICOM_RIVER_NUTRIENTS\`)
 
 #------------------------------------------------------------------------------
 # Make dimensions.F
@@ -673,8 +948,9 @@ endif
 \$CODEROOT/ocn/micom/phy
 EOF1
 
+
 set cpp_ocn = "-DCCSMCOUPLED -DMPI -DNCEP"
-if (\$OCN_GRID == tnx1v1) then
+if (\$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx2v1) then
   set cpp_ocn = "\$cpp_ocn -DARCTIC"
 endif
 if (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1) then
@@ -726,6 +1002,9 @@ if (\$#tracers != 0) then
         echo \$0": CO2 type \$co2type is not recognized!"
         exit -1
       endif
+      if (\$rivnutr == TRUE) then 
+        set cpp_ocn = "\$cpp_ocn -DRIV_GNEWS"
+      endif 
     else
       echo \$0": tracer module \$module is not recognized!"
       exit -1

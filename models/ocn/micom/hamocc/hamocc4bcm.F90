@@ -42,6 +42,9 @@
       use mo_dynamic
 #endif /* PDYNAMIC_BGC */ 
       use mod_xc
+#ifdef RIV_GNEWS
+      use mo_riverinpt
+#endif
 
       implicit none
       INTEGER :: kpie,kpje,kpke,kpbe,i,j,k,l,ntr,ntrbgc,itrbgc
@@ -305,6 +308,12 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
      &                  ,0)
 !      call INVENTORY_BGC(kpie,kpje,kpke)
+#endif
+
+
+#ifdef RIV_GNEWS
+      ! Apply riverine input of carbon and nutrients
+      call riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
 #endif
 
 !      

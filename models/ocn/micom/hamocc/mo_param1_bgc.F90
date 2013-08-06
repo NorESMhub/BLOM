@@ -90,7 +90,8 @@
       INTEGER, PARAMETER :: iatmco2=1,                                  &
      &                      iatmo2 =2,                                  &
      &                      iatmn2 =3,                                  &
-     &                      i_base_atm=3
+     &                      iatmn2o=4,                                  &
+     &                      i_base_atm=4
       INTEGER, PARAMETER ::                                             &
 #ifdef __c_isotopes
      &                      iatmc13 = i_base_atm+1,                     &

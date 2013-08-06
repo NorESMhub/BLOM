@@ -33,6 +33,7 @@ c
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
      .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,cwbdts,cwbdls,
+     .  egc,eggam,egmndf,egmxdf,egidfq,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
      .  disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,
      .  rstfrq,rstfmt,rstcmp
@@ -68,6 +69,11 @@ c --- print namelist on stdout
         write (lp,*) 'CB',CB
         write (lp,*) 'CWBDTS',CWBDTS
         write (lp,*) 'CWBDLS',CWBDLS
+        write (lp,*) 'EGC',egc
+        write (lp,*) 'EGGAM',eggam
+        write (lp,*) 'EGMNDF',egmndf
+        write (lp,*) 'EGMXDF',egmxdf
+        write (lp,*) 'EGIDFQ',egidfq
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'TRXDPT',TRXDPT

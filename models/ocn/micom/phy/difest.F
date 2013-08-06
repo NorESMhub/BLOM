@@ -43,17 +43,6 @@ c ---            Richardson number [g/cm*3].
 c ---   thkdff - diffusive velocity for thickness diffusion [cm/s].
 c ---   temdff - diffusive velocity for tracer isopycnal diffusion
 c ---            [cm/s].
-c ---   egc    - the parameter c in the Eden and Greatbatch (2008)
-c ---            parameterization [].
-c ---   eggam  - the parameter gamma in the Eden and Greatbatch (2008)
-c ---            parameterization [].
-c ---   egmndf - minimum diffusivity in the Eden and Greatbatch (2008)
-c ---            parameterization [cm**2/s].
-c ---   egmxdf - maximum diffusivity in the Eden and Greatbatch (2008)
-c ---            parameterization [cm**2/s].
-c ---   egidfq - factor relating the isopycnal diffusivity to the layer
-c ---            interface diffusivity in the Eden and Greatbatch (2008)
-c ---            parameterization. egidfq=difint/difiso [].
 c ---   ri0    - critical gradient richardson number for shear driven
 c ---            vertical mixing [].
 c ---   nus0   - maximum shear driven diapycnal diffusivity
@@ -92,14 +81,13 @@ c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
-      real dptmin,dpbmin,drhomn,thkdff,temdff,egc,eggam,egmndf,egmxdf,
-     .     egidfq,ri0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
+      real dptmin,dpbmin,drhomn,thkdff,temdff,
+     .     ri0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
      .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori30,bvf0,nubmin,dpgc,
      .     dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
       parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
      .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
-     .           temdff=.35,egc=1.,eggam=200.,egmndf=100.e4,
-     .           egmxdf=1500.e4,egidfq=1.,ri0=.7,nus0=50.,nug0=2500.,
+     .           temdff=.35,ri0=.7,nus0=50.,nug0=2500.,
      .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
      .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,

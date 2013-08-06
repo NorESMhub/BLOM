@@ -170,7 +170,7 @@
       wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
 !JT      wopal = 50.*dtb       !m/d  iris : 60
-      wopal = 30.*dtb       !m/d  iris : 60
+      wopal = 60.*dtb       !m/d  iris : 60
 
       
 ! deep see remineralisation constants
@@ -255,8 +255,10 @@
 ! Parameters are a result from kettle optimisation 02.03.04
 
        dmspar(6)=0.100000000E-07  !0 half saturation microbial
-       dmspar(5)=1.25*0.107638502E+00  !2*1.3e-5 production with delsil
-       dmspar(4)=1.25*0.109784522E-01  !2*0.02   production with delcar
+!jt       dmspar(5)=1.25*0.107638502E+00  !2*1.3e-5 production with delsil
+!jt       dmspar(4)=1.25*0.109784522E-01  !2*0.02   production with delcar
+       dmspar(5)=1.25*0.109784522E-01  !2*0.02   production with delsil
+       dmspar(4)=1.25*0.107638502E+00  !2*1.3e-5 production with delcar
        dmspar(3)=0.0096  !4.8e-5  !2*1.6e-3 microbial consumption
        dmspar(2)=0.0075  !0.0003  !2*0.005  photolysis
        dmspar(1)=10.              !2*5.     production with temp
