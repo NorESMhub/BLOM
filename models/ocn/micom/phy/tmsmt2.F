@@ -41,7 +41,7 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            pbfaco(i)=pbfaco(i)+dpold(i,j,k)
+            pbfaco(i)=pbfaco(i)+dpold(i,j,kn)
             pbfacn(i)=pbfacn(i)+dp(i,j,kn)
           enddo
           enddo
@@ -58,7 +58,7 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
           kp=min(k+1,kk)
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            pold=max(0.,dpold(i,j,k)*pbfaco(i))
+            pold=max(0.,dpold(i,j,kn)*pbfaco(i))
             pmid=max(0.,dp(i,j,km))
             pnew=max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)

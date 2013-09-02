@@ -153,6 +153,7 @@ c
       call ncread('u',u,iuu,1,0.)
       call ncread('v',v,ivv,1,0.)
       call ncread('dp',dp,ip,1,0.)
+      call ncread('dpold',dpold,ip,1,0.)
       call ncread('temp',temp,ip,1,0.)
       call ncread('saln',saln,ip,1,0.)
       call ncread('sigma',sigma,ip,1,0.)

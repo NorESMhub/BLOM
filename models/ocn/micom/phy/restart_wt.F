@@ -192,6 +192,7 @@ c
       call wrtrst('u',trim(c5u)//' kk2 time',u,iuu)
       call wrtrst('v',trim(c5v)//' kk2 time',v,ivv)
       call wrtrst('dp',trim(c5p)//' kk2 time',dp,ip)
+      call wrtrst('dpold',trim(c5p)//' kk2 time',dpold,ip)
       call wrtrst('temp',trim(c5p)//' kk2 time',temp,ip)
       call wrtrst('saln',trim(c5p)//' kk2 time',saln,ip)
       call wrtrst('sigma',trim(c5p)//' kk2 time',sigma,ip)

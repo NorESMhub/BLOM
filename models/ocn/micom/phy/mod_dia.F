@@ -414,8 +414,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LYR_WFLX2(n)
         ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
      .                    LVL_WFLX(n)   + LVL_WFLX2(n)
-        ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
+        ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_UTFLX(n)    = LYR_UTFLX(n)  + MSC_MHFLX(n)
         ACC_UTFLXLVL(n) = LVL_UTFLX(n)
         ACC_USFLX(n)    = LYR_USFLX(n)  + MSC_MSFLX(n)
@@ -436,8 +435,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LYR_WFLX2(n)
         ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
      .                    LVL_WFLX(n)   + LVL_WFLX2(n)
-        ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
+        ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_VTFLX(n)    = LYR_VTFLX(n)  + MSC_MHFLX(n)
         ACC_VTFLXLVL(n) = LVL_VTFLX(n)
         ACC_VSFLX(n)    = LYR_VSFLX(n)  + MSC_MSFLX(n)
@@ -1421,7 +1419,7 @@ c --- Accumulate vertical velocity
      .    ACC_WFLX2LVL(iogrp).ne.0)
      .    call diavfl(iogrp,m,n,mm,nn,k1m,k1n)
       enddo
-c 
+c
 c --- Reset diaflx 
       if (sum(ACC_DIAFLX(1:nphy)).ne.0) then
 c$OMP PARALLEL DO
@@ -3115,130 +3113,37 @@ c
 c
 #include "common_blocks.h"
 c
-      integer :: i,i1,i1i,j,j1,j1i,k,k2,l
-      integer, dimension(idm,jdm) :: ku1,ku2,kv1,kv2
-c
-      real :: uflx1,uflx2,vflx1,vflx2,wflx
-      real, dimension(idm,jdm) :: uflxcum1,uflxcum2,vflxcum1,vflxcum2
-      real, dimension(idm,jdm,kk+1) :: pp,pu1,pu2,pv1,pv2
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: uflxcumlev,
-     .  vflxcumlev
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: wflx,ucum,vcum
+      integer :: i,j,k,km,kn,l
+      real :: q
 c
 c ---
 c --- Compute vertical mass flux at isopycnic layer interfaces 
 c ---
       if (ACC_WFLX(iogrp)+ACC_WFLX2(IOGRP).ne.0) then
 c
-c --- - Initialise cumulated fluxes ect. 
 c$OMP PARALLEL DO
         do j=1,jj
-          do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              ku1(i,j)=1
-              ku2(i,j)=1
-              kv1(i,j)=1
-              kv2(i,j)=1
-              pp(i,j,1)=0.
-              pu1(i,j,1)=0.
-              pu2(i,j,1)=0.
-              pv1(i,j,1)=0.
-              pv2(i,j,1)=0.
-              uflxcum1(i,j)=0.
-              uflxcum2(i,j)=0.
-              vflxcum1(i,j)=0.
-              vflxcum2(i,j)=0.
-            enddo
+          do i=1,ii
+            wflx(i,j)=0.
           enddo
-        enddo
+        enddo  
 c$OMP END PARALLEL DO
-c
-c --- - Compute pressure at layer interfaces  
+        do k=kk,1,-1
+          km=k+mm
+          kn=k+nn
 c$OMP PARALLEL DO
-        do j=1,jj
-          do k=1,kk
+          do j=1,jj  
             do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                pp(i,j,k+1)=pp(i,j,k)+dp(i,j,k+mm)
-                pu1(i,j,k+1)=pu1(i,j,k)+dpu(i,j,k+mm)
-                pu2(i,j,k+1)=pu2(i,j,k)+dpu(i+1,j,k+mm)
-                pv1(i,j,k+1)=pv1(i,j,k)+dpv(i,j,k+mm)
-                pv2(i,j,k+1)=pv2(i,j,k)+dpv(i,j+1,k+mm)
-              enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-c
-c --- - Compute upward vertical mass flux as divergence of horizontal 
-c --- - mass fluxes 
-        do k=1,kk
-c$OMP PARALLEL DO PRIVATE(uflx1,uflx2,vflx1,vflx2,wflx)
-          do j=1,jj
-            do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c 
-                uflx1=0.
-                do k2=ku1(i,j),kk
-                  if (pu1(i,j,k2+1).le.pp(i,j,k+1)) then
-                    ku1(i,j)=k2+1
-                    uflxcum1(i,j)=uflxcum1(i,j)+uflx(i,j,k2+nn)
-                  else
-                    uflx1=uflx(i,j,k2+nn)*
-     .                (pp(i,j,k+1)-pu1(i,j,k2))/
-     .                max(pu1(i,j,k2+1)-pu1(i,j,k2),epsil)
-                    exit
-                  endif
-                enddo
-                uflx1=uflx1+uflxcum1(i,j)
-c 
-                uflx2=0.
-                do k2=ku2(i,j),kk
-                  if (pu2(i,j,k2+1).le.pp(i,j,k+1)) then
-                    ku2(i,j)=k2+1
-                    uflxcum2(i,j)=uflxcum2(i,j)+uflx(i+1,j,k2+nn)
-                  else
-                    uflx2=uflx(i+1,j,k2+nn)*
-     .                (pp(i,j,k+1)-pu2(i,j,k2))/
-     .                max(pu2(i,j,k2+1)-pu2(i,j,k2),epsil)
-                    exit
-                  endif
-                enddo
-                uflx2=uflx2+uflxcum2(i,j)
-c 
-                vflx1=0.
-                do k2=kv1(i,j),kk
-                  if (pv1(i,j,k2+1).le.pp(i,j,k+1)) then
-                    kv1(i,j)=k2+1
-                    vflxcum1(i,j)=vflxcum1(i,j)+vflx(i,j,k2+nn)
-                  else
-                    vflx1=vflx(i,j,k2+nn)*
-     .                (pp(i,j,k+1)-pv1(i,j,k2))/
-     .                max(pv1(i,j,k2+1)-pv1(i,j,k2),epsil)
-                    exit
-                  endif
-                enddo
-                vflx1=vflx1+vflxcum1(i,j)
-c 
-                vflx2=0.
-                do k2=kv2(i,j),kk
-                  if (pv2(i,j,k2+1).le.pp(i,j,k+1)) then
-                    kv2(i,j)=k2+1
-                    vflxcum2(i,j)=vflxcum2(i,j)+vflx(i,j+1,k2+nn)
-                  else
-                    vflx2=vflx(i,j+1,k2+nn)*
-     .                (pp(i,j,k+1)-pv2(i,j,k2))/
-     .                max(pv2(i,j,k2+1)-pv2(i,j,k2),epsil)
-                    exit
-                  endif
-                enddo
-                vflx2=vflx2+vflxcum2(i,j)
-                wflx=uflx2-uflx1+vflx2-vflx1
-c
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
+                wflx(i,j)=wflx(i,j)
+     .                   -(uflx(i+1,j,kn)-uflx(i,j,kn)
+     .                    +vflx(i,j+1,kn)-vflx(i,j,kn))
+     .                   -(dp(i,j,km)-dpold(i,j,km))*scp2(i,j)
                 phylyr(i,j,k,ACC_WFLX(iogrp))=
-     .            phylyr(i,j,k,ACC_WFLX(iogrp))+wflx
+     .            phylyr(i,j,k,ACC_WFLX(iogrp))+wflx(i,j)
                 phylyr(i,j,k,ACC_WFLX2(iogrp))=
-     .            phylyr(i,j,k,ACC_WFLX2(iogrp))+wflx**2
-
+     .            phylyr(i,j,k,ACC_WFLX2(iogrp))+wflx(i,j)**2
               enddo
             enddo
           enddo
@@ -3249,23 +3154,22 @@ c
 c --- Computation of vertical mass flux at levitus layer interfaces 
       if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
 c
-c --- - Get u,v transports on levitus levels and integrate divergance
 c$OMP PARALLEL DO
         do j=1,jj+1
           do i=1,ii+1
-            uflxcumlev(i,j)=0.
-            vflxcumlev(i,j)=0.
+            ucum(i,j)=0.
+            vcum(i,j)=0.
           enddo
         enddo  
 c$OMP END PARALLEL DO
-        do k=1,ddm
+        do k=ddm,1,-1
 c$OMP PARALLEL DO
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
-                uflxcumlev(i,j)=uflxcumlev(i,j)+
-     .            phylvl(i,j,k,ACC_UFLXLVL(iogrp))-
-     .            phylvl(i,j,k,ACC_UFLXOLD(iogrp))
+                ucum(i,j)=ucum(i,j)
+     .                   +phylvl(i,j,k,ACC_UFLXLVL(iogrp))
+     .                   -phylvl(i,j,k,ACC_UFLXOLD(iogrp))
               enddo
             enddo
           enddo  
@@ -3274,23 +3178,23 @@ c$OMP PARALLEL DO
           do j=1,jj+1 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
-                vflxcumlev(i,j)=vflxcumlev(i,j)+
-     .            phylvl(i,j,k,ACC_VFLXLVL(iogrp))-
-     .            phylvl(i,j,k,ACC_VFLXOLD(iogrp))
+                vcum(i,j)=vcum(i,j)
+     .                   +phylvl(i,j,k,ACC_VFLXLVL(iogrp))
+     .                   -phylvl(i,j,k,ACC_VFLXOLD(iogrp))
               enddo
             enddo
           enddo  
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(wflx)
+c$OMP PARALLEL DO
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
-                wflx=uflxcumlev(i+1,j)-uflxcumlev(i,j)+
-     .            vflxcumlev(i,j+1)-vflxcumlev(i,j)
+                q=-(ucum(i+1,j)-ucum(i,j)
+     .             +vcum(i,j+1)-vcum(i,j))
                 phylvl(i,j,k,ACC_WFLXLVL(iogrp))=
-     .            phylvl(i,j,k,ACC_WFLXLVL(iogrp))+wflx
+     .            phylvl(i,j,k,ACC_WFLXLVL(iogrp))+q
                 phylvl(i,j,k,ACC_WFLX2LVL(iogrp))=
-     .            phylvl(i,j,k,ACC_WFLX2LVL(iogrp))+wflx**2
+     .            phylvl(i,j,k,ACC_WFLX2LVL(iogrp))+q**2
               enddo
             enddo
           enddo
@@ -4378,7 +4282,7 @@ c --- Check output format
      .      offs,4)
         else
           call ncwrtr(vnm,dims,phylyr(1-nbdy,1-nbdy,1,pos),msk,
-     .      2,sfac,offs,4)
+     .      1,sfac,offs,4)
         endif
       elseif (frmt.eq.8) then
         if (cmpflg.eq.1) then
@@ -4386,7 +4290,7 @@ c --- Check output format
      .      offs,8)
         else
           call ncwrtr(vnm,dims,phylyr(1-nbdy,1-nbdy,1,pos),msk,
-     .      2,sfac,offs,8)
+     .      1,sfac,offs,8)
         endif
       else
         write (lp,*) 'unknown output format!'
@@ -4435,7 +4339,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,mskflg,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos,n
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -4466,7 +4370,7 @@ c --- Check output format
      .      offs,4)
         else
           call ncwrtr(vnm,dims,phylvl(1-nbdy,1-nbdy,1,pos),msk,
-     .      2,sfac,offs,4)
+     .      1,sfac,offs,4)
         endif
       elseif (frmt.eq.8) then
         if (cmpflg.eq.1) then
@@ -4474,7 +4378,7 @@ c --- Check output format
      .      offs,8)
         else
           call ncwrtr(vnm,dims,phylvl(1-nbdy,1-nbdy,1,pos),msk,
-     .      2,sfac,offs,8)
+     .      1,sfac,offs,8)
         endif
       else
         write (lp,*) 'unknown output format!'

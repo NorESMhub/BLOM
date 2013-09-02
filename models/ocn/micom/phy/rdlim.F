@@ -32,8 +32,8 @@ c
 #endif
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
-     .  vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,cbar,cb,cwbdts,cwbdls,
-     .  egc,eggam,egmndf,egmxdf,egidfq,
+     .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,
+     .  vsc4lo,cbar,cb,cwbdts,cwbdls,egc,eggam,egmndf,egmxdf,egidfq,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
      .  disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,
      .  rstfrq,rstfmt,rstcmp
@@ -59,12 +59,16 @@ c --- print namelist on stdout
         write (lp,*) 'RUNID ',trim(RUNID)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
-        write (lp,*) 'VDFVHI',VDFVHI
-        write (lp,*) 'VDFVLO',VDFVLO
-        write (lp,*) 'VDFCHI',VDFCHI
-        write (lp,*) 'VDFCLO',VDFCLO
-        write (lp,*) 'VISCHI',VISCHI
-        write (lp,*) 'VISCLO',VISCLO
+        write (lp,*) 'MDV2HI',MDV2HI
+        write (lp,*) 'MDV2LO',MDV2LO
+        write (lp,*) 'MDV4HI',MDV4HI
+        write (lp,*) 'MDV4LO',MDV4LO
+        write (lp,*) 'MDC2HI',MDC2HI
+        write (lp,*) 'MDC2LO',MDC2LO
+        write (lp,*) 'VSC2HI',VSC2HI
+        write (lp,*) 'VSC2LO',VSC2LO
+        write (lp,*) 'VSC4HI',VSC4HI
+        write (lp,*) 'VSC4LO',VSC4LO
         write (lp,*) 'CBAR',CBAR
         write (lp,*) 'CB',CB
         write (lp,*) 'CWBDTS',CWBDTS
@@ -439,12 +443,16 @@ c
         write (lp,'(a,a60)')   'runid:             ',runid
         write (lp,'(a,f10.4)') 'baclin:            ',baclin
         write (lp,'(a,f10.4)') 'batrop:            ',batrop
-        write (lp,'(a,f10.4)') 'vdfvhi:            ',vdfvhi
-        write (lp,'(a,f10.4)') 'vdfvlo:            ',vdfvlo
-        write (lp,'(a,f10.4)') 'vdfchi:            ',vdfchi
-        write (lp,'(a,f10.4)') 'vdfclo:            ',vdfclo
-        write (lp,'(a,f10.4)') 'vischi:            ',vischi
-        write (lp,'(a,f10.4)') 'visclo:            ',visclo
+        write (lp,'(a,f10.4)') 'mdv2hi:            ',mdv2hi
+        write (lp,'(a,f10.4)') 'mdv2lo:            ',mdv2lo
+        write (lp,'(a,f10.4)') 'mdv4hi:            ',mdv4hi
+        write (lp,'(a,f10.4)') 'mdv4lo:            ',mdv4lo
+        write (lp,'(a,f10.4)') 'mdc2hi:            ',mdc2hi
+        write (lp,'(a,f10.4)') 'mdc2lo:            ',mdc2lo
+        write (lp,'(a,f10.4)') 'vsc2hi:            ',vsc2hi
+        write (lp,'(a,f10.4)') 'vsc2lo:            ',vsc2lo
+        write (lp,'(a,f10.4)') 'vsc4hi:            ',vsc4hi
+        write (lp,'(a,f10.4)') 'vsc4lo:            ',vsc4lo
         write (lp,'(a,f10.4)') 'cbar:              ',cbar
         write (lp,'(a,f10.4)') 'cb:                ',cb
         write (lp,'(a,f10.4)') 'cwbdts:            ',cwbdts
@@ -469,11 +477,11 @@ c
         write (lp,'(a,a60)')   'atm_path:  ',atm_path
 #endif
 c
-        write (lp,101) vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo
+        write (lp,101) mdv2hi,mdv2lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo
  101    format (' turb. flux parameters:',1p/
-     .    ' vdfvhi =',e9.2,' vdfvlo =',e9.2/
-     .    ' vdfchi =',e9.2,' vdfclo =',e9.2/
-     .    ' vischi =',e9.2,' visclo =',e9.2)
+     .    ' mdv2hi =',e9.2,' mdv2lo =',e9.2/
+     .    ' mdc2hi =',e9.2,' mdc2lo =',e9.2/
+     .    ' vsc2hi =',e9.2,' vsc2lo =',e9.2)
         write (lp,'(a,f10.4)') 'rstfrq:            ',rstfrq
         write (lp,'(a,l10)')   'rstmon:            ',rstmon
         write (lp,'(a,l10)')   'rstann:            ',rstann

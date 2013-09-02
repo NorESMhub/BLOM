@@ -414,6 +414,7 @@ c$OMP PARALLEL DO PRIVATE(q)
       enddo
 c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO
       do j=1,jj
         do k=1,kk
           do l=1,isu(j)
@@ -430,6 +431,7 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- initialize potential vorticity of barotropic flow
@@ -538,6 +540,24 @@ c$OMP PARALLEL DO PRIVATE(k,dps)
           kfpla(i,j,1)=k
           kfpla(i,j,2)=k
         enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- set other time level layer thicknesses
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO
+      do j=1,jj
+        do k=1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            dp(i,j,k+kk)=dp(i,j,k)
+            dpold(i,j,k)=dp(i,j,k)
+            dpold(i,j,k+kk)=dp(i,j,k)
+          enddo
+          enddo
         enddo
       enddo
 c$OMP END PARALLEL DO

@@ -22,7 +22,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            dpold(i,j,k)=dp(i,j,kn)
+            dpold(i,j,kn)=dp(i,j,kn)
             told(i,j,k)=temp(i,j,kn)
             sold(i,j,k)=saln(i,j,kn)
 #ifdef TKE
@@ -41,7 +41,7 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'tmsmt1:'
         endif
-        call chksummsk(dpold,ip,kk,'dpold')
+        call chksummsk(dpold,ip,2*kk,'dpold')
         call chksummsk(told,ip,kk,'told')
         call chksummsk(sold,ip,kk,'sold')
 #ifdef TKE

@@ -11,10 +11,10 @@ c
 #include "common_blocks.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  drag,ubrhs,vbrhs,stress,dpmx,visc,vort,wgtia,wgtib,wgtja,wgtjb, 
-     .  dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,uflux1,vflux1
-      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,ubbl,
-     .     dpxy,dpia,dpib,dpja,dpjb,visca,viscb,q,botstr,pgf
+     .  drag,ubrhs,vbrhs,stress,dpmx,vsc2,vsc4,vort,wgtia,wgtib,
+     .  wgtja,wgtjb,dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,uflux1,vflux1
+      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,ubbl,deform,
+     .     dpxy,dpia,dpib,dpja,dpjb,vsc2a,vsc2b,vsc4a,vsc4b,q,botstr,pgf
       integer i,j,k,l,kn,km,kan
       character text*20
 c
@@ -108,10 +108,10 @@ c
       call xctilr(difwgt,  1,1, 2,2, halo_ps)
 c
 c$OMP PARALLEL DO
-c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,
-c$OMP+  potvor,j,defor1,dl2uja,dl2ujb,dl2via,dl2vib,visc,dpxy,
-c$OMP+  dpja,dpjb,visca,viscb,stress,ptopl,pbotl,uflux1,botstr,pgf,
-c$OMP+  dpia,dpib,vflux1,q)
+c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,potvor,j,
+c$OMP+  defor1,dl2uja,dl2ujb,dl2via,dl2vib,deform,vsc2,vsc4,dpxy,
+c$OMP+  dpja,dpjb,vsc2a,vsc2b,vsc4a,vsc4b,stress,ptopl,pbotl,uflux1,
+c$OMP+  botstr,pgf,dpia,dpib,vflux1,q)
 c$OMP+FIRSTPRIVATE(defor2,utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,
 c$OMP+  dl2u,via,vib,dl2v,uflux2,uflux3,vflux2,vflux3)
       do 9 k=1,kk
@@ -182,7 +182,7 @@ c
       uja(i,j)=(1.-wgtja(i,j))*utotn(i,j-1)+wgtja(i,j)*slip*utotn(i,j)
       ujb(i,j)=(1.-wgtjb(i,j))*utotn(i,j+1)+wgtjb(i,j)*slip*utotn(i,j)
  805  dl2u(i,j)=utotn(i,j)
-ccc  .    -.25*(utotn(i+1,j)+utotn(i-1,j)+uja(i,j)+ujb(i,j))
+     .         -.25*(utotn(i+1,j)+utotn(i-1,j)+uja(i,j)+ujb(i,j))
 c --- (to switch from biharmonic to laplacian friction, delete previous line)
 c
       do 806 j=0,jj+2
@@ -195,7 +195,7 @@ c
       via(i,j)=(1.-wgtia(i,j))*vtotn(i-1,j)+wgtia(i,j)*slip*vtotn(i,j)
       vib(i,j)=(1.-wgtib(i,j))*vtotn(i+1,j)+wgtib(i,j)*slip*vtotn(i,j)
  806  dl2v(i,j)=vtotn(i,j)
-ccc  .    -.25*(vtotn(i,j+1)+vtotn(i,j-1)+via(i,j)+vib(i,j))
+     .         -.25*(vtotn(i,j+1)+vtotn(i,j-1)+via(i,j)+vib(i,j))
 c --- (to switch from biharmonic to laplacian friction, delete previous line)
 c
 c --- vorticity, pot.vort., defor. at lateral boundary points
@@ -312,18 +312,26 @@ c
       do 37 l=1,isu(j)
       do 37 i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
       q=.5*(difwgt(i-1,j)+difwgt(i,j))
- 37   visc(i,j)=max( q*vdfvhi+(1.-q)*vdfvlo,
-     .              (q*vischi+(1.-q)*visclo)
-     .              *sqrt(.5*(defor1(i,j)+defor1(i-1,j)
-     .                       +defor2(i,j)+defor2(i,j+1))))
+      deform=sqrt(.5*(defor1(i,j)+defor1(i-1,j)
+     .               +defor2(i,j)+defor2(i,j+1)))
+      vsc2(i,j)=max( q*mdv2hi+(1.-q)*mdv2lo,
+     .              (q*vsc2hi+(1.-q)*vsc2lo)*deform)
+ 37   vsc4(i,j)=max( q*mdv4hi+(1.-q)*mdv4lo,
+     .              (q*vsc4hi+(1.-q)*vsc4lo)*deform)
 c
       do 822 j=1,jj
 c
       do 820 l=1,isu(j)
       i=ifu(j,l)
-      if (i.gt.0   ) visc(i-1,j)=visc(i,j)
+      if (i.gt.0   ) then
+        vsc2(i-1,j)=vsc2(i,j)
+        vsc4(i-1,j)=vsc4(i,j)
+      end if
       i=ilu(j,l)
-      if (i.lt.ii+1) visc(i+1,j)=visc(i,j)
+      if (i.lt.ii+1) then
+        vsc2(i+1,j)=vsc2(i,j)
+        vsc4(i+1,j)=vsc4(i,j)
+      end if
  820  continue
 c
 c --- longitudinal turb. momentum flux (at mass points)
@@ -333,7 +341,10 @@ c
       if (iu(i,j)+iu(i+1,j).gt.0) then
        dpxy=max(dpu(i  ,j,km),onemm)
        dpib=max(dpu(i+1,j,km),onemm)
-       uflux1(i,j)=min(difmxp(i,j),(visc(i,j)+visc(i+1,j))*scpy(i,j))
+       uflux1(i,j)=min(difmxp(i,j),(vsc2(i,j)+vsc2(i+1,j))*scpy(i,j))
+     .             *hfharm(dpxy,dpib)*(utotn(i,j)-utotn(i+1,j))
+     .            +min(.125*difmxp(i,j),
+     .                 (vsc4(i,j)+vsc4(i+1,j))*scpy(i,j))
      .             *hfharm(dpxy,dpib)*(dl2u(i,j)-dl2u(i+1,j))
       endif
  824  continue
@@ -350,18 +361,26 @@ c
       dpjb=dpjb+wgtjb(i,j)*(dpxy-dpjb)
 c
       if (iu(i,j-1).eq.0) then
-        visca=visc(i,j  )
+        vsc2a=vsc2(i,j  )
+        vsc4a=vsc4(i,j  )
       else
-        visca=visc(i,j-1)
+        vsc2a=vsc2(i,j-1)
+        vsc4a=vsc4(i,j-1)
       end if
       if (iu(i,j+1).eq.0) then
-        viscb=visc(i,j  )
+        vsc2b=vsc2(i,j  )
+        vsc4b=vsc4(i,j  )
       else
-        viscb=visc(i,j+1)
+        vsc2b=vsc2(i,j+1)
+        vsc4b=vsc4(i,j+1)
       end if
-      uflux2(i,j)=min(difmxq(i,j  ),(visc(i,j)+visca)*scqx(i,j  ))
+      uflux2(i,j)=min(difmxq(i,j  ),(vsc2(i,j)+vsc2a)*scqx(i,j  ))
+     .            *hfharm(dpja,dpxy)*(uja(i,j)-utotn(i,j))
+     .           +min(.125*difmxq(i,j  ),(vsc4(i,j)+vsc4a)*scqx(i,j  ))
      .            *hfharm(dpja,dpxy)*(dl2uja(i,j)-dl2u(i,j))
- 822  uflux3(i,j)=min(difmxq(i,j+1),(visc(i,j)+viscb)*scqx(i,j+1))
+ 822  uflux3(i,j)=min(difmxq(i,j+1),(vsc2(i,j)+vsc2b)*scqx(i,j+1))
+     .            *hfharm(dpjb,dpxy)*(utotn(i,j)-ujb(i,j))
+     .           +min(.125*difmxq(i,j+1),(vsc4(i,j)+vsc4b)*scqx(i,j+1))
      .            *hfharm(dpjb,dpxy)*(dl2u(i,j)-dl2ujb(i,j))
 c
       if (k.eq.1) then
@@ -425,17 +444,25 @@ c
       do 38 l=1,isv(j)
       do 38 i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
       q=.5*(difwgt(i,j-1)+difwgt(i,j))
- 38   visc(i,j)=max( q*vdfvhi+(1.-q)*vdfvlo,
-     .              (q*vischi+(1.-q)*visclo)
-     .              *sqrt(.5*(defor1(i,j)+defor1(i,j-1)
-     .                       +defor2(i,j)+defor2(i+1,j))))
+      deform=sqrt(.5*(defor1(i,j)+defor1(i,j-1)
+     .               +defor2(i,j)+defor2(i+1,j)))
+      vsc2(i,j)=max( q*mdv2hi+(1.-q)*mdv2lo,
+     .              (q*vsc2hi+(1.-q)*vsc2lo)*deform)
+ 38   vsc4(i,j)=max( q*mdv4hi+(1.-q)*mdv4lo,
+     .              (q*vsc4hi+(1.-q)*vsc4lo)*deform)
 c
       do 821 i=0,ii+1
       do 821 l=1,jsv(i)
       j=jfv(i,l)
-      if (j.gt.0   ) visc(i,j-1)=visc(i,j)
+      if (j.gt.0   ) then
+        vsc2(i,j-1)=vsc2(i,j)
+        vsc4(i,j-1)=vsc4(i,j)
+      end if
       j=jlv(i,l)
-      if (j.lt.jj+1) visc(i,j+1)=visc(i,j)
+      if (j.lt.jj+1) then
+        vsc2(i,j+1)=vsc2(i,j)
+        vsc4(i,j+1)=vsc4(i,j)
+      end if
  821  continue
 c
 c --- longitudinal turb. momentum flux (at mass points)
@@ -446,7 +473,10 @@ c
       if (iv(i,j)+iv(i,j+1).gt.0) then
        dpxy=max(dpv(i,j  ,km),onemm)
        dpjb=max(dpv(i,j+1,km),onemm)
-       vflux1(i,j)=min(difmxp(i,j),(visc(i,j)+visc(i,j+1))*scpx(i,j))
+       vflux1(i,j)=min(difmxp(i,j),(vsc2(i,j)+vsc2(i,j+1))*scpx(i,j))
+     .             *hfharm(dpxy,dpjb)*(vtotn(i,j)-vtotn(i,j+1))
+     .            +min(.125*difmxp(i,j),
+     .                 (vsc4(i,j)+vsc4(i,j+1))*scpx(i,j))
      .             *hfharm(dpxy,dpjb)*(dl2v(i,j)-dl2v(i,j+1))
       endif
  825  continue
@@ -465,18 +495,26 @@ c
       dpib=dpib+wgtib(i,j)*(dpxy-dpib)
 c
       if (iv(i-1,j).eq.0) then
-        visca=visc(i  ,j)
+        vsc2a=vsc2(i  ,j)
+        vsc4a=vsc4(i  ,j)
       else
-        visca=visc(i-1,j)
+        vsc2a=vsc2(i-1,j)
+        vsc4a=vsc4(i-1,j)
       end if
       if (iv(i+1,j).eq.0) then
-        viscb=visc(i  ,j)
+        vsc2b=vsc2(i  ,j)
+        vsc4b=vsc4(i  ,j)
       else
-        viscb=visc(i+1,j)
+        vsc2b=vsc2(i+1,j)
+        vsc4b=vsc4(i+1,j)
       end if
-      vflux2(i,j)=min(difmxq(i  ,j),(visc(i,j)+visca)*scqy(i  ,j))
+      vflux2(i,j)=min(difmxq(i  ,j),(vsc2(i,j)+vsc2a)*scqy(i  ,j))
+     .            *hfharm(dpia,dpxy)*(via(i,j)-vtotn(i,j))
+     .           +min(.125*difmxq(i  ,j),(vsc4(i,j)+vsc4a)*scqy(i  ,j))
      .            *hfharm(dpia,dpxy)*(dl2via(i,j)-dl2v(i,j))
- 823  vflux3(i,j)=min(difmxq(i+1,j),(visc(i,j)+viscb)*scqy(i+1,j))
+ 823  vflux3(i,j)=min(difmxq(i+1,j),(vsc2(i,j)+vsc2b)*scqy(i+1,j))
+     .            *hfharm(dpib,dpxy)*(vtotn(i,j)-vib(i,j))
+     .           +min(.125*difmxq(i+1,j),(vsc4(i,j)+vsc4b)*scqy(i+1,j))
      .            *hfharm(dpib,dpxy)*(dl2v(i,j)-dl2vib(i,j))
 c
       if (k.eq.1) then

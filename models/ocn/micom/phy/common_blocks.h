@@ -5,6 +5,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  u,v,           ! velocity components
      .  dp,            ! layer thickness
+     .  dpold,         ! layer thickness at old time level
      .  dpu,dpv,       ! layer thickness at u- and v-points
      .  temp,          ! temperature
      .  saln,          ! salinity
@@ -18,7 +19,6 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  sigmar,        ! reference potential density
      .  temmin,        ! minimum temperature allowed in an isopycnic layer
-     .  dpold,         ! layer thickness at old time level
      .  dpuold,dpvold, ! layer thickness at u- and v-points at old time level
      .  told,          ! temperature at old time level
      .  sold,          ! salinity at old time level
@@ -30,8 +30,8 @@ c
      .  betafp,        ! latitudinal variation of the coriolis param. at p-point
      .  potvor         ! potential vorticity
 c
-      common /micom1/ u,v,dp,dpu,dpv,temp,saln,sigma,p,pu,pv,phi,
-     .                sigmar,temmin,dpold,dpuold,dpvold,told,sold,
+      common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,p,pu,pv,phi,
+     .                sigmar,temmin,dpuold,dpvold,told,sold,
      .                diaflx,corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
@@ -156,12 +156,16 @@ c
 c
 c --- 'baclin' = baroclinic time step
 c --- 'batrop' = barotropic time step
-c --- 'vdfvhi' = diffusion velocity (cm/s) for momentum dissipation
-c --- 'vdfvlo' same as vdfvhi but used when Rossby radius is resolved
-c --- 'vdfchi' = diffusivity (cm**2/s) for momentum dissipation
-c --- 'vdfclo' same as vdfchi but used when Rossby radius is resolved
-c --- 'vischi' is nondimensional, used in deformation-dependent viscosity
-c --- 'visclo' same as vischi but used when Rossby radius is resolved
+c --- 'mdv2hi' = Laplacian diffusion velocity (cm/s) for momentum dissipation
+c --- 'mdv2lo' = same as mdv2hi but used when Rossby radius is resolved
+c --- 'mdv4hi' = Biharmonic diffusion velocity (cm/s) for momentum dissipation
+c --- 'mdv4lo' = same as mdv4hi but used when Rossby radius is resolved
+c --- 'mdc2hi' = Laplacian diffusivity (cm**2/s) for momentum dissipation
+c --- 'mdc2lo' = same as mdc2hi but used when Rossby radius is resolved
+c --- 'vsc2hi' = parameter used in deformation-dependent Laplacian viscosity
+c --- 'vsc2lo' = same as vsc2hi but used when Rossby radius is resolved
+c --- 'vsc4hi' = parameter used in deformation-dependent Biharmonic viscosity
+c --- 'vsc4lo' = same as vsc4hi but used when Rossby radius is resolved
 c --- slip = +1  for free-slip boundary cond., slip = -1  for non-slip cond.
 c --- 'cbar'   = rms flow speed (cm/s) for linear bottom friction law
 c --- 'cb'     = coefficient of quadratic bottom friction
@@ -189,16 +193,17 @@ c ---            parameterization. egidfq=difint/difiso
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c
-      real baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,visclo,slip,
-     .     cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,
-     .     thktop,thkbot,acurcy,egc,eggam,egmndf,egmxdf,egidfq
+      real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
+     .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
+     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy,
+     .     egc,eggam,egmndf,egmxdf,egidfq
       logical csdiag,cnsvdi
 c
-      common /parms1/ baclin,batrop,vdfvhi,vdfvlo,vdfchi,vdfclo,vischi,
-     .                visclo,slip,cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,
-     .                wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy,
-     .                egc,eggam,egmndf,egmxdf,egidfq,
-     .                csdiag,cnsvdi
+      common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
+     .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
+     .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
+     .                wpgf,mltmin,thktop,thkbot,acurcy,egc,eggam,
+     .                egmndf,egmxdf,egidfq,csdiag,cnsvdi
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
