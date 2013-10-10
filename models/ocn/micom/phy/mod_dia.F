@@ -2443,10 +2443,10 @@ c --- ------------------------------------------------------------------
             nsi(sec_num)=0
           else
             nsi(sec_num)=nsi(sec_num)+1
-            read(char120,'(i3,i4,2i3)') isi(sec_num,nsi(sec_num)),
-     .                                  jsi(sec_num,nsi(sec_num)),
-     .                                  usi(sec_num,nsi(sec_num)),
-     .                                  vsi(sec_num,nsi(sec_num))
+            read(char120,*) isi(sec_num,nsi(sec_num)),
+     .                      jsi(sec_num,nsi(sec_num)),
+     .                      usi(sec_num,nsi(sec_num)),
+     .                      vsi(sec_num,nsi(sec_num))
           endif
         enddo
         close(nfu)
@@ -2632,7 +2632,7 @@ c --- - Read section file metraindex.dat
               call xchalt('(diamer)')
                      stop '(diamer)'
             endif
-            read(c20,'(i3,i4,2i3)') iind1,jind1,uflg1,vflg1
+            read(c20,*) iind1,jind1,uflg1,vflg1
             if (oflg(iind1,jind1).ne.0) then
               nind(l)=nind(l)+1
               iind(nind(l),l)=iind1

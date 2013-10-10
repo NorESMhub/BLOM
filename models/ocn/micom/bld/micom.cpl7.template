@@ -19,10 +19,12 @@ else if ($OCN_GRID == gx1v6) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
 else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
-else if ( $OCN_GRID == tnx1v1) then
-  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
 else if ( $OCN_GRID == tnx2v1) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
+else if ( $OCN_GRID == tnx1v1) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
+else if ( $OCN_GRID == tnx0.25v1) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -234,78 +236,78 @@ set MSC_VOLTR    =  '0,   2'
 set BGC_FNAMETAG  = "'hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '30,365'
 set BGC_FILEFREQ  = '30,365'
-set BGC_COMPFLAG  = '0,  0'
-set BGC_NCFORMAT  = '0,  0'
-set BGC_INVENTORY = '1,  0'
-set SRF_KWCO2     = '2,  2'
-set SRF_PCO2      = '2,  2'
-set SRF_DMSFLUX   = '2,  2'
-set SRF_CO2FXD    = '2,  2'
-set SRF_CO2FXU    = '2,  2'
-set SRF_OXFLUX    = '2,  2'
-set SRF_NIFLUX    = '2,  2'
-set SRF_DMS       = '2,  2'
-set SRF_DMSPROD   = '2,  2'
-set SRF_DMS_BAC   = '2,  2'
-set SRF_DMS_UV    = '2,  2'
-set SRF_EXPORT    = '2,  2'
-set SRF_EXPOSI    = '2,  2'
-set SRF_EXPOCA    = '2,  2'
-set SRF_ATMCO2    = '2,  2'
-set SRF_ATMO2     = '2,  2'
-set SRF_ATMN2     = '2,  2'
-set LYR_PHYTO     = '2,  0'
-set LYR_GRAZER    = '2,  0'
-set LYR_DOC       = '2,  0'
-set LYR_PHOSY     = '2,  0'
-set LYR_PHOSPH    = '2,  0'
-set LYR_OXYGEN    = '2,  0'
-set LYR_IRON      = '2,  0'
-set LYR_ANO3      = '2,  0'
-set LYR_ALKALI    = '2,  0'
-set LYR_SILICA    = '2,  0'
-set LYR_DIC       = '2,  0'
-set LYR_POC       = '2,  0'
-set LYR_CALC      = '2,  0'
-set LYR_OPAL      = '2,  0'
-set LYR_CO3       = '2,  0'
-set LYR_PH        = '2,  0'
-set LYR_OMEGAC    = '2,  0'
-set LYR_DIC13     = '2,  0'
-set LYR_DIC14     = '2,  0'
-set BGC_DP        = '2,  0'
-set LYR_NOS       = '2,  0'
-set LVL_PHYTO     = '0,  2'
-set LVL_GRAZER    = '0,  2'
-set LVL_DOC       = '0,  2'
-set LVL_PHOSY     = '0,  2'
-set LVL_PHOSPH    = '0,  2'
-set LVL_OXYGEN    = '0,  2'
-set LVL_IRON      = '0,  2'
-set LVL_ANO3      = '0,  2'
-set LVL_ALKALI    = '0,  2'
-set LVL_SILICA    = '0,  2'
-set LVL_DIC       = '0,  2'
-set LVL_POC       = '0,  2'
-set LVL_CALC      = '0,  2'
-set LVL_OPAL      = '0,  2'
-set LVL_CO3       = '0,  2'
-set LVL_PH        = '0,  2'
-set LVL_OMEGAC    = '0,  2'
-set LVL_DIC13     = '0,  2'
-set LVL_DIC14     = '0,  2'
-set LVL_NOS       = '0,  2'
-set SDM_POWAIC    = '0,  2'
-set SDM_POWAAL    = '0,  2'
-set SDM_POWAPH    = '0,  2'
-set SDM_POWAOX    = '0,  2'
-set SDM_POWN2     = '0,  2'
-set SDM_POWNO3    = '0,  2'
-set SDM_POWASI    = '0,  2'
-set SDM_SSSO12    = '0,  2'
-set SDM_SSSSIL    = '0,  2'
-set SDM_SSSC12    = '0,  2'
-set SDM_SSSTER    = '0,  2'
+set BGC_COMPFLAG  = '0,   0'
+set BGC_NCFORMAT  = '0,   0'
+set BGC_INVENTORY = '1,   0'
+set SRF_KWCO2     = '2,   2'
+set SRF_PCO2      = '2,   2'
+set SRF_DMSFLUX   = '2,   2'
+set SRF_CO2FXD    = '2,   2'
+set SRF_CO2FXU    = '2,   2'
+set SRF_OXFLUX    = '2,   2'
+set SRF_NIFLUX    = '2,   2'
+set SRF_DMS       = '2,   2'
+set SRF_DMSPROD   = '2,   2'
+set SRF_DMS_BAC   = '2,   2'
+set SRF_DMS_UV    = '2,   2'
+set SRF_EXPORT    = '2,   2'
+set SRF_EXPOSI    = '2,   2'
+set SRF_EXPOCA    = '2,   2'
+set SRF_ATMCO2    = '2,   2'
+set SRF_ATMO2     = '2,   2'
+set SRF_ATMN2     = '2,   2'
+set LYR_PHYTO     = '2,   0'
+set LYR_GRAZER    = '2,   0'
+set LYR_DOC       = '2,   0'
+set LYR_PHOSY     = '2,   0'
+set LYR_PHOSPH    = '2,   0'
+set LYR_OXYGEN    = '2,   0'
+set LYR_IRON      = '2,   0'
+set LYR_ANO3      = '2,   0'
+set LYR_ALKALI    = '2,   0'
+set LYR_SILICA    = '2,   0'
+set LYR_DIC       = '2,   0'
+set LYR_POC       = '2,   0'
+set LYR_CALC      = '2,   0'
+set LYR_OPAL      = '2,   0'
+set LYR_CO3       = '2,   0'
+set LYR_PH        = '2,   0'
+set LYR_OMEGAC    = '2,   0'
+set LYR_DIC13     = '2,   0'
+set LYR_DIC14     = '2,   0'
+set BGC_DP        = '2,   0'
+set LYR_NOS       = '2,   0'
+set LVL_PHYTO     = '0,   2'
+set LVL_GRAZER    = '0,   2'
+set LVL_DOC       = '0,   2'
+set LVL_PHOSY     = '0,   2'
+set LVL_PHOSPH    = '0,   2'
+set LVL_OXYGEN    = '0,   2'
+set LVL_IRON      = '0,   2'
+set LVL_ANO3      = '0,   2'
+set LVL_ALKALI    = '0,   2'
+set LVL_SILICA    = '0,   2'
+set LVL_DIC       = '0,   2'
+set LVL_POC       = '0,   2'
+set LVL_CALC      = '0,   2'
+set LVL_OPAL      = '0,   2'
+set LVL_CO3       = '0,   2'
+set LVL_PH        = '0,   2'
+set LVL_OMEGAC    = '0,   2'
+set LVL_DIC13     = '0,   2'
+set LVL_DIC14     = '0,   2'
+set LVL_NOS       = '0,   2'
+set SDM_POWAIC    = '0,   2'
+set SDM_POWAAL    = '0,   2'
+set SDM_POWAPH    = '0,   2'
+set SDM_POWAOX    = '0,   2'
+set SDM_POWN2     = '0,   2'
+set SDM_POWNO3    = '0,   2'
+set SDM_POWASI    = '0,   2'
+set SDM_SSSO12    = '0,   2'
+set SDM_SSSSIL    = '0,   2'
+set SDM_SSSC12    = '0,   2'
+set SDM_SSSTER    = '0,   2'
 
 
 #set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
@@ -326,9 +328,7 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
 endif
 
 if ($MICOM_COUPLING  =~ *partial*) then
-  set LSEND_PRECIP_FACT = .true.
-else
-  set LSEND_PRECIP_FACT = .false.
+  set SPRFAC = .true.
 endif
 
 if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
@@ -337,9 +337,6 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ( $OCN_GRID ==  tnx1v1) then
-  set BACLIN = 3200.
-  set BATROP = 64.
 else if ( $OCN_GRID ==  tnx2v1) then
   set BACLIN = 4800.
   set BATROP = 96.
@@ -384,6 +381,18 @@ else if ( $OCN_GRID ==  tnx2v1) then
   set LVL_VSFLX    =  '0,   0'
   set LVL_WFLX     =  '0,   2'
   set LVL_WFLX2    =  '0,   0'
+else if ( $OCN_GRID ==  tnx1v1) then
+  set BACLIN = 3200.
+  set BATROP = 64.
+else if ( $OCN_GRID ==  tnx0.25v1) then
+  set BACLIN = 800.
+  set BATROP = 16.
+  set MDV2HI = .4
+  set MDC2HI = 300.e4
+  set EGC    = .2
+  set EGMXDF = 500.e4
+  set GLB_NCFORMAT =  '1,   1'
+  set BGC_NCFORMAT  = '1,   1'
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -962,10 +971,10 @@ EOF1
 
 
 set cpp_ocn = "-DCCSMCOUPLED -DMPI -DNCEP"
-if (\$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx2v1) then
+if (\$OCN_GRID == tnx2v1 || \$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "\$cpp_ocn -DARCTIC"
 endif
-if (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1) then
+if (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "\$cpp_ocn -DLEVITUS2X"
 endif
 if (\$#turbclo != 0) then
