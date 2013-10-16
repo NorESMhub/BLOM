@@ -21,6 +21,8 @@ else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
 else if ( $OCN_GRID == tnx2v1) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
+else if ( $OCN_GRID == tnx1.5v1) then
+  setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20131011
 else if ( $OCN_GRID == tnx1v1) then
   setenv INPUTPATH \$DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
 else if ( $OCN_GRID == tnx0.25v1) then
@@ -337,7 +339,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ( $OCN_GRID ==  tnx2v1) then
+else if ( $OCN_GRID ==  tnx2v1 || $OCN_GRID ==  tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
@@ -971,7 +973,7 @@ EOF1
 
 
 set cpp_ocn = "-DCCSMCOUPLED -DMPI -DNCEP"
-if (\$OCN_GRID == tnx2v1 || \$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx0.25v1) then
+if (\$OCN_GRID == tnx2v1 || \$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx1.5v1 || \$OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "\$cpp_ocn -DARCTIC"
 endif
 if (\$OCN_GRID == gx1v5 || \$OCN_GRID == gx1v6 || \$OCN_GRID == tnx1v1 || \$OCN_GRID == tnx0.25v1) then
