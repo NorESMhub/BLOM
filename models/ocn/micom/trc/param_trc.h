@@ -30,7 +30,7 @@ c --- Advected HAMOCC tracers
 #  else 
       parameter (i_iso_adv=0)      
 #  endif
-#  ifdef PCFC  
+#  ifdef CFC  
       parameter (i_cfc_adv=3)
 #  else 
       parameter (i_cfc_adv=0)

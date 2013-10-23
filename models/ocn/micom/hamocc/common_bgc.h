@@ -5,21 +5,22 @@ c
      . bgc_dx  (idm,jdm)      ,bgc_dy  (idm,jdm)
      .,bgc_dp  (idm,jdm,kdm)  ,bgc_dpio(idm,jdm,kdm)
      .,bgc_pu  (idm,jdm,kdm+1),bgc_pw  (idm,jdm,kdm+1)
+     .,bgc_rho (idm,jdm,kdm)
      .,bgc_t   (idm,jdm,kdm)  ,bgc_s   (idm,jdm,kdm)
      .,omask   (idm,jdm)
      .,bgc_swr (idm,jdm)      ,bgc_fice(idm,jdm)
-     .,bgc_awnd(idm,jdm) 
+     .,bgc_awnd(idm,jdm)      ,bgc_slp(idm,jdm) 
      .,bgc_atmco2(idm,jdm)    ,bgc_flxco2(idm,jdm)
 c
       real bgc_dx,bgc_dy,bgc_dp,bgc_dpio
-      real bgc_pu,bgc_pw,bgc_t,bgc_s,omask
-      real bgc_swr,bgc_fice,bgc_awnd
+      real bgc_pu,bgc_pw,bgc_rho,bgc_t,bgc_s,omask
+      real bgc_swr,bgc_fice,bgc_awnd,bgc_slp
       real bgc_atmco2,bgc_flxco2
 c
       c o m m o n /bgc_hamocc_b/
-     . ldtday,ldtmonth,kpndtrun,pmonts
+     . ldtday,ldtmonth,kpndtrun
 c
-      integer ldtday,ldtmonth,kpndtrun,pmonts
+      integer ldtday,ldtmonth,kpndtrun
 c
 c----------------------------------------------------------------------
       c o m m o n/bgcc/
@@ -36,8 +37,8 @@ c
 c----------------------------------------------------------------------
 
       c o m m o n /bgc_hamocc2/
-     . pgila,pgiph,bgc3dwrt,bgc2dwrt
+     . pglon,pglat,bgc3dwrt,bgc2dwrt
 
-      real pgila(2*idm,2*jdm),pgiph(2*idm,2*jdm)
+      real pglon(idm,jdm),pglat(idm,jdm)
       real bgc3dwrt,bgc2dwrt
 

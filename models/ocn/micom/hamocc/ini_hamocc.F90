@@ -1,12 +1,8 @@
-      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke&
-     &            ,kpbe,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw    &
-     &            ,kplyear,kplmonth,kplday,kpldtoce,pmonts             &
-     &            ,pgila,pgiph,omask,dummy_tr,ntr,ntrbgc,itrbgc        &
-     &            ,rstfnm_ocn,path,path_len,path2,path2_len)
-!      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke&
-!     &           ,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu,ptiestw          &
-!     &           ,kplyear,kplmonth,kplday,kpldtoce,pyears,pmonts       &
-!     &           ,pgila,pgiph)
+      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke  &
+     &            ,kpbe,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw &
+     &            ,kplyear,kplmonth,kplday,kpldtoce                      &
+     &            ,pglon,pglat,omask,dummy_tr,ntr,ntrbgc,itrbgc          &
+     &            ,rstfnm_ocn,path,path2)
 
 !****************************************************************
 !
@@ -16,56 +12,51 @@
 !
 !     Modified
 !     --------
+!     J.Schwinger       *GFI, Bergen*    2013-10-21
+!     - added GNEWS2 option for riverine input of carbon and nutrients
+!     - code cleanup
 !     
 !     Purpose
 !     -------
-!     - initialize sediment layering
-!     - initialize bgc variables
-!     - calculation of chemical constants
-!     - read restart fields
-!     - calculate budgets
-!
-!     Method
-!     -------
-!     - Noch zu tun : Biharmonic tracer diffusion (mit AULAPTS > ALMZER)
-!                     Convective adjustment
-!                     sea ice growth influence on tracer concentration
-!
-!**   Interface.
-!     ----------
-!
-!     *CALL*       *INI_BGC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke
-!                          ,pddpo,ptho,psao,pdlxp,pdlyp,ptiestu
-!                          ,kplyear,kplmonth,kplday,kpldtoce)*
+!     - allocate and initialize bgc variables
+!     - allocate and initialize sediment layering
+!     - initialize bgc constants (beleg.F90)
+!     - read restart fields if kpaufr=1
 !
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpaufr*   - 1/0 for read / do not read restart file
-!     *INTEGER* *kpicycli* - flag for cyclicity.
-!     *REAL*    *pdt*      - ocean model time step [sec].
-!     *INTEGER* *kpndtrun* - total no. of time steps of run.
-!     *INTEGER* *kpie*     - zonal dimension of model grid.
-!     *INTEGER* *kpje*     - meridional dimension of model grid.
-!     *INTEGER* *kpke*     - vertical dimension of model grid.
-!     *REAL*    *pddpo*    - size of scalar grid cell (3rd REAL) [m].
-!     *REAL*    *ptho*     - potential temperature [deg C].
-!     *REAL*    *psao*     - salinity [psu.].
-!     *REAL*    *pdlxp*    - size of scalar grid cell (zonal) [m].
-!     *REAL*    *pdlyp*    - size of scalar grid cell (meridional) [m].
-!     *REAL*    *pgila*   - geographical longitude of grid points [degree E].
-!     *REAL*    *pgiph*   - geographical latitude  of grid points [degree N].
-!     *REAL*    *ptiestu*  - depth of level [m].
-!     *INTEGER* *kplyear*  - year  in ocean restart date
-!     *INTEGER* *kplmonth* - month in ocean restart date
-!     *INTEGER* *kplday*   - day   in ocean restart date
-!     *INTEGER* *kpldtoce* - step  in ocean restart date
-!
-!     Externals
-!     ---------
-!     READ_NAMELIST CALL INI_TIMESER_BGC BODENSED BELEG_BGC AUFR_BGC 
-!     CHEMIN CHCK_BGC PRINT_BGC
+!     *INTEGER* *kpaufr*     - 1/0 for read / do not read restart file
+!     *INTEGER* *kpicycli*   - flag for cyclicity.
+!     *REAL*    *pdt*        - ocean model time step [sec].
+!     *INTEGER* *kpndtrun*   - total no. of time steps of run.
+!     *INTEGER* *kpie*       - zonal dimension of model grid.
+!     *INTEGER* *kpje*       - meridional dimension of model grid.
+!     *INTEGER* *kpke*       - vertical dimension of model grid.
+!     *REAL*    *pddpo*      - size of scalar grid cell (vertical dimension) [m].
+!     *REAL*    *ptho*       - potential temperature [deg C].
+!     *REAL*    *psao*       - salinity [psu].
+!     *REAL*    *prho*       - density [g/cm^3].
+!     *REAL*    *pdlxp*      - size of scalar grid cell (zonal) [m].
+!     *REAL*    *pdlyp*      - size of scalar grid cell (meridional) [m].
+!     *REAL*    *ptiestu*    - depth of level [m].
+!     *REAL*    *ptiestw*    - depth of level interface [m].
+!     *INTEGER* *kplyear*    - year  in ocean restart date
+!     *INTEGER* *kplmonth*   - month in ocean restart date
+!     *INTEGER* *kplday*     - day   in ocean restart date
+!     *INTEGER* *kpldtoce*   - step  in ocean restart date
+!     *REAL*    *pglon*      - geographical longitude of grid points [degree E].
+!     *REAL*    *pglat*      - geographical latitude  of grid points [degree N].
+!     *REAL*    *omask*      - land/ocean mask
+!     *REAL*    *dummy_trc*  - initial/restart tracer field to be passed to the 
+!                              ocean model [mol/kg]
+!     *INTEGER* *ntr*        - number of tracers in tracer field
+!     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
+!     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
+!     *CHAR*    *rstfnm_ocn* - restart file name-informations
+!     *CHAR*    *path*       - path to data files
+!     *CHAR*    *path2*      - path to restart files
 !
 !**********************************************************************
 
@@ -76,35 +67,27 @@
       use mo_param1_bgc 
       use mod_xc, only: mnproc,lp,nfu
       use mo_bgcmean
-#ifdef PDYNAMIC_BGC
-      use mo_dynamic
-#endif /* PDYNAMIC_BGC */ 
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
  
       implicit none
-      INTEGER :: kpie,kpje,kpke,kpbe,pmonts,ntr,ntrbgc,itrbgc
-!      INTEGER :: pyears,pmonts,kpie,kpje,kpke
+      INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
       INTEGER :: kplyear,kplmonth,kplday,kpldtoce
       INTEGER :: kpaufr,kpicycli,kpndtrun,k,l
       INTEGER :: i,j
       
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: ptho (kpie,kpje,kpke)
-      REAL :: psao (kpie,kpje,kpke)
-      REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-!      REAL :: pgila(kpie,kpje)
-!      REAL :: pgiph(kpie,kpje)
-      REAL :: pgila(kpie*2,kpje*2)
-      REAL :: pgiph(kpie*2,kpje*2)
-      REAL :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
-      REAL :: omask(kpie,kpje)
-      REAL :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
-!      REAL :: zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
-      REAL :: pdt
-      character*(*) rstfnm_ocn,path,path2
-      integer path_len,path2_len
+      REAL    :: pddpo(kpie,kpje,kpke)
+      REAL    :: ptho (kpie,kpje,kpke)
+      REAL    :: psao (kpie,kpje,kpke)
+      REAL    :: prho (kpie,kpje,kpke)
+      REAL    :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+      REAL    :: pglon(kpie,kpje),pglat(kpie,kpje)
+      REAL    :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
+      REAL    :: omask(kpie,kpje)
+      REAL    :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
+      REAL    :: pdt
+      character(len=*) :: rstfnm_ocn,path,path2
 
 ! Define io units
 
@@ -117,7 +100,7 @@
       if (mnproc.eq.1) then
       write(io_stdo_bgc,*) 'HAMOCC initialisation'
       write(io_stdo_bgc,*) 'restart',kpaufr,kpicycli,kpndtrun
-      write(io_stdo_bgc,*) 'dims',kpie,kpje,kpke,pmonts
+      write(io_stdo_bgc,*) 'dims',kpie,kpje,kpke
       write(io_stdo_bgc,*) 'time',kplyear,kplmonth,kplday,kpldtoce
       write(io_stdo_bgc,*) 'time step',pdt
       endif
@@ -158,53 +141,31 @@
 !
       CALL ALLOC_MEM_CARBCH(kpie,kpje,kpke)
 
-#ifdef PDYNAMIC_BGC
-      CALL ALLOC_MEM_DYNAMIC(kpie,kpje,kpke)
-#endif /* PDYNAMIC_BGC */
-
 !                        
 ! Initialize sediment layering
 !
       CALL BODENSED(kpie,kpje,kpke,pddpo)
 
-!JT
-!JT Initialize atmospheric tracers
-!JT
-      atm(:,:,:)=0.
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-      ocetra(:,:,:,:)=0.
- 
-      CALL BELEG_BGC(kpie,kpje,kpke,psao,ptho,pddpo,ptiestu,    &
-     &               omask,pgila,pgiph,path,path_len)
-
-!                        
-! Initialize chemical constants: this routine needs 3D temp./sal. 
-! input from the ocean model. For C-HOPE this means, that it must not be 
-! called before SBR AUFR.
-! 
-! If kpaufr.eq.1 the initial chem. constants are read from the restart file.
-! If kpaufr.eq.0 they have to be calculated now.
-! Parameter "-13" is initializing all month.
-
-      CALL CHEMCON(-13,kpie,kpje,kpke,psao,ptho,                &
-     &     pddpo,pdlxp,pdlyp,ptiestu,kplmonth,omask)
-
+      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestu,prho,         &
+     &               omask,pglon,pglat,path)
+     
 !
-! Initialise river input (added by Ingo Bethke on 2013.06.07)
+! Initialise river input
 !
 #ifdef RIV_GNEWS
-      call INI_RIVERINPT(path,path_len)
+      call INI_RIVERINPT(path)
 #endif
-     
+
 !                        
 ! Read restart fields from restart file
 !
       IF(kpaufr.eq.1) THEN
-         CALL AUFR_BGC(kpie,kpje,kpke,pddpo,kplyear,kplmonth,   &
-     &                 kplday,kpldtoce,omask,                   &
-     &                 rstfnm_ocn,path2,path2_len)
+         CALL AUFR_BGC(kpie,kpje,kpke,                          &
+     &                 kplyear,kplmonth,kplday,kpldtoce,        &
+     &                 rstfnm_ocn,path2)
       ENDIF
 
 ! aufsetz! (for initialization of 14C)
@@ -217,19 +178,15 @@
 !      CALL SPINUP_BGC(kpie,kpje,kpke,omask,pdlxp,pdlyp)
 !#endif
 
+
 !
 ! Global inventory of all tracers
-!
-      
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,1)
-
-!      CALL CHCK_BGC(io_stdo_bgc,kpicycli,                         &
-!     &'Check values of ocean tracer at exit from SBR INI_BGC :',  &
-!     & kpie,kpje,kpke,pddpo) 
+!      
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,1)
 
 !
-! Fill dummy_tr with HAMOCC initialised ocetra to pass to MICOM       
+! pass tracer fields out to ocean model; No unit conversion here, 
+! tracers are already in correct units for the ocean model (mol/kg)
 !
       dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
 

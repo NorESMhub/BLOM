@@ -42,7 +42,7 @@
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
 #endif 
 
-      REAL :: phytomi,grami,grazra,rrrcl,pi_alpha
+      REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
       REAL :: ro2ut,rcar,rnit,rnoi,rnit23,rnit13,rcalc,ropal,bluefix
       REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14,plafr13,plafr14
@@ -50,7 +50,8 @@
       REAL :: dphymor,dzoomor,dremopal,calmax, gutc
       REAL :: dremsul
       REAL :: psedi,csedi,ssedi
-      REAL :: perc_diron, riron, fesoly, relaxfe, wdust,bolaymin  
+      REAL :: perc_diron, riron, fesoly, relaxfe, wdust,bolaymin 
+      REAL :: perc_disil
       REAL :: ctochl, atten_w, atten_c, atten_f
       REAL :: sco212_sfc,alkali_sfc,phosph_sfc,ano3_sfc,silica_sfc
       REAL :: vol0
@@ -81,6 +82,7 @@
 
          ALLOCATE (expoor(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory expoor'
+         expoor(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable expoca ...'
@@ -90,6 +92,7 @@
 
          ALLOCATE (expoca(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory expoca'
+         expoca(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable exposi ...'
@@ -99,6 +102,7 @@
 
          ALLOCATE (exposi(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory exposi'
+         exposi(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
@@ -108,6 +112,7 @@
 
          ALLOCATE (kbo(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory kbo'
+         kbo(:,:) = 0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
@@ -117,6 +122,7 @@
 
          ALLOCATE (kwrbioz(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory kwrbioz'
+         kwrbioz(:,:) = 0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable strahl ...'
@@ -126,6 +132,7 @@
 
          ALLOCATE (strahl(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory starhl'
+         strahl(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
@@ -135,6 +142,7 @@
 
          ALLOCATE (bolay(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory bolay'
+         bolay(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable alar1max'
@@ -144,6 +152,7 @@
 
          ALLOCATE (alar1max(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory alar1max'
+         alar1max(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable TSFmax'
@@ -153,6 +162,7 @@
 
          ALLOCATE (TSFmax(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory TSFmax'
+         TSFmax(:,:) = 0.0
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable TMFmax'
@@ -162,6 +172,7 @@
 
          ALLOCATE (TMFmax(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory TMFmax'
+         TMFmax(:,:) = 0.0
 
 #ifdef FB_BGC_OCE 
          IF (mnproc.eq.1) THEN
@@ -173,6 +184,7 @@
 
          ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory abs_oce'
+         abs_oce(:,:,:) = 0.0
 #endif 
 
       END SUBROUTINE ALLOC_MEM_BIOMOD

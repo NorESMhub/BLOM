@@ -48,10 +48,8 @@
       REAL :: ddpo(kpie,kpje,kpke)
       REAL :: dlxp(kpie,kpje),dlyp(kpie,kpje)
       REAL :: WETO(kpie,kpje)
-!      REAL :: zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
       REAL :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
       REAL :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-      REAL :: ztmp3(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
 
       REAL :: zpowtrato(npowtra)
       REAL :: zsedlayto(nsedtra),zburial(nsedtra)
@@ -63,21 +61,11 @@
       REAL :: co2flux,so2flux,sn2flux,sn2oflux
       REAL :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
       REAL :: ppm2con, co2atm
-      REAL :: RHOWAT,RHOICE,RHOSNO,RHOICWA,RHOSNWA
 
-      RHOWAT=1024.
-      RHOICE=906.
-      RHOSNO=330.
-      RHOICWA=RHOICE/RHOWAT
-      RHOSNWA=RHOSNO/RHOWAT
 
 ! aqueous sediment tracer
 !----------------------------------------------------------------------
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j)=0.
-      ENDDO
-      ENDDO
+      ztmp1(:,:)=0.0
       DO k=1,ks
       DO j=1,kpje
       DO i=1,kpie
@@ -91,11 +79,7 @@
 
       DO l=1,npowtra
 
-         DO j=1,kpje
-         DO i=1,kpie
-           ztmp1(i,j)=0.
-         ENDDO
-         ENDDO
+         ztmp1(:,:)=0.0
          DO k=1,ks
          DO j=1,kpje
          DO i=1,kpie
@@ -126,11 +110,7 @@
 !----------------------------------------------------------------------
       DO l=1,nsedtra
 
-         DO j=1,kpje
-         DO i=1,kpie
-           ztmp1(i,j)=0.
-         ENDDO
-         ENDDO
+         ztmp1(:,:)=0.0
          DO k=1,ks
          DO j=1,kpje
          DO i=1,kpie
@@ -146,6 +126,7 @@
 
       DO l=1,nsedtra
 
+         ztmp1(:,:)=0.0
          DO j=1,kpje
          DO i=1,kpie
             ztmp1(i,j)=burial(i,j,l)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -156,11 +137,7 @@
 
       ENDDO
 
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j)=0.
-      ENDDO
-      ENDDO
+      ztmp1(:,:)=0.0
       DO k=1,ks
       DO j=1,kpje
       DO i=1,kpie
@@ -197,15 +174,11 @@
 !  oceanic tracers
 !----------------------------------------------------------------------
 
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j)=0.
-      ENDDO
-      ENDDO
+      ztmp1(:,:)=0.0
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
-         IF(ddpo(i,j,k).gt.1.e-20) THEN
+         IF(ddpo(i,j,k).gt.dp_min) THEN
             ztmp1(i,j)=ztmp1(i,j)+WETO(I,J)*dlxp(i,j)*dlyp(i,j)     &
      &                 *DDPO(i,j,k)
          ENDIF
@@ -217,15 +190,11 @@
 
       DO l=1,nocetra
 
-         DO j=1,kpje
-         DO i=1,kpie
-           ztmp1(i,j)=0.
-         ENDDO
-         ENDDO
+         ztmp1(:,:)=0.0
          DO k=1,kpke
          DO j=1,kpje
          DO i=1,kpie
-           IF(ddpo(i,j,k).gt.1.e-20) THEN
+           IF(ddpo(i,j,k).gt.dp_min) THEN
              vol = dlxp(i,j)*dlyp(i,j)*DDPO(i,j,k)
              ztmp1(i,j)=ztmp1(i,j)+WETO(I,J)*ocetra(i,j,k,l)*vol
 !             if (ocetra(i,j,k,l).lt.0.0) then
@@ -247,7 +216,6 @@
       WRITE(io_stdo_bgc,*) ' '
       WRITE(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
       WRITE(io_stdo_bgc,*) ' '
-!      DO l=1,1
       WRITE(io_stdo_bgc,*) 'ztotvol',ztotvol
       DO l=1,nocetra
       WRITE(io_stdo_bgc,*) 'No. ',l,    &
@@ -258,16 +226,12 @@
 ! additional ocean tracer
 !----------------------------------------------------------------------
 
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j)=0.
-        ztmp2(i,j)=0.
-      ENDDO
-      ENDDO
+      ztmp1(:,:)=0.0
+      ztmp2(:,:)=0.0
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
-         IF(ddpo(i,j,k).gt.1.e-20) THEN
+         IF(ddpo(i,j,k).gt.dp_min) THEN
          vol = dlxp(i,j)*dlyp(i,j)*DDPO(i,j,k)
          ztmp1(i,j) = ztmp1(i,j) + WETO(I,J)*hi(i,j,k) *vol
          ztmp2(i,j) = ztmp2(i,j) + WETO(I,J)*co3(i,j,k)*vol
@@ -298,6 +262,8 @@
 !-------------------------------------------------------------------- 
 
       k=1
+      ztmp1(:,:)=0.0
+      ztmp2(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
          ztmp1(i,j) = WETO(I,J)*dlxp(i,j)*dlyp(i,j)*DDPO(i,j,k)    
@@ -356,6 +322,7 @@
       enddo
       enddo
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jco2flux)*dlxp(i,j)*dlyp(i,j)
@@ -364,6 +331,7 @@
 
       CALL xcsum(co2flux,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jo2flux)*dlxp(i,j)*dlyp(i,j)
@@ -372,6 +340,7 @@
 
       CALL xcsum(so2flux,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jn2flux)*dlxp(i,j)*dlyp(i,j)
@@ -380,6 +349,7 @@
 
       CALL xcsum(sn2flux,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
@@ -388,6 +358,7 @@
 
       CALL xcsum(sn2oflux,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = dlxp(i,j)*dlyp(i,j)
@@ -397,6 +368,7 @@
       CALL xcsum(ztotarea,ztmp1,ips)
 
 #ifdef DIFFAT
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
@@ -405,6 +377,7 @@
 
       CALL xcsum(zatmco2,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = atm(i,j,iatmo2)*dlxp(i,j)*dlyp(i,j)
@@ -413,6 +386,7 @@
 
       CALL xcsum(zatmo2,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = atm(i,j,iatmn2)*dlxp(i,j)*dlyp(i,j)
@@ -421,6 +395,7 @@
 
       CALL xcsum(zatmn2,ztmp1,ips)
 #elif CCSMCOUPLED
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
@@ -454,6 +429,7 @@
 
 ! Complete sum of inventory in between bgc.f90
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = prorca(i,j)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -462,6 +438,7 @@
 
       CALL xcsum(zprorca,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = prcaca(i,j)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -470,6 +447,7 @@
 
       CALL xcsum(zprcaca,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = silpro(i,j)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -577,6 +555,7 @@
       WRITE(io_stdo_bgc,*) '        [kmol]'
       ENDIF
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jprorca)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -585,6 +564,7 @@
 
       CALL xcsum(zprorca,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jprcaca)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -593,6 +573,7 @@
 
       CALL xcsum(zprcaca,ztmp1,ips)
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = bgct2d(i,j,jsilpro)*WETO(I,J)*dlxp(i,j)*dlyp(i,j)
@@ -610,6 +591,7 @@
       
       DO l=1,npowtra
 
+        ztmp1(:,:)=0.0
         DO j=1,kpje
         DO i=1,kpie
           ztmp1(i,j) = sedfluxo(i,j,l)*dlxp(i,j)*dlyp(i,j)
@@ -629,6 +611,7 @@
       WRITE(io_stdo_bgc,*) '        [kmol]'
       ENDIF
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = expoor(i,j)*dlxp(i,j)*dlyp(i,j)
@@ -641,6 +624,7 @@
       WRITE(io_stdo_bgc,*) 'carbon   : ',sum
       ENDIF
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = expoca(i,j)*dlxp(i,j)*dlyp(i,j)
@@ -653,6 +637,7 @@
       WRITE(io_stdo_bgc,*) 'carbonate: ',sum
       ENDIF
 
+      ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
         ztmp1(i,j) = exposi(i,j)*dlxp(i,j)*dlyp(i,j)

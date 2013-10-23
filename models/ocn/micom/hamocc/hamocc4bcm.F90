@@ -1,30 +1,47 @@
-      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                        &
-     &    pfswr,psicomo,ptho,psao,pddpo,pdlxp,pdlyp,ptiestu,ptiestw,    &
-     &    pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,kmonlen,    &
-     &    kldtmon,kldtday,omask,dummy_tr,ntr,ntrbgc,itrbgc,             &
+      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                         &
+     &    pfswr,psicomo,ptho,psao,ppao,prho,pddpo,pdlxp,pdlyp,ptiestu,   &
+     &    ptiestw,pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,     &
+     &    kmonlen,kldtmon,kldtday,omask,dummy_tr,ntr,ntrbgc,itrbgc,      &
      &    days_in_yr)       
 
 !**********************************************************************
 !
 !**** *BGC* - .
 !
+!     Modified
+!     --------
+!     J.Schwinger       *GFI, Bergen*    2013-10-21
+!     - added GNEWS2 option for riverine input of carbon and nutrients
+!     - code cleanup
+!
+!
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st REAL of model grid.
-!     *INTEGER* *kpje*    - 2nd REAL of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) REAL of model grid.
-!     *REAL*    *pfswr*   - solar radiation [W/m**2].
-!     *REAL*    *psicomo* - sea ice concentration
-!     *REAL*    *ptho*    - potential temperature [deg C].
-!     *REAL*    *psao*    - salinity [psu.].
-!     *REAL*    *ppao*    - sea level pressure [Pascal].
-!     *REAL*    *pddpo*   - size of scalar grid cell (depth) [m].
-!     *REAL*    *pdlxp*   - size of scalar grid cell (longitudinal) [m].
-!     *REAL*    *pdlyp*   - size of scalar grid cell (latitudinal) [m].
-!     *REAL*    *pdpio*   - inverse size of grid cell (depth)[m].
-!     *INTEGER* *kldtmon* - monthly time stap in OCE.
-!     *INTEGER* *kldtday* - daily time stap in OCE.
+!     *INTEGER* *kpie*       - 1st dimension of model grid.
+!     *INTEGER* *kpje*       - 2nd dimension of model grid.
+!     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
+!     *INTEGER* *kpbe*       - nb. of halo rows for tracer field
+!     *REAL*    *pfswr*      - solar radiation [W/m**2].
+!     *REAL*    *psicomo*    - sea ice concentration
+!     *REAL*    *ptho*       - potential temperature [deg C].
+!     *REAL*    *psao*       - salinity [psu.].
+!     *REAL*    *ppao*       - sea level pressure [Pascal].
+!     *REAL*    *prho*       - density [kg/m^3].
+!     *REAL*    *pddpo*      - size of scalar grid cell (depth) [m].
+!     *REAL*    *pdlxp*      - size of scalar grid cell (longitudinal) [m].
+!     *REAL*    *pdlyp*      - size of scalar grid cell (latitudinal) [m].
+!     *REAL*    *pdpio*      - inverse size of grid cell (1/depth)[1/m].
+!     *INTEGER* *kmonlen*    - length of current month in days.
+!     *INTEGER* *kldtmon*    - monthly time stap in OCE.
+!     *INTEGER* *kldtday*    - daily time stap in OCE.
+!     *REAL*    *omask*      - land/ocean mask
+!     *REAL*    *dummy_tr*   - initial/restart tracer field to be passed to the 
+!                              ocean model [mol/kg]
+!     *INTEGER* *ntr*        - number of tracers in tracer field
+!     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
+!     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
+!     *INTEGER* *days_in_yr* - number of days in year
 !
 !**********************************************************************
 
@@ -35,77 +52,93 @@
       USE mo_control_bgc
 !      USE mo_timeser_bgc
       use mo_param1_bgc 
+      use mod_xc
 #ifdef DIFFAT
       use mo_satm
 #endif
-#ifdef PDYNAMIC_BGC
-      use mo_dynamic
-#endif /* PDYNAMIC_BGC */ 
-      use mod_xc
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
 
       implicit none
-      INTEGER :: kpie,kpje,kpke,kpbe,i,j,k,l,ntr,ntrbgc,itrbgc
 
-      REAL pfswr  (kpie,kpje)
-      REAL psicomo(kpie,kpje)
-      REAL pfu10(kpie,kpje)
-      REAL patmco2(kpie,kpje)
-      REAL pflxco2(kpie,kpje)
- 
-      REAL ptho (kpie,kpje,kpke)
-      REAL psao (kpie,kpje,kpke)
-      REAL pddpo(kpie,kpje,kpke)
-      REAL pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-      REAL pdpio(kpie,kpje,kpke)
-!      REAL ppao(kpie,kpje)            
-      REAL ptiestu(kpie,kpje,kpke+1)
-      REAL ptiestw(kpie,kpje,kpke+1)
-!      REAL zo(kpie,kpje),sicsno(kpie,kpje),sictho(kpie,kpje)
-      REAL omask(kpie,kpje)
-      REAL dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
+      INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
+      REAL    :: pfswr  (kpie,kpje)
+      REAL    :: psicomo(kpie,kpje)
+      REAL    :: pfu10  (kpie,kpje)
+      REAL    :: patmco2(kpie,kpje)
+      REAL    :: pflxco2(kpie,kpje)
+      REAL    :: ptho   (kpie,kpje,kpke)
+      REAL    :: psao   (kpie,kpje,kpke)
+      REAL    :: ppao   (kpie,kpje)
+      REAL    :: prho   (kpie,kpje,kpke)
+      REAL    :: pddpo  (kpie,kpje,kpke)
+      REAL    :: pdlxp  (kpie,kpje)
+      REAL    :: pdlyp  (kpie,kpje)
+      REAL    :: pdpio  (kpie,kpje,kpke)
+      REAL    :: ptiestu(kpie,kpje,kpke+1)
+      REAL    :: ptiestw(kpie,kpje,kpke+1)
+      REAL    :: omask  (kpie,kpje)
+      REAL    :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
       INTEGER :: kplyear,kplmon,kplday,kmonlen,kldtmon,kldtday
       INTEGER :: days_in_yr
 
-      REAL emissions
+      INTEGER :: i,j,k,l
+      REAL    :: emissions
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'HAMOCC',KLDTDAY,KLDTMON,LDTRUNBGC,NDTDAYBGC
       ENDIF
 
-!
+
+!--------------------------------------------------------------------
 ! Increment bgc time step counter of run (initialized in INI_BGC).
 !
       ldtrunbgc = ldtrunbgc + 1
-!
+
+
+!--------------------------------------------------------------------
 ! Increment bgc time step counter of experiment (initialized if IAUFR=0).
 !
       ldtbgc = ldtbgc + 1
-!
-! Increment timeseries-1 sample counter (initialized in INI_TIMSER_BGC).
-!
+
 
 !--------------------------------------------------------------------
-! pass tracer fields in from ocean model
+! pass tracer fields in from ocean model; convert mol/kg -> kmol/m^3
 !
       ocetra(:,:,:,:)=dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
 
+      do k=1,kpke
+!$OMP PARALLEL DO
+      do j=1,kpje
+      do i=1,kpie
+        if (omask(I,J) .gt. 0.5 ) then
+          ocetra(i,j,k,:)=ocetra(i,j,k,:)*prho(i,j,k)
+        endif
+      enddo
+      enddo
+!$OMP END PARALLEL DO
+      enddo
+
+
+!--------------------------------------------------------------------
+! set limits for temp and saln
+!
       DO k=1,kpke
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
         ptho(i,j,k)=min(40.,max(-3.,ptho(i,j,k)))
-        psao(i,j,k)=min(40.,max(0.,psao(i,j,k)))
+        psao(i,j,k)=min(40.,max( 0.,psao(i,j,k)))
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
       ENDDO
-!
+
+
 !--------------------------------------------------------------------
 ! Net solar radiation: multiply  with sea ice concentration
-
+!
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
@@ -113,10 +146,11 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-!
+
+
 !--------------------------------------------------------------------
 ! Pass atmospheric co2
-
+!
 #if defined(DIFFAT) || defined(CCSMCOUPLED)
 #if defined(PROGCO2) || defined(DIAGCO2)
 !$OMP PARALLEL DO
@@ -145,51 +179,27 @@
 #endif
 #endif 
 
-#ifdef PBGC_CK_TIMESTEP
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
+
+!--------------------------------------------------------------------
+! Read atmospheric cfc concentrations
+!
+#ifdef CFC
+      call get_cfc(kplyear,atm_cfc11,atm_cfc12,atm_sf6)
+      IF (mnproc.EQ.1) THEN
+      write(*,*)'Carchm getcfc:',kplyear,atm_cfc11,atm_cfc12,atm_sf6
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
 #endif
 
-!
-!--------------------------------------------------------------------
-! Get flux or partial pressure of atmospheric CO2.
-!
-!      IF (MOD(ldtrunbgc-1,ndtdaybgc) .EQ. 0) THEN
-!         CALL GET_ATMCO2
-!      ENDIF
-!_______________________________________________________________
-!
-! First timestep of the month --> kldtmon eq 1
-      
-      IF (kldtmon .EQ. 1) THEN 
-             
-! Calculate the chemical constants of the month.
-!         IF (mnproc.eq.1) THEN
-!         WRITE(io_stdo_bgc,*) 'CHEMCON gerufen bei kldtmon: ',          &
-!     &                         kplmon,kplday,kmonlen,kldtmon
-!         END
-         CALL CHEMCON(-26,kpie,kpje,kpke,psao,ptho,                     &
-     &                 pddpo,pdlxp,pdlyp,ptiestu,kplmon,omask)     
 
-      ENDIF ! First timestep of the month
-!      call chksumbgc(satoxy,kpke,'satoxy')
+!---------------------------------------------------------------------
+! Read emission data
 !
-!_______________________________________________________________
-!
-! First timestep of the year
-      
 #ifdef EMS_CO2
 #ifdef DIFFAT 
       IF (kldtmon.eq.1.and.kldtmon.eq.1) THEN 
              
-! Calculate the chemical constants of the month.
          IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*) 'CO2_EMS gerufen bei kldtmon: ',          &
+         WRITE(io_stdo_bgc,*) 'CO2_EMS gerufen bei kldtmon: ',       &
      &                         kplmon,kplday,kmonlen,kldtmon
          ENDIF
       call co2_ems(kplyear,emissions)
@@ -202,55 +212,37 @@
       ENDIF ! First timestep of the month
 #endif
 #endif
-!
-!
-!_______________________________________________________________
+
+
+#ifdef PBGC_CK_TIMESTEP
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif
+
+
+!---------------------------------------------------------------------
 ! Recalculate the bottom-most mass containing layer
 
       call calc_bot(kpie,kpje,kpke,pddpo)
-!_______________________________________________________________
-!
-!
+
+
+!---------------------------------------------------------------------
 !     Biogeochemistry
 
       CALL OCPROD(kpie,kpje,kpke,ptho,pddpo,pdlxp,pdlyp,pdpio,ptiestu, &
      &            ptiestw,kplmon,omask)
-
-!      write(io_stdo_bgc,*) 'OCPROD'
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-!      call chksumbgc(ocetra(1,1,1,isco212),kpke,'sco212')
-!      call chksumbgc(ocetra(1,1,1,ialkali),kpke,'alkali')
-!      call chksumbgc(ocetra(1,1,1,iphosph),kpke,'phosph')
-!      call chksumbgc(ocetra(1,1,1,ioxygen),kpke,'oxygen')
-!      call chksumbgc(ocetra(1,1,1,igasnit),kpke,'gasnit')
-!      call chksumbgc(ocetra(1,1,1,iano3),kpke,'ano3')
-!      call chksumbgc(ocetra(1,1,1,isilica),kpke,'silica')
-!      call chksumbgc(ocetra(1,1,1,idoc),kpke,'doc')
-!      call chksumbgc(ocetra(1,1,1,iphy),kpke,'phy')
-!      call chksumbgc(ocetra(1,1,1,izoo),kpke,'zoo')
-!      call chksumbgc(ocetra(1,1,1,ian2o),kpke,'ian2o')
-!      call chksumbgc(ocetra(1,1,1,idms),kpke,'dms')
-!      call chksumbgc(ocetra(1,1,1,iiron),kpke,'iron')
-!      call chksumbgc(ocetra(1,1,1,ifdust),kpke,'dust')
-!      call chksumbgc(ocetra(1,1,1,isco213),kpke,'sco213')
-!      call chksumbgc(ocetra(1,1,1,isco214),kpke,'sco214')
-!      call chksumbgc(ocetra(1,1,1,idet),kpke,'det')
-!      call chksumbgc(ocetra(1,1,1,icalc),kpke,'calc')
-!      call chksumbgc(ocetra(1,1,1,iopal),kpke,'opal')
-!      call chksumbgc(ocetra(1,1,1,idet13),kpke,'det13')
-!      call chksumbgc(ocetra(1,1,1,icalc13),kpke,'calc13')
-!      call chksumbgc(ocetra(1,1,1,idet14),kpke,'det14')
-!      call chksumbgc(ocetra(1,1,1,icalc14),kpke,'calc14')
  
       do l=1,nocetra
       do K=1,kpke
@@ -271,43 +263,30 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-      CALL CYANO(kpie,kpje,kpke,pddpo,omask)
 
-!      write(io_stdo_bgc,*) 'CYANO'
+      CALL CYANO(kpie,kpje,kpke,pddpo,omask)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after CYANO: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-      CALL CARCHM                                                      &
-     &(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,psao,ptho,psicomo,             &
-     & pfu10,kplyear,kplmon,kplday,ndtdaybgc,ldtrunbgc,ptiestu,        &
-     & kmonlen,omask)
-!      CALL CARCHM                                                      &
-!     &(kpie,kpje,kpke,pddpo,psao,ptho,psicomo,                         &
-!     & pfu10,kplmon,kplday,kmonlen,omask)
 
-!      write(io_stdo_bgc,*) 'CARCHM'
+      CALL CARCHM(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,psao,ppao, &
+     &            ptho,prho,psicomo,pfu10,ptiestu,omask)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
 
@@ -318,7 +297,6 @@
 
 !      
 #ifdef DIFFAT     
-!      write(lp,*) 'SATM_STEP'
       CALL SATM_STEP(atmflx,atm)
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
       call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
@@ -332,12 +310,10 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
-!_______________________________________________________________
-!
+
+!--------------------------------------------------------------------
 !     Sediment module
 
       CALL POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,omask)
@@ -347,9 +323,7 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after POWACH: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
       IF(KLDTDAY .EQ. 1) THEN
@@ -375,23 +349,35 @@
       call accsdm(jsssc12,sedlay(1,1,1,isssc12))
       call accsdm(jssster,sedlay(1,1,1,issster))
 
-!
+!     accumulate sediment burial
+      call accbur(jburssso12,burial(1,1,issso12))
+      call accbur(jburssssil,burial(1,1,issssil))
+      call accbur(jbursssc12,burial(1,1,isssc12))
+      call accbur(jburssster,burial(1,1,issster))
+
+
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'after BGC: call INVENTORY'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
-!--------------------------------------------------------------------
-! pass tracer fields out to ocean model 
-!
-      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
 
-!
+!---------------------------------------------------------------------
+! write output files
+
+      DO l=1,nbgc 
+        nacc_bgc(l)=nacc_bgc(l)+1
+        if (bgcwrt(l).gt.0.5) then
+          if (GLB_INVENTORY(l).ne.0)                                    & 
+     &      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+          call ncwrt_bgc(l)
+          nacc_bgc(l)=0 
+        endif
+      ENDDO
+
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
@@ -406,20 +392,23 @@
 #endif	 
 
 
-!---------------------------------------------------------------------
-! write output files
-!
-      DO l=1,nbgc 
-        nacc_bgc(l)=nacc_bgc(l)+1
-        if (bgcwrt(l).gt.0.5) then
-          if (GLB_INVENTORY(l).ne.0)                                    & 
-     &      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-          call ncwrt_bgc(l)
-          nacc_bgc(l)=0 
-        endif
-      ENDDO
-!
 !--------------------------------------------------------------------
+! pass tracer fields out to ocean model; convert kmol/m^3 -> mol/kg
 
+      do k=1,kpke
+!$OMP PARALLEL DO
+      do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) .gt. 0.5 ) then
+          ocetra(i,j,k,:)=ocetra(i,j,k,:)/prho(i,j,k)
+        endif
+      enddo
+      enddo
+!$OMP END PARALLEL DO
+      enddo
+
+      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
+
+!--------------------------------------------------------------------
       RETURN
       END

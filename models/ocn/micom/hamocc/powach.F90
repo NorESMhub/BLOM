@@ -49,6 +49,7 @@
 !**********************************************************************
 
       USE mo_carbch
+      USE mo_chemcon, only: calcon, rrrcl
       USE mo_sedmnt
       USE mo_biomod
       USE mo_control_bgc
@@ -381,10 +382,10 @@
             bt=rrrcl*psao(i,j,kbo(i,j))
             alk=powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.
             c=powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.
-            ak1=ak13(i,j,kbo(i,j))
-            ak2=ak23(i,j,kbo(i,j))
-            akb=akb3(i,j,kbo(i,j))
-            akw=akw3(i,j,kbo(i,j))
+            ak1=k1b(i,j)
+            ak2=k2b(i,j)
+            akb=kbb(i,j)
+            akw=kwb(i,j)
             h=sedhpl(i,j,k)
             t1=h/ak1
             t2=h/ak2
@@ -416,7 +417,7 @@
       DO 23 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            satlev=aksp(i,j,kbo(i,j))/calcon+2.e-5
+            satlev=kspb(i,j)/calcon+2.e-5
             undsa=MAX(satlev-powcar(i,1),0.)
             sedb1(i,0)=bolay(i,j)*(satlev-co3(i,j,kbo(i,j)))             &
      &                 *bolven(i)       
@@ -434,7 +435,7 @@
       DO 22 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            undsa=MAX(aksp(i,j,kbo(i,j))/calcon-powcar(i,k),0.)
+            undsa=MAX(kspb(i,j)/calcon-powcar(i,k),0.)
             sedb1(i,k)=seddw(k)*porwat(k)*undsa
             IF(k.GT.1)solrat(i,k)=sedlay(i,j,k,isssc12)                 &
      &          *dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)

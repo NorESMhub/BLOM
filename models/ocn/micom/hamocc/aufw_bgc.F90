@@ -1,10 +1,7 @@
-      SUBROUTINE AUFW_BGC(kpie,kpje,kpke,pddpo,pgila,pgiph,ptiestu   &
-     &                    ,kplyear,kplmon,kplday,kpldtoce,omask      &
-     &                    ,rstfnm_ocn,path,path_len)
-
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/aufw_bgc.f90,v $\\
-!$Revision: 1.3 $\\
-!$Date: 2004/11/12 15:37:21 $\\
+      SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,             &
+     &                    trc,pddpo,pglon,pglat,                        &
+     &                    kplyear,kplmon,kplday,kpldtoce,omask,         &
+     &                    rstfnm_ocn,path)
 
 !****************************************************************
 !
@@ -21,6 +18,11 @@
 !     - chemcm is multiplied with layer-dependent constant in order
 !       to be displayable by ncview. It is not read in AUFR_BGC!
 !
+!     J.Schwinger,      *GFI, Bergen*     2013-10-21
+!     - tracer field is passed from ocean model for writing now
+!     - removed writing of chemcm and ak* fields
+!     - code cleanup, remoded preprocessor option "PNETCDF"
+!
 !     Purpose
 !     -------
 !     Write restart data for continuation of interrupted integration.
@@ -28,91 +30,76 @@
 !     Method
 !     -------
 !     The bgc data are written to an extra file, other than the ocean data.
-!     The netCDF version also writes grid description variables.
-!     The netCDF file is selfdescribing and can be used for 
-!     visualization (e.g. STOMPP, grads). Before the data are saved, all
-!     values at dry cells are set to rmissing (e.g.rmasko).
 !     The time stamp of the bgc restart file (idate) is taken from the
 !     ocean time stamp through the SBR parameter list. The only time
 !     control variable proper to the bgc is the time step number (idate(5)). 
 !     It can differ from that of the ocean (idate(4)) by the difference
 !     of the offsets of restart files.
 !
-!**   Interface.
-!     ----------
-!
-!     *CALL*       *AUFW_BGC(kpie,kpje,kpke,pddpo,pgila,pgiph,ptiestu)
-!
-!     *COMMON*     *MO_PARAM1_BGC* - declaration of ocean/sediment tracer.
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *pddpo*   - size of grid cell (3rd dimension) [m].
-!     *REAL*    *pgila*   - geographical longitude of grid points [degree E].
-!     *REAL*    *pgiph*   - geographical latitude  of grid points [degree N].
-!     *REAL*    *ptiestu* - depth of layers [m].
-!
-!     Externals
-!     ---------
-!     none.
+!     *INTEGER* *kpie*       - 1st dimension of model grid.
+!     *INTEGER* *kpje*       - 2nd dimension of model grid.
+!     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
+!     *INTEGER* *ntr*        - number of tracers in tracer field
+!     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
+!     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
+!     *REAL*    *trc*        - initial/restart tracer field to be passed to the 
+!                              ocean model [mol/kg]
+!     *REAL*    *pddpo*      - size of grid cell (3rd dimension) [m].
+!     *REAL*    *pglon*      - geographical longitude of grid points [degree E].
+!     *REAL*    *pglat*      - geographical latitude  of grid points [degree N].
+
+!     *INTEGER* *kplyear*    - year  in ocean restart date
+!     *INTEGER* *kplmon*     - month in ocean restart date
+!     *INTEGER* *kplday*     - day   in ocean restart date
+!     *INTEGER* *kpldtoce*   - step  in ocean restart date
+!     *REAL*    *omask*      - land/ocean mask
+!     *CHAR*    *rstfnm_ocn* - restart file name-informations
+!     *CHAR*    *path*       - path to restart files
 !
 !**************************************************************************
-!ik IK introduced ocetra array elements for phyto, grazer, poc (=det), calciu 
-!ik array indices are: iphy, izoo, idet, icalc
-!iktodo IK introduced new variable opal (index iopal)
-!ik nocetra is the number of all BGC element (size of ocetra(,,,l))
-!ik nosedi is the number of all elements interacting with the sediment
-
 
       USE mo_carbch
       USE mo_biomod
       USE mo_sedmnt
       USE mo_control_bgc
       use mo_param1_bgc 
-      use mod_xc, only: itdm,jtdm,mnproc,xchalt
+      use mod_xc, only: nbdy,itdm,jtdm,mnproc,xchalt
 
       implicit none
 
-      INTEGER  kpie,kpje,kpke,kpicycli
-      INTEGER  kplyear,kplmon,kplday,kpldtoce
-      REAL pddpo(kpie,kpje,kpke)    
-      REAL pgila(kpie*2,kpje*2)
-      REAL pgiph(kpie*2,kpje*2)
-      REAL ptiestu(kpke)
-      REAL chemcm_t(kpie,kpje,8)
-      CHARACTER(LEN=80) err_text
-      INTEGER  i,j,k,l,kmon,jj,ii,kk,kt
+      INTEGER           :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
+      REAL              :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,ntr)
+      REAL              :: pddpo(kpie,kpje,kpke)    
+      REAL              :: pglon(kpie,kpje)
+      REAL              :: pglat(kpie,kpje)
+      REAL              :: omask(kpie,kpje)    
+      INTEGER           :: kplyear,kplmon,kplday,kpldtoce
+      character(len=*)  :: rstfnm_ocn,path
 
-      character rstfnm*80
-      character*(*) rstfnm_ocn,path
-      integer path_len
-      REAL omask(kpie,kpje)    
+      INTEGER           :: i,j,k,l,jj,ii,kk,kt
+      CHARACTER(LEN=80) :: err_text,rstfnm
 
-#ifdef PNETCDF
       INCLUDE 'netcdf.inc'
       INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdims(4)                  &
      &       ,nclatid,nclonid,nclevid,nclev1id                        &
-     &       ,nctraid,nccheid,ncksid,ncsedid                          &
-     &       ,ncmonid,nstart2(2),ncount2(2),nstride2(2),idate(5)
+     &       ,nctraid,ncksid,ncsedid                                  &
+     &       ,nstart2(2),ncount2(2),nstride2(2),idate(5)
       REAL zfield(kpie,kpje)
-      REAL pi,rad,radi,rmissing
+      REAL rmissing
 
-      pi        = 4.*ATAN(1.)
-      rad       = pi/180.
-      radi      = 1./rad
 
-#endif
-
+! pass tracer fields in from ocean model; No unit conversion here, 
+! tracers in the restart file are written in mol/kg 
+!--------------------------------------------------------------------
 !
-! Check of fields written to restart file.
-!
-!      CALL CHCK_BGC(io_stdo_bgc,kpicycli,                                 &
-!     &'Check values of ocean/sediment tracer written to restart file :',  &
-!     & kpie,kpje,kpke,omask)
+      ocetra(:,:,:,:)=trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
+
+
+
       idate(1) = kplyear
       idate(2) = kplmon
       idate(3) = kplday
@@ -125,79 +112,8 @@
       WRITE(io_stdo_bgc,*) 'Ocean model step number is ',idate(4)
       WRITE(io_stdo_bgc,*) 'Bgc   model step number is ',idate(5)
       ENDIF
-!
-!  Masking aqueous sea water tracer.
-!
 
       rmissing = rmasko
-
-!      DO l=1,nocetra
-!      DO k=1,kpke
-!      DO j=1,kpje
-!      DO i=1,kpie
-!      IF(omask(i,j) .LT. 0.5) THEN
-!         ocetra(i,j,k,l)=rmasko
-!      ENDIF
-!      ENDDO
-!      ENDDO
-!      ENDDO
-!      ENDDO
-!
-!  Masking other sea water tracer.
-!
-!      DO k=1,kpke
-!      DO j=1,kpje
-!      DO i=1,kpie
-!      IF(omask(i,j) .LT. 0.5) THEN
-!         hi    (i,j,k)=rmissing
-!         co3   (i,j,k)=rmissing
-!      ENDIF
-!      ENDDO
-!      ENDDO
-!      ENDDO
-
-!
-!  Masking sediment pore water tracer.
-!
-!     DO  k=1,ks
-!      DO  j=1,kpje
-!      DO  i=1,kpie 
-!      IF(omask(i,j) .LT. 0.5) THEN
-!         powtra(i,j,k,ipowno3)=2.17e-6*rnit
-!         powtra(i,j,k,ipown2)=0.
-!         powtra(i,j,k,ipowaic)=2.27e-3
-!#ifdef __c_isotopes
-!         powtra(i,j,k,ipowc13)=2.27e-3
-!         powtra(i,j,k,ipowc14)=2.27e-3
-!#endif
-!         powtra(i,j,k,ipowaal)=2.37e-3
-!         powtra(i,j,k,ipowaph)=2.17e-6
-!         powtra(i,j,k,ipowaox)=3.e-4
-!         powtra(i,j,k,ipowasi)=1.2e-4
-!
-!         sedlay(i,j,k,issso12)=1.e-8
-!#ifdef __c_isotopes
-!         sedlay(i,j,k,issso13)=1.e-8
-!         sedlay(i,j,k,issso14)=1.e-8
-!#endif
-!
-!         sedlay(i,j,k,isssc12)=1.e-8
-!#ifdef __c_isotopes
-!         sedlay(i,j,k,isssc13)=1.e-8
-!         sedlay(i,j,k,isssc14)=1.e-8
-!#endif
-!
-!         sedlay(i,j,k,issssil)=3.e-3
-!	 sedlay(i,j,k,issster)=30.
-!	 burial(i,j,issso12)=0.
-!	 burial(i,j,isssc12)=0.
-!	 burial(i,j,issssil)=0.
-!	 burial(i,j,issster)=0.
-!         sedhpl(i,j,k)=0.
-!      ENDIF
-!      ENDDO
-!      ENDDO
-!      ENDDO
 
 #ifdef DIFFAT
 !
@@ -212,7 +128,6 @@
       ENDDO      
 #endif      
 
-#ifdef PNETCDF
 !
 ! Open netCDF data file
 !
@@ -225,8 +140,8 @@
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
      &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
+            call xchalt('(aufw_bgc)')
+            stop '(aufw_bgc)'
           endif
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
@@ -237,15 +152,15 @@
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
      &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
+            call xchalt('(aufw_bgc)')
+            stop '(aufw_bgc)'
           endif
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'_rest_b_'//rstfnm_ocn(i+9:)
 #endif
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-      ncstat = NF_CREATE(path(1:path_len)//rstfnm,NF_CLOBBER, ncid)
+      ncstat = NF_CREATE(trim(path)//rstfnm,NF_CLOBBER, ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF1)')
                stop '(AUFW: Problem with netCDF1)'
@@ -253,6 +168,7 @@
 
 !
 ! Define dimension
+! ----------------------------------------------------------------------    
 !
       ncstat = NF_DEF_DIM(ncid, 'lon', itdm, nclonid)
       IF ( ncstat .NE. NF_NOERR ) THEN
@@ -278,12 +194,6 @@
                stop '(AUFW: Problem with netCDF5)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'nche', 8, nccheid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF6)')
-               stop '(AUFW: Problem with netCDF6)'
-      ENDIF
-
       ncstat = NF_DEF_DIM(ncid, 'nks', ks, ncksid)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF7)')
@@ -295,12 +205,6 @@
         call xchalt('(AUFW: Problem with netCDF8)')
                stop '(AUFW: Problem with netCDF8)'
       ENDIF
-! Paddy:
-      ncstat = NF_DEF_DIM(ncid, 'nmon',12 , ncmonid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF8a)')
-               stop '(AUFW: Problem with netCDF8a)'
-      ENDIF
      
       ncstat = NF_DEF_DIM(ncid, 'lev1', 1, nclev1id)
       IF ( ncstat .NE. NF_NOERR ) THEN
@@ -310,6 +214,7 @@
 
 !
 ! Define global attributes
+! ----------------------------------------------------------------------    
 !
       ncstat = NF_PUT_ATT_TEXT(ncid, NF_GLOBAL,'title'               &
      &,35, 'Restart data for marine bgc modules') 
@@ -347,6 +252,7 @@
 
 !
 ! Define variables : grid
+! ----------------------------------------------------------------------    
 !
       ncdims(1) = nclonid
       ncdims(2) = nclatid
@@ -402,180 +308,143 @@
                stop '(AUFW: Problem with netCDF18a)'
       ENDIF
 
-      ncdims(1) = nclevid
-
-      ncstat = NF_DEF_VAR(ncid,'depth',NF_DOUBLE,1,ncdims,ncvarid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF19)')
-               stop '(AUFW: Problem with netCDF19)'
-      ENDIF
-      ncstat = NF_PUT_ATT_TEXT(ncid,ncvarid,'units',5, 'meter')
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF20)')
-               stop '(AUFW: Problem with netCDF20)'
-      ENDIF
-      ncstat = NF_PUT_ATT_TEXT(ncid,ncvarid,'long_name'                 &
-     &,32, '1-d layer depths of ocean tracer')
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF21)')
-               stop '(AUFW: Problem with netCDF21)'
-      ENDIF
-
 !
 ! Define variables : advected ocean tracer
+! ----------------------------------------------------------------------    
 !
       ncdims(1) = nclonid
       ncdims(2) = nclatid
       ncdims(3) = nclevid
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdims,ncvarid,           &
-     &   9,'kmol/m**3',13, 'Dissolved CO2',rmissing,22,io_stdo_bgc)
+     &    6,'mol/kg',13, 'Dissolved CO2',rmissing,22,io_stdo_bgc)
 
 #ifdef __c_isotopes
       CALL NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdims,ncvarid,           &
-     &   9,'kmol/m**3',15, 'Dissolved CO213',rmissing,22,io_stdo_bgc)
+     &    6,'mol/kg',15, 'Dissolved CO213',rmissing,22,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sco214',3,ncdims,ncvarid,           &
-     &   9,'kmol/m**3',15, 'Dissolved CO214',rmissing,22,io_stdo_bgc)
+     &    6,'mol/kg',15, 'Dissolved CO214',rmissing,22,io_stdo_bgc)
 #endif
 
       CALL NETCDF_DEF_VARDB(ncid,6,'alkali',3,ncdims,ncvarid,           &
-     &   9,'kmol/m**3',10,'Alkalinity',rmissing,25,io_stdo_bgc)
+     &    6,'mol/kg',10,'Alkalinity',rmissing,25,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'phosph',3,ncdims,ncvarid,           &
-     &   9,'kmol/m**3',19,'Dissolved phosphate',rmissing,28,io_stdo_bgc)
+     &    6,'mol/kg',19,'Dissolved phosphate',rmissing,28,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'oxygen',3,ncdims,ncvarid,           &
-     &9,'kmol/m**3',16,'Dissolved oxygen',rmissing,31,io_stdo_bgc)
+     &    6,'mol/kg',16,'Dissolved oxygen',                             &
+          rmissing,31,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'gasnit',3,ncdims,ncvarid,           &
-     &9,'kmol/m**3',21,'Gaseous nitrogen (N2)',rmissing,34,io_stdo_bgc)
+     &    6,'mol/kg',21,'Gaseous nitrogen (N2)',                        &
+          rmissing,34,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,4,'ano3',3,ncdims,ncvarid,             &
-     &9,'kmol/m**3',17,'Dissolved nitrate',rmissing,34,io_stdo_bgc)
+     &    6,'mol/kg',17,'Dissolved nitrate',                            &
+          rmissing,34,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'silica',3,ncdims,ncvarid,           &
-     &9,'kmol/m**3',22,'Silicid acid (Si(OH)4)',rmissing,40,io_stdo_bgc)
+     &    6,'mol/kg',22,'Silicid acid (Si(OH)4)',                       &
+          rmissing,40,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,3,'doc',3,ncdims,ncvarid,              &
-     &9,'kmol/m**3',24,'Dissolved organic carbon',                      &
-     &rmissing,40,io_stdo_bgc) 
+     &    6,'mol/kg',24,'Dissolved organic carbon',                     &
+     &    rmissing,40,io_stdo_bgc) 
 
       CALL NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdims,ncvarid,              &
-     &9,'kmol/m**3',25,'Particulate organic carbon',                    &
-     &rmissing,46,io_stdo_bgc)
+     &    6,'mol/kg',25,'Particulate organic carbon',                   &
+     &    rmissing,46,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdims,ncvarid,              &
-     &10,'kmolC/m**3',28,'Particulate organic carbon13',                    &
-     &rmissing,46,io_stdo_bgc)
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdims,ncvarid,            &
+     &    7,'molC/kg',28,'Particulate organic carbon13',                &
+     &    rmissing,46,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdims,ncvarid,              &
-     &10,'kmolC/m**3',28,'Particulate organic carbon14',                    &
-     &rmissing,46,io_stdo_bgc)
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdims,ncvarid,            &
+     &    7,'molC/kg',28,'Particulate organic carbon14',                &
+     &    rmissing,46,io_stdo_bgc)
 #endif
 
       CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdims,ncvarid,               &
-     &9,'kmol/m**3',26,'Hydrogen ion concentration',                    &
-     &rmissing,46,io_stdo_bgc)
+     &    6,'mol/kg',26,'Hydrogen ion concentration',                   &
+     &    rmissing,46,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,3,'co3',3,ncdims,ncvarid,              &
-     &9,'kmol/m**3',25,'Dissolved carbonate (CO3)',                     &
-     &rmissing,52,io_stdo_bgc)
+     &    6,'mol/kg',25,'Dissolved carbonate (CO3)',                    &
+     &    rmissing,52,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdims,ncvarid,            &
-     &    10,'kmolP/m**3',27,'Phytoplankton concentration',             &
+     &    7,'molP/kg',27,'Phytoplankton concentration',                 &
      &    rmissing,28,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'grazer',3,ncdims,ncvarid,           &
-     &    10,'kmolP/m**3',25,'Zooplankton concentration',               &
+     &    7,'molP/kg',25,'Zooplankton concentration',                   &
      &    rmissing,29,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'calciu',3,ncdims,ncvarid,           &
-     &    9,'kmol/m**3',17,'Calcium carbonate',                         &
+     &    6,'mol/kg',17,'Calcium carbonate',                            &
      &    rmissing,30,io_stdo_bgc)
 
 #ifdef __c_isotopes
       CALL NETCDF_DEF_VARDB(ncid,8,'calciu13',3,ncdims,ncvarid,         &
-     &    10,'kmolC/m**3',19,'Calcium carbonate13',                       &
+     &    7,'molC/kg',19,'Calcium carbonate13',                         &
      &    rmissing,30,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdims,ncvarid,         &
-     &    10,'kmolC/m**3',19,'Calcium carbonate14',                       &
+     &    7,'molC/kg',19,'Calcium carbonate14',                         &
      &    rmissing,30,io_stdo_bgc)
 #endif
 
       CALL NETCDF_DEF_VARDB(ncid,4,'opal',3,ncdims,ncvarid,             &
-     &    9,'kmol/m**3',15,'Biogenic silica',                           &
+     &    6,'mol/kg',15,'Biogenic silica',                              &
      &    rmissing,31,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,3,'n2o',3,ncdims,ncvarid,              &
-     &    9,'kmol/m**3',12,'laughing gas',                              &
+     &    6,'mol/kg',12,'laughing gas',                                 &
      &    rmissing,32,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,3,'dms',3,ncdims,ncvarid,              &
-     &    9,'kmol/m**3',15 ,'DiMethylSulfide',                          &
+     &    6,'mol/kg',15 ,'DiMethylSulfide',                             &
      &    rmissing,33,io_stdo_bgc)            
 
       CALL NETCDF_DEF_VARDB(ncid,5,'fdust',3,ncdims,ncvarid,            &
-     &    7,'kg/m**3',19,'Non-aggregated dust',                         &
+     &    5,'kg/kg',19,'Non-aggregated dust',                           &
      &    rmissing,34,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdims,ncvarid,             &
-     &    9,'kmol/m**3',14,'Dissolved iron',                            &
+     &    6,'mol/kg',14,'Dissolved iron',                               &
      &    rmissing,35,io_stdo_bgc)
 
 #ifdef AGG
       CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdims,ncvarid,             &
-     &    8,'1/cm**3',30,'marine snow aggregates per cm3',              &
+     &    3,'1/g',38,'marine snow aggregates per g sea water',          &
      &    rmissing,41,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdims,ncvarid,            &
-     &    7,'kg/m**3',15,'Aggregated dust',                             &
+     &    4,'g/kg',15,'Aggregated dust',                                &
      &    rmissing,42,io_stdo_bgc)
 #endif /*AGG*/   
 
 #ifdef ANTC14
       CALL NETCDF_DEF_VARDB(ncid,6,'antc14',3,ncdims,ncvarid,           &
-     &    9,'kmol/m**3',17,'anthropogenic C14',                         &
+     &    6,'mol/kg',17,'anthropogenic C14',                            &
      &    rmissing,41,io_stdo_bgc)
 #endif
-#ifdef PCFC
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdims,ncvarid,             &
-     &    9,'kmol/m**3',5,'CFC11',                                       &
+#ifdef CFC
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdims,ncvarid,            &
+     &    6,'mol/kg',5,'CFC11',                                         &
      &    rmissing,41,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdims,ncvarid,             &
-     &    9,'kmol/m**3',5,'CFC12',                                       &
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdims,ncvarid,            &
+     &    6,'mol/kg',5,'CFC12',                                         &
+     &    rmissing,41,io_stdo_bgc)     
+
+      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdims,ncvarid,              &
+     &    6,'mol/kg',4,'SF-6',                                          &
      &    rmissing,41,io_stdo_bgc)     
 #endif
-
-!
-! Define variables : aksp
-! ----------------------------------------------------------------------    
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = nclevid
-
-      CALL NETCDF_DEF_VARDB(ncid,4,'akw3',3,ncdims,ncvarid,           &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
-     &    rmissing,64,io_stdo_bgc)
-
-      CALL NETCDF_DEF_VARDB(ncid,4,'akb3',3,ncdims,ncvarid,           &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
-     &    rmissing,64,io_stdo_bgc)
-
-      CALL NETCDF_DEF_VARDB(ncid,4,'ak13',3,ncdims,ncvarid,           &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
-     &    rmissing,64,io_stdo_bgc)
-
-      CALL NETCDF_DEF_VARDB(ncid,4,'ak23',3,ncdims,ncvarid,           &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
-     &    rmissing,64,io_stdo_bgc)
-
-      CALL NETCDF_DEF_VARDB(ncid,4,'aksp',3,ncdims,ncvarid,             &
-     &    9,'xxxxxxxxx',39 ,'apparent solubility product for calcite',  &
-     &    rmissing,64,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdims,ncvarid,           &
      &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
@@ -585,21 +454,10 @@
      &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
      &    rmissing,64,io_stdo_bgc)
 
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = nccheid
-      ncdims(4) = ncmonid
-      WRITE(io_stdo_bgc,*) 'ncdims: ', ncdims
-!      CALL NETCDF_DEF_VARDB(ncid,6,'chemcm',4,ncdims,ncvarid,          &
-!     &    9,'?????????',18,'Chemical constants',                       &
-!     &    rmissing,67,io_stdo_bgc)
-      CALL NETCDF_DEF_VARDB(ncid,6,'chemcm',4,ncdims,ncvarid,          &
-     &    9,'xxxxxxxxx',18,'Chemical constants',                       &
-     &    rmissing,67,io_stdo_bgc)
-
 !
 ! Define variables : sediment
 ! ----------------------------------------------------------------------    
+!
       ncdims(1) = nclonid
       ncdims(2) = nclatid
       ncdims(3) = ncksid
@@ -711,6 +569,7 @@
 #ifdef DIFFAT
 !
 ! Define variables : co2 diffusion
+! ----------------------------------------------------------------------    
 !
       CALL NETCDF_DEF_VARDB(ncid,7,'suppco2',2,ncdims,ncvarid,      &
      &    4,'ppmv',42,'pCO2 from total dissolved inorganic carbon', &
@@ -748,6 +607,7 @@
 
 !
 ! Set fill mode
+! ----------------------------------------------------------------------    
 !
       ncstat = NF_SET_FILL(ncid,NF_NOFILL, ncoldmod)
       IF ( ncstat .NE. NF_NOERR ) THEN
@@ -759,39 +619,13 @@
 
 !
 ! Write grid describing data
+! ----------------------------------------------------------------------    
 !
 
-      nstart2(1) = 1
-      nstart2(2) = 1
-      ncount2(1) = kpie
-      ncount2(2) = kpje
-      nstride2(1) = 2
-      nstride2(2) = 2
-      DO j=1,ncount2(2)
-         jj=nstart2(2)+(j-1)*nstride2(2)
-         DO i=1,ncount2(1)
-            ii=nstart2(1)+(i-1)*nstride2(1)
-            zfield(i,j) = pgila(ii,jj)*radi
-         ENDDO
-      ENDDO
+      CALL write_netcdf_var(ncid,'scal_lon', pglon(1,1),1,0)
+      CALL write_netcdf_var(ncid,'scal_lat', pglat(1,1),1,0)
 
-      CALL write_netcdf_var(ncid,'scal_lon',zfield(1,1),1,0)
-               
-      DO j=1,ncount2(2)
-         jj=nstart2(2)+(j-1)*nstride2(2)
-         DO i=1,ncount2(1)
-            ii=nstart2(1)+(i-1)*nstride2(1)
-            zfield(i,j) = pgiph(ii,jj)*radi
-         ENDDO
-      ENDDO
-
-      CALL write_netcdf_var(ncid,'scal_lat', zfield(1,1),1,0)
-
-      DO j=1,kpje
-         DO i=1,kpie
-            zfield(i,j) = 0.0
-         ENDDO
-      ENDDO
+      zfield(:,:) = 0.0
       DO k=1,kpke
          DO j=1,kpje
             DO i=1,kpie
@@ -801,31 +635,17 @@
       ENDDO
              
       CALL write_netcdf_var(ncid,'scal_wdep',zfield(1,1),1,0)
-      IF(mnproc==1) THEN
-        ncstat = NF_INQ_VARID(ncid,'depth',ncvarid )
-        IF ( ncstat .NE. NF_NOERR ) THEN
-          call xchalt('(AUFW: netCDF102)')
-                 stop '(AUFW: netCDF102)'
-        ENDIF
-        ncstat = NF_PUT_VAR_DOUBLE (ncid,ncvarid,ptiestu(1) )
-        IF ( ncstat .NE. NF_NOERR ) THEN
-          call xchalt('(AUFW: netCDF103)')
-                 stop '(AUFW: netCDF103)'
-        ENDIF
-      ENDIF
+
 !
 ! Write restart data : ocean aquateous tracer
+!--------------------------------------------------------------------
 !
       CALL write_netcdf_var(ncid,'sco212',ocetra(1,1,1,isco212),kpke,0)
-!      call chksumbgc(ocetra(1,1,1,isco212),kpke,'sco212')
 #ifdef __c_isotopes
       CALL write_netcdf_var(ncid,'sco213',ocetra(1,1,1,isco213),kpke,0)
-!      call chksumbgc(ocetra(1,1,1,isco213),kpke,'sco213')
       CALL write_netcdf_var(ncid,'sco214',ocetra(1,1,1,isco214),kpke,0)
-!      call chksumbgc(ocetra(1,1,1,isco214),kpke,'sco214')
 #endif
       CALL write_netcdf_var(ncid,'alkali',ocetra(1,1,1,ialkali),kpke,0)
-!      call chksumbgc(ocetra(1,1,1,ialkali),kpke,'alkali')
       CALL write_netcdf_var(ncid,'phosph',ocetra(1,1,1,iphosph),kpke,0)
       CALL write_netcdf_var(ncid,'oxygen',ocetra(1,1,1,ioxygen),kpke,0)
       CALL write_netcdf_var(ncid,'gasnit',ocetra(1,1,1,igasnit),kpke,0)
@@ -856,9 +676,10 @@
 #ifdef ANTC14
       CALL write_netcdf_var(ncid,'antc14',ocetra(1,1,1,iantc14),kpke,0)
 #endif
-#ifdef PCFC
+#ifdef CFC
       CALL write_netcdf_var(ncid,'cfc11',ocetra(1,1,1,icfc11),kpke,0)
       CALL write_netcdf_var(ncid,'cfc12',ocetra(1,1,1,icfc12),kpke,0)
+      CALL write_netcdf_var(ncid,'sf6',ocetra(1,1,1,isf6),kpke,0)
 #endif
 
 
@@ -870,36 +691,8 @@
 !
 ! Write restart data : other fields
 !
-      CALL write_netcdf_var(ncid,'akw3',akw3(1,1,1),kpke,0)
-      CALL write_netcdf_var(ncid,'akb3',akb3(1,1,1),kpke,0)
-      CALL write_netcdf_var(ncid,'ak13',ak13(1,1,1),kpke,0)
-      CALL write_netcdf_var(ncid,'ak23',ak23(1,1,1),kpke,0)
-      CALL write_netcdf_var(ncid,'aksp',aksp(1,1,1),kpke,0)
       CALL write_netcdf_var(ncid,'satoxy',satoxy(1,1,1),kpke,0)
       CALL write_netcdf_var(ncid,'satn2o',satn2o(1,1),1,0)
-
-!      call chksumbgc(chemcm,8*12,'chemcm')
-      DO kmon =1,12
-      DO i    =1,kpie
-      DO j    =1,kpje
-         IF (omask(i,j) .le. 0.5 ) THEN
-           DO k=1,8
-             chemcm_t(i,j,k)  =   rmasko
-           ENDDO
-         ELSE
-           chemcm_t(i,j,1) = chemcm(i,j,1,kmon)
-           chemcm_t(i,j,2) = chemcm(i,j,2,kmon)
-           chemcm_t(i,j,3) = chemcm(i,j,3,kmon)
-           chemcm_t(i,j,4) = chemcm(i,j,4,kmon)
-           chemcm_t(i,j,5) = chemcm(i,j,5,kmon)
-           chemcm_t(i,j,6) = chemcm(i,j,6,kmon)
-           chemcm_t(i,j,7) = chemcm(i,j,7,kmon)
-           chemcm_t(i,j,8) = chemcm(i,j,8,kmon)
-         ENDIF
-      ENDDO
-      ENDDO
-      CALL write_netcdf_var(ncid,'chemcm',chemcm_t(1,1,1),8,kmon)
-      ENDDO      
 
 !
 ! Write restart data : sediment variables.
@@ -942,6 +735,8 @@
       CALL write_netcdf_var(ncid,'atmc14',atm(1,1,iatmc14),1,0)
 #endif
 #endif
+
+
       IF(mnproc==1) THEN
         ncstat = NF_CLOSE(ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
@@ -949,43 +744,7 @@
                  stop '(AUFW: netCDF200)'
         ENDIF
       ENDIF
-#else
-! does this work with the MPI anymore - c.f. read_netcdf_var ??
-      OPEN(io_rsto_bgc,FILE='restart_bgc',STATUS='UNKNOWN'            &
-     &               ,ACCESS='SEQUENTIAL',FORM='UNFORMATTED')
 
-      WRITE(io_rsto_bgc)                                              &
-     &             (((ocetra(i,j,k,iphosph),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,isilica),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,ioxygen),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,iphy   ),i=1,kpie),j=1,kpje),k=1,kpke)& 
-     &            ,(((ocetra(i,j,k,izoo   ),i=1,kpie),j=1,kpje),k=1,kpke)& 
-     &            ,(((ocetra(i,j,k,idet   ),i=1,kpie),j=1,kpje),k=1,kpke)& 
-     &            ,(((ocetra(i,j,k,idoc   ),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,icalc  ),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,iano3  ),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,igasnit),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,iopal  ),i=1,kpie),j=1,kpje),k=1,kpke) 
-
-      WRITE(io_rsto_bgc) chemcm,hi,co3,aksp)                             &
-     &            ,(((ocetra(i,j,k,isco212),i=1,kpie),j=1,kpje),k=1,kpke)&
-     &            ,(((ocetra(i,j,k,ialkali),i=1,kpie),j=1,kpje),k=1,kpke)
-
-      WRITE(io_rsto_bgc) sedlay,sedhpl
-
-      WRITE(io_rsto_bgc)                                               & 
-     &             (((powtra(i,j,k,ipowaic),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipowaal),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipowaph),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipowaox),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipowasi),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipowno3),i=1,kpie),j=1,kpje),k=1,ks)&
-     &            ,(((powtra(i,j,k,ipown2) ,i=1,kpie),j=1,kpje),k=1,ks)
-
-      REWIND io_rsto_bgc
-
-      CLOSE(io_rsto_bgc)
-#endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'End of AUFW_BGC'

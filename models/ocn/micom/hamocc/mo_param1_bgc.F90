@@ -15,8 +15,10 @@
       implicit none
       
       INTEGER, PARAMETER :: ks=12,ksp=ks+1
-!      INTEGER, PARAMETER :: kwrbioz=8
 
+      REAL,    PARAMETER :: dp_ez  = 100.0   ! depth of euphotic zone
+      REAL,    PARAMETER :: dp_min = 1.0E-12 ! min layer thickness for 
+                                             ! some operations
 
 ! advected tracers
       INTEGER, PARAMETER :: i_base_adv=14,                              &
@@ -45,11 +47,11 @@
 #endif
 
       INTEGER, PARAMETER ::                                             &
-#ifdef PCFC  
+#ifdef CFC  
      &                      i_cfc_adv= 3,                               &
      &                      icfc11   = i_base_adv+i_iso_adv+1,          &
-     &                      icfc12   = i_base_adv+i_iso_adv+2,          & 
-                            iantc14  = i_base_adv+i_iso_adv+3
+     &                      icfc12   = i_base_adv+i_iso_adv+2,          &
+     &                      isf6     = i_base_adv+i_iso_adv+3           
 #else 
      &                      i_cfc_adv= 0
 #endif

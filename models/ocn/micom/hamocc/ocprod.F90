@@ -1,10 +1,5 @@
       SUBROUTINE OCPROD(kpie,kpje,kpke,ptho,pddpo,                     &
-     &               pdlxp,pdlyp,pdpio,ptiestu,ptiestw,kplmon,omask)
-
-!$Source: /scratch/local1/m212047/patrick/SRC_MPI/src_hamocc/RCS/ocprod.f90,v $\\
-!$Revision: 1.1 $\\
-!$Date: 2005/01/28 08:37:45 $\\
-
+     &                  pdlxp,pdlyp,pdpio,ptiestu,ptiestw,kplmon,omask)
 !**********************************************************************
 !
 !**** *OCPROD* - .
@@ -13,25 +8,24 @@
 !
 !     Modified
 !     --------
-!     S.Legutke,        *MPI-MaD, HH*    10.04.01
+!     S.Legutke,             *MPI-MaD, HH*    10.04.01
+!     J.Schwinger            *GFI, UiB*       2013-04-22
+!      - Corrected bug in light penetration formulation
+!      - Cautious code clean-up
+!
 !
 !     Purpose
 !     -------
-!     compute biological production, settling of debris, and related biogeochemistry
+!     compute biological production, settling of debris, and related 
+!     biogeochemistry
 !
-!     Method:
-!     ------
-!     kchck=1 can be used to check max/min of bgc arrays on wet/dry cells.
-!     Note: prosil is used only for k=1,2. It is adressed, however, for
-!           k=1,4 in loop 100. To save memory,  ???
-!
+!     Note: 
 !     _ant fields are natural PLUS anthropogenic (not anthropogenic only!!!)
 !
-!     *CALL*       *OCPROD*
 !
 !
-!**   Interface to ocean model (parameter list):
-!     -----------------------------------------
+!**** Parameter list:
+!     ---------------
 !
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
@@ -41,12 +35,12 @@
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
 !     *REAL*    *pdpio*   - inverse size of grid cell (3rd dimension)[m].
+!     *REAL*    *ptiestu* - depth of layer centres
+!     *REAL*    *ptiestw* - depth of layer interfaces (upper boundary)
+!     *INTEGER* *kplmon*  - number of current month
+!     *REAL*    *omask*   - land/ocean mask
 !
-!     Externals
-!     ---------
-!     .
 !**********************************************************************
-! nocetra is the number of all BGC element (size of ocetra(,,,l))
 
 !      USE mo_timeser_bgc
       USE mo_carbch
@@ -61,7 +55,7 @@
       implicit none
 
       INTEGER :: kplmon,kpie,kpje,kpke
-      INTEGER :: i,j,k,l,kab1
+      INTEGER :: i,j,k,l
       INTEGER :: kinv,kdonor,found
       REAL :: ptho (kpie,kpje,kpke)
       REAL :: pddpo(kpie,kpje,kpke)
@@ -85,18 +79,17 @@
       REAL :: fopa, fdet, fcal
       REAL :: absorption
       REAL :: dmsprod,dms_bac,dms_uv 
-      REAL :: bdp,dtr,dp_ez 
+      REAL :: bdp,dtr 
       REAL :: detref, detrl
-!#ifdef __c_isotopes
+      REAL :: dz_light
+#ifdef __c_isotopes
       REAL :: rem13,rem14
       REAL :: rl13, rl14
       REAL :: rocean13, rocean14, flui13, flui14
       REAL :: fcal13,fcal14
       REAL :: d14C
-!ib 
       REAL, DIMENSION(kpie,kpje,kpke) :: d13C, dd14C
-!ib
-!#endif
+#endif
 #ifdef AGG
       REAL :: fphy
       REAL :: wmass(kpie,kpje,kpke)
@@ -112,8 +105,6 @@
       REAL :: checksize,nacheck,flar1,flar2,flar3
       REAL :: fTSFac,fTMFac,fTopF,fTopM,wphy,wphyup,wnosup,wnos
 #endif 
-!ka      REAL :: psum0,psum1,pinv0,pinv1,dpinv
-!ib
       INTEGER, DIMENSION(kpie,kpje)   :: ind1,ind2
       REAL, DIMENSION(kpie,kpje,ddm)  :: wghts
       REAL, DIMENSION(kpie,kpje)      :: aux2d_dmsprod 
@@ -123,8 +114,7 @@
       REAL, DIMENSION(kpie,kpje)      :: aux2d_expoca 
       REAL, DIMENSION(kpie,kpje)      :: aux2d_exposi 
       REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_phosy
- 
-!kma
+
       aux2d_dmsprod(:,:)=0. 
       aux2d_dms_bac(:,:)=0. 
       aux2d_dms_uv (:,:)=0.  
@@ -133,8 +123,6 @@
       aux2d_exposi (:,:)=0.  
       aux3d_phosy  (:,:,:)=0.
 
-!ib
-!
 ! Constant parameters
 !
 ! parameter definition in BELEG_BGC.F
@@ -146,59 +134,63 @@
       dmsp2=dmspar(2)
       dmsp1=dmspar(1)
 
-! Calculate swr absorption by water and phytoplankton
-
-! Almost half of the SWR is absorbed in the surface layer. --> *0.6
-! Implicit, it's faster then: abs_bgc(i,j,k)=abs_bgc(i,j,k-1)*exp(-atten*pddpo(i,j,k-1))
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'beginning of OCRPOD '
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif   
-!$OMP PARALLEL DO PRIVATE(absorption,atten,kab1)
+
+! Calculate bottommost layer in the euphotic zone (kwrbioz)
+
+      call calc_ez(kpie,kpje,kpke,pddpo,ptiestw)
+
+
+! Calculate swr absorption by water and phytoplankton
+
+      abs_bgc(:,:,:)=0.
+#ifdef FB_BGC_OCE     
+      abs_oce(:,:,:)=0.
+      abs_oce(:,:,1)=1.
+#endif
+
+!$OMP PARALLEL DO PRIVATE(absorption,atten,dz_light)
       DO j=1,kpje
       DO i=1,kpie
+
         IF(omask(i,j).GT.0.5) THEN
-         atten=atten_w+atten_c*max(0.,ocetra(i,j,1,iphy))
-         absorption=1.
-!JT
-         abs_bgc(i,j,1)=absorption
-!         abs_bgc(i,j,1)=((absorption/atten)*                            &
-!     &                  (1.-exp(-atten*MIN(pddpo(i,j,1),100.))))        &
-!     &                  /MIN(pddpo(i,j,1),100.)
-         kab1=1
-#ifdef FB_BGC_OCE     
-         abs_oce(i,j,1)=1.
-#endif 	
-      DO k=2,kpke
 
-         abs_bgc(i,j,k)=0.
-#ifdef FB_BGC_OCE     
-         abs_oce(i,j,k)=0.
-#endif 	
+          absorption=1.
 
-        IF(pddpo(i,j,k).gt.0.0) THEN
-          atten=atten_w+atten_c*max(0.,ocetra(i,j,kab1,iphy))
-          absorption=abs_bgc(i,j,kab1)
+          vloop: DO k=1,kwrbioz(i,j)
+
+          IF(pddpo(i,j,k).gt.0.0) THEN
+
+          if( ptiestw(i,j,k+1) >= dp_ez .and. ptiestw(i,j,k) < dp_ez ) then
+            dz_light = dp_ez-ptiestw(i,j,k)
+          else
+            dz_light = pddpo(i,j,k)
+          end if
+
+          atten=atten_w+atten_c*max(0.,ocetra(i,j,k,iphy))
           abs_bgc(i,j,k)=((absorption/atten)*                           &
-     &                   (1.-exp(-atten*pddpo(i,j,k))))/pddpo(i,j,k)
+     &                   (1.-exp(-atten*dz_light)))/dz_light
+
 #ifdef FB_BGC_OCE
-          abs_oce(i,j,k)=abs_oce(i,j,kab1)*absorption
+          abs_oce(i,j,k)=abs_oce(i,j,k)*absorption
           if (k.eq.2) then
           abs_oce(i,j,2)=atten_f*absorption
           endif
 #endif 
 
-          kab1=k
+          absorption=abs_bgc(i,j,k)
 
-        ENDIF
-      ENDDO
+          ENDIF
+          ENDDO vloop
 
-        ENDIF
+        ENDIF ! omask GT 0.5
+
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
@@ -214,28 +206,13 @@
         dustinp=dusty(i,j,kplmon)/365.*dtb*pdpio(i,j,1)
         ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
         ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
-!ka flux of nutrients, C & alkalinity from land into surface layer
-!ka constant flux calculated in beleg_bgc 
-!        ocetra(i,j,1,isco212)=                                         &
-!     &  ocetra(i,j,1,isco212)+sco212_sfc*dtb*pdpio(i,j,1)
-!        ocetra(i,j,1,ialkali)=                                         &
-!     &  ocetra(i,j,1,ialkali)+alkali_sfc*dtb*pdpio(i,j,1)
-!        ocetra(i,j,1,iphosph)=                                         &
-!     &  ocetra(i,j,1,iphosph)+phosph_sfc*dtb*pdpio(i,j,1)
-!        ocetra(i,j,1,iano3)  =                                         &
-!     &  ocetra(i,j,1,iano3)  +ano3_sfc  *dtb*pdpio(i,j,1)
-!        ocetra(i,j,1,isilica)=                                         &
-!     &  ocetra(i,j,1,isilica)+silica_sfc*dtb*pdpio(i,j,1)
        endif      
       enddo
       enddo
 !$OMP END PARALLEL DO
 
-!
-! averaging monthly stocks and flows
-! 
 
-!ib
+
 ! accumulate layer diagnostics
        call acclyr(jdp,pddpo,pddpo,0)
        call acclyr(jphyto,ocetra(1,1,1,iphy),pddpo,1)   
@@ -287,16 +264,12 @@
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
           call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
-          call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,     &
-     &      wghts)
-          call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,     &
-     &      wghts)
+          call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,wghts)
+          call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,wghts)
           call acclvl(jlvliron,ocetra(1,1,1,iiron),k,ind1,ind2,wghts)
           call acclvl(jlvlano3,ocetra(1,1,1,iano3),k,ind1,ind2,wghts)
-          call acclvl(jlvlalkali,ocetra(1,1,1,ialkali),k,ind1,ind2,     &
-     &      wghts)
-          call acclvl(jlvlsilica,ocetra(1,1,1,isilica),k,ind1,ind2,     &
-     &      wghts)
+          call acclvl(jlvlalkali,ocetra(1,1,1,ialkali),k,ind1,ind2,wghts)
+          call acclvl(jlvlsilica,ocetra(1,1,1,isilica),k,ind1,ind2,wghts)
           call acclvl(jlvldic,ocetra(1,1,1,isco212),k,ind1,ind2,wghts)
           call acclvl(jlvldoc,ocetra(1,1,1,idoc),k,ind1,ind2,wghts)
           call acclvl(jlvlpoc,ocetra(1,1,1,idet),k,ind1,ind2,wghts)
@@ -315,13 +288,6 @@
       ENDIF
 
 
-!
-! Sampling timeseries-1 : global inventory
-!
-
-!
-! Sampling timeseries-1 : concentrations at specific positions
-!
  
 #ifdef AGG
 !***********************************************************************
@@ -369,29 +335,7 @@
 
 #define bioprod
 #ifdef bioprod
-!      pinv0=0.0
-!      DO j=1,kpje
-!      DO i=1,kpie
-!        IF(omask(i,j).gt.0.0) THEN
-!      DO k=1,kpke
-!      dpinv=                                                      &
-!     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy) &
-!     &  +ocetra(i,j,k,izoo)+ocetra(i,j,k,iphosph)                  
-!      pinv0=pinv0+dpinv*pddpo(i,j,k)*pdlxp(i,j)*pdlyp(i,j)      
-!      ENDDO
-!        ENDIF
-!      ENDDO
-!      ENDDO
-!
-! Biological productivity reaches down to about 80-100m
-!
-!
-! first calculate which layer lie in the euphotic zone
-! (at the moment the layer has to lie completely in it)
 
-      call calc_ez(kpie,kpje,kpke,pddpo,ptiestw)
-
-! then let it grow... 
 
 !$OMP PARALLEL DO                            &                
 !$OMP&PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn,phosy,  &
@@ -404,14 +348,9 @@
 
       DO 100 K=1,kwrbioz(i,j)
 
-      IF(pddpo(i,j,k).GT.1.e-12.and.omask(i,j).gt.0.5) THEN
+      IF(pddpo(i,j,k).GT.dp_min.and.omask(i,j).gt.0.5) THEN
 
-!      psum0=                                                          &
-!     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy)     &
-!     &  +ocetra(i,j,k,izoo)+ocetra(i,j,k,iphosph)  
 
-! depth of euphotic zone
-      dp_ez=100.0
       if(ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
@@ -438,13 +377,6 @@
 
          avphy=MAX(0.,ocetra(i,j,k,iphy))  
          avgra=MAX(0.,ocetra(i,j,k,izoo))  
-
-!ka phytos & zoos present in top 100m only
-!      if(ptiestw(i,j,k+1).gt.dp_ez) then
-!        avphy=avphy*(pddpo(i,j,k)/bdp)
-!        avgra=avgra*(pddpo(i,j,k)/bdp)
-!      ENDIF
-
          avsil=MAX(0.,ocetra(i,j,k,isilica))
          avanut=MAX(0.,MIN(ocetra(i,j,k,iphosph),                      &
      &          rnoi*ocetra(i,j,k,iano3)))
@@ -480,8 +412,7 @@
          delsil=MIN(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil) 
 	 delcar=rcalc*MIN(calmax*phosy,(phosy-delsil/ropal))
 #else
-         delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.8*avsil) 
-!         delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil) 
+         delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil) 
          delcar=rcalc * export * bkopal/(avsil+bkopal)
 #endif
 
@@ -570,7 +501,7 @@
      &                          -(graton+ecan*zoomor)*ro2ut)*bdp       &
      &    +ocetra(i,j,k,ioxygen)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
 
-        ocetra(i,j,k,iphy)=                                           &
+         ocetra(i,j,k,iphy)=                                           &
      &   ((ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud)*bdp           &
      &    +ocetra(i,j,k,iphy)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 
@@ -578,15 +509,7 @@
      &   ((ocetra(i,j,k,izoo)+grawa-excdoc-zoomor)*bdp                 &
      &    +ocetra(i,j,k,izoo)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 
-!         ocetra(i,j,k,iphy)=                                           &
-!     &     (ocetra(i,j,k,iphy)*(pddpo(i,j,k)/bdp)+phosy-grazing-phymor-exud)&
-!     &    *(bdp/pddpo(i,j,k))       
-
-!         ocetra(i,j,k,izoo)=                                           &
-!     &     (ocetra(i,j,k,izoo)*(pddpo(i,j,k)/bdp)+grawa-excdoc-zoomor) &
-!     &    *(bdp/pddpo(i,j,k))       
-
-        ocetra(i,j,k,idoc)=                                           &
+         ocetra(i,j,k,idoc)=                                           &
      &   ((ocetra(i,j,k,idoc)-bacfra+excdoc+exud)*bdp                  &
      &    +ocetra(i,j,k,idoc)       *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
 
@@ -657,24 +580,14 @@
 !
 ! write output for bgcmean
 !
-
-!kma
          aux2d_dmsprod(i,j)   = aux2d_dmsprod(i,j)+dmsprod*bdp 
          aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*bdp 
          aux2d_dms_uv(i,j)    = aux2d_dms_uv (i,j)+dms_uv*bdp 
          aux2d_export(i,j)    = aux2d_export(i,j) +export*rcar*bdp 
          aux2d_expoca(i,j)    = aux2d_expoca(i,j) +delcar*bdp
          aux2d_exposi(i,j)    = aux2d_exposi(i,j) +delsil*bdp 
-!kma primary production in g C m-2
-         aux3d_phosy(i,j,k)   = phosy*rcar*(bdp/pddpo(i,j,k))  
+         aux3d_phosy(i,j,k)   = phosy*rcar*(bdp/pddpo(i,j,k))  ! primary production in g C m-2
 
-!      psum1=                                                          &
-!     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy)     &
-!     &  +ocetra(i,j,k,izoo)+ocetra(i,j,k,iphosph)  
-
-!      IF(abs(psum1-psum0).gt.1.e-12) THEN
-!        write(io_stdo_bgc,*) 'OCPROD EZ P',psum1,psum0
-!      ENDIF
      
       ENDIF      ! pddpo(i,j,k).GT.0.5
 100   CONTINUE   ! kwrbioz
@@ -686,11 +599,9 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'in OCRPOD after 1st bio prod'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
-!ib
+
 ! Accumulate 2d diagnostics 
        call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
        call accsrf(jdms_bac,aux2d_dms_bac,omask,0)  
@@ -707,29 +618,9 @@
           call acclvl(jlvlphosy,aux3d_phosy,k,ind1,ind2,wghts)
         ENDDO
       ENDIF
-!ib
 
+#endif /*bioprod*/
 
-!      pinv1=0.0
-!      DO j=1,kpje
-!      DO i=1,kpie
-!        IF(omask(i,j).gt.0.0) THEN
-!      DO k=1,kpke
-!      dpinv=                                                      &
-!     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy) &
-!     &  +ocetra(i,j,k,izoo)+ocetra(i,j,k,iphosph)                  
-!      pinv1=pinv1+dpinv*pddpo(i,j,k)*pdlxp(i,j)*pdlyp(i,j)      
-!      ENDDO
-!        ENDIF
-!      ENDDO
-!      ENDDO
-
-!      WRITE(io_stdo_bgc,*) 'PINV BIOPROD',pinv0,pinv1
-!      pinv0=pinv1
-
-!bioprod
-#endif       
-!bioprod
 
 #ifdef AGG
        DO  k=1,kpke
@@ -751,7 +642,6 @@
       ENDDO
 #endif /*AGG*/
 
-!      CALL contro(148)
 
 !$OMP PARALLEL DO                                                & 
 !$OMP&PRIVATE(sterph,sterzo,remin,docrem,opalrem,aou, &
@@ -760,16 +650,12 @@
       DO 201 j=1,kpje
       DO 201 i=1,kpie
          DO 20 k=kwrbioz(i,j),kpke
-            IF(pddpo(i,j,k).gt.1.e-12.and.omask(i,j).GT.0.5) THEN
+            IF(pddpo(i,j,k).gt.dp_min.and.omask(i,j).GT.0.5) THEN
 
-! depth of euphotic zone
-      dp_ez=100.0
       if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k+1)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
           write(io_stdo_bgc,*) 'bdp gt pddpo(i,j,k) 2',i,j,k
-          write(io_stdo_bgc,*) 'bdp gt pddpo 2',pddpo(i,j,k),bdp
-          write(io_stdo_bgc,*) 'bdp gt pddpo 2',ptiestw(i,j,k),ptiestw(i,j,k+1)
         endif
       else
         bdp=pddpo(i,j,k)
@@ -790,12 +676,8 @@
             IF(ocetra(i,j,k,ioxygen).gt.5.e-8) THEN
                pocrem=MIN(drempoc*ocetra(i,j,k,idet),                  &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               docrem=MIN(dremdoc*ocetra(i,j,k,idoc),                 &
+               docrem=MIN(dremdoc*ocetra(i,j,k,idoc),                  &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               if (docrem.lt.0.) then
-                write(*,*)'negative doc remineralization',docrem
-                docrem=0.;
-               endif
                phyrem=MIN(0.5*dphymor*phythresh,                       &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                detref=pocrem/(ocetra(i,j,k,idet)+1.e-20)                      ! 'detritus remineralized fraction' (?)
@@ -811,7 +693,6 @@
                rem13 =0.
                rem14 =0.
 #endif
-	       docrem=0.
             endif 
 	    
             ocetra(i,j,k,idet)=                                        &
@@ -883,6 +764,7 @@
 !***********************************************************************
             aou=satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
             refra=1.+3.*(0.5+sign(0.5,aou-1.97e-4))
+            dms_bac=dmsp3*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)	 
             ocetra(i,j,k,ian2o)=                                       &
      &    ((ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra)*bdp           &
      &     +ocetra(i,j,k,ian2o)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
@@ -891,18 +773,10 @@
      &     +ocetra(i,j,k,igasnit)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,ioxygen)=                                     &
      &    ((ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5)*bdp     &
-     &     +ocetra(i,j,k,ioxygen)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-!careful, pho not defined this far down
-!            ocetra(i,j,k,idms)=ocetra(i,j,k,idms)                      &
-!     &                        -dmsp2*8.*pho*ocetra(i,j,k,idms)         &
-!     &           -dmsp3*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)
-
-	 dms_bac = dmsp3*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)	 
-	 
-         ocetra(i,j,k,idms)=                                        &
-     & ((ocetra(i,j,k,idms)-dms_bac)*bdp                            &
-     &  +ocetra(i,j,k,idms)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+     &     +ocetra(i,j,k,ioxygen)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)	 
+            ocetra(i,j,k,idms)=                                        &
+     &    ((ocetra(i,j,k,idms)-dms_bac)*bdp                            &
+     &     +ocetra(i,j,k,idms)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 	 
 #ifdef AGG
 !***********************************************************************
@@ -934,9 +808,7 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'in OCRPOD after poc remin'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 !$OMP PARALLEL DO                                                   &
 !$OMP&PRIVATE(remin,remin2o,rem13,rem14,detref,detrl,rl13,rl14,bdp,dp_ez) 
@@ -944,12 +816,8 @@
        DO 30 i=1,kpie
          DO 30 k=kwrbioz(i,j),kpke
          IF(omask(i,j).GT.0.5) THEN
-         IF(ocetra(i,j,k,ioxygen).LT.5.e-7.and.pddpo(i,j,k).gt.1.e-12) THEN
+         IF(ocetra(i,j,k,ioxygen).LT.5.e-7.and.pddpo(i,j,k).gt.dp_min) THEN
 
-! depth of euphotic zone
-!JT
-      dp_ez=100.0
-!      dp_ez=90.0
       if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k+1)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
@@ -1048,9 +916,7 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'in OCRPOD after remin n2o'
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 !sulphate reduction   ! introduced 11.5.2007 to improve poc-remineralisation in the 
 !                       oxygen minimum zone in the subsurface equatorial Pacific
@@ -1065,13 +931,9 @@
       DO 301 j=1,kpje
       DO 301 i=1,kpie
         DO 301 k=kwrbioz(i,j),kpke
-            IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.1.e-12) then  
+            IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.dp_min) then  
             IF(ocetra(i,j,k,ioxygen).lt.3.e-6.and.ocetra(i,j,k,iano3).lt.3.e-6) THEN
 
-! depth of euphotic zone
-!JT
-      dp_ez=100.0
-!JT      dp_ez=90.0
       if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
         bdp=abs(ptiestw(i,j,k+1)-dp_ez)
         if(bdp.gt.pddpo(i,j,k)) then
@@ -1148,15 +1010,13 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'in OCRPOD after sulphate reduction '
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 #ifdef AGG
        DO  k=1,kpke
          DO j=1,kpje
            DO i=1,kpie
-            IF(pddpo(i,j,k).gt.1.e-6.and.omask(i,j).GT.0.5) THEN
+            IF(pddpo(i,j,k).gt.dp_min.and.omask(i,j).GT.0.5) THEN
              avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
              snow = avmass*1.e+6
 ! check whether the numbers had to be decreased or increased
@@ -1213,7 +1073,7 @@
       do k=2,kpke
       do i=1,kpie
       do j=1,kpje
-         IF(pddpo(i,j,k).gt.1.e-6.and.omask(i,j).GT.0.5) THEN
+         IF(pddpo(i,j,k).gt.dp_min.and.omask(i,j).GT.0.5) THEN
           avm = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
           if(avm.gt.0.) then
           snow = avm*1.e+6
@@ -1821,9 +1681,7 @@
       WRITE(io_stdo_bgc,*)' '
       WRITE(io_stdo_bgc,*)'in OCRPOD after sinking poc '
       ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask &
-     &                  ,0)
-!      call INVENTORY_BGC(kpie,kpje,kpke)
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 !$OMP PARALLEL DO
       DO 33 j=1,kpje
@@ -1840,13 +1698,6 @@
          silpro(i,j)=ocetra(i,j,kbo(i,j),iopal) *wopal
          produs(i,j)=ocetra(i,j,kbo(i,j),ifdust)*wdust
 
-!
-! Paddy: write output for bgcmean       
-!
-!         bgct2d(i,j,jprorca)=bgct2d(i,j,jprorca) + prorca(i,j)
-!         bgct2d(i,j,jprcaca)=bgct2d(i,j,jprcaca) + prcaca(i,j)
-!         bgct2d(i,j,jsilpro)=bgct2d(i,j,jsilpro) + silpro(i,j)
-!         bgct2d(i,j,jprodus)=bgct2d(i,j,jprodus) + produs(i,j)
 
        ENDIF
 33    CONTINUE
@@ -1855,29 +1706,6 @@
 #endif
 #endif /* not AGG*/
 
-!      pinv1=0.0
-!      DO j=1,kpje
-!      DO i=1,kpie
-!        IF(omask(i,j).gt.0.0) THEN
-!      DO k=1,kpke
-!      dpinv=                                                      &
-!     &   ocetra(i,j,k,idet)+ocetra(i,j,k,idoc)+ocetra(i,j,k,iphy) &
-!     &  +ocetra(i,j,k,izoo)+ocetra(i,j,k,iphosph)                  
-!      pinv1=pinv1+dpinv*pddpo(i,j,k)*pdlxp(i,j)*pdlyp(i,j)      
-!      ENDDO
-!      pinv1=pinv1+prorca(i,j)*pdlxp(i,j)*pdlyp(i,j)
-!        ENDIF
-!      ENDDO
-!      ENDDO
-!
-!      WRITE(io_stdo_bgc,*) 'PINV sink',pinv0,pinv1
-
-!
-! Check maximum/minimum values on wet/dry cells.
-!
-!      IF( kchck .EQ. 1) CALL CHCK_BGC(io_stdo_bgc,icyclibgc,           &
-!     &'Check values of ocean tracer at exit from SBR OCPROD :',        &
-!     & kpie,kpje,kpke,pddpo)
 
       RETURN
       END

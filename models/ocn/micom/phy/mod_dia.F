@@ -712,6 +712,7 @@ c
 c 
 c --- Allocate buffers
       istatsum=0
+      istat=0
       if (nphysrf.ne.0)
      .  allocate(physrf(imn:imx,jmn:jmx,nphysrf),stat=istat)
       istatsum=istatsum+istat
@@ -1678,6 +1679,19 @@ c
 c
 c --- write auxillary dimension information 
       if (irec(iogrp).eq.1) then
+c --- sigma levels
+        call ncwrt1('sigma','sigma',sigmar1)
+        call ncattr('long_name','Potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
+c --- zlevel
+        call ncwrt1('depth','depth',depthslev)
+        call ncattr('long_name','z level')
+        call ncattr('units','m')
+        call ncattr('positive','down')
+        call ncattr('bounds','depth_bnds')
+        call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
@@ -1686,21 +1700,6 @@ c --- write auxillary dimension information
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
           call ncattr('units','degree_north')
-        endif 
-        if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp).ne.0) then 
-          call ncwrt1('sigma','sigma',sigmar1)
-          call ncattr('long_name','Potential density')
-          call ncattr('standard_name','sea_water_sigma_theta')
-          call ncattr('units','kg m-3')
-          call ncattr('positive','down')
-        endif 
-        if (MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp).ne.0) then 
-          call ncwrt1('depth','depth',depthslev)
-          call ncattr('long_name','z level')
-          call ncattr('units','m')
-          call ncattr('positive','down')
-          call ncattr('bounds','depth_bnds')
-          call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
         endif 
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp).ne.0) then

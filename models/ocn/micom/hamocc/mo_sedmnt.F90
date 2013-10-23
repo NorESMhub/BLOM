@@ -67,7 +67,7 @@
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: burial
 
 
-      REAL :: sedict,calcon,rno3,o2ut,ansed,sedac,sedifti
+      REAL :: sedict,rno3,o2ut,ansed,sedac,sedifti
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
       REAL :: calfa, oplfa, orgfa, clafa, solfu
@@ -100,6 +100,7 @@
 
         ALLOCATE (sedlay(kpie,kpje,ks,nsedtra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sedlay'
+        sedlay(:,:,:,:) = 0.0
 
 
         IF (mnproc.eq.1) THEN
@@ -111,6 +112,7 @@
 
         ALLOCATE (sedhpl(kpie,kpje,ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sedhpl'
+        sedhpl(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'
@@ -121,6 +123,7 @@
 
         ALLOCATE (burial(kpie,kpje,nsedtra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory burial'
+        burial(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
@@ -132,6 +135,7 @@
 
         ALLOCATE (powtra(kpie,kpje,ks,npowtra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory powtra'
+        powtra(:,:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable silpro ...'
@@ -141,6 +145,7 @@
 
         ALLOCATE (silpro(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory silpro'
+        silpro(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable prorca ...'
@@ -150,10 +155,13 @@
 
         ALLOCATE (prorca(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prorca'
+        prorca(:,:) = 0.0
         ALLOCATE (pror13(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory pror13'
+        pror13(:,:) = 0.0
         ALLOCATE (pror14(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory pror14'
+        pror14(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
@@ -163,10 +171,13 @@
 
         ALLOCATE (prcaca(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prcaca'
+        prcaca(:,:) = 0.0
         ALLOCATE (prca13(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prca13'
+        prca13(:,:) = 0.0
         ALLOCATE (prca14(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prca14'
+        prca14(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable produs ...'
@@ -176,6 +187,7 @@
 
         ALLOCATE (produs(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory produs'
+        produs(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable dzs ...'
@@ -184,6 +196,7 @@
 
         ALLOCATE (dzs(ksp),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory dzs'
+        dzs(:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable seddzi ...'
@@ -192,6 +205,7 @@
 
         ALLOCATE (seddzi(ksp),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory seddzi'
+        seddzi(:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable seddw ...'
@@ -200,6 +214,7 @@
 
         ALLOCATE (seddw(ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory seddw'
+        seddw(:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable porsol ...'
@@ -208,6 +223,7 @@
 
         ALLOCATE (porsol(ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory porsol'
+        porsol(:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable porwah ...'
@@ -216,6 +232,7 @@
 
         ALLOCATE (porwah(ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory porwah'
+        porwah(:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable porwat ...'
@@ -224,6 +241,7 @@
 
         ALLOCATE (porwat(ks),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory porwat'
+        porwat(:) = 0.0
 
 
 

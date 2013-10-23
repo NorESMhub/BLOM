@@ -3,8 +3,14 @@
 !
 !**** *MODULE mo_bgcmean* - Variables for bgcmean.
 !
-!     Ingo Bethke       *Bjer.NE. C.*    05.11.09 
+!
 !     Patrick Wetzel    *MPI-Met, HH*    09.12.02
+!     Ingo Bethke       *Bjer.NE. C.*    05.11.09 
+!     J. Schwinger      *GFI, UiB        10.02.12
+!      - added variables and functions for sediment burial
+!      - added variables for CFC output
+!      - added initialisation of namelist variables and 
+!        index arrays
 !  
 !     Purpose
 !     -------
@@ -32,34 +38,39 @@
  
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-     & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_OXFLUX        ,        &
-     & SRF_NIFLUX        ,SRF_DMS           ,SRF_DMSPROD       ,        &
-     & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
-     & SRF_EXPOSI        ,SRF_EXPOCA        ,SRF_ATMCO2        ,        &
-     & SRF_ATMO2         ,SRF_ATMN2         ,SRF_N2OFX         ,        &
-     & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
-     & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
-     & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
-     & LYR_SILICA        ,LYR_DIC           ,LYR_POC           ,        &
-     & LYR_CALC          ,LYR_OPAL          ,LYR_CO3           ,        &
-     & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
-     & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
-     & LYR_N2O           ,                                              &
-     & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
-     & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
-     & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
-     & LVL_SILICA        ,LVL_DIC           ,LVL_POC           ,        &
-     & LVL_CALC          ,LVL_OPAL          ,LVL_CO3           ,        &
-     & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
-     & LVL_DIC14         ,LVL_DP            ,LVL_NOS           ,        &
-     & LVL_N2O           ,                                              &
-     & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
-     & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
-     & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
-     & SDM_SSSC12        ,SDM_SSSTER        ,                           &
-     & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
-     & GLB_NCFORMAT      ,GLB_INVENTORY 
+     & SRF_KWCO2   =0      ,SRF_PCO2     =0     ,SRF_DMSFLUX =0      ,  &
+     & SRF_CO2FXD  =0      ,SRF_CO2FXU   =0     ,SRF_OXFLUX  =0      ,  &
+     & SRF_NIFLUX  =0      ,SRF_DMS      =0     ,SRF_DMSPROD =0      ,  &
+     & SRF_DMS_BAC =0      ,SRF_DMS_UV   =0     ,SRF_EXPORT  =0      ,  &
+     & SRF_EXPOSI  =0      ,SRF_EXPOCA   =0     ,SRF_ATMCO2  =0      ,  &
+     & SRF_ATMO2   =0      ,SRF_ATMN2    =0     ,SRF_N2OFX   =0      ,  &
+     & SRF_CFC11   =0      ,SRF_CFC12    =0     ,SRF_SF6     =0      ,  &
+     & LYR_PHYTO   =0      ,LYR_GRAZER   =0     ,LYR_DOC     =0      ,  &
+     & LYR_PHOSY   =0      ,LYR_PHOSPH   =0     ,LYR_OXYGEN  =0      ,  &
+     & LYR_IRON    =0      ,LYR_ANO3     =0     ,LYR_ALKALI  =0      ,  &
+     & LYR_SILICA  =0      ,LYR_DIC      =0     ,LYR_POC     =0      ,  &
+     & LYR_CALC    =0      ,LYR_OPAL     =0     ,LYR_CO3     =0      ,  &
+     & LYR_PH      =0      ,LYR_OMEGAC   =0     ,LYR_DIC13   =0      ,  &
+     & LYR_DIC14   =0      ,LYR_DP       =0     ,LYR_NOS     =0      ,  &
+     & LYR_N2O     =0      ,                                            &
+     & LYR_CFC11   =0      ,LYR_CFC12    =0     ,LYR_SF6     =0      ,  &
+     & LVL_PHYTO   =0      ,LVL_GRAZER   =0     ,LVL_DOC     =0      ,  &
+     & LVL_PHOSY   =0      ,LVL_PHOSPH   =0     ,LVL_OXYGEN  =0      ,  &
+     & LVL_IRON    =0      ,LVL_ANO3     =0     ,LVL_ALKALI  =0      ,  &
+     & LVL_SILICA  =0      ,LVL_DIC      =0     ,LVL_POC     =0      ,  &
+     & LVL_CALC    =0      ,LVL_OPAL     =0     ,LVL_CO3     =0      ,  &
+     & LVL_PH      =0      ,LVL_OMEGAC   =0     ,LVL_DIC13   =0      ,  &
+     & LVL_DIC14   =0      ,LVL_DP       =0     ,LVL_NOS     =0      ,  &
+     & LVL_N2O     =0      ,                                            &
+     & LVL_CFC11   =0      ,LVL_CFC12    =0     ,LVL_SF6     =0      ,  &
+     & SDM_POWAIC  =0      ,SDM_POWAAL   =0     ,SDM_POWAPH  =0      ,  &
+     & SDM_POWAOX  =0      ,SDM_POWN2    =0     ,SDM_POWNO3  =0      ,  &
+     & SDM_POWASI  =0      ,SDM_SSSO12   =0     ,SDM_SSSSIL  =0      ,  &
+     & SDM_SSSC12  =0      ,SDM_SSSTER   =0     ,                       &
+     & BUR_SSSO12  =0      ,BUR_SSSC12   =0     ,BUR_SSSSIL  =0      ,  &
+     & BUR_SSSTER  =0      ,                                            &
+     & GLB_AVEPERIO=0      ,GLB_FILEFREQ =0     ,GLB_COMPFLAG=0      ,  &
+     & GLB_NCFORMAT=0      ,GLB_INVENTORY=0 
       CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
@@ -68,6 +79,7 @@
      & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
      & SRF_EXPOSI        ,SRF_EXPOCA        ,SRF_ATMCO2        ,        &
      & SRF_ATMO2         ,SRF_ATMN2         ,SRF_N2OFX         ,        &
+     & SRF_CFC11         ,SRF_CFC12         ,SRF_SF6           ,        &
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -76,6 +88,7 @@
      & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
      & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
      & LYR_N2O           ,                                              &
+     & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -84,15 +97,18 @@
      & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
      & LVL_DIC14         ,LVL_NOS           ,                           &
      & LVL_N2O           ,                                              &
+     & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
      & SDM_SSSC12        ,SDM_SSSTER        ,                           &
+     & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
+     & BUR_SSSTER        ,                                              &
      & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
      & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
 
 !----------------------------------------------------------------      
-
+! declarations for inventory_bgc.F90
       INTEGER, parameter ::                                             &
      &          jco2flux  =1,                                           &
      &          jco214f   =2,                                           &
@@ -108,118 +124,129 @@
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jkwco2     ,                                            &
-     &          jpco2      ,                                            &
-     &          jdmsflux   ,                                            &
-     &          jco2fxd    ,                                            &
-     &          jco2fxu    ,                                            &
-     &          joxflux    ,                                            &
-     &          jniflux    ,                                            &
-     &          jn2ofx     ,                                            &
-     &          jdms       ,                                            &
-     &          jdmsprod   ,                                            &
-     &          jdms_bac   ,                                            &
-     &          jdms_uv    ,                                            &
-     &          jexport    ,                                            &
-     &          jexpoca    ,                                            &
-     &          jexposi     
+     &          jkwco2   = 0 ,                                          &
+     &          jpco2    = 0 ,                                          &
+     &          jdmsflux = 0 ,                                          &
+     &          jco2fxd  = 0 ,                                          &
+     &          jco2fxu  = 0 ,                                          &
+     &          joxflux  = 0 ,                                          &
+     &          jniflux  = 0 ,                                          &
+     &          jn2ofx   = 0 ,                                          &
+     &          jdms     = 0 ,                                          &
+     &          jdmsprod = 0 ,                                          &
+     &          jdms_bac = 0 ,                                          &
+     &          jdms_uv  = 0 ,                                          &
+     &          jexport  = 0 ,                                          &
+     &          jexpoca  = 0 ,                                          &
+     &          jexposi  = 0 ,                                          &
+     &          jcfc11fx = 0 ,                                          &
+     &          jcfc12fx = 0 ,                                          &
+     &          jsf6fx   = 0
+
 
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jatmco2  ,                                              &
-     &          jatmo2   ,                                              &
-     &          jatmn2           
+     &          jatmco2  = 0 ,                                          &
+     &          jatmo2   = 0 ,                                          &
+     &          jatmn2   = 0        
 
       INTEGER, SAVE :: nbgcm2d 
 
 !----------------------------------------------------------------
-! 2d: jdms,jexport, jexpoca, jexposi
-! out : jpoc, jatten, jcalc, jopal
       INTEGER, SAVE :: i_bsc_m3d,ilvl_bsc_m3d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jdp     ,                                               &
-     &          jphyto  ,                                               &
-     &          jgrazer ,                                               &
-     &          jdoc    ,                                               &
-     &          jphosy  ,                                               &
-     &          jphosph ,                                               &
-     &          joxygen ,                                               &
-     &          jiron   ,                                               &
-     &          jano3   ,                                               &
-     &          jalkali ,                                               &
-     &          jsilica ,                                               &
-     &          jdic    ,                                               &
-     &          jpoc    ,                                               &
-     &          jcalc   ,                                               &
-     &          jopal   ,                                               &
-     &          jco3    ,                                               &
-     &          jph     ,                                               &
-     &          jomegac ,                                               &
-     &          jn2o    ,                                               &
-     &          jlvlphyto  ,                                            &
-     &          jlvlgrazer ,                                            &
-     &          jlvldoc    ,                                            &
-     &          jlvlphosy  ,                                            &
-     &          jlvlphosph ,                                            &
-     &          jlvloxygen ,                                            &
-     &          jlvliron   ,                                            &
-     &          jlvlano3   ,                                            &
-     &          jlvlalkali ,                                            &
-     &          jlvlsilica ,                                            &
-     &          jlvldic    ,                                            &
-     &          jlvlpoc    ,                                            &
-     &          jlvlcalc   ,                                            &
-     &          jlvlopal   ,                                            &
-     &          jlvlco3    ,                                            &
-     &          jlvlph     ,                                            &
-     &          jlvlomegac ,                                            &
-     &          jlvln2o 
+     &          jdp        = 0 ,                                        &
+     &          jphyto     = 0 ,                                        &
+     &          jgrazer    = 0 ,                                        &
+     &          jdoc       = 0 ,                                        &
+     &          jphosy     = 0 ,                                        &
+     &          jphosph    = 0 ,                                        &
+     &          joxygen    = 0 ,                                        &
+     &          jiron      = 0 ,                                        &
+     &          jano3      = 0 ,                                        &
+     &          jalkali    = 0 ,                                        &
+     &          jsilica    = 0 ,                                        &
+     &          jdic       = 0 ,                                        &
+     &          jpoc       = 0 ,                                        &
+     &          jcalc      = 0 ,                                        &
+     &          jopal      = 0 ,                                        &
+     &          jco3       = 0 ,                                        &
+     &          jph        = 0 ,                                        &
+     &          jomegac    = 0 ,                                        &
+     &          jn2o       = 0 ,                                        &
+     &          jcfc11     = 0 ,                                        &
+     &          jcfc12     = 0 ,                                        &
+     &          jsf6       = 0 ,                                        &
+     &          jlvlphyto  = 0 ,                                        &
+     &          jlvlgrazer = 0 ,                                        &
+     &          jlvldoc    = 0 ,                                        &
+     &          jlvlphosy  = 0 ,                                        &
+     &          jlvlphosph = 0 ,                                        &
+     &          jlvloxygen = 0 ,                                        &
+     &          jlvliron   = 0 ,                                        &
+     &          jlvlano3   = 0 ,                                        &
+     &          jlvlalkali = 0 ,                                        &
+     &          jlvlsilica = 0 ,                                        &
+     &          jlvldic    = 0 ,                                        &
+     &          jlvlpoc    = 0 ,                                        &
+     &          jlvlcalc   = 0 ,                                        &
+     &          jlvlopal   = 0 ,                                        &
+     &          jlvlco3    = 0 ,                                        &
+     &          jlvlph     = 0 ,                                        &
+     &          jlvlomegac = 0 ,                                        &
+     &          jlvln2o    = 0 ,                                        &
+     &          jlvlcfc11  = 0 ,                                        &
+     &          jlvlcfc12  = 0 ,                                        &
+     &          jlvlsf6    = 0
     
 
       INTEGER, SAVE :: i_iso_m3d,ilvl_iso_m3d
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jdic13  ,                                               &
-     &          jdic14  ,                                               &
-     &          jlvldic13  ,                                            &
-     &          jlvldic14   
+     &          jdic13     = 0 ,                                        &
+     &          jdic14     = 0 ,                                        &
+     &          jlvldic13  = 0 ,                                        &
+     &          jlvldic14  = 0  
 
       INTEGER, SAVE :: i_ant_m3d,ilvl_ant_m3d 
 
       INTEGER, SAVE :: i_agg_m3d,ilvl_agg_m3d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jnos ,                                                  &
-     &          jlvlnos     
+     &          jnos       = 0 ,                                        &
+     &          jlvlnos    = 0 
 
-      INTEGER, SAVE :: i_cfc_t3d,ilvl_cfc_t3d
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jcfc11_t ,                                              &
-     &          jcfc12_t ,                                              &
-     &          jac14_t  ,                                              &
-     &          jlvlcfc11_t ,                                           &
-     &          jlvlcfc12_t ,                                           &
-     &          jlvlac14_t 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
 !----------------------------------------------------------------
-! js: sediment
-!
+! sediment
       INTEGER, SAVE :: i_bsc_sed 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jpowaic  ,                                              &
-     &          jpowaal  ,                                              &
-     &          jpowaph  ,                                              &
-     &          jpowaox  ,                                              &
-     &          jpown2   ,                                              &
-     &          jpowno3  ,                                              &
-     &          jpowasi  ,                                              &
-     &          jssso12  ,                                              &
-     &          jssssil  ,                                              &
-     &          jsssc12  ,                                              &
-     &          jssster              
+     &          jpowaic = 0 ,                                           &
+     &          jpowaal = 0 ,                                           &
+     &          jpowaph = 0 ,                                           &
+     &          jpowaox = 0 ,                                           &
+     &          jpown2  = 0 ,                                           &
+     &          jpowno3 = 0 ,                                           &
+     &          jpowasi = 0 ,                                           &
+     &          jssso12 = 0 ,                                           &
+     &          jssssil = 0 ,                                           &
+     &          jsssc12 = 0 ,                                           &
+     &          jssster = 0              
 
 
       INTEGER, SAVE :: nbgct_sed    
+
+!----------------------------------------------------------------
+!  burial
+      INTEGER, SAVE :: i_bsc_bur 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jburssso12 = 0 ,                                        &
+     &          jbursssc12 = 0 ,                                        &
+     &          jburssssil = 0 ,                                        &
+     &          jburssster = 0
+
+
+      INTEGER, SAVE :: nbgct_bur
 
 !----------------------------------------------------------------
 
@@ -227,6 +254,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgcm2d
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgcm3d,bgcm3dlvl
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgct_sed 
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgct_bur 
      
  
       CONTAINS
@@ -266,7 +294,7 @@
       READ (iounit,nml=diabgc)
       CLOSE (iounit)
 
-!     Determ.NE.number of output groups 
+!     Determine number of output groups 
       nbgc=0 
       DO n=1,nbgcmax
         IF (GLB_AVEPERIO(n).NE.0) THEN 
@@ -303,7 +331,7 @@
         ENDIF
       ENDDO
 
-!     Re-def.NE.index variables according to namelist 
+!     Re-define index variables according to namelist 
       i_bsc_m2d=0 
       DO n=1,nbgc  
         IF (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
@@ -336,6 +364,14 @@
         jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
         IF (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
+#ifdef CFC
+        IF (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcfc11fx(n)=i_bsc_m2d*min(1,SRF_CFC11(n))
+        IF (SRF_CFC12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcfc12fx(n)=i_bsc_m2d*min(1,SRF_CFC12(n))
+        IF (SRF_SF6(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsf6fx(n)=i_bsc_m2d*min(1,SRF_SF6(n))
+#endif
       ENDDO 
 
       i_atm_m2d=i_bsc_m2d
@@ -398,6 +434,14 @@
         jn2o(n)=i_bsc_m3d*min(1,LYR_N2O(n))
         IF (LYR_DP(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
+#ifdef CFC
+        IF (LYR_CFC11(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
+        IF (LYR_CFC12(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jcfc12(n)=i_bsc_m3d*min(1,LYR_CFC12(n))
+        IF (LYR_SF6(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jsf6(n)=i_bsc_m3d*min(1,LYR_SF6(n))
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -437,6 +481,14 @@
         jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
         IF (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvln2o(n)=ilvl_bsc_m3d*min(1,LVL_N2O(n))
+#ifdef CFC
+        IF (LVL_CFC11(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
+        IF (LVL_CFC12(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlcfc12(n)=ilvl_bsc_m3d*min(1,LVL_CFC12(n))
+        IF (LVL_SF6(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlsf6(n)=ilvl_bsc_m3d*min(1,LVL_SF6(n))
+#endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 
@@ -480,14 +532,12 @@
       i_agg_m3d=i_agg_m3d-i_bsc_m3d-i_iso_m3d-i_ant_m3d
       ilvl_agg_m3d=ilvl_agg_m3d-ilvl_bsc_m3d-ilvl_iso_m3d-ilvl_ant_m3d
  
-      i_cfc_t3d=0 
-      ilvl_cfc_t3d=0 
 
 !     add dp required 
       DO n=1,nbgc
         IF (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) THEN 
           i_bsc_m3d=i_bsc_m3d+1
-          jdp(n)=i_bsc_m3d+i_agg_m3d+i_iso_m3d+i_ant_m3d+i_cfc_t3d
+          jdp(n)=i_bsc_m3d+i_agg_m3d+i_iso_m3d+i_ant_m3d
         ENDIF
       ENDDO 
   
@@ -516,11 +566,24 @@
         IF (SDM_SSSTER(n).GT.0) i_bsc_sed=i_bsc_sed+1
         jssster(n)=i_bsc_sed*min(1,SDM_SSSTER(n))
       ENDDO
+
+      i_bsc_bur=0
+      DO n=1,nbgc
+        IF (BUR_SSSO12(n).GT.0) i_bsc_bur=i_bsc_bur+1
+        jburssso12(n)=i_bsc_bur*min(1,BUR_SSSO12(n))
+        IF (BUR_SSSC12(n).GT.0) i_bsc_bur=i_bsc_bur+1
+        jbursssc12(n)=i_bsc_bur*min(1,BUR_SSSC12(n))
+        IF (BUR_SSSSIL(n).GT.0) i_bsc_bur=i_bsc_bur+1
+        jburssssil(n)=i_bsc_bur*min(1,BUR_SSSSIL(n))
+        IF (BUR_SSSTER(n).GT.0) i_bsc_bur=i_bsc_bur+1
+        jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
+       ENDDO
          
       nbgcm2d=i_bsc_m2d+i_atm_m2d
       nbgcm3d=i_bsc_m3d+i_iso_m3d+i_agg_m3d
       nbgcm3dlvl=ilvl_bsc_m3d+ilvl_iso_m3d+ilvl_agg_m3d
       nbgct_sed = i_bsc_sed
+      nbgct_bur = i_bsc_bur
 
 !     Allocate buffers 
 
@@ -586,6 +649,18 @@
      &  nbgct_sed),stat=errstat)
       IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
       IF (nbgct_sed.NE.0) bgct_sed=0. 
+
+      IF (mnproc.EQ.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgct_bur
+      ENDIF
+
+      ALLOCATE (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,             &
+     &  nbgct_bur),stat=errstat)
+      IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
+      IF (nbgct_bur.NE.0) bgct_bur=0. 
 
       END SUBROUTINE ALLOC_MEM_BGCMEAN
  
@@ -730,6 +805,40 @@
       ENDDO
 !
       END SUBROUTINE inisdm
+
+
+
+      SUBROUTINE inibur(pos,inival)
+!
+! --- ------------------------------------------------------------------
+! --- Description: initialise sediment burial diagnostic field
+! ---   
+! --- Arguments:
+! ---   int  pos      (in)     : position in common buffer  
+! ---   real inival   (in)     : value used for initalisation
+! --- ------------------------------------------------------------------
+!
+      IMPLICIT NONE
+! 
+      INTEGER :: pos
+      REAL ::inival
+! 
+      INTEGER :: i,j,l
+!
+! --- Check whether field should be initialised
+      IF (pos.EQ.0) RETURN
+!
+!$OMP PARALLEL DO
+      DO j=1,jj
+        DO l=1,isp(j)
+          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            bgct_bur(i,j,pos)=inival
+          ENDDO
+        ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+!
+      END SUBROUTINE inibur
 
 
 
@@ -922,6 +1031,42 @@
 
 
 
+      SUBROUTINE accbur(pos,fld)
+!
+! --- ------------------------------------------------------------------
+! --- Description: accumulate sediment burial fields 
+! ---  
+! --- Arguments: 
+! ---   int  pos      (in)     : position in 3d layer buffer  
+! ---   real fld      (in)     : input data used for accumulation
+! --- ------------------------------------------------------------------
+!
+      IMPLICIT NONE
+! 
+      INTEGER :: pos(nbgcmax)
+      REAL, DIMENSION(idm,jdm) :: fld
+! 
+      INTEGER :: i,j,l,o
+!
+! --- Check whether field should be accumulated
+      DO o=1,nbgc
+        IF (pos(o).EQ.0) cycle
+!
+!$OMP PARALLEL DO 
+        DO j=1,jj
+          DO l=1,isp(j)
+            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              bgct_bur(i,j,pos(o))=bgct_bur(i,j,pos(o))+fld(i,j)
+            ENDDO
+          ENDDO
+        ENDDO
+!$OMP END PARALLEL DO
+      ENDDO
+!   
+      END SUBROUTINE accbur
+
+
+
       SUBROUTINE finsrf(posacc,poswgt)
 !
 ! --- ------------------------------------------------------------------
@@ -1031,7 +1176,7 @@
       CHARACTER(LEN=100) :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0) RETURN
+      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
 !
 ! --- Create dimension string 
       IF (cmpflg.EQ.1) THEN
@@ -1046,7 +1191,7 @@
           CALL nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs)
         ELSE
-          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
+          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
      &      sfac,offs)
         ENDIF
       ELSEIF (frmt.EQ.4) THEN
@@ -1054,7 +1199,7 @@
           CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,4)
         ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
+          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
      &      sfac,offs,4)
         ENDIF
       ELSEIF (frmt.EQ.8) THEN
@@ -1062,7 +1207,7 @@
           CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,8)
         ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
+          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
      &      sfac,offs,8)
         ENDIF
       ELSE
@@ -1113,7 +1258,7 @@
       CHARACTER(LEN=100) :: dims
 !
 ! --- Check whether field should be written
-      IF (frmt.EQ.0) RETURN
+      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
 !
 ! --- Create dimension string 
       IF (cmpflg.EQ.1) THEN
@@ -1195,7 +1340,7 @@
       CHARACTER(LEN=100) :: dims
 !
 ! --- Check whether field should be written
-      IF (frmt.EQ.0) RETURN
+      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
 !
 ! --- Create dimension string 
       IF (cmpflg.EQ.1) THEN
@@ -1277,7 +1422,7 @@
       CHARACTER(LEN=100) :: dims
 !
 ! --- Check whether field should be written
-      IF (frmt.EQ.0) RETURN
+      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
 !
 ! --- Create dimension string 
       IF (cmpflg.EQ.1) THEN
@@ -1292,7 +1437,7 @@
           CALL nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs)
         ELSE
-          CALL ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,2,      &
+          CALL ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs)
         ENDIF
       ELSEIF (frmt.EQ.4) THEN
@@ -1300,7 +1445,7 @@
           CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs,4)
         ELSE
-          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,2,      &
+          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs,4)
         ENDIF
       ELSEIF (frmt.EQ.8) THEN
@@ -1308,7 +1453,7 @@
           CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs,8)
         ELSE
-          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,2,      &
+          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs,8)
         ENDIF
       ELSE
@@ -1323,6 +1468,88 @@
       CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtsdm
+
+
+
+      SUBROUTINE wrtbur(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
+     &  vunits)
+!
+! --- ------------------------------------------------------------------
+! --- Description: writes diagnostic sediment burial field to file  
+! ---   
+! --- Arguments:
+! ---   int  pos      (in)     : variable position in common buffer
+! ---   int  frmt     (in)     : format/precision of output 
+! ---                            0=field is not written  
+! ---                            2=field is written as int2 with scale 
+! ---                              factor and offset 
+! ---                            4=field is written as real4
+! ---                            8=field is written as real8
+! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
+! ---   real offs     (in)     : user def.NE. offset to be added 
+! ---   int  cmpflg   (in)     : compression flag; only wet points are 
+! ---                            written IF flag is set to 1 
+! ---   char vnm      (in)     : variable name used in nc-file 
+! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
+! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
+! ---   char vunits   (in)     : variable units (skipped IF ' ') 
+! --- ------------------------------------------------------------------
+!
+      IMPLICIT NONE
+! 
+      REAL ::sfac,offs
+      INTEGER :: frmt,cmpflg,pos,n
+      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+!
+      CHARACTER(LEN=100) :: dims
+!
+! --- Check whether field should be written
+      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+!
+! --- Create dimension string 
+      IF (cmpflg.EQ.1) THEN
+        dims='pcomp time'
+      ELSE
+        dims='x y time'
+      ENDIF
+!
+! --- Check output format
+      IF (frmt.EQ.2) THEN
+        IF (cmpflg.EQ.1) THEN
+          CALL nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+     &      offs)
+        ELSE
+          CALL ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+     &      sfac,offs)
+        ENDIF
+      ELSEIF (frmt.EQ.4) THEN
+        IF (cmpflg.EQ.1) THEN
+          CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+     &      offs,4)
+        ELSE
+          CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+     &      sfac,offs,4)
+        ENDIF
+      ELSEIF (frmt.EQ.8) THEN
+        IF (cmpflg.EQ.1) THEN
+          CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+     &      offs,8)
+        ELSE
+          CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+     &      sfac,offs,8)
+        ENDIF
+      ELSE
+        STOP 'unknown output format '
+      ENDIF
+!
+! --- Def.NE.attributes
+      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+      CALL ncattr('coordinates','plon plat')
+      CALL ncattr('cell_measures','area: parea')
+!
+      END SUBROUTINE wrtbur
 
 
 

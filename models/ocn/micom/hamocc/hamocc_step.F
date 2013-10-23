@@ -1,6 +1,6 @@
       subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
 c
-cka initialisation of HAMOCC      
+c initialisation of HAMOCC      
 c
       use mod_xc
       use mo_bgcmean
@@ -13,12 +13,10 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 #include "common_geo.h"
-#include "common_ice.h"
 #include "common_trc.h"
 c
-      integer i,j,k,l,kn,nt
-      integer m,n,mm,nn,k1m,k1n
-      real q
+      integer :: m,n,mm,nn,k1m,k1n
+      integer :: i,j,k,l
 
       call micom2hamocc(nn,n)
 c
@@ -33,8 +31,8 @@ c
         endif
       enddo 
 c
-      call hamocc4bcm(idm,jdm,kdm,nbdy,
-     .            bgc_swr,bgc_fice,bgc_t,bgc_s,bgc_dp,bgc_dx,bgc_dy,
+      call hamocc4bcm(idm,jdm,kdm,nbdy,bgc_swr,bgc_fice,
+     .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
      .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,trc,ntr,ntrbgc,itrbgc,nday_in_year)

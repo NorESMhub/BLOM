@@ -287,24 +287,25 @@ c
 #ifdef TRC
       do nt=1,ntrc
 c
-cc$OMP PARALLEL DO
-c        do j=1,jj
-c          do l=1,isp(j)
-c          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c            util1(i,j)=ttrsf(nt,i,j)
-c            util2(i,j)=ttrav(nt,i,j)
-c          enddo
-c          enddo
-c        enddo
-cc$OMP END PARALLEL DO
-cc
-c        call xcsum(tottrsf,util1,ips)
-c        call xcsum(tottrav,util2,ips)
-cc
-c        tottrav=tottrav/area
-cc
+c$OMP PARALLEL DO
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            util1(i,j)=ttrsf(nt,i,j)
+            util2(i,j)=ttrav(nt,i,j)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+        call xcsum(tottrsf,util1,ips)
+        call xcsum(tottrav,util2,ips)
+c
+        tottrav=tottrav/area
+c
+        trflxc=(-tottrsf)/area
 c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
-        trflxc=0.
+c        trflxc=0.
 c
 c$OMP PARALLEL DO
         do j=1,jj

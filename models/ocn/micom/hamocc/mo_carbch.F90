@@ -5,16 +5,18 @@
 !
 !**** *MODULE mo_carbch* - Variables for inorganic carbon cycle.
 !
-!     S.Legutke,        *MPI-MaD, HH*    31.10.01
+!     S.Legutke,        *MPI-MaD, HH*     31.10.01
 !
 !     Modified
 !     --------
 !  
-!     Patrick Wetzel    *MPI-Met, HH*    16.04.02
+!     Patrick Wetzel    *MPI-Met, HH*     16.04.02
 !     - new: atm, atdifv, suppco2
 !     - changed: chemc(:,:,:) to chemcm(:,:,:,:)
 !     - new: bgcmean(:,:,:,:)
-!  
+!     J. Schwinger      *UiB-GfI, Bergen* 04.05.12
+!     - added initialisation of all vars after allocation
+!
 !     Purpose
 !     -------
 !     - declaration and memory allocation
@@ -36,24 +38,22 @@
       implicit none
       
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
-      REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: chemcm
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: co3
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: hi
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: OmegaC 
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: akw3
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: akb3
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: ak13
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: ak23
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: aksp
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: satoxy
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: satn2o
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: atdifv
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: suppco2
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: sedfluxi
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: sedfluxo
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: dusty
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: kwb
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: kbb
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: k1b
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: k2b
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: kspb
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: satoxy
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: satn2o
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
       
       REAL :: dmspar(6)
             
@@ -64,23 +64,14 @@
 
 #ifndef DIFFAT            
       REAL :: atm_co2, atm_o2, atm_n2 
-      REAL :: atm_c13, atm_c14, atmacon,atmacmol
+      REAL :: atm_c13, atm_c14
 #endif  
+#ifdef CFC
+      REAL :: atm_cfc11,atm_cfc12,atm_sf6
+#endif
 
 #ifdef EMS_CO2
-!#ifdef DIFFAT
       REAL :: emission, ems_per_step
-!#else
-      REAL :: co2_atm_1,co2_atm_2,co2_atm_3
-!#endif      
-#endif
-#ifdef PCFC
-      REAL ::           cfc11_atm_1s,cfc11_atm_2s,cfc11_atm_3s        &
-     &                 ,cfc11_atm_1n,cfc11_atm_2n,cfc11_atm_3n        &
-     &                 ,cfc12_atm_1s,cfc12_atm_2s,cfc12_atm_3s        &
-     &                 ,cfc12_atm_1n,cfc12_atm_2n,cfc12_atm_3n        
-
-      REAL, DIMENSION (:,:), ALLOCATABLE :: cfc_int
 #endif
 #ifdef ANTC14
       REAL :: D14C_north, D14C_south, D14C_equator
@@ -109,6 +100,7 @@
 
         ALLOCATE (ocetra(kpie,kpje,kpke,nocetra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory ocetra'
+        ocetra(:,:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable hi ...'
@@ -119,6 +111,7 @@
 
         ALLOCATE (hi(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory hi'
+        hi(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable co3 ...'
@@ -129,6 +122,7 @@
 
         ALLOCATE (co3(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory co3'
+        co3(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaC ...'
@@ -139,26 +133,8 @@
 
         ALLOCATE (OmegaC(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory OmegaC'
+        OmegaC(:,:,:) = 0.0
 
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable chemcm ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',8
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',12
-        ENDIF
-
-        ALLOCATE (chemcm(kpie,kpje,8,12),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory chemcm'
-
-!        IF (mnproc.eq.1) THEN
-!        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedfluxi ...'
-!        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-!        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-!	 WRITE(io_stdo_bgc,*)'Third dimension    : ',3
-!        ENDIF
-!
-!        ALLOCATE (sedfluxi(kpie,kpje,3))
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable sedfluxo ..'
@@ -169,6 +145,7 @@
 
         ALLOCATE (sedfluxo(kpie,kpje,npowtra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory sedfluxo'
+        sedfluxo(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
@@ -178,16 +155,17 @@
 
         ALLOCATE (satn2o(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory satn2o'
+        satn2o(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable aksp ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable kspb ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
-        ALLOCATE (aksp(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory aksp'
+        ALLOCATE (kspb(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory kspb'
+        kspb(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable satoxy ...'
@@ -198,46 +176,48 @@
 
         ALLOCATE (satoxy(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory satoxy'
+        satoxy(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable ak23 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable k1b ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
-        ALLOCATE (ak23(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory ak23'
+        ALLOCATE (k1b(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory k1b'
+        k1b(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable ak13 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable k2b ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
-        ALLOCATE (ak13(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory ak13'
+        ALLOCATE (k2b(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory k2b'
+        k2b(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable akb3 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable kbb ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
-        ALLOCATE (akb3(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory akb3'
+        ALLOCATE (kbb(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory kbb'
+        kbb(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable akw3 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable kwb ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
-        ALLOCATE (akw3(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory akw3'
+        ALLOCATE (kwb(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory kwb'
+        kwb(:,:) = 0.0
+
 !#if defined(DIFFAT) || defined(CCSMCOUPLED)
 
         IF (mnproc.eq.1) THEN
@@ -249,6 +229,7 @@
 
         ALLOCATE (atm(kpie,kpje,natm),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atm'
+        atm(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atmflx ...'
@@ -259,7 +240,11 @@
 
         ALLOCATE (atmflx(kpie,kpje,natm),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atmflx'
+        atmflx(:,:,:) = 0.0
+
 !#endif	
+
+#if defined(DIFFAT)
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atdifv ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -268,6 +253,7 @@
 
         ALLOCATE (atdifv(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atdifv'
+        atdifv(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable suppco2 ...'
@@ -277,6 +263,8 @@
 
         ALLOCATE (suppco2(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory suppco2'
+        suppco2(:,:) = 0.0
+#endif	
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable dusty ...'
@@ -287,17 +275,8 @@
 
         ALLOCATE (dusty(kpie,kpje,12),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory dusty'
+        dusty(:,:,:) = 0.0
 
-#ifdef PCFC
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable cfc_int ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-        
-        ALLOCATE (cfc_int(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory cfc_int'
-#endif
 #ifdef ANTC14
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable Rbomb ...'
@@ -307,6 +286,7 @@
         
         ALLOCATE (Rbomb(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory Rbomb'
+        Rbomb(:,:) = 0.0
 #endif	
 
       END SUBROUTINE ALLOC_MEM_CARBCH

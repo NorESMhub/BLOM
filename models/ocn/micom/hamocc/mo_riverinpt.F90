@@ -23,7 +23,7 @@ module mo_riverinpt
 !
 !********************************************************************************
 use dimensions,     only: itdm,jtdm,idm,jdm
-use mod_xc ,        only: mnproc,nbdy,xcaput
+use mod_xc ,        only: mnproc,nbdy,xcaput,xchalt
 use mo_control_bgc, only: io_stdo_bgc
 implicit none
 
@@ -33,6 +33,14 @@ public :: riverinpt,ini_riverinpt
 logical, save              :: lini=.false. 
 integer,         parameter :: nrivmax=10000
 character(len=*),parameter :: infile = 'riv_in.txt'
+
+
+! Global "Tuning factor" for riverine input (GNEWS input data
+! is multiplied by this factor). Test with the low resolution
+! NorESM version showed that an increase of riverine nutrient
+! input by ~10% reduces model drift.
+real,            parameter :: tfac = 1.1
+
 
 ! arrays for riverine inputs on the model grid
 real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   &
@@ -45,7 +53,7 @@ real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   
 contains
 
 
-subroutine ini_riverinpt(path,path_len)
+subroutine ini_riverinpt(path)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -66,6 +74,8 @@ use mo_biomod, only: rcar,rnit
 
 implicit none
 
+character(len=*)            :: path
+
 integer                     :: stat,nriv,riv_indice,i
 integer, dimension(nrivmax) :: riv_i,riv_j
 real                        :: distmin,lon_gn,lat_gn,lon_noresm,lat_noresm
@@ -81,8 +91,6 @@ real,allocatable,dimension(:,:) :: rivt_DIN2d,rivt_DIP2d, rivt_DSI2d,           
                                    rivt_DIC2d,rivt_idet2d,rivt_idoc2d,          &
                                    rivt_DFe2d
    
-character*(*) path
-integer path_len
 
 if( lini ) then 
   write(io_stdo_bgc,*) 'Warning: Riverine nutrients data already initialised'
@@ -111,7 +119,7 @@ rivt_DFe2d(:,:)  = 0.0
 if (mnproc.eq.1) then
 
   write(io_stdo_bgc,*) 'Read GNEWS riverine nutrients inputs data'
-  open(99,file=path(1:path_len)//infile)
+  open(99,file=trim(path)//infile)
   read(99,*)
   read(99,*)
 
@@ -140,17 +148,17 @@ if (mnproc.eq.1) then
 
     if (stat.ge.0) then
       nriv=nriv+1
-      riv_DIN(nriv) = riv_DIN(nriv)*1.1E6/14./1E3
-      riv_DIP(nriv) = riv_DIP(nriv)*1.1E6/31./1E3
-      riv_DON(nriv) = riv_DON(nriv)*1.1E6/14./1E3
-      riv_DOP(nriv) = riv_DOP(nriv)*1.1E6/31./1E3
-      riv_DOC(nriv) = riv_DOC(nriv)*1.1E6/12./1E3
-      riv_PN(nriv)  = riv_PN(nriv)*1.1E6/14./1E3
-      riv_PP(nriv)  = riv_PP(nriv)*1.1E6/31./1E3
-      riv_POC(nriv) = riv_POC(nriv)*1.1E6/12./1E3
-      riv_DIC(nriv) = riv_DIC(nriv)*1.1/1E3          !already in kmols 
-      riv_DSi(nriv) = riv_DSi(nriv)*1.1E6/28./1E3
-      riv_DFe(nriv) = riv_DFe(nriv)*1.1E3/55.8/1E3
+      riv_DIN(nriv) = riv_DIN(nriv)*1E6/14. /1E3*tfac 
+      riv_DIP(nriv) = riv_DIP(nriv)*1E6/31. /1E3*tfac
+      riv_DON(nriv) = riv_DON(nriv)*1E6/14. /1E3*tfac
+      riv_DOP(nriv) = riv_DOP(nriv)*1E6/31. /1E3*tfac
+      riv_DOC(nriv) = riv_DOC(nriv)*1E6/12. /1E3*tfac
+      riv_PN(nriv)  = riv_PN(nriv) *1E6/14. /1E3*tfac
+      riv_PP(nriv)  = riv_PP(nriv) *1E6/31. /1E3*tfac
+      riv_POC(nriv) = riv_POC(nriv)*1E6/12. /1E3*tfac
+      riv_DIC(nriv) = riv_DIC(nriv)         /1E3*tfac  ! already in kmols (is this correct?)
+      riv_DSi(nriv) = riv_DSi(nriv)*1E6/28. /1E3*tfac
+      riv_DFe(nriv) = riv_DFe(nriv)*1E3/55.8/1E3*tfac
     else
       exit read_data
     endif
@@ -282,7 +290,11 @@ integer            :: i,j
 real               :: fdt,volij
 
 ! initialisation is now called from ini_hamocc (changed by Ingo Bethke on 2013.06.07)
-! if( .not. lini ) call ini_riverinpt()
+if( .not. lini ) then
+  write(io_stdo_bgc,*) 'Error: Riverine nutrients data not initialised'
+  call xchalt('(mo_riverinpt)')
+  stop '(mo_riverinpt)'
+end if
 
 
 !$OMP PARALLEL DO PRIVATE(fdt,volij)

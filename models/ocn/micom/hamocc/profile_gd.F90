@@ -1,4 +1,4 @@
-subroutine profile_gd(kpie,kpje,kpke,pgila,pgiph,ptiestu,omask,path)
+subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestu,omask,path)
 
 !********************************************************************************
 !     J.Schwinger,        *Gfi, Bergen*    19.05.2011
@@ -27,8 +27,8 @@ implicit none
 integer,         intent(in) :: kpie,kpje,kpke
 real,            intent(in) :: ptiestu(kpie,kpje,kpke+1)
 real,            intent(in) :: omask(kpie,kpje)
-real,            intent(in) :: pgila(kpie*2,kpje*2)
-real,            intent(in) :: pgiph(kpie*2,kpje*2)
+real,            intent(in) :: pglon(kpie,kpje)
+real,            intent(in) :: pglat(kpie,kpje)
 character(len=*),intent(in) :: path
 
 ! Local variables
@@ -57,8 +57,8 @@ do n = 1, nflds  ! Loop over tracer
          
          If(omask(i,j) > 0.5) THEN
             
-            clon = pgila(i*2,j*2)
-            clat = pgiph(i*2,j*2)
+            clon = pglon(i,j)
+            clat = pglat(i,j)
             idx  = ifld(n)
             call get_profile(clon,clat,prf)
 
