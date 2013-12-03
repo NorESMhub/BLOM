@@ -3153,6 +3153,14 @@ c
 c --- Computation of vertical mass flux at levitus layer interfaces 
       if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
 c
+        call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(iogrp)),
+     .              1,ddm, 1,1, halo_us)
+        call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(iogrp)),
+     .              1,ddm, 1,1, halo_vs)
+c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXOLD(iogrp)),
+c    .              1,kk, 1,1, halo_uv)
+c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXOLD(iogrp)),
+c    .              1,kk, 1,1, halo_vv)
 c$OMP PARALLEL DO
         do j=1,jj+1
           do i=1,ii+1

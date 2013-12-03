@@ -137,10 +137,10 @@
             else
 
                ! Liquid water flux, positive downwards [kg/m^2/s]
-               lip_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_rain,n)
+               lip_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Faxa_rain,n)
 
                ! Solid precipitation, positive downwards [kg/m^2/s]
-               sop_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_snow,n)
+               sop_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Faxa_snow,n)
 
                ! Evaporation, positive downwards [kg/m^2/s]
                eva_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
@@ -153,10 +153,10 @@
 
                ! Fresh water due to melting/freezing, positive downwards
                ! [kg/m^2/s]
-               fmltfz_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_meltw,n)
+               fmltfz_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_meltw,n)
 
                ! Salt flux, positive downwards [kg/m^2/s]
-               sfl_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_salt,n)
+               sfl_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_salt,n)
 
                ! Shortwave heat flux, positive downwards [W/m^2]
                swa_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_swnet,n)
@@ -165,13 +165,13 @@
                nsf_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_lat,n)
      .                         + x2o_o%rAttr(index_x2o_Foxx_sen,n)
      .                         + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
-     .                         + x2o_o%rAttr(index_x2o_Foxx_lwdn,n)
-     .                         - ( x2o_o%rAttr(index_x2o_Foxx_snow,n)
+     .                         + x2o_o%rAttr(index_x2o_Faxa_lwdn,n)
+     .                         - ( x2o_o%rAttr(index_x2o_Faxa_snow,n)
      .                           + x2o_o%rAttr(index_x2o_Forr_ioff,n))
      .                           *SHR_CONST_LATICE
 
                ! Heat flux due to melting, positive downwards [W/m^2]
-               hmlt_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_melth,n)
+               hmlt_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_melth,n)
 
                ! Sea level pressure [kg/m/s^2]
                slp_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Sa_pslv,n)

@@ -783,10 +783,18 @@ c --- read accumulated fields
      .      phylvl(1-nbdy,1-nbdy,1,ACC_UVELLVL(n)),iuu,1,0.)
           if (ACC_VVELLVL(n).ne.0) call ncread('vvellvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_VVELLVL(n)),ivv,1,0.)
-          if (ACC_UFLXLVL(n).ne.0) call ncread('uflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),iuu,1,0.)
-          if (ACC_VFLXLVL(n).ne.0) call ncread('vflxlvl_phy'//c2,
-     .      phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),ivv,1,0.)
+          if (ACC_UFLXLVL(n).ne.0) then
+            call ncread('uflxlvl_phy'//c2,
+     .                  phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),iuu,1,0.)
+            call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),
+     .                  1,ddm, 1,1, halo_us)
+          endif
+          if (ACC_VFLXLVL(n).ne.0) then
+            call ncread('vflxlvl_phy'//c2,
+     .                  phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),ivv,1,0.)
+            call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),
+     .                  1,ddm, 1,1, halo_vs)
+          endif
           if (ACC_UTFLXLVL(n).ne.0) call ncread('utflxlvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_UTFLXLVL(n)),iuu,1,0.)
           if (ACC_VTFLXLVL(n).ne.0) call ncread('vtflxlvl_phy'//c2,

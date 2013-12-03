@@ -6,7 +6,7 @@ module ocn_comp_mct
 
    ! CCSM  modules
    use mct_mod
-   use esmf_mod, only : ESMF_Clock
+   use esmf, only : ESMF_Clock
    use seq_cdata_mod, only : seq_cdata, seq_cdata_setptrs
    use seq_infodata_mod, only : &
       seq_infodata_type, seq_infodata_getdata, &
@@ -318,7 +318,12 @@ module ocn_comp_mct
    end subroutine ocn_run_mct
 
 
-   subroutine ocn_final_mct()
+   subroutine ocn_final_mct( EClock, cdata_o, x2o_o, o2x_o)
+
+      type(ESMF_Clock)            , intent(in)    :: EClock
+      type(seq_cdata)             , intent(inout) :: cdata_o
+      type(mct_aVect)             , intent(inout) :: x2o_o
+      type(mct_aVect)             , intent(inout) :: o2x_o
 
       deallocate(perm)
       deallocate(sbuff)
