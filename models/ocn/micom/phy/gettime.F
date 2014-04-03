@@ -5,16 +5,16 @@ c --- return time in seconds since last call to either initime of
 c --- gettime
 c --- ------------------------------------------------------------------
 c
+      use mod_xc, only: mnproc
       implicit none
 c
 #include "timing.h"
 c
-      start_count=end_count
-      call system_clock(end_count)
-      if (start_count.gt.end_count) then
-        gettime=real(end_count-start_count+count_max)/real(count_rate)
+      if (mnproc.eq.1) then
+        gettime=wtime()-wtimeold
+        wtimeold=gettime+wtimeold
       else
-        gettime=real(end_count-start_count)/real(count_rate)
+        gettime=1.
       endif
 c
       return

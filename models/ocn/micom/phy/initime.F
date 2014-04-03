@@ -5,11 +5,12 @@ c --- Initializes variables used for timing. Must be called before use
 c --- of 'gettime'
 c --- ------------------------------------------------------------------
 c
+      use mod_xc, only: mnproc
       implicit none
 c
 #include "timing.h"
 c
-      call system_clock(end_count,count_rate,count_max)
+      if (mnproc.eq.1) wtimeold=wtime()
 c
       total_time       =0.
       total_xio_time   =0.

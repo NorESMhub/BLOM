@@ -19,11 +19,9 @@
      .  diaacc_total_time,
      .  io_total_time
 c
-      integer
-     .  count_rate,  ! number of clock counts pr second
-     .  count_max,   ! maximum number of counts
-     .  start_count, ! clock count at start of timing
-     .  end_count    ! clock count at end of timing
+      real*8 
+     .  wtime, ! external timing function 
+     .  wtimeold ! time at initialisation 
 c
       common /timing/
      .  total_time,
@@ -45,8 +43,5 @@ c
      .  tmsmt2_total_time,
      .  diaacc_total_time,
      .  io_total_time,
-     .  count_rate,
-     .  count_max,
-     .  start_count,
-     .  end_count
+     .  wtimeold 
 
