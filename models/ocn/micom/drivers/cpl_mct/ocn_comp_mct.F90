@@ -74,7 +74,7 @@ module ocn_comp_mct
       type (mct_gsMap), pointer :: gsMap_ocn
       type (mct_gGrid), pointer :: dom_ocn
       type (seq_infodata_type), pointer :: infodata   ! Input init object
-      real (r8) :: precadj
+!      real (r8) :: precadj
       integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
                  start_ymd, start_tod, start_year, start_day, start_month
       character (len=32) :: starttype
@@ -190,8 +190,9 @@ module ocn_comp_mct
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact )  then
-         precadj = precip_fact * 1.0e6_r8  
-         call seq_infodata_PutData( infodata, precip_fact=precadj)
+!         precadj = precip_fact * 1.0e6_r8  
+!         call seq_infodata_PutData( infodata, precip_fact=precadj)
+          call seq_infodata_PutData( infodata, precip_fact=precip_fact)
       endif
       allocate(sbuff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend))
       tlast_coupled = 0._r8
@@ -235,7 +236,7 @@ module ocn_comp_mct
 
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
-      real (r8) :: precadj
+!      real (r8) :: precadj
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
 
       ! ----------------------------------------------------------------
@@ -280,8 +281,9 @@ module ocn_comp_mct
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact ) then
-         precadj = precip_fact * 1.0e6_r8  
-         call seq_infodata_PutData( infodata, precip_fact=precadj )
+!         precadj = precip_fact * 1.0e6_r8  
+!         call seq_infodata_PutData( infodata, precip_fact=precadj )
+          call seq_infodata_PutData( infodata, precip_fact=precip_fact)
       endif
 
       !-----------------------------------------------------------------
