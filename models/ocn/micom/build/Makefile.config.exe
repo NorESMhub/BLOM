@@ -3,7 +3,7 @@ TARGET=micom
 
 # Preprocessor defines
 MYCPPDEFS="-DCCSMCOUPLED -DMPI -DNCEP -UICEDYN -UTRC -UATRC -UTRCDIA -UNEST -DCOMPDIA -DCOMPRES"
-
+MYLIBS=-L/$(PIO_CONFIG_OPTS) -lpnetcdf
 # Fortran compiler
 FC=ftn
 
@@ -55,4 +55,4 @@ ARFLAGS=-r
 
 all: $(TARGET)
 depend:
-	mkmf -c $(MYCPPDEFS) -f -p $(TARGET) -t Makefile.config.exe $(TDLIST)
+	mkmf -c $(MYLIBS) $(MYCPPDEFS) -f -p $(TARGET) -t Makefile.config.exe $(TDLIST)

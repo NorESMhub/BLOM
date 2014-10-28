@@ -285,17 +285,33 @@ c --- pointer if it exists
         read (nfu,'(a)') rstfnm
         close (unit=nfu)
         time=0.
+#ifdef PNETCDF
+        inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+          if (fexist) then
+            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+            call ncgetr('time',time)
+            call ncfcls
+          else
+            if (mnproc.eq.1)
+     .       write (lp,*) 'Could not find proper restart file!'
+            call xchalt('(rdlim)')
+            stop '(rdlim)'
+          endif
+
+#else
         if (mnproc.eq.1) then
           inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
           if (fexist) then
             call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
             call ncgetr('time',time)
+            call ncfcls
           else
             write (lp,*) 'Could not find proper restart file!'
             call xchalt('(rdlim)')
             stop '(rdlim)' 
           endif
         endif
+#endif
         call xcmaxr(time)
         nday1=nint(time)
         if (runtype_mct.ne.'initial') then

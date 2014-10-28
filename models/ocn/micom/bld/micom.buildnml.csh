@@ -94,7 +94,7 @@ set SMTFRC   = .true.
 set SPRFAC   = .false.
 set RSTFRQ   =  1
 set RSTFMT   =  1
-set RSTCMP   =  1 
+set RSTCMP   =  0 
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
 # set DAIPHY defaults 
@@ -376,8 +376,15 @@ else if ( $OCN_GRID ==  tnx1v1) then
 else if ( $OCN_GRID ==  tnx0.25v1) then
   set BACLIN = 800.
   set BATROP = 16.
-  set MDV2HI = .4
+  set MDV2HI = .15
+  set MDV2LO = .15
+  set VSC2HI = .15
+  set VSC2LO = .15
+  set VSC4HI = 0.0625
+  set VSC4LO = 0.0625
   set MDC2HI = 300.e4
+  set CWBDTS = 2.e-4
+  set CWBDLS = 50.
   set EGC    = .2
   set EGMXDF = 500.e4
   set GLB_NCFORMAT =  '1,   1'

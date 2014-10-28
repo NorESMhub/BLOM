@@ -26,7 +26,7 @@ MODINC=-I/work/apps/netcdf-3.6.2-cnl-pgi/include\
        -I$(CCSMDIR)/lib/include
 
 # Directory list to search for library files
-LIBS=
+LIBS=$(PIO_CONFIG_OPTS) -lpnetcdf
 
 # External names
 EXTNAME=

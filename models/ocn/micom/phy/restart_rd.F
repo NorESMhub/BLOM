@@ -46,7 +46,9 @@ c
 #  include "common_trc.h"
 #endif
 c
+#ifndef PNETCDF
       if (mnproc.eq.1) then
+#endif
 c
 #ifdef CCSMCOUPLED
 c --- - get file name from rpointer.ocn
@@ -56,7 +58,9 @@ c --- - get file name from rpointer.ocn
           read (nfu,'(a)') rstfnm
           close (unit=nfu)
         else
+          if (mnproc.eq.1) then
           write (lp,*) 'Could not find file rpointer.ocn!'
+          endif
           call xchalt('(restart_rd)')
           stop '(restart_rd)' 
         endif
@@ -80,16 +84,20 @@ c
           if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
      .        ndayr.ne.nday0) then
             time0=nday1-i
+            if (mnproc.eq.1) then
             write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
      .        ' Warning! Initial experiment date changed from ',
      .        nyearr,'.',nmonthr,'.',ndayr,' to ',
      .        nyear0,'.',nmonth0,'.',nday0
+            endif
           elseif (nint(time0).ne.nday1-i) then
+            if (mnproc.eq.1) then
             write (lp,'(2a)')
      .       ' Warning! Integration day corresponding to initial',
      .       ' experiment'
             write (lp,'(a,i6,a,i6)')
      .        ' date changed from ',nint(time0),' to ',nday1-i
+            endif
             time0=nday1-i
           endif
         else
@@ -116,15 +124,20 @@ c --- -   <experiment name>_restphy_3.nc
             endif 
           enddo 
           if (i.gt.3) then 
+            if (mnproc.eq.1) then
             write (lp,*) 'Could not find proper restart file!'
+            endif
             call xchalt('(restart_rd)')
             stop '(restart_rd)' 
           endif 
         endif 
 c
-        write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
+        if (mnproc.eq.1) 
+     .  write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
 c
+#ifndef PNETCDF
       endif
+#endif
 c
 c --- Compute extended uv masks 
       if (first) then
@@ -174,9 +187,13 @@ c
       call ncread('usflx',usflx,iuu,1,0.)
 c
       rtmp=0.
+#ifdef PNETCDF
+      if (ncinqv('umfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('umfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('umfltd',umfltd,iuu,1,0.)
@@ -199,9 +216,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+      if (ncinqv('utfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('utfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('utfltd',utfltd,iuu,1,0.)
@@ -224,9 +245,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('utflld')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('utflld')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('utflld',utflld,iuu,1,0.)
@@ -249,9 +274,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('usfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('usfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('usfltd',usfltd,iuu,1,0.)
@@ -274,9 +303,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('usflld')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('usflld')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('usflld',usflld,iuu,1,0.)
@@ -303,9 +336,13 @@ c
       call ncread('vsflx',vsflx,ivv,1,0.)
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('vmfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('vmfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('vmfltd',vmfltd,ivv,1,0.)
@@ -328,9 +365,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('vtfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('vtfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('vtfltd',vtfltd,ivv,1,0.)
@@ -353,9 +394,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('vtflld')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('vtflld')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('vtflld',vtflld,ivv,1,0.)
@@ -378,9 +423,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('vsfltd')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('vsfltd')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('vsfltd',vsfltd,ivv,1,0.)
@@ -403,9 +452,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('vsflld')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('vsflld')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('vsflld',vsflld,ivv,1,0.)
@@ -462,10 +515,15 @@ c
       call ncread('fice_tda',fice_tda,ip,1,0.)
 c
       rtmp=0.
+#ifdef PNETCDF
+       call ncgeti('ntda',ntda)
+        rtmp=ntda
+#else
       if (mnproc.eq.1) then
         call ncgeti('ntda',ntda)
         rtmp=ntda
       endif
+#endif
       call xcmaxr(rtmp)
       ntda=nint(rtmp)
 c
@@ -473,11 +531,17 @@ c
 c
       if (sprfac) then
         prfac=-1.
+#ifdef PNETCDF
+         if (ncinqa('prfac')) then
+            call ncgetr('prfac',prfac)
+          endif
+#else
         if (mnproc.eq.1) then
           if (ncinqa('prfac')) then
             call ncgetr('prfac',prfac)
           endif
         endif
+#endif
         call xcmaxr(prfac)
         if (prfac.gt.0.) then
           call ncread('eiacc',eiacc,ip,1,0.)
@@ -515,9 +579,13 @@ c
 c
 #ifdef CCSMCOUPLED
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('ustarw_da')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('ustarw_da')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('ustarw_da',ustarw_da,ip,1,0.)
@@ -538,10 +606,15 @@ c
         call ncread('abswnd_da',abswnd_da,ip,1,0.)
         call ncread('atmco2_da',atmco2_da,ip,1,0.)
         rtmp=0.
+#ifdef PNETCDF
+          call ncgeti('ll2',ll2)
+          rtmp=ll2
+#else
         if (mnproc.eq.1) then
           call ncgeti('ll2',ll2)
           rtmp=ll2
         endif
+#endif
         call xcmaxr(rtmp)
         ll2=nint(rtmp)
         ll1=3-ll2
@@ -560,9 +633,13 @@ c
       call ncread('frzpot',frzpot,ip,1,0.)
       call ncread('mltpot',mltpot,ip,1,0.)
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('flxco2')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('flxco2')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('flxco2',flxco2,ip,1,0.)
@@ -584,9 +661,13 @@ c
 c
 #ifdef TKE
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('tke')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('tke')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('tke',tke,ip,1,0.)
@@ -600,9 +681,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('gls_psi')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('gls_psi')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('gls_psi',gls_psi,ip,1,0.)
@@ -616,9 +701,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('L_scale')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('L_scale')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('L_scale',L_scale,ip,1,0.)
@@ -632,9 +721,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('difdia')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('difdia')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('difdia',difdia,ip,1,0.)
@@ -657,9 +750,13 @@ c
       endif
 c
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('ustarb')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('ustarb')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('ustarb',ustarb,ip,1,0.)
@@ -681,9 +778,13 @@ c
 #endif
 #if defined(TRC) && defined(IDLAGE)
       rtmp=0.
+#ifdef PNETCDF
+        if (ncinqv('idlage')) rtmp=1.
+#else
       if (mnproc.eq.1) then
         if (ncinqv('idlage')) rtmp=1.
       endif
+#endif
       call xcmaxr(rtmp)
       if (rtmp.gt..5) then
         call ncread('idlage',trc(1-nbdy,1-nbdy,1,itriag),ip,1,0.)
@@ -701,7 +802,15 @@ c
 c --- read accumulated fields
       do n=1,nphy        
         rtmp=0.
-        write(c2,'(i2.2)') n 
+        write(c2,'(i2.2)') n
+#ifdef PNETCDF
+          if (ncinqa('nacc_phy'//c2)) then
+            call ncgeti('nacc_phy'//c2,nacc_phy(n))
+          else
+            nacc_phy(n)=0
+          endif
+          rtmp=nacc_phy(n)
+#else 
         if (mnproc.eq.1) then
           if (ncinqa('nacc_phy'//c2)) then 
             call ncgeti('nacc_phy'//c2,nacc_phy(n))
@@ -710,6 +819,7 @@ c --- read accumulated fields
           endif 
           rtmp=nacc_phy(n)
         endif 
+#endif
         call xcmaxr(rtmp)
         nacc_phy(n)=nint(rtmp)
         if (nacc_phy(n).gt.0) then
@@ -977,7 +1087,11 @@ c --- - read diag. heat flux restart file if available
 #endif
         inquire(file=path2(1:path2_len)//fnm,exist=fexist)
         rfexist=0.
+#ifdef PNETCDF
+        if (fexist) rfexist=1.
+#else
         if (mnproc.eq.1.and.fexist) rfexist=1.
+#endif
         call xcmaxr(rfexist)
         if (rfexist.gt.0.5) then
           call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
@@ -985,6 +1099,20 @@ c --- - read diag. heat flux restart file if available
      .      ' reading diag. heat flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
+#ifdef PNETCDF
+          if (nint(time).ne.nday1) then
+            if (mnproc.eq.1) then
+            write (lp,'(a,i6.6,a)')
+     .        ' Integration day ',nint(time),
+     .        ' in diag. heat flux restart file differs from'
+            write (lp,'(a,i6.6,a)')
+     .        ' start day ',nday1,' in limits file!'
+            endif
+            call ncfcls
+            call xcstop('(restart_rd)')
+                   stop '(restart_rd)'
+          endif
+#else
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
      .        ' Integration day ',nint(time),
@@ -995,6 +1123,7 @@ c --- - read diag. heat flux restart file if available
             call xcstop('(restart_rd)') 
                    stop '(restart_rd)' 
           endif
+#endif
           call ncread('tflxdi',tflxdi,ip,1,0.)
           call ncgeti('nflxdi',nflxdi)
         else
@@ -1014,7 +1143,11 @@ c --- - read diag. salt flux restart file if available
 #endif
         inquire(file=path2(1:path2_len)//fnm,exist=fexist)
         rfexist=0.
+#ifdef PNETCDF
+        if (fexist) rfexist=1.
+#else
         if (mnproc.eq.1.and.fexist) rfexist=1.
+#endif
         call xcmaxr(rfexist)
         if (rfexist.gt.0.5) then
           call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
@@ -1022,6 +1155,20 @@ c --- - read diag. salt flux restart file if available
      .      ' reading diag. salt flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
+#ifdef PNETCDF
+          if (nint(time).ne.nday1) then
+           if (mnproc.eq.1) then
+            write (lp,'(a,i6.6,a)')
+     .        ' Integration day ',nint(time),
+     .        ' in diag. salt flux restart file differs from'
+            write (lp,'(a,i6.6,a)')
+     .        ' start day ',nday1,' in limits file!'
+            endif
+            call ncfcls
+            call xcstop('(restart_rd)')
+                   stop '(restart_rd)'
+          endif
+#else
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
      .        ' Integration day ',nint(time),
@@ -1032,6 +1179,7 @@ c --- - read diag. salt flux restart file if available
             call xcstop('(restart_rd)') 
                    stop '(restart_rd)' 
           endif
+#endif
           call ncread('sflxdi',sflxdi,ip,1,0.)
           call ncgeti('nflxdi',nflxdi)
         else
