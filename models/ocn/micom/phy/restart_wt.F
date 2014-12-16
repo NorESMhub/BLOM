@@ -1083,7 +1083,7 @@ c --- Write data in compressed or uncompressed format
       endif
 c
       end
-
+#ifdef PNETCDF
       subroutine defvarrst(vnm,dims)
 c
 c --- ------------------------------------------------------------------
@@ -1098,3 +1098,4 @@ c
         call ncdefvar(vnm,dims,nf_double,8)
 c
       end
+#endif
