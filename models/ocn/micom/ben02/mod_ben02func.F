@@ -1,3 +1,56 @@
+      module mod_ben02func
+c
+c --- ------------------------------------------------------------------
+c --- This module contains supporting functions for generating surface
+c --- fluxes from NCEP or ERA40 reanalysis following Bentsen and Drange
+c --- (2002).
+c ---  -----------------------------------------------------------------
+c
+      implicit none
+c
+      private
+c
+      public :: spherdist,qsatw,dqsatw,qsati,dqsati,rhoair
+c
+      contains
+c
+c --- ------------------------------------------------------------------
+c
+      real function spherdist(r,lon1,lat1,lon2,lat2)
+c
+c --- ------------------------------------------------------------------
+c --- Computes the distance between geo. pos. lon1,lat1 and lon2,lat2 on
+c --- a sphere with radius r
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+      real r,lon1,lat1,lon2,lat2
+c
+      real rad
+      parameter(rad=1.74532925199432958e-02)
+c
+      real lambda,phi,x1,y1,z1,x2,y2,z2
+c
+      phi=lon1*rad
+      lambda=lat1*rad
+      x1=cos(lambda)*cos(phi) 
+      y1=cos(lambda)*sin(phi) 
+      z1=sin(lambda)
+c
+      phi=lon2*rad
+      lambda=lat2*rad
+      x2=cos(lambda)*cos(phi) 
+      y2=cos(lambda)*sin(phi) 
+      z2=sin(lambda)
+c
+      spherdist=r*acos(min(1.,max(-1.,x1*x2+y1*y2+z1*z2)))
+c
+      return
+      end function spherdist
+c
+c --- ------------------------------------------------------------------
+c
       real function qsatw(t,p)
 c
 c --- computes saturation specific humidity [kg/kg] over open water,
@@ -25,7 +78,7 @@ c
       qsatw=eps*e/(p-(1.-eps)*e)
 c
       return
-      end
+      end function qsatw
 c
 c --- ------------------------------------------------------------------
 c
@@ -58,7 +111,7 @@ c
       dqsatw=dedt*eps*p/(p-(1.-eps)*e)**2
 c
       return
-      end
+      end function dqsatw
 c
 c --- ------------------------------------------------------------------
 c
@@ -88,7 +141,7 @@ c
       qsati=eps*e/(p-(1.-eps)*e)
 c
       return
-      end
+      end function qsati
 c
 c --- ------------------------------------------------------------------
 c
@@ -120,7 +173,7 @@ c
       dqsati=dedt*eps*p/(p-(1.-eps)*e)**2
 c
       return
-      end
+      end function dqsati
 c
 c --- ------------------------------------------------------------------
 c
@@ -153,26 +206,8 @@ c --- moist air density [kg/m^3]
       rhoair=p/(rgas*tv)
 c
       return
-      end
+      end function rhoair
 c
 c --- ------------------------------------------------------------------
 c
-      real function swtfrz(s)
-c
-c --- computes sea water freezing point temperature [deg. celsius],
-c
-      implicit none
-c
-c --- input variables:
-c ---   s      - salinity [psu]
-c
-      real s
-c
-#ifdef CCSMCOUPLED
-      swtfrz=-1.8
-#else
-      swtfrz=-0.0547*s
-#endif
-c
-      return
-      end
+      end module mod_ben02func

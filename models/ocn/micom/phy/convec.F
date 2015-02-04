@@ -68,8 +68,8 @@ c --- --- Copy variables into 1d arrays
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              ttrc(nt,k)=trc(i,j,k,nt)
+            do nt=1,ntr
+              ttrc(nt,k)=trc(i,j,kn,nt)
             enddo
 #endif
           enddo
@@ -105,7 +105,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=0.
               enddo
 #endif
@@ -120,7 +120,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -145,7 +145,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,kfpl)=trdps(nt)*q
                 enddo
 #endif
@@ -161,7 +161,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=0.
               enddo
 #endif
@@ -176,7 +176,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -202,7 +202,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,kfpl)=trdps(nt)*q
               enddo
 #endif
@@ -241,7 +241,7 @@ c --- ------- interface
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -264,7 +264,7 @@ c --- ------- interface
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -283,7 +283,7 @@ c --- ------- interface
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,2)=trdps(nt)*q
                 enddo
 #endif
@@ -309,7 +309,7 @@ c --- ------- interface
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,kfpl)=ttrc(nt,2)
                 enddo
 #endif
@@ -342,8 +342,8 @@ c --- --- Copy 1d arrays to 3d arrays
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=ttrc(nt,k)
+            do nt=1,ntr
+              trc(i,j,kn,nt)=ttrc(nt,k)
             enddo
 #endif
           enddo
@@ -502,8 +502,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

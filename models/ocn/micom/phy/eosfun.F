@@ -1,7 +1,14 @@
-      subroutine eosini
+      subroutine inieos
+c
+c --- ------------------------------------------------------------------
+c --- Initialize coefficients related to the equation of state
+c --- ------------------------------------------------------------------
+c
+      use mod_xc
 c
       implicit none
 c
+#include "common_blocks.h"
 #include "common_eos.h"
 c
 c --- In situ density [kg/m^3] as a function of pressure, potential
@@ -44,6 +51,27 @@ c
       ap140=a14-ap240
       ap150=a15-ap250
       ap160=a16-ap260
+c
+c --- Coefficients for freezing temperature
+      if     (expcnf.eq.'cesm') then
+        atf=0.
+        btf=-1.8
+        ctf=0.
+      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        atf=-0.0547
+        btf=0.
+        ctf=0.
+      elseif (expcnf.eq.'isomip1'.or.expcnf.eq.'isomip2') then
+        atf=-5.7846e-2
+        btf= 1.0307e-1
+        ctf=-7.7961e-9
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(inieos)')
+               stop '(inieos)'
+      endif
 c
       return
       end
@@ -326,6 +354,23 @@ c
      .                                 q*(r1_7+q*(r1_7+
      .                                 q*(r1_9+q*(r1_9+
      .                                 q* r1_10)))))))))
+c
+      return
+      end
+c
+c --- ------------------------------------------------------------------
+c
+      real function swtfrz(p,s)
+c
+c --- freezing temperature as function of pressure and salinity
+c
+      implicit none
+c
+#include "common_eos.h"
+c
+      real p,s
+c
+      swtfrz=atf*s+btf+ctf*p
 c
       return
       end

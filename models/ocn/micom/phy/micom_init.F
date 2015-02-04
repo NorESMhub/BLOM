@@ -20,22 +20,11 @@ c
       real gettime
       external gettime
 c
-c --- set file unit
-#ifdef CCSMCOUPLED
-      call getnfu_ccsm
-#else
-      nfu=12
-#endif
-c
 c --- ------------------------------------------------------------------
 c --- Initialize SPMD processing
 c --- ------------------------------------------------------------------
 c
       call xcspmd
-c
-#ifdef CCSMCOUPLED
-      call setlog_ccsm
-#endif
 c
 c --- ------------------------------------------------------------------
 c --- Initialize timing
@@ -48,19 +37,6 @@ c --- print seconds elapsed since startup (should be almost zero)
         write (lp,'(f12.4,a,i8)') gettime(),' Time 0 MICOM starting up'
         call flush(lp)
       endif
-c
-c --- ------------------------------------------------------------------
-c --- Consistency check of preprocessor identifiers
-c --- ------------------------------------------------------------------
-#if !defined(CCSMCOUPLED) && !defined(CLIM) && !defined(SYN)
-      if (mnproc.eq.1) then
-        write (lp,'(2a)')
-     .    ' Preproc. ident. check: Either CCSMCOUPLED, CLIM ',
-     .    ', or SYN must be defined!'
-      endif
-      call xcstop('(micom_init)')
-             stop '(micom_init)'
-#endif
 c
 c --- ------------------------------------------------------------------
 c --- Initialize check sum algorithm
@@ -98,46 +74,42 @@ c
       call inicln
 c
 c --- ------------------------------------------------------------------
-c --- Set up parameters defining the geographic environment
+c --- Initialize the geographic environment
 c --- ------------------------------------------------------------------
 c
-      call geopar
+      call inigeo
+c
+c --- ------------------------------------------------------------------
+c --- Initialize various arrays
+c --- ------------------------------------------------------------------
+c
+      call inivar
+c
+c --- ------------------------------------------------------------------
+c --- Initialize physical parameterizations
+c --- ------------------------------------------------------------------
+c
+      call iniphy
 c
 #ifdef ICEDYN
 c --- ------------------------------------------------------------------
 c --- Initialization of sea ice dynamics
 c --- ------------------------------------------------------------------
 c
-      call iniicedyn(scpx,scpy,corioq)
+      call iniicedyn(scpx,scpy,corioq,expcnf)
 #endif
 c
 c --- ------------------------------------------------------------------
-c --- Set up forcing functions
+c --- Initialize forcing
 c --- ------------------------------------------------------------------
 c
-      call forfun
-#if   defined(CLIM)
-      call forfun_clim
-      call chwbud
-#elif defined(SYN)
-      call forfun_syn
-#elif defined(CCSMCOUPLED)
-      call forfun_ccsm
-#endif
+      call inifrc
 c
-#ifdef NEST
-c --- ------------------------------------------------------------------
-c --- Initialize nesting
-c --- ------------------------------------------------------------------
-c
-      call ininst
-c
-#endif
 c --- ------------------------------------------------------------------
 c --- Define coefficients for equation of state functions
 c --- ------------------------------------------------------------------
 c
-      call eosini
+      call inieos
 c
 #ifdef TKE
 c --- ------------------------------------------------------------------

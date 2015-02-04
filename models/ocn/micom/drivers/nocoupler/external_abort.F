@@ -1,14 +1,9 @@
-      subroutine getnfu_ccsm
+      subroutine external_abort
 c
 c --- ------------------------------------------------------------------
-c --- Get file unit from CCSM system
+c --- Dummy routine for aborting the code when the MPI initialization is
+c --- done externally
 c --- ------------------------------------------------------------------
-c
-      use mod_xc
-c
-      implicit none
-c
-      nfu=12
 c
       return
       end

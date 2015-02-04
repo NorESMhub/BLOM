@@ -1,6 +1,6 @@
-      subroutine thermf_ccsm(m,n,mm,nn,k1m,k1n)
+      subroutine thermf_cesm(m,n,mm,nn,k1m,k1n)
 c
-c --- NERSC version of thermf. To be used when coupled to CCSM
+c --- NERSC version of thermf. To be used when coupled to CESM
 c
       use mod_xc
 c
@@ -9,7 +9,6 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_ice.h"
 #include "common_forc.h"
 #include "common_geo.h"
 #include "common_clndr.h"
@@ -34,8 +33,8 @@ c
       real tottrsf,tottrav,trflxc
 #endif
 c
-      real swtfrz,intpol
-      external swtfrz,intpol
+      real swtfrz,intp1d
+      external swtfrz,intp1d
 c
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
@@ -78,7 +77,7 @@ c --- --- ocean mixed layer quantities
           smxl=(saln(i,j,1+nn)*dp(i,j,1+nn)
      .         +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
 c
-          tice_f=swtfrz(sotl)+t0deg
+          tice_f=swtfrz(p(i,j,1),sotl)+t0deg
 c
 c --- ------------------------------------------------------------------
 c --- --- Fresh water and salt fluxes
@@ -114,9 +113,10 @@ c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
           frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*1.e4
-          mltpot(i,j)=min(0.,swtfrz(.5*(saln(i,j,k1m)+saln(i,j,k1n)))
-     .                      -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
-     .                *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
+          mltpot(i,j)=
+     .      min(0.,swtfrz(p(i,j,1),.5*(saln(i,j,k1m)+saln(i,j,k1n)))
+     .            -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
+     .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
 c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
@@ -136,6 +136,18 @@ c
      .                     Zos**(gls_n-1.)
 #  endif
 #endif
+c
+#ifdef TRC
+c --- ------------------------------------------------------------------
+c --- --- Virtual tracer fluxes (positive downwards)
+c --- ------------------------------------------------------------------
+c
+          do nt=1,ntr
+            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*1.e-3
+            ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
+            ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
+          enddo
+#endif
 c --- ------------------------------------------------------------------
 c --- --- Relaxation fluxes
 c --- ------------------------------------------------------------------
@@ -144,10 +156,12 @@ c
 c
 c --- --- If  trxday>0 , apply relaxation towards observed sst
           if (trxday.gt.epsil) then
-            sstc=intpol(sstclm(i,j,l1),sstclm(i,j,l2),sstclm(i,j,l3),
-     .                  sstclm(i,j,l4),sstclm(i,j,l5),x)
-            rice=intpol(ricclm(i,j,l1),ricclm(i,j,l2),ricclm(i,j,l3),
-     .                  ricclm(i,j,l4),ricclm(i,j,l5),x)
+            sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
+     .                  sstclm(i,j,l3mi),sstclm(i,j,l4mi),
+     .                  sstclm(i,j,l5mi),xmi)
+            rice=intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi),
+     .                  ricclm(i,j,l3mi),ricclm(i,j,l4mi),
+     .                  ricclm(i,j,l5mi),xmi)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
             trxflx=spcifh*100.*min(hmxl,trxdpt)/(trxday*86400.)
      .                        *min(trxlim,max(-trxlim,sstc-tmxl))
@@ -159,7 +173,7 @@ c
 c --- --- If aptflx=.true., apply diagnosed relaxation flux
           if (aptflx) then
             surrlx(i,j)=surrlx(i,j)
-     .        -intpol(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3),
+     .        -intp1d(tflxap(i,j,m1),tflxap(i,j,m2),tflxap(i,j,m3),
      .                tflxap(i,j,m4),tflxap(i,j,m5),y)
           endif
 c
@@ -173,8 +187,9 @@ c
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday.gt.epsil) then
-            sssc=intpol(sssclm(i,j,l1),sssclm(i,j,l2),sssclm(i,j,l3),
-     .                  sssclm(i,j,l4),sssclm(i,j,l5),x)
+            sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
+     .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
+     .                  sssclm(i,j,l5mi),xmi)
             srxflx=100.*min(hmxl,srxdpt)/(srxday*86400.)
      .                 *min(srxlim,max(-srxlim,sssc-smxl))
             salrlx(i,j)=-srxflx
@@ -187,7 +202,7 @@ c
 c --- --- If apsflx=.true., apply diagnosed relaxation flux
           if (apsflx) then
             salrlx(i,j)=salrlx(i,j)
-     .        -intpol(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3),
+     .        -intp1d(sflxap(i,j,m1),sflxap(i,j,m2),sflxap(i,j,m3),
      .                sflxap(i,j,m4),sflxap(i,j,m5),y)
           endif
 c
@@ -196,18 +211,6 @@ c --- --- relaxation flux
           if (disflx) then
             sflxdi(i,j,k)=sflxdi(i,j,k)+srxflx
           endif
-c
-#ifdef TRC
-c --- ------------------------------------------------------------------
-c --- --- Virtual tracer fluxes (positive downwards)
-c --- ------------------------------------------------------------------
-c
-          do nt=1,ntrc
-            trflx(nt,i,j)=-trc(i,j,1,nt)*fwflx*1.e-3
-            ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
-            ttrav(nt,i,j)=trc(i,j,1,nt)*scp2(i,j)
-          enddo
-#endif
 c
 c --- -------------------------------------------------------------------
 c --- --- Friction velocity (cm/s)
@@ -285,7 +288,7 @@ c$OMP END PARALLEL DO
       endif
 c
 #ifdef TRC
-      do nt=1,ntrc
+      do nt=1,ntr
 c
 c$OMP PARALLEL DO
         do j=1,jj
@@ -322,7 +325,7 @@ c
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'thermf_ccsm:'
+          write (lp,*) 'thermf_cesm:'
         endif
         call chksummsk(surflx,ip,1,'surflx')
         call chksummsk(sswflx,ip,1,'sswflx')

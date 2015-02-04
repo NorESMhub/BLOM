@@ -21,6 +21,8 @@ c/* MTYPE4        mpi type for real*4                   */
 c/* MTYPER        mpi type for real                     */
 c/* MTYPED        mpi type for real*8                   */
 c/* MTYPEI        mpi type for integer                  */
+c/* MTYPEL        mpi type for logical                  */
+c/* MTYPEC        mpi type for character                */
 c/* MPI_SEND      either mpi_send  or mpi_ssend         */
 c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 #if defined(NOMPIR8) /* LAM does not support mpi_real[48] */
@@ -29,11 +31,15 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPER mpi_real
 # define MTYPED mpi_double_precision
 # define MTYPEI mpi_integer
+# define MTYPEL mpi_logical
+# define MTYPEC mpi_character
 #else /* REAL8 */
 # define MTYPE4 mpi_real
 # define MTYPER mpi_double_precision
 # define MTYPED mpi_double_precision
 # define MTYPEI mpi_integer
+# define MTYPEL mpi_logical
+# define MTYPEC mpi_character
 #endif
 #else /* most MPI's allow mpi_real[48] */
 #if defined(REAL4)
@@ -41,11 +47,15 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPER mpi_real4
 # define MTYPED mpi_real8
 # define MTYPEI mpi_integer
+# define MTYPEL mpi_logical
+# define MTYPEC mpi_character
 #else /* REAL8 */
 # define MTYPE4 mpi_real4
 # define MTYPER mpi_real8
 # define MTYPED mpi_real8
 # define MTYPEI mpi_integer
+# define MTYPEL mpi_logical
+# define MTYPEC mpi_character
 #endif
 #endif
 #if defined(SSEND)
@@ -62,6 +72,8 @@ c/* SHMEM_GET4    get real*4  variables                 */
 c/* SHMEM_GETR    get real    variables                 */
 c/* SHMEM_GETD    get real*8  variables                 */
 c/* SHMEM_GETI    get integer variables                 */
+c/* SHMEM_GETL    get logical variables                 */
+c/* SHMEM_GETC    get character variables               */
 c/* SHMEM_MYPE    return number of this PE (0...npes-1) */
 c/* SHMEM_NPES    return number of PEs                  */
 #if defined(REAL4)
@@ -69,11 +81,15 @@ c/* SHMEM_NPES    return number of PEs                  */
 # define SHMEM_GETR shmem_get32
 # define SHMEM_GETD shmem_get64
 # define SHMEM_GETI shmem_integer_get
+# define SHMEM_GETL shmem_logical_get
+# define SHMEM_GETC shmem_character_get
 #else /* REAL8 */
 # define SHMEM_GET4 shmem_get32
 # define SHMEM_GETR shmem_get64
 # define SHMEM_GETD shmem_get64
 # define SHMEM_GETI shmem_integer_get
+# define SHMEM_GETL shmem_logical_get
+# define SHMEM_GETC shmem_character_get
 #endif
 # define SHMEM_MYPE shmem_my_pe
 # define SHMEM_NPES shmem_n_pes
@@ -965,11 +981,11 @@ c
       call flush(lp)
 c
 #if defined(MPI)
-#  if defined(CCSMCOUPLED)
-      call mpi_abort(0,9,mpierr)
-#  else
-      call mpi_abort(mpicomm,9,mpierr)
-#  endif
+      if (mpicomm.eq.mpicom_external) then
+        call external_abort(cerror)
+      else
+        call mpi_abort(mpicomm,9,mpierr)
+      endif
 #else
       call abort()
 #endif
@@ -1407,10 +1423,491 @@ c
       return
       end subroutine xclput4
 
-      subroutine xcmaxr_0(a)
+      subroutine xcbcst_i0(ia)
       implicit none
 c
-      real, intent(inout) :: a
+      integer, intent(inout) :: ia
+c
+c**********
+c*
+c  1) broadcast integer scalar from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target variable
+c*
+c**********
+c
+      integer ia1(1)
+c
+      ia1(1) = ia
+      call xcbcst_i1(ia1)
+      ia = ia1(1)
+      return
+      end subroutine xcbcst_i0
+
+      subroutine xcbcst_i1(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia(:)
+c
+c**********
+c*
+c  1) broadcast integer array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      integer        ib
+      common/xcbcsi/ ib(nmax)
+      save  /xcbcsi/
+c
+      integer i,is0,isl,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0( 8)
+        nxc = 8
+      endif
+#endif
+c
+c     stripmine ia.
+c
+      n = size(ia)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        do i= 1,nn
+          ib(i) = ia(is0+i)
+        enddo
+c
+#if defined(MPI)
+        call mpi_bcast(ib,nn,MTYPEI,
+     &                 idproc1(1),mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.ne.1) then
+          call SHMEM_GETI(ib,ib,nn,idproc1(1))
+        endif
+        BARRIER
+#endif
+        do i= 1,nn
+          ia(is0+i) = ib(i)
+        enddo
+      enddo  ! stripmine loop
+#if defined(TIMER)
+c
+      if     (nxc.eq.8) then
+        call xctmr1( 8)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcbcst_i1
+
+      subroutine xcbcst_r0(ra)
+      implicit none
+c
+      real, intent(inout) :: ra
+c
+c**********
+c*
+c  1) broadcast real scalar from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target variable
+c*
+c**********
+c
+      real ra1(1)
+c
+      ra1(1) = ra
+      call xcbcst_r1(ra1)
+      ra = ra1(1)
+      return
+      end subroutine xcbcst_r0
+
+      subroutine xcbcst_r1(ra)
+      implicit none
+c
+      real, intent(inout) :: ra(:)
+c
+c**********
+c*
+c  1) broadcast real array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      real           rb
+      common/xcbcsr/ rb(nmax)
+      save  /xcbcsr/
+c
+      integer i,is0,isl,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0( 8)
+        nxc = 8
+      endif
+#endif
+c
+c     stripmine ra.
+c
+      n = size(ra)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        do i= 1,nn
+          rb(i) = ra(is0+i)
+        enddo
+c
+#if defined(MPI)
+        call mpi_bcast(rb,nn,MTYPED,
+     &                 idproc1(1),mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.ne.1) then
+          call SHMEM_GETD(rb,rb,nn,idproc1(1))
+        endif
+        BARRIER
+#endif
+        do i= 1,nn
+          ra(is0+i) = rb(i)
+        enddo
+      enddo  ! stripmine loop
+#if defined(TIMER)
+c
+      if     (nxc.eq.8) then
+        call xctmr1( 8)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcbcst_r1
+
+      subroutine xcbcst_l0(la)
+      implicit none
+c
+      logical, intent(inout) :: la
+c
+c**********
+c*
+c  1) broadcast logical from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    la              logical        in/out    target variable
+c*
+c**********
+c
+      logical la1(1)
+c
+      la1(1) = la
+      call xcbcst_l1(la1)
+      la = la1(1)
+      return
+      end subroutine xcbcst_l0
+
+      subroutine xcbcst_l1(la)
+      implicit none
+c
+      logical, intent(inout) :: la(:)
+c
+c**********
+c*
+c  1) broadcast logical array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    la              logical        in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      logical        lb
+      common/xcbcsl/ lb(nmax)
+      save  /xcbcsl/
+c
+      integer i,is0,isl,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0( 8)
+        nxc = 8
+      endif
+#endif
+c
+c     stripmine la.
+c
+      n = size(la)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        do i= 1,nn
+          lb(i) = la(is0+i)
+        enddo
+c
+#if defined(MPI)
+        call mpi_bcast(lb,nn,MTYPEL,
+     &                 idproc1(1),mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.ne.1) then
+          call SHMEM_GETL(lb,lb,nn,idproc1(1))
+        endif
+        BARRIER
+#endif
+        do i= 1,nn
+          la(is0+i) = lb(i)
+        enddo
+      enddo  ! stripmine loop
+#if defined(TIMER)
+c
+      if     (nxc.eq.8) then
+        call xctmr1( 8)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcbcst_l1
+
+      subroutine xcbcst_c(ca)
+      implicit none
+c
+      character*(*), intent(inout) :: ca
+c
+c**********
+c*
+c  1) broadcast character string from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ca              character      in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      character cb*(nmax)
+      common/xcbcsc/ cb
+      save  /xcbcsc/
+c
+      integer i,is0,isl,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0( 8)
+        nxc = 8
+      endif
+#endif
+c
+c     stripmine ca.
+c
+      n = len(ca)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        cb(1:nn) = ca(is0+1:is0+nn)
+c
+#if defined(MPI)
+        call mpi_bcast(cb,nn,MTYPEC,
+     &                 idproc1(1),mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.ne.1) then
+          call SHMEM_GETC(cb,cb,nn,idproc1(1))
+        endif
+        BARRIER
+#endif
+        ca(is0+1:is0+nn) = cb(1:nn)
+      enddo  ! stripmine loop
+#if defined(TIMER)
+c
+      if     (nxc.eq.8) then
+        call xctmr1( 8)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcbcst_c
+
+      subroutine xcmax_i0(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia
+c
+c**********
+c*
+c  1) replace integer scalar a with its element-wise maximum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target variable
+c*
+c**********
+c
+      integer ia1(1)
+c
+      ia1(1) = ia
+      call xcmax_i1(ia1)
+      ia = ia1(1)
+      return
+      end subroutine xcmax_i0
+
+      subroutine xcmax_i1(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia(:)
+c
+c**********
+c*
+c  1) replace integer array a with its element-wise maximum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      integer        ib,ic
+      common/xcmaxi/ ib(nmax),ic(nmax)
+      save  /xcmaxi/
+c
+      integer i,is0,isl,mn,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0( 9)
+        nxc = 9
+      endif
+#endif
+c
+c     stripmine ia.
+c
+      n = size(ia)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        do i= 1,nn
+          ib(i) = ia(is0+i)
+        enddo
+c
+#if defined(MPI)
+        call mpi_allreduce(ib,ic,nn,MTYPEI,mpi_max,
+     &                     mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.eq.1) then
+c         form global maximum on 1st processor
+          do i= 1,nn
+            ic(i) = ib(i)
+          enddo
+          do mn= 2,ijpr
+            call SHMEM_GETI(ib,ib,nn, idproc1(mn))
+            do i= 1,nn
+              ic(i) = max(ic(i),ib(i))
+            enddo
+          enddo
+          BARRIER
+        else
+c         get global maximum from 1st processor
+          BARRIER
+          call SHMEM_GETI(ic,ic,nn, idproc1(1))
+        endif
+        ! no barrier needed here because using two buffers (ib and ic)
+#endif
+        do i= 1,nn
+          ia(is0+i) = ic(i)
+        enddo
+      enddo  ! stripmine loop
+#if defined(TIMER)
+c
+      if     (nxc.eq.9) then
+        call xctmr1( 9)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcmax_i1
+
+      subroutine xcmax_r0(ra)
+      implicit none
+c
+      real, intent(inout) :: ra
 c
 c**********
 c*
@@ -1419,22 +1916,22 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target variable
+c    ra              real           in/out    target variable
 c*
 c**********
 c
-      real a1(1)
+      real ra1(1)
 c
-      a1(1) = a
-      call xcmaxr_1(a1)
-      a = a1(1)
+      ra1(1) = ra
+      call xcmax_r1(ra1)
+      ra = ra1(1)
       return
-      end subroutine xcmaxr_0
+      end subroutine xcmax_r0
 
-      subroutine xcmaxr_1(a)
+      subroutine xcmax_r1(ra)
       implicit none
 c
-      real, intent(inout) :: a(:)
+      real, intent(inout) :: ra(:)
 c
 c**********
 c*
@@ -1443,7 +1940,7 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target array
+c    ra              real           in/out    target array
 c*
 c**********
 c
@@ -1458,105 +1955,105 @@ c
       integer    nmax
       parameter (nmax=1024)
 c
-      real            b,c
-      common/xcmaxr4/ b(nmax),c(nmax)
-      save  /xcmaxr4/
+      real           rb,rc
+      common/xcmaxr/ rb(nmax),rc(nmax)
+      save  /xcmaxr/
 c
       integer i,is0,isl,mn,n,nn
 #if defined(TIMER)
 c
       if     (nxc.eq.0) then
-        call xctmr0(10)
-        nxc = 10
+        call xctmr0( 9)
+        nxc = 9
       endif
 #endif
 c
-c     stripmine a.
+c     stripmine ra.
 c
-      n = size(a)
+      n = size(ra)
 c
       do is0= 0,n-1,nmax
         isl = min(is0+nmax,n)
         nn = isl - is0
         do i= 1,nn
-          b(i) = a(is0+i)
+          rb(i) = ra(is0+i)
         enddo
 c
 #if defined(MPI)
-        call mpi_allreduce(b,c,nn,MTYPER,mpi_max,
+        call mpi_allreduce(rb,rc,nn,MTYPER,mpi_max,
      &                     mpicomm,mpierr)
 #elif defined(SHMEM)
         BARRIER
         if     (mnproc.eq.1) then
 c         form global maximum on 1st processor
           do i= 1,nn
-            c(i) = b(i)
+            rc(i) = rb(i)
           enddo
           do mn= 2,ijpr
-            call SHMEM_GETR(b,b,nn, idproc1(mn))
+            call SHMEM_GETR(rb,rb,nn, idproc1(mn))
             do i= 1,nn
-              c(i) = max(c(i),b(i))
+              rc(i) = max(rc(i),rb(i))
             enddo
           enddo
           BARRIER
         else
 c         get global maximum from 1st processor
           BARRIER
-          call SHMEM_GETR(c,c,nn, idproc1(1))
+          call SHMEM_GETR(rc,rc,nn, idproc1(1))
         endif
         ! no barrier needed here because using two buffers (b and c)
 #endif
         do i= 1,nn
-          a(is0+i) = c(i)
+          ra(is0+i) = rc(i)
         enddo
       enddo  ! stripmine loop
 #if defined(TIMER)
 c
-      if     (nxc.eq.10) then
-        call xctmr1(10)
+      if     (nxc.eq.9) then
+        call xctmr1( 9)
         nxc = 0
       endif
 #endif
       return
-      end subroutine xcmaxr_1
+      end subroutine xcmax_r1
 
-      subroutine xcminr_0(a)
+      subroutine xcmin_i0(ia)
       implicit none
 c
-      real, intent(inout) :: a
+      integer, intent(inout) :: ia
 c
 c**********
 c*
-c  1) replace scalar a with its element-wise minimum over all tiles.
+c  1) replace integer scalar a with its element-wise minimum over all tiles.
 c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target variable
+c    ia              integer        in/out    target variable
 c*
 c**********
 c
-      real a1(1)
+      integer ia1(1)
 c
-      a1(1) = a
-      call xcminr_1(a1)
-      a = a1(1)
+      ia1(1) = ia
+      call xcmin_i1(ia1)
+      ia = ia1(1)
       return
-      end subroutine xcminr_0
+      end subroutine xcmin_i0
 
-      subroutine xcminr_1(a)
+      subroutine xcmin_i1(ia)
       implicit none
 c
-      real, intent(inout) :: a(:)
+      integer, intent(inout) :: ia(:)
 c
 c**********
 c*
-c  1) replace array a with its element-wise minimum over all tiles.
+c  1) replace integer array a with its element-wise minimum over all tiles.
 c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target array
+c    ia              integer        in/out    target array
 c*
 c**********
 c
@@ -1571,9 +2068,9 @@ c
       integer    nmax
       parameter (nmax=1024)
 c
-      real            b,c
-      common/xcmaxr4/ b(nmax),c(nmax)
-      save  /xcmaxr4/
+      integer        ib,ic
+      common/xcmaxi/ ib(nmax),ic(nmax)
+      save  /xcmaxi/
 c
       integer i,is0,isl,mn,n,nn
 #if defined(TIMER)
@@ -1584,43 +2081,43 @@ c
       endif
 #endif
 c
-c     stripmine a.
+c     stripmine ia.
 c
-      n = size(a)
+      n = size(ia)
 c
       do is0= 0,n-1,nmax
         isl = min(is0+nmax,n)
         nn = isl - is0
         do i= 1,nn
-          b(i) = a(is0+i)
+          ib(i) = ia(is0+i)
         enddo
 c
 #if defined(MPI)
-        call mpi_allreduce(b,c,nn,MTYPER,mpi_min,
+        call mpi_allreduce(ib,ic,nn,MTYPEI,mpi_min,
      &                     mpicomm,mpierr)
 #elif defined(SHMEM)
         BARRIER
         if     (mnproc.eq.1) then
 c         form global minimum on 1st processor
           do i= 1,nn
-            c(i) = b(i)
+            ic(i) = ib(i)
           enddo
           do mn= 2,ijpr
-            call SHMEM_GETR(b,b,nn, idproc1(mn))
+            call SHMEM_GETI(ib,ib,nn, idproc1(mn))
             do i= 1,nn
-              c(i) = min(c(i),b(i))
+              ic(i) = min(ic(i),ib(i))
             enddo
           enddo
           BARRIER
         else
 c         get global minimum from 1st processor
           BARRIER
-          call SHMEM_GETR(c,c,nn, idproc1(1))
+          call SHMEM_GETI(ic,ic,nn, idproc1(1))
         endif
         ! no barrier needed here because using two buffers (b and c)
 #endif
         do i= 1,nn
-          a(is0+i) = c(i)
+          ia(is0+i) = ic(i)
         enddo
       enddo
 #if defined(TIMER)
@@ -1631,7 +2128,120 @@ c
       endif
 #endif
       return
-      end subroutine xcminr_1
+      end subroutine xcmin_i1
+
+      subroutine xcmin_r0(ra)
+      implicit none
+c
+      real, intent(inout) :: ra
+c
+c**********
+c*
+c  1) replace real scalar a with its element-wise minimum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target variable
+c*
+c**********
+c
+      real ra1(1)
+c
+      ra1(1) = ra
+      call xcmin_r1(ra1)
+      ra = ra1(1)
+      return
+      end subroutine xcmin_r0
+
+      subroutine xcmin_r1(ra)
+      implicit none
+c
+      real, intent(inout) :: ra(:)
+c
+c**********
+c*
+c  1) replace real array a with its element-wise minimum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target array
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+#endif
+c
+      integer    nmax
+      parameter (nmax=1024)
+c
+      real           rb,rc
+      common/xcmaxr/ rb(nmax),rc(nmax)
+      save  /xcmaxr/
+c
+      integer i,is0,isl,mn,n,nn
+#if defined(TIMER)
+c
+      if     (nxc.eq.0) then
+        call xctmr0(10)
+        nxc = 10
+      endif
+#endif
+c
+c     stripmine ra.
+c
+      n = size(ra)
+c
+      do is0= 0,n-1,nmax
+        isl = min(is0+nmax,n)
+        nn = isl - is0
+        do i= 1,nn
+          rb(i) = ra(is0+i)
+        enddo
+c
+#if defined(MPI)
+        call mpi_allreduce(rb,rc,nn,MTYPER,mpi_min,
+     &                     mpicomm,mpierr)
+#elif defined(SHMEM)
+        BARRIER
+        if     (mnproc.eq.1) then
+c         form global minimum on 1st processor
+          do i= 1,nn
+            rc(i) = rb(i)
+          enddo
+          do mn= 2,ijpr
+            call SHMEM_GETR(rb,rb,nn, idproc1(mn))
+            do i= 1,nn
+              rc(i) = min(rc(i),rb(i))
+            enddo
+          enddo
+          BARRIER
+        else
+c         get global minimum from 1st processor
+          BARRIER
+          call SHMEM_GETR(rc,rc,nn, idproc1(1))
+        endif
+        ! no barrier needed here because using two buffers (b and c)
+#endif
+        do i= 1,nn
+          ra(is0+i) = rc(i)
+        enddo
+      enddo
+#if defined(TIMER)
+c
+      if     (nxc.eq.10) then
+        call xctmr1(10)
+        nxc = 0
+      endif
+#endif
+      return
+      end subroutine xcmin_r1
 
       subroutine xcspmd
       implicit none
@@ -1693,23 +2303,24 @@ c
       common/xcmpii/ mpicomm,mpierr,mpireq(4),
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
-      real rmm_top,rmm_bot
+      logical linit
 c
 c     standard mpi (message passing) version.
 c
-      lp = 6
-c
-#  ifdef CCSMCOUPLED
-      mpicomm = mpicom_mct
-#  else
-      call mpi_init(mpierr)
-      mpicomm = mpi_comm_world
-#  endif
+      call mpi_initialized(linit,mpierr)
+      if (linit) then
+        mpicomm = mpicom_external
+      else
+        call mpi_init(mpierr)
+        mpicomm = mpi_comm_world
+      endif
 c
       call mpi_comm_rank(mpicomm, mypei, mpierr)
       call mpi_comm_size(mpicomm, npesi, mpierr)
 c
       mnproc = mypei + 1  ! mnproc counts from 1
+c
+      call setlogunit
 c
 #  if defined(DEBUG_ALL)
       write(lp,'(a,i5)') 'mnproc =',mnproc
@@ -1720,8 +2331,6 @@ c
 c
 c     shmem version.
 c
-      lp = 6
-c
       call start_pes(0)
 c
       mypei = SHMEM_MYPE()
@@ -1729,7 +2338,6 @@ c
 c
       mnproc = mypei + 1  ! mnproc counts from 1
 #else
-      lp = 6
 c
       write(lp,*)
       write(lp,*) '***** ERROR - UNDEFINED SPMD MACHINE TYPE *****'
@@ -2420,11 +3028,9 @@ c
 #endif /* DEBUG_ALL */
 c
 #if defined(MPI) && defined(MPISRJ)
-      rmm_top=mm_top
-      rmm_bot=mm_bot
-      call xcmaxr(rmm_top)
-      call xcmaxr(rmm_bot)
-      if     (max(rmm_top,rmm_bot).gt.1.) then
+      call xcmax(mm_top)
+      call xcmax(mm_bot)
+      if     (max(mm_top,mm_bot).gt.1) then
         call xcstop(
      &    'xcspmd: if MPISRJ is defined, tiles must be uniform')
         stop '(xcspmd)'
@@ -2441,7 +3047,9 @@ c
       call xctmrn( 4,'xcaput')
       call xctmrn( 5,'xcXput')
       call xctmrn( 6,'xcsum ')
-      call xctmrn(10,'xcmaxr')
+      call xctmrn( 8,'xcbcst')
+      call xctmrn( 9,'xcmax ')
+      call xctmrn(10,'xcmin ')
       call xctmrn(12,'xctilr')
 #endif
       return
@@ -2492,13 +3100,13 @@ c
       call xcsync(flush_lp)
 c
 #if defined(MPI)
-      write(lp,*) 'mpi_finalize called on processor ',mnproc
-      call xcsync(flush_lp)
-#  ifdef CCSMCOUPLED
-      call mpi_abort(0,9,mpierr)
-#  else
-      call mpi_finalize(mpierr)
-#  endif
+      if (mpicomm.eq.mpicom_external) then
+        call external_abort(cerror)
+      else
+        write(lp,*) 'mpi_finalize called on processor ',mnproc
+        call xcsync(flush_lp)
+        call mpi_finalize(mpierr)
+      endif
 #endif
 c
       stop '(xcstop)'
@@ -2986,9 +3594,10 @@ c  4) the global variable vland is returned by halos over land.
 c*
 c**********
 c
-      integer    ilen,jlen
-      parameter (ilen= idm        *kdm*(nbdy+1)+64,
-     &           jlen=(jdm+2*nbdy)*kdm* nbdy   +64)
+      integer    lsize,ilen,jlen
+      parameter (lsize=kdm,
+     &           ilen= idm        *lsize*(nbdy+1)+64,
+     &           jlen=(jdm+2*nbdy)*lsize* nbdy   +64)
 c
 c     halo buffer (in common for enhanced MPI safety).
 c
@@ -2997,7 +3606,7 @@ c
       save  /xctilr4/
 c
       real            aia
-      common/xctilra/ aia(kdm*(nbdy+1)+64,2)
+      common/xctilra/ aia(lsize*(nbdy+1)+64,2)
       save  /xctilra/
 c
       integer i,io,j,k,l,lts,lbs,lbr,ltr,las,lar,lg0,ls0,lm,m,mhl,nhl
@@ -3025,9 +3634,9 @@ c
 c
 c --- split large requests into smaller pieces
 c
-      if     (ld-l1+1.gt.kdm) then
-        do k= l1,ld,kdm
-          l = min(k+kdm-1,ld)
+      if     (ld-l1+1.gt.lsize) then
+        do k= l1,ld,lsize
+          l = min(k+lsize-1,ld)
           call xctilr(a,k,l,mh,nh,itype)
         enddo
         return
@@ -3681,9 +4290,10 @@ c  4) the global variable vland is returned by halos over land.
 c*
 c**********
 c
-      integer    ilen,jlen
-      parameter (ilen= idm        *kdm*nbdy+64,
-     &           jlen=(jdm+2*nbdy)*kdm*nbdy+64)
+      integer    lsize,ilen,jlen
+      parameter (lsize=kdm,
+     &           ilen= idm        *lsize*nbdy+64,
+     &           jlen=(jdm+2*nbdy)*lsize*nbdy+64)
 c
 c     halo buffer (in common for enhanced MPI safety).
 c
@@ -3710,9 +4320,9 @@ c
 c
 c --- split large requests into smaller pieces
 c
-      if     (ld-l1+1.gt.kdm) then
-        do k= l1,ld,kdm
-          l = min(k+kdm-1,ld)
+      if     (ld-l1+1.gt.lsize) then
+        do k= l1,ld,lsize
+          l = min(k+lsize-1,ld)
           call xctilr(a,k,l,mh,nh,itype)
         enddo
         return

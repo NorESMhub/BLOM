@@ -198,8 +198,8 @@ c --- --- Extract single column from 3-d fields.
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              ttrc(nt,k)=trc(i,j,k,nt)
+            do nt=1,ntr
+              ttrc(nt,k)=trc(i,j,kn,nt)
             enddo
 #endif
           enddo
@@ -321,7 +321,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               trfsl(nt)=ttrc(nt,2)
             enddo
 #endif
@@ -342,7 +342,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
               enddo
 #endif
@@ -359,7 +359,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
               enddo
 #endif
@@ -523,7 +523,7 @@ c --- ----- Apply heat and salt forcing to top layer
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
             enddo
 #endif
@@ -547,7 +547,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(trfsl(nt)*dpfsl+ttrc(nt,2)*delp(2))*q
               enddo
 #endif
@@ -570,7 +570,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                 enddo
 #endif
@@ -598,7 +598,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -614,7 +614,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -636,7 +636,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dps+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -654,7 +654,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                      do nt=1,ntrc
+                      do nt=1,ntr
                         ttrc(nt,2)=(trfsl(nt)*dpfsl
      .                             +ttrc(nt,2)*delp(2))*q
                       enddo
@@ -677,7 +677,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                      do nt=1,ntrc
+                      do nt=1,ntr
                         ttrc(nt,k)=(trfsl(nt)*dpfsl
      .                             +ttrc(nt,k)*delp(k))*q
                       enddo
@@ -701,7 +701,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -725,7 +725,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -741,7 +741,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*q
                 enddo
 #endif
@@ -771,7 +771,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -869,7 +869,7 @@ c                          stop '(mxlayr)'
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       trdps(nt)=trdps(nt)+ttrc(nt,k)*(pmxl-pres(k))
                     enddo
 #endif
@@ -885,7 +885,7 @@ c                          stop '(mxlayr)'
 #  endif
 #endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                     enddo
 #endif
@@ -925,7 +925,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,2)=trdps(nt)*q
             enddo
 #endif
@@ -948,7 +948,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
               enddo
 #endif
@@ -965,7 +965,7 @@ c --- ----- Restore top layer to its reference pressure thickness
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
               enddo
 #endif
@@ -1104,7 +1104,7 @@ c --- ----- Apply heat and salt forcing to top layer
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
             enddo
 #endif
@@ -1149,8 +1149,8 @@ c --- --- Put single column back into 3-d fields.
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc 
-              trc(i,j,k,nt)=ttrc(nt,k)
+            do nt=1,ntr 
+              trc(i,j,kn,nt)=ttrc(nt,k)
             enddo
 #endif
           enddo
@@ -1334,8 +1334,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

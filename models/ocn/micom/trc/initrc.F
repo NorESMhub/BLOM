@@ -8,6 +8,8 @@ c
 c
       implicit none
 c
+      call ocntrc_init
+c
 #ifdef HAMOCC
       call hamocc_init
 #endif

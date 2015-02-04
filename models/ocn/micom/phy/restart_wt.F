@@ -7,19 +7,18 @@ c
       use mod_xc
       use mod_dia
       use mod_nctools
+      use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
+     .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
+     .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
+      use mod_thdysi, only: tsrfm,ticem
 c
       implicit none
 c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
-#if defined(CLIM) || defined(SYN)
-#  include "common_asf.h"
-#endif
-#ifdef CCSMCOUPLED
-#  include "common_ccsm.h"
-#endif
-#include "common_ice.h"
+#include "common_cesm.h"
+#include "common_seaice.h"
 c
       integer i,j,n
       character(len=80), dimension(4) :: rstdate_str
@@ -52,64 +51,52 @@ c --- set time information
 c
 c --- formulate restart name and open restart file
 c
-#ifndef PNETCDF
       if (mnproc.eq.1) then
-#endif
 c
-#if defined(CCSMCOUPLED)
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,'-',
-     .    mod(nstep,nstep_in_day)*86400,'.nc'
-c
-#elif defined(CLIM) || defined(SYN)
+        if (expcnf.eq.'cesm') then
+          write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .      runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
+     .      '-',mod(nstep,nstep_in_day)*86400,'.nc'
+        else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) 
      .     then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
      .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
      .      '_',nint(time),'.nc'
         else
-          if (rstmon) then
-            write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
-          else
-            write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',
-     .        mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
-          endif
-          open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
-          i=1
- 300      read (nfu,'(a)',end=301) rstdate_str(i)
-          i=i+1
-          goto 300
- 301      close (unit=nfu)
-          write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
-     .      rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',nday,
-     .      ', integration day ',nint(time)
-#ifdef PNETCDF
-          if (mnproc.eq.1) then
-#endif
-          if (i.eq.1) then
+            if (rstmon) then
+              write (rstfnm,'(2a,i1,a)')
+     .          runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
+            else
+              write (rstfnm,'(2a,i1,a)')
+     .          runid(1:runid_len),'_restphy_',
+     .          mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
+            endif
             open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
-            write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
-            close (unit=nfu)
-          elseif (rstdate_str(max(1,i-2)).ne.rstdate_str(i).and.
-     .            rstdate_str(i-1       ).ne.rstdate_str(i)) then
-            open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
-            do j=max(1,i-2),i
-              write (nfu,'(a)') rstdate_str(j)(1:runid_len+54)
-            enddo
-            close (unit=nfu)
+            i=1
+ 300        read (nfu,'(a)',end=301) rstdate_str(i)
+            i=i+1
+            goto 300
+ 301        close (unit=nfu)
+            write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
+     .        rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',
+     .        nday,', integration day ',nint(time)
+            if (i.eq.1) then
+              open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+              write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
+              close (unit=nfu)
+            elseif (rstdate_str(max(1,i-2)).ne.rstdate_str(i).and.
+     .              rstdate_str(i-1       ).ne.rstdate_str(i)) then
+              open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+              do j=max(1,i-2),i
+                write (nfu,'(a)') rstdate_str(j)(1:runid_len+54)
+              enddo
+              close (unit=nfu)
+            endif
           endif
-#ifdef PNETCDF
-          endif
-#endif
         endif
-
-#endif
 c
         write (lp,'(a,a)')
-     .    ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
-        write (*,'(a,a)')
      .    ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
 c
         if (rstfmt.eq.1) then 
@@ -125,9 +112,7 @@ c
         call ncputr('time0',time0)
         call ncputr('time',time)
 c
-#ifndef PNETCDF
       endif
-#endif
 c
 c --- define spatial and time dimensions
       if (first) then
@@ -181,14 +166,16 @@ c --- output model fields to restart file
       if (sprfac) then
         call ncputr('prfac',prfac)
       endif
-      call ncputi('ntda',ntda)
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call ncputi('ntda',ntda)
+      endif
       do n=1,nphy 
         write(c2,'(i2.2)') n
         call ncputi('nacc_phy'//c2,nacc_phy(n))
       enddo 
-#ifdef CCSMCOUPLED
-      call ncputi('ll2',ll2)
-#endif
+      if (expcnf.eq.'cesm') then
+        call ncputi('l2ci',l2ci)
+      endif
 c
       do j=1,jj
         do i=1,ii
@@ -202,357 +189,6 @@ c
         enddo
       enddo
 c
-#ifdef PNETCDF
-c
-      call defvarrst('u',trim(c5u)//' kk2 time')
-      call defvarrst('v',trim(c5v)//' kk2 time')
-      call defvarrst('dp',trim(c5p)//' kk2 time')
-      call defvarrst('dpold',trim(c5p)//' kk2 time')
-      call defvarrst('temp',trim(c5p)//' kk2 time')
-      call defvarrst('saln',trim(c5p)//' kk2 time')
-      call defvarrst('sigma',trim(c5p)//' kk2 time')
-      call defvarrst('sigmar',trim(c5p)//' kk time')
-      call defvarrst('pgfx',trim(c5u)//' kk2 time')
-      call defvarrst('pgfy',trim(c5v)//' kk2 time')
-      call defvarrst('pb',trim(c5p)//' k2 time')
-      call defvarrst('pb_mn',trim(c5p)//' k2 time')
-      call defvarrst('pb_p',trim(c5p)//' time')
-      call defvarrst('pbu',trim(c5u)//' k2 time')
-      call defvarrst('pbv',trim(c5v)//' k2 time')
-      call defvarrst('pbu_p',trim(c5u)//' time')
-      call defvarrst('pbv_p',trim(c5v)//' time')
-      call defvarrst('ub',trim(c5u)//' k2 time')
-      call defvarrst('vb',trim(c5v)//' k2 time')
-      call defvarrst('uflx',trim(c5u)//' kk2 time')
-      call defvarrst('utflx',trim(c5u)//' kk2 time')
-      call defvarrst('usflx',trim(c5u)//' kk2 time')
-      call defvarrst('umfltd',trim(c5u)//' kk2 time')
-      call defvarrst('utfltd',trim(c5u)//' kk2 time')
-      call defvarrst('utflld',trim(c5u)//' kk2 time')
-      call defvarrst('usfltd',trim(c5u)//' kk2 time')
-      call defvarrst('usflld',trim(c5u)//' kk2 time')
-      call defvarrst('vflx',trim(c5v)//' kk2 time')
-      call defvarrst('vtflx',trim(c5v)//' kk2 time')
-      call defvarrst('vsflx',trim(c5v)//' kk2 time')
-      call defvarrst('vmfltd',trim(c5v)//' kk2 time')
-      call defvarrst('vtfltd',trim(c5v)//' kk2 time')
-      call defvarrst('vtflld',trim(c5v)//' kk2 time')
-      call defvarrst('vsfltd',trim(c5v)//' kk2 time')
-      call defvarrst('vsflld',trim(c5v)//' kk2 time')
-      call defvarrst('ubflx',trim(c5u)//' k2 time')
-      call defvarrst('vbflx',trim(c5v)//' k2 time')
-      call defvarrst('ubflx_mn',trim(c5u)//' k2 time')
-      call defvarrst('vbflx_mn',trim(c5v)//' k2 time')
-      call defvarrst('ubflxs',trim(c5u)//' k3 time')
-      call defvarrst('vbflxs',trim(c5v)//' k3 time')
-      call defvarrst('ubflxs_p',trim(c5u)//' k2 time')
-      call defvarrst('vbflxs_p',trim(c5v)//' k2 time')
-      call defvarrst('ubcors_p',trim(c5u)//' time')
-      call defvarrst('vbcors_p',trim(c5v)//' time')
-      call defvarrst('pvtrop',trim(c5q)//' k2 time')
-      call defvarrst('pgfxm',trim(c5u)//' k2 time')
-      call defvarrst('pgfym',trim(c5v)//' k2 time')
-      call defvarrst('xixp',trim(c5u)//' k2 time')
-      call defvarrst('xixm',trim(c5u)//' k2 time')
-      call defvarrst('xiyp',trim(c5v)//' k2 time')
-      call defvarrst('xiym',trim(c5v)//' k2 time')
-      call defvarrst('phi',trim(c5p)//' time')
-      call defvarrst('sealv',trim(c5p)//' time')
-      call defvarrst('ustar',trim(c5p)//' time')
-      call defvarrst('buoyfl',trim(c5p)//' time')
-      call defvarrst('kfpla',trim(c5p)//' k2 time')
-      call defvarrst('hicem',trim(c5p)//' time')
-      call defvarrst('ficem',trim(c5p)//' time')
-      call defvarrst('tsrfm',trim(c5p)//' time')
-      call defvarrst('hsnwm',trim(c5p)//' time')
-      call defvarrst('ticem',trim(c5p)//' time')
-      call defvarrst('iagem',trim(c5p)//' time')
-      call defvarrst('tsi_tda',trim(c5p)//' time')
-      call defvarrst('tml_tda',trim(c5p)//' time')
-      call defvarrst('sml_tda',trim(c5p)//' time')
-      call defvarrst('alb_tda',trim(c5p)//' time')
-      call defvarrst('fice_tda',trim(c5p)//' time')
-      call defvarrst('rnfres',trim(c5p)//' time')
-c
-      if (sprfac) then
-        call defvarrst('eiacc',trim(c5p)//' time')
-        call defvarrst('pracc',trim(c5p)//' time')
-      endif
-c
-#if defined(CLIM) || defined(SYN)
-      call defvarrst('cd_d',trim(c5p)//' time')
-      call defvarrst('ch_d',trim(c5p)//' time')
-      call defvarrst('ce_d',trim(c5p)//' time')
-      call defvarrst('wg2_d',trim(c5p)//' time')
-      call defvarrst('cd_m',trim(c5p)//' time')
-      call defvarrst('ch_m',trim(c5p)//' time')
-      call defvarrst('ce_m',trim(c5p)//' time')
-      call defvarrst('wg2_m',trim(c5p)//' time')
-      call defvarrst('rhoa',trim(c5p)//' time')
-#endif
-c
-#ifdef CCSMCOUPLED
-      call defvarrst('ustarw_da',trim(c5p)//' k2 time')
-      call defvarrst('ztx_da',trim(c5p)//' k2 time')
-      call defvarrst('mty_da',trim(c5p)//' k2 time')
-      call defvarrst('lip_da',trim(c5p)//' k2 time')
-      call defvarrst('sop_da',trim(c5p)//' k2 time')
-      call defvarrst('eva_da',trim(c5p)//' k2 time')
-      call defvarrst('rnf_da',trim(c5p)//' k2 time')
-      call defvarrst('rfi_da',trim(c5p)//' k2 time')
-      call defvarrst('fmltfz_da',trim(c5p)//' k2 time')
-      call defvarrst('sfl_da',trim(c5p)//' k2 time')
-      call defvarrst('swa_da',trim(c5p)//' k2 time')
-      call defvarrst('nsf_da',trim(c5p)//' k2 time')
-      call defvarrst('hmlt_da',trim(c5p)//' k2 time')
-      call defvarrst('slp_da',trim(c5p)//' k2 time')
-      call defvarrst('ficem_da',trim(c5p)//' k2 time')
-      call defvarrst('abswnd_da',trim(c5p)//' k2 time')
-      call defvarrst('atmco2_da',trim(c5p)//' k2 time')
-#endif
-c
-      call defvarrst('frzpot',trim(c5p)//' time')
-      call defvarrst('mltpot',trim(c5p)//' time')
-      call defvarrst('flxco2',trim(c5p)//' time')
-c
-#if defined TKE
-      call defvarrst('tke',trim(c5p)//' kk2 time')
-      call defvarrst('gls_psi',trim(c5p)//' kk2 time')
-      call defvarrst('L_scale',trim(c5p)//' kk time')
-      call defvarrst('difdia',trim(c5p)//' kk time')
-      call defvarrst('ustarb',trim(c5p)//' time')
-#endif
-#if defined(TRC) && defined(IDLAGE)
-      call defvarrst('idlage',trim(c5p)//' kk time')
-#endif
-c
-c --- write accumulated fields
-      do n=1,nphy 
-        write(c2,'(i2.2)') n
-        if (nacc_phy(n).ne.0) then
-          if (ACC_UB(n)    .ne.0) call defvarrst('ub_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_VB(n)    .ne.0) call defvarrst('vb_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_ZTX(n)   .ne.0) call defvarrst('ztx_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MTY(n)   .ne.0) call defvarrst('mty_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_TAUX(n)  .ne.0) call defvarrst('taux_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_TAUY(n)  .ne.0) call defvarrst('tauy_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MXLU(n)  .ne.0) call defvarrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MXLV(n)  .ne.0) call defvarrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MLDU(n)  .ne.0) call defvarrst('mldu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MLDV(n)  .ne.0) call defvarrst('mldv_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_SEALV(n) .ne.0) call defvarrst('sealv_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SIGMX(n) .ne.0) call defvarrst('sigmx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_HICE(n)  .ne.0) call defvarrst('hice_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_IAGE(n)  .ne.0) call defvarrst('iage_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_HSNW(n)  .ne.0) call defvarrst('hsnw_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_FICE(n)  .ne.0) call defvarrst('fice_phy'//c2, 
-     .      trim(c5p)//' time')
-          if (ACC_TSRF(n)  .ne.0) call defvarrst('tsrf_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_TICE(n)  .ne.0) call defvarrst('tice_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SWA(n)   .ne.0) call defvarrst('swa_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_NSF(n)   .ne.0) call defvarrst('nsf_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_DFL(n)   .ne.0) call defvarrst('dfl_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_LIP(n)   .ne.0) call defvarrst('lip_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SOP(n)   .ne.0) call defvarrst('sop_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_EVA(n)   .ne.0) call defvarrst('eva_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_ABSWND(n)   .ne.0) call defvarrst('abswnd_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_ALB(n)   .ne.0) call defvarrst('alb_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SFL(n)   .ne.0) call defvarrst('sfl_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_BRNFLX(n)   .ne.0) call defvarrst('brnflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_BRNPD(n)   .ne.0) call defvarrst('brnpd_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_HMLTFZ(n)   .ne.0) call defvarrst('hmltfz_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_RFIFLX(n).ne.0) call defvarrst('rfiflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_RNFFLX(n).ne.0) call defvarrst('rnfflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_USTAR(n) .ne.0) call defvarrst('ustar_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SSS(n)   .ne.0) call defvarrst('sss_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SST(n)   .ne.0) call defvarrst('sst_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_MLD(n)   .ne.0) call defvarrst('mld_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_MAXMLD(n).ne.0) call defvarrst('maxmld_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SURFLX(n).ne.0) call defvarrst('surflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SURRLX(n).ne.0) call defvarrst('surrlx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SALFLX(n).ne.0) call defvarrst('salflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SALRLX(n).ne.0) call defvarrst('salrlx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_VICE(n)  .ne.0) call defvarrst('vice_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_IVOLU(n)  .ne.0) call defvarrst('ivolu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_IVOLV(n)  .ne.0) call defvarrst('ivolv_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_UVEL(n)  .ne.0) call defvarrst('uvel_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VVEL(n)  .ne.0) call defvarrst('vvel_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_DPU(n)   .ne.0) call defvarrst('dpu_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_DPV(n)   .ne.0) call defvarrst('dpv_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_UFLX(n)  .ne.0) call defvarrst('uflx_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VFLX(n)  .ne.0) call defvarrst('vflx_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_UTFLX(n) .ne.0) call defvarrst('utflx_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VTFLX(n) .ne.0) call defvarrst('vtflx_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_USFLX(n) .ne.0) call defvarrst('usflx_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VSFLX(n) .ne.0) call defvarrst('vsflx_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_UMFLTD(n).ne.0) call defvarrst('umfltd_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VMFLTD(n).ne.0) call defvarrst('vmfltd_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_UTFLTD(n).ne.0) call defvarrst('utfltd_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VTFLTD(n).ne.0) call defvarrst('vtfltd_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_UTFLLD(n).ne.0) call defvarrst('utflld_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VTFLLD(n).ne.0) call defvarrst('vtflld_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_USFLTD(n).ne.0) call defvarrst('usfltd_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VSFLTD(n).ne.0) call defvarrst('vsfltd_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_USFLLD(n).ne.0) call defvarrst('usflld_phy'//c2,
-     .      trim(c5u)//' kk time')
-          if (ACC_VSFLLD(n).ne.0) call defvarrst('vsflld_phy'//c2,
-     .      trim(c5v)//' kk time')
-          if (ACC_SALN(n)  .ne.0) call defvarrst('saln_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_TEMP(n)  .ne.0) call defvarrst('temp_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DP(n)    .ne.0) call defvarrst('dp_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DZ(n)    .ne.0) call defvarrst('dz_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DIAFLX(n).ne.0) call defvarrst('diaflx_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DIFDIA(n).ne.0) call defvarrst('difdia_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DIFINT(n).ne.0) call defvarrst('difint_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_DIFISO(n).ne.0) call defvarrst('difiso_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_WFLX(n)  .ne.0) call defvarrst('wflx_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_WFLX2(n) .ne.0) call defvarrst('wflx2_phy'//c2,
-     .      trim(c5p)//' kk time')
-#if defined TKE
-          if (ACC_TKE(n)  .ne.0) call defvarrst('tke_phy'//c2,
-     .      trim(c5p)//' kk time')
-          if (ACC_GLS_PSI(n).ne.0) call defvarrst('gls_psi_phy'//c2,
-     .     trim(c5p)//' kk time')
-#endif
-          if (ACC_UVELLVL(n) .ne.0) call defvarrst('uvellvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VVELLVL(n) .ne.0) call defvarrst('vvellvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_UFLXLVL(n) .ne.0) call defvarrst('uflxlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VFLXLVL(n) .ne.0) call defvarrst('vflxlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_UTFLXLVL(n).ne.0) call defvarrst('utflxlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VTFLXLVL(n).ne.0) call defvarrst('vtflxlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_USFLXLVL(n).ne.0) call defvarrst('usflxlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VSFLXLVL(n).ne.0) call defvarrst('vsflxlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_UMFLTDLVL(n).ne.0) call defvarrst('umfltdlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VMFLTDLVL(n).ne.0) call defvarrst('vmfltdlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_UTFLTDLVL(n).ne.0) call defvarrst('utfltdlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VTFLTDLVL(n).ne.0) call defvarrst('vtfltdlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_UTFLLDLVL(n).ne.0) call defvarrst('utflldlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VTFLLDLVL(n).ne.0) call defvarrst('vtflldlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_USFLTDLVL(n).ne.0) call defvarrst('usfltdlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VSFLTDLVL(n).ne.0) call defvarrst('vsfltdlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_USFLLDLVL(n).ne.0) call defvarrst('usflldlvl_phy'//c2,
-     .      trim(c5u)//' plev time')
-          if (ACC_VSFLLDLVL(n).ne.0) call defvarrst('vsflldlvl_phy'//c2,
-     .      trim(c5v)//' plev time')
-          if (ACC_SALNLVL(n) .ne.0) call defvarrst('salnlvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_TEMPLVL(n) .ne.0) call defvarrst('templvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_DZLVL(n)    .ne.0) call defvarrst('dzlvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_DIAFLXLVL(n).ne.0) call defvarrst('diaflxlvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_DIFDIALVL(n).ne.0) call defvarrst('difdialvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_DIFINTLVL(n).ne.0) call defvarrst('difintlvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_DIFISOLVL(n).ne.0) call defvarrst('difisolvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_WFLXLVL(n).ne.0) call defvarrst('wflxlvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if (ACC_WFLX2LVL(n).ne.0) call defvarrst('wflx2lvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-#if defined TKE
-          if (ACC_TKELVL(n).ne.0) call defvarrst('tkelvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-          if(ACC_GLS_PSILVL(n).ne.0) call defvarrst('gls_psilvl_phy'//c2,
-     .      trim(c5p)//' plev time')
-#endif
-        endif
-      enddo
-      call ncedef
-c 
-#endif
       call wrtrst('u',trim(c5u)//' kk2 time',u,iuu)
       call wrtrst('v',trim(c5v)//' kk2 time',v,ivv)
       call wrtrst('dp',trim(c5p)//' kk2 time',dp,ip)
@@ -610,59 +246,58 @@ c
       call wrtrst('ustar',trim(c5p)//' time',ustar,ip)
       call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
-      call wrtrst('hicem',trim(c5p)//' time',hicem,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
-      call wrtrst('tsrfm',trim(c5p)//' time',tsrfm,ip)
-      call wrtrst('hsnwm',trim(c5p)//' time',hsnwm,ip)
-      call wrtrst('ticem',trim(c5p)//' time',ticem,ip)
-      call wrtrst('iagem',trim(c5p)//' time',iagem,ip)
-      call wrtrst('tsi_tda',trim(c5p)//' time',tsi_tda,ip)
-      call wrtrst('tml_tda',trim(c5p)//' time',tml_tda,ip)
-      call wrtrst('sml_tda',trim(c5p)//' time',sml_tda,ip)
-      call wrtrst('alb_tda',trim(c5p)//' time',alb_tda,ip)
-      call wrtrst('fice_tda',trim(c5p)//' time',fice_tda,ip)
-      call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
 c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
         call wrtrst('pracc',trim(c5p)//' time',pracc,ip)
       endif
 c
-#if defined(CLIM) || defined(SYN)
-      call wrtrst('cd_d',trim(c5p)//' time',cd_d,ip)
-      call wrtrst('ch_d',trim(c5p)//' time',ch_d,ip)
-      call wrtrst('ce_d',trim(c5p)//' time',ce_d,ip)
-      call wrtrst('wg2_d',trim(c5p)//' time',wg2_d,ip)
-      call wrtrst('cd_m',trim(c5p)//' time',cd_m,ip)
-      call wrtrst('ch_m',trim(c5p)//' time',ch_m,ip)
-      call wrtrst('ce_m',trim(c5p)//' time',ce_m,ip)
-      call wrtrst('wg2_m',trim(c5p)//' time',wg2_m,ip)
-      call wrtrst('rhoa',trim(c5p)//' time',rhoa,ip)
-#endif
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call wrtrst('cd_d',trim(c5p)//' time',cd_d,ip)
+        call wrtrst('ch_d',trim(c5p)//' time',ch_d,ip)
+        call wrtrst('ce_d',trim(c5p)//' time',ce_d,ip)
+        call wrtrst('wg2_d',trim(c5p)//' time',wg2_d,ip)
+        call wrtrst('cd_m',trim(c5p)//' time',cd_m,ip)
+        call wrtrst('ch_m',trim(c5p)//' time',ch_m,ip)
+        call wrtrst('ce_m',trim(c5p)//' time',ce_m,ip)
+        call wrtrst('wg2_m',trim(c5p)//' time',wg2_m,ip)
+        call wrtrst('rhoa',trim(c5p)//' time',rhoa,ip)
+        call wrtrst('tsi_tda',trim(c5p)//' time',tsi_tda,ip)
+        call wrtrst('tml_tda',trim(c5p)//' time',tml_tda,ip)
+        call wrtrst('sml_tda',trim(c5p)//' time',sml_tda,ip)
+        call wrtrst('alb_tda',trim(c5p)//' time',alb_tda,ip)
+        call wrtrst('fice_tda',trim(c5p)//' time',fice_tda,ip)
+        call wrtrst('hicem',trim(c5p)//' time',hicem,ip)
+        call wrtrst('tsrfm',trim(c5p)//' time',tsrfm,ip)
+        call wrtrst('hsnwm',trim(c5p)//' time',hsnwm,ip)
+        call wrtrst('ticem',trim(c5p)//' time',ticem,ip)
+        call wrtrst('iagem',trim(c5p)//' time',iagem,ip)
+        call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
+      endif
 c
-#ifdef CCSMCOUPLED
-      call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
-      call wrtrst('ztx_da',trim(c5p)//' k2 time',ztx_da,ip)
-      call wrtrst('mty_da',trim(c5p)//' k2 time',mty_da,ip)
-      call wrtrst('lip_da',trim(c5p)//' k2 time',lip_da,ip)
-      call wrtrst('sop_da',trim(c5p)//' k2 time',sop_da,ip)
-      call wrtrst('eva_da',trim(c5p)//' k2 time',eva_da,ip)
-      call wrtrst('rnf_da',trim(c5p)//' k2 time',rnf_da,ip)
-      call wrtrst('rfi_da',trim(c5p)//' k2 time',rfi_da,ip)
-      call wrtrst('fmltfz_da',trim(c5p)//' k2 time',fmltfz_da,ip)
-      call wrtrst('sfl_da',trim(c5p)//' k2 time',sfl_da,ip)
-      call wrtrst('swa_da',trim(c5p)//' k2 time',swa_da,ip)
-      call wrtrst('nsf_da',trim(c5p)//' k2 time',nsf_da,ip)
-      call wrtrst('hmlt_da',trim(c5p)//' k2 time',hmlt_da,ip)
-      call wrtrst('slp_da',trim(c5p)//' k2 time',slp_da,ip)
-      call wrtrst('ficem_da',trim(c5p)//' k2 time',ficem_da,ip)
-      call wrtrst('abswnd_da',trim(c5p)//' k2 time',abswnd_da,ip)
-      call wrtrst('atmco2_da',trim(c5p)//' k2 time',atmco2_da,ip)
-#endif
-c
-      call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
-      call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
-      call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
+      if (expcnf.eq.'cesm') then
+        call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
+        call wrtrst('ztx_da',trim(c5p)//' k2 time',ztx_da,ip)
+        call wrtrst('mty_da',trim(c5p)//' k2 time',mty_da,ip)
+        call wrtrst('lip_da',trim(c5p)//' k2 time',lip_da,ip)
+        call wrtrst('sop_da',trim(c5p)//' k2 time',sop_da,ip)
+        call wrtrst('eva_da',trim(c5p)//' k2 time',eva_da,ip)
+        call wrtrst('rnf_da',trim(c5p)//' k2 time',rnf_da,ip)
+        call wrtrst('rfi_da',trim(c5p)//' k2 time',rfi_da,ip)
+        call wrtrst('fmltfz_da',trim(c5p)//' k2 time',fmltfz_da,ip)
+        call wrtrst('sfl_da',trim(c5p)//' k2 time',sfl_da,ip)
+        call wrtrst('swa_da',trim(c5p)//' k2 time',swa_da,ip)
+        call wrtrst('nsf_da',trim(c5p)//' k2 time',nsf_da,ip)
+        call wrtrst('hmlt_da',trim(c5p)//' k2 time',hmlt_da,ip)
+        call wrtrst('slp_da',trim(c5p)//' k2 time',slp_da,ip)
+        call wrtrst('ficem_da',trim(c5p)//' k2 time',ficem_da,ip)
+        call wrtrst('abswnd_da',trim(c5p)//' k2 time',abswnd_da,ip)
+        call wrtrst('atmco2_da',trim(c5p)//' k2 time',atmco2_da,ip)
+        call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
+        call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
+        call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
+      endif
 c
 #if defined TKE
       call wrtrst('tke',trim(c5p)//' kk2 time',tke,ip)
@@ -672,7 +307,7 @@ c
       call wrtrst('ustarb',trim(c5p)//' time',ustarb,ip)
 #endif
 #if defined(TRC) && defined(IDLAGE)
-      call wrtrst('idlage',trim(c5p)//' kk time',
+      call wrtrst('idlage',trim(c5p)//' kk2 time',
      .            trc(1-nbdy,1-nbdy,1,itriag),ip)
 #endif
 c
@@ -973,11 +608,11 @@ c
       if (ditflx) then
 c
 c --- - write diag. heat flux restart file
-#ifdef CCSMCOUPLED
-        fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
-#else
-        fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
-#endif
+        if (expcnf.eq.'cesm') then
+          fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+        else
+          fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
+        endif
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. heat flux restart file ',
      .    trim(path2(1:path2_len)//fnm)
@@ -999,10 +634,6 @@ c
 c
         call ncputr('time',time)
         call ncputi('nflxdi',nflxdi)
-#ifdef PNETCDF
-        call defvarrst('tflxdi',trim(c5p)//' week')
-        call ncedef
-#endif
 c
         call wrtrst('tflxdi',trim(c5p)//' week',tflxdi,ip)
 c       
@@ -1012,11 +643,11 @@ c
       if (disflx) then
 c
 c --- - write diag. salt flux restart file
-#ifdef CCSMCOUPLED
-        fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
-#else
-        fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
-#endif
+        if (expcnf.eq.'cesm') then
+          fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+        else
+          fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
+        endif
         if (mnproc.eq.1) write (lp,'(a,a)')
      .    ' saving diag. salt flux restart file ',
      .    path2(1:path2_len)//trim(fnm)
@@ -1039,23 +670,20 @@ c
         call ncputr('time',time)
         call ncputi('nflxdi',nflxdi)
 c
-#ifdef PNETCDF
-        call defvarrst('sflxdi',trim(c5p)//' week')
-        call ncedef
-#endif
         call wrtrst('sflxdi',trim(c5p)//' week',sflxdi,ip)
 c       
         call ncfcls
       endif
 c
-#ifdef CCSMCOUPLED
-c --- write restart filename to rpointer.ocn
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='rpointer.ocn')
-        write (nfu,'(a)') rstfnm
-        close (unit=nfu)
+      if (expcnf.eq.'cesm') then
+c
+c --- - write restart filename to rpointer.ocn
+        if (mnproc.eq.1) then
+          open (unit=nfu,file='rpointer.ocn')
+          write (nfu,'(a)') rstfnm
+          close (unit=nfu)
+        endif
       endif
-#endif
 c
       return
       end
@@ -1083,20 +711,3 @@ c --- Write data in compressed or uncompressed format
       endif
 c
       end
-
-#ifdef PNETCDF
-      subroutine defvarrst(vnm,dims)
-c
-c --- ------------------------------------------------------------------
-      use mod_xc
-      use mod_nctools
-c
-      implicit none
-c 
-      character(len=*) :: vnm,dims
-c
-c
-        call ncdefvar(vnm,dims,nf_double,8)
-c
-      end
-#endif

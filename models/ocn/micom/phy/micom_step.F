@@ -28,7 +28,7 @@ c
 c
       real step_time,
      .     auxil_time ,
-     .     getflx_time,
+     .     getfrc_time,
      .     seaice_time,
      .     tmsmt1_time,
      .     advdif_time,
@@ -61,14 +61,6 @@ c
       nstep=nstep+1
       time=nstep*baclin/86400.
 c
-#ifdef TRC
-c --- advance tracers only every second time step
-      ntrc=ntr*mod(nstep+1,2)
-#  ifdef ATRC
-      natrc=natr*mod(nstep+1,2)
-#  endif
-#endif
-c
       if (cnsvdi) call stdbud(1,n,nn)
 c
 c --- Update calender
@@ -93,38 +85,24 @@ c --- ------------------------------------------------------------------
 c --- Set parameters for time interpolation of climatological fields
 c --- ------------------------------------------------------------------
 c
-      x=(nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*12.
-     .  /real(nday_in_year)
-      l3=int(x)+1
-      x=x-real(l3-1)
-      l1=mod(l3+ 9,12)+1
-      l2=mod(l3+10,12)+1
-      l4=mod(l3   ,12)+1
-      l5=mod(l3+ 1,12)+1
+      xmi=(nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))
+     .    *12./real(nday_in_year)
+      l3mi=int(xmi)+1
+      xmi=xmi-real(l3mi-1)
+      l1mi=mod(l3mi+ 9,12)+1
+      l2mi=mod(l3mi+10,12)+1
+      l4mi=mod(l3mi   ,12)+1
+      l5mi=mod(l3mi+ 1,12)+1
 c
       auxil_time=gettime()
 c
-#ifdef NEST
 c --- ------------------------------------------------------------------
-c --- Get boundary conditions from outer coarse model
-c --- ------------------------------------------------------------------
-c
-      call rdotr
-#endif
-c
-c --- ------------------------------------------------------------------
-c --- Get surface fluxes
+c --- Get forcing
 c --- ------------------------------------------------------------------
 c
-#if   defined(CLIM)
-      call getflux_clim
-#elif defined(SYN)
-      call getflux_syn
-#elif defined(CCSMCOUPLED)
-      call getflux_ccsm
-#endif
+      call getfrc
 c
-      getflx_time=gettime()
+      getfrc_time=gettime()
 c
 #ifdef ICEDYN
 cdiag write (lp,*) 'icedyn...'
@@ -147,11 +125,11 @@ c
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'sfcstr...'
-#ifdef CCSMCOUPLED
-      call sfcstr_ccsm(m,n,mm,nn,k1m,k1n)
-#else
-      call sfcstr(m,n,mm,nn,k1m,k1n)
-#endif
+      if (expcnf.eq.'cesm') then
+        call sfcstr_cesm(m,n,mm,nn,k1m,k1n)
+      else
+        call sfcstr(m,n,mm,nn,k1m,k1n)
+      endif
       sfcstr_time=gettime()
 c
 cdiag write (lp,*) 'pgforc...'
@@ -161,12 +139,6 @@ c
 cdiag write (lp,*) 'momtum...'
       call momtum(m,n,mm,nn,k1m,k1n)
       momtum_time=gettime()
-c
-#ifdef NEST
-cdiag write (lp,*) 'bclnst...'
-      call bclnst(m,n,mm,nn,k1m,k1n)
-c     bclnst_time=gettime()
-#endif
 c
 cdiag write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
@@ -183,11 +155,7 @@ c
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'thermf...'
-#ifdef CCSMCOUPLED
-      call thermf_ccsm(m,n,mm,nn,k1m,k1n)
-#else
       call thermf(m,n,mm,nn,k1m,k1n)
-#endif
       thermf_time=gettime()
 c
 cdiag write (lp,*) 'mxlayr...'
@@ -196,7 +164,7 @@ cdiag write (lp,*) 'mxlayr...'
 c
 #ifdef TRC
 c --- update tracer due to non-passive processes
-      if (mod(nstep+1,2).eq.1) call updtrc(m,n,mm,nn,k1m,k1n)
+      call updtrc(m,n,mm,nn,k1m,k1n)
 #endif
 c
       if (cnsvdi) call stdbud(5,n,nn)
@@ -264,22 +232,21 @@ c
 #  endif
 #endif
 #ifdef TRC
-          if (m.eq.1) then
-            open (unit=nfu,file='trcbud',position='append')
-            write (nfu,'(i8,6e12.4)') nstep,
-     .        (trdp(2)-trdp(1))/mass0,
-     .        (trdp(3)-trdp(2))/mass0,
-     .        (trdp(4)-trdp(3))/mass0,
-     .        (trdp(5)-trdp(4)+trf*g)/mass0,
-     .        (trdp(6)-trdp(5))/mass0,
-     .        (trdp(7)-trdp(6))/mass0
-            close (nfu)
-            open (unit=nfu,file='trcbudtot',position='append')
-            write (nfu,'(i8,7e18.10)') nstep,
-     .        trdp(1)/mass0,trdp(2)/mass0,trdp(3)/mass0,
-     .        trdp(4)/mass0,trdp(5)/mass0,trdp(6)/mass0,trdp(7)/mass0
-            close (nfu)
-          endif
+          open (unit=nfu,file='trcbud',position='append')
+          write (nfu,'(i8,6e12.4)') nstep-1,
+     .      (trdp(2,m)-trdp(1,m))/mass0,
+     .      (trdp(3,m)-trdp(2,m))/mass0,
+     .      (trdp(4,m)-trdp(3,m))/mass0,
+     .      (trdp(5,m)-trdp(4,m)+trf*g)/mass0,
+     .      (trdp(6,m)-trdp(5,m))/mass0,
+     .      (trdp(7,m)-trdp(6,m))/mass0
+          close (nfu)
+          open (unit=nfu,file='trcbudtot',position='append')
+          write (nfu,'(i8,7e18.10)') nstep-1,
+     .      trdp(1,m)/mass0,trdp(2,m)/mass0,trdp(3,m)/mass0,
+     .      trdp(4,m)/mass0,trdp(5,m)/mass0,trdp(6,m)/mass0,
+     .      trdp(7,m)/mass0
+          close (nfu)
 #endif
         endif
 c$OMP PARALLEL DO
@@ -340,7 +307,7 @@ c
 c
 c --- update total time spent by various tasks
       auxil_total_time=auxil_total_time+auxil_time
-      getflx_total_time=getflx_total_time+getflx_time
+      getfrc_total_time=getfrc_total_time+getfrc_time
       seaice_total_time=seaice_total_time+seaice_time
       tmsmt1_total_time=tmsmt1_total_time+tmsmt1_time
       advdif_total_time=advdif_total_time+advdif_time
@@ -360,13 +327,15 @@ c
      .  .eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.(rstann
      .  .or.rstmon).and.mod(nstep+.5,rstfrq).lt.1.) then
 c
-#ifndef CCSMCOUPLED
+        if (expcnf.ne.'cesm') then
+c
 c --- ------------------------------------------------------------------
-c --- - output restart files
+c --- --- output restart files
 c --- ------------------------------------------------------------------
 c
-        call restart_wt
-#endif
+          call restart_wt
+c
+        endif
 c
         io_time=gettime()
 c
@@ -375,7 +344,7 @@ c --- - write timing diagnostics to standard out
 c --- ------------------------------------------------------------------
 c
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
+        step_time=auxil_time +getfrc_time+seaice_time+tmsmt1_time
      .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
      .           +barotp_time+pbtcor_time+convec_time+diapfl_time
      .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
@@ -394,7 +363,7 @@ c
      .      total_time,' Tot Time with contributions:'
           q=100./total_time
           write (lp,'(f12.4,a,i8)') auxil_total_time*q ,'% auxil '
-          write (lp,'(f12.4,a,i8)') getflx_total_time*q,'% getflx'
+          write (lp,'(f12.4,a,i8)') getfrc_total_time*q,'% getfrc'
           write (lp,'(f12.4,a,i8)') seaice_total_time*q,'% seaice'
           write (lp,'(f12.4,a,i8)') tmsmt1_total_time*q,'% tmsmt1'
           write (lp,'(f12.4,a,i8)') advdif_total_time*q,'% advdif'
@@ -420,7 +389,7 @@ c --- ------------------------------------------------------------------
 c
         io_time=gettime()
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getflx_time+seaice_time+tmsmt1_time
+        step_time=auxil_time +getfrc_time+seaice_time+tmsmt1_time
      .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
      .           +barotp_time+pbtcor_time+convec_time+diapfl_time
      .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time

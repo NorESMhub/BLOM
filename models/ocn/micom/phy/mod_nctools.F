@@ -70,8 +70,8 @@ c
 #endif
       implicit none
 #ifdef PNETCDF
-#include <pnetcdf.inc>
-#include <mpif.h>
+#  include <pnetcdf.inc>
+#  include <mpif.h>
 #endif
 c
 c 
@@ -97,7 +97,7 @@ c --- Declare global variables
       logical, private, save :: flgpad 
       integer, private, save :: ncid,rhid,status,rec
 #ifdef PNETCDF
-      integer(kind=MPI_OFFSET_KIND) startp, countp,clen
+      integer(kind=MPI_OFFSET_KIND) startp,countp,clen
 #endif
 c
       contains             
@@ -130,53 +130,59 @@ c
       common/xcmpii/ mpicomm,mpierr,mpireq(4),
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
-c --- - Open file        
-        rec=1
-        if (faccess(1:1).eq.'r') then
-          call ncerro(nfmpi_open(mpicomm,fnm,nf_nowrite,MPI_INFO_NULL,
-     *                ncid))
-          rec=irec
-        elseif (irec.ne.1) then
-          status=nfmpi_open(mpicomm,fnm,nf_write,MPI_INFO_NULL,ncid)
-          if (status.ne.nf_noerr) then
-            if (frmt(1:1).eq.'6') then
-              call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,
-     .         nf_64bit_offset),MPI_INFO_NULL,ncid))
-            elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
-              call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,
-     .          nf_64bit_data),MPI_INFO_NULL,ncid))
-            else
-               cmode = IOR(NF_CLOBBER, nf_format_classic)
-               call ncerro(nfmpi_create(mpicomm, fnm, cmode,
-     +                       MPI_INFO_NULL, ncid))
-            endif
-          else
-            call ncerro(nfmpi_redef(ncid))
-            rec=irec
-          endif
-        else
+c
+c --- Open file        
+      rec=1
+      if (faccess(1:1).eq.'r') then
+        call ncerro(nfmpi_open(mpicomm,fnm,nf_nowrite,MPI_INFO_NULL,
+     .              ncid))
+        rec=irec
+      elseif (irec.ne.1) then
+        status=nfmpi_open(mpicomm,fnm,nf_write,MPI_INFO_NULL,ncid)
+        if (status.ne.nf_noerr) then
           if (frmt(1:1).eq.'6') then
-            call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,
-     .        nf_64bit_offset),MPI_INFO_NULL,ncid))
+            call ncerro(nfmpi_create(mpicomm,fnm,
+     .                               IOR(nf_clobber,nf_64bit_offset),
+     .                               MPI_INFO_NULL,ncid))
           elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
-            call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,
-     .       nf_64bit_data) , MPI_INFO_NULL,ncid))
+            call ncerro(nfmpi_create(mpicomm,fnm,
+     .                               IOR(nf_clobber,nf_64bit_data),
+     .                               MPI_INFO_NULL,ncid))
           else
-            call ncerro(nfmpi_create(mpicomm,fnm,IOR(nf_clobber,
-     .                 nf_format_classic), MPI_INFO_NULL,ncid))
+             cmode=IOR(NF_CLOBBER,nf_format_classic)
+             call ncerro(nfmpi_create(mpicomm,fnm,cmode,
+     +                                MPI_INFO_NULL,ncid))
           endif
-          call ncerro(nfmpi_set_fill(ncid,nf_nofill,oldmode))
-        endif
-c
-c --- - Set variable id to global (needed for global attributes)
-!        rhid=nf_global
-c
-c --- - Initialise header padding
-        if (rec.eq.1) then
-          flgpad=.false.
         else
-          flgpad=.true.
+          call ncerro(nfmpi_redef(ncid))
+          rec=irec
         endif
+      else
+        if (frmt(1:1).eq.'6') then
+          call ncerro(nfmpi_create(mpicomm,fnm,
+     .                             IOR(nf_clobber,nf_64bit_offset),
+     .                             MPI_INFO_NULL,ncid))
+        elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
+          call ncerro(nfmpi_create(mpicomm,fnm,
+     .                             IOR(nf_clobber,nf_64bit_data),
+     .                             MPI_INFO_NULL,ncid))
+        else
+          call ncerro(nfmpi_create(mpicomm,fnm,
+     .                             IOR(nf_clobber,nf_format_classic),
+     .                             MPI_INFO_NULL,ncid))
+        endif
+        call ncerro(nfmpi_set_fill(ncid,nf_nofill,oldmode))
+      endif
+c
+c --- Set variable id to global (needed for global attributes)
+!      rhid=nf_global
+c
+c --- Initialise header padding
+      if (rec.eq.1) then
+        flgpad=.false.
+      else
+        flgpad=.true.
+      endif
 #else
       if (mnproc.eq.1) then 
 c 
@@ -190,10 +196,10 @@ c --- - Open file
           if (status.ne.nf90_noerr) then
             if (frmt(1:1).eq.'6') then 
               call ncerro(nf90_create(fnm,OR(nf90_clobber,
-     .         nf90__64bit_offset),ncid))
+     .                                       nf90__64bit_offset),ncid))
             elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
               call ncerro(nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
-     .          ncid))
+     .                                ncid))
             else 
               call ncerro(nf90_create(fnm,nf90_clobber,ncid))
             endif
@@ -205,10 +211,10 @@ c --- - Open file
         else 
           if (frmt(1:1).eq.'6') then 
             call ncerro(nf90_create(fnm,OR(nf90_clobber,
-     .        nf90__64bit_offset),ncid))
+     .                                     nf90__64bit_offset),ncid))
           elseif (frmt(1:1).eq.'h'.or.frmt(1:1).eq.'H') then
             call ncerro(nf90_create(fnm,OR(nf90_clobber,nf90__hdf5),
-     .        ncid))
+     .                              ncid))
           else 
             call ncerro(nf90_create(fnm,nf90_clobber,ncid))
           endif
@@ -289,12 +295,12 @@ c
 c
 c --- define dimension
 #ifdef PNETCDF
-       clen = dim
-       if (rec.eq.1)
-     .   call ncerro(nfmpi_def_dim(ncid,trim(dnm),clen,dimid))
+      clen = dim
+      if (rec.eq.1)
+     .  call ncerro(nfmpi_def_dim(ncid,trim(dnm),clen,dimid))
 #else
-       if (mnproc.eq.1.and.rec.eq.1)  
-     .   call ncerro(nf90_def_dim(ncid,dnm,dim,dimid))
+      if (mnproc.eq.1.and.rec.eq.1)  
+     .  call ncerro(nf90_def_dim(ncid,dnm,dim,dimid))
 #endif
 c
       end subroutine ncdims
@@ -324,12 +330,6 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rmsk   
       real, dimension(itdm,jtdm) :: rmskt
       character*(*) dnm 
-#ifdef PNETCDF
-      integer        mpicomm,mpierr,mpireq,mpistat
-      common/xcmpii/ mpicomm,mpierr,mpireq(4),
-     &               mpistat(mpi_status_size,4*max(iqr,jqr))
-      save  /xcmpii/
-#endif
 c 
       do j=1,jj
         do i=1,ii
@@ -339,7 +339,7 @@ c
       call xcaget(rmskt,rmsk,1)
       if (mnproc.eq.1.and.rec.eq.1) then 
         n=0
-        if(flg.eq.1)then 
+        if (flg.eq.1) then 
           do j=1,jtdm
             do i=1,itdm
               if (rmskt(i,j).gt.0.5) then
@@ -351,45 +351,44 @@ c
         else 
           do j=1,jtdm
             do i=1,itdm
-              if(rmskt(i,j).gt.0.5) n=n+1
+              if (rmskt(i,j).gt.0.5) n=n+1
             enddo 
           enddo  
-        endif  
-#ifdef PNETCDF
         endif
-        call mpi_bcast(n,1,MPI_INT,
-     &               idproc1(1),mpicomm,mpierr)
-        clen=n
-        call ncerro(nfmpi_def_dim(ncid,dnm,clen,dimid))
-        if(flg.eq.1)then
-          call ncerro(nfmpi_def_var(ncid,dnm,nf_int,1,dimid,rhid))
-          if(flgpad)then
-            call ncerro(nfmpi_enddef(ncid))
-          else
-            call ncerro(nfmpi_enddef(ncid,409600,4,0,409600))
-            flgpad=.true.
-          endif
-
-          startp=1
-          countp=0
-          if (mnproc.eq.1) countp=n
-          call ncerro(nfmpi_put_vara_int_all(ncid,rhid,startp,countp,
-     *                ivec(1:n)))
-          call ncerro(nfmpi_redef(ncid))
-        endif
-#else
+#ifndef PNETCDF
         call ncerro(nf90_def_dim(ncid,dnm,n,dimid))
-        if(flg.eq.1)then
+        if (flg.eq.1) then
           call ncerro(nf90_def_var(ncid,dnm,nf90_int,dimid,rhid))
-          if(flgpad)then 
+          if (flgpad) then 
             call ncerro(nf90_enddef(ncid))
           else
-            call ncerro(nf90_enddef(ncid,409600,4,0,4))
+            call ncerro(nf90_enddef(ncid,40960,4,0,4))
             flgpad=.true.
           endif 
           call ncerro(nf90_put_var(ncid,rhid,ivec(1:n)))
           call ncerro(nf90_redef(ncid))
         endif 
+#endif
+      endif
+#ifdef PNETCDF
+      call xcbcst(n)
+      clen=n
+      call ncerro(nfmpi_def_dim(ncid,dnm,clen,dimid))
+      if (flg.eq.1) then
+        call ncerro(nfmpi_def_var(ncid,dnm,nf_int,1,dimid,rhid))
+        if (flgpad) then
+          call ncerro(nfmpi_enddef(ncid))
+        else
+          call ncerro(nfmpi_enddef(ncid,409600,4,0,409600))
+          flgpad=.true.
+        endif
+
+        startp=1
+        countp=0
+        if (mnproc.eq.1) countp=n
+        call ncerro(nfmpi_put_vara_int_all(ncid,rhid,startp,countp,
+     .                                     ivec(1:n)))
+        call ncerro(nfmpi_redef(ncid))
       endif
 #endif
 c
@@ -447,7 +446,7 @@ c
       clen=1
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_double(ncid,nf_global,vnm,nf_double,
-     .  clen,rval))
+     .                                   clen,rval))
 #else
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
@@ -477,7 +476,7 @@ c
       clen = size(rval)
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_double(ncid,nf_global,vnm,nf_double,
-     .  clen,rval))
+     .                                   clen,rval))
 #else
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
@@ -507,7 +506,7 @@ c
       clen=1
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_int(ncid,nf_global,vnm,nf_int,
-     . clen,ival))
+     .                                clen,ival))
 #else
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
@@ -536,7 +535,7 @@ c
       clen=size(ival)
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_int(ncid,nf_global,vnm,nf_int,
-     .  clen,ival))
+     .                                clen,ival))
 #else
 c
       if (mnproc.eq.1.and.rec.eq.1) 
@@ -620,7 +619,7 @@ c
 #ifdef PNETCDF
       call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
 #else
-      if(mnproc.eq.1)
+      if (mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 #endif
 c
@@ -647,7 +646,7 @@ c
 #ifdef PNETCDF
       call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
 #else
-      if(mnproc.eq.1)
+      if (mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
 #endif
 c
@@ -694,7 +693,7 @@ c --- define time dimension
       call ncerro(nfmpi_inq_varid(ncid,'time',rhid))
 c
 c --- define time coordinate variable
-      if (rec .eq. 1) then
+      if (rec.eq.1) then
         clen=4
         call ncerro(nfmpi_put_att_text(ncid,rhid,'long_name',clen,
      .              'time'))
@@ -706,40 +705,40 @@ c --- define time coordinate variable
       endif
 c
       if (mnproc.eq.1) then
-c --- analyse units string
-      call ncsevl(units,bstrn,strind)
-      read(units(strind(1,3):strind(2,3)),*) by
-      if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
-      if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
-      if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
+c --- - analyse units string
+        call ncsevl(units,bstrn,strind)
+        read(units(strind(1,3):strind(2,3)),*) by
+        if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
+        if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
+        if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
 c
-c --- analyse startdate string
-      call ncsevl(startdate,sstrn,strind)
-      read(startdate(strind(1,1):strind(2,1)),*) sy
-      if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
-      if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
-      if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
+c --- - analyse startdate string
+        call ncsevl(startdate,sstrn,strind)
+        read(startdate(strind(1,1):strind(2,1)),*) sy
+        if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
+        if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
+        if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
 c
-c --- calculate calendar offset
-      if (units(1:1).eq.'y') then
-        caloffset=real(sy-by)
-      elseif(units(1:1).eq.'m')then
-        caloffset=real(sy-by)*12.+real(sm-bm)
-      elseif(units(1:1).eq.'d')then
-        call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-        caloffset=real(days)
-      elseif(units(1:1).eq.'h')then
-        call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-        caloffset=real(days)*24.+real(sh-bh)
-      endif
-      datenum=datenum+caloffset
-      istart(1)=rec
-      icount(1)=1
+c --- - calculate calendar offset
+        if     (units(1:1).eq.'y') then
+          caloffset=real(sy-by)
+        elseif (units(1:1).eq.'m') then
+          caloffset=real(sy-by)*12.+real(sm-bm)
+        elseif (units(1:1).eq.'d') then
+          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
+          caloffset=real(days)
+        elseif (units(1:1).eq.'h') then
+          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
+          caloffset=real(days)*24.+real(sh-bh)
+        endif
+        datenum=datenum+caloffset
+        istart(1)=rec
+        icount(1)=1
       endif
 c
 c --- Change to data mode and write time
       flgpad=.true.
-      if(flgpad)then
+      if (flgpad) then
        call ncerro(nfmpi_enddef(ncid))
       endif
       call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,
@@ -747,62 +746,62 @@ c --- Change to data mode and write time
 
 #else
       if (mnproc.eq.1) then 
-c --- define time dimension
-      if (rec.eq.1) then 
-        call ncerro(nf90_def_dim(ncid,'time',nf90_unlimited,dimid))
-      else 
-        call ncerro(nf90_inq_dimid(ncid,'time',dimid))
-      endif 
+c --- - define time dimension
+        if (rec.eq.1) then 
+          call ncerro(nf90_def_dim(ncid,'time',nf90_unlimited,dimid))
+        else 
+          call ncerro(nf90_inq_dimid(ncid,'time',dimid))
+        endif 
 c
-c --- define time coordinate variable
-      if (rec.eq.1) then 
-        call ncerro(nf90_def_var(ncid,'time',nf90_double,dimid,rhid))
-        call ncerro(nf90_put_att(ncid,rhid,'long_name','time'))
-        call ncerro(nf90_put_att(ncid,rhid,'units',units))
-        call ncerro(nf90_put_att(ncid,rhid,'calendar',calendar))
-      else 
-        call ncerro(nf90_inq_varid(ncid,'time',rhid))
-      endif 
+c --- - define time coordinate variable
+        if (rec.eq.1) then 
+          call ncerro(nf90_def_var(ncid,'time',nf90_double,dimid,rhid))
+          call ncerro(nf90_put_att(ncid,rhid,'long_name','time'))
+          call ncerro(nf90_put_att(ncid,rhid,'units',units))
+          call ncerro(nf90_put_att(ncid,rhid,'calendar',calendar))
+        else 
+          call ncerro(nf90_inq_varid(ncid,'time',rhid))
+        endif 
 c
-c --- analyse units string
-      call ncsevl(units,bstrn,strind)
-      read(units(strind(1,3):strind(2,3)),*) by
-      if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
-      if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
-      if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
+c --- - analyse units string
+        call ncsevl(units,bstrn,strind)
+        read(units(strind(1,3):strind(2,3)),*) by
+        if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
+        if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
+        if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
 c
-c --- analyse startdate string
-      call ncsevl(startdate,sstrn,strind)
-      read(startdate(strind(1,1):strind(2,1)),*) sy
-      if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
-      if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
-      if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
+c --- - analyse startdate string
+        call ncsevl(startdate,sstrn,strind)
+        read(startdate(strind(1,1):strind(2,1)),*) sy
+        if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
+        if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
+        if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
 c
-c --- calculate calendar offset
-      if (units(1:1).eq.'y') then
-        caloffset=real(sy-by)
-      elseif(units(1:1).eq.'m')then
-        caloffset=real(sy-by)*12.+real(sm-bm)
-      elseif(units(1:1).eq.'d')then
-        call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-        caloffset=real(days)
-      elseif(units(1:1).eq.'h')then
-        call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-        caloffset=real(days)*24.+real(sh-bh)
-      endif
-      datenum=datenum+caloffset
+c --- - calculate calendar offset
+        if     (units(1:1).eq.'y') then
+          caloffset=real(sy-by)
+        elseif (units(1:1).eq.'m') then
+          caloffset=real(sy-by)*12.+real(sm-bm)
+        elseif (units(1:1).eq.'d') then
+          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
+          caloffset=real(days)
+        elseif (units(1:1).eq.'h') then
+          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
+          caloffset=real(days)*24.+real(sh-bh)
+        endif
+        datenum=datenum+caloffset
 c
-c --- Change to data mode and write time
-      if(flgpad)then 
-        call ncerro(nf90_enddef(ncid))
-      else
-        call ncerro(nf90_enddef(ncid,409600,4,0,4))
-        flgpad=.true.
-      endif 
-      call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
+c --- - Change to data mode and write time
+        if (flgpad) then 
+          call ncerro(nf90_enddef(ncid))
+        else
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
+          flgpad=.true.
+        endif 
+        call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
 c
-c --- Switch back to define mode
-      call ncerro(nf90_redef(ncid))
+c --- - Switch back to define mode
+        call ncerro(nf90_redef(ncid))
 c
       endif
 #endif 
@@ -848,55 +847,45 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
       real, dimension(itdm,jtdm) :: rmskt
       real, dimension(itdm*jtdm) :: rfldtcmp
-      real :: rkd,fill,fld(*),ofs,scf,rcmpflg
+      real :: fill,fld(*),ofs,scf
+      logical cmpflg
 c
 c --- Initialise fields
-      rcmpflg=0.
-      rkd=1.
+      cmpflg=.false.
+      kd=1
       do n=1,maxdm
         start(n)=1
         count(n)=1
       enddo  
-      write(lp,*)'in ncread',vnm
 #ifdef PNETCDF
-        status=nfmpi_inq_varid(ncid,vnm,rhid)
-        if(status.ne.nf_noerr) then
-          if(mnproc.eq.1)then
-          write(lp,*) 'WARNINIG: Problems reading variable ',trim(vnm)
+      status=nfmpi_inq_varid(ncid,vnm,rhid)
+      if (status.ne.nf_noerr) then
+        if (mnproc.eq.1) then
+          write(lp,*) 'WARNING: Problems reading variable ',trim(vnm)
           call flush(lp)
-          endif
-          call ncerro(status)
         endif
-        call ncerro(nfmpi_inq_varndims(ncid,rhid,ndims))
-        call ncerro(nfmpi_inq_vardimid(ncid,rhid,dimids))
-        ndm=1
-        do n=1,ndims
-         call ncerro(nfmpi_inq_dimlen(ncid,dimids(n),tdimlen))
+        call ncerro(status)
+      endif
+      call ncerro(nfmpi_inq_varndims(ncid,rhid,ndims))
+      call ncerro(nfmpi_inq_vardimid(ncid,rhid,dimids))
+      ndm=1
+      do n=1,ndims
+        call ncerro(nfmpi_inq_dimlen(ncid,dimids(n),tdimlen))
          
-         call ncerro(nfmpi_inq_dimname(ncid,dimids(n),dimname))
-          if(dimname(2:5).eq.'comp') rcmpflg=1.
-          if (nint(n+rcmpflg).eq.3) rkd=REAL(tdimlen)
-          ndm=ndm*INT(tdimlen)
-        enddo
-
-      call xcmaxr(rcmpflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd)
+        call ncerro(nfmpi_inq_dimname(ncid,dimids(n),dimname))
+        if (dimname(2:5).eq.'comp') cmpflg=.true.
+        if ((n.eq.2.and.cmpflg).or.(n.eq.3.and..not.cmpflg)) kd=tdimlen
+        ndm=ndm*tdimlen
+      enddo
 c
 c --- Get attributes
-      scf=-abs(nf_fill_double)
-      ofs=-abs(nf_fill_double)
-
-        status=nfmpi_get_att_double(ncid,rhid,'scale_factor',scf)
-        if(status.ne.nf_noerr) scf=1.
-        status=nfmpi_get_att_double(ncid,rhid,'add_offset',ofs)
-        if(status.ne.nf_noerr) ofs=0.
-
-      call xcmaxr(scf)
-      call xcmaxr(ofs)
+      status=nfmpi_get_att_double(ncid,rhid,'scale_factor',scf)
+      if (status.ne.nf_noerr) scf=1.
+      status=nfmpi_get_att_double(ncid,rhid,'add_offset',ofs)
+      if (status.ne.nf_noerr) ofs=0.
 c
 c --- get mask for the full domain  
-      if(mskflg.eq.1)then
+      if (mskflg.eq.1) then
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
@@ -905,142 +894,142 @@ c --- get mask for the full domain
       endif
 c
 c --- Get data
-          if(rcmpflg.gt.0.5)then
-            do k=1,kd
-            if(mnproc.eq.1)then
+      if (cmpflg) then
+        do k=1,kd
+          if (mnproc.eq.1) then
             start(1)=1
             start(2)=k
             count(1)=nint(dble(ndm)/dble(kd))
-            else
+          else
             start(1)=1
             start(2)=1
             count(1)=0
             count(2)=0
-            endif
-            if(mskflg.eq.1) call xcaget(rmskt,rmsk,1)
+          endif
+          if (mskflg.eq.1) call xcaget(rmskt,rmsk,1)
             call ncerro(nfmpi_get_vara_double_all(ncid,rhid,start,count,
-     *                  rfldtcmp))
-            if(mnproc.eq.1)then
-            n=0
-            do j=1,jtdm
-              do i=1,itdm
-                if(rmskt(i,j).gt.0.5) then
-                  n=n+1
-                  rcfldt(i,j)=rfldtcmp(n)
-                endif
+     .                                            rfldtcmp))
+            if (mnproc.eq.1) then
+              n=0
+              do j=1,jtdm
+                do i=1,itdm
+                  if (rmskt(i,j).gt.0.5) then
+                    n=n+1
+                    rcfldt(i,j)=rfldtcmp(n)
+                  endif
+                enddo
               enddo
-            enddo
             endif
             call xcaput(rcfldt,rfld,1)
-            if(mskflg.eq.1)then
-          if(scf.eq.1..and.ofs.eq.0)then
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
-                  fld(ij+(k-1)*ijdm)=rfld(i,j)
-                else
-                  fld(ij+(k-1)*ijdm)=fill
-                endif
+            if (mskflg.eq.1) then
+              if (scf.eq.1..and.ofs.eq.0) then
+                do j=1,jj
+                  do i=1,ii
+                    ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                    if (msk(ij).eq.1) then
+                      fld(ij+(k-1)*ijdm)=rfld(i,j)
+                    else
+                      fld(ij+(k-1)*ijdm)=fill
+                    endif
+                  enddo
+                enddo
+              else
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  if (msk(ij).eq.1) then
+                    fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
+                  else
+                    fld(ij+(k-1)*ijdm)=fill
+                  endif
+                enddo
               enddo
-            enddo
+            endif
           else
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
+            if (scf.eq.1..and.ofs.eq.0) then
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
-                else
-                  fld(ij+(k-1)*ijdm)=fill
-                endif
+                enddo
               enddo
-            enddo
+            else
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  fld(ij+(k-1)*ijdm)=rfld(i,j)
+                enddo
+              enddo
+            endif
           endif
-        else
-          if(scf.eq.1..and.ofs.eq.0)then
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
-              enddo
-            enddo
-          else
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfld(i,j)
-              enddo
-            enddo
-          endif
-        endif
         enddo
-        else
-       start(1)=i0+1
-       start(2)=j0+1
-       start(3)=1
-       count(1)=ii
-       count(2)=jj
-       count(3)=kd
-       call ncerro(nfmpi_get_vara_double_all(ncid,rhid,start,
-     .     count,rfldt))
+      else
+        start(1)=i0+1
+        start(2)=j0+1
+        start(3)=1
+        count(1)=ii
+        count(2)=jj
+        count(3)=kd
+        call ncerro(nfmpi_get_vara_double_all(ncid,rhid,start,
+     .                                        count,rfldt))
 
-        if(mskflg.eq.1)then
-          if(scf.eq.1..and.ofs.eq.0)then
-          do k=1,kd
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
-                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
-                else
-                  fld(ij+(k-1)*ijdm)=fill
-                endif
+        if (mskflg.eq.1) then
+          if (scf.eq.1..and.ofs.eq.0) then
+            do k=1,kd
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  if (msk(ij).eq.1) then
+                    fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
+                  else
+                    fld(ij+(k-1)*ijdm)=fill
+                  endif
+                enddo
               enddo
             enddo
-          enddo
           else
-          do k=1,kd
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
-                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
-                else
-                  fld(ij+(k-1)*ijdm)=fill
-                endif
+            do k=1,kd
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  if (msk(ij).eq.1) then
+                    fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
+                  else
+                    fld(ij+(k-1)*ijdm)=fill
+                  endif
+                enddo
               enddo
             enddo
-          enddo
           endif
         else
-          if(scf.eq.1..and.ofs.eq.0)then
-          do k=1,kd
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
+          if (scf.eq.1..and.ofs.eq.0) then
+            do k=1,kd
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
+                enddo
               enddo
             enddo
-          enddo
           else
-          do k=1,kd
-            do j=1,jj
-              do i=1,ii
-                ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
+            do k=1,kd
+              do j=1,jj
+                do i=1,ii
+                  ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
+                  fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
+                enddo
               enddo
             enddo
-          enddo
           endif
         endif
-        endif
+      endif
 #else
 c       
 c --- Inquire dimensions, ect.
-      if(mnproc.eq.1)then      
+      if (mnproc.eq.1) then      
         status=nf90_inq_varid(ncid,vnm,rhid)
-        if(status.ne.nf90_noerr) then 
-          write(lp,*) 'WARNINIG: Problems reading variable ',trim(vnm)
+        if (status.ne.nf90_noerr) then 
+          write(lp,*) 'WARNING: Problems reading variable ',trim(vnm)
           call flush(lp)
           call ncerro(status)
         endif
@@ -1051,29 +1040,26 @@ c --- Inquire dimensions, ect.
           call ncerro(nf90_inquire_dimension(ncid,dimids(n),len=dimlen))
           call ncerro(nf90_inquire_dimension(ncid,dimids(n),
      .      name=dimname))
-          if(dimname(2:5).eq.'comp') rcmpflg=1. 
-          if (nint(n+rcmpflg).eq.3) rkd=dimlen
+          if (dimname(2:5).eq.'comp') cmpflg=.true.
+          if ((n.eq.2.and.cmpflg).or.(n.eq.3.and..not.cmpflg)) kd=dimlen
           ndm=ndm*dimlen
         enddo
       endif 
-      call xcmaxr(rcmpflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd)
+      call xcbcst(cmpflg)
+      call xcbcst(kd)
 c
 c --- Get attributes
-      scf=-abs(nf90_fill_double)
-      ofs=-abs(nf90_fill_double)
-      if(mnproc.eq.1)then      
+      if (mnproc.eq.1) then      
         status=nf90_get_att(ncid,rhid,'scale_factor',scf)
-        if(status.ne.nf90_noerr) scf=1.
+        if (status.ne.nf90_noerr) scf=1.
         status=nf90_get_att(ncid,rhid,'add_offset',ofs)
-        if(status.ne.nf90_noerr) ofs=0.
+        if (status.ne.nf90_noerr) ofs=0.
       endif 
-      call xcmaxr(scf)
-      call xcmaxr(ofs)
+      call xcbcst(scf)
+      call xcbcst(ofs)
 c
 c --- get mask for the full domain  
-      if(mskflg.eq.1)then
+      if (mskflg.eq.1) then
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
@@ -1084,8 +1070,8 @@ c --- get mask for the full domain
 c
 c --- Get data
       do k=1,kd
-        if(mnproc.eq.1)then 
-          if(rcmpflg.gt.0.5)then 
+        if (mnproc.eq.1) then 
+          if (cmpflg) then 
             start(2)=k
             count(1)=nint(dble(ndm)/dble(kd)) 
           else 
@@ -1093,12 +1079,12 @@ c --- Get data
             count(1)=itdm
             count(2)=jtdm
           endif
-          if(rcmpflg.gt.0.5)then 
+          if (cmpflg) then 
             call ncerro(nf90_get_var(ncid,rhid,rfldtcmp,start,count))
             n=0 
             do j=1,jtdm
               do i=1,itdm
-                if(rmskt(i,j).gt.0.5) then
+                if (rmskt(i,j).gt.0.5) then
                   n=n+1
                   rfldt(i,j)=rfldtcmp(n) 
                 endif 
@@ -1109,12 +1095,12 @@ c --- Get data
           endif  
         endif
         call xcaput(rfldt,rfld,1)
-        if(mskflg.eq.1)then 
-          if(scf.eq.1..and.ofs.eq.0)then 
+        if (mskflg.eq.1) then 
+          if (scf.eq.1..and.ofs.eq.0) then 
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
+                if (msk(ij).eq.1) then
                   fld(ij+(k-1)*ijdm)=rfld(i,j)
                 else
                   fld(ij+(k-1)*ijdm)=fill
@@ -1125,7 +1111,7 @@ c --- Get data
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
-                if(msk(ij).eq.1)then
+                if (msk(ij).eq.1) then
                   fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
                 else
                   fld(ij+(k-1)*ijdm)=fill
@@ -1134,7 +1120,7 @@ c --- Get data
             enddo
           endif  
         else
-          if(scf.eq.1..and.ofs.eq.0)then
+          if (scf.eq.1..and.ofs.eq.0) then
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1182,8 +1168,8 @@ c
       integer :: i,j,ij,ijk,k,n,kd
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer*2 fill,i2max,i2min,vrng(2)
-      real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rkd,ruvflg
-     .  ,rfill
+      real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rfill
+      logical uvflg
 #ifdef PNETCDF
       integer (kind=MPI_OFFSET_KIND), dimension(maxdm) :: start,count
       integer (kind=MPI_OFFSET_KIND) tkd
@@ -1202,8 +1188,7 @@ c
       real, dimension(itdm,jtdm) :: rfldt
 c
 c --- Initialise fields
-      ruvflg=0.
-      rkd=1.
+      uvflg=.false.
       kd=1
       vrng(1)=i2min
       vrng(2)=i2max
@@ -1212,35 +1197,30 @@ c --- Initialise fields
         count(n)=1 
       enddo
 #ifdef PNETCDF
+c
 c --- define variable
-         tkd=1 
-         start(1) = i0+1
-         start(2) = j0+1
-         count(1) = ii
-         count(2) = jj
-         call ncsevl(dims,strn,strind)
-         c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
-         if (c4.eq.'time') then
-            start(strn)=rec
-            count(strn)=1
-         endif
-
-         do n=1,strn
-            call ncerro(nfmpi_inq_dimid(ncid,
-     .        dims(strind(1,n):strind(2,n)),dimid))
-            dimids(n)=dimid
-            if ((n.eq.strn.and.c4.ne.'time').or.
-     .        (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time'))
-     .        call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
-            if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
-         enddo
-
-         rkd=real(tkd)
-
+      start(1) = i0+1
+      start(2) = j0+1
+      count(1) = ii
+      count(2) = jj
+      call ncsevl(dims,strn,strind)
+      c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
+      if (c4.eq.'time') then
+        start(strn)=rec
+        count(strn)=1
+      endif
+      tkd=1 
+      do n=1,strn
+        call ncerro(nfmpi_inq_dimid(ncid,
+     .    dims(strind(1,n):strind(2,n)),dimid))
+        dimids(n)=dimid
+        if ((n.eq.strn.and.c4.ne.'time').or.
+     .      (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time'))
+     .    call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
+        if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') uvflg=.true.
+      enddo
+      kd=tkd
       call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-      call xcmaxr(ruvflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd)
 c
 c --- compute scale factor and offset
       fldmin=abs(nf_fill_double)
@@ -1291,10 +1271,10 @@ c$OMP+   PRIVATE(ijk)
         enddo
 c$OMP END PARALLEL DO
       endif
-      call xcminr(fldmin)
-      call xcmaxr(fldmax)
-      if (ruvflg.gt.0.5) then
-        if (fldmin.ge.fldmax )then
+      call xcmin(fldmin)
+      call xcmax(fldmax)
+      if (uvflg) then
+        if (fldmin.ge.fldmax) then
           scf=1.d0
         else
           scf=max(abs(fldmax),abs(fldmin))/dble(i2max)
@@ -1312,21 +1292,21 @@ c$OMP END PARALLEL DO
       arng(2)=fldmax
 c
 c --- Define attributes
-        if (rec.eq.1) then
-          call ncerro(nfmpi_redef(ncid))
-          clen=2
-          call ncerro(nfmpi_put_att_double(ncid,rhid,'actual_range',
-     .                nf_double,clen,arng))
-          clen=1
-         call ncerro(nfmpi_put_att_double(ncid,rhid,'scale_factor',
+      if (rec.eq.1) then
+        call ncerro(nfmpi_redef(ncid))
+        clen=2
+        call ncerro(nfmpi_put_att_double(ncid,rhid,'actual_range',
+     .                                   nf_double,clen,arng))
+        clen=1
+        call ncerro(nfmpi_put_att_double(ncid,rhid,'scale_factor',
      .                                   nf_double,clen,scf))
         call ncerro(nfmpi_put_att_double(ncid,rhid,'add_offset',
-     .                nf_double,clen,ofs))
-          call ncerro(nfmpi_enddef(ncid))
-        endif
+     .                                   nf_double,clen,ofs))
+        call ncerro(nfmpi_enddef(ncid))
+      endif
 c
 c --- Prepare and write output field
-        if (mskflg.eq.1) then
+      if (mskflg.eq.1) then
 c$OMP PARALLEL DO 
 c$OMP+  PRIVATE(ij) 
         do k=1,kd
@@ -1335,7 +1315,7 @@ c$OMP+  PRIVATE(ij)
               ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               if (msk(ij).eq.1) then
               rfld(i,j,k)=nint(((fld(ij+(k-1)*ijdm)*sfac)+offs-ofs)/scf)
-     .            -fill
+     .                   -fill
               else
                 rfld(i,j,k)=0
               endif
@@ -1343,7 +1323,7 @@ c$OMP+  PRIVATE(ij)
           enddo
         enddo
 c$OMP END PARALLEL DO
-        elseif (mskflg.eq.2) then
+      elseif (mskflg.eq.2) then
 c$OMP PARALLEL DO 
 c$OMP+  PRIVATE(ij,ijk) 
         do k=1,kd
@@ -1360,7 +1340,7 @@ c$OMP+  PRIVATE(ij,ijk)
           enddo
         enddo
 c$OMP END PARALLEL DO
-        else
+      else
 c$OMP PARALLEL DO 
 c$OMP+  PRIVATE(ijk) 
         do k=1,kd
@@ -1370,10 +1350,10 @@ c$OMP+  PRIVATE(ijk)
               rfld(i,j,k)=nint(((fld(ijk)*sfac)+offs-ofs)/scf)-fill
             enddo
           enddo
-       enddo
+        enddo
 c$OMP END PARALLEL DO
-        endif
-
+      endif
+c
 c$OMP PARALLEL DO 
         do k=1,kd
           do j=1,jj
@@ -1383,45 +1363,43 @@ c$OMP PARALLEL DO
           enddo
         enddo
 c$OMP END PARALLEL DO
-        if(kd .gt. 1) count(3) = kd
+        if (kd.gt.1) count(3) = kd
           call ncerro(nfmpi_put_vara_int2_all(ncid,rhid,start,count,
-     .                    fldout))
-
-        if(mnproc.eq.1) write(lp,*) trim(vnm),arng
-
+     .                                        fldout))
+c
+        if (mnproc.eq.1) write(lp,*) trim(vnm),arng
+c
 #else
-        count(1)=itdm
-        count(2)=jtdm
+      count(1)=itdm
+      count(2)=jtdm
 c
 c --- define variable 
       if (mnproc.eq.1) then
-         call ncsevl(dims,strn,strind)
-         c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
-         if (c4.eq.'time') then 
-            start(strn)=rec 
-         else 
-            start(strn)=1
-         endif 
-         do n=1,strn
-            call ncerro(nf90_inq_dimid(ncid,
-     .        dims(strind(1,n):strind(2,n)),dimid))
-            dimids(n)=dimid
-            if ((n.eq.strn.and.c4.ne.'time').or.
+        call ncsevl(dims,strn,strind)
+        c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
+        if (c4.eq.'time') then 
+          start(strn)=rec 
+        else 
+          start(strn)=1
+        endif 
+        do n=1,strn
+          call ncerro(nf90_inq_dimid(ncid,
+     .    dims(strind(1,n):strind(2,n)),dimid))
+          dimids(n)=dimid
+          if ((n.eq.strn.and.c4.ne.'time').or.
      .        (n.gt.2.and.n.eq.strn-1.and.c4.eq.'time')) 
-     .        call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
-            if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
-         enddo
-         rkd=kd
-         if (rec.eq.1) then 
-           call ncerro(nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),
-     .       rhid))
-         else 
-           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
-         endif
+     .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
+          if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') uvflg=.true.
+        enddo
+        if (rec.eq.1) then 
+          call ncerro(nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),
+     .                             rhid))
+        else 
+          call ncerro(nf90_inq_varid(ncid,vnm,rhid))
+        endif
       endif
-      call xcmaxr(ruvflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd) 
+      call xcbcst(uvflg)
+      call xcbcst(kd)
 c
 c --- compute scale factor and offset
       fldmin=abs(nf90_fill_double)
@@ -1472,10 +1450,10 @@ c$OMP+   PRIVATE(ijk)
         enddo
 c$OMP END PARALLEL DO
       endif
-      call xcminr(fldmin)
-      call xcmaxr(fldmax)
-      if (ruvflg.gt.0.5) then 
-        if (fldmin.ge.fldmax )then
+      call xcmin(fldmin)
+      call xcmax(fldmax)
+      if (uvflg) then 
+        if (fldmin.ge.fldmax) then
           scf=1.d0
         else
           scf=max(abs(fldmax),abs(fldmin))/dble(i2max)
@@ -1501,10 +1479,10 @@ c --- Define attributes
           call ncerro(nf90_put_att(ncid,rhid,'scale_factor',scf))
           call ncerro(nf90_put_att(ncid,rhid,'add_offset',ofs))
         endif
-        if(flgpad)then 
+        if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
       endif
@@ -1520,7 +1498,7 @@ c$OMP+  PRIVATE(ij)
               ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
               if (msk(ij).eq.1) then
                 rfld(i,j)=nint(((fld(ij+(k-1)*ijdm)*sfac)+offs-ofs)/scf)
-     .            -fill
+     .                   -fill
               else
                 rfld(i,j)=0 
               endif
@@ -1554,7 +1532,7 @@ c$OMP+  PRIVATE(ijk)
 c$OMP END PARALLEL DO
         endif  
         call xcaget(rfldt,rfld,1)
-        if(mnproc.eq.1)then
+        if (mnproc.eq.1) then
 c$OMP PARALLEL DO 
           do j=1,jtdm
             do i=1,itdm
@@ -1567,7 +1545,7 @@ c$OMP END PARALLEL DO
       enddo 
 c
 c --- Put file back to define mode
-      if(mnproc.eq.1)then
+      if (mnproc.eq.1) then
         call ncerro(nf90_redef(ncid))
         write(lp,*) trim(vnm),arng
       endif
@@ -1617,11 +1595,10 @@ c
       real, dimension(itdm,jtdm) :: rfldt,rmskt
       real, dimension(itdm*jtdm) :: fldout
       real(kind=4), dimension(itdm*jtdm) :: fldoutr4
-      real :: fld(*),rkd,sfac,offs
+      real :: fld(*),sfac,offs
       real(kind=4) :: fillr4
 c 
 c --- Initialise fields
-      rkd=1.
       kd=1
       do n=1,maxdm
         start(n)=1
@@ -1630,33 +1607,32 @@ c --- Initialise fields
 #ifdef PNETCDF
 c  
 c --- define variable
-        tkd=1 
-        call ncsevl(dims,strn,strind)
-        c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
-        if (c4.eq.'time') then
-          start(strn)=rec
-          count(strn)=1
-        endif
-        do n=1,strn
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
-          dimids(n)=dimid
-          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time')
-     .      call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
-        enddo
-        rkd=real(tkd)
+      call ncsevl(dims,strn,strind)
+      c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
+      if (c4.eq.'time') then
+        start(strn)=rec
+        count(strn)=1
+      endif
+      tkd=1 
+      do n=1,strn
+       call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                             dimid))
+        dimids(n)=dimid
+        if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time')
+     .    call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
+      enddo
+      kd=tkd
+      call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
 
-          call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-
-        if(mnproc .ne. 1) then
+      if (mnproc.ne.1) then
         do n=1,maxdm
-        count(n)=0
+          count(n)=0
         enddo
-        endif
+      endif
 #else
 c  
 c --- define variable 
-      if(mnproc.eq.1)then
+      if (mnproc.eq.1) then
         call ncsevl(dims,strn,strind)
         c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
         if (c4.eq.'time') then
@@ -1666,20 +1642,19 @@ c --- define variable
         endif
         do n=1,strn
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
+     .                               dimid))
           dimids(n)=dimid
           if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') 
      .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
-        rkd=kd
         if (rec.eq.1) then 
           if (prec.ne.4) then         
             call ncerro(nf90_def_var(ncid,vnm,nf90_double,
-     .       dimids(1:strn),rhid))
+     .                               dimids(1:strn),rhid))
             call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
           else 
             call ncerro(nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),
-     .        rhid))
+     .                               rhid))
             fillr4=fill
             call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fillr4))
           endif 
@@ -1687,16 +1662,15 @@ c --- define variable
         else
           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif
-        if(flgpad)then 
+        if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
       endif
 #endif
-      call xcmaxr(rkd)
-      kd=nint(rkd) 
+      call xcbcst(kd)
 c
 c --- get mask for the full domain
       do j=1,jj
@@ -1723,8 +1697,8 @@ c --- Prepare output field
         call xcaget(rfldt,rfld,1) 
 #ifdef PNETCDF
         n=0
-          if (prec.ne.4) then
-            if (mnproc.eq.1) then
+        if (prec.ne.4) then
+          if (mnproc.eq.1) then
             do j=1,jtdm
               do i=1,itdm
                 if (rmskt(i,j).gt..5) then
@@ -1735,11 +1709,11 @@ c --- Prepare output field
             enddo
             start(2)=max(start(2),k)
             count(1)=n
-            endif
-            call ncerro(nfmpi_put_vara_double_all(ncid,rhid,start,count,
-     .                  fldout))
-          else
-            if (mnproc.eq.1) then
+          endif
+          call ncerro(nfmpi_put_vara_double_all(ncid,rhid,start,count,
+     .                                          fldout))
+        else
+          if (mnproc.eq.1) then
             do j=1,jtdm
               do i=1,itdm
                 if (rmskt(i,j).gt..5) then
@@ -1750,13 +1724,10 @@ c --- Prepare output field
             enddo
             start(2)=max(start(2),k)
             count(1)=n
-            endif
-            call ncerro(nfmpi_put_vara_real_all(ncid,rhid,start,count,
-     .                  fldoutr4))
+          endif
+          call ncerro(nfmpi_put_vara_real_all(ncid,rhid,start,count,
+     .                                        fldoutr4))
         endif
-      enddo
-c
-c --- Put file back to define mode
 #else
         if (mnproc.eq.1) then
           n=0
@@ -1786,10 +1757,12 @@ c --- Put file back to define mode
             call ncerro(nf90_put_var(ncid,rhid,fldoutr4,start,count))
           endif  
         endif 
-      enddo 
+#endif
+      enddo
 c
+#ifndef PNETCDF
 c --- Put file back to define mode
-      if(mnproc.eq.1) call ncerro(nf90_redef(ncid))
+      if (mnproc.eq.1) call ncerro(nf90_redef(ncid))
 #endif
 c
       end subroutine nccomp
@@ -1824,10 +1797,10 @@ c
       integer dimid,dimids(maxdm),strn,strind(2,maxdm),msk(*)     
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
       real, dimension(itdm,jtdm) :: rfldt,rmskt
-      real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rkd,ruvflg
-     .  ,rfill
+      real scf,sfac,ofs,offs,arng(2),fldmin,fldmax,fld(*),rfill
       integer*2, dimension(itdm*jtdm) :: fldout
       integer*2 i2fill,i2max,i2min,vrng(2)
+      logical uvflg
 #ifdef PNETCDF
       parameter(rfill=nf_fill_double,i2fill=-32768,i2max=32767,
      .  i2min=-i2max)
@@ -1840,8 +1813,7 @@ c
 #endif
 c
 c --- Initialise fields
-      ruvflg=0.
-      rkd=1.
+      uvflg=.false.
       kd=1
       vrng(1)=i2min
       vrng(2)=i2max
@@ -1851,25 +1823,22 @@ c --- Initialise fields
       enddo
 c 
 #ifdef PNETCDF
-        call ncsevl(dims,strn,strind)
-        if (dims(strind(1,strn):strind(2,strn)).eq.'time') then
-          start(strn)=rec
-          count(strn)=1
-        endif
-        do n=1,strn
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
-         dimids(n)=dimid
-          if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time')
-     .      call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
-          if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
-        enddo
-        rkd=real(tkd)
-          call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-
-      call xcmaxr(ruvflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd)
+      call ncsevl(dims,strn,strind)
+      if (dims(strind(1,strn):strind(2,strn)).eq.'time') then
+        start(strn)=rec
+        count(strn)=1
+      endif
+      tkd=1
+      do n=1,strn
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimid))
+        dimids(n)=dimid
+        if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time')
+     .    call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
+        if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') uvflg=.true.
+      enddo
+      kd=tkd
+      call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
 c
 c --- compute scale factor and offset
       fldmin=abs(nf_fill_double)
@@ -1891,9 +1860,9 @@ c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
         enddo
       enddo
 c$OMP END PARALLEL DO
-      call xcminr(fldmin)
-      call xcmaxr(fldmax)
-      if (ruvflg.gt.0.5) then
+      call xcmin(fldmin)
+      call xcmax(fldmax)
+      if (uvflg) then
         if (fldmin.ge.fldmax) then
           scf=1.d0
         else
@@ -1901,7 +1870,7 @@ c$OMP END PARALLEL DO
         endif
         ofs=0.d0
       else
-        if(fldmin.ge.fldmax)then
+        if (fldmin.ge.fldmax) then
           scf=1.d0
         else
           scf=(fldmax-fldmin)/dble(2*i2max)
@@ -1912,29 +1881,28 @@ c$OMP END PARALLEL DO
       arng(2)=fldmax
 c
 c --- Define attributes
-        call ncerro(nfmpi_redef(ncid))
-        clen=1
-        call ncerro(nfmpi_put_att_int2(ncid,rhid,'_FillValue',nf_int2,
-     .              clen,i2fill))
-        clen=2
-        call ncerro(nfmpi_put_att_int2(ncid,rhid,'valid_range',nf_int2,
-     .              clen,vrng))
-        call ncerro(nfmpi_put_att_real(ncid,rhid,'actual_range',nf_real,
-     .              clen,arng))
-        clen=1
-        call ncerro(nfmpi_put_att_real(ncid,rhid,'scale_factor',nf_real,
-     .              clen,scf))
-        call ncerro(nfmpi_put_att_real(ncid,rhid,'add_offset',nf_real,
-     .              clen,ofs))
-        call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,'x y'))
-        call ncerro(nfmpi_enddef(ncid))
-
-      if(mnproc .ne. 1) then
-      do n=1,maxdm
-      count(n)=0
-      enddo
+      call ncerro(nfmpi_redef(ncid))
+      clen=1
+      call ncerro(nfmpi_put_att_int2(ncid,rhid,'_FillValue',nf_int2,
+     .                               clen,i2fill))
+      clen=2
+      call ncerro(nfmpi_put_att_int2(ncid,rhid,'valid_range',nf_int2,
+     .                               clen,vrng))
+      call ncerro(nfmpi_put_att_real(ncid,rhid,'actual_range',nf_real,
+     .                               clen,arng))
+      clen=1
+      call ncerro(nfmpi_put_att_real(ncid,rhid,'scale_factor',nf_real,
+     .                               clen,scf))
+      call ncerro(nfmpi_put_att_real(ncid,rhid,'add_offset',nf_real,
+     .                               clen,ofs))
+      call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,'x y'))
+      call ncerro(nfmpi_enddef(ncid))
+c
+      if (mnproc.ne.1) then
+        do n=1,maxdm
+          count(n)=0
+        enddo
       endif
-
 c
 c --- get mask for the full domain
 c$OMP PARALLEL DO PRIVATE(ij)
@@ -1976,17 +1944,17 @@ c$OMP END PARALLEL DO
           enddo
           start(2)=max(start(2),k)
           count(1)=n
-          endif
-          call ncerro(nfmpi_put_vara_int2_all(ncid,rhid,start,
-     .                count,fldout))
+        endif
+        call ncerro(nfmpi_put_vara_int2_all(ncid,rhid,start,
+     .                                      count,fldout))
       enddo
 c
 c --- Put file back to define mode
-        write(lp,*) trim(vnm),arng
+      write(lp,*) trim(vnm),arng
 
 #else
 c --- define variable 
-      if(mnproc.eq.1)then
+      if (mnproc.eq.1) then
         call ncsevl(dims,strn,strind)
         if (dims(strind(1,strn):strind(2,strn)).eq.'time') then
           start(strn)=rec
@@ -1999,9 +1967,8 @@ c --- define variable
           dimids(n)=dimid
           if (n.eq.2.and.dims(strind(1,n):strind(2,n)).ne.'time') 
      .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
-          if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') ruvflg=1.
+          if (dims(1:1).eq.'u'.or.dims(1:1).eq.'v') uvflg=.true.
         enddo
-        rkd=kd
         if (rec.eq.1) then 
           call ncerro(nf90_def_var(ncid,vnm,nf90_int2,dimids(1:strn),
      .      rhid))
@@ -2009,9 +1976,8 @@ c --- define variable
           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif 
       endif
-      call xcmaxr(ruvflg)
-      call xcmaxr(rkd)
-      kd=nint(rkd) 
+      call xcbcst(uvflg)
+      call xcbcst(kd)
 c
 c --- compute scale factor and offset
       fldmin=abs(nf90_fill_double)
@@ -2033,9 +1999,9 @@ c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
         enddo
       enddo
 c$OMP END PARALLEL DO
-      call xcminr(fldmin)
-      call xcmaxr(fldmax)
-      if (ruvflg.gt.0.5) then 
+      call xcmin(fldmin)
+      call xcmax(fldmax)
+      if (uvflg) then 
         if (fldmin.ge.fldmax) then
           scf=1.d0
         else
@@ -2043,7 +2009,7 @@ c$OMP END PARALLEL DO
         endif
         ofs=0.d0
       else
-        if(fldmin.ge.fldmax)then
+        if (fldmin.ge.fldmax) then
           scf=1.d0
         else
           scf=(fldmax-fldmin)/dble(2*i2max)
@@ -2061,10 +2027,10 @@ c --- Define attributes
         call ncerro(nf90_put_att(ncid,rhid,'scale_factor',scf))
         call ncerro(nf90_put_att(ncid,rhid,'add_offset',ofs))
         call ncerro(nf90_put_att(ncid,rhid,'compress','x y'))
-        if(flgpad)then 
+        if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
       endif
@@ -2114,7 +2080,7 @@ c$OMP END PARALLEL DO
       enddo 
 c
 c --- Put file back to define mode
-      if(mnproc.eq.1)then
+      if (mnproc.eq.1) then
         call ncerro(nf90_redef(ncid))
         write(lp,*) trim(vnm),arng
       endif
@@ -2150,44 +2116,44 @@ c
 #endif
 c
 #ifdef PNETCDF
-        call ncsevl(dims,strn,strind)
-        if (strn.gt.2) then
-          if (mnproc.eq.1) then
+      call ncsevl(dims,strn,strind)
+      if (strn.gt.2) then
+        if (mnproc.eq.1) then
           write(lp,*) 'ncwrtc: number of dimensions has to be <=2'
           call flush(lp)
-          call xchalt('(ncerro)')
-          endif
-          stop '(ncerro)'
         endif
-        do n=1,strn
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
-        enddo
-        if (strn.eq.1) then
-          ns=1
-        else
-          call ncerro(nfmpi_inq_dimlen(ncid,dimids(1),slenmax))
-          call ncerro(nfmpi_inq_dimlen(ncid,dimids(2),ns))
-        endif
+        call xcstop('(ncerro)')
+               stop '(ncerro)'
+      endif
+      do n=1,strn
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimids(n)))
+      enddo
+      if (strn.eq.1) then
+        ns=1
+      else
+        call ncerro(nfmpi_inq_dimlen(ncid,dimids(1),slenmax))
+        call ncerro(nfmpi_inq_dimlen(ncid,dimids(2),ns))
+      endif
 c
-c --- - write data 
-        if (mnproc.eq.1) then
+c --- write data 
+      if (mnproc.eq.1) then
         count(2)=1
         count(1)=slenmax
         start(1)=1
         start(2)=1
-        else
+      else
         count(2)=0
         count(1)=0
         start(1)=1
         start(2)=1
-        endif
-        call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-        do n=1,ns
-           if (mnproc.eq.1) start(2)=n
-           call ncerro(nfmpi_put_vara_text_all(ncid,rhid,
-     .          start,count,fld(n)//'X'))
-        end do
+      endif
+      call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
+      do n=1,ns
+         if (mnproc.eq.1) start(2)=n
+         call ncerro(nfmpi_put_vara_text_all(ncid,rhid,
+     .                                       start,count,fld(n)//'X'))
+      end do
 #else
       if (mnproc.eq.1) then
 c --- - inquire dimensions
@@ -2200,32 +2166,32 @@ c --- - inquire dimensions
         endif
         do n=1,strn
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
+     .                               dimids(n)))
         enddo 
         if (strn.eq.1) then 
           ns=1
         else 
           call ncerro(nf90_inquire_dimension(ncid,dimids(1),
-     .      len=slenmax))
+     .                                       len=slenmax))
           call ncerro(nf90_inquire_dimension(ncid,dimids(2),len=ns))
         endif
 c
 c --- - define variable
         call ncerro(nf90_def_var(ncid,vnm,nf90_char,dimids(1:strn),
-     .    rhid))
+     .                           rhid))
 c
 c --- - leave define mode 
-        if(flgpad)then 
+        if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
 c
 c --- - write data 
         do n=1,ns
-           call ncerro(nf90_put_var(ncid,rhid,fld(n)(1:slenmax)//'X',
-     .       (/1,n/),(/slenmax,1/))) 
+          call ncerro(nf90_put_var(ncid,rhid,fld(n)(1:slenmax)//'X',
+     .                             (/1,n/),(/slenmax,1/))) 
         end do 
           
 c --- - switch back to define mode
@@ -2281,11 +2247,10 @@ c
       real, dimension(itdm,jtdm) :: rmskt
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rmsk
 #endif
-      real :: rkd,fld(*),sfac,offs,fldmin,fldmax
+      real :: fld(*),sfac,offs,fldmin,fldmax
       character c4*4 
 c
 c --- Initialise fields
-      rkd=1.
       kd=1
       do n=1,maxdm
         istart(n)=1  
@@ -2296,37 +2261,32 @@ c --- Initialise fields
 c  
 c --- define variable
 #ifdef PNETCDF
-        tkd=1
-        clen=1
-        istart(1)=i0+1
-        istart(2)=j0+1
-        icount(1)=ii
-        icount(2)=jj 
-        call ncsevl(dims,strn,strind)
-!        write(lp,*) vnm,rec,flgpad
-        c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
-        if (c4 .eq.'time') then
-          istart(strn)=rec
-          icount(strn)=1
-        endif
-        do n=1,strn
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
-          dimids(n)=dimid
-          if (n.gt.2.and.
-     .        ((n.eq.strn.and.c4.ne.'time').or.
-     .         (n.eq.strn-1.and.c4.eq.'time')))
-     .      call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
-        enddo
-        
-        rkd=real(tkd)
-        call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-
-      call xcmaxr(rkd)
-      kd=nint(rkd)
-
+      clen=1
+      istart(1)=i0+1
+      istart(2)=j0+1
+      icount(1)=ii
+      icount(2)=jj 
+      call ncsevl(dims,strn,strind)
+      c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
+      if (c4 .eq.'time') then
+        istart(strn)=rec
+        icount(strn)=1
+      endif
+      tkd=1
+      do n=1,strn
+       call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                             dimid))
+        dimids(n)=dimid
+        if (n.gt.2.and.
+     .      ((n.eq.strn.and.c4.ne.'time').or.
+     .       (n.eq.strn-1.and.c4.eq.'time')))
+     .    call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
+      enddo
+      kd=tkd
+      call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
+c
 c --- get mask for the full domain
-      if(mskflg.eq.1)then
+      if (mskflg.eq.1) then
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -2340,12 +2300,11 @@ c --- get mask for the full domain
           enddo
         enddo
       endif
-
+c
 c --- Prepare output field   
       fldmin=abs(nf_fill_real)
       fldmax=-abs(nf_fill_real)
-      if (kd .gt. 1) icount(3)=kd
-
+      if (kd.gt.1) icount(3)=kd
       do k=1,kd
 c$OMP PARALLEL DO PRIVATE(ij,ijk)
 c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
@@ -2360,72 +2319,70 @@ c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
             endif
           enddo
         enddo
-        enddo
+      enddo
 c$OMP END PARALLEL DO
-
-          if (prec.ne.4) then
-            if (sfac.ne.1..or.offs.ne.0.) then
+      if (prec.ne.4) then
+        if (sfac.ne.1..or.offs.ne.0.) then
 c$OMP PARALLEL DO 
-            do k=1,kd
-              do j=1,jj
-                do i=1,ii
-                  if(rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
-                    rfld(i,j,k)=fill
-                  else
-                    rfld(i,j,k)=rfld(i,j,k)*sfac+offs
-                  endif
-                enddo
+          do k=1,kd
+            do j=1,jj
+              do i=1,ii
+                if (rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
+                  rfld(i,j,k)=fill
+                else
+                  rfld(i,j,k)=rfld(i,j,k)*sfac+offs
+                endif
               enddo
             enddo
+          enddo
 c$OMP END PARALLEL DO
-            else
+        else
 c$OMP PARALLEL DO 
-            do k=1,kd
-              do j=1,jj
-                do i=1,ii
-                  if(rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill)
-     .              rfld(i,j,k)=fill
-                enddo
+          do k=1,kd
+            do j=1,jj
+              do i=1,ii
+                if (rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill)
+     .            rfld(i,j,k)=fill
               enddo
             enddo
+          enddo
 c$OMP END PARALLEL DO
-            endif
-            call ncerro(nfmpi_put_vara_double_all(ncid,rhid,
-     &               istart,icount,rfld))
-          else
-            if (sfac.ne.1..or.offs.ne.0.) then
+        endif
+        call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,
+     .                                        rfld))
+      else
+        if (sfac.ne.1..or.offs.ne.0.) then
 c$OMP PARALLEL DO 
-            do k=1,kd
-              do j=1,jj
-                do i=1,ii
-                  if(rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
-                    r4fldt(i,j,k)=fillr4
-                  else
-                    r4fldt(i,j,k)=rfld(i,j,k)*sfac+offs
-                  endif
-                enddo
+          do k=1,kd
+            do j=1,jj
+              do i=1,ii
+                if (rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
+                  r4fldt(i,j,k)=fillr4
+                else
+                  r4fldt(i,j,k)=rfld(i,j,k)*sfac+offs
+                endif
               enddo
             enddo
+          enddo
 c$OMP END PARALLEL DO
-            else
+        else
 c$OMP PARALLEL DO 
-            do k=1,kd
-              do j=1,jj
-                do i=1,ii
-                  if(rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
-                    r4fldt(i,j,k)=fillr4
-                  else
-                    r4fldt(i,j,k)=rfld(i,j,k)
-                  endif
-                enddo
+          do k=1,kd
+            do j=1,jj
+              do i=1,ii
+                if (rmsk(i,j).lt.0.5.or.rfld(i,j,k).eq.fill) then
+                  r4fldt(i,j,k)=fillr4
+                else
+                  r4fldt(i,j,k)=rfld(i,j,k)
+                endif
               enddo
             enddo
+          enddo
 c$OMP END PARALLEL DO
-            endif
-            call ncerro(nfmpi_put_vara_real_all(ncid,rhid,
-     &       istart,icount,r4fldt))
-          endif
-c          call ncerro(nfmpi_redef(ncid))
+        endif
+        call ncerro(nfmpi_put_vara_real_all(ncid,rhid,istart,icount,
+     .                                      r4fldt))
+      endif
 #else 
       if (mnproc.eq.1) then
         call ncsevl(dims,strn,strind)
@@ -2437,46 +2394,44 @@ c          call ncerro(nfmpi_redef(ncid))
         endif
         do n=1,strn
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
+     .                               dimid))
           dimids(n)=dimid
           if (n.gt.2.and.
      .        ((n.eq.strn.and.c4.ne.'time').or.
      .         (n.eq.strn-1.and.c4.eq.'time')))
      .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
-        rkd=kd
         if (rec.eq.1) then 
           if (prec.ne.4) then 
             call ncerro(nf90_def_var(ncid,vnm,nf90_double,
-     .        dimids(1:strn),rhid))
+     .                               dimids(1:strn),rhid))
           else 
             call ncerro(nf90_def_var(ncid,vnm,nf90_real,dimids(1:strn),
-     .        rhid))
+     .                               rhid))
           endif 
-          if(mskflg.eq.1)then
+          if (mskflg.eq.1) then
             if (prec.ne.4) then
               call ncerro(nf90_put_att(ncid,rhid,'_FillValue',
-     .          nf90_fill_double))
+     .                                 nf90_fill_double))
             else
               call ncerro(nf90_put_att(ncid,rhid,'_FillValue',
-     .          nf90_fill_real))
+     .                                 nf90_fill_real))
             endif
           endif
         else 
           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif 
-        if(flgpad)then 
+        if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
       endif
-      call xcmaxr(rkd)
-      kd=nint(rkd) 
+      call xcbcst(kd)
 c
 c --- get mask for the full domain
-      if(mskflg.eq.1)then 
+      if (mskflg.eq.1) then 
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -2518,7 +2473,7 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm
-                  if(rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then
+                  if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then
                     rfldt(i,j)=fill
                   else
                     rfldt(i,j)=rfldt(i,j)*sfac+offs
@@ -2530,7 +2485,7 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm
-                  if(rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill)
+                  if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill)
      .              rfldt(i,j)=fill
                 enddo
               enddo
@@ -2542,7 +2497,7 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm                
-                  if(rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then 
+                  if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then 
                     r4fldt(i,j)=fill
                   else 
                     r4fldt(i,j)=rfldt(i,j)*sfac+offs
@@ -2554,7 +2509,7 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO 
               do j=1,jtdm
                 do i=1,itdm
-                  if(rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then
+                  if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fill) then
                     r4fldt(i,j)=fill
                   else
                     r4fldt(i,j)=rfldt(i,j)
@@ -2568,20 +2523,19 @@ c$OMP END PARALLEL DO
         endif 
       enddo
 #endif 
-      call xcminr(fldmin)
-      call xcmaxr(fldmax)
+      call xcmin(fldmin)
+      call xcmax(fldmax)
 c
 c --- Put file back to define mode
 
 #ifdef PNETCDF
-!      call ncerro(nfmpi_redef(ncid))
       if (mnproc.eq.1) then
         write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
       endif
 #else
       if (mnproc.eq.1) then
-      call ncerro(nf90_redef(ncid))
-      write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
+        call ncerro(nf90_redef(ncid))
+        write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
       endif
 #endif
 c
@@ -2622,12 +2576,10 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk   
       real, dimension(itdm,jtdm) :: rfldt,rmskt
 #endif
-      real :: rkd
       integer  :: fill
       character c4*4
 c
 c --- Initialise fields
-      rkd=1.
       kd=1
       do n=1,maxdm
         start(n)=1  
@@ -2642,47 +2594,45 @@ c --- define variable
       start(2)=j0+1
       count(1)=ii
       count(2)=jj
-      tkd=1
       fill=nf_fill_int
-        call ncsevl(dims,strn,strind)
-        c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
-        if (c4.eq.'time') then
-          start(strn)=rec
-          count(strn)=1
-        endif
-        do n=1,strn
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
-          dimids(n)=dimid
-          if (n.gt.2.and.
-     .        ((n.eq.strn.and.c4.ne.'time').or.
-     .         (n.eq.strn-1.and.c4.eq.'time')))
-     .      call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
-        enddo
-        rkd=real(tkd)
-        if (rec.eq.1) then
-          call ncerro(nfmpi_def_var(ncid,vnm,nf_int,strn,dimids(1:strn),
-     .      rhid))
-        else
-          call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-        endif
-        if (mskflg.eq.1) then
-          clen=1
-          call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
+      call ncsevl(dims,strn,strind)
+      c4=dims(strind(1,strn):min(strind(1,strn)+3,strind(2,strn)))
+      if (c4.eq.'time') then
+        start(strn)=rec
+        count(strn)=1
+      endif
+      tkd=1
+      do n=1,strn
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimid))
+        dimids(n)=dimid
+        if (n.gt.2.and.
+     .      ((n.eq.strn.and.c4.ne.'time').or.
+     .       (n.eq.strn-1.and.c4.eq.'time')))
+     .    call ncerro(nfmpi_inq_dimlen(ncid,dimid,tkd))
+      enddo
+      kd=tkd
+      if (rec.eq.1) then
+        call ncerro(nfmpi_def_var(ncid,vnm,nf_int,strn,dimids(1:strn),
+     .                            rhid))
+      else
+        call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
+      endif
+      if (mskflg.eq.1) then
+        clen=1
+        call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
      .                                   nf_double,clen,fill))
-        endif
-        if (flgpad) then
-          call ncerro(nfmpi_enddef(ncid))
-        else
-          call ncerro(nfmpi_enddef(ncid,409600,4,0,409600))
-          flgpad=.true.
-        endif
-      call xcmaxr(rkd)
-      kd=nint(rkd)
+      endif
+      if (flgpad) then
+        call ncerro(nfmpi_enddef(ncid))
+      else
+        call ncerro(nfmpi_enddef(ncid,409600,4,0,409600))
+        flgpad=.true.
+      endif
       if (kd.gt.1) count(3)=kd
 c
 c --- get mask for the full domain
-      if (mskflg.eq.1)then
+      if (mskflg.eq.1) then
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
@@ -2695,28 +2645,25 @@ c --- get mask for the full domain
           enddo
         enddo
       endif
-
       do k=1,kd
         do j=1,jj
           do i=1,ii
             rfld(i,j,k)=fld(i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm)
           enddo
         enddo
-        enddo
-
-        do k=1,kd
-          do j=1,jj
-            do i=1,ii
-              if(rmsk(i,j).lt.0.5) rfld(i,j,k)=fill
-            enddo
+      enddo
+      do k=1,kd
+        do j=1,jj
+          do i=1,ii
+            if (rmsk(i,j).lt.0.5) rfld(i,j,k)=fill
           enddo
         enddo
-
-
+      enddo
+c
       call ncerro(nfmpi_put_vara_int_all(ncid,rhid,start,count,rfld))
-
+c
       call ncerro(nfmpi_redef(ncid))
-
+c
 #else
       fill=nf90_fill_int
       if (mnproc.eq.1) then
@@ -2729,14 +2676,13 @@ c --- get mask for the full domain
         endif
         do n=1,strn
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimid))
+     .                               dimid))
           dimids(n)=dimid
           if (n.gt.2.and.
      .        ((n.eq.strn.and.c4.ne.'time').or.
      .         (n.eq.strn-1.and.c4.eq.'time')))
      .      call ncerro(nf90_inquire_dimension(ncid,dimid,len=kd))
         enddo
-        rkd=kd
         if (rec.eq.1) then 
           call ncerro(nf90_def_var(ncid,vnm,nf90_int,dimids(1:strn),
      .      rhid))
@@ -2749,15 +2695,14 @@ c --- get mask for the full domain
         if (flgpad) then 
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif 
       endif
-      call xcmaxr(rkd)
-      kd=nint(rkd) 
+      call xcbcst(kd)
 c
 c --- get mask for the full domain
-      if (mskflg.eq.1)then
+      if (mskflg.eq.1) then
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
@@ -2784,7 +2729,7 @@ c --- Prepare output field
         if (mnproc.eq.1) then
           do j=1,jtdm
             do i=1,itdm
-              if(rmskt(i,j).lt.0.5) rfldt(i,j)=fill
+              if (rmskt(i,j).lt.0.5) rfldt(i,j)=fill
             enddo
           enddo
           call ncerro(nf90_put_var(ncid,rhid,rfldt,start,count))
@@ -2831,63 +2776,60 @@ c
 
       fill=nf_fill_double
       call ncsevl(dims,ndims,strind)
-
       do n=1,ndims
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
-         call ncerro(nfmpi_inq_dimlen(ncid,dimids(n),dimlen(n)))
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimids(n)))
+        call ncerro(nfmpi_inq_dimlen(ncid,dimids(n),dimlen(n)))
       enddo
-
-       call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
-
-        do n=1,maxdm
-          start(n)=1
-          count(n)=1
-        enddo
-        do n=1,ndims-1
-          count(n)=dimlen(n)
-        enddo
-        if (dims(strind(1,ndims):strind(2,ndims)).eq.'time') then
-          start(ndims)=rec
-          count(ndims)=1
-        else
-          start(ndims)=1
-          count(ndims)=dimlen(ndims)
-        endif
-        if(mnproc.ne. 1) then
+      call ncerro(nfmpi_inq_varid(ncid,vnm,rhid))
+      do n=1,maxdm
+        start(n)=1
+        count(n)=1
+      enddo
+      do n=1,ndims-1
+        count(n)=dimlen(n)
+      enddo
+      if (dims(strind(1,ndims):strind(2,ndims)).eq.'time') then
+        start(ndims)=rec
+        count(ndims)=1
+      else
+        start(ndims)=1
+        count(ndims)=dimlen(ndims)
+      endif
+      if (mnproc.ne.1) then
         do n=1,maxdm
           count(n)=0
         enddo
-        endif 
+      endif 
 c
-c --- - Write data to file 
-        call ncerro(nfmpi_put_vara_double_all(ncid,rhid,start,
-     .    count,fld))
+c --- Write data to file 
+      call ncerro(nfmpi_put_vara_double_all(ncid,rhid,start,
+     .                                      count,fld))
 c
-c --- - Put file back to define mode
+c --- Put file back to define mode
 #else
-      if(mnproc.eq.1)then
+      if (mnproc.eq.1) then
 c
 c --- - Define variable 
         fill=nf90_fill_double 
         call ncsevl(dims,ndims,strind)
         do n=1,ndims
           call ncerro(nf90_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
+     .                               dimids(n)))
           call ncerro(nf90_inquire_dimension(ncid,dimids(n),
-     .      len=dimlen(n)))
+     .                                       len=dimlen(n)))
         enddo
         if (rec.eq.1) then
           call ncerro(nf90_def_var(ncid,vnm,nf90_double,dimids(1:ndims),
-     .      rhid))
+     .                             rhid))
           call ncerro(nf90_put_att(ncid,rhid,'_FillValue',fill))
         else 
           call ncerro(nf90_inq_varid(ncid,vnm,rhid))
         endif
-        if(flgpad)then
+        if (flgpad) then
           call ncerro(nf90_enddef(ncid))
         else
-          call ncerro(nf90_enddef(ncid,409600,4,0,4))
+          call ncerro(nf90_enddef(ncid,40960,4,0,4))
           flgpad=.true.
         endif
 c
@@ -2909,7 +2851,7 @@ c --- - Prepare start and count
 c
 c --- - Write data to file 
         call ncerro(nf90_put_var(ncid,rhid,fld(1:product(count)),start,
-     .    count))
+     .                           count))
 c
 c --- - Put file back to define mode
         call ncerro(nf90_redef(ncid))
@@ -2942,18 +2884,18 @@ c
       integer ncstatus
 c
 #ifdef PNETCDF
-        if (ncstatus.ne.nf_noerr) then
+      if (ncstatus.ne.nf_noerr) then
         write(lp,*) 'NetCDF error:',nfmpi_strerror(ncstatus)
         call flush(lp)
         call xchalt('(ncerro)')
-        stop '(ncerro)'
+               stop '(ncerro)'
       endif
 #else
       if (ncstatus.ne.nf90_noerr) then 
         write(lp,*) 'NetCDF error: ',nf90_strerror(ncstatus)
         call flush(lp)
         call xchalt('(ncerro)')
-        stop '(ncerro)'
+               stop '(ncerro)'
       endif 
 #endif
 c
@@ -2985,19 +2927,20 @@ c
       strgn=0
       do i=1,len(strg)
          charnew=strg(i:i)
-         if((charold.eq.' '.or.charold.eq.'-'.or.charold.eq.':').and.
-     .      (charnew.ne.' '.and.charnew.ne.'-'.and.charnew.ne.':'))then
+         if ((charold.eq.' '.or.charold.eq.'-'.or.charold.eq.':').and.
+     .       (charnew.ne.' '.and.charnew.ne.'-'.and.charnew.ne.':'))
+     .   then
             strgn=strgn+1
             strgind(strgn)=i
-         elseif((charnew.eq.' '.or.charnew.eq.'-'.or.charnew.eq.':')
-     .    .and.(charold.ne.' '.and.charold.ne.'-'.and.charold.ne.':'))
+         elseif ((charnew.eq.' '.or.charnew.eq.'-'.or.charnew.eq.':')
+     .     .and.(charold.ne.' '.and.charold.ne.'-'.and.charold.ne.':'))
      .   then
             strgn=strgn+1
             strgind(strgn)=i-1
          endif
          charold=charnew
       enddo
-      if(mod(strgn,2).eq.1)then
+      if (mod(strgn,2).eq.1) then
          strgn=strgn+1
          strgind(strgn)=len(strg)
       endif
@@ -3031,29 +2974,29 @@ c
       character*(*) calendar
       integer n1,y1,m1,d1,n2,y2,m2,d2,days,nd1,nd2,nd3
 c
-      if(calendar(1:3).eq.'sta'.or.calendar(1:3).eq.'mix'.or.
-     .   calendar(1:3).eq.'gre')then
-         if(y1.lt.1582.or.(y1.eq.1582.and.m1.lt.10).or.
-     .      (y1.eq.1582.and.m1.eq.10.and.d1.le.15))then
-            call ncdnum('julian',y1,m1,d1,n1)
-         else
-            call ncdnum('julian',1582,10,15,nd1)
-            call ncdnum('proleptic',1582,10,15,nd2)
-            call ncdnum('proleptic',y1,m1,d1,nd3)
-            n1=nd1-nd2+nd3-10
-         endif
-         if(y2.lt.1582.or.(y2.eq.1582.and.m2.lt.10).or.
-     .      (y2.eq.1582.and.m2.eq.10.and.d2.le.15))then
-            call ncdnum('julian',y2,m2,d2,n2)
-         else
-            call ncdnum('julian',1582,10,15,nd1)
-            call ncdnum('proleptic',1582,10,15,nd2)
-            call ncdnum('proleptic',y2,m2,d2,nd3)
-            n2=nd1-nd2+nd3-10
-         endif
+      if (calendar(1:3).eq.'sta'.or.calendar(1:3).eq.'mix'.or.
+     .    calendar(1:3).eq.'gre') then
+        if (y1.lt.1582.or.(y1.eq.1582.and.m1.lt.10).or.
+     .      (y1.eq.1582.and.m1.eq.10.and.d1.le.15)) then
+          call ncdnum('julian',y1,m1,d1,n1)
+        else
+          call ncdnum('julian',1582,10,15,nd1)
+          call ncdnum('proleptic',1582,10,15,nd2)
+          call ncdnum('proleptic',y1,m1,d1,nd3)
+          n1=nd1-nd2+nd3-10
+        endif
+        if (y2.lt.1582.or.(y2.eq.1582.and.m2.lt.10).or.
+     .      (y2.eq.1582.and.m2.eq.10.and.d2.le.15)) then
+          call ncdnum('julian',y2,m2,d2,n2)
+        else
+          call ncdnum('julian',1582,10,15,nd1)
+          call ncdnum('proleptic',1582,10,15,nd2)
+          call ncdnum('proleptic',y2,m2,d2,nd3)
+          n2=nd1-nd2+nd3-10
+        endif
       else
-         call ncdnum(calendar,y1,m1,d1,n1)
-         call ncdnum(calendar,y2,m2,d2,n2)
+        call ncdnum(calendar,y1,m1,d1,n1)
+        call ncdnum(calendar,y2,m2,d2,n2)
       endif
       days=n2-n1
 c
@@ -3083,30 +3026,30 @@ c
       data acc_noleap /0,31,59,90,120,151,181,212,243,273,304,334/
 c
       y=year+yoffset
-      if(calendar(1:3).eq.'pro')then
-         ndays=int((y-1)/400.)*yr400
-     .      + int(mod((y-1),400)/100.)*yr100
-     .      + int(mod(mod((y-1),400),100)/4.)*yr4
-     .      + mod(mod(mod((y-1),400),100),4)*yr1
-         if(month.gt.2.and.((mod(y,4).eq.0.and.mod(y,100).ne.0).or.
-     .      mod(y,400).eq.0))then
-            ndays=ndays+acc_leap(month)+day
-         else
-            ndays=ndays+acc_noleap(month)+day
-         endif
-      elseif(calendar(1:3).eq.'jul')then
-         ndays=int((y-1)/4.)*yr4+mod(y,4)*yr1
-         if(month.gt.2.and.mod(y,4).eq.0)then
-            ndays=ndays+acc_leap(month)+day
-         else
-            ndays=ndays+acc_noleap(month)+day
-         endif
-      elseif(calendar(1:3).eq.'360')then
-         ndays=(y-1)*360+30*(month-1)+day
-      elseif(calendar(1:3).eq.'nol'.or.calendar(1:3).eq.'365')then
-         ndays=(y-1)*365+acc_noleap(month)+day
-      elseif(calendar(1:3).eq.'all'.or.calendar(1:3).eq.'366')then
-         ndays=(y-1)*366+acc_leap(month)+day
+      if (calendar(1:3).eq.'pro') then
+        ndays=int((y-1)/400.)*yr400
+     .       +int(mod((y-1),400)/100.)*yr100
+     .       +int(mod(mod((y-1),400),100)/4.)*yr4
+     .       +mod(mod(mod((y-1),400),100),4)*yr1
+        if (month.gt.2.and.((mod(y,4).eq.0.and.mod(y,100).ne.0).or.
+     .     mod(y,400).eq.0)) then
+          ndays=ndays+acc_leap(month)+day
+        else
+          ndays=ndays+acc_noleap(month)+day
+        endif
+      elseif (calendar(1:3).eq.'jul') then
+        ndays=int((y-1)/4.)*yr4+mod(y,4)*yr1
+        if (month.gt.2.and.mod(y,4).eq.0) then
+          ndays=ndays+acc_leap(month)+day
+        else
+          ndays=ndays+acc_noleap(month)+day
+        endif
+      elseif (calendar(1:3).eq.'360') then
+        ndays=(y-1)*360+30*(month-1)+day
+      elseif (calendar(1:3).eq.'nol'.or.calendar(1:3).eq.'365') then
+        ndays=(y-1)*365+acc_noleap(month)+day
+      elseif (calendar(1:3).eq.'all'.or.calendar(1:3).eq.'366') then
+        ndays=(y-1)*366+acc_leap(month)+day
       endif
 c
       end subroutine ncdnum
@@ -3176,9 +3119,9 @@ c
       status=nf90_inq_varid(ncid,trim(vnm),rhid)
       if (status.ne.nf90_noerr) then 
 #endif
-         ncinqv=.false.
+        ncinqv=.false.
       else
-         ncinqv=.true. 
+        ncinqv=.true. 
       endif 
 c
       end function ncinqv
@@ -3208,24 +3151,24 @@ c
 c
       call ncsevl(dims,ndims,strind)
       do n=1,ndims
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimids(n)))
       enddo
-      
+c
       if (rec.eq.1) then
         call ncerro(nfmpi_def_var(ncid,vnm,itype,ndims,
-     .        dimids,rhid))
-        if(iatt .eq. 8) then
-        clen=1
-        call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
-     .                                  nf_double,clen,fill))
-        elseif(iatt .eq. 4) then
-        clen=1
-        call ncerro(nfmpi_put_att_real(ncid,rhid,'_FillValue',
-     .                                  nf_real,clen,fillr4))
+     .                            dimids,rhid))
+        if (iatt.eq.8) then
+          clen=1
+          call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
+     .                                     nf_double,clen,fill))
+        elseif (iatt.eq.4) then
+          clen=1
+          call ncerro(nfmpi_put_att_real(ncid,rhid,'_FillValue',
+     .                                   nf_real,clen,fillr4))
         endif
-        endif
-      
+      endif
+c
       end subroutine ncdefvar
 
       subroutine ncdefvar3d(frmt,cmpflg,gridid,
@@ -3263,119 +3206,114 @@ c
       arng(1)=fill
       arng(2)=fill
 c
-c
 c --- Check whether field should be written
       if (frmt.eq.0) return
 c
 c --- Create dimension string 
-      if(isize .eq. 0) then
-      if (cmpflg.eq.1) then
-        dims=gridid(1:1)//'comp time'
+      if (isize.eq.0) then
+        if (cmpflg.eq.1) then
+          dims=gridid(1:1)//'comp time'
+        else
+          dims='x y time'
+        endif
+      elseif (isize.eq.1) then
+        if (cmpflg.eq.1) then
+          dims=gridid(1:1)//'comp sigma time'
+        else
+          dims='x y sigma time'
+        endif
+      elseif (isize.eq.2) then
+        if (cmpflg.eq.1) then
+          dims=gridid(1:1)//'comp depth time'
+        else
+          dims='x y depth time'
+        endif
       else
-        dims='x y time'
-      endif
-      elseif (isize .eq. 1) then
-      if (cmpflg.eq.1) then
-        dims=gridid(1:1)//'comp sigma time'
-      else
-        dims='x y sigma time'
-      endif
-      elseif (isize .eq. 2) then
-      if (cmpflg.eq.1) then
-        dims=gridid(1:1)//'comp depth time'
-      else
-        dims='x y depth time'
-      endif
-      else
-      write (lp,*) 'unknown data size!'
+        write (lp,*) 'unknown data size!'
         call xchalt('(ncdefvar3d)')
                stop '(ncdefvar3d)'
       endif
-
+c
       call ncsevl(dims,ndims,strind)
-
+c
       do n=1,ndims
-         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
-     .      dimids(n)))
+        call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
+     .                              dimids(n)))
       enddo
       c4=dims(strind(1,ndims):min(strind(1,ndims)+3,strind(2,ndims)))
-
 c
 c --- Check output format
       if (rec.eq.1) then
-      if (frmt.eq.2) then
-        if (cmpflg.eq.1) then
-        n=1
-         if(c4.eq.'time') n=2 
-        call ncerro(nfmpi_def_var(ncid,vnm,nf_int2,n,
-     .        dimids,rhid))
-        call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,'x y'))
-        else
-        call ncerro(nfmpi_def_var(ncid,vnm,nf_int2,ndims,
-     .        dimids,rhid))
-        endif
-
-        clen=1
-          call ncerro(nfmpi_put_att_int2(ncid,rhid,'_FillValue',nf_int2,
-     .              clen,ifill))
-        clen=2
-        call ncerro(nfmpi_put_att_int2(ncid,rhid,'valid_range',nf_int2,
-     .              clen,vrng))
-
-        call ncerro(nfmpi_put_att_double(ncid,rhid,'actual_range',
-     .                nf_double,clen,arng))
-        clen=1
-        call ncerro(nfmpi_put_att_double(ncid,rhid,'scale_factor',
-     .                                   nf_double,clen,fill))
-        call ncerro(nfmpi_put_att_double(ncid,rhid,'add_offset',
-     .                nf_double,clen,fill))
-          
-   
-      elseif (frmt.eq.4) then
-        if (cmpflg.eq.1) then
-         n=1
-         if(c4.eq.'time') n=2
-          call ncerro(nfmpi_def_var(ncid,vnm,nf_real,n,
-     .        dimids,rhid))
+        if (frmt.eq.2) then
+          if (cmpflg.eq.1) then
+            n=1
+            if (c4.eq.'time') n=2 
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_int2,n,
+     .                                dimids,rhid))
+            call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,
+     .                                     'x y'))
+          else
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_int2,ndims,
+     .                                dimids,rhid))
+          endif
           clen=1
-          call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,
-     .                                   'x y'))
-        else
-          call ncerro(nfmpi_def_var(ncid,vnm,nf_real,ndims,
-     .        dimids,rhid))
-        endif
-         clen=1
+          call ncerro(nfmpi_put_att_int2(ncid,rhid,'_FillValue',nf_int2,
+     .                                   clen,ifill))
+          clen=2
+          call ncerro(nfmpi_put_att_int2(ncid,rhid,'valid_range',
+     .                                   nf_int2,clen,vrng))
+          call ncerro(nfmpi_put_att_double(ncid,rhid,'actual_range',
+     .                                     nf_double,clen,arng))
+          clen=1
+          call ncerro(nfmpi_put_att_double(ncid,rhid,'scale_factor',
+     .                                     nf_double,clen,fill))
+          call ncerro(nfmpi_put_att_double(ncid,rhid,'add_offset',
+     .                                     nf_double,clen,fill))
+        elseif (frmt.eq.4) then
+          if (cmpflg.eq.1) then
+            n=1
+            if (c4.eq.'time') n=2
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_real,n,
+     .                                dimids,rhid))
+            clen=1
+            call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,
+     .                                     'x y'))
+          else
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_real,ndims,
+     .                                dimids,rhid))
+          endif
+          clen=1
           call ncerro(nfmpi_put_att_real(ncid,rhid,'_FillValue',
-     .          nf_real,clen,fillr4))
-      elseif (frmt.eq.8) then
-        if (cmpflg.eq.1) then
-         n=1
-         if(c4.eq.'time') n=2
-          call ncerro(nfmpi_def_var(ncid,vnm,nf_double,n,
-     .        dimids,rhid))
-          clen = 1
-          call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,
-     .                                   'x y'))
+     .                                   nf_real,clen,fillr4))
+        elseif (frmt.eq.8) then
+          if (cmpflg.eq.1) then
+            n=1
+            if (c4.eq.'time') n=2
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_double,n,
+     .                                dimids,rhid))
+            clen = 1
+            call ncerro(nfmpi_put_att_text(ncid,rhid,'compress',clen,
+     .                                     'x y'))
+          else
+            call ncerro(nfmpi_def_var(ncid,vnm,nf_double,ndims,
+     .                                dimids,rhid))
+          endif
+          clen=1
+          call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
+     .                                     nf_double,clen,fill))
         else
-        call ncerro(nfmpi_def_var(ncid,vnm,nf_double,ndims,
-     .        dimids,rhid))
+          write (lp,*) 'unknown output format!'
+          call xchalt('(wrtsrf)')
+                 stop '(wrtsrf)'
         endif
-        clen=1
-        call ncerro(nfmpi_put_att_double(ncid,rhid,'_FillValue',
-     .          nf_double,clen,fill))
-      else
-        write (lp,*) 'unknown output format!'
-        call xchalt('(wrtsrf)')
-               stop '(wrtsrf)'
       endif
-      endif
-
+c
 c --- Define attributes
       if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
       if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
       if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
       call ncattr('coordinates',
-     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
+     .            gridid(1:1)//'lon '//gridid(1:1)//'lat')
       call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
       end subroutine ncdefvar3d

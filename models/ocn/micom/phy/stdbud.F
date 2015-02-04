@@ -69,35 +69,31 @@ c
 #endif
 c
 #ifdef TRC
-      if (n.eq.1) then
-c
 c$OMP PARALLEL DO
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=0.
-          enddo
-          enddo
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          util1(i,j)=0.
         enddo
+        enddo
+      enddo
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(kn,q)
-        do j=1,jj
-          do k=1,kk
-            kn=k+nn
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              q=dp(i,j,kn)*scp2(i,j)
-              util1(i,j)=util1(i,j)+trc(i,j,k,1)*q
-            enddo
-            enddo
+      do j=1,jj
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            q=dp(i,j,kn)*scp2(i,j)
+            util1(i,j)=util1(i,j)+trc(i,j,kn,1)*q
+          enddo
           enddo
         enddo
+      enddo
 c$OMP END PARALLEL DO
 c
-        call xcsum(trdp(ncall),util1,ips)
-c
-      endif
+      call xcsum(trdp(ncall,n),util1,ips)
 #endif
 c
       return

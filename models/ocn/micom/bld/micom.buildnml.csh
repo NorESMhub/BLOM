@@ -408,6 +408,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! IDATE    : Model date in YYYYMMDD (i)
 ! IDATE0   : Initial experiment date in YYYYMMDD (i)
 ! RUNID    : Experiment name (a)
+! EXPCNF   : Experiment configuration (a)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -443,8 +444,8 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! DISFLX   : Diagnose freshwater flux flag (l)
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SRXSRC   : SSS climatology used for relax. Valid opts. 'PHC3.0' or 'CORE' (a)
-! SMTFRC   : Smooth CCSM forcing (l)
-! SPRFAC   : Send precipitation/runoff factor to CCSM coupler (l)
+! SMTFRC   : Smooth CESM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! PATH     : Path to input files (a)
 ! PATH1    : Path to diagnostic files (a)
 ! PATH2    : Path to restart files (a)
@@ -459,6 +460,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   IDATE    = ${YEAR0}${MONTH0}${DAY0},
   IDATE0   = ${YEAR0}${MONTH0}${DAY0},
   RUNID    = 'xxxx',
+  EXPCNF   = 'cesm',
   BACLIN   = ${BACLIN},
   BATROP   = ${BATROP},
   MDV2HI   = ${MDV2HI},

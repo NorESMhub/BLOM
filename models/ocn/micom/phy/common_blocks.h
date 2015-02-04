@@ -209,23 +209,18 @@ c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
 c --- 'rearth' = radius of the earth
 c --- 'spcifh' = specific heat of sea water (j/g/deg)
-c --- 'rhoa_r' = reference air density (g/cm**3)
-c --- 'cd_r'   = reference transfer coefficient of momentum
-c --- 'ch_r'   = reference transfer coefficient of sensible heat
-c --- 'ce_r'   = reference transfer coefficient of tent heat
-c --- 'wg2_r'  = reference gustiness squared (cm**2/s**2)
+c --- 't0deg'  = zero degree celsius in kelvin (K)
 c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
 c --- 'raddep' = maximum depth of light penetration (m)
 c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
 c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
 c
-      real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,rhoa_r,cd_r,ch_r,
-     .     ce_r,wg2_r,alpha0,epsil,raddep,redfac,betabl,huge,radian,pi
+      real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
+     .     epsil,raddep,redfac,betabl,huge,radian,pi
 c
-      common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,
-     .                rhoa_r,cd_r,ch_r,ce_r,wg2_r,alpha0,epsil,raddep,
-     .                redfac,betabl,huge,radian,pi
+      common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
+     .                alpha0,epsil,raddep,redfac,betabl,huge,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c
@@ -233,11 +228,11 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path,path1,path2,runid
-      integer path_len,path1_len,path2_len,runid_len
+      character*80 path,path1,path2,runid,expcnf
+      integer path_len,path1_len,path2_len,runid_len,expcnf_len
 c
-      common /iovars/ path,path1,path2,runid,
-     .                path_len,path1_len,path2_len,runid_len
+      common /iovars/ path,path1,path2,runid,expcnf,
+     .                path_len,path1_len,path2_len,runid_len,expcnf_len
 c
 c
 c> Revision history:

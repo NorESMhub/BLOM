@@ -21,7 +21,7 @@
 
 #include "common_blocks.h"
 #include "common_geo.h"
-#include "common_ccsm.h"
+#include "common_cesm.h"
 
       ! Local parameters
 
@@ -42,12 +42,12 @@
 
       ! Update time level indices
 
-      if (ll1 == 1 .and. ll2 == 1) then
-         ll1 = 2
-         ll2 = 2
+      if (l1ci == 1 .and. l2ci == 1) then
+         l1ci = 2
+         l2ci = 2
       else
-         ll1 = ll2
-         ll2 = 3 - ll2
+         l1ci = l2ci
+         l2ci = 3 - l2ci
       endif
 
       ! Unpack
@@ -59,11 +59,11 @@
             if     (ip(i,j) == 0) then
                util1(i,j) = mval
                util2(i,j) = mval
-               ustarw_da(i,j,ll2) = mval
+               ustarw_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
                util1(i,j) = fval
                util2(i,j) = fval
-               ustarw_da(i,j,ll2) = fval
+               ustarw_da(i,j,l2ci) = fval
             else
                utmp = x2o_o%rAttr(index_x2o_Foxx_taux,n)
                vtmp = x2o_o%rAttr(index_x2o_Foxx_tauy,n)
@@ -73,7 +73,7 @@
      .                      + vtmp*cos(angle(i,j))
 
                ! Friction velocity (m/s)
-               ustarw_da(i,j,ll2) = sqrt(sqrt(utmp*utmp+vtmp*vtmp)
+               ustarw_da(i,j,l2ci) = sqrt(sqrt(utmp*utmp+vtmp*vtmp)
      .                              /SHR_CONST_RHOSW)
             endif
          enddo
@@ -82,7 +82,7 @@
       call fill_global(mval, fval, halo_pv, util1)
       call fill_global(mval, fval, halo_pv, util2)
       call fill_global(mval, fval, halo_ps,
-     .                 ustarw_da(1-nbdy,1-nbdy,ll2))
+     .                 ustarw_da(1-nbdy,1-nbdy,l2ci))
 
       call xctilr(util1, 1,1, 1,1, halo_pv)
       call xctilr(util2, 1,1, 1,1, halo_pv)
@@ -91,13 +91,13 @@
          do l=1,isu(j)
          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             ! x-component of momentum flux (kg/m/s^2)
-            ztx_da(i,j,ll2) = .5_r8*(util1(i-1,j) + util1(i,j))
+            ztx_da(i,j,l2ci) = .5_r8*(util1(i-1,j) + util1(i,j))
          enddo
          enddo
          do l=1,isv(j)
          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             ! y-component of momentum flux (kg/m/s^2)
-            mty_da(i,j,ll2) = .5_r8*(util2(i,j-1) + util2(i,j))
+            mty_da(i,j,l2ci) = .5_r8*(util2(i,j-1) + util2(i,j))
          enddo
          enddo
       enddo
@@ -107,80 +107,80 @@
          do i = 1, ii
             n = n + 1
             if     (ip(i,j) == 0) then
-               lip_da(i,j,ll2) = mval
-               sop_da(i,j,ll2) = mval
-               eva_da(i,j,ll2) = mval
-               rnf_da(i,j,ll2) = mval
-               rfi_da(i,j,ll2) = mval
-               fmltfz_da(i,j,ll2) = mval
-               sfl_da(i,j,ll2) = mval
-               swa_da(i,j,ll2) = mval
-               nsf_da(i,j,ll2) = mval
-               hmlt_da(i,j,ll2) = mval
-               slp_da(i,j,ll2) = mval
-               ficem_da(i,j,ll2) = mval
-               abswnd_da(i,j,ll2) = mval
+               lip_da(i,j,l2ci) = mval
+               sop_da(i,j,l2ci) = mval
+               eva_da(i,j,l2ci) = mval
+               rnf_da(i,j,l2ci) = mval
+               rfi_da(i,j,l2ci) = mval
+               fmltfz_da(i,j,l2ci) = mval
+               sfl_da(i,j,l2ci) = mval
+               swa_da(i,j,l2ci) = mval
+               nsf_da(i,j,l2ci) = mval
+               hmlt_da(i,j,l2ci) = mval
+               slp_da(i,j,l2ci) = mval
+               ficem_da(i,j,l2ci) = mval
+               abswnd_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
-               lip_da(i,j,ll2) = 0._r8
-               sop_da(i,j,ll2) = 0._r8
-               eva_da(i,j,ll2) = 0._r8
-               rnf_da(i,j,ll2) = 0._r8
-               rfi_da(i,j,ll2) = 0._r8
-               fmltfz_da(i,j,ll2) = 0._r8
-               sfl_da(i,j,ll2) = 0._r8
-               swa_da(i,j,ll2) = 0._r8
-               nsf_da(i,j,ll2) = 0._r8
-               hmlt_da(i,j,ll2) = 0._r8
-               slp_da(i,j,ll2) = fval
-               ficem_da(i,j,ll2) = fval
-               abswnd_da(i,j,ll2) = fval
+               lip_da(i,j,l2ci) = 0._r8
+               sop_da(i,j,l2ci) = 0._r8
+               eva_da(i,j,l2ci) = 0._r8
+               rnf_da(i,j,l2ci) = 0._r8
+               rfi_da(i,j,l2ci) = 0._r8
+               fmltfz_da(i,j,l2ci) = 0._r8
+               sfl_da(i,j,l2ci) = 0._r8
+               swa_da(i,j,l2ci) = 0._r8
+               nsf_da(i,j,l2ci) = 0._r8
+               hmlt_da(i,j,l2ci) = 0._r8
+               slp_da(i,j,l2ci) = fval
+               ficem_da(i,j,l2ci) = fval
+               abswnd_da(i,j,l2ci) = fval
             else
 
                ! Liquid water flux, positive downwards [kg/m^2/s]
-               lip_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Faxa_rain,n)
+               lip_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_rain,n)
 
                ! Solid precipitation, positive downwards [kg/m^2/s]
-               sop_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Faxa_snow,n)
+               sop_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Faxa_snow,n)
 
                ! Evaporation, positive downwards [kg/m^2/s]
-               eva_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
+               eva_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
 
                ! Liquid runoff, positive downwards [kg/m^2/s]
-               rnf_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Forr_roff,n)
+               rnf_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Forr_roff,n)
 
                ! Frozen runoff, positive downwards [kg/m^2/s]
-               rfi_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Forr_ioff,n)
+               rfi_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Forr_ioff,n)
 
                ! Fresh water due to melting/freezing, positive downwards
                ! [kg/m^2/s]
-               fmltfz_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_meltw,n)
+               fmltfz_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Fioi_meltw,n)
 
                ! Salt flux, positive downwards [kg/m^2/s]
-               sfl_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_salt,n)
+               sfl_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Fioi_salt,n)
 
                ! Shortwave heat flux, positive downwards [W/m^2]
-               swa_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_swnet,n)
+               swa_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_swnet,n)
 
                ! Non-solar heat flux, positive downwards [W/m^2]
-               nsf_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Foxx_lat,n)
-     .                         + x2o_o%rAttr(index_x2o_Foxx_sen,n)
-     .                         + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
-     .                         + x2o_o%rAttr(index_x2o_Faxa_lwdn,n)
-     .                         - ( x2o_o%rAttr(index_x2o_Faxa_snow,n)
-     .                           + x2o_o%rAttr(index_x2o_Forr_ioff,n))
-     .                           *SHR_CONST_LATICE
+               nsf_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_lat,n)
+     .                          + x2o_o%rAttr(index_x2o_Foxx_sen,n)
+     .                          + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
+     .                          + x2o_o%rAttr(index_x2o_Faxa_lwdn,n)
+     .                          - ( x2o_o%rAttr(index_x2o_Faxa_snow,n)
+     .                            + x2o_o%rAttr(index_x2o_Forr_ioff,n))
+     .                            *SHR_CONST_LATICE
 
                ! Heat flux due to melting, positive downwards [W/m^2]
-               hmlt_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Fioi_melth,n)
+               hmlt_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Fioi_melth,n)
 
                ! Sea level pressure [kg/m/s^2]
-               slp_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Sa_pslv,n)
+               slp_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Sa_pslv,n)
 
                ! Ice fraction []
-               ficem_da(i,j,ll2) = x2o_o%rAttr(index_x2o_Si_ifrac,n)
+               ficem_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Si_ifrac,n)
 
                ! 10m wind speed [m/s]
-               abswnd_da(i,j,ll2) =
+               abswnd_da(i,j,l2ci) =
      .            sqrt(x2o_o%rAttr(index_x2o_So_duu10n,n))
 
             endif
@@ -189,22 +189,24 @@
       enddo
 
       if (nreg == 2) then
-         call xctilr(lip_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(sop_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(eva_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(rnf_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(rfi_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(fmltfz_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(sfl_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(swa_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(nsf_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
-         call xctilr(hmlt_da(1-nbdy,1-nbdy,ll2), 1,1, 0,0, halo_ps)
+         call xctilr(lip_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(sop_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(eva_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(rnf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(rfi_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(fmltfz_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(sfl_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(swa_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(nsf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         call xctilr(hmlt_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
       endif
 
-      call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,ll2))
-      call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,ll2))
       call fill_global(mval, fval, halo_ps,
-     .                 abswnd_da(1-nbdy,1-nbdy,ll2))
+     .                 slp_da(1-nbdy,1-nbdy,l2ci))
+      call fill_global(mval, fval, halo_ps,
+     .                 ficem_da(1-nbdy,1-nbdy,l2ci))
+      call fill_global(mval, fval, halo_ps,
+     .                 abswnd_da(1-nbdy,1-nbdy,l2ci))
 
 #ifdef PROGCO2
       if (index_x2o_Sa_co2prog > 0) then
@@ -213,27 +215,27 @@
             do i = 1, ii
                n = n + 1
                if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = mval
+                  atmco2_da(i,j,l2ci) = mval
                elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = fval
+                  atmco2_da(i,j,l2ci) = fval
                else
                   ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,ll2) =
+                  atmco2_da(i,j,l2ci) =
      .               x2o_o%rAttr(index_x2o_Sa_co2prog,n)
                endif
             enddo
          enddo
          call fill_global(mval, fval, halo_ps,
-     .                    atmco2_da(1-nbdy,1-nbdy,ll2))
+     .                    atmco2_da(1-nbdy,1-nbdy,l2ci))
          if (mnproc.eq.1)
      .      write (lp,*) 'import_mct: prog. atmospheric co2 read'
       else
          do j = 1, jj
             do i = 1, ii
                if (ip(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = mval
+                  atmco2_da(i,j,l2ci) = mval
                else
-                  atmco2_da(i,j,ll2) = -1
+                  atmco2_da(i,j,l2ci) = -1
                endif
             enddo
          enddo
@@ -248,27 +250,27 @@
             do i = 1, ii
                n = n + 1
                if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = mval
+                  atmco2_da(i,j,l2ci) = mval
                elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = fval
+                  atmco2_da(i,j,l2ci) = fval
                else
                   ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,ll2) =
+                  atmco2_da(i,j,l2ci) =
      .               x2o_o%rAttr(index_x2o_Sa_co2diag,n)
                endif
             enddo
          enddo
          call fill_global(mval, fval, halo_ps,
-     .                    atmco2_da(1-nbdy,1-nbdy,ll2))
+     .                    atmco2_da(1-nbdy,1-nbdy,l2ci))
          if (mnproc.eq.1)
      .      write (lp,*) 'import_mct: diag. atmospheric co2 read'
       else
          do j = 1, jj
             do i = 1, ii
                if (ip(i,j) == 0) then
-                  atmco2_da(i,j,ll2) = mval
+                  atmco2_da(i,j,l2ci) = mval
                else
-                  atmco2_da(i,j,ll2) = -1
+                  atmco2_da(i,j,l2ci) = -1
                endif
             enddo
          enddo
@@ -279,9 +281,9 @@
       do j = 1, jj
          do i = 1, ii
             if (ip(i,j) == 0) then
-               atmco2_da(i,j,ll2) = mval
+               atmco2_da(i,j,l2ci) = mval
             else
-               atmco2_da(i,j,ll2) = -1
+               atmco2_da(i,j,l2ci) = -1
             endif
          enddo
       enddo
@@ -293,23 +295,23 @@
          if (mnproc.eq.1) then
             write (lp,*) 'import_mct:'
          endif
-         call chksummsk(ustarw_da(1-nbdy,1-nbdy,ll2),ip,1,'ustarw')
-         call chksummsk(ztx_da(1-nbdy,1-nbdy,ll2),iu,1,'ztx')
-         call chksummsk(mty_da(1-nbdy,1-nbdy,ll2),iv,1,'mty')
-         call chksummsk(lip_da(1-nbdy,1-nbdy,ll2),ip,1,'lip')
-         call chksummsk(sop_da(1-nbdy,1-nbdy,ll2),ip,1,'sop')
-         call chksummsk(eva_da(1-nbdy,1-nbdy,ll2),ip,1,'eva')
-         call chksummsk(rnf_da(1-nbdy,1-nbdy,ll2),ip,1,'rnf')
-         call chksummsk(rfi_da(1-nbdy,1-nbdy,ll2),ip,1,'rfi')
-         call chksummsk(fmltfz_da(1-nbdy,1-nbdy,ll2),ip,1,'fmltfz')
-         call chksummsk(sfl_da(1-nbdy,1-nbdy,ll2),ip,1,'sfl')
-         call chksummsk(swa_da(1-nbdy,1-nbdy,ll2),ip,1,'swa')
-         call chksummsk(nsf_da(1-nbdy,1-nbdy,ll2),ip,1,'nsf')
-         call chksummsk(hmlt_da(1-nbdy,1-nbdy,ll2),ip,1,'hmlt')
-         call chksummsk(slp_da(1-nbdy,1-nbdy,ll2),ip,1,'slp')
-         call chksummsk(ficem_da(1-nbdy,1-nbdy,ll2),ip,1,'ficem')
-         call chksummsk(abswnd_da(1-nbdy,1-nbdy,ll2),ip,1,'abswnd')
-         call chksummsk(atmco2_da(1-nbdy,1-nbdy,ll2),ip,1,'abswnd')
+         call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
+         call chksummsk(ztx_da(1-nbdy,1-nbdy,l2ci),iu,1,'ztx')
+         call chksummsk(mty_da(1-nbdy,1-nbdy,l2ci),iv,1,'mty')
+         call chksummsk(lip_da(1-nbdy,1-nbdy,l2ci),ip,1,'lip')
+         call chksummsk(sop_da(1-nbdy,1-nbdy,l2ci),ip,1,'sop')
+         call chksummsk(eva_da(1-nbdy,1-nbdy,l2ci),ip,1,'eva')
+         call chksummsk(rnf_da(1-nbdy,1-nbdy,l2ci),ip,1,'rnf')
+         call chksummsk(rfi_da(1-nbdy,1-nbdy,l2ci),ip,1,'rfi')
+         call chksummsk(fmltfz_da(1-nbdy,1-nbdy,l2ci),ip,1,'fmltfz')
+         call chksummsk(sfl_da(1-nbdy,1-nbdy,l2ci),ip,1,'sfl')
+         call chksummsk(swa_da(1-nbdy,1-nbdy,l2ci),ip,1,'swa')
+         call chksummsk(nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
+         call chksummsk(hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
+         call chksummsk(slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
+         call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
+         call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
+         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
       endif
 
       end subroutine import_mct

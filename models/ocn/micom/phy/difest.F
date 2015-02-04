@@ -16,7 +16,7 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_ice.h"
+#include "common_seaice.h"
 #include "common_forc.h"
 #include "common_geo.h"
 c

@@ -63,8 +63,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-      do nt=1,ntrc
-        call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 3,3, halo_ps)
+      do nt=1,ntr
+        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 3,3, halo_ps)
       enddo
 #endif
 c
@@ -113,10 +113,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-     .            ,k,ntrc,trc
-#  ifdef ATRC
-     .            ,natrc
-#  endif
+     .            ,kn,trc
 #endif
      .            )
 c
@@ -194,8 +191,8 @@ c$OMP PARALLEL DO
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
-                uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,k,nt)
+              do nt=1,ntr
+                uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,kn,nt)
               enddo
 #endif
             else
@@ -209,8 +206,8 @@ c$OMP PARALLEL DO
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
-                uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,k,nt)
+              do nt=1,ntr
+                uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,kn,nt)
               enddo
 #endif
             endif
@@ -236,8 +233,8 @@ c$OMP PARALLEL DO
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
-                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,k,nt)
+              do nt=1,ntr
+                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,kn,nt)
               enddo
 #endif
             else
@@ -251,8 +248,8 @@ c$OMP PARALLEL DO
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
-                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,k,nt)
+              do nt=1,ntr
+                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,kn,nt)
               enddo
 #endif
             endif
@@ -291,8 +288,8 @@ c$OMP PARALLEL DO PRIVATE(dpo,dpni)
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=(dpo*trc(i,j,k,nt)
+            do nt=1,ntr
+              trc(i,j,kn,nt)=(dpo*trc(i,j,kn,nt)
      .          -(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
      .           +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))*scp2i(i,j))*dpni
             enddo
@@ -340,8 +337,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

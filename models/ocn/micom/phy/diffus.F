@@ -40,8 +40,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-      do nt=1,ntrc
-        call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 2,2, halo_ps)
+      do nt=1,ntr
+        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
       enddo
 #endif
       call xctilr(difiso, 1,kk, 2,2, halo_ps)
@@ -66,8 +66,8 @@ c$OMP PARALLEL DO PRIVATE(q)
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              uflxtr(nt,i,j)=q*(trc(i-1,j,k,nt)-trc(i,j,k,nt))
+            do nt=1,ntr
+              uflxtr(nt,i,j)=q*(trc(i-1,j,kn,nt)-trc(i,j,kn,nt))
             enddo
 #endif
             usflx(i,j,km)=usflx(i,j,km)+usflld(i,j,km)
@@ -92,8 +92,8 @@ c$OMP PARALLEL DO PRIVATE(q)
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              vflxtr(nt,i,j)=q*(trc(i,j-1,k,nt)-trc(i,j,k,nt))
+            do nt=1,ntr
+              vflxtr(nt,i,j)=q*(trc(i,j-1,kn,nt)-trc(i,j,kn,nt))
             enddo
 #endif
             vsflx(i,j,km)=vsflx(i,j,km)+vsflld(i,j,km)
@@ -124,10 +124,10 @@ c$OMP PARALLEL DO PRIVATE(q)
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=trc(i,j,k,nt)
-     .                     -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
-     .                        +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
+            do nt=1,ntr
+              trc(i,j,kn,nt)=trc(i,j,kn,nt)
+     .                      -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
+     .                         +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
             enddo
 #endif
             sigma(i,j,kn)=sig(temp(i,j,kn),saln(i,j,kn))
@@ -151,8 +151,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

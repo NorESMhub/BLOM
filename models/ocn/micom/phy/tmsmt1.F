@@ -13,6 +13,11 @@ c
 #ifdef TKE
 #  include "common_tke.h"
 #endif
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt
+#endif
 c
       integer i,j,k,l,kn
 c
@@ -30,6 +35,11 @@ c$OMP PARALLEL DO PRIVATE(kn)
 #  ifdef GLS
             gls_psi_old(i,j,k)=gls_psi(i,j,kn)
 #  endif
+#endif
+#ifdef TRC
+            do nt=1,ntr
+              trcold(i,j,k,nt)=trc(i,j,kn,nt)
+            enddo
 #endif
           enddo
           enddo

@@ -20,12 +20,7 @@ c
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
-      real, dimension(ntr) :: trbudo
-      real trbudn
       integer nt
-#  ifdef ATRC
-      integer nat
-#  endif
 #endif
 c
 c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
@@ -86,16 +81,12 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
 #  endif
 #endif
 #ifdef TRC
-            if (n.eq.2) then
-              q=pmid/(dp(i,j,km)+epsil)
-#  ifdef ATRC
-              do nt=1,ntr-ntriag-natr
-#  else
-              do nt=1,ntr-ntriag
-#  endif
-                trc(i,j,k,nt)=trc(i,j,k,nt)*q
-              enddo
-            endif
+            do nt=1,ntr
+              trc(i,j,km,nt)=(wts1*pmid*trc(i,j,km,nt)
+     .                       +wts2*(pold*trcold(i,j,k,nt)
+     .                             +pnew*trc(i,j,kn,nt)))
+     .                       /(dp(i,j,km)+epsil)
+            enddo
 #endif
           enddo
           enddo

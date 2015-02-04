@@ -6,10 +6,9 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_dia
-#ifdef CCSMCOUPLED
+      use mod_ben02, only: atm_path, atm_path_len
       use data_mct, only: runid_mct, runtype_mct
       use mod_nctools
-#endif
 c
       implicit none
 c
@@ -18,45 +17,51 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
-#ifdef SYN
-#  include "param_atm.h"
-#  include "common_atmsyn.h"
-#else 
-      character*80 :: atm_path
-#endif
 c
       integer :: i,j,m,n
-#ifdef CCSMCOUPLED
       character*80 :: rstfnm
       logical :: fexist
-#endif
       integer :: idate,idate0
-      namelist /limits/ nday1,nday2,idate,idate0,runid,baclin,batrop,
-     .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,
-     .  vsc4lo,cbar,cb,cwbdts,cwbdls,egc,eggam,egmndf,egmxdf,egidfq,
-     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
-     .  disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,
-     .  rstfrq,rstfmt,rstcmp
+      namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
+     .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
+     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,egc,eggam,egmndf,egmxdf,
+     .  egidfq,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
+     .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,
+     .  atm_path,rstfrq,rstfmt,rstcmp
 c
-c --- read namelists from limits file
-      GLB_AVEPERIO=-999
-#ifdef CCSMCOUPLED
-      open (unit=nfu,file='ocn_in',status='old',action='read',recl=80)
-#else
-      open (unit=nfu,file='limits',status='old',action='read',recl=80)
-#endif
-      read (unit=nfu,nml=LIMITS)
-      read (unit=nfu,nml=DIAPHY)
-      close (unit=nfu)
-c
-c --- print namelist on stdout 
+c --- read namelists
       if (mnproc.eq.1) then
+c
+        GLB_AVEPERIO=-999
+        inquire(file='ocn_in',exist=fexist)
+        if (fexist) then
+          open (unit=nfu,file='ocn_in',status='old',action='read',
+     .          recl=80)
+        else
+          inquire(file='limits',exist=fexist)
+          if (fexist) then
+            open (unit=nfu,file='limits',status='old',action='read',
+     .            recl=80)
+          else
+            if (mnproc.eq.1) then
+              write (lp,*) 'Could not find namelist file!'
+            endif
+            call xchalt('(rdlim)')
+                   stop '(rdlim)'
+          endif
+        endif
+        read (unit=nfu,nml=LIMITS)
+        read (unit=nfu,nml=DIAPHY)
+        close (unit=nfu)
+c
+c --- - print namelist on stdout 
         write (lp,'(a)') 'MICOM LIMITS-NAMELIST:' 
         write (lp,*) 'NDAY1',NDAY1
         write (lp,*) 'NDAY2',NDAY2
         write (lp,*) 'IDATE',IDATE
         write (lp,*) 'IDATE0',IDATE0
         write (lp,*) 'RUNID ',trim(RUNID)
+        write (lp,*) 'EXPCNF',trim(EXPCNF)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'MDV2HI',MDV2HI
@@ -99,20 +104,18 @@ c --- print namelist on stdout
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
-      endif 
 c
-c --- determine number of io groups and print namelist
-      nphy=0  
-      do n=1,nphymax 
-        if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
-      end do     
-      if (trxday.eq.0.) then
-        SRF_SURRLX(1:nphy)=0
-      endif
-      if (srxday.eq.0.) then
-        SRF_SALRLX(1:nphy)=0
-      endif
-      if (mnproc.eq.1) then
+c --- - determine number of io groups and print namelist
+        nphy=0  
+        do n=1,nphymax 
+          if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
+        end do     
+        if (trxday.eq.0.) then
+          SRF_SURRLX(1:nphy)=0
+        endif
+        if (srxday.eq.0.) then
+          SRF_SALRLX(1:nphy)=0
+        endif
         write(lp,'(a)') ' ' 
         write(lp,'(a)') 'MICOM IO_NAMELIST ' 
         write(lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
@@ -239,7 +242,189 @@ c --- determine number of io groups and print namelist
         write(lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
         write(lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
         write(lp,*) ' '
-      endif 
+c
+      endif
+c
+c --- boradcast variables set by namelists
+c
+      call xcbcst(nday1)
+      call xcbcst(nday2)
+      call xcbcst(idate)
+      call xcbcst(idate0)
+      call xcbcst(runid)
+      call xcbcst(expcnf)
+      call xcbcst(baclin)
+      call xcbcst(batrop)
+      call xcbcst(mdv2hi)
+      call xcbcst(mdv2lo)
+      call xcbcst(mdv4hi)
+      call xcbcst(mdv4lo)
+      call xcbcst(mdc2hi)
+      call xcbcst(mdc2lo)
+      call xcbcst(vsc2hi)
+      call xcbcst(vsc2lo)
+      call xcbcst(vsc4hi)
+      call xcbcst(vsc4lo)
+      call xcbcst(cbar)
+      call xcbcst(cb)
+      call xcbcst(cwbdts)
+      call xcbcst(cwbdls)
+      call xcbcst(egc)
+      call xcbcst(eggam)
+      call xcbcst(egmndf)
+      call xcbcst(egmxdf)
+      call xcbcst(egidfq)
+      call xcbcst(trxday)
+      call xcbcst(srxday)
+      call xcbcst(trxdpt)
+      call xcbcst(srxdpt)
+      call xcbcst(trxlim)
+      call xcbcst(srxlim)
+      call xcbcst(aptflx)
+      call xcbcst(apsflx)
+      call xcbcst(ditflx)
+      call xcbcst(disflx)
+      call xcbcst(srxbal)
+      call xcbcst(srxsrc)
+      call xcbcst(smtfrc)
+      call xcbcst(sprfac)
+      call xcbcst(path)
+      call xcbcst(path1)
+      call xcbcst(path2)
+      call xcbcst(atm_path)
+      call xcbcst(rstfrq)
+      call xcbcst(rstfmt)
+      call xcbcst(rstcmp)
+c
+      call xcbcst(SRF_ABSWND)
+      call xcbcst(SRF_ALB)
+      call xcbcst(SRF_BRNFLX)
+      call xcbcst(SRF_BRNPD)
+      call xcbcst(SRF_DFL)
+      call xcbcst(SRF_EVA)
+      call xcbcst(SRF_FICE)
+      call xcbcst(SRF_FMLTFZ)
+      call xcbcst(SRF_HICE)
+      call xcbcst(SRF_HMLTFZ)
+      call xcbcst(SRF_HSNW)
+      call xcbcst(SRF_IAGE)
+      call xcbcst(SRF_LIP)
+      call xcbcst(SRF_MAXMLD)
+      call xcbcst(SRF_MLD)
+      call xcbcst(SRF_MLDU)
+      call xcbcst(SRF_MLDV)
+      call xcbcst(SRF_MTY)
+      call xcbcst(SRF_MXLU)
+      call xcbcst(SRF_MXLV)
+      call xcbcst(SRF_NSF)
+      call xcbcst(SRF_RFIFLX)
+      call xcbcst(SRF_RNFFLX)
+      call xcbcst(SRF_SALFLX)
+      call xcbcst(SRF_SALRLX)
+      call xcbcst(SRF_SEALV)
+      call xcbcst(SRF_SFL)
+      call xcbcst(SRF_SOP)
+      call xcbcst(SRF_SIGMX)
+      call xcbcst(SRF_SSS)
+      call xcbcst(SRF_SST)
+      call xcbcst(SRF_SURFLX)
+      call xcbcst(SRF_SURRLX)
+      call xcbcst(SRF_SWA)
+      call xcbcst(SRF_TAUX)
+      call xcbcst(SRF_TAUY)
+      call xcbcst(SRF_TICE)
+      call xcbcst(SRF_TSRF)
+      call xcbcst(SRF_UB)
+      call xcbcst(SRF_UICE)
+      call xcbcst(SRF_USTAR)
+      call xcbcst(SRF_VB)
+      call xcbcst(SRF_VICE)
+      call xcbcst(SRF_ZTX)
+      call xcbcst(LYR_DIAFLX)
+      call xcbcst(LYR_DIFDIA)
+      call xcbcst(LYR_DIFINT)
+      call xcbcst(LYR_DIFISO)
+      call xcbcst(LYR_DP)
+      call xcbcst(LYR_DPU)
+      call xcbcst(LYR_DPV)
+      call xcbcst(LYR_DZ)
+      call xcbcst(LYR_SALN)
+      call xcbcst(LYR_TEMP)
+      call xcbcst(LYR_TRC)
+      call xcbcst(LYR_UFLX)
+      call xcbcst(LYR_UTFLX)
+      call xcbcst(LYR_USFLX)
+      call xcbcst(LYR_UMFLTD)
+      call xcbcst(LYR_UTFLTD)
+      call xcbcst(LYR_UTFLLD)
+      call xcbcst(LYR_USFLTD)
+      call xcbcst(LYR_USFLLD)
+      call xcbcst(LYR_UVEL)
+      call xcbcst(LYR_VFLX)
+      call xcbcst(LYR_VTFLX)
+      call xcbcst(LYR_VSFLX)
+      call xcbcst(LYR_VMFLTD)
+      call xcbcst(LYR_VTFLTD)
+      call xcbcst(LYR_VTFLLD)
+      call xcbcst(LYR_VSFLTD)
+      call xcbcst(LYR_VSFLLD)
+      call xcbcst(LYR_VVEL)
+      call xcbcst(LYR_WFLX)
+      call xcbcst(LYR_WFLX2)
+      call xcbcst(LYR_TKE)
+      call xcbcst(LYR_GLS_PSI)
+      call xcbcst(LYR_IDLAGE)
+      call xcbcst(LVL_DIAFLX)
+      call xcbcst(LVL_DIFDIA)
+      call xcbcst(LVL_DIFINT)
+      call xcbcst(LVL_DIFISO)
+      call xcbcst(LVL_DZ)
+      call xcbcst(LVL_SALN)
+      call xcbcst(LVL_TEMP)
+      call xcbcst(LVL_TRC)
+      call xcbcst(LVL_UFLX)
+      call xcbcst(LVL_UTFLX)
+      call xcbcst(LVL_USFLX)
+      call xcbcst(LVL_UMFLTD)
+      call xcbcst(LVL_UTFLTD)
+      call xcbcst(LVL_UTFLLD)
+      call xcbcst(LVL_USFLTD)
+      call xcbcst(LVL_USFLLD)
+      call xcbcst(LVL_UVEL)
+      call xcbcst(LVL_VFLX)
+      call xcbcst(LVL_VTFLX)
+      call xcbcst(LVL_VSFLX)
+      call xcbcst(LVL_VMFLTD)
+      call xcbcst(LVL_VTFLTD)
+      call xcbcst(LVL_VTFLLD)
+      call xcbcst(LVL_VSFLTD)
+      call xcbcst(LVL_VSFLLD)
+      call xcbcst(LVL_VVEL)
+      call xcbcst(LVL_WFLX)
+      call xcbcst(LVL_WFLX2)
+      call xcbcst(LVL_TKE)
+      call xcbcst(LVL_GLS_PSI)
+      call xcbcst(LVL_IDLAGE)
+      call xcbcst(MSC_MMFLXL)
+      call xcbcst(MSC_MMFLXD)
+      call xcbcst(MSC_MMFTDL)
+      call xcbcst(MSC_MMFTDD)
+      call xcbcst(MSC_MHFLX)
+      call xcbcst(MSC_MHFTD)
+      call xcbcst(MSC_MHFLD)
+      call xcbcst(MSC_MSFLX)
+      call xcbcst(MSC_MSFTD)
+      call xcbcst(MSC_MSFLD)
+      call xcbcst(MSC_VOLTR)
+      call xcbcst(GLB_AVEPERIO)
+      call xcbcst(GLB_FILEFREQ)
+      call xcbcst(GLB_COMPFLAG)
+      call xcbcst(GLB_NCFORMAT)
+      do n=1,nphymax 
+        call xcbcst(GLB_FNAMETAG(n))
+      enddo
+c
+      call xcbcst(nphy)
 c
 c --- convert integer dates 
       nyear=sign(abs(idate)/10000,idate)
@@ -265,67 +450,55 @@ c --- set path lengths
         path2_len=path2_len+1
       enddo
       path2_len=path2_len-1
-#ifdef SYN
-      atm_path_len=1
-      do while (atm_path_len.lt.80.and.
-     .          atm_path(atm_path_len:atm_path_len).ne.' ')
-        atm_path_len=atm_path_len+1
-      enddo
-      atm_path_len=atm_path_len-1
-#endif
+      if (expcnf.eq.'ben02syn') then
+        atm_path_len=1
+        do while (atm_path_len.lt.80.and.
+     .            atm_path(atm_path_len:atm_path_len).ne.' ')
+          atm_path_len=atm_path_len+1
+        enddo
+        atm_path_len=atm_path_len-1
+      endif
 c
-#ifdef CCSMCOUPLED
-c --- override some information read from the micom namelist with
-c --- information received from the coupler and from the restart file
-c --- pointer if it exists
-      runid(1:80)=runid_mct(1:80)
-      inquire(file='rpointer.ocn',exist=fexist)
-      if (fexist) then
-        open (unit=nfu,file='rpointer.ocn')
-        read (nfu,'(a)') rstfnm
-        close (unit=nfu)
-        time=0.
-#ifdef PNETCDF
-        inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-          if (fexist) then
-            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
-            call ncgetr('time',time)
-            call ncfcls
-          else
-            if (mnproc.eq.1)
-     .       write (lp,*) 'Could not find proper restart file!'
-            call xchalt('(rdlim)')
-            stop '(rdlim)'
+      if (expcnf.eq.'cesm') then
+c
+c --- - override some information read from the micom namelist with
+c --- - information received from the coupler and from the restart file
+c --- - pointer if it exists
+        runid(1:80)=runid_mct(1:80)
+        if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
+        call xcbcst(fexist)
+        if (fexist) then
+          if (mnproc.eq.1) then
+            open (unit=nfu,file='rpointer.ocn')
+            read (nfu,'(a)') rstfnm
+            close (unit=nfu)
+            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+            if (fexist) then
+              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+              call ncgetr('time',time)
+            else
+              write (lp,*) 'Could not find proper restart file!'
+              call xchalt('(rdlim)')
+                     stop '(rdlim)' 
+            endif
+            if (runtype_mct.ne.'initial') then
+              n=1
+              do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+                n=n+1
+              enddo
+              n=n-1
+              read (rstfnm(n-18:n-15),'(i4)') nyear
+              read (rstfnm(n-13:n-12),'(i2)') nmonth
+              read (rstfnm(n-10:n-9 ),'(i2)') nday
+            endif
           endif
-
-#else
-        if (mnproc.eq.1) then
-          inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-          if (fexist) then
-            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
-            call ncgetr('time',time)
-            call ncfcls
-          else
-            write (lp,*) 'Could not find proper restart file!'
-            call xchalt('(rdlim)')
-            stop '(rdlim)' 
-          endif
-        endif
-#endif
-        call xcmaxr(time)
-        nday1=nint(time)
-        if (runtype_mct.ne.'initial') then
-          n=1
-          do while (n.lt.80.and.rstfnm(n:n).ne.' ')
-            n=n+1
-          enddo
-          n=n-1
-          read (rstfnm(n-18:n-15),'(i4)') nyear
-          read (rstfnm(n-13:n-12),'(i2)') nmonth
-          read (rstfnm(n-10:n-9 ),'(i2)') nday
+          call xcbcst(time)
+          call xcbcst(nyear)
+          call xcbcst(nmonth)
+          call xcbcst(nday)
+          nday1=nint(time)
         endif
       endif
-#endif
 c
 c --- set experiment id length
       runid_len=1
@@ -333,6 +506,14 @@ c --- set experiment id length
         runid_len=runid_len+1
       enddo
       runid_len=runid_len-1
+c
+c --- set experiment configuration length
+      expcnf_len=1
+      do while (expcnf_len.lt.80.and.
+     .          expcnf(expcnf_len:expcnf_len).ne.' ')
+        expcnf_len=expcnf_len+1
+      enddo
+      expcnf_len=expcnf_len-1
 c
       if (nday1.lt.0.or.nday2.lt.0) then
         if (mnproc.eq.1) then
@@ -489,9 +670,9 @@ c
         write (lp,'(a,a60)')   'path:      ',path
         write (lp,'(a,a60)')   'path1:     ',path1
         write (lp,'(a,a60)')   'path2:     ',path2
-#ifdef SYN
-        write (lp,'(a,a60)')   'atm_path:  ',atm_path
-#endif
+        if (expcnf.eq.'ben02syn') then
+          write (lp,'(a,a60)')   'atm_path:  ',atm_path
+        endif
 c
         write (lp,101) mdv2hi,mdv2lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo
  101    format (' turb. flux parameters:',1p/

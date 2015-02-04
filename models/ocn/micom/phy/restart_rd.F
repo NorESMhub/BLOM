@@ -7,6 +7,10 @@ c
       use mod_xc
       use mod_dia
       use mod_nctools
+      use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
+     .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
+     .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
+      use mod_thdysi, only: tsrfm,ticem
 c
       implicit none
 c
@@ -15,15 +19,9 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
-#if defined(CLIM) || defined(SYN)
-#  include "common_asf.h"
-#endif
-#ifdef CCSMCOUPLED
-#  include "common_ccsm.h"
-#endif
-#include "common_ice.h"
+#include "common_cesm.h"
+#include "common_seaice.h"
 c
-      real rtmp
       integer i,j,k,n,ndayr,nmonthr,nyearr,l
       character(len=80) :: rstfnm,fnm
       character(len=2) :: c2
@@ -33,8 +31,7 @@ c
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv,iqq
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
-      logical first,fexist
-      real rfexist
+      logical first,fexist,vexist
       data first /.true./
       save first,iuu,ivv,iqq
 c
@@ -46,31 +43,30 @@ c
 #  include "common_trc.h"
 #endif
 c
-#ifndef PNETCDF
       if (mnproc.eq.1) then
-#endif
 c
-#ifdef CCSMCOUPLED
-c --- - get file name from rpointer.ocn
-        inquire(file='rpointer.ocn',exist=fexist)
-        if (fexist) then
-          open (unit=nfu,file='rpointer.ocn')
-          read (nfu,'(a)') rstfnm
-          close (unit=nfu)
-        else
-          if (mnproc.eq.1) then
-          write (lp,*) 'Could not find file rpointer.ocn!'
+        if (expcnf.eq.'cesm') then
+c
+c --- --- get file name from rpointer.ocn
+          inquire(file='rpointer.ocn',exist=fexist)
+          if (fexist) then
+            open (unit=nfu,file='rpointer.ocn')
+            read (nfu,'(a)') rstfnm
+            close (unit=nfu)
+          else
+            write (lp,*) 'Could not find file rpointer.ocn!'
+            call xchalt('(restart_rd)')
+            stop '(restart_rd)' 
           endif
-          call xchalt('(restart_rd)')
-          stop '(restart_rd)' 
+        else
+c
+c --- -- first try file name:
+c --- --  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
+          write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
+     .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
+     .      '_',nday1,'.nc'
         endif
-#else
-c --- - first try file name:
-c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .    runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,'_',
-     .    nday1,'.nc'
-#endif
+c
         inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
         if (fexist) then
           call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
@@ -84,20 +80,16 @@ c
           if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
      .        ndayr.ne.nday0) then
             time0=nday1-i
-            if (mnproc.eq.1) then
             write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
      .        ' Warning! Initial experiment date changed from ',
      .        nyearr,'.',nmonthr,'.',ndayr,' to ',
      .        nyear0,'.',nmonth0,'.',nday0
-            endif
           elseif (nint(time0).ne.nday1-i) then
-            if (mnproc.eq.1) then
             write (lp,'(2a)')
-     .       ' Warning! Integration day corresponding to initial',
-     .       ' experiment'
+     .        ' Warning! Integration day corresponding to initial',
+     .        ' experiment'
             write (lp,'(a,i6,a,i6)')
      .        ' date changed from ',nint(time0),' to ',nday1-i
-            endif
             time0=nday1-i
           endif
         else
@@ -124,20 +116,15 @@ c --- -   <experiment name>_restphy_3.nc
             endif 
           enddo 
           if (i.gt.3) then 
-            if (mnproc.eq.1) then
             write (lp,*) 'Could not find proper restart file!'
-            endif
             call xchalt('(restart_rd)')
             stop '(restart_rd)' 
           endif 
         endif 
 c
-        if (mnproc.eq.1) 
-     .  write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
+        write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
 c
-#ifndef PNETCDF
       endif
-#endif
 c
 c --- Compute extended uv masks 
       if (first) then
@@ -186,16 +173,9 @@ c
       call ncread('utflx',utflx,iuu,1,0.)
       call ncread('usflx',usflx,iuu,1,0.)
 c
-      rtmp=0.
-#ifdef PNETCDF
-      if (ncinqv('umfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('umfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('umfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('umfltd',umfltd,iuu,1,0.)
       else
         if (mnproc.eq.1) then
@@ -215,16 +195,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-      if (ncinqv('utfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('utfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('utfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('utfltd',utfltd,iuu,1,0.)
       else
         if (mnproc.eq.1) then
@@ -244,16 +217,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('utflld')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('utflld')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('utflld')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('utflld',utflld,iuu,1,0.)
       else
         if (mnproc.eq.1) then
@@ -273,16 +239,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('usfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('usfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('usfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('usfltd',usfltd,iuu,1,0.)
       else
         if (mnproc.eq.1) then
@@ -302,16 +261,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('usflld')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('usflld')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('usflld')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('usflld',usflld,iuu,1,0.)
       else
         if (mnproc.eq.1) then
@@ -335,16 +287,9 @@ c
       call ncread('vtflx',vtflx,ivv,1,0.)
       call ncread('vsflx',vsflx,ivv,1,0.)
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('vmfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('vmfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('vmfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('vmfltd',vmfltd,ivv,1,0.)
       else
         if (mnproc.eq.1) then
@@ -364,16 +309,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('vtfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('vtfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('vtfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('vtfltd',vtfltd,ivv,1,0.)
       else
         if (mnproc.eq.1) then
@@ -393,16 +331,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('vtflld')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('vtflld')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('vtflld')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('vtflld',vtflld,ivv,1,0.)
       else
         if (mnproc.eq.1) then
@@ -422,16 +353,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('vsfltd')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('vsfltd')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('vsfltd')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('vsfltd',vsfltd,ivv,1,0.)
       else
         if (mnproc.eq.1) then
@@ -451,16 +375,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('vsflld')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('vsflld')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('vsflld')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('vsflld',vsflld,ivv,1,0.)
       else
         if (mnproc.eq.1) then
@@ -502,48 +419,14 @@ c
       call ncread('ustar',ustar,ip,1,0.)
       call ncread('buoyfl',buoyfl,ip,1,0.)
       call ncread('kfpla',rkfpla,ip,1,0.)
-      call ncread('hicem',hicem,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)
-      call ncread('tsrfm',tsrfm,ip,1,0.)
-      call ncread('hsnwm',hsnwm,ip,1,0.)
-      call ncread('ticem',ticem,ip,1,0.)
-      call ncread('iagem',iagem,ip,1,0.)
-      call ncread('tsi_tda',tsi_tda,ip,1,0.)
-      call ncread('tml_tda',tml_tda,ip,1,0.)
-      call ncread('sml_tda',sml_tda,ip,1,0.)
-      call ncread('alb_tda',alb_tda,ip,1,0.)
-      call ncread('fice_tda',fice_tda,ip,1,0.)
-c
-      rtmp=0.
-#ifdef PNETCDF
-       call ncgeti('ntda',ntda)
-        rtmp=ntda
-#else
-      if (mnproc.eq.1) then
-        call ncgeti('ntda',ntda)
-        rtmp=ntda
-      endif
-#endif
-      call xcmaxr(rtmp)
-      ntda=nint(rtmp)
-c
-      call ncread('rnfres',rnfres,ip,1,0.)
 c
       if (sprfac) then
-        prfac=-1.
-#ifdef PNETCDF
-         if (ncinqa('prfac')) then
-            call ncgetr('prfac',prfac)
-          endif
-#else
-        if (mnproc.eq.1) then
-          if (ncinqa('prfac')) then
-            call ncgetr('prfac',prfac)
-          endif
-        endif
-#endif
-        call xcmaxr(prfac)
-        if (prfac.gt.0.) then
+        if (mnproc.eq.1) vexist=ncinqa('prfac')
+        call xcbcst(vexist)
+        if (vexist) then
+          if (mnproc.eq.1) call ncgetr('prfac',prfac)
+          call xcbcst(prfac)
           call ncread('eiacc',eiacc,ip,1,0.)
           call ncread('pracc',pracc,ip,1,0.)
         else
@@ -565,111 +448,94 @@ c
         endif
       endif
 c
-#if defined(CLIM) || defined(SYN)
-      call ncread('cd_d',cd_d,ip,1,0.)
-      call ncread('ch_d',ch_d,ip,1,0.)
-      call ncread('ce_d',ce_d,ip,1,0.)
-      call ncread('wg2_d',wg2_d,ip,1,0.)
-      call ncread('cd_m',cd_m,ip,1,0.)
-      call ncread('ch_m',ch_m,ip,1,0.)
-      call ncread('ce_m',ce_m,ip,1,0.)
-      call ncread('wg2_m',wg2_m,ip,1,0.)
-      call ncread('rhoa',rhoa,ip,1,0.)
-#endif
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call ncread('cd_d',cd_d,ip,1,0.)
+        call ncread('ch_d',ch_d,ip,1,0.)
+        call ncread('ce_d',ce_d,ip,1,0.)
+        call ncread('wg2_d',wg2_d,ip,1,0.)
+        call ncread('cd_m',cd_m,ip,1,0.)
+        call ncread('ch_m',ch_m,ip,1,0.)
+        call ncread('ce_m',ce_m,ip,1,0.)
+        call ncread('wg2_m',wg2_m,ip,1,0.)
+        call ncread('rhoa',rhoa,ip,1,0.)
+        call ncread('tsi_tda',tsi_tda,ip,1,0.)
+        call ncread('tml_tda',tml_tda,ip,1,0.)
+        call ncread('sml_tda',sml_tda,ip,1,0.)
+        call ncread('alb_tda',alb_tda,ip,1,0.)
+        call ncread('fice_tda',fice_tda,ip,1,0.)
 c
-#ifdef CCSMCOUPLED
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('ustarw_da')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('ustarw_da')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
-        call ncread('ustarw_da',ustarw_da,ip,1,0.)
-        call ncread('ztx_da',ztx_da,ip,1,0.)
-        call ncread('mty_da',mty_da,ip,1,0.)
-        call ncread('lip_da',lip_da,ip,1,0.)
-        call ncread('sop_da',sop_da,ip,1,0.)
-        call ncread('eva_da',eva_da,ip,1,0.)
-        call ncread('rnf_da',rnf_da,ip,1,0.)
-        call ncread('rfi_da',rfi_da,ip,1,0.)
-        call ncread('fmltfz_da',fmltfz_da,ip,1,0.)
-        call ncread('sfl_da',sfl_da,ip,1,0.)
-        call ncread('swa_da',swa_da,ip,1,0.)
-        call ncread('nsf_da',nsf_da,ip,1,0.)
-        call ncread('hmlt_da',hmlt_da,ip,1,0.)
-        call ncread('slp_da',slp_da,ip,1,0.)
-        call ncread('ficem_da',ficem_da,ip,1,0.)
-        call ncread('abswnd_da',abswnd_da,ip,1,0.)
-        call ncread('atmco2_da',atmco2_da,ip,1,0.)
-        rtmp=0.
-#ifdef PNETCDF
-          call ncgeti('ll2',ll2)
-          rtmp=ll2
-#else
-        if (mnproc.eq.1) then
-          call ncgeti('ll2',ll2)
-          rtmp=ll2
-        endif
-#endif
-        call xcmaxr(rtmp)
-        ll2=nint(rtmp)
-        ll1=3-ll2
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: time levels for interpolation of forcing fields is'
-          write (lp,*)
-     .     'not read from restart file.'
-        endif
-        ll1=1
-        ll2=1
-      endif
-#endif
+        if (mnproc.eq.1) call ncgeti('ntda',ntda)
+        call xcbcst(ntda)
 c
-      call ncread('frzpot',frzpot,ip,1,0.)
-      call ncread('mltpot',mltpot,ip,1,0.)
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('flxco2')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('flxco2')) rtmp=1.
+        call ncread('hicem',hicem,ip,1,0.)
+        call ncread('tsrfm',tsrfm,ip,1,0.)
+        call ncread('hsnwm',hsnwm,ip,1,0.)
+        call ncread('ticem',ticem,ip,1,0.)
+        call ncread('iagem',iagem,ip,1,0.)
+        call ncread('rnfres',rnfres,ip,1,0.)
       endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
-        call ncread('flxco2',flxco2,ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: Air-sea CO2 flux is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
+c
+      if (expcnf.eq.'cesm') then
+        if (mnproc.eq.1) vexist=ncinqv('ustarw_da')
+        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('ustarw_da',ustarw_da,ip,1,0.)
+          call ncread('ztx_da',ztx_da,ip,1,0.)
+          call ncread('mty_da',mty_da,ip,1,0.)
+          call ncread('lip_da',lip_da,ip,1,0.)
+          call ncread('sop_da',sop_da,ip,1,0.)
+          call ncread('eva_da',eva_da,ip,1,0.)
+          call ncread('rnf_da',rnf_da,ip,1,0.)
+          call ncread('rfi_da',rfi_da,ip,1,0.)
+          call ncread('fmltfz_da',fmltfz_da,ip,1,0.)
+          call ncread('sfl_da',sfl_da,ip,1,0.)
+          call ncread('swa_da',swa_da,ip,1,0.)
+          call ncread('nsf_da',nsf_da,ip,1,0.)
+          call ncread('hmlt_da',hmlt_da,ip,1,0.)
+          call ncread('slp_da',slp_da,ip,1,0.)
+          call ncread('ficem_da',ficem_da,ip,1,0.)
+          call ncread('abswnd_da',abswnd_da,ip,1,0.)
+          call ncread('atmco2_da',atmco2_da,ip,1,0.)
+          if (mnproc.eq.1) call ncgeti('l2ci',l2ci)
+          call xcbcst(l2ci)
+          l1ci=3-l2ci
+        else
+          if (mnproc.eq.1) then
+            write (lp,*)
+     .'Warning: time levels for interpolation of forcing fields is not'
+            write (lp,*)
+     .       'read from restart file.'
+          endif
+          l1ci=1
+          l2ci=1
         endif
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            flxco2(i,j)=0.
+        call ncread('frzpot',frzpot,ip,1,0.)
+        call ncread('mltpot',mltpot,ip,1,0.)
+        if (mnproc.eq.1) vexist=ncinqv('flxco2')
+        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxco2',flxco2,ip,1,0.)
+        else
+          if (mnproc.eq.1) then
+            write (lp,*)
+     .'Warning: Air-sea CO2 flux is not read from restart file and'
+            write (lp,*)
+     .       'will be initialized to zero.'
+          endif
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              flxco2(i,j)=0.
+            enddo
+            enddo
           enddo
-          enddo
-        enddo
+        endif
       endif
 c
 #ifdef TKE
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('tke')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('tke')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('tke')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('tke',tke,ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -680,16 +546,9 @@ c
         endif
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('gls_psi')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('gls_psi')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('gls_psi')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('gls_psi',gls_psi,ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -700,16 +559,9 @@ c
         endif
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('L_scale')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('L_scale')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('L_scale')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('L_scale',L_scale,ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -720,16 +572,9 @@ c
         endif
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('difdia')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('difdia')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('difdia')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('difdia',difdia,ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -749,16 +594,9 @@ c
         enddo
       endif
 c
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('ustarb')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('ustarb')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('ustarb')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('ustarb',ustarb,ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -777,16 +615,9 @@ c
       endif
 #endif
 #if defined(TRC) && defined(IDLAGE)
-      rtmp=0.
-#ifdef PNETCDF
-        if (ncinqv('idlage')) rtmp=1.
-#else
-      if (mnproc.eq.1) then
-        if (ncinqv('idlage')) rtmp=1.
-      endif
-#endif
-      call xcmaxr(rtmp)
-      if (rtmp.gt..5) then
+      if (mnproc.eq.1) vexist=ncinqv('idlage')
+      call xcbcst(vexist)
+      if (vexist) then
         call ncread('idlage',trc(1-nbdy,1-nbdy,1,itriag),ip,1,0.)
       else
         if (mnproc.eq.1) then
@@ -801,27 +632,15 @@ c
 c
 c --- read accumulated fields
       do n=1,nphy        
-        rtmp=0.
-        write(c2,'(i2.2)') n
-#ifdef PNETCDF
-          if (ncinqa('nacc_phy'//c2)) then
-            call ncgeti('nacc_phy'//c2,nacc_phy(n))
-          else
-            nacc_phy(n)=0
-          endif
-          rtmp=nacc_phy(n)
-#else 
+        write(c2,'(i2.2)') n 
         if (mnproc.eq.1) then
           if (ncinqa('nacc_phy'//c2)) then 
             call ncgeti('nacc_phy'//c2,nacc_phy(n))
           else
             nacc_phy(n)=0
           endif 
-          rtmp=nacc_phy(n)
         endif 
-#endif
-        call xcmaxr(rtmp)
-        nacc_phy(n)=nint(rtmp)
+        call xcbcst(nacc_phy(n))
         if (nacc_phy(n).gt.0) then
           if (ACC_UVEL(n).ne.0) call ncread('uvel_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)),iuu,1,0.)
@@ -1080,39 +899,20 @@ c
       if (ditflx) then
 c
 c --- - read diag. heat flux restart file if available
-#ifdef CCSMCOUPLED
-        fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
-#else
-        fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
-#endif
-        inquire(file=path2(1:path2_len)//fnm,exist=fexist)
-        rfexist=0.
-#ifdef PNETCDF
-        if (fexist) rfexist=1.
-#else
-        if (mnproc.eq.1.and.fexist) rfexist=1.
-#endif
-        call xcmaxr(rfexist)
-        if (rfexist.gt.0.5) then
+        if (expcnf.eq.'cesm') then
+          fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+        else
+          fnm=runid(1:runid_len)//'_resttflx_'//rstfnm(runid_len+10:)
+        endif
+        if (mnproc.eq.1) inquire(file=path2(1:path2_len)//fnm,
+     .                           exist=fexist)
+        call xcbcst(fexist)
+        if (fexist) then
           call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
           if (mnproc.eq.1) write (lp,'(a,a)')
      .      ' reading diag. heat flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
-#ifdef PNETCDF
-          if (nint(time).ne.nday1) then
-            if (mnproc.eq.1) then
-            write (lp,'(a,i6.6,a)')
-     .        ' Integration day ',nint(time),
-     .        ' in diag. heat flux restart file differs from'
-            write (lp,'(a,i6.6,a)')
-     .        ' start day ',nday1,' in limits file!'
-            endif
-            call ncfcls
-            call xcstop('(restart_rd)')
-                   stop '(restart_rd)'
-          endif
-#else
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
      .        ' Integration day ',nint(time),
@@ -1123,7 +923,6 @@ c --- - read diag. heat flux restart file if available
             call xcstop('(restart_rd)') 
                    stop '(restart_rd)' 
           endif
-#endif
           call ncread('tflxdi',tflxdi,ip,1,0.)
           call ncgeti('nflxdi',nflxdi)
         else
@@ -1136,39 +935,20 @@ c
       if (disflx) then
 c
 c --- - read diag. salt flux restart file if available
-#ifdef CCSMCOUPLED
-        fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
-#else
-        fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
-#endif
-        inquire(file=path2(1:path2_len)//fnm,exist=fexist)
-        rfexist=0.
-#ifdef PNETCDF
-        if (fexist) rfexist=1.
-#else
-        if (mnproc.eq.1.and.fexist) rfexist=1.
-#endif
-        call xcmaxr(rfexist)
-        if (rfexist.gt.0.5) then
+        if (expcnf.eq.'cesm') then
+          fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+        else
+          fnm=runid(1:runid_len)//'_restsflx_'//rstfnm(runid_len+10:)
+        endif
+        if (mnproc.eq.1) inquire(file=path2(1:path2_len)//fnm,
+     .                           exist=fexist)
+        call xcbcst(fexist)
+        if (fexist) then
           call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
           if (mnproc.eq.1) write (lp,'(a,a)')
      .      ' reading diag. salt flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
           call ncgetr('time',time)
-#ifdef PNETCDF
-          if (nint(time).ne.nday1) then
-           if (mnproc.eq.1) then
-            write (lp,'(a,i6.6,a)')
-     .        ' Integration day ',nint(time),
-     .        ' in diag. salt flux restart file differs from'
-            write (lp,'(a,i6.6,a)')
-     .        ' start day ',nday1,' in limits file!'
-            endif
-            call ncfcls
-            call xcstop('(restart_rd)')
-                   stop '(restart_rd)'
-          endif
-#else
           if (nint(time).ne.nday1.and.mnproc.eq.1) then
             write (lp,'(a,i6.6,a)')
      .        ' Integration day ',nint(time),
@@ -1179,7 +959,6 @@ c --- - read diag. salt flux restart file if available
             call xcstop('(restart_rd)') 
                    stop '(restart_rd)' 
           endif
-#endif
           call ncread('sflxdi',sflxdi,ip,1,0.)
           call ncgeti('nflxdi',nflxdi)
         else

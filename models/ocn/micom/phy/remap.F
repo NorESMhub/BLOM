@@ -8,10 +8,7 @@
 #  endif
 #endif
 #ifdef TRC
-     .                ,k,ntrc,trc
-#  ifdef ATRC
-     .                ,natrc
-#  endif
+     .                ,k,trc
 #endif
      .                )
 c
@@ -66,11 +63,8 @@ c
 #endif
 #ifdef TRC
 #  include "param_trc.h"
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm,ntr) :: trc
-      integer k,ntrc
-#  ifdef ATRC
-      integer natrc
-#  endif
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm,ntr) :: trc
+      integer k
 #endif
 c
 c --- Local variables.
@@ -167,16 +161,16 @@ c
 #endif
 #ifdef TRC
 #  ifdef ATRC
-          do nt=1,ntrc-natrc
+          do nt=1,ntr-natr
             ftru(nt,i,j)=0.
             ftrv(nt,i,j)=0.
           enddo
-          do nt=1,natrc
+          do nt=1,natr
             fagu(nt,i,j)=0.
             fagv(nt,i,j)=0.
           enddo
 #  else
-          do nt=1,ntrc
+          do nt=1,ntr
             ftru(nt,i,j)=0.
             ftrv(nt,i,j)=0.
           enddo
@@ -188,7 +182,7 @@ c
       enddo
 #if defined(TRC) && defined(ATRC)
 c
-      do nt=1,natrc
+      do nt=1,natr
         nat=ntr-natr+nt
         do j=1-mrg-2,jj+mrg+2
           do l=1,isp(j)
@@ -386,7 +380,7 @@ c --- --- Compute limited gradient for gls_psi.
 #  ifdef ATRC
 c
 c --- --- Compute limited gradient for tracers.
-          do nt=1,ntrc-natrc
+          do nt=1,ntr-natr
             trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
             try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
@@ -419,7 +413,7 @@ c --- --- Compute limited gradient for tracers.
           enddo
 c
 c --- --- Compute limited gradient for age tracers.
-          do nt=1,natrc
+          do nt=1,natr
             nat=ntr-natr+nt
             agx(nt,i,j)=(ag(nt,ie,j)-ag(nt,iw,j))*dxi
             agy(nt,i,j)=(ag(nt,i,jn)-ag(nt,i,js))*dyi
@@ -456,7 +450,7 @@ c --- --- Compute limited gradient for age tracers.
 #else
 c
 c --- --- Compute limited gradient for tracers.
-          do nt=1,ntrc
+          do nt=1,ntr
             trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
             try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
@@ -634,7 +628,7 @@ c
               qxx=axx*dl+axxx*dx(i-1,j-1)+axxy*dy(i-1,j-1)
               qyy=ayy*dl+axyy*dx(i-1,j-1)+ayyy*dy(i-1,j-1)
               qxy=axy*dl+axxy*dx(i-1,j-1)+axyy*dy(i-1,j-1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i-1,j-1)
      .             +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
                 ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -646,12 +640,12 @@ c
      .                       +qxy*trx(nt,i-1,j-1)
      .                       +qyy*try(nt,i-1,j-1))*agy(nt,i-1,j-1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
@@ -703,7 +697,7 @@ c
               qxx=axx*dl+axxx*dx(i-1,j+1)+axxy*dy(i-1,j+1)
               qyy=ayy*dl+axyy*dx(i-1,j+1)+ayyy*dy(i-1,j+1)
               qxy=axy*dl+axxy*dx(i-1,j+1)+axyy*dy(i-1,j+1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i-1,j+1)
      .             +qx*trx(nt,i-1,j+1)+qy*try(nt,i-1,j+1)
                 ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -715,12 +709,12 @@ c
      .                       +qxy*trx(nt,i-1,j+1)
      .                       +qyy*try(nt,i-1,j+1))*agy(nt,i-1,j+1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j+1)
      .                      +qx*trx(nt,i-1,j+1)+qy*try(nt,i-1,j+1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j+1)
      .                      +qx*trx(nt,i-1,j+1)+qy*try(nt,i-1,j+1)
               enddo
@@ -765,7 +759,7 @@ c
             qxx=axx*dl+axxx*dx(i-1,j)+axxy*dy(i-1,j)
             qyy=ayy*dl+axyy*dx(i-1,j)+ayyy*dy(i-1,j)
             qxy=axy*dl+axxy*dx(i-1,j)+axyy*dy(i-1,j)
-            do nt=1,natrc
+            do nt=1,natr
               fdt=fd*trd(nt,i-1,j)
      .           +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
               ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -777,12 +771,12 @@ c
      .                     +qxy*trx(nt,i-1,j)
      .                     +qyy*try(nt,i-1,j))*agy(nt,i-1,j)
             enddo
-            do nt=natrc+1,ntrc-natrc
+            do nt=natr+1,ntr-natr
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j)
      .                    +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
             enddo
 #  else
-            do nt=1,ntrc
+            do nt=1,ntr
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j)
      .                    +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
             enddo
@@ -832,7 +826,7 @@ c
               qxx=axx*dl+axxx*dx(i,j-1)+axxy*dy(i,j-1)
               qyy=ayy*dl+axyy*dx(i,j-1)+ayyy*dy(i,j-1)
               qxy=axy*dl+axxy*dx(i,j-1)+axyy*dy(i,j-1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i,j-1)
      .             +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
                 ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -844,12 +838,12 @@ c
      .                       +qxy*trx(nt,i,j-1)
      .                       +qyy*try(nt,i,j-1))*agy(nt,i,j-1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j-1)
      .                      +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j-1)
      .                      +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
               enddo
@@ -901,7 +895,7 @@ c
               qxx=axx*dl+axxx*dx(i,j+1)+axxy*dy(i,j+1)
               qyy=ayy*dl+axyy*dx(i,j+1)+ayyy*dy(i,j+1)
               qxy=axy*dl+axxy*dx(i,j+1)+axyy*dy(i,j+1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i,j+1)
      .             +qx*trx(nt,i,j+1)+qy*try(nt,i,j+1)
                 ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -913,12 +907,12 @@ c
      .                       +qxy*trx(nt,i,j+1)
      .                       +qyy*try(nt,i,j+1))*agy(nt,i,j+1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j+1)
      .                      +qx*trx(nt,i,j+1)+qy*try(nt,i,j+1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j+1)
      .                      +qx*trx(nt,i,j+1)+qy*try(nt,i,j+1)
               enddo
@@ -963,7 +957,7 @@ c
             qxx=axx*dl+axxx*dx(i,j)+axxy*dy(i,j)
             qyy=ayy*dl+axyy*dx(i,j)+ayyy*dy(i,j)
             qxy=axy*dl+axxy*dx(i,j)+axyy*dy(i,j)
-            do nt=1,natrc
+            do nt=1,natr
               fdt=fd*trd(nt,i,j)
      .           +qx*trx(nt,i,j)+qy*try(nt,i,j)
               ftru(nt,i,j)=ftru(nt,i,j)+fdt
@@ -975,12 +969,12 @@ c
      .                     +qxy*trx(nt,i,j)
      .                     +qyy*try(nt,i,j))*agy(nt,i,j)
             enddo
-            do nt=natrc+1,ntrc-natrc
+            do nt=natr+1,ntr-natr
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
 #  else
-            do nt=1,ntrc
+            do nt=1,ntr
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
@@ -1059,7 +1053,7 @@ c
               qxx=axx*dl+axxx*dx(i-1,j-1)+axxy*dy(i-1,j-1)
               qyy=ayy*dl+axyy*dx(i-1,j-1)+ayyy*dy(i-1,j-1)
               qxy=axy*dl+axxy*dx(i-1,j-1)+axyy*dy(i-1,j-1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i-1,j-1)
      .             +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1071,12 +1065,12 @@ c
      .                       +qxy*trx(nt,i-1,j-1)
      .                       +qyy*try(nt,i-1,j-1))*agy(nt,i-1,j-1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
@@ -1128,7 +1122,7 @@ c
               qxx=axx*dl+axxx*dx(i+1,j-1)+axxy*dy(i+1,j-1)
               qyy=ayy*dl+axyy*dx(i+1,j-1)+ayyy*dy(i+1,j-1)
               qxy=axy*dl+axxy*dx(i+1,j-1)+axyy*dy(i+1,j-1)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i+1,j-1)
      .             +qx*trx(nt,i+1,j-1)+qy*try(nt,i+1,j-1)
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1140,12 +1134,12 @@ c
      .                       +qxy*trx(nt,i+1,j-1)
      .                       +qyy*try(nt,i+1,j-1))*agy(nt,i+1,j-1)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j-1)
      .                      +qx*trx(nt,i+1,j-1)+qy*try(nt,i+1,j-1)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j-1)
      .                      +qx*trx(nt,i+1,j-1)+qy*try(nt,i+1,j-1)
               enddo
@@ -1190,7 +1184,7 @@ c
             qxx=axx*dl+axxx*dx(i,j-1)+axxy*dy(i,j-1)
             qyy=ayy*dl+axyy*dx(i,j-1)+ayyy*dy(i,j-1)
             qxy=axy*dl+axxy*dx(i,j-1)+axyy*dy(i,j-1)
-            do nt=1,natrc
+            do nt=1,natr
               fdt=fd*trd(nt,i,j-1)
      .           +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
               ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1202,12 +1196,12 @@ c
      .                     +qxy*trx(nt,i,j-1)
      .                     +qyy*try(nt,i,j-1))*agy(nt,i,j-1)
             enddo
-            do nt=natrc+1,ntrc-natrc
+            do nt=natr+1,ntr-natr
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j-1)
      .                    +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
             enddo
 #  else
-            do nt=1,ntrc
+            do nt=1,ntr
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j-1)
      .                    +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
             enddo
@@ -1257,7 +1251,7 @@ c
               qxx=axx*dl+axxx*dx(i-1,j)+axxy*dy(i-1,j)
               qyy=ayy*dl+axyy*dx(i-1,j)+ayyy*dy(i-1,j)
               qxy=axy*dl+axxy*dx(i-1,j)+axyy*dy(i-1,j)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i-1,j)
      .             +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1269,12 +1263,12 @@ c
      .                       +qxy*trx(nt,i-1,j)
      .                       +qyy*try(nt,i-1,j))*agy(nt,i-1,j)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j)
      .                      +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j)
      .                      +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
               enddo
@@ -1326,7 +1320,7 @@ c
               qxx=axx*dl+axxx*dx(i+1,j)+axxy*dy(i+1,j)
               qyy=ayy*dl+axyy*dx(i+1,j)+ayyy*dy(i+1,j)
               qxy=axy*dl+axxy*dx(i+1,j)+axyy*dy(i+1,j)
-              do nt=1,natrc
+              do nt=1,natr
                 fdt=fd*trd(nt,i+1,j)
      .             +qx*trx(nt,i+1,j)+qy*try(nt,i+1,j)
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1338,12 +1332,12 @@ c
      .                       +qxy*trx(nt,i+1,j)
      .                       +qyy*try(nt,i+1,j))*agy(nt,i+1,j)
               enddo
-              do nt=natrc+1,ntrc-natrc
+              do nt=natr+1,ntr-natr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j)
      .                      +qx*trx(nt,i+1,j)+qy*try(nt,i+1,j)
               enddo
 #  else
-              do nt=1,ntrc
+              do nt=1,ntr
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j)
      .                      +qx*trx(nt,i+1,j)+qy*try(nt,i+1,j)
               enddo
@@ -1388,7 +1382,7 @@ c
             qxx=axx*dl+axxx*dx(i,j)+axxy*dy(i,j)
             qyy=ayy*dl+axyy*dx(i,j)+ayyy*dy(i,j)
             qxy=axy*dl+axxy*dx(i,j)+axyy*dy(i,j)
-            do nt=1,natrc
+            do nt=1,natr
               fdt=fd*trd(nt,i,j)
      .           +qx*trx(nt,i,j)+qy*try(nt,i,j)
               ftrv(nt,i,j)=ftrv(nt,i,j)+fdt
@@ -1400,12 +1394,12 @@ c
      .                     +qxy*trx(nt,i,j)
      .                     +qyy*try(nt,i,j))*agy(nt,i,j)
             enddo
-            do nt=natrc+1,ntrc-natrc
+            do nt=natr+1,ntr-natr
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
 #  else
-            do nt=1,ntrc
+            do nt=1,ntr
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
@@ -1428,15 +1422,9 @@ c --- ------------------------------------------------------------------
 c --- Update fields
 c --- ------------------------------------------------------------------
 c
-#ifdef NEST
-      do j=2,jj-2
-        do l=1,isp(j)
-        do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
-#else
       do j=1-mrg,jj+mrg
         do l=1,isp(j)
         do i=max(1-mrg,ifp(j,l)),min(ii+mrg,ilp(j,l))
-#endif
           q=dp(i,j)
           dp(i,j)=q-(fdu(i+1,j)-fdu(i,j)
      .              +fdv(i,j+1)-fdv(i,j))*scp2i(i,j)
@@ -1462,7 +1450,7 @@ c
 #endif
 #ifdef TRC
 #  ifdef ATRC
-          do nt=1,natrc
+          do nt=1,natr
             nat=ntr-natr+nt
             trc(i,j,k,nt)=
      .        max(0.,(q*trc(i,j,k,nt)
@@ -1474,14 +1462,14 @@ c
      .                      +fagv(nt,i,j+1)-fagv(nt,i,j))*scp2i(i,j))
      .                     /dp(i,j)
           enddo
-          do nt=natrc+1,ntrc-natrc
+          do nt=natr+1,ntr-natr
             trc(i,j,k,nt)=(q*trc(i,j,k,nt)
      .                    -(ftru(nt,i+1,j)-ftru(nt,i,j)
      .                     +ftrv(nt,i,j+1)-ftrv(nt,i,j))*scp2i(i,j))
      .                    /dp(i,j)
           enddo
 #  else
-          do nt=1,ntrc
+          do nt=1,ntr
             trc(i,j,k,nt)=(q*trc(i,j,k,nt)
      .                    -(ftru(nt,i+1,j)-ftru(nt,i,j)
      .                     +ftrv(nt,i,j+1)-ftrv(nt,i,j))*scp2i(i,j))

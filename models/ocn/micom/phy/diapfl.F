@@ -112,8 +112,8 @@ cdiag
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              ttrc(nt,k)=trc(i,j,k,nt)
+            do nt=1,ntr
+              ttrc(nt,k)=trc(i,j,kn,nt)
             enddo
 #endif
           enddo
@@ -156,7 +156,7 @@ c --- ----- and kmin+1
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,kmin+1)=ttrc(nt,2)
               ttrc(nt,kmin  )=ttrc(nt,1)
             enddo
@@ -551,7 +551,7 @@ c --- ----- backward integration forming a tridiagonal set of equations.
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,k)=(dtd*ttrc(nt,k)-atd*ttrc(nt,max(1,k-1)))*bitd
               enddo
 #endif
@@ -567,7 +567,7 @@ c --- ----- backward integration forming a tridiagonal set of equations.
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,k)=ttrc(nt,k)-gtd(k+1)*ttrc(nt,k+1)
               enddo
 #endif
@@ -602,7 +602,7 @@ c --- ----- index kmin and kmin+1
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,1)=ttrc(nt,kmin  )
               ttrc(nt,2)=ttrc(nt,kmin+1)
             enddo
@@ -625,7 +625,7 @@ c --- --- salinity, and tracers
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,k)=ttrc(nt,2)
               enddo
 #endif
@@ -643,7 +643,7 @@ c --- --- salinity, and tracers
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,k)=ttrc(nt,kfpl)
               enddo
 #endif
@@ -659,7 +659,7 @@ c --- --- salinity, and tracers
 #  endif
 #endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,k)=ttrc(nt,kmax)
               enddo
 #endif
@@ -682,8 +682,8 @@ c --- --- Copy 1d arrays to 3d arrays
 #  endif
 #endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=ttrc(nt,k)
+            do nt=1,ntr
+              trc(i,j,kn,nt)=ttrc(nt,k)
             enddo
 #endif
           enddo
@@ -975,8 +975,8 @@ c
 #  endif
 #endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif
