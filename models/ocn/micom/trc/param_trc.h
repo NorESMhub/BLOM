@@ -24,7 +24,7 @@ c
      .        i_iso
 c
 c --- Advected HAMOCC tracers
-      parameter (i_base_adv=14)      
+      parameter (i_base_adv=17)      
 #  ifdef __c_isotopes
       parameter (i_iso_adv=2)      
 #  else 

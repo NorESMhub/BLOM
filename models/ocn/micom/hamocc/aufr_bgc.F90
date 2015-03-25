@@ -1,4 +1,5 @@
-      SUBROUTINE AUFR_BGC(kpie,kpje,kpke,                       &
+      SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,     &
+     &                    trc,sedlay2,powtra2,burial2,          &
      &                    kplyear,kplmon,kplday,kpldtoce,       &
      &                    rstfnm_ocn,path)
 
@@ -23,6 +24,9 @@
 !     - removed reading of chemcm and ak* fields
 !     - code cleanup, remoded preprocessor option "PNETCDF"
 !       and "NOMPI"
+!     J.Schwinger,      *GFI, Bergen*     2014-05-21
+!     - adapted code for writing of two time level tracer 
+!       and sediment fields
 !
 !     Purpose
 !     -------
@@ -44,6 +48,15 @@
 !     *INTEGER* *kpie*       - 1st dimension of model grid.
 !     *INTEGER* *kpje*       - 2nd dimension of model grid.
 !     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
+!     *INTEGER* *ntr*        - number of tracers in tracer field
+!     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
+!     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
+!     *REAL*    *trc*        - initial/restart tracer field to be passed to the 
+!                              ocean model [mol/kg]
+!     *REAL*    *sedlay2*    - initial/restart sediment (two time levels) field
+!     *REAL*    *powtra2*    - initial/restart pore water tracer (two time levels) field
+!     *REAL*    *sedhpl2*    - initial/restart pore water ph (two time levels) field
+!     *REAL*    *burial2*    - initial/restart sediment burial (two time levels) field
 !     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmon*     - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
@@ -56,35 +69,40 @@
 
       USE mo_carbch
       USE mo_biomod
-      USE mo_sedmnt
       USE mo_control_bgc
       use mo_param1_bgc 
-      use mod_xc, only: mnproc,xchalt
+      USE mo_sedmnt, only:sedhpl
+      use mod_xc,    only: nbdy,mnproc,xchalt
 
       implicit none
       
-      INTEGER          :: kpie,kpje,kpke
+      INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
+      REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
+      REAL             :: sedlay2(kpie,kpje,2*ks,nsedtra)
+      REAL             :: powtra2(kpie,kpje,2*ks,npowtra)
+      REAL             :: burial2(kpie,kpje,2,   nsedtra)
       INTEGER          :: kplyear,kplmon,kplday,kpldtoce
       character(len=*) :: rstfnm_ocn,path
 
       ! Local variables
-      INTEGER   :: idate(5)
-      INTEGER   :: i,j,k,l
-      INTEGER   :: restyear            !  year of restart file
-      INTEGER   :: restmonth           !  month of restart file
-      INTEGER   :: restday             !  day of restart file
-      INTEGER   :: restdtoce           !  time step number from bgc ocean file
+      REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading 
+      INTEGER   :: restyear                          !  year of restart file
+      INTEGER   :: restmonth                         !  month of restart file
+      INTEGER   :: restday                           !  day of restart file
+      INTEGER   :: restdtoce                         !  time step number from bgc ocean file
+      INTEGER   :: idate(5),i,j
       character :: rstfnm*80
 
       INCLUDE 'netcdf.inc'
       INTEGER ncid,ncstat,ncvarid
 
+
+      locetra(:,:,:,:) = 0.0
 !
 ! Open netCDF data file
 !
       IF(mnproc==1) THEN
 
-#ifdef CCSMCOUPLED
         i=1
         do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
@@ -96,19 +114,6 @@
           endif
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
-#else
-        i=1
-        do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            write (io_stdo_bgc,*)                                    &
-     &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
-          endif
-        enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'_rest_b_'//rstfnm_ocn(i+9:)
-#endif
 
         ncstat = NF_OPEN(trim(path)//rstfnm,NF_NOWRITE, ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
@@ -143,11 +148,6 @@
 !
 ! Compare with date read from ocean restart file
 
-! Memorize ocean start date :   
-      bgcstartyear  = kplyear
-      bgcstartmonth = kplmon
-      bgcstartday   = kplday
-
       IF ( kplyear  .NE. restyear  ) THEN
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)                                     &
@@ -178,52 +178,56 @@
 !
 ! Read restart data : ocean aquateous tracer
 !                
-      CALL read_netcdf_var(ncid,'sco212',ocetra(1,1,1,isco212),kpke,0)
+      CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,isco212),2*kpke,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'sco213',ocetra(1,1,1,isco213),kpke,0)
-      CALL read_netcdf_var(ncid,'sco214',ocetra(1,1,1,isco214),kpke,0)
+      CALL read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0)
+      CALL read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0)
 #endif
-      CALL read_netcdf_var(ncid,'alkali',ocetra(1,1,1,ialkali),kpke,0)
-      CALL read_netcdf_var(ncid,'phosph',ocetra(1,1,1,iphosph),kpke,0)
-      CALL read_netcdf_var(ncid,'oxygen',ocetra(1,1,1,ioxygen),kpke,0)
-      CALL read_netcdf_var(ncid,'gasnit',ocetra(1,1,1,igasnit),kpke,0)
-      CALL read_netcdf_var(ncid,'ano3',ocetra(1,1,1,iano3),kpke,0)
-      CALL read_netcdf_var(ncid,'silica',ocetra(1,1,1,isilica),kpke,0)
-      CALL read_netcdf_var(ncid,'doc',ocetra(1,1,1,idoc),kpke,0)
-      CALL read_netcdf_var(ncid,'phyto',ocetra(1,1,1,iphy),kpke,0)
-      CALL read_netcdf_var(ncid,'grazer',ocetra(1,1,1,izoo),kpke,0)
-      CALL read_netcdf_var(ncid,'poc',ocetra(1,1,1,idet),kpke,0)
+      CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,ialkali),2*kpke,0)
+      CALL read_netcdf_var(ncid,'phosph',locetra(1,1,1,iphosph),2*kpke,0)
+      CALL read_netcdf_var(ncid,'oxygen',locetra(1,1,1,ioxygen),2*kpke,0)
+      CALL read_netcdf_var(ncid,'gasnit',locetra(1,1,1,igasnit),2*kpke,0)
+      CALL read_netcdf_var(ncid,'ano3',locetra(1,1,1,iano3),2*kpke,0)
+      CALL read_netcdf_var(ncid,'silica',locetra(1,1,1,isilica),2*kpke,0)
+      CALL read_netcdf_var(ncid,'doc',locetra(1,1,1,idoc),2*kpke,0)
+      CALL read_netcdf_var(ncid,'phyto',locetra(1,1,1,iphy),2*kpke,0)
+      CALL read_netcdf_var(ncid,'grazer',locetra(1,1,1,izoo),2*kpke,0)
+      CALL read_netcdf_var(ncid,'poc',locetra(1,1,1,idet),2*kpke,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'poc13',ocetra(1,1,1,idet13),kpke,0)
-      CALL read_netcdf_var(ncid,'poc14',ocetra(1,1,1,idet14),kpke,0)
+      CALL read_netcdf_var(ncid,'poc13',locetra(1,1,1,idet13),2*kpke,0)
+      CALL read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0)
 #endif
-      CALL read_netcdf_var(ncid,'calciu',ocetra(1,1,1,icalc),kpke,0)
+      CALL read_netcdf_var(ncid,'calciu',locetra(1,1,1,icalc),2*kpke,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'calciu13',ocetra(1,1,1,icalc13),kpke,0)
-      CALL read_netcdf_var(ncid,'calciu14',ocetra(1,1,1,icalc14),kpke,0)
+      CALL read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0)
+      CALL read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0)
 #endif
-      CALL read_netcdf_var(ncid,'opal',ocetra(1,1,1,iopal),kpke,0)
-      CALL read_netcdf_var(ncid,'n2o',ocetra(1,1,1,ian2o),kpke,0)
-      CALL read_netcdf_var(ncid,'dms',ocetra(1,1,1,idms),kpke,0)
-      CALL read_netcdf_var(ncid,'fdust',ocetra(1,1,1,ifdust),kpke,0)
-      CALL read_netcdf_var(ncid,'iron',ocetra(1,1,1,iiron),kpke,0)
+      CALL read_netcdf_var(ncid,'opal',locetra(1,1,1,iopal),2*kpke,0)
+      CALL read_netcdf_var(ncid,'n2o',locetra(1,1,1,ian2o),2*kpke,0)
+      CALL read_netcdf_var(ncid,'dms',locetra(1,1,1,idms),2*kpke,0)
+      CALL read_netcdf_var(ncid,'fdust',locetra(1,1,1,ifdust),2*kpke,0)
+      CALL read_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0)
+      CALL read_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
+      CALL read_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
+      CALL read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
 
 #ifdef AGG
-      CALL read_netcdf_var(ncid,'snos',ocetra(1,1,1,inos),kpke,0)
-      CALL read_netcdf_var(ncid,'adust',ocetra(1,1,1,iadust),kpke,0)
+      CALL read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
+      CALL read_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0)
 #endif /*AGG*/
 
 #ifdef ANTC14
-      CALL read_netcdf_var(ncid,'antc14',ocetra(1,1,1,iantc14),kpke,0)
+      CALL read_netcdf_var(ncid,'antc14',locetra(1,1,1,iantc14),2*kpke,0)
 #endif
 #ifdef CFC
-      CALL read_netcdf_var(ncid,'cfc11',ocetra(1,1,1,icfc11),kpke,0)
-      CALL read_netcdf_var(ncid,'cfc12',ocetra(1,1,1,icfc12),kpke,0)
-      CALL read_netcdf_var(ncid,'sf6',ocetra(1,1,1,isf6),kpke,0)
+#ifdef RESTART_CFC
+      CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0)
+      CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
+      CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0)
 #endif
-
+#endif
 !
-! Read restart data : other fields
+! Read restart data : diagnostic ocean fields
 !
      CALL read_netcdf_var(ncid,'hi',hi(1,1,1),kpke,0)
      CALL read_netcdf_var(ncid,'co3',co3(1,1,1),kpke,0)
@@ -232,34 +236,35 @@
 
 !
 ! Read restart data : sediment variables.
-      CALL read_netcdf_var(ncid,'ssso12',sedlay(1,1,1,issso12),ks,0)
+!
+      CALL read_netcdf_var(ncid,'ssso12',sedlay2(1,1,1,issso12),2*ks,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'ssso13',sedlay(1,1,1,issso13),ks,0)
-      CALL read_netcdf_var(ncid,'ssso14',sedlay(1,1,1,issso14),ks,0)
+      CALL read_netcdf_var(ncid,'ssso13',sedlay2(1,1,1,issso13),2*ks,0)
+      CALL read_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0)
 #endif
-      CALL read_netcdf_var(ncid,'sssc12',sedlay(1,1,1,isssc12),ks,0)
+      CALL read_netcdf_var(ncid,'sssc12',sedlay2(1,1,1,isssc12),2*ks,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'sssc13',sedlay(1,1,1,isssc13),ks,0)
-      CALL read_netcdf_var(ncid,'sssc14',sedlay(1,1,1,isssc14),ks,0)
+      CALL read_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0)
+      CALL read_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0)
 #endif
-      CALL read_netcdf_var(ncid,'ssssil',sedlay(1,1,1,issssil),ks,0)
-      CALL read_netcdf_var(ncid,'ssster',sedlay(1,1,1,issster),ks,0)
-      CALL read_netcdf_var(ncid,'bur_o12',burial(1,1,issso12),1,0)
-      CALL read_netcdf_var(ncid,'bur_c12',burial(1,1,isssc12),1,0)
-      CALL read_netcdf_var(ncid,'bur_sil',burial(1,1,issssil),1,0)
-      CALL read_netcdf_var(ncid,'bur_clay',burial(1,1,issster),1,0)
+      CALL read_netcdf_var(ncid,'ssssil',sedlay2(1,1,1,issssil),2*ks,0)
+      CALL read_netcdf_var(ncid,'ssster',sedlay2(1,1,1,issster),2*ks,0)
+      CALL read_netcdf_var(ncid,'bur_o12',burial2(1,1,1,issso12),2,0)
+      CALL read_netcdf_var(ncid,'bur_c12',burial2(1,1,1,isssc12),2,0)
+      CALL read_netcdf_var(ncid,'bur_sil',burial2(1,1,1,issssil),2,0)
+      CALL read_netcdf_var(ncid,'bur_clay',burial2(1,1,1,issster),2,0)
       CALL read_netcdf_var(ncid,'sedhpl',sedhpl(1,1,1),ks,0)
-      CALL read_netcdf_var(ncid,'powaic',powtra(1,1,1,ipowaic),ks,0)
+      CALL read_netcdf_var(ncid,'powaic',powtra2(1,1,1,ipowaic),2*ks,0)
 #ifdef __c_isotopes
-      CALL read_netcdf_var(ncid,'powc13',powtra(1,1,1,ipowc13),ks,0)
-      CALL read_netcdf_var(ncid,'powc14',powtra(1,1,1,ipowc14),ks,0)
+      CALL read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
+      CALL read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
 #endif
-      CALL read_netcdf_var(ncid,'powaal',powtra(1,1,1,ipowaal),ks,0)
-      CALL read_netcdf_var(ncid,'powaph',powtra(1,1,1,ipowaph),ks,0)
-      CALL read_netcdf_var(ncid,'powaox',powtra(1,1,1,ipowaox),ks,0)
-      CALL read_netcdf_var(ncid,'pown2',powtra(1,1,1,ipown2),ks,0)
-      CALL read_netcdf_var(ncid,'powno3',powtra(1,1,1,ipowno3),ks,0)
-      CALL read_netcdf_var(ncid,'powasi',powtra(1,1,1,ipowasi),ks,0)
+      CALL read_netcdf_var(ncid,'powaal',powtra2(1,1,1,ipowaal),2*ks,0)
+      CALL read_netcdf_var(ncid,'powaph',powtra2(1,1,1,ipowaph),2*ks,0)
+      CALL read_netcdf_var(ncid,'powaox',powtra2(1,1,1,ipowaox),2*ks,0)
+      CALL read_netcdf_var(ncid,'pown2',powtra2(1,1,1,ipown2),2*ks,0)
+      CALL read_netcdf_var(ncid,'powno3',powtra2(1,1,1,ipowno3),2*ks,0)
+      CALL read_netcdf_var(ncid,'powasi',powtra2(1,1,1,ipowasi),2*ks,0)
 
 #ifdef DIFFAT 
 !
@@ -276,6 +281,14 @@
 #endif
 
       if(mnproc==1) ncstat = NF_CLOSE(ncid)
+
+
+! return tracer fields to ocean model (both timelevels); No unit
+! conversion here, since tracers in the restart file are in 
+! MICOM units (mol/kg) 
+!--------------------------------------------------------------------
+!
+      trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)
 
 
       RETURN

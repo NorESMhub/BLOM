@@ -1,7 +1,8 @@
       SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke  &
      &            ,kpbe,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw &
      &            ,kplyear,kplmonth,kplday,kpldtoce                      &
-     &            ,pglon,pglat,omask,dummy_tr,ntr,ntrbgc,itrbgc          &
+     &            ,pglon,pglat,omask,ntr,ntrbgc,itrbgc                   &
+     &            ,trc,sedlay2,powtra2,burial2                           &    
      &            ,rstfnm_ocn,path,path2)
 
 !****************************************************************
@@ -15,6 +16,8 @@
 !     J.Schwinger       *GFI, Bergen*    2013-10-21
 !     - added GNEWS2 option for riverine input of carbon and nutrients
 !     - code cleanup
+!     J.Schwinger,      *GFI, Bergen*     2014-05-21
+!     - adapted code for use with two time level tracer field in MICOM
 !     
 !     Purpose
 !     -------
@@ -49,11 +52,14 @@
 !     *REAL*    *pglon*      - geographical longitude of grid points [degree E].
 !     *REAL*    *pglat*      - geographical latitude  of grid points [degree N].
 !     *REAL*    *omask*      - land/ocean mask
-!     *REAL*    *dummy_trc*  - initial/restart tracer field to be passed to the 
-!                              ocean model [mol/kg]
 !     *INTEGER* *ntr*        - number of tracers in tracer field
 !     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
 !     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
+!     *REAL*    *trc*        - initial/restart tracer field to be passed to the 
+!                              ocean model [mol/kg]
+!     *REAL*    *sedlay2*    - initial/restart sediment (two time levels) field
+!     *REAL*    *powtra2*    - initial/restart pore water tracer (two time levels) field
+!     *REAL*    *burial2*    - initial/restart sediment burial (two time levels) field
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
 !     *CHAR*    *path*       - path to data files
 !     *CHAR*    *path2*      - path to restart files
@@ -85,7 +91,10 @@
       REAL    :: pglon(kpie,kpje),pglat(kpie,kpje)
       REAL    :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
       REAL    :: omask(kpie,kpje)
-      REAL    :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
+      REAL    :: trc(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,2*kpke,ntr)
+      REAL    :: sedlay2(kpie,kpje,2*ks,nsedtra)
+      REAL    :: powtra2(kpie,kpje,2*ks,npowtra)
+      REAL    :: burial2(kpie,kpje,2,   nsedtra)
       REAL    :: pdt
       character(len=*) :: rstfnm_ocn,path,path2
 
@@ -149,7 +158,7 @@
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestu,prho,         &
+      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestu,prho,                  &
      &               omask,pglon,pglat,path)
      
 !
@@ -160,16 +169,31 @@
 #endif
 
 !                        
-! Read restart fields from restart file
+! Read restart fields from restart file if requested, otherwise 
+! (at first start-up) copy ocetra and sediment arrays (which are
+! initialised in BELEG) to both timelevels of their respective
+! two-time-level counterpart
 !
       IF(kpaufr.eq.1) THEN
-         CALL AUFR_BGC(kpie,kpje,kpke,                          &
-     &                 kplyear,kplmonth,kplday,kpldtoce,        &
+         CALL AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,                 &
+     &                 trc,sedlay2,powtra2,burial2,                      &
+     &                 kplyear,kplmonth,kplday,kpldtoce,                 &
      &                 rstfnm_ocn,path2)
+      ELSE
+         trc(1:kpie,1:kpje,1:kpke,       itrbgc:itrbgc+ntrbgc-1) =       &
+     &     ocetra(:,:,:,:)
+         trc(1:kpie,1:kpje,kpke+1:2*kpke,itrbgc:itrbgc+ntrbgc-1) =       &
+     &     ocetra(:,:,:,:)
+         sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
+         sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:) 
+         powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
+         powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:) 
+         burial2(:,:,1,:)         = burial(:,:,:)
+         burial2(:,:,2,:)         = burial(:,:,:) 
       ENDIF
 
 ! aufsetz! (for initialization of 14C)
-!      call c14_correction(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,psao,  &
+!      call c14_correction(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,psao,         &
 !     &                    ptho,omask)
 
 !#ifdef DIFFAT
@@ -178,17 +202,10 @@
 !      CALL SPINUP_BGC(kpie,kpje,kpke,omask,pdlxp,pdlyp)
 !#endif
 
-
 !
 ! Global inventory of all tracers
 !      
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,1)
-
-!
-! pass tracer fields out to ocean model; No unit conversion here, 
-! tracers are already in correct units for the ocean model (mol/kg)
-!
-      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
+!      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,1)
 
 
       RETURN

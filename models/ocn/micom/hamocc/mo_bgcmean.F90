@@ -38,48 +38,70 @@
  
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     & SRF_KWCO2   =0      ,SRF_PCO2     =0     ,SRF_DMSFLUX =0      ,  &
-     & SRF_CO2FXD  =0      ,SRF_CO2FXU   =0     ,SRF_OXFLUX  =0      ,  &
-     & SRF_NIFLUX  =0      ,SRF_DMS      =0     ,SRF_DMSPROD =0      ,  &
-     & SRF_DMS_BAC =0      ,SRF_DMS_UV   =0     ,SRF_EXPORT  =0      ,  &
-     & SRF_EXPOSI  =0      ,SRF_EXPOCA   =0     ,SRF_ATMCO2  =0      ,  &
-     & SRF_ATMO2   =0      ,SRF_ATMN2    =0     ,SRF_N2OFX   =0      ,  &
-     & SRF_CFC11   =0      ,SRF_CFC12    =0     ,SRF_SF6     =0      ,  &
-     & LYR_PHYTO   =0      ,LYR_GRAZER   =0     ,LYR_DOC     =0      ,  &
-     & LYR_PHOSY   =0      ,LYR_PHOSPH   =0     ,LYR_OXYGEN  =0      ,  &
-     & LYR_IRON    =0      ,LYR_ANO3     =0     ,LYR_ALKALI  =0      ,  &
-     & LYR_SILICA  =0      ,LYR_DIC      =0     ,LYR_POC     =0      ,  &
-     & LYR_CALC    =0      ,LYR_OPAL     =0     ,LYR_CO3     =0      ,  &
-     & LYR_PH      =0      ,LYR_OMEGAC   =0     ,LYR_DIC13   =0      ,  &
-     & LYR_DIC14   =0      ,LYR_DP       =0     ,LYR_NOS     =0      ,  &
-     & LYR_N2O     =0      ,                                            &
-     & LYR_CFC11   =0      ,LYR_CFC12    =0     ,LYR_SF6     =0      ,  &
-     & LVL_PHYTO   =0      ,LVL_GRAZER   =0     ,LVL_DOC     =0      ,  &
-     & LVL_PHOSY   =0      ,LVL_PHOSPH   =0     ,LVL_OXYGEN  =0      ,  &
-     & LVL_IRON    =0      ,LVL_ANO3     =0     ,LVL_ALKALI  =0      ,  &
-     & LVL_SILICA  =0      ,LVL_DIC      =0     ,LVL_POC     =0      ,  &
-     & LVL_CALC    =0      ,LVL_OPAL     =0     ,LVL_CO3     =0      ,  &
-     & LVL_PH      =0      ,LVL_OMEGAC   =0     ,LVL_DIC13   =0      ,  &
-     & LVL_DIC14   =0      ,LVL_DP       =0     ,LVL_NOS     =0      ,  &
-     & LVL_N2O     =0      ,                                            &
-     & LVL_CFC11   =0      ,LVL_CFC12    =0     ,LVL_SF6     =0      ,  &
-     & SDM_POWAIC  =0      ,SDM_POWAAL   =0     ,SDM_POWAPH  =0      ,  &
-     & SDM_POWAOX  =0      ,SDM_POWN2    =0     ,SDM_POWNO3  =0      ,  &
-     & SDM_POWASI  =0      ,SDM_SSSO12   =0     ,SDM_SSSSIL  =0      ,  &
-     & SDM_SSSC12  =0      ,SDM_SSSTER   =0     ,                       &
-     & BUR_SSSO12  =0      ,BUR_SSSC12   =0     ,BUR_SSSSIL  =0      ,  &
-     & BUR_SSSTER  =0      ,                                            &
-     & GLB_AVEPERIO=0      ,GLB_FILEFREQ =0     ,GLB_COMPFLAG=0      ,  &
-     & GLB_NCFORMAT=0      ,GLB_INVENTORY=0 
+     & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
+     & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_OXFLUX    =0    ,  &
+     & SRF_NIFLUX    =0    ,SRF_DMS       =0    ,SRF_DMSPROD   =0    ,  &
+     & SRF_DMS_BAC   =0    ,SRF_DMS_UV    =0    ,SRF_EXPORT    =0    ,  &
+     & SRF_EXPOSI    =0    ,SRF_EXPOCA    =0                         ,  &
+     & SRF_ATMCO2    =0    ,SRF_ATMO2     =0    ,SRF_ATMN2     =0    ,  &
+     & SRF_N2OFX     =0    ,SRF_CFC11     =0    ,SRF_CFC12     =0    ,  &
+     & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
+     & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
+     & SRF_SILICA    =0    ,SRF_DIC       =0    ,INT_PHOSY     =0    ,  &
+     & CARFLX0100    =0    ,CARFLX0500    =0    ,CARFLX1000    =0    ,  &
+     & CARFLX2000    =0    ,CARFLX4000    =0    ,CARFLX_BOT    =0    ,  &
+     & BSIFLX0100    =0    ,BSIFLX0500    =0    ,BSIFLX1000    =0    ,  &
+     & BSIFLX2000    =0    ,BSIFLX4000    =0    ,BSIFLX_BOT    =0    ,  &
+     & CALFLX0100    =0    ,CALFLX0500    =0    ,CALFLX1000    =0    ,  &
+     & CALFLX2000    =0    ,CALFLX4000    =0    ,CALFLX_BOT    =0    ,  &
+     & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
+     & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
+     & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
+     & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
+     & LYR_CALC      =0    ,LYR_OPAL      =0    ,LYR_CO3       =0    ,  &
+     & LYR_PH        =0    ,LYR_OMEGAC    =0    ,LYR_DIC13     =0    ,  &
+     & LYR_DIC14     =0    ,LYR_DP        =0    ,LYR_NOS       =0    ,  &
+     & LYR_WPHY      =0    ,LYR_WNOS      =0    ,LYR_EPS       =0    ,  &
+     & LYR_ASIZE     =0    ,LYR_N2O       =0    ,LYR_AOU       =0    ,  &
+     & LYR_PREFO2    =0    ,LYR_PREFPO4   =0    ,LYR_PREFALK   =0    ,  &
+     & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
+     & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
+     & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
+     & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
+     & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
+     & LVL_CALC      =0    ,LVL_OPAL      =0    ,LVL_CO3       =0    ,  &
+     & LVL_PH        =0    ,LVL_OMEGAC    =0    ,LVL_DIC13     =0    ,  &
+     & LVL_DIC14     =0    ,LVL_DP        =0    ,LVL_NOS       =0    ,  &
+     & LVL_WPHY      =0    ,LVL_WNOS      =0    ,LVL_EPS       =0    ,  &
+     & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_AOU       =0    ,  &
+     & LVL_PREFO2    =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
+     & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
+     & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
+     & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
+     & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
+     & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
+     & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
+     & BUR_SSSTER    =0                                              ,  &
+     & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
+     & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0 
       CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
      & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_OXFLUX        ,        &
      & SRF_NIFLUX        ,SRF_DMS           ,SRF_DMSPROD       ,        &
      & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
-     & SRF_EXPOSI        ,SRF_EXPOCA        ,SRF_ATMCO2        ,        &
-     & SRF_ATMO2         ,SRF_ATMN2         ,SRF_N2OFX         ,        &
-     & SRF_CFC11         ,SRF_CFC12         ,SRF_SF6           ,        &
+     & SRF_EXPOSI        ,SRF_EXPOCA                           ,        &
+     & SRF_ATMCO2        ,SRF_ATMO2         ,SRF_ATMN2         ,        &
+     & SRF_N2OFX         ,SRF_CFC11         ,SRF_CFC12         ,        &
+     & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
+     & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
+     & SRF_SILICA        ,SRF_DIC           ,INT_PHOSY         ,        &
+     & CARFLX0100        ,CARFLX0500        ,CARFLX1000        ,        &
+     & CARFLX2000        ,CARFLX4000        ,CARFLX_BOT        ,        &
+     & BSIFLX0100        ,BSIFLX0500        ,BSIFLX1000        ,        &
+     & BSIFLX2000        ,BSIFLX4000        ,BSIFLX_BOT        ,        &
+     & CALFLX0100        ,CALFLX0500        ,CALFLX1000        ,        &
+     & CALFLX2000        ,CALFLX4000        ,CALFLX_BOT        ,        &
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -87,7 +109,9 @@
      & LYR_CALC          ,LYR_OPAL          ,LYR_CO3           ,        &
      & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
      & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
-     & LYR_N2O           ,                                              &
+     & LYR_WPHY          ,LYR_WNOS          ,LYR_EPS           ,        &
+     & LYR_ASIZE         ,LYR_N2O           ,LYR_AOU           ,        &
+     & LYR_PREFO2        ,LYR_PREFPO4       ,LYR_PREFALK       ,        &
      & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
@@ -95,15 +119,17 @@
      & LVL_SILICA        ,LVL_DIC           ,LVL_POC           ,        &
      & LVL_CALC          ,LVL_OPAL          ,LVL_CO3           ,        &
      & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
-     & LVL_DIC14         ,LVL_NOS           ,                           &
-     & LVL_N2O           ,                                              &
+     & LVL_DIC14         ,LVL_NOS                              ,        &
+     & LVL_WPHY          ,LVL_WNOS          ,LVL_EPS           ,        &
+     & LVL_ASIZE         ,LVL_N2O           ,LVL_AOU           ,        &
+     & LVL_PREFO2        ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
      & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
-     & SDM_SSSC12        ,SDM_SSSTER        ,                           &
+     & SDM_SSSC12        ,SDM_SSSTER                           ,        &
      & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
-     & BUR_SSSTER        ,                                              &
+     & BUR_SSSTER                                              ,        &
      & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
      & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
 
@@ -124,24 +150,50 @@
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
-     &          jkwco2   = 0 ,                                          &
-     &          jpco2    = 0 ,                                          &
-     &          jdmsflux = 0 ,                                          &
-     &          jco2fxd  = 0 ,                                          &
-     &          jco2fxu  = 0 ,                                          &
-     &          joxflux  = 0 ,                                          &
-     &          jniflux  = 0 ,                                          &
-     &          jn2ofx   = 0 ,                                          &
-     &          jdms     = 0 ,                                          &
-     &          jdmsprod = 0 ,                                          &
-     &          jdms_bac = 0 ,                                          &
-     &          jdms_uv  = 0 ,                                          &
-     &          jexport  = 0 ,                                          &
-     &          jexpoca  = 0 ,                                          &
-     &          jexposi  = 0 ,                                          &
-     &          jcfc11fx = 0 ,                                          &
-     &          jcfc12fx = 0 ,                                          &
-     &          jsf6fx   = 0
+     &          jkwco2     = 0 ,                                        &
+     &          jpco2      = 0 ,                                        &
+     &          jdmsflux   = 0 ,                                        &
+     &          jco2fxd    = 0 ,                                        &
+     &          jco2fxu    = 0 ,                                        &
+     &          joxflux    = 0 ,                                        &
+     &          jniflux    = 0 ,                                        &
+     &          jn2ofx     = 0 ,                                        &
+     &          jdms       = 0 ,                                        &
+     &          jdmsprod   = 0 ,                                        &
+     &          jdms_bac   = 0 ,                                        &
+     &          jdms_uv    = 0 ,                                        &
+     &          jexport    = 0 ,                                        &
+     &          jexpoca    = 0 ,                                        &
+     &          jexposi    = 0 ,                                        &
+     &          jcfc11fx   = 0 ,                                        &
+     &          jcfc12fx   = 0 ,                                        &
+     &          jsf6fx     = 0 ,                                        &
+     &          jsrfphosph = 0 ,                                        &
+     &          jsrfoxygen = 0 ,                                        &
+     &          jsrfiron   = 0 ,                                        &
+     &          jsrfano3   = 0 ,                                        &
+     &          jsrfalkali = 0 ,                                        &
+     &          jsrfsilica = 0 ,                                        &
+     &          jsrfdic    = 0 ,                                        &
+     &          jintphosy  = 0 ,                                        &
+     &          jcarflx0100= 0 ,                                        &
+     &          jcarflx0500= 0 ,                                        &
+     &          jcarflx1000= 0 ,                                        &
+     &          jcarflx2000= 0 ,                                        &
+     &          jcarflx4000= 0 ,                                        &
+     &          jcarflx_bot= 0 ,                                        &
+     &          jbsiflx0100= 0 ,                                        &
+     &          jbsiflx0500= 0 ,                                        &
+     &          jbsiflx1000= 0 ,                                        &
+     &          jbsiflx2000= 0 ,                                        &
+     &          jbsiflx4000= 0 ,                                        &
+     &          jbsiflx_bot= 0 ,                                        &
+     &          jcalflx0100= 0 ,                                        &
+     &          jcalflx0500= 0 ,                                        &
+     &          jcalflx1000= 0 ,                                        &
+     &          jcalflx2000= 0 ,                                        &
+     &          jcalflx4000= 0 ,                                        &
+     &          jcalflx_bot= 0
 
 
       INTEGER, SAVE :: i_atm_m2d  
@@ -151,6 +203,8 @@
      &          jatmn2   = 0        
 
       INTEGER, SAVE :: nbgcm2d 
+
+      LOGICAL, SAVE :: domassfluxes = .false.
 
 !----------------------------------------------------------------
       INTEGER, SAVE :: i_bsc_m3d,ilvl_bsc_m3d 
@@ -174,6 +228,10 @@
      &          jph        = 0 ,                                        &
      &          jomegac    = 0 ,                                        &
      &          jn2o       = 0 ,                                        &
+     &          jaou       = 0 ,                                        &
+     &          jprefo2    = 0 ,                                        &
+     &          jprefpo4   = 0 ,                                        &
+     &          jprefalk   = 0 ,                                        &
      &          jcfc11     = 0 ,                                        &
      &          jcfc12     = 0 ,                                        &
      &          jsf6       = 0 ,                                        &
@@ -195,24 +253,31 @@
      &          jlvlph     = 0 ,                                        &
      &          jlvlomegac = 0 ,                                        &
      &          jlvln2o    = 0 ,                                        &
+     &          jlvlaou    = 0 ,                                        &
+     &          jlvlprefo2 = 0 ,                                        &
+     &          jlvlprefpo4= 0 ,                                        &
+     &          jlvlprefalk= 0 ,                                        &
      &          jlvlcfc11  = 0 ,                                        &
      &          jlvlcfc12  = 0 ,                                        &
      &          jlvlsf6    = 0
     
-
-      INTEGER, SAVE :: i_iso_m3d,ilvl_iso_m3d
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jdic13     = 0 ,                                        &
      &          jdic14     = 0 ,                                        &
      &          jlvldic13  = 0 ,                                        &
      &          jlvldic14  = 0  
 
-      INTEGER, SAVE :: i_ant_m3d,ilvl_ant_m3d 
-
-      INTEGER, SAVE :: i_agg_m3d,ilvl_agg_m3d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jnos       = 0 ,                                        &
-     &          jlvlnos    = 0 
+     &          jwphy      = 0 ,                                        &
+     &          jwnos      = 0 ,                                        &
+     &          jeps       = 0 ,                                        &
+     &          jasize     = 0 ,                                        &
+     &          jlvlnos    = 0 ,                                        &
+     &          jlvlwphy   = 0 ,                                        &
+     &          jlvlwnos   = 0 ,                                        &
+     &          jlvleps    = 0 ,                                        &
+     &          jlvlasize  = 0
 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
@@ -364,6 +429,58 @@
         jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
         IF (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
+        IF (SRF_PHOSPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfphosph(n)=i_bsc_m2d*min(1,SRF_PHOSPH(n))
+        IF (SRF_OXYGEN(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfoxygen(n)=i_bsc_m2d*min(1,SRF_OXYGEN(n))
+        IF (SRF_IRON(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfiron(n)=i_bsc_m2d*min(1,SRF_IRON(n))
+        IF (SRF_ANO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfano3(n)=i_bsc_m2d*min(1,SRF_ANO3(n))
+        IF (SRF_ALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfalkali(n)=i_bsc_m2d*min(1,SRF_ALKALI(n))
+        IF (SRF_SILICA(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfsilica(n)=i_bsc_m2d*min(1,SRF_SILICA(n))
+        IF (SRF_DIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
+        IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
+        IF (CARFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx0100(n)=i_bsc_m2d*min(1,CARFLX0100(n))
+        IF (CARFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx0500(n)=i_bsc_m2d*min(1,CARFLX0500(n))
+        IF (CARFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx1000(n)=i_bsc_m2d*min(1,CARFLX1000(n))
+        IF (CARFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx2000(n)=i_bsc_m2d*min(1,CARFLX2000(n))
+        IF (CARFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx4000(n)=i_bsc_m2d*min(1,CARFLX4000(n))
+        IF (CARFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx_bot(n)=i_bsc_m2d*min(1,CARFLX_BOT(n))
+        IF (BSIFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx0100(n)=i_bsc_m2d*min(1,BSIFLX0100(n))
+        IF (BSIFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx0500(n)=i_bsc_m2d*min(1,BSIFLX0500(n))
+        IF (BSIFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx1000(n)=i_bsc_m2d*min(1,BSIFLX1000(n))
+        IF (BSIFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx2000(n)=i_bsc_m2d*min(1,BSIFLX2000(n))
+        IF (BSIFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx4000(n)=i_bsc_m2d*min(1,BSIFLX4000(n))
+        IF (BSIFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx_bot(n)=i_bsc_m2d*min(1,BSIFLX_BOT(n))
+        IF (CALFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx0100(n)=i_bsc_m2d*min(1,CALFLX0100(n))
+        IF (CALFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx0500(n)=i_bsc_m2d*min(1,CALFLX0500(n))
+        IF (CALFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx1000(n)=i_bsc_m2d*min(1,CALFLX1000(n))
+        IF (CALFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx2000(n)=i_bsc_m2d*min(1,CALFLX2000(n))
+        IF (CALFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx4000(n)=i_bsc_m2d*min(1,CALFLX4000(n))
+        IF (CALFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx_bot(n)=i_bsc_m2d*min(1,CALFLX_BOT(n))
 #ifdef CFC
         IF (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcfc11fx(n)=i_bsc_m2d*min(1,SRF_CFC11(n))
@@ -374,12 +491,18 @@
 #endif
       ENDDO 
 
+      domassfluxes = any(                                    &
+        jcarflx0100+jcarflx0500+jcarflx1000+                 &
+        jcarflx2000+jcarflx4000+jcarflx_bot+                 &
+        jbsiflx0100+jbsiflx0500+jbsiflx1000+                 &
+        jbsiflx2000+jbsiflx4000+jbsiflx_bot+                 &
+        jcalflx0100+jcalflx0500+jcalflx1000+                 &
+        jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
+
       i_atm_m2d=i_bsc_m2d
       DO n=1,nbgc
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
         IF (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmco2(n)=i_atm_m2d*min(1,SRF_ATMCO2(n))
-#endif
 #ifdef DIFFAT
         IF (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
@@ -428,10 +551,16 @@
         jph(n)=i_bsc_m3d*min(1,LYR_PH(n))
         IF (LYR_OMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jomegac(n)=i_bsc_m3d*min(1,LYR_OMEGAC(n))
-        IF (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
-        jnos(n)=i_bsc_m3d*min(1,LYR_NOS(n))
         IF (LYR_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jn2o(n)=i_bsc_m3d*min(1,LYR_N2O(n))
+        IF (LYR_AOU(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jaou(n)=i_bsc_m3d*min(1,LYR_AOU(n))
+        IF (LYR_PREFO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
+        IF (LYR_PREFPO4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
+        IF (LYR_PREFALK(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
         IF (LYR_DP(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
 #ifdef CFC
@@ -441,6 +570,24 @@
         jcfc12(n)=i_bsc_m3d*min(1,LYR_CFC12(n))
         IF (LYR_SF6(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jsf6(n)=i_bsc_m3d*min(1,LYR_SF6(n))
+#endif
+#ifdef __c_isotopes
+        IF (LYR_DIC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdic13(n)=i_bsc_m3d*min(1,LYR_DIC13(n))
+        IF (LYR_DIC14(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdic14(n)=i_bsc_m3d*min(1,LYR_DIC14(n))
+#endif 
+#ifdef AGG
+        IF (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnos(n)=i_bsc_m3d*min(1,LYR_NOS(n))
+        IF (LYR_WPHY(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jwphy(n)=i_bsc_m3d*min(1,LYR_WPHY(n))
+        IF (LYR_WNOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jwnos(n)=i_bsc_m3d*min(1,LYR_WNOS(n))
+        IF (LYR_EPS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jeps(n)=i_bsc_m3d*min(1,LYR_EPS(n))
+        IF (LYR_ASIZE(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jasize(n)=i_bsc_m3d*min(1,LYR_ASIZE(n))
 #endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -477,10 +624,16 @@
         jlvlph(n)=ilvl_bsc_m3d*min(1,LVL_PH(n))
         IF (LVL_OMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlomegac(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAC(n))
-        IF (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-        jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
         IF (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvln2o(n)=ilvl_bsc_m3d*min(1,LVL_N2O(n))
+        IF (LVL_AOU(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlaou(n)=ilvl_bsc_m3d*min(1,LVL_AOU(n))
+        IF (LVL_PREFO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
+        IF (LVL_PREFPO4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
+        IF (LVL_PREFALK(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
 #ifdef CFC
         IF (LVL_CFC11(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
@@ -489,55 +642,34 @@
         IF (LVL_SF6(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlsf6(n)=ilvl_bsc_m3d*min(1,LVL_SF6(n))
 #endif
+#ifdef __c_isotopes
+        IF (LVL_DIC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldic13(n)=ilvl_bsc_m3d*min(1,LVL_DIC13(n))
+        IF (LVL_DIC14(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvldic14(n)=ilvl_bsc_m3d*min(1,LVL_DIC14(n))
+#endif
+#ifdef AGG
+        IF (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
+        IF (LVL_WPHY(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlwphy(n)=ilvl_bsc_m3d*min(1,LVL_WPHY(n))
+        IF (LVL_WNOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlwnos(n)=ilvl_bsc_m3d*min(1,LVL_WNOS(n))
+        IF (LVL_EPS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvleps(n)=ilvl_bsc_m3d*min(1,LVL_EPS(n))
+        IF (LVL_ASIZE(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlasize(n)=ilvl_bsc_m3d*min(1,LVL_ASIZE(n))
+#endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 
       
-      i_iso_m3d=i_bsc_m3d
-      ilvl_iso_m3d=ilvl_bsc_m3d
-      DO n=1,nbgc
-        m=i_iso_m3d
-
-        IF (LYR_DIC13(n).GT.0) i_iso_m3d=i_iso_m3d+1
-        jdic13(n)=i_iso_m3d*min(1,LYR_DIC13(n))
-        IF (LYR_DIC14(n).GT.0) i_iso_m3d=i_iso_m3d+1
-        jdic14(n)=i_iso_m3d*min(1,LYR_DIC14(n))
-
-        IF (LVL_DIC13(n).GT.0) ilvl_iso_m3d=ilvl_iso_m3d+1
-        jlvldic13(n)=ilvl_iso_m3d*min(1,LVL_DIC13(n))
-        IF (LVL_DIC14(n).GT.0) ilvl_iso_m3d=ilvl_iso_m3d+1
-        jlvldic14(n)=ilvl_iso_m3d*min(1,LVL_DIC14(n))
-
-        IF (i_iso_m3d.NE.m) checkdp(n)=1
-      ENDDO 
-      i_iso_m3d=i_iso_m3d-i_bsc_m3d
-      ilvl_iso_m3d=ilvl_iso_m3d-ilvl_bsc_m3d
-
-      i_ant_m3d=0
-      ilvl_ant_m3d=0
-
-      i_agg_m3d=i_bsc_m3d+i_iso_m3d+i_ant_m3d
-      ilvl_agg_m3d=ilvl_bsc_m3d+ilvl_iso_m3d+ilvl_ant_m3d
-      DO n=1,nbgc
-        m=i_agg_m3d
- 
-        IF (LYR_NOS(n).GT.0) i_agg_m3d=i_agg_m3d+1
-        jnos(n)=i_agg_m3d*min(1,LYR_NOS(n))
-
-        IF (LVL_NOS(n).GT.0) ilvl_agg_m3d=ilvl_agg_m3d+1
-        jlvlnos(n)=ilvl_agg_m3d*min(1,LVL_NOS(n))
-
-        IF (i_agg_m3d.NE.m) checkdp(n)=1
-      ENDDO
-      i_agg_m3d=i_agg_m3d-i_bsc_m3d-i_iso_m3d-i_ant_m3d
-      ilvl_agg_m3d=ilvl_agg_m3d-ilvl_bsc_m3d-ilvl_iso_m3d-ilvl_ant_m3d
- 
 
 !     add dp required 
       DO n=1,nbgc
         IF (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) THEN 
           i_bsc_m3d=i_bsc_m3d+1
-          jdp(n)=i_bsc_m3d+i_agg_m3d+i_iso_m3d+i_ant_m3d
+          jdp(n)=i_bsc_m3d
         ENDIF
       ENDDO 
   
@@ -577,13 +709,13 @@
         jburssssil(n)=i_bsc_bur*min(1,BUR_SSSSIL(n))
         IF (BUR_SSSTER(n).GT.0) i_bsc_bur=i_bsc_bur+1
         jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
-       ENDDO
+      ENDDO
          
-      nbgcm2d=i_bsc_m2d+i_atm_m2d
-      nbgcm3d=i_bsc_m3d+i_iso_m3d+i_agg_m3d
-      nbgcm3dlvl=ilvl_bsc_m3d+ilvl_iso_m3d+ilvl_agg_m3d
-      nbgct_sed = i_bsc_sed
-      nbgct_bur = i_bsc_bur
+      nbgcm2d    = i_bsc_m2d+i_atm_m2d
+      nbgcm3d    = i_bsc_m3d
+      nbgcm3dlvl = ilvl_bsc_m3d
+      nbgct_sed  = i_bsc_sed
+      nbgct_bur  = i_bsc_bur
 
 !     Allocate buffers 
 
@@ -1191,7 +1323,7 @@
           CALL nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs)
         ELSE
-          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
      &      sfac,offs)
         ENDIF
       ELSEIF (frmt.EQ.4) THEN
@@ -1718,6 +1850,40 @@
 !
       END SUBROUTINE logsdm
 
+
+      SUBROUTINE msksrf(pos,idepth)
+!
+! --- ------------------------------------------------------------------
+! --- Description: set sea floor points to NaN in mass flux fields
+! ---   
+! --- Arguments:
+! ---   int  pos      (in)     : field position in level buffer 
+! ---   int  idepth   (in)     : k-index field used to define the
+! ---                            depth surface
+! --- ------------------------------------------------------------------
+!
+      IMPLICIT NONE
+!
+      INTEGER :: pos
+      INTEGER, DIMENSION(idm,jdm) :: idepth 
+! 
+      INTEGER :: i,j,l
+      REAL, parameter :: mskval=nf90_fill_double
+!
+! --- Check whether field should be initia
+      IF (pos.EQ.0) RETURN
+!
+!$OMP PARALLEL DO
+      DO j=1,jj
+        DO l=1,isp(j)
+          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if( idepth(i,j) <= 0 ) bgcm2d(i,j,pos)=mskval
+          ENDDO
+        ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+!
+      END SUBROUTINE msksrf
 
 
       SUBROUTINE msklvl(pos,depths)

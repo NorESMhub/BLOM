@@ -26,6 +26,7 @@
 
       INTEGER, DIMENSION (:,:), ALLOCATABLE :: kbo
       INTEGER, DIMENSION (:,:), ALLOCATABLE :: kwrbioz
+      INTEGER, DIMENSION (:,:), ALLOCATABLE :: k0100,k0500,k1000,k2000,k4000
       REAL, DIMENSION (:,:), ALLOCATABLE :: bolay
 
       REAL, DIMENSION (:,:), ALLOCATABLE :: expoor
@@ -34,10 +35,6 @@
 
       REAL, DIMENSION (:,:), ALLOCATABLE :: strahl
 
-      REAL, DIMENSION (:,:), ALLOCATABLE :: alar1max
-      REAL, DIMENSION (:,:), ALLOCATABLE :: TSFmax
-      REAL, DIMENSION (:,:), ALLOCATABLE :: TMFmax
-
 #ifdef FB_BGC_OCE     
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
 #endif 
@@ -45,22 +42,24 @@
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
       REAL :: ro2ut,rcar,rnit,rnoi,rnit23,rnit13,rcalc,ropal,bluefix
-      REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14,plafr13,plafr14
-      REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremcalc,dremn2o
-      REAL :: dphymor,dzoomor,dremopal,calmax, gutc
+      REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14
+      REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o
+      REAL :: dphymor,dzoomor,dremopal
       REAL :: dremsul
       REAL :: psedi,csedi,ssedi
       REAL :: perc_diron, riron, fesoly, relaxfe, wdust,bolaymin 
       REAL :: perc_disil
       REAL :: ctochl, atten_w, atten_c, atten_f
-      REAL :: sco212_sfc,alkali_sfc,phosph_sfc,ano3_sfc,silica_sfc
       REAL :: vol0
-
 #ifdef AGG      
       REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
       REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
       REAL :: vsmall,safe,pupper,plower,zdis
-      REAL :: dustd1,dustd2,dustd3,dustsink
+      REAL :: dustd1,dustd2,dustd3,dustsink,calmax
+#endif
+#ifdef __c_isotopes
+      REAL :: factor_13c, factor_14c, atm_c14_cal, atm_dc14_cal
+      REAL :: PDB, ref14c, prei_d13C_atm, prei_dd14C_atm, atm_c13_cal
 #endif
 
       CONTAINS
@@ -125,6 +124,24 @@
          kwrbioz(:,:) = 0
 
          IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         ENDIF
+
+         ALLOCATE (k0100(kpie,kpje),stat=errstat)
+         ALLOCATE (k0500(kpie,kpje),stat=errstat)
+         ALLOCATE (k1000(kpie,kpje),stat=errstat)
+         ALLOCATE (k2000(kpie,kpje),stat=errstat)
+         ALLOCATE (k4000(kpie,kpje),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory k0100, k0500, k1000, k2000'
+         k0100(:,:) = 0
+         k0500(:,:) = 0
+         k1000(:,:) = 0
+         k2000(:,:) = 0
+         k4000(:,:) = 0
+
+         IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable strahl ...'
          WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
          WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -144,35 +161,6 @@
          if(errstat.ne.0) stop 'not enough memory bolay'
          bolay(:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable alar1max'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (alar1max(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory alar1max'
-         alar1max(:,:) = 0.0
-
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable TSFmax'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (TSFmax(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory TSFmax'
-         TSFmax(:,:) = 0.0
-
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable TMFmax'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (TMFmax(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory TMFmax'
-         TMFmax(:,:) = 0.0
 
 #ifdef FB_BGC_OCE 
          IF (mnproc.eq.1) THEN

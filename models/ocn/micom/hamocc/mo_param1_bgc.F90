@@ -14,14 +14,21 @@
 !**********************************************************************
       implicit none
       
-      INTEGER, PARAMETER :: ks=12,ksp=ks+1
+      INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
 
-      REAL,    PARAMETER :: dp_ez  = 100.0   ! depth of euphotic zone
-      REAL,    PARAMETER :: dp_min = 1.0E-12 ! min layer thickness for 
-                                             ! some operations
+      REAL,    PARAMETER :: dp_ez  = 100.0    ! depth of euphotic zone
+      REAL,    PARAMETER :: dp_min = 1.0E-12  ! min layer thickness layers thinner than this are 
+                                              ! ignored by HAMOCC
+      REAL,    PARAMETER :: dp_min_sink = 1.0 ! min layer thickness for sinking (layers thinner than 
+                                              ! this are ignored and set to the concentration of the 
+                                              ! layer above). Note that the bottom layer index kbo(i,j)
+                                              ! is defined as the lowermost layer thicker than dp_min_sink.
+
+     INTEGER,  PARAMETER :: kmle   = 2        ! k-end index for layers that represent the mixed
+                                              ! layer in MICOM
 
 ! advected tracers
-      INTEGER, PARAMETER :: i_base_adv=14,                              &
+      INTEGER, PARAMETER :: i_base_adv=17,                              &
      &                      isco212  =1,                                &
      &                      ialkali  =2,                                &
      &                      iphosph  =3,                                &
@@ -35,7 +42,10 @@
      &                      ian2o    =11,                               &
      &                      idms     =12,                               &
      &                      iiron    =13,                               &
-     &                      ifdust   =14  
+     &                      ifdust   =14,                               &
+     &                      iprefo2  =15,                               &
+     &                      iprefpo4 =16,                               &
+     &                      iprefalk =17  
 #ifdef __c_isotopes
       INTEGER, PARAMETER ::                                             &
      &                      isco213  =i_base_adv+1,                     &

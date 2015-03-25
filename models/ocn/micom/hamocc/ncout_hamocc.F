@@ -7,21 +7,20 @@ c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1
       use mo_control_bgc, only : dtbgc
+      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 c      
       implicit none
 c      
 #include "common_blocks.h"
-#include "common_bgc.h"
 #include "common_clndr.h"
-#include "common_forc.h"
-#include "common_ice.h"
 c
       integer iogrp
 c
       integer i,j,k,l,nt
       integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
-      character fname(nbgcmax)*80,startdate*20,timeunits*30
+      character*80 fname(nbgcmax)
+      character startdate*20,timeunits*30
       real datenum,rnacc
       logical append2file(nbgcmax)
       data append2file /nbgcmax*.false./
@@ -29,7 +28,8 @@ c
 c
 c --- set time information
       timeunits=' '
-      startdate=' ' 
+      startdate=' '
+      fname=' ' 
       write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')
      . 'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
       write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')
@@ -38,9 +38,9 @@ c --- set time information
 c
 c --- get file name
       if (.not.append2file(iogrp)) then
-        call diafnm(runid,runid_len,trim(GLB_FNAMETAG(iogrp)),nstep,
-     .    filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
-     .    fileann_bgc(iogrp),fname(iogrp))
+        call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),
+     .  nstep,filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
+     .  fileann_bgc(iogrp),fname(iogrp))
         append2file(iogrp)=.true.
         irec(iogrp)=1
       else
@@ -118,15 +118,43 @@ c --- finalize accumulation
       call finlyr(jph(iogrp),jdp(iogrp))
       call finlyr(jomegac(iogrp),jdp(iogrp))
       call finlyr(jn2o(iogrp),jdp(iogrp))
+      call finlyr(jaou(iogrp),jdp(iogrp))
+      call finlyr(jprefo2(iogrp),jdp(iogrp))
+      call finlyr(jprefpo4(iogrp),jdp(iogrp))
+      call finlyr(jprefalk(iogrp),jdp(iogrp))
 #ifdef __c_isotopes
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
+#endif  
+#ifdef AGG
+      call finlyr(jnos(iogrp),jdp(iogrp))
+      call finlyr(jwphy(iogrp),jdp(iogrp))
+      call finlyr(jwnos(iogrp),jdp(iogrp))
+      call finlyr(jeps(iogrp),jdp(iogrp))
+      call finlyr(jasize(iogrp),jdp(iogrp))
 #endif  
 #ifdef CFC
       call finlyr(jcfc11(iogrp),jdp(iogrp))
       call finlyr(jcfc12(iogrp),jdp(iogrp))
       call finlyr(jsf6(iogrp),jdp(iogrp))
 #endif
+c
+c --- Mask sea floor in mass fluxes
+      call msksrf(jcarflx0100(iogrp),k0100)
+      call msksrf(jcarflx0500(iogrp),k0500)
+      call msksrf(jcarflx1000(iogrp),k1000)
+      call msksrf(jcarflx2000(iogrp),k2000)
+      call msksrf(jcarflx4000(iogrp),k4000)
+      call msksrf(jbsiflx0100(iogrp),k0100)
+      call msksrf(jbsiflx0500(iogrp),k0500)
+      call msksrf(jbsiflx1000(iogrp),k1000)
+      call msksrf(jbsiflx2000(iogrp),k2000)
+      call msksrf(jbsiflx4000(iogrp),k4000)
+      call msksrf(jcalflx0100(iogrp),k0100)
+      call msksrf(jcalflx0500(iogrp),k0500)
+      call msksrf(jcalflx1000(iogrp),k1000)
+      call msksrf(jcalflx2000(iogrp),k2000)
+      call msksrf(jcalflx4000(iogrp),k4000)
 c
 c --- Mask sea floor in level data
       call msklvl(jlvlphyto(iogrp),depths)
@@ -147,12 +175,20 @@ c --- Mask sea floor in level data
       call msklvl(jlvlph(iogrp),depths)
       call msklvl(jlvlomegac(iogrp),depths)
       call msklvl(jlvln2o(iogrp),depths)
+      call msklvl(jlvlaou(iogrp),depths)
+      call msklvl(jlvlprefo2(iogrp),depths)
+      call msklvl(jlvlprefpo4(iogrp),depths)
+      call msklvl(jlvlprefalk(iogrp),depths)
 #ifdef __c_isotopes
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
 #endif  
 #ifdef AGG
       call msklvl(jlvlnos(iogrp),depths)
+      call msklvl(jlvlwphy(iogrp),depths)
+      call msklvl(jlvlwnos(iogrp),depths)
+      call msklvl(jlvleps(iogrp),depths)
+      call msklvl(jlvlasize(iogrp),depths)
 #endif  
 #ifdef CFC
       call msklvl(jlvlcfc11(iogrp),depths)
@@ -193,6 +229,84 @@ c --- Store 2d fields
      .  cmpflg,'epsi100','Si export production',' ','mol Si m-2 s-1')
       call wrtsrf(jexpoca(iogrp),SRF_EXPOCA(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'epcalc100','Ca export production',' ','mol Ca m-2 s-1')
+      call wrtsrf(jsrfdic(iogrp),SRF_DIC(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfdissic',
+     .  'Surface dissolved inorganic carbon',' ','mol C m-3')
+      call wrtsrf(jsrfalkali(iogrp),SRF_ALKALI(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srftalk',    
+     .  'Surface alkalinity',' ','eq m-3')
+      call wrtsrf(jsrfphosph(iogrp),SRF_PHOSPH(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfpo4',       
+     .  'Surface phosphorus',' ','mol P m-3')
+      call wrtsrf(jsrfoxygen(iogrp),SRF_OXYGEN(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfo2',        
+     .  'Surface oxygen',' ','mol O2 m-3')
+      call wrtsrf(jsrfano3(iogrp),SRF_ANO3(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfno3',           
+     .  'Surface nitrate',' ','mol N m-3')
+      call wrtsrf(jsrfsilica(iogrp),SRF_SILICA(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfsi',       
+     .  'Surface silicate',' ','mol Si m-3')
+      call wrtsrf(jsrfiron(iogrp),SRF_IRON(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfdfe',           
+     .  'Surface dissolved iron',' ','mol Fe m-3')
+      call wrtsrf(jintphosy(iogrp),INT_PHOSY(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'ppint',    
+     .  'Integrated primary production',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx0100(iogrp),CARFLX0100(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100',
+     .  'C flux at 100m',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx0500(iogrp),CARFLX0500(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500',
+     .  'C flux at 500m',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx1000(iogrp),CARFLX1000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx1000',
+     .  'C flux at 1000m',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx2000(iogrp),CARFLX2000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx2000',
+     .  'C flux at 2000m',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx4000(iogrp),CARFLX4000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx4000',
+     .  'C flux at 4000m',' ','mol C m-2 s-1')
+      call wrtsrf(jcarflx_bot(iogrp),CARFLX_BOT(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx_bot',
+     .  'C flux to sediment',' ','mol C m-2 s-1')
+      call wrtsrf(jbsiflx0100(iogrp),BSIFLX0100(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx0100',
+     .  'Opal flux at 100m',' ','mol Si m-2 s-1')
+      call wrtsrf(jbsiflx0500(iogrp),BSIFLX0500(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx0500',
+     .  'Opal flux at 500m',' ','mol Si m-2 s-1')
+      call wrtsrf(jbsiflx1000(iogrp),BSIFLX1000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx1000',
+     . 'Opal flux at 1000m',' ','mol Si m-2 s-1')
+      call wrtsrf(jbsiflx2000(iogrp),BSIFLX2000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx2000',
+     .  'Opal flux at 2000m',' ','mol Si m-2 s-1')
+      call wrtsrf(jbsiflx4000(iogrp),BSIFLX4000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx4000',
+     .  'Opal flux at 4000m',' ','mol Si m-2 s-1')
+      call wrtsrf(jbsiflx_bot(iogrp),BSIFLX_BOT(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx_bot',
+     .  'Opal flux to sediment',' ','mol Si m-2 s-1')
+      call wrtsrf(jcalflx0100(iogrp),CALFLX0100(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx0100',
+     .  'CaCO3 flux at 100m',' ','mol Ca m-2 s-1')
+      call wrtsrf(jcalflx0500(iogrp),CALFLX0500(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx0500',
+     .  'CaCO3 flux at 500m',' ','mol Ca m-2 s-1')
+      call wrtsrf(jcalflx1000(iogrp),CALFLX1000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx1000',
+     .  'CaCO3 flux at 1000m',' ','mol Ca m-2 s-1')
+      call wrtsrf(jcalflx2000(iogrp),CALFLX2000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx2000',
+     .  'CaCO3 flux at 2000m',' ','mol Ca m-2 s-1')
+      call wrtsrf(jcalflx4000(iogrp),CALFLX4000(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx4000',
+     .  'CaCO3 flux at 4000m',' ','mol Ca m-2 s-1')
+      call wrtsrf(jcalflx_bot(iogrp),CALFLX_BOT(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx_bot',
+     .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1')
 #ifdef CFC
       call wrtsrf(jcfc11fx(iogrp),SRF_CFC11(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'cfc11flux','CFC-11 flux',' ','mol CFC12 m-2 s-1')
@@ -201,10 +315,8 @@ c --- Store 2d fields
       call wrtsrf(jsf6fx(iogrp),SRF_SF6(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1')
 #endif
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
-#endif
 #ifdef DIFFAT
       call wrtsrf(jatmo2(iogrp),SRF_ATMO2(iogrp),rnacc,0.,cmpflg,       
      .  'atmo2','Atmospheric O2',' ','ppm')
@@ -253,15 +365,31 @@ c --- Store 3d layer fields
      .  'omegac','OmegaC',' ','1')
       call wrtlyr(jn2o(iogrp),LYR_N2O(iogrp),1e3,0.,cmpflg,            
      .  'n2o','N2O',' ','mol N2O m-3')
+      call wrtlyr(jaou(iogrp),LYR_AOU(iogrp),1e3,0.,cmpflg,            
+     .  'aou','AOU',' ','mol O2 m-3')
+      call wrtlyr(jprefo2(iogrp),LYR_PREFO2(iogrp),1e3,0.,cmpflg,        
+     .  'p_o2','Preformed oxygen',' ','mol O2 m-3')
+      call wrtlyr(jprefpo4(iogrp),LYR_PREFPO4(iogrp),1e3,0.,cmpflg,        
+     .  'p_po4','Preformed phosphorus',' ','mol P m-3')
+      call wrtlyr(jprefalk(iogrp),LYR_PREFALK(iogrp),1e3,0.,cmpflg,     
+     .  'p_talk','Preformed alkalinity',' ','eq m-3')
 #ifdef __c_isotopes
-      call wrtlyr(jdic13(iogrp),LYR_DIC13(iogrp),1e3,0.,cmpflg,          
-     .  'dissic13','Dissolved C13',' ','mol C m-3')
-      call wrtlyr(jdic14(iogrp),LYR_DIC14(iogrp),1e3,0.,cmpflg,          
-     .  'dissic14','Dissolved C14',' ','mol C m-3')
+      call wrtlyr(jdic13(iogrp),LYR_DIC13(iogrp),1.,0.,cmpflg,          
+     .  'dissic13','Dissolved C13',' ','promille')
+      call wrtlyr(jdic14(iogrp),LYR_DIC14(iogrp),1.,0.,cmpflg,          
+     .  'dissic14','Dissolved C14',' ','promille')
 #endif
 #ifdef AGG
       call wrtlyr(jnos(iogrp),LYR_NOS(iogrp),1.,0.,cmpflg,              
-     .  'nos','NOS',' ','???')
+     .  'nos','Marine snow aggregates per cm^3 sea water',' ','1/cm^3')
+      call wrtlyr(jwphy(iogrp),LYR_WPHY(iogrp),1.,0.,cmpflg,              
+     .  'wphy','Av. mass sinking speed of marine snow',' ','m/day')
+      call wrtlyr(jwnos(iogrp),LYR_WNOS(iogrp),1.,0.,cmpflg,              
+     .  'wnos','Av. number sinking speed of marine snow',' ','m/day')
+      call wrtlyr(jeps(iogrp),LYR_EPS(iogrp),1.,0.,cmpflg,              
+     .  'eps','Av. size distribution exponent',' ','-')
+      call wrtlyr(jasize(iogrp),LYR_ASIZE(iogrp),1.,0.,cmpflg,              
+     .  'asize','Av. size of marine snow aggregates',' ','nb. of cells')
 #endif
 #ifdef CFC
       call wrtlyr(jcfc11(iogrp),LYR_CFC11(iogrp),1e3,0.,cmpflg,            
@@ -309,15 +437,36 @@ c --- Store 3d level fields
      .  'omegaclvl','OmegaC',' ','1')
       call wrtlvl(jlvln2o(iogrp),LVL_N2O(iogrp),rnacc*1e3,0.,cmpflg,      
      .  'n2olvl','N2O',' ','mol N2O m-3')
+      call wrtlvl(jlvlaou(iogrp),LVL_AOU(iogrp),rnacc*1e3,0.,cmpflg,      
+     .  'aoulvl','AOU',' ','mol O2 m-3')
+      call wrtlvl(jlvlprefo2(iogrp),LVL_PREFO2(iogrp),rnacc*1e3,0.,
+     .  cmpflg,'p_o2lvl','Preformed oxygen',' ','mol O2 m-3')
+      call wrtlvl(jlvlprefpo4(iogrp),LVL_PREFPO4(iogrp),rnacc*1e3,0.,
+     .  cmpflg,'p_po4lvl','Preformed phosphorus',' ','mol P m-3')
+      call wrtlvl(jlvlprefalk(iogrp),LVL_PREFALK(iogrp),rnacc*1e3,0.,
+     .  cmpflg, 'p_talklvl','Preformed alkalinity',' ','eq m-3')
 #ifdef __c_isotopes
-      call wrtlvl(jlvldic13(iogrp),LVL_DIC13(iogrp),rnacc*1e3,0.,cmpflg,    
-     .  'dic13lvl','Dissolved C13',' ','mol C m-3')
-      call wrtlvl(jlvldic14(iogrp),LVL_DIC14(iogrp),rnacc*1e3,0.,cmpflg,    
-     .  'dic14lvl','Dissolved C14',' ','mol C m-3')
+      call wrtlvl(jlvldic13(iogrp),LVL_DIC13(iogrp),rnacc,0.,cmpflg,    
+     .  'dissic13lvl','Dissolved C13',' ','promille')
+      call wrtlvl(jlvldic14(iogrp),LVL_DIC14(iogrp),rnacc,0.,cmpflg,    
+     .  'dissic14lvl','Dissolved C14',' ','promille')
 #endif
 #ifdef AGG
-      call wrtlvl(jlvlnos(iogrp),LVL_NOS(iogrp),rnacc,0.,cmpflg,       
-     .  'noslvl','NOS',' ','???')
+      call wrtlvl(jlvlnos(iogrp),LVL_NOS(iogrp),
+     .  rnacc,0.,cmpflg,'noslvl',       
+     .  'Marine snow aggregates per cm^3 sea water',' ','1/cm^3')
+      call wrtlvl(jlvlwphy(iogrp),LVL_WPHY(iogrp),
+     .  rnacc,0.,cmpflg,'wphylvl',      
+     .  'Av. mass sinking speed of marine snow',' ','m/day')
+      call wrtlvl(jlvlwnos(iogrp),LVL_WNOS(iogrp),
+     .  rnacc,0.,cmpflg,'wnoslvl',      
+     .  'Av. number sinking speed of marine snow',' ','m/day')
+      call wrtlvl(jlvleps(iogrp),LVL_EPS(iogrp),
+     .  rnacc,0.,cmpflg,'epslvl',       
+     .  'Av. size distribution exponent',' ','-')
+      call wrtlvl(jlvlasize(iogrp),LVL_ASIZE(iogrp),
+     .  rnacc,0.,cmpflg,'asizelvl',      
+     .  'Av. size of marine snow aggregates',' ','nb. of cells')
 #endif
 #ifdef CFC
       call wrtlvl(jlvlcfc11(iogrp),LVL_CFC11(iogrp),rnacc*1e3,0.,cmpflg,  
@@ -380,15 +529,39 @@ c --- Initialise fields
       call inisrf(jdms_uv(iogrp),0.)       
       call inisrf(jexport(iogrp),0.)       
       call inisrf(jexposi(iogrp),0.)       
-      call inisrf(jexpoca(iogrp),0.)       
+      call inisrf(jexpoca(iogrp),0.) 
+      call inisrf(jsrfdic(iogrp),0.)       
+      call inisrf(jsrfalkali(iogrp),0.)       
+      call inisrf(jsrfphosph(iogrp),0.)       
+      call inisrf(jsrfoxygen(iogrp),0.)       
+      call inisrf(jsrfano3(iogrp),0.)       
+      call inisrf(jsrfsilica(iogrp),0.)       
+      call inisrf(jsrfiron(iogrp),0.)       
+      call inisrf(jintphosy(iogrp),0.)       
+      call inisrf(jcarflx0100(iogrp),0.)       
+      call inisrf(jcarflx0500(iogrp),0.)       
+      call inisrf(jcarflx1000(iogrp),0.)       
+      call inisrf(jcarflx2000(iogrp),0.)       
+      call inisrf(jcarflx4000(iogrp),0.)       
+      call inisrf(jcarflx_bot(iogrp),0.)       
+      call inisrf(jbsiflx0100(iogrp),0.)       
+      call inisrf(jbsiflx0500(iogrp),0.)       
+      call inisrf(jbsiflx1000(iogrp),0.)       
+      call inisrf(jbsiflx2000(iogrp),0.)       
+      call inisrf(jbsiflx4000(iogrp),0.)       
+      call inisrf(jbsiflx_bot(iogrp),0.)       
+      call inisrf(jcalflx0100(iogrp),0.)       
+      call inisrf(jcalflx0500(iogrp),0.)       
+      call inisrf(jcalflx1000(iogrp),0.)       
+      call inisrf(jcalflx2000(iogrp),0.)       
+      call inisrf(jcalflx4000(iogrp),0.)       
+      call inisrf(jcalflx_bot(iogrp),0.)       
 #ifdef CFC
       call inisrf(jcfc11fx(iogrp),0.)       
       call inisrf(jcfc12fx(iogrp),0.)       
       call inisrf(jsf6fx(iogrp),0.)       
 #endif
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
       call inisrf(jatmco2(iogrp),0.)       
-#endif   
 #ifdef DIFFAT 
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
@@ -413,12 +586,20 @@ c
       call inilyr(jph(iogrp),0.)       
       call inilyr(jomegac(iogrp),0.)       
       call inilyr(jn2o(iogrp),0.)       
+      call inilyr(jaou(iogrp),0.)       
+      call inilyr(jprefo2(iogrp),0.)       
+      call inilyr(jprefpo4(iogrp),0.)       
+      call inilyr(jprefalk(iogrp),0.)       
 #ifdef __c_isotopes
       call inilyr(jdic13(iogrp),0.)       
       call inilyr(jdic14(iogrp),0.)       
 #endif  
 #ifdef AGG
-      call inilyr(jnos(iogrp),0.)  
+      call inilyr(jnos(iogrp),0.)
+      call inilyr(jwphy(iogrp),0.)
+      call inilyr(jwnos(iogrp),0.)
+      call inilyr(jeps(iogrp),0.)
+      call inilyr(jasize(iogrp),0.)
 #endif  
 #ifdef CFC
       call inilyr(jcfc11(iogrp),0.)       
@@ -444,12 +625,20 @@ c
       call inilvl(jlvlph(iogrp),0.)
       call inilvl(jlvlomegac(iogrp),0.)
       call inilvl(jlvln2o(iogrp),0.)       
+      call inilvl(jlvlaou(iogrp),0.)       
+      call inilvl(jlvlprefo2(iogrp),0.)       
+      call inilvl(jlvlprefpo4(iogrp),0.)       
+      call inilvl(jlvlprefalk(iogrp),0.)       
 #ifdef __c_isotopes
       call inilvl(jlvldic13(iogrp),0.)
       call inilvl(jlvldic14(iogrp),0.)
 #endif  
 #ifdef AGG
       call inilvl(jlvlnos(iogrp),0.)
+      call inilvl(jlvlwphy(iogrp),0.)
+      call inilvl(jlvlwnos(iogrp),0.)
+      call inilvl(jlvleps(iogrp),0.)
+      call inilvl(jlvlasize(iogrp),0.)
 #endif  
 #ifdef CFC
       call inilvl(jlvlcfc11(iogrp),0.)       
