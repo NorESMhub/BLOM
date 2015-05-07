@@ -14,9 +14,6 @@ c
 c
       integer i,j,k,l
 c
-#ifdef TKE
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -180,12 +177,6 @@ c
             pgfxo(i,j,k)=huge
             pgfyo(i,j,k)=huge
             diaflx(i,j,k)=0.
-#ifdef TKE
-            tke(i,j,k   )=huge
-            tke(i,j,k+kk)=huge
-            gls_psi(i,j,k   )=huge
-            gls_psi(i,j,k+kk)=huge
-#endif
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,k   ,nt)=huge
@@ -375,16 +366,6 @@ c
       call xctilr(usflx,  1,2*kk, nbdy,nbdy, halo_us)
       call xctilr(umfltd, 1,2*kk, nbdy,nbdy, halo_us)
       call xctilr(u   ,   1,2*kk, nbdy,nbdy, halo_us)
-#ifdef TKE
-      do j=1-nbdy,jdm+nbdy
-        do i=1-nbdy,idm+nbdy
-          uflxtke(i,j)=uflux(i,j)
-#  ifdef GLS
-          uflxgls_psi(i,j)=uflux(i,j)
-#  endif
-        enddo
-      enddo
-#endif
 #ifdef TRC
       do j=1-nbdy,jdm+nbdy
         do i=1-nbdy,idm+nbdy
@@ -488,16 +469,6 @@ c
       call xctilr(vsflx,  1,2*kk, nbdy,nbdy, halo_vs)
       call xctilr(vmfltd, 1,2*kk, nbdy,nbdy, halo_vs)
       call xctilr(v   ,   1,2*kk, nbdy,nbdy, halo_vs)
-#ifdef TKE
-      do j=1-nbdy,jdm+nbdy
-        do i=1-nbdy,idm+nbdy
-          vflxtke(i,j)=vflux(i,j)
-#  ifdef GLS
-          vflxgls_psi(i,j)=vflux(i,j)
-#  endif
-        enddo
-      enddo
-#endif
 #ifdef TRC
       do j=1-nbdy,jdm+nbdy
         do i=1-nbdy,idm+nbdy

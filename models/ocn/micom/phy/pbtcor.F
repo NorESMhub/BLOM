@@ -15,9 +15,6 @@ c
       real dpo,dpni
       integer i,j,k,l,kn,km
 c
-#ifdef TKE
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -29,12 +26,6 @@ c
 c
       call xctilr(ubflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_uv)
       call xctilr(vbflxs(1-nbdy,1-nbdy,n), 1,1, 1,1, halo_vv)
-#ifdef TKE
-      call xctilr(tke(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
-#  ifdef GLS
-      call xctilr(gls_psi(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
-#  endif
-#endif
 #ifdef TRC
       do nt=1,ntr
         call xctilr(trc(1-nbdy,1-nbdy,k1m,nt), 1,kk, 1,1, halo_ps)
@@ -102,12 +93,6 @@ c$OMP PARALLEL DO
               uflux(i,j)=utotn(i,j)*dp(i-1,j,km)/p(i-1,j,kk+1)
               uflux2(i,j)=uflux(i,j)*saln(i-1,j,km)
               uflux3(i,j)=uflux(i,j)*temp(i-1,j,km)
-#ifdef TKE
-              uflxtke(i,j)=uflux(i,j)*tke(i-1,j,km)
-#  ifdef GLS
-              uflxgls_psi(i,j)=uflux(i,j)*gls_psi(i-1,j,km)
-#  endif
-#endif
 #ifdef TRC
               do nt=1,ntr
                 uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,km,nt)
@@ -117,12 +102,6 @@ c$OMP PARALLEL DO
               uflux(i,j)=utotn(i,j)*dp(i  ,j,km)/p(i  ,j,kk+1)
               uflux2(i,j)=uflux(i,j)*saln(i  ,j,km)
               uflux3(i,j)=uflux(i,j)*temp(i  ,j,km)
-#ifdef TKE
-              uflxtke(i,j)=uflux(i,j)*tke(i  ,j,km)
-#  ifdef GLS
-              uflxgls_psi(i,j)=uflux(i,j)*gls_psi(i  ,j,km)
-#  endif
-#endif
 #ifdef TRC
               do nt=1,ntr
                 uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,km,nt)
@@ -144,12 +123,6 @@ c$OMP PARALLEL DO
               vflux(i,j)=vtotn(i,j)*dp(i,j-1,km)/p(i,j-1,kk+1)
               vflux2(i,j)=vflux(i,j)*saln(i,j-1,km)
               vflux3(i,j)=vflux(i,j)*temp(i,j-1,km)
-#ifdef TKE
-              vflxtke(i,j)=vflux(i,j)*tke(i,j-1,km)                 
-#  ifdef GLS
-              vflxgls_psi(i,j)=vflux(i,j)*gls_psi(i,j-1,km)
-#  endif
-#endif
 #ifdef TRC
               do nt=1,ntr
                 vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,km,nt)
@@ -159,12 +132,6 @@ c$OMP PARALLEL DO
               vflux(i,j)=vtotn(i,j)*dp(i,j  ,km)/p(i,j  ,kk+1)
               vflux2(i,j)=vflux(i,j)*saln(i,j  ,km)
               vflux3(i,j)=vflux(i,j)*temp(i,j  ,km)
-#ifdef TKE
-              vflxtke(i,j)=vflux(i,j)*tke(i,j  ,km)                 
-#  ifdef GLS
-              vflxgls_psi(i,j)=vflux(i,j)*gls_psi(i,j  ,km)
-#  endif
-#endif
 #ifdef TRC
               do nt=1,ntr
                 vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,km,nt)
@@ -193,16 +160,6 @@ c$OMP PARALLEL DO PRIVATE(dpo,dpni)
             temp(i,j,km)=(dpo*temp(i,j,km)
      .                   -scp2i(i,j)*(uflux3(i+1,j)-uflux3(i,j)
      .                               +vflux3(i,j+1)-vflux3(i,j)))*dpni
-#ifdef TKE
-            tke(i,j,km)=(dpo*tke(i,j,km)
-     .                  -scp2i(i,j)*(uflxtke(i+1,j)-uflxtke(i,j)
-     .                              +vflxtke(i,j+1)-vflxtke(i,j)))*dpni
-#  ifdef GLS
-            gls_psi(i,j,km)=(dpo*gls_psi(i,j,km)
-     .        -scp2i(i,j)*(uflxgls_psi(i+1,j)-uflxgls_psi(i,j)
-     .                    +vflxgls_psi(i,j+1)-vflxgls_psi(i,j)))*dpni
-#  endif
-#endif
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,km,nt)=(dpo*trc(i,j,km,nt)
@@ -251,12 +208,6 @@ c
         call chksummsk(sigma,ip,2*kk,'sigma')
         call chksummsk(uflx,iu,2*kk,'uflx')
         call chksummsk(vflx,iv,2*kk,'vflx')
-#ifdef TKE
-        call chksummsk(tke,ip,2*kk,'tke')
-#  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
-#  endif
-#endif
 #ifdef TRC
         do nt=1,ntr
           call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')

@@ -9,6 +9,8 @@ c
       implicit none
 c
 #include "common_blocks.h"
+#include "param_trc.h"
+#include "common_trc.h"
 #include "param_tke.h"
 #include "common_tke.h"
 c
@@ -24,8 +26,8 @@ c$OMP PARALLEL DO
         do k=1,2*kdm
           do l=1,isp(j)
           do i=ifp(j,l),ilp(j,l)
-            tke(i,j,k)=tke_min
-            gls_psi(i,j,k)=gls_psi_min
+            trc(i,j,k,itrtke)=tke_min
+            trc(i,j,k,itrgls)=gls_psi_min
           enddo
           enddo
         enddo

@@ -45,15 +45,19 @@ endif
 if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
 endif
+if ($#turbclo != 0 || $#tracers != 0) then
+  echo $CODEROOT/ocn/micom/trc >> Filepath
+  set cpp_ocn = "$cpp_ocn -DTRC"
+endif
 if ($#turbclo != 0) then
   set twoeq = FALSE
   set oneeq = FALSE
   foreach option ($turbclo)
     if      ($option == twoeq) then
-      set cpp_ocn = "$cpp_ocn -DTKE -DGLS -DTKEDFF"
+      set cpp_ocn = "$cpp_ocn -DTKE -DGLS"
       set twoeq = TRUE
     else if ($option == oneeq) then
-      set cpp_ocn = "$cpp_ocn -DTKE -DTKEDFF"
+      set cpp_ocn = "$cpp_ocn -DTKE"
       set oneeq = TRUE
     else if ($option == advection) then
       set cpp_ocn = "$cpp_ocn -DTKEADV"
@@ -74,8 +78,6 @@ if ($#turbclo != 0) then
   endif
 endif
 if ($#tracers != 0) then
-  echo $CODEROOT/ocn/micom/trc >> Filepath
-  set cpp_ocn = "$cpp_ocn -DTRC"
   foreach module ($tracers)
     if      ($module == iage) then
       echo $CODEROOT/ocn/micom/idlage >> Filepath

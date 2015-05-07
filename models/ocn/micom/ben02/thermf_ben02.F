@@ -30,10 +30,6 @@ c
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totwfl,sflxc,totsrp,totsrn
 c
-#ifdef TKE
-#  include "param_tke.h"
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -41,6 +37,9 @@ c
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ttrsf,ttrav
       real tottrsf,tottrav,trflxc
+#  ifdef TKE
+#    include "param_tke.h"
+#  endif
 #endif
 c
       real swtfrz,intp1d
@@ -383,16 +382,37 @@ c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
 c
-#ifdef TKE
-          tkeflx(i,j)=0.
-#  ifdef GLS
-          gls_psiflx(i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)*
-     .                     (tke(i,j,k1n)**gls_m)*(vonKar**gls_n)*
-     .                     Zos**(gls_n-1.)
-#  endif
-#endif
 #ifdef TRC
+c --- ------------------------------------------------------------------
+c --- --- Tracer fluxes (positive downwards)
+c --- ------------------------------------------------------------------
+c
           do nt=1,ntr
+#  ifdef TKE
+            if (nt.eq.itrtke) then
+              trflx(nt,i,j)=0.
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    ifdef GLS
+            if (nt.eq.itrgls) then
+              trflx(nt,i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)
+     .                       *(trc(i,j,k1n,itrtke)**gls_m)
+     .                       *(vonKar**gls_n)*Zos**(gls_n-1.)
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    else
+            if (nt.eq.itrgls) then
+              trflx(nt,i,j)=0.
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    endif
+#  endif
             trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*1.e-3
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
@@ -475,7 +495,7 @@ c
           endif
 c
 c --- -------------------------------------------------------------------
-c --- --- compute friction velocity (cm/s)
+c --- --- Compute friction velocity (cm/s)
 c --- -------------------------------------------------------------------
 c
           ustar(i,j)=(min(ustari(i,j),.8e-2)*fice0
@@ -553,6 +573,9 @@ c
 #ifdef TRC
       do nt=1,ntr
 c
+#  ifdef TKE
+        if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
 cc$OMP PARALLEL DO
 c        do j=1,jj
 c          do l=1,isp(j)
@@ -569,6 +592,7 @@ c        call xcsum(tottrav,util2,ips)
 cc
 c        tottrav=tottrav/area
 cc
+c        trflxc=(-tottrsf)/area
 c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
         trflxc=0.
 c
@@ -593,7 +617,7 @@ c
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'thermf:'
+          write (lp,*) 'thermf_ben02:'
         endif
         call chksummsk(alb,ip,1,'alb')
         call chksummsk(ficem,ip,1,'ficem')

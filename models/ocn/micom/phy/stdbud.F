@@ -13,9 +13,6 @@ c
       integer i,j,k,l,kn
       real q
 c
-#ifdef TKE
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -27,7 +24,7 @@ c$OMP PARALLEL DO
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           util1(i,j)=0.
           util2(i,j)=0.
-#ifdef TKE
+#if defined(TRC) && defined(TKE)
           util3(i,j)=0.
 #  ifdef GLS
           util4(i,j)=0.
@@ -47,10 +44,10 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
             q=dp(i,j,kn)*scp2(i,j)
             util1(i,j)=util1(i,j)+saln(i,j,kn)*q
             util2(i,j)=util2(i,j)+temp(i,j,kn)*q
-#ifdef TKE
-            util3(i,j)=util3(i,j)+tke(i,j,kn)*q
+#if defined(TRC) && defined(TKE)
+            util3(i,j)=util3(i,j)+trc(i,j,kn,itrtke)*q
 #  ifdef GLS
-            util4(i,j)=util4(i,j)+gls_psi(i,j,kn)*q
+            util4(i,j)=util4(i,j)+trc(i,j,kn,itrgls)*q
 #  endif
 #endif
           enddo
@@ -61,7 +58,7 @@ c$OMP END PARALLEL DO
 c
       call xcsum(sdp(ncall,n),util1,ips)
       call xcsum(tdp(ncall,n),util2,ips)
-#ifdef TKE
+#if defined(TRC) && defined(TKE)
       call xcsum(tkedp(ncall,n),util3,ips)
 #  ifdef GLS
       call xcsum(glsdp(ncall,n),util4,ips)

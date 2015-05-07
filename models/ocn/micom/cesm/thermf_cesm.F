@@ -20,10 +20,6 @@ c
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
      .     totsrn,q
 c
-#ifdef TKE
-#  include "param_tke.h"
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -31,6 +27,9 @@ c
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ttrsf,ttrav
       real tottrsf,tottrav,trflxc
+#  ifdef TKE
+#    include "param_tke.h"
+#  endif
 #endif
 c
       real swtfrz,intp1d
@@ -128,21 +127,37 @@ c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-swa(i,j)*1.e-4
 c
-#ifdef TKE
-          tkeflx(i,j)=0.
-#  ifdef GLS
-          gls_psiflx(i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)*
-     .                     (tke(i,j,k1n)**gls_m)*(vonKar**gls_n)*
-     .                     Zos**(gls_n-1.)
-#  endif
-#endif
-c
 #ifdef TRC
 c --- ------------------------------------------------------------------
-c --- --- Virtual tracer fluxes (positive downwards)
+c --- --- Tracer fluxes (positive downwards)
 c --- ------------------------------------------------------------------
 c
           do nt=1,ntr
+#  ifdef TKE
+            if (nt.eq.itrtke) then
+              trflx(nt,i,j)=0.
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    ifdef GLS
+            if (nt.eq.itrgls) then
+              trflx(nt,i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)
+     .                       *(trc(i,j,k1n,itrtke)**gls_m)
+     .                       *(vonKar**gls_n)*Zos**(gls_n-1.)
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    else
+            if (nt.eq.itrgls) then
+              trflx(nt,i,j)=0.
+              ttrsf(nt,i,j)=0.
+              ttrav(nt,i,j)=0.
+              cycle
+            endif
+#    endif
+#  endif
             trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*1.e-3
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
@@ -290,6 +305,9 @@ c
 #ifdef TRC
       do nt=1,ntr
 c
+#  ifdef TKE
+        if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)

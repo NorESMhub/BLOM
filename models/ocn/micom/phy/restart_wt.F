@@ -35,12 +35,12 @@ c
       character startdate*20,timeunits*30
       real datenum
 c
-#if defined TKE
-#  include "common_tke.h"
-#endif
-#if defined(TRC) && defined(IDLAGE)
+#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
 #  include "param_trc.h"
 #  include "common_trc.h"
+#  ifdef TKE
+#    include "common_tke.h"
+#  endif
 #endif
 c
 c --- set time information
@@ -299,16 +299,20 @@ c
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
       endif
 c
-#if defined TKE
-      call wrtrst('tke',trim(c5p)//' kk2 time',tke,ip)
-      call wrtrst('gls_psi',trim(c5p)//' kk2 time',gls_psi,ip)
+#ifdef TRC
+# ifdef TKE
+      call wrtrst('tke',trim(c5p)//' kk2 time',
+     .            trc(1-nbdy,1-nbdy,1,itrtke),ip)
+      call wrtrst('gls_psi',trim(c5p)//' kk2 time',
+     .            trc(1-nbdy,1-nbdy,1,itrgls),ip)
       call wrtrst('L_scale',trim(c5p)//' kk time',L_scale,ip)
       call wrtrst('difdia',trim(c5p)//' kk time',difdia,ip)
       call wrtrst('ustarb',trim(c5p)//' time',ustarb,ip)
-#endif
-#if defined(TRC) && defined(IDLAGE)
+#  endif
+#  ifdef IDLAGE
       call wrtrst('idlage',trim(c5p)//' kk2 time',
      .            trc(1-nbdy,1-nbdy,1,itriag),ip)
+#  endif
 #endif
 c
 c --- write accumulated fields
@@ -495,7 +499,7 @@ c --- write accumulated fields
           if (ACC_WFLX2(n) .ne.0) call wrtrst('wflx2_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),
      .      ip)
-#if defined TKE
+#if defined(TRC) && defined(TKE)
           if (ACC_TKE(n)  .ne.0) call wrtrst('tke_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),
      .      ip)
@@ -584,7 +588,7 @@ c --- write accumulated fields
           if (ACC_WFLX2LVL(n).ne.0) call wrtrst('wflx2lvl_phy'//c2,
      .      trim(c5p)//' plev time',
      .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
-#if defined TKE
+#if defined(TRC) && defined(TKE)
           if (ACC_TKELVL(n).ne.0) call wrtrst('tkelvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_TKELVL(n)),ip)

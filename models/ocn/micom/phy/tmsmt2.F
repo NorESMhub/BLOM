@@ -14,9 +14,6 @@ c
       integer i,j,k,l,kn,km,kp
       real pold,pmid,pnew,q
 c
-#ifdef TKE
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -69,17 +66,6 @@ c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
             saln(i,j,km)=(wts1*pmid*saln(i,j,km)
      .                   +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn)))
      .                   /(dp(i,j,km)+epsil)
-#ifdef TKE
-            tke(i,j,km)=(wts1*pmid*tke(i,j,km)
-     .                  +wts2*(pold*tke_old(i,j,k)+pnew*tke(i,j,kn)))
-     .                  /(dp(i,j,km)+epsil)
-#  ifdef GLS
-            gls_psi(i,j,km)=(wts1*pmid*gls_psi(i,j,km)
-     .                      +wts2*(pold*gls_psi_old(i,j,k)
-     .                            +pnew*gls_psi(i,j,kn)))
-     .                      /(dp(i,j,km)+epsil)
-#  endif
-#endif
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,km,nt)=(wts1*pmid*trc(i,j,km,nt)
@@ -142,11 +128,10 @@ c
         call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(dpu,iu,2*kk,'dpu')
         call chksummsk(dpv,iv,2*kk,'dpv')
-#ifdef TKE
-        call chksummsk(tke,ip,2*kk,'tke')
-#  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
-#  endif
+#ifdef TRC
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
+        enddo
 #endif
       endif
 c

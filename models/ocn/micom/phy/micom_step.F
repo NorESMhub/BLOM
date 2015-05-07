@@ -12,9 +12,6 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
-#ifdef TKE
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -125,11 +122,7 @@ c
       auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'sfcstr...'
-      if (expcnf.eq.'cesm') then
-        call sfcstr_cesm(m,n,mm,nn,k1m,k1n)
-      else
-        call sfcstr(m,n,mm,nn,k1m,k1n)
-      endif
+      call sfcstr(m,n,mm,nn,k1m,k1n)
       sfcstr_time=gettime()
 c
 cdiag write (lp,*) 'pgforc...'
@@ -209,7 +202,8 @@ c
      .      (tdp(6,m)-tdp(5,m))/mass0,
      .      (tdp(7,m)-tdp(6,m))/mass0
           close (nfu)
-#ifdef TKE
+#ifdef TRC
+#  ifdef TKE
           open (unit=nfu,file='tkebud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
      .      (tkedp(2,m)-tkedp(1,m))/mass0,
@@ -219,7 +213,7 @@ c
      .      (tkedp(6,m)-tkedp(5,m))/mass0,
      .      (tkedp(7,m)-tkedp(6,m))/mass0
           close (nfu)
-#  ifdef GLS
+#    ifdef GLS
           open (unit=nfu,file='glsbud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
      .      (glsdp(2,m)-glsdp(1,m))/mass0,
@@ -229,9 +223,8 @@ c
      .      (glsdp(6,m)-glsdp(5,m))/mass0,
      .      (glsdp(7,m)-glsdp(6,m))/mass0
           close (nfu)
+#    endif
 #  endif
-#endif
-#ifdef TRC
           open (unit=nfu,file='trcbud',position='append')
           write (nfu,'(i8,6e12.4)') nstep-1,
      .      (trdp(2,m)-trdp(1,m))/mass0,

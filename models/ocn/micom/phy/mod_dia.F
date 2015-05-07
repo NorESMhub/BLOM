@@ -852,8 +852,9 @@ c
 #include "common_blocks.h"
 #include "common_forc.h"
 #include "common_seaice.h"
-#if defined TKE
-#  include "common_tke.h"
+#if defined(TRC) && defined(TKE)
+#  include "param_trc.h"
+#  include "common_trc.h"
 #endif
 c
       integer d,i,j,k,l,km,iogrp
@@ -1230,11 +1231,11 @@ c --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
 c
 c --- weighted salinity [g^2/kg/cm/s^2]
       call acclyr(ACC_SALN,saln(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+     .            dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 c --- weighted temperature [degC*g/cm/s^2]
       call acclyr(ACC_TEMP,temp(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+     .            dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 c --- layer pressure thickness [g/cm/s^2]
       call acclyr(ACC_DP,dp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
@@ -1254,14 +1255,14 @@ c
 c --- diapycnal diffusivity [cm^2/s]
       call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-#if defined TKE
+#if defined(TRC) && defined(TKE)
 c --- weighted tke [cm2/s2*g/cm/s^2]
-      call acclyr(ACC_TKE,tke(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+      call acclyr(ACC_TKE,trc(1-nbdy,1-nbdy,k1m,itrtke),
+     .            dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 c --- weighted gls_psi [cm2/s3*g/cm/s^2]
-      call acclyr(ACC_GLS_PSI,gls_psi(1-nbdy,1-nbdy,k1m),
-     .  dp(1-nbdy,1-nbdy,k1m),1,'p')
+      call acclyr(ACC_GLS_PSI,trc(1-nbdy,1-nbdy,k1m,itrgls),
+     .            dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 #endif
 c --- ------------------------------------------------------------------
@@ -1303,36 +1304,36 @@ c --- --- weighted u-component of total velocity [g/s^3]
           call acclvl(ACC_UVELLVL,uvel,'u',k,ind1,ind2,wghts)
 c
 c --- --- u-component of mass flux [g*cm/s^2]
-          call acclvl(ACC_UFLXLVL,uflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_UFLXLVL,uflx(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of heat flux [K*g*cm/s^2]
-          call acclvl(ACC_UTFLXLVL,utflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_UTFLXLVL,utflx(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of salt flux [g^2*cm/kg/s^2]
-          call acclvl(ACC_USFLXLVL,usflx(1-nbdy,1-nbdy,k1n),'u',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_USFLXLVL,usflx(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of mass flux due to thickness diffusion [g*cm/s^2]
-          call acclvl(ACC_UMFLTDLVL,umfltd(1-nbdy,1-nbdy,k1n),'u',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_UMFLTDLVL,umfltd(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
-          call acclvl(ACC_UTFLTDLVL,utfltd(1-nbdy,1-nbdy,k1n),'u',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_UTFLTDLVL,utfltd(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
-          call acclvl(ACC_UTFLLDLVL,utflld(1-nbdy,1-nbdy,k1n),'u',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_UTFLLDLVL,utflld(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
-          call acclvl(ACC_USFLTDLVL,usfltd(1-nbdy,1-nbdy,k1n),'u',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_USFLTDLVL,usfltd(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
-          call acclvl(ACC_USFLLDLVL,usflld(1-nbdy,1-nbdy,k1n),'u',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_USFLLDLVL,usflld(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
         enddo
       endif
 c
@@ -1348,36 +1349,36 @@ c --- --- weighted v-component of total velocity [g/s^3]
           call acclvl(ACC_VVELLVL,vvel,'v',k,ind1,ind2,wghts)
 c
 c --- --- v-component of mass flux [g*cm/s^2]
-          call acclvl(ACC_VFLXLVL,vflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_VFLXLVL,vflx(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of heat flux [K*g*cm/s^2]
-          call acclvl(ACC_VTFLXLVL,vtflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_VTFLXLVL,vtflx(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of salt flux [g^2*cm/kg/s^2]
-          call acclvl(ACC_VSFLXLVL,vsflx(1-nbdy,1-nbdy,k1n),'v',k,ind1,
-     .      ind2,wghtsflx)
+          call acclvl(ACC_VSFLXLVL,vsflx(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of mass flux due to thickness diffusion [g*cm/s^2]
-          call acclvl(ACC_VMFLTDLVL,vmfltd(1-nbdy,1-nbdy,k1n),'v',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_VMFLTDLVL,vmfltd(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
-          call acclvl(ACC_VTFLTDLVL,vtfltd(1-nbdy,1-nbdy,k1n),'v',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_VTFLTDLVL,vtfltd(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
-          call acclvl(ACC_VTFLLDLVL,vtflld(1-nbdy,1-nbdy,k1n),'v',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_VTFLLDLVL,vtflld(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
-          call acclvl(ACC_VSFLTDLVL,vsfltd(1-nbdy,1-nbdy,k1n),'v',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_VSFLTDLVL,vsfltd(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
-          call acclvl(ACC_VSFLLDLVL,vsflld(1-nbdy,1-nbdy,k1n),'v',k,
-     .      ind1,ind2,wghtsflx)
+          call acclvl(ACC_VSFLLDLVL,vsflld(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
         enddo
       endif
 c
@@ -1390,12 +1391,12 @@ c
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
 c --- --- salinity [g^2/kg/cm/s^2]
-          call acclvl(ACC_SALNLVL,saln(1-nbdy,1-nbdy,k1m),'p',k,ind1
-     .      ,ind2,wghts)
+          call acclvl(ACC_SALNLVL,saln(1-nbdy,1-nbdy,k1m),
+     .                'p',k,ind1,ind2,wghts)
 c
 c --- --- temperature [degC*g/cm/s^2]
-          call acclvl(ACC_TEMPLVL,temp(1-nbdy,1-nbdy,k1m),'p',k,ind1
-     .      ,ind2,wghts)
+          call acclvl(ACC_TEMPLVL,temp(1-nbdy,1-nbdy,k1m),
+     .                'p',k,ind1,ind2,wghts)
 c
 c --- --- diapycnal mass flux [g*cm/s^2]
           call acclvl(ACC_DIAFLXLVL,diaflx,'p',k,ind1,ind2,wghts)
@@ -1409,14 +1410,14 @@ c
 c --- --- diapycnal diffusivity [cm^2/s]
           call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
 c
-#if defined TKE
+#if defined(TRC) && defined(TKE)
 c --- --- tke [cm2/s2*g/cm/s^2]
-          call acclvl(ACC_TKELVL,tke(1-nbdy,1-nbdy,k1m),'p',k,ind1
-     .      ,ind2,wghts)
+          call acclvl(ACC_TKELVL,trc(1-nbdy,1-nbdy,k1m,itrtke),
+     .                'p',k,ind1,ind2,wghts)
 c
 c --- --- gls_psi [cm2/s3*g/cm/s^2]
-          call acclvl(ACC_GLS_PSILVL,gls_psi(1-nbdy,1-nbdy,k1m),'p',
-     .       k,ind1,ind2,wghts)
+          call acclvl(ACC_GLS_PSILVL,trc(1-nbdy,1-nbdy,k1m,itrgls),
+     .                'p',k,ind1,ind2,wghts)
 c
 #endif
 c --- --- layer geopotential thickness [cm^2/s^2]
@@ -1523,7 +1524,7 @@ c --- finalize accumulation of layer fields
       call finlyr(ACC_DIFDIA(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFINT(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFISO(iogrp),ACC_DP(iogrp),'p')
-#if defined TKE
+#if defined(TRC) && defined(TKE)
       call finlyr(ACC_TKE(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_GLS_PSI(iogrp),ACC_DP(iogrp),'p')
 #endif
@@ -1571,7 +1572,7 @@ c --- mask sea floor of level fields
       call msklvl(ACC_TEMPLVL(iogrp),'p')
       call msklvl(ACC_WFLXLVL(iogrp),'p')
       call msklvl(ACC_WFLX2LVL(iogrp),'p')
-#if defined TKE
+#if defined(TRC) && defined(TKE)
       call msklvl(ACC_TKELVL(iogrp),'p')
       call msklvl(ACC_GLS_PSILVL(iogrp),'p')
 #endif
@@ -2025,7 +2026,7 @@ c
      .    'm2 s-1')
       endif
 c
-#if defined TKE 
+#if defined(TRC) && defined(TKE)
       call wrtlyr(ACC_TKE(iogrp),LYR_TKE(iogrp),1e-4,0.,
      .  cmpflg,ip,'p','tke','TKE','Turbulent kinetic energy',
      .  'm2 s-2')
@@ -2172,14 +2173,14 @@ c
      .    'm2 s-1')
       endif
 c
-#if defined TKE 
-      call wrtlvl(ACC_TKELVL(iogrp),LVL_TKE(iogrp),
-     .  1e-4,0.,cmpflg,ip,'p','tkelvl','TKE',
-     .  'Turbulent Kinetic Energy','m2 s-2')
+#if defined(TRC) && defined(TKE)
+      call wrtlvl(ACC_TKELVL(iogrp),LVL_TKE(iogrp),rnacc*1.e-4,
+     .  0.,cmpflg,ip,'p','tkelvl','Turbulent kinetic energy',' ',
+     .  'm2 s-2')
 c
-      call wrtlvl(ACC_GLS_PSILVL(iogrp),LVL_GLS_PSI(iogrp),
-     .  1e-4,0.,cmpflg,ip,'p','gls_psilvl','GLS_PSI',
-     .  'Generic length scale','m2 s-3')
+      call wrtlvl(ACC_GLS_PSILVL(iogrp),LVL_GLS_PSI(iogrp),rnacc*1.e-4,
+     .  0.,cmpflg,ip,'p','gls_psilvl','Generic length scale',' ',
+     .  'm2 s-3')
 c
 #endif
 c
@@ -2470,7 +2471,7 @@ c
       call inilyr(ACC_DIFISO(iogrp),'p',0.)
       call inilyr(ACC_WFLX(iogrp),'p',0.)
       call inilyr(ACC_WFLX2(iogrp),'p',0.)
-#if defined TKE
+#if defined(TRC) && defined(TKE)
       call inilyr(ACC_TKE(iogrp),'p',0.)
       call inilyr(ACC_GLS_PSI(iogrp),'p',0.)
 #endif
@@ -2505,9 +2506,9 @@ c
       call inilvl(ACC_TEMPLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLXLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLX2LVL(iogrp),'p',0.)
-#if defined TKE
-      call inilyr(ACC_TKELVL(iogrp),'p',0.)
-      call inilyr(ACC_GLS_PSILVL(iogrp),'p',0.)
+#if defined(TRC) && defined(TKE)
+      call inilvl(ACC_TKELVL(iogrp),'p',0.)
+      call inilvl(ACC_GLS_PSILVL(iogrp),'p',0.)
 #endif
 c
 c --- reset accumulation counter 

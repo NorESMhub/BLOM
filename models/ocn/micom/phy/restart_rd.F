@@ -35,12 +35,12 @@ c
       data first /.true./
       save first,iuu,ivv,iqq
 c
-#if defined TKE
-#  include "common_tke.h"
-#endif
-#if defined(TRC) && defined(IDLAGE)
+#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
 #  include "param_trc.h"
 #  include "common_trc.h"
+#  ifdef TKE
+#    include "common_tke.h"
+#  endif
 #endif
 c
       if (mnproc.eq.1) then
@@ -532,11 +532,12 @@ c
         endif
       endif
 c
-#ifdef TKE
+#ifdef TRC
+#  ifdef TKE
       if (mnproc.eq.1) vexist=ncinqv('tke')
       call xcbcst(vexist)
       if (vexist) then
-        call ncread('tke',tke,ip,1,0.)
+        call ncread('tke',trc(1-nbdy,1-nbdy,1,itrtke),ip,1,0.)
       else
         if (mnproc.eq.1) then
           write (lp,*)
@@ -549,7 +550,7 @@ c
       if (mnproc.eq.1) vexist=ncinqv('gls_psi')
       call xcbcst(vexist)
       if (vexist) then
-        call ncread('gls_psi',gls_psi,ip,1,0.)
+        call ncread('gls_psi',trc(1-nbdy,1-nbdy,1,itrgls),ip,1,0.)
       else
         if (mnproc.eq.1) then
           write (lp,*)
@@ -613,8 +614,8 @@ c
           enddo
         enddo
       endif
-#endif
-#if defined(TRC) && defined(IDLAGE)
+#  endif
+#  ifdef IDLAGE
       if (mnproc.eq.1) vexist=ncinqv('idlage')
       call xcbcst(vexist)
       if (vexist) then
@@ -628,6 +629,7 @@ c
         endif
         call idlage_init
       endif
+#  endif
 #endif
 c
 c --- read accumulated fields
@@ -702,7 +704,7 @@ c --- read accumulated fields
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),ip,1,0.)
           if (ACC_WFLX2(n).ne.0) call ncread('wflx2_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),ip,1,0.)
-#if defined TKE
+#if defined(TRC) && defined(TKE)
           if (ACC_TKE(n).ne.0) call ncread('tke_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),ip,1,0.)
           if (ACC_GLS_PSI(n).ne.0) call ncread('gls_psi_phy'//c2,
@@ -770,7 +772,7 @@ c --- read accumulated fields
      .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
           if (ACC_WFLX2LVL(n).ne.0) call ncread('wflx2lvl_phy'//c2,
      .       phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
-#if defined TKE
+#if defined(TRC) && defined(TKE)
           if (ACC_TKELVL(n).ne.0) call ncread('tkelvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)),ip,1,0.)
           if (ACC_GLS_PSILVL(n).ne.0) call ncread('gls_psilvl_phy'//c2,

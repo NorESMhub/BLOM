@@ -25,6 +25,19 @@ c
 c
 #ifdef ATRC
 c --- ------------------------------------------------------------------
+c --- check number of age tracers
+c --- ------------------------------------------------------------------
+c
+      if (2*natr.gt.ntrocn) then
+        if (mnproc.eq.1) then
+          write (lp,'(2a)') ' Number of age tracers must be less or ',
+     .      'equal half the total number of ocean tracers!'
+        endif
+        call xcstop('(ocntrc_init)')
+               stop '(ocntrc_init)'
+      endif
+c
+c --- ------------------------------------------------------------------
 c --- initialization of tracers
 c --- ------------------------------------------------------------------
 c
@@ -70,7 +83,7 @@ c
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)
+              trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)+nt
               trc(i,j,k+kk,nt)=trc(i,j,k,nt)
             enddo
             enddo

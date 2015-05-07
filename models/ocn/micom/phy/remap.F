@@ -1,12 +1,6 @@
       subroutine remap(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,
      .                 plo,u,v,dt,mrg,
      .                 dp,temp,saln,uflx,vflx,utflx,vtflx,usflx,vsflx
-#if defined(TKE) && defined(TKEADV)
-     .                ,tke
-#  ifdef GLS
-     .                ,gls_psi
-#  endif
-#endif
 #ifdef TRC
      .                ,k,trc
 #endif
@@ -55,12 +49,6 @@ c
      .  uflx,vflx,utflx,vtflx,usflx,vsflx
       real dt
       integer mrg
-#if defined(TKE) && defined(TKEADV)
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tke
-#  ifdef GLS
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: gls_psi
-#  endif
-#endif
 #ifdef TRC
 #  include "param_trc.h"
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm,ntr) :: trc
@@ -77,14 +65,6 @@ c
      .     sgmx,sgmn,sfmx,sfmn,xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,
      .     a,ax,ay,axx,ayy,axy,dl,fd,qx,qy
       integer i,j,l,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne,nw
-#if defined(TKE) && defined(TKEADV)
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  tkex,tkey,tked,ftkeu,ftkev
-#  ifdef GLS
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  gls_psix,gls_psiy,gls_psid,fgls_psiu,fgls_psiv
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
       real, dimension(ntr-natr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -151,17 +131,12 @@ c
           ftv(i,j)=0.
           fsu(i,j)=0.
           fsv(i,j)=0.
-#if defined(TKE) && defined(TKEADV)
-          ftkeu(i,j)=0.
-          ftkev(i,j)=0.
-#  ifdef GLS
-          fgls_psiu(i,j)=0.
-          fgls_psiv(i,j)=0.
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
           do nt=1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             ftru(nt,i,j)=0.
             ftrv(nt,i,j)=0.
           enddo
@@ -171,6 +146,9 @@ c
           enddo
 #  else
           do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             ftru(nt,i,j)=0.
             ftrv(nt,i,j)=0.
           enddo
@@ -311,76 +289,14 @@ c
             sy(i,j)=0.
             sd(i,j)=saln(i,j)
           endif
-#if defined(TKE) && defined(TKEADV)
-c
-c --- --- Compute limited gradient for tke.
-          tkex(i,j)=(tke(ie,j)-tke(iw,j))*dxi
-          tkey(i,j)=(tke(i,jn)-tke(i,js))*dyi
-          q1=tkex(i,j)*(-.5-xd(i,j))
-          q2=tkex(i,j)*( .5-xd(i,j))
-          q3=tkey(i,j)*(-.5-yd(i,j))
-          q4=tkey(i,j)*( .5-yd(i,j))
-          tgmx=max(q1,q2)+max(q3,q4)
-          tgmn=min(q1,q2)+min(q3,q4)
-          tfmx=max(0.,max(tke(isw,jsw),tke(i  ,js ),
-     .                    tke(ise,jse),tke(iw ,j  ),
-     .                    tke(ie ,j  ),tke(inw,jnw),
-     .                    tke(i  ,jn ),tke(ine,jne))
-     .               -tke(i,j))
-          tfmn=min(0.,min(tke(isw,jsw),tke(i  ,js ),
-     .                    tke(ise,jse),tke(iw ,j  ),
-     .                    tke(ie ,j  ),tke(inw,jnw),
-     .                    tke(i  ,jn ),tke(ine,jne))
-     .               -tke(i,j))
-          if (tfmx.gt.0..and.tfmn.lt.0.) then
-            q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
-            tkex(i,j)=tkex(i,j)*q
-            tkey(i,j)=tkey(i,j)*q
-            tked(i,j)=tke(i,j)-tkex(i,j)*xd(i,j)-tkey(i,j)*yd(i,j)
-          else
-            tkex(i,j)=0.
-            tkey(i,j)=0.
-            tked(i,j)=tke(i,j)
-          endif
-#  ifdef GLS
-c
-c --- --- Compute limited gradient for gls_psi.
-          gls_psix(i,j)=(gls_psi(ie,j)-gls_psi(iw,j))*dxi
-          gls_psiy(i,j)=(gls_psi(i,jn)-gls_psi(i,js))*dyi
-          q1=gls_psix(i,j)*(-.5-xd(i,j))
-          q2=gls_psix(i,j)*( .5-xd(i,j))
-          q3=gls_psiy(i,j)*(-.5-yd(i,j))
-          q4=gls_psiy(i,j)*( .5-yd(i,j))
-          tgmx=max(q1,q2)+max(q3,q4)
-          tgmn=min(q1,q2)+min(q3,q4)
-          tfmx=max(0.,max(gls_psi(isw,jsw),gls_psi(i  ,js ),
-     .                    gls_psi(ise,jse),gls_psi(iw ,j  ),
-     .                    gls_psi(ie ,j  ),gls_psi(inw,jnw),
-     .                    gls_psi(i  ,jn ),gls_psi(ine,jne))
-     .               -gls_psi(i,j))
-          tfmn=min(0.,min(gls_psi(isw,jsw),gls_psi(i  ,js ),
-     .                    gls_psi(ise,jse),gls_psi(iw ,j  ),
-     .                    gls_psi(ie ,j  ),gls_psi(inw,jnw),
-     .                    gls_psi(i  ,jn ),gls_psi(ine,jne))
-     .               -gls_psi(i,j))
-          if (tfmx.gt.0..and.tfmn.lt.0.) then
-            q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
-            gls_psix(i,j)=gls_psix(i,j)*q
-            gls_psiy(i,j)=gls_psiy(i,j)*q
-            gls_psid(i,j)=gls_psi(i,j)
-     .                   -gls_psix(i,j)*xd(i,j)-gls_psiy(i,j)*yd(i,j)
-          else
-            gls_psix(i,j)=0.
-            gls_psiy(i,j)=0.
-            gls_psid(i,j)=gls_psi(i,j)
-          endif
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
 c
 c --- --- Compute limited gradient for tracers.
           do nt=1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
             try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
@@ -447,10 +363,13 @@ c --- --- Compute limited gradient for age tracers.
               agd(nt,i,j)=ag(nt,i,j)
             endif
           enddo
-#else
+#  else
 c
 c --- --- Compute limited gradient for tracers.
           do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
             try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
@@ -615,14 +534,6 @@ c
      .                +qx*tx(i-1,j-1)+qy*ty(i-1,j-1)
               fsu(i,j)=fsu(i,j)+fd*sd(i-1,j-1)
      .                +qx*sx(i-1,j-1)+qy*sy(i-1,j-1)
-#if defined(TKE) && defined(TKEADV)
-              ftkeu(i,j)=ftkeu(i,j)+fd*tked(i-1,j-1)
-     .                  +qx*tkex(i-1,j-1)+qy*tkey(i-1,j-1)
-#  ifdef GLS
-              fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i-1,j-1)
-     .                      +qx*gls_psix(i-1,j-1)+qy*gls_psiy(i-1,j-1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i-1,j-1)+axxy*dy(i-1,j-1)
@@ -641,11 +552,17 @@ c
      .                       +qyy*try(nt,i-1,j-1))*agy(nt,i-1,j-1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
@@ -684,14 +601,6 @@ c
      .                +qx*tx(i-1,j+1)+qy*ty(i-1,j+1)
               fsu(i,j)=fsu(i,j)+fd*sd(i-1,j+1)
      .                +qx*sx(i-1,j+1)+qy*sy(i-1,j+1)
-#if defined(TKE) && defined(TKEADV)
-              ftkeu(i,j)=ftkeu(i,j)+fd*tked(i-1,j+1)
-     .                  +qx*tkex(i-1,j+1)+qy*tkey(i-1,j+1)
-#  ifdef GLS
-              fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i-1,j+1)
-     .                      +qx*gls_psix(i-1,j+1)+qy*gls_psiy(i-1,j+1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i-1,j+1)+axxy*dy(i-1,j+1)
@@ -710,11 +619,17 @@ c
      .                       +qyy*try(nt,i-1,j+1))*agy(nt,i-1,j+1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j+1)
      .                      +qx*trx(nt,i-1,j+1)+qy*try(nt,i-1,j+1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j+1)
      .                      +qx*trx(nt,i-1,j+1)+qy*try(nt,i-1,j+1)
               enddo
@@ -746,14 +661,6 @@ c
      .              +qx*tx(i-1,j)+qy*ty(i-1,j)
             fsu(i,j)=fsu(i,j)+fd*sd(i-1,j)
      .              +qx*sx(i-1,j)+qy*sy(i-1,j)
-#if defined(TKE) && defined(TKEADV)
-            ftkeu(i,j)=ftkeu(i,j)+fd*tked(i-1,j)
-     .                +qx*tkex(i-1,j)+qy*tkey(i-1,j)
-#  ifdef GLS
-            fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i-1,j)
-     .                    +qx*gls_psix(i-1,j)+qy*gls_psiy(i-1,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
             qxx=axx*dl+axxx*dx(i-1,j)+axxy*dy(i-1,j)
@@ -772,11 +679,17 @@ c
      .                     +qyy*try(nt,i-1,j))*agy(nt,i-1,j)
             enddo
             do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j)
      .                    +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
             enddo
 #  else
             do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i-1,j)
      .                    +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
             enddo
@@ -813,14 +726,6 @@ c
      .                +qx*tx(i,j-1)+qy*ty(i,j-1)
               fsu(i,j)=fsu(i,j)+fd*sd(i,j-1)
      .                +qx*sx(i,j-1)+qy*sy(i,j-1)
-#if defined(TKE) && defined(TKEADV)
-              ftkeu(i,j)=ftkeu(i,j)+fd*tked(i,j-1)
-     .                  +qx*tkex(i,j-1)+qy*tkey(i,j-1)
-#  ifdef GLS
-              fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i,j-1)
-     .                      +qx*gls_psix(i,j-1)+qy*gls_psiy(i,j-1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i,j-1)+axxy*dy(i,j-1)
@@ -839,11 +744,17 @@ c
      .                       +qyy*try(nt,i,j-1))*agy(nt,i,j-1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j-1)
      .                      +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j-1)
      .                      +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
               enddo
@@ -882,14 +793,6 @@ c
      .                +qx*tx(i,j+1)+qy*ty(i,j+1)
               fsu(i,j)=fsu(i,j)+fd*sd(i,j+1)
      .                +qx*sx(i,j+1)+qy*sy(i,j+1)
-#if defined(TKE) && defined(TKEADV)
-              ftkeu(i,j)=ftkeu(i,j)+fd*tked(i,j+1)
-     .                  +qx*tkex(i,j+1)+qy*tkey(i,j+1)
-#  ifdef GLS
-              fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i,j+1)
-     .                      +qx*gls_psix(i,j+1)+qy*gls_psiy(i,j+1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i,j+1)+axxy*dy(i,j+1)
@@ -908,11 +811,17 @@ c
      .                       +qyy*try(nt,i,j+1))*agy(nt,i,j+1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j+1)
      .                      +qx*trx(nt,i,j+1)+qy*try(nt,i,j+1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j+1)
      .                      +qx*trx(nt,i,j+1)+qy*try(nt,i,j+1)
               enddo
@@ -944,14 +853,6 @@ c
      .              +qx*tx(i,j)+qy*ty(i,j)
             fsu(i,j)=fsu(i,j)+fd*sd(i,j)
      .              +qx*sx(i,j)+qy*sy(i,j)
-#if defined(TKE) && defined(TKEADV)
-            ftkeu(i,j)=ftkeu(i,j)+fd*tked(i,j)
-     .                +qx*tkex(i,j)+qy*tkey(i,j)
-#  ifdef GLS
-            fgls_psiu(i,j)=fgls_psiu(i,j)+fd*gls_psid(i,j)
-     .                    +qx*gls_psix(i,j)+qy*gls_psiy(i,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
             qxx=axx*dl+axxx*dx(i,j)+axxy*dy(i,j)
@@ -970,11 +871,17 @@ c
      .                     +qyy*try(nt,i,j))*agy(nt,i,j)
             enddo
             do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
 #  else
             do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftru(nt,i,j)=ftru(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
@@ -1040,14 +947,6 @@ c
      .                +qx*tx(i-1,j-1)+qy*ty(i-1,j-1)
               fsv(i,j)=fsv(i,j)+fd*sd(i-1,j-1)
      .                +qx*sx(i-1,j-1)+qy*sy(i-1,j-1)
-#if defined(TKE) && defined(TKEADV)
-              ftkev(i,j)=ftkev(i,j)+fd*tked(i-1,j-1)
-     .                  +qx*tkex(i-1,j-1)+qy*tkey(i-1,j-1)
-#  ifdef GLS
-              fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i-1,j-1)
-     .                      +qx*gls_psix(i-1,j-1)+qy*gls_psiy(i-1,j-1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i-1,j-1)+axxy*dy(i-1,j-1)
@@ -1066,11 +965,17 @@ c
      .                       +qyy*try(nt,i-1,j-1))*agy(nt,i-1,j-1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j-1)
      .                      +qx*trx(nt,i-1,j-1)+qy*try(nt,i-1,j-1)
               enddo
@@ -1109,14 +1014,6 @@ c
      .                +qx*tx(i+1,j-1)+qy*ty(i+1,j-1)
               fsv(i,j)=fsv(i,j)+fd*sd(i+1,j-1)
      .                +qx*sx(i+1,j-1)+qy*sy(i+1,j-1)
-#if defined(TKE) && defined(TKEADV)
-              ftkev(i,j)=ftkev(i,j)+fd*tked(i+1,j-1)
-     .                  +qx*tkex(i+1,j-1)+qy*tkey(i+1,j-1)
-#  ifdef GLS
-              fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i+1,j-1)
-     .                      +qx*gls_psix(i+1,j-1)+qy*gls_psiy(i+1,j-1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i+1,j-1)+axxy*dy(i+1,j-1)
@@ -1135,11 +1032,17 @@ c
      .                       +qyy*try(nt,i+1,j-1))*agy(nt,i+1,j-1)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j-1)
      .                      +qx*trx(nt,i+1,j-1)+qy*try(nt,i+1,j-1)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j-1)
      .                      +qx*trx(nt,i+1,j-1)+qy*try(nt,i+1,j-1)
               enddo
@@ -1171,14 +1074,6 @@ c
      .              +qx*tx(i,j-1)+qy*ty(i,j-1)
             fsv(i,j)=fsv(i,j)+fd*sd(i,j-1)
      .              +qx*sx(i,j-1)+qy*sy(i,j-1)
-#if defined(TKE) && defined(TKEADV)
-            ftkev(i,j)=ftkev(i,j)+fd*tked(i,j-1)
-     .                +qx*tkex(i,j-1)+qy*tkey(i,j-1)
-#  ifdef GLS
-            fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i,j-1)
-     .                    +qx*gls_psix(i,j-1)+qy*gls_psiy(i,j-1)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
             qxx=axx*dl+axxx*dx(i,j-1)+axxy*dy(i,j-1)
@@ -1197,11 +1092,17 @@ c
      .                     +qyy*try(nt,i,j-1))*agy(nt,i,j-1)
             enddo
             do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j-1)
      .                    +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
             enddo
 #  else
             do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j-1)
      .                    +qx*trx(nt,i,j-1)+qy*try(nt,i,j-1)
             enddo
@@ -1238,14 +1139,6 @@ c
      .                +qx*tx(i-1,j)+qy*ty(i-1,j)
               fsv(i,j)=fsv(i,j)+fd*sd(i-1,j)
      .                +qx*sx(i-1,j)+qy*sy(i-1,j)
-#if defined(TKE) && defined(TKEADV)
-              ftkev(i,j)=ftkev(i,j)+fd*tked(i-1,j)
-     .                  +qx*tkex(i-1,j)+qy*tkey(i-1,j)
-#  ifdef GLS
-              fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i-1,j)
-     .                      +qx*gls_psix(i-1,j)+qy*gls_psiy(i-1,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i-1,j)+axxy*dy(i-1,j)
@@ -1264,11 +1157,17 @@ c
      .                       +qyy*try(nt,i-1,j))*agy(nt,i-1,j)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j)
      .                      +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i-1,j)
      .                      +qx*trx(nt,i-1,j)+qy*try(nt,i-1,j)
               enddo
@@ -1307,14 +1206,6 @@ c
      .                +qx*tx(i+1,j)+qy*ty(i+1,j)
               fsv(i,j)=fsv(i,j)+fd*sd(i+1,j)
      .                +qx*sx(i+1,j)+qy*sy(i+1,j)
-#if defined(TKE) && defined(TKEADV)
-              ftkev(i,j)=ftkev(i,j)+fd*tked(i+1,j)
-     .                  +qx*tkex(i+1,j)+qy*tkey(i+1,j)
-#  ifdef GLS
-              fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i+1,j)
-     .                      +qx*gls_psix(i+1,j)+qy*gls_psiy(i+1,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
               qxx=axx*dl+axxx*dx(i+1,j)+axxy*dy(i+1,j)
@@ -1333,11 +1224,17 @@ c
      .                       +qyy*try(nt,i+1,j))*agy(nt,i+1,j)
               enddo
               do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j)
      .                      +qx*trx(nt,i+1,j)+qy*try(nt,i+1,j)
               enddo
 #  else
               do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+                if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
                 ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i+1,j)
      .                      +qx*trx(nt,i+1,j)+qy*try(nt,i+1,j)
               enddo
@@ -1369,14 +1266,6 @@ c
      .              +qx*tx(i,j)+qy*ty(i,j)
             fsv(i,j)=fsv(i,j)+fd*sd(i,j)
      .              +qx*sx(i,j)+qy*sy(i,j)
-#if defined(TKE) && defined(TKEADV)
-            ftkev(i,j)=ftkev(i,j)+fd*tked(i,j)
-     .                +qx*tkex(i,j)+qy*tkey(i,j)
-#  ifdef GLS
-            fgls_psiv(i,j)=fgls_psiv(i,j)+fd*gls_psid(i,j)
-     .                    +qx*gls_psix(i,j)+qy*gls_psiy(i,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
             qxx=axx*dl+axxx*dx(i,j)+axxy*dy(i,j)
@@ -1395,11 +1284,17 @@ c
      .                     +qyy*try(nt,i,j))*agy(nt,i,j)
             enddo
             do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
 #  else
             do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
               ftrv(nt,i,j)=ftrv(nt,i,j)+fd*trd(nt,i,j)
      .                    +qx*trx(nt,i,j)+qy*try(nt,i,j)
             enddo
@@ -1436,18 +1331,6 @@ c
      .              -(fsu(i+1,j)-fsu(i,j)
      .               +fsv(i,j+1)-fsv(i,j))*scp2i(i,j))
      .              /dp(i,j)
-#if defined(TKE) && defined(TKEADV)
-          tke(i,j)=(q*tke(i,j)
-     .              -(ftkeu(i+1,j)-ftkeu(i,j)
-     .               +ftkev(i,j+1)-ftkev(i,j))*scp2i(i,j))
-     .              /dp(i,j)
-#  ifdef GLS
-          gls_psi(i,j)=(q*gls_psi(i,j)
-     .                 -(fgls_psiu(i+1,j)-fgls_psiu(i,j)
-     .                  +fgls_psiv(i,j+1)-fgls_psiv(i,j))*scp2i(i,j))
-     .                 /dp(i,j)
-#  endif
-#endif
 #ifdef TRC
 #  ifdef ATRC
           do nt=1,natr
@@ -1463,6 +1346,9 @@ c
      .                     /dp(i,j)
           enddo
           do nt=natr+1,ntr-natr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             trc(i,j,k,nt)=(q*trc(i,j,k,nt)
      .                    -(ftru(nt,i+1,j)-ftru(nt,i,j)
      .                     +ftrv(nt,i,j+1)-ftrv(nt,i,j))*scp2i(i,j))
@@ -1470,6 +1356,9 @@ c
           enddo
 #  else
           do nt=1,ntr
+#    if defined(TKE) && !defined(TKEADV)
+            if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#    endif
             trc(i,j,k,nt)=(q*trc(i,j,k,nt)
      .                    -(ftru(nt,i+1,j)-ftru(nt,i,j)
      .                     +ftrv(nt,i,j+1)-ftrv(nt,i,j))*scp2i(i,j))
