@@ -385,8 +385,8 @@ else if ( $OCN_GRID ==  tnx0.25v1) then
   set MDC2HI = 300.e4
   set CWBDTS = 2.e-4
   set CWBDLS = 50.
-  set EGC    = .2
-  set EGMXDF = 500.e4
+  set EGC    = 1.
+  set EGMXDF = 1000.e4
   set GLB_NCFORMAT =  '1,   1'
   set BGC_NCFORMAT  = '1,   1'
 else
