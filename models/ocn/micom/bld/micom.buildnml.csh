@@ -95,6 +95,7 @@ set SPRFAC   = .false.
 set RSTFRQ   =  1
 set RSTFMT   =  1
 set RSTCMP   =  0 
+set IOTYPE   =  1 
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
 # set DAIPHY defaults 
@@ -454,6 +455,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
 ! RSTCMP   : Compression flag for restart file (i)
+! IOTYPE   : 0 = netcdf, 1 = pnetcdf
 &LIMITS
   NDAY1    = 0,
   NDAY2    = 999999,
@@ -502,7 +504,8 @@ cat >! $RUNDIR/ocn_in << EOF1
   ATM_PATH = './',
   RSTFRQ   = ${RSTFRQ},
   RSTFMT   = ${RSTFMT},
-  RSTCMP   = ${RSTCMP}
+  RSTCMP   = ${RSTCMP},
+  IOTYPE   = ${IOTYPE}
 /
 
 ! BGCNML NAMELIST

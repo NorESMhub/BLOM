@@ -105,7 +105,7 @@ c --- private timer variables, see xctmri
 #if defined(MPI) || defined(SHMEM)
 c
 c --- private message passing data structures, see xcspmd
-      integer, private, save :: idproc( 0: iqr+1,0:jqr+1),
+      integer, public, save :: idproc( 0: iqr+1,0:jqr+1),
      &                          idproc1(0:ijqr+1),idhalo(2),
      &                          mpe_1(     jqr),
      &                          mpe_e(     jqr),

@@ -885,10 +885,40 @@ c
 c$OMP END PARALLEL DO
 c
 #ifdef DIAG
-      call ncfopn('difest.nc','w','c',1)
+      call ncfopn('difest.nc','w','c',1,iotype)
       call ncdims('x',itdm)
       call ncdims('y',jtdm)
       call ncdims('z',kdm)
+      call ncdefvar('coriop','x y',ndouble,8)
+      call ncdefvar('betafp','x y',ndouble,8)
+      call ncdefvar('kfpla','x y',ndouble,8)
+      call ncdefvar('kfil','x y',ndouble,8)
+      call ncdefvar('bcrrd','x y',ndouble,8)
+      call ncdefvar('afeql','x y',ndouble,8)
+      call ncdefvar('bvfbot','x y',ndouble,8)
+      call ncdefvar('dp','x y z',ndouble,8)
+      call ncdefvar('temp','x y z',ndouble,8)
+      call ncdefvar('saln','x y z',ndouble,8)
+      call ncdefvar('u','x y z',ndouble,8)
+      call ncdefvar('v','x y z',ndouble,8)
+      call ncdefvar('bvfsq','x y z',ndouble,8)
+      call ncdefvar('rig','x y z',ndouble,8)
+      call ncdefvar('egr','x y z',ndouble,8)
+      call ncdefvar('rhisc','x y z',ndouble,8)
+      call ncdefvar('els','x y z',ndouble,8)
+      call ncdefvar('difint','x y z',ndouble,8)
+      call ncdefvar('difdia','x y z',ndouble,8)
+      call ncdefvar('nub','x y z',ndouble,8)
+      call ncdefvar('nus','x y z',ndouble,8)
+      call ncdefvar('nut','x y z',ndouble,8)
+      call ncdefvar('nuls','x y z',ndouble,8)
+#if defined(TRC) && defined(TKE)
+      call ncdefvar('tke','x y z',ndouble,8)
+#    ifdef GLS
+      call ncdefvar('gls_psi','x y z',ndouble,8)
+#    endif
+#  endif
+      call ncedef  
       call ncwrtr('coriop','x y',coriop,ip,1,1.,0.,8)
       call ncwrtr('betafp','x y',betafp,ip,1,1.,0.,8)
       call ncwrtr('kfpla','x y',tmp2d_1,ip,1,1.,0.,8)

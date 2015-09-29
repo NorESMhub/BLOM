@@ -8,7 +8,6 @@ c
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
       use data_mct, only: runid_mct, runtype_mct
-      use mod_nctools
 c
       implicit none
 c
@@ -27,7 +26,7 @@ c
      .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,egc,eggam,egmndf,egmxdf,
      .  egidfq,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
      .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,
-     .  atm_path,rstfrq,rstfmt,rstcmp
+     .  atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -104,6 +103,7 @@ c --- - print namelist on stdout
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
+        write (lp,*) 'IOTYPE',IOTYPE
 c
 c --- - determine number of io groups and print namelist
         nphy=0  
@@ -295,6 +295,7 @@ c
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
       call xcbcst(rstcmp)
+      call xcbcst(iotype)
 c
       call xcbcst(SRF_ABSWND)
       call xcbcst(SRF_ALB)
@@ -468,14 +469,14 @@ c --- - pointer if it exists
         if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
-          if (mnproc.eq.1) then
             open (unit=nfu,file='rpointer.ocn')
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
             inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
             if (fexist) then
-              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
               call ncgetr('time',time)
+              call ncfcls
             else
               write (lp,*) 'Could not find proper restart file!'
               call xchalt('(rdlim)')
@@ -491,7 +492,6 @@ c --- - pointer if it exists
               read (rstfnm(n-13:n-12),'(i2)') nmonth
               read (rstfnm(n-10:n-9 ),'(i2)') nday
             endif
-          endif
           call xcbcst(time)
           call xcbcst(nyear)
           call xcbcst(nmonth)

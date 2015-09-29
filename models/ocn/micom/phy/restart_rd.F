@@ -6,7 +6,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_dia
-      use mod_nctools
+!      use mod_nctools
       use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
      .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
      .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
@@ -43,7 +43,7 @@ c
 #  endif
 #endif
 c
-      if (mnproc.eq.1) then
+c      if (mnproc.eq.1) then
 c
         if (expcnf.eq.'cesm') then
 c
@@ -54,7 +54,8 @@ c --- --- get file name from rpointer.ocn
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
           else
-            write (lp,*) 'Could not find file rpointer.ocn!'
+            if (mnproc.eq.1)
+     &       write (lp,*) 'Could not find file rpointer.ocn!'
             call xchalt('(restart_rd)')
             stop '(restart_rd)' 
           endif
@@ -69,7 +70,7 @@ c --- --  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
 c
         inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
         if (fexist) then
-          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
           call ncgeti('nday0',ndayr)
           call ncgeti('nmonth0',nmonthr)
           call ncgeti('nyear0',nyearr)
@@ -80,16 +81,19 @@ c
           if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
      .        ndayr.ne.nday0) then
             time0=nday1-i
-            write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
+            if (mnproc.eq.1)
+     .      write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
      .        ' Warning! Initial experiment date changed from ',
      .        nyearr,'.',nmonthr,'.',ndayr,' to ',
      .        nyear0,'.',nmonth0,'.',nday0
           elseif (nint(time0).ne.nday1-i) then
+            if (mnproc.eq.1) then
             write (lp,'(2a)')
      .        ' Warning! Integration day corresponding to initial',
      .        ' experiment'
             write (lp,'(a,i6,a,i6)')
      .        ' date changed from ',nint(time0),' to ',nday1-i
+            endif
             time0=nday1-i
           endif
         else
@@ -104,7 +108,7 @@ c --- -   <experiment name>_restphy_3.nc
      .        runid(1:runid_len),'_restphy_',i,'.nc'
             inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
             if (fexist) then
-              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
               call ncgeti('nday0',ndayr)
               call ncgeti('nmonth0',nmonthr)
               call ncgeti('nyear0',nyearr)
@@ -115,16 +119,18 @@ c --- -   <experiment name>_restphy_3.nc
      .          nint(time-time0)) exit 
             endif 
           enddo 
-          if (i.gt.3) then 
-            write (lp,*) 'Could not find proper restart file!'
+          if (i.gt.3) then
+            if (mnproc.eq.1)
+     .       write (lp,*) 'Could not find proper restart file!'
             call xchalt('(restart_rd)')
             stop '(restart_rd)' 
           endif 
         endif 
 c
-        write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
+       if (mnproc.eq.1)
+     .   write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
 c
-      endif
+c      endif
 c
 c --- Compute extended uv masks 
       if (first) then
@@ -195,7 +201,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('utfltd')
+      vexist=ncinqv('utfltd')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('utfltd',utfltd,iuu,1,0.)
@@ -217,7 +223,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('utflld')
+      vexist=ncinqv('utflld')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('utflld',utflld,iuu,1,0.)
@@ -239,7 +245,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('usfltd')
+      vexist=ncinqv('usfltd')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('usfltd',usfltd,iuu,1,0.)
@@ -261,7 +267,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('usflld')
+      vexist=ncinqv('usflld')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('usflld',usflld,iuu,1,0.)
@@ -287,7 +293,7 @@ c
       call ncread('vtflx',vtflx,ivv,1,0.)
       call ncread('vsflx',vsflx,ivv,1,0.)
 c
-      if (mnproc.eq.1) vexist=ncinqv('vmfltd')
+      vexist=ncinqv('vmfltd')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('vmfltd',vmfltd,ivv,1,0.)
@@ -309,7 +315,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('vtfltd')
+      vexist=ncinqv('vtfltd')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('vtfltd',vtfltd,ivv,1,0.)
@@ -331,7 +337,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('vtflld')
+      vexist=ncinqv('vtflld')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('vtflld',vtflld,ivv,1,0.)
@@ -353,7 +359,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('vsfltd')
+      vexist=ncinqv('vsfltd')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('vsfltd',vsfltd,ivv,1,0.)
@@ -375,7 +381,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('vsflld')
+      vexist=ncinqv('vsflld')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('vsflld',vsflld,ivv,1,0.)
@@ -422,10 +428,10 @@ c
       call ncread('ficem',ficem,ip,1,0.)
 c
       if (sprfac) then
-        if (mnproc.eq.1) vexist=ncinqa('prfac')
+        vexist=ncinqa('prfac')
         call xcbcst(vexist)
         if (vexist) then
-          if (mnproc.eq.1) call ncgetr('prfac',prfac)
+          call ncgetr('prfac',prfac)
           call xcbcst(prfac)
           call ncread('eiacc',eiacc,ip,1,0.)
           call ncread('pracc',pracc,ip,1,0.)
@@ -464,7 +470,7 @@ c
         call ncread('alb_tda',alb_tda,ip,1,0.)
         call ncread('fice_tda',fice_tda,ip,1,0.)
 c
-        if (mnproc.eq.1) call ncgeti('ntda',ntda)
+        call ncgeti('ntda',ntda)
         call xcbcst(ntda)
 c
         call ncread('hicem',hicem,ip,1,0.)
@@ -476,7 +482,7 @@ c
       endif
 c
       if (expcnf.eq.'cesm') then
-        if (mnproc.eq.1) vexist=ncinqv('ustarw_da')
+        vexist=ncinqv('ustarw_da')
         call xcbcst(vexist)
         if (vexist) then
           call ncread('ustarw_da',ustarw_da,ip,1,0.)
@@ -496,7 +502,7 @@ c
           call ncread('ficem_da',ficem_da,ip,1,0.)
           call ncread('abswnd_da',abswnd_da,ip,1,0.)
           call ncread('atmco2_da',atmco2_da,ip,1,0.)
-          if (mnproc.eq.1) call ncgeti('l2ci',l2ci)
+          call ncgeti('l2ci',l2ci)
           call xcbcst(l2ci)
           l1ci=3-l2ci
         else
@@ -511,7 +517,7 @@ c
         endif
         call ncread('frzpot',frzpot,ip,1,0.)
         call ncread('mltpot',mltpot,ip,1,0.)
-        if (mnproc.eq.1) vexist=ncinqv('flxco2')
+        vexist=ncinqv('flxco2')
         call xcbcst(vexist)
         if (vexist) then
           call ncread('flxco2',flxco2,ip,1,0.)
@@ -534,7 +540,7 @@ c
 c
 #ifdef TRC
 #  ifdef TKE
-      if (mnproc.eq.1) vexist=ncinqv('tke')
+      vexist=ncinqv('tke')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('tke',trc(1-nbdy,1-nbdy,1,itrtke),ip,1,0.)
@@ -547,7 +553,7 @@ c
         endif
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('gls_psi')
+      vexist=ncinqv('gls_psi')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('gls_psi',trc(1-nbdy,1-nbdy,1,itrgls),ip,1,0.)
@@ -560,7 +566,7 @@ c
         endif
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('L_scale')
+      vexist=ncinqv('L_scale')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('L_scale',L_scale,ip,1,0.)
@@ -573,7 +579,7 @@ c
         endif
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('difdia')
+      vexist=ncinqv('difdia')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('difdia',difdia,ip,1,0.)
@@ -595,7 +601,7 @@ c
         enddo
       endif
 c
-      if (mnproc.eq.1) vexist=ncinqv('ustarb')
+      vexist=ncinqv('ustarb')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('ustarb',ustarb,ip,1,0.)
@@ -616,7 +622,7 @@ c
       endif
 #  endif
 #  ifdef IDLAGE
-      if (mnproc.eq.1) vexist=ncinqv('idlage')
+      vexist=ncinqv('idlage')
       call xcbcst(vexist)
       if (vexist) then
         call ncread('idlage',trc(1-nbdy,1-nbdy,1,itriag),ip,1,0.)
@@ -635,13 +641,11 @@ c
 c --- read accumulated fields
       do n=1,nphy        
         write(c2,'(i2.2)') n 
-        if (mnproc.eq.1) then
           if (ncinqa('nacc_phy'//c2)) then 
             call ncgeti('nacc_phy'//c2,nacc_phy(n))
           else
             nacc_phy(n)=0
           endif 
-        endif 
         call xcbcst(nacc_phy(n))
         if (nacc_phy(n).gt.0) then
           if (ACC_UVEL(n).ne.0) call ncread('uvel_phy'//c2,
@@ -906,11 +910,11 @@ c --- - read diag. heat flux restart file if available
         else
           fnm=runid(1:runid_len)//'_resttflx_'//rstfnm(runid_len+10:)
         endif
-        if (mnproc.eq.1) inquire(file=path2(1:path2_len)//fnm,
+        if(mnproc .eq.1) inquire(file=path2(1:path2_len)//fnm,
      .                           exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
-          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
+          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1,iotype)
           if (mnproc.eq.1) write (lp,'(a,a)')
      .      ' reading diag. heat flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
@@ -946,7 +950,7 @@ c --- - read diag. salt flux restart file if available
      .                           exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
-          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1)
+          call ncfopn(path2(1:path2_len)//fnm,'r',' ',1,iotype)
           if (mnproc.eq.1) write (lp,'(a,a)')
      .      ' reading diag. salt flux restart file ',
      .      trim(path2(1:path2_len)//fnm)
@@ -963,6 +967,7 @@ c --- - read diag. salt flux restart file if available
           endif
           call ncread('sflxdi',sflxdi,ip,1,0.)
           call ncgeti('nflxdi',nflxdi)
+          call ncfcls
         else
           if (mnproc.eq.1) write (lp,*)
      .      'Warning! No diag. salt flux restart file found'

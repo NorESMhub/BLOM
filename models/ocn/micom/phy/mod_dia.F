@@ -21,7 +21,7 @@ c --- Averaging and writing frequencies for diagnostics output
 c
 c --- Restart parameters
       real, save :: rstfrq
-      integer, save :: rstcmp,rstfmt
+      integer, save :: rstcmp,rstfmt,iotype
       logical, save :: rstmon,rstann
 c
 c --- Copies of MICOM variables that are used for HAMOCC diagnostics
@@ -1623,13 +1623,13 @@ c --- open output file
      .    path1(1:path1_len)//fname(iogrp)
       if (GLB_NCFORMAT(iogrp).eq.1) then
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','6',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       elseif (GLB_NCFORMAT(iogrp).eq.2) then
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','h',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       else
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','c',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       endif
 c
 c --- compute extended ocean masks 
@@ -1665,9 +1665,10 @@ c --- define output dimensions
       call ncdims('region',odm)
       call ncdims('bounds',2) 
       call ncdims('slenmax',slenmax)
+      call ncdims('time',0)
 c
       if (ACC_VOLTR(iogrp).ne.0) then
-        if ((sec_num.gt.0.and.sec_num.le.max_sec).or.mnproc.ne.1) then
+        if ((sec_num.gt.0.and.sec_num.le.max_sec)) then
           call ncdims('section',sec_num)
         else
           write (lp,*) 'Illegal number of sections: sec_num=',sec_num,
@@ -1681,7 +1682,7 @@ c
      .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
      .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
      .   +ACC_MSFLD(iogrp).ne.0) then
-        if ((lmax.gt.0.and.lmax.le.ldm).or.mnproc.gt.1) then
+        if ((lmax.gt.0.and.lmax.le.ldm)) then
           call ncdims('lat',lmax)
         else
           write (lp,*)
@@ -1692,7 +1693,9 @@ c
         endif
       endif
 c
-      call nctime(datenum,calendar,timeunits,startdate)
+       call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
+
+       call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
       if (irec(iogrp).eq.1) then
@@ -2569,6 +2572,7 @@ c --- ------------------------------------------------------------------
         iniflg=.false.
         write(lp,*) 'number of sections=',sec_num
       endif
+        call xcbcst(sec_num)
 c      
 c --- Prepare 2d field   
 c$OMP PARALLEL DO
@@ -2775,6 +2779,7 @@ c --- - Read section file metraindex.dat
         close(nfu)
 c
       end if
+      call xcbcst(lmax)
 c
 c --- Compute vertical integrated heat and salt transports 
 c
@@ -4335,12 +4340,12 @@ c --- Check output format
       endif
 c
 c --- Define attributes
-      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
-      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
-      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
-      call ncattr('coordinates',
-     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
-      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
+!      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
+!      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
+!      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
+!      call ncattr('coordinates',
+!     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
+!      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
       end subroutine wrtsrf
 
@@ -4423,12 +4428,12 @@ c --- Check output format
       endif
 c
 c --- Define attributes
-      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
-      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
-      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
-      call ncattr('coordinates',
-     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
-      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
+!      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
+!      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
+!      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
+!      call ncattr('coordinates',
+!     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
+!      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
       end subroutine wrtlyr
 
@@ -4511,12 +4516,12 @@ c --- Check output format
       endif
 c
 c --- Define attributes
-      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
-      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
-      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
-      call ncattr('coordinates',
-     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
-      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
+!      if (len(trim(vunits)).ne.0) call ncattr('units',vunits)
+!      if (len(trim(vlngnm)).ne.0) call ncattr('long_name',vlngnm)
+!      if (len(trim(vstdnm)).ne.0) call ncattr('standard_name',vstdnm)
+!      call ncattr('coordinates',
+!     .  gridid(1:1)//'lon '//gridid(1:1)//'lat')
+!      call ncattr('cell_measures','area: '//gridid(1:1)//'area')
 c
       end subroutine wrtlvl
 
@@ -4847,5 +4852,563 @@ c$OMP END PARALLEL DO
       endif
 c
       end subroutine msklvl
- 
+
+!define output variables subroutine definevar
+      subroutine definevar(irec,iogrp,cmpflg,timeunits,calendar)
+      integer irec,iogrp,cmpflg
+      character timeunits*30,calendar*19
+#if defined(TRC)
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt,nat,km
+      character trcnm*80,trcnml*80
+#endif
+      call ncdefvar('time','time',ndouble,0)
+      call ncattr('long_name','time')
+      call ncattr('units',timeunits)
+      call ncattr('calendar',calendar)
+      if (irec.eq.1) then
+c --- define sigma levels
+       call ncdefvar('sigma','sigma',ndouble,8)
+       call ncattr('long_name','Potential density')
+       call ncattr('standard_name','sea_water_sigma_theta')
+       call ncattr('units','kg m-3')
+       call ncattr('positive','down')
+c --- define zlevel
+       call ncdefvar('depth','depth',ndouble,8)
+       call ncattr('long_name','z level')
+       call ncattr('units','m')
+       call ncattr('positive','down')
+       call ncattr('bounds','depth_bnds')
+       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
+     .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
+     .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
+     .     +MSC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
+        call ncdefvar('lat','lat',ndouble,8)
+        call ncattr('long_name','Latitude')
+        call ncattr('standard_name','latitude')
+        call ncattr('units','degree_north')
+        endif
+        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
+     .     +MSC_MMFTDD(iogrp).ne.0) then
+        region_name(1)='atlantic_arctic_ocean'
+        region_name(2)='indian_pacific_ocean'
+        region_name(3)='global_ocean'
+        call ncdefvar('region','slenmax region',nchar,0)
+        call ncattr('long_name','Region name')
+        endif
+        if (MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)+MSC_MHFLD(iogrp)
+     .     +MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)+MSC_MSFLD(iogrp).ne.0)
+     .  then
+        call ncdefvar('section','slenmax section',nchar,0)
+        call ncattr('long_name','Section name')
+        endif
+       endif
+c --- define 2d fields
+      call ncdefvar3d(SRF_SIGMX(iogrp),cmpflg,'p','sigmx',
+     . 'Mixed layer density',' ','kg m-3',0)
+c
+      call ncdefvar3d(SRF_UB(iogrp),cmpflg,'u','ubaro',
+     . 'Barotropic velocity x-component',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_VB(iogrp),cmpflg,'v','vbaro',
+     . 'Barotropic velocity y-component',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_SEALV(iogrp),cmpflg,'p','sealv',
+     . 'Sea level',' ','m',0)
+c
+      call ncdefvar3d(SRF_HICE(iogrp),cmpflg,'p','hice',
+     . 'Ice thickness',' ','m',0)
+c
+      call ncdefvar3d(SRF_TICE(iogrp),cmpflg,'p','tice',
+     . 'Ice temperature',' ','degC',0)
+c
+      call ncdefvar3d(SRF_HSNW(iogrp),cmpflg,'p','hsnw',
+     . 'Snow depth',' ','m',0)
+c
+      call ncdefvar3d(SRF_FICE(iogrp),cmpflg,'p','fice',
+     . 'Ice concentration',' ','%',0)
+c
+      call ncdefvar3d(SRF_TSRF(iogrp),cmpflg,'p','tsrf',
+     . 'Surface temperature',' ','degC',0)
+c
+      call ncdefvar3d(SRF_IAGE(iogrp),cmpflg,'p','iage',
+     . 'Ice age',' ','day',0)
+c
+      call ncdefvar3d(SRF_UICE(iogrp),cmpflg,'u','uice',
+     . 'Ice velocity x-component',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_VICE(iogrp),cmpflg,'v','vice',
+     . 'Ice velocity y-component',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_SWA(iogrp),cmpflg,'p','swa',
+     . 'Short-wave heat flux',' ','W m-2',0)
+c
+      call ncdefvar3d(SRF_NSF(iogrp),cmpflg,'p','nsf',
+     . 'Non-solar heat flux',' ','W m-2',0)
+c
+      call ncdefvar3d(SRF_HMLTFZ(iogrp),cmpflg,'p','hmltfz',
+     .  'Heat flux due to melting/freezing',' ','W m-2',0)
+c
+      call ncdefvar3d(SRF_DFL(iogrp),cmpflg,'p','dfl',
+     . 'Non-solar heat flux derivative',' ','W m-2 K-1',0)
+c
+      call ncdefvar3d(SRF_SURFLX(iogrp),cmpflg,'p','hflx',
+     .  'Heat flux received by ocean',' ','W m-2',0)
+c
+      call ncdefvar3d(SRF_SURRLX(iogrp),cmpflg,'p','hrflx',
+     .  'Restoring heat flux received by ocean',' ','W m-2',0)
+c
+      call ncdefvar3d(SRF_LIP(iogrp),cmpflg,'p','lip',
+     . 'Liquid precipitation',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_SOP(iogrp),cmpflg,'p','sop',
+     . 'Solid precipitation',' ','kg m-2 s-1',0)
+
+      call ncdefvar3d(SRF_EVA(iogrp),cmpflg,'p','eva',
+     . 'Evaporation',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_FMLTFZ(iogrp),cmpflg,'p','fmltfz',
+     .  'Fresh water flux due to melting/freezing',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_RNFFLX(iogrp),cmpflg,'p','rnf',
+     . 'Liquid runoff',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_RFIFLX(iogrp),cmpflg,'p','rfi',
+     . 'Frozen runoff',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_SALFLX(iogrp),cmpflg,'p','sflx',
+     .  'Salt flux received by ocean',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_SALRLX(iogrp),cmpflg,'p','srflx',
+     .  'Restoring salt flux received by ocean',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_BRNFLX(iogrp),cmpflg,'p','bflx',
+     . 'Brine flux',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_ZTX(iogrp),cmpflg,'u','ztx',
+     . 'Wind stress x-component',' ','N m-2',0)
+c
+      call ncdefvar3d(SRF_MTY(iogrp),cmpflg,'v','mty',
+     . 'Wind stress y-component',' ','N m-2',0)
+c
+      call ncdefvar3d(SRF_TAUX(iogrp),cmpflg,'u','taux',
+     .  'Momentum flux received by ocean x-component',' ','N m-2',0)
+c
+      call ncdefvar3d(SRF_TAUY(iogrp),cmpflg,'v','tauy',
+     .  'Momentum flux received by ocean y-component',' ','N m-2',0)
+c
+      call ncdefvar3d(SRF_USTAR(iogrp),cmpflg,'p','ustar',
+     . 'Friction velocity',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_ABSWND(iogrp),cmpflg,'p','abswnd',
+     . 'Absolute wind speed',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_SFL(iogrp),cmpflg,'p','sfl',
+     . 'Salt flux',' ','kg m-2 s-1',0)
+c
+      call ncdefvar3d(SRF_ALB(iogrp),cmpflg,'p','alb',
+     . 'Surface albedo',' ','1',0)
+c
+      call ncdefvar3d(SRF_MLD(iogrp),cmpflg,'p','mld',
+     . 'Mixed layer depth',' ','m',0)
+c
+      call ncdefvar3d(SRF_MLDU(iogrp),cmpflg,'u','mldu',
+     .  'Mixed layer depth at u-point',' ','m',0)
+c
+      call ncdefvar3d(SRF_MLDV(iogrp),cmpflg,'v','mldv',
+     .  'Mixed layer depth at v-point',' ','m',0)
+c
+      call ncdefvar3d(SRF_MAXMLD(iogrp),cmpflg,'p','maxmld',
+     . 'Maximum mixed layer depth',' ','m',0)
+c
+      call ncdefvar3d(SRF_BRNPD(iogrp),cmpflg,'p','brnpd',
+     . 'Brine plume depth',' ','m',0)
+c
+      call ncdefvar3d(SRF_SST(iogrp),cmpflg,'p','sst',
+     . 'Ocean surface temperature',' ','degC',0)
+c
+      call ncdefvar3d(SRF_SSS(iogrp),cmpflg,'p','sss',
+     . 'Ocean surface salinity',' ','g kg-1',0)
+c
+      call ncdefvar3d(SRF_MXLU(iogrp),cmpflg,'u','mxlu',
+     . 'Mixed layer velocity x-component',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_MXLV(iogrp),cmpflg,'v','mxlv',
+     . 'Mixed layer velocity y-component',' ','m s-1',0)
+c
+c --- define 3d layer fields
+      call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p','dp',
+     . 'Layer pressure thickness',' ','Pa',1)
+c
+      call ncdefvar3d(LYR_DZ(iogrp),cmpflg,'p','dz',
+     . 'Layer thickness',' ','m',1)
+c
+      call ncdefvar3d(LYR_TEMP(iogrp),cmpflg,'p','temp',
+     . 'Temperature','Ocean temperature','degC',1)
+c
+      call ncdefvar3d(LYR_SALN(iogrp),cmpflg,'p','saln',
+     . 'Salinity','Ocean salinity','g kg-1',1)
+c
+      call ncdefvar3d(LYR_UVEL(iogrp),cmpflg,'u','uvel',
+     . 'Velocity x-component',' ','m s-1',1)
+c
+      call ncdefvar3d(LYR_VVEL(iogrp),cmpflg,'v','vvel',
+     . 'Velocity y-component',' ','m s-1',1)
+c
+      call ncdefvar3d(LYR_UFLX(iogrp),cmpflg,'u','uflx',
+     .  'Mass flux in x-direction',' ','kg s-1',1)
+c
+      call ncdefvar3d(LYR_VFLX(iogrp),cmpflg,'v','vflx',
+     .  'Mass flux in y-direction',' ','kg s-1',1)
+c
+      call ncdefvar3d(LYR_UTFLX(iogrp),cmpflg,'u','uhflx',
+     .  'Heat flux in x-direction',' ','W',1)
+c
+      call ncdefvar3d(LYR_VTFLX(iogrp),cmpflg,'v','vhflx',
+     .  'Heat flux in y-direction',' ','W',1)
+c
+      call ncdefvar3d(LYR_USFLX(iogrp),cmpflg,'u','usflx',
+     .  'Salt flux in x-direction',' ','kg s-1',1)
+c
+      call ncdefvar3d(LYR_VSFLX(iogrp),cmpflg,'v','vsflx',
+     .  'Salt flux in y-direction',' ','kg s-1',1)
+c
+      call ncdefvar3d(LYR_UMFLTD(iogrp),cmpflg,'u','umfltd',
+     .  'Mass flux due to thickness diffusion in x-direction',' ',
+     .  'kg s-1',1)
+c
+      call ncdefvar3d(LYR_VMFLTD(iogrp),cmpflg,'v','vmfltd',
+     .  'Mass flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1',1)
+c
+      call ncdefvar3d(LYR_UTFLTD(iogrp),cmpflg,'u','uhfltd',
+     .  'Heat flux due to thickness diffusion in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VTFLTD(iogrp),cmpflg,'v','vhfltd',
+     .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_UTFLLD(iogrp),cmpflg,'u','uhflld',
+     .  'Heat flux due to lateral diffusion in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VTFLLD(iogrp),cmpflg,'v','vhflld',
+     .  'Heat flux due to lateral diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_USFLTD(iogrp),cmpflg,'u','usfltd',
+     .  'Salt flux due to thickness diffusion in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VSFLTD(iogrp),cmpflg,'v','vsfltd',
+     .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_USFLLD(iogrp),cmpflg,'u','usflld',
+     .  'Salt flux due to lateral diffusion in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VSFLLD(iogrp),cmpflg,'v','vsflld',
+     .  'Salt flux due to lateral diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_WFLX(iogrp),cmpflg,'p','wflx',
+     .  'Vertical mass flux',' ','kg s-1',1)
+c
+      call ncdefvar3d(LYR_WFLX2(iogrp),cmpflg,'p','wflx2',
+     .  'Vertical mass flux squared',' ','kg2 s-2',1)
+c
+      call ncdefvar3d(LYR_DIAFLX(iogrp),cmpflg,'p','diaflx',
+     .  'Diapycnal volume flux',' ','m s-1',1)
+c
+      if (LYR_DIFINT(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFINT(iogrp),cmpflg,'p','difint',
+     . 'Layer interface diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFINT(iogrp),cmpflg,'p','difint',
+     . 'Layer interface diffusivity',' ','m2 s-1',1)
+      endif
+c
+      if (LYR_DIFISO(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFISO(iogrp),cmpflg,'p','difiso',
+     . 'Isopycnal diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFISO(iogrp),cmpflg,'p','difiso',
+     . 'Isopycnal diffusivity',' ','m2 s-1',1)
+      endif
+c
+      if (LYR_DIFDIA(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
+     . 'Diapycnal diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
+     . 'Diapycnal diffusivity',' ','m2 s-1',1)
+      endif
+c
+#if defined TKE 
+
+      call ncdefvar3d(LYR_TKE(iogrp),cmpflg,'p','tke',
+     . 'TKE','Turbulent kinetic energy','m2 s-2',1)
+c
+      call ncdefvar3d(LYR_GLS_PSI(iogrp),cmpflg,'p','gls_psi',
+     . 'GLS_PSI','Generic length scale','m2 s-3',1)
+c
+#endif
+c --- define 3d depth fields
+      call ncdefvar3d(LVL_DZ(iogrp),cmpflg,'p','dzlvl',
+     . 'Layer thickness',' ','m',2)
+c
+      call ncdefvar3d(LVL_TEMP(iogrp),cmpflg,'p','templvl',
+     . 'Temperature','Ocean temperature','degC',2)
+c
+      call ncdefvar3d(LVL_SALN(iogrp),cmpflg,'p','salnlvl',
+     . 'Salinity','Ocean salinity','g kg-1',2)
+c
+      call ncdefvar3d(LVL_UVEL(iogrp),cmpflg,'u','uvellvl',
+     .  'Velocity x-component',' ','m s-1',2)
+c
+      call ncdefvar3d(LVL_VVEL(iogrp),cmpflg,'v','vvellvl',
+     .  'Velocity y-component',' ','m s-1',2)
+c 
+c 
+      call ncdefvar3d(LVL_UFLX(iogrp),cmpflg,'u','uflxlvl',
+     .  'Mass flux in x-direction',' ','kg s-1',2)
+c
+      call ncdefvar3d(LVL_VFLX(iogrp),cmpflg,'v','vflxlvl',
+     .  'Mass flux in y-direction',' ','kg s-1',2)
+c
+      call ncdefvar3d(LVL_UTFLX(iogrp),cmpflg,'u','uhflxlvl',
+     .  'Heat flux in x-direction',' ','W',2)
+c
+      call ncdefvar3d(LVL_VTFLX(iogrp),cmpflg,'v','vhflxlvl',
+     .  'Heat flux in y-direction',' ','W',2)
+c
+      call ncdefvar3d(LVL_USFLX(iogrp),cmpflg,'u','usflxlvl',
+     .  'Salt flux in x-direction',' ','kg s-1',2)
+c
+      call ncdefvar3d(LVL_VSFLX(iogrp),cmpflg,'v','vsflxlvl',
+     .  'Salt flux in y-direction',' ','kg s-1',2)
+c
+      call ncdefvar3d(LVL_UMFLTD(iogrp),cmpflg,'u','umfltdlvl',
+     .  'Mass flux due to thickness diffusion in x-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_VMFLTD(iogrp),cmpflg,'v','vmfltdlvl',
+     .  'Mass flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_UTFLTD(iogrp),cmpflg,'u','uhfltdlvl',
+     .  'Heat flux due to thickness diffusion in x-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_VTFLTD(iogrp),cmpflg,'v','vhfltdlvl',
+     .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_UTFLLD(iogrp),cmpflg,'u','uhflldlvl',
+     .  'Heat flux due to lateral diffusion in x-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_VTFLLD(iogrp),cmpflg,'v','vhflldlvl',
+     .  'Heat flux due to lateral diffusion in y-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_USFLTD(iogrp),cmpflg,'u','usfltdlvl',
+     .  'Salt flux due to thickness diffusion in x-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_VSFLTD(iogrp),cmpflg,'v','vsfltdlvl',
+     .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_USFLLD(iogrp),cmpflg,'u','usflldlvl',
+     .  'Salt flux due to lateral diffusion in x-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_VSFLLD(iogrp),cmpflg,'v','vsflldlvl',
+     .  'Salt flux due to lateral diffusion in y-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_WFLX(iogrp),cmpflg,'p','wflxlvl',
+     .  'Vertical mass flux',' ','kg s-1',2)
+c
+      call ncdefvar3d(LVL_WFLX2(iogrp),cmpflg,'p','wflx2lvl',
+     .  'Vertical mass flux squared',' ','kg2 s-2',2)
+c
+      if (LVL_DIFINT(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFINT(iogrp),cmpflg,'p','difintlvl',
+     . 'Layer interface diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFINT(iogrp),cmpflg,'p','difintlvl',
+     . 'Layer interface diffusivity',' ','m2 s-1',2)
+      endif
+c
+      call ncdefvar3d(LVL_DIAFLX(iogrp),cmpflg,'p','diaflxlvl',
+     .  'Diapycnal volume flux',' ','m s-1',2)
+c
+      if (LVL_DIFISO(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFISO(iogrp),cmpflg,'p','difisolvl',
+     . 'Isopycnal diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFISO(iogrp),cmpflg,'p','difisolvl',
+     . 'Isopycnal diffusivity',' ','m2 s-1',2)
+      endif
+c
+      if (LVL_DIFDIA(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
+     . 'Diapycnal diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
+     . 'Diapycnal diffusivity',' ','m2 s-1',2)
+      endif
+c
+#if defined(TRC) && defined(TKE)
+      call ncdefvar3d(LVL_TKE(iogrp),cmpflg,'p','tkelvl',
+     . 'Turbulent Kinetic Energy',' ','m2 s-2',2)
+c
+      call ncdefvar3d(LVL_GLS_PSI(iogrp),cmpflg,'p','gls_psilvl',
+     . 'Generic length scale',' ','m2 s-3',2)
+c
+#endif
+c
+c --- define meridional transports 
+      if (MSC_MMFLXL(iogrp).ne.0) then
+        call ncdefvar('mmflxl','lat sigma region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function on isopycnic layers')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MMFLXD(iogrp).ne.0) then
+        call ncdefvar('mmflxd','lat depth region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function on z-levels')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MMFTDL(iogrp).ne.0) then
+        call ncdefvar('mmftdl','lat sigma region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to thickness diffusion '//
+     .    'on isopycnic layers')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MMFTDD(iogrp).ne.0) then
+        call ncdefvar('mmftdd','lat depth region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to thickness diffusion '//
+     .    'on z-levels')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MHFLX(iogrp).ne.0) then
+        call ncdefvar('mhflx','lat region time',ndouble,8)
+        call ncattr('long_name','Meridional heat flux')
+        call ncattr('units','W')
+      endif
+      if (MSC_MHFTD(iogrp).ne.0) then
+        call ncdefvar('mhftd','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional heat flux due to thickness diffusion')
+        call ncattr('units','W')
+      endif
+      if (MSC_MHFLD(iogrp).ne.0) then
+        call ncdefvar('mhfld','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional heat flux due to lateral diffusion')
+        call ncattr('units','W')
+      endif
+      if (MSC_MSFLX(iogrp).ne.0) then
+        call ncdefvar('msflx','lat region time',ndouble,8)
+        call ncattr('long_name','Meridional salt flux')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MSFTD(iogrp).ne.0) then
+        call ncdefvar('msftd','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional salt flux due to thickness diffusion')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MSFLD(iogrp).ne.0) then
+        call ncdefvar('msfld','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional salt flux due to lateral diffusion')
+        call ncattr('units','kg s-1')
+      endif
+c
+c --- store section transports 
+      if (MSC_VOLTR(iogrp).ne.0) then
+        call ncdefvar('voltr','section time',ndouble,8)
+        call ncattr('long_name','Section transports')
+        call ncattr('units','kg s-1')
+      endif
+c
+#ifdef TRC
+      if (LYR_IDLAGE(iogrp).ne.0.or.LYR_TRC(iogrp).ne.0) then
+        call ncdefvar3d(max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),cmpflg,
+     . 'p','dp_trc','Layer pressure thickness',' ','Pa',1)
+      endif
+c --- ideal age tracer 
+#if IDLAGE
+      call ncdefvar3d(LYR_IDLAGE(iogrp),cmpflg,'p','idlage',
+     . 'Ideal age','sea_water_age_since_surface_contact','year',1)
+
+      if (LVL_IDLAGE(iogrp).ne.0) then
+        call ncdefvar3d(LVL_IDLAGE(iogrp),cmpflg,'p','idlagelvl',
+     . 'Ideal age','sea_water_age_since_surface_contact','year',2)
+      endif
+#endif
+c
+c --- ocean tracers
+      if (LYR_TRC(iogrp).gt.0.and.ntrocn.gt.0) then
+#  ifdef ATRC
+      do nt=1,ntrocn-natr
+      write (trcnm,'(a,i3.3)') 'trc',nt
+      write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
+      call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .     trim(trcnml),' ',' ',1)
+      enddo
+      do nt=1,natr
+          nat=ntr-natr+nt
+      write (trcnm,'(a,i3.3)') 'atrc',nt
+          write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
+          call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .     trim(trcnml),' ',' ',1)
+        enddo
+#  else
+      do nt=1,ntrocn
+      write (trcnm,'(a,i3.3)') 'trc',nt
+          write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
+          call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .         trim(trcnml),' ',' ',1)
+        enddo
+#  endif
+      endif
+      if (LVL_TRC(iogrp).gt.0.and.ntrocn.gt.0) then
+#  ifdef ATRC
+        do nt=1,ntrocn-natr
+          write (trcnm,'(a,i3.3)') 'trclvl',nt
+          write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
+          call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .         trim(trcnml),' ',' ',2)
+        enddo
+        do nt=1,natr
+          nat=ntr-natr+nt
+          write (trcnm,'(a,i3.3)') 'atrclvl',nt
+          write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
+          call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .      trim(trcnml),' ',' ',2)
+        enddo
+#  else
+        do nt=1,ntrocn
+          write (trcnm,'(a,i3.3)') 'trclvl',nt
+          write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
+          call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .        trim(trcnml),' ',' ',2)
+        enddo
+#  endif
+      endif
+#endif
+      call ncedef
+      end subroutine definevar
       end module mod_dia

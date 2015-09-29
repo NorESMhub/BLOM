@@ -64,9 +64,28 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 #ifdef DIAG
-      call ncfopn('getfrc_cesm.nc','w','c',1)
+      call ncfopn('getfrc_cesm.nc','w','c',1,iotype)
       call ncdims('x',itdm)
       call ncdims('y',jtdm)
+      call ncdefvar('ustarw_da','x y',ndouble,8) 
+      call ncdefvar('lip_da','x y',ndouble,8)
+      call ncdefvar('sop_da','x y',ndouble,8)
+      call ncdefvar('eva_da','x y',ndouble,8)
+      call ncdefvar('rnf_da','x y',ndouble,8)
+      call ncdefvar('rfi_da','x y',ndouble,8)
+      call ncdefvar('fmltfz_da','x y',ndouble,8)
+      call ncdefvar('sfl_da','x y',ndouble,8)
+      call ncdefvar('swa_da','x y',ndouble,8)
+      call ncdefvar('nsf_da','x y',ndouble,8)
+      call ncdefvar('hmlt_da','x y',ndouble,8)
+      call ncdefvar('slp_da','x y',ndouble,8)
+      call ncdefvar('ficem_da','x y',ndouble,8)
+      call ncdefvar('abswnd_da','x y',ndouble,8)
+      call ncdefvar('atmco2_da','x y',ndouble,8)
+      call ncdefvar('ztx_da','x y',ndouble,8)
+      call ncdefvar('mty_da','x y',ndouble,8)
+      call ncedef
+
       call ncwrtr('ustarw_da','x y',ustarw_da(1-nbdy,1-nbdy,l2ci),
      .            ip,1,1.,0.,8)
       call ncwrtr('lip_da','x y',lip_da(1-nbdy,1-nbdy,l2ci),

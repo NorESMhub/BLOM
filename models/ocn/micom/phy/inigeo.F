@@ -6,6 +6,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_nctools
+      use mod_dia, only : iotype
 c
       implicit none
 c
@@ -257,9 +258,11 @@ c
         enddo
       enddo
 c      
-      call ncfopn('ipwocn.nc','w','c',1)
+      call ncfopn('ipwocn.nc','w','c',1,iotype)
       call ncdims('x',itdm)
       call ncdims('y',jtdm)
+      call ncdefvar('ipwocn','x y',nfint,2)
+      call ncedef
       call ncwrti('ipwocn','x y',ipwocn,ip,1)
       call ncfcls
 c

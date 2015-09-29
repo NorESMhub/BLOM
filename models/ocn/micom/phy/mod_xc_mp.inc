@@ -33,6 +33,7 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPEI mpi_integer
 # define MTYPEL mpi_logical
 # define MTYPEC mpi_character
+# define MTYPEI2 mpi_integer2
 #else /* REAL8 */
 # define MTYPE4 mpi_real
 # define MTYPER mpi_double_precision
@@ -40,6 +41,7 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPEI mpi_integer
 # define MTYPEL mpi_logical
 # define MTYPEC mpi_character
+# define MTYPEI2 mpi_integer2
 #endif
 #else /* most MPI's allow mpi_real[48] */
 #if defined(REAL4)
@@ -49,6 +51,7 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPEI mpi_integer
 # define MTYPEL mpi_logical
 # define MTYPEC mpi_character
+# define MTYPEI2 mpi_integer2
 #else /* REAL8 */
 # define MTYPE4 mpi_real4
 # define MTYPER mpi_real8
@@ -56,6 +59,7 @@ c/* MPI_ISEND     either mpi_isend or mpi_issend        */
 # define MTYPEI mpi_integer
 # define MTYPEL mpi_logical
 # define MTYPEC mpi_character
+# define MTYPEI2 mpi_integer2
 #endif
 #endif
 #if defined(SSEND)
@@ -4868,3 +4872,265 @@ c
      &   '   time/call =',f14.8)
  6200 format(/ /)
       end subroutine xctmrp
+c-----------------------------------------------------------------------
+c
+      subroutine xcgetrow(outm, inm, kt)
+      implicit none
+ 
+c
+      integer, intent(in)    :: kt
+      real,    intent(out)   :: outm(itdm,jj,kt)
+      real,    intent(in)    :: inm(ii,jj,kt)
+c
+c**********
+c*
+c  1) convert an entire 2-D array from tiled to non-tiled layout.
+c
+c  3) mnflg selects which nodes must return the array
+c        = 0; all nodes
+c        = n; node number n (mnproc=n)
+c
+c  4) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    aa              real           output    non-tiled target array
+c    a               real           input     tiled source array
+c    mnflg           integer        input     node return flag
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+c
+      integer        mpireqa(jpr),mpireqb(ipr)
+#endif
+      real  at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+      integer i,j,k,l,mp,np,mnp
+c
+c     gather each row of tiles onto the first tile in the row.
+c
+#if defined(MPI)
+      if     (mproc.eq.mpe_1(nproc)) then
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            outm(i0+i,j,k) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,MTYPER,
+     &                   idproc(mp,nproc), 9941,
+     &                   mpicomm, mpireqb(l), mpierr)
+        enddo
+        BARRIER
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_WAIT(mpireqb(l), mpistat, mpierr)
+        do k= 1,kt
+          do j= 1,jj
+            do i= 1,ii_pe(mp,nproc)
+            outm(i0_pe(mp,nproc)+i,j,k) = ata(i+(j-1)*ii_pe(mp,nproc)
+     &                                   +(k-1)*jj*ii_pe(mp,nproc),l)
+            enddo
+          enddo
+       enddo
+        enddo
+      else  !mproc>1
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            at(i+(j-1)*ii+(k-1)*ii*jj) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        BARRIER
+        call MPI_SEND(at,ii*jj*kt,MTYPER,
+     &                idproc(mpe_1(nproc),nproc), 9941,
+     &                mpicomm, mpierr)
+      endif
+#endif
+      return
+      end subroutine xcgetrow
+
+c-----------------------------------------------------------------------
+c
+      subroutine xcgetrow4(outm,inm, kt)
+      implicit none
+c
+      integer, intent(in)      :: kt
+      real*4,    intent(out)   :: outm(itdm,jj,kt)
+      real*4,    intent(in)    :: inm(ii,jj,kt)
+c
+c**********
+c*
+c  1) convert an entire 2-D array from tiled to non-tiled layout.
+c
+c  3) mnflg selects which nodes must return the array
+c        = 0; all nodes
+c        = n; node number n (mnproc=n)
+c
+c  4) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    aa              real           output    non-tiled target array
+c    a               real           input     tiled source array
+c    mnflg           integer        input     node return flag
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+c
+      integer        mpireqa(jpr),mpireqb(ipr)
+#endif
+      real*4  at(idm*jdm*2*kk),ata(idm*jdm*2*kk,iqr)
+      integer i,j,k,l,mp,np,mnp
+c
+c     gather each row of tiles onto the first tile in the row.
+c
+#if defined(MPI)
+      if     (mproc.eq.mpe_1(nproc)) then
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            outm(i0+i,j,k) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,MTYPE4,
+     &                   idproc(mp,nproc), 9941,
+     &                   mpicomm, mpireqb(l), mpierr)
+        enddo
+        BARRIER
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_WAIT(mpireqb(l), mpistat, mpierr)
+        do k= 1,kt
+          do j= 1,jj
+            do i= 1,ii_pe(mp,nproc)
+            outm(i0_pe(mp,nproc)+i,j,k) = ata(i+(j-1)*ii_pe(mp,nproc)
+     &                                   +(k-1)*jj*ii_pe(mp,nproc),l)
+            enddo
+          enddo
+       enddo
+        enddo
+      else  !mproc>1
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            at(i+(j-1)*ii+(k-1)*ii*jj) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        BARRIER
+        call MPI_SEND(at,ii*jj*kt,MTYPE4,
+     &                idproc(mpe_1(nproc),nproc), 9941,
+     &                mpicomm, mpierr)
+      endif
+#endif
+      return
+      end subroutine xcgetrow4
+
+c-----------------------------------------------------------------------
+      subroutine xcgetrowint2(outm,inm, kt)
+      implicit none
+c
+      integer, intent(in)      :: kt
+      integer*2,    intent(out)   :: outm(itdm,jj,kt)
+      integer*2,    intent(in)    :: inm(ii,jj,kt)
+c
+c**********
+c*
+c  1) convert an entire 2-D array from tiled to non-tiled layout.
+c
+c  3) mnflg selects which nodes must return the array
+c        = 0; all nodes
+c        = n; node number n (mnproc=n)
+c
+c  4) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    aa              real           output    non-tiled target array
+c    a               real           input     tiled source array
+c    mnflg           integer        input     node return flag
+c*
+c**********
+c
+#if defined(MPI)
+      include 'mpif.h'
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+c
+      integer        mpireqa(jpr),mpireqb(ipr)
+#endif
+      integer*2  at(idm*jdm*kt),ata(idm*jdm*kt,iqr)
+      integer i,j,k,l,mp,np,mnp
+c
+c     gather each row of tiles onto the first tile in the row.
+c
+#if defined(MPI)
+      if     (mproc.eq.mpe_1(nproc)) then
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            outm(i0+i,j,k) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_IRECV(ata(1,l),ii_pe(mp,nproc)*jj*kt,MTYPEI2,
+     &                   idproc(mp,nproc), 9941,
+     &                   mpicomm, mpireqb(l), mpierr)
+        enddo
+        BARRIER
+        l = 0
+        do mp= mpe_1(nproc)+1,mpe_e(nproc)
+          l = l + 1
+          call MPI_WAIT(mpireqb(l), mpistat, mpierr)
+        do k= 1,kt
+          do j= 1,jj
+            do i= 1,ii_pe(mp,nproc)
+            outm(i0_pe(mp,nproc)+i,j,k) = ata(i+(j-1)*ii_pe(mp,nproc)
+     &                                   +(k-1)*jj*ii_pe(mp,nproc),l)
+            enddo
+          enddo
+       enddo
+        enddo
+      else  !mproc>1
+      do k= 1,kt
+        do j= 1,jj
+          do i= 1,ii
+            at(i+(j-1)*ii+(k-1)*ii*jj) = inm(i,j,k)
+          enddo
+        enddo
+      enddo
+        BARRIER
+        call MPI_SEND(at,ii*jj*kt,MTYPEI2,
+     &                idproc(mpe_1(nproc),nproc), 9941,
+     &                mpicomm, mpierr)
+      endif
+#endif
+      return
+      end subroutine xcgetrowint2
+
+

@@ -5,6 +5,7 @@ c --- Read ocean tracer state from restart file
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_dia, only : iotype
       use mod_nctools
 c
       implicit none
@@ -31,13 +32,13 @@ c --- ------------------------------------------------------------------
 c --- Generate file name and check for file existence
 c --- ------------------------------------------------------------------
 c
-      if (mnproc.eq.1) then
 #ifdef CCSMCOUPLED
         i=1
         do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            write (lp,*)
+            if (mnproc.eq.1) 
+     &       write (lp,*)
      &        'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
@@ -49,7 +50,8 @@ c
         do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            write (lp,*)
+            if (mnproc.eq.1) 
+     &       write (lp,*)
      &        'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
@@ -58,7 +60,6 @@ c
         rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
 #endif
         inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-      endif
 c
       call xcbcst(fexist)
 c
@@ -76,12 +77,14 @@ c
         if (mnproc.eq.1) then
           write (lp,'(2a)') ' reading ocean tracer restart file ',
      .                      trim(rstfnm)
-          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1)
+        endif  
+          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
           call ncgeti('nday0',ndayr)
           call ncgeti('nmonth0',nmonthr)
           call ncgeti('nyear0',nyearr)
           call ncgetr('time0',time0r)
           call ncgetr('time',timer)
+        if (mnproc.eq.1) then
           if (ndayr.ne.nday0.or.nmonthr.ne.nmonth0.or.
      .        nyearr.ne.nyear0.or.time0r.ne.time0.or.
      .        timer.ne.time) then
@@ -112,9 +115,7 @@ c
           call ncread(trim(trcnm),trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
         enddo
 #endif
-        if (mnproc.eq.1) then
           call ncfcls
-        endif
       endif
 c
       return

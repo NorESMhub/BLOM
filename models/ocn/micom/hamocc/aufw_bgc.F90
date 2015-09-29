@@ -63,7 +63,6 @@
 !     *CHAR*    *path*       - path to restart files
 !
 !**************************************************************************
-
       USE netcdf
       USE mo_carbch
       USE mo_biomod
@@ -71,9 +70,8 @@
       use mo_param1_bgc 
       USE mo_sedmnt, only: sedlay,powtra,sedhpl,burial
       use mod_xc,    only: nbdy,itdm,jtdm,mnproc,xchalt
-
+      use mod_dia
       implicit none
-
       INTEGER           :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL              :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
       REAL              :: sedlay2(kpie,kpje,2*ks,nsedtra)
@@ -87,12 +85,18 @@
       INTEGER           :: i,j
       CHARACTER(LEN=80) :: err_text,rstfnm
 
-      INCLUDE 'netcdf.inc'
-      INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdims(4)                    &
+      INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
      &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
      &       ,nstart2(2),ncount2(2),nstride2(2),idate(5)
       REAL rmissing
-
+      integer*4 ,save :: info=MPI_INFO_NULL
+      integer        mpicomm,mpierr,mpireq,mpistat
+      common/xcmpii/ mpicomm,mpierr,mpireq(4),                          &
+     &               mpistat(mpi_status_size,4*max(iqr,jqr))
+      save  /xcmpii/
+      character(len=3) :: stripestr
+      character(len=9) :: stripestr2
+      integer ierr
 
 ! pass tracer fields in from ocean model, note that both timelevels 
 ! are passed into the local array locetra; No unit conversion here, 
@@ -132,7 +136,7 @@
 !
 ! Open netCDF data file
 !
-      IF(mnproc==1) THEN
+      IF(mnproc==1 .AND. IOTYPE==0) THEN
 
       i=1
       do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
@@ -147,235 +151,354 @@
       rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-      ncstat = NF_CREATE(trim(path)//rstfnm,NF90_64BIT_OFFSET,ncid)
+      ncstat = NF90_CREATE(trim(path)//rstfnm,NF90_64BIT_OFFSET,ncid)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
+        call xchalt('(AUFW: Problem with netCDF1)')
+               stop '(AUFW: Problem with netCDF1)'
+      ENDIF
+      ELSE IF (IOTYPE==1) THEN
+      i=1
+      do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        i=i+1
+        if (i+8.gt.len(rstfnm_ocn)) then
+          write (io_stdo_bgc,*)                                      &
+     &      'Could not generate restart file name!'
+          call xchalt('(aufw_bgc)')
+          stop '(aufw_bgc)'
+        endif
+      enddo
+      rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+
+      write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
+      write(stripestr,('(i3)')) 16
+      write(stripestr2,('(i9)')) 1024*1024
+      call mpi_info_create(info,ierr)
+      call mpi_info_set(info,'romio_ds_read','disable',ierr)
+      call mpi_info_set(info,'romio_ds_write','disable',ierr)
+      call mpi_info_set(info,"striping_factor",stripestr,ierr)
+      call mpi_info_set(info,"striping_unit",stripestr2,ierr)
+      ncstat = NFMPI_CREATE(mpicomm,trim(path)//rstfnm,             &
+     &       IOR(nf_clobber,nf_64bit_offset),info,ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF1)')
                stop '(AUFW: Problem with netCDF1)'
       ENDIF
 
+      ENDIF
 !
 ! Define dimension
 ! ----------------------------------------------------------------------    
 !
-      ncstat = NF_DEF_DIM(ncid, 'lon', itdm, nclonid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      IF(mnproc==1 .AND. IOTYPE==0) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'lon', itdm, nclonid)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF2)')
                stop '(AUFW: Problem with netCDF2)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'lat', jtdm, nclatid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'lat', jtdm, nclatid)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF3)')
                stop '(AUFW: Problem with netCDF3)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'depth', kpke, nclevid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'depth', kpke, nclevid)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF4)')
                stop '(AUFW: Problem with netCDF4)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'depth2', 2*kpke, nclev2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'depth2', 2*kpke, nclev2id)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF4)')
                stop '(AUFW: Problem with netCDF4)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'nks', ks, ncksid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'nks', ks, ncksid)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF7)')
                stop '(AUFW: Problem with netCDF7)'
       ENDIF
 
-      ncstat = NF_DEF_DIM(ncid, 'nks2', 2*ks, ncks2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'nks2', 2*ks, ncks2id)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF7)')
                stop '(AUFW: Problem with netCDF7)'
       ENDIF
 
-     ncstat = NF_DEF_DIM(ncid, 'bur2', 2, ncbur2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_DEF_DIM(ncid, 'bur2', 2, ncbur2id)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF7)')
                stop '(AUFW: Problem with netCDF7)'
       ENDIF
+      ELSE IF (IOTYPE==1) THEN
+      clen=itdm
+      ncstat = NFMPI_DEF_DIM(ncid, 'lon', clen, nclonid)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF2)')
+               stop '(AUFW: Problem with PnetCDF2)'
+      ENDIF
+
+      clen=jtdm
+      ncstat = NFMPI_DEF_DIM(ncid, 'lat', clen, nclatid)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF3)')
+               stop '(AUFW: Problem with PnetCDF3)'
+      ENDIF
+
+      clen=kpke
+      ncstat = NFMPI_DEF_DIM(ncid, 'depth', clen, nclevid)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF4)')
+               stop '(AUFW: Problem with PnetCDF4)'
+      ENDIF
+
+      clen=2*kpke
+      ncstat = NFMPI_DEF_DIM(ncid, 'depth2', clen, nclev2id)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF4)')
+               stop '(AUFW: Problem with PnetCDF4)'
+      ENDIF
+
+      clen=ks
+      ncstat = NFMPI_DEF_DIM(ncid, 'nks', clen, ncksid)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF5)')
+               stop '(AUFW: Problem with PnetCDF5)'
+      ENDIF
+
+      clen=2*ks
+      ncstat = NFMPI_DEF_DIM(ncid, 'nks2', clen, ncks2id)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF6)')
+               stop '(AUFW: Problem with PnetCDF6)'
+      ENDIF
+
+      clen=2
+      ncstat = NFMPI_DEF_DIM(ncid, 'bur2', clen, ncbur2id)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF7)')
+               stop '(AUFW: Problem with PnetCDF7)'
+      ENDIF
+      ENDIF
+
 !
 ! Define global attributes
 ! ----------------------------------------------------------------------    
 !
-      ncstat = NF_PUT_ATT_TEXT(ncid, NF_GLOBAL,'title'               &
-     &,35, 'Restart data for marine bgc modules') 
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      IF(mnproc==1 .AND. IOTYPE==0) THEN
+      ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'title'               &
+     &, 'Restart data for marine bgc modules') 
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF9)')
                stop '(AUFW: Problem with netCDF9)'
       ENDIF
 
-      ncstat = NF_PUT_ATT_TEXT(ncid, NF_GLOBAL,'history'             &
-     &,35, 'Restart data for marine bgc modules')
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'history'             &
+     &, 'Restart data for marine bgc modules')
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF9)')
                stop '(AUFW: Problem with netCDF9)'
       ENDIF
 
-      ncstat = NF_PUT_ATT_TEXT(ncid, NF_GLOBAL,'conventions'         &
-     &,6, 'COARDS')
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'conventions'         &
+     &,'COARDS')
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF9)')
                stop '(AUFW: Problem with netCDF9)'
       ENDIF
 
-      ncstat = NF_PUT_ATT_TEXT(ncid, NF_GLOBAL,'source'              &
-     &,24, 'Marine bgc model output HOPC68/grob')
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'source'              &
+     &, 'Marine bgc model output HOPC68/grob')
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF10)')
                stop '(AUFW: Problem with netCDF10)'
       ENDIF
 
-      ncstat = NF_PUT_ATT_INT(ncid, NF_GLOBAL, 'date', NF_INT, 5, idate)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL, 'date', idate)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF11)')
                stop '(AUFW: Problem with netCDF11)'
       ENDIF
 
+!PNETCDF
+      ELSE IF (IOTYPE==1) THEN
+      clen=len('Restart data for marine bgc modules')
+      ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'title'             &
+     &, clen,'Restart data for marine bgc modules')
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF9)')
+               stop '(AUFW: Problem with PnetCDF9)'
+      ENDIF
+      clen=len('Restart data for marine bgc modules')
+      ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'history'           &
+     &, clen,'Restart data for marine bgc modules')
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF9)')
+               stop '(AUFW: Problem with PnetCDF9)'
+      ENDIF
+      clen=6
+      ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'conventions'       &
+     &,clen, 'COARDS')
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF9)')
+               stop '(AUFW: Problem with PnetCDF9)'
+      ENDIF
+      clen=len('Marine bgc model output HOPC68/grob')
+      ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'source'            &
+     &,clen, 'Marine bgc model output HOPC68/grob')
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF10)')
+               stop '(AUFW: Problem with PnetCDF10)'
+      ENDIF
+      clen=5
+      ncstat = NFMPI_PUT_ATT_INT(ncid, NF_GLOBAL, 'date',              &
+     &                           nf_int, clen, idate)
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with netCDF11)')
+               stop '(AUFW: Problem with netCDF11)'
 
-!
+      ENDIF
+      ENDIF
+! 
 ! Define variables : advected ocean tracer
 ! ----------------------------------------------------------------------    
 !
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = nclev2id
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = nclev2id
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',13, 'Dissolved CO2',rmissing,22,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',15, 'Dissolved CO213',rmissing,22,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sco214',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sco214',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',15, 'Dissolved CO214',rmissing,22,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'alkali',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'alkali',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',10,'Alkalinity',rmissing,25,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'phosph',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'phosph',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',19,'Dissolved phosphate',rmissing,28,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'oxygen',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'oxygen',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',16,'Dissolved oxygen',                             &
           rmissing,31,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'gasnit',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'gasnit',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',21,'Gaseous nitrogen (N2)',                        &
           rmissing,34,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,4,'ano3',3,ncdims,ncvarid,             &
+      CALL NETCDF_DEF_VARDB(ncid,4,'ano3',3,ncdimst,ncvarid,             &
      &    6,'mol/kg',17,'Dissolved nitrate',                            &
           rmissing,34,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'silica',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'silica',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',22,'Silicid acid (Si(OH)4)',                       &
           rmissing,40,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'doc',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'doc',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',24,'Dissolved organic carbon',                     &
      &    rmissing,40,io_stdo_bgc) 
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',25,'Particulate organic carbon',                   &
      &    rmissing,46,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdimst,ncvarid,            &
      &    7,'molC/kg',28,'Particulate organic carbon13',                &
      &    rmissing,46,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdimst,ncvarid,            &
      &    7,'molC/kg',28,'Particulate organic carbon14',                &
      &    rmissing,46,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdimst,ncvarid,            &
      &    7,'molP/kg',27,'Phytoplankton concentration',                 &
      &    rmissing,28,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'grazer',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'grazer',3,ncdimst,ncvarid,           &
      &    7,'molP/kg',25,'Zooplankton concentration',                   &
      &    rmissing,29,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'calciu',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'calciu',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',17,'Calcium carbonate',                            &
      &    rmissing,30,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,8,'calciu13',3,ncdims,ncvarid,         &
+      CALL NETCDF_DEF_VARDB(ncid,8,'calciu13',3,ncdimst,ncvarid,         &
      &    7,'molC/kg',19,'Calcium carbonate13',                         &
      &    rmissing,30,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdims,ncvarid,         &
+      CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdimst,ncvarid,         &
      &    7,'molC/kg',19,'Calcium carbonate14',                         &
      &    rmissing,30,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,4,'opal',3,ncdims,ncvarid,             &
+      CALL NETCDF_DEF_VARDB(ncid,4,'opal',3,ncdimst,ncvarid,             &
      &    6,'mol/kg',15,'Biogenic silica',                              &
      &    rmissing,31,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'n2o',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'n2o',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',12,'laughing gas',                                 &
      &    rmissing,32,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'dms',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'dms',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',15 ,'DiMethylSulfide',                             &
      &    rmissing,33,io_stdo_bgc)            
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'fdust',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'fdust',3,ncdimst,ncvarid,            &
      &    5,'kg/kg',19,'Non-aggregated dust',                           &
      &    rmissing,34,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdims,ncvarid,             &
+      CALL NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdimst,ncvarid,             &
      &    6,'mol/kg',14,'Dissolved iron',                               &
      &    rmissing,35,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',16,'Preformed oxygen',                             &
           rmissing,43,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,          &
      &    6,'mol/kg',19,'Preformed phosphate',                          &
           rmissing,43,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,          &
      &    6,'mol/kg',20,'Preformed alkalinity',                         &
           rmissing,43,io_stdo_bgc)
 
 #ifdef AGG
-      CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdims,ncvarid,             &
+      CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdimst,ncvarid,             &
      &    3,'1/g',38,'marine snow aggregates per g sea water',          &
      &    rmissing,41,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdimst,ncvarid,            &
      &    4,'g/kg',15,'Aggregated dust',                                &
      &    rmissing,42,io_stdo_bgc)
 #endif /*AGG*/   
 
 #ifdef ANTC14
-      CALL NETCDF_DEF_VARDB(ncid,6,'antc14',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'antc14',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',17,'anthropogenic C14',                            &
      &    rmissing,41,io_stdo_bgc)
 #endif
 #ifdef CFC
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,            &
      &    6,'mol/kg',5,'CFC11',                                         &
      &    rmissing,41,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdims,ncvarid,            &
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdimst,ncvarid,            &
      &    6,'mol/kg',5,'CFC12',                                         &
      &    rmissing,41,io_stdo_bgc)     
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',4,'SF-6',                                          &
      &    rmissing,41,io_stdo_bgc)     
 #endif
@@ -385,24 +508,25 @@
 ! Define variables : diagnostic ocean fields
 ! ----------------------------------------------------------------------    
 !
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = nclevid
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = nclevid
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdims,ncvarid,               &
+      CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,               &
      &    6,'mol/kg',26,'Hydrogen ion concentration',                   &
      &    rmissing,46,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'co3',3,ncdims,ncvarid,              &
+      CALL NETCDF_DEF_VARDB(ncid,3,'co3',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',25,'Dissolved carbonate (CO3)',                    &
      &    rmissing,52,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdimst,ncvarid,           &
      &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
      &    rmissing,64,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'satn2o',2,ncdims,ncvarid,           &
+      ncdimst(3) = 0
+      CALL NETCDF_DEF_VARDB(ncid,6,'satn2o',2,ncdimst,ncvarid,           &
      &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
      &    rmissing,64,io_stdo_bgc)
 
@@ -411,92 +535,92 @@
 ! Define variables : sediment
 ! ----------------------------------------------------------------------    
 !
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = ncks2id
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = ncks2id
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',35,'Sediment accumulated organic carbon',      &
      &    rmissing,69,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',37,'Sediment accumulated organic carbon13',    &
      &    rmasks,69,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',37,'Sediment accumulated organic carbon14',    &
      &    rmasks,69,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sssc12',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sssc12',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',38,'Sediment accumulated calcium carbonate',   &
      &    rmissing,69,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',40,'Sediment accumulated calcium carbonate13', &
      &    rmasks,69,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',40,'Sediment accumulated calcium carbonate14', &
      &    rmasks,69,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssssil',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssssil',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',25,'Sediment accumulated opal',                &
      &    rmissing,69,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',25,'Sediment accumulated clay',                &
      &    rmissing,69,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',23,'Sediment pore water CO2',                  &
      &    rmissing,75,io_stdo_bgc)
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',25,'Sediment pore water DIC13',                &
      &    rmasks,75,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',25,'Sediment pore water DIC13',                &
      &    rmasks,75,io_stdo_bgc)
 #endif
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaal',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaal',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',30,'Sediment pore water alkalinity',           &
      &    rmissing,78,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaph',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaph',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',29,'Sediment pore water phosphate',            &
      &    rmissing,78,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaox',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaox',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',26,'Sediment pore water oxygen',               &
      &    rmissing,84,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'pown2',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,5,'pown2',3,ncdimst,ncvarid,           &
      &    9,'kmol/m**3',36,'Sediment pore water gaseous nitrogen',     &
      &    rmissing,87,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powno3',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powno3',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',33,'Sediment pore water nitrate (NO3)',        &
      &    rmissing,90,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powasi',3,ncdims,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powasi',3,ncdimst,ncvarid,           &
      &    9,'kmol/m**3',42,'Sediment pore water silicid acid (Si(OH)4)',&
      &    rmissing,91,io_stdo_bgc)
 
 
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = ncksid
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = ncksid
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdims,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',34,'Sediment accumulated hydrogen ions',       &
      &    rmissing,72,io_stdo_bgc)
 
@@ -504,24 +628,24 @@
 ! Define variables : sediment burial
 ! ----------------------------------------------------------------------    
 !
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = ncbur2id
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = ncbur2id
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_o12',3,ncdims,ncvarid,         &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_o12',3,ncdimst,ncvarid,         &
      &    9,'kmol/m**2',30,'Burial layer of organic carbon',           &
      &    rmissing,70,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_c12',3,ncdims,ncvarid,         &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_c12',3,ncdimst,ncvarid,         &
      &    9,'kmol/m**2',33,'Burial layer of calcium carbonate',        &
      &    rmissing,71,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_sil',3,ncdims,ncvarid,         &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_sil',3,ncdimst,ncvarid,         &
      &    9,'kmol/m**2',20,'Burial layer of opal',                     &
      &    rmissing,72,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdims,ncvarid,        &
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,        &
      &    9,'kmol/m**2',20,'Burial layer of clay',                     &
      &    rmissing,72,io_stdo_bgc)
 
@@ -531,57 +655,65 @@
 ! Define variables : co2 diffusion
 ! ----------------------------------------------------------------------    
 !
-      ncdims(1) = nclonid
-      ncdims(2) = nclatid
-      ncdims(3) = 0
-      ncdims(4) = 0
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = 0
+      ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'suppco2',2,ncdims,ncvarid,      &
+      CALL NETCDF_DEF_VARDB(ncid,7,'suppco2',2,ncdimst,ncvarid,      &
      &    4,'ppmv',42,'pCO2 from total dissolved inorganic carbon', &
      &    rmissing,92,io_stdo_bgc)
      
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',2,ncdims,ncvarid,       &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',2,ncdimst,ncvarid,       &
      &    3,'ppm',15,'atmospheric CO2',                             &
      &    rmissing,93,io_stdo_bgc)         
      
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',2,ncdims,ncvarid,        &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',2,ncdimst,ncvarid,        &
      &    3,'ppm',14,'atmospheric O2',                              &
      &    rmissing,94,io_stdo_bgc)    
      
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',2,ncdims,ncvarid,        &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',2,ncdimst,ncvarid,        &
      &    3,'ppm',14,'atmospheric N2',                              &
      &    rmissing,95,io_stdo_bgc)    
 
 #ifdef __c_isotopes
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',2,ncdims,ncvarid,       &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',2,ncdimst,ncvarid,       &
      &    3,'ppm',15,'atmospheric CO2',                             &
      &    rmissing,93,io_stdo_bgc)      
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',2,ncdims,ncvarid,       &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',2,ncdimst,ncvarid,       &
      &    3,'ppm',15,'atmospheric CO2',                             &
      &    rmissing,93,io_stdo_bgc)      
 #endif
 
 #endif
-
-      ncstat = NF_ENDDEF(ncid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      IF(mnproc==1 .AND. IOTYPE==0) THEN
+      ncstat = NF90_ENDDEF(ncid)
+      
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF00)')
                stop '(AUFW: Problem with netCDF00)'
       ENDIF
-
 
 !
 ! Set fill mode
 ! ----------------------------------------------------------------------    
 !
-      ncstat = NF_SET_FILL(ncid,NF_NOFILL, ncoldmod)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      ncstat = NF90_SET_FILL(ncid,NF90_NOFILL, ncoldmod)
+      IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF97)')
                stop '(AUFW: Problem with netCDF97)'
       ENDIF
 
-      ENDIF ! mnproc == 1
 
+
+      ELSE IF(IOTYPE==1) THEN
+      ncstat = NFMPI_ENDDEF(ncid)
+
+      IF ( ncstat .NE. NF_NOERR ) THEN
+        call xchalt('(AUFW: Problem with PnetCDF00)')
+               stop '(AUFW: Problem with PnetCDF00)'
+      ENDIF
+      ENDIF
 
 !
 ! Write restart data : ocean aquateous tracer
@@ -684,15 +816,22 @@
 #endif
 
 
+      IF(mnproc==1 .AND. IOTYPE==0) THEN
       IF(mnproc==1) THEN
-        ncstat = NF_CLOSE(ncid)
-        IF ( ncstat .NE. NF_NOERR ) THEN
+        ncstat = NF90_CLOSE(ncid)
+        IF ( ncstat .NE. NF90_NOERR ) THEN
           call xchalt('(AUFW: netCDF200)')
                  stop '(AUFW: netCDF200)'
         ENDIF
       ENDIF
+      ELSE IF(IOTYPE==1) THEN
 
-
+        ncstat = NFMPI_CLOSE(ncid)
+        IF ( ncstat .NE. NF_NOERR ) THEN
+          call xchalt('(AUFW: PnetCDF200)')
+                 stop '(AUFW: PnetCDF200)'
+        ENDIF
+      ENDIF
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'End of AUFW_BGC'
       WRITE(io_stdo_bgc,*) '***************'

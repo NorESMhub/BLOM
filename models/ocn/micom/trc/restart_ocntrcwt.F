@@ -5,7 +5,7 @@ c --- Write ocean tracer state to restart file
 c --- ------------------------------------------------------------------
 c
       use mod_xc
-      use mod_dia
+      use mod_dia, only :iotype,rstfmt,rstcmp
       use mod_nctools
 c
       implicit none
@@ -30,13 +30,13 @@ c --- ------------------------------------------------------------------
 c --- Generate file name and create file 
 c --- ------------------------------------------------------------------
 c
-      if (mnproc.eq.1) then
 #ifdef CCSMCOUPLED
         i=1
         do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            write (lp,*)
+            if(mnproc .eq. 1)
+     &       write (lp,*)
      &        'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
@@ -48,7 +48,8 @@ c
         do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            write (lp,*)
+            if(mnproc .eq. 1)
+     &       write (lp,*)
      &        'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
@@ -56,17 +57,17 @@ c
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
 #endif
-        write (lp,'(2a)')
+        if(mnproc .eq. 1)
+     .   write (lp,'(2a)')
      .    ' saving ocean tracer restart file ',
      .    trim(path2(1:path2_len)//rstfnm)
         if (rstfmt.eq.1) then 
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1)
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1,iotype)
         elseif (rstfmt.eq.2) then
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1)
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1,iotype)
         else
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1)
+          call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1,iotype)
         endif
-      endif
 c
 c --- ------------------------------------------------------------------
 c --- Create attributes and dimensions
@@ -90,6 +91,42 @@ c --- ------------------------------------------------------------------
 c --- Write tracer data to file
 c --- ------------------------------------------------------------------
 c
+#ifdef ATRC
+      do nt=1,ntrocn-natr
+        write (trcnm,'(a,i3.3)') 'trc',nt
+        if (rstcmp.eq.1) then
+          call ncdefvar(trim(trcnm),'pcomp kk2 time',
+     .                ndouble,8)
+        else
+          call ncdefvar(trim(trcnm),'x y kk2 time',
+     .                ndouble,8)
+        endif
+      enddo
+      do nt=1,natr
+        nat=ntr-natr+nt
+        write (trcnm,'(a,i3.3)') 'atrc',nt
+        if (rstcmp.eq.1) then
+          call ncdefvar(trim(trcnm),'pcomp kk2 time',
+     .                ndouble,8)
+        else
+          call ncdefvar(trim(trcnm),'x y kk2 time',
+     .                ndouble,8)
+        endif
+      enddo
+      
+#else
+      do nt=1,ntrocn
+        write (trcnm,'(a,i3.3)') 'trc',nt
+        if (rstcmp.eq.1) then
+          call ncdefvar(trim(trcnm),'pcomp kk2 time',
+     .                ndouble,8)
+        else
+          call ncdefvar(trim(trcnm),'x y kk2 time',
+     .                ndouble,8)
+        endif
+      enddo
+#endif
+          call ncedef
 #ifdef ATRC
       do nt=1,ntrocn-natr
         write (trcnm,'(a,i3.3)') 'trc',nt
@@ -126,9 +163,7 @@ c
       enddo
 #endif
 c
-      if (mnproc.eq.1) then
         call ncfcls
-      endif
 c
       return
       end

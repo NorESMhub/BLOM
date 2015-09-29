@@ -4,6 +4,7 @@ c --- Write accumulated diagnosed heat and salt fluxes
 c
       use mod_xc
       use mod_nctools
+      use mod_dia, only : iotype
 c
       implicit none
 c
@@ -22,7 +23,7 @@ c
           write (lp,'(2a)')
      .      'Writing diagnostic heat flux to ',path1(1:path1_len)//fname
         endif
-        call ncfopn(path1(1:path1_len)//fname,'w','c',1)
+        call ncfopn(path1(1:path1_len)//fname,'w','c',1,iotype)
 c
 #ifdef COMPDIA
         call ncdimc('pcomp',ip,0)
@@ -36,8 +37,12 @@ c
         call ncputi('nflxdi',nflxdi)
 c
 #ifdef COMPDIA
+        call ncdefvar('tflxdi','pcomp week',ndouble,8)
+        call ncedef 
         call nccomp('tflxdi','pcomp week',tflxdi,ip,1.,0.,8)
 #else
+        call ncdefvar('tflxdi','x y week',ndouble,8)
+        call ncedef
         call ncwrtr('tflxdi','x y week',tflxdi,ip,1,1.,0.,8)
 #endif 
 c       
@@ -64,7 +69,7 @@ c
           write (lp,'(2a)')
      .      'Writing diagnostic salt flux to ',path1(1:path1_len)//fname
         endif
-        call ncfopn(path1(1:path1_len)//fname,'w','c',1)
+        call ncfopn(path1(1:path1_len)//fname,'w','c',1,iotype)
 c
 #ifdef COMPDIA
         call ncdimc('pcomp',ip,0)

@@ -5,7 +5,7 @@ c --- output routine for HAMOCC diagnostic fields
 c --- -------------------------------------------
 c
       use mod_xc
-      use mod_dia, only : diafnm,sigmar1
+      use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
@@ -57,6 +57,7 @@ c --- prepare output fields
       if (mnproc.eq.1) then 
         write (lp,'(a,f6.2,a)') ' ncwrt_bgc: fields averaged over ',
      .                          real(nacc_bgc(iogrp)),' steps'
+        write(lp,*) 'irec(iogrp)',irec(iogrp)
       endif
       rnacc=1./real(nacc_bgc(iogrp))
       cmpflg=GLB_COMPFLAG(iogrp)
@@ -64,13 +65,13 @@ c
 c --- create output file
       if (GLB_NCFORMAT(iogrp).eq.1) then
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','6',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       elseif (GLB_NCFORMAT(iogrp).eq.2) then
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','h',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       else 
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','c',
-     .    irec(iogrp))
+     .    irec(iogrp),iotype)
       endif 
 c      
 c --- define spatial and time dimensions
@@ -84,19 +85,13 @@ c --- define spatial and time dimensions
       call ncdims('depth',ddm)
       call ncdims('ks',ks)
       call ncdims('bounds',2)
+      call ncdims('time',0)
+      call hamoccvardef(iogrp,timeunits,calendar,cmpflg)
       call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
       call ncwrt1('sigma','sigma',sigmar1)
-      call ncattr('long_name','Potential density')
-      call ncattr('standard_name','sea_water_sigma_theta')
-      call ncattr('units','kg m-3')
-      call ncattr('positive','down')
       call ncwrt1('depth','depth',depthslev)
-      call ncattr('long_name','z level')
-      call ncattr('units','m')
-      call ncattr('positive','down')
-      call ncattr('bounds','depth_bnds')
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
 c --- finalize accumulation 
@@ -665,4 +660,305 @@ c
 c
       nacc_bgc(iogrp)=0
 c
+      end
+      subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
+      use mo_bgcmean
+      integer iogrp,cmpflg
+      character timeunits*30,calendar*19
+      call ncdefvar('time','time',ndouble,0)
+      call ncattr('long_name','time')
+      call ncattr('units',timeunits)
+      call ncattr('calendar',calendar)
+      call ncdefvar('sigma','sigma',ndouble,8)
+      call ncattr('long_name','Potential density')
+      call ncattr('standard_name','sea_water_sigma_theta')
+      call ncattr('units','kg m-3')
+      call ncattr('positive','down')
+      call ncdefvar('depth','depth',ndouble,8)
+      call ncattr('long_name','z level')
+      call ncattr('units','m')
+      call ncattr('positive','down')
+      call ncattr('bounds','depth_bnds')  
+      call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+      call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
+     .  'kwco2',' ',' ',' ',0)
+      call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',
+     .  'pco2','Surface PCO2',' ','uatm',0)
+      call ncdefvar3d(SRF_DMSFLUX(iogrp),
+     .  cmpflg,'p','dmsflux','DMS flux',' ','mol DMS m-2 s-1',0)
+      call ncdefvar3d(SRF_CO2FXD(iogrp),
+     .  cmpflg,'p','co2fxd','Downward CO2 flux',' ','kg C m-2 s-1',0)
+      call ncdefvar3d(SRF_CO2FXU(iogrp),
+     .  cmpflg,'p','co2fxu','Upward CO2 flux',' ','kg C m-2 s-1',0)
+      call ncdefvar3d(SRF_OXFLUX(iogrp),
+     .  cmpflg,'p','fgo2','Oxygen flux',' ','mol O2 m-2 s-1',0)
+      call ncdefvar3d(SRF_NIFLUX(iogrp),
+     .  cmpflg,'p','fgn2','Nitrogen flux',' ','mol N2 m-2 s-1',0)
+      call ncdefvar3d(SRF_DMS(iogrp),cmpflg,'p',
+     .  'dms','DMS',' ',' ',0)
+      call ncdefvar3d(SRF_DMSPROD(iogrp),cmpflg,'p',
+     .  'dmsprod','DMS production',' ',' ',0)
+      call ncdefvar3d(SRF_DMS_BAC(iogrp),cmpflg,'p',
+     .  'dms_bac',' ',' ',' ',0)
+      call ncdefvar3d(SRF_DMS_UV(iogrp),cmpflg,'p',
+     .  'dms_uv','DMS',' ',' ',0)
+      call ncdefvar3d(SRF_EXPORT(iogrp),
+     .  cmpflg,'p','epc100','Export production',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(SRF_EXPOSI(iogrp),cmpflg,'p',
+     . 'epsi100','Si export production',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(SRF_EXPOCA(iogrp),cmpflg,'p',
+     . 'epcalc100','Ca export production',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(SRF_DIC(iogrp),cmpflg,'p','srfdissic',
+     .  'Surface dissolved inorganic carbon',' ','mol C m-3',0)
+      call ncdefvar3d(SRF_ALKALI(iogrp),cmpflg,'p','srftalk',
+     .  'Surface alkalinity',' ','eq m-3',0)
+      call ncdefvar3d(SRF_PHOSPH(iogrp),cmpflg,'p','srfpo4',
+     .  'Surface phosphorus',' ','mol P m-3',0)
+      call ncdefvar3d(SRF_OXYGEN(iogrp),cmpflg,'p','srfo2',
+     .  'Surface oxygen',' ','mol O2 m-3',0)
+      call ncdefvar3d(SRF_ANO3(iogrp),cmpflg,'p','srfno3',
+     .  'Surface nitrate',' ','mol N m-3',0)
+      call ncdefvar3d(SRF_SILICA(iogrp),cmpflg,'p','srfsi',
+     .  'Surface silicate',' ','mol Si m-3',0)
+      call ncdefvar3d(SRF_IRON(iogrp),cmpflg,'p','srfdfe',
+     .  'Surface dissolved iron',' ','mol Fe m-3',0)
+      call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',
+     .  'Integrated primary production',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX0100(iogrp),cmpflg,'p','carflx0100',
+     .  'C flux at 100m',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX0500(iogrp),cmpflg,'p','carflx0500',
+     .  'C flux at 500m',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX1000(iogrp),cmpflg,'p','carflx1000',
+     .  'C flux at 1000m',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX2000(iogrp),cmpflg,'p','carflx2000',
+     .  'C flux at 2000m',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX4000(iogrp),cmpflg,'p','carflx4000',
+     .  'C flux at 4000m',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(CARFLX_BOT(iogrp),cmpflg,'p','carflx_bot',
+     .  'C flux to sediment',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(BSIFLX0100(iogrp),cmpflg,'p','bsiflx0100',
+     .  'Opal flux at 100m',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(BSIFLX0500(iogrp),cmpflg,'p','bsiflx0500',
+     .  'Opal flux at 500m',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(BSIFLX1000(iogrp),cmpflg,'p','bsiflx1000',
+     . 'Opal flux at 1000m',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(BSIFLX2000(iogrp),cmpflg,'p','bsiflx2000',
+     .  'Opal flux at 2000m',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(BSIFLX4000(iogrp),cmpflg,'p','bsiflx4000',
+     .  'Opal flux at 4000m',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(BSIFLX_BOT(iogrp),cmpflg,'p','bsiflx_bot',
+     .  'Opal flux to sediment',' ','mol Si m-2 s-1',0)
+      call ncdefvar3d(CALFLX0100(iogrp),cmpflg,'p','calflx0100',
+     .  'CaCO3 flux at 100m',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(CALFLX0500(iogrp),cmpflg,'p','calflx0500',
+     .  'CaCO3 flux at 500m',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(CALFLX1000(iogrp),cmpflg,'p','calflx1000',
+     .  'CaCO3 flux at 1000m',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(CALFLX2000(iogrp),cmpflg,'p','calflx2000',
+     .  'CaCO3 flux at 2000m',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(CALFLX4000(iogrp),cmpflg,'p','calflx4000',
+     .  'CaCO3 flux at 4000m',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(CALFLX_BOT(iogrp),cmpflg,'p','calflx_bot',
+     .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1',0)
+#ifdef CFC
+      call ncdefvar3d(SRF_CFC11(iogrp),cmpflg,'p','cfc11flux',
+     .   'CFC-11 flux',' ','mol CFC12 m-2 s-1',0)
+      call ncdefvar3d(SRF_CFC12(iogrp),
+     .  cmpflg,'p','cfc12flux','CFC-12 flux',' ','mol CFC12 m-2 s-1',0)
+      call ncdefvar3d(SRF_SF6(iogrp),
+     .  cmpflg,'p','sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1',0)
+#endif
+      call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
+     .  'atmco2','Atmospheric CO2',' ','ppm',0)
+#ifdef DIFFAT
+      call ncdefvar3d(SRF_ATMO2(iogrp),cmpflg,'p',
+     .  'atmo2','Atmospheric O2',' ','ppm',0)
+      call ncdefvar3d(SRF_ATMN2(iogrp),cmpflg,'p',
+     .  'atmn2','Atmospheric N2',' ','ppm',0)
+#endif 
+      call ncdefvar3d(SRF_N2OFX(iogrp),
+     .  cmpflg,'p','n2oflux','N2O flux',' ','mol N2O m-2 s-1',0)
+c
+c --- define 3d layer fields
+      call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',
+     .  'pddpo','Layer thickness',' ','m',1)
+      call ncdefvar3d(LYR_DIC(iogrp),cmpflg,'p',
+     .  'dissic','Dissolved inorganic carbon',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_ALKALI(iogrp),cmpflg,'p',
+     .  'talk','Alkalinity',' ','eq m-3',1)
+      call ncdefvar3d(LYR_PHOSPH(iogrp),cmpflg,'p',    
+     .  'po4','Phosphorus',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_OXYGEN(iogrp),cmpflg,'p',        
+     .  'o2','Oxygen',' ','mol O2 m-3',1)
+      call ncdefvar3d(LYR_ANO3(iogrp),cmpflg,'p',      
+     .  'no3','Nitrate',' ','mol N m-3',1)
+      call ncdefvar3d(LYR_SILICA(iogrp),cmpflg,'p',        
+     .  'si','Silicate',' ','mol Si m-3',1)
+      call ncdefvar3d(LYR_DOC(iogrp),cmpflg,'p',              
+     .  'dissoc','Dissolved organic carbon',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PHYTO(iogrp),cmpflg,'p',          
+     .  'phyc','Phytoplankton',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_GRAZER(iogrp),cmpflg,'p',        
+     .  'zooc','Zooplankton',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_POC(iogrp),cmpflg,'p',              
+     .  'detoc','Detrius',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_CALC(iogrp),cmpflg,'p',            
+     .  'calc','CaCO3 shells',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_OPAL(iogrp),cmpflg,'p',            
+     .  'opal','Opal shells',' ','mol Si m-3',1)
+      call ncdefvar3d(LYR_IRON(iogrp),cmpflg,'p',            
+     .  'dfe','Dissolved iron',' ','mol Fe m-3',1)
+      call ncdefvar3d(LYR_PHOSY(iogrp),cmpflg,'p',     
+     .  'pp','Primary production',' ','mol C m-3 s-1',1)
+      call ncdefvar3d(LYR_CO3(iogrp),cmpflg,'p',              
+     .  'co3','Carbonate ions',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_PH(iogrp),cmpflg,'p',
+     .  'ph','pH',' ','-log10([h+])',1)
+      call ncdefvar3d(LYR_OMEGAC(iogrp),cmpflg,'p',
+     .  'omegac','OmegaC',' ','1',1)
+      call ncdefvar3d(LYR_N2O(iogrp),cmpflg,'p',
+     .  'n2o','N2O',' ','mol N2O m-3',1)
+      call ncdefvar3d(LYR_AOU(iogrp),cmpflg,'p',
+     .  'aou','AOU',' ','mol O2 m-3',1)
+      call ncdefvar3d(LYR_PREFO2(iogrp),cmpflg,'p',       
+     .  'p_o2','Preformed oxygen',' ','mol O2 m-3',1)
+      call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',        
+     .  'p_po4','Preformed phosphorus',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',
+     .  'p_talk','Preformed alkalinity',' ','eq m-3',1)
+#ifdef __c_isotopes
+      call ncdefvar3d(LYR_DIC13(iogrp),cmpflg,'p',
+     .  'dissic13','Dissolved C13',' ','promille',1)
+      call ncdefvar3d(LYR_DIC14(iogrp),cmpflg,'p',
+     .  'dissic14','Dissolved C14',' ','promille',1)
+#endif
+#ifdef AGG
+      call ncdefvar3d(LYR_NOS(iogrp),cmpflg,'p',
+     . 'nos','Marine snow aggregates per cm^3 sea water',' ','1/cm^3',1)
+      call ncdefvar3d(LYR_WPHY(iogrp),cmpflg,'p',              
+     .  'wphy','Av. mass sinking speed of marine snow',' ','m/day',1)
+      call ncdefvar3d(LYR_WNOS(iogrp),cmpflg,'p',              
+     .  'wnos','Av. number sinking speed of marine snow',' ','m/day',1)
+      call ncdefvar3d(LYR_EPS(iogrp),cmpflg,'p',
+     .  'eps','Av. size distribution exponent',' ','-',1)
+      call ncdefvar3d(LYR_ASIZE(iogrp),cmpflg,'p',              
+     .'asize','Av. size of marine snow aggregates',' ','nb. of cells',1)
+#endif
+#ifdef CFC
+      call ncdefvar3d(LYR_CFC11(iogrp),cmpflg,'p',            
+     .  'cfc11','CFC-11',' ','mol cfc11 m-3',1)
+      call ncdefvar3d(LYR_CFC12(iogrp),cmpflg,'p',            
+     .  'cfc12','CFC-12',' ','mol cfc12 m-3',1)
+      call ncdefvar3d(LYR_SF6(iogrp),cmpflg,'p',
+     .  'sf6','SF-6',' ','mol sf6 m-3',1)
+#endif
+c
+c --- define 3d level fields
+      call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',      
+     .  'dissiclvl','Dissolved inorganic carbon',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_ALKALI(iogrp),cmpflg,'p',
+     .  'talklvl','Alkalinity',' ','eq m-3',2)
+      call ncdefvar3d(LVL_PHOSPH(iogrp),cmpflg,'p',
+     .  'po4lvl','Phosphorus',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_OXYGEN(iogrp),cmpflg,'p',
+     .   'o2lvl','Oxygen',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_ANO3(iogrp),cmpflg,'p',      
+     .  'no3lvl','Nitrate',' ','mol N m-3',2)
+      call ncdefvar3d(LVL_SILICA(iogrp),cmpflg,'p', 
+     .  'silvl','Silicate',' ','mol Si m-3',2)
+      call ncdefvar3d(LVL_DOC(iogrp),cmpflg,'p',       
+     .  'dissoclvl','Dissolved organic carbon',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PHYTO(iogrp),cmpflg,'p',   
+     .  'phyclvl','Phytoplankton',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_GRAZER(iogrp),cmpflg,'p',
+     .  'zooclvl','Zooplankton',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_POC(iogrp),cmpflg,'p',        
+     .  'detoclvl','Detrius',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_CALC(iogrp),cmpflg,'p',     
+     .  'calclvl','CaCO3 shells',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_OPAL(iogrp),cmpflg,'p',      
+     .  'opallvl','Opal shells',' ','mol Si m-3',2)
+      call ncdefvar3d(LVL_IRON(iogrp),cmpflg,'p',      
+     .  'dfelvl','Dissolved iron',' ','mol Fe m-3',2)
+      call ncdefvar3d(LVL_PHOSY(iogrp),cmpflg,'p',
+     .  'pplvl','Primary production',' ','mol C m-3 s-1',2)
+      call ncdefvar3d(LVL_CO3(iogrp),cmpflg,'p',        
+     .  'co3lvl','Carbonate ions',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_PH(iogrp),cmpflg,'p',
+     .  'phlvl','pH',' ','-log10([h+])',2)
+      call ncdefvar3d(LVL_OMEGAC(iogrp),cmpflg,'p',
+     .  'omegaclvl','OmegaC',' ','1',2)
+      call ncdefvar3d(LVL_N2O(iogrp),cmpflg,'p',      
+     .  'n2olvl','N2O',' ','mol N2O m-3',2)
+      call ncdefvar3d(LVL_AOU(iogrp),cmpflg,'p',      
+     .  'aoulvl','AOU',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',
+     .  'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',
+     .  'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',
+     .  'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
+#ifdef __c_isotopes
+      call ncdefvar3d(LVL_DIC13(iogrp),cmpflg,'p',
+     .  'dissic13lvl','Dissolved C13',' ','promille',2)
+      call ncdefvar3d(LVL_DIC14(iogrp),cmpflg,'p',
+     .  'dissic14lvl','Dissolved C14',' ','promille',2)
+#endif
+#ifdef AGG
+      call ncdefvar3d(LVL_NOS(iogrp),cmpflg,'p','noslvl',
+     .  'Marine snow aggregates per cm^3 sea water',' ','1/cm^3',2)
+      call ncdefvar3d(LVL_WPHY(iogrp),cmpflg,'p','wphylvl',
+     .  'Av. mass sinking speed of marine snow',' ','m/day',2)
+      call ncdefvar3d(LVL_WNOS(iogrp),cmpflg,'p','wnoslvl',
+     .  'Av. number sinking speed of marine snow',' ','m/day',2)
+      call ncdefvar3d(LVL_EPS(iogrp),cmpflg,'p','epslvl',
+     .  'Av. size distribution exponent',' ','-',2)
+      call ncdefvar3d(LVL_ASIZE(iogrp),cmpflg,'p','asizelvl',
+     .  'Av. size of marine snow aggregates',' ','nb. of cells',2)
+#endif
+#ifdef CFC
+      call ncdefvar3d(LVL_CFC11(iogrp),cmpflg,'p',  
+     .  'cfc11lvl','CFC-11',' ','mol cfc11 m-3',2)
+      call ncdefvar3d(LVL_CFC12(iogrp),cmpflg,'p',  
+     .  'cfc12lvl','CFC-12',' ','mol cfc12 m-3',2)
+      call ncdefvar3d(LVL_SF6(iogrp),cmpflg,'p',
+     .  'sf6lvl','SF-6',' ','mol sf6 m-3',2)
+#endif
+c
+c --- define sediment fields
+      call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',
+     .  'powdic','PoWa DIC',' ','mol C m-3',3)
+      call ncdefvar3d(SDM_POWAAL(iogrp),cmpflg,'p',
+     .  'powalk','PoWa alkalinity',' ','eq m-3',3)
+      call ncdefvar3d(SDM_POWAPH(iogrp),cmpflg,'p',
+     .  'powpho','PoWa phosphorus',' ','mol P m-3',3)
+      call ncdefvar3d(SDM_POWAOX(iogrp),cmpflg,'p',
+     .  'powox','PoWa oxygen',' ','mol O2 m-3',3)
+      call ncdefvar3d(SDM_POWN2(iogrp), cmpflg,'p',
+     .  'pown2','PoWa N2',' ','mol N2 m-3',3)
+      call ncdefvar3d(SDM_POWNO3(iogrp),cmpflg,'p',
+     .  'powno3','PoWa nitrate',' ','mol N m-3',3)
+      call ncdefvar3d(SDM_POWASI(iogrp),cmpflg,'p',
+     .  'powsi','PoWa silicate',' ','mol Si m-3',3)
+      call ncdefvar3d(SDM_SSSO12(iogrp),cmpflg,'p',
+     .  'ssso12','Sediment detritus',' ','mol P m-3',3)
+      call ncdefvar3d(SDM_SSSSIL(iogrp),cmpflg,'p',
+     .  'ssssil','Sediment silicate',' ','mol Si m-3',3)
+      call ncdefvar3d(SDM_SSSC12(iogrp),cmpflg,'p',
+     .  'sssc12','Sediment CaCO3',' ','mol C m-3',3)
+      call ncdefvar3d(SDM_SSSTER(iogrp),cmpflg,'p',
+     .  'ssster','Sediment clay',' ','mol m-3',3)
+c
+c --- define sediment burial fields
+      call ncdefvar3d(BUR_SSSO12(iogrp),
+     .  cmpflg,'p','buro12','Burial org carbon',' ','mol P m-2',4)
+      call ncdefvar3d(BUR_SSSC12(iogrp),
+     .  cmpflg,'p','burc12','Burial calcium ',' ','mol C m-2',4)
+      call ncdefvar3d(BUR_SSSSIL(iogrp),
+     .  cmpflg,'p','bursil','Burial silicate',' ','mol Si m-2',4)
+      call ncdefvar3d(BUR_SSSTER(iogrp),
+     .  cmpflg,'p','burter','Burial clay',' ','mol  m-2',4)
+c
+c --- enddef netcdf file
+      call ncedef
       end
