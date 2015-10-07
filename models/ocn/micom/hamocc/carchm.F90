@@ -84,7 +84,7 @@
       REAL    :: omask(kpie,kpje)
 
       REAL    :: supsat, undsa, dissol
-      REAL    :: fluxd,fluxu
+      REAL    :: rpp0,fluxd,fluxu
       REAL    :: kwco2,kwo2,kwdms
       REAL    :: scco2,sco2,scdms
       REAL    :: Xconvxa
@@ -189,7 +189,7 @@
 !$OMP&        tmp,nKhwe74,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,           &
 !$OMP&        Kspa,deltav,deltak,zprb,zprb2,lnkpok0,borat,sti,ft,tc,ta,         &
 !$OMP&        sit,pt,ah1,jit,hso4,hf,hsi,hpo4,ab,aw,ac,ah2o,ah2,                &
-!$OMP&        erel,cu,cb,cc,pco2,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,        &
+!$OMP&        erel,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,   &
 !$OMP&        kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,              &
 !$OMP&        niflux,n2oflux,dmsflux,omega,sch_11,sch_12,sch_sf,kw_11,          &
 !$OMP&        kw_12,kw_sf,a_11,a_12,a_sf,flx11,flx12,flxsf,atm_cfc11,           &
@@ -199,7 +199,7 @@
 !$OMP&        tmp,nKhwe74,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,           &
 !$OMP&        Kspa,deltav,deltak,zprb,zprb2,lnkpok0,borat,sti,ft,tc,ta,         &
 !$OMP&        sit,pt,ah1,jit,hso4,hf,hsi,hpo4,ab,aw,ac,ah2o,ah2,                &
-!$OMP&        erel,cu,cb,cc,pco2,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,        &
+!$OMP&        erel,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,   &
 !$OMP&        kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,              &
 !$OMP&        niflux,n2oflux,dmsflux,omega)
 #endif
@@ -224,9 +224,8 @@
        scl    = s * salchl
 
 ! Kh = [CO2]/ p CO2
-! Weiss (1974)   [mol/kg/atm]
-       tmp = 9345.17 * invtk - 60.2409 + 23.3585 * log( tk/100. )
-       nKhwe74 = tmp + s * ( 0.023517 - 0.00023656 * tk + 0.0047036e-4 * tk * tk )
+! Weiss (1974), refitted for moist air Weiss and Price (1980) [mol/kg/atm]
+       nKhwe74 = ac1+ac2/tk100+ac3*log(tk100)+ac4*tk100**2+s*(bc1+bc2*tk100+bc3*tk100**2)
        Kh      = exp( nKhwe74 )
 ! K1 = [H][HCO3]/[H2CO3]   ; K2 = [H][CO3]/[HCO3]
 ! Millero p.664 (1995) using Mehrbach et al. data on seawater scale
@@ -348,7 +347,8 @@
 ! NOTE: equation below for pCO2 needs requires CO2 in mol/kg
       pco2 = cu * 1.e6 / Kh
 
-! solubility of O2 (Weiss, R. F. (1970), Deep-Sea Res., 17, 721-735)
+! solubility of O2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
+! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
       oxy=ox0+ox1/tk100+ox2*alog(tk100)+ox3*tk100+s*(ox4+ox5*tk100+ox6*tk100**2)
       satoxy(i,j,k)=exp(oxy)*oxyco
 
@@ -367,13 +367,15 @@
                                  ! sch_sf for high temperatures
 #endif
 
-! solubility of N2 (Weiss, R. F. (1970), Deep-Sea Res., 17, 721-735)
+! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
+! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
        ani=an0+an1/tk100+an2*alog(tk100)+an3*tk100+s*(an4+an5*tk100+an6*tk100**2)
        anisa=exp(ani)*oxyco
 
-! solubility of laughing gas  (Weiss, 1974)
-       rs=al1+al2*(100./tk)+al3*log(tk100)+s*(bl1+bl2*(tk100)+bl3*(tk100)**2)
-       satn2o(i,j)=atn2o*exp(rs)
+! solubility of laughing gas  (Weiss and Price 1980, Marine Chemistry, 8, 347-359) 
+! for moist air at 1 atm in kmol/m^3/atm
+       rs=al1+al2/tk100+al3*log(tk100)+al4*tk100**2+s*(bl1+bl2*tk100+bl3*tk100**2)
+       satn2o(i,j)=exp(rs)
 
 #ifdef CFC
 ! solubility of cfc11,12 (mol/(l*atm)) (Warner and Weiss 1985) and
@@ -444,9 +446,13 @@
 #endif
 #endif
 
+! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
+! used in all surface flux calculations where atmospheric concentration is given as a
+! mixing ratio (i.e. partial presure = mixing ratio*SLP/P_0 [atm])
+       rpp0 = ppao(i,j)/101325.0
 
-       fluxd=atco2*kwco2*dtbgc*Kh*1e-6*rrho ! Kh is in mol/kg/atm. Multiply by rrho (g/cm^3) 
-       fluxu=pco2 *kwco2*dtbgc*Kh*1e-6*rrho ! to get fluxes in kmol/m^2
+       fluxd=atco2*rpp0*kwco2*dtbgc*Kh*1e-6*rrho ! Kh is in mol/kg/atm. Multiply by rrho (g/cm^3) 
+       fluxu=pco2      *kwco2*dtbgc*Kh*1e-6*rrho ! to get fluxes in kmol/m^2
        
        atmflx(i,j,iatmco2)=(fluxu-fluxd)
 
@@ -478,13 +484,13 @@
 #endif
 
 ! Surface flux of oxygen
-       oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800)) ! *ppao(i,j)/101300.
+       oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800)*rpp0)
        ocetra(i,j,1,ioxygen)=ocetra(i,j,1,ioxygen)-oxflux/pddpo(i,j,1)
 ! Surface flux of gaseous nitrogen (same piston velocity as for O2)
-       niflux=kwo2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)) ! *ppao(i,j)/101300.
+       niflux=kwo2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
        ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
 ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-       n2oflux=kwo2*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)) ! *ppao(i,j)/101300.
+       n2oflux=kwo2*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*rpp0) 
        ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
 #ifdef CFC
 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)
@@ -533,6 +539,7 @@
 
 ! Surface flux of dms
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
+       atmflx(i,j,iatmdms) = dmsflux ! [kmol dms m-2 timestep-1]
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
 
        aux2d_co2fxd(i,j)  = fluxd 

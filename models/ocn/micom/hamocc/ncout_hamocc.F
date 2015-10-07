@@ -210,14 +210,16 @@ c --- Store 2d fields
      .  cmpflg,'fgo2','Oxygen flux',' ','mol O2 m-2 s-1')
       call wrtsrf(jniflux(iogrp),SRF_NIFLUX(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'fgn2','Nitrogen flux',' ','mol N2 m-2 s-1')
-      call wrtsrf(jdms(iogrp),SRF_DMS(iogrp),rnacc,0.,cmpflg,           
-     .  'dms','DMS',' ',' ')
-      call wrtsrf(jdmsprod(iogrp),SRF_DMSPROD(iogrp),rnacc,0.,cmpflg,   
-     .  'dmsprod','DMS production',' ',' ')
-      call wrtsrf(jdms_bac(iogrp),SRF_DMS_BAC(iogrp),rnacc,0.,cmpflg,   
-     .  'dms_bac',' ',' ',' ')
-      call wrtsrf(jdms_uv(iogrp),SRF_DMS_UV(iogrp),rnacc,0.,cmpflg,     
-     .  'dms_uv','DMS',' ',' ')
+      call wrtsrf(jdms(iogrp),SRF_DMS(iogrp),rnacc,0.,cmpflg,
+     .  'dms','DMS',' ','kmol DMS m-3')
+      call wrtsrf(jdmsprod(iogrp),SRF_DMSPROD(iogrp),rnacc*1e3/dtbgc,0.,
+     .  cmpflg,'dmsprod','DMS production from phytoplankton production',
+     .  ' ','mol DMS m-2 s-1')
+      call wrtsrf(jdms_bac(iogrp),SRF_DMS_BAC(iogrp),rnacc*1e3/dtbgc,0.,
+     .  cmpflg,'dms_bac','DMS bacterial consumption',' ',
+     .  'mol DMS m-2 s-1')
+      call wrtsrf(jdms_uv(iogrp),SRF_DMS_UV(iogrp),rnacc*1e3/dtbgc,0.,
+     . cmpflg,'dms_uv','DMS photolysis reduction',' ','mol DMS m-2 s-1')
       call wrtsrf(jexport(iogrp),SRF_EXPORT(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'epc100','Export production',' ','mol C m-2 s-1')
       call wrtsrf(jexposi(iogrp),SRF_EXPOSI(iogrp),rnacc*1e3/dtbgc,0.,
@@ -695,13 +697,14 @@ c
       call ncdefvar3d(SRF_NIFLUX(iogrp),
      .  cmpflg,'p','fgn2','Nitrogen flux',' ','mol N2 m-2 s-1',0)
       call ncdefvar3d(SRF_DMS(iogrp),cmpflg,'p',
-     .  'dms','DMS',' ',' ',0)
+     .  'dms','DMS',' ','kmol DMS m-3',0)
       call ncdefvar3d(SRF_DMSPROD(iogrp),cmpflg,'p',
-     .  'dmsprod','DMS production',' ',' ',0)
+     .  'dmsprod','DMS production from phytoplankton production',' ',
+     .  'mol DMS m-2 s-1',0)
       call ncdefvar3d(SRF_DMS_BAC(iogrp),cmpflg,'p',
-     .  'dms_bac',' ',' ',' ',0)
+     .  'dms_bac','DMS bacterial consumption',' ','mol DMS m-2 s-1',0)
       call ncdefvar3d(SRF_DMS_UV(iogrp),cmpflg,'p',
-     .  'dms_uv','DMS',' ',' ',0)
+     .  'dms_uv','DMS photolysis reduction',' ','mol DMS m-2 s-1',0)
       call ncdefvar3d(SRF_EXPORT(iogrp),
      .  cmpflg,'p','epc100','Export production',' ','mol C m-2 s-1',0)
       call ncdefvar3d(SRF_EXPOSI(iogrp),cmpflg,'p',

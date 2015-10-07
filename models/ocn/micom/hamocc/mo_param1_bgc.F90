@@ -103,7 +103,8 @@
      &                      iatmo2 =2,                                  &
      &                      iatmn2 =3,                                  &
      &                      iatmn2o=4,                                  &
-     &                      i_base_atm=4
+     &                      iatmdms=5,                                  &
+     &                      i_base_atm=5
       INTEGER, PARAMETER ::                                             &
 #ifdef __c_isotopes
      &                      iatmc13 = i_base_atm+1,                     &
@@ -113,7 +114,7 @@
      &                      i_iso_atm = 0
 #endif
 
-     INTEGER, PARAMETER ::  natm=i_base_atm+i_iso_atm
+      INTEGER, PARAMETER ::  natm=i_base_atm+i_iso_atm
 
 ! sediment
 #ifdef __c_isotopes

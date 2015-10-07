@@ -80,6 +80,7 @@ c --- various surface state and flux fields
      .  mltpot,        ! melting potential
      .  atmco2,        ! atmospheric co2 concentration
      .  flxco2,        ! air-sea co2 flux
+     .  flxdms,        ! sea-air dms flux
 c
 c --- albedo
      .  alb,         
@@ -101,7 +102,7 @@ c
       common /frc2/ swa,nsf,hmltfz,hmlt,dfl,lip,sop,eva,rnf,rfi,fmltfz,
      .              sfl,ztx,mty,ustarw,slp,abswnd,albw,frzpot,mltpot,
      .              atmco2,flxco2,alb,rnfres,rnfflx,rfiflx,eiacc,pracc,
-     .              prfac
+     .              prfac,flxdms
 c
 c --- constants set in 'frcdat'
       real albw_d,rhowat,sref

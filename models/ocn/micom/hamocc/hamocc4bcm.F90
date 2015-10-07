@@ -1,7 +1,7 @@
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,pglat,                        &
      &    pfswr,psicomo,ptho,psao,ppao,prho,pddpo,pdlxp,pdlyp,ptiestu,   &
      &    ptiestw,pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,     &
-     &    kmonlen,kldtmon,kldtday,omask,days_in_yr)       
+     &    kmonlen,kldtmon,kldtday,omask,days_in_yr,pflxdms)       
 
 !**********************************************************************
 !
@@ -68,6 +68,7 @@
       REAL    :: pfu10  (kpie,kpje)
       REAL    :: patmco2(kpie,kpje)
       REAL    :: pflxco2(kpie,kpje)
+      REAL    :: pflxdms(kpie,kpje)
       REAL    :: ptho   (kpie,kpje,kpke)
       REAL    :: psao   (kpie,kpje,kpke)
       REAL    :: ppao   (kpie,kpje)
@@ -390,6 +391,15 @@
       ENDDO
 !$OMP END PARALLEL DO
 
+!--------------------------------------------------------------------
+! Pass dms flux. Convert unit from kmol/m^2 to kmol/m^2/s.
+!$OMP PARALLEL DO
+      DO  j=1,kpje
+      DO  i=1,kpie
+        pflxdms(i,j)=atmflx(i,j,iatmdms)/dtbgc
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------
       RETURN

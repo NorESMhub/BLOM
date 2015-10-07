@@ -1347,11 +1347,11 @@
       ENDIF
 !
 ! --- Def.NE.attributes
-      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-      CALL ncattr('coordinates','plon plat')
-      CALL ncattr('cell_measures','area: parea')
+!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+!      CALL ncattr('coordinates','plon plat')
+!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtsrf
 
@@ -1429,11 +1429,11 @@
       ENDIF
 !
 ! --- Def.NE.attributes
-      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-      CALL ncattr('coordinates','plon plat')
-      CALL ncattr('cell_measures','area: parea')
+!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+!      CALL ncattr('coordinates','plon plat')
+!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtlyr
 
@@ -1511,11 +1511,11 @@
       ENDIF
 !
 ! --- Def.NE.attributes
-      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-      CALL ncattr('coordinates','plon plat')
-      CALL ncattr('cell_measures','area: parea')
+!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+!      CALL ncattr('coordinates','plon plat')
+!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtlvl
 
@@ -1593,11 +1593,11 @@
       ENDIF
 !
 ! --- Def.NE.attributes
-      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-      CALL ncattr('coordinates','plon plat')
-      CALL ncattr('cell_measures','area: parea')
+!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+!      CALL ncattr('coordinates','plon plat')
+!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtsdm
 
@@ -1675,11 +1675,11 @@
       ENDIF
 !
 ! --- Def.NE.attributes
-      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-      CALL ncattr('coordinates','plon plat')
-      CALL ncattr('cell_measures','area: parea')
+!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
+!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
+!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
+!      CALL ncattr('coordinates','plon plat')
+!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtbur
 

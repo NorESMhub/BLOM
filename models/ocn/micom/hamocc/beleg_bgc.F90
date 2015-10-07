@@ -128,8 +128,8 @@
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.025*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
-      zinges=0.6            !dimensionless fraction -assimilation efficiency
-      epsher=0.8            !dimensionless fraction -fraction of grazing egested
+      zinges = 0.5          !dimensionless fraction -assimilation efficiency
+      epsher = 0.9          !dimensionless fraction -fraction of grazing egested      
       grazra=1.0*dtb        !1/d -grazing rate
       spemor=3.*1.e6*dtb    !1/d -mortality rate
       gammap=0.03*dtb       !1/d -exudation rate
@@ -157,6 +157,11 @@
       wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
+#ifdef WLIN
+      wmin  =  7.*dtb       !m/d   minimum sinking speed
+      wmax  = 43.*dtb       !m/d   maximum sinking speed
+      wlin  = 40./2500.*dtb !m/d/m constant describing incr. with depth
+#endif
 
       
 ! deep see remineralisation constants
@@ -165,13 +170,11 @@
       dremdoc  = 0.004*dtb    !1/d
       dphymor  = 0.07 *dtb    !1/d
       dzoomor  = 0.02*dtb     !1/d
-      dremopal = 0.007*dtb    !1/d
+      dremopal = 0.005*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       
 #ifdef AGG
-      drempoc  = 0.06 *dtb    !1/d re-introduced 09062006 -- too strong?? 0.1 -> 0.05 02072007
-      dyphy    = 0.004*dtb    !1/d -mortality rate of phytoplankton 
       dphymor  = 0.1 *dtb     !1/d
 #endif
 
@@ -229,8 +232,8 @@
        dmspar(6)=0.100000000E-07  !0 half saturation microbial
        dmspar(5)=1.25*0.109784522E-01  !2*0.02   production with delsil
        dmspar(4)=1.25*0.107638502E+00  !2*1.3e-5 production with delcar
-       dmspar(3)=0.0096  !4.8e-5  !2*1.6e-3 microbial consumption
-       dmspar(2)=0.0075  !0.0003  !2*0.005  photolysis
+       dmspar(3)=0.0864 ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
+       dmspar(2)=0.0011 ! following Kloster et al., 06 Table 1
        dmspar(1)=10.              !2*5.     production with temp
 
 
@@ -377,13 +380,15 @@
 
       SinkExp = 0.62
       FractDim = 1.62
-      Stick = 0.40
+!      Stick = 0.40
+      Stick = 0.25
       cellmass = 0.012 / rnit ![nmol P]
 !ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
       cellsink = 1.40 *dtb! [m/d]
 !ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
-!      shear = 86400. !shear in the mixed layer,    1 d-1
-      shear = 60000. ! shear in the mixed layer, ~0.8 d-1
+!      shear = 86400. !shear in the mixed layer,   1.0  d-1
+      shear = 64800. !shear in the mixed layer,   0.75 d-1
+!      shear = 43200. !shear in the mixed layer,   0.5  d-1
       fsh = 0.163 * shear *dtb
       fse = 0.125 * 3.1415927 * cellsink * 100.
       alow1 = 0.002 !diameter of smallest particle [cm]
@@ -398,6 +403,7 @@
       pupper = safe/((FractDim+safe)*cellmass)
       plower = 1./(1.1*cellmass)
       zdis = 0.01 / ((FractDim + 0.01)*cellmass)
+      nmldmin = 0.1 ! minimum particle number in mixed layer
 
 ! Determine maximum sinking speed
       IF (mnproc.eq.1) THEN
@@ -564,6 +570,8 @@
 ! read in dust fields
      CALL GET_DUST(kpie,kpje,kpke,omask,path)
 !
+!read in pi_ph fields
+!     CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
 !  Initial values for sediment pore water tracer.
       DO  k=1,ks
       DO  j=1,kpje

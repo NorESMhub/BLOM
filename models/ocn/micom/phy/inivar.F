@@ -117,6 +117,7 @@ c$OMP PARALLEL DO
           mltpot(i,j)=huge
           atmco2(i,j)=huge
           flxco2(i,j)=huge
+          flxdms(i,j)=huge
           alb(i,j)=huge
           rnfres(i,j)=huge
           rnfflx(i,j)=huge

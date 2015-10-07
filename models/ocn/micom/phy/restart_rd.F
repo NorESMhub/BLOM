@@ -536,6 +536,25 @@ c
             enddo
           enddo
         endif
+        vexist=ncinqv('flxdms')
+        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxdms',flxdms,ip,1,0.)
+        else
+          if (mnproc.eq.1) then
+            write (lp,*)
+     .'Warning: DMS flux is not read from restart file and'
+            write (lp,*)
+     .       'will be initialized to zero.'
+          endif
+          do j=1,jj
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              flxdms(i,j)=0.
+            enddo
+            enddo
+          enddo
+        endif
       endif
 c
 #ifdef TRC

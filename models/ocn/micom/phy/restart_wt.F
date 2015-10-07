@@ -298,6 +298,7 @@ c
         call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
+        call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
       endif
 c
 #ifdef TRC
@@ -838,6 +839,7 @@ c
       call defvarrst('frzpot',trim(c5p)//' time')
       call defvarrst('mltpot',trim(c5p)//' time')
       call defvarrst('flxco2',trim(c5p)//' time')
+      call defvarrst('flxdms',trim(c5p)//' time')
       endif
 c
 #ifdef TRC

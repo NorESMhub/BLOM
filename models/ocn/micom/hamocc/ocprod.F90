@@ -66,7 +66,7 @@
       REAL :: abs_bgc(kpie,kpje,kpke)
       REAL :: omask(kpie,kpje)
       
-      REAL :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6
+      REAL :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
       REAL :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,         &
      &        avgra,grazing,avsil,graton,                              &
      &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,          &
@@ -168,6 +168,8 @@
       dmsp3=dmspar(3)
       dmsp2=dmspar(2)
       dmsp1=dmspar(1)
+      dms_gamma=0.87
+
 
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -355,7 +357,7 @@
 !$OMP&        ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor, &  
 !$OMP&        zoomor,excdoc,exud,export,delsil,delcar,dmsprod,  &
 !$OMP&        dms_bac,dms_uv,bdp,dtr,rocean13,rocean14,flui13,  &
-!$OMP&        flui14,dp_ez,phofa,temfa,zoothresh)
+!$OMP&        flui14,dp_ez,phofa,temfa,zoothresh,dms_ph)
       DO 1 j=1,kpje
       DO 1 i=1,kpie
 
@@ -425,12 +427,13 @@
          delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil) 
          delcar=rcalc * export * bkopal/(avsil+bkopal)
 #endif
-
+!         dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
+         dms_ph  = 1. 
          dmsprod = (dmsp5*delsil+dmsp4*delcar)                        &
-     &            *(1.+1./(ptho(i,j,k)+dmsp1)**2)  	 
-	 dms_bac = dmsp3*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)       &
-     &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))	 
-	 dms_uv  = dmsp2*4.*pho*ocetra(i,j,k,idms)
+     &            *(1.+1./(ptho(i,j,k)+dmsp1)**2)*dms_ph        
+         dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)   &
+     &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
+         dms_uv  = dmsp2*dtb*phofa/pi_alpha*ocetra(i,j,k,idms)
 
          dtr=bacfra-phosy+graton+ecan*zoomor 
 
@@ -633,7 +636,6 @@
 
 ! Accumulate 2d diagnostics 
        call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
-       call accsrf(jdms_bac,aux2d_dms_bac,omask,0)  
        call accsrf(jdms_uv,aux2d_dms_uv,omask,0)     
        call accsrf(jexport,aux2d_export,omask,0)      
        call accsrf(jexpoca,aux2d_expoca,omask,0)     
@@ -774,7 +776,8 @@
 !***********************************************************************
             aou=satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
             refra=1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-            dms_bac=dmsp3*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)	 
+            dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)   &
+     &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
             ocetra(i,j,k,ian2o)=                                       &
      &    ((ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra)*bdp           &
      &     +ocetra(i,j,k,ian2o)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
@@ -787,7 +790,7 @@
             ocetra(i,j,k,idms)=                                        &
      &    ((ocetra(i,j,k,idms)-dms_bac)*bdp                            &
      &     +ocetra(i,j,k,idms)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-	 
+            aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*bdp
 #ifdef AGG
 !***********************************************************************
 ! loss of snow numbers due to remineralization of poc
@@ -812,6 +815,7 @@
  20      CONTINUE
  201   CONTINUE     
 !$OMP END PARALLEL DO
+      call accsrf(jdms_bac,aux2d_dms_bac,omask,0) 
 
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -1073,6 +1077,13 @@
 
           if(avmass.gt.0.) then
 
+! Set minimum particle number to nmldmin in the mixed layer. This is to prevent
+! very small values of nos (and asscociated high sinking speed if there is mass)
+! in high latitudes during winter        
+          if ( k .le. kmle ) then  
+            ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos)) 
+          endif
+
           ocetra(i,j,k,inos) = MAX(snow*pupper,ocetra(i,j,k,inos)) 
           ocetra(i,j,k,inos) = MIN(snow*plower,ocetra(i,j,k,inos)) 
 
@@ -1202,13 +1213,16 @@
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN
 
-#ifdef AGG
+#if defined(AGG)
           wpoc  = wmass(i,j,k)
           wcal  = wmass(i,j,k)
           wopal = wmass(i,j,k)
           wnos  = wnumb(i,j,k)
           wdust = dustsink
           dagg  = dustagg(i,j,k)
+#elif defined(WLIN)
+          wpoc  = wmin
+          dagg  = 0.0
 #else
           dagg  = 0.0
 #endif
@@ -1254,7 +1268,7 @@
 
           IF(pddpo(i,j,k).GT.dp_min_sink) THEN
 
-#ifdef AGG
+#if defined(AGG)
             wpoc   = wmass(i,j,k)
             wpocd  = wmass(i,j,kdonor)
             wcal   = wmass(i,j,k)
@@ -1265,6 +1279,12 @@
             wnosd  = wnumb(i,j,kdonor)
             wdust  = dustsink
             dagg   = dustagg(i,j,k)
+#elif defined(WLIN)
+            wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
+            wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
+            wcald  = wcal
+            wopald = wopal
+            dagg   = 0.0
 #else
             wpocd  = wpoc
             wcald  = wcal
@@ -1335,16 +1355,22 @@
 ! Fluxes to sediment, layers thinner than dp_min_sink are ignored.
 ! Note that kdonor=kbo(i,j) by definition since kbo is the lowermost
 ! layer thicker than dp_min_sink.
-#ifdef AGG
-         wpoc  = wmass(i,j,kdonor)
-         wcal  = wmass(i,j,kdonor)
-         wopal = wmass(i,j,kdonor)
-         prorca(i,j) = ocetra(i,j,kdonor,iphy)  *wpoc                  &
-     &               + ocetra(i,j,kdonor,idet)  *wpoc
-         prcaca(i,j) = ocetra(i,j,kdonor,icalc) *wcal
-         silpro(i,j) = ocetra(i,j,kdonor,iopal) *wopal
-         produs(i,j) = ocetra(i,j,kdonor,ifdust)*dustsink              &
-     &               + ocetra(i,j,kdonor,iadust)*wpoc    
+#if defined(AGG)
+          wpoc  = wmass(i,j,kdonor)
+          wcal  = wmass(i,j,kdonor)
+          wopal = wmass(i,j,kdonor)
+          prorca(i,j) = ocetra(i,j,kdonor,iphy)  *wpoc                  &
+     &                + ocetra(i,j,kdonor,idet)  *wpoc
+          prcaca(i,j) = ocetra(i,j,kdonor,icalc) *wcal
+          silpro(i,j) = ocetra(i,j,kdonor,iopal) *wopal
+          produs(i,j) = ocetra(i,j,kdonor,ifdust)*dustsink              &
+     &                + ocetra(i,j,kdonor,iadust)*wpoc    
+#elif defined(WLIN)
+          wpoc  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
+          prorca(i,j)=ocetra(i,j,kdonor,idet ) *wpoc
+          prcaca(i,j)=ocetra(i,j,kdonor,icalc) *wcal
+          silpro(i,j)=ocetra(i,j,kdonor,iopal) *wopal
+          produs(i,j)=ocetra(i,j,kdonor,ifdust)*wdust
 #else
           prorca(i,j)=ocetra(i,j,kdonor,idet ) *wpoc
           prcaca(i,j)=ocetra(i,j,kdonor,icalc) *wcal
@@ -1378,10 +1404,15 @@
           ! 100 m
           k = k0100(i,j)
           if(k>0) then
-#ifdef AGG
+#if defined(AGG)
             wpoc  = wmass(i,j,k)
             wcal  = wmass(i,j,k)
             wopal = wmass(i,j,k)
+#elif defined(WLIN)
+            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+#endif
+
+#if defined(AGG)
             aux2d_carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
             aux2d_carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
@@ -1393,10 +1424,15 @@
           ! 500 m
           k = k0500(i,j)
           if(k>0) then
-#ifdef AGG
+#if defined(AGG)
             wpoc  = wmass(i,j,k)
             wcal  = wmass(i,j,k)
             wopal = wmass(i,j,k)
+#elif defined(WLIN)
+            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+#endif
+
+#if defined(AGG)
             aux2d_carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
             aux2d_carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
@@ -1408,10 +1444,15 @@
           ! 1000 m
           k = k1000(i,j)
           if(k>0) then
-#ifdef AGG
+#if defined(AGG)
             wpoc  = wmass(i,j,k)
             wcal  = wmass(i,j,k)
             wopal = wmass(i,j,k)
+#elif defined(WLIN)
+            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+#endif
+
+#if defined(AGG)
             aux2d_carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
             aux2d_carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
@@ -1423,10 +1464,15 @@
           ! 2000 m
           k = k2000(i,j)
           if(k>0) then
-#ifdef AGG
+#if defined(AGG)
             wpoc  = wmass(i,j,k)
             wcal  = wmass(i,j,k)
             wopal = wmass(i,j,k)
+#elif defined(WLIN)
+            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+#endif
+
+#if defined(AGG)
             aux2d_carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
             aux2d_carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
@@ -1438,10 +1484,15 @@
           ! 4000 m
           k = k4000(i,j)
           if(k>0) then
-#ifdef AGG
+#if defined(AGG)
             wpoc  = wmass(i,j,k)
             wcal  = wmass(i,j,k)
             wopal = wmass(i,j,k)
+#elif defined(WLIN)
+            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
+#endif
+
+#if defined(AGG)
             aux2d_carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
             aux2d_carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc

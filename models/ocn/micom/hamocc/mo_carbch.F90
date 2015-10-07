@@ -55,6 +55,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
       
       REAL :: dmspar(6)
 
@@ -128,6 +129,17 @@
         ALLOCATE (co3(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory co3'
         co3(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory pi_ph'
+        pi_ph(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaC ...'
