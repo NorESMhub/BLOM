@@ -11,6 +11,7 @@ c
 c
 #include "common_blocks.h"
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: pbu_t,pbv_t
       real, dimension(1-nbdy:idm+nbdy) :: pbfac
       real dpo,dpni
       integer i,j,k,l,kn,km
@@ -32,41 +33,6 @@ c
       enddo
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(kn)
-      do j=1,jj
-        do l=1,isu(j)
-        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-          utotn(i,j)=dlt*ubflxs(i,j,n)
-        enddo
-        enddo
-        do k=1,kk
-          kn=k+nn
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            utotn(i,j)=utotn(i,j)-uflx(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(kn)
-      do j=1,jj+1
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          vtotn(i,j)=dlt*vbflxs(i,j,n)
-        enddo
-        enddo
-        do k=1,kk
-          kn=k+nn
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vtotn(i,j)=vtotn(i,j)-vflx(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
 c$OMP PARALLEL DO PRIVATE(km)
       do j=0,jj+1
         do k=1,kk
@@ -81,70 +47,215 @@ c$OMP PARALLEL DO PRIVATE(km)
       enddo
 c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(kn)
+      do j=1,jj
+        if     (bmcmth.eq.'uc') then
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            utotn(i,j)=dlt*ubflxs(i,j,n)
+          enddo
+          enddo
+        elseif (bmcmth.eq.'dluc') then
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            utotn(i,j)=dlt*ubflxs(i,j,n)
+            pbu_t(i,j)=min(p(i,j,kk+1),p(i-1,j,kk+1))
+          enddo
+          enddo
+        else
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') ' bmcmth=',trim(bmcmth),' is unsupported!'
+          endif
+          call xcstop('(pbtcor)')
+                 stop '(pbtcor)'
+        endif
+        do k=1,kk
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            utotn(i,j)=utotn(i,j)-uflx(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(kn)
+      do j=1,jj+1
+        if     (bmcmth.eq.'uc') then
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vtotn(i,j)=dlt*vbflxs(i,j,n)
+          enddo
+          enddo
+        elseif (bmcmth.eq.'dluc') then
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vtotn(i,j)=dlt*vbflxs(i,j,n)
+            pbv_t(i,j)=min(p(i,j,kk+1),p(i,j-1,kk+1))
+          enddo
+          enddo
+        else
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') ' bmcmth=',trim(bmcmth),' is unsupported!'
+          endif
+          call xcstop('(pbtcor)')
+                 stop '(pbtcor)'
+        endif
+        do k=1,kk
+          kn=k+nn
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vtotn(i,j)=vtotn(i,j)-vflx(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
       do k=1,kk
         kn=k+nn
         km=k+mm
 c
+        if     (bmcmth.eq.'uc') then
 c$OMP PARALLEL DO
-        do j=1,jj
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (utotn(i,j).gt.0.) then
-              uflux(i,j)=utotn(i,j)*dp(i-1,j,km)/p(i-1,j,kk+1)
-              uflux2(i,j)=uflux(i,j)*saln(i-1,j,km)
-              uflux3(i,j)=uflux(i,j)*temp(i-1,j,km)
+          do j=1,jj
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              if (utotn(i,j).gt.0.) then
+                uflux(i,j)=utotn(i,j)*dp(i-1,j,km)/p(i-1,j,kk+1)
+                uflux2(i,j)=uflux(i,j)*saln(i-1,j,km)
+                uflux3(i,j)=uflux(i,j)*temp(i-1,j,km)
 #ifdef TRC
-              do nt=1,ntr
-                uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,km,nt)
-              enddo
+                do nt=1,ntr
+                  uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,km,nt)
+                enddo
 #endif
-            else
-              uflux(i,j)=utotn(i,j)*dp(i  ,j,km)/p(i  ,j,kk+1)
-              uflux2(i,j)=uflux(i,j)*saln(i  ,j,km)
-              uflux3(i,j)=uflux(i,j)*temp(i  ,j,km)
+              else
+                uflux(i,j)=utotn(i,j)*dp(i  ,j,km)/p(i  ,j,kk+1)
+                uflux2(i,j)=uflux(i,j)*saln(i  ,j,km)
+                uflux3(i,j)=uflux(i,j)*temp(i  ,j,km)
 #ifdef TRC
-              do nt=1,ntr
-                uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,km,nt)
-              enddo
+                do nt=1,ntr
+                  uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,km,nt)
+                enddo
 #endif
-            endif
-            uflx(i,j,kn)=uflx(i,j,kn)+uflux(i,j)
-            usflx(i,j,kn)=usflx(i,j,kn)+uflux2(i,j)
-            utflx(i,j,kn)=utflx(i,j,kn)+uflux3(i,j)
+              endif
+              uflx(i,j,kn)=uflx(i,j,kn)+uflux(i,j)
+              usflx(i,j,kn)=usflx(i,j,kn)+uflux2(i,j)
+              utflx(i,j,kn)=utflx(i,j,kn)+uflux3(i,j)
+            enddo
+            enddo
           enddo
-          enddo
-        enddo
 c$OMP END PARALLEL DO
 c$OMP PARALLEL DO
-        do j=1,jj+1
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (vtotn(i,j).gt.0.) then
-              vflux(i,j)=vtotn(i,j)*dp(i,j-1,km)/p(i,j-1,kk+1)
-              vflux2(i,j)=vflux(i,j)*saln(i,j-1,km)
-              vflux3(i,j)=vflux(i,j)*temp(i,j-1,km)
+          do j=1,jj+1
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              if (vtotn(i,j).gt.0.) then
+                vflux(i,j)=vtotn(i,j)*dp(i,j-1,km)/p(i,j-1,kk+1)
+                vflux2(i,j)=vflux(i,j)*saln(i,j-1,km)
+                vflux3(i,j)=vflux(i,j)*temp(i,j-1,km)
 #ifdef TRC
-              do nt=1,ntr
-                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,km,nt)
-              enddo
+                do nt=1,ntr
+                  vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,km,nt)
+                enddo
 #endif
-            else
-              vflux(i,j)=vtotn(i,j)*dp(i,j  ,km)/p(i,j  ,kk+1)
-              vflux2(i,j)=vflux(i,j)*saln(i,j  ,km)
-              vflux3(i,j)=vflux(i,j)*temp(i,j  ,km)
+              else
+                vflux(i,j)=vtotn(i,j)*dp(i,j  ,km)/p(i,j  ,kk+1)
+                vflux2(i,j)=vflux(i,j)*saln(i,j  ,km)
+                vflux3(i,j)=vflux(i,j)*temp(i,j  ,km)
 #ifdef TRC
-              do nt=1,ntr
-                vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,km,nt)
-              enddo
+                do nt=1,ntr
+                  vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,km,nt)
+                enddo
 #endif
-            endif
-            vflx(i,j,kn)=vflx(i,j,kn)+vflux(i,j)
-            vsflx(i,j,kn)=vsflx(i,j,kn)+vflux2(i,j)
-            vtflx(i,j,kn)=vtflx(i,j,kn)+vflux3(i,j)
+              endif
+              vflx(i,j,kn)=vflx(i,j,kn)+vflux(i,j)
+              vsflx(i,j,kn)=vsflx(i,j,kn)+vflux2(i,j)
+              vtflx(i,j,kn)=vtflx(i,j,kn)+vflux3(i,j)
+            enddo
+            enddo
           enddo
-          enddo
-        enddo
 c$OMP END PARALLEL DO
+        elseif (bmcmth.eq.'dluc') then
+c$OMP PARALLEL DO
+          do j=1,jj
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              if (utotn(i,j).gt.0.) then
+                uflux(i,j)=
+     .            utotn(i,j)
+     .            *max(0.,min(pbu_t(i,j),p(i-1,j,k+1))-p(i-1,j,k))
+     .            /pbu_t(i,j)
+                uflux2(i,j)=uflux(i,j)*saln(i-1,j,km)
+                uflux3(i,j)=uflux(i,j)*temp(i-1,j,km)
+#ifdef TRC
+                do nt=1,ntr
+                  uflxtr(nt,i,j)=uflux(i,j)*trc(i-1,j,km,nt)
+                enddo
+#endif
+              else
+                uflux(i,j)=
+     .            utotn(i,j)
+     .            *max(0.,min(pbu_t(i,j),p(i  ,j,k+1))-p(i  ,j,k))
+     .            /pbu_t(i,j)
+                uflux2(i,j)=uflux(i,j)*saln(i  ,j,km)
+                uflux3(i,j)=uflux(i,j)*temp(i  ,j,km)
+#ifdef TRC
+                do nt=1,ntr
+                  uflxtr(nt,i,j)=uflux(i,j)*trc(i  ,j,km,nt)
+                enddo
+#endif
+              endif
+              uflx(i,j,kn)=uflx(i,j,kn)+uflux(i,j)
+              usflx(i,j,kn)=usflx(i,j,kn)+uflux2(i,j)
+              utflx(i,j,kn)=utflx(i,j,kn)+uflux3(i,j)
+            enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO
+          do j=1,jj+1
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              if (vtotn(i,j).gt.0.) then
+                vflux(i,j)=
+     .            vtotn(i,j)
+     .            *max(0.,min(pbv_t(i,j),p(i,j-1,k+1))-p(i,j-1,k))
+     .            /pbv_t(i,j)
+                vflux2(i,j)=vflux(i,j)*saln(i,j-1,km)
+                vflux3(i,j)=vflux(i,j)*temp(i,j-1,km)
+#ifdef TRC
+                do nt=1,ntr
+                  vflxtr(nt,i,j)=vflux(i,j)*trc(i,j-1,km,nt)
+                enddo
+#endif
+              else
+                vflux(i,j)=
+     .            vtotn(i,j)
+     .            *max(0.,min(pbv_t(i,j),p(i,j  ,k+1))-p(i,j  ,k))
+     .            /pbv_t(i,j)
+                vflux2(i,j)=vflux(i,j)*saln(i,j  ,km)
+                vflux3(i,j)=vflux(i,j)*temp(i,j  ,km)
+#ifdef TRC
+                do nt=1,ntr
+                  vflxtr(nt,i,j)=vflux(i,j)*trc(i,j  ,km,nt)
+                enddo
+#endif
+              endif
+              vflx(i,j,kn)=vflx(i,j,kn)+vflux(i,j)
+              vsflx(i,j,kn)=vsflx(i,j,kn)+vflux2(i,j)
+              vtflx(i,j,kn)=vtflx(i,j,kn)+vflux3(i,j)
+            enddo
+            enddo
+          enddo
+        else
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') ' bmcmth=',trim(bmcmth),' is unsupported!'
+          endif
+          call xcstop('(pbtcor)')
+                 stop '(pbtcor)'
+        endif
 c
 c$OMP PARALLEL DO PRIVATE(dpo,dpni)
         do j=1,jj
@@ -170,7 +281,6 @@ c$OMP PARALLEL DO PRIVATE(dpo,dpni)
             sigma(i,j,km)=sig(temp(i,j,km),saln(i,j,km))
             dp(i,j,km)=dp(i,j,km)-epsil
             if (dp(i,j,km).lt.1.e-6) dp(i,j,km)=0.
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,km)
           enddo
           enddo
         enddo
@@ -180,6 +290,14 @@ c
 c
 c$OMP PARALLEL DO PRIVATE(km,pbfac)
       do j=1,jj
+        do k=1,kk
+          km=k+mm
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,km)
+          enddo
+          enddo
+        enddo
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           pbfac(i)=pb(i,j,m)/p(i,j,kk+1)

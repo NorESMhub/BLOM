@@ -241,7 +241,7 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(uflx, 1,2*kk, 1,1, halo_uv)
       call xctilr(vflx, 1,2*kk, 1,1, halo_vv)
-      call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
+      call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 2,2, halo_ps)
       call xctilr(pvtrop, 1,2, 1,3, halo_qs)
       call xctilr(pgfxm, 1,2, 1,2, halo_uv)
       call xctilr(xixp, 1,2, 1,2, halo_us)

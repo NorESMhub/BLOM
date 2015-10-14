@@ -119,9 +119,8 @@ c --- -   <experiment name>_restphy_3.nc
      .          nint(time-time0)) exit 
             endif 
           enddo 
-          if (i.gt.3) then
-            if (mnproc.eq.1)
-     .       write (lp,*) 'Could not find proper restart file!'
+          if (i.gt.3 .and. mnproc.eq.1) then
+            write (lp,*) 'Could not find proper restart file!'
             call xchalt('(restart_rd)')
             stop '(restart_rd)' 
           endif 

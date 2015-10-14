@@ -23,10 +23,10 @@ c
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
-     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,egc,eggam,egmndf,egmxdf,
-     .  egidfq,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
-     .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,path,path1,path2,
-     .  atm_path,rstfrq,rstfmt,rstcmp,iotype
+     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,eitmth,edritp,bmcmth,rmpmth,
+     .  egc,eggam,egmndf,egmxdf,egidfq,trxday,srxday,trxdpt,srxdpt,
+     .  trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,
+     .  sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -60,7 +60,7 @@ c --- - print namelist on stdout
         write (lp,*) 'IDATE',IDATE
         write (lp,*) 'IDATE0',IDATE0
         write (lp,*) 'RUNID ',trim(RUNID)
-        write (lp,*) 'EXPCNF',trim(EXPCNF)
+        write (lp,*) 'EXPCNF ',trim(EXPCNF)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'MDV2HI',MDV2HI
@@ -77,6 +77,10 @@ c --- - print namelist on stdout
         write (lp,*) 'CB',CB
         write (lp,*) 'CWBDTS',CWBDTS
         write (lp,*) 'CWBDLS',CWBDLS
+        write (lp,*) 'EITMTH ',trim(EITMTH)
+        write (lp,*) 'EDRITP ',trim(EDRITP)
+        write (lp,*) 'BMCMTH ',trim(BMCMTH)
+        write (lp,*) 'RMPMTH ',trim(RMPMTH)
         write (lp,*) 'EGC',egc
         write (lp,*) 'EGGAM',eggam
         write (lp,*) 'EGMNDF',egmndf
@@ -269,6 +273,10 @@ c
       call xcbcst(cb)
       call xcbcst(cwbdts)
       call xcbcst(cwbdls)
+      call xcbcst(eitmth)
+      call xcbcst(edritp)
+      call xcbcst(bmcmth)
+      call xcbcst(rmpmth)
       call xcbcst(egc)
       call xcbcst(eggam)
       call xcbcst(egmndf)
@@ -469,29 +477,29 @@ c --- - pointer if it exists
         if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
-            open (unit=nfu,file='rpointer.ocn')
-            read (nfu,'(a)') rstfnm
-            close (unit=nfu)
-            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-            if (fexist) then
-              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
-              call ncgetr('time',time)
-              call ncfcls
-            else
-              write (lp,*) 'Could not find proper restart file!'
-              call xchalt('(rdlim)')
-                     stop '(rdlim)' 
-            endif
-            if (runtype_mct.ne.'initial') then
-              n=1
-              do while (n.lt.80.and.rstfnm(n:n).ne.' ')
-                n=n+1
-              enddo
-              n=n-1
-              read (rstfnm(n-18:n-15),'(i4)') nyear
-              read (rstfnm(n-13:n-12),'(i2)') nmonth
-              read (rstfnm(n-10:n-9 ),'(i2)') nday
-            endif
+          open (unit=nfu,file='rpointer.ocn')
+          read (nfu,'(a)') rstfnm
+          close (unit=nfu)
+          inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+          if (fexist) then
+            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+            call ncgetr('time',time)
+            call ncfcls
+          else
+            write (lp,*) 'Could not find proper restart file!'
+            call xchalt('(rdlim)')
+                   stop '(rdlim)' 
+          endif
+          if (runtype_mct.ne.'initial') then
+            n=1
+            do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+              n=n+1
+            enddo
+            n=n-1
+            read (rstfnm(n-18:n-15),'(i4)') nyear
+            read (rstfnm(n-13:n-12),'(i2)') nmonth
+            read (rstfnm(n-10:n-9 ),'(i2)') nday
+          endif
           call xcbcst(time)
           call xcbcst(nyear)
           call xcbcst(nmonth)
@@ -506,14 +514,6 @@ c --- set experiment id length
         runid_len=runid_len+1
       enddo
       runid_len=runid_len-1
-c
-c --- set experiment configuration length
-      expcnf_len=1
-      do while (expcnf_len.lt.80.and.
-     .          expcnf(expcnf_len:expcnf_len).ne.' ')
-        expcnf_len=expcnf_len+1
-      enddo
-      expcnf_len=expcnf_len-1
 c
       if (nday1.lt.0.or.nday2.lt.0) then
         if (mnproc.eq.1) then
@@ -654,6 +654,10 @@ c
         write (lp,'(a,f10.4)') 'cb:                ',cb
         write (lp,'(a,f10.4)') 'cwbdts:            ',cwbdts
         write (lp,'(a,f10.4)') 'cwbdls:            ',cwbdls
+        write (lp,'(a,a60)')   'eitmth:            ',eitmth
+        write (lp,'(a,a60)')   'edritp:            ',edritp
+        write (lp,'(a,a60)')   'bmcmth:            ',bmcmth
+        write (lp,'(a,a60)')   'rmpmth:            ',rmpmth
         write (lp,'(a,f10.4)') 'trxday:            ',trxday
         write (lp,'(a,f10.4)') 'srxday:            ',srxday
         write (lp,'(a,f10.4)') 'trxdpt:            ',trxdpt

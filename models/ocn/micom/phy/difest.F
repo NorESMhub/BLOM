@@ -101,7 +101,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
      .  du2,drho,bvfsq,bvf,rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,dfddsu,dfddsl
+     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,egrup,dfddsu,dfddsl
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mdv2
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -111,8 +111,8 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,egr,rhisc,els,nus,nub,nut,nuls,tdmf,ust,mols,h,
-     .     sg,zeta,phis,ws
+      real q,plo,tlo,slo,egr,rhisc,els,egrlo,nus,nub,nut,nuls,tdmf,ust,
+     .     mols,h,sg,zeta,phis,ws
 c
       real rho,sig
       external rho,sig
@@ -167,9 +167,12 @@ c
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
-      do j=1,jj
+      do j=0,jj+1
+        do i=0,ii+1
+          kmax(i,j)=0
+        enddo
         do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
           kmax(i,j)=1
           do k=3,kk
             if (dp(i,j,k).gt.dpbmin) kmax(i,j)=k
@@ -500,52 +503,148 @@ c
 c
 c --- --- Type 2: Diffusivities are parameterized according to Eden and
 c --- --- Greatbatch (2008).
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            difint(i,j,1)=egmndf
-            dfints(i)=0.
-            dps(i)=0.
-          enddo
-          enddo
-          do k=2,kk
-            kn=k+nn
+c
+          if     (edritp.eq.'shear') then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
-     .            kmax(i,j)-kfil(i,j).ge.1) then
+              difint(i,j,1)=egmndf
+              dfints(i)=0.
+              dps(i)=0.
+            enddo
+            enddo
+            do k=2,kk
+              kn=k+nn
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
+     .              kmax(i,j)-kfil(i,j).ge.1) then
 c
-c --- --------- Eady growth rate.
-                egr=afeql(i)/sqrt(rig(i,k)+eggam)
+c --- ----------- Eady growth rate.
+                  egr=afeql(i)/sqrt(rig(i,k)+eggam)
 c
-c --- --------- Rhines scale.
-                rhisc=egr/max(1.e-24,betafp(i,j))
+c --- ----------- Rhines scale.
+                  rhisc=egr/max(1.e-24,betafp(i,j))
 c
-c --- --------- Eddy length scale.
-                els=min(bcrrd(i),rhisc)
+c --- ----------- Eddy length scale.
+                  els=min(bcrrd(i),rhisc)
 c
-c --- --------- Layer interface diffusivity.
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,egc*egr*els*els*difwgt(i,j)))
+c --- ----------- Layer interface diffusivity.
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,egc*egr*els*els*difwgt(i,j)))
 #ifdef DIAG
-                tmp3d_3(i,j,k)=egr
-                tmp3d_4(i,j,k)=rhisc
-                tmp3d_5(i,j,k)=els
+                  tmp3d_3(i,j,k)=egr
+                  tmp3d_4(i,j,k)=rhisc
+                  tmp3d_5(i,j,k)=els
 #endif
 c
-c --- --------- Accumulate diffusivities in a region below the first
-c --- --------- physical layer
-                q=max(0.,
-     .                min(p(i,j,kfil(i,j))+dpdiav,p(i,j,k+1))-p(i,j,k))
-                dps(i)=dps(i)+q
-                dfints(i)=dfints(i)+difint(i,j,k)*q
+c --- ----------- Accumulate diffusivities in a region below the first
+c --- ----------- physical layer
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                  dps(i)=dps(i)+q
+                  dfints(i)=dfints(i)+difint(i,j,k)*q
 c
-              else
-                difint(i,j,k)=difint(i,j,k-1)
+                else
+                  difint(i,j,k)=difint(i,j,k-1)
+                endif
+              enddo
+              enddo
+            enddo
+          elseif (edritp.eq.'large scale') then
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              difint(i,j,1)=egmndf
+              dfints(i)=0.
+              dps(i)=0.
+              if (kmax(i,j)-kfil(i,j).ge.1) then
+                k=kfil(i,j)
+                if     (kmax(i-1,j).ge.k.and.kmax(i+1,j).ge.k) then
+                  q=.25*(nnslpx(i,j,k)+nnslpx(i+1,j,k))**2
+                elseif (kmax(i-1,j).ge.k) then
+                  q=nnslpx(i,j,k)**2
+                elseif (kmax(i+1,j).ge.k) then
+                  q=nnslpx(i+1,j,k)**2
+                else
+                  q=0.
+                endif
+                if     (kmax(i,j-1).ge.k.and.kmax(i,j+1).ge.k) then
+                  q=q+.25*(nnslpy(i,j,k)+nnslpy(i,j+1,k))**2
+                elseif (kmax(i,j-1).ge.k) then
+                  q=q+nnslpy(i,j,k)**2
+                elseif (kmax(i,j+1).ge.k) then
+                  q=q+nnslpy(i,j+1,k)**2
+                endif
+                egrup(i)=sqrt(q)
               endif
             enddo
             enddo
-          enddo
+            do k=2,kk
+              kn=k+nn
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                if (k.ge.kfil(i,j).and.k.lt.kmax(i,j).and.
+     .              kmax(i,j)-kfil(i,j).ge.1) then
+c
+c --- ----------- Eady growth rate.
+                  if     (kmax(i-1,j).gt.k.and.kmax(i+1,j).gt.k) then
+                    q=.25*(nnslpx(i,j,k+1)+nnslpx(i+1,j,k+1))**2
+                  elseif (kmax(i-1,j).gt.k) then
+                    q=nnslpx(i,j,k+1)**2
+                  elseif (kmax(i+1,j).gt.k) then
+                    q=nnslpx(i+1,j,k+1)**2
+                  else
+                    q=0.
+                  endif
+                  if     (kmax(i,j-1).gt.k.and.kmax(i,j+1).gt.k) then
+                    q=q+.25*(nnslpy(i,j,k+1)+nnslpy(i,j+1,k+1))**2
+                  elseif (kmax(i,j-1).gt.k) then
+                    q=q+nnslpy(i,j,k+1)**2
+                  elseif (kmax(i,j+1).gt.k) then
+                    q=q+nnslpy(i,j+1,k+1)**2
+                  endif
+                  egrlo=sqrt(q)
+                  egr=.5*(egrup(i)+egrlo)
+                  egrup(i)=egrlo
+c
+c --- ----------- Rhines scale.
+                  rhisc=egr/max(1.e-24,betafp(i,j))
+c
+c --- ----------- Eddy length scale.
+                  els=min(bcrrd(i),rhisc)
+c
+c --- ----------- Layer interface diffusivity.
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,egc*egr*els*els*difwgt(i,j)))
+#ifdef DIAG
+                  tmp3d_3(i,j,k)=egr
+                  tmp3d_4(i,j,k)=rhisc
+                  tmp3d_5(i,j,k)=els
+#endif
+c
+c --- ----------- Accumulate diffusivities in a region below the first
+c --- ----------- physical layer
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                  dps(i)=dps(i)+q
+                  dfints(i)=dfints(i)+difint(i,j,k)*q
+c
+                else
+                  difint(i,j,k)=difint(i,j,k-1)
+                endif
+              enddo
+              enddo
+            enddo
+          else
+            if (mnproc.eq.1) then
+              write (lp,'(3a)') ' edritp=',trim(edritp),
+     .                          ' is unsupported!'
+            endif
+            call xcstop('(difest)')
+                   stop '(difest)'
+          endif
+c
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (dps(i).gt.0.) then

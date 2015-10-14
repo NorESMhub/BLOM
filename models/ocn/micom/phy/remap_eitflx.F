@@ -1,10 +1,10 @@
-      subroutine remap(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,
-     .                 plo,u,v,dt,mrg,
-     .                 dp,temp,saln,uflx,vflx,utflx,vtflx,usflx,vsflx
+      subroutine remap_eitflx(scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo,
+     .                        u,v,umfl,vmfl,dt,mrg,dp,temp,saln,
+     .                        uflx,vflx,utflx,vtflx,usflx,vsflx
 #ifdef TRC
-     .                ,k,trc
+     .                       ,k,trc
 #endif
-     .                )
+     .                       )
 c
 c --- ------------------------------------------------------------------
 c --- Advection of layer pressure thickness and tracers by incremental
@@ -31,12 +31,14 @@ c ---            min(pb(i,j-1),pb(i,j)).
 c ---   plo    - lower interface pressure of layer pressure thickness.
 c ---   u      - u-component of velocity.
 c ---   v      - v-component of velocity.
+c ---   umfl   - u-component of mass flux to be applied in the advection.
+c ---   vmfl   - v-component of mass flux to be applied in the advection.
 c ---   dt     - time step.
 c ---   dp     - layer pressure thickness.
 c ---   temp   - temperature.
 c ---   saln   - salinity.
-c ---   uflx   - u-component of mass flux.
-c ---   vflx   - v-component of mass flux.
+c ---   uflx   - u-component of total mass flux applied.
+c ---   vflx   - v-component of total mass flux applied.
 c ---   utflx  - u-component of heat flux.
 c ---   vtflx  - v-component of heat flux.
 c ---   usflx  - u-component of salt flux.
@@ -45,8 +47,8 @@ c ---   mrg    - margin of halo that must be valid upon return.
 c ---   k      - layer index
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo,u,v,dp,temp,saln,
-     .  uflx,vflx,utflx,vtflx,usflx,vsflx
+     .  scuy,scvx,scp2i,scp2,pbmin,pbu,pbv,plo,u,v,umfl,vmfl,dp,temp,
+     .  saln,uflx,vflx,utflx,vtflx,usflx,vsflx
       real dt
       integer mrg
 #ifdef TRC
@@ -62,7 +64,8 @@ c
      .  fsu,fsv
       real dxi,dyi,dpw,dpe,dps,dpn,dpsw,dpse,dpc,dpnw,dpne,
      .     dgmx,dfmx,dfmn,q,q1,q2,q3,q4,tgmx,tgmn,tfmx,tfmn,
-     .     sgmx,sgmn,sfmx,sfmn,xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,
+     .     sgmx,sgmn,sfmx,sfmn,dlm,dlp,aa,mflpos,mflneg,ca,
+     .     xm,ym,xc0,xc1,yc0,yc1,x2,y2,x4,y4,
      .     a,ax,ay,axx,ayy,axy,dl,fd,qx,qy
       integer i,j,l,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne,nw
 #ifdef TRC
@@ -413,11 +416,63 @@ c
       do j=1-mrg-1,jj+mrg+1
         do l=1,isu(j)
         do i=max(1-mrg,ifu(j,l)),min(ii+mrg+1,ilu(j,l))
-          if (u(i,j).gt.0.) then
-            cu(i,j)=u(i,j)*dt*scuy(i,j)*scp2i(i-1,j)
+          dlm=min(dp(i-1,j),max(0.,pbu(i,j)-pup(i-1,j)))
+          dlp=min(dp(i  ,j),max(0.,pbu(i,j)-pup(i  ,j)))
+          aa=u(i,j)*dt*scuy(i,j)
+          if (dlm.lt.dpeps) then
+            mflpos=0.
           else
-            cu(i,j)=u(i,j)*dt*scuy(i,j)*scp2i(i  ,j)
+            mflpos= umfl(i,j)+(dlm+.5*dx(i-1,j))*aa
           endif
+          if (dlp.lt.dpeps) then
+            mflneg=0.
+          else
+            mflneg=-umfl(i,j)-(dlp-.5*dx(i  ,j))*aa
+          endif
+          if (mflpos.gt.0..and.mflpos.gt.mflneg) then
+            ca=aa*scp2i(i-1,j)
+            q=dlm+.5*dx(i-1,j)*(1.-ca)
+            if (abs(2.*dx(i-1,j)*umfl(i,j)*scp2i(i-1,j)).lt.
+     .          1.e-8*q*q) then
+              cu(i,j)=ca+umfl(i,j)*scp2i(i-1,j)/q
+            else
+cdiag
+              if (q*q-2.*dx(i-1,j)*umfl(i,j)*scp2i(i-1,j).lt.0.) then
+                write (lp,*) 'remap: u pos error: ',
+     .            q*q-2.*dx(i-1,j)*umfl(i,j)*scp2i(i-1,j),
+     .            'dlm:',dlm,'dx',dx(i-1,j),'ca',ca,'umfl',umfl(i,j),
+     .            'scp2i',scp2i(i-1,j)
+                call flush(lp)
+              endif
+cdiag
+              cu(i,j)=ca
+     .        +(q-sqrt(max(0.,q*q-2.*dx(i-1,j)*umfl(i,j)*scp2i(i-1,j))))
+     .         /dx(i-1,j)
+            endif
+          elseif (mflneg.gt.0.) then
+            ca=aa*scp2i(i  ,j)
+            q=dlp-.5*dx(i  ,j)*(1.+ca)
+            if (abs(2.*dx(i  ,j)*umfl(i,j)*scp2i(i  ,j)).lt.
+     .          1.e-8*q*q) then
+              cu(i,j)=ca+umfl(i,j)*scp2i(i  ,j)/q
+            else
+cdiag
+              if (q*q-2.*dx(i  ,j)*umfl(i,j)*scp2i(i  ,j).lt.0.) then
+                write (lp,*) 'remap: u neg error: ',
+     .            q*q-2.*dx(i  ,j)*umfl(i,j)*scp2i(i  ,j),
+     .            'dlp:',dlp,'dx',dx(i  ,j),'ca',ca,'umfl',umfl(i,j),
+     .            'scp2i',scp2i(i  ,j)
+                call flush(lp)
+              endif
+cdiag
+              cu(i,j)=ca
+     .        +(q-sqrt(max(0.,q*q-2.*dx(i  ,j)*umfl(i,j)*scp2i(i  ,j))))
+     .         /dx(i  ,j)
+            endif
+          else
+            cu(i,j)=0.
+          endif
+          cu(i,j)=max(-.25,min(.25,cu(i,j)))
         enddo
         enddo
       enddo
@@ -425,11 +480,63 @@ c
       do j=1-mrg,jj+mrg+1
         do l=1,isv(j)
         do i=max(1-mrg-1,ifv(j,l)),min(ii+mrg+1,ilv(j,l))
-          if (v(i,j).gt.0.) then
-            cv(i,j)=v(i,j)*dt*scvx(i,j)*scp2i(i,j-1)
+          dlm=min(dp(i,j-1),max(0.,pbv(i,j)-pup(i,j-1)))
+          dlp=min(dp(i,j  ),max(0.,pbv(i,j)-pup(i,j  )))
+          aa=v(i,j)*dt*scvx(i,j)
+          if (dlm.lt.dpeps) then
+            mflpos=0.
           else
-            cv(i,j)=v(i,j)*dt*scvx(i,j)*scp2i(i,j  )
+            mflpos= vmfl(i,j)+(dlm+.5*dy(i,j-1))*aa
           endif
+          if (dlp.lt.dpeps) then
+            mflneg=0.
+          else
+            mflneg=-vmfl(i,j)-(dlp-.5*dy(i,j  ))*aa
+          endif
+          if (mflpos.gt.0..and.mflpos.gt.mflneg) then
+            ca=aa*scp2i(i,j-1)
+            q=dlm+.5*dy(i,j-1)*(1.-ca)
+            if (abs(2.*dy(i,j-1)*vmfl(i,j)*scp2i(i,j-1)).lt.
+     .          1.e-8*q*q) then
+              cv(i,j)=ca+vmfl(i,j)*scp2i(i,j-1)/q
+            else
+cdiag
+              if (q*q-2.*dy(i,j-1)*vmfl(i,j)*scp2i(i,j-1).lt.0.) then
+                write (lp,*) 'remap: v pos error: ',
+     .            q*q-2.*dy(i,j-1)*vmfl(i,j)*scp2i(i,j-1),
+     .            'dlm:',dlm,'dy',dy(i,j-1),'ca',ca,'vmfl',vmfl(i,j),
+     .            'scp2i',scp2i(i,j-1)
+                call flush(lp)
+              endif
+cdiag
+              cv(i,j)=ca
+     .        +(q-sqrt(max(0.,q*q-2.*dy(i,j-1)*vmfl(i,j)*scp2i(i,j-1))))
+     .         /dy(i,j-1)
+            endif
+          elseif (mflneg.gt.0.) then
+            ca=aa*scp2i(i,j  )
+            q=dlp-.5*dy(i,j  )*(1.+ca)
+            if (abs(2.*dy(i,j  )*vmfl(i,j)*scp2i(i,j  )).lt.
+     .          1.e-8*q*q) then
+              cv(i,j)=ca+vmfl(i,j)*scp2i(i,j  )/q
+            else
+cdiag
+              if (q*q-2.*dy(i,j  )*vmfl(i,j)*scp2i(i,j  ).lt.0.) then
+                write (lp,*) 'remap: v neg error: ',
+     .            q*q-2.*dy(i,j  )*vmfl(i,j)*scp2i(i,j  ),
+     .            'dlp:',dlp,'dy',dy(i,j  ),'ca',ca,'vmfl',vmfl(i,j),
+     .            'scp2i',scp2i(i,j  )
+                call flush(lp)
+              endif
+cdiag
+              cv(i,j)=ca
+     .        +(q-sqrt(max(0.,q*q-2.*dy(i,j  )*vmfl(i,j)*scp2i(i,j  ))))
+     .         /dy(i,j  )
+            endif
+          else
+            cv(i,j)=0.
+          endif
+          cv(i,j)=max(-.25,min(.25,cv(i,j)))
         enddo
         enddo
       enddo

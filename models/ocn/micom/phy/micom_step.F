@@ -112,8 +112,9 @@ cdiag write (lp,*) 'tmsmt1...'
       tmsmt1_time=gettime()
 c
 cdiag write (lp,*) 'advdif...'
+      call cmnfld(m,n,mm,nn,k1m,k1n)
       call difest(m,n,mm,nn,k1m,k1n)
-      call intdif(m,n,mm,nn,k1m,k1n)
+      call eddtra(m,n,mm,nn,k1m,k1n)
       call advect(m,n,mm,nn,k1m,k1n)
       call diffus(m,n,mm,nn,k1m,k1n)
       advdif_time=gettime()

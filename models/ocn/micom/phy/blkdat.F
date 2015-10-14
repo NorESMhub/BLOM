@@ -10,8 +10,7 @@ c
 c
 c --- 'mltmin' = minimum mixed-layer thickness (m)
 c --- 'thktop' = maximum thickness of top layer (m)
-c --- 'acurcy' = permissible roundoff error in column integral calc.
-      data mltmin/5./,thktop/10./,acurcy/1.e-10/
+      data mltmin/5./,thktop/10./
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
 c --- 'thkbot' = thickness of bottom boundary layer (m)

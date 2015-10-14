@@ -73,6 +73,10 @@ set CBAR     = 5.
 set CB       = .002
 set CWBDTS   = 5.e-5
 set CWBDLS   = 25.
+set EITMTH   = "'intdif'"
+set EDRITP   = "'shear'"
+set BMCMTH   = "'uc'"
+set RMPMTH   = "'eitvel'"
 set EGC      = 1.0
 set EGGAM    = 200.
 set EGMNDF   = 100.e4
@@ -426,6 +430,15 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
 ! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
 ! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
+! EITMTH   : Eddy-induced transport parameterization method. Valid
+!            methods: 'intdif', 'gm' (a)
+! EDRITP   : Type of Richardson number used in eddy diffusivity
+!            computation. Valid types: 'shear', 'large scale' (a)
+! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
+!            'uc' (upstream column), 'dluc' (depth limited upstream
+!            column) (a)
+! RMPMTH   : Method of applying eddy-induced transport in the remap
+!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
@@ -479,6 +492,10 @@ cat >! $RUNDIR/ocn_in << EOF1
   CB       = ${CB},
   CWBDTS   = ${CWBDTS},
   CWBDLS   = ${CWBDLS},
+  EITMTH   = ${EITMTH},
+  EDRITP   = ${EDRITP},
+  BMCMTH   = ${BMCMTH},
+  RMPMTH   = ${RMPMTH},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
   EGMNDF   = ${EGMNDF},
