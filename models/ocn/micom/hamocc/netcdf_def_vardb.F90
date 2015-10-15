@@ -52,7 +52,9 @@
       USE mod_xc 
       USE mod_dia, only:iotype
       implicit none
+#ifdef PNETCDF
 #include <pnetcdf.inc>
+#endif
 #include <mpif.h>      
        
       INTEGER ncstat
@@ -139,6 +141,7 @@
                 stop '(netcdf_def_vardb)'
       ENDIF
       ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
 ! 
 !  Define variable
 ! 
@@ -211,7 +214,7 @@
                 stop '(pnetcdf_def_vardb)'
       ENDIF
 
-      
+#endif      
       ENDIF
       RETURN
       END

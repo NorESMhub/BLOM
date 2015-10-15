@@ -11,7 +11,9 @@
       use mod_xc
       use mod_dia, only : iotype      
       implicit none
+#ifdef PNETCDF
 #  include <pnetcdf.inc>
+#endif
 #  include <mpif.h>
       integer ncid, klev, time, ndims
       character (len=*) desc
@@ -92,6 +94,7 @@
       enddo
       deallocate(start,count)
       ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
       allocate(istart(ndims))
       allocate(icount(ndims))
       allocate(arr_l(ii,jj,klev))
@@ -158,6 +161,7 @@
 !          endif
 
           deallocate(istart,icount,arr_g1)
+#endif
       ENDIF
 
       END

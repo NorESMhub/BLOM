@@ -178,8 +178,8 @@ c
       call ncread('utflx',utflx,iuu,1,0.)
       call ncread('usflx',usflx,iuu,1,0.)
 c
-      if (mnproc.eq.1) vexist=ncinqv('umfltd')
-      call xcbcst(vexist)
+      vexist=ncinqv('umfltd')
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('umfltd',umfltd,iuu,1,0.)
       else
@@ -201,7 +201,7 @@ c
       endif
 c
       vexist=ncinqv('utfltd')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('utfltd',utfltd,iuu,1,0.)
       else
@@ -223,7 +223,7 @@ c
       endif
 c
       vexist=ncinqv('utflld')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('utflld',utflld,iuu,1,0.)
       else
@@ -245,7 +245,7 @@ c
       endif
 c
       vexist=ncinqv('usfltd')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('usfltd',usfltd,iuu,1,0.)
       else
@@ -267,7 +267,7 @@ c
       endif
 c
       vexist=ncinqv('usflld')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('usflld',usflld,iuu,1,0.)
       else
@@ -293,7 +293,7 @@ c
       call ncread('vsflx',vsflx,ivv,1,0.)
 c
       vexist=ncinqv('vmfltd')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('vmfltd',vmfltd,ivv,1,0.)
       else
@@ -315,7 +315,7 @@ c
       endif
 c
       vexist=ncinqv('vtfltd')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('vtfltd',vtfltd,ivv,1,0.)
       else
@@ -337,7 +337,7 @@ c
       endif
 c
       vexist=ncinqv('vtflld')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('vtflld',vtflld,ivv,1,0.)
       else
@@ -359,7 +359,7 @@ c
       endif
 c
       vexist=ncinqv('vsfltd')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('vsfltd',vsfltd,ivv,1,0.)
       else
@@ -381,7 +381,7 @@ c
       endif
 c
       vexist=ncinqv('vsflld')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('vsflld',vsflld,ivv,1,0.)
       else
@@ -428,7 +428,7 @@ c
 c
       if (sprfac) then
         vexist=ncinqa('prfac')
-        call xcbcst(vexist)
+!        call xcbcst(vexist)
         if (vexist) then
           call ncgetr('prfac',prfac)
           call xcbcst(prfac)
@@ -482,7 +482,7 @@ c
 c
       if (expcnf.eq.'cesm') then
         vexist=ncinqv('ustarw_da')
-        call xcbcst(vexist)
+!        call xcbcst(vexist)
         if (vexist) then
           call ncread('ustarw_da',ustarw_da,ip,1,0.)
           call ncread('ztx_da',ztx_da,ip,1,0.)
@@ -517,7 +517,7 @@ c
         call ncread('frzpot',frzpot,ip,1,0.)
         call ncread('mltpot',mltpot,ip,1,0.)
         vexist=ncinqv('flxco2')
-        call xcbcst(vexist)
+!        call xcbcst(vexist)
         if (vexist) then
           call ncread('flxco2',flxco2,ip,1,0.)
         else
@@ -536,7 +536,7 @@ c
           enddo
         endif
         vexist=ncinqv('flxdms')
-        call xcbcst(vexist)
+!        call xcbcst(vexist)
         if (vexist) then
           call ncread('flxdms',flxdms,ip,1,0.)
         else
@@ -559,7 +559,7 @@ c
 #ifdef TRC
 #  ifdef TKE
       vexist=ncinqv('tke')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('tke',trc(1-nbdy,1-nbdy,1,itrtke),ip,1,0.)
       else
@@ -572,7 +572,7 @@ c
       endif
 c
       vexist=ncinqv('gls_psi')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('gls_psi',trc(1-nbdy,1-nbdy,1,itrgls),ip,1,0.)
       else
@@ -585,7 +585,7 @@ c
       endif
 c
       vexist=ncinqv('L_scale')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('L_scale',L_scale,ip,1,0.)
       else
@@ -598,7 +598,7 @@ c
       endif
 c
       vexist=ncinqv('difdia')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('difdia',difdia,ip,1,0.)
       else
@@ -620,7 +620,7 @@ c
       endif
 c
       vexist=ncinqv('ustarb')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('ustarb',ustarb,ip,1,0.)
       else
@@ -641,7 +641,7 @@ c
 #  endif
 #  ifdef IDLAGE
       vexist=ncinqv('idlage')
-      call xcbcst(vexist)
+!      call xcbcst(vexist)
       if (vexist) then
         call ncread('idlage',trc(1-nbdy,1-nbdy,1,itriag),ip,1,0.)
       else

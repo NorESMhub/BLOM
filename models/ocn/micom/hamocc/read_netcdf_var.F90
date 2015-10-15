@@ -10,7 +10,9 @@
       USE netcdf
       USE mod_xc
       implicit none
+#ifdef PNETCDF
 #include <pnetcdf.inc>
+#endif
 #include <mpif.h>
       integer ncid, klev, time, ndims
       character (len=*) desc
@@ -78,6 +80,7 @@
         enddo
       enddo
       ELSE IF(TYPEIO==1) THEN
+#ifdef PNETCDF
       allocate(arr_l(ii,jj,klev))
       arr=0.0
       istart=1
@@ -123,6 +126,7 @@
           enddo
         enddo
       enddo
+#endif
       ELSE
       call xchalt('(read_pnetcdf_var) WRONG IOTYPE')
       ENDIF

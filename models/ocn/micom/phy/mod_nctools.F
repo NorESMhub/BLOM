@@ -67,7 +67,9 @@ c
       use mod_xc
       use netcdf
       implicit none
+#ifdef PNETCDF
 #  include <pnetcdf.inc>
+#endif
 #  include <mpif.h>
 c
 c 
@@ -95,7 +97,7 @@ c --- Declare global variables
       integer(kind=MPI_OFFSET_KIND) clen,istart(5),icount(5),tkd
       integer*2, parameter :: i2fill=-32768,i2max=32767
       real, parameter :: fillr8=9.9692099683868690e+36
-      real(kind=4), parameter :: fillr4=nf_fill_real
+      real(kind=4), parameter :: fillr4=9.9692099683868690e+36
       integer ndouble,nchar,nfint
 c
       contains             
@@ -123,6 +125,7 @@ c
       integer, parameter :: nf90__64bit_offset=512
       integer, parameter :: nf90__hdf5=4096
 c
+#ifdef PNETCDF
       integer        mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
@@ -130,12 +133,16 @@ c
       integer*4 ,save :: info=MPI_INFO_NULL
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
-      integer ierr,iotype
+#endif
+      integer ierr,iotype,testio
 
 c
 c --- Open file        
       IO_TYPE=iotype
+      testio=0
       IF(IO_TYPE .eq. 1) then 
+#ifdef PNETCDF
+      testio=1 
       ndouble=nf_double
       nchar=nf_char
       nfint=nf_int
@@ -188,16 +195,18 @@ c --- Open file
      .             IOR(nf_clobber,nf_format_classic),INFO,ncid))
         endif
       endif
-c
-c --- Set variable id to global (needed for global attributes)
-!      rhid=nf_global
-c
 c --- Initialise header padding
       if (rec.eq.1) then
         flgpad=.false.
       else
         flgpad=.true.
       endif
+#endif
+      if(testio .eq. 0) then
+      write(lp,*) 'check iotype in namelist'
+      call xchalt('(ncerro)')
+      stop '(ncerro)'
+      endif 
       elseif (io_type .eq. 0) then
       ndouble=nf90_double
       nchar=nf90_char
@@ -266,7 +275,9 @@ c
       implicit none
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       call ncerro(nfmpi_close(ncid))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1) then 
         call ncerro(nf90_close(ncid))
@@ -294,9 +305,11 @@ c
 c
 c --- define dimension
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen = dim
       if (rec.eq.1)
      .  call ncerro(nfmpi_def_dim(ncid,trim(dnm),clen,dimid))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1.and.rec.eq.1)  
      .  call ncerro(nf90_def_dim(ncid,dnm,dim,dimid))
@@ -371,6 +384,7 @@ c
         endif 
         endif
       elseif (io_type .eq. 1) then
+#ifdef PNETCDF
       call xcbcst(n)
       clen=n
       if (rec.eq.1) then
@@ -386,6 +400,7 @@ c
         call ncerro(nfmpi_redef(ncid))
       endif
       endif
+#endif
       endif
 c
       end subroutine ncdimc
@@ -410,9 +425,11 @@ c
       character*(*) attname,attrib
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen=len(trim(attrib))
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_text(ncid,rhid,attname,clen,attrib))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1.and.rec.eq.1)  
      .  call ncerro(nf90_put_att(ncid,rhid,attname,attrib))
@@ -439,10 +456,12 @@ c
       real rval 
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen=1
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_double(ncid,nf_global,vnm,nf_double,
      .                                   clen,rval))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
@@ -469,10 +488,12 @@ c
       real rval(:)
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen = size(rval)
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_double(ncid,nf_global,vnm,nf_double,
      .                                   clen,rval))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,rval))
@@ -499,10 +520,12 @@ c
       integer ival
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen=1
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_int(ncid,nf_global,vnm,nf_int,
      .                                clen,ival))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1.and.rec.eq.1) 
      .  call ncerro(nf90_put_att(ncid,nf90_global,vnm,ival))
@@ -528,10 +551,12 @@ c
       character*(*) vnm
       integer ival(:)
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       clen=size(ival)
       if (rec.eq.1)
      .  call ncerro(nfmpi_put_att_int(ncid,nf_global,vnm,nf_int,
      .                                clen,ival))
+#endif
       elseif (io_type .eq. 0) then
 c
       if (mnproc.eq.1.and.rec.eq.1) 
@@ -559,7 +584,9 @@ c
       real :: rval
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1) 
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
@@ -586,7 +613,9 @@ c
       real :: rval(:)
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1) 
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
@@ -613,7 +642,9 @@ c
       integer :: ival 
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
@@ -640,7 +671,9 @@ c
       integer :: ival(:)
 c
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1)
      .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
@@ -683,6 +716,7 @@ c
 c
 
       if (io_type .eq. 1) then
+#ifdef PNETCDF
 c --- define time dimension
       istart(1)=1
       icount(1)=0
@@ -725,6 +759,7 @@ c
 c --- Change to data mode and write time
       call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,
      .            datenum))
+#endif
       elseif (io_type .eq. 0) then
       if (mnproc.eq.1) then 
           call ncerro(nf90_inq_varid(ncid,'time',rhid))
@@ -802,6 +837,7 @@ c --- Initialise fields
       cmpflg=.false.
       kd=1
       IF(IO_TYPE .eq. 1) then
+#ifdef PNETCDF
       do n=1,maxdm
         istart(n)=1
         icount(n)=1
@@ -973,6 +1009,7 @@ c --- Get data
         endif
       endif
       deallocate(rfldt)
+#endif
       else IF(IO_TYPE .eq. 0) then
       do n=1,maxdm
         start(n)=1
@@ -1136,6 +1173,7 @@ c --- Initialise fields
       kd=1
 
       IF(IO_TYPE .eq. 1) then
+#ifdef PNETCDF
       do i=1,5
       istart(i)=1
       icount(i)=1
@@ -1330,6 +1368,7 @@ c
         if (mnproc.eq.1) write(lp,*) trim(vnm),arng
         deallocate(rfld,fldout,fld_out)
 c
+#endif
       ELSEIF(IO_TYPE .eq. 0) then
       do n=1,maxdm
         start(n)=1
@@ -1548,6 +1587,7 @@ c
 c --- Initialise fields
       kd=1
       IF(IO_TYPE .eq. 1) then
+#ifdef PNETCDF
       do n=1,maxdm
         istart(n)=1
         icount(n)=1
@@ -1577,6 +1617,7 @@ c --- define variable
           icount(n)=0
         enddo
       endif
+#endif
       ELSEIF(IO_TYPE .eq. 0) then
       do n=1,maxdm
         start(n)=1
@@ -1628,6 +1669,7 @@ c --- Prepare output field
         enddo       
         call xcaget(rfldt,rfld,1) 
        IF(IO_TYPE .eq. 1) then
+#ifdef PNETCDF
         n=0
         if (prec.ne.4) then
           if (mnproc.eq.1) then
@@ -1660,6 +1702,7 @@ c --- Prepare output field
           call ncerro(nfmpi_put_vara_real_all(ncid,rhid,istart,icount,
      .                                        fldoutr4))
         endif
+#endif
         ELSEIF(IO_TYPE .eq. 0) then
         if (mnproc.eq.1) then
           n=0
@@ -1733,6 +1776,7 @@ c --- Initialise fields
       kd=1
 c 
       if (io_type .eq. 1) then
+#ifdef PNETCDF
       do n=1,maxdm
         istart(n)=1
         icount(n)=1
@@ -1860,7 +1904,7 @@ c$OMP END PARALLEL DO
 c
 c --- Put file back to define mode
       write(lp,*) trim(vnm),arng
-
+#endif
       ELSEIF(IO_TYPE .eq. 0) then
       do n=1,maxdm
         start(n)=1
@@ -2008,6 +2052,7 @@ c
       integer ns,slenmax
 c
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       call ncsevl(dims,strn,strind)
       if (strn.gt.2) then
         if (mnproc.eq.1) then
@@ -2050,6 +2095,7 @@ c --- - leave define mode
          call ncerro(nfmpi_put_vara_text_all(ncid,rhid,
      .                                       start,count,fld(n)//'X'))
       end do
+#endif
       ELSEIF(IO_TYPE .EQ. 0) THEN
       if (mnproc.eq.1) then
 c --- - inquire dimensions
@@ -2120,6 +2166,7 @@ c
 c --- Initialise fields
       kd=1
       IF(IO_TYPE .eq. 1) then
+#ifdef PNETCDF
       do i=1,5
       istart(i)=1
       icount(i)=1
@@ -2272,6 +2319,7 @@ c$OMP END PARALLEL DO
      .                                      wr4fldt))
         deallocate(wr4fldt,r4fldt,rfld,rmsk)
       endif
+#endif
       ELSEIF(IO_TYPE .eq. 0) then 
       do n=1,maxdm
         start(n)=1
@@ -2452,6 +2500,7 @@ c --- Initialise fields
 c  
 c --- define variable 
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       do i=1,5
       istart(i)=1
       icount(i)=1
@@ -2537,6 +2586,7 @@ c
       call ncerro(nfmpi_put_vara_int_all(ncid,rhid,istart,icount,irfld))
 c
       deallocate(wrfld,rfld,rmsk,irfld)
+#endif
 c
       ELSEIF(IO_TYPE .EQ. 0) THEN
       do n=1,maxdm
@@ -2637,6 +2687,7 @@ c
       real :: fld(*)
 c
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       call ncsevl(dims,ndims,strind)
       do n=1,ndims
         call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
@@ -2667,6 +2718,7 @@ c --- Write data to file
      .                                      icount,fld))
 c
 c --- Put file back to define mode
+#endif
       ELSEIF(IO_TYPE .EQ. 0) THEN
       if (mnproc.eq.1) then
 c
@@ -2727,12 +2779,14 @@ c
       integer ncstatus
 c
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       if (ncstatus.ne.nf_noerr) then
         write(lp,*) 'NetCDF error:',nfmpi_strerror(ncstatus)
         call flush(lp)
         call xchalt('(ncerro)')
                stop '(ncerro)'
       endif
+#endif
       ELSEIF(IO_TYPE .EQ. 0) THEN
       if (ncstatus.ne.nf90_noerr) then 
         write(lp,*) 'NetCDF error: ',nf90_strerror(ncstatus)
@@ -2916,6 +2970,7 @@ c
       integer attlen1   
 c     
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       status=nfmpi_inq_attlen(ncid,nf_global,trim(nm),attlen)
       if (status.ne.nf_noerr) then
       ncinqa=.false.
@@ -2926,7 +2981,9 @@ c
            ncinqa=.false.
          endif
       endif
+#endif
       ELSEIF(IO_TYPE .EQ. 0) THEN
+      IF(mnproc .eq. 1) THEN
       status=nf90_inquire_attribute(ncid,nf90_global,trim(nm),
      .  len=attlen1)
       if (status.ne.nf90_noerr) then
@@ -2939,6 +2996,8 @@ c
            ncinqa=.false.
          endif 
       endif
+      endif
+      call xcbcst(ncinqa)
       ENDIF
 c
       end function ncinqa
@@ -2961,19 +3020,24 @@ c
       character*(*) vnm
 c     
       IF(IO_TYPE .EQ. 1) THEN
+#ifdef PNETCDF
       status=nfmpi_inq_varid(ncid,trim(vnm),rhid)
       if (status.ne.nf_noerr) then
       ncinqv=.false.
       else
         ncinqv=.true.
       endif
-      ELSEIF(IO_TYPE .EQ. 0 .and. mnproc .eq. 1) THEN
+#endif
+      ELSEIF(IO_TYPE .EQ. 0) THEN
+      IF(mnproc .eq. 1) THEN
       status=nf90_inq_varid(ncid,trim(vnm),rhid)
       if (status.ne.nf90_noerr) then 
         ncinqv=.false.
       else
         ncinqv=.true. 
       endif
+      endif
+      call xcbcst(ncinqv)
       ENDIF 
 c
       end function ncinqv
@@ -3003,6 +3067,7 @@ c
       if (rec.eq.1) then
       call ncsevl(dims,ndims,strind)
       if( IO_TYPE .EQ. 1) then
+#ifdef PNETCDF
       do n=1,ndims
          call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
      .      dimids(n)))
@@ -3021,6 +3086,7 @@ c
         call ncerro(nfmpi_put_att_int(ncid,rhid,'_FillValue',
      .                                  nf_int,clen,nf_fill_int))
         endif
+#endif
         elseif( IO_TYPE .EQ. 0) then
         do n=1,ndims
           call ncerro(nf90_inq_dimid(ncid, dims(strind(1,n):strind(2,n))
@@ -3114,6 +3180,7 @@ c --- Create dimension string
 
       call ncsevl(dims,ndims,strind)
       if( IO_TYPE .EQ. 1) then
+#ifdef PNETCDF
       do n=1,ndims
          call ncerro(nfmpi_inq_dimid(ncid,dims(strind(1,n):strind(2,n)),
      .      dimids(n)))
@@ -3176,6 +3243,7 @@ c --- Check output format
         call xchalt('(wrtsrf)')
                stop '(wrtsrf)'
       endif
+#endif
       elseif( IO_TYPE .EQ. 0) then
       do n=1,ndims
           call ncerro(nf90_inq_dimid(ncid, dims(strind(1,n):strind(2,n))
@@ -3235,7 +3303,9 @@ c
       implicit none
 c
       IF(IO_TYPE .eq. 1) then 
+#ifdef PNETCDF
       call ncerro(nfmpi_enddef(ncid))
+#endif
       ELSEIF(IO_TYPE .eq. 0) then
       if (mnproc.eq.1) then
       if (flgpad) then
