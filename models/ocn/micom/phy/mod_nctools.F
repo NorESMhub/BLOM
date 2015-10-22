@@ -183,7 +183,6 @@ c --- Open file
         call mpi_info_set(info,'striping_unit',stripestr2,ierr)
         call mpi_info_set(info,'striping_unit',stripestr2,ierr)
         call mpi_info_set(info,'nc_header_align_size',stripestr2,ierr)
-        if(mnproc .eq. 1)write(lp,*) 'frmt(1:1)',frmt(1:1)
         if (frmt(1:1).eq.'6') then
           call ncerro(nfmpi_create(mpicomm,fnm,
      .             IOR(nf_clobber,nf_64bit_offset),INFO,ncid))

@@ -2546,33 +2546,35 @@ c
 c --- ------------------------------------------------------------------
 c --- read section information
 c --- ------------------------------------------------------------------
-      if (mnproc.eq.1.and.iniflg) then
-        equat_sec=-1
-        open(nfu,file=path(1:path_len)//'secindex.dat',status='old')
-        sec_num=0
-        do
-          read(nfu,'(a120)',iostat=iostatus) char120
-          if (iostatus.ne.0) exit
-          if (char120(1:4).eq.'Name') then
-            sec_num=sec_num+1
-            sec_name(sec_num)=char120(7:120)
-            if (char120(7:29).eq.'equatorial_undercurrent') then
-              equat_sec = sec_num
+      if (iniflg) then
+        if (mnproc.eq.1) then
+          equat_sec=-1
+          open(nfu,file=path(1:path_len)//'secindex.dat',status='old')
+          sec_num=0
+          do
+            read(nfu,'(a120)',iostat=iostatus) char120
+            if (iostatus.ne.0) exit
+            if (char120(1:4).eq.'Name') then
+              sec_num=sec_num+1
+              sec_name(sec_num)=char120(7:120)
+              if (char120(7:29).eq.'equatorial_undercurrent') then
+                equat_sec = sec_num
+              endif
+              nsi(sec_num)=0
+            else
+              nsi(sec_num)=nsi(sec_num)+1
+              read(char120,*) isi(sec_num,nsi(sec_num)),
+     .                        jsi(sec_num,nsi(sec_num)),
+     .                        usi(sec_num,nsi(sec_num)),
+     .                        vsi(sec_num,nsi(sec_num))
             endif
-            nsi(sec_num)=0
-          else
-            nsi(sec_num)=nsi(sec_num)+1
-            read(char120,*) isi(sec_num,nsi(sec_num)),
-     .                      jsi(sec_num,nsi(sec_num)),
-     .                      usi(sec_num,nsi(sec_num)),
-     .                      vsi(sec_num,nsi(sec_num))
-          endif
-        enddo
-        close(nfu)
-        iniflg=.false.
-        write(lp,*) 'number of sections=',sec_num
-      endif
+          enddo
+          close(nfu)
+          write(lp,*) 'number of sections=',sec_num
+        endif
         call xcbcst(sec_num)
+        iniflg=.false.
+      endif
 c      
 c --- Prepare 2d field   
 c$OMP PARALLEL DO
@@ -2694,92 +2696,98 @@ c
 c
       save nind,iind,jind,oflg,uflg,vflg,kmax,depthst,iniflg
 c
-      if (iniflg.and.mnproc.eq.1) then
+      if (iniflg) then
 c
-c --- - Read ocean masks from metraoceans.dat 
-        open(nfu,file=path(1:path_len)//'mertraoceans.dat',
-     .       status='old')
-        read(nfu,'(2i6)') i,j
-        if (i.ne.itdm.or.j.ne.jtdm) then
-          write(lp,*) 'wrong dimensions in mertraoceans.dat'
-          call xchalt('(diamer)')
-                 stop '(diamer)'
-        endif
-        write(c20,*) '(',jtdm,'i1)'
-        read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
-        close(nfu)
-c 
-c --- - Merge ocean regions (1=Atlantic+Arctic,2=Indian+Pacific,3=Global Ocean)
-        do j=1,jtdm
-          do i=1,itdm
-            if     (oflg(i,j).eq.1) then 
-              oflg(i,j)=3
-            elseif (oflg(i,j).eq.2) then 
-              oflg(i,j)=1
-            elseif (oflg(i,j).eq.3) then 
-              oflg(i,j)=2
-            elseif (oflg(i,j).eq.4) then 
-              oflg(i,j)=2
-            elseif (oflg(i,j).ne.0) then 
-              write(lp,*) 'unknown region index in mertraoceans.dat'
-              call xchalt('(diamer)')
-                     stop '(diamer)'
-            endif 
-          enddo 
-        enddo
+        if (mnproc.eq.1) then
 c
-c --- - Read section file metraindex.dat
-        open(nfu,file=path(1:path_len)//'mertraindex.dat',status='old')
-        lmax=0
-        do l=1,ldm
-          c20=' '
-          read(nfu,'(a)',iostat=iostatus) c20
-          if (iostatus.ne.0) exit
-          if (c20(1:7).eq.'Section') then
-            lmax=l
-            read(c20(9:15),'(f7.3)') mtlat(l)
-            read(c20(16:20),'(i7)') nind1
-          else
-            write(lp,*) 'problem in mertraindex.dat'
+c --- --- Read ocean masks from metraoceans.dat 
+          open(nfu,file=path(1:path_len)//'mertraoceans.dat',
+     .         status='old')
+          read(nfu,'(2i6)') i,j
+          if (i.ne.itdm.or.j.ne.jtdm) then
+            write(lp,*) 'wrong dimensions in mertraoceans.dat'
             call xchalt('(diamer)')
                    stop '(diamer)'
           endif
-          nind(l)=0
-          do s=1,nind1
+          write(c20,*) '(',jtdm,'i1)'
+          read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
+          close(nfu)
+c 
+c --- --- Merge ocean regions (1=Atlantic+Arctic,2=Indian+Pacific,3=Global Ocean)
+          do j=1,jtdm
+            do i=1,itdm
+              if     (oflg(i,j).eq.1) then 
+                oflg(i,j)=3
+              elseif (oflg(i,j).eq.2) then 
+                oflg(i,j)=1
+              elseif (oflg(i,j).eq.3) then 
+                oflg(i,j)=2
+              elseif (oflg(i,j).eq.4) then 
+                oflg(i,j)=2
+              elseif (oflg(i,j).ne.0) then 
+                write(lp,*) 'unknown region index in mertraoceans.dat'
+                call xchalt('(diamer)')
+                       stop '(diamer)'
+              endif 
+            enddo 
+          enddo
+c
+c --- --- Read section file metraindex.dat
+          open(nfu,file=path(1:path_len)//'mertraindex.dat',
+     .         status='old')
+          lmax=0
+          do l=1,ldm
+            c20=' '
             read(nfu,'(a)',iostat=iostatus) c20
-            if (iostatus.ne.0) then
-              write(lp,*) 'section too short?'
+            if (iostatus.ne.0) exit
+            if (c20(1:7).eq.'Section') then
+              lmax=l
+              read(c20(9:15),'(f7.3)') mtlat(l)
+              read(c20(16:20),'(i7)') nind1
+            else
+              write(lp,*) 'problem in mertraindex.dat'
               call xchalt('(diamer)')
                      stop '(diamer)'
             endif
-            read(c20,*) iind1,jind1,uflg1,vflg1
-            if (oflg(iind1,jind1).ne.0) then
-              nind(l)=nind(l)+1
-              iind(nind(l),l)=iind1
-              jind(nind(l),l)=jind1
-              uflg(nind(l),l)=uflg1
-              vflg(nind(l),l)=vflg1
-              if (iind(nind(l),l).lt.1.or.iind(nind(l),l).gt.itdm.or.
-     .            jind(nind(l),l).lt.1.or.jind(nind(l),l).gt.jtdm) then
-                write(lp,*) 'iind=',iind(nind(l),l),' itdm=',itdm
-                write(lp,*) 'jind=',jind(nind(l),l),' jtdm=',jtdm
-                call flush(lp)
-                write(lp,*) 'indices out of range!'
+            nind(l)=0
+            do s=1,nind1
+              read(nfu,'(a)',iostat=iostatus) c20
+              if (iostatus.ne.0) then
+                write(lp,*) 'section too short?'
                 call xchalt('(diamer)')
                        stop '(diamer)'
               endif
+              read(c20,*) iind1,jind1,uflg1,vflg1
+              if (oflg(iind1,jind1).ne.0) then
+                nind(l)=nind(l)+1
+                iind(nind(l),l)=iind1
+                jind(nind(l),l)=jind1
+                uflg(nind(l),l)=uflg1
+                vflg(nind(l),l)=vflg1
+                if (iind(nind(l),l).lt.1.or.iind(nind(l),l).gt.itdm.or.
+     .              jind(nind(l),l).lt.1.or.jind(nind(l),l).gt.jtdm) then
+                  write(lp,*) 'iind=',iind(nind(l),l),' itdm=',itdm
+                  write(lp,*) 'jind=',jind(nind(l),l),' jtdm=',jtdm
+                  call flush(lp)
+                  write(lp,*) 'indices out of range!'
+                  call xchalt('(diamer)')
+                         stop '(diamer)'
+                endif
+              endif
+            enddo
+            if (lmax.gt.ldm) then
+              write(lp,*) 'too many or too long sections!'
+              call xchalt('(diamer)')
+                     stop '(diamer)'
             endif
           enddo
-          if (lmax.gt.ldm) then
-            write(lp,*) 'too many or too long sections!'
-            call xchalt('(diamer)')
-                   stop '(diamer)'
-          endif
-        enddo
-        close(nfu)
+          close(nfu)
 c
-      end if
-      call xcbcst(lmax)
+        endif
+c
+        call xcbcst(lmax)
+c
+      endif
 c
 c --- Compute vertical integrated heat and salt transports 
 c

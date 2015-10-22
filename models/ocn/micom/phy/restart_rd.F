@@ -6,7 +6,6 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_dia
-!      use mod_nctools
       use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
      .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
      .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
@@ -43,93 +42,90 @@ c
 #  endif
 #endif
 c
-c      if (mnproc.eq.1) then
+      if (expcnf.eq.'cesm') then
 c
-        if (expcnf.eq.'cesm') then
-c
-c --- --- get file name from rpointer.ocn
-          inquire(file='rpointer.ocn',exist=fexist)
-          if (fexist) then
-            open (unit=nfu,file='rpointer.ocn')
-            read (nfu,'(a)') rstfnm
-            close (unit=nfu)
-          else
-            if (mnproc.eq.1)
-     &       write (lp,*) 'Could not find file rpointer.ocn!'
-            call xchalt('(restart_rd)')
-            stop '(restart_rd)' 
-          endif
-        else
-c
-c --- -- first try file name:
-c --- --  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
-          write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
-     .      '_',nday1,'.nc'
-        endif
-c
-        inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+c --- - get file name from rpointer.ocn
+        inquire(file='rpointer.ocn',exist=fexist)
         if (fexist) then
-          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
-          call ncgeti('nday0',ndayr)
-          call ncgeti('nmonth0',nmonthr)
-          call ncgeti('nyear0',nyearr)
-          call ncgetr('time0',time0)
-          call ncgetr('time',time)
-c
-          i=daydif(nyear0,nmonth0,nday0,nyear,nmonth,nday)
-          if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
-     .        ndayr.ne.nday0) then
-            time0=nday1-i
-            if (mnproc.eq.1)
-     .      write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
-     .        ' Warning! Initial experiment date changed from ',
-     .        nyearr,'.',nmonthr,'.',ndayr,' to ',
-     .        nyear0,'.',nmonth0,'.',nday0
-          elseif (nint(time0).ne.nday1-i) then
-            if (mnproc.eq.1) then
-            write (lp,'(2a)')
-     .        ' Warning! Integration day corresponding to initial',
-     .        ' experiment'
-            write (lp,'(a,i6,a,i6)')
-     .        ' date changed from ',nint(time0),' to ',nday1-i
-            endif
-            time0=nday1-i
-          endif
+          open (unit=nfu,file='rpointer.ocn')
+          read (nfu,'(a)') rstfnm
+          close (unit=nfu)
         else
+          if (mnproc.eq.1)
+     .     write (lp,*) 'Could not find file rpointer.ocn!'
+          call xchalt('(restart_rd)')
+          stop '(restart_rd)' 
+        endif
+      else
+c
+c --- - first try file name:
+c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
+        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
+     .    runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
+     .    '_',nday1,'.nc'
+      endif
+c
+      inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+      if (fexist) then
+        call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+        call ncgeti('nday0',ndayr)
+        call ncgeti('nmonth0',nmonthr)
+        call ncgeti('nyear0',nyearr)
+        call ncgetr('time0',time0)
+        call ncgetr('time',time)
+c
+        i=daydif(nyear0,nmonth0,nday0,nyear,nmonth,nday)
+        if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
+     .      ndayr.ne.nday0) then
+          time0=nday1-i
+          if (mnproc.eq.1)
+     .    write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
+     .      ' Warning! Initial experiment date changed from ',
+     .      nyearr,'.',nmonthr,'.',ndayr,' to ',
+     .      nyear0,'.',nmonth0,'.',nday0
+        elseif (nint(time0).ne.nday1-i) then
+          if (mnproc.eq.1) then
+          write (lp,'(2a)')
+     .      ' Warning! Integration day corresponding to initial',
+     .      ' experiment'
+          write (lp,'(a,i6,a,i6)')
+     .      ' date changed from ',nint(time0),' to ',nday1-i
+          endif
+          time0=nday1-i
+        endif
+      else
 c
 c --- - then try automatic selection of file with consistent integration
 c --- - day and date among files named:
 c --- -   <experiment name>_restphy_1.nc
 c --- -   <experiment name>_restphy_2.nc
 c --- -   <experiment name>_restphy_3.nc
-          do i=1,4
-            write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',i,'.nc'
-            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-            if (fexist) then
-              call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
-              call ncgeti('nday0',ndayr)
-              call ncgeti('nmonth0',nmonthr)
-              call ncgeti('nyear0',nyearr)
-              call ncgetr('time0',time0)
-              call ncgetr('time',time)
-              if (nint(time).eq.nday1.and.
-     .          daydif(nyearr,nmonthr,ndayr,nyear,nmonth,nday).eq.
-     .          nint(time-time0)) exit 
-            endif 
-          enddo 
-          if (i.gt.3 .and. mnproc.eq.1) then
-            write (lp,*) 'Could not find proper restart file!'
-            call xchalt('(restart_rd)')
-            stop '(restart_rd)' 
+        do i=1,4
+          write (rstfnm,'(2a,i1,a)')
+     .      runid(1:runid_len),'_restphy_',i,'.nc'
+          inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+          if (fexist) then
+            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+            call ncgeti('nday0',ndayr)
+            call ncgeti('nmonth0',nmonthr)
+            call ncgeti('nyear0',nyearr)
+            call ncgetr('time0',time0)
+            call ncgetr('time',time)
+            if (nint(time).eq.nday1.and.
+     .        daydif(nyearr,nmonthr,ndayr,nyear,nmonth,nday).eq.
+     .        nint(time-time0)) exit 
           endif 
+        enddo 
+        if (i.gt.3 .and. mnproc.eq.1) then
+          write (lp,*) 'Could not find proper restart file!'
+          call xchalt('(restart_rd)')
+          stop '(restart_rd)' 
         endif 
+      endif 
 c
-       if (mnproc.eq.1)
-     .   write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
-c
-c      endif
+      if (mnproc.eq.1) then
+        write (lp,'(2a)') ' reading restart file ',trim(rstfnm)
+      endif
 c
 c --- Compute extended uv masks 
       if (first) then

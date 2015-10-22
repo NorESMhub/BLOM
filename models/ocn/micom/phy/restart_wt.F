@@ -6,7 +6,6 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_dia
-!      use mod_nctools
       use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
      .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
      .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
@@ -52,35 +51,34 @@ c
 c --- formulate restart name and open restart file
 c
 c
-        if (expcnf.eq.'cesm') then
-          write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
-     .      '-',mod(nstep,nstep_in_day)*86400,'.nc'
-        else
-        if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) 
-     .     then
+      if (expcnf.eq.'cesm') then
+        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
+     .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
+      else
+        if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
      .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
      .      '_',nint(time),'.nc'
         else
-            if (rstmon) then
-              write (rstfnm,'(2a,i1,a)')
-     .          runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
-            else
-              write (rstfnm,'(2a,i1,a)')
-     .          runid(1:runid_len),'_restphy_',
-     .          mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
-            endif
-            open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
-            i=1
- 300        read (nfu,'(a)',end=301) rstdate_str(i)
-            i=i+1
-            goto 300
- 301        close (unit=nfu)
-            write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
-     .        rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',
-     .        nday,', integration day ',nint(time)
-            if (mnproc.eq.1) then
+          if (rstmon) then
+            write (rstfnm,'(2a,i1,a)')
+     .        runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
+          else
+            write (rstfnm,'(2a,i1,a)')
+     .        runid(1:runid_len),'_restphy_',
+     .        mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
+          endif
+          open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+          i=1
+ 300      read (nfu,'(a)',end=301) rstdate_str(i)
+          i=i+1
+          goto 300
+ 301      close (unit=nfu)
+          write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
+     .      rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',
+     .      nday,', integration day ',nint(time)
+          if (mnproc.eq.1) then
             if (i.eq.1) then
               open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
               write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
@@ -95,23 +93,24 @@ c
             endif
           endif
         endif
-c
-        write (lp,'(a,a)')
-     .    ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
+        if (mnproc.eq.1) then
+          write (lp,'(a,a)')
+     .      ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
         endif
+      endif
 c
-        if (rstfmt.eq.1) then 
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1,iotype)
-        elseif (rstfmt.eq.2) then
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1,iotype)
-        else
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1,iotype)
-        endif
-        call ncputi('nday0',nday0)
-        call ncputi('nmonth0',nmonth0)
-        call ncputi('nyear0',nyear0)
-        call ncputr('time0',time0)
-        call ncputr('time',time)
+      if (rstfmt.eq.1) then 
+        call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1,iotype)
+      elseif (rstfmt.eq.2) then
+        call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1,iotype)
+      else
+        call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1,iotype)
+      endif
+      call ncputi('nday0',nday0)
+      call ncputi('nmonth0',nmonth0)
+      call ncputi('nyear0',nyear0)
+      call ncputr('time0',time0)
+      call ncputr('time',time)
 c
 c
 c --- define spatial and time dimensions
@@ -679,7 +678,6 @@ c
         call ncputi('nflxdi',nflxdi)
         call defvarrst('sflxdi',trim(c5p)//' week')
         call ncedef
-
 c
         call wrtrst('sflxdi',trim(c5p)//' week',sflxdi,ip)
 c       
@@ -713,7 +711,6 @@ c
       real, dimension(*) :: fld
       integer, dimension(*) :: msk
 c
-c
 c --- Write data in compressed or uncompressed format
       if (dims(2:5).eq.'comp') then 
         call nccomp(vnm,dims,fld,msk,1.,0.,8)
@@ -724,13 +721,19 @@ c
       end
 
       subroutine defvar_restart(c5p,c5u,c5v,c5q)
+c
+c --- ------------------------------------------------------------------
       use mod_dia
+c
       implicit none
+c
 #include "common_blocks.h"
 #include "common_forc.h"
+c
       integer n
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
+c
       call defvarrst('u',trim(c5u)//' kk2 time')
       call defvarrst('v',trim(c5v)//' kk2 time')
       call defvarrst('dp',trim(c5p)//' kk2 time')
@@ -796,50 +799,50 @@ c
       endif
 c
       if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
-      call defvarrst('cd_d',trim(c5p)//' time')
-      call defvarrst('ch_d',trim(c5p)//' time')
-      call defvarrst('ce_d',trim(c5p)//' time')
-      call defvarrst('wg2_d',trim(c5p)//' time')
-      call defvarrst('cd_m',trim(c5p)//' time')
-      call defvarrst('ch_m',trim(c5p)//' time')
-      call defvarrst('ce_m',trim(c5p)//' time')
-      call defvarrst('wg2_m',trim(c5p)//' time')
-      call defvarrst('rhoa',trim(c5p)//' time')
-      call defvarrst('tsi_tda',trim(c5p)//' time')
-      call defvarrst('tml_tda',trim(c5p)//' time')
-      call defvarrst('sml_tda',trim(c5p)//' time')
-      call defvarrst('alb_tda',trim(c5p)//' time')
-      call defvarrst('fice_tda',trim(c5p)//' time')
-      call defvarrst('hicem',trim(c5p)//' time')
-      call defvarrst('tsrfm',trim(c5p)//' time')
-      call defvarrst('hsnwm',trim(c5p)//' time')
-      call defvarrst('ticem',trim(c5p)//' time')
-      call defvarrst('iagem',trim(c5p)//' time')
-      call defvarrst('rnfres',trim(c5p)//' time')
+        call defvarrst('cd_d',trim(c5p)//' time')
+        call defvarrst('ch_d',trim(c5p)//' time')
+        call defvarrst('ce_d',trim(c5p)//' time')
+        call defvarrst('wg2_d',trim(c5p)//' time')
+        call defvarrst('cd_m',trim(c5p)//' time')
+        call defvarrst('ch_m',trim(c5p)//' time')
+        call defvarrst('ce_m',trim(c5p)//' time')
+        call defvarrst('wg2_m',trim(c5p)//' time')
+        call defvarrst('rhoa',trim(c5p)//' time')
+        call defvarrst('tsi_tda',trim(c5p)//' time')
+        call defvarrst('tml_tda',trim(c5p)//' time')
+        call defvarrst('sml_tda',trim(c5p)//' time')
+        call defvarrst('alb_tda',trim(c5p)//' time')
+        call defvarrst('fice_tda',trim(c5p)//' time')
+        call defvarrst('hicem',trim(c5p)//' time')
+        call defvarrst('tsrfm',trim(c5p)//' time')
+        call defvarrst('hsnwm',trim(c5p)//' time')
+        call defvarrst('ticem',trim(c5p)//' time')
+        call defvarrst('iagem',trim(c5p)//' time')
+        call defvarrst('rnfres',trim(c5p)//' time')
       endif
 c
       if (expcnf.eq.'cesm') then
-      call defvarrst('ustarw_da',trim(c5p)//' k2 time')
-      call defvarrst('ztx_da',trim(c5p)//' k2 time')
-      call defvarrst('mty_da',trim(c5p)//' k2 time')
-      call defvarrst('lip_da',trim(c5p)//' k2 time')
-      call defvarrst('sop_da',trim(c5p)//' k2 time')
-      call defvarrst('eva_da',trim(c5p)//' k2 time')
-      call defvarrst('rnf_da',trim(c5p)//' k2 time')
-      call defvarrst('rfi_da',trim(c5p)//' k2 time')
-      call defvarrst('fmltfz_da',trim(c5p)//' k2 time')
-      call defvarrst('sfl_da',trim(c5p)//' k2 time')
-      call defvarrst('swa_da',trim(c5p)//' k2 time')
-      call defvarrst('nsf_da',trim(c5p)//' k2 time')
-      call defvarrst('hmlt_da',trim(c5p)//' k2 time')
-      call defvarrst('slp_da',trim(c5p)//' k2 time')
-      call defvarrst('ficem_da',trim(c5p)//' k2 time')
-      call defvarrst('abswnd_da',trim(c5p)//' k2 time')
-      call defvarrst('atmco2_da',trim(c5p)//' k2 time')
-      call defvarrst('frzpot',trim(c5p)//' time')
-      call defvarrst('mltpot',trim(c5p)//' time')
-      call defvarrst('flxco2',trim(c5p)//' time')
-      call defvarrst('flxdms',trim(c5p)//' time')
+        call defvarrst('ustarw_da',trim(c5p)//' k2 time')
+        call defvarrst('ztx_da',trim(c5p)//' k2 time')
+        call defvarrst('mty_da',trim(c5p)//' k2 time')
+        call defvarrst('lip_da',trim(c5p)//' k2 time')
+        call defvarrst('sop_da',trim(c5p)//' k2 time')
+        call defvarrst('eva_da',trim(c5p)//' k2 time')
+        call defvarrst('rnf_da',trim(c5p)//' k2 time')
+        call defvarrst('rfi_da',trim(c5p)//' k2 time')
+        call defvarrst('fmltfz_da',trim(c5p)//' k2 time')
+        call defvarrst('sfl_da',trim(c5p)//' k2 time')
+        call defvarrst('swa_da',trim(c5p)//' k2 time')
+        call defvarrst('nsf_da',trim(c5p)//' k2 time')
+        call defvarrst('hmlt_da',trim(c5p)//' k2 time')
+        call defvarrst('slp_da',trim(c5p)//' k2 time')
+        call defvarrst('ficem_da',trim(c5p)//' k2 time')
+        call defvarrst('abswnd_da',trim(c5p)//' k2 time')
+        call defvarrst('atmco2_da',trim(c5p)//' k2 time')
+        call defvarrst('frzpot',trim(c5p)//' time')
+        call defvarrst('mltpot',trim(c5p)//' time')
+        call defvarrst('flxco2',trim(c5p)//' time')
+        call defvarrst('flxdms',trim(c5p)//' time')
       endif
 c
 #ifdef TRC
@@ -1079,11 +1082,13 @@ c --- write accumulated fields
 #endif
         endif
       enddo
+c
       call ncedef
-
+c
       end
 
       subroutine defvarrst(vnm,dims)
+c
 c --- ------------------------------------------------------------------
       use mod_nctools
 c
