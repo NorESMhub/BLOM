@@ -1,10 +1,10 @@
 module ocn_comp_mct
 
    ! -------------------------------------------------------------------
-   ! MICOM interface module for the ccsm cpl7 mct system
+   ! MICOM interface module for the cesm cpl7 mct system
    ! -------------------------------------------------------------------
 
-   ! CCSM  modules
+   ! CESM  modules
    use mct_mod
    use esmf, only : ESMF_Clock
    use seq_cdata_mod, only : seq_cdata, seq_cdata_setptrs
@@ -17,16 +17,17 @@ module ocn_comp_mct
       seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
       seq_timemgr_EClockDateInSync
    use shr_file_mod, only : &
+      shr_file_getUnit, shr_file_setIO, &
       shr_file_getLogUnit, shr_file_getLogLevel, &
       shr_file_setLogUnit, shr_file_setLogLevel, &
-      shr_file_getUnit, shr_file_freeUnit
+      shr_file_freeUnit
    use shr_cal_mod, only : shr_cal_date2ymd
    use shr_sys_mod, only : shr_sys_abort, shr_sys_flush
    use perf_mod, only : t_startf, t_stopf
 
    use types, only : r8
    use micom_cpl_indices
-   use data_mct, only : mpicom_mct, runid_mct, runtype_mct
+   use data_mct, only : runid_mct, runtype_mct
    use mod_xc
 
    implicit none
@@ -74,13 +75,10 @@ module ocn_comp_mct
       type (mct_gsMap), pointer :: gsMap_ocn
       type (mct_gGrid), pointer :: dom_ocn
       type (seq_infodata_type), pointer :: infodata   ! Input init object
-!      real (r8) :: precadj
       integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
                  start_ymd, start_tod, start_year, start_day, start_month
+      logical :: exists
       character (len=32) :: starttype
-
-      ! Default stdout
-      lp = 6
 
       ! Set cdata pointers
       call seq_cdata_setptrs(cdata_o, ID = OCNID, mpicom = mpicom_ocn, &
@@ -88,7 +86,10 @@ module ocn_comp_mct
                              infodata = infodata)
 
       ! Set communicator to be used by micom
-      mpicom_mct = mpicom_ocn
+      mpicom_external = mpicom_ocn
+
+      ! Get file unit
+      nfu = shr_file_getUnit()
 
       ! ----------------------------------------------------------------
       ! Initialize the model run
@@ -143,7 +144,7 @@ module ocn_comp_mct
          call shr_cal_date2ymd(start_ymd, start_year, start_month, start_day)
          if (mnproc == 1) then
             write (lp,'(a,i8,a2,i5,a2,i4.4,a1,i2.2,a1,i2.2)') &
-               ' ccsm initial date:           ',start_ymd,': ',start_tod,': ', &
+               ' cesm initial date:           ',start_ymd,': ',start_tod,': ', &
                start_year,'.',start_month,'.',start_day
             call shr_sys_flush(lp)
          endif
@@ -190,9 +191,7 @@ module ocn_comp_mct
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact )  then
-!         precadj = precip_fact * 1.0e6_r8  
-!         call seq_infodata_PutData( infodata, precip_fact=precadj)
-          call seq_infodata_PutData( infodata, precip_fact=precip_fact)
+         call seq_infodata_PutData( infodata, precip_fact=precip_fact)
       endif
       allocate(sbuff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend))
       tlast_coupled = 0._r8
@@ -222,6 +221,8 @@ module ocn_comp_mct
       call shr_file_setLogUnit (shrlogunit)
       call shr_file_setLogLevel(shrloglev)
 
+      call shr_sys_flush(lp)
+
    end subroutine ocn_init_mct
 
 
@@ -236,7 +237,6 @@ module ocn_comp_mct
 
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
-!      real (r8) :: precadj
       integer :: shrlogunit, shrloglev, ymd, tod, ymd_sync, tod_sync
 
       ! ----------------------------------------------------------------
@@ -281,9 +281,7 @@ module ocn_comp_mct
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact ) then
-!         precadj = precip_fact * 1.0e6_r8  
-!         call seq_infodata_PutData( infodata, precip_fact=precadj )
-          call seq_infodata_PutData( infodata, precip_fact=precip_fact)
+         call seq_infodata_PutData( infodata, precip_fact=precip_fact)
       endif
 
       !-----------------------------------------------------------------

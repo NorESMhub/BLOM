@@ -4,20 +4,31 @@ c --- ------------------------------------------------------------------
 c --- Initialize the calendar
 c --- ------------------------------------------------------------------
 c
+      use mod_xc
+c
       implicit none
 c
+#include "common_blocks.h"
 #include "common_clndr.h"
 c
       integer i
 c
 c --- Set calendar type to be used
-#if   defined(CCSMCOUPLED)
-      calendar='noleap'
-#elif defined(CLIM)
-      calendar='360_day'
-#elif defined(SYN)
-      calendar='standard'
-#endif
+      if     (expcnf.eq.'cesm') then
+        calendar='noleap'
+      elseif (expcnf.eq.'ben02clim') then
+        calendar='360_day'
+      elseif (expcnf.eq.'ben02syn') then
+        calendar='standard'
+      elseif (expcnf.eq.'isomip1'.or.expcnf.eq.'isomip2') then
+        calendar='360_day'
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(clndr)')
+               stop '(clndr)'
+      endif
 c
 c --- Set days in months and days in the year
       if     (calendar(1:3).eq.'360') then

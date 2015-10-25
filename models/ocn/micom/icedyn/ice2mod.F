@@ -1,5 +1,4 @@
-      subroutine ice2mod(ustari,tauxice,tauyice,uicem,vicem,hicem,ficem,
-     .                   itp)
+      subroutine ice2mod(ustari,tauxice,tauyice,uicem,vicem,hicem,ficem)
 c
       use mod_xc, only: nbdy,idm,jdm,itdm,jtdm,mnproc,xcaput,xctilr,
      .                  halo_ps,ii,jj,xcaget
@@ -9,7 +8,6 @@ c
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ustari,tauxice,tauyice,uicem,vicem,hicem,ficem
-      integer, dimension(itdm,jtdm) :: itp
 c
 #include "param_icedyn.h"
 #include "common_icedyn.h"
@@ -21,7 +19,7 @@ c --- point, set the ice velocity to zero
 c
       real, dimension(L,0:M) :: ustrq,tauxq,tauyq
       real, dimension(itdm,jtdm) :: tmp2da,tmp2db
-      integer, dimension(itdm,jtdm) :: itu,itv,iuvt
+      integer, dimension(itdm,jtdm) :: itp,itu,itv,iuvt
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: util1
       real du2,q
       integer i,j,i1,j1,jm1
@@ -46,6 +44,15 @@ c$OMP PARALLEL DO PRIVATE(du2,q)
             q=cdwat*rhowat*sqrt(du2)
             tauxq(i,j)=q*(u(i,j,lold)-uwat(i,j))*vm(i,j)
             tauyq(i,j)=q*(v(i,j,lold)-vwat(i,j))*vm(i,j)
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO
+        do j=1,jtdm
+          j1=j-1
+          do i=1,itdm
+            i1=i-1
+            itp(i,j)=hm(i1,j1)
           enddo
         enddo
 c$OMP END PARALLEL DO

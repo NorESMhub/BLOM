@@ -54,20 +54,26 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
       
       REAL :: dmspar(6)
-            
-! decay coefficient for sco214 plus more for 13C/14C
-      REAL :: c14dec, D14Catm, Ratm, D14Cocn, Roc14
-      REAL :: roc13, atcoa
-      REAL :: ozkoa, c14prod, c14inva, eins, c14ret, c14prosta
+
+#ifdef __c_isotopes
+      REAL :: c14_t_half, c14dec
+      REAL :: Roc14, Roc13
+      REAL :: frac_airsea13_prom, frac_airsea13, frac_photo13_prom, frac_photo13, frac_caco313
+      REAL :: frac_photo14, frac_caco314, frac_airsea14
+#endif
 
 #ifndef DIFFAT            
       REAL :: atm_co2, atm_o2, atm_n2 
       REAL :: atm_c13, atm_c14
 #endif  
 #ifdef CFC
-      REAL :: atm_cfc11,atm_cfc12,atm_sf6
+      REAL :: atm_cfc11_nh,atm_cfc11_sh
+      REAL :: atm_cfc12_nh,atm_cfc12_sh
+      REAL :: atm_sf6_nh,atm_sf6_sh
 #endif
 
 #ifdef EMS_CO2
@@ -123,6 +129,17 @@
         ALLOCATE (co3(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory co3'
         co3(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory pi_ph'
+        pi_ph(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaC ...'
@@ -218,7 +235,18 @@
         if(errstat.ne.0) stop 'not enough memory kwb'
         kwb(:,:) = 0.0
 
-!#if defined(DIFFAT) || defined(CCSMCOUPLED)
+#ifdef __c_isotopes
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable phyto_growth ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (phyto_growth(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory phyto_growth'
+        phyto_growth(:,:,:) = 0.0
+#endif
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atm ...'
@@ -242,7 +270,6 @@
         if(errstat.ne.0) stop 'not enough memory atmflx'
         atmflx(:,:,:) = 0.0
 
-!#endif	
 
 #if defined(DIFFAT)
         IF (mnproc.eq.1) THEN

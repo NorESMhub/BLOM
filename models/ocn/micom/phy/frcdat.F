@@ -9,7 +9,7 @@ c
       data
      . albw_d   /.065/    ! --                 albedo over water; diff light
      .,rhowat   /1024./   ! kg / m^3           app. density of surf. sea water
-     .,t0deg    /273.15/  ! K                  zero deg celcius in K
+     .,sref     /34.65/   ! g / kg             global ref. surface salinity
      .,nrfets   /7/       ! days               e-folding time scale for
                           !                    detrainment of runoff reservoar
 c

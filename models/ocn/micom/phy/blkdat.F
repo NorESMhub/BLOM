@@ -10,8 +10,7 @@ c
 c
 c --- 'mltmin' = minimum mixed-layer thickness (m)
 c --- 'thktop' = maximum thickness of top layer (m)
-c --- 'acurcy' = permissible roundoff error in column integral calc.
-      data mltmin/5./,thktop/10./,acurcy/1.e-10/
+      data mltmin/5./,thktop/10./
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
 c --- 'thkbot' = thickness of bottom boundary layer (m)
@@ -34,19 +33,14 @@ c
 c --- 'g'      = gravitational acceleration
 c --- 'rearth' = radius of the earth (cm)
 c --- 'spcifh' = specific heat of sea water (j/g/deg)
-c --- 'rhoa_r' = reference air density (g/cm**3)
-c --- 'cd_r'   = reference transfer coefficient of momentum
-c --- 'ch_r'   = reference transfer coefficient of sensible heat
-c --- 'ce_r'   = reference transfer coefficient of tent heat
-c --- 'wg2_r'  = reference gustiness squared (cm**2/s**2)
+c --- 't0deg'  = zero deg celcius in K (K)
 c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
 c --- 'raddep' = maximum depth of light penetration (m)
 c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
 c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
-      data g/980.6/,rearth/6.37122e8/,spcifh/3.99/,rhoa_r/1.225e-3/,
-     .     cd_r/1.2e-3/,ch_r/1.1e-3/,ce_r/1.3e-3/,alpha0/1./,
-     .     epsil/1.e-11/,wg2_r/1.e3/,raddep/500./,redfac/.58/,
+      data g/980.6/,rearth/6.37122e8/,spcifh/3.99/,t0deg/273.15/,
+     .     alpha0/1./,epsil/1.e-11/,raddep/500./,redfac/.58/,
      .     betabl/23./
 c
 c --- 'itest,jtest' = grid point where detailed diagnostics are desired

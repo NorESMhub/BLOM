@@ -11,11 +11,12 @@ c
      .,bgc_swr (idm,jdm)      ,bgc_fice(idm,jdm)
      .,bgc_awnd(idm,jdm)      ,bgc_slp(idm,jdm) 
      .,bgc_atmco2(idm,jdm)    ,bgc_flxco2(idm,jdm)
+     .,bgc_flxdms(idm,jdm)
 c
       real bgc_dx,bgc_dy,bgc_dp,bgc_dpio
       real bgc_pu,bgc_pw,bgc_rho,bgc_t,bgc_s,omask
       real bgc_swr,bgc_fice,bgc_awnd,bgc_slp
-      real bgc_atmco2,bgc_flxco2
+      real bgc_atmco2,bgc_flxco2,bgc_flxdms
 c
       c o m m o n /bgc_hamocc_b/
      . ldtday,ldtmonth,kpndtrun

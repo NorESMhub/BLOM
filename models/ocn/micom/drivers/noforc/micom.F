@@ -21,7 +21,7 @@ c
 c
 #ifdef MPI
       call mpi_init
-      mpicom_mct=mpi_comm_world
+      mpicom_external=mpi_comm_world
 #endif
 c
       open (unit=nfu,file='ocn_in',status='old',action='read')

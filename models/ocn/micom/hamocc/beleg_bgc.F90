@@ -54,7 +54,7 @@
       USE mo_sedmnt
       USE mo_control_bgc
       use mo_param1_bgc 
-      USE mod_xc, only: mnproc,xcminr
+      USE mod_xc, only: mnproc
 
 
       implicit none      
@@ -65,12 +65,12 @@
       REAL :: omask(kpie,kpje)
       REAL :: pglon(kpie,kpje)
       REAL :: pglat(kpie,kpje)
-      REAL :: north, south, oarea
+      REAL :: north, south
       INTEGER :: i,j,k,l,ii,jj,m,kpie,kpje,kpke
       character(len=*) :: path
 
 #ifdef AGG
-      REAL :: shear,zmini,talar1,snow, checksink
+      REAL :: shear,snow
 #endif 
 
 #ifndef AGG
@@ -79,10 +79,7 @@
 
       integer :: p_joff,p_ioff
 
-#ifdef CCSMCOUPLED
       namelist /bgcnml/ atm_co2
-#endif
-
 
 !
 ! Initialize overall time step counter.
@@ -91,7 +88,6 @@
 !
 !
 #ifndef DIFFAT            
-#ifdef CCSMCOUPLED
 !
 ! Obtain the CCSM value of atmospheric co2 concentration.
 !
@@ -99,19 +95,28 @@
      &      recl=80)
       read (unit=io_nml,nml=BGCNML)
       close (unit=io_nml)
-#else
-         atm_co2 = 278.
-#endif
       IF (mnproc.eq.1) THEN
         write(io_stdo_bgc,*) 'HAMOCC: atmospheric co2:',atm_co2
       ENDIF
+      atm_o2  = 196800.
+      atm_n2  = 802000.
 #ifdef __c_isotopes
-         atm_c13 = 276.2 ! preindustrial atmospheric d13c=-6.5 permil --> 276.2ppm? test js 15082006 ok.
-                         ! piston velocity ~8m/yr -> equilibration time atmosphere/ocean ~500 years
-         atm_c14 = 274.
+      atm_c13 = atm_co2
+      atm_c14 = atm_co2
+
+      ! Calculation of calibration factors
+      PDB            = 0.0112372            ! The Pee Dee Belemnite reference 13C/12C ratio Keeling (1981)
+      ref14c  	     = 1.176e-12            ! 14C/12C reference (pre-industrial) value Keeling (1981)
+      prei_d13C_atm  = -6.5                 ! Preindustrial atmospheric d13C value in promille
+      prei_dd14C_atm = 0.                   ! Preindustrial atmospheric dd14C value in promille
+      atm_c13_cal    = (prei_d13C_atm/1000. + 1.) * PDB * atm_co2 / &   ! calibrated 13C model value for atmosphere [ppm]
+        (1. + (prei_d13C_atm/1000. + 1.) * PDB)
+      atm_dc14_cal   = 2.*(prei_d13C_atm+25.)/ &                        ! calibrated d14C model value for atmosphere [ppm]
+        (1.-(2.*(prei_d13C_atm+25.)/1000.)) 
+      atm_c14_cal    = (atm_dc14_cal/1000. + 1.) * ref14c * atm_co2     ! calibrated dd14C model value for atmosphere [ppm]
+      factor_13c     = atm_c13_cal / atm_c13                            ! calibration factor 13C [-]
+      factor_14c     = atm_c14_cal / atm_c14                            ! calibration factor 14C [-]
 #endif
-         atm_o2  = 196800.
-         atm_n2  = 802000.
 #endif   
 !
 ! Biology
@@ -123,52 +128,54 @@
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.025*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
-      zinges=0.5            !dimensionless fraction -assimilation efficiency
-      epsher=0.8            !dimensionless fraction -fraction of grazing egested
+      zinges = 0.5          !dimensionless fraction -assimilation efficiency
+      epsher = 0.9          !dimensionless fraction -fraction of grazing egested      
       grazra=1.0*dtb        !1/d -grazing rate
-      spemor=5.*1.e6*dtb      !1/d -mortality rate
+      spemor=3.*1.e6*dtb    !1/d -mortality rate
       gammap=0.03*dtb       !1/d -exudation rate
-      gammaz=0.03*dtb       !1/d -excretion rate
+      gammaz=0.06*dtb       !1/d -excretion rate
       ecan=0.95             ! fraction of mortality as PO_4
       pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
 
 #ifdef __c_isotopes
-! fractionation for photosynthesis plafr13 and plafr14 valid for particles
 ! for avoiding too many tracers, surface gross rates work with reduced
 ! values bifr13 and bifr14
-       plafr13=1.                 ! planktonic fractionatio 13C   (never used) (HAMOCC3.1: 0.98) 
-       plafr14=1.
-       bifr13=0.98                ! biogenic fractionation ?
-       bifr14=0.98
+      bifr13=0.98                ! biogenic fractionation used in ocprod.F90
+      bifr14=0.98
+
+! decay parameter for sco214, HalfLive = 5730 years
+      c14_t_half 	= 5730.*365.                 ! Half life of 14C [days]	
+      c14dec 		= (log(2.)/c14_t_half)*dtb   ! The decay constant; labda [1/day]; c14dec[-]
 #endif
 
 ! half sat. constants, note that the units are kmol/m3 !
-      bkphy  = 1.e-7    !i.e. 0.04 mmol P/m3
+      bkphy  = 4.e-8    !i.e. 0.04 mmol P/m3
       bkzoo  = 4.e-8    !i.e. 0.04 mmol P/m3
-      bkopal = 1.5e-6   !i.e. 1.0 mmol Si/m3
+      bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
 
 !sinking speed
       wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
+#ifdef WLIN
+      wmin  =  7.*dtb       !m/d   minimum sinking speed
+      wmax  = 43.*dtb       !m/d   maximum sinking speed
+      wlin  = 40./2500.*dtb !m/d/m constant describing incr. with depth
+#endif
 
       
 ! deep see remineralisation constants
 
-      drempoc  = 0.02*dtb     !1/d
-      dremdoc  = 0.003*dtb    !1/d
+      drempoc  = 0.025*dtb    !1/d
+      dremdoc  = 0.004*dtb    !1/d
       dphymor  = 0.07 *dtb    !1/d
       dzoomor  = 0.02*dtb     !1/d
-      dremopal = 0.01*dtb     !1/d
+      dremopal = 0.005*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
-      dremsul  = 0.005*dtb            ! remineralization rate for sulphate reduction 
-      dremcalc = 0.075 *dtb              ! 0.2 -> 0.02 js10072006 : slightly overdone --> 0.075
+      dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       
 #ifdef AGG
-      drempoc  = 0.05 *dtb      !1/d       re-introduced 09062006 -- too strong?? 0.1 -> 0.05 02072007
-      dremopal = 0.03 *dtb   ! js 4.7.2006 0.0033 from .01/3. (60/20 m/d)
-      dremcalc = 0.2*dtb
-      dphymor  = 0.2 *dtb      !1/d
+      dphymor  = 0.1 *dtb     !1/d
 #endif
 
 ! nirogen fixation by blue green algae
@@ -186,10 +193,14 @@
       rnit23 = ro2ut*2./3. !114 rno3 * 2 / 3 for nitrate reduction during denitrification
       rnit13 = ro2ut*1./3. !57  rno3 * 1 / 3 for n2 production during denitrification
 
-      rcalc = 43. ! iris 40 !calcium carbonate to organic phosphorous production ratio
-      ropal = 25. ! iris 25 !opal to organic phosphorous production ratio      
-      calmax=0.20
-      gutc = 0. 
+#ifdef AGG
+      rcalc = 14.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
+      ropal = 10.5 ! iris 25 !opal to organic phosphorous production ratio      
+      calmax= 0.20
+#else
+      rcalc = 40. ! iris 40 !calcium carbonate to organic phosphorous production ratio
+      ropal = 30. ! iris 25 !opal to organic phosphorous production ratio      
+#endif
 
 ! parameters for sw-radiation attenuation
 ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
@@ -214,22 +225,6 @@
 !      relaxfe = 0.05/365.*dtb    ! set to this to get rid of sfc P in
       relaxfe = 0.005/365.*dtb    ! default
 
-!ka surface input of nutrients, C, alk to balance sediment
-       oarea=3.5969e14
-       sco212_sfc=19.     *1.e9/oarea/365.
-       alkali_sfc=29.47541*1.e9/oarea/365.
-       phosph_sfc=4.0     /rcar*1.e9/oarea/365.
-       ano3_sfc  =4.0     *rnit/rcar*1.e9/oarea/365.
-       silica_sfc=5.5     *1.e9/oarea/365.
-
-! decay parameter for sco214, HalfLive = 5730years
-      c14dec=(alog(2.)/(5730*365))*dtb
-      eins=1.
-      c14ret=eins-c14dec
-! Ratm: normalized atmospheric ratio of C-14/C-12, D14Catm: atmospheric Delta C-14
-      D14Catm=0.             ! D14Catm=0. only for equilibrium runs
-      Ratm=1+D14Catm/1000.      
-
 !                        
 ! Set constants for calculation of dms ( mo_carbch )
 ! Parameters are a result from kettle optimisation 02.03.04
@@ -237,8 +232,8 @@
        dmspar(6)=0.100000000E-07  !0 half saturation microbial
        dmspar(5)=1.25*0.109784522E-01  !2*0.02   production with delsil
        dmspar(4)=1.25*0.107638502E+00  !2*1.3e-5 production with delcar
-       dmspar(3)=0.0096  !4.8e-5  !2*1.6e-3 microbial consumption
-       dmspar(2)=0.0075  !0.0003  !2*0.005  photolysis
+       dmspar(3)=0.0864 ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
+       dmspar(2)=0.0011 ! following Kloster et al., 06 Table 1
        dmspar(1)=10.              !2*5.     production with temp
 
 
@@ -320,8 +315,6 @@
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              ropal        = ',ropal
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              gutc         = ',gutc
-      WRITE(io_stdo_bgc,*)                                             &
      &'*                              ctochl       = ',ctochl
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atten_w      = ',atten_w
@@ -341,12 +334,10 @@
      &'*                              fesoly       = ',fesoly
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              relaxfe      = ',relaxfe
+#ifdef __c_isotopes
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              c14dec       = ',c14dec
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              D14Catm      = ',D14Catm
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              Ratm         = ',Ratm
+#endif
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dmspar(1)    = ',dmspar(1)
       WRITE(io_stdo_bgc,*)                                             &
@@ -389,89 +380,46 @@
 
       SinkExp = 0.62
       FractDim = 1.62
-      Stick = 0.40
+!      Stick = 0.40
+      Stick = 0.25
       cellmass = 0.012 / rnit ![nmol P]
 !ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
       cellsink = 1.40 *dtb! [m/d]
 !ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
-      shear = 86400. !shear in upper 5 layers, 1 d-1
+!      shear = 86400. !shear in the mixed layer,   1.0  d-1
+      shear = 64800. !shear in the mixed layer,   0.75 d-1
+!      shear = 43200. !shear in the mixed layer,   0.5  d-1
       fsh = 0.163 * shear *dtb
       fse = 0.125 * 3.1415927 * cellsink * 100.
       alow1 = 0.002 !diameter of smallest particle [cm]
 !ik      alow1 = 0.001 !diameter of smallest particle [cm]
       alow2 = alow1 * alow1
       alow3 = alow2 * alow1
-      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
+!      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
+!      alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
+      alar1 = 0.5 !diameter of largest particle for size dependend aggregation and sinking [cm]
       vsmall = 1.e-9 
       safe = 1.e-6     
       pupper = safe/((FractDim+safe)*cellmass)
       plower = 1./(1.1*cellmass)
       zdis = 0.01 / ((FractDim + 0.01)*cellmass)
+      nmldmin = 0.1 ! minimum particle number in mixed layer
 
-!ik check max possible sinking speed in relation to min.
-!ik layer thinkness and time step for all standard layers, except
-!ik the bottom layer.
-!ik if max possible sinking speed (per time step) is greater
-!ik than min layer thickness, decrease max. length for sinking and
-!ik aggregation
-
-      zmini = 8000.
-      DO  j=1,kpje
-      DO  i=1,kpie
-      DO  k=1,kbo(i,j)-1
-        if(pddpo(i,j,k).gt.0.5) then
-         zmini=min(pddpo(i,j,k),zmini)
-        endif 
-      ENDDO
-      ENDDO
-      ENDDO
-
-      CALL xcminr(zmini)
-            
-      checksink =(zmini/cellsink)**(1./SinkExp)*alow1 
-      if(checksink.lt.alar1) then 
-      write(io_stdo_bgc,*) 'Allowed max. length for sinking               &
-     &   with min. depth of '                                             &
-     & , zmini, ' m for layers 1-(kbo-1) and time step of ',dtb           &
-     & ,' days is' , checksink                                            &
-     & ,'cm, which is smaller than prescribed value of', alar1, ' cm'
-        talar1 = alar1
-        alar1 = checksink
-      write(io_stdo_bgc,*) 'Set max. length for sinking and aggregation   &
-     &   from ',talar1,' to ', alar1
+! Determine maximum sinking speed
+      IF (mnproc.eq.1) THEN
+      write(io_stdo_bgc,*)
+      write(io_stdo_bgc,*)                                             &
+     &'****************************************************************'
+      write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
+      write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
+      write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
+      write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
       endif
 
       alar2 = alar1 * alar1
       alar3 = alar2 * alar1
       TSFac = (alar1/alow1)**SinkExp
       TMFac = (alar1/alow1)**FractDim
-
-!ik check the maximum possible sinking speed for the last layer (which
-!ik may be smaller than zmini, and write to array alar1max, tsfmax, tmfmax
-
-      DO j=1,kpje
-      DO i=1,kpie
-         alar1max(i,j) = alar1
-         TSFmax(i,j) = TSFac
-         TMFmax(i,j) = TMFac
-         if(omask(i,j).gt.0.5) then
-
-!ik evaluate safe length scale for size dependent sinking and
-!ik aggregation, and the resulting sinking rate and aggregation rate.
-
-          checksink = (pddpo(i,j,kbo(i,j))/cellsink)**(1./SinkExp)        &
-     &                    *alow1
-          if(checksink.lt.alar1) then
-           alar1max(i,j) = checksink
-           TSFmax(i,j) = (checksink/alow1)**SinkExp
-           TMFmax(i,j) = (checksink/alow1)**FractDim
-           write(io_stdo_bgc,*) 'resetting alar1 to',checksink,'at i =', &
-     &     i,' j = ',j,' k = ', kbo(i,j), ' with dz = ',                 &
-     &     pddpo(i,j,kbo(i,j))  
-          endif
-        ENDIF
-      ENDDO
-      ENDDO
 
 ! for shear aggregation of dust:
       dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
@@ -480,12 +428,16 @@
       dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.                 
      &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
      &         * dustd2 * 1.e-4)*dtb
-      write(io_stdo_bgc,*) 'dust diameter (cm)', dustd1
-      write(io_stdo_bgc,*) 'dust sinking speed (m/d)', dustsink / dtb
+      IF (mnproc.eq.1) THEN
+      write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
+      write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
       if(dustsink.gt.cellsink) then 
-        write(io_stdo_bgc,*) 'dust sinking speed greater than cellsink'
+        write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
         dustsink=cellsink
-        write(io_stdo_bgc,*) 'set dust sinking speed to cellsink'
+        write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
+      endif
+      write(io_stdo_bgc,*)                                             &
+     &'****************************************************************'
       endif
 
 #endif /*AGG*/  
@@ -555,18 +507,20 @@
          ocetra(i,j,k,idet)   =1.e-8 
          ocetra(i,j,k,icalc)  =0. 
          ocetra(i,j,k,iopal)  =1.e-8 
-#ifdef __c_isotopes
-	 ocetra(i,j,k,isco214)=0.75*2.27e-3 !Paddy: oldest water: 1600y --> X0.83 
-#endif
+!#ifdef __c_isotopes
+!	 ocetra(i,j,k,isco214)=0.75*2.27e-3 !Paddy: oldest water: 1600y --> X0.83 
+!#endif
          ocetra(i,j,k,ian2o)  =0. 
          ocetra(i,j,k,idms)   =0. 
          ocetra(i,j,k,ifdust) =0. 
          ocetra(i,j,k,iiron)  =0.6*1.e-9
+         ocetra(i,j,k,iprefo2)=0.
+         ocetra(i,j,k,iprefpo4)=0.
+         ocetra(i,j,k,iprefalk)=0.
          hi(i,j,k)            =1.e-8
-!         hi(i,j,k)            =3.e-9
          co3(i,j,k)           =0.
 #ifdef __c_isotopes
-         ocetra(i,j,k,isco213)=ocetra(i,j,k,isco212)     ! adjusted to reference ratio 13C/12C=1 (*100)!
+         ocetra(i,j,k,isco213)=ocetra(i,j,k,isco212)     ! 12C because 12-C-deviation is wanted
          ocetra(i,j,k,isco214)=ocetra(i,j,k,isco212)
 !         ocetra(i,j,k,isco213)=2.27e-3     ! adjusted to reference ratio 13C/12C=1 (*100)!
 !         ocetra(i,j,k,isco214)=2.27e-3
@@ -597,10 +551,27 @@
       ENDDO
       ENDDO
 
+! Initialise preformed tracers in the mixed layer; note that the 
+! whole field has been initialised to zero above
+      DO k=1,kmle
+      DO j=1,kpje
+      DO i=1,kpie
+
+      IF(omask(i,j) .GT. 0.5) THEN
+         ocetra(i,j,k,iprefo2) =ocetra(i,j,k,ioxygen)
+         ocetra(i,j,k,iprefpo4)=ocetra(i,j,k,iphosph)
+         ocetra(i,j,k,iprefalk)=ocetra(i,j,k,ialkali)
+      ENDIF
+
+      ENDDO
+      ENDDO
+      ENDDO
 
 ! read in dust fields
      CALL GET_DUST(kpie,kpje,kpke,omask,path)
 !
+!read in pi_ph fields
+!     CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
 !  Initial values for sediment pore water tracer.
       DO  k=1,ks
       DO  j=1,kpje
@@ -620,6 +591,8 @@
          sedlay(i,j,k,isssc13)=1.e-8
          sedlay(i,j,k,issso14)=1.e-8
          sedlay(i,j,k,isssc14)=1.e-8
+	 powtra(i,j,k,ipowc13)=1.e-8
+	 powtra(i,j,k,ipowc14)=1.e-8
 #endif
          sedlay(i,j,k,issster)=30.
          sedlay(i,j,k,issssil)=1.e-8
@@ -639,6 +612,8 @@
          sedlay(i,j,k,isssc13)=rmasks
          sedlay(i,j,k,issso14)=rmasks
          sedlay(i,j,k,isssc14)=rmasks
+	 powtra(i,j,k,ipowc13)=rmasks
+	 powtra(i,j,k,ipowc14)=rmasks
 #endif
          sedlay(i,j,k,issssil)=rmasks
          sedlay(i,j,k,issster)=rmasks
@@ -683,8 +658,8 @@
          atm(i,j,iatmo2)  = 196800.
          atm(i,j,iatmn2)  = 802000.
 #ifdef __c_isotopes
-         atm(i,j,iatmc13) = 278.-(278.*0.0065)
-         atm(i,j,iatmc14) = 278.-(278.*0.0065)**2
+         atm(i,j,iatmc13) = 278.
+         atm(i,j,iatmc14) = 278.
 #endif
          atdifv(i,j)=1.
       ENDDO

@@ -15,9 +15,6 @@ c
       integer i,j,k,l,kn,km
       real q
 c
-#if defined(TKE) && defined(TKEIDF)
-#  include "common_tke.h"
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -33,15 +30,12 @@ c
       call xctilr(dp  (1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
       call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
       call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
-#if defined(TKE) && defined(TKEIDF)
-      call xctilr(tke(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
-#  ifdef GLS
-      call xctilr(gls_psi(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
-#  endif
-#endif
 #ifdef TRC
-      do nt=1,ntrc
-        call xctilr(trc(1-nbdy,1-nbdy,1,nt), 1,kk, 2,2, halo_ps)
+      do nt=1,ntr
+#  if defined(TKE) && !defined(TKEIDF)
+        if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
+        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
       enddo
 #endif
       call xctilr(difiso, 1,kk, 2,2, halo_ps)
@@ -59,15 +53,12 @@ c$OMP PARALLEL DO PRIVATE(q)
      .        *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
             usflld(i,j,km)=q*(saln(i-1,j,kn)-saln(i,j,kn))
             utflld(i,j,km)=q*(temp(i-1,j,kn)-temp(i,j,kn))
-#if defined(TKE) && defined(TKEIDF)
-            uflxtke(i,j)=q*(tke(i-1,j,kn)-tke(i,j,kn))
-#  ifdef GLS
-            uflxgls_psi(i,j)=q*(gls_psi(i-1,j,kn)-gls_psi(i,j,kn))
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              uflxtr(nt,i,j)=q*(trc(i-1,j,k,nt)-trc(i,j,k,nt))
+            do nt=1,ntr
+#  if defined(TKE) && !defined(TKEIDF)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
+              uflxtr(nt,i,j)=q*(trc(i-1,j,kn,nt)-trc(i,j,kn,nt))
             enddo
 #endif
             usflx(i,j,km)=usflx(i,j,km)+usflld(i,j,km)
@@ -85,15 +76,12 @@ c$OMP PARALLEL DO PRIVATE(q)
      .        *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
             vsflld(i,j,km)=q*(saln(i,j-1,kn)-saln(i,j,kn))
             vtflld(i,j,km)=q*(temp(i,j-1,kn)-temp(i,j,kn))
-#if defined(TKE) && defined(TKEIDF)
-            vflxtke(i,j)=q*(tke(i,j-1,kn)-tke(i,j,kn))
-#  ifdef GLS
-            vflxgls_psi(i,j)=q*(gls_psi(i,j-1,kn)-gls_psi(i,j,kn))
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              vflxtr(nt,i,j)=q*(trc(i,j-1,k,nt)-trc(i,j,k,nt))
+            do nt=1,ntr
+#  if defined(TKE) && !defined(TKEIDF)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
+              vflxtr(nt,i,j)=q*(trc(i,j-1,kn,nt)-trc(i,j,kn,nt))
             enddo
 #endif
             vsflx(i,j,km)=vsflx(i,j,km)+vsflld(i,j,km)
@@ -113,21 +101,14 @@ c$OMP PARALLEL DO PRIVATE(q)
             temp(i,j,kn)=temp(i,j,kn)
      .                  -q*(utflld(i+1,j,km)-utflld(i,j,km)
      .                     +vtflld(i,j+1,km)-vtflld(i,j,km))
-#if defined(TKE) && defined(TKEIDF)
-            tke(i,j,kn)=tke(i,j,kn)
-     .                 -q*(uflxtke(i+1,j)-uflxtke(i,j)
-     .                    +vflxtke(i,j+1)-vflxtke(i,j))
-#  ifdef GLS
-            gls_psi(i,j,kn)=gls_psi(i,j,kn)
-     .                     -q*(uflxgls_psi(i+1,j)-uflxgls_psi(i,j)
-     .                        +vflxgls_psi(i,j+1)-vflxgls_psi(i,j))
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=trc(i,j,k,nt)
-     .                     -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
-     .                        +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
+            do nt=1,ntr
+#  if defined(TKE) && !defined(TKEIDF)
+              if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
+              trc(i,j,kn,nt)=trc(i,j,kn,nt)
+     .                      -q*(uflxtr(nt,i+1,j)-uflxtr(nt,i,j)
+     .                         +vflxtr(nt,i,j+1)-vflxtr(nt,i,j))
             enddo
 #endif
             sigma(i,j,kn)=sig(temp(i,j,kn),saln(i,j,kn))
@@ -144,15 +125,9 @@ c
         endif
         call chksummsk(temp,ip,2*kk,'temp')
         call chksummsk(saln,ip,2*kk,'saln')
-#if defined(TKE) && defined(TKEIDF)
-        call chksummsk(tke,ip,2*kk,'tke')
-#  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
-#  endif
-#endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

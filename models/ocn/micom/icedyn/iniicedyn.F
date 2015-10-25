@@ -1,12 +1,13 @@
-      subroutine iniicedyn(scpx,scpy,corio)
+      subroutine iniicedyn(scpx,scpy,corio,expcnf)
 c
-      use mod_xc, only: nbdy,idm,jdm,itdm,jtdm,ip,mnproc,ii,jj,xcmaxr,
+      use mod_xc, only: nbdy,idm,jdm,itdm,jtdm,ip,mnproc,ii,jj,xcmax,
      .                  xchalt,xcaget 
 c
       implicit none
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  scpx,scpy,corio
+      character*(*) expcnf
 c
 #include "param_icedyn.h"
 #include "common_icedyn.h"
@@ -56,8 +57,8 @@ c$OMP PARALLEL DO REDUCTION(max:dx,dy)
       dx=max(dx,scpx(i,j))
   101 dy=max(dy,scpy(i,j))
 c$OMP END PARALLEL DO
-      call xcmaxr(dx)
-      call xcmaxr(dy)
+      call xcmax(dx)
+      call xcmax(dy)
 
 c----------------------------------------------------------------------
 c set coordinate mapping factors
@@ -221,19 +222,25 @@ c   pstar=0.   ! Arctic Test
 c..   pstar=25000.   ! Arctic
 
 
+        if (expcnf.eq.'ben02syn') then
 c$OMP PARALLEL DO
-        do j=0,M
-          do i=0,L
-#if defined(SYN) || defined(BCM)
-            pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*20000.
-     .                    +(1.-sign(1.,f(i,j)))*20000.)
-#else
-            pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*7500.
-     .                    +(1.-sign(1.,f(i,j)))*7500.)
-#endif
+          do j=0,M
+            do i=0,L
+              pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*20000.
+     .                      +(1.-sign(1.,f(i,j)))*20000.)
+            enddo
           enddo
-        enddo
 c$OMP END PARALLEL DO
+        else
+c$OMP PARALLEL DO
+          do j=0,M
+            do i=0,L
+              pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*7500.
+     .                      +(1.-sign(1.,f(i,j)))*7500.)
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        endif
 
         cstar=20.
 c-----------------------------------------------------------------------

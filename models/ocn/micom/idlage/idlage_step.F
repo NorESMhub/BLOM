@@ -1,4 +1,4 @@
-      subroutine idlage_step
+      subroutine idlage_step(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
 c --- update ideal age tracer
@@ -8,12 +8,14 @@ c
 c
       implicit none
 c
+      integer m,n,mm,nn,k1m,k1n
+c
 #include "common_blocks.h"
 #include "param_trc.h"
 #include "common_trc.h"
 #include "common_clndr.h"
 c
-      integer i,j,k,l
+      integer i,j,k,l,kn
       real q
 c
 c --- set ideal age to zero in the surface layer and increment the age
@@ -22,7 +24,7 @@ c$OMP PARALLEL DO
       do j=1-nbdy,jj+nbdy
         do l=1,isp(j)
         do i=ifp(j,l),ilp(j,l)
-          trc(i,j,1,itriag)=0.
+          trc(i,j,k1n,itriag)=0.
         enddo
         enddo
       enddo
@@ -31,9 +33,10 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO
       do j=1-nbdy,jj+nbdy
         do k=2,kk
+          kn=k+nn
           do l=1,isp(j)
           do i=ifp(j,l),ilp(j,l)
-            trc(i,j,k,itriag)=trc(i,j,k,itriag)+q
+            trc(i,j,kn,itriag)=trc(i,j,kn,itriag)+q
           enddo
           enddo
         enddo

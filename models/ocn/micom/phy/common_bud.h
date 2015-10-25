@@ -10,7 +10,7 @@ c
 #  endif
 #endif
 #ifdef TRC
-     .,trdp(ncalls)
+     .,trdp(ncalls,2)
 #endif
      .,mass0,sf,tf
 #ifdef TRC

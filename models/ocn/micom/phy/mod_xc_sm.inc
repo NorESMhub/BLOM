@@ -317,10 +317,213 @@ c
       return
       end subroutine xclput
 
-      subroutine xcmaxr_0(a)
+      subroutine xcbcst_i0(ia)
       implicit none
 c
-      real, intent(inout) :: a
+      integer, intent(inout) :: ia
+c
+c**********
+c*
+c  1) broadcast integer scalar from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target variable
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_i0
+
+      subroutine xcbcst_i1(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia(:)
+c
+c**********
+c*
+c  1) broadcast integer array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ia              integer        in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_i1
+
+      subroutine xcbcst_r0(ra)
+      implicit none
+c
+      real, intent(inout) :: ra
+c
+c**********
+c*
+c  1) broadcast real scalar from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target variable
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_r0
+
+      subroutine xcbcst_r1(ra)
+      implicit none
+c
+      real, intent(inout) :: ra(:)
+c
+c**********
+c*
+c  1) broadcast real array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_r1
+
+      subroutine xcbcst_l0(la)
+      implicit none
+c
+      logical, intent(inout) :: la
+c
+c**********
+c*
+c  1) broadcast logical from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    la              logical        in/out    target variable
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_l0
+
+      subroutine xcbcst_l1(la)
+      implicit none
+c
+      logical, intent(inout) :: la(:)
+c
+c**********
+c*
+c  1) broadcast logical array from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    la              logical        in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_l1
+
+      subroutine xcbcst_c(ca)
+      implicit none
+c
+      character*(*), intent(inout) :: ca
+c
+c**********
+c*
+c  1) broadcast character string from tile mnproc = 1 to all tiles
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ca              character      in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 8)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 8)
+#endif
+      return
+      end subroutine xcbcst_c
+
+      subroutine xcmax_i0(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia
 c
 c**********
 c*
@@ -329,27 +532,27 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target variable
+c    ia              integer        in/out    target variable
 c*
 c**********
 c
 #if defined(TIMER)
 c
-      call xctmr0(10)
+      call xctmr0( 9)
 #endif
 c
 c     single node version - do nothing.
 #if defined(TIMER)
 c
-      call xctmr1(10)
+      call xctmr1( 9)
 #endif
       return
-      end subroutine xcmaxr_0
+      end subroutine xcmax_i0
 
-      subroutine xcmaxr_1(a)
+      subroutine xcmax_i1(ia)
       implicit none
 c
-      real, intent(inout) :: a(:)
+      integer, intent(inout) :: ia(:)
 c
 c**********
 c*
@@ -358,27 +561,85 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target array
+c    ia              integer        in/out    target array
 c*
 c**********
 c
 #if defined(TIMER)
 c
-      call xctmr0(10)
+      call xctmr0( 9)
 #endif
 c
 c     single node version - do nothing.
 #if defined(TIMER)
 c
-      call xctmr1(10)
+      call xctmr1( 9)
 #endif
       return
-      end subroutine xcmaxr_1
+      end subroutine xcmax_i1
 
-      subroutine xcminr_0(a)
+      subroutine xcmax_r0(ra)
       implicit none
 c
-      real, intent(inout) :: a
+      real, intent(inout) :: ra
+c
+c**********
+c*
+c  1) replace scalar a with its element-wise maximum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target variable
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 9)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 9)
+#endif
+      return
+      end subroutine xcmax_r0
+
+      subroutine xcmax_r1(ra)
+      implicit none
+c
+      real, intent(inout) :: ra(:)
+c
+c**********
+c*
+c  1) replace array a with its element-wise maximum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0( 9)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1( 9)
+#endif
+      return
+      end subroutine xcmax_r1
+
+      subroutine xcmin_i0(ia)
+      implicit none
+c
+      integer, intent(inout) :: ia
 c
 c**********
 c*
@@ -387,8 +648,7 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target variable
-c    n               integer        input     dimension of a (must be 1)
+c    ia              integer        in/out    target variable
 c*
 c**********
 c
@@ -403,12 +663,12 @@ c
       call xctmr1(10)
 #endif
       return
-      end subroutine xcminr_0
+      end subroutine xcmin_i0
 
-      subroutine xcminr_1(a)
+      subroutine xcmin_i1(ia)
       implicit none
 c
-      real, intent(inout) :: a(:)
+      integer, intent(inout) :: ia(:)
 c
 c**********
 c*
@@ -417,7 +677,7 @@ c
 c  2) parameters:
 c       name            type         usage            description
 c    ----------      ----------     -------  ----------------------------
-c    a               real           in/out    target array
+c    ia              integer        in/out    target array
 c*
 c**********
 c
@@ -432,7 +692,65 @@ c
       call xctmr1(10)
 #endif
       return
-      end subroutine xcminr_1
+      end subroutine xcmin_i1
+
+      subroutine xcmin_r0(ra)
+      implicit none
+c
+      real, intent(inout) :: ra
+c
+c**********
+c*
+c  1) replace scalar a with its element-wise minimum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target variable
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0(10)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1(10)
+#endif
+      return
+      end subroutine xcmin_r0
+
+      subroutine xcmin_r1(ra)
+      implicit none
+c
+      real, intent(inout) :: ra(:)
+c
+c**********
+c*
+c  1) replace array a with its element-wise minimum over all tiles.
+c
+c  2) parameters:
+c       name            type         usage            description
+c    ----------      ----------     -------  ----------------------------
+c    ra              real           in/out    target array
+c*
+c**********
+c
+#if defined(TIMER)
+c
+      call xctmr0(10)
+#endif
+c
+c     single node version - do nothing.
+#if defined(TIMER)
+c
+      call xctmr1(10)
+#endif
+      return
+      end subroutine xcmin_r1
 
       subroutine xcspmd
       implicit none
@@ -500,10 +818,10 @@ c
       call xctmrn( 3,'xclget')
       call xctmrn( 4,'xcXput')
       call xctmrn( 5,'xcsum ')
-      call xctmrn( 6,'xcrang')
-      call xctmrn(10,'xcmaxr')
+      call xctmrn( 8,'xcbcst')
+      call xctmrn( 9,'xcmax ')
+      call xctmrn(10,'xcmin ')
       call xctmrn(12,'xctilr')
-*     call xctmrn(13,'xcshft')
 #endif
       return
       end subroutine xcspmd

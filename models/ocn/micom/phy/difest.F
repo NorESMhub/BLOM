@@ -16,7 +16,7 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_ice.h"
+#include "common_seaice.h"
 #include "common_forc.h"
 #include "common_geo.h"
 c
@@ -101,7 +101,7 @@ c
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
      .  du2,drho,bvfsq,bvf,rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,dfddsu,dfddsl
+     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,dfints,egrup,dfddsu,dfddsl
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mdv2
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -111,13 +111,15 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,egr,rhisc,els,nus,nub,nut,nuls,tdmf,ust,mols,h,
-     .     sg,zeta,phis,ws
+      real q,plo,tlo,slo,egr,rhisc,els,egrlo,nus,nub,nut,nuls,tdmf,ust,
+     .     mols,h,sg,zeta,phis,ws
 c
       real rho,sig
       external rho,sig
 c
-#ifdef TKE
+#if defined(TRC) && defined(TKE)
+#  include "param_trc.h"
+#  include "common_trc.h"
 #  include "param_tke.h"
 #  include "common_tke.h"
       real gls_c3,tke_prod,tke_buoy,tke_epsilon,gls_prod,gls_buoy,
@@ -165,9 +167,12 @@ c
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
-      do j=1,jj
+      do j=0,jj+1
+        do i=0,ii+1
+          kmax(i,j)=0
+        enddo
         do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
           kmax(i,j)=1
           do k=3,kk
             if (dp(i,j,k).gt.dpbmin) kmax(i,j)=k
@@ -426,7 +431,7 @@ c --- ------- Local gradient Richardson number
 #ifdef DIAG
               tmp3d_2(i,j,k)=rig(i,k)
 #endif
-#ifdef TKE
+#if defined(TRC) && defined(TKE)
               if (dp(i,j,kn).gt.dpbmin) then
                 Buoy(i,j,k)=-difdia(i,j,k)*bvfsq(i,k)
                 h=max(onem,dp(i,j,kn))*alpha0/g
@@ -498,52 +503,148 @@ c
 c
 c --- --- Type 2: Diffusivities are parameterized according to Eden and
 c --- --- Greatbatch (2008).
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            difint(i,j,1)=egmndf
-            dfints(i)=0.
-            dps(i)=0.
-          enddo
-          enddo
-          do k=2,kk
-            kn=k+nn
+c
+          if     (edritp.eq.'shear') then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
-     .            kmax(i,j)-kfil(i,j).ge.1) then
+              difint(i,j,1)=egmndf
+              dfints(i)=0.
+              dps(i)=0.
+            enddo
+            enddo
+            do k=2,kk
+              kn=k+nn
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
+     .              kmax(i,j)-kfil(i,j).ge.1) then
 c
-c --- --------- Eady growth rate.
-                egr=afeql(i)/sqrt(rig(i,k)+eggam)
+c --- ----------- Eady growth rate.
+                  egr=afeql(i)/sqrt(rig(i,k)+eggam)
 c
-c --- --------- Rhines scale.
-                rhisc=egr/max(1.e-24,betafp(i,j))
+c --- ----------- Rhines scale.
+                  rhisc=egr/max(1.e-24,betafp(i,j))
 c
-c --- --------- Eddy length scale.
-                els=min(bcrrd(i),rhisc)
+c --- ----------- Eddy length scale.
+                  els=min(bcrrd(i),rhisc)
 c
-c --- --------- Layer interface diffusivity.
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,egc*egr*els*els*difwgt(i,j)))
+c --- ----------- Layer interface diffusivity.
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,egc*egr*els*els*difwgt(i,j)))
 #ifdef DIAG
-                tmp3d_3(i,j,k)=egr
-                tmp3d_4(i,j,k)=rhisc
-                tmp3d_5(i,j,k)=els
+                  tmp3d_3(i,j,k)=egr
+                  tmp3d_4(i,j,k)=rhisc
+                  tmp3d_5(i,j,k)=els
 #endif
 c
-c --- --------- Accumulate diffusivities in a region below the first
-c --- --------- physical layer
-                q=max(0.,
-     .                min(p(i,j,kfil(i,j))+dpdiav,p(i,j,k+1))-p(i,j,k))
-                dps(i)=dps(i)+q
-                dfints(i)=dfints(i)+difint(i,j,k)*q
+c --- ----------- Accumulate diffusivities in a region below the first
+c --- ----------- physical layer
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                  dps(i)=dps(i)+q
+                  dfints(i)=dfints(i)+difint(i,j,k)*q
 c
-              else
-                difint(i,j,k)=difint(i,j,k-1)
+                else
+                  difint(i,j,k)=difint(i,j,k-1)
+                endif
+              enddo
+              enddo
+            enddo
+          elseif (edritp.eq.'large scale') then
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              difint(i,j,1)=egmndf
+              dfints(i)=0.
+              dps(i)=0.
+              if (kmax(i,j)-kfil(i,j).ge.1) then
+                k=kfil(i,j)
+                if     (kmax(i-1,j).ge.k.and.kmax(i+1,j).ge.k) then
+                  q=.25*(nnslpx(i,j,k)+nnslpx(i+1,j,k))**2
+                elseif (kmax(i-1,j).ge.k) then
+                  q=nnslpx(i,j,k)**2
+                elseif (kmax(i+1,j).ge.k) then
+                  q=nnslpx(i+1,j,k)**2
+                else
+                  q=0.
+                endif
+                if     (kmax(i,j-1).ge.k.and.kmax(i,j+1).ge.k) then
+                  q=q+.25*(nnslpy(i,j,k)+nnslpy(i,j+1,k))**2
+                elseif (kmax(i,j-1).ge.k) then
+                  q=q+nnslpy(i,j,k)**2
+                elseif (kmax(i,j+1).ge.k) then
+                  q=q+nnslpy(i,j+1,k)**2
+                endif
+                egrup(i)=sqrt(q)
               endif
             enddo
             enddo
-          enddo
+            do k=2,kk
+              kn=k+nn
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                if (k.ge.kfil(i,j).and.k.lt.kmax(i,j).and.
+     .              kmax(i,j)-kfil(i,j).ge.1) then
+c
+c --- ----------- Eady growth rate.
+                  if     (kmax(i-1,j).gt.k.and.kmax(i+1,j).gt.k) then
+                    q=.25*(nnslpx(i,j,k+1)+nnslpx(i+1,j,k+1))**2
+                  elseif (kmax(i-1,j).gt.k) then
+                    q=nnslpx(i,j,k+1)**2
+                  elseif (kmax(i+1,j).gt.k) then
+                    q=nnslpx(i+1,j,k+1)**2
+                  else
+                    q=0.
+                  endif
+                  if     (kmax(i,j-1).gt.k.and.kmax(i,j+1).gt.k) then
+                    q=q+.25*(nnslpy(i,j,k+1)+nnslpy(i,j+1,k+1))**2
+                  elseif (kmax(i,j-1).gt.k) then
+                    q=q+nnslpy(i,j,k+1)**2
+                  elseif (kmax(i,j+1).gt.k) then
+                    q=q+nnslpy(i,j+1,k+1)**2
+                  endif
+                  egrlo=sqrt(q)
+                  egr=.5*(egrup(i)+egrlo)
+                  egrup(i)=egrlo
+c
+c --- ----------- Rhines scale.
+                  rhisc=egr/max(1.e-24,betafp(i,j))
+c
+c --- ----------- Eddy length scale.
+                  els=min(bcrrd(i),rhisc)
+c
+c --- ----------- Layer interface diffusivity.
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,egc*egr*els*els*difwgt(i,j)))
+#ifdef DIAG
+                  tmp3d_3(i,j,k)=egr
+                  tmp3d_4(i,j,k)=rhisc
+                  tmp3d_5(i,j,k)=els
+#endif
+c
+c --- ----------- Accumulate diffusivities in a region below the first
+c --- ----------- physical layer
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                  dps(i)=dps(i)+q
+                  dfints(i)=dfints(i)+difint(i,j,k)*q
+c
+                else
+                  difint(i,j,k)=difint(i,j,k-1)
+                endif
+              enddo
+              enddo
+            enddo
+          else
+            if (mnproc.eq.1) then
+              write (lp,'(3a)') ' edritp=',trim(edritp),
+     .                          ' is unsupported!'
+            endif
+            call xcstop('(difest)')
+                   stop '(difest)'
+          endif
+c
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if (dps(i).gt.0.) then
@@ -610,7 +711,7 @@ c --- ------- Latitude dependency of background diapycnal mixing
 c
               nub=max(nubmin,nub)
 c
-#ifndef TKE
+#if !defined(TRC) || !defined(TKE)
 c --- ------- Shear driven diapycnal mixing.
               if (rig(i,k).lt.ri0) then
 c
@@ -637,74 +738,80 @@ c --- --------- gradient richardson number.
                 gls_c3=gls_c3plus
               endif
 #  ifndef GLS
-              gls_psi(i,j,kn)=max((gls_c1*Prod(i,j,k)
-     .                            +gls_c3*Buoy(i,j,k))/gls_c2,
-     .                            gls_psi_min)
+              trc(i,j,kn,itrgls)=max((gls_c1*Prod(i,j,k)
+     .                               +gls_c3*Buoy(i,j,k))/gls_c2,
+     .                               gls_psi_min)
 #  endif              
-              tke_epsilon=cmu_fac2*tke(i,j,kn)**(1.5+gls_m/gls_n)
-     .                    *gls_psi(i,j,kn)**(-1./gls_n)
+              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5+gls_m/gls_n)
+     .                    *trc(i,j,kn,itrgls)**(-1./gls_n)
               tke_prod=Prod(i,j,k)
               tke_buoy=Buoy(i,j,k)
-              tke_Q=tke_epsilon/tke(i,j,kn)
+              tke_Q=tke_epsilon/trc(i,j,kn,itrtke)
 #  ifdef GLS
-              gls_prod=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c1*Prod(i,j,k)
-              gls_buoy=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c3*Buoy(i,j,k)
-              gls_diss=(gls_psi(i,j,kn)/tke(i,j,kn))*gls_c2*tke_epsilon
-              gls_Q=gls_diss/gls_psi(i,j,kn)
+              gls_prod=(trc(i,j,kn,itrgls)/trc(i,j,kn,itrtke))
+     .                 *gls_c1*Prod(i,j,k)
+              gls_buoy=(trc(i,j,kn,itrgls)/trc(i,j,kn,itrtke))
+     .                 *gls_c3*Buoy(i,j,k)
+              gls_diss=(trc(i,j,kn,itrgls)/trc(i,j,kn,itrtke))
+     .                 *gls_c2*tke_epsilon
+              gls_Q=gls_diss/trc(i,j,kn,itrgls)
 #  endif
 #  ifdef GLS
               if (gls_prod+gls_buoy.ge.0.) then
-                gls_psi(i,j,kn)=
-     .            (gls_psi(i,j,kn)+delt1*(gls_prod+gls_buoy))
+                trc(i,j,kn,itrgls)=
+     .            (trc(i,j,kn,itrgls)+delt1*(gls_prod+gls_buoy))
      .            /(1.+delt1*gls_Q)
               else
-                gls_psi(i,j,kn)=
-     .            (gls_psi(i,j,kn)+delt1*gls_prod)
-     .            /(1.+delt1*(gls_Q-(gls_buoy/gls_psi(i,j,kn))))
+                trc(i,j,kn,itrgls)=
+     .            (trc(i,j,kn,itrgls)+delt1*gls_prod)
+     .            /(1.+delt1*(gls_Q-(gls_buoy/trc(i,j,kn,itrgls))))
               endif
-              gls_psi(i,j,kn)=max(gls_psi(i,j,kn),gls_psi_min)
+              trc(i,j,kn,itrgls)=max(trc(i,j,kn,itrgls),gls_psi_min)
 #  endif
               q=.56**(.5*gls_n)*gls_cmu0**gls_p
-     .          *tke(i,j,kn)**(gls_m+.5*gls_n)
+     .          *trc(i,j,kn,itrtke)**(gls_m+.5*gls_n)
      .          *bvf(i,k)**(-gls_n)
               if (gls_n.lt.0.) then
-                gls_psi(i,j,kn)=max(gls_psi(i,j,kn),q)
+                trc(i,j,kn,itrgls)=max(trc(i,j,kn,itrgls),q)
               else
-                gls_psi(i,j,kn)=min(gls_psi(i,j,kn),q)
+                trc(i,j,kn,itrgls)=min(trc(i,j,kn,itrgls),q)
               endif
 c
-              tke_epsilon=cmu_fac2*tke(i,j,kn)**(1.5+gls_m/gls_n)
-     .                    *gls_psi(i,j,kn)**(-1./gls_n)
-              tke_Q=tke_epsilon/tke(i,j,kn)
+              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5+gls_m/gls_n)
+     .                    *trc(i,j,kn,itrgls)**(-1./gls_n)
+              tke_Q=tke_epsilon/trc(i,j,kn,itrtke)
 c
               if (tke_prod+tke_buoy.ge.0.) then
-                tke(i,j,kn)=(tke(i,j,kn)+delt1*(tke_prod+tke_buoy))
-     .                      /(1.+delt1*tke_Q)
+                trc(i,j,kn,itrtke)=
+     .            (trc(i,j,kn,itrtke)+delt1*(tke_prod+tke_buoy))
+     .            /(1.+delt1*tke_Q)
               else
-                tke(i,j,kn)=(tke(i,j,kn)+delt1*tke_prod)
-     .                      /(1.+delt1*(tke_Q-(tke_buoy/tke(i,j,kn))))
-                tke(i,j,kn)=max(tke(i,j,kn),tke_min)
+                trc(i,j,kn,itrtke)=
+     .            (trc(i,j,kn,itrtke)+delt1*tke_prod)
+     .            /(1.+delt1*(tke_Q-(tke_buoy/trc(i,j,kn,itrtke))))
+                trc(i,j,kn,itrtke)=max(trc(i,j,kn,itrtke),tke_min)
               endif
 c
 c --- ------- Bottom Boundary Conditions
               if (k.eq.kmax(i,j)) then
                 ust=max(ustarb(i,j),ustmin)
-                tke(i,j,kn)=max(tke_min,(ust/gls_cmu0)**2)
+                trc(i,j,kn,itrtke)=max(tke_min,(ust/gls_cmu0)**2)
 #  ifdef GLS
-                gls_psi(i,j,kn)=max(gls_psi_min,
-     .                              (gls_cmu0**(gls_p-2.*gls_m))
-     .                              *(ust**(2.*gls_m))
-     .                              *(kappa*1.e2)**gls_n)
+                trc(i,j,kn,itrgls)=max(gls_psi_min,
+     .                                 (gls_cmu0**(gls_p-2.*gls_m))
+     .                                 *(ust**(2.*gls_m))
+     .                                 *(kappa*1.e2)**gls_n)
 #  endif
               endif
 c
               Ls_unlmt=max(Ls_unlmt_min,
-     .                     cmu_fac1*gls_psi(i,j,kn)**(gls_exp1)
-     .                     *tke(i,j,kn)**(-tke_exp1))
+     .                     cmu_fac1*trc(i,j,kn,itrgls)**(gls_exp1)
+     .                     *trc(i,j,kn,itrtke)**(-tke_exp1))
 
               if (bvfsq(i,k).gt.0.) then  ! stable stratification
                 Ls_lmt=min(Ls_unlmt,
-     .                     sqrt(.56*tke(i,j,kn)/max(bvfsq(i,k),1.e-10)))
+     .                     sqrt(.56*trc(i,j,kn,itrtke)
+     .                          /max(bvfsq(i,k),1.e-10)))
 c               Ls_lmt=Ls_unlmt
               else                        ! unstable stratification
                 Ls_lmt=Ls_unlmt
@@ -712,7 +819,8 @@ c               Ls_lmt=Ls_unlmt
 c
 c --- ------- Compute nondimensional stability functions for tracers
 c --- ------- (Sh) and momentum (Sm). Canuto-A
-              Gh=min(gls_Gh0,-bvfsq(i,k)*Ls_lmt*Ls_lmt/(2.*tke(i,j,kn)))
+              Gh=min(gls_Gh0,-bvfsq(i,k)*Ls_lmt*Ls_lmt
+     .                        /(2.*trc(i,j,kn,itrtke)))
               Gh=min(Gh,(Gh-(Gh-gls_Ghcri)**2)
      .                  /(Gh+gls_Gh0-2.*gls_Ghcri))
               Gh=max(Gh,gls_Ghmin)
@@ -720,7 +828,8 @@ c
 c --- ------- Compute shear number.
               Gm=(gls_b0/gls_fac6-gls_b1*Gh+gls_b3*gls_fac6*(Gh**2))
      .           /(gls_b2-gls_b4*gls_fac6*Gh)
-              Gm=min(Gm,Shear2(i,j,k)*Ls_lmt*Ls_lmt/(2.*tke(i,j,kn)))
+              Gm=min(Gm,Shear2(i,j,k)*Ls_lmt*Ls_lmt
+     .                  /(2.*trc(i,j,kn,itrtke)))
 c
 c --- ------- Compute stability functions
               cff=gls_b0-gls_b1*gls_fac6*Gh+gls_b2*gls_fac6*Gm
@@ -735,16 +844,19 @@ c --- ------- Relate Canuto stability to MICOM notation
               Sm=Sm*cmu_fac3/gls_cmu0**3
               Sh=Sh*cmu_fac3/gls_cmu0**3
 c
-              ql=sqrt2*.5*(Ls_lmt+L_scale(i,j,k))*sqrt(tke(i,j,kn))
+              ql=sqrt2*.5*(Ls_lmt+L_scale(i,j,k))
+     .           *sqrt(trc(i,j,kn,itrtke))
 c
               nus=Sh*ql
-c             nus=Sh*(tke(i,j,k)*tke(i,j,k))/gls_psi(i,j,k)
+c             nus=Sh*(trc(i,j,k,itrtke)*trc(i,j,k,itrtke))
+c    .            /trc(i,j,k,itrgls)
               L_scale(i,j,k)=max(Ls_lmt,Ls_unlmt_min)
 #  ifdef GLS
 c
 c --- ------- Recompute gls based on limited length scale
-              gls_psi(i,j,kn)=max(gls_cmu0**gls_p*tke(i,j,kn)**gls_m
-     .                            *L_scale(i,j,k)**gls_n,gls_psi_min)
+              trc(i,j,kn,itrgls)=
+     .          max(gls_cmu0**gls_p*trc(i,j,kn,itrtke)**gls_m
+     .              *L_scale(i,j,k)**gls_n,gls_psi_min)
 #  endif
 #endif
 c
@@ -790,14 +902,14 @@ c --- ------- physical layer
 c
             else
               difdia(i,j,k)=difdia(i,j,k-1)
-#ifdef TKE
-c             tke(i,j,kn)=tke_min
+#if defined(TRC) && defined(TKE)
+c             trc(i,j,kn,itrtke)=tke_min
 c             L_scale(i,j,k)=Ls_unlmt_min
-              tke(i,j,kn)=tke(i,j,kn-1)
+              trc(i,j,kn,itrtke)=trc(i,j,kn-1,itrtke)
               L_scale(i,j,k)=L_scale(i,j,k-1)
 #  ifdef GLS
-c             gls_psi(i,j,kn)=gls_psi_min
-              gls_psi(i,j,kn)=gls_psi(i,j,kn-1)
+c             trc(i,j,kn,itrgls)=gls_psi_min
+              trc(i,j,kn,itrgls)=trc(i,j,kn-1,itrgls)
 #  endif
 #endif
             endif
@@ -872,10 +984,40 @@ c
 c$OMP END PARALLEL DO
 c
 #ifdef DIAG
-      call ncfopn('difest.nc','w','c',1)
+      call ncfopn('difest.nc','w','c',1,iotype)
       call ncdims('x',itdm)
       call ncdims('y',jtdm)
       call ncdims('z',kdm)
+      call ncdefvar('coriop','x y',ndouble,8)
+      call ncdefvar('betafp','x y',ndouble,8)
+      call ncdefvar('kfpla','x y',ndouble,8)
+      call ncdefvar('kfil','x y',ndouble,8)
+      call ncdefvar('bcrrd','x y',ndouble,8)
+      call ncdefvar('afeql','x y',ndouble,8)
+      call ncdefvar('bvfbot','x y',ndouble,8)
+      call ncdefvar('dp','x y z',ndouble,8)
+      call ncdefvar('temp','x y z',ndouble,8)
+      call ncdefvar('saln','x y z',ndouble,8)
+      call ncdefvar('u','x y z',ndouble,8)
+      call ncdefvar('v','x y z',ndouble,8)
+      call ncdefvar('bvfsq','x y z',ndouble,8)
+      call ncdefvar('rig','x y z',ndouble,8)
+      call ncdefvar('egr','x y z',ndouble,8)
+      call ncdefvar('rhisc','x y z',ndouble,8)
+      call ncdefvar('els','x y z',ndouble,8)
+      call ncdefvar('difint','x y z',ndouble,8)
+      call ncdefvar('difdia','x y z',ndouble,8)
+      call ncdefvar('nub','x y z',ndouble,8)
+      call ncdefvar('nus','x y z',ndouble,8)
+      call ncdefvar('nut','x y z',ndouble,8)
+      call ncdefvar('nuls','x y z',ndouble,8)
+#if defined(TRC) && defined(TKE)
+      call ncdefvar('tke','x y z',ndouble,8)
+#    ifdef GLS
+      call ncdefvar('gls_psi','x y z',ndouble,8)
+#    endif
+#  endif
+      call ncedef  
       call ncwrtr('coriop','x y',coriop,ip,1,1.,0.,8)
       call ncwrtr('betafp','x y',betafp,ip,1,1.,0.,8)
       call ncwrtr('kfpla','x y',tmp2d_1,ip,1,1.,0.,8)
@@ -899,10 +1041,11 @@ c
       call ncwrtr('nus','x y z',tmp3d_8,ip,1,1.,0.,8)
       call ncwrtr('nut','x y z',tmp3d_9,ip,1,1.,0.,8)
       call ncwrtr('nuls','x y z',tmp3d_10,ip,1,1.,0.,8)
-#  ifdef TKE
-      call ncwrtr('tke','x y z',tke(1-nbdy,1-nbdy,k1n),ip,1,1.,0.,8)
+#if defined(TRC) && defined(TKE)
+      call ncwrtr('tke','x y z',trc(1-nbdy,1-nbdy,k1n,itrtke),
+     .            ip,1,1.,0.,8)
 #    ifdef GLS
-      call ncwrtr('gls_psi','x y z',gls_psi(1-nbdy,1-nbdy,k1n),
+      call ncwrtr('gls_psi','x y z',trc(1-nbdy,1-nbdy,k1n,itrgls),
      .            ip,1,1.,0.,8)
 #    endif
 #  endif
@@ -918,10 +1061,10 @@ c
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
         call chksummsk(difdia,ip,kk,'difdia')
-#ifdef TKE
-        call chksummsk(tke,ip,2*kk,'tke')
+#if defined(TRC) && defined(TKE)
+        call chksummsk(trc(1-nbdy,1-nbdy,1,itrtke),ip,2*kk,'tke')
 #  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
+        call chksummsk(trc(1-nbdy,1-nbdy,1,itrgls),ip,2*kk,'gls_psi')
 #  endif
 #endif
       endif

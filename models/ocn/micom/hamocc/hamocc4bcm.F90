@@ -1,8 +1,7 @@
-      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kpbe,                         &
+      SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,pglat,                        &
      &    pfswr,psicomo,ptho,psao,ppao,prho,pddpo,pdlxp,pdlyp,ptiestu,   &
      &    ptiestw,pdpio,pfu10,patmco2,pflxco2,kplyear,kplmon,kplday,     &
-     &    kmonlen,kldtmon,kldtday,omask,dummy_tr,ntr,ntrbgc,itrbgc,      &
-     &    days_in_yr)       
+     &    kmonlen,kldtmon,kldtday,omask,days_in_yr,pflxdms)       
 
 !**********************************************************************
 !
@@ -13,7 +12,9 @@
 !     J.Schwinger       *GFI, Bergen*    2013-10-21
 !     - added GNEWS2 option for riverine input of carbon and nutrients
 !     - code cleanup
-!
+!     J.Schwinger       *GFI, Bergen*    2014-05-21
+!     - moved copying of tracer field to ocetra to micom2hamocc 
+!       and hamocc2micom
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
@@ -21,7 +22,7 @@
 !     *INTEGER* *kpie*       - 1st dimension of model grid.
 !     *INTEGER* *kpje*       - 2nd dimension of model grid.
 !     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kpbe*       - nb. of halo rows for tracer field
+!     *REAL*    *pglat*      - latitude og grid cells [deg north].
 !     *REAL*    *pfswr*      - solar radiation [W/m**2].
 !     *REAL*    *psicomo*    - sea ice concentration
 !     *REAL*    *ptho*       - potential temperature [deg C].
@@ -31,16 +32,14 @@
 !     *REAL*    *pddpo*      - size of scalar grid cell (depth) [m].
 !     *REAL*    *pdlxp*      - size of scalar grid cell (longitudinal) [m].
 !     *REAL*    *pdlyp*      - size of scalar grid cell (latitudinal) [m].
+!     *REAL*    *ptiestu*    - 
+!     *REAL*    *ptiestw*    - 
 !     *REAL*    *pdpio*      - inverse size of grid cell (1/depth)[1/m].
+!     *REAL*    *pfu10*      - 
 !     *INTEGER* *kmonlen*    - length of current month in days.
 !     *INTEGER* *kldtmon*    - monthly time stap in OCE.
 !     *INTEGER* *kldtday*    - daily time stap in OCE.
 !     *REAL*    *omask*      - land/ocean mask
-!     *REAL*    *dummy_tr*   - initial/restart tracer field to be passed to the 
-!                              ocean model [mol/kg]
-!     *INTEGER* *ntr*        - number of tracers in tracer field
-!     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
-!     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
 !     *INTEGER* *days_in_yr* - number of days in year
 !
 !**********************************************************************
@@ -62,12 +61,14 @@
 
       implicit none
 
-      INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
+      INTEGER :: kpie,kpje,kpke
+      REAL    :: pglat  (kpie,kpje)
       REAL    :: pfswr  (kpie,kpje)
       REAL    :: psicomo(kpie,kpje)
       REAL    :: pfu10  (kpie,kpje)
       REAL    :: patmco2(kpie,kpje)
       REAL    :: pflxco2(kpie,kpje)
+      REAL    :: pflxdms(kpie,kpje)
       REAL    :: ptho   (kpie,kpje,kpke)
       REAL    :: psao   (kpie,kpje,kpke)
       REAL    :: ppao   (kpie,kpje)
@@ -79,12 +80,13 @@
       REAL    :: ptiestu(kpie,kpje,kpke+1)
       REAL    :: ptiestw(kpie,kpje,kpke+1)
       REAL    :: omask  (kpie,kpje)
-      REAL    :: dummy_tr(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,kpke,ntr)
       INTEGER :: kplyear,kplmon,kplday,kmonlen,kldtmon,kldtday
       INTEGER :: days_in_yr
 
       INTEGER :: i,j,k,l
-      REAL    :: emissions
+      INTEGER :: ind1(kpie,kpje), ind2(kpie,kpje)
+      REAL    :: wghts(kpie,kpje,ddm)
+      REAL    :: emissions      
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'HAMOCC',KLDTDAY,KLDTMON,LDTRUNBGC,NDTDAYBGC
@@ -101,24 +103,6 @@
 ! Increment bgc time step counter of experiment (initialized if IAUFR=0).
 !
       ldtbgc = ldtbgc + 1
-
-
-!--------------------------------------------------------------------
-! pass tracer fields in from ocean model; convert mol/kg -> kmol/m^3
-!
-      ocetra(:,:,:,:)=dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
-
-      do k=1,kpke
-!$OMP PARALLEL DO
-      do j=1,kpje
-      do i=1,kpie
-        if (omask(I,J) .gt. 0.5 ) then
-          ocetra(i,j,k,:)=ocetra(i,j,k,:)*prho(i,j,k)
-        endif
-      enddo
-      enddo
-!$OMP END PARALLEL DO
-      enddo
 
 
 !--------------------------------------------------------------------
@@ -151,7 +135,6 @@
 !--------------------------------------------------------------------
 ! Pass atmospheric co2
 !
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
 #if defined(PROGCO2) || defined(DIAGCO2)
 !$OMP PARALLEL DO
       DO  j=1,kpje
@@ -177,17 +160,14 @@
       ENDDO
 !$OMP END PARALLEL DO
 #endif
-#endif 
 
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
 !
 #ifdef CFC
-      call get_cfc(kplyear,atm_cfc11,atm_cfc12,atm_sf6)
-      IF (mnproc.EQ.1) THEN
-      write(*,*)'Carchm getcfc:',kplyear,atm_cfc11,atm_cfc12,atm_sf6
-      ENDIF
+      call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
+                           atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
 #endif
 
 
@@ -199,7 +179,7 @@
       IF (kldtmon.eq.1.and.kldtmon.eq.1) THEN 
              
          IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*) 'CO2_EMS gerufen bei kldtmon: ',       &
+         WRITE(io_stdo_bgc,*) 'CO2_EMS gerufen bei kldtmon: ',          &
      &                         kplmon,kplday,kmonlen,kldtmon
          ENDIF
       call co2_ems(kplyear,emissions)
@@ -232,7 +212,7 @@
 !---------------------------------------------------------------------
 !     Biogeochemistry
 
-      CALL OCPROD(kpie,kpje,kpke,ptho,pddpo,pdlxp,pdlyp,pdpio,ptiestu, &
+      CALL OCPROD(kpie,kpje,kpke,ptho,pddpo,pdlxp,pdlyp,pdpio,ptiestu,  &
      &            ptiestw,kplmon,omask)
 
 #ifdef PBGC_CK_TIMESTEP   
@@ -278,7 +258,7 @@
 #endif
 
 
-      CALL CARCHM(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,psao,ppao, &
+      CALL CARCHM(kpie,kpje,kpke,pglat,pddpo,pdlxp,pdlyp,psao,ppao,     &
      &            ptho,prho,psicomo,pfu10,ptiestu,omask)
 
 #ifdef PBGC_CK_TIMESTEP   
@@ -295,16 +275,11 @@
       call riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
 #endif
 
-!      
+
 #ifdef DIFFAT     
       CALL SATM_STEP(atmflx,atm)
-      call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
-      call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
-      call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
-#elif defined(CCSMCOUPLED)
-      call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
-#endif
-!
+#endif	 
+
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
@@ -312,6 +287,10 @@
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
+
+!     update preformed tracers
+      CALL PREFTRC(kpie,kpje,omask)
+
 
 !--------------------------------------------------------------------
 !     Sediment module
@@ -326,15 +305,41 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
-      IF(KLDTDAY .EQ. 1) THEN
+!     sediment is shifted once a day (on both time levels!)
+      IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
          IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)                                          &
+         WRITE(io_stdo_bgc,*)                                           &
      &   'Sediment shifting ...'
          ENDIF
 
          CALL SEDSHI(kpie,kpje,omask)
 
       ENDIF
+
+
+!---------------------------------------------------------------------
+!     Accumulate global fields and write output files
+
+!     accumulate preformed tracers (Note: accumulation of all globally 
+!     defined fields should be done here. Should be moved to own subroutine)
+      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
+      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+      IF (SUM(jlvlprefo2+jlvlprefpo4+jlvlprefalk).NE.0) THEN
+       DO k=1,kpke
+       call bgczlv(pddpo,k,ind1,ind2,wghts)
+       call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
+       call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+       call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+       ENDDO
+      ENDIF
+
+!     accumulate atmosphere fields
+      call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
+#ifdef DIFFAT     
+      call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
+      call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
+#endif
 
 !     accumulate sediments
       call accsdm(jpowaic,powtra(1,1,1,ipowaic))
@@ -365,9 +370,6 @@
 #endif	 
 
 
-!---------------------------------------------------------------------
-! write output files
-
       DO l=1,nbgc 
         nacc_bgc(l)=nacc_bgc(l)+1
         if (bgcwrt(l).gt.0.5) then
@@ -381,7 +383,6 @@
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
@@ -389,25 +390,16 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-#endif	 
-
 
 !--------------------------------------------------------------------
-! pass tracer fields out to ocean model; convert kmol/m^3 -> mol/kg
-
-      do k=1,kpke
+! Pass dms flux. Convert unit from kmol/m^2 to kmol/m^2/s.
 !$OMP PARALLEL DO
-      do j=1,kpje
-      do i=1,kpie
-        if (omask(i,j) .gt. 0.5 ) then
-          ocetra(i,j,k,:)=ocetra(i,j,k,:)/prho(i,j,k)
-        endif
-      enddo
-      enddo
+      DO  j=1,kpje
+      DO  i=1,kpie
+        pflxdms(i,j)=atmflx(i,j,iatmdms)/dtbgc
+      ENDDO
+      ENDDO
 !$OMP END PARALLEL DO
-      enddo
-
-      dummy_tr(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=ocetra(:,:,:,:)
 
 !--------------------------------------------------------------------
       RETURN

@@ -18,7 +18,8 @@ c$OMP PARALLEL DO
         do k=1,kk
           do l=1,isp(j)
           do i=ifp(j,l),ilp(j,l)
-            trc(i,j,k,itriag)=0.
+            trc(i,j,k   ,itriag)=0.
+            trc(i,j,k+kk,itriag)=0.
           enddo
           enddo
         enddo

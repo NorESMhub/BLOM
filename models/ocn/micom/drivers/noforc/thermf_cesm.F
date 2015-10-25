@@ -1,6 +1,6 @@
-      subroutine thermf_ccsm(m,n,mm,nn,k1m,k1n)
+      subroutine thermf_cesm(m,n,mm,nn,k1m,k1n)
 c
-c --- NERSC version of thermf. To be used when coupled to CCSM
+c --- NERSC version of thermf. To be used when coupled to CESM
 c
       use mod_xc
 c

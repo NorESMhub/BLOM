@@ -8,9 +8,7 @@ c
 c
 #include "common_blocks.h"
 #include "common_forc.h"
-#include "common_ice.h"
-#include "param_atm.h"
-#include "common_atm.h"
+#include "common_seaice.h"
 #include "common_clndr.h"
 c
 c --- ------------------------------------------------------------------
@@ -26,7 +24,7 @@ c
         if (mnproc.eq.1) then
           call seaice
         endif
-        call ice2mod(ustari,tauxice,tauyice,uicem,vicem,hicem,ficem,itp)
+        call ice2mod(ustari,tauxice,tauyice,uicem,vicem,hicem,ficem)
         call xctilr(uicem, 1,1, 2,2, halo_uv)
         call xctilr(vicem, 1,1, 2,2, halo_vv)
         if (csdiag) then

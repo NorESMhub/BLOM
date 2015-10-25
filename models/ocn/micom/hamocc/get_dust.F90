@@ -43,7 +43,7 @@
 !     none.
 !
 !**********************************************************************
-
+      USE netcdf
       USE mo_carbch
       USE mod_xc 
 
@@ -53,7 +53,6 @@
       character(len=*):: path
 
 ! Local variables
-      INCLUDE 'netcdf.inc'
       INTEGER         :: i,j,k,l,ncid,ncstat,ncvarid
       REAL            :: dustin(kpie,kpje,12)
 
@@ -61,21 +60,22 @@
 ! Open netCDF data file
 !      
        IF(mnproc==1) THEN
-        ncstat = NF_OPEN(trim(path)//'INPDUST_mhw.nc',NF_NOWRITE, ncid)
-        IF (ncstat.NE.NF_NOERR ) THEN
+       ncstat = NF90_OPEN(trim(path)//'INPDUST_mhw.nc', &
+     &           NF90_NOWRITE, ncid)
+        IF (ncstat.NE.NF90_NOERR ) THEN
          CALL xchalt('(get_dust: Problem with netCDF1)')
                 stop '(get_dust: Problem with netCDF1)'
         END IF
        END IF
 !
 ! Read  data
-       call read_netcdf_var(ncid,'DUST',dustin(1,1,1),12,0)
+       call read_netcdf_var(ncid,'DUST',dustin(1,1,1),12,0,0)
 
 !
 ! Close file
        IF(mnproc==1) THEN
-        ncstat = NF_CLOSE(ncid)
-        IF ( ncstat .NE. NF_NOERR ) THEN
+        ncstat = NF90_CLOSE(ncid)
+        IF ( ncstat .NE. NF90_NOERR ) THEN
          CALL xchalt('(get_dust: Problem with netCDF200)')
                 stop '(get_dust: Problem with netCDF200)'
         END IF

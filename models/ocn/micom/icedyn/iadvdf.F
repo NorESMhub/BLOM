@@ -5,11 +5,19 @@ c --- Do horizontal advection and diffusion of sea ice scalar fields
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_thdysi, only: fice_max
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_ice.h"
+#include "common_seaice.h"
+c
+c --- Parameters:
+c ---   cdiff  - horizontal diffusivity [m2 s-1]
+c ---   cdfac  - cdiff is multiplied by cdfac in channels of one grid
+c ---            point width []
+      real cdiff,cdfac
+      parameter (cdiff=1.e3,cdfac=1.)
 c
       integer i,j,l
 c

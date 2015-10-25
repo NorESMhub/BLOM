@@ -31,8 +31,8 @@ c --- maximum absolute values for SST/SSS difference in relaxation
       real trxlim,srxlim
 c
 c --- interpolation parameters for monthly climatological fields
-      real x
-      integer l1,l2,l3,l4,l5
+      real xmi
+      integer l1mi,l2mi,l3mi,l4mi,l5mi
 c
 c --- flags concerning diagnosed heat and salt fluxes
       logical aptflx,apsflx,ditflx,disflx
@@ -40,10 +40,10 @@ c
 c --- flags for balancing the SSS relaxation
       logical srxbal
 c
-c --- flag for smoothing of CCSM forcing fields
+c --- flag for smoothing of CESM forcing fields
       logical smtfrc
 c
-c --- flag for sending precipitation/runoff factor to CCSM coupler
+c --- flag for sending precipitation/runoff factor to CESM coupler
       logical sprfac
 c
 c --- Source for monthly SSS climatological field
@@ -51,7 +51,7 @@ c --- Source for monthly SSS climatological field
 c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
      .              nflxdi,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
-     .              x,l1,l2,l3,l4,l5,
+     .              xmi,l1mi,l2mi,l3mi,l4mi,l5mi,
      .              aptflx,apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,
      .              srxsrc
 c
@@ -73,7 +73,6 @@ c --- various surface state and flux fields
      .  ztx,           ! u component of wind stress
      .  mty,           ! v component of wind stress
      .  ustarw,        ! friction velocity for open water
-     .  tsi,           ! averaged snow/ice surface temperature
      .  slp,           ! sea level pressure
      .  abswnd,        ! wind speed at measurement height -zu-
      .  albw,          ! daily mean open water albedo
@@ -81,15 +80,7 @@ c --- various surface state and flux fields
      .  mltpot,        ! melting potential
      .  atmco2,        ! atmospheric co2 concentration
      .  flxco2,        ! air-sea co2 flux
-c
-c --- fields to be specified in thermf
-     .  tsi_tda,       ! accumulated snow/ice surface temperature
-     .  tml_tda,       ! accumulated mixed layer temperature
-     .  sml_tda,       ! accumulated mixed layer salinity
-     .  alb_tda,       ! accumulated albedo
-     .  fice_tda,      ! accumulated sea ice concentration
-     .  ssu_tda,       ! accumulated sea surface velocity (u-comp.)
-     .  ssv_tda,       ! accumulated sea surface velocity (v-comp.)
+     .  flxdms,        ! sea-air dms flux
 c
 c --- albedo
      .  alb,         
@@ -108,17 +99,13 @@ c
 c --- correction factor for precipitation and runoff
       real prfac
 c
-c --- accumulation number
-      integer ntda
-c
       common /frc2/ swa,nsf,hmltfz,hmlt,dfl,lip,sop,eva,rnf,rfi,fmltfz,
-     .              sfl,ztx,mty,ustarw,tsi,slp,abswnd,albw,frzpot,
-     .              mltpot,atmco2,flxco2,tsi_tda,tml_tda,sml_tda,
-     .              alb_tda,fice_tda,ssu_tda,ssv_tda,alb,rnfres,rnfflx,
-     .              rfiflx,eiacc,pracc,prfac,ntda
+     .              sfl,ztx,mty,ustarw,slp,abswnd,albw,frzpot,mltpot,
+     .              atmco2,flxco2,alb,rnfres,rnfflx,rfiflx,eiacc,pracc,
+     .              prfac,flxdms
 c
 c --- constants set in 'frcdat'
-      real albw_d,rhowat,t0deg
+      real albw_d,rhowat,sref
       integer nrfets
 c
-      common /frcpar/ albw_d,rhowat,t0deg,nrfets
+      common /frcpar/ albw_d,rhowat,sref,nrfets

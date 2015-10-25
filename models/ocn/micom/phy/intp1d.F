@@ -1,6 +1,10 @@
-      real function intpol(d1,d2,d3,d4,d5,x)
+      real function intp1d(d1,d2,d3,d4,d5,x)
 c
-c --- interpolate data
+c --- ------------------------------------------------------------------
+c --- Interpolate data in one dimension.
+c --- ------------------------------------------------------------------
+c
+      implicit none
 c
       real d1,d2,d3,d4,d5,x
 c
@@ -14,7 +18,7 @@ c
       b=b1*d1+b2*d2+b3*d3+b4*d4+b5*d5
       c=c1*(d1+d4)+c2*(d2+d3)
 c
-      intpol=(a*x+b)*x+c
+      intp1d=(a*x+b)*x+c
 c
       return
-      end
+      end function intp1d

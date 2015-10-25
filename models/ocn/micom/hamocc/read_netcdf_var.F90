@@ -1,4 +1,4 @@
-      SUBROUTINE READ_NETCDF_VAR(ncid,desc,arr,klev,time)
+      SUBROUTINE READ_NETCDF_VAR(ncid,desc,arr,klev,time,typeio)
 
 !**************************************************************************
 !
@@ -7,33 +7,28 @@
 ! The NETCDF File is only accessed by mnproc=1
 !
 !**************************************************************************
-
+      USE netcdf
       USE mod_xc
-      
       implicit none
-
+#ifdef PNETCDF
+#include <pnetcdf.inc>
+#endif
+#include <mpif.h>
       integer ncid, klev, time, ndims
       character (len=*) desc
-      real arr(idm,jdm,klev)
+      real arr(idm,jdm,klev),arr_g(itdm,jtdm)
 
-      real arr_g(itdm,jtdm),arr_l(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
+      real, allocatable :: arr_l(:,:,:) 
 
-      include 'netcdf.inc'
-      integer ncstat,ncvarid,i,j,k
-      integer, allocatable :: start(:),count(:)
+      integer ncstat,ncvarid,i,j,k,typeio
+      integer :: start(4),count(4)
+      integer (kind=MPI_OFFSET_KIND) :: istart(4),icount(4)
 
 ! Read NETCDF data
 
-      if (klev.eq.1.and.time.eq.0) then
-        ndims=2
-      elseif (klev.eq.1.or.time.eq.0) then
-        ndims=3
-      else
-        ndims=4
-      endif
-      allocate(start(ndims))
-      allocate(count(ndims))
-
+      IF(TYPEIO==0) THEN
+      start=1
+      count=0
       start(1)=1
       count(1)=itdm
       start(2)=1
@@ -52,12 +47,13 @@
           count(3)=1
         endif
       endif
- 
+      allocate(arr_l(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,1))
+      
       if (mnproc.eq.1) then
-        ncstat=nf_inq_varid(ncid,desc,ncvarid)
-        if (ncstat.ne.nf_noerr) then
-          write(lp,'(4a)') 'nf_inq_varid: ',trim(desc),': ', &
-     &                     nf_strerror(ncstat)
+        ncstat=nf90_inq_varid(ncid,desc,ncvarid)
+        if (ncstat.ne.nf90_noerr) then
+          write(lp,'(4a)') 'nf90_inq_varid: ',trim(desc),': ', &
+     &                     nf90_strerror(ncstat)
           call xchalt('(read_netcdf_var)')
                  stop '(read_netcdf_var)'
         endif
@@ -68,10 +64,10 @@
             start(3)=k
             count(3)=1
           endif
-          ncstat=nf_get_vara_double(ncid,ncvarid,start,count,arr_g)
-          if (ncstat.ne.nf_noerr) then
-            write(lp,'(4a)') 'nf_get_vara_double: ',trim(desc),': ', &
-     &                       nf_strerror(ncstat)
+          ncstat=nf90_get_var(ncid,ncvarid,arr_g,start,count)
+          if (ncstat.ne.nf90_noerr) then
+            write(lp,'(4a)') 'nf90_get_vara_double: ',trim(desc),': ', &
+     &                       nf90_strerror(ncstat)
             call xchalt('(read_netcdf_var)')
                    stop '(read_netcdf_var)'
           endif
@@ -79,9 +75,59 @@
         call xcaput(arr_g,arr_l,1)
         do j=1,jdm
           do i=1,idm
-            arr(i,j,k)=arr_l(i,j)
+            arr(i,j,k)=arr_l(i,j,1)
           enddo
         enddo
       enddo
+      ELSE IF(TYPEIO==1) THEN
+#ifdef PNETCDF
+      allocate(arr_l(ii,jj,klev))
+      arr=0.0
+      istart=1
+      icount=0
+      istart(1)=i0+1
+      icount(1)=ii
+      istart(2)=j0+1
+      icount(2)=jj
+      if (klev.gt.1.or.time.gt.0) then
+        if (klev.gt.1.and.time.gt.0) then
+          istart(3)=1
+          icount(3)=klev
+          istart(4)=time
+          icount(4)=1
+        else if (klev.gt.1.and.time.eq.0) then
+          istart(3)=1
+          icount(3)=klev
+        else
+          istart(3)=time
+          icount(3)=1
+        endif
+      endif
 
+        ncstat=nfmpi_inq_varid(ncid,desc,ncvarid)
+        if (ncstat.ne.nf_noerr) then
+          write(lp,'(4a)') 'nfmpi_inq_varid: ',trim(desc),': ', &
+     &                     nfmpi_strerror(ncstat)
+          call xchalt('(read_pnetcdf_var)')
+                 stop '(read_pnetcdf_var)'
+        endif
+
+      ncstat=nfmpi_get_vara_double_all(ncid,ncvarid,istart,icount,arr_l)
+          if (ncstat.ne.nf_noerr) then
+            write(lp,'(4a)') 'nfmpi_get_vara_double: ',trim(desc),': ', &
+     &                       nfmpi_strerror(ncstat)
+            call xchalt('(read_pnetcdf_var)')
+                   stop '(read_pnetcdf_var)'
+          endif
+      do k=1,klev
+      do j=1,jj
+          do i=1,ii
+            arr(i,j,k)=arr_l(i,j,k)
+          enddo
+        enddo
+      enddo
+#endif
+      ELSE
+      call xchalt('(read_pnetcdf_var) WRONG IOTYPE')
+      ENDIF
       END

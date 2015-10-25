@@ -44,12 +44,6 @@
       INTEGER :: icyclibgc        !  switch for cyclicity.
       INTEGER :: ndtrunbgc        !  total no. of time steps of run.
 
-      INTEGER :: bgcstartyear            !  year of ocean restart file
-      INTEGER :: bgcstartmonth           !  month of ocean restart file
-      INTEGER :: bgcstartday             !  day of ocean restart file
-
-! MPIOM is using variable lyear already !
-!      INTEGER :: ldtoce           !  time step number from bgc ocean file
 
       INTEGER :: isac             !  acceleration factor for sediment, read from namelist
 
