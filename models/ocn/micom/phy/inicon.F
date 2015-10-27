@@ -1,6 +1,8 @@
       subroutine inicon
 c
-c --- version 2.8 (NERSC version)
+c --- ------------------------------------------------------------------
+c --- Define initial conditions
+c --- ------------------------------------------------------------------
 c
       use mod_xc
 c
@@ -8,279 +10,65 @@ c
 c
 #include "common_blocks.h"
 #include "common_forc.h"
-#ifndef CCSMCOUPLED
-#  if defined(CLIM) || defined(SYN)
-#    include "common_asf.h"
-#  endif
-#  include "common_ice.h"
-#endif
-#include "netcdf.inc"
+#include "common_seaice.h"
 c
-      real, dimension(itdm,jtdm) :: tmp2d
-      integer, dimension(3) :: start,count
-      integer i,j,k,l,status,ncid,dimid,varid
+      integer i,j,k,l
       real q,dps
 c
       real swtfrz,sig,sofsig,getlpi
       external swtfrz,sig,sofsig,getlpi
 c
 c --- ------------------------------------------------------------------
-c --- mass field initialization
+c --- Define layer interface heights and layer temperature and salinity
 c --- ------------------------------------------------------------------
-c
-      if (mnproc.eq.1) then
-        write (lp,'(2a)') ' reading initial condition from ',
-     .                    path(1:path_len)//'inicon.nc'
-        call flush(lp)
-c
-c --- - open netcdf file
-        status=nf_open(path(1:path_len)//'inicon.nc',nf_nowrite,
-     .                 ncid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_open: inicon.nc: ',
-     .                     nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-c
-c --- - check dimensions
-        status=nf_inq_dimid(ncid,'x',dimid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_dimid: x: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-        status=nf_inq_dimlen(ncid,dimid,i)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_dimlen: x: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-        status=nf_inq_dimid(ncid,'y',dimid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_dimid: y: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-        status=nf_inq_dimlen(ncid,dimid,j)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_dimlen: y: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-        if (i.ne.itdm.or.j.ne.jtdm) then
-          write (lp,*) 'wrong dimensions in inicon.nc'
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-c
-      endif
-c
-      start(1)=1
-      start(2)=1
-      count(1)=itdm
-      count(2)=jtdm
-      count(3)=1
-c
-c --- read reference potential density
-      if (mnproc.eq.1) then
-        status=nf_inq_varid(ncid,'sigma',varid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_varid: sigma: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-      endif
-      do k=1,kk
+      if     (expcnf.eq.'cesm'.or.
+     .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call ictsz_file
+      elseif (expcnf.eq.'isomip1') then
+c       call ictsz_isomip1
+      elseif (expcnf.eq.'isomip2') then
+c       call ictsz_isomip2
+      else
         if (mnproc.eq.1) then
-          start(3)=k
-          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
-          if (status.ne.nf_noerr) then
-            write(lp,'(2a)') 'nf_get_vara_double: sigma: ',
-     .                       nf_strerror(status)
-            call xchalt('(inicon)')
-                   stop '(inicon)'
-          endif
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
         endif
-        call xcaput(tmp2d,sigmar(1-nbdy,1-nbdy,k),1)
-      enddo
-c
-c --- read potential temperature
-      if (mnproc.eq.1) then
-        status=nf_inq_varid(ncid,'temp',varid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_varid: temp: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
+        call xcstop('(inicon)')
+               stop '(inicon)'
       endif
-      do k=1,kk
-        if (mnproc.eq.1) then
-          start(3)=k
-          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
-          if (status.ne.nf_noerr) then
-            write(lp,'(2a)') 'nf_get_vara_double: temp: ',
-     .                       nf_strerror(status)
-            call xchalt('(inicon)')
-                   stop '(inicon)'
-          endif
-        endif
-        call xcaput(tmp2d,temp(1-nbdy,1-nbdy,k),1)
-      enddo
-c
-c --- read salinity
-      if (mnproc.eq.1) then
-        status=nf_inq_varid(ncid,'saln',varid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_varid: saln: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-      endif
-      do k=1,kk
-        if (mnproc.eq.1) then
-          start(3)=k
-          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
-          if (status.ne.nf_noerr) then
-            write(lp,'(2a)') 'nf_get_vara_double: saln: ',
-     .                       nf_strerror(status)
-            call xchalt('(inicon)')
-                   stop '(inicon)'
-          endif
-        endif
-        call xcaput(tmp2d,saln(1-nbdy,1-nbdy,k),1)
-      enddo
-c
-c --- read layer thickness
-      if (mnproc.eq.1) then
-        status=nf_inq_varid(ncid,'dz',varid)
-        if (status.ne.nf_noerr) then
-          write(lp,'(2a)') 'nf_inq_varid: dz: ',nf_strerror(status)
-          call xchalt('(inicon)')
-                 stop '(inicon)'
-        endif
-      endif
-      do k=1,kk
-        if (mnproc.eq.1) then
-          start(3)=k
-          status=nf_get_vara_double(ncid,varid,start,count,tmp2d)
-          if (status.ne.nf_noerr) then
-            write(lp,'(2a)') 'nf_get_vara_double: dz: ',
-     .                       nf_strerror(status)
-            call xchalt('(inicon)')
-                   stop '(inicon)'
-          endif
-        endif
-        call xcaput(tmp2d,dp(1-nbdy,1-nbdy,k),1)
-      enddo
-c
-c --- convert unit of reference potential density from [kg/m^3] to
-c --- [g/cm^3] and construct interface depths from layer thicknesses
-c
-      do k=1,kk
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            p(i,j,k+1)=min(depths(i,j)*1.e2,p(i,j,k)+dp(i,j,k)*1.e2)
-            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
-          enddo
-          enddo
-        enddo
-      enddo
-c
-      do j=1,jj
-        do k=2,kk
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (p(i,j,kk+1)-p(i,j,k).lt.1.e-4)
-     .        p(i,j,k)=depths(i,j)*1.e2
-          enddo
-          enddo
-        enddo
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          p(i,j,kk+1)=depths(i,j)*1.e2
-        enddo
-        enddo
-      enddo
 c
 c --- ------------------------------------------------------------------
-c --- set minimum physical temperature for each isopycnic layer
+c --- Set minimum physical temperature for each isopycnic layer
 c --- ------------------------------------------------------------------
 c
       call settemmin
 c
-#ifndef CCSMCOUPLED
 c --- ------------------------------------------------------------------
-c --- initialize variables for the thermodynamic ice model and make
-c --- surface conditions consistent with the ice cover
+c --- Initialize configuration specific variables
 c --- ------------------------------------------------------------------
 c
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (ricclm(i,j,12).lt..05) then
-            hicem(i,j)=0.
-            ficem(i,j)=0.
-            hsnwm(i,j)=0.
-            tsrfm(i,j)=temp(i,j,1)+t0deg
-            tsi_tda(i,j)=temp(i,j,1)+t0deg
-          else
-            hicem(i,j)=2.
-            ficem(i,j)=min(fice_max,ricclm(i,j,12)) ! assuming start in January
-            hsnwm(i,j)=0.1
-            tsrfm(i,j)=sstclm(i,j,1)
-            tsi_tda(i,j)=(sstclm(i,j,1)
-     .                   -(1.-ficem(i,j))*(temp(i,j,1)+t0deg))
-     .                   /ficem(i,j)
-            iagem(i,j)=0.
-          endif
+      if     (expcnf.eq.'cesm') then
+        call icaux_cesm
+      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call icaux_ben02
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(inicon)')
+               stop '(inicon)'
+      endif
 c
-          ticem(i,j)=tsrfm(i,j)
-          tml_tda(i,j)=temp(i,j,1)+t0deg
-          sml_tda(i,j)=saln(i,j,1)
-          alb_tda(i,j)=albs_f*ficem(i,j)+albw_d*(1.-ficem(i,j))
-          fice_tda(i,j)=ficem(i,j)
-        enddo
-        enddo
-      enddo
-c
-      do j=1,jj
-        do l=1,isu(j)
-        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-          ssu_tda(i,j)=0.
-        enddo
-        enddo
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          ssv_tda(i,j)=0.
-        enddo
-        enddo
-      enddo
-c
-      ntda=1
-c
-#else
 c --- ------------------------------------------------------------------
-c --- Initialize variables used when coupled to CCSM
+c --- Make sure layer temperature is greater than the lower physical
+c --- bound and make temperature, salinity, and potential density
+c --- variables consistent.
 c --- ------------------------------------------------------------------
-c
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          frzpot(i,j)=0.
-          mltpot(i,j)=0.
-          flxco2(i,j)=0.
-        enddo
-        enddo
-      enddo
-#endif
 c
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           do k=1,2
-            temp(i,j,k)=max(swtfrz(saln(i,j,k)),temp(i,j,k))
+            temp(i,j,k)=max(swtfrz(p(i,j,1),saln(i,j,k)),temp(i,j,k))
             temp(i,j,k+kk)=temp(i,j,k)
             saln(i,j,k+kk)=saln(i,j,k)
             sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
@@ -306,27 +94,20 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
-c --- represent layer interfaces in units of pressure by assuming an
-c --- initially flat ocean surface and set reference geopotential at the
-c --- ocean floor
+c --- Find layer interface pressure
 c --- ------------------------------------------------------------------
 c
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          phi(i,j,1)=0.
+          p(i,j,1)=getlpi(temp(i,j,1),saln(i,j,1),0.,phi(i,j,1),0.)
         enddo
         enddo
         do k=1,kk
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c
-c --- ----- geopotential at interface
-            phi(i,j,k+1)=-g*p(i,j,k+1)
-c
             p(i,j,k+1)=getlpi(temp(i,j,k),saln(i,j,k),
      .                        phi(i,j,k),phi(i,j,k+1),p(i,j,k))
-c
           enddo
           enddo
         enddo
@@ -338,7 +119,7 @@ c
       call xctilr(saln, 1,kk, 1,1, halo_ps)
 c
 c --- ------------------------------------------------------------------
-c --- set layer thickness and bottom pressure
+c --- Set layer thickness and bottom pressure
 c --- ------------------------------------------------------------------
 c
       do j=0,jj+1
@@ -374,7 +155,7 @@ c
         enddo
       enddo
 c
-      do  j=1,jj
+      do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
           pbu(i,j,1)=min(pb(i,j,1),pb(i-1,j,1))
@@ -434,7 +215,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- initialize potential vorticity of barotropic flow
+c --- Initialize potential vorticity of barotropic flow
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO PRIVATE(q)
@@ -477,7 +258,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- initialize fields related to the pressure gradient force
+c --- Initialize fields related to the pressure gradient force
 c --- ------------------------------------------------------------------
 c
       call pgforc(2,1,kk,0,kk+1,1)
@@ -514,7 +295,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- define first physical interior layer
+c --- Define first physical interior layer
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO PRIVATE(k,dps)
@@ -545,7 +326,7 @@ c$OMP PARALLEL DO PRIVATE(k,dps)
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- set other time level layer thicknesses
+c --- Set other time level layer thicknesses
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO
@@ -563,7 +344,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- initialize variables related to forcing
+c --- Initialize variables related to forcing
 c --- ------------------------------------------------------------------
 c
       if (sprfac) then
@@ -578,24 +359,13 @@ c
         enddo
       endif
 c
-#if !defined(CCSMCOUPLED) && (defined(CLIM) || defined(SYN))
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          cd_d(i,j)=cd_r
-          ch_d(i,j)=ch_r
-          ce_d(i,j)=ce_r
-          wg2_d(i,j)=wg2_r*1.e-4
-          cd_m(i,j)=cd_r
-          ch_m(i,j)=ch_r
-          ce_m(i,j)=ce_r
-          wg2_m(i,j)=wg2_r*1.e-4
-          rhoa(i,j)=rhoa_r*1.e3
           rnfres(i,j)=0.
         enddo
         enddo
       enddo
-#endif
 c
       if (mnproc.eq.ptest) then
         i=itest
@@ -626,10 +396,3 @@ c
 c
       return
       end
-c
-c
-c> Revision history:
-c>
-c> May  1997 - eliminated "+ thbase" from definition of thmix (loop 10)
-c> Mar. 1998 - added -th3d-
-c> Aug. 2000 - added diagnostic count of static instabilities

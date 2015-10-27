@@ -398,15 +398,9 @@ c
  72   stress(i,j)=0.
       endif
 c
-#ifdef NEST
-      do 6 j=2,jj-2
-      do 6 l=1,isu(j)
-      do 6 i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
-#else
       do 6 j=1,jj
       do 6 l=1,isu(j)
       do 6 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-#endif
 c
       ptopl=min(pbu(i,j,m),.5*(p(i,j,k  )+p(i-1,j,k  )))
       pbotl=min(pbu(i,j,m),.5*(p(i,j,k+1)+p(i-1,j,k+1)))
@@ -532,15 +526,9 @@ c
  73   stress(i,j)=0.
       endif
 c
-#ifdef NEST
-      do 7 j=3,jj-2
-      do 7 l=1,isv(j)
-      do 7 i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
-#else
       do 7 j=1,jj
       do 7 l=1,isv(j)
       do 7 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-#endif
 c
       ptopl=min(pbv(i,j,m),.5*(p(i,j,k  )+p(i,j-1,k  )))
       pbotl=min(pbv(i,j,m),.5*(p(i,j,k+1)+p(i,j-1,k+1)))
@@ -622,30 +610,18 @@ c
       kn=k+nn
 c
 c$OMP PARALLEL DO
-#ifdef NEST
-      do 24 j=2,jj-2
-      do 24 l=1,isu(j)
-      do 24 i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
-#else
       do 24 j=1,jj
       do 24 l=1,isu(j)
       do 24 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-#endif
       u(i,j,kn)=u(i,j,kn)-utotn(i,j)
  24   u(i,j,km)=(u(i,j,km)+u(i,j,kn)*wuv2*dpu(i,j,kn))/
      .(wuv1*dpu(i,j,km)+onemm+wuv2*(dpuold(i,j,k)+dpu(i,j,kn)))
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO
-#ifdef NEST
-      do 25 j=3,jj-2
-      do 25 l=1,isv(j)
-      do 25 i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
-#else
       do 25 j=1,jj
       do 25 l=1,isv(j)
       do 25 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-#endif
       v(i,j,kn)=v(i,j,kn)-vtotn(i,j)
  25   v(i,j,km)=(v(i,j,km)+v(i,j,kn)*wuv2*dpv(i,j,kn))/
      .(wuv1*dpv(i,j,km)+onemm+wuv2*(dpvold(i,j,k)+dpv(i,j,kn)))

@@ -1,14 +1,14 @@
       module mod_xc
 c
       use dimensions
-#ifdef CCSMCOUPLED
-      use data_mct, only: mpicom_mct
-#endif
 c
       implicit none
 c
 c --- HYCOM communication interface.
 c --- see README.src.mod_xc for more details.
+c
+c --- Externally set mpi communicator
+      integer, save :: mpicom_external=-1
 c
 c --- mxthrd= maximum number of OpenMP threads
       integer    mxthrd
@@ -46,8 +46,9 @@ c --- information in /gindex/ keeps do loops from running into land
       integer, save, dimension (1-nbdy:idm+nbdy) :: 
      &         jsp,jsq,jsu,jsv
 c
-c --- line printer unit (stdout) and file unit
-      integer, save :: lp,nfu
+c --- line printer unit (stdout) and file unit with default values 6 and
+c --- 12, respectively
+      integer, save :: lp=6, nfu=12
 c-----------------------------------------------------------------------------
 c
 c --- tile dimensions and tile numbers (counting from 1), see xcspmd
@@ -71,14 +72,28 @@ c --- xcsync stdout flushing options
      &                              no_flush=.false.
 c
 c --- generic subroutine names
-      interface xcmaxr
-         module procedure xcmaxr_0  ! rank 0 array (i.e. scalar)
-         module procedure xcmaxr_1  ! rank 1 array
+      interface xcmax
+         module procedure xcmax_i0  ! rank 0 integer array (i.e. scalar)
+         module procedure xcmax_i1  ! rank 1 integer array
+         module procedure xcmax_r0  ! rank 0 real array (i.e. scalar)
+         module procedure xcmax_r1  ! rank 1 real array
       end interface
 
-      interface xcminr
-         module procedure xcminr_0  ! rank 0 array (i.e. scalar)
-         module procedure xcminr_1  ! rank 1 array
+      interface xcmin
+         module procedure xcmin_i0  ! rank 0 integer array (i.e. scalar)
+         module procedure xcmin_i1  ! rank 1 integer array
+         module procedure xcmin_r0  ! rank 0 real array (i.e. scalar)
+         module procedure xcmin_r1  ! rank 1 real array
+      end interface
+
+      interface xcbcst
+         module procedure xcbcst_i0 ! rank 0 integer array (i.e. scalar)
+         module procedure xcbcst_i1 ! rank 1 integer array
+         module procedure xcbcst_r0 ! rank 0 real array (i.e. scalar)
+         module procedure xcbcst_r1 ! rank 1 real array
+         module procedure xcbcst_l0 ! rank 0 logical array
+         module procedure xcbcst_l1 ! rank 1 logical array
+         module procedure xcbcst_c  ! rank 1 character array
       end interface
 c
 c --- private timer variables, see xctmri
@@ -90,9 +105,8 @@ c --- private timer variables, see xctmri
 #if defined(MPI) || defined(SHMEM)
 c
 c --- private message passing data structures, see xcspmd
-      integer, public, save  :: idproc1(0:ijqr+1)
-      integer, private, save :: idproc( 0: iqr+1,0:jqr+1),
-     &                          idhalo(2),
+      integer, public, save :: idproc( 0: iqr+1,0:jqr+1),
+     &                          idproc1(0:ijqr+1),idhalo(2),
      &                          mpe_1(     jqr),
      &                          mpe_e(     jqr),
      &                          mpe_i(itdm,jqr),npe_j(jtdm)

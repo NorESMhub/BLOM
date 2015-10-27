@@ -115,7 +115,12 @@ c
      .                scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
      .                depths
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
+     .  bfsqf          ! filtered buoyancy frequency squared
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+     .  nslpx,nslpy,   ! local neutral slope
+     .  nnslpx,nnslpy, ! local neutral slope times buoyancy frequency
      .  difint,        ! layer interface diffusivity
      .  difiso,        ! isopycnal diffusivity
      .  difdia         ! diapycnal diffusivity
@@ -143,10 +148,10 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
-      common /micom4/ difint,difiso,difdia,uja,ujb,via,vib,difmxp,
-     .                difmxq,difwgt,sealv,surflx,surrlx,sswflx,salflx,
-     .                brnflx,salrlx,taux,tauy,ustar,ustarb,buoyfl,
-     .                twedon,pbrnda,kfpla
+      common /micom4/ bfsqf,nslpx,nslpy,nnslpx,nnslpy,difint,difiso,
+     .                difdia,uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
+     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,taux,
+     .                tauy,ustar,ustarb,buoyfl,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep1,nstep2,lstep
@@ -178,13 +183,15 @@ c --- 'wpgf'   = weight for time averaging of pressure gradient force
 c --- 'mltmin' = minimum mixed-layer thickness (m)
 c --- 'thktop' = thickness of top layer (m)
 c --- 'thkbot' = thickness of bottom boundary layer (pressure units)
-c --- 'acurcy' = permissible roundoff error in column integral calc.
+c --- 'raddep' = maximum depth of light penetration (m)
+c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
+c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
 c --- 'egc'    = the parameter c in the Eden and Greatbatch (2008)
 c ---            parameterization
 c --- 'eggam'  = the parameter gamma in the Eden and Greatbatch (2008)
-c ---            parameterization [].
+c ---            parameterization []
 c --- 'egmndf' = minimum diffusivity in the Eden and Greatbatch (2008)
-c ---            parameterization [cm**2/s].
+c ---            parameterization [cm**2/s]
 c --- 'egmxdf' = maximum diffusivity in the Eden and Greatbatch (2008)
 c ---            parameterization [cm**2/s]
 c --- 'egidfq' = factor relating the isopycnal diffusivity to the layer
@@ -192,40 +199,42 @@ c ---            interface diffusivity in the Eden and Greatbatch (2008)
 c ---            parameterization. egidfq=difint/difiso
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
+c --- 'expcnf' = experiment configuration
+c --- 'eitmth' = eddy-induced transport parameterization method
+c --- 'edritp' = type of Richardson number used in eddy diffusivity
+c ---            computation
+c --- 'bmcmth' = baroclinic mass flux correction method
+c --- 'rmpmth' = method of applying eddy-induced transport in the remap
+c ---            transport algorithm
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
-     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,acurcy,
-     .     egc,eggam,egmndf,egmxdf,egidfq
+     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,raddep,
+     .     redfac,betabl,egc,eggam,egmndf,egmxdf,egidfq
       logical csdiag,cnsvdi
+      character*80 expcnf,eitmth,edritp,bmcmth,rmpmth
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
-     .                wpgf,mltmin,thktop,thkbot,acurcy,egc,eggam,
-     .                egmndf,egmxdf,egidfq,csdiag,cnsvdi
+     .                wpgf,mltmin,thktop,thkbot,raddep,redfac,betabl,
+     .                egc,eggam,egmndf,egmxdf,egidfq,
+     .                csdiag,cnsvdi,
+     .                expcnf,eitmth,edritp,bmcmth,rmpmth
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
 c --- 'rearth' = radius of the earth
 c --- 'spcifh' = specific heat of sea water (j/g/deg)
-c --- 'rhoa_r' = reference air density (g/cm**3)
-c --- 'cd_r'   = reference transfer coefficient of momentum
-c --- 'ch_r'   = reference transfer coefficient of sensible heat
-c --- 'ce_r'   = reference transfer coefficient of tent heat
-c --- 'wg2_r'  = reference gustiness squared (cm**2/s**2)
+c --- 't0deg'  = zero degree celsius in kelvin (K)
 c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
-c --- 'raddep' = maximum depth of light penetration (m)
-c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
-c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
 c
-      real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,rhoa_r,cd_r,ch_r,
-     .     ce_r,wg2_r,alpha0,epsil,raddep,redfac,betabl,huge,radian,pi
+      real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
+     .     epsil,huge,radian,pi
 c
-      common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,
-     .                rhoa_r,cd_r,ch_r,ce_r,wg2_r,alpha0,epsil,raddep,
-     .                redfac,betabl,huge,radian,pi
+      common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
+     .                alpha0,epsil,huge,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c

@@ -16,8 +16,8 @@ c
       parameter (nchar=120)
       logical   lperiodi,lperiodj,larctic
 c
-      integer   i,j,nzero,isec,ifrst,ilast
-      real      rnfill,aline(nchar)
+      integer   i,j,nfill,nzero,isec,ifrst,ilast
+      real      aline(nchar)
       real      depmax
       character char3*3
 c
@@ -31,7 +31,7 @@ c --- is the domain periodic in i-index?
           depmax=max(depmax,depth(ii,j))
         enddo
       endif
-      call xcmaxr(depmax)
+      call xcmax(depmax)
       lperiodi=depmax.gt.0.0
 c
 c --- is the domain periodic in j-index?
@@ -41,7 +41,7 @@ c --- is the domain periodic in j-index?
           depmax=max(depmax,depth(i,jj))
         enddo
       endif
-      call xcmaxr(depmax)
+      call xcmax(depmax)
       larctic=depmax.gt.0.0 .and. nreg.eq.2
       lperiodj=depmax.gt.0.0 .and. nreg.ne.2
 c
@@ -131,7 +131,7 @@ c ---   east boundary is all land.
       endif
 c
 c --- detect (and abort on) single-width inlets and 1-point seas.
-      rnfill=0.0
+      nfill=0
       do j=1,jj
         do i=1,ii
           nzero=0
@@ -144,14 +144,14 @@ c --- detect (and abort on) single-width inlets and 1-point seas.
               write (lp,'(a,i4,a,i4,a,i1,a)')
      &          'error - dh(',i0+i,',',j0+j,') has ',
      &          nzero,' land nieghbours'
-              rnfill=rnfill+1.0
+              nfill=nfill+1
             end if
           end if
         enddo
       enddo
  15   continue
-      call xcmaxr(rnfill)
-      if (rnfill.gt.0.0) then
+      call xcmax(nfill)
+      if (nfill.gt.0) then
         if (mnproc.eq.1) then
           write(lp,'(/a/)') 
      &     'Must correct bathymetry before running MICOM'

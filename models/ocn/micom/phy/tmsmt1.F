@@ -10,8 +10,10 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#ifdef TKE
-#  include "common_tke.h"
+#ifdef TRC
+#  include "param_trc.h"
+#  include "common_trc.h"
+      integer nt
 #endif
 c
       integer i,j,k,l,kn
@@ -25,11 +27,10 @@ c$OMP PARALLEL DO PRIVATE(kn)
             dpold(i,j,kn)=dp(i,j,kn)
             told(i,j,k)=temp(i,j,kn)
             sold(i,j,k)=saln(i,j,kn)
-#ifdef TKE
-            tke_old(i,j,k)=tke(i,j,kn)
-#  ifdef GLS
-            gls_psi_old(i,j,k)=gls_psi(i,j,kn)
-#  endif
+#ifdef TRC
+            do nt=1,ntr
+              trcold(i,j,k,nt)=trc(i,j,kn,nt)
+            enddo
 #endif
           enddo
           enddo
@@ -44,11 +45,10 @@ c
         call chksummsk(dpold,ip,2*kk,'dpold')
         call chksummsk(told,ip,kk,'told')
         call chksummsk(sold,ip,kk,'sold')
-#ifdef TKE
-        call chksummsk(tke_old,ip,kk,'tke_old')
-#  ifdef GLS
-        call chksummsk(gls_psi_old,ip,kk,'gls_psi_old')
-#  endif
+#ifdef TRC
+        do nt=1,ntr
+          call chksummsk(trcold(1-nbdy,1-nbdy,1,nt),ip,kk,'trcold')
+        enddo
 #endif
       endif
 c

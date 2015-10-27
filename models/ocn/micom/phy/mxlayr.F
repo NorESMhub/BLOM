@@ -24,22 +24,15 @@ c
      .     dpe,dps,udpn
       integer i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
 c
-#ifdef TKE
-#  include "param_tke.h"
-#  include "common_tke.h"
-      real, dimension(kdm) :: ttke
-      real tkefsl,tkedps
-#  ifdef GLS
-      real, dimension(kdm) :: ggls
-      real glsfsl,glsdps
-#  endif
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
       real, dimension(ntr,kdm) :: ttrc
       real, dimension(ntr) :: trfsl,trdps
       integer nt
+#  ifdef TKE
+#    include "param_tke.h"
+#  endif
 #endif
 c
       real sig0,dsigdt0,dsigds0,dsigdt,dsigds,sig,rho,
@@ -167,12 +160,6 @@ c$OMP+ dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,
 c$OMP+ dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
 c$OMP+ sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
 c$OMP+ k,kn,kfpl,nitr,kmax,kfmax
-#ifdef TKE
-c$OMP+,ttke,tkefsl,tkedps
-#  ifdef GLS
-c$OMP+,ggls,glsfsl,glsdps
-#  endif
-#endif
 #ifdef TRC
 c$OMP+,ttrc,trfsl,trdps
 #endif
@@ -191,15 +178,9 @@ c --- --- Extract single column from 3-d fields.
             pres(k+1)=pres(k)+delp(k)
             dens(k)=sigma(i,j,kn)
             densr(k)=sigmar(i,j,k)
-#ifdef TKE
-            ttke(k)=tke(i,j,kn)
-#  ifdef GLS
-            ggls(k)=gls_psi(i,j,kn)
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              ttrc(nt,k)=trc(i,j,k,nt)
+            do nt=1,ntr
+              ttrc(nt,k)=trc(i,j,kn,nt)
             enddo
 #endif
           enddo
@@ -314,14 +295,8 @@ c
             pmxl=max(mltmin*onem,pmxl)
             tfsl=ttem(2)
             sfsl=ssal(2)
-#ifdef TKE
-            tkefsl=ttke(2)
-#  ifdef GLS
-            glsfsl=ggls(2)
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               trfsl(nt)=ttrc(nt,2)
             enddo
 #endif
@@ -335,14 +310,8 @@ c --- ----- Restore top layer to its reference pressure thickness
               q=1./(delp(2)+dpt)
               ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
               ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
-#ifdef TKE
-              ttke(2)=(ttke(2)*delp(2)+ttke(1)*dpt)*q
-#  ifdef GLS
-              ggls(2)=(ggls(2)*delp(2)+ggls(1)*dpt)*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
               enddo
 #endif
@@ -352,14 +321,8 @@ c --- ----- Restore top layer to its reference pressure thickness
               q=1./(delp(1)+dpt)
               ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
               ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
-#ifdef TKE
-              ttke(1)=(ttke(1)*delp(1)+ttke(2)*dpt)*q
-#  ifdef GLS
-              ggls(1)=(ggls(1)*delp(1)+ggls(2)*dpt)*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
               enddo
 #endif
@@ -516,14 +479,8 @@ c --- ----- Apply heat and salt forcing to top layer
             ssal(1)=ssal(1)
      .             -(salflx(i,j)-brnflx(i,j)
      .              +salrlx(i,j))*q
-#ifdef TKE
-            ttke(1)=ttke(1)-tkeflx(i,j)*q
-#  ifdef GLS
-            ggls(1)=ggls(1)-gls_psiflx(i,j)*q
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
             enddo
 #endif
@@ -540,14 +497,8 @@ c
               ttem(2)=(tfsl*dpfsl+ttem(2)*delp(2))*q
               ssal(2)=(sfsl*dpfsl+ssal(2)*delp(2))*q
               dens(2)=sig(ttem(2),ssal(2))
-#ifdef TKE
-              ttke(2)=(tkefsl*dpfsl+ttke(2)*delp(2))*q
-#  ifdef GLS
-              ggls(2)=(glsfsl*dpfsl+ggls(2)*delp(2))*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(trfsl(nt)*dpfsl+ttrc(nt,2)*delp(2))*q
               enddo
 #endif
@@ -563,14 +514,8 @@ c
                 ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
                 ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
                 dens(k)=sig(ttem(k),ssal(k))
-#ifdef TKE
-                ttke(k)=(tkefsl*dpfsl+ttke(k)*delp(k))*q
-#  ifdef GLS
-                ggls(k)=(glsfsl*dpfsl+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                 enddo
 #endif
@@ -591,14 +536,8 @@ c
                     ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
                     ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
                     dens(k)=sig(ttem(k),ssal(k))
-#ifdef TKE
-                    ttke(k)=(tkefsl*dpfsl+ttke(k)*delp(k))*q
-#  ifdef GLS
-                    ggls(k)=(glsfsl*dpfsl+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -607,14 +546,8 @@ c
                     ttem(k)=ttmp
                     ssal(k)=stmp
                     dens(k)=sigtmp
-#ifdef TKE
-                    ttke(k)=(tkefsl*dpfsl+ttke(k)*delp(k))*q
-#  ifdef GLS
-                    ggls(k)=(glsfsl*dpfsl+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -629,14 +562,8 @@ c
                     ttem(k)=(tfsl*dps+ttem(k)*delp(k))*q
                     ssal(k)=(sfsl*dps+ssal(k)*delp(k))*q
                     dens(k)=sig(ttem(k),ssal(k))
-#ifdef TKE
-                    ttke(k)=(tkefsl*dps+ttke(k)*delp(k))*q
-#  ifdef GLS
-                    ggls(k)=(glsfsl*dps+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dps+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -647,14 +574,8 @@ c
                       ttem(2)=(tfsl*dpfsl+ttem(2)*delp(2))*q
                       ssal(2)=(sfsl*dpfsl+ssal(2)*delp(2))*q
                       dens(2)=sig(ttem(2),ssal(2))
-#ifdef TKE
-                      ttke(2)=(tkefsl*dpfsl+ttke(2)*delp(2))*q
-#  ifdef GLS
-                      ggls(2)=(glsfsl*dpfsl+ggls(2)*delp(2))*q
-#  endif
-#endif
 #ifdef TRC
-                      do nt=1,ntrc
+                      do nt=1,ntr
                         ttrc(nt,2)=(trfsl(nt)*dpfsl
      .                             +ttrc(nt,2)*delp(2))*q
                       enddo
@@ -670,14 +591,8 @@ c
                       ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
                       ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
                       dens(k)=sig(ttem(k),ssal(k))
-#ifdef TKE
-                      ttke(k)=(tkefsl*dpfsl+ttke(k)*delp(k))*q
-#  ifdef GLS
-                      ggls(k)=(glsfsl*dpfsl+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                      do nt=1,ntrc
+                      do nt=1,ntr
                         ttrc(nt,k)=(trfsl(nt)*dpfsl
      .                             +ttrc(nt,k)*delp(k))*q
                       enddo
@@ -694,14 +609,8 @@ c
                     ttem(k)=(tfsl*dpfsl+ttem(k)*delp(k))*q
                     ssal(k)=(sfsl*dpfsl+ssal(k)*delp(k))*q
                     dens(k)=sig(ttem(k),ssal(k))
-#ifdef TKE
-                    ttke(k)=(tkefsl*dpfsl+ttke(k)*delp(k))*q
-#  ifdef GLS
-                    ggls(k)=(glsfsl*dpfsl+ggls(k)*delp(k))*q
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       ttrc(nt,k)=(trfsl(nt)*dpfsl+ttrc(nt,k)*delp(k))*q
                     enddo
 #endif
@@ -718,14 +627,8 @@ c
               pmxl=mltmin*onem
               tdps=ttem(2)*delp(2)
               sdps=ssal(2)*delp(2)
-#ifdef TKE
-              tkedps=ttke(2)*delp(2)
-#  ifdef GLS
-              glsdps=ggls(2)*delp(2)
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -734,14 +637,8 @@ c
                 q=min(pmxl,pres(k+1))-pres(k)
                 tdps=tdps+ttem(k)*q
                 sdps=sdps+ssal(k)*q
-#ifdef TKE
-                tkedps=tkedps+ttke(k)*q
-#  ifdef GLS
-                glsdps=glsdps+ggls(k)*q
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*q
                 enddo
 #endif
@@ -764,14 +661,8 @@ c
               k=kfpl
               tdps=ttem(2)*delp(2)
               sdps=ssal(2)*delp(2)
-#ifdef TKE
-              tkedps=ttke(2)*delp(2)
-#  ifdef GLS
-              glsdps=ggls(2)*delp(2)
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -862,14 +753,8 @@ c                          stop '(mxlayr)'
                   if (pmxl.lt.pres(k+1)-epsil.and.nitr.lt.maxitr) then
                     tdps=tdps+ttem(k)*(pmxl-pres(k))
                     sdps=sdps+ssal(k)*(pmxl-pres(k))
-#ifdef TKE
-                    tkedps=tkedps+ttke(k)*(pmxl-pres(k))
-#  ifdef GLS
-                    glsdps=glsdps+ggls(k)*(pmxl-pres(k))
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       trdps(nt)=trdps(nt)+ttrc(nt,k)*(pmxl-pres(k))
                     enddo
 #endif
@@ -878,14 +763,8 @@ c                          stop '(mxlayr)'
                   else
                     tdps=tdps+ttem(k)*delp(k)
                     sdps=sdps+ssal(k)*delp(k)
-#ifdef TKE
-                    tkedps=tkedps+ttke(k)*delp(k)
-#  ifdef GLS
-                    glsdps=glsdps+ggls(k)*delp(k)
-#  endif
-#endif
 #ifdef TRC
-                    do nt=1,ntrc
+                    do nt=1,ntr
                       trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                     enddo
 #endif
@@ -918,14 +797,8 @@ c
             q=1./delp(2)
             ttem(2)=tdps*q
             ssal(2)=sdps*q
-#ifdef TKE
-            ttke(2)=tkedps*q
-#  ifdef GLS
-            ggls(2)=glsdps*q
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,2)=trdps(nt)*q
             enddo
 #endif
@@ -941,14 +814,8 @@ c --- ----- Restore top layer to its reference pressure thickness
               q=1./(delp(2)+dpt)
               ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
               ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
-#ifdef TKE
-              ttke(2)=(ttke(2)*delp(2)+ttke(1)*dpt)*q
-#  ifdef GLS
-              ggls(2)=(ggls(2)*delp(2)+ggls(1)*dpt)*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
               enddo
 #endif
@@ -958,14 +825,8 @@ c --- ----- Restore top layer to its reference pressure thickness
               q=1./(delp(1)+dpt)
               ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
               ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
-#ifdef TKE
-              ttke(1)=(ttke(1)*delp(1)+ttke(2)*dpt)*q
-#  ifdef GLS
-              ggls(1)=(ggls(1)*delp(1)+ggls(2)*dpt)*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
               enddo
 #endif
@@ -1097,14 +958,8 @@ c --- ----- Apply heat and salt forcing to top layer
             ssal(1)=ssal(1)
      .             -(salflx(i,j)-brnflx(i,j)
      .              +salrlx(i,j))*q
-#ifdef TKE
-            ttke(1)=ttke(1)-tkeflx(i,j)*q
-#  ifdef GLS
-            ggls(1)=ggls(1)-gls_psiflx(i,j)*q
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
+            do nt=1,ntr
               ttrc(nt,1)=ttrc(nt,1)-trflx(nt,i,j)*q
             enddo
 #endif
@@ -1142,15 +997,21 @@ c --- --- Put single column back into 3-d fields.
             sigma(i,j,kn)=dens(k)
             diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
             dp(i,j,kn)=delp(k)
-#ifdef TKE
-            tke(i,j,kn)=max(ttke(k),tke_min)
-#  ifdef GLS
-            gls_psi(i,j,kn)=max(ggls(k),gls_psi_min)
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc 
-              trc(i,j,k,nt)=ttrc(nt,k)
+            do nt=1,ntr 
+#  ifdef TKE
+              if (nt.eq.itrtke) then
+                trc(i,j,kn,nt)=max(ttrc(nt,k),tke_min)
+                cycle
+              endif
+#    ifdef GLS
+              if (nt.eq.itrgls) then
+                trc(i,j,kn,nt)=max(ttrc(nt,k),gls_psi_min)
+                cycle
+              endif
+#    endif
+#  endif
+              trc(i,j,kn,nt)=ttrc(nt,k)
             enddo
 #endif
           enddo
@@ -1327,15 +1188,9 @@ c
         call chksummsk(v,iv,2*kk,'v')
         call chksummsk(dpu,iu,2*kk,'dpu')
         call chksummsk(dpv,iv,2*kk,'dpv')
-#ifdef TKE
-        call chksummsk(tke,ip,2*kk,'tke')
-#  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
-#  endif
-#endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif

@@ -1,3 +1,118 @@
+      module mod_bulktf
+c
+c --- ------------------------------------------------------------------
+c --- This module contains routine and functions for computing transfer
+c --- coefficients of momentum, sensible heat, and latent heat.
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+      private
+c
+      public :: bulktf
+c
+      contains
+c
+c --- ------------------------------------------------------------------
+c
+      real function psiu(zeta)
+c
+c --- Monin-Obukhov similarity velocity profile function
+c
+      real zeta
+c
+      real athird,pi,sqrt3,sqrt3i
+      parameter(athird=1./3.,pi=3.141592653589793,
+     .          sqrt3=1.732050807568877,sqrt3i=.5773502691896258)
+c
+      real x,psik,y,psic,f
+c
+      if (zeta.eq.0.) then
+        psiu=0.
+      elseif (zeta.gt.0.) then
+        psiu=-4.7*zeta
+      else
+        x=(1.-16.*zeta)**.25
+        psik=2.*log((1.+x)*.5)+log((1.+x*x)*.5)-2.*atan(x)+pi*.5
+        y=(1.-12.87*zeta)**athird
+        psic=1.5*log((y*y+y+1.)*athird)-sqrt3*atan((2.*y+1.)*sqrt3i)
+     .      +pi*sqrt3i
+        f=1./(1.+zeta*zeta)
+        psiu=f*psik+(1.-f)*psic
+      endif
+c
+      return
+      end function psiu
+c
+c --- ------------------------------------------------------------------
+c
+      real function psitq(zeta)
+c
+      implicit none
+c
+c --- Monin-Obukhov similarity temperature and humidity profile function
+c
+      real zeta
+c
+      real athird,pi,sqrt3,sqrt3i
+      parameter(athird=1./3.,pi=3.141592653589793,
+     .          sqrt3=1.732050807568877,sqrt3i=.5773502691896258)
+c
+      real x,psik,y,psic,f
+c
+      if (zeta.eq.0.) then
+        psitq=0.
+      elseif (zeta.gt.0.) then
+        psitq=-4.7*zeta
+      else
+        x=(1.-16.*zeta)**.25
+        psik=2.*log((1+x*x)*.5)
+        y=(1.-12.87*zeta)**athird
+        psic=1.5*log((y*y+y+1.)*athird)-sqrt3*atan((2.*y+1.)*sqrt3i)
+     .      +pi*sqrt3i
+        f=1./(1.+zeta*zeta)
+        psitq=f*psik+(1.-f)*psic
+      endif
+c
+      return
+      end function psitq
+c
+c --- ------------------------------------------------------------------
+c
+      subroutine lkb(reu,ret,req)
+c
+      implicit none
+c
+c --- computes the roughness Reynolds for temperature and humidity
+c --- following Liu, Katsaros and Businger (1979), J. Atmos.  Sci., 36,
+c --- 1722-1735.
+c
+      real reu,ret,req
+c
+      real, dimension(8,2) :: a,b
+      real, dimension(8) :: re
+      integer i
+c
+      data a/0.177,1.376,1.026,1.625,4.661,34.904,1667.19,5.88e5,
+     .       0.292,1.808,1.393,1.956,4.994,30.709,1448.68,2.98e5/
+      data b/0.,0.929,-0.599,-1.018,-1.475,-2.067,-2.907,-3.935,
+     .       0.,0.826,-0.528,-0.870,-1.297,-1.845,-2.682,-3.616/
+      data re/0.11,0.825,3.0,10.0,30.0,100.,300.,1000./
+c
+      i=1
+ 10   if (reu.gt.re(i).and.i.lt.8) then
+        i=i+1
+        goto 10
+      endif
+c
+      ret=a(i,1)*reu**b(i,1)
+      req=a(i,2)*reu**b(i,2)
+c
+      return
+      end subroutine lkb
+c
+c --- ------------------------------------------------------------------
+c
       subroutine bulktf(du,zu,ta,zt,qa,zq,ts,qs,icec,cd,ch,ce,wg2)
 c
 c --- this routine computes momentum, sensible heat, and latent heat
@@ -38,9 +153,8 @@ c
      .          beta=1.2,athird=1./3.,alpha=.011,gi=1./g,k=.4,ki=2.5)
 c
       real tv,tac,visca,dt,dq,du1,du2,s,ustar2,ustar,fac,tstar,qstar,
-     .     tvstar,li,w3,wg,zetau,zetat,zetaq,z0,cd2,psiu,reu,ret,req,
-     .     z0t,z0q,ct2,psitq,cq2
-      external psiu,psitq
+     .     tvstar,li,w3,wg,zetau,zetat,zetaq,z0,cd2,reu,ret,req,
+     .     z0t,z0q,ct2,cq2
 c
 c --- virtual temperature
       tv=ta*(1.+cv*qa)
@@ -117,102 +231,8 @@ c --- gustiness squared
       wg2=wg*wg
 c
       return
-      end
+      end subroutine bulktf
 c
 c --- ------------------------------------------------------------------
 c
-      real function psiu(zeta)
-c
-c --- Monin-Obukhov similarity velocity profile function
-c
-      real zeta
-c
-      real athird,pi,sqrt3,sqrt3i
-      parameter(athird=1./3.,pi=3.141592653589793,
-     .          sqrt3=1.732050807568877,sqrt3i=.5773502691896258)
-c
-      real x,psik,y,psic,f
-c
-      if (zeta.eq.0.) then
-        psiu=0.
-      elseif (zeta.gt.0.) then
-        psiu=-4.7*zeta
-      else
-        x=(1.-16.*zeta)**.25
-        psik=2.*log((1.+x)*.5)+log((1.+x*x)*.5)-2.*atan(x)+pi*.5
-        y=(1.-12.87*zeta)**athird
-        psic=1.5*log((y*y+y+1.)*athird)-sqrt3*atan((2.*y+1.)*sqrt3i)
-     .      +pi*sqrt3i
-        f=1./(1.+zeta*zeta)
-        psiu=f*psik+(1.-f)*psic
-      endif
-c
-      return
-      end
-c
-c --- ------------------------------------------------------------------
-c
-      real function psitq(zeta)
-c
-      implicit none
-c
-c --- Monin-Obukhov similarity temperature and humidity profile function
-c
-      real zeta
-c
-      real athird,pi,sqrt3,sqrt3i
-      parameter(athird=1./3.,pi=3.141592653589793,
-     .          sqrt3=1.732050807568877,sqrt3i=.5773502691896258)
-c
-      real x,psik,y,psic,f
-c
-      if (zeta.eq.0.) then
-        psitq=0.
-      elseif (zeta.gt.0.) then
-        psitq=-4.7*zeta
-      else
-        x=(1.-16.*zeta)**.25
-        psik=2.*log((1+x*x)*.5)
-        y=(1.-12.87*zeta)**athird
-        psic=1.5*log((y*y+y+1.)*athird)-sqrt3*atan((2.*y+1.)*sqrt3i)
-     .      +pi*sqrt3i
-        f=1./(1.+zeta*zeta)
-        psitq=f*psik+(1.-f)*psic
-      endif
-c
-      return
-      end
-c
-c --- ------------------------------------------------------------------
-c
-      subroutine lkb(reu,ret,req)
-c
-      implicit none
-c
-c --- computes the roughness Reynolds for temperature and humidity
-c --- following Liu, Katsaros and Businger (1979), J. Atmos.  Sci., 36,
-c --- 1722-1735.
-c
-      real reu,ret,req
-c
-      real, dimension(8,2) :: a,b
-      real, dimension(8) :: re
-      integer i
-c
-      data a/0.177,1.376,1.026,1.625,4.661,34.904,1667.19,5.88e5,
-     .       0.292,1.808,1.393,1.956,4.994,30.709,1448.68,2.98e5/
-      data b/0.,0.929,-0.599,-1.018,-1.475,-2.067,-2.907,-3.935,
-     .       0.,0.826,-0.528,-0.870,-1.297,-1.845,-2.682,-3.616/
-      data re/0.11,0.825,3.0,10.0,30.0,100.,300.,1000./
-c
-      i=1
- 10   if (reu.gt.re(i).and.i.lt.8) then
-        i=i+1
-        goto 10
-      endif
-c
-      ret=a(i,1)*reu**b(i,1)
-      req=a(i,2)*reu**b(i,2)
-c
-      return
-      end
+      end module mod_bulktf

@@ -101,6 +101,24 @@
       enddo
 
       ! ----------------------------------------------------------------
+      ! Pack dms flux (kmol DMS/m^2/s), if requested
+      ! ----------------------------------------------------------------
+
+      if (index_o2x_Faoo_fdms_ocn > 0) then
+        n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               o2x_o%rAttr(index_o2x_Faoo_fdms_ocn,n) =
+     .            sbuff(i,j,index_o2x_Faoo_fdms_ocn)*tfac
+            enddo
+         enddo
+      else
+         if (mnproc.eq.1)
+     .      write (lp,*) 'export_mct: dms flux not sent to coupler'
+      endif
+
+      ! ----------------------------------------------------------------
       ! Pack co2 flux (kg CO2/m^2/s), if requested
       ! ----------------------------------------------------------------
 

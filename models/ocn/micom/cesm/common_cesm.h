@@ -1,5 +1,5 @@
 c --- ------------------------------------------------------------------
-c --- common blocks related to the application of CCSM forcing fields
+c --- common blocks related to the application of CESM forcing fields
 c --- ------------------------------------------------------------------
 c
 c --- daily average forcing fields
@@ -22,9 +22,9 @@ c --- daily average forcing fields
      .  atmco2_da,     ! atmospheric co2 concentration
      .  ficem_da       ! ice concentration
 c
-c --- time level indices for CCSM fields
-      integer ll1,ll2
+c --- time level indices for CESM fields
+      integer l1ci,l2ci
 c
-      common /ccsm/ swa_da,nsf_da,hmlt_da,lip_da,sop_da,eva_da,rnf_da,
+      common /cesm/ swa_da,nsf_da,hmlt_da,lip_da,sop_da,eva_da,rnf_da,
      .              rfi_da,fmltfz_da,sfl_da,ztx_da,mty_da,ustarw_da,
-     .              slp_da,abswnd_da,atmco2_da,ficem_da,ll1,ll2
+     .              slp_da,abswnd_da,atmco2_da,ficem_da,l1ci,l2ci

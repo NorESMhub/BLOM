@@ -21,6 +21,9 @@ c --- pressure at the surface
      .,ap110,ap120,ap130,ap140,ap150,ap160
      .,ap210,ap220,ap230,ap240,ap250,ap260
 c
+c --- coefficients for freezing temperature
+     .,atf,btf,ctf
+c
       real a11,a12,a13,a14,a15,a16,b11,b12,b13
      .    ,a21,a22,a23,a24,a25,a26,b21,b22,b23
      .    ,pref
@@ -28,3 +31,4 @@ c
      .    ,ap21,ap22,ap23,ap24,ap25,ap26
      .    ,ap110,ap120,ap130,ap140,ap150,ap160
      .    ,ap210,ap220,ap230,ap240,ap250,ap260
+     .    ,atf,btf,ctf

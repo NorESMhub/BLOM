@@ -248,7 +248,8 @@ case ('alk') ! alkalinity
    cfac   = 1.0  ! no unit conversion within this module
 
 case ('dic') ! DIC
-   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'TCO2.nc'
+!   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'TCO2.nc'
+   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'NatCO2.nc'
    ncname = 'TCO2'
    dsrc   = 'GLP'
    cfac   = 1.0  ! no unit conversion within this module

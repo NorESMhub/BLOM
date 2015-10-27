@@ -73,6 +73,10 @@ set CBAR     = 5.
 set CB       = .002
 set CWBDTS   = 5.e-5
 set CWBDLS   = 25.
+set EITMTH   = "'intdif'"
+set EDRITP   = "'shear'"
+set BMCMTH   = "'uc'"
+set RMPMTH   = "'eitvel'"
 set EGC      = 1.0
 set EGGAM    = 200.
 set EGMNDF   = 100.e4
@@ -95,6 +99,7 @@ set SPRFAC   = .false.
 set RSTFRQ   =  1
 set RSTFMT   =  1
 set RSTCMP   =  0 
+set IOTYPE   =  1 
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
 # set DAIPHY defaults 
@@ -408,6 +413,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! IDATE    : Model date in YYYYMMDD (i)
 ! IDATE0   : Initial experiment date in YYYYMMDD (i)
 ! RUNID    : Experiment name (a)
+! EXPCNF   : Experiment configuration (a)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -424,6 +430,15 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
 ! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
 ! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
+! EITMTH   : Eddy-induced transport parameterization method. Valid
+!            methods: 'intdif', 'gm' (a)
+! EDRITP   : Type of Richardson number used in eddy diffusivity
+!            computation. Valid types: 'shear', 'large scale' (a)
+! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
+!            'uc' (upstream column), 'dluc' (depth limited upstream
+!            column) (a)
+! RMPMTH   : Method of applying eddy-induced transport in the remap
+!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
@@ -443,8 +458,8 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! DISFLX   : Diagnose freshwater flux flag (l)
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SRXSRC   : SSS climatology used for relax. Valid opts. 'PHC3.0' or 'CORE' (a)
-! SMTFRC   : Smooth CCSM forcing (l)
-! SPRFAC   : Send precipitation/runoff factor to CCSM coupler (l)
+! SMTFRC   : Smooth CESM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! PATH     : Path to input files (a)
 ! PATH1    : Path to diagnostic files (a)
 ! PATH2    : Path to restart files (a)
@@ -453,12 +468,14 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
 ! RSTCMP   : Compression flag for restart file (i)
+! IOTYPE   : 0 = netcdf, 1 = pnetcdf
 &LIMITS
   NDAY1    = 0,
   NDAY2    = 999999,
   IDATE    = ${YEAR0}${MONTH0}${DAY0},
   IDATE0   = ${YEAR0}${MONTH0}${DAY0},
   RUNID    = 'xxxx',
+  EXPCNF   = 'cesm',
   BACLIN   = ${BACLIN},
   BATROP   = ${BATROP},
   MDV2HI   = ${MDV2HI},
@@ -475,6 +492,10 @@ cat >! $RUNDIR/ocn_in << EOF1
   CB       = ${CB},
   CWBDTS   = ${CWBDTS},
   CWBDLS   = ${CWBDLS},
+  EITMTH   = ${EITMTH},
+  EDRITP   = ${EDRITP},
+  BMCMTH   = ${BMCMTH},
+  RMPMTH   = ${RMPMTH},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
   EGMNDF   = ${EGMNDF},
@@ -500,7 +521,8 @@ cat >! $RUNDIR/ocn_in << EOF1
   ATM_PATH = './',
   RSTFRQ   = ${RSTFRQ},
   RSTFMT   = ${RSTFMT},
-  RSTCMP   = ${RSTCMP}
+  RSTCMP   = ${RSTCMP},
+  IOTYPE   = ${IOTYPE}
 /
 
 ! BGCNML NAMELIST

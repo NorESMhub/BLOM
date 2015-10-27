@@ -249,15 +249,9 @@ c
 c --- ----- continuity equation
 c
 c$OMP PARALLEL DO
-#ifdef NEST
-            do j=2,jj-2
-              do l=1,isp(j)
-              do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
-#else
             do j=-1,jj+2
               do l=1,isp(j)
               do i=max(-1,ifp(j,l)),min(ii+1,ilp(j,l))
-#endif
                 pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
      .           -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
      .                           +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
@@ -270,15 +264,9 @@ c
 c --- ----- u momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
-#ifdef NEST
-            do j=2,jj-2
-              do l=1,isu(j)
-              do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
-#else
             do j=-1,jj+2
               do l=1,isu(j)
               do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
-#endif
 c
                 ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
      .                       +(1.+wbaro)*ubflx_t(i,j,ml)
@@ -318,15 +306,9 @@ c
 c --- ----- v momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
-#ifdef NEST
-            do j=3,jj-2
-              do l=1,isv(j)
-              do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
-#else
             do j=0,jj+2
               do l=1,isv(j)
               do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
-#endif
 c
                 vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
      .                       +(1.+wbaro)*vbflx_t(i,j,ml)
@@ -363,10 +345,6 @@ c
             enddo 
 c$OMP END PARALLEL DO
 c
-#ifdef NEST
-            call btpnst(m,n,nl,lll,wn)
-#endif
-c
             ll=ml
             ml=nl
             nl=ll
@@ -380,15 +358,9 @@ c
 c --- ----- continuity equation
 c
 c$OMP PARALLEL DO
-#ifdef NEST
-            do j=2,jj-2
-              do l=1,isp(j)
-              do i=max(2,ifp(j,l)),min(ii-2,ilp(j,l))
-#else
             do j=0,jj+1
               do l=1,isp(j)
               do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
-#endif
                 pb_t(i,j,nl)=(1.-wbaro)*pb_t(i,j,ml)+wbaro*pb_t(i,j,nl)
      .           -(1.+wbaro)*dlt*(ubflx_t(i+1,j,ml)-ubflx_t(i,j,ml)
      .                           +vbflx_t(i,j+1,ml)-vbflx_t(i,j,ml))
@@ -401,15 +373,9 @@ c
 c --- ----- v momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
-#ifdef NEST
-            do j=3,jj-2
-              do l=1,isv(j)
-              do i=max(2,ifv(j,l)),min(ii-2,ilv(j,l))
-#else
             do j=1,jj+1
               do l=1,isv(j)
               do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
-#endif
 c
                 vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
      .                       +(1.+wbaro)*vbflx_t(i,j,ml)
@@ -449,15 +415,9 @@ c
 c --- ----- u momentum equation
 c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
-#ifdef NEST
-            do j=2,jj-2
-              do l=1,isu(j)
-              do i=max(3,ifu(j,l)),min(ii-2,ilu(j,l))
-#else
             do j=1,jj
               do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-#endif
 c
                 ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
      .                       +(1.+wbaro)*ubflx_t(i,j,ml)
@@ -493,10 +453,6 @@ c
               enddo
             enddo
 c$OMP END PARALLEL DO
-c
-#ifdef NEST
-            call btpnst(m,n,nl,lll,wn)
-#endif
 c
             ll=ml
             ml=nl

@@ -1,7 +1,7 @@
-      subroutine intdif(m,n,mm,nn,k1m,k1n)
+      subroutine eddtra_intdif(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- estimate diffusive fluxes due to interface diffusion
+c --- Estimate eddy-induced transport by interface diffusion.
 c --- ------------------------------------------------------------------
 c
       use mod_xc
@@ -16,8 +16,6 @@ c
       real flxhi,flxlo,q
 c
       call xctilr(difint, 1,kk, 2,2, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,k1m), 1,kk, 1,1, halo_ps)
 c
 c$OMP PARALLEL DO
       do j=-1,jj+2
@@ -85,46 +83,6 @@ c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
 c$OMP END PARALLEL DO
 c
       enddo
-c
-c --- diagnose diffusive flux components of heat and salt
-c
-      do k=1,kk
-        km=k+mm
-c
-c$OMP PARALLEL DO
-        do j=1,jj
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-            utfltd(i,j,km)=.5*umfltd(i,j,km)
-     .                     *(temp(i-1,j,km)+temp(i,j,km))
-            usfltd(i,j,km)=.5*umfltd(i,j,km)
-     .                     *(saln(i-1,j,km)+saln(i,j,km))
-          enddo
-          enddo
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vtfltd(i,j,km)=.5*vmfltd(i,j,km)
-     .                     *(temp(i,j-1,km)+temp(i,j,km))
-            vsfltd(i,j,km)=.5*vmfltd(i,j,km)
-     .                     *(saln(i,j-1,km)+saln(i,j,km))
-          enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-c
-      enddo
-c
-      if (csdiag) then
-        if (mnproc.eq.1) then
-          write (lp,*) 'intdif:'
-        endif
-        call chksummsk(umfltd(1-nbdy,1-nbdy,k1m),iu,kk,'umfltd')
-        call chksummsk(vmfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vmfltd')
-        call chksummsk(utfltd(1-nbdy,1-nbdy,k1m),iu,kk,'utfltd')
-        call chksummsk(vtfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vtfltd')
-        call chksummsk(usfltd(1-nbdy,1-nbdy,k1m),iu,kk,'usfltd')
-        call chksummsk(vsfltd(1-nbdy,1-nbdy,k1m),iv,kk,'vsfltd')
-      endif
 c
       return
       end

@@ -109,6 +109,19 @@
          enddo
       endif
 
+      if (index_o2x_Faoo_fdms_ocn > 0) then
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+               sbuff(i,j,index_o2x_Faoo_fdms_ocn) =
+     .            sbuff(i,j,index_o2x_Faoo_fdms_ocn)
+     .          + flxdms(i,j)*baclin
+            enddo
+            enddo
+         enddo
+      endif
+
+
       !-----------------------------------------------------------------
       ! Increment time since last coupling
       !-----------------------------------------------------------------

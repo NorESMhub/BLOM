@@ -312,12 +312,10 @@
         sn2flux =sn2flux +bgct2d(i,j,jn2flux) *dlxp(i,j)*dlyp(i,j)
         sn2oflux=sn2oflux+bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
         ztotarea = ztotarea + dlxp(i,j)*dlyp(i,j)
+        zatmco2 =zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
 #ifdef DIFFAT	
-        zatmco2=zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
         zatmo2= zatmo2  + atm(i,j,iatmo2) *dlxp(i,j)*dlyp(i,j)
         zatmn2= zatmn2  + atm(i,j,iatmn2) *dlxp(i,j)*dlyp(i,j)	
-#elif CCSMCOUPLED	
-        zatmco2=zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
 #endif
       enddo
       enddo
@@ -367,7 +365,6 @@
 
       CALL xcsum(ztotarea,ztmp1,ips)
 
-#ifdef DIFFAT
       ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
@@ -377,6 +374,7 @@
 
       CALL xcsum(zatmco2,ztmp1,ips)
 
+#ifdef DIFFAT
       ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
@@ -394,19 +392,6 @@
       ENDDO
 
       CALL xcsum(zatmn2,ztmp1,ips)
-#elif CCSMCOUPLED
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(zatmco2,ztmp1,ips)
-#else
-      zatmco2 = 0.
-      zatmo2 = 0.
-      zatmn2 = 0.
 #endif
 
 !      IF (mnproc.eq.1) THEN
@@ -481,11 +466,7 @@
      & +zocetrato(izoo))*rcar+zocetrato(isco212)+zocetrato(icalc)     & 
      & +zpowtrato(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
      & +zburial(isssc12)+zburial(issso12)*rcar+zprorca*rcar+zprcaca   & 
-#if defined(DIFFAT) || defined(CCSMCOUPLED)
      & +zatmco2*ppm2con  
-#else
-     & +co2flux
-#endif
 
       totalnitr=                                                      &
      &   (zocetrato(idet)+zocetrato(idoc)+zocetrato(iphy)             &

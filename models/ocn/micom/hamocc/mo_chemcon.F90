@@ -71,15 +71,17 @@
 
 
 !     -----------------------------------------------------------------
-!*    INVERS OF NORMAL MOLAL VOLUME OF AN IDEAL GAS [CM**3]
+!*    INVERS OF NORMAL MOLAL VOLUME OF AN IDEAL GAS [mol/ml] at 0C
 !
       real, parameter :: OXYCO=1./22414.4
 
 
 !     -----------------------------------------------------------------
-!*    VOLUMETRIC SOLUBILITY CONSTANTS FOR O2 IN ML/L
-!     (WEISS, 1970)
-!
+!*    VOLUMETRIC SOLUBILITY CONSTANTS FOR O2 IN ML/L from moist air at
+!     one atm total pressure. Table 2 in WEISS, R. F. (1970) THE 
+!     SOLUBILITY OF NITROGEN OXYGEN AND ARGON IN WATER AND SEAWATER.
+!     DEEP-SEA RESEARCH, VOL. 17, 721-735.
+! 
       real, parameter :: OX0=-173.4292
       real, parameter :: OX1=249.6339
       real, parameter :: OX2=143.3483
@@ -90,9 +92,9 @@
 
 
 !     -----------------------------------------------------------------
-!*    VOLUMETRIC SOLUBILITY CONSTANTS FOR N2 IN ML/L
-!     WEISS, R. F. (1970) THE SOLUBILITY OF NITROGEN
-!     OXYGEN AND ARGON IN WATER AND SEAWATER.
+!*    VOLUMETRIC SOLUBILITY CONSTANTS FOR N2 IN ML/L from moist air at
+!     one atm total pressure. Table 2 in WEISS, R. F. (1970) THE 
+!     SOLUBILITY OF NITROGEN OXYGEN AND ARGON IN WATER AND SEAWATER.
 !     DEEP-SEA RESEARCH, VOL. 17, 721-735.
 !
        real, parameter :: AN0=-172.4965
@@ -103,15 +105,41 @@
        real, parameter :: AN5=0.025018
        real, parameter :: AN6=-0.0034861
 
-!      Constants for laughing gas solubility 
-!      (WEISS, 1974, MARINE CHEMISTRY)
-!      --------------------------------------  
-       real, parameter :: al1=-62.7062
-       real, parameter :: al2=97.3066
-       real, parameter :: al3=24.1406
-       real, parameter :: bl1=-0.058420
-       real, parameter :: bl2=0.033193
-       real, parameter :: bl3=-0.0051313
+
+!     -----------------------------------------------------------------
+!      Constants for CO2 solubility in mol/kg/atm from moist 
+!      air at one atm total pressure. Table 6 in WEISS, R.F.,
+!      NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
+!      Marine Chemistry, 8, 347-359, 1980
+
+
+       real, parameter :: ac1= -162.8301
+       real, parameter :: ac2=  218.2968
+       real, parameter :: ac3=   90.9241
+       real, parameter :: ac4=   -1.47696
+       real, parameter :: bc1=    0.025695
+       real, parameter :: bc2=   -0.025225
+       real, parameter :: bc3=    0.0049867
+
+
+
+!     -----------------------------------------------------------------
+!      Constants for laughing gas solubility in mol/l/atm from moist 
+!      air at one atm total pressure. Table 2 in WEISS, R.F.,
+!      NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
+!      Marine Chemistry, 8, 347-359, 1980
+
+
+       real, parameter :: al1= -165.8806
+       real, parameter :: al2=  222.8743
+       real, parameter :: al3=   92.0792
+       real, parameter :: al4=   -1.48425
+       real, parameter :: bl1=   -0.056235
+       real, parameter :: bl2=    0.031619
+       real, parameter :: bl3=   -0.0048472
+
+
+!      Atmospheric mixing ratio of N2O around 1980 300 ppb
        real, parameter :: atn2o=3.e-7
        
 

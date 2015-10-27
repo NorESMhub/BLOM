@@ -19,11 +19,6 @@ c
       integer i,j,k,l,kn,kfpl,kfplo,kmix,ko
       logical done
 c
-#ifdef TKE
-#  include "common_tke.h"
-      real, dimension(kdm) :: ttke, tgls
-      real tkdps, glsdps
-#endif
 #ifdef TRC
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -39,12 +34,6 @@ c
 c
 c$OMP PARALLEL DO PRIVATE(ttem,ssal,delp,dens,densr,
 c$OMP+ done,k,kn,tdps,sdps,dps,ttmp,stmp,dtmp,q,kfpl,kfplo,kmix,niter
-#ifdef TKE
-c$OMP+,ttke,tkdps
-#  ifdef GLS
-c$OMP+,tgls,glsdps
-#  endif
-#endif
 #ifdef TRC
 c$OMP+,ttrc,trdps
 #endif
@@ -61,15 +50,9 @@ c --- --- Copy variables into 1d arrays
             delp(k)=dp(i,j,kn)
             dens(k)=sigma(i,j,kn)
             densr(k)=sigmar(i,j,k)
-#ifdef TKE
-            ttke(k)=tke(i,j,kn)
-#  ifdef GLS
-            tgls(k)=gls_psi(i,j,kn)
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              ttrc(nt,k)=trc(i,j,k,nt)
+            do nt=1,ntr
+              ttrc(nt,k)=trc(i,j,kn,nt)
             enddo
 #endif
           enddo
@@ -98,14 +81,8 @@ c
               tdps=0.
               sdps=0.
               dps=0.
-#ifdef TKE
-              tkdps=0.
-#  ifdef GLS
-              glsdps=0.
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=0.
               enddo
 #endif
@@ -113,14 +90,8 @@ c
                 tdps=tdps+ttem(k)*delp(k)
                 sdps=sdps+ssal(k)*delp(k)
                 dps=dps+delp(k)
-#ifdef TKE
-                tkdps=tkdps+ttke(k)*delp(k)
-#  ifdef GLS
-                glsdps=glsdps+tgls(k)*delp(k)
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -138,14 +109,8 @@ c
                 ssal(kfpl)=stmp
                 dens(kfpl)=dtmp
                 delp(kfpl)=dps
-#ifdef TKE
-                ttke(kfpl)=tkdps*q
-#  ifdef GLS
-                tgls(kfpl)=glsdps*q
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,kfpl)=trdps(nt)*q
                 enddo
 #endif
@@ -154,14 +119,8 @@ c
               tdps=0.
               sdps=0.
               dps=0.
-#ifdef TKE
-              tkdps=0.
-#  ifdef GLS
-              glsdps=0.
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=0.
               enddo
 #endif
@@ -169,14 +128,8 @@ c
                 tdps=tdps+ttem(k)*delp(k)
                 sdps=sdps+ssal(k)*delp(k)
                 dps=dps+delp(k)
-#ifdef TKE
-                tkdps=tkdps+ttke(k)*delp(k)
-#  ifdef GLS
-                glsdps=glsdps+tgls(k)*delp(k)
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -195,14 +148,8 @@ c
               ssal(kfpl)=stmp
               dens(kfpl)=dtmp
               delp(kfpl)=dps
-#ifdef TKE
-              ttke(kfpl)=tkdps*q
-#  ifdef GLS
-              tgls(kfpl)=glsdps*q
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 ttrc(nt,kfpl)=trdps(nt)*q
               enddo
 #endif
@@ -234,14 +181,8 @@ c --- ------- interface
               tdps=ttem(2)*delp(2)
               sdps=ssal(2)*delp(2)
               dps=delp(2)
-#ifdef TKE
-              tkdps=ttke(2)*delp(2)
-#  ifdef GLS
-              glsdps=tgls(2)*delp(2)
-#  endif
-#endif
 #ifdef TRC
-              do nt=1,ntrc
+              do nt=1,ntr
                 trdps(nt)=ttrc(nt,2)*delp(2)
               enddo
 #endif
@@ -257,14 +198,8 @@ c --- ------- interface
                 q=1./dps
                 ttmp=tdps*q
                 stmp=sdps*q
-#ifdef TKE
-                tkdps=tkdps+ttke(k)*delp(k)
-#  ifdef GLS
-                glsdps=glsdps+tgls(k)*delp(k)
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   trdps(nt)=trdps(nt)+ttrc(nt,k)*delp(k)
                 enddo
 #endif
@@ -276,14 +211,8 @@ c --- ------- interface
                 ttem(2)=ttmp
                 ssal(2)=stmp
                 dens(2)=sig(ttem(2),ssal(2))
-#ifdef TKE
-                ttke(2)=tkdps*q
-#  ifdef GLS
-                tgls(2)=glsdps*q
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,2)=trdps(nt)*q
                 enddo
 #endif
@@ -302,14 +231,8 @@ c --- ------- interface
                 ssal(kfpl)=ssal(2)
                 dens(kfpl)=dens(2)
                 delp(kfpl)=dps
-#ifdef TKE
-                ttke(kfpl)=ttke(2)
-#  ifdef GLS
-                tgls(kfpl)=tgls(2)
-#  endif
-#endif
 #ifdef TRC
-                do nt=1,ntrc
+                do nt=1,ntr
                   ttrc(nt,kfpl)=ttrc(nt,2)
                 enddo
 #endif
@@ -335,15 +258,9 @@ c --- --- Copy 1d arrays to 3d arrays
             diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
             dp(i,j,kn)=delp(k)
             p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-#ifdef TKE
-            tke(i,j,kn)=ttke(k)
-#  ifdef GLS
-            gls_psi(i,j,kn)=tgls(k)
-#  endif
-#endif
 #ifdef TRC
-            do nt=1,ntrc
-              trc(i,j,k,nt)=ttrc(nt,k)
+            do nt=1,ntr
+              trc(i,j,kn,nt)=ttrc(nt,k)
             enddo
 #endif
           enddo
@@ -495,15 +412,9 @@ c
         call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(u,iu,2*kk,'u')
         call chksummsk(v,iv,2*kk,'v')
-#ifdef TKE
-        call chksummsk(tke,ip,2*kk,'tke')
-#  ifdef GLS
-        call chksummsk(gls_psi,ip,2*kk,'gls_psi')
-#  endif
-#endif
 #ifdef TRC
-        do nt=1,ntrc
-          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,kk,'trc')
+        do nt=1,ntr
+          call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
         enddo
 #endif
       endif
