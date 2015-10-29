@@ -719,7 +719,6 @@ c --- Write data in compressed or uncompressed format
       endif
 c
       end
-
       subroutine defvar_restart(c5p,c5u,c5v,c5q)
 c
 c --- ------------------------------------------------------------------
