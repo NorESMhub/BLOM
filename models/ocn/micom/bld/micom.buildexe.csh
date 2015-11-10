@@ -1,34 +1,13 @@
 #! /bin/csh -f 
 
-set exedir = $EXEROOT
-set objdir = $OBJROOT/ocn/obj; cd $objdir
-set dimdir = $objdir/dimensions
-set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
-set tracers = (`echo $MICOM_TRACER_MODULES`)
-set co2type = (`echo $MICOM_CO2_TYPE`)
-set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
-
-#------------------------------------------------------------------------------
-# Make dimensions.F
-#------------------------------------------------------------------------------
-
-mkdir -p $dimdir
-set kdm = `cat $CODEROOT/ocn/micom/bld/$OCN_GRID/kdm`
-$CASEROOT/Buildconf/micom_dimensions -n $NTASKS_OCN -k $kdm -d $CODEROOT/ocn/micom/bld/$OCN_GRID
-set recompile = FALSE
-cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
-if ($recompile == 'TRUE') then
-  mv dimensions.F $dimdir
-else
-  rm dimensions.F
-endif
+cd $OBJROOT/ocn/obj
 
 #------------------------------------------------------------------------------
 # Set list of file paths and resolve C preprocessor macros
 #------------------------------------------------------------------------------
 
 cat >! Filepath << EOF1
-$dimdir
+$OBJROOT/ocn/obj/dimensions
 $CASEROOT/SourceMods/src.micom
 $CODEROOT/ocn/micom/ben02
 $CODEROOT/ocn/micom/cesm
@@ -37,6 +16,10 @@ $CODEROOT/ocn/micom/drivers/cpl_mct
 $CODEROOT/ocn/micom/phy
 EOF1
 
+set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
+set tracers = (`echo $MICOM_TRACER_MODULES`)
+set co2type = (`echo $MICOM_CO2_TYPE`)
+set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
 
 set cpp_ocn = "-DMPI"
 if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1.5v1 || $OCN_GRID == tnx0.25v1) then
@@ -116,6 +99,7 @@ endif
 
 EOF
 chmod +x $CASEBUILD/micom.buildexe.csh
+
 #==============================================================================
 # end of script
 #==============================================================================

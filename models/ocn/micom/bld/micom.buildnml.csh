@@ -1,5 +1,23 @@
 #! /bin/csh -f
 
+cd $OBJROOT/ocn/obj
+
+#------------------------------------------------------------------------------
+# Make dimensions.F
+#------------------------------------------------------------------------------
+
+set dimdir = $OBJROOT/ocn/obj/dimensions
+mkdir -p $dimdir
+set kdm = `cat $CODEROOT/ocn/micom/bld/$OCN_GRID/kdm`
+$CASEROOT/Buildconf/micom_dimensions -n $NTASKS_OCN -k $kdm -d $CODEROOT/ocn/micom/bld/$OCN_GRID || exit -1
+set recompile = FALSE
+cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
+if ($recompile == 'TRUE') then
+  mv dimensions.F $dimdir
+else
+  rm dimensions.F
+endif
+
 #------------------------------------------------------------------------------
 # Generate micom.input_data_list
 #------------------------------------------------------------------------------
@@ -55,6 +73,9 @@ EOF1
   endif
 end
 
+#------------------------------------------------------------------------------
+# Set namelist variables
+#------------------------------------------------------------------------------
 
 # set LIMITS defaults
 set BACLIN   = 1800.
