@@ -175,7 +175,8 @@ c --- diffusivities.
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
           kmax(i,j)=1
           do k=3,kk
-            if (dp(i,j,k).gt.dpbmin) kmax(i,j)=k
+            kn=k+nn
+            if (dp(i,j,kn).gt.dpbmin) kmax(i,j)=k
           enddo
           if (kfpla(i,j,n).ge.kmax(i,j)) then
             kfil(i,j)=kfpla(i,j,n)+1
