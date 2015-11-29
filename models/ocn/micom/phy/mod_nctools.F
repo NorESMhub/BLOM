@@ -69,8 +69,8 @@ c
       implicit none
 #ifdef PNETCDF
 #  include <pnetcdf.inc>
-#endif
 #  include <mpif.h>
+#endif
 c
 c 
       private :: ii,jj,kk,idm,jdm,kdm,nbdy
@@ -94,7 +94,9 @@ c
 c --- Declare global variables  
       logical, private, save :: flgpad 
       integer, private, save :: ncid,rhid,status,rec,io_type
+#ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) clen,istart(5),icount(5),tkd
+#endif
       integer*2, parameter :: i2fill=-32768,i2max=32767
       real, parameter :: fillr8=9.9692099683868690e+36
       real(kind=4), parameter :: fillr4=9.9692099683868690e+36
@@ -823,7 +825,9 @@ c
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer ndims,dimid,dimids(maxdm),dimlen,strn,strind(2,maxdm),
      .  msk(*),mskflg
+#ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) tdimlen 
+#endif
       integer, dimension(maxdm) :: start,count
       real, allocatable, dimension(:,:,:) :: rfldt
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk
@@ -2046,8 +2050,10 @@ c
       integer :: n 
       integer, parameter :: maxdm=5 
       integer :: dimids(maxdm),strn,strind(2,maxdm)
+#ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND), dimension(maxdm) :: start,count
       integer(kind=MPI_OFFSET_KIND) nsp,slenmaxp
+#endif
       integer ns,slenmax
 c
       IF(IO_TYPE .EQ. 1) THEN
@@ -2678,8 +2684,10 @@ c
 c
       integer, parameter :: maxdm=5
       integer :: n,nmax,strind(2,maxdm),ndims
+#ifdef PNETCDF
       integer (kind=MPI_OFFSET_KIND), dimension(maxdm) :: 
      . dimlenp
+#endif
       integer , dimension(maxdm) :: dimids
       integer, dimension(maxdm) :: start,count,dimlen
 c
@@ -2965,7 +2973,9 @@ c
       implicit none
 c
       character*(*) nm
+#ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) attlen
+#endif
       integer attlen1   
 c     
       IF(IO_TYPE .EQ. 1) THEN
