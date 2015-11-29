@@ -179,16 +179,16 @@ c$OMP PARALLEL DO PRIVATE(q)
           do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,k)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,k)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
-     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
           enddo
           enddo
         enddo

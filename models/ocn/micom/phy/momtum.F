@@ -402,8 +402,8 @@ c
       do 6 l=1,isu(j)
       do 6 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
 c
-      ptopl=min(pbu(i,j,m),.5*(p(i,j,k  )+p(i-1,j,k  )))
-      pbotl=min(pbu(i,j,m),.5*(p(i,j,k+1)+p(i-1,j,k+1)))
+      ptopl=.5*(min(pbu(i,j,m),p(i,j,k  ))+min(pbu(i,j,m),p(i-1,j,k  )))
+      pbotl=.5*(min(pbu(i,j,m),p(i,j,k+1))+min(pbu(i,j,m),p(i-1,j,k+1)))
 c
 c --- bottom boundary layer stress. stress profile is assumed linear and
 c --- the drag is treated implicitly
@@ -530,8 +530,8 @@ c
       do 7 l=1,isv(j)
       do 7 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
 c
-      ptopl=min(pbv(i,j,m),.5*(p(i,j,k  )+p(i,j-1,k  )))
-      pbotl=min(pbv(i,j,m),.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+      ptopl=.5*(min(pbv(i,j,m),p(i,j,k  ))+min(pbv(i,j,m),p(i,j-1,k  )))
+      pbotl=.5*(min(pbv(i,j,m),p(i,j,k+1))+min(pbv(i,j,m),p(i,j-1,k+1)))
 c
 c --- bottom boundary layer stress. stress profile is assumed linear and
 c --- the drag is treated implicitly

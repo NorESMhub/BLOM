@@ -1023,31 +1023,39 @@ c$OMP END PARALLEL DO
 c
 c --- store 'old' interface pressures in -pu,pv-
 c
-      do 882 k=2,kk+1
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(kn)
       do j=1,jj
-c
-        do 881 l=1,isu(j)
-        do 881 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
- 881    pu(i,j,k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
-c
-        do 880 l=1,isv(j)
-        do 880 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
- 880    pv(i,j,k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
-      end do
+        do k=1,kk
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,kn)
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
 c$OMP END PARALLEL DO
- 882  continue
 c
 c --- store 'new' layer thicknesses in -dpu,dpv-
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
 c
-c$OMP PARALLEL DO
-      do 883 j=-2,jj+2
-      do 883 k=1,kk
-      do 883 l=1,isp(j)
-      do 883 i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
- 883  p(i,j,k+1)=p(i,j,k)+dp(i,j,k+nn)
+c$OMP PARALLEL DO PRIVATE(kn)
+      do j=-2,jj+2
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(kn,q)
@@ -1058,16 +1066,16 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
           do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
-     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
           enddo
           enddo
         enddo
@@ -1087,7 +1095,8 @@ c
           pn(1)=0.
           do k=2,kk+1
             po(k)=pu(i,j,k)
-            pn(k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
+            pn(k)=.5*(min(pu(i,j,kk+1),p(i  ,j,k))
+     .               +min(pu(i,j,kk+1),p(i-1,j,k)))
           enddo
 c
           ko=1
@@ -1122,7 +1131,8 @@ c
           pn(1)=0.
           do k=2,kk+1
             po(k)=pv(i,j,k)
-            pn(k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
+            pn(k)=.5*(min(pv(i,j,kk+1),p(i,j  ,k))
+     .               +min(pv(i,j,kk+1),p(i,j-1,k)))
           enddo
 c
           ko=1
