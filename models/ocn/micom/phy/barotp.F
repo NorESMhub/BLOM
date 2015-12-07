@@ -263,47 +263,109 @@ c$OMP END PARALLEL DO
 c
 c --- ----- u momentum equation
 c
+            if     (mommth.eq.'enscon') then
+c
+c --- ------- Sadourny (1975) enstrophy conserving scheme
+c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
-            do j=-1,jj+2
-              do l=1,isu(j)
-              do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
+              do j=-1,jj+2
+                do l=1,isu(j)
+                do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
 c
-                ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
-     .                       +(1.+wbaro)*ubflx_t(i,j,ml)
+                  ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                         +(1.+wbaro)*ubflx_t(i,j,ml)
 c
-                q= (vbflx_t(i  ,j  ,ml)*scvxi(i  ,j  )
-     .             +vbflx_t(i  ,j+1,ml)*scvxi(i  ,j+1)
-     .             +vbflx_t(i-1,j  ,ml)*scvxi(i-1,j  )
-     .             +vbflx_t(i-1,j+1,ml)*scvxi(i-1,j+1))
-     .             *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
-     .              +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
-     .              +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
+                  q= (vbflx_t(i  ,j  ,ml)*scvxi(i  ,j  )
+     .               +vbflx_t(i  ,j+1,ml)*scvxi(i  ,j+1)
+     .               +vbflx_t(i-1,j  ,ml)*scvxi(i-1,j  )
+     .               +vbflx_t(i-1,j+1,ml)*scvxi(i-1,j+1))
+     .               *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
+     .                +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
+     .                +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
 c
-                ubcors_t(i,j)=ubcors_t(i,j)+q
+                  ubcors_t(i,j)=ubcors_t(i,j)+q
 c
-                utndcy=q+
-     .           (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
-     .                             -xixm_o(i,j)*pb_t(i-1,j,nl)))
-     .           +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
-     .                             -xixm(i,j,m)*pb_t(i-1,j,nl)))
-     .           +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
-     .                             -xixm(i,j,n)*pb_t(i-1,j,nl))))
-     .           *scuxi(i,j)
+                  utndcy=q+
+     .             (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                               -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .             +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .             +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .             *scuxi(i,j)
 c
-                ubflx_t(i,j,nl)=
-     .            (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
-     .           +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
-     .                            *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
-     .                           -uglue(i,j)*ubflx_t(i,j,ml))
-                ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
-     .                              ubflx_t(i,j,nl)))
+                  ubflx_t(i,j,nl)=
+     .              (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                              *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                             -uglue(i,j)*ubflx_t(i,j,ml))
+                  ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                                ubflx_t(i,j,nl)))
 c
+                enddo
+                enddo
               enddo
-              enddo
-            enddo
 c$OMP END PARALLEL DO
 c
+            elseif (mommth.eq.'enecon'.or.mommth.eq.'enedis') then
+c
+c --- ------- Sadourny (1975) energy conserving scheme
+c
+c$OMP PARALLEL DO PRIVATE(q,utndcy)
+              do j=-1,jj+2
+                do l=1,isu(j)
+                do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
+c
+                  ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                         +(1.+wbaro)*ubflx_t(i,j,ml)
+c
+                  q= .25*( (vbflx_t(i  ,j  ,ml)*scvxi(i  ,j  )
+     .                     +vbflx_t(i-1,j  ,ml)*scvxi(i-1,j  ))
+     .                    *(wo*pvtrop_o(i,j)+wm*pvtrop(i,j,m)
+     .                     +wn*pvtrop(i,j,n))
+     .                    +(vbflx_t(i  ,j+1,ml)*scvxi(i  ,j+1)
+     .                     +vbflx_t(i-1,j+1,ml)*scvxi(i-1,j+1))
+     .                    *(wo*pvtrop_o(i,j+1)+wm*pvtrop(i,j+1,m)
+     .                     +wn*pvtrop(i,j+1,n)))
+c
+                  ubcors_t(i,j)=ubcors_t(i,j)+q
+c
+                  utndcy=q+
+     .             (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                               -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .             +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .             +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .             *scuxi(i,j)
+c
+                  ubflx_t(i,j,nl)=
+     .              (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                              *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                             -uglue(i,j)*ubflx_t(i,j,ml))
+                  ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                                ubflx_t(i,j,nl)))
+c
+                enddo
+                enddo
+              enddo
+c$OMP END PARALLEL DO
+c
+            else
+              if (mnproc.eq.1) then
+                write (lp,'(3a)') ' mommth=',trim(mommth),
+     .                            ' is unsupported!'
+              endif
+              call xcstop('(barotp)')
+                     stop '(barotp)'
+            endif
+c
 c --- ----- v momentum equation
+c
+            if     (mommth.eq.'enscon') then
+c
+c --- ------- Sadourny (1975) enstrophy conserving scheme
 c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
             do j=0,jj+2
@@ -345,6 +407,61 @@ c
             enddo 
 c$OMP END PARALLEL DO
 c
+            elseif (mommth.eq.'enecon'.or.mommth.eq.'enedis') then
+c
+c --- ------- Sadourny (1975) energy conserving scheme
+c
+c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+              do j=0,jj+2
+                do l=1,isv(j)
+                do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
+c
+                  vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
+     .                         +(1.+wbaro)*vbflx_t(i,j,ml)
+c
+                  q=-.25*( (ubflx_t(i  ,j  ,nl)*scuyi(i  ,j  )
+     .                     +ubflx_t(i  ,j-1,nl)*scuyi(i  ,j-1))
+     .                    *(wo*pvtrop_o(i,j)+wm*pvtrop(i,j,m)
+     .                     +wn*pvtrop(i,j,n))
+     .                    +(ubflx_t(i+1,j  ,nl)*scuyi(i+1,j  )
+     .                     +ubflx_t(i+1,j-1,nl)*scuyi(i+1,j-1))
+     .                    *(wo*pvtrop_o(i+1,j)+wm*pvtrop(i+1,j,m)
+     .                     +wn*pvtrop(i+1,j,n)))
+c
+                  vbcors_t(i,j)=vbcors_t(i,j)+q
+c
+                  vtndcy=q+
+     .             (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
+     .                               -xiym_o(i,j)*pb_t(i,j-1,nl)))
+     .             +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,m)*pb_t(i,j-1,nl)))
+     .             +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,n)*pb_t(i,j-1,nl))))
+     .             *scvyi(i,j)
+c
+                  vbflx_t(i,j,nl)=
+     .              (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
+     .                              *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
+     .                             -vglue(i,j)*vbflx_t(i,j,ml))
+                  vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
+     .                                vbflx_t(i,j,nl)))
+c
+                enddo 
+                enddo 
+              enddo 
+c$OMP END PARALLEL DO
+c
+            else
+              if (mnproc.eq.1) then
+                write (lp,'(3a)') ' mommth=',trim(mommth),
+     .                            ' is unsupported!'
+              endif
+              call xcstop('(barotp)')
+                     stop '(barotp)'
+            endif
+c
+c
             ll=ml
             ml=nl
             nl=ll
@@ -372,87 +489,203 @@ c$OMP END PARALLEL DO
 c
 c --- ----- v momentum equation
 c
+            if     (mommth.eq.'enscon') then
+c
+c --- ------- Sadourny (1975) enstrophy conserving scheme
+c
 c$OMP PARALLEL DO PRIVATE(q,vtndcy)
-            do j=1,jj+1
-              do l=1,isv(j)
-              do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
+              do j=1,jj+1
+                do l=1,isv(j)
+                do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
 c
-                vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
-     .                       +(1.+wbaro)*vbflx_t(i,j,ml)
+                  vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
+     .                         +(1.+wbaro)*vbflx_t(i,j,ml)
 c
-                q=-(ubflx_t(i  ,j  ,ml)*scuyi(i  ,j  )
-     .             +ubflx_t(i+1,j  ,ml)*scuyi(i+1,j  )
-     .             +ubflx_t(i  ,j-1,ml)*scuyi(i  ,j-1)
-     .             +ubflx_t(i+1,j-1,ml)*scuyi(i+1,j-1))
-     .            *(wo*(pvtrop_o(i,j)+pvtrop_o(i+1,j))
-     .             +wm*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
-     .             +wn*(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
+                  q=-(ubflx_t(i  ,j  ,ml)*scuyi(i  ,j  )
+     .               +ubflx_t(i+1,j  ,ml)*scuyi(i+1,j  )
+     .               +ubflx_t(i  ,j-1,ml)*scuyi(i  ,j-1)
+     .               +ubflx_t(i+1,j-1,ml)*scuyi(i+1,j-1))
+     .              *(wo*(pvtrop_o(i,j)+pvtrop_o(i+1,j))
+     .               +wm*(pvtrop(i,j,m)+pvtrop(i+1,j,m))
+     .               +wn*(pvtrop(i,j,n)+pvtrop(i+1,j,n)))*.125
 c
-                vbcors_t(i,j)=vbcors_t(i,j)+q
+                  vbcors_t(i,j)=vbcors_t(i,j)+q
 c
-                vtndcy=q+
-     .           (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
-     .                             -xiym_o(i,j)*pb_t(i,j-1,nl)))
-     .           +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
-     .                             -xiym(i,j,m)*pb_t(i,j-1,nl)))
-     .           +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
-     .                             -xiym(i,j,n)*pb_t(i,j-1,nl))))
-     .           *scvyi(i,j)
+                  vtndcy=q+
+     .             (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
+     .                               -xiym_o(i,j)*pb_t(i,j-1,nl)))
+     .             +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,m)*pb_t(i,j-1,nl)))
+     .             +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,n)*pb_t(i,j-1,nl))))
+     .             *scvyi(i,j)
 c
-                vbflx_t(i,j,nl)=
-     .            (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
-     .           +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
-     .                            *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
-     .                           -vglue(i,j)*vbflx_t(i,j,ml))
-                vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
-     .                              vbflx_t(i,j,nl)))
+                  vbflx_t(i,j,nl)=
+     .              (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
+     .                              *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
+     .                             -vglue(i,j)*vbflx_t(i,j,ml))
+                  vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
+     .                                vbflx_t(i,j,nl)))
 c
+                enddo 
+                enddo 
               enddo 
-              enddo 
-            enddo 
 c$OMP END PARALLEL DO
+c
+            elseif (mommth.eq.'enecon'.or.mommth.eq.'enedis') then
+c
+c --- ------- Sadourny (1975) energy conserving scheme
+c
+c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+              do j=1,jj+1
+                do l=1,isv(j)
+                do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
+c
+                  vbflxs_t(i,j)=vbflxs_t(i,j)-wbaro*vbflx_t(i,j,nl)
+     .                         +(1.+wbaro)*vbflx_t(i,j,ml)
+c
+                  q=-.25*( (ubflx_t(i  ,j  ,ml)*scuyi(i  ,j  )
+     .                     +ubflx_t(i  ,j-1,ml)*scuyi(i  ,j-1))
+     .                    *(wo*pvtrop_o(i,j)+wm*pvtrop(i,j,m)
+     .                     +wn*pvtrop(i,j,n))
+     .                    +(ubflx_t(i+1,j  ,ml)*scuyi(i+1,j  )
+     .                     +ubflx_t(i+1,j-1,ml)*scuyi(i+1,j-1))
+     .                    *(wo*pvtrop_o(i+1,j)+wm*pvtrop(i+1,j,m)
+     .                     +wn*pvtrop(i+1,j,n)))
+c
+                  vbcors_t(i,j)=vbcors_t(i,j)+q
+c
+                  vtndcy=q+
+     .             (wo*(pgfym_o(i,j)-(xiyp_o(i,j)*pb_t(i,j  ,nl)
+     .                               -xiym_o(i,j)*pb_t(i,j-1,nl)))
+     .             +wm*(pgfym(i,j,m)-(xiyp(i,j,m)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,m)*pb_t(i,j-1,nl)))
+     .             +wn*(pgfym(i,j,n)-(xiyp(i,j,n)*pb_t(i,j  ,nl)
+     .                               -xiym(i,j,n)*pb_t(i,j-1,nl))))
+     .             *scvyi(i,j)
+c
+                  vbflx_t(i,j,nl)=
+     .              (1.-wbaro)*vbflx_t(i,j,ml)+wbaro*vbflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((vtndcy+vtotn(i,j))*scvx(i,j)
+     .                              *min(pb_t(i,j-1,nl),pb_t(i,j,nl))
+     .                             -vglue(i,j)*vbflx_t(i,j,ml))
+                  vbflx_t(i,j,nl)=max(-vminb(i,j),min(vmaxb(i,j),
+     .                                vbflx_t(i,j,nl)))
+c
+                enddo 
+                enddo 
+              enddo 
+c$OMP END PARALLEL DO
+c
+            else
+              if (mnproc.eq.1) then
+                write (lp,'(3a)') ' mommth=',trim(mommth),
+     .                            ' is unsupported!'
+              endif
+              call xcstop('(barotp)')
+                     stop '(barotp)'
+            endif
 c
 c --- ----- u momentum equation
 c
+            if     (mommth.eq.'enscon') then
+c
+c --- ------- Sadourny (1975) enstrophy conserving scheme
+c
 c$OMP PARALLEL DO PRIVATE(q,utndcy)
-            do j=1,jj
-              do l=1,isu(j)
-              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              do j=1,jj
+                do l=1,isu(j)
+                do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
 c
-                ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
-     .                       +(1.+wbaro)*ubflx_t(i,j,ml)
+                  ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                         +(1.+wbaro)*ubflx_t(i,j,ml)
 c
-                q= (vbflx_t(i  ,j  ,nl)*scvxi(i  ,j  )
-     .             +vbflx_t(i  ,j+1,nl)*scvxi(i  ,j+1)
-     .             +vbflx_t(i-1,j  ,nl)*scvxi(i-1,j  )
-     .             +vbflx_t(i-1,j+1,nl)*scvxi(i-1,j+1))
-     .             *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
-     .              +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
-     .              +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
+                  q= (vbflx_t(i  ,j  ,nl)*scvxi(i  ,j  )
+     .               +vbflx_t(i  ,j+1,nl)*scvxi(i  ,j+1)
+     .               +vbflx_t(i-1,j  ,nl)*scvxi(i-1,j  )
+     .               +vbflx_t(i-1,j+1,nl)*scvxi(i-1,j+1))
+     .               *(wo*(pvtrop_o(i,j)+pvtrop_o(i,j+1))
+     .                +wm*(pvtrop(i,j,m)+pvtrop(i,j+1,m))
+     .                +wn*(pvtrop(i,j,n)+pvtrop(i,j+1,n)))*.125
 c
-                ubcors_t(i,j)=ubcors_t(i,j)+q
+                  ubcors_t(i,j)=ubcors_t(i,j)+q
 c
-                utndcy=q+
-     .           (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
-     .                             -xixm_o(i,j)*pb_t(i-1,j,nl)))
-     .           +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
-     .                             -xixm(i,j,m)*pb_t(i-1,j,nl)))
-     .           +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
-     .                             -xixm(i,j,n)*pb_t(i-1,j,nl))))
-     .           *scuxi(i,j)
+                  utndcy=q+
+     .             (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                               -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .             +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .             +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .             *scuxi(i,j)
 c
-                ubflx_t(i,j,nl)=
-     .            (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
-     .           +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
-     .                            *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
-     .                           -uglue(i,j)*ubflx_t(i,j,ml))
-                ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
-     .                              ubflx_t(i,j,nl)))
+                  ubflx_t(i,j,nl)=
+     .              (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                              *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                             -uglue(i,j)*ubflx_t(i,j,ml))
+                  ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                                ubflx_t(i,j,nl)))
 c
+                enddo
+                enddo
               enddo
-              enddo
-            enddo
 c$OMP END PARALLEL DO
+c
+            elseif (mommth.eq.'enecon'.or.mommth.eq.'enedis') then
+c
+c --- ------- Sadourny (1975) energy conserving scheme
+c
+c$OMP PARALLEL DO PRIVATE(q,utndcy)
+              do j=1,jj
+                do l=1,isu(j)
+                do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+c
+                  ubflxs_t(i,j)=ubflxs_t(i,j)-wbaro*ubflx_t(i,j,nl)
+     .                         +(1.+wbaro)*ubflx_t(i,j,ml)
+c
+                  q= .25*( (vbflx_t(i  ,j  ,nl)*scvxi(i  ,j  )
+     .                     +vbflx_t(i-1,j  ,nl)*scvxi(i-1,j  ))
+     .                    *(wo*pvtrop_o(i,j)+wm*pvtrop(i,j,m)
+     .                     +wn*pvtrop(i,j,n))
+     .                    +(vbflx_t(i  ,j+1,nl)*scvxi(i  ,j+1)
+     .                     +vbflx_t(i-1,j+1,nl)*scvxi(i-1,j+1))
+     .                    *(wo*pvtrop_o(i,j+1)+wm*pvtrop(i,j+1,m)
+     .                     +wn*pvtrop(i,j+1,n)))
+c
+                  ubcors_t(i,j)=ubcors_t(i,j)+q
+c
+                  utndcy=q+
+     .             (wo*(pgfxm_o(i,j)-(xixp_o(i,j)*pb_t(i  ,j,nl)
+     .                               -xixm_o(i,j)*pb_t(i-1,j,nl)))
+     .             +wm*(pgfxm(i,j,m)-(xixp(i,j,m)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,m)*pb_t(i-1,j,nl)))
+     .             +wn*(pgfxm(i,j,n)-(xixp(i,j,n)*pb_t(i  ,j,nl)
+     .                               -xixm(i,j,n)*pb_t(i-1,j,nl))))
+     .             *scuxi(i,j)
+c
+                  ubflx_t(i,j,nl)=
+     .              (1.-wbaro)*ubflx_t(i,j,ml)+wbaro*ubflx_t(i,j,nl)
+     .             +(1.+wbaro)*dlt*((utndcy+utotn(i,j))*scuy(i,j)
+     .                              *min(pb_t(i-1,j,nl),pb_t(i,j,nl))
+     .                             -uglue(i,j)*ubflx_t(i,j,ml))
+                  ubflx_t(i,j,nl)=max(-uminb(i,j),min(umaxb(i,j),
+     .                                ubflx_t(i,j,nl)))
+c
+                enddo
+                enddo
+              enddo
+c$OMP END PARALLEL DO
+c
+            else
+              if (mnproc.eq.1) then
+                write (lp,'(3a)') ' mommth=',trim(mommth),
+     .                            ' is unsupported!'
+              endif
+              call xcstop('(barotp)')
+                     stop '(barotp)'
+            endif
 c
             ll=ml
             ml=nl
