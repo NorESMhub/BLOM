@@ -219,24 +219,18 @@ c --- vorticity, pot.vort., defor. at lateral boundary points
       i=ifv(j,l)
       if (i.ge.1.and.i.le.ii+1) then
         vort(i  ,j)= vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i  ,j)
-c       absvor(i  ,j,k)=vort(i  ,j)+corioq(i  ,j)
-c       dpvor(i  ,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-c    .                          dpmx(i,j),dpmx(i+1,j))
-c       potvor(i  ,j)=absvor(i  ,j,k)/dpvor(i  ,j,k)
-        potvor(i  ,j)=(vort(i  ,j)+corioq(i  ,j))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-     .                     dpmx(i,j),dpmx(i+1,j))
+        absvor(i  ,j,k)=vort(i  ,j)+corioq(i  ,j)
+        dpvor(i  ,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
+     .                          dpmx(i,j),dpmx(i+1,j))
+        potvor(i  ,j)=absvor(i  ,j,k)/dpvor(i  ,j,k)
       endif
       i=ilv(j,l)
       if (i.ge.0.and.i.le.ii) then
         vort(i+1,j)=-vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i+1,j)
-c       absvor(i+1,j,k)=vort(i+1,j)+corioq(i+1,j)
-c       dpvor(i+1,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-c    .                          dpmx(i,j),dpmx(i+1,j))
-c       potvor(i+1,j)=absvor(i+1,j,k)/dpvor(i+1,j,k)
-        potvor(i+1,j)=(vort(i+1,j)+corioq(i+1,j))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-     .                     dpmx(i,j),dpmx(i+1,j))
+        absvor(i+1,j,k)=vort(i+1,j)+corioq(i+1,j)
+        dpvor(i+1,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
+     .                          dpmx(i,j),dpmx(i+1,j))
+        potvor(i+1,j)=absvor(i+1,j,k)/dpvor(i+1,j,k)
       endif
  884  continue
 c
@@ -257,24 +251,18 @@ c
       j=jfu(i,l)
       if (j.ge.1.and.j.le.jj+1) then
         vort(i,j  )=-utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j  )
-c       absvor(i,j  ,k)=vort(i,j  )+corioq(i,j  )
-c       dpvor(i,j  ,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-c    .                          dpmx(i,j),dpmx(i,j+1))
-c       potvor(i,j  )=absvor(i,j  ,k)/dpvor(i,j  ,k)
-        potvor(i,j  )=(vort(i,j  )+corioq(i,j  ))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-     .                     dpmx(i,j),dpmx(i,j+1))
+        absvor(i,j  ,k)=vort(i,j  )+corioq(i,j  )
+        dpvor(i,j  ,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
+     .                          dpmx(i,j),dpmx(i,j+1))
+        potvor(i,j  )=absvor(i,j  ,k)/dpvor(i,j  ,k)
       endif
       j=jlu(i,l)
       if (j.ge.0.and.j.le.jj) then
         vort(i,j+1)= utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j+1)
-c       absvor(i,j+1,k)=vort(i,j+1)+corioq(i,j+1)
-c       dpvor(i,j+1,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-c    .                          dpmx(i,j),dpmx(i,j+1))
-c       potvor(i,j+1)=absvor(i,j+1,k)/dpvor(i,j+1,k)
-        potvor(i,j+1)=(vort(i,j+1)+corioq(i,j+1))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-     .                     dpmx(i,j),dpmx(i,j+1))
+        absvor(i,j+1,k)=vort(i,j+1)+corioq(i,j+1)
+        dpvor(i,j+1,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
+     .                          dpmx(i,j),dpmx(i,j+1))
+        potvor(i,j+1)=absvor(i,j+1,k)/dpvor(i,j+1,k)
       endif
  886  continue
 c
@@ -306,16 +294,12 @@ c
       vort(i,j)=(vtotm(i,j)*scvy(i,j)-vtotm(i-1,j)*scvy(i-1,j)
      .          -utotm(i,j)*scux(i,j)+utotm(i,j-1)*scux(i,j-1))
      .          *scq2i(i,j)
-c     absvor(i,j,k)=vort(i,j)+corioq(i,j)
-c     dpvor(i,j,k)=.125*max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
-c    .                          dp(i,j-1,km)+dp(i-1,j-1,km)),
-c    .                      dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),
-c    .                      dpmx(i,j-1),dpmx(i,j+1))
-c64   potvor(i,j)=absvor(i,j,k)/dpvor(i,j,k)
- 64   potvor(i,j)=(vort(i,j)+corioq(i,j)) * 8.
-     .   /max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
-     .            dp(i,j-1,km)+dp(i-1,j-1,km))
-     .   ,dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),dpmx(i,j-1),dpmx(i,j+1))
+      absvor(i,j,k)=vort(i,j)+corioq(i,j)
+      dpvor(i,j,k)=.125*max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
+     .                          dp(i,j-1,km)+dp(i-1,j-1,km)),
+     .                      dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),
+     .                      dpmx(i,j-1),dpmx(i,j+1))
+ 64   potvor(i,j)=absvor(i,j,k)/dpvor(i,j,k)
 c
       do 65 j=0,jj+2
       do 65 l=1,isq(j)

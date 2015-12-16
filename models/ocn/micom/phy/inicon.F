@@ -89,7 +89,7 @@ c
       enddo
 c
       if (mnproc.eq.ptest) then
-        write (lp,'('' sigmar(k)    :'',9f7.5/(15x,9f7.5))')
+        write (lp,'('' sigmar(k)    :'',7f9.5/(15x,7f9.5))')
      .     (sigmar(itest,jtest,k),k=1,kk)
       endif
 c

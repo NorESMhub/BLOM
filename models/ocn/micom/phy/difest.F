@@ -9,6 +9,7 @@ c
       use mod_xc
 #ifdef DIAG
       use mod_nctools
+      use mod_dia, only : iotype
 #endif
 c
       implicit none
@@ -43,8 +44,6 @@ c ---            Richardson number [g/cm*3].
 c ---   thkdff - diffusive velocity for thickness diffusion [cm/s].
 c ---   temdff - diffusive velocity for tracer isopycnal diffusion
 c ---            [cm/s].
-c ---   ri0    - critical gradient richardson number for shear driven
-c ---            vertical mixing [].
 c ---   nus0   - maximum shear driven diapycnal diffusivity
 c ---            [cm**2/s].
 c ---   nug0   - maximum gravity current diapycnal diffusivity
@@ -82,12 +81,12 @@ c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,
-     .     ri0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
+     .     nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
      .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori30,bvf0,nubmin,dpgc,
      .     dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
       parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
      .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
-     .           temdff=.35,ri0=1.2,nus0=50.,nug0=2500.,
+     .           temdff=.35,nus0=50.,nug0=2500.,
      .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
      .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
@@ -371,8 +370,10 @@ c ----- !!! Could include top layer in computation !!!
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           cr(i)=alpha0*cr(i)/pi
-          bcrrd(i)=min(cr(i)/max(1.e-24,abs(coriop(i,j))),
-     .                 sqrt(cr(i)/(2.*max(1.e-24,betafp(i,j)))))
+          bcrrd(i)=
+     .      sqrt(cr(i)*cr(i)
+     .           /max(coriop(i,j)*coriop(i,j)+2.*betafp(i,j)*cr(i),
+     .                1.e-24))
 #ifdef DIAG
           tmp2d_3(i,j)=bcrrd(i)
 #endif
@@ -469,12 +470,34 @@ c --- ------- bottom
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
 c --- - Rossby radius is resolved by the grid.
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          q=bcrrd(i)/sqrt(scpx(i,j)*scpx(i,j)+scpy(i,j)*scpy(i,j))
-          difwgt(i,j)=1./(1.+q**4)
-        enddo
-        enddo
+        if     (edwmth.eq.'smooth') then
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
+     .                         +scpy(i,j)*scpy(i,j)))
+            difwgt(i,j)=1./(1.+.25*q**4)
+          enddo
+          enddo
+        elseif (edwmth.eq.'step') then
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
+     .                         +scpy(i,j)*scpy(i,j)))
+            if (q.le.2.) then
+              difwgt(i,j)=1.
+            else
+              difwgt(i,j)=0.
+            endif
+          enddo
+          enddo
+        else
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') ' edwmth=',trim(edwmth),
+     .                        ' is unsupported!'
+          endif
+          call xcstop('(difest)')
+                 stop '(difest)'
+        endif
 c
 c --- ------------------------------------------------------------------
 c --- - Compute layer interface and isopycnal diffusivities

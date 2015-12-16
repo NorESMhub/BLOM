@@ -722,6 +722,10 @@ c --- read accumulated fields
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX(n)),ip,1,0.)
           if (ACC_WFLX2(n).ne.0) call ncread('wflx2_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),ip,1,0.)
+          if (ACC_AVDSG(n).ne.0) call ncread('avdsg_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_AVDSG(n)),ip,1,0.)
+          if (ACC_DPVOR(n).ne.0) call ncread('dpvor_phy'//c2,
+     .      phylyr(1-nbdy,1-nbdy,1,ACC_DPVOR(n)),ip,1,0.)
 #if defined(TRC) && defined(TKE)
           if (ACC_TKE(n).ne.0) call ncread('tke_phy'//c2,
      .      phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),ip,1,0.)
@@ -790,6 +794,8 @@ c --- read accumulated fields
      .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLXLVL(n)),ip,1,0.)
           if (ACC_WFLX2LVL(n).ne.0) call ncread('wflx2lvl_phy'//c2,
      .       phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip,1,0.)
+          if (ACC_PVLVL(n).ne.0) call ncread('pvlvl_phy'//c2,
+     .       phylvl(1-nbdy,1-nbdy,1,ACC_PVLVL(n)),ip,1,0.)
 #if defined(TRC) && defined(TKE)
           if (ACC_TKELVL(n).ne.0) call ncread('tkelvl_phy'//c2,
      .      phylvl(1-nbdy,1-nbdy,1,ACC_TKELVL(n)),ip,1,0.)
