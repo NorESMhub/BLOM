@@ -200,6 +200,7 @@ c ---            parameterization. egidfq=difint/difiso
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c --- 'expcnf' = experiment configuration
+c --- 'mommth' = momentum equation discretization method
 c --- 'eitmth' = eddy-induced transport parameterization method
 c --- 'edritp' = type of Richardson number used in eddy diffusivity
 c ---            computation
@@ -212,7 +213,7 @@ c
      .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,raddep,
      .     redfac,betabl,egc,eggam,egmndf,egmxdf,egidfq
       logical csdiag,cnsvdi
-      character*80 expcnf,eitmth,edritp,bmcmth,rmpmth
+      character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
@@ -220,7 +221,7 @@ c
      .                wpgf,mltmin,thktop,thkbot,raddep,redfac,betabl,
      .                egc,eggam,egmndf,egmxdf,egidfq,
      .                csdiag,cnsvdi,
-     .                expcnf,eitmth,edritp,bmcmth,rmpmth
+     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

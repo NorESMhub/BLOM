@@ -94,6 +94,7 @@ set CBAR     = 5.
 set CB       = .002
 set CWBDTS   = 5.e-5
 set CWBDLS   = 25.
+set MOMMTH   = "'enscon'"
 set EITMTH   = "'intdif'"
 set EDRITP   = "'shear'"
 set BMCMTH   = "'uc'"
@@ -451,6 +452,10 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
 ! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
 ! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
+! MOMMTH   : Momentum equation discretization method. Valid methods:
+!            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
+!            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
+!            (1975) energy conserving with some dissipation) (a)
 ! EITMTH   : Eddy-induced transport parameterization method. Valid
 !            methods: 'intdif', 'gm' (a)
 ! EDRITP   : Type of Richardson number used in eddy diffusivity
@@ -513,6 +518,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   CB       = ${CB},
   CWBDTS   = ${CWBDTS},
   CWBDLS   = ${CWBDLS},
+  MOMMTH   = ${MOMMTH},
   EITMTH   = ${EITMTH},
   EDRITP   = ${EDRITP},
   BMCMTH   = ${BMCMTH},

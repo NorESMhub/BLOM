@@ -23,10 +23,11 @@ c
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
-     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,eitmth,edritp,bmcmth,rmpmth,
-     .  egc,eggam,egmndf,egmxdf,egidfq,trxday,srxday,trxdpt,srxdpt,
-     .  trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,
-     .  sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
+     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
+     .  rmpmth,egc,eggam,egmndf,egmxdf,egidfq,trxday,srxday,trxdpt,
+     .  srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,
+     .  smtfrc,sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,
+     .  iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -77,6 +78,7 @@ c --- - print namelist on stdout
         write (lp,*) 'CB',CB
         write (lp,*) 'CWBDTS',CWBDTS
         write (lp,*) 'CWBDLS',CWBDLS
+        write (lp,*) 'MOMMTH ',trim(MOMMTH)
         write (lp,*) 'EITMTH ',trim(EITMTH)
         write (lp,*) 'EDRITP ',trim(EDRITP)
         write (lp,*) 'BMCMTH ',trim(BMCMTH)
@@ -273,6 +275,7 @@ c
       call xcbcst(cb)
       call xcbcst(cwbdts)
       call xcbcst(cwbdls)
+      call xcbcst(mommth)
       call xcbcst(eitmth)
       call xcbcst(edritp)
       call xcbcst(bmcmth)
@@ -654,6 +657,7 @@ c
         write (lp,'(a,f10.4)') 'cb:                ',cb
         write (lp,'(a,f10.4)') 'cwbdts:            ',cwbdts
         write (lp,'(a,f10.4)') 'cwbdls:            ',cwbdls
+        write (lp,'(a,a60)')   'mommth:            ',mommth
         write (lp,'(a,a60)')   'eitmth:            ',eitmth
         write (lp,'(a,a60)')   'edritp:            ',edritp
         write (lp,'(a,a60)')   'bmcmth:            ',bmcmth

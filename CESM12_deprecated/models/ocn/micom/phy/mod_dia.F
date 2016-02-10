@@ -894,7 +894,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_UB(1:nphy)+ACC_VB(1:nphy)).ne.0) then
+      if (sum(ACC_MXLU(1:nphy)+ACC_MXLV(1:nphy)).ne.0) then
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isu(j)
@@ -2764,8 +2764,10 @@ c --- --- Read section file metraindex.dat
                 jind(nind(l),l)=jind1
                 uflg(nind(l),l)=uflg1
                 vflg(nind(l),l)=vflg1
-                if (iind(nind(l),l).lt.1.or.iind(nind(l),l).gt.itdm.or.
-     .              jind(nind(l),l).lt.1.or.jind(nind(l),l).gt.jtdm) then
+                if (iind(nind(l),l).lt.1.or.
+     .              iind(nind(l),l).gt.itdm.or.
+     .              jind(nind(l),l).lt.1.or.
+     .              jind(nind(l),l).gt.jtdm) then
                   write(lp,*) 'iind=',iind(nind(l),l),' itdm=',itdm
                   write(lp,*) 'jind=',jind(nind(l),l),' jtdm=',jtdm
                   call flush(lp)
