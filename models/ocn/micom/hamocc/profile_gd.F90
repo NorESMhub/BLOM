@@ -40,12 +40,18 @@ real    :: d,d1,d2
 
 ! Extent of "smoothing region"
 real,             parameter :: dxy = 10.0
+#ifdef natDIC
+integer,          parameter :: nflds = 8
+character(len=3), parameter :: vname(nflds) = (/ 'dic', 'alk', 'pho', 'nit', 'sil', 'oxy', 'dic', 'alk'/)
+integer,          parameter :: ifld(nflds)   = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen,inatsco212,inatalkali/)
+#else
 ! Number of data fields to read
 integer,          parameter :: nflds = 6
 ! Names of data fields to read
 character(len=3), parameter :: vname(nflds) = (/ 'dic', 'alk', 'pho', 'nit', 'sil', 'oxy'/)
 ! Index of fields in ocetra
 integer,          parameter :: ifld(nflds)   = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen/)
+#endif
 
 
 do n = 1, nflds  ! Loop over tracer

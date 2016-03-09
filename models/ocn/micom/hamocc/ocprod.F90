@@ -12,7 +12,8 @@
 !     J.Schwinger            *GFI, UiB*       2013-04-22
 !      - Corrected bug in light penetration formulation
 !      - Cautious code clean-up
-!
+!     Tjiputra               *UNI-RESEARCH*   2015.11.25
+!      - Implemented natural DIC/ALK/CALC
 !
 !     Purpose
 !     -------
@@ -277,7 +278,12 @@
       call acclyr(jopal,ocetra(1,1,1,iopal),pddpo,1)    
       call acclyr(jco3,co3,pddpo,1)                      
       call acclyr(jph,hi,pddpo,1)
-    
+#ifdef natDIC
+      call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
+      call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
+      call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
+      call acclyr(jnatco3,natco3,pddpo,1)                      
+#endif 
 #ifdef __c_isotopes
 ! Delta notation delta 13C & capital delta 14C (dd14C) [promille]
 
@@ -343,6 +349,12 @@
 #ifdef AGG
           call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
 #endif     
+#ifdef natDIC
+      call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)
+      call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)
+      call acclvl(jlvlnatcalc,ocetra(1,1,1,inatcalc),k,ind1,ind2,wghts)
+      call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
+#endif
         ENDDO
       ENDIF
 
@@ -494,7 +506,6 @@
          ocetra(i,j,k,isco212)=                                        &
      &   ((ocetra(i,j,k,isco212)-delcar+rcar*dtr)*bdp                  &
      &    +ocetra(i,j,k,isco212)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
 #ifdef __c_isotopes
 ! Update DIC isotope fields and include fractionation during CaCO3 and OM formation
          ocetra(i,j,k,isco213)=                                        &
@@ -545,6 +556,17 @@
      &   ((ocetra(i,j,k,icalc)+delcar)*bdp                             &
      &    +ocetra(i,j,k,icalc)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
 
+#ifdef natDIC
+         ocetra(i,j,k,inatsco212)=                                     &
+     &   ((ocetra(i,j,k,inatsco212)-delcar+rcar*dtr)*bdp               &
+     &    +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
+         ocetra(i,j,k,inatalkali)=                                     &
+     &   ((ocetra(i,j,k,inatalkali)-2.*delcar-rnit*dtr)*bdp            &
+     &    +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+         ocetra(i,j,k,inatcalc)=                                       &
+     &   ((ocetra(i,j,k,inatcalc)+delcar)*bdp                          &
+     &    +ocetra(i,j,k,inatcalc)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
+#endif
 #ifdef __c_isotopes
 ! Enrichment of CaCO3 resrevoir in 13C&14C isotopes due to CaCO3 formation: fractionation
          ocetra(i,j,k,icalc13)=                                        &
@@ -747,7 +769,14 @@
      &    ((ocetra(i,j,k,iiron)+remin*riron                            &
      &        -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.))*bdp         &
      &     +ocetra(i,j,k,iiron)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
+#ifdef natDIC
+            ocetra(i,j,k,inatsco212)=                                  &
+     &    ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                   &
+     &     +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+            ocetra(i,j,k,inatalkali)=                                  &
+     &    ((ocetra(i,j,k,inatalkali)-rnit*remin)*bdp                   &
+     &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+#endif
 #ifdef __c_isotopes
             ocetra(i,j,k,isco213)=                                     &
      &    ((ocetra(i,j,k,isco213)+rcar*docrem*bifr13 + rem13)*bdp      &
@@ -865,7 +894,14 @@
             ocetra(i,j,k,isco212)=                                     &
      &    ((ocetra(i,j,k,isco212)+rcar*(remin+remin2o))*bdp            &
      &     +ocetra(i,j,k,isco212)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
+#ifdef natDIC
+            ocetra(i,j,k,inatalkali)=                                  &
+     &    ((ocetra(i,j,k,inatalkali)-rnit*(remin+remin2o))*bdp         &
+     &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+            ocetra(i,j,k,inatsco212)=                                  &
+     &    ((ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o))*bdp         &
+     &     +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+#endif
 ! proxies 13C, 14C 
 #ifdef __c_isotopes
             ocetra(i,j,k,isco213)=                                     &
@@ -971,6 +1007,14 @@
                ocetra(i,j,k,isco212)=                                  &
      &       ((ocetra(i,j,k,isco212)+rcar*remin)*bdp                   &
      &        +ocetra(i,j,k,isco212)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+#ifdef natDIC
+               ocetra(i,j,k,inatalkali)=                               &
+     &       ((ocetra(i,j,k,inatalkali)-rnit*remin)*bdp                &
+     &        +ocetra(i,j,k,inatalkali)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+               ocetra(i,j,k,inatsco212)=                               &
+     &       ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                &
+     &        +ocetra(i,j,k,inatsco212)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+#endif
 #ifdef __c_isotopes
                ocetra(i,j,k,isco213)=                                  &
      &       ((ocetra(i,j,k,isco213)+rem13)*bdp                        &
@@ -1231,6 +1275,10 @@
      &                         (pddpo(i,j,k)+wpoc)
           ocetra(i,j,k,icalc) =(ocetra(i,j,k,icalc)*pddpo(i,j,k))/       &
      &                         (pddpo(i,j,k)+wcal)
+#ifdef natDIC
+          ocetra(i,j,k,inatcalc) =(ocetra(i,j,k,inatcalc)*pddpo(i,j,k))/ &
+     &                         (pddpo(i,j,k)+wcal)
+#endif
           ocetra(i,j,k,iopal) =(ocetra(i,j,k,iopal)*pddpo(i,j,k))/       &
      &                         (pddpo(i,j,k)+wopal)    
           ocetra(i,j,k,ifdust)=(ocetra(i,j,k,ifdust)*pddpo(i,j,k))/      &
@@ -1298,6 +1346,11 @@
             ocetra(i,j,k,icalc) =(ocetra(i,j,k     ,icalc)*pddpo(i,j,k)   &
      &	                         +ocetra(i,j,kdonor,icalc)*wcald)/        &
      &                           (pddpo(i,j,k)+wcal)
+#ifdef natDIC
+            ocetra(i,j,k,inatcalc) =(ocetra(i,j,k,inatcalc)*pddpo(i,j,k)  &
+     &	                         +ocetra(i,j,kdonor,inatcalc)*wcald)/     &
+     &                           (pddpo(i,j,k)+wcal)
+#endif
             ocetra(i,j,k,iopal) =(ocetra(i,j,k     ,iopal)*pddpo(i,j,k)   &
      &	                         +ocetra(i,j,kdonor,iopal)*wopald)/       &
      &                           (pddpo(i,j,k)+wopal)        
@@ -1335,6 +1388,9 @@
 
             ocetra(i,j,k,idet)   = ocetra(i,j,kdonor,idet)
             ocetra(i,j,k,icalc)  = ocetra(i,j,kdonor,icalc)
+#ifdef natDIC
+            ocetra(i,j,k,inatcalc)= ocetra(i,j,kdonor,inatcalc)
+#endif
             ocetra(i,j,k,iopal)  = ocetra(i,j,kdonor,iopal)
             ocetra(i,j,k,ifdust) = ocetra(i,j,kdonor,ifdust)
 #ifdef AGG

@@ -178,13 +178,18 @@
 !          IF(bolay(i,j).GT.0.) THEN
 
            aprior = ocetra(i,j,kbo(i,j),iv_oc)
-           ocetra(i,j,kbo(i,j),iv_oc) =                                  &
+           ocetra(i,j,kbo(i,j),iv_oc) =                               &
      &         ( sedb1(i,l,iv) - tredsy(i,l,3) * powtra(i,j,l+1,iv) ) &
      &         / tredsy(i,l,2) 
 
            sedfluxo(i,j,iv)=sedfluxo(i,j,iv)                          &    !used in inventory_bgc/maschk (diagnostics) 
      &                     +ocetra(i,j,kbo(i,j),iv)-aprior
-
+#ifdef natDIC
+           IF(iv==isco212) ocetra(i,j,kbo(i,j),inatsco212) =                 &
+     &        ocetra(i,j,kbo(i,j),inatsco212)+ocetra(i,j,kbo(i,j),iv)-aprior
+           IF(iv==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =                 &
+     &        ocetra(i,j,kbo(i,j),inatalkali)+ocetra(i,j,kbo(i,j),iv)-aprior
+#endif
            ENDIF
  139  CONTINUE
 !     call maschk(kpie,kpje,kpke,25)

@@ -133,6 +133,13 @@ c --- finalize accumulation
       call finlyr(jcfc12(iogrp),jdp(iogrp))
       call finlyr(jsf6(iogrp),jdp(iogrp))
 #endif
+#ifdef natDIC
+      call finlyr(jnatalkali(iogrp),jdp(iogrp))
+      call finlyr(jnatdic(iogrp),jdp(iogrp))
+      call finlyr(jnatcalc(iogrp),jdp(iogrp))
+      call finlyr(jnatco3(iogrp),jdp(iogrp))
+      call finlyr(jnatomegac(iogrp),jdp(iogrp))
+#endif
 c
 c --- Mask sea floor in mass fluxes
       call msksrf(jcarflx0100(iogrp),k0100)
@@ -189,6 +196,13 @@ c --- Mask sea floor in level data
       call msklvl(jlvlcfc11(iogrp),depths)
       call msklvl(jlvlcfc12(iogrp),depths)
       call msklvl(jlvlsf6(iogrp),depths)
+#endif
+#ifdef natDIC
+      call msklvl(jlvlnatalkali(iogrp),depths)
+      call msklvl(jlvlnatdic(iogrp),depths)
+      call msklvl(jlvlnatcalc(iogrp),depths)
+      call msklvl(jlvlnatco3(iogrp),depths)
+      call msklvl(jlvlnatomegac(iogrp),depths)
 #endif
 c
 c --- Compute log10 of pH
@@ -322,6 +336,11 @@ c --- Store 2d fields
 #endif 
       call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
+#ifdef natDIC
+      call wrtsrf(jnatco2fx(iogrp),SRF_NATCO2FX(iogrp),   
+     .  rnacc*12./dtbgc,0.,cmpflg,'natco2fx','Natural CO2 flux',' ',
+     .  'kg C m-2 s-1')
+#endif
 c
 c --- Store 3d layer fields
       call wrtlyr(jdp(iogrp),LYR_DP(iogrp),rnacc,0.,cmpflg, 
@@ -359,7 +378,7 @@ c --- Store 3d layer fields
       call wrtlyr(jph(iogrp),LYR_PH(iogrp),-1.,0.,cmpflg,             
      .  'ph','pH',' ','-log10([h+])')
       call wrtlyr(jomegac(iogrp),LYR_OMEGAC(iogrp),1.,0.,cmpflg,        
-     .  'omegac','OmegaC',' ','1')
+     .  'omegac','OmegaC',' ','-')
       call wrtlyr(jn2o(iogrp),LYR_N2O(iogrp),1e3,0.,cmpflg,            
      .  'n2o','N2O',' ','mol N2O m-3')
       call wrtlyr(jaou(iogrp),LYR_AOU(iogrp),1e3,0.,cmpflg,            
@@ -396,6 +415,18 @@ c --- Store 3d layer fields
       call wrtlyr(jsf6(iogrp),LYR_SF6(iogrp),1e3,0.,cmpflg,            
      .  'sf6','SF-6',' ','mol sf6 m-3')
 #endif
+#ifdef natDIC
+      call wrtlyr(jnatco3(iogrp),LYR_NATCO3(iogrp),1e3,0.,cmpflg,        
+     .  'natco3','Natural Carbonate ions',' ','mol C m-3')
+      call wrtlyr(jnatalkali(iogrp),LYR_NATALKALI(iogrp),1e3,0.,cmpflg, 
+     .  'nattalk','Natural alkalinity',' ','eq m-3')
+      call wrtlyr(jnatdic(iogrp),LYR_NATDIC(iogrp),1e3,0.,cmpflg,       
+     .  'natdissic','Natural dissolved inorganic carbon',' ','mol C m-3')
+      call wrtlyr(jnatcalc(iogrp),LYR_NATCALC(iogrp),1e3,0.,cmpflg,        
+     .  'natcalc','Natural CaCO3 shells',' ','mol C m-3')
+      call wrtlyr(jnatomegac(iogrp),LYR_NATOMEGAC(iogrp),1.,0.,cmpflg,  
+     .  'natomegac','Natural OmegaC',' ','-')
+#endif
 c
 c --- Store 3d level fields
       call wrtlvl(jlvldic(iogrp),LVL_DIC(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -431,7 +462,7 @@ c --- Store 3d level fields
       call wrtlvl(jlvlph(iogrp),LVL_PH(iogrp),-1.,0.,cmpflg,          
      .  'phlvl','pH',' ','-log10([h+])')
       call wrtlvl(jlvlomegac(iogrp),LVL_OMEGAC(iogrp),rnacc,0.,cmpflg,  
-     .  'omegaclvl','OmegaC',' ','1')
+     .  'omegaclvl','OmegaC',' ','-')
       call wrtlvl(jlvln2o(iogrp),LVL_N2O(iogrp),rnacc*1e3,0.,cmpflg,      
      .  'n2olvl','N2O',' ','mol N2O m-3')
       call wrtlvl(jlvlaou(iogrp),LVL_AOU(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -472,6 +503,23 @@ c --- Store 3d level fields
      .  'cfc12lvl','CFC-12',' ','mol cfc12 m-3')
       call wrtlvl(jlvlsf6(iogrp),LVL_SF6(iogrp),rnacc*1e3,0.,cmpflg,  
      .  'sf6lvl','SF-6',' ','mol sf6 m-3')
+#endif
+#ifdef natDIC
+      call wrtlvl(jlvlnatco3(iogrp),LVL_NATCO3(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'natco3lvl',
+     .  'Natural carbonate ions',' ','mol C m-3')
+      call wrtlvl(jlvlnatalkali(iogrp),LVL_NATALKALI(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'nattalklvl',
+     .  'Natural alkalinity',' ','eq m-3')
+      call wrtlvl(jlvlnatdic(iogrp),LVL_NATDIC(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'natdissiclvl',
+     .  'Natural dissolved inorganic carbon',' ','mol C m-3')
+      call wrtlvl(jlvlnatcalc(iogrp),LVL_NATCALC(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'natcalclvl',
+     .  'Natural CaCO3 shells',' ','mol C m-3')
+      call wrtlvl(jlvlnatomegac(iogrp),LVL_NATOMEGAC(iogrp),
+     .  rnacc,0.,cmpflg,'natomegaclvl',
+     .  'Natural OmegaC',' ','-')
 #endif
 c
 c --- Store sediment fields
@@ -563,6 +611,9 @@ c --- Initialise fields
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
 #endif   
+#ifdef natDIC
+      call inisrf(jnatco2fx(iogrp),0.)       
+#endif
 c
       call inilyr(jdp(iogrp),0.)       
       call inilyr(jdic(iogrp),0.)       
@@ -603,6 +654,14 @@ c
       call inilyr(jcfc12(iogrp),0.)       
       call inilyr(jsf6(iogrp),0.)       
 #endif
+#ifdef natDIC
+      call inilyr(jnatco3(iogrp),0.)       
+      call inilyr(jnatalkali(iogrp),0.)       
+      call inilyr(jnatdic(iogrp),0.)       
+      call inilyr(jnatcalc(iogrp),0.)       
+      call inilyr(jnatomegac(iogrp),0.)       
+#endif
+
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -641,6 +700,13 @@ c
       call inilvl(jlvlcfc11(iogrp),0.)       
       call inilvl(jlvlcfc12(iogrp),0.)       
       call inilvl(jlvlsf6(iogrp),0.)       
+#endif
+#ifdef natDIC
+      call inilvl(jlvlnatco3(iogrp),0.)
+      call inilvl(jlvlnatalkali(iogrp),0.)       
+      call inilvl(jlvlnatdic(iogrp),0.)       
+      call inilvl(jlvlnatcalc(iogrp),0.)       
+      call inilvl(jlvlnatomegac(iogrp),0.)       
 #endif
 c
       call inisdm(jpowaic(iogrp),0.)       
@@ -781,6 +847,10 @@ c
 #endif 
       call ncdefvar3d(SRF_N2OFX(iogrp),
      .  cmpflg,'p','n2oflux','N2O flux',' ','mol N2O m-2 s-1',0)
+#ifdef natDIC
+      call ncdefvar3d(SRF_NATCO2FX(iogrp),
+     .  cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
+#endif
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',
@@ -855,6 +925,18 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_SF6(iogrp),cmpflg,'p',
      .  'sf6','SF-6',' ','mol sf6 m-3',1)
 #endif
+#ifdef natDIC
+      call ncdefvar3d(LYR_NATCO3(iogrp),cmpflg,'p',   
+     .  'natco3','Natural Carbonate ions',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_NATALKALI(iogrp),cmpflg,'p','nattalk',
+     .  'Natural alkalinity',' ','eq m-3',1)
+      call ncdefvar3d(LYR_NATDIC(iogrp),cmpflg,'p','natdissic',
+     .  'Natural dissolved inorganic carbon',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_NATCALC(iogrp),cmpflg,'p','natcalc',
+     .  'Natural CaCO3',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_NATOMEGAC(iogrp),cmpflg,'p','natomegac',
+     .  'Natural OmegaC',' ','1',1)
+#endif
 c
 c --- define 3d level fields
       call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',      
@@ -926,6 +1008,18 @@ c --- define 3d level fields
      .  'cfc12lvl','CFC-12',' ','mol cfc12 m-3',2)
       call ncdefvar3d(LVL_SF6(iogrp),cmpflg,'p',
      .  'sf6lvl','SF-6',' ','mol sf6 m-3',2)
+#endif
+#ifdef natDIC
+      call ncdefvar3d(LVL_NATCO3(iogrp),cmpflg,'p',        
+     .  'natco3lvl','Natural Carbonate ions',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_NATALKALI(iogrp),cmpflg,'p','nattalklvl',
+     . 'Natural alkalinity',' ','eq m-3',2)
+      call ncdefvar3d(LVL_NATDIC(iogrp),cmpflg,'p','natdissiclvl',
+     . 'Natual dissolved inorganic carbon',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_NATCALC(iogrp),cmpflg,'p',     
+     .  'natcalclvl','Natural CaCO3 shells',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
+     .  'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif
 c
 c --- define sediment fields

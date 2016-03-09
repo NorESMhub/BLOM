@@ -97,50 +97,76 @@
 !     SOLUBILITY OF NITROGEN OXYGEN AND ARGON IN WATER AND SEAWATER.
 !     DEEP-SEA RESEARCH, VOL. 17, 721-735.
 !
-       real, parameter :: AN0=-172.4965
-       real, parameter :: AN1=248.4262
-       real, parameter :: AN2=143.0738
-       real, parameter :: AN3=-21.7120
-       real, parameter :: AN4=-0.049781
-       real, parameter :: AN5=0.025018
-       real, parameter :: AN6=-0.0034861
+      real, parameter :: AN0=-172.4965
+      real, parameter :: AN1=248.4262
+      real, parameter :: AN2=143.0738
+      real, parameter :: AN3=-21.7120
+      real, parameter :: AN4=-0.049781
+      real, parameter :: AN5=0.025018
+      real, parameter :: AN6=-0.0034861
 
 
 !     -----------------------------------------------------------------
-!      Constants for CO2 solubility in mol/kg/atm from moist 
-!      air at one atm total pressure. Table 6 in WEISS, R.F.,
-!      NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
-!      Marine Chemistry, 8, 347-359, 1980
-
-
-       real, parameter :: ac1= -162.8301
-       real, parameter :: ac2=  218.2968
-       real, parameter :: ac3=   90.9241
-       real, parameter :: ac4=   -1.47696
-       real, parameter :: bc1=    0.025695
-       real, parameter :: bc2=   -0.025225
-       real, parameter :: bc3=    0.0049867
+!     Constants for CO2 solubility in mol/kg/atm from moist 
+!     air at one atm total pressure. Table 6 in WEISS, R.F.,
+!     NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
+!     Marine Chemistry, 8, 347-359, 1980
+!
+      real, parameter :: ac1= -162.8301
+      real, parameter :: ac2=  218.2968
+      real, parameter :: ac3=   90.9241
+      real, parameter :: ac4=   -1.47696
+      real, parameter :: bc1=    0.025695
+      real, parameter :: bc2=   -0.025225
+      real, parameter :: bc3=    0.0049867
 
 
 
 !     -----------------------------------------------------------------
-!      Constants for laughing gas solubility in mol/l/atm from moist 
-!      air at one atm total pressure. Table 2 in WEISS, R.F.,
-!      NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
-!      Marine Chemistry, 8, 347-359, 1980
+!     Constants for laughing gas solubility in mol/l/atm from moist 
+!     air at one atm total pressure. Table 2 in WEISS, R.F.,
+!     NITROUS OXIDE SOLUBILITY IN WATER AND SEAWATER, 
+!     Marine Chemistry, 8, 347-359, 1980
+!
+      real, parameter :: al1= -165.8806
+      real, parameter :: al2=  222.8743
+      real, parameter :: al3=   92.0792
+      real, parameter :: al4=   -1.48425
+      real, parameter :: bl1=   -0.056235
+      real, parameter :: bl2=    0.031619
+      real, parameter :: bl3=   -0.0048472
 
 
-       real, parameter :: al1= -165.8806
-       real, parameter :: al2=  222.8743
-       real, parameter :: al3=   92.0792
-       real, parameter :: al4=   -1.48425
-       real, parameter :: bl1=   -0.056235
-       real, parameter :: bl2=    0.031619
-       real, parameter :: bl3=   -0.0048472
+!     -----------------------------------------------------------------
+!     Atmospheric mixing ratio of N2O around 1980 300 ppb
+!
+      real, parameter :: atn2o=3.e-7
 
 
-!      Atmospheric mixing ratio of N2O around 1980 300 ppb
-       real, parameter :: atn2o=3.e-7
-       
 
-       END MODULE mo_chemcon
+!     -----------------------------------------------------------------
+!     Constants needed for pressure correction of equilibrium constants
+!     F. Millero, Thermodynamics of the carbon dioxide system in the oceans,
+!     Geochimica et Cosmochimica Acta, Vol. 59, No. 4, pp. 661-677, 1995
+      REAL, DIMENSION(11) :: a0, a1, a2, b0, b1, b2
+      DATA a0 /-25.5, -15.82, -29.48, -25.60, -18.03, -9.78, -48.76, &
+               -46., -14.51, -23.12, -26.57/
+      DATA a1 /0.1271, -0.0219, 0.1622, 0.2324, 0.0466, -0.0090,     &
+               0.5304, 0.5304, 0.1211, 0.1758, 0.2020/
+      DATA a2 /0.0, 0.0, 2.608e-3, -3.6246e-3, 0.316e-3,             &
+              -0.942e-3, 0.0, 0.0, -0.321e-3, -2.647e-3, -3.042e-3/
+      DATA b0 /-3.08e-3, 1.13e-3, -2.84e-3, -5.13e-3, -4.53e-3,      &
+               -3.91e-3, -11.76e-3, -11.76e-3, -2.67e-3, -5.15e-3,   & 
+               -4.08e-3/
+      DATA b1 /0.0877e-3, -0.1475e-3, 0.0, 0.0794e-3, 0.09e-3,       &
+               0.054e-3, 0.3692e-3, 0.3692e-3, 0.0427e-3,            &
+               0.09e-3, 0.0714e-3/
+      DATA b2 /0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/
+
+!     -----------------------------------------------------------------
+!     Gas constant, value as used by Millero (1995)
+
+      real, parameter :: rgas = 83.131 
+
+
+      END MODULE mo_chemcon

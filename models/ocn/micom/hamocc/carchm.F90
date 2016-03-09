@@ -92,41 +92,30 @@
       REAL    :: ato2,atn2,atco2,pco2
       REAL    :: oxy,ani,anisa
 !Tjiputra update=for list of new variables==============================
-      REAL    :: t,tk,tk100,rs,prb,s,rrho,invtk,dlogtk,is,is2,sqrtis,s2,sqrts,s15,scl
-      REAL    :: tmp,nkhwe74,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
-      REAL    :: zprb,zprb2,deltav,deltak,borat,sti,ft,tc,ta,sit,pt,ah1
-      REAL    :: hso4,hsi,hf,hpo4,ab,aw,ac,ah2o,ah2,erel,cu,cb,cc
+      REAL    :: rrho,t,tk,tk100,prb,s,rs
+      REAL    :: Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
+      REAL    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc
       REAL    :: omega
 
-
-      REAL, DIMENSION(11) :: a0, a1, a2, b0, b1, b2, lnkpok0
-      DATA a0 /-25.5, -15.82, -29.48, -25.60, -18.03, -9.78, -48.76, &
-     &       -46., -14.51, -23.12, -26.57/
-      DATA a1 /0.1271, -0.0219, 0.1622, 0.2324, 0.0466, -0.0090, &
-     &       0.5304, 0.5304, 0.1211, 0.1758, 0.2020/
-      DATA a2 /0.0, 0.0, 2.608e-3, -3.6246e-3, 0.316e-3, &
-     &       -0.942e-3, 0.0, 0.0, -0.321e-3, -2.647e-3, -3.042e-3/
-      DATA b0 /-3.08e-3, 1.13e-3, -2.84e-3, -5.13e-3, -4.53e-3,  &
-     &       -3.91e-3, -11.76e-3, -11.76e-3, -2.67e-3, -5.15e-3,& 
-     &       -4.08e-3/
-      DATA b1 /0.0877e-3, -0.1475e-3, 0.0, 0.0794e-3, 0.09e-3, &
-     &       0.054e-3, 0.3692e-3, 0.3692e-3, 0.0427e-3, &
-     &       0.09e-3, 0.0714e-3/
-      DATA b2 /0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/
-
-      INTEGER            :: i,j,k,l,js,jit
+      INTEGER            :: i,j,k,l,js
       INTEGER, parameter :: niter=20
-      REAL,    parameter :: eps=5.e-5
-      REAL,    parameter :: rgas = 83.131  ! Gas constant, value as 
-                                           ! used by Millero 1995
 
 !End of Tjiputra update=for list of variables===========================
+#ifdef CFC
+      REAL :: atm_cfc11,atm_cfc12,atm_sf6,fact
+      REAL :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf
+      REAL :: flx11,flx12,flxsf,a_11,a_12,a_sf
+#endif
+#ifdef natDIC
+      REAL :: natcu,natcb,natcc
+      REAL :: natpco2,natfluxd,natfluxu,natomega
+      REAL :: natsupsat,natundsa,natdissol
+#endif
 #ifdef __c_isotopes
       REAL :: r13,r14
       REAL :: flux14d,flux14u,flux13d,flux13u
       REAL :: atc13,atc14,pco213,pco214
 #endif
-
 #ifdef ANTC14
       REAL :: fantc14d,fantc14u
 #endif
@@ -146,9 +135,9 @@
       REAL, DIMENSION(kpie,kpje) :: aux2d_cfc11
       REAL, DIMENSION(kpie,kpje) :: aux2d_cfc12
       REAL, DIMENSION(kpie,kpje) :: aux2d_sf6
-      REAL :: atm_cfc11,atm_cfc12,atm_sf6,fact
-      REAL :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf
-      REAL :: flx11,flx12,flxsf,a_11,a_12,a_sf
+#endif
+#ifdef natDIC
+      REAL, DIMENSION(kpie,kpje) :: aux2d_natco2fx
 #endif
 #ifdef __c_isotopes
       REAL, DIMENSION(kpie,kpje) :: aux2d_co213fxd
@@ -172,6 +161,9 @@
       aux2d_cfc12=0.
       aux2d_sf6=0.
 #endif
+#ifdef natDIC
+      aux2d_natco2fx=0.
+#endif
 #ifdef __c_isotopes
       aux2d_co213fxd=0.
       aux2d_co213fxu=0.
@@ -182,160 +174,49 @@
 #endif
 
 !Tjiputra update===========================================================================
-
-!$OMP PARALLEL DO                                                               &
+!$OMP PARALLEL DO PRIVATE(                              
+!$OMP+ t,tk,tk100,s,rs,prb,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa          
+!$OMP+ tc,ta,sit,pt,ah1,ac,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,   
+!$OMP+ kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,              
+!$OMP+ niflux,n2oflux,dmsflux,omega
 #ifdef CFC
-!$OMP&PRIVATE(t,tk,tk100s,rs,prb,invtk,dlogtk,is,is2,sqrtis,s2,sqrts,s15,scl,   &
-!$OMP&        tmp,nKhwe74,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,           &
-!$OMP&        Kspa,deltav,deltak,zprb,zprb2,lnkpok0,borat,sti,ft,tc,ta,         &
-!$OMP&        sit,pt,ah1,jit,hso4,hf,hsi,hpo4,ab,aw,ac,ah2o,ah2,                &
-!$OMP&        erel,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,   &
-!$OMP&        kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,              &
-!$OMP&        niflux,n2oflux,dmsflux,omega,sch_11,sch_12,sch_sf,kw_11,          &
-!$OMP&        kw_12,kw_sf,a_11,a_12,a_sf,flx11,flx12,flxsf,atm_cfc11,           &
-!$OMP&        atm_cfc12,atm_sf6)
-#else
-!$OMP&PRIVATE(t,tk,tk100s,rs,prb,invtk,dlogtk,is,is2,sqrtis,s2,sqrts,s15,scl,   &
-!$OMP&        tmp,nKhwe74,Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,           &
-!$OMP&        Kspa,deltav,deltak,zprb,zprb2,lnkpok0,borat,sti,ft,tc,ta,         &
-!$OMP&        sit,pt,ah1,jit,hso4,hf,hsi,hpo4,ab,aw,ac,ah2o,ah2,                &
-!$OMP&        erel,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,   &
-!$OMP&        kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,              &
-!$OMP&        niflux,n2oflux,dmsflux,omega)
+!$OMP+ ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11,flx12,
+!$OMP+ flxsf,atm_cfc11,atm_cfc12,atm_sf6
 #endif
+#ifdef natDIC
+!$OMP+ ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega
+#endif
+!$OMP+ )
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
-      IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
-       t = ptho(i,j,k)
-       tk = t + tzero
-       tk100 = tk/100.0
-       s = MAX(25.,psao(i,j,k))
-       rrho = prho(i,j,k) ! seawater density [g/cm3]
-       prb = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars, 98060 = onem
-       invtk = 1.0 / tk
-       dlogtk = log(tk)
-       is = 19.924 * s / ( 1000. - 1.005 * s )
-       is2 = is * is
-       sqrtis = SQRT(is)
-       s2     = s * s
-       sqrts  = SQRT(s)
-       s15    = s**1.5
-       scl    = s * salchl
 
-! Kh = [CO2]/ p CO2
-! Weiss (1974), refitted for moist air Weiss and Price (1980) [mol/kg/atm]
-       nKhwe74 = ac1+ac2/tk100+ac3*log(tk100)+ac4*tk100**2+s*(bc1+bc2*tk100+bc3*tk100**2)
-       Kh      = exp( nKhwe74 )
-! K1 = [H][HCO3]/[H2CO3]   ; K2 = [H][CO3]/[HCO3]
-! Millero p.664 (1995) using Mehrbach et al. data on seawater scale
-       K1 = 10**( -1.0 * ( 3670.7 * invtk - 62.008 + 9.7944 * dlogtk - 0.0118 * s + 0.000116 * s2 ) )
-       K2 = 10**( -1.0 * ( 1394.7 * invtk + 4.777 - 0.0184 * s + 0.000118 * s2 ) )
-! Kb = [H][BO2]/[HBO2] !
-! Millero p.669 (1995) using DATA from Dickson (1990)
-       Kb = exp( ( -8966.90 - 2890.53 * sqrts - 77.942 * s + 1.728 * s15 - 0.0996 * s2 ) * invtk +     &
-     &    ( 148.0248 + 137.1942 * sqrts + 1.62142 * s ) + ( -24.4344 - 25.085 * sqrts - 0.2474 * s ) * &
-     &    dlogtk + 0.053105 * sqrts * tk )
-! K1p = [H][H2PO4]/[H3PO4] ; K2p = [H][HPO4]/[H2PO4] ; K3p = [H][PO4]/[HPO4]
-! DOE(1994) eq 7.2.20 with footnote using data from Millero (1974)
-       K1p = exp( -4576.752 * invtk + 115.525 - 18.453 * dlogtk + ( -106.736 * invtk + 0.69171 ) *     &
-     &    sqrts + ( -0.65643 * invtk - 0.01844 ) * s )
-       K2p = exp( -8814.715 * invtk + 172.0883 - 27.927 * dlogtk + ( -160.340 * invtk + 1.3566 ) *     &
-     &    sqrts + ( 0.37335 * invtk - 0.05778 ) *s );
-       K3p = exp( -3070.75 * invtk - 18.141 + ( 17.27039 * invtk + 2.81197 ) * sqrts + ( -44.99486 *   &
-     &    invtk - 0.09984 ) * s );
-! Ksi = [H][SiO(OH)3]/[Si(OH)4]
-! Millero p.671 (1995) using data from Yao and Millero (1995)
-       Ksi = exp( -8904.2 * invtk + 117.385 - 19.334 * dlogtk + ( -458.79 * invtk + 3.5913 ) * sqrtis  &
-     &    + ( 188.74 * invtk - 1.5998) * is + ( -12.1652 * invtk + 0.07871) * is2 + log(1.0-0.001005*s))
-! Kw = [H][OH] 
-! Millero p.670 (1995) using composite data
-       Kw = exp( -13847.26 * invtk + 148.9652 - 23.6521 * dlogtk + ( 118.67 * invtk - 5.977 + 1.0495 * &
-     &    dlogtk ) * sqrts - 0.01615 * s)
-! Ks = [H][SO4]/[HSO4]
-! Dickson (1990, J. chem. Thermodynamics 22, 113)
-       Ks1 = exp( -4276.1 * invtk + 141.328 - 23.093 * dlogtk + ( -13856. * invtk + 324.57 - 47.986 *   &
-     &    dlogtk ) * sqrtis + ( 35474. * invtk - 771.54 + 114.723 * dlogtk ) * is - 2698. * invtk *    &
-     &    is**1.5 + 1776. * invtk * is2 + log(1.0 - 0.001005 * s ) )
-! Kf = [H][F]/[HF]
-! Dickson and Riley (1979) -- change pH scale to total
-       Kf = exp( 1590.2 * invtk - 12.641 + 1.525 * sqrtis + log( 1.0 - 0.001005 * s ) + log( 1.0 + (   &
-     &    0.1400 / 96.062 ) * scl / Ks1 ) )
-! Kspc (calcite)
-! apparent solubility product of calcite : Kspc = [Ca2+]T [CO32-]T
-! where $[]_T$ refers to the equilibrium total (free + complexed) ion concentration.
-!          Mucci 1983 mol/kg-soln
-       Kspc = 10**( -171.9065 - 0.077993 * tk + 2839.319 / tk + 71.595 * log10( tk ) + ( - 0.77712 +    &
-     &    0.0028426 * tk + 178.34 / tk ) * sqrts - 0.07711 * s + 0.0041249 * s15 );
-! Kspa (aragonite)
-! apparent solubility product of aragonite : Kspa = [Ca2+]T [CO32-]T
-! where $[]_T$ refers to the equilibrium total (free + complexed) ion concentration.
-!          Mucci 1983 mol/kg-soln
-!jt    Kspa = 10^( -171.945 - 0.077993 * tk + 2903.293 / tk  + 71.595 * log10( tk ) ...
-!jt           +( -0.068393 + 0.0017276 * tk + 88.135 / tk ) * sqrts ...
-!jt           - 0.10018 * s + 0.0059415 * s15 );
-!---------------------- Pressure effect on Ks (Millero, 95) ----------
-! index: K1 1, K2 2, Kb 3, Kw 4, Ks 5, Kf 6, 
-!        Kspc 7, Kspa 8, K1p 9, K2p 10, K3p 11
-       DO js = 1,11
-        deltav      = a0(js) + a1(js) * t + a2(js) * t * t
-        deltak      = b0(js) + b1(js) * t + b2(js) * t * t
-        zprb        = prb / ( rgas * tk )
-        zprb2       = prb * zprb
-        lnkpok0(js) = - ( deltav * zprb + 0.5 * deltak * zprb2 )
-       ENDDO
-       K1   = K1   * exp( lnkpok0(1)  )
-       K2   = K2   * exp( lnkpok0(2)  )
-       Kb   = Kb   * exp( lnkpok0(3)  )
-       Kw   = Kw   * exp( lnkpok0(4)  )
-       Ks1  = Ks1  * exp( lnkpok0(5)  )
-       Kf   = Kf   * exp( lnkpok0(6)  )
-       Kspc = Kspc * exp( lnkpok0(7)  )
-!JT    Kspa = Kspa * exp( lnkpok0(8)  )
-       K1p  = K1p  * exp( lnkpok0(9)  )
-       K2p  = K2p  * exp( lnkpok0(10) )
-       K3p  = K3p  * exp( lnkpok0(11) )
-!
-! Calculate concentrations for borate, sulfate, and fluoride
-! Uppstrom (1974)
-      borat = bor1 * scl * bor2
-! Morris & Riley (1966)
-      sti = 0.14 * scl / 96.062
-! Riley (1965)
-      ft = 0.000067 * scl / 18.9984
-!         ========================
-!         ==                    ==
-!         ==        MAIN        ==
-!         ==        ====        ==
-!         ==                    ==
-!         ========================
+      IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
+
+! Carbon chemistry: Caculate equilibrium constants and solve for [H+] and
+! carbonate alkalinity (ac)
+      t    = ptho(i,j,k)
+      tk   = t + tzero
+      tk100= tk/100.0
+      s    = MAX(25.,psao(i,j,k))
+      rrho = prho(i,j,k)                  ! seawater density [g/cm3]
+      prb  = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars, 98060 = onem
+
       tc   = ocetra(i,j,k,isco212) / rrho  ! convert to mol/kg
       ta   = ocetra(i,j,k,ialkali) / rrho
       sit  = ocetra(i,j,k,isilica) / rrho
       pt   = ocetra(i,j,k,iphosph) / rrho
       ah1  = hi(i,j,k)
-      iflag: DO jit = 1,niter
-       hso4 = sti / ( 1. + Ks1 / ( ah1 / ( 1. + sti / Ks1 ) ) )
-       hf   = 1. / ( 1. + Kf / ah1 )
-       hsi  = 1./ ( 1. + ah1 / Ksi )
-       hpo4 = ( K1p * K2p * ( ah1 + 2. * K3p ) - ah1**3 ) /    & 
-     &        ( ah1**3 + K1p * ah1**2 + K1p * K2p * ah1 + K1p * K2p * K3p )
-       ab   = borat / ( 1. + ah1 / Kb )
-       aw   = Kw / ah1 - ah1 / ( 1. + sti / Ks1 )
-       ac   = ta + hso4 - sit * hsi - ab - aw + ft * hf - pt * hpo4
-       ah2o = SQRT( ( tc - ac )**2 + 4. * ( ac * K2 / K1 ) * ( 2. * tc - ac ) )
-       ah2  = 0.5 * K1 / ac *( ( tc - ac ) + ah2o )
-       erel = ( ah2 - ah1 ) / ah2
-       if (abs( erel ).ge.eps) then
-        ah1 = ah2
-       else
-        exit iflag
-       endif
-      ENDDO iflag
+
+      CALL CARCHM_KEQUI(t,s,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc)
+
+      CALL CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
+                        ah1,ac,niter)
 
       if(ah1.gt.0.) then 
         hi(i,j,k)=max(1.e-20,ah1)
       endif
+
 ! Determine CO2*, HCO3- and CO3-- concentrations (in mol/kg soln)
       cu = ( 2. * tc - ac ) / ( 2. + K1 / ah1 )
       cb = K1 * cu / ah1
@@ -343,9 +224,25 @@
 ! Carbonate ion concentration, convert from mol/kg to kmol/m^3 
       co3(i,j,k)  = cc * rrho 
 
-! Determine CO2 pressure and fugacity (in micoatm)
-! NOTE: equation below for pCO2 needs requires CO2 in mol/kg
-      pco2 = cu * 1.e6 / Kh
+#ifdef natDIC
+      tc   = ocetra(i,j,k,inatsco212) / rrho  ! convert to mol/kg
+      ta   = ocetra(i,j,k,inatalkali) / rrho
+      ah1  = nathi(i,j,k)
+
+      CALL CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
+                        ah1,ac,niter)
+
+      if(ah1.gt.0.) then 
+        nathi(i,j,k)=max(1.e-20,ah1)
+      endif
+
+! Determine natural CO2*, HCO3- and CO3-- concentrations (in mol/kg soln)
+      natcu = ( 2. * tc - ac ) / ( 2. + K1 / ah1 )
+      natcb = K1 * natcu / ah1
+      natcc = K2 * natcb / ah1
+! Natural carbonate ion concentration, convert from mol/kg to kmol/m^3 
+      natco3(i,j,k) = natcc * rrho
+#endif
 
 ! solubility of O2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -353,6 +250,12 @@
       satoxy(i,j,k)=exp(oxy)*oxyco
 
       if (k.eq.1) then
+! Determine CO2 pressure and fugacity (in micoatm)
+! NOTE: equation below for pCO2 needs requires CO2 in mol/kg
+      pco2 = cu * 1.e6 / Kh
+#ifdef natDIC
+      natpco2 = natcu * 1.e6 / Kh
+#endif
 
 ! Schmidt numbers according to Groeger and Mikolajewicz (2011), O2 taken from Keeling et al. 1998
       scco2 = 142.653 + 1955.9  * exp(-0.0663147*ptho(i,j,1))
@@ -452,9 +355,14 @@
        rpp0 = ppao(i,j)/101325.0
 
        fluxd=atco2*rpp0*kwco2*dtbgc*Kh*1e-6*rrho ! Kh is in mol/kg/atm. Multiply by rrho (g/cm^3) 
-       fluxu=pco2      *kwco2*dtbgc*Kh*1e-6*rrho ! to get fluxes in kmol/m^2
-       
+       fluxu=pco2      *kwco2*dtbgc*Kh*1e-6*rrho ! to get fluxes in kmol/m^2      
+#ifdef natDIC
+       natfluxd=278.0*rpp0*kwco2*dtbgc*Kh*1e-6*rrho
+       natfluxu=natpco2   *kwco2*dtbgc*Kh*1e-6*rrho 
+#endif
+
        atmflx(i,j,iatmco2)=(fluxu-fluxd)
+
 
 #ifdef __c_isotopes ! Ocean-Atmosphere fluxes for carbon isotopes
        Roc13=ocetra(i,j,1,isco213)/(ocetra(i,j,1,isco212)+1e-25) ! Fraction DIC13 over DIC12
@@ -475,6 +383,9 @@
 
 ! Update DIC
        ocetra(i,j,1,isco212)=ocetra(i,j,1,isco212)+(fluxd-fluxu)/pddpo(i,j,1)
+#ifdef natDIC
+       ocetra(i,j,1,inatsco212)=ocetra(i,j,1,inatsco212)+(natfluxd-natfluxu)/pddpo(i,j,1)
+#endif
 #ifdef __c_isotopes
 ! Update DIC isotope fields and do air-sea fractionation
          ocetra(i,j,1,isco213)=                                     &
@@ -555,6 +466,9 @@
        aux2d_cfc12(i,j)   = flx12
        aux2d_sf6(i,j)     = flxsf
 #endif
+#ifdef natDIC
+       aux2d_natco2fx(i,j)= natfluxu-natfluxd
+#endif
 
 ! Accumulated fluxes. Note that these are currently not written to restart!
 ! Division by 2 is to account for leap-frog timestepping
@@ -572,7 +486,10 @@
       omega = ( calcon * s / 35. ) * cc
 !      OmegaA(i,j,k) = omega / Kspa
       OmegaC(i,j,k) = omega / Kspc
-
+#ifdef natDIC
+       natomega = ( calcon * s / 35. ) * natcc
+       natOmegaC(i,j,k) = natomega / Kspc
+#endif
 ! Decay of the ocean tracers that contain radioactive carbon 14C
 #ifdef __c_isotopes
        ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)*exp(-c14dec)
@@ -583,11 +500,17 @@
       ! Save bottom level dissociation konstants for use in sediment module
       if( k==kbo(i,j) ) then
 
-        k1b(i,j)  = K1
-        k2b(i,j)  = K2
-        kbb(i,j)  = Kb
-        kwb(i,j)  = Kw
-        kspb(i,j) = Kspc
+        keqb( 1,i,j)  = K1
+        keqb( 2,i,j)  = K2
+        keqb( 3,i,j)  = Kb
+        keqb( 4,i,j)  = Kw
+        keqb( 5,i,j)  = Ks1
+        keqb( 6,i,j)  = Kf
+        keqb( 7,i,j)  = Ksi
+        keqb( 8,i,j)  = K1p
+        keqb( 9,i,j)  = K2p
+        keqb(10,i,j)  = K3p
+        keqb(11,i,j)  = Kspc
 
       end if
 
@@ -612,7 +535,10 @@
       call accsrf(jcfc12fx,aux2d_cfc12,omask,0)
       call accsrf(jsf6fx,aux2d_sf6,omask,0)
 #endif
-
+#ifdef natDIC
+      call accsrf(jnatco2fx,aux2d_natco2fx,omask,0)
+#endif
+ 
 ! Accumulate diagnostic layer variables 
       call acclyr(jomegac,OmegaC,pddpo,1)
       call acclyr(jn2o,ocetra(1,1,1,ian2o),pddpo,1) 
@@ -622,14 +548,20 @@
       call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
       call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
 #endif
+#ifdef natDIC
+      call acclyr(jnatomegac,natOmegaC,pddpo,1)
+#endif
 
 ! Accumulate diagnostic level variables 
-      IF (sum(jlvlomegac+jlvln2o+jlvlaou).NE.0) THEN
+      IF (sum(jlvlomegac+jlvlnatomegac+jlvln2o+jlvlaou).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
           call acclvl(jlvln2o,ocetra(1,1,1,ian2o),k,ind1,ind2,wghts)          
           call acclvl(jlvlaou,aux3d_aou,k,ind1,ind2,wghts)          
+#ifdef natDIC
+          call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
+#endif
         ENDDO 
       ENDIF
 #ifdef CFC
@@ -670,11 +602,15 @@
 !        (saturation really depends on temperature/DIC/alkalinity)
 !
         DO 111 k=2,kpke
+!$OMP PARALLEL DO PRIVATE(
+!$OMP+ supsat,undsa,dissol                                              
 #ifdef __c_isotopes
-!$OMP PARALLEL DO PRIVATE(supsat,undsa,dissol,r13,r14)
-#else
-!$OMP PARALLEL DO PRIVATE(supsat,undsa,dissol)
+!$OMP+ ,r13,r14
 #endif
+#ifdef natDIC
+!$OMP+ ,natsupsat,natundsa,natdissol
+#endif
+!$OMP+ )
         DO 11 j=1,kpje
         DO 11 i=1,kpie
          IF(omask(i,j).GT.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
@@ -689,6 +625,15 @@
            ocetra(i,j,k,icalc)=ocetra(i,j,k,icalc)-dissol
            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+2.*dissol
            ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+dissol
+#ifdef natDIC
+          natsupsat=natco3(i,j,k)-natco3(i,j,k)/natOmegaC(i,j,k)
+          natundsa=MAX(0.,-natsupsat)
+          natdissol=MIN(natundsa,0.05*ocetra(i,j,k,inatcalc))
+
+          ocetra(i,j,k,inatcalc)=ocetra(i,j,k,inatcalc)-natdissol
+          ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+2.*natdissol
+          ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)+natdissol
+#endif
 #ifdef __c_isotopes
 ! The same fraction (dissol/icalc) dissolves for the C isotopes [kmol C/m3]
            r13=dissol*ocetra(i,j,k,icalc13)                        &

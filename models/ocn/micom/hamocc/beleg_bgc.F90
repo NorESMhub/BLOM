@@ -445,11 +445,7 @@
 
       DO  i=1,kpie
       DO  j=1,kpje
-         k1b(i,j)=rmasko
-         k2b(i,j)=rmasko
-         kbb(i,j)=rmasko
-         kwb(i,j)=rmasko
-         kspb(i,j)=rmasko
+         keqb(:,i,j)=rmasko
       ENDDO
       ENDDO
 
@@ -544,6 +540,11 @@
          ocetra(i,j,k,icfc11)=0.
          ocetra(i,j,k,icfc12)=0.
          ocetra(i,j,k,isf6)=0.
+#endif
+#ifdef natDIC
+         nathi(i,j,k)            =1.e-8
+         natco3(i,j,k)           =0.
+         ocetra(i,j,k,inatcalc)  =0. 
 #endif
       ENDIF ! omask > 0.5
 

@@ -75,9 +75,7 @@
       use mod_dia, only : iotype
       use netcdf
       implicit none
-#ifdef PNETCDF
 #include <pnetcdf.inc>
-#endif
 #include <mpif.h>      
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
@@ -104,12 +102,11 @@
       save  /xcmpii/
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
-      integer ierr,testio
+      integer ierr
       locetra(:,:,:,:) = 0.0
 !
 ! Open netCDF data file
 !
-      testio=0
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
         i=1
@@ -153,8 +150,6 @@
         WRITE(io_stdo_bgc,*) ' dtbgc = ',ldtbgc
         WRITE(io_stdo_bgc,*) ' '
       ELSE IF(IOTYPE==1) THEN
-#ifdef PNETCDF
-        testio=1
         i=1
         do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
@@ -205,11 +200,6 @@
         WRITE(io_stdo_bgc,*) ' dtbgc = ',ldtbgc
         WRITE(io_stdo_bgc,*) ' '
         ENDIF
-#endif
-      if(testio .eq. 0) then
-      CALL xchalt('(AUFR: Problem with namelist iotype)')
-                    stop '(AUFR: Problem with namelist iotype)'
-      endif
       ENDIF
 
 !
@@ -287,11 +277,39 @@
       CALL read_netcdf_var(ncid,'antc14',locetra(1,1,1,iantc14),2*kpke,0,iotype)
 #endif
 #ifdef CFC
-#ifdef RESTART_CFC
-      CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
-      CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
-      CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
+      ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
+      if(ncstat.eq.nf_enotvar) then
+        IF(mnproc==1) THEN
+          WRITE(io_stdo_bgc,*) ' '
+          WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
+          WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
+        ENDIF
+      else
+        CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
+      endif
 #endif
+#ifdef natDIC
+      ! If natDIC is not in restart file, assign DIC, ALK,... to natDIC, natALK,...
+      ncstat=nfmpi_inq_varid(ncid,'natsco212',ncvarid)
+      if(ncstat.eq.nf_enotvar) then
+        IF(mnproc==1) THEN
+          WRITE(io_stdo_bgc,*) ' '
+          WRITE(io_stdo_bgc,*) 'AUFR_BGC info: natural tracers not in restart file. '
+          WRITE(io_stdo_bgc,*) ' Initialising natural tracers with their non-natural '
+          WRITE(io_stdo_bgc,*) ' counterpart.'
+        ENDIF
+        CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'calciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'hi',nathi(1,1,1),kpke,0,iotype)
+      else
+        CALL read_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'nathi',nathi(1,1,1),kpke,0,iotype)
+     endif
 #endif
 !
 ! Read restart data : diagnostic ocean fields
@@ -349,9 +367,7 @@
       IF(mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_CLOSE(ncid)
       ELSE IF(IOTYPE==1) THEN
-#ifdef PNETCDF
       ncstat = NFMPI_CLOSE(ncid)
-#endif
       ENDIF
 
 
