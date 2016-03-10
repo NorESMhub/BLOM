@@ -100,6 +100,7 @@ set EDRITP   = "'large scale'"
 set BMCMTH   = "'uc'"
 set RMPMTH   = "'eitvel'"
 set EDWMTH   = "'smooth'"
+set EDSPRS   = .false.
 set EGC      = 1.0
 set EGGAM    = 200.
 set EGMNDF   = 100.e4
@@ -478,6 +479,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
 !            the ration of Rossby radius of deformation to the
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
+! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
@@ -543,6 +545,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   BMCMTH   = ${BMCMTH},
   RMPMTH   = ${RMPMTH},
   EDWMTH   = ${EDWMTH},
+  EDSPRS   = ${EDSPRS},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
   EGMNDF   = ${EGMNDF},
