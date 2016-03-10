@@ -622,6 +622,25 @@ c
       endif
       call xcaput(tmpg,scv2,1)
 c
+      if (mnproc.eq.1) then
+        status=nf90_inq_varid(ncid,'angle',varid)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') 'nf90_inq_varid: angle: ',
+     .                     nf90_strerror(status)
+          call xchalt('(geoenv_file)')
+                 stop '(geoenv_file)'
+        endif
+      endif
+      if (mnproc.eq.1) then
+        status=nf90_get_var(ncid,varid,tmpg)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') 'nf90_get_var: angle: ',nf90_strerror(status)
+          call xchalt('(geoenv_file)')
+                 stop '(geoenv_file)'
+        endif
+      endif
+      call xcaput(tmpg,angle,1)
+c
 c --- close grid information file
 c
       if (mnproc.eq.1) then
@@ -634,8 +653,9 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
-c --- Get correct units of scale factors and compute Coriolis and beta
-c --- plane parameter
+c --- Get correct units of scale factors, precompute cosine and sine of
+c --- local angle of i-direction and with eastward direction, and
+c --- compute Coriolis and beta plane parameter
 c --- ------------------------------------------------------------------
 c
       do j=1,jj
@@ -653,6 +673,9 @@ c
           scp2(i,j)=scp2(i,j)*1.e4
           scu2(i,j)=scu2(i,j)*1.e4
           scv2(i,j)=scv2(i,j)*1.e4
+c
+          cosang(i,j)=cos(angle(i,j))
+          sinang(i,j)=sin(angle(i,j))
 c
           corioq(i,j)=sin(qlat(i,j)/radian)*4.*pi/86164.
           coriop(i,j)=sin(plat(i,j)/radian)*4.*pi/86164.

@@ -24,7 +24,7 @@ c
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
      .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
-     .  rmpmth,edwmth,egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce,
+     .  rmpmth,edwmth,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
      .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
      .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
@@ -84,14 +84,15 @@ c --- - print namelist on stdout
         write (lp,*) 'BMCMTH ',trim(BMCMTH)
         write (lp,*) 'RMPMTH ',trim(RMPMTH)
         write (lp,*) 'EDWMTH ',trim(EDWMTH)
-        write (lp,*) 'EGC',egc
-        write (lp,*) 'EGGAM',eggam
-        write (lp,*) 'EGMNDF',egmndf
-        write (lp,*) 'EGMXDF',egmxdf
-        write (lp,*) 'EGIDFQ',egidfq
-        write (lp,*) 'RI0',ri0
-        write (lp,*) 'RM0',rm0
-        write (lp,*) 'CE',ce
+        write (lp,*) 'EDSPRS ',EDSPRS
+        write (lp,*) 'EGC',EGC
+        write (lp,*) 'EGGAM',EGGAM
+        write (lp,*) 'EGMNDF',EGMNDF
+        write (lp,*) 'EGMXDF',EGMXDF
+        write (lp,*) 'EGIDFQ',EGIDFQ
+        write (lp,*) 'RI0',RI0
+        write (lp,*) 'RM0',RM0
+        write (lp,*) 'CE',CE
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'TRXDPT',TRXDPT
@@ -287,6 +288,7 @@ c
       call xcbcst(bmcmth)
       call xcbcst(rmpmth)
       call xcbcst(edwmth)
+      call xcbcst(edsprs)
       call xcbcst(egc)
       call xcbcst(eggam)
       call xcbcst(egmndf)
@@ -675,6 +677,7 @@ c
         write (lp,'(a,a60)')   'bmcmth:            ',bmcmth
         write (lp,'(a,a60)')   'rmpmth:            ',rmpmth
         write (lp,'(a,a60)')   'edwmth:            ',edwmth
+        write (lp,'(a,l10)')   'edsprs:            ',edsprs
         write (lp,'(a,f10.4)') 'egc:               ',egc
         write (lp,'(a,f10.4)') 'eggam:             ',eggam
         write (lp,'(a,f10.4)') 'egmndf:            ',egmndf
