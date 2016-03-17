@@ -39,7 +39,7 @@ c
 c
 c
 c --- ------------------------------------------------------------------
-c --- pass co2 fluxes
+c --- pass co2 and dms fluxes
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO 
@@ -47,6 +47,7 @@ c$OMP PARALLEL DO
       do l=1,isp(j)
       do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
         flxco2(i,j)=bgc_flxco2(i,j)
+        flxdms(i,j)=bgc_flxdms(i,j)
       enddo
       enddo
       enddo
