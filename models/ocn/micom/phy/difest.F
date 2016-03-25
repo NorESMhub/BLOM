@@ -445,7 +445,11 @@ c --- ------- Local gradient Richardson number
 #if defined(TRC) && defined(TKE)
               if (dp(i,j,kn).gt.dpbmin) then
                 Buoy(i,j,k)=-difdia(i,j,k)*bvfsq(i,k)
-                h=max(onem,dp(i,j,kn))*alpha0/g
+!!!!! Mehmet !!!!!
+                !h=max(onem,dp(i,j,kn))*alpha0/g
+                !h=max(onem*1e-8,dp(i,j,kn))*alpha0/g
+                h=max(onemm,dp(i,j,kn))*alpha0/g
+!!!!!!!!!!!!!!!!!!
                 Shear2(i,j,k)=max(1.e-9,q)/(h*h)
                 Prod(i,j,k)=difdia(i,j,k)*Pr_t*Shear2(i,j,k)
               else
@@ -953,7 +957,7 @@ c --- --------- gradient richardson number.
      .            /(1.+delt1*(gls_Q-(gls_buoy/trc(i,j,kn,itrgls))))
               endif
               trc(i,j,kn,itrgls)=max(trc(i,j,kn,itrgls),gls_psi_min)
-#  endif
+!#  endif
               q=.56**(.5*gls_n)*gls_cmu0**gls_p
      .          *trc(i,j,kn,itrtke)**(gls_m+.5*gls_n)
      .          *bvf(i,k)**(-gls_n)
@@ -962,6 +966,7 @@ c --- --------- gradient richardson number.
               else
                 trc(i,j,kn,itrgls)=min(trc(i,j,kn,itrgls),q)
               endif
+#  endif
 c
               tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5+gls_m/gls_n)
      .                    *trc(i,j,kn,itrgls)**(-1./gls_n)
@@ -995,9 +1000,14 @@ c
      .                     *trc(i,j,kn,itrtke)**(-tke_exp1))
 
               if (bvfsq(i,k).gt.0.) then  ! stable stratification
-                Ls_lmt=min(Ls_unlmt,
-     .                     sqrt(.56*trc(i,j,kn,itrtke)
-     .                          /max(bvfsq(i,k),1.e-10)))
+!!!!! Mehmet !!!!!
+!                Ls_lmt=min(Ls_unlmt,
+!     .                     sqrt(.56*trc(i,j,kn,itrtke)
+!     .                          /max(bvfsq(i,k),1.e-10)))
+ 
+                Ls_lmt=min(Ls_unlmt,trc(i,j,kn,itrtke)**(-gls_m/gls_n)
+     .                    *trc(i,j,kn,itrgls)**gls_n)
+!!!!!!!!!!!!!!!!!!
 c               Ls_lmt=Ls_unlmt
               else                        ! unstable stratification
                 Ls_lmt=Ls_unlmt
@@ -1030,12 +1040,17 @@ c --- ------- Relate Canuto stability to MICOM notation
               Sm=Sm*cmu_fac3/gls_cmu0**3
               Sh=Sh*cmu_fac3/gls_cmu0**3
 c
-              ql=sqrt2*.5*(Ls_lmt+L_scale(i,j,k))
+!!!!! Mehmet !!!!!
+              ql=sqrt2*(Ls_lmt)
      .           *sqrt(trc(i,j,kn,itrtke))
+c              ql=sqrt2*.5*(Ls_lmt+L_scale(i,j,k))
+c     .           *sqrt(trc(i,j,kn,itrtke))
 c
-              nus=Sh*ql
-c             nus=Sh*(trc(i,j,k,itrtke)*trc(i,j,k,itrtke))
-c    .            /trc(i,j,k,itrgls)
+              !nus=Sh*ql
+              nus=min(0.1*ql,4.05*nug0)
+!!!!!!!!!!!!!!!!!!
+c              nus=Sh*(trc(i,j,k,itrtke)*trc(i,j,k,itrtke))
+c     .            /trc(i,j,k,itrgls)
               L_scale(i,j,k)=max(Ls_lmt,Ls_unlmt_min)
 #  ifdef GLS
 c
