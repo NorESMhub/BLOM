@@ -156,9 +156,9 @@ if (mnproc.eq.1) then
       riv_PN(nriv)  = riv_PN(nriv) *1E6/14. /1E3*tfac
       riv_PP(nriv)  = riv_PP(nriv) *1E6/31. /1E3*tfac
       riv_POC(nriv) = riv_POC(nriv)*1E6/12. /1E3*tfac
-      riv_DIC(nriv) = riv_DIC(nriv)         /1E3*tfac  ! already in kmols (is this correct?)
+      riv_DIC(nriv) = riv_DIC(nriv)*1E6         *tfac  
       riv_DSi(nriv) = riv_DSi(nriv)*1E6/28. /1E3*tfac
-      riv_DFe(nriv) = riv_DFe(nriv)*1E3/55.8/1E3*tfac
+      riv_DFe(nriv) = riv_DFe(nriv)*1E6/55.8/1E3*tfac
     else
       exit read_data
     endif
