@@ -295,7 +295,7 @@
 !--------------------------------------------------------------------
 !     Sediment module
 
-      CALL POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,omask)
+      CALL POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
 !
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN

@@ -57,11 +57,9 @@
             vtmp = .5_r8*( sbuff(i,j  ,index_o2x_So_v)
      .                   + sbuff(i,j+1,index_o2x_So_v))
             o2x_o%rattr(index_o2x_So_u,n) =
-     .         ( utmp*cos(angle(i,j))
-     .         - vtmp*sin(angle(i,j)))*tfac*1.e-2_r8
+     .         (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac*1.e-2_r8
             o2x_o%rattr(index_o2x_So_v,n) =
-     .         ( utmp*sin(angle(i,j))
-     .         + vtmp*cos(angle(i,j)))*tfac*1.e-2_r8
+     .         (utmp*sinang(i,j) + vtmp*cosang(i,j))*tfac*1.e-2_r8
             utmp = ( sbuff(i  ,j,index_o2x_So_dhdx)*iu(i  ,j)
      .             + sbuff(i+1,j,index_o2x_So_dhdx)*iu(i+1,j))
      .             /max(1,iu(i,j) + iu(i+1,j))
@@ -69,11 +67,9 @@
      .             + sbuff(i,j+1,index_o2x_So_dhdy)*iv(i,j+1))
      .             /max(1,iv(i,j) + iv(i,j+1))
             o2x_o%rAttr(index_o2x_So_dhdx,n) =
-     .         ( utmp*cos(angle(i,j))
-     .         - vtmp*sin(angle(i,j)))*tfac
+     .         (utmp*cosang(i,j) - vtmp*sinang(i,j))*tfac
             o2x_o%rAttr(index_o2x_So_dhdy,n) =
-     .         ( utmp*sin(angle(i,j))
-     .         + vtmp*cos(angle(i,j)))*tfac
+     .         (utmp*sinang(i,j) + vtmp*cosang(i,j))*tfac
          enddo
       enddo
 

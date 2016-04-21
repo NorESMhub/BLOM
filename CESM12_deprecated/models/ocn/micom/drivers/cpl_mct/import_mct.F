@@ -67,10 +67,8 @@
             else
                utmp = x2o_o%rAttr(index_x2o_Foxx_taux,n)
                vtmp = x2o_o%rAttr(index_x2o_Foxx_tauy,n)
-               util1(i,j) =   utmp*cos(angle(i,j))
-     .                      + vtmp*sin(angle(i,j))
-               util2(i,j) = - utmp*sin(angle(i,j))
-     .                      + vtmp*cos(angle(i,j))
+               util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
+               util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
 
                ! Friction velocity (m/s)
                ustarw_da(i,j,l2ci) = sqrt(sqrt(utmp*utmp+vtmp*vtmp)

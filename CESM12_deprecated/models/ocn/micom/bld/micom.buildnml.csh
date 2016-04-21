@@ -94,16 +94,21 @@ set CBAR     = 5.
 set CB       = .002
 set CWBDTS   = 5.e-5
 set CWBDLS   = 25.
-set MOMMTH   = "'enscon'"
-set EITMTH   = "'intdif'"
-set EDRITP   = "'shear'"
+set MOMMTH   = "'enecon'"
+set EITMTH   = "'gm'"
+set EDRITP   = "'large scale'"
 set BMCMTH   = "'uc'"
 set RMPMTH   = "'eitvel'"
+set EDWMTH   = "'smooth'"
+set EDSPRS   = .false.
 set EGC      = 1.0
 set EGGAM    = 200.
 set EGMNDF   = 100.e4
 set EGMXDF   = 1500.e4
 set EGIDFQ   = 1.
+set RI0      = 1.2
+set RM0      = 1.2
+set CE       = .06
 set TRXDAY   = 0.
 set SRXDAY   = 0.
 set TRXDPT   = 1.
@@ -203,6 +208,7 @@ set LYR_VSFLLD   =  '0,   0'
 set LYR_VVEL     =  '0,   2'
 set LYR_WFLX     =  '0,   2'
 set LYR_WFLX2    =  '0,   2'
+set LYR_PV       =  '0,   2'
 set LYR_TKE      =  '0,   2'
 set LYR_GLS_PSI  =  '0,   2'
 set LYR_IDLAGE   =  '0,   2'
@@ -234,6 +240,7 @@ set LVL_VSFLLD   =  '0,   0'
 set LVL_VVEL     =  '0,   2'
 set LVL_WFLX     =  '0,   2'
 set LVL_WFLX2    =  '0,   2'
+set LVL_PV       =  '0,   2'
 set LVL_TKE      =  '0,   2'
 set LVL_GLS_PSI  =  '0,   2'
 set LVL_IDLAGE   =  '0,   2'
@@ -383,6 +390,7 @@ else if ( $OCN_GRID ==  tnx2v1 || $OCN_GRID ==  tnx1.5v1 ) then
   set LYR_VVEL     =  '0,   0'
   set LYR_WFLX     =  '0,   0'
   set LYR_WFLX2    =  '0,   0'
+  set LYR_PV       =  '0,   0'
   set LVL_DIFDIA   =  '0,   0'
   set LVL_DIFINT   =  '0,   0'
   set LVL_DIFISO   =  '0,   0'
@@ -397,6 +405,7 @@ else if ( $OCN_GRID ==  tnx2v1 || $OCN_GRID ==  tnx1.5v1 ) then
   set LVL_VSFLX    =  '0,   0'
   set LVL_WFLX     =  '0,   2'
   set LVL_WFLX2    =  '0,   0'
+  set LVL_PV       =  '0,   0'
 else if ( $OCN_GRID ==  tnx1v1) then
   set BACLIN = 3200.
   set BATROP = 64.
@@ -412,8 +421,10 @@ else if ( $OCN_GRID ==  tnx0.25v1) then
   set MDC2HI = 300.e4
   set CWBDTS = 2.e-4
   set CWBDLS = 50.
+  set EDWMTH = "'step'"
   set EGC    = 1.
   set EGMXDF = 1000.e4
+  set CE     = .12
   set GLB_NCFORMAT =  '1,   1'
   set BGC_NCFORMAT  = '1,   1'
 else
@@ -465,6 +476,10 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            column) (a)
 ! RMPMTH   : Method of applying eddy-induced transport in the remap
 !            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
+!            the ration of Rossby radius of deformation to the
+!            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
+! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
@@ -472,6 +487,12 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
 !            interface diffusivity in the Eden and Greatbatch (2008)
 !            parameterization. egidfq=difint/difiso () (f)
+! RI0      : Critical gradient richardson number for shear driven
+!            vertical mixing () (f)
+! RM0      : Efficiency factor for wind TKE generation in the Oberhuber
+!            (1993) TKE closure () (f)
+! CE       : Efficiency factor for the restratification by mixed layer
+!            eddies (Fox-Kemper et al., 2008) () (f)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
@@ -523,11 +544,16 @@ cat >! $RUNDIR/ocn_in << EOF1
   EDRITP   = ${EDRITP},
   BMCMTH   = ${BMCMTH},
   RMPMTH   = ${RMPMTH},
+  EDWMTH   = ${EDWMTH},
+  EDSPRS   = ${EDSPRS},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
   EGMNDF   = ${EGMNDF},
   EGMXDF   = ${EGMXDF},
   EGIDFQ   = ${EGIDFQ},
+  RI0      = ${RI0},
+  RM0      = ${RM0},
+  CE       = ${CE},
   TRXDAY   = ${TRXDAY},
   SRXDAY   = ${SRXDAY},
   TRXDPT   = ${TRXDPT},
@@ -680,6 +706,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 !   VVEL     - velocity x-component [m s-1]
 !   WFLX     - vertical mass flux [kg s-1]
 !   WFLX2    - vertical mass flux squared [kg2 s-2]
+!   PV       - potential vorticity [m-1 s-1]
 !   TKE      - turbulent kinetic energy [m2 s-2]
 !   GLS_PSI  - generic length scale [m2 s-3]
 !   IDLAGE   - ideal age [year]
@@ -774,6 +801,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   LYR_VVEL     = ${LYR_VVEL},
   LYR_WFLX     = ${LYR_WFLX},
   LYR_WFLX2    = ${LYR_WFLX2},
+  LYR_PV       = ${LYR_PV},
   LYR_TKE      = ${LYR_TKE},
   LYR_GLS_PSI  = ${LYR_GLS_PSI},
   LYR_IDLAGE   = ${LYR_IDLAGE},
@@ -805,6 +833,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   LVL_VVEL     = ${LVL_VVEL},
   LVL_WFLX     = ${LVL_WFLX},
   LVL_WFLX2    = ${LVL_WFLX2},
+  LVL_PV       = ${LVL_PV},
   LVL_TKE      = ${LVL_TKE},
   LVL_GLS_PSI  = ${LVL_GLS_PSI},
   LVL_IDLAGE   = ${LVL_IDLAGE},

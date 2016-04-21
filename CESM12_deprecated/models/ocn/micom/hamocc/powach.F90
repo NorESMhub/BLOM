@@ -1,4 +1,4 @@
-      SUBROUTINE POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,omask)
+      SUBROUTINE POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powach.f90,v $\\
@@ -34,10 +34,11 @@
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st REAL :: of model grid.
-!     *INTEGER* *kpje*    - 2nd REAL :: of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) REAL :: of model grid.
-!     *REAL*    *psao*    - potential temperature [deg C].
+!     *INTEGER* *kpie*    - 1st dimension of model grid.
+!     *INTEGER* *kpje*    - 2nd dimension of model grid.
+!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *REAL*    *psao*    - salinity [psu].
+!     *REAL*    *prho*    - seawater density [g/cm^3].
 !     *REAL*    *pwo*     - vertical velocity in scalar points [m/s].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
@@ -49,7 +50,7 @@
 !**********************************************************************
 
       USE mo_carbch
-      USE mo_chemcon, only: calcon, rrrcl
+      USE mo_chemcon, only: calcon
       USE mo_sedmnt
       USE mo_biomod
       USE mo_control_bgc
@@ -57,10 +58,11 @@
 
       implicit none
 
-      INTEGER :: i,j,k,l, iter
+      INTEGER :: i,j,k,l
       INTEGER :: kpie,kpje,kpke
 
       REAL :: psao(kpie,kpje,kpke)
+      REAL :: prho(kpie,kpje,kpke)
 
       REAL :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
       REAL :: solrat(kpie,ks),powcar(kpie,ks)
@@ -69,11 +71,12 @@
       REAL :: omask(kpie,kpje)
 
       REAL :: disso, dissot, undsa, silsat, posol 
-      REAL :: umfa,denit,hconve,bt,alk,c
-      REAL :: ak1,ak2,akb,akw
+      REAL :: umfa,denit,saln,rrho,alk,c,sit,pt
+      REAL :: K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
+      REAL :: ah1,ac,cu,cb,cc,satlev
       REAL :: ratc13,ratc14,rato13,rato14,poso13,poso14
-      REAL :: h,t1,t2,a,dadh,dddhhh,reduk,satlev
-
+! number of iterations for carchm_solve
+      REAL,PARAMETER :: niter=5
 ! *****************************************************************
 ! accelerated sediment
 ! needed for boundary layer vertilation in fast sediment routine      
@@ -85,11 +88,13 @@
 !     otherways we had to do a boundary exchange
 
 
-!$OMP PARALLEL DO                            &                
-!$OMP&PRIVATE(disso,dissot,silsat,undsa,sedb1,solrat,umfa,posol,     &
-!$OMP&        rato13,rato14,poso13,poso14,aerob,denit,anaerob,       &
-!$OMP&        hconve,bt,alk,c,ak1,ak2,akb,akw,h,t1,t2,a,dadh,dddhhh, &
-!$OMP&        reduk,powcar,satlev,ratc13,ratc14,bolven,sediso)      
+!$OMP PARALLEL DO                                                &                
+!$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,          &
+!$OMP&        disso,dissot,undsa,silsat,posol,                   &
+!$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                 &
+!$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                &
+!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                      &     
+!$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14)
       DO 8888 j=1,kpje
 
       DO 1189 k=1,ks
@@ -372,36 +377,41 @@
 ! FROM CHANGED ALKALINITY (NITRATE PRODUCTION DURING REMINERALISATION)
 ! AND DIC GAIN. ITERATE 5 TIMES. THIS CHANGES PH (SEDHPL) OF SEDIMENT.
 
-      DO 10 ITER=1,5
-
-      hconve=0.
       DO 1 K=1,KS
       DO 1 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            bt=rrrcl*psao(i,j,kbo(i,j))
-            alk=powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.
-            c=powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.
-            ak1=k1b(i,j)
-            ak2=k2b(i,j)
-            akb=kbb(i,j)
-            akw=kwb(i,j)
-            h=sedhpl(i,j,k)
-            t1=h/ak1
-            t2=h/ak2
-            a=c*(2.+t2)/(1.+t2+t2*t1)  +akw/h-h+bt/(1.+h/akb)-alk
-            dadh=c*( 1./(ak2*(1.+t2+t2*t1))-(2.+t2)*(1./ak2+2.*t1/ak2)/  &
-     &          (1.+t2+t2*t1)**2)                                        &
-     &          -akw/h**2-1.-(bt/akb)/(1.+h/akb)**2
-            dddhhh=a/dadh
-            reduk=MAX(1.,2.*abs(dddhhh/h))
-            sedhpl(i,j,k)=h-dddhhh/reduk
-            hconve=hconve+dddhhh**2
-            powcar(i,k)=c/(1.+t2*(1.+t1))
+            saln= psao(i,j,kbo(i,j))
+            rrho= prho(i,j,kbo(i,j))
+            alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.)  / rrho
+            c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.) / rrho
+            sit =  powtra(i,j,k,ipowasi) / rrho
+            pt  =  powtra(i,j,k,ipowaph) / rrho
+            ah1 = sedhpl(i,j,k)
+            K1  = keqb( 1,i,j)
+            K2  = keqb( 2,i,j)
+            Kb  = keqb( 3,i,j)
+            Kw  = keqb( 4,i,j)
+            Ks1 = keqb( 5,i,j)
+            Kf  = keqb( 6,i,j)
+            Ksi = keqb( 7,i,j)
+            K1p = keqb( 8,i,j)
+            K2p = keqb( 9,i,j)
+            K3p = keqb(10,i,j)
+
+            CALL CARCHM_SOLVE(saln,c,alk,sit,pt,                  &
+                              K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
+                              ah1,ac,niter)
+
+            cu = ( 2. * c - ac ) / ( 2. + K1 / ah1 )
+            cb = K1 * cu / ah1
+            cc = K2 * cb / ah1
+            sedhpl(i,j,k) = max(1.e-20,ah1)
+            powcar(i,k)   = cc * rrho 
+
          ENDIF
 1     CONTINUE
 
-10    CONTINUE
 
 ! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
       disso=1.e-7
@@ -417,7 +427,7 @@
       DO 23 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            satlev=kspb(i,j)/calcon+2.e-5
+            satlev=keqb(11,i,j)/calcon+2.e-5
             undsa=MAX(satlev-powcar(i,1),0.)
             sedb1(i,0)=bolay(i,j)*(satlev-co3(i,j,kbo(i,j)))             &
      &                 *bolven(i)       
@@ -435,7 +445,7 @@
       DO 22 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            undsa=MAX(kspb(i,j)/calcon-powcar(i,k),0.)
+            undsa=MAX(keqb(11,i,j)/calcon-powcar(i,k),0.)
             sedb1(i,k)=seddw(k)*porwat(k)*undsa
             IF(k.GT.1)solrat(i,k)=sedlay(i,j,k,isssc12)                 &
      &          *dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)

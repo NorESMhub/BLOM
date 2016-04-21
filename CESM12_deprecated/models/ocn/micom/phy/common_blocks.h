@@ -9,7 +9,9 @@ c
      .  dpu,dpv,       ! layer thickness at u- and v-points
      .  temp,          ! temperature
      .  saln,          ! salinity
-     .  sigma          ! potential density
+     .  sigma,         ! potential density
+     .  absvor,        ! absolute vorticity
+     .  dpvor          ! layer pressure thickness used in vorticity computation
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
      .  p,             ! interface pressure
@@ -30,8 +32,8 @@ c
      .  betafp,        ! latitudinal variation of the coriolis param. at p-point
      .  potvor         ! potential vorticity
 c
-      common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,p,pu,pv,phi,
-     .                sigmar,temmin,dpuold,dpvold,told,sold,
+      common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
+     .                p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
      .                diaflx,corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
@@ -197,6 +199,12 @@ c ---            parameterization [cm**2/s]
 c --- 'egidfq' = factor relating the isopycnal diffusivity to the layer
 c ---            interface diffusivity in the Eden and Greatbatch (2008)
 c ---            parameterization. egidfq=difint/difiso
+c --- 'ri0'    = critical gradient richardson number for shear driven
+c ---            vertical mixing
+c --- 'rm0'    = efficiency factor for wind TKE generation in the
+c ---            Oberhuber (1993) TKE closure
+c --- 'ce'     = efficiency factor for the restratification by mixed
+c ---            layer eddies (Fox-Kemper et al., 2008)
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c --- 'expcnf' = experiment configuration
@@ -207,21 +215,27 @@ c ---            computation
 c --- 'bmcmth' = baroclinic mass flux correction method
 c --- 'rmpmth' = method of applying eddy-induced transport in the remap
 c ---            transport algorithm
+c --- 'edwmth' = method to estimate eddy diffusivity weight as a
+c ---            function of the ration of Rossby radius of deformation
+c ---            to the horizontal grid spacing
+c --- 'edsprs' = if set to .true,, apply eddy mixing suppression away
+c ---            from steering level
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
      .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,raddep,
-     .     redfac,betabl,egc,eggam,egmndf,egmxdf,egidfq
-      logical csdiag,cnsvdi
-      character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth
+     .     redfac,betabl,egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce
+      logical csdiag,cnsvdi,edsprs
+      character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
      .                wpgf,mltmin,thktop,thkbot,raddep,redfac,betabl,
-     .                egc,eggam,egmndf,egmxdf,egidfq,
+     .                egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce,
      .                csdiag,cnsvdi,
-     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth
+     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
+     .                edsprs
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

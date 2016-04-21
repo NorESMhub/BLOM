@@ -500,6 +500,12 @@ c --- write accumulated fields
           if (ACC_WFLX2(n) .ne.0) call wrtrst('wflx2_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_WFLX2(n)),
      .      ip)
+          if (ACC_AVDSG(n) .ne.0) call wrtrst('avdsg_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_AVDSG(n)),
+     .      ip)
+          if (ACC_DPVOR(n) .ne.0) call wrtrst('dpvor_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DPVOR(n)),
+     .      ip)
 #if defined(TRC) && defined(TKE)
           if (ACC_TKE(n)  .ne.0) call wrtrst('tke_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_TKE(n)),
@@ -589,6 +595,9 @@ c --- write accumulated fields
           if (ACC_WFLX2LVL(n).ne.0) call wrtrst('wflx2lvl_phy'//c2,
      .      trim(c5p)//' plev time',
      .      phylvl(1-nbdy,1-nbdy,1,ACC_WFLX2LVL(n)),ip)
+          if (ACC_PVLVL(n).ne.0) call wrtrst('pvlvl_phy'//c2,
+     .      trim(c5p)//' plev time',
+     .      phylvl(1-nbdy,1-nbdy,1,ACC_PVLVL(n)),ip)
 #if defined(TRC) && defined(TKE)
           if (ACC_TKELVL(n).ne.0) call wrtrst('tkelvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
@@ -1013,11 +1022,15 @@ c --- write accumulated fields
      .      trim(c5p)//' kk time')
           if (ACC_WFLX2(n) .ne.0) call defvarrst('wflx2_phy'//c2,
      .      trim(c5p)//' kk time')
+          if (ACC_AVDSG(n) .ne.0) call defvarrst('avdsg_phy'//c2,
+     .      trim(c5p)//' kk time')
+          if (ACC_DPVOR(n) .ne.0) call defvarrst('dpvor_phy'//c2,
+     .      trim(c5p)//' kk time')
 #if defined(TRC) && defined(TKE)
-          if (ACC_TKE(n)  .ne.0) call defvarrst('tke_phy'//c2,
+          if (ACC_TKE(n)   .ne.0) call defvarrst('tke_phy'//c2,
      .      trim(c5p)//' kk time')
           if (ACC_GLS_PSI(n).ne.0) call defvarrst('gls_psi_phy'//c2,
-     .     trim(c5p)//' kk time')
+     .      trim(c5p)//' kk time')
 #endif
           if (ACC_UVELLVL(n) .ne.0) call defvarrst('uvellvl_phy'//c2,
      .      trim(c5u)//' plev time')
@@ -1072,6 +1085,8 @@ c --- write accumulated fields
           if (ACC_WFLXLVL(n).ne.0) call defvarrst('wflxlvl_phy'//c2,
      .      trim(c5p)//' plev time')
           if (ACC_WFLX2LVL(n).ne.0) call defvarrst('wflx2lvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_PVLVL(n).ne.0) call defvarrst('pvlvl_phy'//c2,
      .      trim(c5p)//' plev time')
 #if defined(TRC) && defined(TKE)
           if (ACC_TKELVL(n).ne.0) call defvarrst('tkelvl_phy'//c2,
