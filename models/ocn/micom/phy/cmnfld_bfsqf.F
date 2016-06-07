@@ -30,8 +30,7 @@ c
       parameter (sls0=10.*98060.,slsmfq=2.,slsels=2.,bfsqmn=1.e-7)
 c
       real, dimension(kdm) :: delp,bfsq,sls2,atd,btd,ctd,rtd,gam
-      real rho0,pml,q,pup,tup,sup,plo,tlo,slo,bei,pm,rho_x,phi_x,
-     .     bfsqm,rho_y,phi_y
+      real rho0,pml,q,pup,tup,sup,plo,tlo,slo,bei,pm,bfsqm
       integer i,j,k,l,kn,kfpl,kintr,kmax
 c
       real rho
@@ -140,6 +139,13 @@ c
         enddo
         enddo
       enddo
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'cmnfld_bfsqf:'
+        endif
+        call chksummsk(bfsqf,ip,kk,'bfsqf')
+      endif
 c
       return
       end
