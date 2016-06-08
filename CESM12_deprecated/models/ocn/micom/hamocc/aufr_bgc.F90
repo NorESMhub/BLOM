@@ -97,11 +97,13 @@
       character :: rstfnm*80
 
       INTEGER ncid,ncstat,ncvarid
+#ifdef PNETCDF
       integer*4 ,save :: info=MPI_INFO_NULL
       integer        mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                      &
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
+#endif
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
       integer ierr,testio
@@ -287,11 +289,44 @@
       CALL read_netcdf_var(ncid,'antc14',locetra(1,1,1,iantc14),2*kpke,0,iotype)
 #endif
 #ifdef CFC
-#ifdef RESTART_CFC
-      CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
-      CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
-      CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
+      ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
+      if(ncstat.eq.nf_enotvar) then
+        IF(mnproc==1) THEN
+          WRITE(io_stdo_bgc,*) ' '
+          WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
+          WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
+        ENDIF
+      else
+        CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
+      endif
 #endif
+#ifdef natDIC
+      ! If natDIC is not in restart file, assign DIC, ALK,... to natDIC, natALK,...
+#ifdef PNETCDF
+      ncstat=nfmpi_inq_varid(ncid,'natsco212',ncvarid)
+      if(ncstat.eq.nf_enotvar) then
+#else
+      ncstat=nf90_inq_varid(ncid,'natsco212',ncvarid)
+      if(ncstat.eq.nf90_enotvar) then
+#endif
+        IF(mnproc==1) THEN
+          WRITE(io_stdo_bgc,*) ' '
+          WRITE(io_stdo_bgc,*) 'AUFR_BGC info: natural tracers not in restart file. '
+          WRITE(io_stdo_bgc,*) ' Initialising natural tracers with their non-natural '
+          WRITE(io_stdo_bgc,*) ' counterpart.'
+        ENDIF
+        CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'calciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'hi',nathi(1,1,1),kpke,0,iotype)
+      else
+        CALL read_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
+        CALL read_netcdf_var(ncid,'nathi',nathi(1,1,1),kpke,0,iotype)
+     endif
 #endif
 !
 ! Read restart data : diagnostic ocean fields

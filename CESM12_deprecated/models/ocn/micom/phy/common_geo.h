@@ -12,10 +12,14 @@ c
      .  plat,plon,     ! grid coordinates p-points
      .  ulat,ulon,     ! grid coordinates u-points
      .  vlat,vlon,     ! grid coordinates v-points
-     .  angle          ! local angle of i-direction and meridional
-                       ! direction
+     .  angle,         ! local angle of i-direction and eastward
+                       ! direction at p-points
+     .  cosang,sinang  ! cosine and sine of local angle of i-direction
+                       ! and eastward direction at p-points
+
       integer ::
      .  nwp            ! number of wet grid cells
 c
       common /geo/ qclat,qclon,pclat,pclon,uclat,uclon,vclat,vclon,
-     .             qlat,qlon,plat,plon,ulat,ulon,vlat,vlon,angle,nwp
+     .             qlat,qlon,plat,plon,ulat,ulon,vlat,vlon,angle,
+     .             cosang,sinang,nwp

@@ -16,6 +16,8 @@ c
 c
       integer i,j,k,l
 c
+#if defined(TRC) && defined(TKE)
+c
 c --- ------------------------------------------------------------------
 c --- Initialize fields holding turbulent kinetic energy, generic length
 c --- scale, and other fields used in the turbulence closure.
@@ -77,6 +79,8 @@ c
      .      -gls_L5*(gls_L2**2-gls_L3**2))
      .      +gls_L5*gls_L8*(3.*gls_L3**2-gls_L2**2)
       gls_b5=.25*(gls_L2**2-3.*gls_L3**2)*(gls_L6**2-gls_L7**2)
+c
+#endif
 c
       return
       end

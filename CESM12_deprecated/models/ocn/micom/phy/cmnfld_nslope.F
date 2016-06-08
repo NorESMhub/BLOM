@@ -179,5 +179,15 @@ c
         enddo
       enddo
 c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'cmnfld_nslope:'
+        endif
+        call chksummsk(nslpx,iu,kk,'nslpx')
+        call chksummsk(nslpy,iv,kk,'nslpy')
+        call chksummsk(nnslpx,iu,kk,'nnslpx')
+        call chksummsk(nnslpy,iv,kk,'nnslpy')
+      endif
+c
       return
       end

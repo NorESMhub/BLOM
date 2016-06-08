@@ -73,16 +73,30 @@
 #else 
                             i_agg_adv= 0
 #endif
+      INTEGER, PARAMETER ::                                             &
+#ifdef natDIC
+     &       i_nat_dic   = 2,                                           &
+     &       inatsco212  = i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+1,  &
+     &       inatalkali  = i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+2  
+#else 
+             i_nat_dic  = 0
+#endif
 
 ! total number of advected tracers
-      INTEGER, PARAMETER :: ntraad=i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv
+      INTEGER, PARAMETER :: ntraad=i_base_adv+i_iso_adv+i_cfc_adv+      &
+     &                             i_agg_adv+i_nat_dic
 
 ! non-advected (fast sinking) tracers
       INTEGER, PARAMETER ::                                             &
      &                      idet     =ntraad+1,                         &
      &                      icalc    =ntraad+2,                         &
      &                      iopal    =ntraad+3,                         &
+#ifdef natDIC
+     &                      inatcalc =ntraad+4,                         &
+     &                      i_base   =4 
+#else
      &                      i_base   =3 
+#endif
                             
       INTEGER, PARAMETER ::                                             &
 #ifdef __c_isotopes

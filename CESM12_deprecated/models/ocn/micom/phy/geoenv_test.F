@@ -44,9 +44,12 @@ c
       scp2=0.
       scu2=0.
       scv2=0.
+      angle=0.
       corioq=0.
       coriop=0.
       betafp=0.
+      cosang=0.
+      sinang=0.
 c
       return
       end

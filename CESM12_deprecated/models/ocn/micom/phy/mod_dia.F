@@ -117,14 +117,14 @@ c --- Namelist
      . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
      . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LYR_WFLX2  ,LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
      . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
      . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_TKE    ,LVL_GLS_PSI,
-     . LVL_IDLAGE ,
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,
+     . LVL_GLS_PSI,LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  , 
@@ -147,18 +147,18 @@ c --- Namelist
      . ACC_UTFLLD ,ACC_USFLTD ,ACC_USFLLD ,ACC_UVEL   ,ACC_VFLX   ,
      . ACC_VTFLX  ,ACC_VSFLX  ,ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,
      . ACC_VSFLTD ,ACC_VSFLLD ,ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,
-     . ACC_TKE    ,ACC_GLS_PSI,
-     . ACC_DIAFLXLVL,ACC_DIFDIALVL,ACC_DIFINTLVL,ACC_DIFISOLVL,
-     . ACC_DZLVL    ,ACC_SALNLVL  ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,
-     . ACC_UTFLXLVL ,ACC_USFLXLVL ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,
-     . ACC_UTFLLDLVL,ACC_USFLTDLVL,ACC_USFLLDLVL,ACC_UVELLVL  ,
-     . ACC_VFLXLVL  ,ACC_VTFLXLVL ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,
-     . ACC_VTFLTDLVL,ACC_VTFLLDLVL,ACC_VSFLTDLVL,ACC_VSFLLDLVL,
-     . ACC_VVELLVL  ,ACC_WFLXLVL  ,ACC_WFLX2LVL ,ACC_TKELVL   ,
-     . ACC_GLS_PSILVL,ACC_UFLXOLD ,ACC_VFLXOLD  ,ACC_UTILLVL  ,     
-     . ACC_MMFLXL ,ACC_MMFLXD ,ACC_MMFTDL ,ACC_MMFTDD ,ACC_MHFLX  ,
-     . ACC_MHFTD  ,ACC_MHFLD  ,ACC_MSFLX  ,ACC_MSFTD  ,ACC_MSFLD  ,
-     . ACC_VOLTR 
+     . ACC_AVDSG  ,ACC_DPVOR  ,ACC_TKE    ,ACC_GLS_PSI,
+     . ACC_DIAFLXLVL,ACC_DIFDIALVL ,ACC_DIFINTLVL,ACC_DIFISOLVL,
+     . ACC_DZLVL    ,ACC_SALNLVL   ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,
+     . ACC_UTFLXLVL ,ACC_USFLXLVL  ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,
+     . ACC_UTFLLDLVL,ACC_USFLTDLVL ,ACC_USFLLDLVL,ACC_UVELLVL  ,
+     . ACC_VFLXLVL  ,ACC_VTFLXLVL  ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,
+     . ACC_VTFLTDLVL,ACC_VTFLLDLVL ,ACC_VSFLTDLVL,ACC_VSFLLDLVL,
+     . ACC_VVELLVL  ,ACC_WFLXLVL   ,ACC_WFLX2LVL ,ACC_PVLVL    ,
+     . ACC_TKELVL   ,ACC_GLS_PSILVL,ACC_UFLXOLD  ,ACC_VFLXOLD  ,
+     . ACC_UTILLVL  ,
+     . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFTDD,ACC_MHFLX,ACC_MHFTD,
+     . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR 
       namelist /DIAPHY/
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
@@ -175,14 +175,14 @@ c --- Namelist
      . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
      . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
      . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LYR_WFLX2  ,LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_DIAFLX ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
      . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
      . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
      . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
      . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_TKE    ,LVL_GLS_PSI,
-     . LVL_IDLAGE ,
+     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,
+     . LVL_GLS_PSI,LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  ,
@@ -469,6 +469,9 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
      .                    LVL_WFLX2(n)
         ACC_WFLX2LVL(n) = LVL_WFLX2(n)  + LVL_WFLX(n)   + LYR_WFLX(n)  +
      .                    LYR_WFLX2(n)
+        ACC_AVDSG(n)    = LYR_PV(n)
+        ACC_DPVOR(n)    = LYR_PV(n)
+        ACC_PVLVL(n)    = LVL_PV(n)
         ACC_TKE(n)      = LYR_TKE(n)
         ACC_TKELVL(n)   = LVL_TKE(n)
         ACC_GLS_PSI(n)  = LYR_GLS_PSI(n)
@@ -639,6 +642,10 @@ c
          ACC_WFLX(n)=nphylyr*min(1,ACC_WFLX(n))
         if (ACC_WFLX2(n).ne.0) nphylyr=nphylyr+1
          ACC_WFLX2(n)=nphylyr*min(1,ACC_WFLX2(n))
+        if (ACC_AVDSG(n).ne.0) nphylyr=nphylyr+1
+         ACC_AVDSG(n)=nphylyr*min(1,ACC_AVDSG(n))
+        if (ACC_DPVOR(n).ne.0) nphylyr=nphylyr+1
+         ACC_DPVOR(n)=nphylyr*min(1,ACC_DPVOR(n))
         if (ACC_TKE(n).ne.0) nphylyr=nphylyr+1
          ACC_TKE(n)=nphylyr*min(1,ACC_TKE(n))
         if (ACC_GLS_PSI(n).ne.0) nphylyr=nphylyr+1
@@ -702,6 +709,8 @@ c
          ACC_WFLXLVL(n)=nphylvl*min(1,ACC_WFLXLVL(n))
         if (ACC_WFLX2LVL(n).ne.0) nphylvl=nphylvl+1
          ACC_WFLX2LVL(n)=nphylvl*min(1,ACC_WFLX2LVL(n))
+        if (ACC_PVLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_PVLVL(n)=nphylvl*min(1,ACC_PVLVL(n))
         if (ACC_TKELVL(n).ne.0) nphylvl=nphylvl+1
          ACC_TKELVL(n)=nphylvl*min(1,ACC_TKELVL(n))
         if (ACC_GLS_PSILVL(n).ne.0) nphylvl=nphylvl+1
@@ -858,14 +867,16 @@ c
 #endif
 c
       integer d,i,j,k,l,km,iogrp
-      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
+      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
+     .  ipsw,ipse,ipnw,ipne
 c     
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts,
      .  wghtsflx
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
-     .  dz,dummy
+     .  dz,avdsg_p,dpvor_p,pv_p,dummy
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: util5,util6,
      .  util7,util8,util9
+      real dsig
 c
 c --- Increase counter 
       do iogrp=1,nphy
@@ -894,7 +905,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_UB(1:nphy)+ACC_VB(1:nphy)).ne.0) then
+      if (sum(ACC_MXLU(1:nphy)+ACC_MXLV(1:nphy)).ne.0) then
 c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isu(j)
@@ -1023,6 +1034,45 @@ c$OMP PARALLEL DO
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 dz(i,j,k)=phi(i,j,k)-phi(i,j,k+1)
+              enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+      if (sum(ACC_AVDSG(1:nphy)+ACC_PVLVL(1:nphy)).ne.0) then
+c$OMP PARALLEL DO PRIVATE(km,dsig)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              ipsw(i,j)=min(1,iu(i  ,j)+iv(i,j  ))
+              ipse(i,j)=min(1,iu(i+1,j)+iv(i,j  ))
+              ipnw(i,j)=min(1,iu(i  ,j)+iv(i,j+1))
+              ipne(i,j)=min(1,iu(i+1,j)+iv(i,j+1))
+            enddo
+          enddo
+          do k=1,kk
+            km=k+mm
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                if (k.le.2) then
+                  dsig=max(0.,sigma(i,j,2+mm)-sigma(i,j,1+mm))
+                elseif (k.eq.kk) then
+                  dsig=max(0.,sigma(i,j,km)
+     .                       -max(sigma(i,j,km-1),sigma(i,j,2+mm)))
+                else
+                  dsig=.5*max(0.,sigma(i,j,km+1)
+     .                          -max(sigma(i,j,km-1),sigma(i,j,2+mm)))
+                endif
+                avdsg_p(i,j,k)=(absvor(i  ,j  ,k)*ipsw(i,j)
+     .                         +absvor(i+1,j  ,k)*ipse(i,j)
+     .                         +absvor(i  ,j+1,k)*ipnw(i,j)
+     .                         +absvor(i+1,j+1,k)*ipne(i,j))*dsig
+                dpvor_p(i,j,k)=dpvor(i  ,j  ,k)*ipsw(i,j)
+     .                        +dpvor(i+1,j  ,k)*ipse(i,j)
+     .                        +dpvor(i  ,j+1,k)*ipnw(i,j)
+     .                        +dpvor(i+1,j+1,k)*ipne(i,j)
+                pv_p(i,j,k)=avdsg_p(i,j,k)/dpvor_p(i,j,k)
               enddo
             enddo
           enddo
@@ -1255,6 +1305,13 @@ c
 c --- diapycnal diffusivity [cm^2/s]
       call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
+c --- absolute vorticity multiplied with potential density difference
+c --- over layer [g/cm^3/s]
+      call acclyr(ACC_AVDSG,avdsg_p,dummy,0,'p')
+c
+c --- layer pressure thickness used in vorticity computation [g/cm/s^2]
+      call acclyr(ACC_DPVOR,dpvor_p,dummy,0,'p')
+c
 #if defined(TRC) && defined(TKE)
 c --- weighted tke [cm2/s2*g/cm/s^2]
       call acclyr(ACC_TKE,trc(1-nbdy,1-nbdy,k1m,itrtke),
@@ -1386,7 +1443,7 @@ c
      .  ACC_DIAFLXLVL(1:nphy)+ACC_DIFDIALVL(1:nphy)+
      .  ACC_DIFINTLVL(1:nphy)+ACC_DIFISOLVL(1:nphy)+
      .  ACC_TKELVL(1:nphy)+ACC_GLS_PSILVL(1:nphy)+
-     .  ACC_DZLVL(1:nphy)).ne.0) then
+     .  ACC_PVLVL(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
         do k=1,kk
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
@@ -1409,6 +1466,9 @@ c --- --- isopycnal diffusivity [cm^2/s]
 c
 c --- --- diapycnal diffusivity [cm^2/s]
           call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
+c
+c --- --- potential vorticity [s m-2]
+          call acclvl(ACC_PVLVL,pv_p,'p',k,ind1,ind2,wghts)
 c
 #if defined(TRC) && defined(TKE)
 c --- --- tke [cm2/s2*g/cm/s^2]
@@ -1524,6 +1584,7 @@ c --- finalize accumulation of layer fields
       call finlyr(ACC_DIFDIA(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFINT(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFISO(iogrp),ACC_DP(iogrp),'p')
+      call finlyr(ACC_AVDSG(iogrp),ACC_DPVOR(iogrp),'p')
 #if defined(TRC) && defined(TKE)
       call finlyr(ACC_TKE(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_GLS_PSI(iogrp),ACC_DP(iogrp),'p')
@@ -1572,6 +1633,7 @@ c --- mask sea floor of level fields
       call msklvl(ACC_TEMPLVL(iogrp),'p')
       call msklvl(ACC_WFLXLVL(iogrp),'p')
       call msklvl(ACC_WFLX2LVL(iogrp),'p')
+      call msklvl(ACC_PVLVL(iogrp),'p')
 #if defined(TRC) && defined(TKE)
       call msklvl(ACC_TKELVL(iogrp),'p')
       call msklvl(ACC_GLS_PSILVL(iogrp),'p')
@@ -1995,6 +2057,10 @@ c
      .  rnacc*(0.5e-3/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2',
      .  'Vertical mass flux squared',' ','kg2 s-2')
 c
+      call wrtlyr(ACC_AVDSG(iogrp),LYR_PV(iogrp),
+     .  1.e2*g,0.,cmpflg,ip,'p','pv','Potential vorticity',' ',
+     .  'm-1 s-1')
+c
       call wrtlyr(ACC_DIAFLX(iogrp),LYR_DIAFLX(iogrp),
      .  rnacc/(onem*baclin),0.,cmpflg,ip,'p','diaflx',
      .  'Diapycnal volume flux',' ','m s-1')
@@ -2141,6 +2207,10 @@ c
       call wrtlvl(ACC_WFLX2LVL(iogrp),LVL_WFLX2(iogrp),
      .  rnacc*(0.5e-3/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2lvl',
      .  'Vertical mass flux squared',' ','kg2 s-2')
+c
+      call wrtlvl(ACC_PVLVL(iogrp),LVL_PV(iogrp),
+     .  rnacc*1.e2*g,0.,cmpflg,ip,'p','pvlvl','Potential vorticity',
+     .  ' ','m-1 s-1')
 c
       if (LVL_DIFINT(iogrp).eq.2) then
         call wrtlvl(ACC_DIFINTLVL(iogrp),LVL_DIFINT(iogrp),1.,
@@ -2474,6 +2544,8 @@ c
       call inilyr(ACC_DIFISO(iogrp),'p',0.)
       call inilyr(ACC_WFLX(iogrp),'p',0.)
       call inilyr(ACC_WFLX2(iogrp),'p',0.)
+      call inilyr(ACC_AVDSG(iogrp),'p',0.)
+      call inilyr(ACC_DPVOR(iogrp),'p',0.)
 #if defined(TRC) && defined(TKE)
       call inilyr(ACC_TKE(iogrp),'p',0.)
       call inilyr(ACC_GLS_PSI(iogrp),'p',0.)
@@ -2509,6 +2581,7 @@ c
       call inilvl(ACC_TEMPLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLXLVL(iogrp),'p',0.)
       call inilvl(ACC_WFLX2LVL(iogrp),'p',0.)
+      call inilvl(ACC_PVLVL(iogrp),'p',0.)
 #if defined(TRC) && defined(TKE)
       call inilvl(ACC_TKELVL(iogrp),'p',0.)
       call inilvl(ACC_GLS_PSILVL(iogrp),'p',0.)
@@ -2764,8 +2837,10 @@ c --- --- Read section file metraindex.dat
                 jind(nind(l),l)=jind1
                 uflg(nind(l),l)=uflg1
                 vflg(nind(l),l)=vflg1
-                if (iind(nind(l),l).lt.1.or.iind(nind(l),l).gt.itdm.or.
-     .              jind(nind(l),l).lt.1.or.jind(nind(l),l).gt.jtdm) then
+                if (iind(nind(l),l).lt.1.or.
+     .              iind(nind(l),l).gt.itdm.or.
+     .              jind(nind(l),l).lt.1.or.
+     .              jind(nind(l),l).gt.jtdm) then
                   write(lp,*) 'iind=',iind(nind(l),l),' itdm=',itdm
                   write(lp,*) 'jind=',jind(nind(l),l),' jtdm=',jtdm
                   call flush(lp)
@@ -5129,6 +5204,9 @@ c
       call ncdefvar3d(LYR_WFLX2(iogrp),cmpflg,'p','wflx2',
      .  'Vertical mass flux squared',' ','kg2 s-2',1)
 c
+      call ncdefvar3d(LYR_PV(iogrp),cmpflg,'p','pv',
+     .  'Potential vorticity',' ','m-1 s-1',1)
+c
       call ncdefvar3d(LYR_DIAFLX(iogrp),cmpflg,'p','diaflx',
      .  'Diapycnal volume flux',' ','m s-1',1)
 c
@@ -5245,6 +5323,9 @@ c
 c
       call ncdefvar3d(LVL_WFLX2(iogrp),cmpflg,'p','wflx2lvl',
      .  'Vertical mass flux squared',' ','kg2 s-2',2)
+c
+      call ncdefvar3d(LVL_PV(iogrp),cmpflg,'p','pvlvl',
+     .  'Potential vorticity',' ','m-1 s-1',2)
 c
       if (LVL_DIFINT(iogrp).eq.2) then
         call ncdefvar3d(LVL_DIFINT(iogrp),cmpflg,'p','difintlvl',

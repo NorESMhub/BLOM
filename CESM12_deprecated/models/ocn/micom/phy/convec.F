@@ -289,7 +289,8 @@ c
           pn(1)=0.
           do k=2,kk+1
             po(k)=pu(i,j,k)
-            pn(k)=min(pu(i,j,kk+1),.5*(p(i  ,j,k)+p(i-1,j,k)))
+            pn(k)=.5*(min(pu(i,j,kk+1),p(i  ,j,k))
+     .               +min(pu(i,j,kk+1),p(i-1,j,k)))
           enddo
 c
           ko=1
@@ -324,7 +325,8 @@ c
           pn(1)=0.
           do k=2,kk+1
             po(k)=pv(i,j,k)
-            pn(k)=min(pv(i,j,kk+1),.5*(p(i,j  ,k)+p(i,j-1,k)))
+            pn(k)=.5*(min(pv(i,j,kk+1),p(i,j  ,k))
+     .               +min(pv(i,j,kk+1),p(i,j-1,k)))
           enddo
 c
           ko=1
@@ -359,16 +361,16 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
-     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
           enddo
           enddo
         enddo

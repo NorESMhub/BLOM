@@ -43,8 +43,8 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
             dpuold(i,j,k)=dpu(i,j,kn)
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
             pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,kn)
           enddo
           enddo
@@ -60,8 +60,8 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
             dpvold(i,j,k)=dpv(i,j,kn)
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
-     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
             pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,kn)
           enddo
           enddo

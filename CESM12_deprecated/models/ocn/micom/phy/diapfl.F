@@ -37,9 +37,9 @@ c
      .  dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc
       real, dimension(kdm+1) :: pres
       real c,delpu,delpl,nubbl,dsgdt,dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,
-     .     s,t,dfdg,atd,maxdf,dtd
+     .     s,t,dfdg,atd,maxdf,dtd,pold,pnew,fpum,fpup,fplm,fplp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: kming
-      integer i,j,k,l,kn,kfpl,kmin,kmax,kl,kfmaxu
+      integer i,j,k,l,kn,kfpl,kmin,kmax,kfmaxu
       logical, dimension(kdm) :: rstdns
       logical done,dwnwrd,remfmx
 c
@@ -66,7 +66,7 @@ c$OMP PARALLEL DO PRIVATE(
 c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
 c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,pres,delpu,delpl,nubbl,dsgdt,
 c$OMP+ dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,
-c$OMP+ kfpl,kmin,kmax,kl,kfmaxu,rstdns,done,dwnwrd,remfmx,ttem0,ssal0,
+c$OMP+ kfpl,kmin,kmax,kfmaxu,rstdns,done,dwnwrd,remfmx,ttem0,ssal0,
 c$OMP+ delp0,dens0,sigr0,nu0,niter
 #ifdef TRC
 c$OMP+,ttrc
@@ -290,6 +290,8 @@ c --- ------- fluid domain.
                   write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
+                  call xchalt('(diapfl)')
+                     stop '(diapfl)'
                   exit
                 endif
               enddo
@@ -493,6 +495,8 @@ c --- --------- iteration.
                   write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
+                  call xchalt('(diapfl)')
+                     stop '(diapfl)'
                   exit
                 endif
               enddo
@@ -698,7 +702,8 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,q,ctd,bitd,gtd,atd,ctd,dtd)
+c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,pold,pnew,fpum,fplm,fpup,fplp,q,
+c$OMP+ ctd,bitd,gtd,atd,ctd,dtd)
       do j=1,jj
 c
 c --- - Mixing of u-component.
@@ -728,18 +733,52 @@ c --- ----- Copy vertical column variables into 1d arrays.
               delp(k)=dpu(i,j,kn)
             enddo
 c
-c --- ----- Interpolate infterface mass fluxes to u-points. Limit mass
-c --- ----- fluxes so the interfaces do not descend below the u-point
-c --- ----- depth.
+c --- ----- Interpolate interface mass fluxes to u-points. Limit mass
+c --- ----- fluxes for correct reconstruction of layer thickness near
+c --- ----- bathymetry.
             k=kmin
             fpu(k)=0.
-            fpl(k)=.5*(fplg(i-1,j,k)+fplg(i,j,k))
-            q=0.
             do k=kmin+1,kmax
-              fpu(k)=.5*(fpug(i-1,j,k)+fpug(i,j,k))
-              fpl(k)=.5*(fplg(i-1,j,k)+fplg(i,j,k))
-              q=q+delp(k-1)
-              fpl(k-1)=min(pu(i,j,kk+1)-q+fpu(k),fpl(k-1))
+              pold=p(i-1,j,k)-fplg(i-1,j,k-1)+fpug(i-1,j,k)
+              pnew=p(i-1,j,k)
+              if (pold.le.pu(i,j,kk+1)) then
+                if (pnew.le.pu(i,j,kk+1)) then
+                  fpum=fpug(i-1,j,k  )
+                  fplm=fplg(i-1,j,k-1)
+                else
+                  fpum=fpug(i-1,j,k  )
+                  fplm=fplg(i-1,j,k-1)-pnew+pu(i,j,kk+1)
+                endif
+              else
+                if (pnew.le.pu(i,j,kk+1)) then
+                  fpum=fpug(i-1,j,k  )-pold+pu(i,j,kk+1)
+                  fplm=fplg(i-1,j,k-1)
+                else
+                  fpum=.5*(fpug(i-1,j,k  )+fplg(i-1,j,k-1))
+                  fplm=fpum
+                endif
+              endif
+              pold=p(i  ,j,k)-fplg(i  ,j,k-1)+fpug(i  ,j,k)
+              pnew=p(i  ,j,k)
+              if (pold.le.pu(i,j,kk+1)) then
+                if (pnew.le.pu(i,j,kk+1)) then
+                  fpup=fpug(i  ,j,k  )
+                  fplp=fplg(i  ,j,k-1)
+                else
+                  fpup=fpug(i  ,j,k  )
+                  fplp=fplg(i  ,j,k-1)-pnew+pu(i,j,kk+1)
+                endif
+              else
+                if (pnew.le.pu(i,j,kk+1)) then
+                  fpup=fpug(i  ,j,k  )-pold+pu(i,j,kk+1)
+                  fplp=fplg(i  ,j,k-1)
+                else
+                  fpup=.5*(fpug(i  ,j,k  )+fplg(i  ,j,k-1))
+                  fplp=fpup
+                endif
+              endif
+              fpu(k  )=.5*(fpum+fpup)
+              fpl(k-1)=.5*(fplm+fplp)
             enddo
             fpl(kmax)=0.
 c
@@ -771,7 +810,7 @@ c --- ----- If interfaces are lifted above the bottom because of
 c --- ----- diapycnal mixing, give the newly opened layers the velocity
 c --- ----- of the lowest initial mass containing layer.
             do k=kmax+1,kk
-              if (.5*(p(i,j,k)+p(i-1,j,k)).lt.pu(i,j,kk+1))
+              if (min(p(i-1,j,k),p(i,j,k)).lt.pu(i,j,kk+1))
      .          u(i,j,k+nn)=uc(kmax)
             enddo
 c
@@ -807,18 +846,52 @@ c --- ----- Copy vertical column variables into 1d arrays.
               delp(k)=dpv(i,j,kn)
             enddo
 c
-c --- ----- Interpolate infterface mass fluxes to v-points. Limit mass
-c --- ----- fluxes so the interfaces do not descend below the v-point
-c --- ----- depth.
+c --- ----- Interpolate interface mass fluxes to v-points. Limit mass
+c --- ----- fluxes for correct reconstruction of layer thickness near
+c --- ----- bathymetry.
             k=kmin
             fpu(k)=0.
-            fpl(k)=.5*(fplg(i,j-1,k)+fplg(i,j,k))
-            q=0.
             do k=kmin+1,kmax
-              fpu(k)=.5*(fpug(i,j-1,k)+fpug(i,j,k))
-              fpl(k)=.5*(fplg(i,j-1,k)+fplg(i,j,k))
-              q=q+delp(k-1)
-              fpl(k-1)=min(pv(i,j,kk+1)-q+fpu(k),fpl(k-1))
+              pold=p(i,j-1,k)-fplg(i,j-1,k-1)+fpug(i,j-1,k)
+              pnew=p(i,j-1,k)
+              if (pold.le.pv(i,j,kk+1)) then
+                if (pnew.le.pv(i,j,kk+1)) then
+                  fpum=fpug(i,j-1,k  )
+                  fplm=fplg(i,j-1,k-1)
+                else
+                  fpum=fpug(i,j-1,k  )
+                  fplm=fplg(i,j-1,k-1)-pnew+pv(i,j,kk+1)
+                endif
+              else
+                if (pnew.le.pv(i,j,kk+1)) then
+                  fpum=fpug(i,j-1,k  )-pold+pv(i,j,kk+1)
+                  fplm=fplg(i,j-1,k-1)
+                else
+                  fpum=.5*(fpug(i,j-1,k  )+fplg(i,j-1,k-1))
+                  fplm=fpum
+                endif
+              endif
+              pold=p(i,j  ,k)-fplg(i,j  ,k-1)+fpug(i,j  ,k)
+              pnew=p(i,j  ,k)
+              if (pold.le.pv(i,j,kk+1)) then
+                if (pnew.le.pv(i,j,kk+1)) then
+                  fpup=fpug(i,j  ,k  )
+                  fplp=fplg(i,j  ,k-1)
+                else
+                  fpup=fpug(i,j  ,k  )
+                  fplp=fplg(i,j  ,k-1)-pnew+pv(i,j,kk+1)
+                endif
+              else
+                if (pnew.le.pv(i,j,kk+1)) then
+                  fpup=fpug(i,j  ,k  )-pold+pv(i,j,kk+1)
+                  fplp=fplg(i,j  ,k-1)
+                else
+                  fpup=.5*(fpug(i,j  ,k  )+fplg(i,j  ,k-1))
+                  fplp=fpup
+                endif
+              endif
+              fpu(k  )=.5*(fpum+fpup)
+              fpl(k-1)=.5*(fplm+fplp)
             enddo
             fpl(kmax)=0.
 c
@@ -850,7 +923,7 @@ c --- ----- If interfaces are lifted above the bottom because of
 c --- ----- diapycnal mixing, give the newly opened layers the velocity
 c --- ----- of the lowest initial mass containing layer.
             do k=kmax+1,kk
-              if (.5*(p(i,j,k)+p(i,j-1,k)).lt.pv(i,j,kk+1))
+              if (min(p(i,j-1,k),p(i,j,k)).lt.pv(i,j,kk+1))
      .          v(i,j,k+nn)=uc(kmax)
             enddo
 c
@@ -869,16 +942,16 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i-1,j,k+1))) 
-     .              -min(q,.5*(p(i,j,k  )+p(i-1,j,k  ))))
+     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
           enddo
           enddo
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
-     .        max(0.,min(q,.5*(p(i,j,k+1)+p(i,j-1,k+1)))
-     .              -min(q,.5*(p(i,j,k  )+p(i,j-1,k  ))))
+     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
           enddo
           enddo
         enddo

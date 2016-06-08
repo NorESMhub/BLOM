@@ -43,11 +43,8 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: kwb
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: kbb
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: k1b
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: k2b
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: kspb
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: keqb
+
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: satoxy
       REAL, DIMENSION (:,:),     ALLOCATABLE :: satn2o
       REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
@@ -56,6 +53,11 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
+#ifdef natDIC
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
+#endif
       
       REAL :: dmspar(6)
 
@@ -141,6 +143,41 @@
         if(errstat.ne.0) stop 'not enough memory pi_ph'
         pi_ph(:,:,:) = 0.0
 
+#ifdef natDIC
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (nathi(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory nathi'
+        nathi(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable natco3 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (natco3(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory natco3'
+        natco3(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable natOmegaC ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (natOmegaC(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory natOmegaC'
+        natOmegaC(:,:,:) = 0.0
+#endif
+
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaC ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -175,14 +212,15 @@
         satn2o(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable kspb ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',11
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpie
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpje
         ENDIF
 
-        ALLOCATE (kspb(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory kspb'
-        kspb(:,:) = 0.0
+        ALLOCATE (keqb(11,kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory keqb'
+        keqb(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable satoxy ...'
@@ -194,46 +232,6 @@
         ALLOCATE (satoxy(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory satoxy'
         satoxy(:,:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable k1b ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (k1b(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory k1b'
-        k1b(:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable k2b ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (k2b(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory k2b'
-        k2b(:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable kbb ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (kbb(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory kbb'
-        kbb(:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable kwb ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (kwb(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory kwb'
-        kwb(:,:) = 0.0
 
 #ifdef __c_isotopes
         IF (mnproc.eq.1) THEN

@@ -49,7 +49,7 @@ c --- ------------------------------------------------------------------
 c
 #ifdef HAMOCC
       integer i_base_adv,i_iso_adv,i_cfc_adv,i_agg_adv,ntraad,i_base,
-     .        i_iso
+     .        i_iso,i_nat_dic
 c
 c --- Advected HAMOCC tracers
       parameter (i_base_adv=17)      
@@ -68,10 +68,20 @@ c --- Advected HAMOCC tracers
 #  else 
       parameter (i_agg_adv=0)
 #  endif
-      parameter (ntraad=i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv)
+#  ifdef natDIC
+      parameter (i_nat_dic=2)
+#  else
+      parameter (i_nat_dic=0)
+#  endif
+      parameter (ntraad=i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+
+     .                  i_nat_dic)
 c
 c --- Non-advected (fast sinking) HAMOCC tracers
+#  ifdef natDIC
+      parameter (i_base=4) 
+#  else
       parameter (i_base=3) 
+#  endif
 #  ifdef __c_isotopes
       parameter (i_iso=4)  
 #  else

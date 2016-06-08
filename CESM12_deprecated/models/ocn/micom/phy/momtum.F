@@ -10,10 +10,16 @@ c
 c
 #include "common_blocks.h"
 c
+c --- Parameters:
+      real c1,c2,c3,slope
+      parameter (c1=1.-1.5*.5,c2=1.-.5,c3=2.,slope=.5)
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  drag,ubrhs,vbrhs,stress,dpmx,vsc2,vsc4,vort,wgtia,wgtib,
-     .  wgtja,wgtjb,dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,uflux1,vflux1
-      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,ubbl,deform,
+     .  wgtja,wgtjb,dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,ke,
+     .  uh_min,uh_max,vh_min,vh_max,cau,cav,uflux1,vflux1
+      real cutoff,thkbop,tsfac,dt1inv,pbotl,ptopl,ubot,vbot,ubbl,up,um,
+     .     vp,vm,up2,um2,vp2,vm2,uhc,uhm,vhc,vhm,temp1,temp2,deform,
      .     dpxy,dpia,dpib,dpja,dpjb,vsc2a,vsc2b,vsc4a,vsc4b,q,botstr,pgf
       integer i,j,k,l,kn,km,kan
       character text*20
@@ -24,7 +30,14 @@ c
       cutoff=onem
       thkbop=thkbot*onem
       tsfac=dlt/delt1
-      dt1inv = 1./delt1
+      dt1inv=1./delt1
+c
+      if (mommth.eq.'enedis') then
+        uh_min=0.
+        uh_max=0.
+        vh_min=0.
+        vh_max=0.
+      endif
 c
 c$OMP PARALLEL DO PRIVATE(km)
       do j=-1,jj+2
@@ -109,11 +122,13 @@ c
 c
 c$OMP PARALLEL DO
 c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,potvor,j,
-c$OMP+  defor1,dl2uja,dl2ujb,dl2via,dl2vib,deform,vsc2,vsc4,dpxy,
-c$OMP+  dpja,dpjb,vsc2a,vsc2b,vsc4a,vsc4b,stress,ptopl,pbotl,uflux1,
-c$OMP+  botstr,pgf,dpia,dpib,vflux1,q)
+c$OMP+  defor1,dl2uja,dl2ujb,dl2via,dl2vib,ke,vp,vm,up2,um2,vp2,vm2,
+c$OMP+  uhc,uhm,vhc,vhm,cau,cav,temp1,temp2,deform,vsc2,vsc4,dpxy,dpja,
+c$OM{+  dpjb,vsc2a,vsc2b,vsc4a,vsc4b,stress,ptopl,pbotl,uflux1,botstr,
+c$OMP+  pgf,dpia,dpib,vflux1,q)
 c$OMP+FIRSTPRIVATE(defor2,utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,
-c$OMP+  dl2u,via,vib,dl2v,uflux2,uflux3,vflux2,vflux3)
+c$OMP+  dl2u,via,vib,dl2v,uh_min,uh_max,vh_min,vh_max,uflux2,uflux3,
+c$OMP+  vflux2,vflux3)
       do 9 k=1,kk
       km=k+mm
       kn=k+nn
@@ -204,16 +219,18 @@ c --- vorticity, pot.vort., defor. at lateral boundary points
       i=ifv(j,l)
       if (i.ge.1.and.i.le.ii+1) then
         vort(i  ,j)= vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i  ,j)
-        potvor(i  ,j)=(vort(i  ,j)+corioq(i  ,j))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-     .                     dpmx(i,j),dpmx(i+1,j))
+        absvor(i  ,j,k)=vort(i  ,j)+corioq(i  ,j)
+        dpvor(i  ,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
+     .                          dpmx(i,j),dpmx(i+1,j))
+        potvor(i  ,j)=absvor(i  ,j,k)/dpvor(i  ,j,k)
       endif
       i=ilv(j,l)
       if (i.ge.0.and.i.le.ii) then
         vort(i+1,j)=-vtotm(i,j)*(1.-slip)*scvy(i,j)*scq2i(i+1,j)
-        potvor(i+1,j)=(vort(i+1,j)+corioq(i+1,j))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i,j-1,km)),
-     .                     dpmx(i,j),dpmx(i+1,j))
+        absvor(i+1,j,k)=vort(i+1,j)+corioq(i+1,j)
+        dpvor(i+1,j,k)=.125*max(4.*(dp(i,j,km)+dp(i,j-1,km)),
+     .                          dpmx(i,j),dpmx(i+1,j))
+        potvor(i+1,j)=absvor(i+1,j,k)/dpvor(i+1,j,k)
       endif
  884  continue
 c
@@ -234,16 +251,18 @@ c
       j=jfu(i,l)
       if (j.ge.1.and.j.le.jj+1) then
         vort(i,j  )=-utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j  )
-        potvor(i,j  )=(vort(i,j  )+corioq(i,j  ))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-     .                     dpmx(i,j),dpmx(i,j+1))
+        absvor(i,j  ,k)=vort(i,j  )+corioq(i,j  )
+        dpvor(i,j  ,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
+     .                          dpmx(i,j),dpmx(i,j+1))
+        potvor(i,j  )=absvor(i,j  ,k)/dpvor(i,j  ,k)
       endif
       j=jlu(i,l)
       if (j.ge.0.and.j.le.jj) then
         vort(i,j+1)= utotm(i,j)*(1.-slip)*scux(i,j)*scq2i(i,j+1)
-        potvor(i,j+1)=(vort(i,j+1)+corioq(i,j+1))*8.
-     .                /max(4.*(dp(i,j,km)+dp(i-1,j,km)),
-     .                     dpmx(i,j),dpmx(i,j+1))
+        absvor(i,j+1,k)=vort(i,j+1)+corioq(i,j+1)
+        dpvor(i,j+1,k)=.125*max(4.*(dp(i,j,km)+dp(i-1,j,km)),
+     .                          dpmx(i,j),dpmx(i,j+1))
+        potvor(i,j+1)=absvor(i,j+1,k)/dpvor(i,j+1,k)
       endif
  886  continue
 c
@@ -275,10 +294,12 @@ c
       vort(i,j)=(vtotm(i,j)*scvy(i,j)-vtotm(i-1,j)*scvy(i-1,j)
      .          -utotm(i,j)*scux(i,j)+utotm(i,j-1)*scux(i,j-1))
      .          *scq2i(i,j)
- 64   potvor(i,j)=(vort(i,j)+corioq(i,j)) * 8.
-     .   /max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
-     .            dp(i,j-1,km)+dp(i-1,j-1,km))
-     .   ,dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),dpmx(i,j-1),dpmx(i,j+1))
+      absvor(i,j,k)=vort(i,j)+corioq(i,j)
+      dpvor(i,j,k)=.125*max(2.*(dp(i,j  ,km)+dp(i-1,j  ,km)+
+     .                          dp(i,j-1,km)+dp(i-1,j-1,km)),
+     .                      dpmx(i,j),dpmx(i-1,j),dpmx(i+1,j),
+     .                      dpmx(i,j-1),dpmx(i,j+1))
+ 64   potvor(i,j)=absvor(i,j,k)/dpvor(i,j,k)
 c
       do 65 j=0,jj+2
       do 65 l=1,isq(j)
@@ -301,6 +322,221 @@ c
       do 906 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
       dl2via(i,j)=(1.-wgtia(i,j))*dl2v(i-1,j)+wgtia(i,j)*slip*dl2v(i,j)
  906  dl2vib(i,j)=(1.-wgtib(i,j))*dl2v(i+1,j)+wgtib(i,j)*slip*dl2v(i,j)
+c
+c --- compute area weighted kinetic energy according to Arakawa and Lamb
+c --- (1981)
+c
+      do j=0,jj
+        do l=1,isp(j)
+        do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
+c
+c --- --- original
+c         ke(i,j)=.25*(utotm(i,j)**2+utotm(i+1,j)**2
+c    .                +vtotm(i,j)**2+vtotm(i,j+1)**2)
+c
+c --- --- no-conservation
+c         ke(i,j)=.25*((utotm(i,j)+utotm(i+1,j))**2
+c    .                +(vtotm(i,j)+vtotm(i,j+1))**2)
+c
+c --- --- GOLD version of ARAKAWA
+          ke(i,j)=.25*(scu2(i  ,j)*utotm(i  ,j)**2
+     .                +scu2(i+1,j)*utotm(i+1,j)**2
+     .                +scv2(i,j  )*vtotm(i  ,j)**2
+     .                +scv2(i,j+1)*vtotm(i,j+1)**2)/scp2(i,j)
+c
+c --- --- milicak version of ARAKAWA
+c         ke(i,j)=(scu2(i  ,j)*utotm(i  ,j)**2
+c    .            +scu2(i+1,j)*utotm(i+1,j)**2
+c    .            +scv2(i,j  )*vtotm(i  ,j)**2
+c    .            +scv2(i,j+1)*vtotm(i,j+1)**2)
+c    .            /(scu2(i,j)+scu2(i+1,j)+scv2(i,j)+scv2(i,j+1))
+c
+c --- --- GOLD Simple Gudonov
+c         up=.5*(utotm(i  ,j)+abs(utotm(i  ,j)))
+c         um=.5*(utotm(i+1,j)+abs(utotm(i+1,j)))
+c         vp=.5*(vtotm(i,j  )+abs(vtotm(i,j  )))
+c         vm=.5*(vtotm(i,j+1)+abs(vtotm(i,j+1)))
+c         up2=up*up
+c         um2=um*um
+c         vp2=vp*vp
+c         vm2=vm*vm
+c         ke(i,j)=.5*(max(up2,um2)+max(vp2,vm2))
+c
+c --- --- GOLD Area weighted Gudonov
+c         up=.5*(utotm(i  ,j)+abs(utotm(i  ,j)))
+c         um=.5*(utotm(i+1,j)+abs(utotm(i+1,j)))
+c         vp=.5*(vtotm(i,j  )+abs(vtotm(i,j  )))
+c         vm=.5*(vtotm(i,j+1)+abs(vtotm(i,j+1)))
+c         up2=up*up*scu2(i,j  )
+c         um2=um*um*scu2(i+1,j)
+c         vp2=vp*vp*scv2(i,j  )
+c         vm2=vm*vm*scv2(i,j+1)
+c         ke(i,j)=.5*(max(up2,um2)+max(vp2,vm2))/scp2(i,j)
+c
+        enddo
+        enddo
+      enddo
+
+      if (mommth.eq.'enedis') then
+c
+c --- - compute min,max values for Sadourny (1975) energy conserving
+c --- - scheme with dissipation
+        do j=0,jj+1
+          do l=1,isu(j)
+          do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
+            uhc=.5*utotm(i,j)*(dp(i,j,km)+dp(i-1,j,km))
+            uhm=uflux(i,j) ! mostly similar to uhc, should use uflx(i,j,k)?
+            if     (abs(uhc).lt..1*abs(uhm)) then
+              uhm=10.*uhc
+            elseif (abs(uhc).gt.c1*abs(uhm)) then
+              if     (abs(uhc).lt.c2*abs(uhm)) then
+                uhc=(3.*uhc+(1.-c2*3.)*uhm)
+              elseif (abs(uhc).le.c3*abs(uhm)) then
+                uhc=uhm
+              else
+                uhc=slope*uhc+(1.-c3*slope)*uhm
+              endif
+            endif
+            if (uhc.gt.uhm) then
+              uh_min(i,j)=uhm
+              uh_max(i,j)=uhc
+            else
+              uh_max(i,j)=uhm
+              uh_min(i,j)=uhc
+            endif
+          enddo
+          enddo
+        enddo
+c     
+        do j=0,jj+1
+          do l=1,isv(j)
+          do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
+            vhc=.5*vtotm(i,j)*(dp(i,j,km)+dp(i,j-1,km))
+            vhm=vflux(i,j) ! mostly similar to vhc, should use vflx(i,j,k)?
+            if     (abs(vhc).lt..1*abs(vhm)) then
+              vhm=10.*vhc
+            elseif (abs(vhc).gt.c1*abs(vhm)) then
+              if     (abs(vhc).lt.c2*abs(vhm)) then 
+                vhc=(3.*vhc+(1.-c2*3.)*vhm)
+              elseif (abs(vhc).le.c3*abs(vhm)) then 
+                vhc=vhm
+              else 
+                vhc=slope*vhc+(1.-c3*slope)*vhm
+              endif
+            endif
+            if (vhc.gt.vhm) then
+              vh_min(i,j)=vhm
+              vh_max(i,j)=vhc
+            else
+              vh_max(i,j)=vhm
+              vh_min(i,j)=vhc
+            endif
+          enddo
+          enddo
+        enddo
+c
+      endif
+c
+c --- compute coriolis advection terms
+c
+      if     (mommth.eq.'enscon') then
+c
+c --- - Sadourny (1975) enstrophy conserving scheme
+c
+        do j=1,jj
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            cau(i,j)= .125*(vflux(i  ,j)+vflux(i  ,j+1)
+     .                     +vflux(i-1,j)+vflux(i-1,j+1))
+     .                    *(potvor(i,j)+potvor(i,j+1))
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            cav(i,j)=-.125*(uflux(i,j  )+uflux(i+1,j  )
+     .                     +uflux(i,j-1)+uflux(i+1,j-1))
+     .                    *(potvor(i,j)+potvor(i+1,j))
+          enddo
+          enddo
+        enddo
+c
+      elseif (mommth.eq.'enecon') then
+c
+c --- - Sadourny (1975) energy conserving scheme
+c
+        do j=1,jj
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            cau(i,j)= .25*((vflux(i ,j )+vflux(i-1,j  ))*potvor(i,j  )
+     .                    +(vflux(i,j+1)+vflux(i-1,j+1))*potvor(i,j+1))
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            cav(i,j)=-.25*((uflux(i ,j )+uflux(i,j-1  ))*potvor(i  ,j)
+     .                    +(uflux(i+1,j)+uflux(i+1,j-1))*potvor(i+1,j))
+          enddo
+          enddo
+        enddo
+c
+      elseif (mommth.eq.'enedis') then
+c
+c --- - Sadourny (1975) energy conserving scheme with a little bit
+c --- - dissipation
+c
+        do j=1,jj
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            if (potvor(i,j+1)*utotm(i,j).eq.0.) then
+              temp1=potvor(i,j+1)*((vh_max(i,j+1)+vh_max(i-1,j+1))
+     .                            +(vh_min(i,j+1)+vh_min(i-1,j+1)))*.5
+            elseif (potvor(i,j+1)*utotm(i,j).lt.0.) then !GOLD
+              temp1=potvor(i,j+1)*(vh_max(i,j+1)+vh_max(i-1,j+1))
+            else
+              temp1=potvor(i,j+1)*(vh_min(i,j+1)+vh_min(i-1,j+1))
+            endif
+            if (potvor(i,j)*utotm(i,j).eq.0.) then
+              temp2=potvor(i,j)*((vh_max(i,j)+vh_max(i-1,j))
+     .                          +(vh_min(i,j)+vh_min(i-1,j)))*.5
+            elseif (potvor(i,j)*utotm(i,j).lt.0.) then
+              temp2=potvor(i,j)*(vh_max(i,j)+vh_max(i-1,j))
+            else
+              temp2=potvor(i,j)*(vh_min(i,j)+vh_min(i-1,j))
+            endif
+            cau(i,j)=.25*(temp1+temp2)
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            if (potvor(i+1,j)*vtotm(i,j).eq.0.) then
+              temp1=potvor(i+1,j)*((uh_max(i+1,j)+uh_max(i+1,j-1))
+     .                            +(uh_min(i+1,j)+uh_min(i+1,j-1)))*.5
+            elseif (potvor(i+1,j)*vtotm(i,j).gt.0.) then !GOLD
+              temp1=potvor(i+1,j)*(uh_max(i+1,j)+uh_max(i+1,j-1))
+            else
+              temp1=potvor(i+1,j)*(uh_min(i+1,j)+uh_min(i+1,j-1))
+            endif
+            if (potvor(i,j)*vtotm(i,j).eq.0.) then
+              temp2=potvor(i,j)*((uh_max(i,j)+uh_max(i,j-1))
+     .                          +(uh_min(i,j)+uh_min(i,j-1)))*.5
+            elseif (potvor(i,j)*vtotm(i,j).gt.0.) then
+              temp2=potvor(i,j)*(uh_max(i,j)+uh_max(i,j-1))
+            else
+              temp2=potvor(i,j)*(uh_min(i,j)+uh_min(i,j-1))
+            endif
+            cav(i,j)=-.25*(temp1+temp2)
+          enddo
+          enddo
+        enddo
+c
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' mommth=',trim(mommth),
+     .                      ' is unsupported!'
+        endif
+        call xcstop('(momtum)')
+               stop '(momtum)'
+      endif
 c
 c --- ----------
 c --- u equation
@@ -402,8 +638,8 @@ c
       do 6 l=1,isu(j)
       do 6 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
 c
-      ptopl=min(pbu(i,j,m),.5*(p(i,j,k  )+p(i-1,j,k  )))
-      pbotl=min(pbu(i,j,m),.5*(p(i,j,k+1)+p(i-1,j,k+1)))
+      ptopl=.5*(min(pbu(i,j,m),p(i,j,k  ))+min(pbu(i,j,m),p(i-1,j,k  )))
+      pbotl=.5*(min(pbu(i,j,m),p(i,j,k+1))+min(pbu(i,j,m),p(i-1,j,k+1)))
 c
 c --- bottom boundary layer stress. stress profile is assumed linear and
 c --- the drag is treated implicitly
@@ -420,13 +656,12 @@ c --- time smoothing of -u- field  (part 1)
       u(i,j,km)=u(i,j,km)*(wuv1*dpu(i,j,km)+onemm)
      .         +u(i,j,kn)* wuv2*dpuold(i,j,k)
 c
- 6    u(i,j,kn)=u(i,j,kn)+delt1*(-scuxi(i,j)*(-pgf+stress(i,j)
-     .+.25*(utotm(i+1,j)**2+vtotm(i  ,j)**2+vtotm(i  ,j+1)**2
-     .     -utotm(i-1,j)**2-vtotm(i-1,j)**2-vtotm(i-1,j+1)**2))
-     .+.125*(vflux(i  ,j)+vflux(i  ,j+1)+vflux(i-1,j)+vflux(i-1,j+1))
-     .     *(potvor(i,j)+potvor(i,j+1)) - ubrhs(i,j) + botstr
-     .-(uflux1(i,j)-uflux1(i-1,j)
-     . +uflux3(i,j)-uflux2(i  ,j))/(scu2(i,j)*max(dpu(i,j,km),onemm)))
+ 6    u(i,j,kn)=u(i,j,kn)
+     . +delt1*(-scuxi(i,j)*(-pgf+stress(i,j)+(ke(i,j)-ke(i-1,j)))
+     .         +cau(i,j)-ubrhs(i,j)+botstr
+     .         -(uflux1(i,j)-uflux1(i-1,j)
+     .          +uflux3(i,j)-uflux2(i  ,j))
+     .          /(scu2(i,j)*max(dpu(i,j,km),onemm)))
 c
 c --- ----------
 c --- v equation
@@ -530,8 +765,8 @@ c
       do 7 l=1,isv(j)
       do 7 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
 c
-      ptopl=min(pbv(i,j,m),.5*(p(i,j,k  )+p(i,j-1,k  )))
-      pbotl=min(pbv(i,j,m),.5*(p(i,j,k+1)+p(i,j-1,k+1)))
+      ptopl=.5*(min(pbv(i,j,m),p(i,j,k  ))+min(pbv(i,j,m),p(i,j-1,k  )))
+      pbotl=.5*(min(pbv(i,j,m),p(i,j,k+1))+min(pbv(i,j,m),p(i,j-1,k+1)))
 c
 c --- bottom boundary layer stress. stress profile is assumed linear and
 c --- the drag is treated implicitly
@@ -548,13 +783,12 @@ c --- time smoothing of -v- field  (part 1)
       v(i,j,km)=v(i,j,km)*(wuv1*dpv(i,j,km)+onemm)
      .         +v(i,j,kn)* wuv2*dpvold(i,j,k)
 c
- 7    v(i,j,kn)=v(i,j,kn)+delt1*(-scvyi(i,j)*(-pgf+stress(i,j)
-     .+.25*(vtotm(i,j+1)**2+utotm(i,j  )**2+utotm(i+1,j  )**2
-     .     -vtotm(i,j-1)**2-utotm(i,j-1)**2-utotm(i+1,j-1)**2))
-     .-.125*(uflux(i,j  )+uflux(i+1,j  )+uflux(i,j-1)+uflux(i+1,j-1))
-     .     *(potvor(i,j)+potvor(i+1,j)) - vbrhs(i,j) + botstr
-     .-(vflux1(i,j)-vflux1(i,j-1)
-     . +vflux3(i,j)-vflux2(i,j  ))/(scv2(i,j)*max(dpv(i,j,km),onemm)))
+ 7    v(i,j,kn)=v(i,j,kn)
+     . +delt1*(-scvyi(i,j)*(-pgf+stress(i,j)+(ke(i,j)-ke(i,j-1)))
+     .         +cav(i,j)-vbrhs(i,j)+botstr
+     .         -(vflux1(i,j)-vflux1(i,j-1)
+     .          +vflux3(i,j)-vflux2(i,j  ))
+     .          /(scv2(i,j)*max(dpv(i,j,km),onemm)))
 c
  9    continue
 c$OMP END PARALLEL DO

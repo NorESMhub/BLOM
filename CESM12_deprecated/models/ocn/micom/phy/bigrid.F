@@ -280,32 +280,6 @@ c --- determine loop indices for mass and velocity points
       call indxi(iv,ifv,ilv,isv)
       call indxj(iv,jfv,jlv,jsv)
 c
-c --- write out  -ip-  array, if it is not too big
-c --- data are written in strips nchar points wide
-      if     (max(itdm,jtdm).le.2*nchar) then
-        util1(1:ii,1:jj) = ip(1:ii,1:jj)  ! xclget is for real arrays
-        isec=(itdm-1)/nchar
-        do ifrst=0,nchar*isec,nchar
-          ilast=min(itdm,ifrst+nchar)
-          write (char3,'(i3)') ilast-ifrst
-          fmt(8:10)=char3
-          if     (mnproc.eq.1) then
-          write (lp,'(a,i5,a,i5)') 
-     &      'ip array, cols',ifrst+1,' --',ilast
-          endif
-          do j= jtdm,1,-1
-            call xclget(aline,ilast-ifrst, util1,ifrst+1,j,1,0, 1)
-            if     (mnproc.eq.1) then
-            write (lp,fmt) j,(10*nint(aline(i)),i=1,ilast-ifrst)
-            endif
-          enddo
-        enddo
-        if     (mnproc.eq.1) then
-        write (lp,*)
-        endif
-        call xcsync(flush_lp)
-      endif  ! small region
-c
       return
       end
 c

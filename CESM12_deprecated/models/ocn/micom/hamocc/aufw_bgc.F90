@@ -89,11 +89,13 @@
      &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
      &       ,nstart2(2),ncount2(2),nstride2(2),idate(5)
       REAL rmissing
+#ifdef PNETCDF
       integer*4 ,save :: info=MPI_INFO_NULL
       integer        mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                          &
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
+#endif
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
       integer ierr,testio
@@ -515,7 +517,17 @@
      &    6,'mol/kg',4,'SF-6',                                          &
      &    rmissing,41,io_stdo_bgc)     
 #endif
+#ifdef natDIC
+      CALL NETCDF_DEF_VARDB(ncid,9,'natsco212',3,ncdimst,ncvarid,       &
+     &   6,'mol/kg',21, 'Natural dissolved CO2',rmissing,22,io_stdo_bgc)
 
+      CALL NETCDF_DEF_VARDB(ncid,9,'natalkali',3,ncdimst,ncvarid,       &
+     &    6,'mol/kg',18,'Natural alkalinity',rmissing,25,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,9,'natcalciu',3,ncdimst,ncvarid,       &
+     &    6,'mol/kg',25,'Natural calcium carbonate',                    &
+     &    rmissing,30,io_stdo_bgc)
+#endif
 
 !
 ! Define variables : diagnostic ocean fields
@@ -526,7 +538,7 @@
       ncdimst(3) = nclevid
       ncdimst(4) = 0
 
-      CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,               &
+      CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',26,'Hydrogen ion concentration',                   &
      &    rmissing,46,io_stdo_bgc)
 
@@ -542,6 +554,11 @@
       CALL NETCDF_DEF_VARDB(ncid,6,'satn2o',2,ncdimst,ncvarid,           &
      &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
      &    rmissing,64,io_stdo_bgc)
+#ifdef natDIC
+      CALL NETCDF_DEF_VARDB(ncid,5,'nathi',3,ncdimst,ncvarid,           &
+     &    6,'mol/kg',34,'Natural hydrogen ion concentration',           &
+     &    rmissing,46,io_stdo_bgc)
+#endif
 
 
 !
@@ -778,8 +795,11 @@
       CALL write_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
       CALL write_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0)
 #endif
-
-
+#ifdef natDIC
+      CALL write_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0)
+      CALL write_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0)
+      CALL write_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0)
+#endif
 !
 ! Write restart data : diagtnostic ocean fields
 !
@@ -787,7 +807,9 @@
       CALL write_netcdf_var(ncid,'co3',co3(1,1,1),kpke,0)
       CALL write_netcdf_var(ncid,'satoxy',satoxy(1,1,1),kpke,0)
       CALL write_netcdf_var(ncid,'satn2o',satn2o(1,1),1,0)
-
+#ifdef natDIC
+      CALL write_netcdf_var(ncid,'nathi',nathi(1,1,1),kpke,0)
+#endif
 !
 ! Write restart data : sediment variables.
 !

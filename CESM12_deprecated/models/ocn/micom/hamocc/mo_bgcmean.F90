@@ -11,6 +11,8 @@
 !      - added variables for CFC output
 !      - added initialisation of namelist variables and 
 !        index arrays
+!     Tjiputra          *UNI-RESEARCH    25.11.15
+!      - added natural DIC/ALK/CALC/OMEGAC variables 
 !  
 !     Purpose
 !     -------
@@ -48,6 +50,7 @@
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,INT_PHOSY     =0    ,  &
+     & SRF_NATCO2FX  =0    ,                                            &
      & CARFLX0100    =0    ,CARFLX0500    =0    ,CARFLX1000    =0    ,  &
      & CARFLX2000    =0    ,CARFLX4000    =0    ,CARFLX_BOT    =0    ,  &
      & BSIFLX0100    =0    ,BSIFLX0500    =0    ,BSIFLX1000    =0    ,  &
@@ -65,6 +68,8 @@
      & LYR_ASIZE     =0    ,LYR_N2O       =0    ,LYR_AOU       =0    ,  &
      & LYR_PREFO2    =0    ,LYR_PREFPO4   =0    ,LYR_PREFALK   =0    ,  &
      & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
+     & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
+     & LYR_NATOMEGAC =0    ,LYR_NATCO3    =0    ,                       &
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
      & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -76,6 +81,8 @@
      & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_AOU       =0    ,  &
      & LVL_PREFO2    =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
      & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
+     & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
+     & LVL_NATOMEGAC =0    ,LVL_NATCO3    =0    ,                       &
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
@@ -96,6 +103,7 @@
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
      & SRF_SILICA        ,SRF_DIC           ,INT_PHOSY         ,        &
+     & SRF_NATCO2FX      ,                                              &
      & CARFLX0100        ,CARFLX0500        ,CARFLX1000        ,        &
      & CARFLX2000        ,CARFLX4000        ,CARFLX_BOT        ,        &
      & BSIFLX0100        ,BSIFLX0500        ,BSIFLX1000        ,        &
@@ -113,6 +121,8 @@
      & LYR_ASIZE         ,LYR_N2O           ,LYR_AOU           ,        &
      & LYR_PREFO2        ,LYR_PREFPO4       ,LYR_PREFALK       ,        &
      & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
+     & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
+     & LYR_NATOMEGAC     ,LYR_NATCO3        ,                           &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -124,6 +134,8 @@
      & LVL_ASIZE         ,LVL_N2O           ,LVL_AOU           ,        &
      & LVL_PREFO2        ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
      & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
+     & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
+     & LVL_NATOMEGAC     ,LVL_NATCO3        ,                           &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -193,7 +205,8 @@
      &          jcalflx1000= 0 ,                                        &
      &          jcalflx2000= 0 ,                                        &
      &          jcalflx4000= 0 ,                                        &
-     &          jcalflx_bot= 0
+     &          jcalflx_bot= 0 ,                                        &
+     &          jnatco2fx  = 0
 
 
       INTEGER, SAVE :: i_atm_m2d  
@@ -279,6 +292,17 @@
      &          jlvleps    = 0 ,                                        &
      &          jlvlasize  = 0
 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jnatco3       = 0 ,                                     &
+     &          jnatalkali    = 0 ,                                     &
+     &          jnatdic       = 0 ,                                     &
+     &          jnatcalc      = 0 ,                                     &
+     &          jnatomegac    = 0 ,                                     &
+     &          jlvlnatco3    = 0 ,                                     &
+     &          jlvlnatalkali = 0 ,                                     &
+     &          jlvlnatdic    = 0 ,                                     &
+     &          jlvlnatcalc   = 0 ,                                     &
+     &          jlvlnatomegac = 0 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
@@ -489,6 +513,10 @@
         IF (SRF_SF6(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsf6fx(n)=i_bsc_m2d*min(1,SRF_SF6(n))
 #endif
+#ifdef natDIC
+        IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
+#endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -589,6 +617,18 @@
         IF (LYR_ASIZE(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jasize(n)=i_bsc_m3d*min(1,LYR_ASIZE(n))
 #endif
+#ifdef natDIC
+        IF (LYR_NATCO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatco3(n)=i_bsc_m3d*min(1,LYR_NATCO3(n))
+        IF (LYR_NATALKALI(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatalkali(n)=i_bsc_m3d*min(1,LYR_NATALKALI(n))
+        IF (LYR_NATDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatdic(n)=i_bsc_m3d*min(1,LYR_NATDIC(n))
+        IF (LYR_NATCALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatcalc(n)=i_bsc_m3d*min(1,LYR_NATCALC(n))
+        IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -659,6 +699,18 @@
         jlvleps(n)=ilvl_bsc_m3d*min(1,LVL_EPS(n))
         IF (LVL_ASIZE(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlasize(n)=ilvl_bsc_m3d*min(1,LVL_ASIZE(n))
+#endif
+#ifdef natDIC
+        IF (LVL_NATCO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatco3(n)=ilvl_bsc_m3d*min(1,LVL_NATCO3(n))
+        IF (LVL_NATALKALI(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatalkali(n)=ilvl_bsc_m3d*min(1,LVL_NATALKALI(n))
+        IF (LVL_NATDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatdic(n)=ilvl_bsc_m3d*min(1,LVL_NATDIC(n))
+        IF (LVL_NATCALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatcalc(n)=ilvl_bsc_m3d*min(1,LVL_NATCALC(n))
+        IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
 #endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
