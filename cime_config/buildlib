@@ -1,4 +1,28 @@
 #! /bin/csh -f 
+cd $1
+setenv CASE `./xmlquery -file env_case.xml CASE -value`
+setenv CONFIG_OCN_FILE `./xmlquery -file env_case.xml CONFIG_OCN_FILE -value`
+setenv CASEROOT `./xmlquery -file env_case.xml CASEROOT -value`
+setenv SRCROOT `./xmlquery -file env_case.xml SRCROOT -value`
+setenv EXEROOT `./xmlquery -file env_build.xml EXEROOT -value`
+setenv OBJROOT `./xmlquery -file env_build.xml OBJROOT -value`
+setenv OCN_GRID `./xmlquery -file env_build.xml OCN_GRID -value`
+setenv CONFIG_OCN_DIR `dirname $CONFIG_OCN_FILE`
+setenv NTASKS_OCN `./xmlquery -file env_mach_pes.xml NTASKS_OCN -value`
+setenv DIN_LOC_ROOT `./xmlquery -file env_run.xml DIN_LOC_ROOT -value`
+setenv RUN_TYPE `./xmlquery -file env_run.xml RUN_TYPE -value`
+setenv CASEBUILD `./xmlquery -file env_case.xml CASEBUILD -value`
+setenv CCSM_CO2_PPMV `./xmlquery -file env_run.xml CCSM_CO2_PPMV -value`
+setenv OCN_NCPL `./xmlquery -file env_run.xml OCN_NCPL -value`
+setenv MICOM_COUPLING `./xmlquery -file env_run.xml MICOM_COUPLING -value`
+setenv RUNDIR `./xmlquery -file env_run.xml RUNDIR -value`
+setenv MICOM_TRACER_MODULES `./xmlquery -file env_build.xml MICOM_TRACER_MODULES -value`
+setenv MICOM_RIVER_NUTRIENTS `./xmlquery -file env_build.xml MICOM_RIVER_NUTRIENTS -value`
+setenv MICOM_TURBULENT_CLOSURE `./xmlquery -file env_build.xml MICOM_TURBULENT_CLOSURE -value`
+setenv GMAKE `./xmlquery -file env_build.xml GMAKE -value`
+setenv GMAKE_J `./xmlquery -file env_build.xml GMAKE_J -value`
+setenv MICOM_CO2_TYPE `./xmlquery -file env_run.xml MICOM_CO2_TYPE -value`
+setenv RUN_STARTDATE `./xmlquery -file env_run.xml RUN_STARTDATE -value`
 
 cd $OBJROOT/ocn/obj
 
@@ -8,12 +32,12 @@ cd $OBJROOT/ocn/obj
 
 cat >! Filepath << EOF1
 $OBJROOT/ocn/obj/dimensions
-$CASEROOT/SourceMods/src.micom
-$CODEROOT/ocn/micom/ben02
-$CODEROOT/ocn/micom/cesm
-$CODEROOT/ocn/micom/drivers/cpl_share
-$CODEROOT/ocn/micom/drivers/cpl_mct
-$CODEROOT/ocn/micom/phy
+$SRCROOT/SourceMods/src.micom
+$SRCROOT/components/micom/ben02
+$SRCROOT/components/micom/cesm
+$SRCROOT/components/micom/drivers/cpl_share
+$SRCROOT/components/micom/drivers/cpl_mct
+$SRCROOT/components/micom/phy
 EOF1
 
 set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
@@ -29,7 +53,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID
   set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
 endif
 if ($#turbclo != 0 || $#tracers != 0) then
-  echo $CODEROOT/ocn/micom/trc >> Filepath
+  echo $SRCROOT/components/micom/trc >> Filepath
   set cpp_ocn = "$cpp_ocn -DTRC"
 endif
 if ($#turbclo != 0) then
@@ -63,10 +87,10 @@ endif
 if ($#tracers != 0) then
   foreach module ($tracers)
     if      ($module == iage) then
-      echo $CODEROOT/ocn/micom/idlage >> Filepath
+      echo $SRCROOT/components/micom/idlage >> Filepath
       set cpp_ocn = "$cpp_ocn -DIDLAGE"
     else if ($module == ecosys) then
-      echo $CODEROOT/ocn/micom/hamocc >> Filepath
+      echo $SRCROOT/componentsmicom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC"
       if ($co2type == prognostic) then
         set cpp_ocn = "$cpp_ocn -DPROGCO2"
@@ -97,9 +121,3 @@ if !(-f $LIBROOT/libocn.a) then
   exit -1
 endif
 
-EOF
-chmod +x $CASEBUILD/micom.buildexe.csh
-
-#==============================================================================
-# end of script
-#==============================================================================

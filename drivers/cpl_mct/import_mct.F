@@ -144,10 +144,10 @@
                eva_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_evap,n)
 
                ! Liquid runoff, positive downwards [kg/m^2/s]
-               rnf_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Forr_roff,n)
+               rnf_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_rofl,n)
 
                ! Frozen runoff, positive downwards [kg/m^2/s]
-               rfi_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Forr_ioff,n)
+               rfi_da(i,j,l2ci) = x2o_o%rAttr(index_x2o_Foxx_rofi,n)
 
                ! Fresh water due to melting/freezing, positive downwards
                ! [kg/m^2/s]
@@ -165,7 +165,7 @@
      .                          + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
      .                          + x2o_o%rAttr(index_x2o_Faxa_lwdn,n)
      .                          - ( x2o_o%rAttr(index_x2o_Faxa_snow,n)
-     .                            + x2o_o%rAttr(index_x2o_Forr_ioff,n))
+     .                            + x2o_o%rAttr(index_x2o_Foxx_rofl,n))
      .                            *SHR_CONST_LATICE
 
                ! Heat flux due to melting, positive downwards [W/m^2]
