@@ -89,20 +89,23 @@
      &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
      &       ,nstart2(2),ncount2(2),nstride2(2),idate(5)
       REAL rmissing
+#ifdef PNETCDF
       integer*4 ,save :: info=MPI_INFO_NULL
       integer        mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                          &
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
+#endif
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
-      integer ierr
+      integer ierr,testio
 
 ! pass tracer fields in from ocean model, note that both timelevels 
 ! are passed into the local array locetra; No unit conversion here, 
 ! tracers in the restart file are written in mol/kg 
 !--------------------------------------------------------------------
 !
+      testio=0
       locetra(:,:,:,:)=trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
 
       idate(1) = kplyear
@@ -157,6 +160,8 @@
                stop '(AUFW: Problem with netCDF1)'
       ENDIF
       ELSE IF (IOTYPE==1) THEN
+#ifdef PNETCDF
+      testio=1
       i=1
       do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
         i=i+1
@@ -183,6 +188,12 @@
         call xchalt('(AUFW: Problem with netCDF1)')
                stop '(AUFW: Problem with netCDF1)'
       ENDIF
+#endif
+
+      if(testio .eq. 0) then
+      CALL xchalt('(AUFW: Problem with namelist iotype)')
+                    stop '(AUFW: Problem with namelist iotype)'
+      endif
 
       ENDIF
 !
@@ -232,6 +243,7 @@
                stop '(AUFW: Problem with netCDF7)'
       ENDIF
       ELSE IF (IOTYPE==1) THEN
+#ifdef PNETCDF
       clen=itdm
       ncstat = NFMPI_DEF_DIM(ncid, 'lon', clen, nclonid)
       IF ( ncstat .NE. NF_NOERR ) THEN
@@ -280,6 +292,7 @@
         call xchalt('(AUFW: Problem with PnetCDF7)')
                stop '(AUFW: Problem with PnetCDF7)'
       ENDIF
+#endif
       ENDIF
 
 !
@@ -323,6 +336,7 @@
 
 !PNETCDF
       ELSE IF (IOTYPE==1) THEN
+#ifdef PNETCDF
       clen=len('Restart data for marine bgc modules')
       ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'title'             &
      &, clen,'Restart data for marine bgc modules')
@@ -359,6 +373,7 @@
                stop '(AUFW: Problem with netCDF11)'
 
       ENDIF
+#endif
       ENDIF
 ! 
 ! Define variables : advected ocean tracer
@@ -722,12 +737,14 @@
 
 
       ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
       ncstat = NFMPI_ENDDEF(ncid)
 
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with PnetCDF00)')
                stop '(AUFW: Problem with PnetCDF00)'
       ENDIF
+#endif
       ENDIF
 
 !
@@ -845,12 +862,13 @@
         ENDIF
       ENDIF
       ELSE IF(IOTYPE==1) THEN
-
+#ifdef PNETCDF
         ncstat = NFMPI_CLOSE(ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
           call xchalt('(AUFW: PnetCDF200)')
                  stop '(AUFW: PnetCDF200)'
         ENDIF
+#endif
       ENDIF
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) 'End of AUFW_BGC'

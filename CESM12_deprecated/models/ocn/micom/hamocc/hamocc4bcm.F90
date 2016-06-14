@@ -392,11 +392,11 @@
 !$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------
-! Pass dms flux. Convert unit from kmol/m^2 to kmol/m^2/s.
+! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
-        pflxdms(i,j)=atmflx(i,j,iatmdms)/dtbgc
+        pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO

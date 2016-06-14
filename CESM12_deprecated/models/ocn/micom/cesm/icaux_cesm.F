@@ -19,6 +19,7 @@ c
           frzpot(i,j)=0.
           mltpot(i,j)=0.
           flxco2(i,j)=0.
+          flxdms(i,j)=0.
         enddo
         enddo
       enddo

@@ -173,7 +173,9 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(dp, 1,2*kk, 3,3, halo_ps)
 c
-      do m=1,2
+      n=mod(nstep1,2)+1
+c
+      do m=n,3-n,3-2*n
         mm=(m-1)*kk
 c
 c$OMP PARALLEL DO

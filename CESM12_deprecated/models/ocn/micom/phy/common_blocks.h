@@ -117,10 +117,8 @@ c
      .                scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
      .                depths
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
-     .  bfsqf          ! filtered buoyancy frequency squared
-c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+     .  bfsqf,         ! filtered buoyancy frequency squared
      .  nslpx,nslpy,   ! local neutral slope
      .  nnslpx,nnslpy, ! local neutral slope times buoyancy frequency
      .  difint,        ! layer interface diffusivity
