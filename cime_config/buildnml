@@ -1,17 +1,35 @@
 #! /bin/csh -f
-
-cd $OBJROOT/ocn/obj
-
+setenv CASE `./xmlquery -file env_case.xml CASE -value`
+setenv CONFIG_OCN_FILE `./xmlquery -file env_case.xml CONFIG_OCN_FILE -value`
+setenv CASEROOT `./xmlquery -file env_case.xml CASEROOT -value`
+setenv EXEROOT `./xmlquery -file env_build.xml EXEROOT -value`
+setenv OCN_GRID `./xmlquery -file env_build.xml OCN_GRID -value`
+setenv CONFIG_OCN_DIR1 `dirname $CONFIG_OCN_FILE`
+setenv NTASKS_OCN `./xmlquery -file env_mach_pes.xml NTASKS_OCN -value` 
+setenv DIN_LOC_ROOT `./xmlquery -file env_run.xml DIN_LOC_ROOT -value`
+setenv RUN_TYPE `./xmlquery -file env_run.xml RUN_TYPE -value`
+setenv CASEBUILD `./xmlquery -file env_case.xml CASEBUILD -value`
+setenv CCSM_CO2_PPMV `./xmlquery -file env_run.xml CCSM_CO2_PPMV -value`
+setenv OCN_NCPL `./xmlquery -file env_run.xml OCN_NCPL -value`
+setenv MICOM_COUPLING `./xmlquery -file env_run.xml MICOM_COUPLING -value`
+setenv RUNDIR `./xmlquery -file env_run.xml RUNDIR -value`
+setenv MICOM_TRACER_MODULES `./xmlquery -file env_build.xml MICOM_TRACER_MODULES -value`
+setenv MICOM_RIVER_NUTRIENTS `./xmlquery -file env_build.xml MICOM_RIVER_NUTRIENTS -value`
+setenv RUN_STARTDATE `./xmlquery -file env_run.xml RUN_STARTDATE -value`
+cd $EXEROOT/ocn/obj
+setenv CONFIG_OCN_DIR $CONFIG_OCN_DIR1/../
 #------------------------------------------------------------------------------
 # Make dimensions.F
 #------------------------------------------------------------------------------
 
-set dimdir = $OBJROOT/ocn/obj/dimensions
+set dimdir = $EXEROOT/ocn/obj/dimensions
 mkdir -p $dimdir
-set kdm = `cat $CODEROOT/ocn/micom/bld/$OCN_GRID/kdm`
-$CASEROOT/Buildconf/micom_dimensions -n $NTASKS_OCN -k $kdm -d $CODEROOT/ocn/micom/bld/$OCN_GRID || exit -1
+set kdm = `cat $CONFIG_OCN_DIR/bld/$OCN_GRID/kdm`
+$CONFIG_OCN_DIR/bld/micom_dimensions -n $NTASKS_OCN -k $kdm -d $CONFIG_OCN_DIR/bld/$OCN_GRID || exit -1
 set recompile = FALSE
 cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
+echo $PWD
+echo $recompile
 if ($recompile == 'TRUE') then
   mv dimensions.F $dimdir
 else
@@ -40,7 +58,7 @@ else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
-
+echo $CASEBUILD
 cat > $CASEBUILD/micom.input_data_list << EOF1
 grid_file = $INPUTPATH/grid.nc
 ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
@@ -126,7 +144,7 @@ set SPRFAC   = .false.
 set RSTFRQ   =  1
 set RSTFMT   =  1
 set RSTCMP   =  0 
-set IOTYPE   =  1 
+set IOTYPE   =  0 
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
 # set DAIPHY defaults 
@@ -431,7 +449,8 @@ else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
-
+echo $CASEROOT
+source $CASEROOT/user_nl_micom
 #------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------

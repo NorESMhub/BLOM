@@ -1,6 +1,8 @@
 module micom_cpl_indices
-  
-  use seq_flds_mod
+ 
+  use seq_flds_mod, only : seq_flds_x2o_fields, seq_flds_o2x_fields 
+!  use seq_flds_mod, only : seq_flds_i2o_per_cat, ice_ncat 
+!  use mcog, only : mcog_ncols, lmcog_flds_sent
   use mct_mod
 
   implicit none
@@ -16,6 +18,8 @@ module micom_cpl_indices
   integer :: index_o2x_So_s
   integer :: index_o2x_So_dhdx
   integer :: index_o2x_So_dhdy
+  ! QL, 150526, to wav, boundary layer depth
+  integer :: index_o2x_So_bldepth
   integer :: index_o2x_Fioo_q
   integer :: index_o2x_Faoo_fco2_ocn
   integer :: index_o2x_Faoo_fdms_ocn
@@ -27,6 +31,10 @@ module micom_cpl_indices
   integer :: index_x2o_Sa_pslv         ! sea-level pressure               (Pa)
   integer :: index_x2o_Sa_co2prog      ! bottom atm level prognostic CO2
   integer :: index_x2o_Sa_co2diag      ! bottom atm level diagnostic CO2
+  ! QL, 150526, from wav
+  integer :: index_x2o_Sw_lamult       ! wave model langmuir multiplier
+  integer :: index_x2o_Sw_ustokes      ! surface Stokes drift, x-component
+  integer :: index_x2o_Sw_vstokes      ! surface Stokes drift, y-component
   integer :: index_x2o_Foxx_taux       ! zonal wind stress (taux)         (W/m2   )
   integer :: index_x2o_Foxx_tauy       ! meridonal wind stress (tauy)     (W/m2   )
   integer :: index_x2o_Foxx_swnet      ! net short-wave heat flux         (W/m2   )
@@ -55,8 +63,14 @@ module micom_cpl_indices
   integer :: index_x2o_Faxa_dstdry2    ! flux: Size 2 dust -- dry deposition
   integer :: index_x2o_Faxa_dstdry3    ! flux: Size 3 dust -- dry deposition
   integer :: index_x2o_Faxa_dstdry4    ! flux: Size 4 dust -- dry deposition
-  integer :: index_x2o_Forr_roff       ! river runoff flux                (kg/m2/s)
-  integer :: index_x2o_Forr_ioff       ! ice runoff flux                  (kg/m2/s)
+  integer :: index_x2o_Foxx_rofl       ! river runoff flux                (kg/m2/s)
+  integer :: index_x2o_Foxx_rofi       ! ice runoff flux                  (kg/m2/s)
+
+! optional per thickness category fields
+
+!  integer, dimension(:), allocatable :: index_x2o_frac_col       ! fraction of ocean cell, per column
+!  integer, dimension(:), allocatable :: index_x2o_fracr_col      ! fraction of ocean cell used in radiation computations, per column
+!  integer, dimension(:), allocatable :: index_x2o_qsw_fracr_col  ! qsw * fracr, per column
 
 contains
 
@@ -64,6 +78,9 @@ contains
 
     type(mct_aVect) :: o2x      ! temporary
     type(mct_aVect) :: x2o      ! temporary
+    integer          :: ncat  ! thickness category index
+    character(len=2) :: cncat ! character version of ncat
+    integer          :: ncol  ! column index
 
     ! Determine attribute vector indices
 
@@ -77,12 +94,18 @@ contains
     index_o2x_So_s          = mct_avect_indexra(o2x,'So_s')
     index_o2x_So_dhdx       = mct_avect_indexra(o2x,'So_dhdx')
     index_o2x_So_dhdy       = mct_avect_indexra(o2x,'So_dhdy')
+    ! QL, 150526, to wav, boundary layer depth
+    index_o2x_So_bldepth    = mct_avect_indexra(o2x,'So_bldepth')
     index_o2x_Fioo_q        = mct_avect_indexra(o2x,'Fioo_q')
     index_o2x_Faoo_fco2_ocn = mct_avect_indexra(o2x,'Faoo_fco2_ocn',perrWith='quiet')
     index_o2x_Faoo_fdms_ocn = mct_avect_indexra(o2x,'Faoo_fdms_ocn',perrWith='quiet')
     index_x2o_Si_ifrac      = mct_avect_indexra(x2o,'Si_ifrac')
     index_x2o_Sa_pslv       = mct_avect_indexra(x2o,'Sa_pslv')
     index_x2o_So_duu10n     = mct_avect_indexra(x2o,'So_duu10n')
+    ! QL, 150526, from wav
+    index_x2o_Sw_lamult     = mct_avect_indexra(x2o,'Sw_lamult')
+    index_x2o_Sw_ustokes    = mct_avect_indexra(x2o,'Sw_ustokes')
+    index_x2o_Sw_vstokes    = mct_avect_indexra(x2o,'Sw_vstokes')
 
     index_x2o_Foxx_tauy     = mct_avect_indexra(x2o,'Foxx_tauy')
     index_x2o_Foxx_taux     = mct_avect_indexra(x2o,'Foxx_taux')
@@ -98,8 +121,8 @@ contains
     index_x2o_Faxa_snow     = mct_avect_indexra(x2o,'Faxa_snow')   
     index_x2o_Faxa_rain     = mct_avect_indexra(x2o,'Faxa_rain')   
     index_x2o_Foxx_evap     = mct_avect_indexra(x2o,'Foxx_evap')
-    index_x2o_Forr_roff     = mct_avect_indexra(x2o,'Forr_roff')
-    index_x2o_Forr_ioff     = mct_avect_indexra(x2o,'Forr_ioff')
+    index_x2o_Foxx_rofl     = mct_avect_indexra(x2o,'Foxx_rofl')
+    index_x2o_Foxx_rofi     = mct_avect_indexra(x2o,'Foxx_rofi')
     index_x2o_Faxa_bcphidry = mct_avect_indexra(x2o,'Faxa_bcphidry')
     index_x2o_Faxa_bcphodry = mct_avect_indexra(x2o,'Faxa_bcphodry')
     index_x2o_Faxa_bcphiwet = mct_avect_indexra(x2o,'Faxa_bcphiwet')
@@ -116,6 +139,34 @@ contains
     index_x2o_Faxa_dstwet4  = mct_avect_indexra(x2o,'Faxa_dstwet4')
     index_x2o_Sa_co2prog    = mct_avect_indexra(x2o,'Sa_co2prog',perrWith='quiet')
     index_x2o_Sa_co2diag    = mct_avect_indexra(x2o,'Sa_co2diag',perrWith='quiet')
+    ! optional per thickness category fields
+
+    ! convert cpl indices to mcog column indices
+    ! this implementation only handles columns due to ice thickness categories
+
+!    lmcog_flds_sent = seq_flds_i2o_per_cat
+
+!    if (seq_flds_i2o_per_cat) then
+!      mcog_ncols = ice_ncat+1
+!      allocate(index_x2o_frac_col(mcog_ncols))
+!      allocate(index_x2o_fracr_col(mcog_ncols))
+!      allocate(index_x2o_qsw_fracr_col(mcog_ncols))
+
+!      ncol = 1
+!      index_x2o_frac_col(ncol)        = mct_avect_indexra(x2o,'Sf_afrac')
+!      index_x2o_fracr_col(ncol)       = mct_avect_indexra(x2o,'Sf_afracr')
+!      index_x2o_qsw_fracr_col(ncol)   = mct_avect_indexra(x2o,'Foxx_swnet_afracr')
+
+!      do ncat = 1, ice_ncat
+!        write(cncat,'(i2.2)') ncat
+!        ncol = ncat+1
+!        index_x2o_frac_col(ncol)      = mct_avect_indexra(x2o,'Si_ifrac_'//cncat)
+!        index_x2o_fracr_col(ncol)     = index_x2o_frac_col(ncol)
+!        index_x2o_qsw_fracr_col(ncol) = mct_avect_indexra(x2o,'PFioi_swpen_ifrac_'//cncat)
+!      enddo
+!    else
+!      mcog_ncols = 1
+!    endif
 
     call mct_aVect_clean(x2o)
     call mct_aVect_clean(o2x)
