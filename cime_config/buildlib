@@ -32,7 +32,7 @@ cd $OBJROOT/ocn/obj
 
 cat >! Filepath << EOF1
 $OBJROOT/ocn/obj/dimensions
-$SRCROOT/SourceMods/src.micom
+$CASEROOT/SourceMods/src.micom
 $SRCROOT/components/micom/ben02
 $SRCROOT/components/micom/cesm
 $SRCROOT/components/micom/drivers/cpl_share
