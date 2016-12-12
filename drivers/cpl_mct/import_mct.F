@@ -165,7 +165,7 @@
      .                          + x2o_o%rAttr(index_x2o_Foxx_lwup,n)
      .                          + x2o_o%rAttr(index_x2o_Faxa_lwdn,n)
      .                          - ( x2o_o%rAttr(index_x2o_Faxa_snow,n)
-     .                            + x2o_o%rAttr(index_x2o_Foxx_rofl,n))
+     .                            + x2o_o%rAttr(index_x2o_Foxx_rofi,n))
      .                            *SHR_CONST_LATICE
 
                ! Heat flux due to melting, positive downwards [W/m^2]
