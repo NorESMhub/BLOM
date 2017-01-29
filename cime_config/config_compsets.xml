@@ -46,4 +46,8 @@
     <lname>2000_DATM%IAF_SLND_CICE_MICOM_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
+  <compset>
+    <alias>NOINYOC</alias>
+    <lname>2000_DATM%NYF_SLND_CICE_MICOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+  </compset>
 </compsets>
