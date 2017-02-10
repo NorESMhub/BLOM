@@ -11,7 +11,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_geo.h"
 c
       real, dimension(itdm,jtdm) :: tmpg
       integer i,j,status,ncid,dimid,varid
@@ -67,25 +66,6 @@ c --- - check dimensions
                  stop '(geoenv_cesmextra)'
         endif
       endif
-c
-      if (mnproc.eq.1) then
-        status=nf90_inq_varid(ncid,'angle',varid)
-        if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: angle: ',
-     .                     nf90_strerror(status)
-          call xchalt('(geoenv_cesmextra)')
-                 stop '(geoenv_cesmextra)'
-        endif
-      endif
-      if (mnproc.eq.1) then
-        status=nf90_get_var(ncid,varid,tmpg)
-        if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: angle: ',nf90_strerror(status)
-          call xchalt('(geoenv_cesmextra)')
-                 stop '(geoenv_cesmextra)'
-        endif
-      endif
-      call xcaput(tmpg,angle,1)
 c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'cplmask',varid)

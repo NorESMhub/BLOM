@@ -31,9 +31,9 @@
 
   <entry id="MICOM_TRACER_MODULES">
     <type>char</type>
-    <valid_values>iage</valid_values>
+    <valid_values>iage,iage ecosys</valid_values>
     <default_value>iage</default_value>
-    <values modifier='merge'>
+    <values>
       <value compset="_MICOM%ECO">iage ecosys</value>
     </values>
     <group>build_component_micom</group>
@@ -76,7 +76,7 @@
     <group>run_component_micom</group>
     <file>env_run.xml</file>
     <desc>Determines provenance of atmospheric CO2 for gas flux computation.
-      This option is used in the POP ecosystem model.
+      This option is used in the MICOM ecosystem model.
       The default is constant.</desc>
   </entry>
 
@@ -84,9 +84,18 @@
     <type>char</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>build_component_pop</group>
+    <group>build_component_micom</group>
     <file>env_build.xml</file>
-    <desc>If TRUE then time-averaged history files from POP will contain double precision output</desc>
+    <desc>If TRUE then time-averaged history files from MICOM will contain double precision output</desc>
+  </entry>
+
+  <entry id="MICOM_TURBULENT_CLOSURE">
+    <type>char</type>
+    <valid_values></valid_values>
+    <default_value></default_value>
+    <group>build_component_micom</group>
+    <file>env_build.xml</file>
+    <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
   </entry>
 
   <description>

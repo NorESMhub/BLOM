@@ -118,6 +118,7 @@ set EDRITP   = "'large scale'"
 set BMCMTH   = "'uc'"
 set RMPMTH   = "'eitvel'"
 set EDWMTH   = "'smooth'"
+set MLRTTP   = "'constant'"
 set EDSPRS   = .true.
 set EGC      = 1.25
 set EGGAM    = 200.
@@ -498,6 +499,8 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
 !            the ration of Rossby radius of deformation to the
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
+! MLRTTP   : Type of mixed layer restratification time scale. Valid
+!            types: 'variable', 'constant' (a)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
@@ -564,6 +567,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   BMCMTH   = ${BMCMTH},
   RMPMTH   = ${RMPMTH},
   EDWMTH   = ${EDWMTH},
+  MLRTTP   = ${MLRTTP},
   EDSPRS   = ${EDSPRS},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},

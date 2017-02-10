@@ -22,7 +22,7 @@ c
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
      .     ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,
      .     dpe,dps,udpn
-      integer i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
+      integer rtsflg,i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -61,13 +61,16 @@ c ---            of TKE balance [].
 c
 c --- Parameters for the parameterization of restratification by mixed
 c --- layer eddies by Fox-Kemper et al. (2008):
-c ---   rtau - reciprocal of timescale for momentum mixing across mixed
-c ---          layer [1/s].
-c ---   rlf  - reciprocal of length scale of mixed layer fronts [1/cm].
-c ---   ci   - constant that appears when integrating the shape function
-c ---          over the mixed layer depth [].
-      real rtau,rlf,ci
-      parameter (rtau=1./(2.*86400.),rlf=1./5.e5,ci=44./63.)
+c ---   rtau   - reciprocal of timescale for momentum mixing across
+c ---            mixed layer [1/s].
+c ---   cori20 - coriolis parameter at 20N [1/s].
+c ---   rlf    - reciprocal of length scale of mixed layer fronts
+c ---            [1/cm].
+c ---   ci     - constant that appears when integrating the shape
+c ---            function over the mixed layer depth [].
+      real rtau,cori20,rlf,ci
+      parameter (rtau=1./(2.*86400.),cori20=4.9745e-5,rlf=1./5.e5,
+     .           ci=44./63.)
 c
 c --- Parameters for brine plume parameterization:
 c ---   bpdrho - density contrast between surface and brine plume depth
@@ -83,6 +86,23 @@ c ---            density jump across a layer interface [].
       real bpdrho,bpmndp,bpmxdp,bpdpmn,dsgmnr
       parameter (bpdrho=.4e-3,bpmndp=10.*98060.,bpmxdp=500.*98060.,
      .           bpdpmn=1.*98060.,dsgmnr=.1)
+c
+c --- ------------------------------------------------------------------
+c --- Resolve type of mixed layer restratification time scale.
+c --- ------------------------------------------------------------------
+c
+      if     (mlrttp.eq.'variable') then
+        rtsflg=1
+      elseif (mlrttp.eq.'constant') then
+        rtsflg=2
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' mlrttp=',trim(mlrttp),
+     .                      ' is unsupported!'
+        endif
+        call xcstop('(mxlayr)')
+               stop '(mxlayr)'
+      endif
 c
 c --- ------------------------------------------------------------------
 c --- Compute squared lateral buoyancy gradient in the mixed layer and
@@ -216,8 +236,12 @@ c
           cus=rm0*ustar3
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
-          crs=ci*ce*util1(i,j)*q**3
-     .        *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
+          if     (rtsflg.eq.1) then
+            crs=ci*ce*util1(i,j)*q**3
+     .          *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
+          elseif (rtsflg.eq.2) then
+            crs=ci*ce*util1(i,j)*q**3*sqrt(scp2(i,j))*rlf/cori20
+          endif
 c      
           rm1=exp(-lui*pmxl)
           rm2=exp(-lbi*pmxl)

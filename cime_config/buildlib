@@ -32,7 +32,7 @@ cd $OBJROOT/ocn/obj
 
 cat >! Filepath << EOF1
 $OBJROOT/ocn/obj/dimensions
-$SRCROOT/SourceMods/src.micom
+$CASEROOT/SourceMods/src.micom
 $SRCROOT/components/micom/ben02
 $SRCROOT/components/micom/cesm
 $SRCROOT/components/micom/drivers/cpl_share
@@ -90,7 +90,7 @@ if ($#tracers != 0) then
       echo $SRCROOT/components/micom/idlage >> Filepath
       set cpp_ocn = "$cpp_ocn -DIDLAGE"
     else if ($module == ecosys) then
-      echo $SRCROOT/componentsmicom/hamocc >> Filepath
+      echo $SRCROOT/components/micom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC"
       if ($co2type == prognostic) then
         set cpp_ocn = "$cpp_ocn -DPROGCO2"

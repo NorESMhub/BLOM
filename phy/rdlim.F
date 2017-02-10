@@ -24,8 +24,8 @@ c
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
      .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
-     .  rmpmth,edwmth,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce,
-     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
+     .  rmpmth,edwmth,mlrttp,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,
+     .  rm0,ce,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
      .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
      .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
@@ -288,6 +288,7 @@ c
       call xcbcst(bmcmth)
       call xcbcst(rmpmth)
       call xcbcst(edwmth)
+      call xcbcst(mlrttp)
       call xcbcst(edsprs)
       call xcbcst(egc)
       call xcbcst(eggam)
@@ -677,6 +678,7 @@ c
         write (lp,'(a,a60)')   'bmcmth:            ',bmcmth
         write (lp,'(a,a60)')   'rmpmth:            ',rmpmth
         write (lp,'(a,a60)')   'edwmth:            ',edwmth
+        write (lp,'(a,a60)')   'mlrttp:            ',mlrttp
         write (lp,'(a,l10)')   'edsprs:            ',edsprs
         write (lp,'(a,f10.4)') 'egc:               ',egc
         write (lp,'(a,f10.4)') 'eggam:             ',eggam
