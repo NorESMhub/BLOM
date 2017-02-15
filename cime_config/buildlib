@@ -21,7 +21,7 @@ setenv MICOM_RIVER_NUTRIENTS `./xmlquery -file env_build.xml MICOM_RIVER_NUTRIEN
 setenv MICOM_TURBULENT_CLOSURE `./xmlquery -file env_build.xml MICOM_TURBULENT_CLOSURE -value`
 setenv GMAKE `./xmlquery -file env_build.xml GMAKE -value`
 setenv GMAKE_J `./xmlquery -file env_build.xml GMAKE_J -value`
-setenv MICOM_CO2_TYPE `./xmlquery -file env_run.xml MICOM_CO2_TYPE -value`
+setenv OCN_CO2_TYPE `./xmlquery -file env_build.xml OCN_CO2_TYPE -value`
 setenv RUN_STARTDATE `./xmlquery -file env_run.xml RUN_STARTDATE -value`
 
 cd $OBJROOT/ocn/obj
@@ -42,7 +42,7 @@ EOF1
 
 set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
 set tracers = (`echo $MICOM_TRACER_MODULES`)
-set co2type = (`echo $MICOM_CO2_TYPE`)
+set co2type = (`echo $OCN_CO2_TYPE`)
 set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
 
 set cpp_ocn = "-DMPI"
@@ -90,7 +90,7 @@ if ($#tracers != 0) then
       echo $SRCROOT/components/micom/idlage >> Filepath
       set cpp_ocn = "$cpp_ocn -DIDLAGE"
     else if ($module == ecosys) then
-      echo $SRCROOT/componentsmicom/hamocc >> Filepath
+      echo $SRCROOT/components/micom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC"
       if ($co2type == prognostic) then
         set cpp_ocn = "$cpp_ocn -DPROGCO2"
