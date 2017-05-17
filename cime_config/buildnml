@@ -370,6 +370,7 @@ if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
 endif
 
 if ($MICOM_COUPLING  =~ *partial*) then
+  set SRXDAY = 6.
   set SPRFAC = .true.
 endif
 
@@ -540,7 +541,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! IOTYPE   : 0 = netcdf, 1 = pnetcdf
 &LIMITS
   NDAY1    = 0,
-  NDAY2    = 999999,
+  NDAY2    = 99999999,
   IDATE    = ${YEAR0}${MONTH0}${DAY0},
   IDATE0   = ${YEAR0}${MONTH0}${DAY0},
   RUNID    = 'xxxx',
