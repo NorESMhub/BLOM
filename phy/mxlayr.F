@@ -479,7 +479,7 @@ c --- ----- Apply heat forcing to the water column below surface layer
               pswup=pswlo
             endif
             k=kfpl
-            do while (k.le.kmax)
+            do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
                 pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
@@ -958,7 +958,7 @@ c --- ----- Apply heat forcing to the water column below surface layer
             ttem(2)=ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup=pswlo
             k=kfpl
-            do while (k.le.kmax)
+            do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
                 pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
