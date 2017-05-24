@@ -52,6 +52,8 @@ else if ( $OCN_GRID == tnx1.5v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20131011
 else if ( $OCN_GRID == tnx1v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
+else if ( $OCN_GRID == tnx1v3) then
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170327
 else if ( $OCN_GRID == tnx0.25v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
 else
@@ -380,7 +382,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ( $OCN_GRID ==  tnx2v1 || $OCN_GRID ==  tnx1.5v1 ) then
+else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
@@ -426,10 +428,10 @@ else if ( $OCN_GRID ==  tnx2v1 || $OCN_GRID ==  tnx1.5v1 ) then
   set LVL_WFLX     =  '0,   2'
   set LVL_WFLX2    =  '0,   0'
   set LVL_PV       =  '0,   0'
-else if ( $OCN_GRID ==  tnx1v1) then
+else if ( $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 ) then
   set BACLIN = 3200.
   set BATROP = 64.
-else if ( $OCN_GRID ==  tnx0.25v1) then
+else if ( $OCN_GRID == tnx0.25v1) then
   set BACLIN = 800.
   set BATROP = 16.
   set MDV2HI = .15
