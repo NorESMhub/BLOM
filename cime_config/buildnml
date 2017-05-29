@@ -67,7 +67,6 @@ ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
 ncep_height_file = $INPUTPATH/hgt.sfc.nc
 ice_clim_file = $INPUTPATH/icec_1968-1996.uf
 sst_clim_file = $INPUTPATH/skt_1968-1996.uf
-sss_clim_file = $INPUTPATH/sss_nodc.dat
 tidal_dissipation_file = $INPUTPATH/tidal_dissipation.nc
 meridional_transport_index_file = $INPUTPATH/mertraindex.dat
 meridional_transport_basin_file = $INPUTPATH/mertraoceans.dat
