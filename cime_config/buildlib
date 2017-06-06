@@ -46,10 +46,10 @@ set co2type = (`echo $MICOM_CO2_TYPE`)
 set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
 
 set cpp_ocn = "-DMPI"
-if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx0.25v1) then
+if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4 || $OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "$cpp_ocn -DARCTIC"
 endif
-if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx0.25v1) then
+if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4  ||$OCN_GRID == tnx0.25v1) then
   set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
 endif
 if ($#turbclo != 0 || $#tracers != 0) then
