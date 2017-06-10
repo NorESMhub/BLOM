@@ -314,41 +314,62 @@ c                    stop '(mxlayr)'
             endif
 c
             pmxl=max(mltmin*onem,pmxl)
-            tfsl=ttem(2)
-            sfsl=ssal(2)
-#ifdef TRC
-            do nt=1,ntr
-              trfsl(nt)=ttrc(nt,2)
-            enddo
-#endif
             dpfsl=pres(3)-pmxl
-            delp(2)=pmxl-pres(2)
-c
-c --- ----- Restore top layer to its reference pressure thickness
             dptopl=min(thktop*onem,.5*(pmxl-pres(1)))
-            if (delp(1).gt.dptopl) then
-              dpt=delp(1)-dptopl
-              q=1./(delp(2)+dpt)
-              ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
-              ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
+c
+            if (pmxl.lt.pres(2)) then
+c
+              q=1./dpfsl
+              tfsl=(ttem(2)*delp(2)+ttem(1)*(pres(2)-pmxl))*q
+              sfsl=(ssal(2)*delp(2)+ssal(1)*(pres(2)-pmxl))*q
+              ttem(2)=ttem(1)
+              ssal(2)=ssal(1)
 #ifdef TRC
               do nt=1,ntr
-                ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
+                trfsl(nt)=(ttrc(nt,2)*delp(2)
+     .                    +ttrc(nt,1)*(pres(2)-pmxl))*q
+                ttrc(nt,2)=ttrc(nt,1)
               enddo
 #endif
-              delp(2)=delp(2)+dpt
+              delp(2)=pmxl-pres(1)-dptopl
+c
             else
-              dpt=dptopl-delp(1)
-              q=1./(delp(1)+dpt)
-              ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
-              ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
+c
+              tfsl=ttem(2)
+              sfsl=ssal(2)
 #ifdef TRC
               do nt=1,ntr
-                ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
+                trfsl(nt)=ttrc(nt,2)
               enddo
 #endif
-              delp(2)=delp(2)-dpt
+              delp(2)=pmxl-pres(2)
+c
+              if (delp(1).gt.dptopl) then
+                dpt=delp(1)-dptopl
+                q=1./(delp(2)+dpt)
+                ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
+                ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
+#ifdef TRC
+                do nt=1,ntr
+                  ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
+                enddo
+#endif
+                delp(2)=delp(2)+dpt
+              else
+                dpt=dptopl-delp(1)
+                q=1./(delp(1)+dpt)
+                ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
+                ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
+#ifdef TRC
+                do nt=1,ntr
+                  ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
+                enddo
+#endif
+                delp(2)=delp(2)-dpt
+              endif
+c
             endif
+c
             delp(1)=dptopl
 c
 c --- ------------------------------------------------------------------
