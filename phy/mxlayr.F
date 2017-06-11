@@ -6,6 +6,7 @@ c --- balance and apply surface forcing.
 c --- -----------------------------------------------------------------
 c
       use mod_xc
+      use mod_swabs, only: swbgal,swbgfc,swamxd
 c
       implicit none
 c
@@ -222,7 +223,7 @@ c --- --- bfltot > 0
           bfltot=g*(alfa*surflx(i,j)/spcifh
      .             -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j)=bfltot
-          bflpsw=g*alfa*(1.-redfac)*sswflx(i,j)/spcifh
+          bflpsw=g*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
           q=alpha0/g
@@ -232,7 +233,7 @@ c
           else
             lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
-          lei=1./(onem*betabl)
+          lei=1./(onem*swbgal(i,j))
           cus=rm0*ustar3
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
@@ -252,7 +253,7 @@ c
      .        +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
      .         -crs*pmxl*pmxl)*pmxl
 c
-          pradd=raddep*onem
+          pradd=swamxd*onem
           kfpl=kfpla(i,j,n)
 c      
           if (tkew.lt.0.and.pmxl.gt.mltmin*onem) then
@@ -487,13 +488,13 @@ c --- ----- Apply brine forcing to the water column below surface layer
             endif
 c
 c --- ----- Apply heat forcing to the water column below surface layer
-            pswbas=(1.-redfac)*exp(-lei*delp(1))
+            pswbas=swbgfc(i,j)*exp(-lei*delp(1))
             pswup=pswbas
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pmxl))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pmxl))
             q=delt1*g/delp(2)
             ttem(2)=ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup=pswlo
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(3)))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
             if (dpfsl.gt.onemu) then
               tfsl=tfsl-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                  /(spcifh*dpfsl)
@@ -502,7 +503,7 @@ c --- ----- Apply heat forcing to the water column below surface layer
             k=kfpl
             do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
                 ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                          /(spcifh*delp(k))
@@ -972,16 +973,16 @@ c --- ----- Apply brine forcing to the water column below surface layer
             endif
 c
 c --- ----- Apply heat forcing to the water column below surface layer
-            pswbas=(1.-redfac)*exp(-lei*delp(1))
+            pswbas=swbgfc(i,j)*exp(-lei*delp(1))
             pswup=pswbas
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(3)))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
             q=delt1*g/delp(2)
             ttem(2)=ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup=pswlo
             k=kfpl
             do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
                 ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                          /(spcifh*delp(k))

@@ -131,6 +131,9 @@ set EGIDFQ   = 1.
 set RI0      = 1.2
 set RM0      = 1.2
 set CE       = .06
+set SWAMTH   = "'jerlov'"
+set JWTYPE   = 3
+set CHLOPT   = "'climatology'"
 set TRXDAY   = 0.
 set SRXDAY   = 0.
 set TRXDPT   = 1.
@@ -519,6 +522,11 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
+! SWAMTH   : Shortwave radiation absorption method. Valid methods:
+!            'top-layer', 'jerlov', 'chlorophyll' (a)
+! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
+! CHLOPT   : Chlorophyll concentration option. Valid options:
+!            'climatology' (a)
 ! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
 ! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
 ! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
@@ -581,6 +589,9 @@ cat >! $RUNDIR/ocn_in << EOF1
   RI0      = ${RI0},
   RM0      = ${RM0},
   CE       = ${CE},
+  SWAMTH   = ${SWAMTH},
+  JWTYPE   = ${JWTYPE},
+  CHLOPT   = ${CHLOPT},
   TRXDAY   = ${TRXDAY},
   SRXDAY   = ${SRXDAY},
   TRXDPT   = ${TRXDPT},

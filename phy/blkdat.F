@@ -36,12 +36,8 @@ c --- 'spcifh' = specific heat of sea water (j/g/deg)
 c --- 't0deg'  = zero deg celcius in K (K)
 c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
-c --- 'raddep' = maximum depth of light penetration (m)
-c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
-c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
       data g/980.6/,rearth/6.37122e8/,spcifh/3.99/,t0deg/273.15/,
-     .     alpha0/1./,epsil/1.e-11/,raddep/500./,redfac/.58/,
-     .     betabl/23./
+     .     alpha0/1./,epsil/1.e-11/
 c
 c --- 'itest,jtest' = grid point where detailed diagnostics are desired
       data itest,jtest/60,60/
