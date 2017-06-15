@@ -85,14 +85,14 @@
 
       REAL    :: supsat, undsa, dissol
       REAL    :: rpp0,fluxd,fluxu
-      REAL    :: kwco2,kwo2,kwdms
-      REAL    :: scco2,sco2,scdms
+      REAL    :: kwco2,kwo2,kwn2,kwdms,kwn2o
+      REAL    :: scco2,sco2,scn2,scdms,scn2o
       REAL    :: Xconvxa
       REAL    :: oxflux,niflux,dmsflux,n2oflux
       REAL    :: ato2,atn2,atco2,pco2
       REAL    :: oxy,ani,anisa
 !Tjiputra update=for list of new variables==============================
-      REAL    :: rrho,t,tk,tk100,prb,s,rs
+      REAL    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
       REAL    :: Kh,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
       REAL    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc
       REAL    :: omega
@@ -250,6 +250,9 @@
       satoxy(i,j,k)=exp(oxy)*oxyco
 
       if (k.eq.1) then
+      t2   = ptho(i,j,k)**2
+      t3   = ptho(i,j,k)**3
+      t4   = ptho(i,j,k)**4
 ! Determine CO2 pressure and fugacity (in micoatm)
 ! NOTE: equation below for pCO2 needs requires CO2 in mol/kg
       pco2 = cu * 1.e6 / Kh
@@ -257,17 +260,16 @@
       natpco2 = natcu * 1.e6 / Kh
 #endif
 
-! Schmidt numbers according to Groeger and Mikolajewicz (2011), O2 taken from Keeling et al. 1998
-      scco2 = 142.653 + 1955.9  * exp(-0.0663147*ptho(i,j,1))
-      scdms = 186.560 + 2506.78 * exp(-0.0618603*ptho(i,j,1))
-      sco2  = 1638.0 - 81.83*ptho(i,j,1) + 1.483*ptho(i,j,1)**2 - 0.008004*ptho(i,j,1)**3  
+! Schmidt numbers according to Wanninkhof (2014), Table 1
+      scco2 = 2116.8 - 136.25*t + 4.7353*t2 - 0.092307*t3 + 0.0007555 *t4
+      sco2  = 1920.4 - 135.6 *t + 5.2122*t2 - 0.10939 *t3 + 0.00093777*t4
+      scn2  = 2304.8 - 162.75*t + 6.2557*t2 - 0.13129 *t3 + 0.0011255 *t4
+      scdms = 2855.7 - 177.63*t + 6.0438*t2 - 0.11645 *t3 + 0.00094743*t4 
+      scn2o = 2356.2 - 166.38*t + 6.3952*t2 - 0.13422 *t3 + 0.0011506 *t4
 #ifdef CFC
-! Schmidt numbers according to Groeger and Mikolajewicz (2011), SF6 taken from Wanninkhof 1992
-      sch_11 = 316.571 + 3176.76 * exp(-0.066488 *ptho(i,j,1))
-      sch_12 = 216.491 + 3631.41 * exp(-0.0651186*ptho(i,j,1))
-      sch_sf = 3531.6 - 231.40*ptho(i,j,1) + 7.2168*ptho(i,j,1)**2 - 0.090558*ptho(i,j,1)**3 
-      sch_sf = max(sch_sf,200.0) ! Avoid negative or unrealistically small 
-                                 ! sch_sf for high temperatures
+      sch_11= 3579.2 - 222.63*t + 7.5749*t2 - 0.14595 *t3 + 0.0011874 *t4
+      sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
+      sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
 #endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
@@ -318,12 +320,13 @@
       frac_caco314        = (1000. - 2.*1.35 ) / 1000.                 ! Multiplication factor 14c
 #endif /*__c_isotopes*/
 
-! Compute the transfer (piston) velocity kw in m/s according to Wanninkhof(1992,eq.3) 
-! see ocmip2 guide 'howto' chapter 2.2 eqn. (2)
-       Xconvxa = 9.3611e-07
+! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
+       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted to ms-1/(ms-1)^2 
        kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
-       kwdms = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scdms)**0.5 
        kwo2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sco2)**0.5 
+       kwn2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scn2)**0.5 
+       kwdms = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scdms)**0.5 
+       kwn2o = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scn2o)**0.5 
 #ifdef CFC
        kw_11 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_11)**0.5
        kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
@@ -356,9 +359,12 @@
 
        fluxd=atco2*rpp0*kwco2*dtbgc*Kh*1e-6*rrho ! Kh is in mol/kg/atm. Multiply by rrho (g/cm^3) 
        fluxu=pco2      *kwco2*dtbgc*Kh*1e-6*rrho ! to get fluxes in kmol/m^2      
+!JT set limit for CO2 outgassing to avoid negative DIC concentration, set minimum DIC concentration to 1e-5 kmol/m3 
+       fluxu=min(fluxu,fluxd-(1e-5 - ocetra(i,j,k,isco212))*pddpo(i,j,1))
 #ifdef natDIC
        natfluxd=278.0*rpp0*kwco2*dtbgc*Kh*1e-6*rrho
        natfluxu=natpco2   *kwco2*dtbgc*Kh*1e-6*rrho 
+       natfluxu=min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
 #endif
 
        atmflx(i,j,iatmco2)=(fluxu-fluxd)
@@ -398,10 +404,10 @@
        oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800)*rpp0)
        ocetra(i,j,1,ioxygen)=ocetra(i,j,1,ioxygen)-oxflux/pddpo(i,j,1)
 ! Surface flux of gaseous nitrogen (same piston velocity as for O2)
-       niflux=kwo2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
+       niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
        ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
 ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-       n2oflux=kwo2*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*rpp0) 
+       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2o*rpp0) 
        ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
 #ifdef CFC
 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)

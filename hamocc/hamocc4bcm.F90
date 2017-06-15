@@ -121,12 +121,12 @@
 
 
 !--------------------------------------------------------------------
-! Net solar radiation: multiply  with sea ice concentration
+! Net solar radiation 
 !
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
-        strahl(i,j)=pfswr(i,j)*(1.-MIN(psicomo(i,j),0.9))
+        strahl(i,j)=pfswr(i,j)
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
@@ -247,7 +247,7 @@
 #endif
 
 
-      CALL CYANO(kpie,kpje,kpke,pddpo,omask)
+      CALL CYANO(kpie,kpje,kpke,ptho,pddpo,omask)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -392,7 +392,7 @@
 !$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------
-! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
+! Pass dms flux. Convert unit from kmol/m^2 to kg DMS/m^2/s. DMS=(CH3)2S %Tjiputra
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie

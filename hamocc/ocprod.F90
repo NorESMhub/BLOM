@@ -14,6 +14,8 @@
 !      - Cautious code clean-up
 !     Tjiputra               *UNI-RESEARCH*   2015.11.25
 !      - Implemented natural DIC/ALK/CALC
+!     I. Kriest, GEOMAR, 11.08.2016
+!      - modified stoichiometry for denitrification (affects NO3, N2, Alk)
 !
 !     Purpose
 !     -------
@@ -125,6 +127,7 @@
       REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx2000
       REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx4000
       REAL, DIMENSION(kpie,kpje)      :: aux2d_phosy 
+      REAL, DIMENSION(kpie,kpje)      :: aux2d_dnit 
       REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_phosy
 #ifdef AGG
       REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_eps
@@ -153,6 +156,7 @@
       aux2d_calflx2000(:,:)=0.
       aux2d_calflx4000(:,:)=0.
       aux2d_phosy     (:,:)=0.  
+      aux2d_dnit      (:,:)=0.  
       aux3d_phosy   (:,:,:)=0.
 #ifdef AGG
       aux3d_eps     (:,:,:)=0.
@@ -532,7 +536,7 @@
 !#endif /*__c_isotopes*/
 
          ocetra(i,j,k,ialkali)=                                        &
-     &   ((ocetra(i,j,k,ialkali)-2.*delcar-rnit*dtr)*bdp               &
+     &   ((ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr)*bdp           &
      &    +ocetra(i,j,k,ialkali)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 
          ocetra(i,j,k,ioxygen)=                                        &
@@ -561,7 +565,7 @@
      &   ((ocetra(i,j,k,inatsco212)-delcar+rcar*dtr)*bdp               &
      &    +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
          ocetra(i,j,k,inatalkali)=                                     &
-     &   ((ocetra(i,j,k,inatalkali)-2.*delcar-rnit*dtr)*bdp            &
+     &   ((ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr)*bdp        &
      &    +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
          ocetra(i,j,k,inatcalc)=                                       &
      &   ((ocetra(i,j,k,inatcalc)+delcar)*bdp                          &
@@ -760,7 +764,7 @@
      &    ((ocetra(i,j,k,isco212)+rcar*remin)*bdp                      &
      &     +ocetra(i,j,k,isco212)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,ialkali)=                                     &
-     &    ((ocetra(i,j,k,ialkali)-rnit*remin)*bdp                      &
+     &    ((ocetra(i,j,k,ialkali)-(rnit+1)*remin)*bdp                  &
      &     +ocetra(i,j,k,ialkali)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,ioxygen)=                                     &
      &    ((ocetra(i,j,k,ioxygen)-ro2ut*remin)*bdp                     &
@@ -774,7 +778,7 @@
      &    ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                   &
      &     +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,inatalkali)=                                  &
-     &    ((ocetra(i,j,k,inatalkali)-rnit*remin)*bdp                   &
+     &    ((ocetra(i,j,k,inatalkali)-(rnit+1)*remin)*bdp               &
      &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 #endif
 #ifdef __c_isotopes
@@ -872,7 +876,7 @@
 #endif /*AGG*/	    
 	    
                remin=0.05*drempoc*MIN(ocetra(i,j,k,idet),               &
-     &                           0.5*ocetra(i,j,k,iano3)/rnit23)
+     &                           0.5*ocetra(i,j,k,iano3)/rdnit1)
 
                detref=remin/(ocetra(i,j,k,idet)+1.e-60)                        ! P-units
 #ifdef __c_isotopes
@@ -881,7 +885,7 @@
 #endif
 
                remin2o=dremn2o*MIN(ocetra(i,j,k,idet),                    &
-     &	                        0.003*ocetra(i,j,k,ian2o)/(2*ro2ut))
+     &	                        0.003*ocetra(i,j,k,ian2o)/rdn2o1)
                detrl=remin2o/(ocetra(i,j,k,idet)+1.e-60)                       ! detrl?
 #ifdef __c_isotopes
                rl13=detrl*ocetra(i,j,k,idet13)                                 ! C-units
@@ -889,14 +893,14 @@
 #endif
 
             ocetra(i,j,k,ialkali)=                                     &
-     &    ((ocetra(i,j,k,ialkali)-rnit*(remin+remin2o))*bdp            &
+     &    ((ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o)*bdp        &
      &     +ocetra(i,j,k,ialkali)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,isco212)=                                     &
      &    ((ocetra(i,j,k,isco212)+rcar*(remin+remin2o))*bdp            &
      &     +ocetra(i,j,k,isco212)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 #ifdef natDIC
             ocetra(i,j,k,inatalkali)=                                  &
-     &    ((ocetra(i,j,k,inatalkali)-rnit*(remin+remin2o))*bdp         &
+     &    ((ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o)*bdp     &
      &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,inatsco212)=                                  &
      &    ((ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o))*bdp         &
@@ -930,17 +934,21 @@
      &    ((ocetra(i,j,k,iphosph)+(remin + remin2o))*bdp               &
      &     +ocetra(i,j,k,iphosph)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,iano3)=                                       &
-     &    ((ocetra(i,j,k,iano3)-rnit23*remin+rnit*(remin + remin2o))*bdp&
+     &    ((ocetra(i,j,k,iano3)-rdnit1*remin)*bdp                      &
      &     +ocetra(i,j,k,iano3)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,igasnit)=                                     &
-     &    ((ocetra(i,j,k,igasnit)+rnit13*remin + 2*ro2ut*remin2o)*bdp  &
+     &    ((ocetra(i,j,k,igasnit)+rdnit2*remin + rdn2o2*remin2o)*bdp   &
      &     +ocetra(i,j,k,igasnit)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,iiron)=                                       &
      &    ((ocetra(i,j,k,iiron)+riron*(remin + remin2o))*bdp           &
      &     +ocetra(i,j,k,iiron)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
             ocetra(i,j,k,ian2o)=                                       &
-     &    ((ocetra(i,j,k,ian2o)-2*ro2ut*remin2o)*bdp                   &
+     &    ((ocetra(i,j,k,ian2o)-rdn2o1*remin2o)*bdp                    &
      &     +ocetra(i,j,k,ian2o)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+
+! nitrate loss through denitrification in kmol N m-2
+          aux2d_dnit(i,j)      = aux2d_dnit(i,j) + rdnit1*remin*bdp 
+
 
 #ifdef AGG
 !***********************************************************************
@@ -958,6 +966,8 @@
          ENDIF
 30    CONTINUE
 !$OMP END PARALLEL DO
+      call accsrf(jintdnit,aux2d_dnit,omask,0) 
+
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
@@ -1002,14 +1012,14 @@
      &       ((ocetra(i,j,k,idet)-remin)*bdp                           &
      &        +ocetra(i,j,k,idet)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
                ocetra(i,j,k,ialkali)=                                  &
-     &       ((ocetra(i,j,k,ialkali)-rnit*remin)*bdp                   &
+     &       ((ocetra(i,j,k,ialkali)-(rnit+1)*remin)*bdp               &
      &        +ocetra(i,j,k,ialkali)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
                ocetra(i,j,k,isco212)=                                  &
      &       ((ocetra(i,j,k,isco212)+rcar*remin)*bdp                   &
      &        +ocetra(i,j,k,isco212)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
 #ifdef natDIC
                ocetra(i,j,k,inatalkali)=                               &
-     &       ((ocetra(i,j,k,inatalkali)-rnit*remin)*bdp                &
+     &       ((ocetra(i,j,k,inatalkali)-(rnit+1)*remin)*bdp            &
      &        +ocetra(i,j,k,inatalkali)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
                ocetra(i,j,k,inatsco212)=                               &
      &       ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                &

@@ -264,6 +264,12 @@ c --- Store 2d fields
       call wrtsrf(jintphosy(iogrp),INT_PHOSY(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'ppint',    
      .  'Integrated primary production',' ','mol C m-2 s-1')
+      call wrtsrf(jintnfix(iogrp),INT_NFIX(iogrp),
+     .  1e3,0.,cmpflg,'nfixint',    
+     .  'Integrated nitrogen fixation',' ','mol N m-2')
+      call wrtsrf(jintdnit(iogrp),INT_DNIT(iogrp),
+     .  1e3,0.,cmpflg,'dnitint',    
+     .  'Integrated denitrification',' ','mol N m-2')
       call wrtsrf(jcarflx0100(iogrp),CARFLX0100(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100',
      .  'C flux at 100m',' ','mol C m-2 s-1')
@@ -583,6 +589,8 @@ c --- Initialise fields
       call inisrf(jsrfsilica(iogrp),0.)       
       call inisrf(jsrfiron(iogrp),0.)       
       call inisrf(jintphosy(iogrp),0.)       
+      call inisrf(jintnfix(iogrp),0.)       
+      call inisrf(jintdnit(iogrp),0.)       
       call inisrf(jcarflx0100(iogrp),0.)       
       call inisrf(jcarflx0500(iogrp),0.)       
       call inisrf(jcarflx1000(iogrp),0.)       
@@ -793,6 +801,10 @@ c
      .  'Surface dissolved iron',' ','mol Fe m-3',0)
       call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',
      .  'Integrated primary production',' ','mol C m-2 s-1',0)
+      call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',
+     .  'Integrated nitrogen fixation',' ','mol N m-2',0)
+      call ncdefvar3d(INT_DNIT(iogrp),cmpflg,'p','dnitint',
+     .  'Integrated denitrification',' ','mol N m-2',0)
       call ncdefvar3d(CARFLX0100(iogrp),cmpflg,'p','carflx0100',
      .  'C flux at 100m',' ','mol C m-2 s-1',0)
       call ncdefvar3d(CARFLX0500(iogrp),cmpflg,'p','carflx0500',

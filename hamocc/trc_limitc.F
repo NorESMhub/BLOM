@@ -1,4 +1,4 @@
-      subroutine trc_limitc()
+      subroutine trc_limitc(nn)
 c***********************************************************************
 c
 c**** *SUBROUTINE trc_limitc* - remove negative tracer values.
@@ -27,13 +27,15 @@ c
 #include "common_trc.h"
 #include "common_blocks.h"
 c
-      integer       :: i,j,l,nt
+      integer       :: nn
+      integer       :: i,j,l,nt,kn
       real          :: trbudo(ntrbgc),trbudn,q
-c      real          :: trbudo2(ntrbgc),q2
 c
 c --- ------------------------------------------------------------------
 c --- - compute tracer budgets before removing negative values
 c --- ------------------------------------------------------------------
+c
+      kn=1+nn
 c
       do nt=1,ntrbgc
 c
@@ -43,7 +45,7 @@ c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=util1(i,j)+trc(i,j,1,itrbgc+nt-1)*dp(i,j,1)*scp2(i,j)
+            util1(i,j)=util1(i,j)+trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
           enddo
           enddo
         enddo
@@ -63,7 +65,7 @@ c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,1,nt) = max(trc(i,j,1,nt),0.0)
+              trc(i,j,kn,nt) = max(trc(i,j,kn,nt),0.0)
           enddo
           enddo
         enddo
@@ -83,7 +85,7 @@ c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=util1(i,j)+trc(i,j,1,itrbgc+nt-1)*dp(i,j,1)*scp2(i,j)
+            util1(i,j)=util1(i,j)+trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
           enddo
           enddo
         enddo
@@ -96,7 +98,7 @@ c$OMP PARALLEL DO
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trc(i,j,1,itrbgc+nt-1) = trc(i,j,1,itrbgc+nt-1)*q
+            trc(i,j,kn,itrbgc+nt-1) = trc(i,j,kn,itrbgc+nt-1)*q
           enddo
           enddo
         enddo

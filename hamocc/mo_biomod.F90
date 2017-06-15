@@ -14,6 +14,10 @@
 !     --------
 !     note: kbo,bolay shall be moved to mo_control_bgc
 !     
+!     I. Kriest, GEOMAR, 11.08.2016
+!     - included T-dependence of cyanobacteria growth
+!     - modified stoichiometry for denitrification
+! 
 !     Purpose
 !     -------
 !     - declaration and memory allocation.
@@ -41,13 +45,14 @@
 
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
-      REAL :: ro2ut,rcar,rnit,rnoi,rnit23,rnit13,rcalc,ropal,bluefix
+      REAL :: ro2ut,rcar,rnit,rnoi,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
+      REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14
       REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o
       REAL :: dphymor,dzoomor,dremopal
       REAL :: dremsul
       REAL :: psedi,csedi,ssedi
-      REAL :: perc_diron, riron, fesoly, relaxfe, wdust,bolaymin 
+      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust,bolaymin 
       REAL :: perc_disil
       REAL :: ctochl, atten_w, atten_c, atten_f
       REAL :: vol0

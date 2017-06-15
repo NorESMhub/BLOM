@@ -50,7 +50,7 @@
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,INT_PHOSY     =0    ,  &
-     & SRF_NATCO2FX  =0    ,                                            &
+     & INT_NFIX      =0    ,INT_DNIT      =0    ,SRF_NATCO2FX  =0    ,  &
      & CARFLX0100    =0    ,CARFLX0500    =0    ,CARFLX1000    =0    ,  &
      & CARFLX2000    =0    ,CARFLX4000    =0    ,CARFLX_BOT    =0    ,  &
      & BSIFLX0100    =0    ,BSIFLX0500    =0    ,BSIFLX1000    =0    ,  &
@@ -103,7 +103,7 @@
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
      & SRF_SILICA        ,SRF_DIC           ,INT_PHOSY         ,        &
-     & SRF_NATCO2FX      ,                                              &
+     & INT_NFIX          ,INT_DNIT          ,SRF_NATCO2FX      ,        &
      & CARFLX0100        ,CARFLX0500        ,CARFLX1000        ,        &
      & CARFLX2000        ,CARFLX4000        ,CARFLX_BOT        ,        &
      & BSIFLX0100        ,BSIFLX0500        ,BSIFLX1000        ,        &
@@ -188,6 +188,8 @@
      &          jsrfsilica = 0 ,                                        &
      &          jsrfdic    = 0 ,                                        &
      &          jintphosy  = 0 ,                                        &
+     &          jintnfix   = 0 ,                                        &
+     &          jintdnit   = 0 ,                                        &
      &          jcarflx0100= 0 ,                                        &
      &          jcarflx0500= 0 ,                                        &
      &          jcarflx1000= 0 ,                                        &
@@ -469,6 +471,10 @@
         jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
         IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
+        IF (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jintnfix(n)=i_bsc_m2d*min(1,INT_NFIX(n))
+        IF (INT_DNIT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
         IF (CARFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx0100(n)=i_bsc_m2d*min(1,CARFLX0100(n))
         IF (CARFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 

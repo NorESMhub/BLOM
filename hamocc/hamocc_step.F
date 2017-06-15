@@ -16,7 +16,7 @@ c
       integer :: m,n,mm,nn,k1m,k1n
       integer :: l
 c
-      call trc_limitc
+      call trc_limitc(nn)
 c
       call micom2hamocc(m,n,mm,nn)
 c

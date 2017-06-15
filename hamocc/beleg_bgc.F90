@@ -20,6 +20,10 @@
 !       unit conversion is done using in situ density
 !     - code clean up
 !
+!     I. Kriest, GEOMAR, 11.08.2016
+!     - included T-dependence of cyanobacteria growth
+!     - modified stoichiometry for denitrification
+! 
 !     Purpose
 !     -------
 !     - set start values for  bgc variables.
@@ -126,7 +130,7 @@
       grami=1.e-10              !i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
 
 !ik addded parameter definition; taken from OCPROD.F
-      remido=0.025*dtb      !1/d -remineralization rate (of DOM)
+      remido=0.004*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
       zinges = 0.5          !dimensionless fraction -assimilation efficiency
       epsher = 0.9          !dimensionless fraction -fraction of grazing egested      
@@ -179,27 +183,50 @@
 #endif
 
 ! nirogen fixation by blue green algae
-   
-      bluefix=0.005*dtb     !1/d
+      bluefix=0.005*dtb       !1/d
+
+! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
+! Factors tf2, tf1 and tf0 are a polynomial (2nd order) 
+! approximation to the functional relationship by Breitbarth et al. (2007),
+! for temperature dependence of Trichodesmium growth, their eq. (2)
+! The relation will be scaled to their max. growth rate, tff.
+! Note that the second order approx. is basically similar to their
+! function 2 for T-dependent nitrogen fixation multiplied by 4 
+! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
+      tf2 = -0.0042
+      tf1 = 0.2253
+      tf0 = -2.7819
+      tff = 0.2395  
 
 ! extended redfield ratio declaration
 ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
 ! P:N:C:-O2 + 1:16:122:172
-
       ro2ut=172. 
       rcar=122.
       rnit=16.
       rnoi=1./rnit
-      rnit23 = ro2ut*2./3. !114 rno3 * 2 / 3 for nitrate reduction during denitrification
-      rnit13 = ro2ut*1./3. !57  rno3 * 1 / 3 for n2 production during denitrification
+
+! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
+! equation 18. Note that their R_0=ro2ut-2*rnit.
+      rdnit1=0.8*ro2ut-rnit      ! moles nitrate used for remineralisation of 1 mole P
+      rdnit2=0.4*ro2ut           ! moles N2 released  for remineralisation of 1 mole P
+
+! stoichiometric ratios for N2O loss by "intermediate dinitrification". Note that there
+! is no nitrate created by this process, organic N is released as N2
+      rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
+      rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
+
 
 #ifdef AGG
-      rcalc = 14.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
-      ropal = 10.5 ! iris 25 !opal to organic phosphorous production ratio      
+      rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio
+      ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
+#elif defined(WLIN)
+      rcalc = 48.  ! calcium carbonate to organic phosphorous production ratio
+      ropal = 44.  ! opal to organic phosphorous production ratio      
 #else
-      rcalc = 40. ! iris 40 !calcium carbonate to organic phosphorous production ratio
-      ropal = 30. ! iris 25 !opal to organic phosphorous production ratio      
+      rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
+      ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
 #endif
 
 ! parameters for sw-radiation attenuation
@@ -218,12 +245,13 @@
 
 !ik weight percent iron in dust deposition times Fe solubility
 ! the latter three values come from Johnson et al., 1997
-      perc_diron = 0.035 * 0.01 / 55.85
-!      riron= 5.*rcar*1.e-6  
-      riron= 3.*rcar*1.e-6       ! 15/06/06 changed ka 
-      fesoly=0.6*1.e-9 !max. diss. iron concentration in deep water 
-!      relaxfe = 0.05/365.*dtb    ! set to this to get rid of sfc P in
-      relaxfe = 0.005/365.*dtb    ! default
+!      fetune=1.0/3.0              ! factor introduced to tune deposistion/solubility
+!      fetune=0.4                  ! factor introduced to tune deposistion/solubility
+      fetune=0.42                  ! factor introduced to tune deposistion/solubility
+      perc_diron = fetune * 0.035 * 0.01 / 55.85
+      riron= 5.*rcar*1.e-6        ! fe to P ratio in organic matter
+      fesoly=0.5*1.e-9            ! max. diss. iron concentration in deep water 
+      relaxfe = 0.05/365.*dtb
 
 !                        
 ! Set constants for calculation of dms ( mo_carbch )
@@ -307,9 +335,9 @@
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rnoi         = ',rnoi
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              rnit23       = ',rnit23
+     &'*                              rdnit1       = ',rdnit1
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              rnit13       = ',rnit13
+     &'*                              rdnit2       = ',rdnit2
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rcalc        = ',rcalc
       WRITE(io_stdo_bgc,*)                                             &
@@ -381,14 +409,15 @@
       SinkExp = 0.62
       FractDim = 1.62
 !      Stick = 0.40
-      Stick = 0.25
+!      Stick = 0.25
+      Stick = 0.15
       cellmass = 0.012 / rnit ![nmol P]
 !ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
       cellsink = 1.40 *dtb! [m/d]
 !ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
 !      shear = 86400. !shear in the mixed layer,   1.0  d-1
-      shear = 64800. !shear in the mixed layer,   0.75 d-1
-!      shear = 43200. !shear in the mixed layer,   0.5  d-1
+!      shear = 64800. !shear in the mixed layer,   0.75 d-1
+      shear = 43200. !shear in the mixed layer,   0.5  d-1
       fsh = 0.163 * shear *dtb
       fse = 0.125 * 3.1415927 * cellsink * 100.
       alow1 = 0.002 !diameter of smallest particle [cm]
@@ -509,7 +538,7 @@
          ocetra(i,j,k,ian2o)  =0. 
          ocetra(i,j,k,idms)   =0. 
          ocetra(i,j,k,ifdust) =0. 
-         ocetra(i,j,k,iiron)  =0.6*1.e-9
+         ocetra(i,j,k,iiron)  =fesoly
          ocetra(i,j,k,iprefo2)=0.
          ocetra(i,j,k,iprefpo4)=0.
          ocetra(i,j,k,iprefalk)=0.
