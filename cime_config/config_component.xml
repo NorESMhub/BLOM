@@ -69,6 +69,16 @@
   </entry>
 
   <!--- Note that positive second match will overwrite positive first match -->
+  <entry id="MICOM_CO2_TYPE">
+    <type>char</type>
+    <valid_values>constant,prognostic,diagnostic</valid_values>
+    <default_value>constant</default_value>
+    <group>run_component_micom</group>
+    <file>env_run.xml</file>
+    <desc>Determines provenance of atmospheric CO2 for gas flux computation.
+      This option is used in the MICOM ecosystem model.
+      The default is constant.</desc>
+  </entry>
 
   <entry id="MICOM_TAVG_R8">
     <type>char</type>
