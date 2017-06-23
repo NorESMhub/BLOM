@@ -53,7 +53,7 @@ else if ( $OCN_GRID == tnx1.5v1) then
 else if ( $OCN_GRID == tnx1v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
 else if ( $OCN_GRID == tnx1v3) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170327
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170612
 else if ( $OCN_GRID == tnx1v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170601
 else if ( $OCN_GRID == tnx0.25v1) then
