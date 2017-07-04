@@ -58,6 +58,10 @@ else if ( $OCN_GRID == tnx1v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170601
 else if ( $OCN_GRID == tnx0.25v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
+else if ( $OCN_GRID == tnx0.25v3) then
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170623
+else if ( $OCN_GRID == tnx0.25v4) then
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170619
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -435,7 +439,7 @@ else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
 else if ( $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set BACLIN = 3200.
   set BATROP = 64.
-else if ( $OCN_GRID == tnx0.25v1) then
+else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 800.
   set BATROP = 16.
   set MDV2HI = .15
