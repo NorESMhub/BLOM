@@ -6,6 +6,7 @@ c --- balance and apply surface forcing.
 c --- -----------------------------------------------------------------
 c
       use mod_xc
+      use mod_swabs, only: swbgal,swbgfc,swamxd
 c
       implicit none
 c
@@ -222,7 +223,7 @@ c --- --- bfltot > 0
           bfltot=g*(alfa*surflx(i,j)/spcifh
      .             -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j)=bfltot
-          bflpsw=g*alfa*(1.-redfac)*sswflx(i,j)/spcifh
+          bflpsw=g*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
           q=alpha0/g
@@ -232,7 +233,7 @@ c
           else
             lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
-          lei=1./(onem*betabl)
+          lei=1./(onem*swbgal(i,j))
           cus=rm0*ustar3
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
@@ -252,7 +253,7 @@ c
      .        +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
      .         -crs*pmxl*pmxl)*pmxl
 c
-          pradd=raddep*onem
+          pradd=swamxd*onem
           kfpl=kfpla(i,j,n)
 c      
           if (tkew.lt.0.and.pmxl.gt.mltmin*onem) then
@@ -314,41 +315,62 @@ c                    stop '(mxlayr)'
             endif
 c
             pmxl=max(mltmin*onem,pmxl)
-            tfsl=ttem(2)
-            sfsl=ssal(2)
-#ifdef TRC
-            do nt=1,ntr
-              trfsl(nt)=ttrc(nt,2)
-            enddo
-#endif
             dpfsl=pres(3)-pmxl
-            delp(2)=pmxl-pres(2)
-c
-c --- ----- Restore top layer to its reference pressure thickness
             dptopl=min(thktop*onem,.5*(pmxl-pres(1)))
-            if (delp(1).gt.dptopl) then
-              dpt=delp(1)-dptopl
-              q=1./(delp(2)+dpt)
-              ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
-              ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
+c
+            if (pmxl.lt.pres(2)) then
+c
+              q=1./dpfsl
+              tfsl=(ttem(2)*delp(2)+ttem(1)*(pres(2)-pmxl))*q
+              sfsl=(ssal(2)*delp(2)+ssal(1)*(pres(2)-pmxl))*q
+              ttem(2)=ttem(1)
+              ssal(2)=ssal(1)
 #ifdef TRC
               do nt=1,ntr
-                ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
+                trfsl(nt)=(ttrc(nt,2)*delp(2)
+     .                    +ttrc(nt,1)*(pres(2)-pmxl))*q
+                ttrc(nt,2)=ttrc(nt,1)
               enddo
 #endif
-              delp(2)=delp(2)+dpt
+              delp(2)=pmxl-pres(1)-dptopl
+c
             else
-              dpt=dptopl-delp(1)
-              q=1./(delp(1)+dpt)
-              ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
-              ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
+c
+              tfsl=ttem(2)
+              sfsl=ssal(2)
 #ifdef TRC
               do nt=1,ntr
-                ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
+                trfsl(nt)=ttrc(nt,2)
               enddo
 #endif
-              delp(2)=delp(2)-dpt
+              delp(2)=pmxl-pres(2)
+c
+              if (delp(1).gt.dptopl) then
+                dpt=delp(1)-dptopl
+                q=1./(delp(2)+dpt)
+                ttem(2)=(ttem(2)*delp(2)+ttem(1)*dpt)*q
+                ssal(2)=(ssal(2)*delp(2)+ssal(1)*dpt)*q
+#ifdef TRC
+                do nt=1,ntr
+                  ttrc(nt,2)=(ttrc(nt,2)*delp(2)+ttrc(nt,1)*dpt)*q
+                enddo
+#endif
+                delp(2)=delp(2)+dpt
+              else
+                dpt=dptopl-delp(1)
+                q=1./(delp(1)+dpt)
+                ttem(1)=(ttem(1)*delp(1)+ttem(2)*dpt)*q
+                ssal(1)=(ssal(1)*delp(1)+ssal(2)*dpt)*q
+#ifdef TRC
+                do nt=1,ntr
+                  ttrc(nt,1)=(ttrc(nt,1)*delp(1)+ttrc(nt,2)*dpt)*q
+                enddo
+#endif
+                delp(2)=delp(2)-dpt
+              endif
+c
             endif
+c
             delp(1)=dptopl
 c
 c --- ------------------------------------------------------------------
@@ -466,22 +488,22 @@ c --- ----- Apply brine forcing to the water column below surface layer
             endif
 c
 c --- ----- Apply heat forcing to the water column below surface layer
-            pswbas=(1.-redfac)*exp(-lei*delp(1))
+            pswbas=swbgfc(i,j)*exp(-lei*delp(1))
             pswup=pswbas
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pmxl))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pmxl))
             q=delt1*g/delp(2)
             ttem(2)=ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup=pswlo
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(3)))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
             if (dpfsl.gt.onemu) then
               tfsl=tfsl-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                  /(spcifh*dpfsl)
               pswup=pswlo
             endif
             k=kfpl
-            do while (k.le.kmax)
+            do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
                 ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                          /(spcifh*delp(k))
@@ -951,16 +973,16 @@ c --- ----- Apply brine forcing to the water column below surface layer
             endif
 c
 c --- ----- Apply heat forcing to the water column below surface layer
-            pswbas=(1.-redfac)*exp(-lei*delp(1))
+            pswbas=swbgfc(i,j)*exp(-lei*delp(1))
             pswup=pswbas
-            pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(3)))
+            pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(3)))
             q=delt1*g/delp(2)
             ttem(2)=ttem(2)-(pswup-pswlo)*sswflx(i,j)*q/spcifh
             pswup=pswlo
             k=kfpl
-            do while (k.le.kmax)
+            do while (k.lt.kmax)
               if (delp(k).gt.onemu) then
-                pswlo=(1.-redfac)*exp(-lei*min(pradd,pres(k+1)))
+                pswlo=swbgfc(i,j)*exp(-lei*min(pradd,pres(k+1)))
                 q=delt1*g/delp(k)
                 ttem(k)=ttem(k)-(pswup-pswlo)*sswflx(i,j)*delt1*g
      .                          /(spcifh*delp(k))

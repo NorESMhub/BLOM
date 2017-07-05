@@ -3,6 +3,7 @@ c
 c --- NERSC version of thermf. 
 c
       use mod_xc
+      use mod_swabs, only: swbgal,swbgfc
       use mod_ben02, only: tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,
      .                     ntda
       use mod_thdysi, only: tsrfm,ticem,albi_f,albi_m,albs_f,albs_m,
@@ -273,7 +274,7 @@ c --- ------------------------------------------------------------------
 c
 c --- --- Predict temperature change in mixed layer after a leapfrog
 c --- --- time step due to heat fluxes
-          swfac=1.-(1.-redfac)*exp(-hotl/betabl)
+          swfac=1.-swbgfc(i,j)*exp(-hotl/swbgal(i,j))
           dtml=(swfac*qsww+qnsw)*2.*dt/(cpsw*rhowat*hotl)
 c
           if     (totl+dtml.lt.tice_f) then

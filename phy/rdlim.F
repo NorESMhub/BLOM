@@ -5,6 +5,7 @@ c --- Read limits file
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_swabs, only: swamth, jwtype, chlopt
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
       use data_mct, only: runid_mct, runtype_mct
@@ -25,8 +26,8 @@ c
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
      .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
      .  rmpmth,edwmth,mlrttp,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,
-     .  rm0,ce,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,
-     .  ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
+     .  rm0,ce,swamth,jwtype,chlopt,trxday,srxday,trxdpt,srxdpt,trxlim,
+     .  srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
      .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read namelists
@@ -93,6 +94,9 @@ c --- - print namelist on stdout
         write (lp,*) 'RI0',RI0
         write (lp,*) 'RM0',RM0
         write (lp,*) 'CE',CE
+        write (lp,*) 'SWAMTH ',trim(SWAMTH)
+        write (lp,*) 'JWTYPE',JWTYPE
+        write (lp,*) 'CHLOPT ',trim(CHLOPT)
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'TRXDPT',TRXDPT
@@ -298,6 +302,9 @@ c
       call xcbcst(ri0)
       call xcbcst(rm0)
       call xcbcst(ce)
+      call xcbcst(swamth)
+      call xcbcst(jwtype)
+      call xcbcst(chlopt)
       call xcbcst(trxday)
       call xcbcst(srxday)
       call xcbcst(trxdpt)
@@ -688,6 +695,9 @@ c
         write (lp,'(a,f10.4)') 'ri0:               ',ri0
         write (lp,'(a,f10.4)') 'rm0:               ',rm0
         write (lp,'(a,f10.4)') 'ce:                ',ce
+        write (lp,'(a,a60)')   'swamth:            ',swamth
+        write (lp,'(a,i10)')   'jwtype:            ',jwtype
+        write (lp,'(a,a60)')   'chlopt:            ',chlopt
         write (lp,'(a,f10.4)') 'trxday:            ',trxday
         write (lp,'(a,f10.4)') 'srxday:            ',srxday
         write (lp,'(a,f10.4)') 'trxdpt:            ',trxdpt

@@ -183,9 +183,6 @@ c --- 'wpgf'   = weight for time averaging of pressure gradient force
 c --- 'mltmin' = minimum mixed-layer thickness (m)
 c --- 'thktop' = thickness of top layer (m)
 c --- 'thkbot' = thickness of bottom boundary layer (pressure units)
-c --- 'raddep' = maximum depth of light penetration (m)
-c --- 'redfac' = red fraction of light aborbed in mixed layer (jerlov 1)
-c --- 'betabl' = blue light extinction coefficient (m) (jerlov 1)
 c --- 'egc'    = the parameter c in the Eden and Greatbatch (2008)
 c ---            parameterization
 c --- 'eggam'  = the parameter gamma in the Eden and Greatbatch (2008)
@@ -222,8 +219,8 @@ c ---            from steering level
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
-     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,raddep,
-     .     redfac,betabl,egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce
+     .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,egc,
+     .     eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
@@ -231,11 +228,9 @@ c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
-     .                wpgf,mltmin,thktop,thkbot,raddep,redfac,betabl,
-     .                egc,eggam,egmndf,egmxdf,egidfq,ri0,rm0,ce,
-     .                csdiag,cnsvdi,edsprs,
-     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
-     .                mlrttp
+     .                wpgf,mltmin,thktop,thkbot,egc,eggam,egmndf,egmxdf,
+     .                egidfq,ri0,rm0,ce,csdiag,cnsvdi,edsprs,expcnf,
+     .                mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

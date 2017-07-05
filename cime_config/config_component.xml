@@ -80,19 +80,10 @@
       The default is constant.</desc>
   </entry>
 
-  <entry id="MICOM_TAVG_R8">
-    <type>char</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_micom</group>
-    <file>env_build.xml</file>
-    <desc>If TRUE then time-averaged history files from MICOM will contain double precision output</desc>
-  </entry>
-
   <entry id="MICOM_TURBULENT_CLOSURE">
     <type>char</type>
     <valid_values></valid_values>
-    <default_value></default_value>
+    <default_value>oneeq advection</default_value>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
     <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>

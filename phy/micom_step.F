@@ -5,6 +5,7 @@ c --- integrate a model time step
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_swabs, only: updswa
       use mod_dia
 c
       implicit none
@@ -98,6 +99,12 @@ c --- Get forcing
 c --- ------------------------------------------------------------------
 c
       call getfrc
+c
+c --- ------------------------------------------------------------------
+c --- Update arrays related to shortwave radiation absorption.
+c --- ------------------------------------------------------------------
+c
+      call updswa
 c
       getfrc_time=gettime()
 c

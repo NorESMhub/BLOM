@@ -5,6 +5,7 @@ c --- initialize the model
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_swabs, only: iniswa
       use mod_dia
 c
       implicit none
@@ -110,6 +111,13 @@ c --- Define coefficients for equation of state functions
 c --- ------------------------------------------------------------------
 c
       call inieos
+c
+c --- ------------------------------------------------------------------
+c --- Initialize shortwave radiation absorption
+c --- ------------------------------------------------------------------
+c
+      call iniswa
+c
 c
 #if defined(TRC) && defined(TKE)
 c --- ------------------------------------------------------------------
