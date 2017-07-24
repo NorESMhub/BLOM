@@ -1,28 +1,28 @@
 #! /bin/csh -f 
 cd $1
-setenv CASE `./xmlquery -file env_case.xml CASE -value`
-setenv CONFIG_OCN_FILE `./xmlquery -file env_case.xml CONFIG_OCN_FILE -value`
-setenv CASEROOT `./xmlquery -file env_case.xml CASEROOT -value`
-setenv SRCROOT `./xmlquery -file env_case.xml SRCROOT -value`
-setenv EXEROOT `./xmlquery -file env_build.xml EXEROOT -value`
-setenv OBJROOT `./xmlquery -file env_build.xml OBJROOT -value`
-setenv OCN_GRID `./xmlquery -file env_build.xml OCN_GRID -value`
+setenv CASE `./xmlquery --file env_case.xml CASE --value`
+setenv CONFIG_OCN_FILE `./xmlquery CONFIG_OCN_FILE --value`
+setenv CASEROOT `./xmlquery CASEROOT --value`
+setenv SRCROOT `./xmlquery  SRCROOT --value`
+setenv EXEROOT `./xmlquery  EXEROOT --value`
+setenv OBJROOT `./xmlquery  OBJROOT --value`
+setenv OCN_GRID `./xmlquery OCN_GRID --value`
 setenv CONFIG_OCN_DIR `dirname $CONFIG_OCN_FILE`
-setenv NTASKS_OCN `./xmlquery -file env_mach_pes.xml NTASKS_OCN -value`
-setenv DIN_LOC_ROOT `./xmlquery -file env_run.xml DIN_LOC_ROOT -value`
-setenv RUN_TYPE `./xmlquery -file env_run.xml RUN_TYPE -value`
-setenv CASEBUILD `./xmlquery -file env_case.xml CASEBUILD -value`
-setenv CCSM_CO2_PPMV `./xmlquery -file env_run.xml CCSM_CO2_PPMV -value`
-setenv OCN_NCPL `./xmlquery -file env_run.xml OCN_NCPL -value`
-setenv MICOM_COUPLING `./xmlquery -file env_run.xml MICOM_COUPLING -value`
-setenv RUNDIR `./xmlquery -file env_run.xml RUNDIR -value`
-setenv MICOM_TRACER_MODULES `./xmlquery -file env_build.xml MICOM_TRACER_MODULES -value`
-setenv MICOM_RIVER_NUTRIENTS `./xmlquery -file env_build.xml MICOM_RIVER_NUTRIENTS -value`
-setenv MICOM_TURBULENT_CLOSURE `./xmlquery -file env_build.xml MICOM_TURBULENT_CLOSURE -value`
-setenv GMAKE `./xmlquery -file env_build.xml GMAKE -value`
-setenv GMAKE_J `./xmlquery -file env_build.xml GMAKE_J -value`
-setenv OCN_CO2_TYPE `./xmlquery -file env_build.xml OCN_CO2_TYPE -value`
-setenv RUN_STARTDATE `./xmlquery -file env_run.xml RUN_STARTDATE -value`
+setenv NTASKS_OCN `./xmlquery NTASKS_OCN --value`
+setenv DIN_LOC_ROOT `./xmlquery DIN_LOC_ROOT --value`
+setenv RUN_TYPE `./xmlquery RUN_TYPE --value`
+setenv CASEBUILD `./xmlquery CASEBUILD --value`
+setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
+setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
+setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
+setenv RUNDIR `./xmlquery  RUNDIR --value`
+setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
+setenv MICOM_RIVER_NUTRIENTS `./xmlquery  MICOM_RIVER_NUTRIENTS --value`
+setenv MICOM_TURBULENT_CLOSURE `./xmlquery MICOM_TURBULENT_CLOSURE --value`
+setenv GMAKE `./xmlquery GMAKE --value`
+setenv GMAKE_J `./xmlquery  GMAKE_J --value`
+setenv OCN_CO2_TYPE `./xmlquery OCN_CO2_TYPE --value`
+setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
 
 cd $OBJROOT/ocn/obj
 

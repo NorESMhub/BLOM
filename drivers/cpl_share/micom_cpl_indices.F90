@@ -44,6 +44,9 @@ module micom_cpl_indices
   integer :: index_x2o_Faxa_lwdn       ! longwave radiation (down)        (W/m2   )
   integer :: index_x2o_Fioi_melth      ! heat flux from snow & ice melt   (W/m2   )
   integer :: index_x2o_Fioi_meltw      ! snow melt flux                   (kg/m2/s)
+  integer :: index_x2o_Fioi_bcpho      ! flux: Black Carbon hydrophobic release from sea ice component
+  integer :: index_x2o_Fioi_bcphi      ! flux: Black Carbon hydrophilic release from sea ice component
+  integer :: index_x2o_Fioi_flxdst     ! flux: dust release from sea ice component
   integer :: index_x2o_Fioi_salt       ! salt                             (kg(salt)/m2/s)
   integer :: index_x2o_Foxx_evap       ! evaporation flux                 (kg/m2/s)
   integer :: index_x2o_Faxa_prec         
@@ -78,6 +81,7 @@ contains
 
     type(mct_aVect) :: o2x      ! temporary
     type(mct_aVect) :: x2o      ! temporary
+
     integer          :: ncat  ! thickness category index
     character(len=2) :: cncat ! character version of ncat
     integer          :: ncol  ! column index
@@ -116,7 +120,10 @@ contains
     index_x2o_Faxa_lwdn     = mct_avect_indexra(x2o,'Faxa_lwdn')
     index_x2o_Fioi_melth    = mct_avect_indexra(x2o,'Fioi_melth')   
     index_x2o_Fioi_meltw    = mct_avect_indexra(x2o,'Fioi_meltw')
-    index_x2o_Fioi_salt     = mct_avect_indexra(x2o,'Fioi_salt')   
+    index_x2o_Fioi_salt     = mct_avect_indexra(x2o,'Fioi_salt') 
+    index_x2o_Fioi_bcpho    = mct_avect_indexra(x2o,'Fioi_bcpho')
+    index_x2o_Fioi_bcphi    = mct_avect_indexra(x2o,'Fioi_bcphi')
+    index_x2o_Fioi_flxdst   = mct_avect_indexra(x2o,'Fioi_flxdst')
     index_x2o_Faxa_prec     = mct_avect_indexra(x2o,'Faxa_prec')   
     index_x2o_Faxa_snow     = mct_avect_indexra(x2o,'Faxa_snow')   
     index_x2o_Faxa_rain     = mct_avect_indexra(x2o,'Faxa_rain')   
@@ -139,6 +146,7 @@ contains
     index_x2o_Faxa_dstwet4  = mct_avect_indexra(x2o,'Faxa_dstwet4')
     index_x2o_Sa_co2prog    = mct_avect_indexra(x2o,'Sa_co2prog',perrWith='quiet')
     index_x2o_Sa_co2diag    = mct_avect_indexra(x2o,'Sa_co2diag',perrWith='quiet')
+
     ! optional per thickness category fields
 
     ! convert cpl indices to mcog column indices
