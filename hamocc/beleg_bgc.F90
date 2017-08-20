@@ -59,6 +59,7 @@
       USE mo_control_bgc
       use mo_param1_bgc 
       USE mod_xc, only: mnproc
+      USE mo_ndep, only: ndepfile, ndepdir
 
 
       implicit none      
@@ -83,8 +84,11 @@
 
       integer :: p_joff,p_ioff
 
-      namelist /bgcnml/ atm_co2
-
+      namelist /bgcnml/ atm_co2, ndepfile
+!
+! Use default grid path for N deposition
+!
+      ndepdir=TRIM(path) 
 !
 ! Initialize overall time step counter.
 !

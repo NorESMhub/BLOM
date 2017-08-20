@@ -58,6 +58,7 @@
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
+      use mo_ndep, only: n_deposition 
 
       implicit none
 
@@ -211,7 +212,7 @@
 
 !---------------------------------------------------------------------
 !     Biogeochemistry
-
+      CALL n_deposition(kpie,kpje,kpke,kplyear,kplmon,pddpo,omask)   
       CALL OCPROD(kpie,kpje,kpke,ptho,pddpo,pdlxp,pdlyp,pdpio,ptiestu,  &
      &            ptiestw,kplmon,omask)
 
