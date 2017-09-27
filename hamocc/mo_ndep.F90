@@ -27,6 +27,8 @@ module mo_ndep
 !
 ! Changes: 
 ! --------
+!     Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
+!  
 !
 !********************************************************************************
 
@@ -43,7 +45,7 @@ use mod_dia,        only: iotype
 use mod_xc,         only: mnproc
 use mod_nctools,    only: ncfopn,ncgeti,ncfcls
 use mo_control_bgc, only: io_stdo_bgc,dtb
-use mo_param1_bgc,  only: iano3
+use mo_param1_bgc,  only: iano3,ialkali
 use mo_carbch,      only: ocetra
 
 implicit none 
@@ -100,6 +102,7 @@ do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
       ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndep(i,j)*dtb/365./pddpo(i,j,1)
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndep(i,j)*dtb/365./pddpo(i,j,1)
    end if
   enddo
 enddo

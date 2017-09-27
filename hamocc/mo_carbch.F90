@@ -54,6 +54,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
 #ifdef natDIC
+      REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC

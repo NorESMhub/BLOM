@@ -9,20 +9,24 @@
 !
 !     Modified
 !     --------
-!     S.Legutke,        *MPI-MaD, HH*    10.04.01
+!     S.Legutke,             *MPI-MaD, HH*    10.04.01
 !     - rename: ssso12(i,j,k)=sedlay(i,j,k,issso12 ) etc.; no equivalence statements
 !     - rename: powasi(i,j,k )=powtra(i,j,1,ipowasi) etc.; no equivalence statements
 !     - interfacing with ocean model
 !
-!     J.Tjiputra, BCCR 09.18.08
+!     J.Tjiputra,            *BCCR*           09.18.08
 !     - modified all carbon chemistry formulations following the OCMIP protocols
 !
-!     J.Schwinger       *GFI, UiB*       2013-04-22    
+!     J.Schwinger,           *GFI, UiB*       2013-04-22    
 !     - Use density prho consistent with MICOM for conversion to mol/kg
 !     - Calculate solubility of O2 and N2 every timestep, consistent with
 !       what is done for carbon chemistry. Array chemcm not used any more.
 !     - Added J.Tjiputras code for cfc- and sf6-fluxes
 !     - Cautious code clean-up
+!
+!     J.Schwinger,           *UNI-RESEARCH*   2017-08-30
+!      - Moved the accumulation of global fields for output to routine
+!        hamocc4bgc.
 !
 !     Purpose
 !     -------
@@ -196,6 +200,9 @@
 ! Carbon chemistry: Caculate equilibrium constants and solve for [H+] and
 ! carbonate alkalinity (ac)
       t    = ptho(i,j,k)
+      t2   = ptho(i,j,k)**2
+      t3   = ptho(i,j,k)**3
+      t4   = ptho(i,j,k)**4
       tk   = t + tzero
       tk100= tk/100.0
       s    = MAX(25.,psao(i,j,k))
@@ -250,9 +257,6 @@
       satoxy(i,j,k)=exp(oxy)*oxyco
 
       if (k.eq.1) then
-      t2   = ptho(i,j,k)**2
-      t3   = ptho(i,j,k)**3
-      t4   = ptho(i,j,k)**4
 ! Determine CO2 pressure and fugacity (in micoatm)
 ! NOTE: equation below for pCO2 needs requires CO2 in mol/kg
       pco2 = cu * 1.e6 / Kh
@@ -362,8 +366,8 @@
 !JT set limit for CO2 outgassing to avoid negative DIC concentration, set minimum DIC concentration to 1e-5 kmol/m3 
        fluxu=min(fluxu,fluxd-(1e-5 - ocetra(i,j,k,isco212))*pddpo(i,j,1))
 #ifdef natDIC
-       natfluxd=278.0*rpp0*kwco2*dtbgc*Kh*1e-6*rrho
-       natfluxu=natpco2   *kwco2*dtbgc*Kh*1e-6*rrho 
+       natfluxd=atm_co2_nat*rpp0*kwco2*dtbgc*Kh*1e-6*rrho
+       natfluxu=natpco2         *kwco2*dtbgc*Kh*1e-6*rrho 
        natfluxu=min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
 #endif
 
@@ -526,7 +530,7 @@
       ENDDO
 !$OMP END PARALLEL DO
 
-! Accumulate diagnostic 2d variables   
+!     Accumulate local 2d diagnostics 
       call accsrf(jco2fxd,aux2d_co2fxd,omask,0)
       call accsrf(jco2fxu,aux2d_co2fxu,omask,0)
       call accsrf(jpco2,aux2d_pco2,omask,0)
@@ -535,7 +539,6 @@
       call accsrf(jniflux,aux2d_niflux,omask,0)
       call accsrf(jdmsflux,aux2d_dmsflux,omask,0)
       call accsrf(jdms,aux2d_dms,omask,0)
-      call accsrf(jn2ofx,atmflx(1,1,iatmn2o),omask,0)
 #ifdef CFC
       call accsrf(jcfc11fx,aux2d_cfc11,omask,0)
       call accsrf(jcfc12fx,aux2d_cfc12,omask,0)
@@ -545,41 +548,16 @@
       call accsrf(jnatco2fx,aux2d_natco2fx,omask,0)
 #endif
  
-! Accumulate diagnostic layer variables 
-      call acclyr(jomegac,OmegaC,pddpo,1)
-      call acclyr(jn2o,ocetra(1,1,1,ian2o),pddpo,1) 
+!     Accumulate layer diagnostics
       call acclyr(jaou,aux3d_aou,pddpo,1) 
-#ifdef CFC
-      call acclyr(jcfc11,ocetra(1,1,1,icfc11),pddpo,1)
-      call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
-      call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
-#endif
-#ifdef natDIC
-      call acclyr(jnatomegac,natOmegaC,pddpo,1)
-#endif
 
-! Accumulate diagnostic level variables 
-      IF (sum(jlvlomegac+jlvlnatomegac+jlvln2o+jlvlaou).NE.0) THEN
+!     Accumulate local level diagnostics
+      IF (SUM(jlvlaou).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
-          call acclvl(jlvln2o,ocetra(1,1,1,ian2o),k,ind1,ind2,wghts)          
           call acclvl(jlvlaou,aux3d_aou,k,ind1,ind2,wghts)          
-#ifdef natDIC
-          call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
-#endif
         ENDDO 
       ENDIF
-#ifdef CFC
-      IF (SUM(jlvlcfc11+jlvlcfc12+jlvlsf6).NE.0) THEN
-        DO k=1,kpke
-          call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlcfc11,ocetra(1,1,1,icfc11),k,ind1,ind2,wghts)
-          call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
-          call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
-        ENDDO
-      ENDIF
-#endif
 
 
 ! -----------------------------------------------------------------

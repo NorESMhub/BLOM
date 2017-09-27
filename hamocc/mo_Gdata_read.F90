@@ -1,15 +1,17 @@
 module mo_Gdata_read
 
 !********************************************************************************
-!     J.Schwinger,        *Gfi, Bergen*    19.05.2011
+!     J.Schwinger,        *Gfi, Bergen*           2011-05-19
 !
 ! Modified
 ! --------
+!    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
+!    - Adapted this module to read the initial conditions for OMIP-BGC.
 !     
 ! Purpose
 ! -------
-!  - Routines for reading WOA and GLODAP gridded data netCDF files for
-!    initialisation of HAMOCC fields
+!  - Routines for reading initial condition files for OMIP-BGC, which are based
+!    on WOA 2013 and GLODAPv2 gridded data netCDF files
 !
 ! Description:
 ! ------------
@@ -32,8 +34,14 @@ module mo_Gdata_read
 !     is found get_region returns 0, which is the index of the 'global region'.
 !     Note that the regions are defined below in the module header.
 !
-!  -nz
-!     Number of z-levels in the data files.
+!  -nz_woa
+!     Number of z-levels in the WOA data files.
+!
+!  -nz_glo
+!     Number of z-levels in the GLODAP data files.
+!
+!  -nzmax
+!     Max nuber of z-levels (=nzwoa)
 !
 !  -zlev
 !     Depth of each z-level [m] in the current data file.
@@ -42,20 +50,21 @@ module mo_Gdata_read
 !********************************************************************************
 
 use netcdf
-use mod_xc,         only: mnproc,lp,xchalt
+use mod_xc,         only: mnproc,xchalt
 use mo_control_bgc, only: io_stdo_bgc
 
 implicit none
 
 private
 
-public:: set_Gdata,clean_Gdata,get_profile,get_region,nz,zlev
+public:: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds
 
 ! Number of latitudes, longitudes, and z-levels in the WOA and GLODAP data
-integer, parameter          :: nlon = 360
-integer, parameter          :: nlat = 180
-integer, parameter          :: nz   = 33
-
+integer, parameter          :: nlon   = 360
+integer, parameter          :: nlat   = 180
+integer, parameter          :: nz_woa = 102
+integer, parameter          :: nz_glo = 33
+integer, parameter          :: nzmax  = nz_woa
 ! Resolution of data in degree
 real, parameter             :: dres = 1.0
 
@@ -64,9 +73,6 @@ real, parameter             :: dres = 1.0
 ! longitude direction
 integer, parameter          :: dnmax = 100.0
 
-! Subdirectories for WOA and GLODAP data within global input-data directory:
-character(len=*), parameter :: WOA_dir = 'WOA_2009'
-character(len=*), parameter :: GLP_dir = 'GLODAP'
 
 ! Fill value used in this module, original fill values of data files are
 ! replaced by this fill value during read
@@ -78,7 +84,9 @@ character(len=3)                      :: dsrc
 character(len=256)                    :: file
 real                                  :: cfac, ddeg
 real, dimension(:),       allocatable :: lon,lat,zlev
-real, dimension(:, :, :), allocatable :: rvar,data
+real, dimension(:,:),     allocatable :: zlev_bnds
+real, dimension(:, :, :), allocatable :: rvar,gdata
+integer                               :: nz
 
 logical, save :: lset  = .false.
 
@@ -87,13 +95,13 @@ logical, save :: lset  = .false.
 ! Definitions for regional mean profiles:
 !-----------------------------------------
 type region
-   character(len=64)  :: name       ! Region name
-   integer            :: idx        ! Region index
-   integer            :: npts(nz)   ! nb of valid data points at each level
-   real               :: clon, clat ! center longitude and latitude
-   real               :: dlon, dlat ! latitude and longitude extent
-   real               :: mprf(nz)   ! mean profile for region
-   logical            :: global     ! global extent T/F
+   character(len=64)  :: name        ! Region name
+   integer            :: idx         ! Region index
+   integer            :: npts(nzmax) ! nb of valid data points at each level
+   real               :: clon, clat  ! center longitude and latitude
+   real               :: dlon, dlat  ! latitude and longitude extent
+   real               :: mprf(nzmax) ! mean profile for region
+   logical            :: global      ! global extent T/F
 end type region
 
 integer, parameter    :: nreg=10
@@ -208,51 +216,51 @@ real,             intent(in) :: inddeg
 character(len=*), parameter  :: routinestr = 'set_Gdata'
 
 
-if( allocated(lon)  ) deallocate( lon  ) 
-if( allocated(lat)  ) deallocate( lat  ) 
-if( allocated(zlev) ) deallocate( zlev ) 
-if( allocated(rvar) ) deallocate( rvar )
-if( allocated(data) ) deallocate( data )
+if( allocated(lon)       ) deallocate( lon  ) 
+if( allocated(lat)       ) deallocate( lat  ) 
+if( allocated(zlev)      ) deallocate( zlev ) 
+if( allocated(zlev_bnds) ) deallocate( zlev_bnds ) 
+if( allocated(rvar)      ) deallocate( rvar )
+if( allocated(gdata)     ) deallocate( gdata )
 
 ! Select settings specific to each variable
 select case (vname)
 
 case ('pho') ! phosphate
-   file   = trim(path)//'/'//trim(WOA_dir)//'/'//'phosphate_annual_1deg.nc'
-   ncname = 'p_an'
+   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_phosphate_OMIPinit.nc'
+   ncname = 'po4'
    dsrc   = 'WOA'
-   cfac   = 1.0  ! no unit conversion within this module
+   cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('nit') ! nitrate
-   file   = trim(path)//'/'//trim(WOA_dir)//'/'//'nitrate_annual_1deg.nc'
-   ncname = 'n_an'
+   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_nitrate_OMIPinit.nc'
+   ncname = 'no3'
    dsrc   = 'WOA'
-   cfac   = 1.0  ! no unit conversion within this module
+   cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('sil') ! silicate
-   file   = trim(path)//'/'//trim(WOA_dir)//'/'//'silicate_annual_1deg.nc'
-   ncname = 'i_an'
+   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_silicate_OMIPinit.nc'
+   ncname = 'si'
    dsrc   = 'WOA'
-   cfac   = 1.0  ! no unit conversion within this module
+   cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('oxy') ! oxygen
-   file   = trim(path)//'/'//trim(WOA_dir)//'/'//'dissolved_oxygen_annual_1deg.nc'
-   ncname = 'o_an'
+   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_oxygen_OMIPinit.nc'
+   ncname = 'o2'
    dsrc   = 'WOA'
-   cfac   = 44.661  ! conversion ml/l -> micromoles/l
+   cfac   = 44.661*1.0e-6  ! conversion ml/L -> mumol/L -> kmol/m3
 
 case ('alk') ! alkalinity
-   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'Alk.nc'
-   ncname = 'Alk'
-   dsrc   = 'GLP'
-   cfac   = 1.0  ! no unit conversion within this module
+   file   = trim(path)//'/OMIPBGC_INI/'//'glodapv2_At_OMIPinit.nc'
+   ncname = 'At'
+   dsrc   = 'GLO'
+   cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case ('dic') ! DIC
-!   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'TCO2.nc'
-   file   = trim(path)//'/'//trim(GLP_dir)//'/'//'NatCO2.nc'
-   ncname = 'TCO2'
-   dsrc   = 'GLP'
-   cfac   = 1.0  ! no unit conversion within this module
+   file   = trim(path)//'/OMIPBGC_INI/'//'glodapv2_Ct_preind_OMIPinit.nc'
+   ncname = 'Ct_preind'
+   dsrc   = 'GLO'
+   cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case default
    call moderr(routinestr,'Invalid vname')  
@@ -267,11 +275,11 @@ if(mnproc == 1) write(io_stdo_bgc,*) 'HAMOCC: initialising ', trim(vname)
 call read_Gdata()
 
 ! extend data array by +/-dnmax data points in longitude
-allocate( data(-dnmax:nlon+dnmax,nlat,nz) )
-data(:,:,:)                 = 0.0
-data( 1:nlon,          :,:) = rvar(:,:,:)
-data(-dnmax:0,         :,:) = rvar(nlon-dnmax:nlon,:,:)
-data(nlon+1:nlon+dnmax,:,:) = rvar(1:dnmax,:,:)
+allocate( gdata(-dnmax:nlon+dnmax,nlat,nz) )
+gdata(:,:,:)                 = 0.0
+gdata( 1:nlon,          :,:) = rvar(:,:,:)
+gdata(-dnmax:0,         :,:) = rvar(nlon-dnmax:nlon,:,:)
+gdata(nlon+1:nlon+dnmax,:,:) = rvar(1:dnmax,:,:)
 
 lset  = .true.
 
@@ -306,10 +314,10 @@ subroutine get_profile(clon,clat,prf)
 !
 !--------------------------------------------------------------------------------
 real,              intent(in)  :: clon, clat  
-real,              intent(out) :: prf(nz)
+real,              intent(out) :: prf(nzmax)
 
 ! Local variables
-integer                        :: idx, npts(nz)
+integer                        :: idx, npts(nzmax)
 real                           :: clon_tmp,clat_tmp
 character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_profile'
 
@@ -330,9 +338,9 @@ call calc_mean_profile(clon_tmp,clat_tmp,ddeg,ddeg,prf,npts)
 
 
 ! Fall back to regional profile if number of valid data points is smaller
-! than 10 for the surface layer. A global mean profile is used if
+! than 3 for the surface layer. A global mean profile is used if
 ! get_region returns 0.
-if( npts(1) < 10 ) then
+if( npts(1) < 3 ) then
 
    idx = get_region(clon_tmp,clat_tmp)
    prf = rg(idx)%mprf
@@ -463,35 +471,32 @@ subroutine read_Gdata()
 !--------------------------------------------------------------------------------
 
 ! Local variables
-integer                     :: ncId, varId 
-integer                     :: LonDimId,   lonId,   numlon
-integer                     :: LatDimId,   latId,   numlat
-integer                     :: DepthDimId, depthId, numlev
+integer                     :: ncId, vId, dId 
+integer                     :: numlon, numlat, numlev
 integer                     :: ndim, natts
 integer                     :: i,l
 integer                     :: dimid(7)
 integer                     :: status
 real, allocatable           :: tmp(:,:,:)
 real                        :: fval
-character(len=16)           :: lonstr,latstr,fvalstr
+character(len=16)           :: lonstr,latstr,depthstr,depthbndsstr,fvalstr
 character(len=*), parameter :: routinestr = 'mo_Gdata_read, read_Gdata'
-logical                     :: lonfirst
 
+
+lonstr   = 'lon'
+latstr   = 'lat'
+fvalstr  = '_FillValue'
 
 select case (dsrc)
 
 case ('WOA')
-  lonstr   = 'lon'
-  latstr   = 'lat'
-  fvalstr  = '_FillValue'
-  lonfirst = .true.
-
-case ('GLP')
-  lonstr   = 'longitude'
-  latstr   = 'latitude'
-  fvalstr  = 'missing_value'
-  lonfirst = .false.
-
+   nz = nz_woa
+   depthstr='depth'
+   depthbndsstr='depth_bnds'
+case ('GLO')
+   nz = nz_glo
+   depthstr='depthz'
+   depthbndsstr='depthz_bnds'
 case default
    call moderr(routinestr,'Invalid dsrc')  
 
@@ -504,90 +509,85 @@ status = nf90_open(file,nf90_nowrite,ncid); call ncerr(status)
 
 
 ! Get dimensions
-status = nf90_inq_dimid(ncid, trim(lonstr), LonDimId)
+status = nf90_inq_dimid(ncid, trim(lonstr), dId)
 call ncerr(status)
-status = nf90_inquire_dimension(ncid, LonDimID, len=numlon)
-call ncerr(status)
-
-status = nf90_inq_dimid(ncid, trim(latstr), LatDimId)
-call ncerr(status)
-status = nf90_inquire_dimension(ncid, LatDimID, len=numlat)
+status = nf90_inquire_dimension(ncid, dID, len=numlon)
 call ncerr(status)
 
-status = nf90_inq_dimid(ncid, "depth", DepthDimId)
+status = nf90_inq_dimid(ncid, trim(latstr), dId)
 call ncerr(status)
-status = nf90_inquire_dimension(ncid, DepthDimID, len=numlev)
+status = nf90_inquire_dimension(ncid, dID, len=numlat)
 call ncerr(status)
 
+status = nf90_inq_dimid(ncid, trim(depthstr), dId)
+call ncerr(status)
+status = nf90_inquire_dimension(ncid, dId, len=numlev)
+call ncerr(status)
 
 if( numlon /= nlon .or. numlat /= nlat .or. numlev /= nz ) &
      call moderr(routinestr,'Unexpected nb of elements in data file')  
 
-allocate( lon(nlon), lat(nlat), zlev(nz) )
+allocate( lon(nlon), lat(nlat), zlev(nz), zlev_bnds(2,nz) )
 allocate( rvar(nlon,nlat,nz) )
 
 ! Get lon, lat, and lev
-status = nf90_inq_varid(ncid, trim(lonstr), lonId)
+status = nf90_inq_varid(ncid, trim(lonstr), vId)
 call ncerr(status)
-status = nf90_get_var(ncid, lonId, lon)
-call ncerr(status)
-
-status = nf90_inq_varid(ncid, trim(latstr), latId)
-call ncerr(status)
-status = nf90_get_var(ncid, latId, lat)
+status = nf90_get_var(ncid, vId, lon)
 call ncerr(status)
 
-status = nf90_inq_varid(ncid, "depth", depthId)
+status = nf90_inq_varid(ncid, trim(latstr), vId)
 call ncerr(status)
-status = nf90_get_var(ncid, depthId, zlev)
+status = nf90_get_var(ncid, vId, lat)
+call ncerr(status)
+
+status = nf90_inq_varid(ncid, trim(depthstr), vId)
+call ncerr(status)
+status = nf90_get_var(ncid, vId, zlev)
+call ncerr(status)
+
+status = nf90_inq_varid(ncid, trim(depthbndsstr), vId)
+call ncerr(status)
+status = nf90_get_var(ncid, vId, zlev_bnds)
 call ncerr(status)
 
 ! Get varid and fill value
-status = nf90_inq_varid(ncid, ncname, varId)
+status = nf90_inq_varid(ncid, ncname, vId)
 call ncerr(status)
-status = nf90_inquire_variable(ncid, varId, ndims=ndim, dimids=dimid, nAtts=natts)
+status = nf90_inquire_variable(ncid, vId, ndims=ndim, dimids=dimid, nAtts=natts)
 call ncerr(status)
-status =  nf90_get_att(ncid, varid, trim(fvalstr), fval)
+status =  nf90_get_att(ncid, vid, trim(fvalstr), fval)
 call ncerr(status)
 
-! Get data values, switch order of lat and long for GLODAP data
+! GetRead the data 
+status = nf90_get_var(ncid, vId, rvar)
+call ncerr(status)
+
+! arrange data to correspond to [0,360] in longitude
 select case (dsrc)
 
-case ('WOA') 
-   ! just read the data
-   status = nf90_get_var(ncid, varId, rvar)
-   call ncerr(status)
-
-   ! Replace fill values:
-   where( rvar > fval*0.1 ) rvar = fillval
-
-   ! unit conversion
-   where( rvar > 0.0 ) rvar = rvar*cfac
-
-case ('GLP')
-   ! read data into temporary field
-   allocate( tmp(nlat,nlon,nz) )
-   status = nf90_get_var(ncid, varId, tmp)
-   call ncerr(status)
-   ! switch order of lat/lon
-   do l=1,nz
-      rvar(:,:,l) = transpose( tmp(:,:,l) )
-   end do
-   deallocate( tmp )
-   ! arrange data to correspond to [0,360] in longitude
+case ('WOA')
    lon  = cshift(lon, -180)
    rvar = cshift(rvar,-180,1)
-   do i=1,nlon
-      if(lon(i)<0.0) lon(i)=lon(i)+360.0
-   end do
-
-   ! Replace fill values:
-   where( rvar < fval*0.1 ) rvar = fillval
-
-   ! unit conversion
-   where( rvar > 0.0 ) rvar = rvar*cfac
+case ('GLO')
+   lon  = cshift(lon, -20)
+   rvar = cshift(rvar,-20,1)
 
 end select
+
+do i=1,nlon
+   if(lon(i)<  0.0) lon(i)=lon(i)+360.0
+   if(lon(i)>360.0) lon(i)=lon(i)-360.0
+end do
+
+
+! Replace fill values:
+where( rvar < fval*0.1 ) rvar = fillval
+
+! unit conversion
+where( rvar > 0.0 ) rvar = rvar*cfac
+
+
 
 ! Close data file
 status = nf90_close(ncid)
@@ -625,8 +625,8 @@ subroutine calc_mean_profile(clon,clat,dlon,dlat,prf,npts,global)
 !--------------------------------------------------------------------------------
 real,              intent(in)  :: clon, clat  
 real,              intent(in)  :: dlon, dlat 
-real,              intent(out) :: prf(nz)
-integer,           intent(out) :: npts(nz)
+real,              intent(out) :: prf(nzmax)
+integer,           intent(out) :: npts(nzmax)
 logical, optional, intent(in)  :: global
 
 ! Local variables
@@ -641,6 +641,8 @@ if( .not. lset   ) call moderr(routinestr, ' Module not initialised yet')
 if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
 if( clon > 360.0 ) call moderr(routinestr, ' clon must be in the range [0,360]')
 
+prf(:)  = fillval
+npts(:) = 0.0
 
 if( present(global) ) gl=global
 
@@ -697,8 +699,8 @@ end if
 ! Calculate mean profile:
 do l=1,nz
 
-   npts(l) = count(data(ilons:ilone,ilats:ilate,l)>0.0)
-   prf(l)  = sum(data(ilons:ilone,ilats:ilate,l), mask=data(ilons:ilone,ilats:ilate,l)>0.0)
+   npts(l) = count(gdata(ilons:ilone,ilats:ilate,l)>0.0)
+   prf(l)  = sum(gdata(ilons:ilone,ilats:ilate,l), mask=gdata(ilons:ilone,ilats:ilate,l)>0.0)
    if( npts(l) > 0) then
       prf(l) = prf(l)/npts(l)
    else
@@ -706,6 +708,7 @@ do l=1,nz
    end if
 
 end do
+
 
 !write(*,*) '================'
 !if( gl ) then
@@ -727,11 +730,12 @@ subroutine clean_Gdata()
 ! Deallocate fields and reset global variables
 !--------------------------------------------------------------------------------
 
-if( allocated(lon)  ) deallocate( lon  ) 
-if( allocated(lat)  ) deallocate( lat  ) 
-if( allocated(zlev) ) deallocate( zlev ) 
-if( allocated(rvar) ) deallocate( rvar ) 
-if( allocated(data) ) deallocate( data ) 
+if( allocated(lon)        ) deallocate( lon   ) 
+if( allocated(lat)        ) deallocate( lat   ) 
+if( allocated(zlev)       ) deallocate( zlev  ) 
+if( allocated(zlev_bnds)  ) deallocate( zlev_bnds  ) 
+if( allocated(rvar)       ) deallocate( rvar  ) 
+if( allocated(gdata)      ) deallocate( gdata ) 
 
 file   = ''
 ncname = ''
@@ -739,6 +743,7 @@ var    = ''
 dsrc   = ''
 cfac   = 1.0
 ddeg   = 0.0
+nz     = 0
 lset   = .false.
 
 !--------------------------------------------------------------------------------
@@ -754,8 +759,9 @@ integer, intent(in) :: status
 
 if(status == nf90_NoErr) return
 
-write(lp,*) 'NetCDF error: ',nf90_strerror(status)
-call flush(lp)
+write(io_stdo_bgc,*) 'NetCDF error: ',nf90_strerror(status)
+write(io_stdo_bgc,*) 'Abort... '
+call flush(io_stdo_bgc)
 call xchalt('(Module mo_Gdata_read, ncerr)')
 stop '(Module mo_Gdata_read, ncerr)'
 
@@ -771,8 +777,9 @@ subroutine moderr(routinestr,errstr)
 character(len=*), intent(in) :: routinestr,errstr
 
 
-write(lp,'(/3a)') routinestr, ': ', errstr
-call flush(lp)
+write(io_stdo_bgc,'(/3a)') routinestr, ': ', errstr
+write(io_stdo_bgc,*) 'Abort... '
+call flush(io_stdo_bgc)
 call xchalt('(Module mo_Gdata_read)')
 stop '(Module mo_Gdata_read)'
 

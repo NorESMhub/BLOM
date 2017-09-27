@@ -8,22 +8,27 @@
 !
 !     Modified
 !     --------
-!     S.Legutke,             *MPI-MaD, HH*    10.04.01
-!     J.Schwinger            *GFI, UiB*       2013-04-22
+!     S.Legutke,             *MPI-MaD, HH*    2010-04-01
+!     J.Schwinger,           *GFI, UiB*       2013-04-22
 !      - Corrected bug in light penetration formulation
 !      - Cautious code clean-up
-!     Tjiputra               *UNI-RESEARCH*   2015.11.25
+!     J.Tjiputra,            *UNI-RESEARCH*   2015-11-25
 !      - Implemented natural DIC/ALK/CALC
-!     I. Kriest, GEOMAR, 11.08.2016
-!      - modified stoichiometry for denitrification (affects NO3, N2, Alk)
+!     I.Kriest,              *GEOMAR*         11.08.2016
+!      - Modified stoichiometry for denitrification (affects NO3, N2, Alk)
+!     J.Schwinger,           *UNI-RESEARCH*   2017-08-30
+!      - Removed split of the layer that only partly falls into the 
+!        euphotic zone. Loops are now calculated over 
+!        (1) layers that are completely or partly in the euphotoc zone
+!        (2) layers that do not lie within the euphotic zone.
+!      - Moved the accumulation of global fields for output to routine
+!        hamocc4bgc. The accumulation of local fields has been moved to
+!        the end of this routine.
 !
 !     Purpose
 !     -------
 !     compute biological production, settling of debris, and related 
 !     biogeochemistry
-!
-!     Note: 
-!     _ant fields are natural PLUS anthropogenic (not anthropogenic only!!!)
 !
 !
 !
@@ -58,8 +63,6 @@
       implicit none
 
       INTEGER :: kplmon,kpie,kpje,kpke
-      INTEGER :: i,j,k,l
-      INTEGER :: kinv,kdonor
       REAL :: ptho (kpie,kpje,kpke)
       REAL :: pddpo(kpie,kpje,kpke)
       REAL :: pdpio(kpie,kpje,kpke)
@@ -69,11 +72,15 @@
       REAL :: abs_bgc(kpie,kpje,kpke)
       REAL :: omask(kpie,kpje)
       
+      INTEGER :: i,j,k,l
+      INTEGER :: is,kdonor
+      INTEGER, PARAMETER :: nsinkmax=12
+      REAL :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
       REAL :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
-      REAL :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,         &
-     &        avgra,grazing,avsil,graton,                              &
-     &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,          &
-     &        export, delsil, delcar, sterph, sterzo, remin,           &
+      REAL :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,          &
+     &        avgra,grazing,avsil,avdic,graton,                         &
+     &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,           &
+     &        export, delsil, delcar, sterph, sterzo, remin,            &
      &        docrem, opalrem, remin2o, aou,refra,pocrem,phyrem
       
       REAL :: zoothresh,phythresh
@@ -81,17 +88,8 @@
       REAL :: dustinp
       REAL :: absorption
       REAL :: dmsprod,dms_bac,dms_uv 
-      REAL :: bdp,dtr 
-      REAL :: detref, detrl
-      REAL :: dz_light
+      REAL :: dtr,dz
       REAL :: wpocd,wcald,wopald,dagg
-#ifdef __c_isotopes
-      REAL :: rem13,rem14
-      REAL :: rl13, rl14
-      REAL :: rocean13, rocean14, flui13, flui14, phyto_prev
-      REAL :: aDIC13, aDIC14
-      REAL, DIMENSION(kpie,kpje,kpke) :: d13C, d14C, dd14C
-#endif
 #ifdef AGG
       REAL :: wmass(kpie,kpje,kpke)
       REAL :: wnumb(kpie,kpje,kpke)
@@ -197,7 +195,7 @@
       abs_oce(:,:,1)=1.
 #endif
 
-!$OMP PARALLEL DO PRIVATE(absorption,atten,dz_light)
+!$OMP PARALLEL DO PRIVATE(absorption,atten,dz)
       DO j=1,kpje
       DO i=1,kpie
 
@@ -208,17 +206,12 @@
           vloop: DO k=1,kwrbioz(i,j)
 
           IF(pddpo(i,j,k).gt.0.0) THEN
-
-          if( ptiestw(i,j,k+1) >= dp_ez .and. ptiestw(i,j,k) < dp_ez ) then
-            dz_light = dp_ez-ptiestw(i,j,k)
-          else
-            dz_light = pddpo(i,j,k)
-          end if
+          
+          dz = pddpo(i,j,k)
 
           ! Average light intensity in layer k
           atten=atten_w+atten_c*max(0.,ocetra(i,j,k,iphy))
-          abs_bgc(i,j,k)=((absorption/atten)*                           &
-     &                   (1.-exp(-atten*dz_light)))/dz_light
+          abs_bgc(i,j,k)=((absorption/atten)*(1.-exp(-atten*dz)))/dz
 
 #ifdef FB_BGC_OCE
           abs_oce(i,j,k)=abs_oce(i,j,k)*absorption
@@ -228,7 +221,7 @@
 #endif 
 
           ! Radiation intensity I_0 at the top of next layer
-          absorption=absorption*exp(-atten*dz_light)
+          absorption=absorption*exp(-atten*dz)
 
           ENDIF
           ENDDO vloop
@@ -239,6 +232,7 @@
       ENDDO
 !$OMP END PARALLEL DO
 
+
 ! dust flux from the atmosphere to the surface layer; dust fields are
 ! monthly mean values (kg/m2/month - assume 30 days per month here)
 ! dissolved iron is a fixed fraction (typically 3.5%), and immediately released
@@ -246,134 +240,21 @@
 !$OMP PARALLEL DO PRIVATE(dustinp)
       do j=1,kpje
       do i=1,kpie
-       if(omask(i,j).gt.0.5) then
-        dustinp=dusty(i,j,kplmon)/30.*dtb*pdpio(i,j,1)
-        ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
-        ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
-       endif      
+        if(omask(i,j).gt.0.5) then
+          dustinp=dusty(i,j,kplmon)/30.*dtb*pdpio(i,j,1)
+          ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
+          ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
+        endif      
       enddo
       enddo
 !$OMP END PARALLEL DO
 
 
-! accumulate srf diagnostics
-      call accsrf(jsrfphosph,ocetra(1,1,1,iphosph),omask,0)
-      call accsrf(jsrfoxygen,ocetra(1,1,1,ioxygen),omask,0)
-      call accsrf(jsrfiron,ocetra(1,1,1,iiron),omask,0)
-      call accsrf(jsrfano3,ocetra(1,1,1,iano3),omask,0)
-      call accsrf(jsrfalkali,ocetra(1,1,1,ialkali),omask,0)
-      call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
-      call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
-
-! accumulate layer diagnostics
-      call acclyr(jdp,pddpo,pddpo,0)
-      call acclyr(jphyto,ocetra(1,1,1,iphy),pddpo,1)   
-      call acclyr(jgrazer,ocetra(1,1,1,izoo),pddpo,1) 
-      call acclyr(jphosph,ocetra(1,1,1,iphosph),pddpo,1)
-      call acclyr(joxygen,ocetra(1,1,1,ioxygen),pddpo,1)
-      call acclyr(jiron,ocetra(1,1,1,iiron),pddpo,1)    
-      call acclyr(jano3,ocetra(1,1,1,iano3),pddpo,1)    
-      call acclyr(jalkali,ocetra(1,1,1,ialkali),pddpo,1)
-      call acclyr(jsilica,ocetra(1,1,1,isilica),pddpo,1)
-      call acclyr(jdic,ocetra(1,1,1,isco212),pddpo,1)    
-      call acclyr(jdoc,ocetra(1,1,1,idoc),pddpo,1)       
-      call acclyr(jpoc,ocetra(1,1,1,idet),pddpo,1)       
-      call acclyr(jcalc,ocetra(1,1,1,icalc),pddpo,1)    
-      call acclyr(jopal,ocetra(1,1,1,iopal),pddpo,1)    
-      call acclyr(jco3,co3,pddpo,1)                      
-      call acclyr(jph,hi,pddpo,1)
-#ifdef natDIC
-      call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
-      call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
-      call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
-      call acclyr(jnatco3,natco3,pddpo,1)                      
-#endif 
-#ifdef __c_isotopes
-! Delta notation delta 13C & capital delta 14C (dd14C) [promille]
-
-!$OMP PARALLEL DO PRIVATE(d14C) 
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).GT.0.5) THEN
-          DO k=1,kpke
-          
-            IF(pddpo(i,j,k).GT.dp_min)
-            ! 1. Calculate absolute model values for all isotope parameters using 
-            ! the calibration factor [kmol/m3]
-            aDIC13  = ocetra(i,j,k,isco213) * factor_13c
-            aDIC14  = ocetra(i,j,k,isco214) * factor_14c
-
-            ! 2. Calculate the calibrated absolute values for the ocean in [promille]
-            ! Realize that model isco212 actually is 12C + 13C; therefore subtraction 12C - 13C
-            d13C(i,j,k)  = ((aDIC13/((ocetra(i,j,k,isco212)-aDIC13)+1.e-25)/PDB)-1.)*1000.
-
-            ! For 14C two steps are needed: first to d14C [promille], then to dd14C [promille]
-            d14C(i,j,k)  = ((aDIC14(i,j,k)/ocetra(i,j,k,isco212)   / ref14c) -1.) * 1000.
-            dd14C(i,j,k) = d14C(i,j,k) - 2.*(d13C(i,j,k) + 25.) * (1.+ d14C(i,j,k)/1000.)
-            ENDIF
-
-          ENDDO
-        ENDIF
-      ENDDO
-      ENDDO
-!$OMP END PARALLEL DO
-      call acclyr(jdic13,d13C,pddpo,1)                 
-      call acclyr(jdic14,dd14C,pddpo,1)                
-#endif     
-#ifdef AGG
-      call acclyr(jnos,ocetra(1,1,1,inos),pddpo,1)      
-#endif     
-
-! accumulate level diagnostics
-      IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
-     &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
-     &  jlvlco3+jlvlph+jlvldic13+jlvldic14+jlvlnos).NE.0) &
-     &  THEN
-        DO k=1,kpke
-          call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
-          call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
-          call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,wghts)
-          call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,wghts)
-          call acclvl(jlvliron,ocetra(1,1,1,iiron),k,ind1,ind2,wghts)
-          call acclvl(jlvlano3,ocetra(1,1,1,iano3),k,ind1,ind2,wghts)
-          call acclvl(jlvlalkali,ocetra(1,1,1,ialkali),k,ind1,ind2,wghts)
-          call acclvl(jlvlsilica,ocetra(1,1,1,isilica),k,ind1,ind2,wghts)
-          call acclvl(jlvldic,ocetra(1,1,1,isco212),k,ind1,ind2,wghts)
-          call acclvl(jlvldoc,ocetra(1,1,1,idoc),k,ind1,ind2,wghts)
-          call acclvl(jlvlpoc,ocetra(1,1,1,idet),k,ind1,ind2,wghts)
-          call acclvl(jlvlcalc,ocetra(1,1,1,icalc),k,ind1,ind2,wghts)
-          call acclvl(jlvlopal,ocetra(1,1,1,iopal),k,ind1,ind2,wghts)
-          call acclvl(jlvlco3,co3,k,ind1,ind2,wghts)
-          call acclvl(jlvlph,hi,k,ind1,ind2,wghts)
-#ifdef __c_isotopes
-          call acclvl(jlvldic13,d13C,k,ind1,ind2,wghts)
-          call acclvl(jlvldic14,dd14C,k,ind1,ind2,wghts)
-#endif     
-#ifdef AGG
-          call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
-#endif     
-#ifdef natDIC
-      call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)
-      call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)
-      call acclvl(jlvlnatcalc,ocetra(1,1,1,inatcalc),k,ind1,ind2,wghts)
-      call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
-#endif
-        ENDDO
-      ENDIF
-
-
-
-#define bioprod
-#ifdef bioprod
-
-
-!$OMP PARALLEL DO                                               &                
-!$OMP&PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn,phosy,  &
-!$OMP&        ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor, &  
-!$OMP&        zoomor,excdoc,exud,export,delsil,delcar,dmsprod,  &
-!$OMP&        dms_bac,dms_uv,bdp,dtr,rocean13,rocean14,flui13,  &
-!$OMP&        flui14,dp_ez,phofa,temfa,zoothresh,dms_ph)
+!$OMP PARALLEL DO                                                       &                
+!$OMP&PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn,phosy,          &
+!$OMP&        ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor,         &  
+!$OMP&        zoomor,excdoc,exud,export,delsil,delcar,dmsprod,          &
+!$OMP&        dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz)
       DO 1 j=1,kpje
       DO 1 i=1,kpie
 
@@ -382,220 +263,81 @@
       IF(pddpo(i,j,k).GT.dp_min.and.omask(i,j).gt.0.5) THEN
 
 
-      if(ptiestw(i,j,k+1).gt.dp_ez) then
-        bdp=abs(ptiestw(i,j,k)-dp_ez)
-        if(bdp.gt.pddpo(i,j,k)) then
-          write(io_stdo_bgc,*) 'bdp gt pddpo(i,j,k) 1',i,j,k
-        endif
-      else
-        bdp=pddpo(i,j,k)
-      endif
-
 #ifdef AGG
-         avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
+        avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/
 
-#ifdef __c_isotopes
-         rocean13=ocetra(i,j,k,isco213)/ocetra(i,j,k,isco212)                ! "ratio oceanic 13C/12C" (at least in carchm)
-         rocean14=ocetra(i,j,k,isco214)/ocetra(i,j,k,isco212)                ! ratio oceanic 14C/12C
+        phofa=pi_alpha*strahl(i,j)*abs_bgc(i,j,k) 
+        temfa= 0.6* 1.066**ptho(i,j,k)                 
+!taylor:     temfa= 0.6*(1. + 0.0639*ptho(i,j,k) *               &
+!    &              (1. + 0.0639*ptho(i,j,k)/2. * (1. + 0.0639*ptho(i,j,k)/3.)))
+        pho= dtb* phofa*temfa/sqrt(phofa**2 + temfa**2)     
 
-         flui13=max(rocean13-1.,0.)        				     ! assumes rocean >1 in euphotic layer 
-         flui14=max(rocean14-1.,0.)        				     ! 
-#endif
+        avphy=MAX(phytomi,ocetra(i,j,k,iphy))                   ! 'available' phytoplankton
+        avgra=MAX(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
+        avsil=MAX(0.,ocetra(i,j,k,isilica))
+        avdic=MAX(0.,ocetra(i,j,k,isco212))
+        avanut=MAX(0.,MIN(ocetra(i,j,k,iphosph),                        &
+     &         rnoi*ocetra(i,j,k,iano3)))
+        avanfe=MAX(0.,MIN(avanut,ocetra(i,j,k,iiron)/riron))
+        xa=avanfe
+        xn=xa/(1.+pho*avphy/(xa+bkphy)) 
+        phosy=MAX(0.,xa-xn)
+        phosy=MERGE(avdic/rcar,phosy,avdic.le.rcar*phosy)       ! limit phosy by available DIC
+        ya=avphy+phosy
+        yn=(ya+grazra*avgra*phytomi/(avphy+bkzoo))                      &
+     &           /(1.+grazra*avgra/(avphy+bkzoo))
+        grazing=MAX(0.,ya-yn)
+        graton=epsher*(1.-zinges)*grazing
+        gratpoc=(1.-epsher)*grazing
+        grawa=epsher*zinges*grazing
+        bacfra=remido*ocetra(i,j,k,idoc)
 
-         phofa=pi_alpha*strahl(i,j)*abs_bgc(i,j,k) 
-         temfa= 0.6* 1.066**ptho(i,j,k)                 
-!taylor:      temfa= 0.6*(1. + 0.0639*ptho(i,j,k) *               &
-!    &               (1. + 0.0639*ptho(i,j,k)/2. * (1. + 0.0639*ptho(i,j,k)/3.)))
-         pho= dtb* phofa*temfa/sqrt(phofa**2 + temfa**2)     
-
-         avphy=MAX(0.,ocetra(i,j,k,iphy))  
-         avgra=MAX(0.,ocetra(i,j,k,izoo))  
-         avsil=MAX(0.,ocetra(i,j,k,isilica))
-         avanut=MAX(0.,MIN(ocetra(i,j,k,iphosph),                      &
-     &          rnoi*ocetra(i,j,k,iano3)))
-         avanfe=MAX(0.,MIN(avanut,ocetra(i,j,k,iiron)/riron))
-         xa=avanfe
-         xn=xa/(1.+pho*avphy/(xa+bkphy)) 
-         phosy=MAX(0.,xa-xn)
-         xn=MAX(xn,1.e-10)
-         ya=avphy+phosy
-         yn=(ya+grazra*avgra*phytomi/(avphy+bkzoo))                    &
-     &            /(1.+grazra*avgra/(avphy+bkzoo))
-         grazing=MAX(0.,ya-yn)
-         graton=epsher*(1.-zinges)*grazing
-         gratpoc=(1.-epsher)*grazing ! epsher=0.8
-         grawa=epsher*zinges*grazing
-         bacfra=remido*ocetra(i,j,k,idoc)
-         phymor=dyphy*MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi)) ! dyphy=.008*dt
-!new iris
-         zoothresh=MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))                  ! quadratic mortality
-         zoomor=spemor*zoothresh*zoothresh                                ! *10 compared to linear in tropics (tinka)
-         excdoc=gammaz*zoothresh                                          ! excretion of doc by zooplankton
-         exud=gammap*MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
-
-         export= zoomor*(1.-ecan) + phymor + gratpoc ! ecan=.95, gratpoc= .2*grazing
+        phythresh=MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+        zoothresh=MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))
+        phymor=dyphy*phythresh
+        exud=gammap*phythresh
+        zoomor=spemor*zoothresh*zoothresh           ! *10 compared to linear in tropics (tinka)
+        excdoc=gammaz*zoothresh                     ! excretion of doc by zooplankton  
+        export= zoomor*(1.-ecan) + phymor + gratpoc ! ecan=.95, gratpoc= .2*grazing
 
 #ifdef AGG	 
-         delsil=MIN(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil) 
-	 delcar=rcalc*MIN(calmax*phosy,(phosy-delsil/ropal))
+        delsil=MIN(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil) 
+	delcar=rcalc*MIN(calmax*phosy,(phosy-delsil/ropal))
 #else
-         delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil) 
-         delcar=rcalc * export * bkopal/(avsil+bkopal)
+        delsil=MIN(ropal*export*avsil/(avsil+bkopal),0.5*avsil) 
+        delcar=rcalc * export * bkopal/(avsil+bkopal)
 #endif
-!         dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
-         dms_ph  = 1. 
-         dmsprod = (dmsp5*delsil+dmsp4*delcar)                        &
-     &            *(1.+1./(ptho(i,j,k)+dmsp1)**2)*dms_ph        
-         dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)   &
+!        dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
+        dms_ph  = 1. 
+        dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
+     &           *(1.+1./(ptho(i,j,k)+dmsp1)**2)*dms_ph        
+        dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)      &
      &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
-         dms_uv  = dmsp2*dtb*phofa/pi_alpha*ocetra(i,j,k,idms)
+        dms_uv  = dmsp2*dtb*phofa/pi_alpha*ocetra(i,j,k,idms)
 
-         dtr=bacfra-phosy+graton+ecan*zoomor 
+        dtr=bacfra-phosy+graton+ecan*zoomor 
 
-         ocetra(i,j,k,iphosph)=                                        &
-     &   ((ocetra(i,j,k,iphosph)+dtr)*bdp                              &
-     &    +ocetra(i,j,k,iphosph)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-         ocetra(i,j,k,iano3)=                                          &
-     &   ((ocetra(i,j,k,iano3)+dtr*rnit)*bdp                           &
-     &    +ocetra(i,j,k,iano3)          *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
-         ocetra(i,j,k,idet)=                                           &
-     &   ((ocetra(i,j,k,idet)+export)*bdp                              &
-     &    +ocetra(i,j,k,idet)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-! new from emr version 4.5.06
-#ifdef __c_isotopes
-         ocetra(i,j,k,idet14)=                                        &
-     &   ((ocetra(i,j,k,idet14)+rcar*export*bifr14)*bdp               & ! rcar: because idet in P units and idet13 in C units
-     &    +ocetra(i,j,k,idet14)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
-         ocetra(i,j,k,idet13)=                                        &
-     &   ((ocetra(i,j,k,idet13)+rcar*export*bifr13)*bdp              &
-     &    +ocetra(i,j,k,idet13)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)   
-
-         ocetra(i,j,k,isco214)=                                        &
-     &   ((ocetra(i,j,k,isco214)-rcar*export*bifr14)*bdp    &
-     &    +ocetra(i,j,k,isco214)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)   
-
-         ocetra(i,j,k,isco213)=                                        &
-     &   ((ocetra(i,j,k,isco213)-rcar*export*bifr13)*bdp    &
-     &    +ocetra(i,j,k,isco213)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
-
-! 13C, 14C 'removal' by exportproduction
-! are these two needed? ('delcar' is removed later) (also there is no equivalent for isco212)
-! short term removal from dissolved pool "for gas exchange" (in carchm), effect is fairly small
-! 12C in P-units, 13C/14C in C-units (*122)  
-
-         ocetra(i,j,k,isco213)=                                        &
-     &   ((ocetra(i,j,k,isco213) -rcar*export* bifr13 * flui13)*bdp    &
-     &    +ocetra(i,j,k,isco213)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)           !bifr = biogenic fractionation (0.98)  ! *flui13
-         ocetra(i,j,k,isco214)=                                        &
-     &   ((ocetra(i,j,k,isco214) -rcar*export* bifr14 * flui14)*bdp    &
-     &    +ocetra(i,j,k,isco214)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)        ! *rocean14 (--> flui14?) 4.5.06
-
-         ocetra(i,j,k,idet13)=                                        &
-     &   ((ocetra(i,j,k,idet13) +rcar*export* bifr13 * flui13)*bdp    &
-     &    +ocetra(i,j,k,idet13)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)         ! det in P-units, det13 in C-units (*122)
-         ocetra(i,j,k,idet14)=                                        &
-     &   ((ocetra(i,j,k,idet14) +rcar*export* bifr14 * flui14)*bdp    &
-     &    +ocetra(i,j,k,idet14)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)         ! det in P-units, det13 in C-units (*122)
-#endif /*__c_isotopes*/
-
-         ocetra(i,j,k,idms) =                                          &
-     &   ((ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv)*bdp              &
-     &	  +ocetra(i,j,k,idms)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
-
-         ocetra(i,j,k,isco212)=                                        &
-     &   ((ocetra(i,j,k,isco212)-delcar+rcar*dtr)*bdp                  &
-     &    +ocetra(i,j,k,isco212)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-#ifdef __c_isotopes
-! Update DIC isotope fields and include fractionation during CaCO3 and OM formation
-         ocetra(i,j,k,isco213)=                                        &
-     &   ((ocetra(i,j,k,isco213)-delcar*rocean13*frac_caco313 +        &
-     &    rcar*dtr)*bdp +ocetra(i,j,k,isco213)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
-         ocetra(i,j,k,isco214)=                                        &
-     &   ((ocetra(i,j,k,isco214)-delcar*rocean14*frac_caco314 +        &
-     &    rcar*dtr)*bdp+ocetra(i,j,k,isco214)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-#endif /*__c_isotopes/
-
-!#ifdef __c_isotopes
-!         ocetra(i,j,k,isco213)=                                        &
-!     &   ((ocetra(i,j,k,isco213)-delcar*rocean13                       &
-!     &   +bifr13*rcar*( bacfra - phosy + graton + ecan*zoomor))*bdp     & ! bifr=0.98
-!     &   +ocetra(i,j,k,isco213)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-!          ocetra(i,j,k,isco214)=                                       &
-!     &    ((ocetra(i,j,k,isco214)-delcar*rocean14)*bdp                 &
-!     &    +ocetra(i,j,k,isco214)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-! js: for efficency below line (which should in principle be there) is neglected (additional tracer field would be needed 
-!     to account for radioactive decay of 14C in particles)
-!     &      + bifr14*rcar*( bacfra - phosy + graton + ecan*zoomor)
-!#endif /*__c_isotopes*/
-
-         ocetra(i,j,k,ialkali)=                                        &
-     &   ((ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr)*bdp           &
-     &    +ocetra(i,j,k,ialkali)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-         ocetra(i,j,k,ioxygen)=                                        &
-     &   ((ocetra(i,j,k,ioxygen)+ro2ut*(phosy-bacfra)                  &
-     &                          -(graton+ecan*zoomor)*ro2ut)*bdp       &
-     &    +ocetra(i,j,k,ioxygen)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
-         ocetra(i,j,k,iphy)=                                           &
-     &   ((ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud)*bdp           &
-     &    +ocetra(i,j,k,iphy)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-         ocetra(i,j,k,izoo)=                                           &
-     &   ((ocetra(i,j,k,izoo)+grawa-excdoc-zoomor)*bdp                 &
-     &    +ocetra(i,j,k,izoo)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-         ocetra(i,j,k,idoc)=                                           &
-     &   ((ocetra(i,j,k,idoc)-bacfra+excdoc+exud)*bdp                  &
-     &    +ocetra(i,j,k,idoc)       *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
-
-         ocetra(i,j,k,icalc)=                                          &
-     &   ((ocetra(i,j,k,icalc)+delcar)*bdp                             &
-     &    +ocetra(i,j,k,icalc)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
+        ocetra(i,j,k,iphosph)=ocetra(i,j,k,iphosph)+dtr
+        ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)+dtr*rnit
+        ocetra(i,j,k,idet)=ocetra(i,j,k,idet)+export
+        ocetra(i,j,k,idms)=ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
+        ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)-delcar+rcar*dtr
+        ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
+        ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dtr*ro2ut
+        ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
+        ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
+        ocetra(i,j,k,idoc)=ocetra(i,j,k,idoc)-bacfra+excdoc+exud
+        ocetra(i,j,k,icalc)=ocetra(i,j,k,icalc)+delcar
 #ifdef natDIC
-         ocetra(i,j,k,inatsco212)=                                     &
-     &   ((ocetra(i,j,k,inatsco212)-delcar+rcar*dtr)*bdp               &
-     &    +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-         ocetra(i,j,k,inatalkali)=                                     &
-     &   ((ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr)*bdp        &
-     &    +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-         ocetra(i,j,k,inatcalc)=                                       &
-     &   ((ocetra(i,j,k,inatcalc)+delcar)*bdp                          &
-     &    +ocetra(i,j,k,inatcalc)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
+        ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
+        ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
+        ocetra(i,j,k,inatcalc)=ocetra(i,j,k,inatcalc)+delcar
 #endif
-#ifdef __c_isotopes
-! Enrichment of CaCO3 resrevoir in 13C&14C isotopes due to CaCO3 formation: fractionation
-         ocetra(i,j,k,icalc13)=                                        &
-     &   ((ocetra(i,j,k,icalc13)+(delcar*rocean13*(ABS(frac_caco313-1.)+1.)))*bdp   &
-     &    +ocetra(i,j,k,icalc13)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k) 
-
-         ocetra(i,j,k,icalc14)=                                        &
-     &   ((ocetra(i,j,k,icalc14)+(delcar*rocean14*(ABS(frac_caco314-1.)+1.)))*bdp   &
-     &    +ocetra(i,j,k,icalc14)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-         phyto_growth(i,j,k) = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
-#endif
-
-         ocetra(i,j,k,isilica)=                                        &
-     &  ((ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal))*bdp&
-     &    +ocetra(i,j,k,isilica)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
-
-         ocetra(i,j,k,iopal)=                                          &
-     &   ((ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal))*bdp &
-     &    +ocetra(i,j,k,iopal)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
-
-         ocetra(i,j,k,iiron)=                                          &
-     &   ((ocetra(i,j,k,iiron)+dtr*riron                               &
-     &           -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.))*bdp      &
-     &    +ocetra(i,j,k,iiron)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)  
+        ocetra(i,j,k,isilica)=ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal)
+        ocetra(i,j,k,iopal)=ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
+        ocetra(i,j,k,iiron)=ocetra(i,j,k,iiron)+dtr*riron              &
+     &         -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
 
 
 #ifdef AGG
@@ -623,28 +365,27 @@
 ! NOTE: zoomor is in kmol/m3!! Thus multiply flow by 1.e+6
 !***********************************************************************
 
-      zmornos = zoomor * (1.-ecan) * zdis * 1.e+6
-      ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
+        zmornos = zoomor * (1.-ecan) * zdis * 1.e+6
+        ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
 
 #endif /*AGG*/
 
-!
-! add up for total inventory
-!
-         expoor(i,j)=expoor(i,j)+bdp*export*rcar
-         expoca(i,j)=expoca(i,j)+bdp*delcar
-         exposi(i,j)=exposi(i,j)+bdp*delsil
-!
-! write output for bgcmean
-!
-         aux2d_dmsprod(i,j)   = aux2d_dmsprod(i,j)+dmsprod*bdp 
-         aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*bdp 
-         aux2d_dms_uv(i,j)    = aux2d_dms_uv (i,j)+dms_uv*bdp 
-         aux2d_export(i,j)    = aux2d_export(i,j) +export*rcar*bdp 
-         aux2d_expoca(i,j)    = aux2d_expoca(i,j) +delcar*bdp
-         aux2d_exposi(i,j)    = aux2d_exposi(i,j) +delsil*bdp 
-         aux2d_phosy(i,j)     = aux2d_phosy(i,j)  +phosy*rcar*bdp ! primary production in kmol C m-2
-         aux3d_phosy(i,j,k)   = phosy*rcar*(bdp/pddpo(i,j,k))     ! primary production in kmol C m-3
+
+! add up for total inventory and output
+        dz = pddpo(i,j,k)
+
+        expoor(i,j)=expoor(i,j)+dz*export*rcar
+        expoca(i,j)=expoca(i,j)+dz*delcar
+        exposi(i,j)=exposi(i,j)+dz*delsil
+
+        aux2d_dmsprod(i,j)   = aux2d_dmsprod(i,j)+dmsprod*dz 
+        aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*dz 
+        aux2d_dms_uv(i,j)    = aux2d_dms_uv (i,j)+dms_uv*dz 
+        aux2d_export(i,j)    = aux2d_export(i,j) +export*rcar*dz 
+        aux2d_expoca(i,j)    = aux2d_expoca(i,j) +delcar*dz
+        aux2d_exposi(i,j)    = aux2d_exposi(i,j) +delsil*dz 
+        aux2d_phosy(i,j)     = aux2d_phosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
+        aux3d_phosy(i,j,k)   = phosy*rcar                        ! primary production in kmol C m-3
 
      
       ENDIF      ! pddpo(i,j,k).GT.dp_min
@@ -660,134 +401,56 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 
-! Accumulate 2d diagnostics 
-       call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
-       call accsrf(jdms_uv,aux2d_dms_uv,omask,0)     
-       call accsrf(jexport,aux2d_export,omask,0)      
-       call accsrf(jexpoca,aux2d_expoca,omask,0)     
-       call accsrf(jexposi,aux2d_exposi,omask,0)     
-       call accsrf(jintphosy,aux2d_phosy,omask,0)     
-
-! Accumulate primary production 
-      call acclyr(jphosy,aux3d_phosy,pddpo,1)
-      IF (SUM(jlvlphosy).NE.0) THEN
-        DO k=1,kpke
-          call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlphosy,aux3d_phosy,k,ind1,ind2,wghts)
-        ENDDO
-      ENDIF
-
-#endif /*bioprod*/
 
 
-
-!$OMP PARALLEL DO                                                & 
-!$OMP&PRIVATE(sterph,sterzo,remin,docrem,opalrem,aou, &
-!$OMP&        refra,dms_bac,detref,rem13,rem14,phythresh,  &
-!$OMP&        pocrem,phyrem,bdp,dp_ez)  
+!$OMP PARALLEL DO                                                       & 
+!$OMP&PRIVATE(phythresh,zoothresh,sterph,sterzo,remin,opalrem,aou,      &
+!$OMP&        refra,dms_bac,pocrem,docrem,phyrem,dz)  
       DO 201 j=1,kpje
       DO 201 i=1,kpie
-         DO 20 k=kwrbioz(i,j),kpke
+         DO 20 k=kwrbioz(i,j)+1,kpke
             IF(pddpo(i,j,k).gt.dp_min.and.omask(i,j).GT.0.5) THEN
-
-      if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
-        bdp=abs(ptiestw(i,j,k+1)-dp_ez)
-        if(bdp.gt.pddpo(i,j,k)) then
-          write(io_stdo_bgc,*) 'bdp gt pddpo(i,j,k) 2',i,j,k
-        endif
-      else
-        bdp=pddpo(i,j,k)
-      endif
 
 #ifdef AGG
             avmass=ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/	    
-            phythresh=MAX(0.,ocetra(i,j,k,iphy)-phytomi)
-            sterph=0.5*dphymor* phythresh                               !phytoplankton to detritus
-            sterzo=dzoomor*MAX(0.,ocetra(i,j,k,izoo)-grami)   
+            phythresh=MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
+            zoothresh=MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))             
+            sterph=0.5*dphymor*phythresh                                ! phytoplankton to detritus
+            sterzo=dzoomor*zoothresh*zoothresh                          ! quadratic mortality
 
-       	    ocetra(i,j,k,iphy)=((ocetra(i,j,k,iphy)-sterph)*bdp         & 
-     &     +ocetra(i,j,k,iphy)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-       	    ocetra(i,j,k,izoo)=((ocetra(i,j,k,izoo)-sterzo)*bdp         & 
-     &     +ocetra(i,j,k,izoo)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+       	    ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-sterph
+       	    ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)-sterzo
 
             IF(ocetra(i,j,k,ioxygen).gt.5.e-8) THEN
-               pocrem=MIN(drempoc*ocetra(i,j,k,idet),                  &
+               pocrem=MIN(drempoc*ocetra(i,j,k,idet),                   &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               docrem=MIN(dremdoc*ocetra(i,j,k,idoc),                  &
+               docrem=MIN(dremdoc*ocetra(i,j,k,idoc),                   &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               phyrem=MIN(0.5*dphymor*phythresh,                       &
+               phyrem=MIN(0.5*dphymor*phythresh,                        &
      &                   0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               detref=pocrem/(ocetra(i,j,k,idet)+1.e-20)                      ! 'detritus remineralized fraction' (?)
-#ifdef __c_isotopes
-               rem13=detref*ocetra(i,j,k,idet13)                             ! remineralization of poc13
-               rem14=detref*ocetra(i,j,k,idet14)                             !                     poc14
-#endif
             else
                pocrem=0.
                docrem=0.
                phyrem=0.
-#ifdef __c_isotopes
-               rem13 =0.
-               rem14 =0.
-#endif
             endif 
 	    
-            ocetra(i,j,k,idet)=                                        &
-     &    ((ocetra(i,j,k,idet)-pocrem+sterph+sterzo)*bdp               &
-     &     +ocetra(i,j,k,idet)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#ifdef __c_isotopes
-            ocetra(i,j,k,idet13)=                                      &
-     &    ((ocetra(i,j,k,idet13)+rcar*bifr13*(sterph+sterzo)-rem13)*bdp&
-     &     +ocetra(i,j,k,idet13)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-
-            ocetra(i,j,k,idet14)=                                      &
-     &    ((ocetra(i,j,k,idet14)-rem14)*bdp                            &
-     &     +ocetra(i,j,k,idet14)       *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#endif
-            ocetra(i,j,k,idoc)=                                        &
-     &    ((ocetra(i,j,k,idoc)-docrem)*bdp                             &
-     &     +ocetra(i,j,k,idoc)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,iphy)=                                        &
-     &    ((ocetra(i,j,k,iphy)-phyrem)*bdp                             &
-     &     +ocetra(i,j,k,iphy)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+            ocetra(i,j,k,idet)=ocetra(i,j,k,idet)-pocrem+sterph+sterzo
+            ocetra(i,j,k,idoc)=ocetra(i,j,k,idoc)-docrem
+            ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-phyrem
 
             remin=pocrem+docrem+phyrem
 
-            ocetra(i,j,k,iphosph)=                                     &
-     &    ((ocetra(i,j,k,iphosph)+remin)*bdp                           &
-     &     +ocetra(i,j,k,iphosph)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,iano3)=                                       &
-     &    ((ocetra(i,j,k,iano3)+remin*rnit)*bdp                        &
-     &     +ocetra(i,j,k,iano3)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,isco212)=                                     &
-     &    ((ocetra(i,j,k,isco212)+rcar*remin)*bdp                      &
-     &     +ocetra(i,j,k,isco212)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,ialkali)=                                     &
-     &    ((ocetra(i,j,k,ialkali)-(rnit+1)*remin)*bdp                  &
-     &     +ocetra(i,j,k,ialkali)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,ioxygen)=                                     &
-     &    ((ocetra(i,j,k,ioxygen)-ro2ut*remin)*bdp                     &
-     &     +ocetra(i,j,k,ioxygen)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,iiron)=                                       &
-     &    ((ocetra(i,j,k,iiron)+remin*riron                            &
-     &        -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.))*bdp         &
-     &     +ocetra(i,j,k,iiron)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+            ocetra(i,j,k,iphosph)=ocetra(i,j,k,iphosph)+remin
+            ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)+remin*rnit
+            ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+rcar*remin
+            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-(rnit+1)*remin
+            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-ro2ut*remin
+            ocetra(i,j,k,iiron)=ocetra(i,j,k,iiron)+remin*riron         & 
+     &             -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
 #ifdef natDIC
-            ocetra(i,j,k,inatsco212)=                                  &
-     &    ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                   &
-     &     +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,inatalkali)=                                  &
-     &    ((ocetra(i,j,k,inatalkali)-(rnit+1)*remin)*bdp               &
-     &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#endif
-#ifdef __c_isotopes
-            ocetra(i,j,k,isco213)=                                     &
-     &    ((ocetra(i,j,k,isco213)+rcar*docrem*bifr13 + rem13)*bdp      &
-     &     +ocetra(i,j,k,isco213)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-          ! rem13 not *rcar as idet13 is in C-units
-
-!           ocetra(i,j,k,isco214)= ocetra(i,j,k,isco214)                          ! no biogenic component for 14C
+            ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)+rcar*remin
+            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-(rnit+1)*remin
 #endif
 !***********************************************************************
 ! as ragueneau (2000) notes, Si(OH)4sat is about 1000 umol, but
@@ -796,12 +459,8 @@
 ! rate only from 0 to 100%     
 !***********************************************************************
             opalrem=dremopal*0.1*(ptho(i,j,k)+3.)*ocetra(i,j,k,iopal)
-            ocetra(i,j,k,iopal)=                                       &
-     &    ((ocetra(i,j,k,iopal)-opalrem)*bdp                           &
-     &     +ocetra(i,j,k,iopal)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,isilica)=                                     &
-     &    ((ocetra(i,j,k,isilica)+opalrem)*bdp                         &
-     &     +ocetra(i,j,k,isilica)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+            ocetra(i,j,k,iopal)=ocetra(i,j,k,iopal)-opalrem
+            ocetra(i,j,k,isilica)=ocetra(i,j,k,isilica)+opalrem
 
 !***********************************************************************
 !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
@@ -811,19 +470,14 @@
             refra=1.+3.*(0.5+sign(0.5,aou-1.97e-4))
             dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)   &
      &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
-            ocetra(i,j,k,ian2o)=                                       &
-     &    ((ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra)*bdp           &
-     &     +ocetra(i,j,k,ian2o)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,igasnit)=                                     &
-     &    ((ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra)*bdp         &
-     &     +ocetra(i,j,k,igasnit)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,ioxygen)=                                     &
-     &    ((ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5)*bdp     &
-     &     +ocetra(i,j,k,ioxygen)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)	 
-            ocetra(i,j,k,idms)=                                        &
-     &    ((ocetra(i,j,k,idms)-dms_bac)*bdp                            &
-     &     +ocetra(i,j,k,idms)         *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*bdp
+            ocetra(i,j,k,ian2o)=ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
+            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
+            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
+            ocetra(i,j,k,idms)=ocetra(i,j,k,idms)-dms_bac
+
+            dz = pddpo(i,j,k)
+            aux2d_dms_bac(i,j)= aux2d_dms_bac(i,j)+dms_bac*dz
+
 #ifdef AGG
 !***********************************************************************
 ! loss of snow numbers due to remineralization of poc
@@ -832,8 +486,7 @@
 !***********************************************************************
            if(avmass.gt.0.) then  
               avnos = ocetra(i,j,k,inos)
-              ocetra(i,j,k,inos) = ocetra(i,j,k,inos)                  & 
-     &                           - remin * avnos/avmass
+              ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-remin*avnos/avmass
            endif
 !***********************************************************************
 ! dead zooplankton corpses come with their own, flat distribution
@@ -848,7 +501,6 @@
  20      CONTINUE
  201   CONTINUE     
 !$OMP END PARALLEL DO
-      call accsrf(jdms_bac,aux2d_dms_bac,omask,0) 
 
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -856,98 +508,43 @@
       WRITE(io_stdo_bgc,*)'in OCRPOD after poc remin'
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-#endif 
-!$OMP PARALLEL DO                                                   &
-!$OMP&PRIVATE(remin,remin2o,rem13,rem14,detref,detrl,rl13,rl14,bdp,dp_ez) 
+#endif
+
+
+!$OMP PARALLEL DO                                                       &
+!$OMP&PRIVATE(remin,remin2o,dz) 
        DO 30 j=1,kpje
        DO 30 i=1,kpie
-         DO 30 k=kwrbioz(i,j),kpke
+         DO 30 k=kwrbioz(i,j)+1,kpke
          IF(omask(i,j).GT.0.5) THEN
          IF(ocetra(i,j,k,ioxygen).LT.5.e-7.and.pddpo(i,j,k).gt.dp_min) THEN
 
-           if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
-             bdp=abs(ptiestw(i,j,k+1)-dp_ez)
-           else
-             bdp=pddpo(i,j,k)
-           endif
 
 #ifdef AGG
-               avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
+           avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/	    
 	    
-               remin=0.05*drempoc*MIN(ocetra(i,j,k,idet),               &
-     &                           0.5*ocetra(i,j,k,iano3)/rdnit1)
+           remin=0.05*drempoc*MIN(ocetra(i,j,k,idet),                   &
+     &                        0.5*ocetra(i,j,k,iano3)/rdnit1)
+           remin2o=dremn2o*MIN(ocetra(i,j,k,idet),                      &
+     &	                 0.003*ocetra(i,j,k,ian2o)/rdn2o1)
 
-               detref=remin/(ocetra(i,j,k,idet)+1.e-60)                        ! P-units
-#ifdef __c_isotopes
-               rem13=detref*ocetra(i,j,k,idet13)                               ! C-units
-               rem14=detref*ocetra(i,j,k,idet14)                               ! C-units
-#endif
-
-               remin2o=dremn2o*MIN(ocetra(i,j,k,idet),                    &
-     &	                        0.003*ocetra(i,j,k,ian2o)/rdn2o1)
-               detrl=remin2o/(ocetra(i,j,k,idet)+1.e-60)                       ! detrl?
-#ifdef __c_isotopes
-               rl13=detrl*ocetra(i,j,k,idet13)                                 ! C-units
-               rl14=detrl*ocetra(i,j,k,idet14)                                 ! C-units
-#endif
-
-            ocetra(i,j,k,ialkali)=                                     &
-     &    ((ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o)*bdp        &
-     &     +ocetra(i,j,k,ialkali)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,isco212)=                                     &
-     &    ((ocetra(i,j,k,isco212)+rcar*(remin+remin2o))*bdp            &
-     &     +ocetra(i,j,k,isco212)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+           ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+(rdnit1-1)*remin-remin2o
+           ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+rcar*(remin+remin2o)
 #ifdef natDIC
-            ocetra(i,j,k,inatalkali)=                                  &
-     &    ((ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o)*bdp     &
-     &     +ocetra(i,j,k,inatalkali)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,inatsco212)=                                  &
-     &    ((ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o))*bdp         &
-     &     +ocetra(i,j,k,inatsco212)  *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+           ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+(rdnit1-1)*remin-remin2o
+           ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)+rcar*(remin+remin2o)
 #endif
-! proxies 13C, 14C 
-#ifdef __c_isotopes
-            ocetra(i,j,k,isco213)=                                     &
-     &    ((ocetra(i,j,k,isco213)+(rem13+rl13))*bdp                    &
-     &     +ocetra(i,j,k,isco213)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-!    &                               +rcar* (rem13+rl13  ) ! changed 3.5.2006
-            ocetra(i,j,k,isco214)=                                     &
-     &    ((ocetra(i,j,k,isco214)+(rem14+rl14))*bdp                    &
-     &     +ocetra(i,j,k,isco214)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#endif
-
-            ocetra(i,j,k,idet)=                                        &
-     &    ((ocetra(i,j,k,idet)-(remin+remin2o))*bdp                    &
-     &     +ocetra(i,j,k,idet)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-! proxies
-#ifdef __c_isotopes
-            ocetra(i,j,k,idet13)=                                     &
-     &    ((ocetra(i,j,k,idet13)-(rem13+rl13))*bdp                    &
-     &     +ocetra(i,j,k,idet13)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,idet14)=                                     &
-     &    ((ocetra(i,j,k,idet14)-(rem14+rl14))*bdp                    &
-     &     +ocetra(i,j,k,idet14)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#endif
-
-            ocetra(i,j,k,iphosph)=                                     &
-     &    ((ocetra(i,j,k,iphosph)+(remin + remin2o))*bdp               &
-     &     +ocetra(i,j,k,iphosph)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,iano3)=                                       &
-     &    ((ocetra(i,j,k,iano3)-rdnit1*remin)*bdp                      &
-     &     +ocetra(i,j,k,iano3)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,igasnit)=                                     &
-     &    ((ocetra(i,j,k,igasnit)+rdnit2*remin + rdn2o2*remin2o)*bdp   &
-     &     +ocetra(i,j,k,igasnit)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,iiron)=                                       &
-     &    ((ocetra(i,j,k,iiron)+riron*(remin + remin2o))*bdp           &
-     &     +ocetra(i,j,k,iiron)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-            ocetra(i,j,k,ian2o)=                                       &
-     &    ((ocetra(i,j,k,ian2o)-rdn2o1*remin2o)*bdp                    &
-     &     +ocetra(i,j,k,ian2o)        *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+           ocetra(i,j,k,idet)=ocetra(i,j,k,idet)-(remin+remin2o)
+           ocetra(i,j,k,iphosph)=ocetra(i,j,k,iphosph)+(remin+remin2o)
+           ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)-rdnit1*remin
+           ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)+rdnit2*remin+rdn2o2*remin2o
+           ocetra(i,j,k,iiron)=ocetra(i,j,k,iiron)+riron*(remin+remin2o)
+           ocetra(i,j,k,ian2o)=ocetra(i,j,k,ian2o)-rdn2o1*remin2o
 
 ! nitrate loss through denitrification in kmol N m-2
-          aux2d_dnit(i,j)      = aux2d_dnit(i,j) + rdnit1*remin*bdp 
+           dz = pddpo(i,j,k)
+           aux2d_dnit(i,j) = aux2d_dnit(i,j) + rdnit0*remin*dz 
 
 
 #ifdef AGG
@@ -957,8 +554,7 @@
 !***********************************************************************
            if(avmass.gt.0.) then  
               avnos = ocetra(i,j,k,inos)
-              ocetra(i,j,k,inos) = ocetra(i,j,k,inos)         &
-     &                - (remin+remin2o)*avnos/avmass
+              ocetra(i,j,k,inos)=ocetra(i,j,k,inos)-(remin+remin2o)*avnos/avmass
            endif
 #endif /*AGG*/
 
@@ -966,7 +562,7 @@
          ENDIF
 30    CONTINUE
 !$OMP END PARALLEL DO
-      call accsrf(jintdnit,aux2d_dnit,omask,0) 
+
 
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -975,6 +571,8 @@
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
+
+
 !sulphate reduction   ! introduced 11.5.2007 to improve poc-remineralisation in the 
 !                       oxygen minimum zone in the subsurface equatorial Pacific
 !                       assumption of endless pool of SO4 (typical concentration are on the order of mmol/l)
@@ -983,72 +581,29 @@
 !                      minimum in the equatorial pacific/atlantic
 !                      does it make sense to check for oxygen and nitrate deficit?
 
-!$OMP PARALLEL DO                                                   &
-!$OMP&PRIVATE(remin,rem13,rem14,detref,bdp,dp_ez) 
+!$OMP PARALLEL DO                                                      &
+!$OMP&PRIVATE(remin) 
       DO 301 j=1,kpje
       DO 301 i=1,kpie
-        DO 301 k=kwrbioz(i,j),kpke
+        DO 301 k=kwrbioz(i,j)+1,kpke
             IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.dp_min) then  
             IF(ocetra(i,j,k,ioxygen).lt.3.e-6.and.ocetra(i,j,k,iano3).lt.3.e-6) THEN
-
-              if(ptiestw(i,j,k).lt.dp_ez.and.ptiestw(i,j,k+1).gt.dp_ez) then
-                bdp=abs(ptiestw(i,j,k+1)-dp_ez)
-              else
-                bdp=pddpo(i,j,k)
-              endif
 
 #ifdef AGG
                avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/
-
                remin=dremsul*ocetra(i,j,k,idet)
-               detref=dremsul
-#ifdef __c_isotopes
-               rem13=detref*ocetra(i,j,k,idet13)
-               rem14=detref*ocetra(i,j,k,idet14)
-#endif /*__c_isotopes*/
 
-               ocetra(i,j,k,idet)=                                     &
-     &       ((ocetra(i,j,k,idet)-remin)*bdp                           &
-     &        +ocetra(i,j,k,idet)      *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,ialkali)=                                  &
-     &       ((ocetra(i,j,k,ialkali)-(rnit+1)*remin)*bdp               &
-     &        +ocetra(i,j,k,ialkali)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,isco212)=                                  &
-     &       ((ocetra(i,j,k,isco212)+rcar*remin)*bdp                   &
-     &        +ocetra(i,j,k,isco212)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+               ocetra(i,j,k,idet)=ocetra(i,j,k,idet)-remin
+               ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-(rnit+1)*remin
+               ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+rcar*remin
 #ifdef natDIC
-               ocetra(i,j,k,inatalkali)=                               &
-     &       ((ocetra(i,j,k,inatalkali)-(rnit+1)*remin)*bdp            &
-     &        +ocetra(i,j,k,inatalkali)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,inatsco212)=                               &
-     &       ((ocetra(i,j,k,inatsco212)+rcar*remin)*bdp                &
-     &        +ocetra(i,j,k,inatsco212)*(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+               ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-(rnit+1)*remin
+               ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)+rcar*remin
 #endif
-#ifdef __c_isotopes
-               ocetra(i,j,k,isco213)=                                  &
-     &       ((ocetra(i,j,k,isco213)+rem13)*bdp                        &
-     &        +ocetra(i,j,k,isco213)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,isco214)=                                  &
-     &       ((ocetra(i,j,k,isco214)+rem14)*bdp                        &
-     &        +ocetra(i,j,k,isco214)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,idet13)=                                   &
-     &       ((ocetra(i,j,k,idet13)-rem13)*bdp                         &
-     &        +ocetra(i,j,k,idet13)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,idet14)=                                   &
-     &       ((ocetra(i,j,k,idet14)-rem14)*bdp                         &
-     &        +ocetra(i,j,k,idet14)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-#endif /*__c_isotopes*/
-               ocetra(i,j,k,iphosph)=                                  &
-     &       ((ocetra(i,j,k,iphosph)+remin)*bdp                        &
-     &        +ocetra(i,j,k,iphosph)   *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-       ! remin from sulphate reduction k=kwrbioz,ke
-               ocetra(i,j,k,iano3)=                                    &
-     &       ((ocetra(i,j,k,iano3)+rnit*remin)*bdp                   &
-     &        +ocetra(i,j,k,iano3)     *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
-               ocetra(i,j,k,iiron)=                                    &
-     &       ((ocetra(i,j,k,iiron)+riron*remin)*bdp                    &
-     &        +ocetra(i,j,k,iiron)    *(pddpo(i,j,k)-bdp))/pddpo(i,j,k)
+               ocetra(i,j,k,iphosph)=ocetra(i,j,k,iphosph)+remin
+               ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)+rnit*remin
+               ocetra(i,j,k,iiron)=ocetra(i,j,k,iiron)+riron*remin
    
 #ifdef AGG
 !***********************************************************************
@@ -1057,8 +612,7 @@
 !***********************************************************************
             if(avmass.gt.0.) then
                avnos = ocetra(i,j,k,inos)
-               ocetra(i,j,k,inos) = ocetra(i,j,k,inos)         &
-      &                - (remin)*avnos/avmass
+               ocetra(i,j,k,inos) = ocetra(i,j,k,inos)-remin*avnos/avmass
             endif
 #endif /*AGG*/
 
@@ -1067,6 +621,7 @@
 301    CONTINUE
 !$OMP END PARALLEL DO
 !    end sulphate reduction
+
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
@@ -1234,23 +789,6 @@
       enddo ! j=1,kpje
       enddo ! k=1,kpke
 
-
-      ! Accumulate diagnostics for agtgregate sinking
-      call acclyr(jwphy, wmass/dtb,  pddpo,1)
-      call acclyr(jwnos, wnumb/dtb,  pddpo,1)
-      call acclyr(jeps,  aux3d_eps,  pddpo,1)
-      call acclyr(jasize,aux3d_asize,pddpo,1)
-      IF (SUM(jlvlwphy+jlvlwnos+jlvleps+jlvlasize).NE.0) THEN
-        DO k=1,kpke
-          call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlwphy, wmass/dtb,  k,ind1,ind2,wghts)
-          call acclvl(jlvlwnos, wnumb/dtb,  k,ind1,ind2,wghts)
-          call acclvl(jlvleps,  aux3d_eps,  k,ind1,ind2,wghts)
-          call acclvl(jlvlasize,aux3d_asize,k,ind1,ind2,wghts)
-        ENDDO
-      ENDIF
-
-
 #endif /*AGG*/
 
 
@@ -1261,68 +799,37 @@
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-      k=1
-!$OMP PARALLEL DO PRIVATE(wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg)
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).gt.0.5) THEN
-
-#if defined(AGG)
-          wpoc  = wmass(i,j,k)
-          wcal  = wmass(i,j,k)
-          wopal = wmass(i,j,k)
-          wnos  = wnumb(i,j,k)
-          wdust = dustsink
-          dagg  = dustagg(i,j,k)
-#elif defined(WLIN)
-          wpoc  = wmin
-          dagg  = 0.0
-#else
-          dagg  = 0.0
-#endif
-
-          ocetra(i,j,k,idet)  =(ocetra(i,j,k,idet)*pddpo(i,j,k))/        &
-     &                         (pddpo(i,j,k)+wpoc)
-          ocetra(i,j,k,icalc) =(ocetra(i,j,k,icalc)*pddpo(i,j,k))/       &
-     &                         (pddpo(i,j,k)+wcal)
-#ifdef natDIC
-          ocetra(i,j,k,inatcalc) =(ocetra(i,j,k,inatcalc)*pddpo(i,j,k))/ &
-     &                         (pddpo(i,j,k)+wcal)
-#endif
-          ocetra(i,j,k,iopal) =(ocetra(i,j,k,iopal)*pddpo(i,j,k))/       &
-     &                         (pddpo(i,j,k)+wopal)    
-          ocetra(i,j,k,ifdust)=(ocetra(i,j,k,ifdust)*pddpo(i,j,k))/      &
-     &                         (pddpo(i,j,k)+wdust) - dagg 
-#ifdef AGG
-          ocetra(i,j,k,iphy)  =(ocetra(i,j,k,iphy)*pddpo(i,j,k))/        &
-     &                         (pddpo(i,j,k)+wpoc)
-          ocetra(i,j,k,inos)  =(ocetra(i,j,k,inos)*pddpo(i,j,k))/        &
-     &                         (pddpo(i,j,k)+wnos)  - aggregate(i,j,k)
-          ocetra(i,j,k,iadust)=(ocetra(i,j,k,iadust)*pddpo(i,j,k))/      &
-     &                         (pddpo(i,j,k)+wpoc)  + dagg   
-#endif
-#ifdef __c_isotopes
-          ocetra(i,j,k,idet13) =(ocetra(i,j,k,idet13)*pddpo(i,j,k))/     &
-     &                          (pddpo(i,j,k)+wpoc)
-          ocetra(i,j,k,idet14) =(ocetra(i,j,k,idet14)*pddpo(i,j,k))/     &
-     &                          (pddpo(i,j,k)+wpoc)
-          ocetra(i,j,k,icalc13)=(ocetra(i,j,k,icalc13)*pddpo(i,j,k))/    &
-     &                          (pddpo(i,j,k)+wcal)
-          ocetra(i,j,k,icalc14)=(ocetra(i,j,k,icalc14)*pddpo(i,j,k))/    &
-     &                          (pddpo(i,j,k)+wcal)
-#endif     
-        ENDIF
-      enddo
-      enddo
-!$OMP END PARALLEL DO
-
-
 !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg)
       DO j=1,kpje
       DO i=1,kpie
+
+        tco(:) = 0.0 
+        tcn(:) = 0.0
+
         IF(omask(i,j).gt.0.5) THEN
+
           kdonor=1
-          DO k=2,kpke
+          DO k=1,kpke
+
+          ! Sum up total column inventory before sinking scheme
+          tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k) 
+          tco( 2) = tco( 2) + ocetra(i,j,k,icalc )*pddpo(i,j,k) 
+#ifdef natDIC
+          tco( 3) = tco( 3) + ocetra(i,j,k,inatcalc)*pddpo(i,j,k) 
+#endif
+          tco( 4) = tco( 4) + ocetra(i,j,k,iopal )*pddpo(i,j,k) 
+          tco( 5) = tco( 5) + ocetra(i,j,k,ifdust)*pddpo(i,j,k) 
+#if defined(AGG)
+          tco( 6) = tco( 6) + ocetra(i,j,k,iphy  )*pddpo(i,j,k) 
+          tco( 7) = tco( 7) + ocetra(i,j,k,inos  )*pddpo(i,j,k) 
+          tco( 8) = tco( 8) + ocetra(i,j,k,iadust)*pddpo(i,j,k) 
+#endif
+#ifdef __c_isotopes
+          tco( 9) = tco( 9) + ocetra(i,j,k,idet13 )*pddpo(i,j,k) 
+          tco(10) = tco(10) + ocetra(i,j,k,idet14 )*pddpo(i,j,k) 
+          tco(11) = tco(11) + ocetra(i,j,k,icalc13)*pddpo(i,j,k) 
+          tco(12) = tco(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k) 
+#endif
 
           IF(pddpo(i,j,k).GT.dp_min_sink) THEN
 
@@ -1349,6 +856,17 @@
             wopald = wopal
             dagg   = 0.0
 #endif
+
+            IF( k==1 ) THEN
+              wpocd  = 0.0
+              wcald  = 0.0
+              wopald = 0.0
+#if defined(AGG)
+              wnosd  = 0.0
+#elif defined(WLIN)
+              wpoc   = wmin
+#endif
+            ENDIF
 
             ocetra(i,j,k,idet)  =(ocetra(i,j,k     ,idet)*pddpo(i,j,k)    &
      &	                         +ocetra(i,j,kdonor,idet)*wpocd)/         &
@@ -1416,31 +934,95 @@
 #endif
 
           ENDIF  ! pddpo.GT.dp_min_sink
-          ENDDO  ! k=2,kpke
+
+          ! Sum up total column inventory after sinking scheme
+          ! flux to sediment added after kpke-loop
+          IF( pddpo(i,j,k).GT.dp_min ) THEN
+            tcn( 1) = tcn( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k) 
+            tcn( 2) = tcn( 2) + ocetra(i,j,k,icalc )*pddpo(i,j,k) 
+#ifdef natDIC
+            tcn( 3) = tcn( 3) + ocetra(i,j,k,inatcalc)*pddpo(i,j,k) 
+#endif
+            tcn( 4) = tcn( 4) + ocetra(i,j,k,iopal )*pddpo(i,j,k) 
+            tcn( 5) = tcn( 5) + ocetra(i,j,k,ifdust)*pddpo(i,j,k) 
+#if defined(AGG)
+            tcn( 6) = tcn( 6) + ocetra(i,j,k,iphy  )*pddpo(i,j,k) 
+            tcn( 7) = tcn( 7) + ocetra(i,j,k,inos  )*pddpo(i,j,k) 
+            tcn( 8) = tcn( 8) + ocetra(i,j,k,iadust)*pddpo(i,j,k) 
+#endif
+#ifdef __c_isotopes
+            tcn( 9) = tcn( 9) + ocetra(i,j,k,idet13 )*pddpo(i,j,k) 
+            tcn(10) = tcn(10) + ocetra(i,j,k,idet14 )*pddpo(i,j,k) 
+            tcn(11) = tcn(11) + ocetra(i,j,k,icalc13)*pddpo(i,j,k) 
+            tcn(12) = tcn(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k) 
+#endif
+          ENDIF
+
+          ENDDO  ! loop k=1,kpke
+
+
+          ! Add fluxes to sediment to new total column inventory
+          tcn( 1) = tcn( 1) + ocetra(i,j,kdonor,idet  )*wpoc
+          tcn( 2) = tcn( 2) + ocetra(i,j,kdonor,icalc )*wcal
+#ifdef natDIC
+          tcn( 3) = tcn( 3) + ocetra(i,j,kdonor,inatcalc)*wcal
+#endif
+          tcn( 4) = tcn( 4) + ocetra(i,j,kdonor,iopal )*wopal
+          tcn( 5) = tcn( 5) + ocetra(i,j,kdonor,ifdust)*wdust
+#if defined(AGG)
+          tcn( 6) = tcn( 6) + ocetra(i,j,kdonor,iphy  )*wpoc
+          tcn( 7) = tcn( 7) + ocetra(i,j,kdonor,inos  )*wnos
+          tcn( 8) = tcn( 8) + ocetra(i,j,kdonor,iadust)*wpoc 
+#endif
+#ifdef __c_isotopes
+          tcn( 9) = tcn( 9) + ocetra(i,j,kdonor,idet13 )*wpoc
+          tcn(10) = tcn(10) + ocetra(i,j,kdonor,idet14 )*wpoc
+          tcn(11) = tcn(11) + ocetra(i,j,kdonor,icalc13)*wcal
+          tcn(12) = tcn(12) + ocetra(i,j,kdonor,icalc14)*wcal
+#endif
+
+          ! Do columnwise multiplicative mass conservation correction
+          q(:)=1.0
+          DO is=1,nsinkmax
+            IF( tco(is)>1.e-12 .and. tcn(is)>1.e-12 ) q(is)=tco(is)/tcn(is)
+          ENDDO
+          DO k=1,kpke
+            IF( pddpo(i,j,k).GT.dp_min ) THEN
+              ocetra(i,j,k,idet  )=ocetra(i,j,k,idet  )*q(1)
+              ocetra(i,j,k,icalc )=ocetra(i,j,k,icalc )*q(2)
+#ifdef natDIC
+              ocetra(i,j,k,inatcalc)=ocetra(i,j,k,inatcalc)*q(3)
+#endif
+              ocetra(i,j,k,iopal )=ocetra(i,j,k,iopal )*q(4)
+              ocetra(i,j,k,ifdust)=ocetra(i,j,k,ifdust)*q(5)
+#if defined(AGG)
+              ocetra(i,j,k,iphy  )=ocetra(i,j,k,iphy  )*q(6)
+              ocetra(i,j,k,inos  )=ocetra(i,j,k,inos  )*q(7)
+              ocetra(i,j,k,iadust)=ocetra(i,j,k,iadust)*q(8)
+#endif
+#ifdef __c_isotopes
+              ocetra(i,j,k,idet13 )=ocetra(i,j,k,idet13 )*q(9)
+              ocetra(i,j,k,idet14 )=ocetra(i,j,k,idet14 )*q(10)
+              ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc13)*q(11)
+              ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc14)*q(12)
+#endif
+            ENDIF
+          ENDDO
 
 ! Fluxes to sediment, layers thinner than dp_min_sink are ignored.
 ! Note that kdonor=kbo(i,j) by definition since kbo is the lowermost
 ! layer thicker than dp_min_sink.
 #if defined(AGG)
-          wpoc  = wmass(i,j,kdonor)
-          wcal  = wmass(i,j,kdonor)
-          wopal = wmass(i,j,kdonor)
-          prorca(i,j) = ocetra(i,j,kdonor,iphy)  *wpoc                  &
-     &                + ocetra(i,j,kdonor,idet)  *wpoc
-          prcaca(i,j) = ocetra(i,j,kdonor,icalc) *wcal
-          silpro(i,j) = ocetra(i,j,kdonor,iopal) *wopal
-          produs(i,j) = ocetra(i,j,kdonor,ifdust)*dustsink              &
-     &                + ocetra(i,j,kdonor,iadust)*wpoc    
-#elif defined(WLIN)
-          wpoc  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
-          prorca(i,j)=ocetra(i,j,kdonor,idet ) *wpoc
-          prcaca(i,j)=ocetra(i,j,kdonor,icalc) *wcal
-          silpro(i,j)=ocetra(i,j,kdonor,iopal) *wopal
-          produs(i,j)=ocetra(i,j,kdonor,ifdust)*wdust
+          prorca(i,j)=ocetra(i,j,kdonor,iphy  )*wpoc                    &
+     &              + ocetra(i,j,kdonor,idet  )*wpoc
+          prcaca(i,j)=ocetra(i,j,kdonor,icalc )*wcal
+          silpro(i,j)=ocetra(i,j,kdonor,iopal )*wopal
+          produs(i,j)=ocetra(i,j,kdonor,ifdust)*wdust                   &
+     &              + ocetra(i,j,kdonor,iadust)*wpoc    
 #else
-          prorca(i,j)=ocetra(i,j,kdonor,idet ) *wpoc
-          prcaca(i,j)=ocetra(i,j,kdonor,icalc) *wcal
-          silpro(i,j)=ocetra(i,j,kdonor,iopal) *wopal
+          prorca(i,j)=ocetra(i,j,kdonor,idet  )*wpoc
+          prcaca(i,j)=ocetra(i,j,kdonor,icalc )*wcal
+          silpro(i,j)=ocetra(i,j,kdonor,iopal )*wopal
           produs(i,j)=ocetra(i,j,kdonor,ifdust)*wdust
 #endif
 #ifdef __c_isotopes
@@ -1450,12 +1032,15 @@
           prca14(i,j)=ocetra(i,j,kdonor,icalc14)*wcal
 #endif
 
+
         ENDIF  ! omask.gt.0.5
-      ENDDO
-      ENDDO
-
-
+      ENDDO    ! loop i=1,kpie
+      ENDDO    ! loop j=1,kpje
 !$OMP END PARALLEL DO
+
+
+
+
 ! Calculate mass sinking flux for carbon, opal and calcium carbonate
 ! through the 100 m, 500 m, 1000 m, and 2000 m depth surfaces. These 
 ! fluxes are intentionally calculated using values at the NEW timelevel
@@ -1572,27 +1157,64 @@
       enddo
 !$OMP END PARALLEL DO
 
-      ! Accumulate the diagnostic mass sinking field 
-      call accsrf(jcarflx0100,aux2d_carflx0100,omask,0)    
-      call accsrf(jbsiflx0100,aux2d_bsiflx0100,omask,0)    
-      call accsrf(jcalflx0100,aux2d_calflx0100,omask,0)    
-      call accsrf(jcarflx0500,aux2d_carflx0500,omask,0)    
-      call accsrf(jbsiflx0500,aux2d_bsiflx0500,omask,0)    
-      call accsrf(jcalflx0500,aux2d_calflx0500,omask,0)    
-      call accsrf(jcarflx1000,aux2d_carflx1000,omask,0)    
-      call accsrf(jbsiflx1000,aux2d_bsiflx1000,omask,0)    
-      call accsrf(jcalflx1000,aux2d_calflx1000,omask,0)    
-      call accsrf(jcarflx2000,aux2d_carflx2000,omask,0)    
-      call accsrf(jbsiflx2000,aux2d_bsiflx2000,omask,0)    
-      call accsrf(jcalflx2000,aux2d_calflx2000,omask,0)    
-      call accsrf(jcarflx4000,aux2d_carflx4000,omask,0)    
-      call accsrf(jbsiflx4000,aux2d_bsiflx4000,omask,0)    
-      call accsrf(jcalflx4000,aux2d_calflx4000,omask,0)    
-      call accsrf(jcarflx_bot,prorca*rcar,     omask,0)    
-      call accsrf(jbsiflx_bot,silpro,          omask,0)    
-      call accsrf(jcalflx_bot,prcaca,          omask,0)    
-
       ENDIF ! domassfluxes
+
+
+!     Accumulate local 2d diagnostics 
+      call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
+      call accsrf(jdms_uv,aux2d_dms_uv,omask,0)     
+      call accsrf(jdms_bac,aux2d_dms_bac,omask,0) 
+      call accsrf(jexport,aux2d_export,omask,0)      
+      call accsrf(jexpoca,aux2d_expoca,omask,0)     
+      call accsrf(jexposi,aux2d_exposi,omask,0)     
+      call accsrf(jintphosy,aux2d_phosy,omask,0)     
+      call accsrf(jintdnit,aux2d_dnit,omask,0) 
+
+!     Accumulate local layer diagnostics
+      call acclyr(jphosy,aux3d_phosy,pddpo,1)
+#ifdef AGG
+      call acclyr(jwphy, wmass/dtb,  pddpo,1)
+      call acclyr(jwnos, wnumb/dtb,  pddpo,1)
+      call acclyr(jeps,  aux3d_eps,  pddpo,1)
+      call acclyr(jasize,aux3d_asize,pddpo,1)
+#endif     
+
+!     Accumulate local level diagnostics
+      IF (SUM(jlvlphosy+jlvlwphy+jlvlwnos+jlvleps+jlvlasize).NE.0) THEN
+        DO k=1,kpke
+          call bgczlv(pddpo,k,ind1,ind2,wghts)
+          call acclvl(jlvlphosy,aux3d_phosy,k,ind1,ind2,wghts)
+#ifdef AGG
+          call acclvl(jlvlwphy, wmass/dtb,  k,ind1,ind2,wghts)
+          call acclvl(jlvlwnos, wnumb/dtb,  k,ind1,ind2,wghts)
+          call acclvl(jlvleps,  aux3d_eps,  k,ind1,ind2,wghts)
+          call acclvl(jlvlasize,aux3d_asize,k,ind1,ind2,wghts)
+#endif     
+        ENDDO
+      ENDIF
+
+!     Accumulate the diagnostic mass sinking field 
+      IF( domassfluxes ) THEN
+        call accsrf(jcarflx0100,aux2d_carflx0100,omask,0)    
+        call accsrf(jbsiflx0100,aux2d_bsiflx0100,omask,0)    
+        call accsrf(jcalflx0100,aux2d_calflx0100,omask,0)    
+        call accsrf(jcarflx0500,aux2d_carflx0500,omask,0)    
+        call accsrf(jbsiflx0500,aux2d_bsiflx0500,omask,0)    
+        call accsrf(jcalflx0500,aux2d_calflx0500,omask,0)    
+        call accsrf(jcarflx1000,aux2d_carflx1000,omask,0)    
+        call accsrf(jbsiflx1000,aux2d_bsiflx1000,omask,0)    
+        call accsrf(jcalflx1000,aux2d_calflx1000,omask,0)    
+        call accsrf(jcarflx2000,aux2d_carflx2000,omask,0)    
+        call accsrf(jbsiflx2000,aux2d_bsiflx2000,omask,0)    
+        call accsrf(jcalflx2000,aux2d_calflx2000,omask,0)    
+        call accsrf(jcarflx4000,aux2d_carflx4000,omask,0)    
+        call accsrf(jbsiflx4000,aux2d_bsiflx4000,omask,0)    
+        call accsrf(jcalflx4000,aux2d_calflx4000,omask,0)    
+        call accsrf(jcarflx_bot,prorca*rcar,     omask,0)    
+        call accsrf(jbsiflx_bot,silpro,          omask,0)    
+        call accsrf(jcalflx_bot,prcaca,          omask,0)    
+      ENDIF ! domassfluxes
+
 
 #ifdef PBGC_OCNP_TIMESTEP 
       IF (mnproc.eq.1) THEN

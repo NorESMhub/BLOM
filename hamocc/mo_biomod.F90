@@ -45,7 +45,7 @@
 
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
-      REAL :: ro2ut,rcar,rnit,rnoi,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
+      REAL :: ro2ut,rcar,rnit,rnoi,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
       REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14
       REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o

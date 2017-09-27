@@ -1,4 +1,4 @@
-      SUBROUTINE BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestu,prho,  &
+      SUBROUTINE BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestw,prho,  &
      &                     omask,pglon,pglat,path)
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/beleg_bgc.f90,v $\\
 !$Revision: 1.2 $\\
@@ -43,7 +43,7 @@
 !     *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*      *pddpo*   - size of grid cell (3rd dimension) [m].
-!     *REAL*      *ptiestu* - depth of grid cell center [m].
+!     *REAL*      *ptiestw* - depth of layer interfaces [m].
 !     *REAL*      *prho*    - density [g/cm^3].
 !     *REAL*      *omask*   - ocean mask.
 !     *REAL*      *pglon*   - longitude of grid cell [deg].
@@ -65,7 +65,7 @@
       implicit none      
 
       REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: ptiestu(kpie,kpje,kpke+1)
+      REAL :: ptiestw(kpie,kpje,kpke+1)
       REAL :: prho (kpie,kpje,kpke)
       REAL :: omask(kpie,kpje)
       REAL :: pglon(kpie,kpje)
@@ -108,6 +108,9 @@
       ENDIF
       atm_o2  = 196800.
       atm_n2  = 802000.
+#ifdef natDIC
+      atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
+#endif   
 #ifdef __c_isotopes
       atm_c13 = atm_co2
       atm_c14 = atm_co2
@@ -136,8 +139,16 @@
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.004*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
+#ifdef AGG
       zinges = 0.5          !dimensionless fraction -assimilation efficiency
-      epsher = 0.9          !dimensionless fraction -fraction of grazing egested      
+      epsher = 0.9          !dimensionless fraction -fraction of grazing egested
+#elif defined(WLIN)
+      zinges = 0.55         !dimensionless fraction -assimilation efficiency
+      epsher = 0.85         !dimensionless fraction -fraction of grazing egest      
+#else
+      zinges = 0.6          !dimensionless fraction -assimilation efficiency
+      epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
+#endif
       grazra=1.0*dtb        !1/d -grazing rate
       spemor=3.*1.e6*dtb    !1/d -mortality rate
       gammap=0.03*dtb       !1/d -exudation rate
@@ -166,9 +177,9 @@
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
 #ifdef WLIN
-      wmin  =  7.*dtb       !m/d   minimum sinking speed
-      wmax  = 43.*dtb       !m/d   maximum sinking speed
-      wlin  = 40./2500.*dtb !m/d/m constant describing incr. with depth
+      wmin  =  1.*dtb       !m/d   minimum sinking speed
+      wmax  = 60.*dtb       !m/d   maximum sinking speed
+      wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
 #endif
 
       
@@ -176,15 +187,12 @@
 
       drempoc  = 0.025*dtb    !1/d
       dremdoc  = 0.004*dtb    !1/d
-      dphymor  = 0.07 *dtb    !1/d
-      dzoomor  = 0.02*dtb     !1/d
+      dphymor  = 0.008 *dtb   !1/d
+      dzoomor  = 3.*1.e6*dtb  !1/d -mortality rate
       dremopal = 0.005*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       
-#ifdef AGG
-      dphymor  = 0.1 *dtb     !1/d
-#endif
 
 ! nirogen fixation by blue green algae
       bluefix=0.005*dtb       !1/d
@@ -212,7 +220,8 @@
 
 ! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
 ! equation 18. Note that their R_0=ro2ut-2*rnit.
-      rdnit1=0.8*ro2ut-rnit      ! moles nitrate used for remineralisation of 1 mole P
+      rdnit0=0.8*ro2ut           ! moles nitrate lost for remineralisation of 1 mole P
+      rdnit1=0.8*ro2ut-rnit      ! moles nitrate net  for remineralisation of 1 mole P
       rdnit2=0.4*ro2ut           ! moles N2 released  for remineralisation of 1 mole P
 
 ! stoichiometric ratios for N2O loss by "intermediate dinitrification". Note that there
@@ -226,8 +235,8 @@
       ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
 #elif defined(WLIN)
-      rcalc = 48.  ! calcium carbonate to organic phosphorous production ratio
-      ropal = 44.  ! opal to organic phosphorous production ratio      
+      rcalc = 40.  ! calcium carbonate to organic phosphorous production ratio
+      ropal = 30.  ! opal to organic phosphorous production ratio      
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
@@ -249,9 +258,7 @@
 
 !ik weight percent iron in dust deposition times Fe solubility
 ! the latter three values come from Johnson et al., 1997
-!      fetune=1.0/3.0              ! factor introduced to tune deposistion/solubility
-!      fetune=0.4                  ! factor introduced to tune deposistion/solubility
-      fetune=0.42                  ! factor introduced to tune deposistion/solubility
+      fetune=0.5                  ! factor introduced to tune deposistion/solubility
       perc_diron = fetune * 0.035 * 0.01 / 55.85
       riron= 5.*rcar*1.e-6        ! fe to P ratio in organic matter
       fesoly=0.5*1.e-9            ! max. diss. iron concentration in deep water 
@@ -503,7 +510,7 @@
 
 
 ! Initialise ocean tracers with WOA and GLODAP data
-      call profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestu,omask,TRIM(path))
+      call profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,TRIM(path))
 
       do k=1,kpke
       do j=1,kpje

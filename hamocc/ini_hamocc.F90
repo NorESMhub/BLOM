@@ -16,7 +16,7 @@
 !     J.Schwinger       *GFI, Bergen*    2013-10-21
 !     - added GNEWS2 option for riverine input of carbon and nutrients
 !     - code cleanup
-!     J.Schwinger,      *GFI, Bergen*     2014-05-21
+!     J.Schwinger,      *GFI, Bergen*    2014-05-21
 !     - adapted code for use with two time level tracer field in MICOM
 !     
 !     Purpose
@@ -158,7 +158,7 @@
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestu,prho,                  &
+      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestw,prho,                  &
      &               omask,pglon,pglat,path)
      
 !

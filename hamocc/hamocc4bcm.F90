@@ -58,7 +58,7 @@
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
-      use mo_ndep, only: n_deposition 
+      use mo_ndep, only: n_deposition
 
       implicit none
 
@@ -212,7 +212,7 @@
 
 !---------------------------------------------------------------------
 !     Biogeochemistry
-      CALL n_deposition(kpie,kpje,kpke,kplyear,kplmon,pddpo,omask)   
+      CALL n_deposition(kpie,kpje,kpke,kplyear,kplmon,pddpo,omask)
       CALL OCPROD(kpie,kpje,kpke,ptho,pddpo,pdlxp,pdlyp,pdpio,ptiestu,  &
      &            ptiestw,kplmon,omask)
 
@@ -319,30 +319,111 @@
 
 
 !---------------------------------------------------------------------
-!     Accumulate global fields and write output files
+!     Accumulate global fields and write output files (note: should 
+!     eventually be moved to own subroutine)
 
-!     accumulate preformed tracers (Note: accumulation of all globally 
-!     defined fields should be done here. Should be moved to own subroutine)
-      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
-      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
-      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
-      IF (SUM(jlvlprefo2+jlvlprefpo4+jlvlprefalk).NE.0) THEN
-       DO k=1,kpke
-       call bgczlv(pddpo,k,ind1,ind2,wghts)
-       call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
-       call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
-       call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
-       ENDDO
-      ENDIF
-
-!     accumulate atmosphere fields
+!     Accumulate atmosphere fields
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
+      call accsrf(jn2ofx,atmflx(1,1,iatmn2o),omask,0)
 #ifdef DIFFAT     
       call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
       call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
 #endif
 
-!     accumulate sediments
+!     Accumulate srf diagnostics
+      call accsrf(jsrfphosph,ocetra(1,1,1,iphosph),omask,0)
+      call accsrf(jsrfoxygen,ocetra(1,1,1,ioxygen),omask,0)
+      call accsrf(jsrfiron,ocetra(1,1,1,iiron),omask,0)
+      call accsrf(jsrfano3,ocetra(1,1,1,iano3),omask,0)
+      call accsrf(jsrfalkali,ocetra(1,1,1,ialkali),omask,0)
+      call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
+      call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
+
+!     Accumulate layer diagnostics
+      call acclyr(jdp,pddpo,pddpo,0)
+      call acclyr(jphyto,ocetra(1,1,1,iphy),pddpo,1)   
+      call acclyr(jgrazer,ocetra(1,1,1,izoo),pddpo,1) 
+      call acclyr(jphosph,ocetra(1,1,1,iphosph),pddpo,1)
+      call acclyr(joxygen,ocetra(1,1,1,ioxygen),pddpo,1)
+      call acclyr(jiron,ocetra(1,1,1,iiron),pddpo,1)    
+      call acclyr(jano3,ocetra(1,1,1,iano3),pddpo,1)    
+      call acclyr(jalkali,ocetra(1,1,1,ialkali),pddpo,1)
+      call acclyr(jsilica,ocetra(1,1,1,isilica),pddpo,1)
+      call acclyr(jdic,ocetra(1,1,1,isco212),pddpo,1)    
+      call acclyr(jdoc,ocetra(1,1,1,idoc),pddpo,1)       
+      call acclyr(jpoc,ocetra(1,1,1,idet),pddpo,1)       
+      call acclyr(jcalc,ocetra(1,1,1,icalc),pddpo,1)    
+      call acclyr(jopal,ocetra(1,1,1,iopal),pddpo,1)    
+      call acclyr(jn2o,ocetra(1,1,1,ian2o),pddpo,1) 
+      call acclyr(jco3,co3,pddpo,1)                      
+      call acclyr(jph,hi,pddpo,1)
+      call acclyr(jomegac,OmegaC,pddpo,1)
+#ifdef natDIC
+      call acclyr(jnatalkali,ocetra(1,1,1,inatalkali),pddpo,1)
+      call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
+      call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
+      call acclyr(jnatco3,natco3,pddpo,1)                      
+      call acclyr(jnatomegac,natOmegaC,pddpo,1)
+#endif 
+#ifdef AGG
+      call acclyr(jnos,ocetra(1,1,1,inos),pddpo,1)      
+#endif     
+#ifdef CFC
+      call acclyr(jcfc11,ocetra(1,1,1,icfc11),pddpo,1)
+      call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
+      call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
+#endif
+      call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
+      call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+
+!     Accumulate level diagnostics
+      IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
+     &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
+     &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegac+           &
+     &  jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+jlvlnatomegac+jlvlnos+                 &
+     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlprefo2+jlvlprefpo4+jlvlprefalk).NE.0) THEN
+        DO k=1,kpke
+          call bgczlv(pddpo,k,ind1,ind2,wghts)
+          call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
+          call acclvl(jlvlgrazer,ocetra(1,1,1,izoo),k,ind1,ind2,wghts)
+          call acclvl(jlvlphosph,ocetra(1,1,1,iphosph),k,ind1,ind2,wghts)
+          call acclvl(jlvloxygen,ocetra(1,1,1,ioxygen),k,ind1,ind2,wghts)
+          call acclvl(jlvliron,ocetra(1,1,1,iiron),k,ind1,ind2,wghts)
+          call acclvl(jlvlano3,ocetra(1,1,1,iano3),k,ind1,ind2,wghts)
+          call acclvl(jlvlalkali,ocetra(1,1,1,ialkali),k,ind1,ind2,wghts)
+          call acclvl(jlvlsilica,ocetra(1,1,1,isilica),k,ind1,ind2,wghts)
+          call acclvl(jlvldic,ocetra(1,1,1,isco212),k,ind1,ind2,wghts)
+          call acclvl(jlvldoc,ocetra(1,1,1,idoc),k,ind1,ind2,wghts)
+          call acclvl(jlvlpoc,ocetra(1,1,1,idet),k,ind1,ind2,wghts)
+          call acclvl(jlvlcalc,ocetra(1,1,1,icalc),k,ind1,ind2,wghts)
+          call acclvl(jlvlopal,ocetra(1,1,1,iopal),k,ind1,ind2,wghts)
+          call acclvl(jlvln2o,ocetra(1,1,1,ian2o),k,ind1,ind2,wghts)          
+          call acclvl(jlvlco3,co3,k,ind1,ind2,wghts)
+          call acclvl(jlvlph,hi,k,ind1,ind2,wghts)
+          call acclvl(jlvlomegac,OmegaC,k,ind1,ind2,wghts)
+#ifdef natDIC
+          call acclvl(jlvlnatdic,ocetra(1,1,1,inatsco212),k,ind1,ind2,wghts)
+          call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)
+          call acclvl(jlvlnatcalc,ocetra(1,1,1,inatcalc),k,ind1,ind2,wghts)
+          call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
+          call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
+#endif
+#ifdef AGG
+          call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
+#endif     
+#ifdef CFC
+          call acclvl(jlvlcfc11,ocetra(1,1,1,icfc11),k,ind1,ind2,wghts)
+          call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
+          call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
+#endif
+          call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+        ENDDO
+      ENDIF
+
+!     Accumulate sediments
       call accsdm(jpowaic,powtra(1,1,1,ipowaic))
       call accsdm(jpowaal,powtra(1,1,1,ipowaal))
       call accsdm(jpowaph,powtra(1,1,1,ipowaph))
@@ -355,7 +436,7 @@
       call accsdm(jsssc12,sedlay(1,1,1,isssc12))
       call accsdm(jssster,sedlay(1,1,1,issster))
 
-!     accumulate sediment burial
+!     Accumulate sediment burial
       call accbur(jburssso12,burial(1,1,issso12))
       call accbur(jburssssil,burial(1,1,issssil))
       call accbur(jbursssc12,burial(1,1,isssc12))
@@ -393,7 +474,7 @@
 !$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------
-! Pass dms flux. Convert unit from kmol/m^2 to kg DMS/m^2/s. DMS=(CH3)2S %Tjiputra
+! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 !$OMP PARALLEL DO
       DO  j=1,kpje
       DO  i=1,kpie
