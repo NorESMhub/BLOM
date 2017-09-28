@@ -130,6 +130,7 @@ set MLRTTP   = "'constant'"
 set EDSPRS   = .true.
 set EGC      = 1.25
 set EGGAM    = 200.
+set EGLSMN   = 4000.e2
 set EGMNDF   = 100.e4
 set EGMXDF   = 1500.e4
 set EGIDFQ   = 1.
@@ -517,6 +518,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
+! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
 ! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
@@ -589,6 +591,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   EDSPRS   = ${EDSPRS},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
+  EGLSMN   = ${EGLSMN},
   EGMNDF   = ${EGMNDF},
   EGMXDF   = ${EGMXDF},
   EGIDFQ   = ${EGIDFQ},

@@ -25,10 +25,11 @@ c
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
      .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
      .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
-     .  rmpmth,edwmth,mlrttp,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,
-     .  rm0,ce,swamth,jwtype,chlopt,trxday,srxday,trxdpt,srxdpt,trxlim,
-     .  srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
-     .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
+     .  rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,egmndf,egmxdf,
+     .  egidfq,ri0,rm0,ce,swamth,jwtype,chlopt,trxday,srxday,trxdpt,
+     .  srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,
+     .  smtfrc,sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,
+     .  iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -88,6 +89,7 @@ c --- - print namelist on stdout
         write (lp,*) 'EDSPRS ',EDSPRS
         write (lp,*) 'EGC',EGC
         write (lp,*) 'EGGAM',EGGAM
+        write (lp,*) 'EGLSMN',EGLSMN
         write (lp,*) 'EGMNDF',EGMNDF
         write (lp,*) 'EGMXDF',EGMXDF
         write (lp,*) 'EGIDFQ',EGIDFQ
@@ -296,6 +298,7 @@ c
       call xcbcst(edsprs)
       call xcbcst(egc)
       call xcbcst(eggam)
+      call xcbcst(eglsmn)
       call xcbcst(egmndf)
       call xcbcst(egmxdf)
       call xcbcst(egidfq)
@@ -689,6 +692,7 @@ c
         write (lp,'(a,l10)')   'edsprs:            ',edsprs
         write (lp,'(a,f10.4)') 'egc:               ',egc
         write (lp,'(a,f10.4)') 'eggam:             ',eggam
+        write (lp,'(a,f10.4)') 'eglsmn:            ',eglsmn
         write (lp,'(a,f10.4)') 'egmndf:            ',egmndf
         write (lp,'(a,f10.4)') 'egmxdf:            ',egmxdf
         write (lp,'(a,f10.4)') 'egidfq:            ',egidfq
