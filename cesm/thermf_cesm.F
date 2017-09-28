@@ -18,7 +18,7 @@ c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
-     .     totsrn,q
+     .     totsrn,q,qp,qn
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -273,27 +273,16 @@ c --- ocean is zero
       if (srxday.gt.epsil.and.srxbal) then
         call xcsum(totsrp,util3,ipwocn)
         call xcsum(totsrn,util4,ipwocn)
-        if (abs(totsrp).gt.abs(totsrn)) then
-          q=-totsrn/totsrp
+        if (abs(totsrp-totsrn).gt.0.) then
+          qp=2.*totsrn/(totsrn-totsrp)
+          qn=2.*totsrp/(totsrp-totsrn)
 c$OMP PARALLEL DO
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (salrlx(i,j).gt.0..and.ipwocn(i,j).eq.1) then
-                salrlx(i,j)=q*salrlx(i,j)
-              endif
-            enddo
-            enddo
-          enddo
-c$OMP END PARALLEL DO
-        else
-          q=-totsrp/totsrn
-c$OMP PARALLEL DO
-          do j=1,jj
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (salrlx(i,j).lt.0..and.ipwocn(i,j).eq.1) then
-                salrlx(i,j)=q*salrlx(i,j)
+              if (ipwocn(i,j).eq.1) then
+                salrlx(i,j)=qp*max(0.,salrlx(i,j))
+     .                     +qn*min(0.,salrlx(i,j))
               endif
             enddo
             enddo

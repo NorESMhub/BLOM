@@ -383,6 +383,7 @@ endif
 if ($MICOM_COUPLING  =~ *partial*) then
   set SRXDAY = 6.
   set SPRFAC = .true.
+  set SRXBAL = .true.
 endif
 
 if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
