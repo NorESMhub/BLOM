@@ -15,7 +15,7 @@ c
 #include "param_bud.h"
 #include "common_bud.h"
 c
-      integer i,j,k,l,m,n,mm,nn,km,nday1,nday2
+      integer i,j,k,l,m,n,mm,nn,km
       real q
 c
       real gettime
@@ -66,13 +66,7 @@ c --- ------------------------------------------------------------------
 c --- Read limits file
 c --- ------------------------------------------------------------------
 c
-      call rdlim(nday1,nday2)
-c
-c --- ------------------------------------------------------------------
-c --- Initialize the calendar
-c --- ------------------------------------------------------------------
-c
-      call inicln
+      call rdlim
 c
 c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
@@ -137,41 +131,41 @@ c --- ------------------------------------------------------------------
 c --- Set up initial conditions or start from restart file
 c --- ------------------------------------------------------------------
 c
-      if (nstep1.eq.0) then
+      if (nstep1.eq.nstep0) then
 c
 c --- ------------------------------------------------------------------
-c --- set up initial conditions
+c --- - start from initial conditions
 c --- ------------------------------------------------------------------
 c
-      if (nmonth.ne.1.or.nday.ne.1) then
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .      'Warning! date is inconsistent with ini. cond. (Jan 1st)!'
-          call flush(lp)
+        if (nmonth.ne.1.or.nday.ne.1) then
+          if (mnproc.eq.1) then
+            write (lp,*)
+     .        'Warning! date is inconsistent with ini. cond. (Jan 1st)!'
+            call flush(lp)
+          endif
         endif
-      endif
 c
-      call inicon
+        call inicon
 #ifdef ICEDYN
-      call iniconicedyn
+        call iniconicedyn
 #endif
 #ifdef TRC
-      call initrc
+        call initrc
 #endif
 c
-      delt1=baclin
+        delt1=baclin
 c
-      time0=0.
+        time0=0.
 c
       else !  nstep1 > 0
 c
 c --- ------------------------------------------------------------------
-c --- start from restart file
+c --- - start from restart file
 c --- ------------------------------------------------------------------
 c
-      call restart_rd(nday1)
+        call restart_rd
 c
-      delt1=baclin+baclin
+        delt1=baclin+baclin
 c
       end if !  nstep1 > 0  or  = 0
 c
@@ -225,7 +219,7 @@ c
       enddo
 c
       nstep=nstep1
-      if (mnproc.eq.1) then
+      if (mnproc.eq.1.and.expcnf.ne.'cesm') then
         write (lp,'(/2(a,i6),2(a,i9),a/)')
      .    'model starts at day',nday1,', goes to day',nday2,'   (steps',
      .    nstep1,' --',nstep2,')'

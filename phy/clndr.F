@@ -144,7 +144,7 @@ c
       return
       end
 c
-      integer function daydif(nyear1,nmonth1,nday1,nyear2,nmonth2,nday2)
+      integer function daydif(nyears,nmonths,ndays,nyeare,nmonthe,ndaye)
 c
 c --- ------------------------------------------------------------------
 c --- return number of days between dates
@@ -154,27 +154,27 @@ c
 c
 #include "common_clndr.h"
 c
-      integer nyear1,nmonth1,nday1,nyear2,nmonth2,nday2
+      integer nyears,nmonths,ndays,nyeare,nmonthe,ndaye
 c
       integer nd_in_m2,ny1,nm1,nd1,ny2,nm2,nd2
 c
-      if (nyear1.lt.nyear2.or.
-     .    (nyear1.eq.nyear2.and.nmonth1.lt.nmonth2).or.
-     .    (nyear1.eq.nyear2.and.nmonth1.eq.nmonth2.and.nday1.lt.nday2))
+      if (nyears.lt.nyeare.or.
+     .    (nyears.eq.nyeare.and.nmonths.lt.nmonthe).or.
+     .    (nyears.eq.nyeare.and.nmonths.eq.nmonthe.and.ndays.lt.ndaye))
      .  then
-        ny1=nyear1
-        nm1=nmonth1
-        nd1=nday1
-        ny2=nyear2
-        nm2=nmonth2
-        nd2=nday2
+        ny1=nyears
+        nm1=nmonths
+        nd1=ndays
+        ny2=nyeare
+        nm2=nmonthe
+        nd2=ndaye
       else
-        ny1=nyear2
-        nm1=nmonth2
-        nd1=nday2
-        ny2=nyear1
-        nm2=nmonth1
-        nd2=nday1
+        ny1=nyeare
+        nm1=nmonthe
+        nd1=ndaye
+        ny2=nyears
+        nm2=nmonths
+        nd2=ndays
       endif
 c
       nd_in_m2=nd_in_m(2)

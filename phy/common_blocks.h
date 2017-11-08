@@ -154,10 +154,10 @@ c
      .                tauy,ustar,ustarb,buoyfl,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
-      integer nstep,nstep1,nstep2,lstep
+      integer nstep,nstep0,nstep1,nstep2,lstep
 c
       common /varbls/ time,delt1,dlt,area,avgbot,
-     .                nstep,nstep1,nstep2,lstep
+     .                nstep,nstep0,nstep1,nstep2,lstep
 c
 c --- 'baclin' = baroclinic time step
 c --- 'batrop' = barotropic time step

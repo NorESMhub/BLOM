@@ -27,7 +27,7 @@ module ocn_comp_mct
 
    use types, only : r8
    use micom_cpl_indices
-   use data_mct, only : runid_mct, runtype_mct
+   use data_mct, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
 
    implicit none
@@ -49,8 +49,7 @@ module ocn_comp_mct
       jjcpl, &          ! y-dimension of local ocean domain to send/receive
                         ! fields to coupler
       nsend, &          ! Number of fields to be sent to coupler
-      nrecv, &          ! Number of fields to be received from coupler
-      ocn_cpl_dt        ! Coupling frequency
+      nrecv             ! Number of fields to be received from coupler
 
    real (r8) :: &
       tlast_coupled, &  ! Time since last coupling
@@ -102,16 +101,22 @@ module ocn_comp_mct
       call seq_infodata_GetData( infodata, start_type = starttype)
 
       if (    trim(starttype) == trim(seq_infodata_start_type_start)) then
-         runtype_mct = "initial"
+         runtyp_mct = "initial"
       elseif (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
-         runtype_mct = "continue"
+         runtyp_mct = "continue"
       elseif (trim(starttype) == trim(seq_infodata_start_type_brnch)) then
-         runtype_mct = "branch"
+         runtyp_mct = "branch"
       else
          write (lp,*) 'ocn_comp_mct ERROR: unknown starttype'
          call shr_sys_flush(lp)
          call shr_sys_abort()
       endif
+
+      !-----------------------------------------------------------------
+      ! Get coupling frequency
+      !-----------------------------------------------------------------
+
+      call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt_mct)
 
       ! ----------------------------------------------------------------
       ! Initialize micom
@@ -137,7 +142,7 @@ module ocn_comp_mct
 
       ! This must be completed!
 
-      if (runtype_mct == 'initial') then
+      if (runtyp_mct == 'initial') then
          call seq_timemgr_EClockGetData(EClock, &
                                         start_ymd = start_ymd, &
                                         start_tod = start_tod)
@@ -178,12 +183,6 @@ module ocn_comp_mct
 
       nsend = mct_avect_nRattr(o2x_o)
       nrecv = mct_avect_nRattr(x2o_o)
-
-      !-----------------------------------------------------------------
-      ! Get coupling frequency
-      !-----------------------------------------------------------------
-
-      call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt)
 
       !-----------------------------------------------------------------
       ! Send intial state to driver
@@ -266,7 +265,7 @@ module ocn_comp_mct
          ! Add fields to send buffer sums
          call sumsbuff_mct(nsend, sbuff, tlast_coupled)
 
-         if (nint(ocn_cpl_dt-tlast_coupled) == 0) then
+         if (nint(ocn_cpl_dt_mct-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
             call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, &
                             tlast_coupled)
@@ -301,8 +300,8 @@ module ocn_comp_mct
          if (.not. seq_timemgr_EClockDateInSync(EClock, ymd, tod )) then
             call seq_timemgr_EClockGetData(EClock, curr_ymd=ymd_sync, &
                curr_tod=tod_sync )
-            write(lp,*)' micom ymd=',ymd     ,'  cice tod= ',tod
-            write(lp,*)' sync  ymd=',ymd_sync,'  sync tod= ',tod_sync
+            write(lp,*)' micom ymd=',ymd     ,'  micom tod= ',tod
+            write(lp,*)' sync  ymd=',ymd_sync,'  sync  tod= ',tod_sync
             call shr_sys_abort( 'ocn_run_mct'// &
                ":: Internal micom clock not in sync with Sync Clock")
          endif
