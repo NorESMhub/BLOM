@@ -145,7 +145,10 @@ DO i=1,kpie
     ocetra(i,j,1:2,isilica) = ocetra(i,j,1:2,isilica) + riv_DSI2d(i,j)*fdt/volij
     ocetra(i,j,1:2,isco212) = ocetra(i,j,1:2,isco212) + riv_DIC2d(i,j)*fdt/volij
     ocetra(i,j,1:2,ialkali) = ocetra(i,j,1:2,ialkali) + riv_DIC2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,iiron)   = ocetra(i,j,1:2,iiron)   + riv_DFe2d(i,j)*fdt/volij
+    ocetra(i,j,1:2,iiron)   = ocetra(i,j,1:2,iiron)   + riv_DFe2d(i,j)*fdt/volij*0.01
+
+!SG: Approx. 80-99% of dFe input is lost to the particulate phase in estuaries at low salinities 
+!    [Boyle et al., 1977; Chester, 1990; Dai and Martin, 1995; Lohan and Bruland, 2006; Sholkovitz, 1978] 
 
     ! Dissolved organic matter
     ocetra(i,j,1:2,idoc)    = ocetra(i,j,1:2,idoc)    + riv_idoc2d(i,j)*fdt/volij
