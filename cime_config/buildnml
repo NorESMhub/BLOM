@@ -151,7 +151,8 @@ set EGMXDF   = 1500.e4
 set EGIDFQ   = 1.
 set RI0      = 1.2
 set RM0      = 1.2
-set CE       = .06
+set RM5      = .5
+set CE       = 1.
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
 set CHLOPT   = "'climatology'"
@@ -462,7 +463,6 @@ else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.
   set EDWMTH = "'step'"
   set EGC    = 1.25
   set EGMXDF = 1500.e4
-  set CE     = .12
   set GLB_NCFORMAT =  '1,   1'
   set BGC_NCFORMAT  = '1,   1'
 else
@@ -532,8 +532,10 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            parameterization. egidfq=difint/difiso () (f)
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
-! RM0      : Efficiency factor for wind TKE generation in the Oberhuber
+! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
 !            (1993) TKE closure () (f)
+! RM5      : Efficiency factor of TKE generation by momentum
+!            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
@@ -604,6 +606,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   EGIDFQ   = ${EGIDFQ},
   RI0      = ${RI0},
   RM0      = ${RM0},
+  RM5      = ${RM5},
   CE       = ${CE},
   SWAMTH   = ${SWAMTH},
   JWTYPE   = ${JWTYPE},

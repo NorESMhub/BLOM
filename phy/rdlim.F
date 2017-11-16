@@ -24,7 +24,7 @@ c
      .  baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,
      .  vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,
      .  bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,egmndf,
-     .  egmxdf,egidfq,ri0,rm0,ce,swamth,jwtype,chlopt,trxday,srxday,
+     .  egmxdf,egidfq,ri0,rm0,rm5,ce,swamth,jwtype,chlopt,trxday,srxday,
      .  trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,
      .  srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,
      .  rstcmp,iotype
@@ -95,6 +95,7 @@ c --- - print namelist on stdout
         write (lp,*) 'EGIDFQ',EGIDFQ
         write (lp,*) 'RI0',RI0
         write (lp,*) 'RM0',RM0
+        write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
         write (lp,*) 'SWAMTH ',trim(SWAMTH)
         write (lp,*) 'JWTYPE',JWTYPE
@@ -305,6 +306,7 @@ c
       call xcbcst(egidfq)
       call xcbcst(ri0)
       call xcbcst(rm0)
+      call xcbcst(rm5)
       call xcbcst(ce)
       call xcbcst(swamth)
       call xcbcst(jwtype)
