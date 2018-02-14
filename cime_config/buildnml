@@ -152,7 +152,7 @@ set EGIDFQ   = 1.
 set RI0      = 1.2
 set RM0      = 1.2
 set RM5      = 0.
-set CE       = .5
+set CE       = .06
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
 set CHLOPT   = "'climatology'"
@@ -463,6 +463,7 @@ else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.
   set EDWMTH = "'step'"
   set EGC    = 1.25
   set EGMXDF = 1500.e4
+  set CE     = .12
   set GLB_NCFORMAT =  '1,   1'
   set BGC_NCFORMAT  = '1,   1'
 else
