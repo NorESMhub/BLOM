@@ -673,7 +673,7 @@ c --- --------- Rhines scale.
                 rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
 c
 c --- --------- Eddy length scale.
-                els=min(bcrrd(i),rhisc)
+                els=max(eglsmn,min(bcrrd(i),rhisc))
 c
 c --- --------- Temporary layer interface diffusivity.
                 difint(i,j,k)=egc*egr(i,k)*els*els
@@ -711,7 +711,7 @@ c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
 c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
 c --- ------- Abernathey, 2014).
               rhisc=egrs(i)/max(1.e-24,betafp(i,j))
-              els=min(bcrrd(i),rhisc)
+              els=max(eglsmn,min(bcrrd(i),rhisc))
               urmse(i)=2.86*egc*egrs(i)*els
 #ifdef DIAG
               tmp2d_6(i,j)=urmse(i)

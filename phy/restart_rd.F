@@ -1,4 +1,4 @@
-      subroutine restart_rd(nday1)
+      subroutine restart_rd
 c
 c --- ------------------------------------------------------------------
 c --- Read initial conditions from restart file
@@ -12,8 +12,6 @@ c
       use mod_thdysi, only: tsrfm,ticem
 c
       implicit none
-c
-      integer nday1
 c
 #include "common_blocks.h"
 #include "common_clndr.h"

@@ -4,6 +4,7 @@ c --- ------------------------------------------------------------------
 c --- Estimate slope of local neutral surface.
 c --- ------------------------------------------------------------------
 c
+c
       use mod_xc
 c
       implicit none
@@ -13,7 +14,7 @@ c
 #include "common_blocks.h"
 c
       real rho0,pm,rho_x,phi_x,bfsqm,rho_y,phi_y
-      integer i,j,k,l,kn,kintr,kmax
+      integer i,j,k,l,kn,kintr,kmax,knnsl
 c
       real p_alpha,rho
       external p_alpha,rho
@@ -42,7 +43,12 @@ c$OMP PARALLEL DO PRIVATE(kn)
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- Compute slope vector of local neutral surfaces.
+c --- Compute slope vector of local neutral surfaces and also slope
+c --- vector times Brunt-Vaisala frequency (optionally used in the
+c --- computation of eddy growth rate). The latter is not computed when
+c --- the gradient of the geopotential is expected to be influenced by
+c --- the gradient of the bathymetry and in this case values are
+c --- extrapolated from above.
 c --- ------------------------------------------------------------------
 c
       rho0=1./alpha0
@@ -57,19 +63,23 @@ c --- --- Set the x-component of the slope vector to zero initially.
             nnslpx(i,j,k)=0.
           enddo
 c
-c --- --- Index of last layer containing mass at either of the scalar
-c --- --- points adjacent to the velocity point.
-          kmax=1
-          do k=3,kk
-            kn=k+nn
-            if (dp(i-1,j,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
-          enddo
-c
           if     (kfpla(i-1,j,n).le.kk.or.kfpla(i,j,n).le.kk) then
+c
+c --- ----- Index of last layer containing mass at either of the scalar
+c --- ----- points adjacent to the velocity point.
+            kmax=1
+            do k=3,kk
+              kn=k+nn
+              if (dp(i-1,j,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
+            enddo
 c
 c --- ----- The first interior interface where the x-component of the
 c --- ----- slope vector is estimated is at index kintr+1.
             kintr=max(kfpla(i-1,j,n),kfpla(i,j,n))
+c
+c --- ----- Index of last interface where slope vector times
+c --- ----- Brunt-Vaisala frequency is computed.
+            knnsl=2
 c
 c --- ----- Compute the x-component of the slope vector at the mixed
 c --- ----- layer base.
@@ -79,7 +89,11 @@ c --- ----- layer base.
             phi_x=phi(i,j,3)-phi(i-1,j,3)
             bfsqm=.5*(bfsqf(i-1,j,3)+bfsqf(i,j,3))
             nslpx(i,j,3)=(g*rho_x/(rho0*bfsqm)+phi_x/g)*scuxi(i,j)
-            nnslpx(i,j,3)=sqrt(bfsqm)*nslpx(i,j,3)
+            if (phi(i  ,j,3).gt.phi(i-1,j,kk+1).and.
+     .          phi(i-1,j,3).gt.phi(i  ,j,kk+1)) then
+              nnslpx(i,j,3)=sqrt(bfsqm)*nslpx(i,j,3)
+              knnsl=3
+            endif
 c
 c --- ----- Compute the x-component of the slope vector at interior
 c --- ----- interfaces.
@@ -93,7 +107,14 @@ c --- ----- interfaces.
               phi_x=phi(i,j,k)-phi(i-1,j,k)
               bfsqm=.5*(bfsqf(i-1,j,k)+bfsqf(i,j,k))
               nslpx(i,j,k)=(g*rho_x/(rho0*bfsqm)+phi_x/g)*scuxi(i,j)
-              nnslpx(i,j,k)=sqrt(bfsqm)*nslpx(i,j,k)
+              if (phi(i  ,j,k).gt.phi(i-1,j,kk+1).and.
+     .            phi(i-1,j,k).gt.phi(i  ,j,kk+1)) then
+                nnslpx(i,j,k)=sqrt(bfsqm)*nslpx(i,j,k)
+                knnsl=k
+              endif
+            enddo
+            do k=knnsl+1,kmax
+              nnslpx(i,j,k)=nnslpx(i,j,knnsl)
             enddo
             if (kintr.lt.kmax) then
               do k=4,kintr
@@ -123,19 +144,23 @@ c --- --- Set the y-component of the slope vector to zero initially.
             nnslpy(i,j,k)=0.
           enddo
 c
-c --- --- Index of last layer containing mass at either of the scalar
-c --- --- points adjacent to the velocity point.
-          kmax=1
-          do k=3,kk
-            kn=k+nn
-            if (dp(i,j-1,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
-          enddo
-c
           if     (kfpla(i,j-1,n).le.kk.or.kfpla(i,j,n).le.kk) then
+c
+c --- ----- Index of last layer containing mass at either of the scalar
+c --- ----- points adjacent to the velocity point.
+            kmax=1
+            do k=3,kk
+              kn=k+nn
+              if (dp(i,j-1,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
+            enddo
 c
 c --- ----- The first interior interface where the y-component of the
 c --- ----- slope vector is estimated is at index kintr+1.
             kintr=max(kfpla(i,j-1,n),kfpla(i,j,n))
+c
+c --- ----- Index of last interface where slope vector times
+c --- ----- Brunt-Vaisala frequency is computed.
+            knnsl=2
 c
 c --- ----- Compute the y-component of the slope vector at the mixed
 c --- ----- layer base.
@@ -145,7 +170,11 @@ c --- ----- layer base.
             phi_y=phi(i,j,3)-phi(i,j-1,3)
             bfsqm=.5*(bfsqf(i,j-1,3)+bfsqf(i,j,3))
             nslpy(i,j,3)=(g*rho_y/(rho0*bfsqm)+phi_y/g)*scvyi(i,j)
-            nnslpy(i,j,3)=sqrt(bfsqm)*nslpy(i,j,3)
+            if (phi(i,j  ,3).gt.phi(i,j-1,kk+1).and.
+     .          phi(i,j-1,3).gt.phi(i,j  ,kk+1)) then
+              nnslpy(i,j,3)=sqrt(bfsqm)*nslpy(i,j,3)
+              knnsl=3
+            endif
 c
 c --- ----- Compute the y-component of the slope vector at interior
 c --- ----- interfaces.
@@ -159,7 +188,14 @@ c --- ----- interfaces.
               phi_y=phi(i,j,k)-phi(i,j-1,k)
               bfsqm=.5*(bfsqf(i,j-1,k)+bfsqf(i,j,k))
               nslpy(i,j,k)=(g*rho_y/(rho0*bfsqm)+phi_y/g)*scvyi(i,j)
-              nnslpy(i,j,k)=sqrt(bfsqm)*nslpy(i,j,k)
+              if (phi(i,j  ,k).gt.phi(i,j-1,kk+1).and.
+     .            phi(i,j-1,k).gt.phi(i,j  ,kk+1)) then
+                nnslpy(i,j,k)=sqrt(bfsqm)*nslpy(i,j,k)
+                knnsl=k
+              endif
+            enddo
+            do k=knnsl+1,kmax
+              nnslpy(i,j,k)=nnslpy(i,j,knnsl)
             enddo
             if (kintr.lt.kmax) then
               do k=4,kintr

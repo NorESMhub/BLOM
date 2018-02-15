@@ -586,11 +586,12 @@ c
 c
       if (io_type .eq. 1) then
 #ifdef PNETCDF
-      call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
+        call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
 #endif
       elseif (io_type .eq. 0) then
-      if (mnproc.eq.1) 
-     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
+        if (mnproc.eq.1) 
+     .    call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
+        call xcbcst(rval)
       endif
 c
       end subroutine ncgetrs
@@ -615,11 +616,12 @@ c
 c
       if (io_type .eq. 1) then
 #ifdef PNETCDF
-      call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
+        call ncerro(nfmpi_get_att_double(ncid,nf_global,vnm,rval))
 #endif
       elseif (io_type .eq. 0) then
-      if (mnproc.eq.1) 
-     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
+        if (mnproc.eq.1) 
+     .    call ncerro(nf90_get_att(ncid,nf90_global,vnm,rval))
+        call xcbcst(rval)
       endif
 c
       end subroutine ncgetrv
@@ -644,11 +646,12 @@ c
 c
       if (io_type .eq. 1) then
 #ifdef PNETCDF
-      call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
+        call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
 #endif
       elseif (io_type .eq. 0) then
-      if (mnproc.eq.1)
-     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
+        if (mnproc.eq.1)
+     .    call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
+        call xcbcst(ival)
       endif
 c
       end subroutine ncgetis
@@ -673,11 +676,12 @@ c
 c
       if (io_type .eq. 1) then
 #ifdef PNETCDF
-      call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
+        call ncerro(nfmpi_get_att_int(ncid,nf_global,vnm,ival))
 #endif
       elseif (io_type .eq. 0) then
-      if (mnproc.eq.1)
-     .  call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
+        if (mnproc.eq.1)
+     .    call ncerro(nf90_get_att(ncid,nf90_global,vnm,ival))
+        call xcbcst(ival)
       endif
 c
       end subroutine ncgetiv

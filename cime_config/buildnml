@@ -1,4 +1,9 @@
 #! /bin/csh -fvx
+
+#------------------------------------------------------------------------------
+# Get variables from Case XML-files
+#------------------------------------------------------------------------------
+
 setenv CASE `./xmlquery CASE --value`
 setenv CONFIG_OCN_FILE `./xmlquery CONFIG_OCN_FILE --value`
 setenv CASEROOT `./xmlquery CASEROOT --value`
@@ -8,6 +13,7 @@ setenv CONFIG_OCN_DIR1 `dirname $CONFIG_OCN_FILE`
 setenv NTASKS_OCN `./xmlquery NTASKS_OCN --value` 
 setenv DIN_LOC_ROOT `./xmlquery  DIN_LOC_ROOT --value`
 setenv RUN_TYPE `./xmlquery RUN_TYPE --value`
+setenv CONTINUE_RUN `./xmlquery CONTINUE_RUN --value`
 setenv CASEBUILD `./xmlquery CASEBUILD --value`
 setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
 setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
@@ -19,6 +25,7 @@ setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
 echo $CASE ${EXEROOT} $CASEBUILD
 cd $EXEROOT/ocn/obj
 setenv CONFIG_OCN_DIR $CONFIG_OCN_DIR1/../
+
 #------------------------------------------------------------------------------
 # Make dimensions.F
 #------------------------------------------------------------------------------
@@ -35,6 +42,14 @@ if ($recompile == 'TRUE') then
   mv dimensions.F $dimdir
 else
   rm dimensions.F
+endif
+
+#------------------------------------------------------------------------------
+# Set RUN_TYPE to 'continue' if CONTINUE_RUN equals TRUE
+#------------------------------------------------------------------------------
+
+if ($CONTINUE_RUN == TRUE) then
+  setenv RUN_TYPE continue
 endif
 
 #------------------------------------------------------------------------------
@@ -79,7 +94,7 @@ meridional_transport_index_file = $INPUTPATH/mertraindex.dat
 meridional_transport_basin_file = $INPUTPATH/mertraoceans.dat
 section_index_file = $INPUTPATH/secindex.dat
 EOF1
-if ($RUN_TYPE == startup )  then
+if ($RUN_TYPE == startup)  then
 cat >> $CASEBUILD/micom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
 EOF1
@@ -130,11 +145,13 @@ set MLRTTP   = "'constant'"
 set EDSPRS   = .true.
 set EGC      = 1.25
 set EGGAM    = 200.
+set EGLSMN   = 4000.e2
 set EGMNDF   = 100.e4
 set EGMXDF   = 1500.e4
 set EGIDFQ   = 1.
 set RI0      = 1.2
 set RM0      = 1.2
+set RM5      = 0.
 set CE       = .06
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
@@ -370,19 +387,10 @@ set YEAR0   = `echo $RUN_STARTDATE | cut -c1-4 `
 set MONTH0  = `echo $RUN_STARTDATE | cut -c6-7 `
 set DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
 
-if ($RUN_TYPE == startup || $RUN_TYPE == hybrid )  then
-  if ($OCN_NCPL > 1) then 
-    echo "$0 ERROR: Unsupported coupling interval OCN_NCPL = $OCN_NCPL "
-    exit -1
-  else
-    @ DAY0 = $DAY0 + 1
-    set DAY0=`echo 0$DAY0 | tail -3c`
-  endif
-endif
-
 if ($MICOM_COUPLING  =~ *partial*) then
   set SRXDAY = 6.
   set SPRFAC = .true.
+  set SRXBAL = .true.
 endif
 
 if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
@@ -479,6 +487,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! IDATE0   : Initial experiment date in YYYYMMDD (i)
 ! RUNID    : Experiment name (a)
 ! EXPCNF   : Experiment configuration (a)
+! RUNTYP   : CESM run type (a)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -516,6 +525,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
+! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
 ! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
 ! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
@@ -523,8 +533,10 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            parameterization. egidfq=difint/difiso () (f)
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
-! RM0      : Efficiency factor for wind TKE generation in the Oberhuber
+! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
 !            (1993) TKE closure () (f)
+! RM5      : Efficiency factor of TKE generation by momentum
+!            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
@@ -557,11 +569,12 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! IOTYPE   : 0 = netcdf, 1 = pnetcdf
 &LIMITS
   NDAY1    = 0,
-  NDAY2    = 99999999,
+  NDAY2    = 0,
   IDATE    = ${YEAR0}${MONTH0}${DAY0},
   IDATE0   = ${YEAR0}${MONTH0}${DAY0},
   RUNID    = 'xxxx',
   EXPCNF   = 'cesm',
+  RUNTYP   = "${RUN_TYPE}",
   BACLIN   = ${BACLIN},
   BATROP   = ${BATROP},
   MDV2HI   = ${MDV2HI},
@@ -588,11 +601,13 @@ cat >! $RUNDIR/ocn_in << EOF1
   EDSPRS   = ${EDSPRS},
   EGC      = ${EGC},
   EGGAM    = ${EGGAM},
+  EGLSMN   = ${EGLSMN},
   EGMNDF   = ${EGMNDF},
   EGMXDF   = ${EGMXDF},
   EGIDFQ   = ${EGIDFQ},
   RI0      = ${RI0},
   RM0      = ${RM0},
+  RM5      = ${RM5},
   CE       = ${CE},
   SWAMTH   = ${SWAMTH},
   JWTYPE   = ${JWTYPE},

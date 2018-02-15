@@ -1,4 +1,4 @@
-      subroutine rdlim(nday1,nday2)
+      subroutine rdlim
 c
 c --- ------------------------------------------------------------------
 c --- Read limits file
@@ -8,27 +8,26 @@ c
       use mod_swabs, only: swamth, jwtype, chlopt
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
-      use data_mct, only: runid_mct, runtype_mct
+      use data_mct, only: runid_mct, runtyp_mct, ocn_cpl_dt_mct
 c
       implicit none
-c
-      integer :: nday1,nday2
 c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
 c
       integer :: i,j,m,n
-      character*80 :: rstfnm
+      character*80 :: runtyp,rstfnm
       logical :: fexist
-      integer :: idate,idate0
-      namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,baclin,
-     .  batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo,
-     .  vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,bmcmth,
-     .  rmpmth,edwmth,mlrttp,edsprs,egc,eggam,egmndf,egmxdf,egidfq,ri0,
-     .  rm0,ce,swamth,jwtype,chlopt,trxday,srxday,trxdpt,srxdpt,trxlim,
-     .  srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,
-     .  path,path1,path2,atm_path,rstfrq,rstfmt,rstcmp,iotype
+      integer :: idate,idate0,nstep_in_cpl
+      namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
+     .  baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,
+     .  vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,
+     .  bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,egmndf,
+     .  egmxdf,egidfq,ri0,rm0,rm5,ce,swamth,jwtype,chlopt,trxday,srxday,
+     .  trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,
+     .  srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,
+     .  rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -45,7 +44,7 @@ c
      .            recl=80)
           else
             if (mnproc.eq.1) then
-              write (lp,*) 'Could not find namelist file!'
+              write (lp,*) 'rdlim: could not find namelist file!'
             endif
             call xchalt('(rdlim)')
                    stop '(rdlim)'
@@ -56,13 +55,15 @@ c
         close (unit=nfu)
 c
 c --- - print namelist on stdout 
-        write (lp,'(a)') 'MICOM LIMITS-NAMELIST:' 
+        write (lp,*)
+        write (lp,*) 'rdlim: MICOM LIMITS NAMELIST GROUP:' 
         write (lp,*) 'NDAY1',NDAY1
         write (lp,*) 'NDAY2',NDAY2
         write (lp,*) 'IDATE',IDATE
         write (lp,*) 'IDATE0',IDATE0
         write (lp,*) 'RUNID ',trim(RUNID)
         write (lp,*) 'EXPCNF ',trim(EXPCNF)
+        write (lp,*) 'RUNTYP ',trim(RUNTYP)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'MDV2HI',MDV2HI
@@ -88,11 +89,13 @@ c --- - print namelist on stdout
         write (lp,*) 'EDSPRS ',EDSPRS
         write (lp,*) 'EGC',EGC
         write (lp,*) 'EGGAM',EGGAM
+        write (lp,*) 'EGLSMN',EGLSMN
         write (lp,*) 'EGMNDF',EGMNDF
         write (lp,*) 'EGMXDF',EGMXDF
         write (lp,*) 'EGIDFQ',EGIDFQ
         write (lp,*) 'RI0',RI0
         write (lp,*) 'RM0',RM0
+        write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
         write (lp,*) 'SWAMTH ',trim(SWAMTH)
         write (lp,*) 'JWTYPE',JWTYPE
@@ -131,138 +134,138 @@ c --- - determine number of io groups and print namelist
         if (srxday.eq.0.) then
           SRF_SALRLX(1:nphy)=0
         endif
-        write(lp,'(a)') ' ' 
-        write(lp,'(a)') 'MICOM IO_NAMELIST ' 
-        write(lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
-        write(lp,*) 'GLB_AVEPERIO',GLB_AVEPERIO(1:nphy)
-        write(lp,*) 'GLB_FILEFREQ',GLB_FILEFREQ(1:nphy)
-        write(lp,*) 'GLB_COMPFLAG',GLB_COMPFLAG(1:nphy)
-        write(lp,*) 'GLB_NCFORMAT',GLB_NCFORMAT(1:nphy)
-        write(lp,*) 'SRF_ABSWND  ',SRF_ABSWND(1:nphy)
-        write(lp,*) 'SRF_ALB     ',SRF_ALB(1:nphy)
-        write(lp,*) 'SRF_BRNFLX  ',SRF_BRNFLX(1:nphy)
-        write(lp,*) 'SRF_BRNPD   ',SRF_BRNPD(1:nphy)
-        write(lp,*) 'SRF_DFL     ',SRF_DFL(1:nphy)
-        write(lp,*) 'SRF_EVA     ',SRF_EVA(1:nphy)
-        write(lp,*) 'SRF_FMLTFZ  ',SRF_FMLTFZ(1:nphy)
-        write(lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
-        write(lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
-        write(lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
-        write(lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
-        write(lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
-        write(lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
-        write(lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
-        write(lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
-        write(lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
-        write(lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
-        write(lp,*) 'SRF_LIP     ',SRF_LIP(1:nphy)
-        write(lp,*) 'SRF_MAXMLD  ',SRF_MAXMLD(1:nphy)
-        write(lp,*) 'SRF_MLD     ',SRF_MLD(1:nphy)
-        write(lp,*) 'SRF_MLDU    ',SRF_MLDU(1:nphy)
-        write(lp,*) 'SRF_MLDV    ',SRF_MLDV(1:nphy)
-        write(lp,*) 'SRF_MTY     ',SRF_MTY(1:nphy)
-        write(lp,*) 'SRF_MXLU    ',SRF_MXLU(1:nphy)
-        write(lp,*) 'SRF_MXLV    ',SRF_MXLV(1:nphy)
-        write(lp,*) 'SRF_NSF     ',SRF_NSF(1:nphy)
-        write(lp,*) 'SRF_RFIFLX  ',SRF_RFIFLX(1:nphy)
-        write(lp,*) 'SRF_RNFFLX  ',SRF_RNFFLX(1:nphy)
-        write(lp,*) 'SRF_SALFLX  ',SRF_SALFLX(1:nphy)
-        write(lp,*) 'SRF_SALRLX  ',SRF_SALRLX(1:nphy)
-        write(lp,*) 'SRF_SEALV   ',SRF_SEALV(1:nphy)
-        write(lp,*) 'SRF_SFL     ',SRF_SFL(1:nphy)
-        write(lp,*) 'SRF_SIGMX   ',SRF_SIGMX(1:nphy)
-        write(lp,*) 'SRF_SOP     ',SRF_SOP(1:nphy)
-        write(lp,*) 'SRF_SSS     ',SRF_SSS(1:nphy)
-        write(lp,*) 'SRF_SST     ',SRF_SST(1:nphy)
-        write(lp,*) 'SRF_SURFLX  ',SRF_SURFLX(1:nphy)
-        write(lp,*) 'SRF_SURRLX  ',SRF_SURRLX(1:nphy)
-        write(lp,*) 'SRF_SWA     ',SRF_SWA(1:nphy)
-        write(lp,*) 'SRF_TAUX    ',SRF_TAUX(1:nphy)
-        write(lp,*) 'SRF_TAUY    ',SRF_TAUY(1:nphy)
-        write(lp,*) 'SRF_TICE    ',SRF_TICE(1:nphy)
-        write(lp,*) 'SRF_TSRF    ',SRF_TSRF(1:nphy)
-        write(lp,*) 'SRF_UB      ',SRF_UB(1:nphy)
-        write(lp,*) 'SRF_UICE    ',SRF_UICE(1:nphy)
-        write(lp,*) 'SRF_USTAR   ',SRF_USTAR(1:nphy)
-        write(lp,*) 'SRF_VB      ',SRF_VB(1:nphy)
-        write(lp,*) 'SRF_VICE    ',SRF_VICE(1:nphy)
-        write(lp,*) 'SRF_ZTX     ',SRF_ZTX(1:nphy)
-        write(lp,*) 'LYR_DIAFLX  ',LYR_DIAFLX(1:nphy)
-        write(lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
-        write(lp,*) 'LYR_DIFINT  ',LYR_DIFINT(1:nphy)
-        write(lp,*) 'LYR_DIFISO  ',LYR_DIFISO(1:nphy)
-        write(lp,*) 'LYR_DP      ',LYR_DP(1:nphy)
-        write(lp,*) 'LYR_DZ      ',LYR_DZ(1:nphy)
-        write(lp,*) 'LYR_SALN    ',LYR_SALN(1:nphy)
-        write(lp,*) 'LYR_TEMP    ',LYR_TEMP(1:nphy)
-        write(lp,*) 'LYR_TRC     ',LYR_TRC(1:nphy)
-        write(lp,*) 'LYR_UFLX    ',LYR_UFLX(1:nphy)
-        write(lp,*) 'LYR_UTFLX   ',LYR_UTFLX(1:nphy)
-        write(lp,*) 'LYR_USFLX   ',LYR_USFLX(1:nphy)
-        write(lp,*) 'LYR_UMFLTD  ',LYR_UMFLTD(1:nphy)
-        write(lp,*) 'LYR_UTFLTD  ',LYR_UTFLTD(1:nphy)
-        write(lp,*) 'LYR_UTFLLD  ',LYR_UTFLLD(1:nphy)
-        write(lp,*) 'LYR_USFLTD  ',LYR_USFLTD(1:nphy)
-        write(lp,*) 'LYR_USFLLD  ',LYR_USFLLD(1:nphy)
-        write(lp,*) 'LYR_UVEL    ',LYR_UVEL(1:nphy)
-        write(lp,*) 'LYR_VFLX    ',LYR_VFLX(1:nphy)
-        write(lp,*) 'LYR_VTFLX   ',LYR_VTFLX(1:nphy)
-        write(lp,*) 'LYR_VSFLX   ',LYR_VSFLX(1:nphy)
-        write(lp,*) 'LYR_VMFLTD  ',LYR_VMFLTD(1:nphy)
-        write(lp,*) 'LYR_VTFLTD  ',LYR_VTFLTD(1:nphy)
-        write(lp,*) 'LYR_VTFLLD  ',LYR_VTFLLD(1:nphy)
-        write(lp,*) 'LYR_VSFLTD  ',LYR_VSFLTD(1:nphy)
-        write(lp,*) 'LYR_VSFLLD  ',LYR_VSFLLD(1:nphy)
-        write(lp,*) 'LYR_VVEL    ',LYR_VVEL(1:nphy)
-        write(lp,*) 'LYR_WFLX    ',LYR_WFLX(1:nphy)
-        write(lp,*) 'LYR_WFLX2   ',LYR_WFLX2(1:nphy)
-        write(lp,*) 'LYR_PV      ',LYR_PV(1:nphy)
-        write(lp,*) 'LYR_TKE     ',LYR_TKE(1:nphy)
-        write(lp,*) 'LYR_GLS_PSI ',LYR_GLS_PSI(1:nphy)
-        write(lp,*) 'LYR_IDLAGE  ',LYR_IDLAGE(1:nphy)
-        write(lp,*) 'LVL_SALN    ',LVL_SALN(1:nphy)
-        write(lp,*) 'LVL_TEMP    ',LVL_TEMP(1:nphy)
-        write(lp,*) 'LVL_TRC     ',LVL_TRC(1:nphy)
-        write(lp,*) 'LVL_UFLX    ',LVL_UFLX(1:nphy)
-        write(lp,*) 'LVL_UTFLX   ',LVL_UTFLX(1:nphy)
-        write(lp,*) 'LVL_USFLX   ',LVL_USFLX(1:nphy)
-        write(lp,*) 'LVL_UMFLTD  ',LVL_UMFLTD(1:nphy)
-        write(lp,*) 'LVL_UTFLTD  ',LVL_UTFLTD(1:nphy)
-        write(lp,*) 'LVL_UTFLLD  ',LVL_UTFLLD(1:nphy)
-        write(lp,*) 'LVL_USFLTD  ',LVL_USFLTD(1:nphy)
-        write(lp,*) 'LVL_USFLLD  ',LVL_USFLLD(1:nphy)
-        write(lp,*) 'LVL_UVEL    ',LVL_UVEL(1:nphy)
-        write(lp,*) 'LVL_VFLX    ',LVL_VFLX(1:nphy)
-        write(lp,*) 'LVL_VTFLX   ',LVL_VTFLX(1:nphy)
-        write(lp,*) 'LVL_VSFLX   ',LVL_VSFLX(1:nphy)
-        write(lp,*) 'LVL_VMFLTD  ',LVL_VMFLTD(1:nphy)
-        write(lp,*) 'LVL_VTFLTD  ',LVL_VTFLTD(1:nphy)
-        write(lp,*) 'LVL_VTFLLD  ',LVL_VTFLLD(1:nphy)
-        write(lp,*) 'LVL_VSFLTD  ',LVL_VSFLTD(1:nphy)
-        write(lp,*) 'LVL_VSFLLD  ',LVL_VSFLLD(1:nphy)
-        write(lp,*) 'LVL_VVEL    ',LVL_VVEL(1:nphy)
-        write(lp,*) 'LVL_WFLX    ',LVL_WFLX(1:nphy)
-        write(lp,*) 'LVL_WFLX2   ',LVL_WFLX2(1:nphy)
-        write(lp,*) 'LVL_PV      ',LVL_PV(1:nphy)
-        write(lp,*) 'LVL_TKE     ',LVL_TKE(1:nphy)
-        write(lp,*) 'LVL_GLS_PSI ',LVL_GLS_PSI(1:nphy)
-        write(lp,*) 'LVL_IDLAGE  ',LVL_IDLAGE(1:nphy)
-        write(lp,*) 'MSC_MMFLXL  ',MSC_MMFLXL(1:nphy)
-        write(lp,*) 'MSC_MMFLXD  ',MSC_MMFLXD(1:nphy)
-        write(lp,*) 'MSC_MMFTDL  ',MSC_MMFTDL(1:nphy)
-        write(lp,*) 'MSC_MMFTDD  ',MSC_MMFTDD(1:nphy)
-        write(lp,*) 'MSC_MHFLX   ',MSC_MHFLX(1:nphy)
-        write(lp,*) 'MSC_MHFTD   ',MSC_MHFTD(1:nphy)
-        write(lp,*) 'MSC_MHFLD   ',MSC_MHFLD(1:nphy)
-        write(lp,*) 'MSC_MSFLX   ',MSC_MSFLX(1:nphy)
-        write(lp,*) 'MSC_MSFTD   ',MSC_MSFTD(1:nphy)
-        write(lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
-        write(lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
-        write(lp,*) ' '
+        write (lp,*)
+        write (lp,*) 'rdlim: MICOM DIAPHY NAMELIST GROUP:' 
+        write (lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
+        write (lp,*) 'GLB_AVEPERIO',GLB_AVEPERIO(1:nphy)
+        write (lp,*) 'GLB_FILEFREQ',GLB_FILEFREQ(1:nphy)
+        write (lp,*) 'GLB_COMPFLAG',GLB_COMPFLAG(1:nphy)
+        write (lp,*) 'GLB_NCFORMAT',GLB_NCFORMAT(1:nphy)
+        write (lp,*) 'SRF_ABSWND  ',SRF_ABSWND(1:nphy)
+        write (lp,*) 'SRF_ALB     ',SRF_ALB(1:nphy)
+        write (lp,*) 'SRF_BRNFLX  ',SRF_BRNFLX(1:nphy)
+        write (lp,*) 'SRF_BRNPD   ',SRF_BRNPD(1:nphy)
+        write (lp,*) 'SRF_DFL     ',SRF_DFL(1:nphy)
+        write (lp,*) 'SRF_EVA     ',SRF_EVA(1:nphy)
+        write (lp,*) 'SRF_FMLTFZ  ',SRF_FMLTFZ(1:nphy)
+        write (lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
+        write (lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
+        write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
+        write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
+        write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
+        write (lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
+        write (lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
+        write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
+        write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
+        write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
+        write (lp,*) 'SRF_LIP     ',SRF_LIP(1:nphy)
+        write (lp,*) 'SRF_MAXMLD  ',SRF_MAXMLD(1:nphy)
+        write (lp,*) 'SRF_MLD     ',SRF_MLD(1:nphy)
+        write (lp,*) 'SRF_MLDU    ',SRF_MLDU(1:nphy)
+        write (lp,*) 'SRF_MLDV    ',SRF_MLDV(1:nphy)
+        write (lp,*) 'SRF_MTY     ',SRF_MTY(1:nphy)
+        write (lp,*) 'SRF_MXLU    ',SRF_MXLU(1:nphy)
+        write (lp,*) 'SRF_MXLV    ',SRF_MXLV(1:nphy)
+        write (lp,*) 'SRF_NSF     ',SRF_NSF(1:nphy)
+        write (lp,*) 'SRF_RFIFLX  ',SRF_RFIFLX(1:nphy)
+        write (lp,*) 'SRF_RNFFLX  ',SRF_RNFFLX(1:nphy)
+        write (lp,*) 'SRF_SALFLX  ',SRF_SALFLX(1:nphy)
+        write (lp,*) 'SRF_SALRLX  ',SRF_SALRLX(1:nphy)
+        write (lp,*) 'SRF_SEALV   ',SRF_SEALV(1:nphy)
+        write (lp,*) 'SRF_SFL     ',SRF_SFL(1:nphy)
+        write (lp,*) 'SRF_SIGMX   ',SRF_SIGMX(1:nphy)
+        write (lp,*) 'SRF_SOP     ',SRF_SOP(1:nphy)
+        write (lp,*) 'SRF_SSS     ',SRF_SSS(1:nphy)
+        write (lp,*) 'SRF_SST     ',SRF_SST(1:nphy)
+        write (lp,*) 'SRF_SURFLX  ',SRF_SURFLX(1:nphy)
+        write (lp,*) 'SRF_SURRLX  ',SRF_SURRLX(1:nphy)
+        write (lp,*) 'SRF_SWA     ',SRF_SWA(1:nphy)
+        write (lp,*) 'SRF_TAUX    ',SRF_TAUX(1:nphy)
+        write (lp,*) 'SRF_TAUY    ',SRF_TAUY(1:nphy)
+        write (lp,*) 'SRF_TICE    ',SRF_TICE(1:nphy)
+        write (lp,*) 'SRF_TSRF    ',SRF_TSRF(1:nphy)
+        write (lp,*) 'SRF_UB      ',SRF_UB(1:nphy)
+        write (lp,*) 'SRF_UICE    ',SRF_UICE(1:nphy)
+        write (lp,*) 'SRF_USTAR   ',SRF_USTAR(1:nphy)
+        write (lp,*) 'SRF_VB      ',SRF_VB(1:nphy)
+        write (lp,*) 'SRF_VICE    ',SRF_VICE(1:nphy)
+        write (lp,*) 'SRF_ZTX     ',SRF_ZTX(1:nphy)
+        write (lp,*) 'LYR_DIAFLX  ',LYR_DIAFLX(1:nphy)
+        write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
+        write (lp,*) 'LYR_DIFINT  ',LYR_DIFINT(1:nphy)
+        write (lp,*) 'LYR_DIFISO  ',LYR_DIFISO(1:nphy)
+        write (lp,*) 'LYR_DP      ',LYR_DP(1:nphy)
+        write (lp,*) 'LYR_DZ      ',LYR_DZ(1:nphy)
+        write (lp,*) 'LYR_SALN    ',LYR_SALN(1:nphy)
+        write (lp,*) 'LYR_TEMP    ',LYR_TEMP(1:nphy)
+        write (lp,*) 'LYR_TRC     ',LYR_TRC(1:nphy)
+        write (lp,*) 'LYR_UFLX    ',LYR_UFLX(1:nphy)
+        write (lp,*) 'LYR_UTFLX   ',LYR_UTFLX(1:nphy)
+        write (lp,*) 'LYR_USFLX   ',LYR_USFLX(1:nphy)
+        write (lp,*) 'LYR_UMFLTD  ',LYR_UMFLTD(1:nphy)
+        write (lp,*) 'LYR_UTFLTD  ',LYR_UTFLTD(1:nphy)
+        write (lp,*) 'LYR_UTFLLD  ',LYR_UTFLLD(1:nphy)
+        write (lp,*) 'LYR_USFLTD  ',LYR_USFLTD(1:nphy)
+        write (lp,*) 'LYR_USFLLD  ',LYR_USFLLD(1:nphy)
+        write (lp,*) 'LYR_UVEL    ',LYR_UVEL(1:nphy)
+        write (lp,*) 'LYR_VFLX    ',LYR_VFLX(1:nphy)
+        write (lp,*) 'LYR_VTFLX   ',LYR_VTFLX(1:nphy)
+        write (lp,*) 'LYR_VSFLX   ',LYR_VSFLX(1:nphy)
+        write (lp,*) 'LYR_VMFLTD  ',LYR_VMFLTD(1:nphy)
+        write (lp,*) 'LYR_VTFLTD  ',LYR_VTFLTD(1:nphy)
+        write (lp,*) 'LYR_VTFLLD  ',LYR_VTFLLD(1:nphy)
+        write (lp,*) 'LYR_VSFLTD  ',LYR_VSFLTD(1:nphy)
+        write (lp,*) 'LYR_VSFLLD  ',LYR_VSFLLD(1:nphy)
+        write (lp,*) 'LYR_VVEL    ',LYR_VVEL(1:nphy)
+        write (lp,*) 'LYR_WFLX    ',LYR_WFLX(1:nphy)
+        write (lp,*) 'LYR_WFLX2   ',LYR_WFLX2(1:nphy)
+        write (lp,*) 'LYR_PV      ',LYR_PV(1:nphy)
+        write (lp,*) 'LYR_TKE     ',LYR_TKE(1:nphy)
+        write (lp,*) 'LYR_GLS_PSI ',LYR_GLS_PSI(1:nphy)
+        write (lp,*) 'LYR_IDLAGE  ',LYR_IDLAGE(1:nphy)
+        write (lp,*) 'LVL_SALN    ',LVL_SALN(1:nphy)
+        write (lp,*) 'LVL_TEMP    ',LVL_TEMP(1:nphy)
+        write (lp,*) 'LVL_TRC     ',LVL_TRC(1:nphy)
+        write (lp,*) 'LVL_UFLX    ',LVL_UFLX(1:nphy)
+        write (lp,*) 'LVL_UTFLX   ',LVL_UTFLX(1:nphy)
+        write (lp,*) 'LVL_USFLX   ',LVL_USFLX(1:nphy)
+        write (lp,*) 'LVL_UMFLTD  ',LVL_UMFLTD(1:nphy)
+        write (lp,*) 'LVL_UTFLTD  ',LVL_UTFLTD(1:nphy)
+        write (lp,*) 'LVL_UTFLLD  ',LVL_UTFLLD(1:nphy)
+        write (lp,*) 'LVL_USFLTD  ',LVL_USFLTD(1:nphy)
+        write (lp,*) 'LVL_USFLLD  ',LVL_USFLLD(1:nphy)
+        write (lp,*) 'LVL_UVEL    ',LVL_UVEL(1:nphy)
+        write (lp,*) 'LVL_VFLX    ',LVL_VFLX(1:nphy)
+        write (lp,*) 'LVL_VTFLX   ',LVL_VTFLX(1:nphy)
+        write (lp,*) 'LVL_VSFLX   ',LVL_VSFLX(1:nphy)
+        write (lp,*) 'LVL_VMFLTD  ',LVL_VMFLTD(1:nphy)
+        write (lp,*) 'LVL_VTFLTD  ',LVL_VTFLTD(1:nphy)
+        write (lp,*) 'LVL_VTFLLD  ',LVL_VTFLLD(1:nphy)
+        write (lp,*) 'LVL_VSFLTD  ',LVL_VSFLTD(1:nphy)
+        write (lp,*) 'LVL_VSFLLD  ',LVL_VSFLLD(1:nphy)
+        write (lp,*) 'LVL_VVEL    ',LVL_VVEL(1:nphy)
+        write (lp,*) 'LVL_WFLX    ',LVL_WFLX(1:nphy)
+        write (lp,*) 'LVL_WFLX2   ',LVL_WFLX2(1:nphy)
+        write (lp,*) 'LVL_PV      ',LVL_PV(1:nphy)
+        write (lp,*) 'LVL_TKE     ',LVL_TKE(1:nphy)
+        write (lp,*) 'LVL_GLS_PSI ',LVL_GLS_PSI(1:nphy)
+        write (lp,*) 'LVL_IDLAGE  ',LVL_IDLAGE(1:nphy)
+        write (lp,*) 'MSC_MMFLXL  ',MSC_MMFLXL(1:nphy)
+        write (lp,*) 'MSC_MMFLXD  ',MSC_MMFLXD(1:nphy)
+        write (lp,*) 'MSC_MMFTDL  ',MSC_MMFTDL(1:nphy)
+        write (lp,*) 'MSC_MMFTDD  ',MSC_MMFTDD(1:nphy)
+        write (lp,*) 'MSC_MHFLX   ',MSC_MHFLX(1:nphy)
+        write (lp,*) 'MSC_MHFTD   ',MSC_MHFTD(1:nphy)
+        write (lp,*) 'MSC_MHFLD   ',MSC_MHFLD(1:nphy)
+        write (lp,*) 'MSC_MSFLX   ',MSC_MSFLX(1:nphy)
+        write (lp,*) 'MSC_MSFTD   ',MSC_MSFTD(1:nphy)
+        write (lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
+        write (lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
+        write (lp,*)
 c
       endif
 c
-c --- boradcast variables set by namelists
+c --- broadcast variables set by namelists
 c
       call xcbcst(nday1)
       call xcbcst(nday2)
@@ -270,6 +273,7 @@ c
       call xcbcst(idate0)
       call xcbcst(runid)
       call xcbcst(expcnf)
+      call xcbcst(runtyp)
       call xcbcst(baclin)
       call xcbcst(batrop)
       call xcbcst(mdv2hi)
@@ -296,11 +300,13 @@ c
       call xcbcst(edsprs)
       call xcbcst(egc)
       call xcbcst(eggam)
+      call xcbcst(eglsmn)
       call xcbcst(egmndf)
       call xcbcst(egmxdf)
       call xcbcst(egidfq)
       call xcbcst(ri0)
       call xcbcst(rm0)
+      call xcbcst(rm5)
       call xcbcst(ce)
       call xcbcst(swamth)
       call xcbcst(jwtype)
@@ -493,44 +499,168 @@ c --- set path lengths
         atm_path_len=atm_path_len-1
       endif
 c
+c --- verify integer number of baroclinic time steps per day
+      if (mod(86400.+epsil,baclin).gt.2.*epsil) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'rdlim: must have an integer number of '//
+     .                 'baroclinic time steps pr. day!'
+        endif
+        call xcstop('(rdlim)')
+               stop '(rdlim)'
+      endif
+c
+c --- get baroclinic time steps in a day
+      nstep_in_day=nint(86400./baclin)
+      if (mnproc.eq.1) then
+        write (lp,*) 'rdlim: number of baroclinic time steps per '//
+     .               'day:              ',nstep_in_day
+      endif
+c
+c --- Initialize the calendar
+      call inicln
+c
       if (expcnf.eq.'cesm') then
 c
-c --- - override some information read from the micom namelist with
-c --- - information received from the coupler and from the restart file
-c --- - pointer if it exists
+c --- - override namelist experiment id with the one received from
+c --- - coupler
         runid(1:80)=runid_mct(1:80)
-        if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
-        call xcbcst(fexist)
-        if (fexist) then
-          open (unit=nfu,file='rpointer.ocn')
-          read (nfu,'(a)') rstfnm
-          close (unit=nfu)
-          inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
-          if (fexist) then
-            call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
-            call ncgetr('time',time)
-            call ncfcls
-          else
-            write (lp,*) 'Could not find proper restart file!'
-            call xchalt('(rdlim)')
-                   stop '(rdlim)' 
+c
+c --- - verify integer number of baroclinic time steps per coupling
+c --- - interval
+        if (mod(ocn_cpl_dt_mct+epsil,baclin).gt.2.*epsil) then
+          if (mnproc.eq.1) then
+            write (lp,*) 'rdlim: must have an integer number of '//
+     .                   'baroclinic time steps pr. coupling'
+            write (lp,*) '       interval!'
           endif
-          if (runtype_mct.ne.'initial') then
-            n=1
-            do while (n.lt.80.and.rstfnm(n:n).ne.' ')
-              n=n+1
-            enddo
-            n=n-1
-            read (rstfnm(n-18:n-15),'(i4)') nyear
-            read (rstfnm(n-13:n-12),'(i2)') nmonth
-            read (rstfnm(n-10:n-9 ),'(i2)') nday
-          endif
-          call xcbcst(time)
-          call xcbcst(nyear)
-          call xcbcst(nmonth)
-          call xcbcst(nday)
-          nday1=nint(time)
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
         endif
+c
+c --- - get time step and correct model date after first coupling
+c --- - interval
+        nstep_in_cpl=nint(ocn_cpl_dt_mct/baclin)
+        if (mnproc.eq.1) then
+          write (lp,*) 'rdlim: number of baroclinic time steps per '//
+     .                 'coupling interval:',nstep_in_cpl
+        endif
+        nstep0=0
+        do
+          nstep0=nstep0+1
+          call updcln(nstep0)
+          if (nstep0.eq.nstep_in_cpl) exit
+        enddo
+c
+        if (runtyp.eq.'startup') then
+c
+c --- --- when runtyp equal 'startup' the ocean integration start after
+c --- --- first coupling interval
+c
+          nstep1=nstep0
+          nstep2=nstep1
+          time=nstep1*baclin/86400.
+c
+        else
+c
+c --- --- for runtyp equal 'hybrid', 'branch' or 'continue' a
+c --- --- 'rpointer.ocn' file containing the path to a valid restart
+c --- --- file is expected and date and integration time from restart
+c --- --- file name is and overrides namelist values
+c
+          if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
+          call xcbcst(fexist)
+          if (.not.fexist) then
+            if (mnproc.eq.1) then
+              write (lp,*) 'rdlim: could not find rpointer.ocn file!'
+            endif
+            call xcstop('(rdlim)')
+                   stop '(rdlim)'
+          endif
+          if (mnproc.eq.1) then
+            open (unit=nfu,file='rpointer.ocn')
+            read (nfu,'(a)') rstfnm
+            close (unit=nfu)
+            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+          endif
+          call xcbcst(fexist)
+          if (.not.fexist) then
+            if (mnproc.eq.1) then
+              write (lp,*) 'rdlim: could not find restart file!'
+            endif
+            call xcstop('(rdlim)')
+                   stop '(rdlim)'
+          endif
+          call xcbcst(rstfnm)
+          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+          call ncgetr('time',time)
+          call ncfcls
+          n=1
+          do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+            n=n+1
+          enddo
+          n=n-1
+          read (rstfnm(n-18:n-15),'(i4)') nyear
+          read (rstfnm(n-13:n-12),'(i2)') nmonth
+          read (rstfnm(n-10:n-9 ),'(i2)') nday
+          call inicln
+          nday1=nint(time)
+          nstep1=nday1*nstep_in_day
+          nstep2=nstep1
+c
+        endif
+c
+      else
+c
+        if (nday1.lt.0.or.nday2.lt.0) then
+          if (mnproc.eq.1) then
+            write (lp,*) 'rdlim: integrations days must be positive!'
+          endif
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
+        endif
+c
+        if (nday2.lt.nday1) then
+          if (mnproc.eq.1) then
+            write (lp,*) 'rdlim: first day of integration must be '//
+     .                   'less than or equal to last day!'
+          endif
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
+        endif
+c
+        if (nday1.eq.0.and.
+     .      (nyear.ne.nyear0.or.nmonth.ne.nmonth0.or.
+     .       nday.ne.nday0)) then
+          if (mnproc.eq.1) then
+            write (lp,*) 'rdlim: when first integration day is zero, '//
+     .                   'model date and initial '
+            write (lp,*) '       experiment date must be equal!'
+          endif
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
+        endif
+c
+        if (nyear.lt.nyear0.or.
+     .      (nyear.eq.nyear0.and.nmonth.lt.nmonth0).or.
+     .      (nyear.eq.nyear0.and.nmonth.eq.nmonth0.and.
+     .       nday.lt.nday0)) then
+          if (mnproc.eq.1) then
+            write (lp,*) 'rdlim: model date must be greater or equal '//
+     .                   'to initial experiment date!'
+          endif
+          call xcstop('(rdlim)')
+                 stop '(rdlim)'
+        endif
+c
+c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
+        nstep0=0
+        nstep1=nday1*nstep_in_day
+        nstep2=nday2*nstep_in_day
+c
+        if (csdiag) then
+          nstep2=nstep1+2
+        endif
+c
       endif
 c
 c --- set experiment id length
@@ -540,56 +670,10 @@ c --- set experiment id length
       enddo
       runid_len=runid_len-1
 c
-      if (nday1.lt.0.or.nday2.lt.0) then
-        if (mnproc.eq.1) then
-          write (lp,*) 'Integrations days must be positive!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-      if (nday2.lt.nday1) then
-        if (mnproc.eq.1) then
-          write (lp,'(2a)') ' First day of integration must be less ',
-     .      'than or equal to last day!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-      if (nday1.eq.0.and.
-     .    (nyear.ne.nyear0.or.nmonth.ne.nmonth0.or.nday.ne.nday0)) then
-        if (mnproc.eq.1) then
-          write (lp,'(2a)') ' When first integration day is zero, ',
-     .      'model date and initial experiment date '
-          write (lp,'(a)') ' must be equal!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-      if (nyear.lt.nyear0.or.(nyear.eq.nyear0.and.nmonth.lt.nmonth0).or.
-     .  (nyear.eq.nyear0.and.nmonth.eq.nmonth0.and.nday.lt.nday0)) then
-        if (mnproc.eq.1) then
-          write (lp,'(2a)') ' Model date must be greater or equal to ',
-     .      'initial experiment date!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-      if (mod(86400./baclin+epsil,1.).gt.2.*epsil) then
-        if (mnproc.eq.1) then
-          write (lp,'(2a)') ' Must have an integer number of ',
-     .     'baroclinic time steps pr. day!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
       if (trxday.eq.0.and.ditflx) then
         if (mnproc.eq.1) then
-          write (lp,*) 'trxday=0. and ditflx=.true.. Inconsistent!'
+          write (lp,*)
+     .      'rdlim: trxday=0. and ditflx=.true.. Inconsistent!'
         endif
         call xcstop('(rdlim)')
                stop '(rdlim)'
@@ -597,7 +681,8 @@ c
 c
       if (srxday.eq.0.and.disflx) then
         if (mnproc.eq.1) then
-          write (lp,*) 'srxday=0. and disflx=.true.. Inconsistent!'
+          write (lp,*)
+     .      'rdlim: srxday=0. and disflx=.true.. Inconsistent!'
         endif
         call xcstop('(rdlim)')
                stop '(rdlim)'
@@ -605,14 +690,12 @@ c
 c
       if (srxsrc.ne.'PHC3.0'.and.srxsrc.ne.'CORE') then
         if (mnproc.eq.1) then
-          write (lp,*) 'srxsrc must be either ''PHC3.0'' or ''CORE''!'
+          write (lp,*)
+     .      'rdlim: srxsrc must be either ''PHC3.0'' or ''CORE''!'
         endif
         call xcstop('(rdlim)')
                stop '(rdlim)'
       endif
-c
-c --- get time steps in a day
-      nstep_in_day=nint(86400./baclin)
 c
 c --- represent time between restarts in time steps
       rstmon=.false.
@@ -655,96 +738,33 @@ c
         endif
       enddo
 c
-      if (mnproc.eq.1) then
-        write (lp,'(a,i10)')   'nday1:             ',nday1
-        write (lp,'(a,i10)')   'nday2:             ',nday2
-        write (lp,'(a,i4.4,a,i2.2,a,i2.2)') 'nyear ,nmonth ,nday : ',
-     .                             nyear ,'.',nmonth ,'.',nday
-        write (lp,'(a,i4.4,a,i2.2,a,i2.2)') 'nyear0,nmonth0,nday0: ',
-     .                             nyear0,'.',nmonth0,'.',nday0
-        write (lp,'(a,a60)')   'runid:             ',runid
-        write (lp,'(a,f10.4)') 'baclin:            ',baclin
-        write (lp,'(a,f10.4)') 'batrop:            ',batrop
-        write (lp,'(a,f10.4)') 'mdv2hi:            ',mdv2hi
-        write (lp,'(a,f10.4)') 'mdv2lo:            ',mdv2lo
-        write (lp,'(a,f10.4)') 'mdv4hi:            ',mdv4hi
-        write (lp,'(a,f10.4)') 'mdv4lo:            ',mdv4lo
-        write (lp,'(a,f10.4)') 'mdc2hi:            ',mdc2hi
-        write (lp,'(a,f10.4)') 'mdc2lo:            ',mdc2lo
-        write (lp,'(a,f10.4)') 'vsc2hi:            ',vsc2hi
-        write (lp,'(a,f10.4)') 'vsc2lo:            ',vsc2lo
-        write (lp,'(a,f10.4)') 'vsc4hi:            ',vsc4hi
-        write (lp,'(a,f10.4)') 'vsc4lo:            ',vsc4lo
-        write (lp,'(a,f10.4)') 'cbar:              ',cbar
-        write (lp,'(a,f10.4)') 'cb:                ',cb
-        write (lp,'(a,f10.4)') 'cwbdts:            ',cwbdts
-        write (lp,'(a,f10.4)') 'cwbdls:            ',cwbdls
-        write (lp,'(a,a60)')   'mommth:            ',mommth
-        write (lp,'(a,a60)')   'eitmth:            ',eitmth
-        write (lp,'(a,a60)')   'edritp:            ',edritp
-        write (lp,'(a,a60)')   'bmcmth:            ',bmcmth
-        write (lp,'(a,a60)')   'rmpmth:            ',rmpmth
-        write (lp,'(a,a60)')   'edwmth:            ',edwmth
-        write (lp,'(a,a60)')   'mlrttp:            ',mlrttp
-        write (lp,'(a,l10)')   'edsprs:            ',edsprs
-        write (lp,'(a,f10.4)') 'egc:               ',egc
-        write (lp,'(a,f10.4)') 'eggam:             ',eggam
-        write (lp,'(a,f10.4)') 'egmndf:            ',egmndf
-        write (lp,'(a,f10.4)') 'egmxdf:            ',egmxdf
-        write (lp,'(a,f10.4)') 'egidfq:            ',egidfq
-        write (lp,'(a,f10.4)') 'ri0:               ',ri0
-        write (lp,'(a,f10.4)') 'rm0:               ',rm0
-        write (lp,'(a,f10.4)') 'ce:                ',ce
-        write (lp,'(a,a60)')   'swamth:            ',swamth
-        write (lp,'(a,i10)')   'jwtype:            ',jwtype
-        write (lp,'(a,a60)')   'chlopt:            ',chlopt
-        write (lp,'(a,f10.4)') 'trxday:            ',trxday
-        write (lp,'(a,f10.4)') 'srxday:            ',srxday
-        write (lp,'(a,f10.4)') 'trxdpt:            ',trxdpt
-        write (lp,'(a,f10.4)') 'srxdpt:            ',srxdpt
-        write (lp,'(a,f10.4)') 'trxlim:            ',trxlim
-        write (lp,'(a,f10.4)') 'srxlim:            ',srxlim
-        write (lp,'(a,l10)')   'aptflx:            ',aptflx
-        write (lp,'(a,l10)')   'apsflx:            ',apsflx
-        write (lp,'(a,l10)')   'ditflx:            ',ditflx
-        write (lp,'(a,l10)')   'disflx:            ',disflx
-        write (lp,'(a,a50)')   'srxsrc:            ',srxsrc
-        write (lp,'(a,l10)')   'smtfrc:            ',smtfrc
-        write (lp,'(a,l10)')   'sprfac:            ',sprfac
-        write (lp,'(a,a60)')   'path:      ',path
-        write (lp,'(a,a60)')   'path1:     ',path1
-        write (lp,'(a,a60)')   'path2:     ',path2
-        if (expcnf.eq.'ben02syn') then
-          write (lp,'(a,a60)')   'atm_path:  ',atm_path
-        endif
-c
-        write (lp,101) mdv2hi,mdv2lo,mdc2hi,mdc2lo,vsc2hi,vsc2lo
- 101    format (' turb. flux parameters:',1p/
-     .    ' mdv2hi =',e9.2,' mdv2lo =',e9.2/
-     .    ' mdc2hi =',e9.2,' mdc2lo =',e9.2/
-     .    ' vsc2hi =',e9.2,' vsc2lo =',e9.2)
-        write (lp,'(a,f10.4)') 'rstfrq:            ',rstfrq
-        write (lp,'(a,l10)')   'rstmon:            ',rstmon
-        write (lp,'(a,l10)')   'rstann:            ',rstann
-        call flush(lp)
-      endif
 c
 c --- 'lstep' = number of barotropic time steps per baroclinic time step.
 c --- lstep   m u s t   be even.
       lstep=2*ceiling(.5*baclin/batrop)
       dlt=baclin/lstep
+c
       if (mnproc.eq.1) then
-        write (lp,'(i4,'' barotropic steps per baroclinic time step'')')
-     .    lstep
+        write (lp,*)
+        write (lp,*) 'rdlim: resolved parameters:'
+        write (lp,'(a,i10)') ' nday1:                          ',nday1
+        write (lp,'(a,i10)') ' nday2:                          ',nday2
+        write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i5.5)')
+     .    ' nyear ,nmonth ,nday ,nsec :     ',
+     .     nyear ,' ,',nmonth ,' ,',nday ,' ,',
+     .     nint(mod(nstep1,nstep_in_day)*baclin)
+        write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i5.5)')
+     .    ' nyear0,nmonth0,nday0,nsec0:     ',
+     .     nyear0,' ,',nmonth0,' ,',nday0,' ,',0
+        write (lp,'(a,i10)') ' barotr. steps per barocl. step: ',lstep
+        write (lp,'(2a)') ' runid:                          ',
+     .    trim(runid)
+        write (lp,'(a,f10.4)') ' rstfrq:                         ',
+     .    rstfrq
+        write (lp,'(a,l10)') ' rstmon:                         ',rstmon
+        write (lp,'(a,l10)') ' rstann:                         ',rstann
+        write (lp,*)
         call flush(lp)
-      endif
-c
-c --- model is to be integrated from time step 'nstep1' to 'nstep2'
-      nstep1=nday1*nstep_in_day
-      nstep2=nday2*nstep_in_day
-c
-      if (csdiag) then
-        nstep2=nstep1+2
       endif
 c
       return

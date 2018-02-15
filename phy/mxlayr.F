@@ -8,6 +8,9 @@ c
       use mod_xc
       use mod_swabs, only: swbgal,swbgfc,swamxd
 c
+      use mod_nctools
+      use mod_dia, only : iotype
+c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
@@ -22,7 +25,7 @@ c
      .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
      .     ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,
-     .     dpe,dps,udpn
+     .     dpe,dps,udpn,um,vm,dke,dke0,tkeu,tkel,uk,vk
       integer rtsflg,i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
 c
 #ifdef TRC
@@ -170,6 +173,11 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
+      if (rm5.gt.0.) then
+        call xctilr(u(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
+        call xctilr(v(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
+      endif
+c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
 c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
@@ -265,10 +273,10 @@ c --- -----------------------------------------------------------------
 c
             if (pres(3)*lbi.gt.1.) then
               pmxl=1./lbi
-              dpmxl=min(pmxl-pres(1),pres(3)-pmxl,onecm)
+              dpmxl=min(pmxl-pres(1),pres(3)-pmxl,tencm)
               pmxl=pmxl-.5*dpmxl
             else
-              dpmxl=-onecm
+              dpmxl=-tencm
               pmxl=pres(3)+dpmxl
             endif
             tkeo=tkew
@@ -277,7 +285,7 @@ c
               nitr=nitr+1
               rm1=exp(-lui*pmxl)
               rm2=exp(-lbi*pmxl)
-              q=lei*max(onecm,pmxl)
+              q=lei*max(tencm,pmxl)
               rm3=exp(-q)
               rm4=2./q
               tkew=cus*rm1
@@ -699,8 +707,21 @@ c
               q=1./(delp(1)+delp(2))
               tmxl0=(ttem(1)*delp(1)+ttem(2)*delp(2))*q
               smxl0=(ssal(1)*delp(1)+ssal(2)*delp(2))*q
+              um=(u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
+     .           +u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
+     .           +u(i  ,j,2+nn)*dpu(i  ,j,2+nn)
+     .           +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
+     .           /max(onecm,dpu(i  ,j,1+nn)+dpu(i+1,j,1+nn)
+     .                     +dpu(i  ,j,2+nn)+dpu(i+1,j,2+nn))
+              vm=(v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
+     .           +v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
+     .           +v(i,j  ,2+nn)*dpv(i,j  ,2+nn)
+     .           +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
+     .           /max(onecm,dpv(i,j  ,1+nn)+dpv(i,j+1,1+nn)
+     .                     +dpv(i,j  ,2+nn)+dpv(i,j+1,2+nn))
               dpe0=0.
-              tkeo=tkew
+              dke0=0.
+              tkeu=tkew
               k=kfpl
               tdps=ttem(2)*delp(2)
               sdps=ssal(2)*delp(2)
@@ -715,14 +736,13 @@ c
                 elseif (delp(k).lt.epsil) then
                   k=k+1
                 else
-                  if (pres(k)*lbi.lt.1..and.pres(k+1)*lbi.gt.1.) then
-                    pmxl=1./lbi
-                    dpmxl=min(pmxl-pres(k),pres(k+1)-pmxl,onecm)
-                    pmxl=pmxl-.5*dpmxl
-                  else
-                    dpmxl=min(onecm,delp(k))
-                    pmxl=pres(k)+dpmxl
-                  endif
+                  pmxl=pres(k+1)
+                  uk=(u(i  ,j,k+nn)*dpu(i  ,j,k+nn)
+     .               +u(i+1,j,k+nn)*dpu(i+1,j,k+nn))
+     .               /max(onecm,dpu(i  ,j,k+nn)+dpu(i+1,j,k+nn))
+                  vk=(v(i,j  ,k+nn)*dpv(i,j  ,k+nn)
+     .               +v(i,j+1,k+nn)*dpv(i,j+1,k+nn))
+     .               /max(onecm,dpv(i,j  ,k+nn)+dpv(i,j+1,k+nn))
                   nitr=0
                   do
                     nitr=nitr+1
@@ -744,24 +764,45 @@ c
      .                     -(pres(1)-pres(k))
      .                      *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))
      .                      *alpha0/(delt1*g)
+                    dke=dke0
+     .                 +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k))
+     .                    *((uk-um)**2+(vk-vm)**2)*alpha0
+     .                    /((pmxl-pres(1))*delt1*g)
                     tkew=cus*rm1
      .                  +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
      .                   -crs*pmxl*pmxl)*pmxl
      .                  -dpe
-                    if (.not.(nitr.eq.1.and.pres(k)*lbi.lt.1..and.
-     .                        pres(k+1)*lbi.gt.1.)) then
-                      dtke=(tkew-tkeo)/dpmxl
-                      if (abs(dtke).lt.(abs(tkew)+1.e-16)/delp(k)) then
-                        if (tkew.lt.0.) then
-                          dpmxl=.5*(pres(k)-pmxl)
-                        else
-                          dpmxl=pres(k+1)-pmxl
-                        endif
+     .                  +dke
+                    if (nitr.eq.1) then
+                      if (tkew.gt.0.) then
+                        exit
                       else
-                        dpmxl=max(pres(k)-pmxl,
-     .                            min(pres(k+1)-pmxl,-tkew/dtke))
+                        pmxl=pres(k)
+                        dpmxl=min(tencm,.5*delp(k))
+                        tkel=tkew
+                        tkew=tkeu
                       endif
-                      dpmxl=max(max(mltmin*onem,pres(k))-pmxl,dpmxl)
+                    else
+                      dtke=(tkew-tkeo)/dpmxl
+                      if (nitr.eq.2.and.
+     .                    dtke.gt.-tkew/(pres(k+1)-pmxl)) then
+                        pmxl=pres(k+1)
+                        dpmxl=-min(tencm,.5*delp(k))
+                        tkew=tkel
+                      else
+                        if (abs(dtke).lt.
+     .                      (abs(tkew)+1.e-16)/delp(k)) then
+                          if (tkew.lt.0.) then
+                            dpmxl=.5*(pres(k)-pmxl)
+                          else
+                            dpmxl=pres(k+1)-pmxl
+                          endif
+                        else
+                          dpmxl=max(pres(k)-pmxl,
+     .                              min(pres(k+1)-pmxl,-tkew/dtke))
+                        endif
+                        dpmxl=max(max(mltmin*onem,pres(k))-pmxl,dpmxl)
+                      endif
                     endif
                     pmxl=pmxl+dpmxl
                     tkeo=tkew
@@ -826,8 +867,17 @@ c                          stop '(mxlayr)'
      .                      *p_alpha(pmxl,pres(k),ttem(k),ssal(k)))
      .                      *alpha0/(delt1*g)
                     dpe0=dpe
+                    dke=dke0
+     .                 +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k))
+     .                    *((uk-um)**2+(vk-vm)**2)*alpha0
+     .                    /((pmxl-pres(1))*delt1*g)
+                    dke0=dke
                     tmxl0=tmxl
                     smxl0=smxl
+                    um=(um*(pres(k)-pres(1))+uk*(pmxl-pres(k)))
+     .                 /(pmxl-pres(1))
+                    vm=(vm*(pres(k)-pres(1))+vk*(pmxl-pres(k)))
+     .                 /(pmxl-pres(1))
                     delp(k)=0.
                     k=k+1
                   endif
