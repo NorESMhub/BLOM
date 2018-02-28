@@ -60,6 +60,7 @@
 #endif
       use mo_ndep, only: n_deposition
 
+
       implicit none
 
       INTEGER :: kpie,kpje,kpke
@@ -88,7 +89,9 @@
       INTEGER :: ind1(kpie,kpje), ind2(kpie,kpje)
       REAL    :: wghts(kpie,kpje,ddm)
       REAL    :: emissions      
-
+#ifdef cisonew
+      REAL, DIMENSION(kpie,kpje,kpke) :: d13c,d14c,bigd14c
+#endif
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'HAMOCC',KLDTDAY,KLDTMON,LDTRUNBGC,NDTDAYBGC
       ENDIF
@@ -296,8 +299,11 @@
 !--------------------------------------------------------------------
 !     Sediment module
 
-      CALL POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
-!
+#ifndef sedbypass
+! jump over sediment if sedbypass is defined
+
+      CALL POWACH(kpie,kpje,kpke,psao,prho,omask)
+
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
@@ -316,11 +322,35 @@
          CALL SEDSHI(kpie,kpje,omask)
 
       ENDIF
-
+#endif
 
 !---------------------------------------------------------------------
 !     Accumulate global fields and write output files (note: should 
 !     eventually be moved to own subroutine)
+
+#ifdef cisonew
+! Calculation d13C and Dd14C: Delta notation for output
+      d13c(:,:,:)=0.
+      d14c(:,:,:)=0.
+      bigd14c(:,:,:)=0.
+      do k=1,kpke
+      do j=1,kpje
+      do i=1,kpie
+        if(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.dp_min) then
+             d13c(i,j,k)=                        &
+     &    (ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)-ocetra(i,j,k,isco213)+safediv)&
+     &        /re1312-1.)*1000.
+
+             d14c(i,j,k)=                        &
+     &    (ocetra(i,j,k,isco214)*c14fac/(ocetra(i,j,k,isco212)+safediv) &
+     &        /re14to-1.)*1000.
+
+             bigd14c(i,j,k)=d14c(i,j,k)-2.*(d13c(i,j,k)+25.)*(1.+d14c(i,j,k)/1000.)
+        endif
+      enddo
+      enddo
+      enddo
+#endif
 
 !     Accumulate atmosphere fields
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
@@ -364,6 +394,16 @@
       call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
       call acclyr(jnatco3,natco3,pddpo,1)                      
       call acclyr(jnatomegac,natOmegaC,pddpo,1)
+#endif
+#ifdef cisonew
+      call acclyr(jdic13,ocetra(1,1,1,isco213),pddpo,1)    
+      call acclyr(jdic14,ocetra(1,1,1,isco214),pddpo,1)    
+      call acclyr(jd13c,d13c,pddpo,1)    
+      call acclyr(jpoc13,ocetra(1,1,1,idet13),pddpo,1)
+      call acclyr(jdoc13,ocetra(1,1,1,idoc13),pddpo,1)
+      call acclyr(jcalc13,ocetra(1,1,1,icalc13),pddpo,1)
+      call acclyr(jphyto13,ocetra(1,1,1,iphy13),pddpo,1)   
+      call acclyr(jgrazer13,ocetra(1,1,1,izoo13),pddpo,1)  
 #endif 
 #ifdef AGG
       call acclyr(jnos,ocetra(1,1,1,inos),pddpo,1)      
@@ -376,13 +416,18 @@
       call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
       call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
       call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
+      call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
+      call acclyr(jdicsat,ocetra(1,1,1,idicsat),pddpo,1)
 
 !     Accumulate level diagnostics
       IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
      &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
-     &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegac+           &
-     &  jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+jlvlnatomegac+jlvlnos+                 &
-     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlprefo2+jlvlprefpo4+jlvlprefalk).NE.0) THEN
+     &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegac++jlvldic13+jlvldic14+&
+     &  jlvlnos+jlvld13c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+    &
+     &  jlvlgrazer13+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+   &
+     &  jlvlnatomegac+jlvlnos+                                          &
+     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlprefo2+jlvlprefpo4+jlvlprefalk+ &
+     &  jlvlprefdic+jlvldicsat).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
@@ -409,6 +454,16 @@
           call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
           call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
 #endif
+#ifdef cisonew
+          call acclvl(jlvld13c,d13c,k,ind1,ind2,wghts)
+          call acclvl(jlvldic13,ocetra(1,1,1,isco213),k,ind1,ind2,wghts)
+          call acclvl(jlvldic14,ocetra(1,1,1,isco214),k,ind1,ind2,wghts)
+          call acclvl(jlvlpoc13,ocetra(1,1,1,idet13),k,ind1,ind2,wghts)
+          call acclvl(jlvldoc13,ocetra(1,1,1,idoc13),k,ind1,ind2,wghts)
+          call acclvl(jlvlcalc13,ocetra(1,1,1,icalc13),k,ind1,ind2,wghts)
+          call acclvl(jlvlphyto13,ocetra(1,1,1,iphy13),k,ind1,ind2,wghts)
+          call acclvl(jlvlgrazer13,ocetra(1,1,1,izoo13),k,ind1,ind2,wghts)
+#endif
 #ifdef AGG
           call acclvl(jlvlnos,ocetra(1,1,1,inos),k,ind1,ind2,wghts)
 #endif     
@@ -420,9 +475,12 @@
           call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
           call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
           call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
+          call acclvl(jlvldicsat,ocetra(1,1,1,idicsat),k,ind1,ind2,wghts)
         ENDDO
       ENDIF
 
+#ifndef sedbypass
 !     Accumulate sediments
       call accsdm(jpowaic,powtra(1,1,1,ipowaic))
       call accsdm(jpowaal,powtra(1,1,1,ipowaal))
@@ -441,7 +499,7 @@
       call accbur(jburssssil,burial(1,1,issssil))
       call accbur(jbursssc12,burial(1,1,isssc12))
       call accbur(jburssster,burial(1,1,issster))
-
+#endif
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -450,7 +508,6 @@
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
-
 
       DO l=1,nbgc 
         nacc_bgc(l)=nacc_bgc(l)+1

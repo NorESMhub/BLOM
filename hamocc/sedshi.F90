@@ -1,5 +1,4 @@
       SUBROUTINE SEDSHI(kpie,kpje,omask)
-
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/sedshi.f90,v $\\
 !$Revision: 1.2 $\\
@@ -257,6 +256,20 @@
           frac=porsol(k)*seddw(k)/(porsol(k-1)*seddw(k-1))
           sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
           sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
+#ifdef cisonew
+          if(iv.eq.issso12)then
+            sedlay(i,j,k,issso13)  =sedlay(i,j,k,issso13)-uebers
+            sedlay(i,j,k-1,issso13)=sedlay(i,j,k-1,issso13)+uebers*frac
+            sedlay(i,j,k,issso14)  =sedlay(i,j,k,issso14)-uebers
+            sedlay(i,j,k-1,issso14)=sedlay(i,j,k-1,issso14)+uebers*frac
+          endif
+          if(iv.eq.isssc12)then
+            sedlay(i,j,k,isssc13)  =sedlay(i,j,k,isssc13)-uebers
+            sedlay(i,j,k-1,isssc13)=sedlay(i,j,k-1,isssc13)+uebers*frac
+            sedlay(i,j,k,isssc14)  =sedlay(i,j,k,isssc14)-uebers
+            sedlay(i,j,k-1,isssc14)=sedlay(i,j,k-1,isssc14)+uebers*frac
+          endif
+#endif
         endif
       enddo !end i-loop
       enddo !end j-loop

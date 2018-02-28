@@ -52,9 +52,9 @@ c
      .        i_iso,i_nat_dic
 c
 c --- Advected HAMOCC tracers
-      parameter (i_base_adv=17)      
-#  ifdef __c_isotopes
-      parameter (i_iso_adv=2)      
+      parameter (i_base_adv=19)      
+#  ifdef cisonew
+      parameter (i_iso_adv=8)      
 #  else 
       parameter (i_iso_adv=0)      
 #  endif
@@ -82,7 +82,7 @@ c --- Non-advected (fast sinking) HAMOCC tracers
 #  else
       parameter (i_base=3) 
 #  endif
-#  ifdef __c_isotopes
+#  ifdef cisonew
       parameter (i_iso=4)  
 #  else
       parameter (i_iso=0)  

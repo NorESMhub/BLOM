@@ -4,7 +4,7 @@ module mo_satm
    use ncutils
    use mod_xc
    use mo_gridremap
-#ifdef __c_isotopes
+#ifdef cisonew
    use mo_param1_bgc, only: natm, iatmco2, iatmo2, iatmn2, iatmc13, iatmc14
 #else
    use mo_param1_bgc, only: natm, iatmco2, iatmo2, iatmn2
@@ -116,9 +116,9 @@ contains
                acon_a(i,j,iatmco2) = 278.
                acon_a(i,j,iatmo2 ) = 196800.
                acon_a(i,j,iatmn2 ) = 802000.
-#ifdef __c_isotopes
-               acon_a(i,j,iatmc13) = 278.-(278.*0.0065)
-               acon_a(i,j,iatmc14) = 278.-(278.*0.0065)**2
+#ifdef cisonew
+               acon_a(i,j,iatmc13) = acon_a(i,j,iatmco2)
+               acon_a(i,j,iatmc14) = acon_a(i,j,iatmco2)
 #endif
             enddo
          enddo

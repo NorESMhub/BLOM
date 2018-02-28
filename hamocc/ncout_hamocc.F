@@ -7,7 +7,11 @@ c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
+#ifdef cisonew
+      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000,c14fac
+#else
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
+#endif
       use mo_bgcmean
 c      
       implicit none
@@ -117,9 +121,17 @@ c --- finalize accumulation
       call finlyr(jprefo2(iogrp),jdp(iogrp))
       call finlyr(jprefpo4(iogrp),jdp(iogrp))
       call finlyr(jprefalk(iogrp),jdp(iogrp))
-#ifdef __c_isotopes
+      call finlyr(jprefdic(iogrp),jdp(iogrp))
+      call finlyr(jdicsat(iogrp),jdp(iogrp))
+#ifdef cisonew
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
+      call finlyr(jd13c(iogrp),jdp(iogrp))
+      call finlyr(jpoc13(iogrp),jdp(iogrp))
+      call finlyr(jdoc13(iogrp),jdp(iogrp))
+      call finlyr(jcalc13(iogrp),jdp(iogrp))
+      call finlyr(jphyto13(iogrp),jdp(iogrp))
+      call finlyr(jgrazer13(iogrp),jdp(iogrp))
 #endif  
 #ifdef AGG
       call finlyr(jnos(iogrp),jdp(iogrp))
@@ -181,9 +193,17 @@ c --- Mask sea floor in level data
       call msklvl(jlvlprefo2(iogrp),depths)
       call msklvl(jlvlprefpo4(iogrp),depths)
       call msklvl(jlvlprefalk(iogrp),depths)
-#ifdef __c_isotopes
+      call msklvl(jlvlprefdic(iogrp),depths)
+      call msklvl(jlvldicsat(iogrp),depths)
+#ifdef cisonew
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
+      call msklvl(jlvld13c(iogrp),depths)
+      call msklvl(jlvlpoc13(iogrp),depths)
+      call msklvl(jlvldoc13(iogrp),depths)
+      call msklvl(jlvlcalc13(iogrp),depths)
+      call msklvl(jlvlphyto13(iogrp),depths)
+      call msklvl(jlvlgrazer13(iogrp),depths)
 #endif  
 #ifdef AGG
       call msklvl(jlvlnos(iogrp),depths)
@@ -370,7 +390,7 @@ c --- Store 3d layer fields
       call wrtlyr(jgrazer(iogrp),LYR_GRAZER(iogrp),1e3,0.,cmpflg,        
      .  'zooc','Zooplankton',' ','mol P m-3')
       call wrtlyr(jpoc(iogrp),LYR_POC(iogrp),1e3,0.,cmpflg,              
-     .  'detoc','Detrius',' ','mol P m-3')
+     .  'detoc','Detritus',' ','mol P m-3')
       call wrtlyr(jcalc(iogrp),LYR_CALC(iogrp),1e3,0.,cmpflg,            
      .  'calc','CaCO3 shells',' ','mol C m-3')
       call wrtlyr(jopal(iogrp),LYR_OPAL(iogrp),1e3,0.,cmpflg,            
@@ -395,11 +415,27 @@ c --- Store 3d layer fields
      .  'p_po4','Preformed phosphorus',' ','mol P m-3')
       call wrtlyr(jprefalk(iogrp),LYR_PREFALK(iogrp),1e3,0.,cmpflg,     
      .  'p_talk','Preformed alkalinity',' ','eq m-3')
-#ifdef __c_isotopes
-      call wrtlyr(jdic13(iogrp),LYR_DIC13(iogrp),1.,0.,cmpflg,          
-     .  'dissic13','Dissolved C13',' ','promille')
-      call wrtlyr(jdic14(iogrp),LYR_DIC14(iogrp),1.,0.,cmpflg,          
-     .  'dissic14','Dissolved C14',' ','promille')
+      call wrtlyr(jprefdic(iogrp),LYR_PREFDIC(iogrp),1e3,0.,cmpflg,     
+     .  'p_dic','Preformed DIC',' ','mol C m-3')
+      call wrtlyr(jdicsat(iogrp),LYR_DICSAT(iogrp),1e3,0.,cmpflg,     
+     .  'sat_dic','Saturated DIC',' ','mol C m-3')
+#ifdef cisonew
+      call wrtlyr(jdic13(iogrp),LYR_DIC13(iogrp),1.e3,0.,cmpflg,          
+     .  'dissic13','Dissolved C13',' ','mol 13C m-3')
+      call wrtlyr(jdic14(iogrp),LYR_DIC14(iogrp),1.e3*c14fac,0.,cmpflg,          
+     .  'dissic14','Dissolved C14',' ','mol 14C m-3')
+      call wrtlyr(jd13c(iogrp),LYR_D13C(iogrp),1.,0.,cmpflg,          
+     .  'delta13c','delta13C of DIC',' ','permil')
+      call wrtlyr(jpoc13(iogrp),LYR_POC13(iogrp),1e3,0.,cmpflg,              
+     .  'detoc13','Detritus13',' ','mol P m-3')
+      call wrtlyr(jdoc13(iogrp),LYR_DOC13(iogrp),1e3,0.,cmpflg,              
+     .  'dissoc13','Dissolved organic carbon13',' ','mol P m-3')
+      call wrtlyr(jcalc13(iogrp),LYR_CALC13(iogrp),1e3,0.,cmpflg,            
+     .  'calc13','Ca13CO3 shells',' ','mol 13C m-3')
+      call wrtlyr(jphyto13(iogrp),LYR_PHYTO13(iogrp),1e3,0.,cmpflg,          
+     .  'phyc13','Phytoplankton13',' ','mol P m-3')
+      call wrtlyr(jgrazer13(iogrp),LYR_GRAZER13(iogrp),1e3,0.,cmpflg,        
+     .  'zooc13','Zooplankton13',' ','mol P m-3')
 #endif
 #ifdef AGG
       call wrtlyr(jnos(iogrp),LYR_NOS(iogrp),1.,0.,cmpflg,              
@@ -427,7 +463,8 @@ c --- Store 3d layer fields
       call wrtlyr(jnatalkali(iogrp),LYR_NATALKALI(iogrp),1e3,0.,cmpflg, 
      .  'nattalk','Natural alkalinity',' ','eq m-3')
       call wrtlyr(jnatdic(iogrp),LYR_NATDIC(iogrp),1e3,0.,cmpflg,       
-     .  'natdissic','Natural dissolved inorganic carbon',' ','mol C m-3')
+     .  'natdissic','Natural dissolved inorganic carbon',' ',
+     .  'mol C m-3')
       call wrtlyr(jnatcalc(iogrp),LYR_NATCALC(iogrp),1e3,0.,cmpflg,        
      .  'natcalc','Natural CaCO3 shells',' ','mol C m-3')
       call wrtlyr(jnatomegac(iogrp),LYR_NATOMEGAC(iogrp),1.,0.,cmpflg,  
@@ -454,7 +491,7 @@ c --- Store 3d level fields
       call wrtlvl(jlvlgrazer(iogrp),LVL_GRAZER(iogrp),rnacc*1e3,0.,
      .  cmpflg,'zooclvl','Zooplankton',' ','mol P m-3')
       call wrtlvl(jlvlpoc(iogrp),LVL_POC(iogrp),rnacc*1e3,0.,cmpflg,        
-     .  'detoclvl','Detrius',' ','mol P m-3')
+     .  'detoclvl','Detritus',' ','mol P m-3')
       call wrtlvl(jlvlcalc(iogrp),LVL_CALC(iogrp),rnacc*1e3,0.,cmpflg,     
      .  'calclvl','CaCO3 shells',' ','mol C m-3')
       call wrtlvl(jlvlopal(iogrp),LVL_OPAL(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -479,11 +516,28 @@ c --- Store 3d level fields
      .  cmpflg,'p_po4lvl','Preformed phosphorus',' ','mol P m-3')
       call wrtlvl(jlvlprefalk(iogrp),LVL_PREFALK(iogrp),rnacc*1e3,0.,
      .  cmpflg, 'p_talklvl','Preformed alkalinity',' ','eq m-3')
-#ifdef __c_isotopes
-      call wrtlvl(jlvldic13(iogrp),LVL_DIC13(iogrp),rnacc,0.,cmpflg,    
-     .  'dissic13lvl','Dissolved C13',' ','promille')
-      call wrtlvl(jlvldic14(iogrp),LVL_DIC14(iogrp),rnacc,0.,cmpflg,    
-     .  'dissic14lvl','Dissolved C14',' ','promille')
+      call wrtlvl(jlvlprefdic(iogrp),LVL_PREFDIC(iogrp),rnacc*1e3,0.,
+     .  cmpflg, 'p_diclvl','Preformed DIC',' ','mol C m-3')
+      call wrtlvl(jlvldicsat(iogrp),LVL_DICSAT(iogrp),rnacc*1e3,0.,
+     .  cmpflg, 'sat_diclvl','Saturated DIC',' ','mol C m-3')
+#ifdef cisonew
+      call wrtlvl(jlvldic13(iogrp),LVL_DIC13(iogrp),rnacc*1.e3,   
+     .  0.,cmpflg,'dissic13lvl','Dissolved C13',' ','mol 13C m-3')
+      call wrtlvl(jlvldic14(iogrp),LVL_DIC14(iogrp),rnacc*1.e3*c14fac,    
+     .  0.,cmpflg,'dissic14lvl','Dissolved C14',' ','mol 14C m-3')
+      call wrtlvl(jlvld13c(iogrp),LVL_D13C(iogrp),rnacc,    
+     .  0.,cmpflg,'delta13clvl','delta13C of DIC',' ','permil')
+      call wrtlvl(jlvlpoc13(iogrp),LVL_POC13(iogrp),rnacc*1e3,       
+     .  0.,cmpflg,'detoc13lvl','Detritus13',' ','mol P m-3')
+      call wrtlvl(jlvldoc13(iogrp),LVL_DOC13(iogrp),rnacc*1e3,       
+     .  0.,cmpflg,'dissoc13lvl','Dissolved organic carbon13',' ',
+     .  'mol P m-3')
+      call wrtlvl(jlvlcalc13(iogrp),LVL_CALC13(iogrp),rnacc*1e3,     
+     .  0.,cmpflg,'calc13lvl','Ca13CO3 shells',' ','mol 13C m-3')
+      call wrtlvl(jlvlphyto13(iogrp),LVL_PHYTO13(iogrp),rnacc*1e3,   
+     .  0.,cmpflg,'phyc13lvl','Phytoplankton13',' ','mol P m-3')
+      call wrtlvl(jlvlgrazer13(iogrp),LVL_GRAZER13(iogrp),rnacc*1e3,
+     .  0.,cmpflg,'zooc13lvl','Zooplankton13',' ','mol P m-3')
 #endif
 #ifdef AGG
       call wrtlvl(jlvlnos(iogrp),LVL_NOS(iogrp),
@@ -529,6 +583,7 @@ c --- Store 3d level fields
 #endif
 c
 c --- Store sediment fields
+#ifndef sedbypass
       call wrtsdm(jpowaic(iogrp),SDM_POWAIC(iogrp),rnacc*1e3,0.,cmpflg,
      .  'powdic','PoWa DIC',' ','mol C m-3')
       call wrtsdm(jpowaal(iogrp),SDM_POWAAL(iogrp),rnacc*1e3,0.,cmpflg,
@@ -561,6 +616,7 @@ c --- Store sediment burial fields
      .  cmpflg,'bursil','Burial silicate',' ','mol Si m-2')
       call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,
      .  cmpflg,'burter','Burial clay',' ','mol  m-2')
+#endif
 c
 c --- close netcdf file
       call ncfcls
@@ -646,9 +702,17 @@ c
       call inilyr(jprefo2(iogrp),0.)       
       call inilyr(jprefpo4(iogrp),0.)       
       call inilyr(jprefalk(iogrp),0.)       
-#ifdef __c_isotopes
+      call inilyr(jprefdic(iogrp),0.)       
+      call inilyr(jdicsat(iogrp),0.)       
+#ifdef cisonew
       call inilyr(jdic13(iogrp),0.)       
-      call inilyr(jdic14(iogrp),0.)       
+      call inilyr(jdic14(iogrp),0.)      
+      call inilyr(jd13c(iogrp),0.)
+      call inilyr(jpoc13(iogrp),0.)
+      call inilyr(jdoc13(iogrp),0.)
+      call inilyr(jcalc13(iogrp),0.)
+      call inilyr(jphyto13(iogrp),0.)       
+      call inilyr(jgrazer13(iogrp),0.) 
 #endif  
 #ifdef AGG
       call inilyr(jnos(iogrp),0.)
@@ -669,7 +733,6 @@ c
       call inilyr(jnatcalc(iogrp),0.)       
       call inilyr(jnatomegac(iogrp),0.)       
 #endif
-
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -693,9 +756,17 @@ c
       call inilvl(jlvlprefo2(iogrp),0.)       
       call inilvl(jlvlprefpo4(iogrp),0.)       
       call inilvl(jlvlprefalk(iogrp),0.)       
-#ifdef __c_isotopes
+      call inilvl(jlvlprefdic(iogrp),0.)       
+      call inilvl(jlvldicsat(iogrp),0.)       
+#ifdef cisonew
       call inilvl(jlvldic13(iogrp),0.)
       call inilvl(jlvldic14(iogrp),0.)
+      call inilvl(jlvld13c(iogrp),0.)
+      call inilvl(jlvlpoc13(iogrp),0.)
+      call inilvl(jlvldoc13(iogrp),0.)
+      call inilvl(jlvlcalc13(iogrp),0.)
+      call inilvl(jlvlphyto13(iogrp),0.)
+      call inilvl(jlvlgrazer13(iogrp),0.)
 #endif  
 #ifdef AGG
       call inilvl(jlvlnos(iogrp),0.)
@@ -717,6 +788,7 @@ c
       call inilvl(jlvlnatomegac(iogrp),0.)       
 #endif
 c
+#ifndef sedbypass
       call inisdm(jpowaic(iogrp),0.)       
       call inisdm(jpowaal(iogrp),0.)       
       call inisdm(jpowaph(iogrp),0.)       
@@ -732,11 +804,14 @@ c
       call inibur(jburssso12(iogrp),0.)       
       call inibur(jbursssc12(iogrp),0.)       
       call inibur(jburssssil(iogrp),0.)       
-      call inibur(jburssster(iogrp),0.)       
+      call inibur(jburssster(iogrp),0.)
+#endif
 c
       nacc_bgc(iogrp)=0
 c
       end
+
+
       subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
       use mo_bgcmean
       integer iogrp,cmpflg
@@ -886,7 +961,7 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_GRAZER(iogrp),cmpflg,'p',        
      .  'zooc','Zooplankton',' ','mol P m-3',1)
       call ncdefvar3d(LYR_POC(iogrp),cmpflg,'p',              
-     .  'detoc','Detrius',' ','mol P m-3',1)
+     .  'detoc','Detritus',' ','mol P m-3',1)
       call ncdefvar3d(LYR_CALC(iogrp),cmpflg,'p',            
      .  'calc','CaCO3 shells',' ','mol C m-3',1)
       call ncdefvar3d(LYR_OPAL(iogrp),cmpflg,'p',            
@@ -911,11 +986,27 @@ c --- define 3d layer fields
      .  'p_po4','Preformed phosphorus',' ','mol P m-3',1)
       call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',
      .  'p_talk','Preformed alkalinity',' ','eq m-3',1)
-#ifdef __c_isotopes
+      call ncdefvar3d(LYR_PREFDIC(iogrp),cmpflg,'p',
+     .  'p_dic','Preformed DIC',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_DICSAT(iogrp),cmpflg,'p',
+     .  'sat_dic','Saturated DIC',' ','mol C m-3',1)
+#ifdef cisonew
       call ncdefvar3d(LYR_DIC13(iogrp),cmpflg,'p',
-     .  'dissic13','Dissolved C13',' ','promille',1)
+     .  'dissic13','Dissolved C13',' ','mol 13C m-3',1)
       call ncdefvar3d(LYR_DIC14(iogrp),cmpflg,'p',
-     .  'dissic14','Dissolved C14',' ','promille',1)
+     .  'dissic14','Dissolved C14',' ','mol 14C m-3',1)
+      call ncdefvar3d(LYR_D13C(iogrp),cmpflg,'p',
+     .  'delta13c','delta13C of DIC',' ','permil',1)
+      call ncdefvar3d(LYR_POC13(iogrp),cmpflg,'p',              
+     .  'detoc13','Detritus13',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_DOC13(iogrp),cmpflg,'p',              
+     .  'dissoc13','Dissolved organic carbon13',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_CALC13(iogrp),cmpflg,'p',            
+     .  'calc13','Ca13CO3 shells',' ','mol 13C m-3',1)
+      call ncdefvar3d(LYR_PHYTO13(iogrp),cmpflg,'p',          
+     .  'phyc13','Phytoplankton13',' ','mol P m-3',1)
+      call ncdefvar3d(LYR_GRAZER13(iogrp),cmpflg,'p',        
+     .  'zooc13','Zooplankton13',' ','mol P m-3',1)
 #endif
 #ifdef AGG
       call ncdefvar3d(LYR_NOS(iogrp),cmpflg,'p',
@@ -970,7 +1061,7 @@ c --- define 3d level fields
       call ncdefvar3d(LVL_GRAZER(iogrp),cmpflg,'p',
      .  'zooclvl','Zooplankton',' ','mol P m-3',2)
       call ncdefvar3d(LVL_POC(iogrp),cmpflg,'p',        
-     .  'detoclvl','Detrius',' ','mol P m-3',2)
+     .  'detoclvl','Detritus',' ','mol P m-3',2)
       call ncdefvar3d(LVL_CALC(iogrp),cmpflg,'p',     
      .  'calclvl','CaCO3 shells',' ','mol C m-3',2)
       call ncdefvar3d(LVL_OPAL(iogrp),cmpflg,'p',      
@@ -995,11 +1086,27 @@ c --- define 3d level fields
      .  'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
       call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',
      .  'p_talklvl','Preformed alkalinity',' ','eq m-3',2)
-#ifdef __c_isotopes
+      call ncdefvar3d(LVL_PREFDIC(iogrp),cmpflg,'p',
+     .  'p_diclvl','Preformed DIC',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_DICSAT(iogrp),cmpflg,'p',
+     .  'sat_diclvl','Saturated DIC',' ','mol C m-3',2)
+#ifdef cisonew
       call ncdefvar3d(LVL_DIC13(iogrp),cmpflg,'p',
-     .  'dissic13lvl','Dissolved C13',' ','promille',2)
+     .  'dissic13lvl','Dissolved C13',' ','mol 13C m-3',2)
       call ncdefvar3d(LVL_DIC14(iogrp),cmpflg,'p',
-     .  'dissic14lvl','Dissolved C14',' ','promille',2)
+     .  'dissic14lvl','Dissolved C14',' ','mol 14C m-3',2)
+      call ncdefvar3d(LVL_D13C(iogrp),cmpflg,'p',
+     .  'delta13clvl','delta13C of DIC',' ','permil',2)
+      call ncdefvar3d(LVL_POC13(iogrp),cmpflg,'p',        
+     .  'detoc13lvl','Detritus13',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_DOC13(iogrp),cmpflg,'p',       
+     .  'dissoc13lvl','Dissolved organic carbon13',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_CALC13(iogrp),cmpflg,'p',     
+     .  'calc13lvl','Ca13CO3 shells',' ','mol 13C m-3',2)
+      call ncdefvar3d(LVL_PHYTO13(iogrp),cmpflg,'p',   
+     .  'phyc13lvl','Phytoplankton13',' ','mol P m-3',2)
+      call ncdefvar3d(LVL_GRAZER13(iogrp),cmpflg,'p',
+     .  'zooc13lvl','Zooplankton13',' ','mol P m-3',2)
 #endif
 #ifdef AGG
       call ncdefvar3d(LVL_NOS(iogrp),cmpflg,'p','noslvl',
@@ -1035,6 +1142,7 @@ c --- define 3d level fields
 #endif
 c
 c --- define sediment fields
+#ifndef sedbypass
       call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',
      .  'powdic','PoWa DIC',' ','mol C m-3',3)
       call ncdefvar3d(SDM_POWAAL(iogrp),cmpflg,'p',
@@ -1067,6 +1175,8 @@ c --- define sediment burial fields
      .  cmpflg,'p','bursil','Burial silicate',' ','mol Si m-2',4)
       call ncdefvar3d(BUR_SSSTER(iogrp),
      .  cmpflg,'p','burter','Burial clay',' ','mol  m-2',4)
+#endif
+
 c
 c --- enddef netcdf file
       call ncedef

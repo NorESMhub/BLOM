@@ -1,8 +1,10 @@
       SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke  &
      &            ,kpbe,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw &
      &            ,kplyear,kplmonth,kplday,kpldtoce                      &
-     &            ,pglon,pglat,omask,ntr,ntrbgc,itrbgc                   &
-     &            ,trc,sedlay2,powtra2,burial2                           &    
+     &            ,pglon,pglat,omask,ntr,ntrbgc,itrbgc,trc               &
+#ifndef sedbypass
+     &            ,sedlay2,powtra2,burial2                               &    
+#endif
      &            ,rstfnm_ocn,path,path2)
 
 !****************************************************************
@@ -92,9 +94,11 @@
       REAL    :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
       REAL    :: omask(kpie,kpje)
       REAL    :: trc(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,2*kpke,ntr)
+#ifndef sedbypass
       REAL    :: sedlay2(kpie,kpje,2*ks,nsedtra)
       REAL    :: powtra2(kpie,kpje,2*ks,npowtra)
       REAL    :: burial2(kpie,kpje,2,   nsedtra)
+#endif
       REAL    :: pdt
       character(len=*) :: rstfnm_ocn,path,path2
 
@@ -175,8 +179,10 @@
 ! two-time-level counterpart
 !
       IF(kpaufr.eq.1) THEN
-         CALL AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,                 &
-     &                 trc,sedlay2,powtra2,burial2,                      &
+         CALL AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,             &
+#ifndef sedbypass
+     &                 sedlay2,powtra2,burial2,                          &
+#endif
      &                 kplyear,kplmonth,kplday,kpldtoce,                 &
      &                 rstfnm_ocn,path2)
       ELSE
@@ -184,23 +190,16 @@
      &     ocetra(:,:,:,:)
          trc(1:kpie,1:kpje,kpke+1:2*kpke,itrbgc:itrbgc+ntrbgc-1) =       &
      &     ocetra(:,:,:,:)
+#ifndef sedbypass
          sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
          sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:) 
          powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
          powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:) 
          burial2(:,:,1,:)         = burial(:,:,:)
          burial2(:,:,2,:)         = burial(:,:,:) 
+#endif
       ENDIF
 
-! aufsetz! (for initialization of 14C)
-!      call c14_correction(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,psao,         &
-!     &                    ptho,omask)
-
-!#ifdef DIFFAT
-! correction of alkalinity during spin-up of pco2 
-!
-!      CALL SPINUP_BGC(kpie,kpje,kpke,omask,pdlxp,pdlyp)
-!#endif
 
 !
 ! Global inventory of all tracers

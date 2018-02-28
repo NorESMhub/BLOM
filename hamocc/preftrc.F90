@@ -42,6 +42,7 @@
           ocetra(i,j,k,iprefo2) =ocetra(i,j,k,ioxygen)
           ocetra(i,j,k,iprefpo4)=ocetra(i,j,k,iphosph)
           ocetra(i,j,k,iprefalk)=ocetra(i,j,k,ialkali)
+          ocetra(i,j,k,iprefdic)=ocetra(i,j,k,isco212)
         endif
       enddo
       enddo

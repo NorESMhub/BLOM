@@ -1,5 +1,4 @@
-      SUBROUTINE POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
-
+      SUBROUTINE POWACH(kpie,kpje,kpke,psao,prho,omask)
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powach.f90,v $\\
 !$Revision: 1.2 $\\
@@ -39,9 +38,6 @@
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*    *psao*    - salinity [psu].
 !     *REAL*    *prho*    - seawater density [g/cm^3].
-!     *REAL*    *pwo*     - vertical velocity in scalar points [m/s].
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !
 !     Externals
 !     ---------
@@ -60,23 +56,24 @@
 
       INTEGER :: i,j,k,l
       INTEGER :: kpie,kpje,kpke
-
       REAL :: psao(kpie,kpje,kpke)
       REAL :: prho(kpie,kpje,kpke)
+      REAL :: omask(kpie,kpje)
 
       REAL :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
       REAL :: solrat(kpie,ks),powcar(kpie,ks)
       REAL :: aerob(kpie,ks),anaerob(kpie,ks)
-      REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-      REAL :: omask(kpie,kpje)
-
+#ifdef cisonew
+      REAL :: aerob13(kpie,ks),anaerob13(kpie,ks)
+      REAL :: aerob14(kpie,ks),anaerob14(kpie,ks)
+#endif
       REAL :: disso, dissot, undsa, silsat, posol 
       REAL :: umfa,denit,saln,rrho,alk,c,sit,pt
       REAL :: K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
       REAL :: ah1,ac,cu,cb,cc,satlev
       REAL :: ratc13,ratc14,rato13,rato14,poso13,poso14
 ! number of iterations for carchm_solve
-      REAL,PARAMETER :: niter=5
+      INTEGER,PARAMETER :: niter=5
 ! *****************************************************************
 ! accelerated sediment
 ! needed for boundary layer vertilation in fast sediment routine      
@@ -103,6 +100,13 @@
 	 powcar(i,k) =0.
 	 anaerob(i,k)=0.
 	 aerob(i,k)  =0.	 
+#ifdef cisonew
+	 anaerob13(i,k)=0.
+	 aerob13(i,k)  =0.	 
+	 anaerob14(i,k)=0.
+	 aerob14(i,k)  =0.	 
+#endif
+
 1189  CONTINUE
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange
@@ -234,8 +238,8 @@
 
       DO 12 k=1,ks
       DO 12 i=1,kpie
-         IF(bolay(i,j).GT.0.) THEN
-!ka         IF(omask(i,j).GT.0.5) THEN
+!ka         IF(bolay(i,j).GT.0.) THEN
+         IF(omask(i,j).GT.0.5) THEN
             undsa=powtra(i,j,k,ipowaox)
             sedb1(i,k)=seddw(k)*porwat(k)*powtra(i,j,k,ipowaox)
             IF(k.GT.1)solrat(i,k)=sedlay(i,j,k,issso12)               &
@@ -257,14 +261,12 @@
             ocetra(i,j,kbo(i,j),ioxygen)=sediso(i,0)
             sedlay(i,j,1,issso12)                                     &
      &      =sedlay(i,j,1,issso12)+prorca(i,j)/(porsol(1)*seddw(1))
-#ifdef __c_isotopes
+         prorca(i,j)=0.
+#ifdef cisonew
             sedlay(i,j,1,issso13)                                     &
      &      =sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
             sedlay(i,j,1,issso14)                                     &
      &      =sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
-#endif
-         prorca(i,j)=0.
-#ifdef __c_isotopes
          pror13(i,j)=0.
          pror14(i,j)=0.
 #endif
@@ -284,20 +286,23 @@
             solrat(i,k)=sedlay(i,j,k,issso12)                         &
      &                 *dissot/(1.+dissot*sediso(i,k))
             posol=sediso(i,k)*solrat(i,k)
-#ifdef __c_isotopes
-            rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+1.e-24)
-            rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+1.e-24)
+            aerob(i,k)=posol*umfa !this has P units: kmol P/m3 of pore water
+#ifdef cisonew
+            rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+safediv)
+            rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+safediv)
             poso13=posol*rato13
             poso14=posol*rato14
+            aerob13(i,k)=poso13*umfa !this has P units: kmol P/m3 of pore water
+            aerob14(i,k)=poso14*umfa !this has P units: kmol P/m3 of pore water
 #endif
-            aerob(i,k)=posol*umfa !this has P units: kmol P/m3 of pore water
             sedlay(i,j,k,issso12)=sedlay(i,j,k,issso12)-posol
             powtra(i,j,k,ipowaph)=powtra(i,j,k,ipowaph)+posol*umfa
             powtra(i,j,k,ipowno3)=powtra(i,j,k,ipowno3)+posol*rnit*umfa
             powtra(i,j,k,ipowaox)=sediso(i,k)
-#ifdef __c_isotopes
+#ifdef cisonew
             sedlay(i,j,k,issso13)=sedlay(i,j,k,issso13)-poso13
             sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)-poso14
+            ! is this correct? no correspondance in the lines above
             powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowc13)+poso13*umfa
             powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)+poso14*umfa
 #endif
@@ -321,17 +326,22 @@
      &                          sedlay(i,j,k,issso12))
             umfa=porsol(k)/porwat(k)
             anaerob(i,k)=posol*umfa !this has P units: kmol P/m3 of pore water
+#ifdef cisonew
+            rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+safediv)
+            rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+safediv)
+            poso13=posol*rato13
+            poso14=posol*rato14
+            anaerob13(i,k)=poso13*umfa !this has P units: kmol P/m3 of pore water
+            anaerob14(i,k)=poso14*umfa !this has P units: kmol P/m3 of pore water
+#endif
             sedlay(i,j,k,issso12)=sedlay(i,j,k,issso12)-posol
             powtra(i,j,k,ipowaph)=powtra(i,j,k,ipowaph)+posol*umfa
             powtra(i,j,k,ipowno3)=powtra(i,j,k,ipowno3)-98.*posol*umfa
             powtra(i,j,k,ipown2)=powtra(i,j,k,ipown2)+57.*posol*umfa
-#ifdef __c_isotopes
-            rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+1.e-24)
-            rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+1.e-24)
-            poso13=posol*rato13
-            poso14=posol*rato14
+#ifdef cisonew
             sedlay(i,j,k,issso13)=sedlay(i,j,k,issso13)-poso13
             sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)-poso14
+            ! is this correct? no corresponance in the lines above
             powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowc13)+poso13*umfa
             powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)+poso14*umfa
 #endif
@@ -349,20 +359,20 @@
            umfa=porsol(k)/porwat(k)
            anaerob(i,k)=anaerob(i,k)+posol*umfa !this has P units: kmol P/m3 of pore water  
                                                 !this overwrites anaerob from denitrification. added =anaerob+..., works
-
+#ifdef cisonew
+           rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+safediv)
+           rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+safediv)
+           poso13=posol*rato13
+           poso14=posol*rato14
+           anaerob13(i,k)=anaerob13(i,k)+poso13*umfa !this has P units: kmol P/m3 of pore water  
+           anaerob14(i,k)=anaerob13(i,k)+poso14*umfa !this has P units: kmol P/m3 of pore water
+#endif
            sedlay(i,j,k,issso12)=sedlay(i,j,k,issso12)-posol
            powtra(i,j,k,ipowaph)=powtra(i,j,k,ipowaph)+posol*umfa
            powtra(i,j,k,ipowno3)=powtra(i,j,k,ipowno3)+posol*umfa*rno3
-#ifdef __c_isotopes
-            rato13=sedlay(i,j,k,issso13)/(sedlay(i,j,k,issso12)+1.e-24)
-            rato14=sedlay(i,j,k,issso14)/(sedlay(i,j,k,issso12)+1.e-24)
-            poso13=posol*rato13
-            poso14=posol*rato14
-            sedlay(i,j,k,issso13)=sedlay(i,j,k,issso13)-poso13
- 
-            sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)-poso14
-            powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowc13)+poso13*umfa
-            powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)+poso14*umfa
+#ifdef cisonew
+           sedlay(i,j,k,issso13)=sedlay(i,j,k,issso13)-poso13
+           sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)-poso14
 #endif
         endif
          ENDIF
@@ -465,14 +475,12 @@
 !ka         IF(bolay(i,j).GT.0.) THEN
             sedlay(i,j,1,isssc12)=                                     &
      &      sedlay(i,j,1,isssc12)+prcaca(i,j)/(porsol(1)*seddw(1))
-#ifdef __c_isotopes
+         prcaca(i,j)=0.
+#ifdef cisonew
             sedlay(i,j,1,isssc13)=                                     &
      &      sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
             sedlay(i,j,1,isssc14)=                                     &
      &      sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
-#endif
-         prcaca(i,j)=0.
-#ifdef __c_isotopes
          prca13(i,j)=0.
          prca14(i,j)=0.
 #endif
@@ -493,20 +501,24 @@
            solrat(i,k)=sedlay(i,j,k,isssc12)                           &
      &                 *dissot/(1.+dissot*sediso(i,k))
            posol=sediso(i,k)*solrat(i,k)
+#ifdef cisonew
+           ratc13=sedlay(i,j,k,isssc13)/(sedlay(i,j,k,isssc12)+safediv)
+           ratc14=sedlay(i,j,k,isssc14)/(sedlay(i,j,k,isssc12)+safediv)
+           poso13=posol*ratc13
+           poso14=posol*ratc14
+#endif
            sedlay(i,j,k,isssc12)=sedlay(i,j,k,isssc12)-posol
            powtra(i,j,k,ipowaic)=powtra(i,j,k,ipowaic)                 &
      &        +posol*umfa+(aerob(i,k)+anaerob(i,k))*122.
            powtra(i,j,k,ipowaal)=powtra(i,j,k,ipowaal)                 &
      &        +2.*posol*umfa-16.*(aerob(i,k)+anaerob(i,k))
-#ifdef __c_isotopes
-           ratc13=sedlay(i,j,k,isssc13)/(sedlay(i,j,k,isssc12)+1.e-24)
-           ratc14=sedlay(i,j,k,isssc14)/(sedlay(i,j,k,isssc12)+1.e-24)
-           poso13=posol*ratc13
-           poso14=posol*ratc14
+#ifdef cisonew
            sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc13)-poso13
            sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc14)-poso14
-           powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowc13)+poso13*umfa
-           powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)+poso14*umfa
+           powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowc13)+poso13*umfa   &
+     &          +(aerob13(i,k)+anaerob13(i,k))*122.
+           powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)+poso14*umfa   &
+     &          +(aerob14(i,k)+anaerob14(i,k))*122.
 #endif
          ENDIF
 25    CONTINUE     
@@ -515,7 +527,7 @@
 8888  CONTINUE
 !$OMP END PARALLEL DO
 
-      CALL DIPOWA(kpie,kpje,kpke,pdlxp,pdlyp,omask)
+      CALL DIPOWA(kpie,kpje,kpke,omask)
 
 
 !ik add clay sedimentation onto sediment
@@ -537,13 +549,13 @@
        DO 91 i=1,kpie
          silpro(i,j)=0.
          prorca(i,j)=0.
-#ifdef __c_isotopes
+         prcaca(i,j)=0.
+#ifdef cisonew
          pror13(i,j)=0.
          pror14(i,j)=0.
          prca13(i,j)=0.
          prca14(i,j)=0.
 #endif
-         prcaca(i,j)=0.
          produs(i,j)=0.
 91     CONTINUE
 !$OMP END PARALLEL DO

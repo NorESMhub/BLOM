@@ -91,53 +91,6 @@
         ENDIF
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nsedtra
-        ENDIF
-
-        ALLOCATE (sedlay(kpie,kpje,ks,nsedtra),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory sedlay'
-        sedlay(:,:,:,:) = 0.0
-
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-        ENDIF
-
-        ALLOCATE (sedhpl(kpie,kpje,ks),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory sedhpl'
-        sedhpl(:,:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',nsedtra
-        ENDIF
-
-        ALLOCATE (burial(kpie,kpje,nsedtra),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory burial'
-        burial(:,:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',npowtra
-        ENDIF
-
-        ALLOCATE (powtra(kpie,kpje,ks,npowtra),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory powtra'
-        powtra(:,:,:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable silpro ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -156,12 +109,14 @@
         ALLOCATE (prorca(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prorca'
         prorca(:,:) = 0.0
+#ifdef cisonew
         ALLOCATE (pror13(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory pror13'
         pror13(:,:) = 0.0
         ALLOCATE (pror14(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory pror14'
         pror14(:,:) = 0.0
+#endif
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
@@ -172,12 +127,14 @@
         ALLOCATE (prcaca(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prcaca'
         prcaca(:,:) = 0.0
+#ifdef cisonew
         ALLOCATE (prca13(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prca13'
         prca13(:,:) = 0.0
         ALLOCATE (prca14(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory prca14'
         prca14(:,:) = 0.0
+#endif
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable produs ...'
@@ -188,6 +145,7 @@
         ALLOCATE (produs(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory produs'
         produs(:,:) = 0.0
+
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable dzs ...'
@@ -243,6 +201,54 @@
         if(errstat.ne.0) stop 'not enough memory porwat'
         porwat(:) = 0.0
 
+#ifndef sedbypass
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
+        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nsedtra
+        ENDIF
+
+        ALLOCATE (sedlay(kpie,kpje,ks,nsedtra),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory sedlay'
+        sedlay(:,:,:,:) = 0.0
+
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
+        ENDIF
+
+        ALLOCATE (sedhpl(kpie,kpje,ks),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory sedhpl'
+        sedhpl(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',nsedtra
+        ENDIF
+
+        ALLOCATE (burial(kpie,kpje,nsedtra),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory burial'
+        burial(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
+        WRITE(io_stdo_bgc,*)'Forth dimension    : ',npowtra
+        ENDIF
+
+        ALLOCATE (powtra(kpie,kpje,ks,npowtra),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory powtra'
+        powtra(:,:,:,:) = 0.0
+#endif
 
 
       END SUBROUTINE ALLOC_MEM_SEDMNT

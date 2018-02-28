@@ -12,10 +12,12 @@ c
 c
 #include "param_trc.h"
 #include "common_bgc.h"
-#include "common_bgcs.h"
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_trc.h"
+#ifndef sedbypass
+#include "common_bgcs.h"
+#endif
 c
       character(len=1) :: cdummy
 c
@@ -30,8 +32,10 @@ c
      .               ,bgc_dp,bgc_t,bgc_s,bgc_rho
      .               ,bgc_dx,bgc_dy,bgc_pu,bgc_pw
      .               ,nyear,nmonth,nday,nstep1
-     .               ,pglon,pglat,omask,ntr,ntrbgc,itrbgc
-     .               ,trc,sedlay2,powtra2,burial2
+     .               ,pglon,pglat,omask,ntr,ntrbgc,itrbgc,trc
+#ifndef sedbypass
+     .               ,sedlay2,powtra2,burial2
+#endif
      .               ,cdummy,path,path2)
 c
 #ifdef DIFFAT

@@ -27,8 +27,9 @@
      INTEGER,  PARAMETER :: kmle   = 2        ! k-end index for layers that represent the mixed
                                               ! layer in MICOM
 
+     REAL, PARAMETER :: safediv = 1.0e-25     ! added to the denominator of isotopic ratios (avoid div. by zero)
 ! advected tracers
-      INTEGER, PARAMETER :: i_base_adv=17,                              &
+      INTEGER, PARAMETER :: i_base_adv=19,                              &
      &                      isco212  =1,                                &
      &                      ialkali  =2,                                &
      &                      iphosph  =3,                                &
@@ -45,12 +46,20 @@
      &                      ifdust   =14,                               &
      &                      iprefo2  =15,                               &
      &                      iprefpo4 =16,                               &
-     &                      iprefalk =17  
-#ifdef __c_isotopes
+     &                      iprefalk =17,                               &
+     &                      iprefdic =18,                               &
+     &                      idicsat  =19  
+#ifdef cisonew
       INTEGER, PARAMETER ::                                             &
      &                      isco213  =i_base_adv+1,                     &
      &                      isco214  =i_base_adv+2,                     &
-     &                      i_iso_adv=2                    
+     &                      idoc13   =i_base_adv+3,                     &
+     &                      idoc14   =i_base_adv+4,                     &
+     &                      iphy13   =i_base_adv+5,                     &
+     &                      iphy14   =i_base_adv+6,                     &
+     &                      izoo13   =i_base_adv+7,                     &
+     &                      izoo14   =i_base_adv+8,                     &
+     &                      i_iso_adv=8                    
 #else 
       INTEGER, PARAMETER ::                                             &
      &                      i_iso_adv=0
@@ -99,7 +108,7 @@
 #endif
                             
       INTEGER, PARAMETER ::                                             &
-#ifdef __c_isotopes
+#ifdef cisonew
      &                      idet13   =ntraad+i_base+1,                  &
      &                      icalc13  =ntraad+i_base+2,                  &      
      &                      idet14   =ntraad+i_base+3,                  &
@@ -120,7 +129,7 @@
      &                      iatmdms=5,                                  &
      &                      i_base_atm=5
       INTEGER, PARAMETER ::                                             &
-#ifdef __c_isotopes
+#ifdef cisonew
      &                      iatmc13 = i_base_atm+1,                     &
      &                      iatmc14 = i_base_atm+2,                     &
      &                      i_iso_atm = 2
@@ -131,7 +140,7 @@
       INTEGER, PARAMETER ::  natm=i_base_atm+i_iso_atm
 
 ! sediment
-#ifdef __c_isotopes
+#ifdef cisonew
       INTEGER, PARAMETER :: issso12=1,                                  &
      &                      isssc12=2,                                  &
      &                      issssil=3,                                  &

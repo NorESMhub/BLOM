@@ -29,9 +29,11 @@ c
 #include "param_trc.h"
 #include "common_trc.h"
 #include "common_blocks.h"
-#include "common_bgc.h"
-#include "common_bgcs.h"
 #include "common_forc.h"
+#include "common_bgc.h"
+#ifndef sedbypass
+#include "common_bgcs.h"
+#endif
 c
       integer       :: m,n,mm,nn
 c
@@ -76,6 +78,7 @@ c --- ------------------------------------------------------------------
 c --- apply time smoothing for sediment fields and pass them back
 c --- ------------------------------------------------------------------
 c
+#ifndef sedbypass
       nns=(n-1)*ks
       mms=(m-1)*ks
 
@@ -115,6 +118,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
       enddo
       enddo
 c$OMP END PARALLEL DO
+#endif
 c
       return
       end

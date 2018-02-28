@@ -62,9 +62,14 @@
       REAL :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
       REAL :: ppm2con, co2atm
 
-
 ! aqueous sediment tracer
 !----------------------------------------------------------------------
+#ifdef sedbypass
+      zpowtrato(:)=0.0
+      zsedlayto(:)=0.0
+      zburial(:)=0.0
+      zsedhplto=0.0
+#else
       ztmp1(:,:)=0.0
       DO k=1,ks
       DO j=1,kpje
@@ -170,6 +175,8 @@
      &       zsedhplto   
       WRITE(io_stdo_bgc,*) ' '   
       ENDIF
+
+#endif
 
 !  oceanic tracers
 !----------------------------------------------------------------------

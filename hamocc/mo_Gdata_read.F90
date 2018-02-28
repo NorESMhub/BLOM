@@ -206,6 +206,8 @@ subroutine set_Gdata(path,vname,inddeg)
 !                'oxy' - WOA dissolved oxygen
 !                'alk' - GLODAP alkalinity
 !                'dic' - GLODAP dissolved inorganic carbon
+!                'C13' - Dissolved inorganic 13C carbon isotope
+!                'C14' - Dissolved inorganic 14C carbon isotope
 !  inddeg:       extent (in degrees) of region used for averaging
 !
 !--------------------------------------------------------------------------------
@@ -260,6 +262,18 @@ case ('dic') ! DIC
    file   = trim(path)//'/OMIPBGC_INI/'//'glodapv2_Ct_preind_OMIPinit.nc'
    ncname = 'Ct_preind'
    dsrc   = 'GLO'
+   cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
+
+case ('C13') ! natural 13C [micromoles/kg]
+   file   = trim(path)//'/C_Isotopes/'//'C13_micromol_per_kg.nc'
+   ncname = 'C13'
+   dsrc   = 'ISO'
+   cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
+
+case ('C14') ! natural 14C [micromoles/kg]
+   file   = trim(path)//'/C_Isotopes/'//'C14_micromol_per_kg.nc'
+   ncname = 'C14'
+   dsrc   = 'ISO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case default
@@ -473,11 +487,9 @@ subroutine read_Gdata()
 ! Local variables
 integer                     :: ncId, vId, dId 
 integer                     :: numlon, numlat, numlev
-integer                     :: ndim, natts
-integer                     :: i,l
+integer                     :: i, ndim, natts
 integer                     :: dimid(7)
 integer                     :: status
-real, allocatable           :: tmp(:,:,:)
 real                        :: fval
 character(len=16)           :: lonstr,latstr,depthstr,depthbndsstr,fvalstr
 character(len=*), parameter :: routinestr = 'mo_Gdata_read, read_Gdata'
@@ -494,6 +506,10 @@ case ('WOA')
    depthstr='depth'
    depthbndsstr='depth_bnds'
 case ('GLO')
+   nz = nz_glo
+   depthstr='depthz'
+   depthbndsstr='depthz_bnds'
+case ('ISO')
    nz = nz_glo
    depthstr='depthz'
    depthbndsstr='depthz_bnds'
@@ -572,7 +588,9 @@ case ('WOA')
 case ('GLO')
    lon  = cshift(lon, -20)
    rvar = cshift(rvar,-20,1)
-
+case ('ISO')
+   lon  = cshift(lon, -180)
+   rvar = cshift(rvar,-180,1)
 end select
 
 do i=1,nlon
@@ -632,7 +650,7 @@ logical, optional, intent(in)  :: global
 ! Local variables
 integer                        :: ilonc, ilons, ilone, dnlon
 integer                        :: ilatc, ilats, ilate, dnlat
-integer                        :: k,l, nelmlon,nelmlat
+integer                        :: l, nelmlon,nelmlat
 logical                        :: gl = .false.
 character(len=*), parameter    :: routinestr = 'mo_Gdata_read, calc_mean_profile'
 

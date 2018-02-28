@@ -41,6 +41,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: keqb
@@ -51,22 +52,23 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
+      REAL :: dmspar(6)
 #ifdef natDIC
       REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
 #endif
-      
-      REAL :: dmspar(6)
-
-#ifdef __c_isotopes
+#ifdef cisonew
       REAL :: c14_t_half, c14dec
-      REAL :: Roc14, Roc13
-      REAL :: frac_airsea13_prom, frac_airsea13, frac_photo13_prom, frac_photo13, frac_caco313
-      REAL :: frac_photo14, frac_caco314, frac_airsea14
+      REAL :: roc14, roc13
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc13
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc14
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
+#endif
+#ifdef boxatm
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc12
 #endif
 
 #ifndef DIFFAT            
@@ -132,6 +134,17 @@
         ALLOCATE (co3(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory co3'
         co3(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable co2star ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (co2star(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co2star'
+        co2star(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
@@ -234,19 +247,6 @@
         if(errstat.ne.0) stop 'not enough memory satoxy'
         satoxy(:,:,:) = 0.0
 
-#ifdef __c_isotopes
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable phyto_growth ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-        ENDIF
-
-        ALLOCATE (phyto_growth(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory phyto_growth'
-        phyto_growth(:,:,:) = 0.0
-#endif
-
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atm ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -314,6 +314,49 @@
         if(errstat.ne.0) stop 'not enough memory Rbomb'
         Rbomb(:,:) = 0.0
 #endif	
+#ifdef boxatm
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc12 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+        
+        ALLOCATE (atc12(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory atc12'
+        atc12(:,:) = 0.0
+#endif
+#ifdef cisonew
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc13 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+        
+        ALLOCATE (atc13(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory atc13'
+        atc13(:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc14 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+        
+        ALLOCATE (atc14(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory atc14'
+        atc14(:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable phyto_growth ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (phyto_growth(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory phyto_growth'
+        phyto_growth(:,:,:) = 0.0
+#endif
 
       END SUBROUTINE ALLOC_MEM_CARBCH
 

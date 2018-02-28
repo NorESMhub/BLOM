@@ -7,10 +7,12 @@ c
 c
 #include "param_trc.h"
 #include "common_bgc.h"
-#include "common_bgcs.h"
 #include "common_trc.h"
 #include "common_blocks.h"
 #include "common_geo.h"
+#ifndef sedbypass
+#include "common_bgcs.h"
+#endif
 c
       integer i,j,k,l,nt
 c  set bgc timestep to nphys*dt   
@@ -62,6 +64,7 @@ c initialise trc array (two time levels)
       enddo
 c
 c initialise sediment arrays (two time level copies)
+#ifndef sedbypass
       do j=1,jj
       do i=1,ii
         burial2(i,j,1:2,:)  = 0.0
@@ -76,6 +79,7 @@ c
       enddo
       enddo
       enddo
+#endif
 c
 c initialise HAMOCC land/ocean mask
       do j=1,jj

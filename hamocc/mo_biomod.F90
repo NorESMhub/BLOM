@@ -47,7 +47,7 @@
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
       REAL :: ro2ut,rcar,rnit,rnoi,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
       REAL :: bluefix,tf2,tf1,tf0,tff  
-      REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14
+      REAL :: bkphy,bkzoo,bkopal
       REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o
       REAL :: dphymor,dzoomor,dremopal
       REAL :: dremsul
@@ -56,6 +56,11 @@
       REAL :: perc_disil
       REAL :: ctochl, atten_w, atten_c, atten_f
       REAL :: vol0
+#ifdef cisonew
+      REAL :: c13fac,c14fac,evfr00,evfr01
+      REAL :: re1312,re14to,prei13,prei14
+      REAL :: bifr13,bifr14,growth_co2,bifr13_perm
+#endif
 #ifdef AGG
       REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
       REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
@@ -64,11 +69,6 @@
 #elif defined(WLIN)
       REAL :: wmin,wmax,wlin
 #endif
-#ifdef __c_isotopes
-      REAL :: factor_13c, factor_14c, atm_c14_cal, atm_dc14_cal
-      REAL :: PDB, ref14c, prei_d13C_atm, prei_dd14C_atm, atm_c13_cal
-#endif
-
       CONTAINS
 
       SUBROUTINE ALLOC_MEM_BIOMOD(kpie,kpje,kpke)

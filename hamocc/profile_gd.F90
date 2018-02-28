@@ -21,7 +21,7 @@ subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,path)
 !
 !********************************************************************************
    
-use mod_xc,         only: mnproc,xchalt
+use mod_xc,         only: xchalt
 use mo_carbch,      only: ocetra
 use mo_Gdata_read,  only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds
 use mo_control_bgc, only: io_stdo_bgc
@@ -40,26 +40,38 @@ character(len=*),intent(in) :: path
 ! Local variables
 integer         :: i,j,k,l,ll,n
 integer         :: idx,izmax
-real            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),zmax,clon,clat
+real            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
 real, parameter :: fillval = -1.0e34
 
 ! Extent of "smoothing region"
 real,             parameter :: dxy = 5.0
 
+! Number of fields to read
+integer,          parameter :: nread_base = 6
+integer,          parameter :: nread_ndic = 2
+integer,          parameter :: nread_ciso = 2
+integer,          parameter :: maxflds    = nread_base+nread_ndic+nread_ciso
+
+integer                     :: nflds, no
+integer                     :: ifld(maxflds) 
+character(len=3)            :: vname(maxflds)
+
+nflds = nread_base
+vname( 1:nflds) = (/ 'dic',  'alk',  'pho',  'nit','sil',  'oxy'  /)
+ ifld( 1:nflds) = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen/)
+
 #ifdef natDIC
-! Number of data fields to read
-integer,          parameter :: nflds = 8
-! Names of data fields to read
-character(len=3), parameter :: vname(nflds) = (/ 'dic', 'alk', 'pho', 'nit', 'sil', 'oxy', 'dic', 'alk'/)
-! Index of fields in ocetra
-integer,          parameter :: ifld(nflds)   = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen,inatsco212,inatalkali/)
-#else
-! Number of data fields to read
-integer,          parameter :: nflds = 6
-! Names of data fields to read
-character(len=3), parameter :: vname(nflds) = (/ 'dic', 'alk', 'pho', 'nit', 'sil', 'oxy'/)
-! Index of fields in ocetra
-integer,          parameter :: ifld(nflds)   = (/ isco212,ialkali,iphosph,iano3,isilica,ioxygen/)
+no    = nflds+1
+nflds = nflds+nread_ndic
+vname(no:nflds) = (/'dic',     'alk'/)
+ ifld(no:nflds) = (/inatsco212,inatalkali/)
+#endif
+
+#ifdef cisonew
+no    = nflds+1
+nflds = nflds+nread_ciso
+vname(no:nflds) = (/'C13', 'C14'/)
+ ifld(no:nflds) = (/isco213,isco214/)
 #endif
 
 

@@ -1,4 +1,4 @@
-      SUBROUTINE DIPOWA(kpie,kpje,kpke,pdlxp,pdlyp,omask)
+      SUBROUTINE DIPOWA(kpie,kpje,kpke,omask)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/dipowa.f90,v $\\
@@ -46,20 +46,18 @@
       USE mo_sedmnt
       USE mo_biomod
       use mo_param1_bgc 
-
       USE mo_control_bgc
 
       implicit none
 
-      INTEGER :: i,j,k,l,iv
       INTEGER :: kpie,kpje,kpke
+      REAL    :: omask(kpie,kpje)
+ 
+      INTEGER :: i,j,k,l,iv
       integer :: iv_oc                                ! index of ocetra in powtra loop
-
       REAL :: sedb1(kpie,0:ks,npowtra)                ! ????
       REAL :: zcoefsu(0:ks),zcoeflo(0:ks)             ! diffusion coefficients (upper/lower)
       REAL :: TREDSY(kpie,0:kpke,3)                   ! redsy for 'reduced system'?
-      
-      REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)
       REAL :: aprior                                  ! start value of oceanic tracer in bottom layer
       
 !ik accelerated sediment
@@ -94,7 +92,7 @@
       k=0
       DO 1422 iv=1,npowtra      ! loop over pore water tracers
       iv_oc=iv
-#ifdef __c_isotopes
+#ifdef cisonew
       if(iv.eq.ipowc13) iv_oc=isco213
       if(iv.eq.ipowc14) iv_oc=isco214
 #endif
@@ -168,7 +166,7 @@
       DO 139 iv=1,npowtra! caution - the following assumes same indecees for ocetra and powtra test npowa_base 071106
                             ! check mo_param1_bgc.f90 for consistency
       iv_oc=iv
-#ifdef __c_isotopes
+#ifdef cisonew
       if(iv.eq.ipowc13) iv_oc=isco213
       if(iv.eq.ipowc14) iv_oc=isco214
 #endif

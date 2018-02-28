@@ -59,7 +59,6 @@
       USE mo_control_bgc
       use mo_param1_bgc 
       USE mod_xc, only: mnproc
-      USE mo_ndep, only: ndepfile, ndepdir
 
 
       implicit none      
@@ -71,7 +70,10 @@
       REAL :: pglon(kpie,kpje)
       REAL :: pglat(kpie,kpje)
       REAL :: north, south
-      INTEGER :: i,j,k,l,ii,jj,m,kpie,kpje,kpke
+#ifdef cisonew
+      REAL :: alpha,beta,c14norm_fac,d14cat
+#endif
+      INTEGER :: i,j,k,l,ii,jj,kpie,kpje,kpke
       character(len=*) :: path
 
 #ifdef AGG
@@ -84,11 +86,8 @@
 
       integer :: p_joff,p_ioff
 
-      namelist /bgcnml/ atm_co2, ndepfile
-!
-! Use default grid path for N deposition
-!
-      ndepdir=TRIM(path) 
+      namelist /bgcnml/ atm_co2
+
 !
 ! Initialize overall time step counter.
 !
@@ -111,24 +110,47 @@
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
 #endif   
-#ifdef __c_isotopes
-      atm_c13 = atm_co2
-      atm_c14 = atm_co2
-
-      ! Calculation of calibration factors
-      PDB            = 0.0112372            ! The Pee Dee Belemnite reference 13C/12C ratio Keeling (1981)
-      ref14c  	     = 1.176e-12            ! 14C/12C reference (pre-industrial) value Keeling (1981)
-      prei_d13C_atm  = -6.5                 ! Preindustrial atmospheric d13C value in promille
-      prei_dd14C_atm = 0.                   ! Preindustrial atmospheric dd14C value in promille
-      atm_c13_cal    = (prei_d13C_atm/1000. + 1.) * PDB * atm_co2 / &   ! calibrated 13C model value for atmosphere [ppm]
-        (1. + (prei_d13C_atm/1000. + 1.) * PDB)
-      atm_dc14_cal   = 2.*(prei_d13C_atm+25.)/ &                        ! calibrated d14C model value for atmosphere [ppm]
-        (1.-(2.*(prei_d13C_atm+25.)/1000.)) 
-      atm_c14_cal    = (atm_dc14_cal/1000. + 1.) * ref14c * atm_co2     ! calibrated dd14C model value for atmosphere [ppm]
-      factor_13c     = atm_c13_cal / atm_c13                            ! calibration factor 13C [-]
-      factor_14c     = atm_c14_cal / atm_c14                            ! calibration factor 14C [-]
 #endif
-#endif   
+
+#ifdef cisonew
+! set standard carbon isotope ratios
+      re1312=0.0112372
+      re14to=1.176e-12
+! set preindustr. d13c and bigd14C in atmosphere
+      prei13=-6.5
+      prei14=0.
+! absolute atm. 13c for d13c=prei13
+      beta=(prei13/1000.)+1.
+      atm_c13=beta*re1312*atm_co2/(1.+beta*re1312)
+      c13fac=atm_c13/atm_co2 ! should be ~0.01
+      if(mnproc.eq.1) then
+        write(io_stdo_bgc,*)' beleg_bgc: c13fac ',c13fac
+      endif
+! little d14c in atm. for big delta 14c in atm.=0
+      alpha=2.*(prei13+25.)
+      d14cat=(prei14+alpha)/(1.-alpha/1000.)
+! absolute 14c concentration in preindustr. atmosph.------------------
+      atm_c14=((d14cat/1000.)+1.)*re14to*atm_co2
+! factor for normalizing 14C tracers
+      c14fac=atm_c14/atm_co2 ! should be ~e-12
+      if(mnproc.eq.1) then
+        write(io_stdo_bgc,*)' beleg_bgc: c14fac ',c14fac
+      endif
+#endif
+
+#ifdef boxatm
+! initialise prognostic 1-box atmosphere
+      do j=1,kpje
+      do i=1,kpie
+        atc12(i,j)=atm_co2
+#ifdef cisonew
+        atc13(i,j)=atm_c13
+        atc14(i,j)=atm_c14
+#endif
+      enddo
+      enddo
+#endif
+
 !
 ! Biology
 !
@@ -139,6 +161,12 @@
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.004*dtb      !1/d -remineralization rate (of DOM)
       dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
+      grazra=1.0*dtb        !1/d -grazing rate
+      spemor=3.*1.e6*dtb    !1/d -mortality rate
+      gammap=0.03*dtb       !1/d -exudation rate
+      gammaz=0.06*dtb       !1/d -excretion rate
+      ecan=0.95             ! fraction of mortality as PO_4
+      pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
 #ifdef AGG
       zinges = 0.5          !dimensionless fraction -assimilation efficiency
       epsher = 0.9          !dimensionless fraction -fraction of grazing egested
@@ -149,22 +177,17 @@
       zinges = 0.6          !dimensionless fraction -assimilation efficiency
       epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
 #endif
-      grazra=1.0*dtb        !1/d -grazing rate
-      spemor=3.*1.e6*dtb    !1/d -mortality rate
-      gammap=0.03*dtb       !1/d -exudation rate
-      gammaz=0.06*dtb       !1/d -excretion rate
-      ecan=0.95             ! fraction of mortality as PO_4
-      pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
 
-#ifdef __c_isotopes
-! for avoiding too many tracers, surface gross rates work with reduced
-! values bifr13 and bifr14
-      bifr13=0.98                ! biogenic fractionation used in ocprod.F90
-      bifr14=0.98
-
-! decay parameter for sco214, HalfLive = 5730 years
-      c14_t_half 	= 5730.*365.                 ! Half life of 14C [days]	
-      c14dec 		= (log(2.)/c14_t_half)*dtb   ! The decay constant; labda [1/day]; c14dec[-]
+#ifdef cisonew
+! Initial fractionation during photosynthesis
+      bifr13=0.98
+      bifr14=bifr13**2
+! Coefficients for T dependent fractionation of C isotopes (Mook, 1986)
+      evfr00=1.02389
+      evfr01=9.483
+! Decay parameter for sco214, HalfLive = 5730 years
+      c14_t_half=5730.*365.                ! Half life of 14C [days]	
+      c14dec=1.-(log(2.)/c14_t_half)*dtb   ! labda [1/day]; c14dec[-]
 #endif
 
 ! half sat. constants, note that the units are kmol/m3 !
@@ -286,6 +309,12 @@
 #ifndef DIFFAT      
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_co2      = ',atm_co2      
+#ifdef cisonew
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              atm_c13      = ',atm_c13      
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              atm_c14      = ',atm_c14      
+#endif
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_o2       = ',atm_o2           
       WRITE(io_stdo_bgc,*)                                             &
@@ -373,10 +402,6 @@
      &'*                              fesoly       = ',fesoly
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              relaxfe      = ',relaxfe
-#ifdef __c_isotopes
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              c14dec       = ',c14dec
-#endif
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dmspar(1)    = ',dmspar(1)
       WRITE(io_stdo_bgc,*)                                             &
@@ -489,16 +514,6 @@
       ENDDO
       ENDDO
 
-      DO  j=1,kpje
-      DO  i=1,kpie
-      DO  k=1,ks
-      DO  l=1,nsedtra
-         sedlay(i,j,k,l)=0.
-	 burial(i,j,l)=0.   ! last and final sediment layer
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
 
       DO  j=1,kpje
       DO  i=1,kpie
@@ -529,7 +544,6 @@
       enddo
       enddo
 
-
 ! Initialise remaining ocean tracers 
       DO k=1,kpke
       DO j=1,kpje
@@ -543,9 +557,6 @@
          ocetra(i,j,k,idet)   =1.e-8 
          ocetra(i,j,k,icalc)  =0. 
          ocetra(i,j,k,iopal)  =1.e-8 
-!#ifdef __c_isotopes
-!	 ocetra(i,j,k,isco214)=0.75*2.27e-3 !Paddy: oldest water: 1600y --> X0.83 
-!#endif
          ocetra(i,j,k,ian2o)  =0. 
          ocetra(i,j,k,idms)   =0. 
          ocetra(i,j,k,ifdust) =0. 
@@ -553,38 +564,43 @@
          ocetra(i,j,k,iprefo2)=0.
          ocetra(i,j,k,iprefpo4)=0.
          ocetra(i,j,k,iprefalk)=0.
+         ocetra(i,j,k,iprefdic)=0.
+         ocetra(i,j,k,idicsat)=1.e-8
          hi(i,j,k)            =1.e-8
          co3(i,j,k)           =0.
-#ifdef __c_isotopes
-         ocetra(i,j,k,isco213)=ocetra(i,j,k,isco212)     ! 12C because 12-C-deviation is wanted
-         ocetra(i,j,k,isco214)=ocetra(i,j,k,isco212)
-!         ocetra(i,j,k,isco213)=2.27e-3     ! adjusted to reference ratio 13C/12C=1 (*100)!
-!         ocetra(i,j,k,isco214)=2.27e-3
-         ocetra(i,j,k,idet13) =1.e-8
-         ocetra(i,j,k,idet14) =1.e-8
-         ocetra(i,j,k,icalc13)=0.
-         ocetra(i,j,k,icalc14)=0.
-#endif
-
+         co2star(i,j,k)       =20.e-6	   
 #ifdef AGG
 ! calculate initial numbers from mass, to start with appropriate size distribution
          snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
          ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1.)
          ocetra(i,j,k,iadust) =0. 
 #endif /*AGG*/
-
 #ifdef ANTC14
          ocetra(i,j,k,iantc14)=ocetra(i,j,k,isco214)
 #endif
 #ifdef CFC
-         ocetra(i,j,k,icfc11)=0.
-         ocetra(i,j,k,icfc12)=0.
-         ocetra(i,j,k,isf6)=0.
+         ocetra(i,j,k,icfc11)   =0.
+         ocetra(i,j,k,icfc12)   =0.
+         ocetra(i,j,k,isf6)     =0.
 #endif
 #ifdef natDIC
-         nathi(i,j,k)            =1.e-8
-         natco3(i,j,k)           =0.
-         ocetra(i,j,k,inatcalc)  =0. 
+         nathi(i,j,k)           =1.e-8
+         natco3(i,j,k)          =0.
+         ocetra(i,j,k,inatcalc) =0. 
+#endif
+#ifdef cisonew
+         ocetra(i,j,k,isco214)  =ocetra(i,j,k,isco214)/c14fac ! normalization of 14C to prevent numerical errors
+         c14norm_fac            =ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv) ! 14C/12Cratio with normalized 14C
+         ocetra(i,j,k,iphy13)   =1.e-8/100.*bifr13
+         ocetra(i,j,k,iphy14)   =1.e-8*c14norm_fac*bifr14
+         ocetra(i,j,k,izoo13)   =1.e-8/100.*bifr13
+         ocetra(i,j,k,izoo14)   =1.e-8*c14norm_fac*bifr14
+         ocetra(i,j,k,idoc13)   =1.e-8/100.*bifr13
+         ocetra(i,j,k,idoc14)   =1.e-8*c14norm_fac*bifr14
+         ocetra(i,j,k,idet13)   =1.e-8/100.*bifr13
+         ocetra(i,j,k,idet14)   =1.e-8*c14norm_fac*bifr14
+         ocetra(i,j,k,icalc13)  =0.
+         ocetra(i,j,k,icalc14)  =0.
 #endif
       ENDIF ! omask > 0.5
 
@@ -602,6 +618,7 @@
          ocetra(i,j,k,iprefo2) =ocetra(i,j,k,ioxygen)
          ocetra(i,j,k,iprefpo4)=ocetra(i,j,k,iphosph)
          ocetra(i,j,k,iprefalk)=ocetra(i,j,k,ialkali)
+         ocetra(i,j,k,iprefdic)=ocetra(i,j,k,isco212)
       ENDIF
 
       ENDDO
@@ -610,10 +627,12 @@
 
 ! read in dust fields
      CALL GET_DUST(kpie,kpje,kpke,omask,path)
-!
-!read in pi_ph fields
+
+! read in pi_ph fields
 !     CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
-!  Initial values for sediment pore water tracer.
+
+! Initial values for sediment
+#ifndef sedbypass
       DO  k=1,ks
       DO  j=1,kpje
       DO  i=1,kpie 
@@ -627,17 +646,18 @@
          powtra(i,j,k,ipowasi)=ocetra(i,j,kbo(i,j),isilica)      
          sedlay(i,j,k,issso12)=1.e-8
          sedlay(i,j,k,isssc12)=1.e-8
-#ifdef __c_isotopes
-         sedlay(i,j,k,issso13)=1.e-8
-         sedlay(i,j,k,isssc13)=1.e-8
-         sedlay(i,j,k,issso14)=1.e-8
-         sedlay(i,j,k,isssc14)=1.e-8
-	 powtra(i,j,k,ipowc13)=1.e-8
-	 powtra(i,j,k,ipowc14)=1.e-8
-#endif
          sedlay(i,j,k,issster)=30.
          sedlay(i,j,k,issssil)=1.e-8
          sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
+#ifdef cisonew
+         c14norm_fac=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv) ! 14C/12Cratio with normalized 14C
+         powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)/100.*bifr13
+	 powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*c14norm_fac*bifr14
+         sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)/100.*bifr13
+         sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*c14norm_fac*bifr14
+         sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)/100.*bifr13
+         sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*c14norm_fac*bifr14
+#endif
       ELSE
          powtra(i,j,k,ipowno3)=rmasks
          powtra(i,j,k,ipown2) =rmasks
@@ -648,27 +668,36 @@
          powtra(i,j,k,ipowasi)=rmasks
          sedlay(i,j,k,issso12)=rmasks
          sedlay(i,j,k,isssc12)=rmasks
-#ifdef __c_isotopes
-         sedlay(i,j,k,issso13)=rmasks
-         sedlay(i,j,k,isssc13)=rmasks
-         sedlay(i,j,k,issso14)=rmasks
-         sedlay(i,j,k,isssc14)=rmasks
-	 powtra(i,j,k,ipowc13)=rmasks
-	 powtra(i,j,k,ipowc14)=rmasks
-#endif
          sedlay(i,j,k,issssil)=rmasks
          sedlay(i,j,k,issster)=rmasks
          sedlay(i,j,k,issssil)=rmasks
          sedhpl(i,j,k)        =rmasks
+#ifdef cisonew
+         powtra(i,j,k,ipowc13)=rmasks
+	 powtra(i,j,k,ipowc14)=rmasks
+         sedlay(i,j,k,issso13)=rmasks
+         sedlay(i,j,k,issso14)=rmasks
+         sedlay(i,j,k,isssc13)=rmasks
+         sedlay(i,j,k,isssc14)=rmasks
+#endif
       ENDIF
       ENDDO
       ENDDO
       ENDDO
 
+      ! last and final sediment layer
+      DO  l=1,nsedtra
+      DO  j=1,kpje
+      DO  i=1,kpie
+ 	 burial(i,j,l)=0. 
+      ENDDO
+      ENDDO
+      ENDDO
+#endif
+
 !
 ! values for sediment fluxes
-!
-      
+!     
       DO j=1,kpje
       DO i=1,kpie
       DO k=1,npowtra
@@ -678,14 +707,19 @@
       ENDDO
 !
 ! values for sedimentation
-!
-      
+!     
       DO j=1,kpje
       DO i=1,kpie
         prorca(i,j)=0.
         prcaca(i,j)=0.
         silpro(i,j)=0.
         produs(i,j)=0.
+#ifdef cisonew
+        pror13(i,j)=0.
+        prca13(i,j)=0.
+        pror14(i,j)=0.
+        prca14(i,j)=0.
+#endif
       ENDDO
       ENDDO
       
@@ -698,9 +732,9 @@
          atm(i,j,iatmco2) = 278.
          atm(i,j,iatmo2)  = 196800.
          atm(i,j,iatmn2)  = 802000.
-#ifdef __c_isotopes
-         atm(i,j,iatmc13) = 278.
-         atm(i,j,iatmc14) = 278.
+#ifdef cisonew
+         atm(i,j,iatmc13) = atm_c13
+         atm(i,j,iatmc14) = atm_c14 
 #endif
          atdifv(i,j)=1.
       ENDDO

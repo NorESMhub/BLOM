@@ -26,10 +26,11 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
-!#include "common_clim.h"
 #include "common_seaice.h"
 #include "common_bgc.h"
+#ifndef sedbypass
 #include "common_bgcs.h"
+#endif
 c
       integer       :: m,n,mm,nn
 
@@ -181,6 +182,7 @@ c --- pass sediments fields (a two time-level copy off sediment fields
 c --- is kept outside HAMOCC)
 c --- ------------------------------------------------------------------
 c
+#ifndef sedbypass
       nns=(n-1)*ks
 c
 c$OMP PARALLEL DO PRIVATE(kn)
@@ -198,6 +200,7 @@ c
       enddo
       enddo
 c$OMP END PARALLEL DO
+#endif
 c
 c --- ------------------------------------------------------------------
 c --- set control parameters
