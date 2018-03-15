@@ -558,7 +558,7 @@
        	    ocetra(i,j,k,izoo14)=ocetra(i,j,k,izoo14)-sterzo14
 #endif
 
-            IF(ocetra(i,j,k,ioxygen).gt.5.e-8) THEN
+            IF(ocetra(i,j,k,ioxygen).gt.5.e-7) THEN
                pocrem=MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                docrem=MIN(dremdoc*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                phyrem=MIN(0.5*dphymor*phythresh,     0.33*ocetra(i,j,k,ioxygen)/ro2ut)
@@ -764,7 +764,7 @@
       DO 301 i=1,kpie
         DO 301 k=kwrbioz(i,j)+1,kpke
             IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).gt.dp_min) then  
-            IF(ocetra(i,j,k,ioxygen).lt.3.e-6.and.ocetra(i,j,k,iano3).lt.3.e-6) THEN
+            IF(ocetra(i,j,k,ioxygen).lt.5.e-7.and.ocetra(i,j,k,iano3).lt.3.e-6) THEN
 
 #ifdef AGG
                avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)

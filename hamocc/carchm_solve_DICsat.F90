@@ -1,0 +1,111 @@
+SUBROUTINE carchm_solve_DICsat(saln,pco2,ta,sit,pt,Kh,                          &
+                        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,           &
+                        ah1,tc_sat,niter)
+!**********************************************************************
+!
+!**** *CARCHM_SOLVE_DICsat* - .
+!
+!     J. Tjiputra,    *BCCR, Bergen*    25.01.17
+!
+!     Modified
+!     --------
+!
+!     Purpose
+!     -------
+!     Solve DICsat from TALK and pCO2.
+!
+!     Method
+!     -------
+!
+!
+!**** Parameter list:
+!     ---------------
+!     *REAL*    *saln*    - salinity [psu].
+!     *REAL*    *pco2*    - partial pressure of CO2 [ppm].
+!     *REAL*    *ta*      - total alkalinity [eq/kg].
+!     *REAL*    *sit*     - silicate concentration [mol/kg].
+!     *REAL*    *pt*      - phosphate concentration [mol/kg].
+!     *REAL*    *Kh*      - equilibrium constant K0  = [H2CO3]/pCO2.
+!     *REAL*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
+!     *REAL*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
+!     *REAL*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
+!     *REAL*    *Kw*      - equilibrium constant Kw  = [H][OH].
+!     *REAL*    *Ks1*     - equilibrium constant Ks1 = [H][SO4]/[HSO4].
+!     *REAL*    *Kf*      - equilibrium constant Kf  = [H][F]/[HF].
+!     *REAL*    *Ksi*     - equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+!     *REAL*    *K1p*     - equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+!     *REAL*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
+!     *REAL*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
+!     *REAL*    *ah1*     - hydrogen ion concentration.
+!     *REAL*    *ac*      - carbonate alkalinity.
+!     *INTEGER* *niter*   - maximum number of iteration
+!
+!     Externals
+!     ---------
+!     none.
+!
+!**********************************************************************
+USE mo_chemcon, only: bor1,bor2,salchl
+USE mod_xc, only: mnproc
+USE mo_control_bgc, only: io_stdo_bgc
+
+IMPLICIT NONE
+REAL,    INTENT(IN)    :: saln,pco2,ta,sit,pt,ah1
+REAL,    INTENT(IN)    :: Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
+!REAL,    INTENT(INOUT) :: ah1
+REAL,    INTENT(INOUT) :: tc_sat
+INTEGER, INTENT(IN)    :: niter
+  
+! Parameters to set accuracy of iteration 
+REAL,    PARAMETER     :: eps=5.e-5
+
+! Local varibles
+INTEGER                :: jit
+REAL                   :: s,scl,borat,sti,ft
+REAL                   :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
+REAL                   :: dic_h2co3,dic_hco3,dic_co3,ah1_sat,ac
+
+
+
+! Calculate concentrations for borate, sulfate, and fluoride; see Dickson, A.G.,
+! Sabine, C.L. and Christian, J.R. (Eds.) 2007. Guide to best practices 
+! for ocean CO2 measurements. PICES Special Publication 3, chapter 5 p. 10
+s = MAX(25.,saln)
+scl = s * salchl
+borat = bor1 * scl * bor2      ! Uppstrom (1974)
+sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
+ft = 0.000067 * scl / 18.9984  ! Riley (1965)
+ah1_sat=1.e-8
+dic_h2co3 = Kh * pco2 * 1e-6 
+
+iflag: DO jit = 1,niter
+
+   ab   = borat / ( 1. + ah1_sat / Kb )
+   hpo4 = ( K1p * K2p * ( ah1_sat + 2. * K3p ) - ah1_sat**3 ) /    & 
+          ( ah1_sat**3 + K1p * ah1_sat**2 + K1p * K2p * ah1_sat + K1p * K2p * K3p )
+   hsi  = 1./ ( 1. + ah1_sat / Ksi )
+   hso4 = sti / ( 1. + Ks1 / ( ah1_sat / ( 1. + sti / Ks1 ) ) )
+   hf   = 1. / ( 1. + Kf / ah1_sat )
+   aw   = Kw / ah1_sat - ah1_sat / ( 1. + sti / Ks1 )
+
+   ac = ta - ab - aw - pt*hpo4 - sit*hsi + hso4 + ft*hf
+   ah2o = SQRT((K1*dic_h2co3)**2 + 4.*ac*2.*K1*k2*dic_h2co3) 
+   ah2  = (K1*dic_h2co3 + ah2o)/(2.*ac)
+
+   erel = ( ah2 - ah1_sat ) / ah2
+
+   if (abs( erel ).ge.eps) then
+      ah1_sat = ah2
+      dic_hco3  = Kh * K1 * pco2 * 1e-6 / ah1_sat
+      dic_co3   = Kh * K1 * K2 * pco2 * 1e-6 / ah1_sat**2
+      tc_sat    = dic_h2co3 + dic_hco3 + dic_co3 
+   else
+      exit iflag
+   endif
+ENDDO iflag
+
+END SUBROUTINE carchm_solve_DICsat
+
+
+
+
