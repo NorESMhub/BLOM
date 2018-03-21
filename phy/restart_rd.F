@@ -75,7 +75,7 @@ c
         i=daydif(nyear0,nmonth0,nday0,nyear,nmonth,nday)
         if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
      .      ndayr.ne.nday0) then
-          time0=nday1-i
+          if (expcnf.ne.'cesm') time0=nday1-i
           if (mnproc.eq.1)
      .    write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i4.4,a,i2.2,a,i2.2)')
      .      ' Warning! Initial experiment date changed from ',
@@ -89,7 +89,7 @@ c
           write (lp,'(a,i6,a,i6)')
      .      ' date changed from ',nint(time0),' to ',nday1-i
           endif
-          time0=nday1-i
+          if (expcnf.ne.'cesm') time0=nday1-i
         endif
       else
 c

@@ -558,14 +558,13 @@ c --- --- first coupling interval
 c
           nstep1=nstep0
           nstep2=nstep1
-          time=nstep1*baclin/86400.
 c
         else
 c
 c --- --- for runtyp equal 'hybrid', 'branch' or 'continue' a
 c --- --- 'rpointer.ocn' file containing the path to a valid restart
-c --- --- file is expected and date and integration time from restart
-c --- --- file name is and overrides namelist values
+c --- --- file is expected and integration time is retrieved from
+c --- --- restart file
 c
           if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
           call xcbcst(fexist)
@@ -594,20 +593,38 @@ c
           call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
           call ncgetr('time',time)
           call ncfcls
-          n=1
-          do while (n.lt.80.and.rstfnm(n:n).ne.' ')
-            n=n+1
-          enddo
-          n=n-1
-          read (rstfnm(n-18:n-15),'(i4)') nyear
-          read (rstfnm(n-13:n-12),'(i2)') nmonth
-          read (rstfnm(n-10:n-9 ),'(i2)') nday
-          call inicln
           nday1=nint(time)
           nstep1=nday1*nstep_in_day
+c
+          if (runtyp.eq.'hybrid') then
+c 
+c --- ----- when runtyp equal 'hybrid' the ocean integration starts after
+c --- ----- first coupling interval
+c
+            nstep1=nstep1+nstep0
+c
+          else
+c
+c --- ----- For runtypes 'branch' or 'continue' override namelist date
+c --- ----- with date extracted from restart file name
+c
+            n=1
+            do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+              n=n+1
+            enddo
+            n=n-1
+            read (rstfnm(n-18:n-15),'(i4)') nyear
+            read (rstfnm(n-13:n-12),'(i2)') nmonth
+            read (rstfnm(n-10:n-9 ),'(i2)') nday
+            call inicln
+c
+          endif
+c
           nstep2=nstep1
 c
         endif
+c
+        time=nstep1*baclin/86400.
 c
       else
 c
