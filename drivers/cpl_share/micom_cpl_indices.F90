@@ -31,6 +31,9 @@ module micom_cpl_indices
   integer :: index_x2o_Sa_pslv         ! sea-level pressure               (Pa)
   integer :: index_x2o_Sa_co2prog      ! bottom atm level prognostic CO2
   integer :: index_x2o_Sa_co2diag      ! bottom atm level diagnostic CO2
+  integer :: index_x2o_Faxa_nhx        ! nitrogen deposition (nhx) flux from atm (kgNm2/sec)
+  integer :: index_x2o_Faxa_noy        ! nitrogen deposition (noy) flux from atm (kgNm2/sec)
+
   ! QL, 150526, from wav
   integer :: index_x2o_Sw_lamult       ! wave model langmuir multiplier
   integer :: index_x2o_Sw_ustokes      ! surface Stokes drift, x-component
@@ -120,7 +123,7 @@ contains
     index_x2o_Faxa_lwdn     = mct_avect_indexra(x2o,'Faxa_lwdn')
     index_x2o_Fioi_melth    = mct_avect_indexra(x2o,'Fioi_melth')   
     index_x2o_Fioi_meltw    = mct_avect_indexra(x2o,'Fioi_meltw')
-    index_x2o_Fioi_salt     = mct_avect_indexra(x2o,'Fioi_salt') 
+    index_x2o_Fioi_salt     = mct_avect_indexra(x2o,'Fioi_salt')   
     index_x2o_Fioi_bcpho    = mct_avect_indexra(x2o,'Fioi_bcpho')
     index_x2o_Fioi_bcphi    = mct_avect_indexra(x2o,'Fioi_bcphi')
     index_x2o_Fioi_flxdst   = mct_avect_indexra(x2o,'Fioi_flxdst')
@@ -146,6 +149,8 @@ contains
     index_x2o_Faxa_dstwet4  = mct_avect_indexra(x2o,'Faxa_dstwet4')
     index_x2o_Sa_co2prog    = mct_avect_indexra(x2o,'Sa_co2prog',perrWith='quiet')
     index_x2o_Sa_co2diag    = mct_avect_indexra(x2o,'Sa_co2diag',perrWith='quiet')
+    index_x2o_Faxa_nhx      = mct_avect_indexra(x2o,'Faxa_nhx',perrWith='quiet')
+    index_x2o_Faxa_noy      = mct_avect_indexra(x2o,'Faxa_noy',perrWith='quiet')
 
     ! optional per thickness category fields
 
