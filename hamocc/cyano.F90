@@ -7,12 +7,17 @@
 !
 !     Modified
 !     --------
-!     S.Legutke,             *MPI-MaD, HH*    10.04.01
+!     S.Legutke,        *MPI-MaD, HH*    10.04.01
 !     - included : surface reduction of gaseous nitrogen
 !
-!     I. Kriest, GEOMAR, 11.08.2016
+!     I.Kriest,         *GEOMAR, Kiel*           2016-08-11
 !     - included T-dependence of cyanobacteria growth
 !     - modified oxygen stoichiometry for N2-Fixation
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - moved accumulation of all output fields to seperate subroutine,
+!       related code-restructuring
+
 !
 !     Purpose
 !     -------
@@ -37,11 +42,9 @@
 !**********************************************************************
 
       USE mo_carbch
-      USE mo_sedmnt
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 
-      USE mo_bgcmean, only: jintnfix,accsrf
 
 
       implicit none
@@ -54,9 +57,8 @@
       INTEGER :: i,j,k
       REAL :: oldocetra
       REAL :: ttemp,nfixtfac
-      REAL :: aux2d_nfix(kpie,kpje)
 
-      aux2d_nfix(:,:)=0.0
+      intnfix(:,:)=0.0
       
 !
 !  N-fixation by cyano bacteria (this is not a surface flux!)
@@ -86,7 +88,7 @@
      &         (ocetra(i,j,k,iano3)-oldocetra)*1.25
 
 
-            aux2d_nfix(i,j) = aux2d_nfix(i,j) +                          &
+            intnfix(i,j) = intnfix(i,j) +                          &
      &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
 
             ENDIF  
@@ -97,8 +99,6 @@
       ENDDO
 
 
-! Accumulate 2d diagnostics 
-     call accsrf(jintnfix,aux2d_nfix,omask,0)
 
       RETURN
       END

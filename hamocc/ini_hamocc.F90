@@ -1,5 +1,5 @@
-      SUBROUTINE INI_HAMOCC(kpaufr,kpicycli,pdt,kpndtrun,kpie,kpje,kpke  &
-     &            ,kpbe,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw &
+      SUBROUTINE INI_HAMOCC(kpaufr,pdt,kpndtrun,kpie,kpje,kpke,kpbe      &
+     &            ,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw      &
      &            ,kplyear,kplmonth,kplday,kpldtoce                      &
      &            ,pglon,pglat,omask,ntr,ntrbgc,itrbgc,trc               &
 #ifndef sedbypass
@@ -18,8 +18,14 @@
 !     J.Schwinger       *GFI, Bergen*    2013-10-21
 !     - added GNEWS2 option for riverine input of carbon and nutrients
 !     - code cleanup
+!
 !     J.Schwinger,      *GFI, Bergen*    2014-05-21
 !     - adapted code for use with two time level tracer field in MICOM
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - moved reading of namelist and initialisation of dust to 
+!       ini_hamocc.F90
+!     - added sediment bypass preprocessor option
 !     
 !     Purpose
 !     -------
@@ -33,7 +39,6 @@
 !     -----------------------------------------
 !
 !     *INTEGER* *kpaufr*     - 1/0 for read / do not read restart file
-!     *INTEGER* *kpicycli*   - flag for cyclicity.
 !     *REAL*    *pdt*        - ocean model time step [sec].
 !     *INTEGER* *kpndtrun*   - total no. of time steps of run.
 !     *INTEGER* *kpie*       - zonal dimension of model grid.
@@ -75,6 +80,7 @@
       use mo_param1_bgc 
       use mod_xc, only: mnproc,lp,nfu
       use mo_bgcmean
+      use mo_ndep, only: ini_ndep,ndepfname
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
@@ -82,7 +88,7 @@
       implicit none
       INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
       INTEGER :: kplyear,kplmonth,kplday,kpldtoce
-      INTEGER :: kpaufr,kpicycli,kpndtrun,k,l
+      INTEGER :: kpaufr,kpndtrun,k,l
       INTEGER :: i,j
       
       REAL    :: pddpo(kpie,kpje,kpke)
@@ -102,21 +108,36 @@
       REAL    :: pdt
       character(len=*) :: rstfnm_ocn,path,path2
 
-! Define io units
+      namelist /bgcnml/ atm_co2,ndepfname
 
+
+!
+! Define io units
+!
       io_stdo_bgc = lp      !  standard out.
-      io_stdi_bgc = 5       !  standard in.
-      io_rsti_bgc = nfu     !  restart in. 
-      io_rsto_bgc = nfu     !  restart out.
       io_nml = nfu          !  namelist
 
       if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'HAMOCC initialisation'
-      write(io_stdo_bgc,*) 'restart',kpaufr,kpicycli,kpndtrun
+      write(io_stdo_bgc,*) 'restart',kpaufr,kpndtrun
       write(io_stdo_bgc,*) 'dims',kpie,kpje,kpke
       write(io_stdo_bgc,*) 'time',kplyear,kplmonth,kplday,kpldtoce
       write(io_stdo_bgc,*) 'time step',pdt
       endif
+
+!
+! Read the HAMOCC BGCNML namelist.
+!
+      open (unit=io_nml,file='ocn_in',status='old',action='read')
+      read (unit=io_nml,nml=BGCNML)
+      close (unit=io_nml)
+      IF (mnproc.eq.1) THEN
+        write(io_stdo_bgc,*)
+        write(io_stdo_bgc,*) 'HAMOCC: reading namelist BGCNML'
+        write(io_stdo_bgc,nml=BGCNML)
+      ENDIF
+
 !                    
 ! Set control constants ( mo_control_bgc )
 !
@@ -124,7 +145,6 @@
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
       
-      icyclibgc = kpicycli
       ndtrunbgc = kpndtrun
 
 !
@@ -162,16 +182,22 @@
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-      CALL BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestw,prho,                  &
+      CALL BELEG_BGC(kpaufr,kpie,kpje,kpke,pddpo,ptiestw,prho,           &
      &               omask,pglon,pglat,path)
      
 !
-! Initialise river input
+! Initialise dust input, n-deposition and river input
 !
-#ifdef RIV_GNEWS
-      call INI_RIVERINPT(path)
-#endif
+      CALL GET_DUST(kpie,kpje,kpke,omask,path)
 
+      CALL ini_ndep(kpie,kpje,path)
+
+#ifdef RIV_GNEWS
+      CALL INI_RIVERINPT(path)
+#endif
+#ifdef DMSPH
+      CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
+#endif
 !                        
 ! Read restart fields from restart file if requested, otherwise 
 ! (at first start-up) copy ocetra and sediment arrays (which are
@@ -183,7 +209,7 @@
 #ifndef sedbypass
      &                 sedlay2,powtra2,burial2,                          &
 #endif
-     &                 kplyear,kplmonth,kplday,kpldtoce,                 &
+     &                 kplyear,kplmonth,kplday,kpldtoce,omask,           &
      &                 rstfnm_ocn,path2)
       ELSE
          trc(1:kpie,1:kpje,1:kpke,       itrbgc:itrbgc+ntrbgc-1) =       &

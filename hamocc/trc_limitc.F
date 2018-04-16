@@ -6,6 +6,12 @@ c
 c     J. Schwinger      *GFI, UiB        initial version, 2014-06-17
 c      - 
 c
+c     Modified
+c     --------
+c     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+c     - fixed a bug related to the 2 time-level scheme
+c
+c
 c  
 c     Purpose
 c     -------

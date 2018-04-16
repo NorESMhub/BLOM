@@ -1,14 +1,17 @@
 subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,path)
 
 !********************************************************************************
-!     J.Schwinger,        *Gfi, Bergen*           2011-05-19
+!     J.Schwinger,      *Gfi, Bergen*            2011-05-19
 !
 !     Modified
 !     --------
-!     J.Schwinger,        *Uni Climate, BCCR*     2017-07-07
+!     J.Schwinger,      *Uni Climate, BCCR*      2017-07-07
 !     - moved conversion from mumol to mol to mod_gdata_read
 !     - changed linear interpolation from data-levels to model levels to propper
 !       mapping of data profile to model-levels
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - adaptions for reading c-isotope initial values as d13C and d14C
 !
 !     Purpose
 !     -------
@@ -23,7 +26,7 @@ subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,path)
    
 use mod_xc,         only: xchalt
 use mo_carbch,      only: ocetra
-use mo_Gdata_read,  only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds
+use mo_Gdata_read,  only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
 use mo_control_bgc, only: io_stdo_bgc
 use mo_param1_bgc
 
@@ -41,7 +44,6 @@ character(len=*),intent(in) :: path
 integer         :: i,j,k,l,ll,n
 integer         :: idx,izmax
 real            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
-real, parameter :: fillval = -1.0e34
 
 ! Extent of "smoothing region"
 real,             parameter :: dxy = 5.0
@@ -70,7 +72,7 @@ vname(no:nflds) = (/'dic',     'alk'/)
 #ifdef cisonew
 no    = nflds+1
 nflds = nflds+nread_ciso
-vname(no:nflds) = (/'C13', 'C14'/)
+vname(no:nflds) = (/'d13', 'd14'/)
  ifld(no:nflds) = (/isco213,isco214/)
 #endif
 
@@ -92,7 +94,7 @@ do n = 1, nflds  ! Loop over tracer
             ! Find depest z-level with valid data
             izmax=nz
             do l=2,nz
-               if( prf(l) < 0 ) then
+               if( prf(l) < fillval*0.1 ) then
                   izmax = l-1
                   exit
                endif
@@ -128,7 +130,7 @@ do n = 1, nflds  ! Loop over tracer
                             - max(zbnds(1,l)-ptiestw(i,j,k),  0.0)                       &
                             - max(zbnds(2,l)-ptiestw(i,j,k+1),0.0)
 
-                  ! a) The upper data level-boundary is lower than the lower model level-interface 
+                  ! b) The upper data level-boundary is lower than the lower model level-interface 
                   !    => all weights have been calculated, calculate concentration and exit
                   if(zbnds(1,l) > ptiestw(i,j,k+1) .or. l==izmax) then 
                      wgt(:) = wgt(:)/(ptiestw(i,j,k+1)-ptiestw(i,j,k))

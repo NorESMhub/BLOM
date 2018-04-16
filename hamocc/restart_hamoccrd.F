@@ -32,7 +32,7 @@ c initialise HAMOCC
 c
       call micom2hamocc(2,1,kk,0)
 c
-      call INI_HAMOCC(read_rest,1,bgcdt,kpndtrun,idm,jdm,kdm,nbdy
+      call INI_HAMOCC(read_rest,bgcdt,kpndtrun,idm,jdm,kdm,nbdy
      .               ,bgc_dp,bgc_t,bgc_s,bgc_rho
      .               ,bgc_dx,bgc_dy,bgc_pu,bgc_pw
      .               ,nyear,nmonth,nday,nstep1

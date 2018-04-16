@@ -12,6 +12,8 @@
 !
 !     Modified
 !     --------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - added sediment bypass preprocessor option
 !     
 !     Purpose
 !     -------

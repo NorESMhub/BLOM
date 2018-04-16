@@ -7,6 +7,11 @@ c     K. Assmann        *GFI, UiB        initial version
 c     J. Schwinger      *GFI, UiB        2013-04-22
 c      - 
 c
+c     Modified
+c     --------
+c     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+c     - removed inverse of layer thickness
+c     - added sediment bypass preprocessor option
 c  
 c     Purpose
 c     -------
@@ -138,10 +143,6 @@ c
 c --- - layer thickness in meters 
         bgc_dp(i,j,k)=0.0
         if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k)=pa/onem
-c     
-c --- - inverse layer thickness in meters 
-        bgc_dpio(i,j,k)=-99.999999999 
-        if(dp(i,j,kn).ne.0.0) bgc_dpio(i,j,k)=onem/pa
 c
 c --- - depth of layer interfaces
         bgc_pw(i,j,k+1)=bgc_pw(i,j,k)+bgc_dp(i,j,k)

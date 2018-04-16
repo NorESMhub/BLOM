@@ -128,6 +128,7 @@
      &                      iatmn2o=4,                                  &
      &                      iatmdms=5,                                  &
      &                      i_base_atm=5
+
       INTEGER, PARAMETER ::                                             &
 #ifdef cisonew
      &                      iatmc13 = i_base_atm+1,                     &
@@ -137,7 +138,25 @@
      &                      i_iso_atm = 0
 #endif
 
-      INTEGER, PARAMETER ::  natm=i_base_atm+i_iso_atm
+      INTEGER, PARAMETER ::                                             &
+#ifdef CFC
+     &                      iatmf11 = i_base_atm+i_iso_atm+1,           &
+     &                      iatmf12 = i_base_atm+i_iso_atm+2,           &
+     &                      iatmsf6 = i_base_atm+i_iso_atm+3,           &
+     &                      i_cfc_atm = 3
+#else
+     &                      i_cfc_atm = 0
+#endif
+
+      INTEGER, PARAMETER ::                                             &
+#ifdef natDIC
+     &                      iatmnco2 = i_base_atm+i_iso_atm+i_cfc_atm+1,&
+     &                      i_ndic_atm = 3
+#else
+     &                      i_ndic_atm = 0
+#endif
+
+      INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm
 
 ! sediment
 #ifdef cisonew

@@ -1,5 +1,5 @@
       SUBROUTINE OCPROD(kpie,kpje,kpke,ptho,pddpo,                     &
-     &                  pdlxp,pdlyp,pdpio,ptiestu,ptiestw,kplmon,omask)
+     &                  pdlxp,pdlyp,ptiestu,ptiestw,kplmon,omask)
 !**********************************************************************
 !
 !**** *OCPROD* - .
@@ -9,13 +9,17 @@
 !     Modified
 !     --------
 !     S.Legutke,             *MPI-MaD, HH*    2010-04-01
+!
 !     J.Schwinger,           *GFI, UiB*       2013-04-22
 !      - Corrected bug in light penetration formulation
 !      - Cautious code clean-up
+!
 !     J.Tjiputra,            *UNI-RESEARCH*   2015-11-25
 !      - Implemented natural DIC/ALK/CALC
-!     I.Kriest,              *GEOMAR*         11.08.2016
+!
+!     I.Kriest,              *GEOMAR*         2016-08-11
 !      - Modified stoichiometry for denitrification (affects NO3, N2, Alk)
+!
 !     J.Schwinger,           *UNI-RESEARCH*   2017-08-30
 !      - Removed split of the layer that only partly falls into the 
 !        euphotic zone. Loops are now calculated over 
@@ -24,6 +28,14 @@
 !      - Moved the accumulation of global fields for output to routine
 !        hamocc4bgc. The accumulation of local fields has been moved to
 !        the end of this routine.
+!
+!     A.Moree,          *GFI, Bergen*   2018-04-12
+!     - new version of carbon isotope code
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - moved accumulation of all output fields to seperate subroutine,
+!       related code-restructuring
+!     - added sediment bypass preprocessor option and related code
 !
 !     Purpose
 !     -------
@@ -42,7 +54,6 @@
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *pdpio*   - inverse size of grid cell (3rd dimension)[m].
 !     *REAL*    *ptiestu* - depth of layer centres
 !     *REAL*    *ptiestw* - depth of layer interfaces (upper boundary)
 !     *INTEGER* *kplmon*  - number of current month
@@ -50,21 +61,17 @@
 !
 !**********************************************************************
 
-!      USE mo_timeser_bgc
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
       use mo_param1_bgc 
-
       USE mo_control_bgc
-      USE mo_bgcmean
 
       implicit none
 
       INTEGER :: kplmon,kpie,kpje,kpke
       REAL :: ptho (kpie,kpje,kpke)
       REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: pdpio(kpie,kpje,kpke)
       REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
       REAL :: ptiestu(kpie,kpje,kpke+1)
       REAL :: ptiestw(kpie,kpje,kpke+1)
@@ -89,7 +96,12 @@
       REAL :: dmsprod,dms_bac,dms_uv 
       REAL :: dtr,dz
       REAL :: wpocd,wcald,wopald,dagg
+#ifdef sedbypass
+      INTEGER :: kbs
+      REAL :: florca,flcaca,flsil
+#endif
 #ifdef cisonew
+      REAL :: phygrowth
       REAL :: phosy13,phosy14
       REAL :: grazing13,grazing14
       REAL :: graton13,graton14
@@ -111,10 +123,11 @@
       REAL :: rem13,rem14
       REAL :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
       REAL :: rphy13,rphy14,rzoo13,rzoo14
+#ifdef sedbypass
+      REAL :: flor13,flor14,flca13,flca14
+#endif
 #endif
 #ifdef AGG
-      REAL :: wmass(kpie,kpje,kpke)
-      REAL :: wnumb(kpie,kpje,kpke)
       REAL :: aggregate(kpie,kpje,kpke)
       REAL :: dustagg(kpie,kpje,kpke)
       REAL :: avmass, avnos, anosloss     
@@ -123,70 +136,39 @@
       REAL :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
       REAL :: wnos,wnosd
 #endif 
-      INTEGER, DIMENSION(kpie,kpje)   :: ind1,ind2
-      REAL, DIMENSION(kpie,kpje,ddm)  :: wghts
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_dmsprod 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_dms_bac
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_dms_uv 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_export 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_expoca 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_exposi 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_carflx0100 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_carflx0500 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_carflx1000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_carflx2000 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_carflx4000 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_bsiflx0100
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_bsiflx0500
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_bsiflx1000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_bsiflx2000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_bsiflx4000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx0100
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx0500
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx1000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx2000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_calflx4000
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_phosy 
-      REAL, DIMENSION(kpie,kpje)      :: aux2d_dnit 
-      REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_phosy
-#ifdef AGG
-      REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_eps
-      REAL, DIMENSION(kpie,kpje,kpke) :: aux3d_asize
-#endif
 
-      aux2d_dmsprod   (:,:)=0. 
-      aux2d_dms_bac   (:,:)=0. 
-      aux2d_dms_uv    (:,:)=0.  
-      aux2d_export    (:,:)=0.  
-      aux2d_expoca    (:,:)=0.  
-      aux2d_exposi    (:,:)=0.  
-      aux2d_carflx0100(:,:)=0.
-      aux2d_carflx0500(:,:)=0.
-      aux2d_carflx1000(:,:)=0.
-      aux2d_carflx2000(:,:)=0.
-      aux2d_carflx4000(:,:)=0.
-      aux2d_bsiflx0100(:,:)=0.
-      aux2d_bsiflx0500(:,:)=0.
-      aux2d_bsiflx1000(:,:)=0.
-      aux2d_bsiflx2000(:,:)=0.
-      aux2d_bsiflx4000(:,:)=0.
-      aux2d_calflx0100(:,:)=0.
-      aux2d_calflx0500(:,:)=0.
-      aux2d_calflx1000(:,:)=0.
-      aux2d_calflx2000(:,:)=0.
-      aux2d_calflx4000(:,:)=0.
-      aux2d_phosy     (:,:)=0.  
-      aux2d_dnit      (:,:)=0.  
-      aux3d_phosy   (:,:,:)=0.
+
+! set variables for diagnostic output to zero
+      expoor    (:,:)=0. 
+      expoca    (:,:)=0. 
+      exposi    (:,:)=0. 
+      carflx0100(:,:)=0.
+      carflx0500(:,:)=0.
+      carflx1000(:,:)=0.
+      carflx2000(:,:)=0.
+      carflx4000(:,:)=0.
+      bsiflx0100(:,:)=0.
+      bsiflx0500(:,:)=0.
+      bsiflx1000(:,:)=0.
+      bsiflx2000(:,:)=0.
+      bsiflx4000(:,:)=0.
+      calflx0100(:,:)=0.
+      calflx0500(:,:)=0.
+      calflx1000(:,:)=0.
+      calflx2000(:,:)=0.
+      calflx4000(:,:)=0.
+      intdnit   (:,:)=0.  
+      intphosy  (:,:)=0.  
+      intdmsprod(:,:)=0. 
+      intdms_bac(:,:)=0. 
+      intdms_uv (:,:)=0.  
+      phosy3d (:,:,:)=0.
 #ifdef AGG
-      aux3d_eps     (:,:,:)=0.
-      aux3d_asize   (:,:,:)=0.
+      eps3d(:,:,:)   =0.
+      asize3d(:,:,:) =0.
 #endif 
 
-! Constant parameters
-!
-! parameter definition in BELEG_BGC.F
-
+! parameter for DMS scheme (dmspar defined in BELEG_BGC.F)
       dmsp6=dmspar(6)
       dmsp5=dmspar(5)
       dmsp4=dmspar(4)
@@ -263,7 +245,7 @@
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
-          dustinp=dusty(i,j,kplmon)/30.*dtb*pdpio(i,j,1)
+          dustinp=dusty(i,j,kplmon)/30.*dtb/pddpo(i,j,1)
           ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
           ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
         endif      
@@ -336,13 +318,13 @@
 #ifdef cisonew
 ! calculation of isotope fractionation during photosynthesis (Laws 1997)
          if(ocetra(i,j,k,iphy).lt.phytomi) then
-         bifr13=1.
+           bifr13=1.
          else
-         phyto_growth(i,j,k) = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
-      	 growth_co2          = phyto_growth(i,j,k)/(co2star(i,j,k)*1.e6)           ! cu=CO2* in [mol/kg]
-      	 bifr13_perm         = (6.03 + 5.5*growth_co2)/(0.225 + growth_co2)        ! Permil (~20)
-      	 bifr13_perm         = max(5.,min(26.,bifr13_perm))                        ! Limit the range to [5,26]
-      	 bifr13              = (1000. - bifr13_perm) / 1000.                       ! Fractionation factor 13c (~0.98)
+           phygrowth   = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
+      	   growth_co2  = phygrowth/(co2star(i,j,k)*1.e6)                     ! CO2* in [mol/kg]
+      	   bifr13_perm = (6.03 + 5.5*growth_co2)/(0.225 + growth_co2)        ! Permil (~20)
+      	   bifr13_perm = max(5.,min(26.,bifr13_perm))                        ! Limit the range to [5,26]
+      	   bifr13      = (1000. - bifr13_perm) / 1000.                       ! Fractionation factor 13c (~0.98)
          endif
 
 	 bifr14		     = bifr13**2
@@ -483,18 +465,14 @@
 ! add up for total inventory and output
         dz = pddpo(i,j,k)
 
-        expoor(i,j)=expoor(i,j)+dz*export*rcar
-        expoca(i,j)=expoca(i,j)+dz*delcar
-        exposi(i,j)=exposi(i,j)+dz*delsil
-
-        aux2d_dmsprod(i,j)   = aux2d_dmsprod(i,j)+dmsprod*dz 
-        aux2d_dms_bac(i,j)   = aux2d_dms_bac(i,j)+dms_bac*dz 
-        aux2d_dms_uv(i,j)    = aux2d_dms_uv (i,j)+dms_uv*dz 
-        aux2d_export(i,j)    = aux2d_export(i,j) +export*rcar*dz 
-        aux2d_expoca(i,j)    = aux2d_expoca(i,j) +delcar*dz
-        aux2d_exposi(i,j)    = aux2d_exposi(i,j) +delsil*dz 
-        aux2d_phosy(i,j)     = aux2d_phosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
-        aux3d_phosy(i,j,k)   = phosy*rcar                        ! primary production in kmol C m-3
+        expoor(i,j)     = expoor(i,j)    +export*rcar*dz
+        expoca(i,j)     = expoca(i,j)    +delcar*dz
+        exposi(i,j)     = exposi(i,j)    +delsil*dz
+        intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz 
+        intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz 
+        intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz 
+        intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
+        phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
      
       ENDIF      ! pddpo(i,j,k).GT.dp_min
@@ -636,7 +614,7 @@
             ocetra(i,j,k,idms)=ocetra(i,j,k,idms)-dms_bac
 
             dz = pddpo(i,j,k)
-            aux2d_dms_bac(i,j)= aux2d_dms_bac(i,j)+dms_bac*dz
+            intdms_bac(i,j)= intdms_bac(i,j)+dms_bac*dz
 
 #ifdef AGG
 !***********************************************************************
@@ -718,7 +696,7 @@
 
 ! nitrate loss through denitrification in kmol N m-2
            dz = pddpo(i,j,k)
-           aux2d_dnit(i,j) = aux2d_dnit(i,j) + rdnit0*remin*dz 
+           intdnit(i,j) = intdnit(i,j) + rdnit0*remin*dz 
 
 #ifdef AGG
 !***********************************************************************
@@ -954,8 +932,8 @@
       dustagg(i,j,k) = effsti*avnos*ocetra(i,j,k,ifdust)               &
      &                *(dshagg+dsett)
 
-        aux3d_eps(i,j,k)   = eps
-        aux3d_asize(i,j,k) = snow/avnos/cellmass
+        eps3d(i,j,k)   = eps
+        asize3d(i,j,k) = snow/avnos/cellmass
   
       else 
 
@@ -965,8 +943,8 @@
         dustagg(i,j,k)=0.
         ocetra(i,j,k,inos)=0.
 
-        aux3d_eps(i,j,k)   = 1.
-        aux3d_asize(i,j,k) = 0.
+        eps3d(i,j,k)   = 1.
+        asize3d(i,j,k) = 0.
 
       endif ! avmass.gt.0
 
@@ -998,24 +976,26 @@
           DO k=1,kpke
 
           ! Sum up total column inventory before sinking scheme
-          tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k) 
-          tco( 2) = tco( 2) + ocetra(i,j,k,icalc )*pddpo(i,j,k) 
+          IF( pddpo(i,j,k).GT.dp_min ) THEN
+            tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k) 
+            tco( 2) = tco( 2) + ocetra(i,j,k,icalc )*pddpo(i,j,k) 
 #ifdef natDIC
-          tco( 3) = tco( 3) + ocetra(i,j,k,inatcalc)*pddpo(i,j,k) 
+            tco( 3) = tco( 3) + ocetra(i,j,k,inatcalc)*pddpo(i,j,k) 
 #endif
-          tco( 4) = tco( 4) + ocetra(i,j,k,iopal )*pddpo(i,j,k) 
-          tco( 5) = tco( 5) + ocetra(i,j,k,ifdust)*pddpo(i,j,k) 
+            tco( 4) = tco( 4) + ocetra(i,j,k,iopal )*pddpo(i,j,k) 
+            tco( 5) = tco( 5) + ocetra(i,j,k,ifdust)*pddpo(i,j,k) 
 #if defined(AGG)
-          tco( 6) = tco( 6) + ocetra(i,j,k,iphy  )*pddpo(i,j,k) 
-          tco( 7) = tco( 7) + ocetra(i,j,k,inos  )*pddpo(i,j,k) 
-          tco( 8) = tco( 8) + ocetra(i,j,k,iadust)*pddpo(i,j,k) 
+            tco( 6) = tco( 6) + ocetra(i,j,k,iphy  )*pddpo(i,j,k) 
+            tco( 7) = tco( 7) + ocetra(i,j,k,inos  )*pddpo(i,j,k) 
+            tco( 8) = tco( 8) + ocetra(i,j,k,iadust)*pddpo(i,j,k) 
 #endif
 #ifdef cisonew
-          tco( 9) = tco( 9) + ocetra(i,j,k,idet13 )*pddpo(i,j,k) 
-          tco(10) = tco(10) + ocetra(i,j,k,idet14 )*pddpo(i,j,k) 
-          tco(11) = tco(11) + ocetra(i,j,k,icalc13)*pddpo(i,j,k) 
-          tco(12) = tco(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k) 
+            tco( 9) = tco( 9) + ocetra(i,j,k,idet13 )*pddpo(i,j,k) 
+            tco(10) = tco(10) + ocetra(i,j,k,idet14 )*pddpo(i,j,k) 
+            tco(11) = tco(11) + ocetra(i,j,k,icalc13)*pddpo(i,j,k) 
+            tco(12) = tco(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k) 
 #endif
+          ENDIF
 
           IF(pddpo(i,j,k).GT.dp_min_sink) THEN
 
@@ -1232,13 +1212,10 @@
 !$OMP END PARALLEL DO
 
 
-
-
 ! Calculate mass sinking flux for carbon, opal and calcium carbonate
-! through the 100 m, 500 m, 1000 m, and 2000 m depth surfaces. These 
+! through the 100 m, 500 m, 1000 m, 2000 m, and 4000 m depth surfaces. These 
 ! fluxes are intentionally calculated using values at the NEW timelevel
 ! to be fully consistent with the implicit sinking scheme
-      IF( domassfluxes ) THEN
 
 !$OMP PARALLEL DO PRIVATE(wpoc,wcal,wopal)
       DO j=1,kpje
@@ -1257,12 +1234,12 @@
 #endif
 
 #if defined(AGG)
-            aux2d_carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+            carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
-            aux2d_carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+            carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
 #endif
-            aux2d_bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
-            aux2d_calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
+            bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
+            calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
           endif
 
           ! 500 m
@@ -1277,12 +1254,12 @@
 #endif
 
 #if defined(AGG)
-            aux2d_carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+            carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
-            aux2d_carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+            carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
 #endif
-            aux2d_bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
-            aux2d_calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
+            bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
+            calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
           endif
 
           ! 1000 m
@@ -1297,12 +1274,12 @@
 #endif
 
 #if defined(AGG)
-            aux2d_carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+            carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
-            aux2d_carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+            carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
 #endif
-            aux2d_bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
-            aux2d_calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
+            bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
+            calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
           endif
 
           ! 2000 m
@@ -1317,12 +1294,12 @@
 #endif
 
 #if defined(AGG)
-            aux2d_carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+            carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
-            aux2d_carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+            carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
 #endif
-            aux2d_bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
-            aux2d_calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
+            bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
+            calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
           endif
 
           ! 4000 m
@@ -1337,118 +1314,90 @@
 #endif
 
 #if defined(AGG)
-            aux2d_carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
+            carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
-            aux2d_carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
+            carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
 #endif
-            aux2d_bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
-            aux2d_calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
+            bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
+            calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
           endif
+
+          ! bottom fluxes
+          carflx_bot(i,j) = prorca(i,j)*rcar
+          bsiflx_bot(i,j) = silpro(i,j)
+          calflx_bot(i,j) = prcaca(i,j)
 
         ENDIF ! omask > 0.5
       enddo
       enddo
 !$OMP END PARALLEL DO
 
-      ENDIF ! domassfluxes
 
 
-!     Accumulate local 2d diagnostics 
-      call accsrf(jdmsprod,aux2d_dmsprod,omask,0)    
-      call accsrf(jdms_uv,aux2d_dms_uv,omask,0)     
-      call accsrf(jdms_bac,aux2d_dms_bac,omask,0) 
-      call accsrf(jexport,aux2d_export,omask,0)      
-      call accsrf(jexpoca,aux2d_expoca,omask,0)     
-      call accsrf(jexposi,aux2d_exposi,omask,0)     
-      call accsrf(jintphosy,aux2d_phosy,omask,0)     
-      call accsrf(jintdnit,aux2d_dnit,omask,0) 
 
-!     Accumulate local layer diagnostics
-      call acclyr(jphosy,aux3d_phosy,pddpo,1)
-#ifdef AGG
-      call acclyr(jwphy, wmass/dtb,  pddpo,1)
-      call acclyr(jwnos, wnumb/dtb,  pddpo,1)
-      call acclyr(jeps,  aux3d_eps,  pddpo,1)
-      call acclyr(jasize,aux3d_asize,pddpo,1)
-#endif     
-
-!     Accumulate local level diagnostics
-      IF (SUM(jlvlphosy+jlvlwphy+jlvlwnos+jlvleps+jlvlasize).NE.0) THEN
-        DO k=1,kpke
-          call bgczlv(pddpo,k,ind1,ind2,wghts)
-          call acclvl(jlvlphosy,aux3d_phosy,k,ind1,ind2,wghts)
-#ifdef AGG
-          call acclvl(jlvlwphy, wmass/dtb,  k,ind1,ind2,wghts)
-          call acclvl(jlvlwnos, wnumb/dtb,  k,ind1,ind2,wghts)
-          call acclvl(jlvleps,  aux3d_eps,  k,ind1,ind2,wghts)
-          call acclvl(jlvlasize,aux3d_asize,k,ind1,ind2,wghts)
-#endif     
-        ENDDO
-      ENDIF
-
-!     Accumulate the diagnostic mass sinking field 
-      IF( domassfluxes ) THEN
-        call accsrf(jcarflx0100,aux2d_carflx0100,omask,0)    
-        call accsrf(jbsiflx0100,aux2d_bsiflx0100,omask,0)    
-        call accsrf(jcalflx0100,aux2d_calflx0100,omask,0)    
-        call accsrf(jcarflx0500,aux2d_carflx0500,omask,0)    
-        call accsrf(jbsiflx0500,aux2d_bsiflx0500,omask,0)    
-        call accsrf(jcalflx0500,aux2d_calflx0500,omask,0)    
-        call accsrf(jcarflx1000,aux2d_carflx1000,omask,0)    
-        call accsrf(jbsiflx1000,aux2d_bsiflx1000,omask,0)    
-        call accsrf(jcalflx1000,aux2d_calflx1000,omask,0)    
-        call accsrf(jcarflx2000,aux2d_carflx2000,omask,0)    
-        call accsrf(jbsiflx2000,aux2d_bsiflx2000,omask,0)    
-        call accsrf(jcalflx2000,aux2d_calflx2000,omask,0)    
-        call accsrf(jcarflx4000,aux2d_carflx4000,omask,0)    
-        call accsrf(jbsiflx4000,aux2d_bsiflx4000,omask,0)    
-        call accsrf(jcalflx4000,aux2d_calflx4000,omask,0)    
-        call accsrf(jcarflx_bot,prorca*rcar,     omask,0)    
-        call accsrf(jbsiflx_bot,silpro,          omask,0)    
-        call accsrf(jcalflx_bot,prcaca,          omask,0)    
-      ENDIF ! domassfluxes
-
-
-! BYPASS SEDIMENT PART
 #ifdef sedbypass
-!$OMP PARALLEL DO PRIVATE(kdonor)
+! If sediment bypass is activated, fluxes to the sediment are distributed 
+! over a bottom layer, which is at least 100m thick (unless water column
+! is shallower than this. Detritus is kept as detritus, while opal and CaCO3 
+! are remineralised instantanously
+
+!$OMP PARALLEL DO PRIVATE(
+!$OMP+  kbs,dz,florca,flcaca,flsil
+#ifdef cisonew
+!$OMP+ ,flor13,flor14,flca13,flca14
+#endif
+!$OMP+ )
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN
 
-          kdonor=kbo(i,j)
+        ! calculate depth of water column
+        kbs=1
+        dz=0.0
+        DO k=kpke,1,-1
 
-          ocetra(i,j,kdonor,idet)=ocetra(i,j,kdonor,idet)        &
-     &                           +prorca(i,j)/pddpo(i,j,kdonor)
-          prorca(i,j)=0.
+          if( pddpo(i,j,k).GT.dp_min ) dz=dz+pddpo(i,j,k)
+          if( dz .GT. 100. ) then
+            kbs=k
+            exit
+          endif
 
-          ocetra(i,j,kdonor,ialkali)=ocetra(i,j,kdonor,ialkali)  &
-     &                              +prcaca(i,j)*2./pddpo(i,j,kdonor)
-          ocetra(i,j,kdonor,isco212)=ocetra(i,j,kdonor,isco212)  &
-     &                              +prcaca(i,j)/pddpo(i,j,kdonor)
-          prcaca(i,j)=0.
+        ENDDO
 
-          ocetra(i,j,kdonor,isilica)=ocetra(i,j,kdonor,isilica)  &
-     &                              +silpro(i,j)/pddpo(i,j,kdonor)
-          silpro(i,j)=0.
+        florca=prorca(i,j)/dz
+        flcaca=prcaca(i,j)/dz
+        flsil=silpro(i,j)/dz
+        prorca(i,j)=0.
+        prcaca(i,j)=0.
+        silpro(i,j)=0.
 #ifdef cisonew
-          ocetra(i,j,kdonor,idet13)=ocetra(i,j,kdonor,idet13)    &
-     &                           +pror13(i,j)/pddpo(i,j,kdonor)
-          pror13(i,j)=0.
-          
-          ocetra(i,j,kdonor,idet14)=ocetra(i,j,kdonor,idet14)    &
-     &                           +pror14(i,j)/pddpo(i,j,kdonor)
-          pror14(i,j)=0.
-
-          ocetra(i,j,kdonor,isco213)=ocetra(i,j,kdonor,isco213)  &
-     &                              +prca13(i,j)/pddpo(i,j,kdonor)
-          prca13(i,j)=0.
-
-          ocetra(i,j,kdonor,isco214)=ocetra(i,j,kdonor,isco214)  &
-     &                              +prca14(i,j)/pddpo(i,j,kdonor)
-          prca14(i,j)=0.
+        flor13=pror13(i,j)/dz
+        flor14=pror13(i,j)/dz
+        flca13=prca13(i,j)/dz
+        flca14=prca14(i,j)/dz
+        pror13(i,j)=0.          
+        pror14(i,j)=0.
+        prca13(i,j)=0.
+        prca14(i,j)=0.
 #endif
-        ENDIF
+
+        DO k=kbs,kpke
+
+          IF( pddpo(i,j,k).LE.dp_min ) CYCLE
+
+          ocetra(i,j,k,idet)=ocetra(i,j,k,idet)+florca
+          ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+2.*flcaca
+          ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+flcaca
+          ocetra(i,j,k,isilica)=ocetra(i,j,k,isilica)+flsil
+#ifdef cisonew
+          ocetra(i,j,k,idet13)=ocetra(i,j,k,idet13)+flor13
+          ocetra(i,j,k,idet14)=ocetra(i,j,k,idet14)+flor14
+          ocetra(i,j,k,isco213)=ocetra(i,j,k,isco213)+flca13
+          ocetra(i,j,k,isco214)=ocetra(i,j,k,isco214)+flca14
+#endif
+        ENDDO ! k=kbs,kpke
+
+        ENDIF ! omask>0.5
       ENDDO
       ENDDO
 #endif

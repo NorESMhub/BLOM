@@ -11,9 +11,22 @@
 !      - added variables for CFC output
 !      - added initialisation of namelist variables and 
 !        index arrays
+!
 !     Tjiputra          *UNI-RESEARCH    25.11.15
 !      - added natural DIC/ALK/CALC/OMEGAC variables 
 !  
+!     A.Moree,          *GFI, Bergen*   2018-04-12
+!     - new version of carbon isotope code
+!
+!     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+!     - added preformed and saturated DIC tracers
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - changed naming of particle fluxes
+!     - removed output of AOU and added O2_sat instead
+!     - added output of omegaA
+!     - added sediment bypass preprocessor option
+!
 !     Purpose
 !     -------
 !     - declaration and memory allocation
@@ -41,36 +54,38 @@
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
-     & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_OXFLUX    =0    ,  &
-     & SRF_NIFLUX    =0    ,SRF_DMS       =0    ,SRF_DMSPROD   =0    ,  &
-     & SRF_DMS_BAC   =0    ,SRF_DMS_UV    =0    ,SRF_EXPORT    =0    ,  &
-     & SRF_EXPOSI    =0    ,SRF_EXPOCA    =0                         ,  &
+     & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
+     & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
+     & SRF_OXFLUX    =0    ,SRF_NIFLUX    =0    ,SRF_DMS       =0    ,  &
+     & SRF_DMSPROD   =0    ,SRF_DMS_BAC   =0    ,SRF_DMS_UV    =0    ,  &
+     & SRF_EXPORT    =0    ,SRF_EXPOSI    =0    ,SRF_EXPOCA    =0    ,  &
      & SRF_ATMCO2    =0    ,SRF_ATMO2     =0    ,SRF_ATMN2     =0    ,  &
      & SRF_N2OFX     =0    ,SRF_CFC11     =0    ,SRF_CFC12     =0    ,  &
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,INT_PHOSY     =0    ,  &
      & INT_NFIX      =0    ,INT_DNIT      =0    ,SRF_NATCO2FX  =0    ,  &
-     & CARFLX0100    =0    ,CARFLX0500    =0    ,CARFLX1000    =0    ,  &
-     & CARFLX2000    =0    ,CARFLX4000    =0    ,CARFLX_BOT    =0    ,  &
-     & BSIFLX0100    =0    ,BSIFLX0500    =0    ,BSIFLX1000    =0    ,  &
-     & BSIFLX2000    =0    ,BSIFLX4000    =0    ,BSIFLX_BOT    =0    ,  &
-     & CALFLX0100    =0    ,CALFLX0500    =0    ,CALFLX1000    =0    ,  &
-     & CALFLX2000    =0    ,CALFLX4000    =0    ,CALFLX_BOT    =0    ,  &
+     & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
+     & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
+     & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
+     & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
+     & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
+     & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
      & LYR_SILICA    =0    ,LYR_DIC       =0    ,LYR_POC       =0    ,  &
      & LYR_CALC      =0    ,LYR_OPAL      =0    ,LYR_CO3       =0    ,  &
-     & LYR_PH        =0    ,LYR_OMEGAC    =0    ,LYR_DIC13     =0    ,  &
-     & LYR_DIC14     =0    ,LYR_DP        =0    ,LYR_NOS       =0    ,  &
-     & LYR_WPHY      =0    ,LYR_WNOS      =0    ,LYR_EPS       =0    ,  &
-     & LYR_ASIZE     =0    ,LYR_N2O       =0    ,LYR_AOU       =0    ,  &
-     & LYR_PREFO2    =0    ,LYR_PREFPO4   =0    ,LYR_PREFALK   =0    ,  &
-     & LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,                       &
+     & LYR_PH        =0    ,LYR_OMEGAA    =0    ,LYR_OMEGAC    =0    ,  &
+     & LYR_DIC13     =0    ,LYR_DIC14     =0    ,LYR_DP        =0    ,  &
+     & LYR_NOS       =0    ,LYR_WPHY      =0    ,LYR_WNOS      =0    ,  &
+     & LYR_EPS       =0    ,LYR_ASIZE     =0    ,LYR_N2O       =0    ,  &
+     & LYR_PREFO2    =0    ,LYR_O2SAT     =0    ,LYR_PREFPO4   =0    ,  &
+     & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
      & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
      & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
-     & LYR_NATOMEGAC =0    ,LYR_NATCO3    =0    ,LYR_D13C      =0    ,  &
+     & LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,LYR_NATCO3    =0    ,  &
+     & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
@@ -78,15 +93,16 @@
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
      & LVL_SILICA    =0    ,LVL_DIC       =0    ,LVL_POC       =0    ,  &
      & LVL_CALC      =0    ,LVL_OPAL      =0    ,LVL_CO3       =0    ,  &
-     & LVL_PH        =0    ,LVL_OMEGAC    =0    ,LVL_DIC13     =0    ,  &
-     & LVL_DIC14     =0    ,LVL_DP        =0    ,LVL_NOS       =0    ,  &
+     & LVL_PH        =0    ,LVL_OMEGAA    =0    ,LVL_OMEGAC    =0    ,  &
+     & LVL_DIC13     =0    ,LVL_DIC14     =0    ,LVL_NOS       =0    ,  &
      & LVL_WPHY      =0    ,LVL_WNOS      =0    ,LVL_EPS       =0    ,  &
-     & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_AOU       =0    ,  &
-     & LVL_PREFO2    =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
+     & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_PREFO2    =0    ,  &
+     & LVL_O2SAT     =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
      & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
      & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
      & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
-     & LVL_NATOMEGAC =0    ,LVL_NATCO3    =0    ,LVL_D13C      =0    ,  &
+     & LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,LVL_NATCO3    =0    ,  &
+     & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
@@ -100,54 +116,57 @@
       CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-     & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_OXFLUX        ,        &
-     & SRF_NIFLUX        ,SRF_DMS           ,SRF_DMSPROD       ,        &
-     & SRF_DMS_BAC       ,SRF_DMS_UV        ,SRF_EXPORT        ,        &
-     & SRF_EXPOSI        ,SRF_EXPOCA                           ,        &
+     & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
+     & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
+     & SRF_OXFLUX        ,SRF_NIFLUX        ,SRF_DMS           ,        &
+     & SRF_DMSPROD       ,SRF_DMS_BAC       ,SRF_DMS_UV        ,        &
+     & SRF_EXPORT        ,SRF_EXPOSI        ,SRF_EXPOCA        ,        &
      & SRF_ATMCO2        ,SRF_ATMO2         ,SRF_ATMN2         ,        &
      & SRF_N2OFX         ,SRF_CFC11         ,SRF_CFC12         ,        &
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
      & SRF_SILICA        ,SRF_DIC           ,INT_PHOSY         ,        &
      & INT_NFIX          ,INT_DNIT          ,SRF_NATCO2FX      ,        &
-     & CARFLX0100        ,CARFLX0500        ,CARFLX1000        ,        &
-     & CARFLX2000        ,CARFLX4000        ,CARFLX_BOT        ,        &
-     & BSIFLX0100        ,BSIFLX0500        ,BSIFLX1000        ,        &
-     & BSIFLX2000        ,BSIFLX4000        ,BSIFLX_BOT        ,        &
-     & CALFLX0100        ,CALFLX0500        ,CALFLX1000        ,        &
-     & CALFLX2000        ,CALFLX4000        ,CALFLX_BOT        ,        &
+     & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
+     & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
+     & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
+     & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
+     & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
+     & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
      & LYR_SILICA        ,LYR_DIC           ,LYR_POC           ,        &
      & LYR_CALC          ,LYR_OPAL          ,LYR_CO3           ,        &
-     & LYR_PH            ,LYR_OMEGAC        ,LYR_DIC13         ,        &
-     & LYR_DIC14         ,LYR_DP            ,LYR_NOS           ,        &
-     & LYR_WPHY          ,LYR_WNOS          ,LYR_EPS           ,        &
-     & LYR_ASIZE         ,LYR_N2O           ,LYR_AOU           ,        &
-     & LYR_PREFO2        ,LYR_PREFPO4       ,LYR_PREFALK       ,        &
-     & LYR_PREFDIC       ,LYR_DICSAT        ,                           &
+     & LYR_PH            ,LYR_OMEGAA        ,LYR_OMEGAC        ,        &
+     & LYR_DIC13         ,LYR_DIC14         ,LYR_DP            ,        &
+     & LYR_NOS           ,LYR_WPHY          ,LYR_WNOS          ,        &
+     & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
+     & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
+     & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
      & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
      & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
-     & LYR_NATOMEGAC     ,LYR_NATCO3        ,LYR_D13C          ,        &
-     & LYR_PHYTO13       ,LYR_GRAZER13      ,                           &
-     & LYR_POC13         ,LYR_DOC13         ,LYR_CALC13        ,        &
+     & LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,LYR_NATCO3        ,        &
+     & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
+     & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
+     & LYR_DOC13         ,LYR_CALC13        ,                           &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
      & LVL_SILICA        ,LVL_DIC           ,LVL_POC           ,        &
      & LVL_CALC          ,LVL_OPAL          ,LVL_CO3           ,        &
-     & LVL_PH            ,LVL_OMEGAC        ,LVL_DIC13         ,        &
-     & LVL_DIC14         ,LVL_D13C          ,LVL_PHYTO13       ,        &
-     & LVL_GRAZER13      ,LVL_POC13         ,LVL_DOC13         ,        &
-     & LVL_CALC13        ,LVL_NOS           ,                           &
+     & LVL_PH            ,LVL_OMEGAA        ,LVL_OMEGAC        ,        &
+     & LVL_DIC13         ,LVL_DIC14         ,LVL_NOS           ,        &
      & LVL_WPHY          ,LVL_WNOS          ,LVL_EPS           ,        &
-     & LVL_ASIZE         ,LVL_N2O           ,LVL_AOU           ,        &
-     & LVL_PREFO2        ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
+     & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
+     & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
      & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
      & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
      & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
-     & LVL_NATOMEGAC     ,LVL_NATCO3        ,                           &
+     & LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,LVL_NATCO3        ,        &
+     & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
+     & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
+     & LVL_DOC13         ,LVL_CALC13        ,                           &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -179,6 +198,10 @@
      &          jdmsflux   = 0 ,                                        &
      &          jco2fxd    = 0 ,                                        &
      &          jco2fxu    = 0 ,                                        &
+     &          jco213fxd  = 0 ,                                        &
+     &          jco213fxu  = 0 ,                                        &
+     &          jco214fxd  = 0 ,                                        &
+     &          jco214fxu  = 0 ,                                        &
      &          joxflux    = 0 ,                                        &
      &          jniflux    = 0 ,                                        &
      &          jn2ofx     = 0 ,                                        &
@@ -253,10 +276,11 @@
      &          jopal      = 0 ,                                        &
      &          jco3       = 0 ,                                        &
      &          jph        = 0 ,                                        &
+     &          jomegaa    = 0 ,                                        &
      &          jomegac    = 0 ,                                        &
      &          jn2o       = 0 ,                                        &
-     &          jaou       = 0 ,                                        &
      &          jprefo2    = 0 ,                                        &
+     &          jo2sat     = 0 ,                                        &
      &          jprefpo4   = 0 ,                                        &
      &          jprefalk   = 0 ,                                        &
      &          jprefdic   = 0 ,                                        &
@@ -280,10 +304,11 @@
      &          jlvlopal   = 0 ,                                        &
      &          jlvlco3    = 0 ,                                        &
      &          jlvlph     = 0 ,                                        &
+     &          jlvlomegaa = 0 ,                                        &
      &          jlvlomegac = 0 ,                                        &
      &          jlvln2o    = 0 ,                                        &
-     &          jlvlaou    = 0 ,                                        &
      &          jlvlprefo2 = 0 ,                                        &
+     &          jlvlo2sat  = 0 ,                                        &
      &          jlvlprefpo4= 0 ,                                        &
      &          jlvlprefalk= 0 ,                                        &
      &          jlvlprefdic= 0 ,                                        &
@@ -296,6 +321,8 @@
      &          jdic13     = 0 ,                                        &
      &          jdic14     = 0 ,                                        &
      &          jd13c      = 0 ,                                        &
+     &          jd14c      = 0 ,                                        &
+     &          jbigd14c   = 0 ,                                        &
      &          jpoc13     = 0 ,                                        &
      &          jdoc13     = 0 ,                                        &
      &          jcalc13    = 0 ,                                        &
@@ -304,11 +331,13 @@
      &          jlvldic13  = 0 ,                                        &
      &          jlvldic14  = 0 ,                                        &
      &          jlvld13c   = 0 ,                                        &
+     &          jlvld14c   = 0 ,                                        &
+     &          jlvlbigd14c= 0 ,                                        &
      &          jlvlpoc13  = 0 ,                                        &
      &          jlvldoc13  = 0 ,                                        &
      &          jlvlcalc13 = 0 ,                                        &
-     &          jlvlphyto13  = 0 ,                                      &
-     &          jlvlgrazer13 = 0                                                                                        
+     &          jlvlphyto13 = 0 ,                                       &
+     &          jlvlgrazer13= 0                                                                                        
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jnos       = 0 ,                                        &
@@ -327,11 +356,13 @@
      &          jnatalkali    = 0 ,                                     &
      &          jnatdic       = 0 ,                                     &
      &          jnatcalc      = 0 ,                                     &
+     &          jnatomegaa    = 0 ,                                     &
      &          jnatomegac    = 0 ,                                     &
      &          jlvlnatco3    = 0 ,                                     &
      &          jlvlnatalkali = 0 ,                                     &
      &          jlvlnatdic    = 0 ,                                     &
      &          jlvlnatcalc   = 0 ,                                     &
+     &          jlvlnatomegaa = 0 ,                                     &
      &          jlvlnatomegac = 0 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
@@ -503,42 +534,52 @@
         jintnfix(n)=i_bsc_m2d*min(1,INT_NFIX(n))
         IF (INT_DNIT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
-        IF (CARFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx0100(n)=i_bsc_m2d*min(1,CARFLX0100(n))
-        IF (CARFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx0500(n)=i_bsc_m2d*min(1,CARFLX0500(n))
-        IF (CARFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx1000(n)=i_bsc_m2d*min(1,CARFLX1000(n))
-        IF (CARFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx2000(n)=i_bsc_m2d*min(1,CARFLX2000(n))
-        IF (CARFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx4000(n)=i_bsc_m2d*min(1,CARFLX4000(n))
-        IF (CARFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcarflx_bot(n)=i_bsc_m2d*min(1,CARFLX_BOT(n))
-        IF (BSIFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx0100(n)=i_bsc_m2d*min(1,BSIFLX0100(n))
-        IF (BSIFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx0500(n)=i_bsc_m2d*min(1,BSIFLX0500(n))
-        IF (BSIFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx1000(n)=i_bsc_m2d*min(1,BSIFLX1000(n))
-        IF (BSIFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx2000(n)=i_bsc_m2d*min(1,BSIFLX2000(n))
-        IF (BSIFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx4000(n)=i_bsc_m2d*min(1,BSIFLX4000(n))
-        IF (BSIFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jbsiflx_bot(n)=i_bsc_m2d*min(1,BSIFLX_BOT(n))
-        IF (CALFLX0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx0100(n)=i_bsc_m2d*min(1,CALFLX0100(n))
-        IF (CALFLX0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx0500(n)=i_bsc_m2d*min(1,CALFLX0500(n))
-        IF (CALFLX1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx1000(n)=i_bsc_m2d*min(1,CALFLX1000(n))
-        IF (CALFLX2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx2000(n)=i_bsc_m2d*min(1,CALFLX2000(n))
-        IF (CALFLX4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx4000(n)=i_bsc_m2d*min(1,CALFLX4000(n))
-        IF (CALFLX_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jcalflx_bot(n)=i_bsc_m2d*min(1,CALFLX_BOT(n))
+        IF (FLX_CAR0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx0100(n)=i_bsc_m2d*min(1,FLX_CAR0100(n))
+        IF (FLX_CAR0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx0500(n)=i_bsc_m2d*min(1,FLX_CAR0500(n))
+        IF (FLX_CAR1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx1000(n)=i_bsc_m2d*min(1,FLX_CAR1000(n))
+        IF (FLX_CAR2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx2000(n)=i_bsc_m2d*min(1,FLX_CAR2000(n))
+        IF (FLX_CAR4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx4000(n)=i_bsc_m2d*min(1,FLX_CAR4000(n))
+        IF (FLX_CAR_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcarflx_bot(n)=i_bsc_m2d*min(1,FLX_CAR_BOT(n))
+        IF (FLX_BSI0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx0100(n)=i_bsc_m2d*min(1,FLX_BSI0100(n))
+        IF (FLX_BSI0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx0500(n)=i_bsc_m2d*min(1,FLX_BSI0500(n))
+        IF (FLX_BSI1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx1000(n)=i_bsc_m2d*min(1,FLX_BSI1000(n))
+        IF (FLX_BSI2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx2000(n)=i_bsc_m2d*min(1,FLX_BSI2000(n))
+        IF (FLX_BSI4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx4000(n)=i_bsc_m2d*min(1,FLX_BSI4000(n))
+        IF (FLX_BSI_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jbsiflx_bot(n)=i_bsc_m2d*min(1,FLX_BSI_BOT(n))
+        IF (FLX_CAL0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx0100(n)=i_bsc_m2d*min(1,FLX_CAL0100(n))
+        IF (FLX_CAL0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx0500(n)=i_bsc_m2d*min(1,FLX_CAL0500(n))
+        IF (FLX_CAL1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx1000(n)=i_bsc_m2d*min(1,FLX_CAL1000(n))
+        IF (FLX_CAL2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx2000(n)=i_bsc_m2d*min(1,FLX_CAL2000(n))
+        IF (FLX_CAL4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
+        IF (FLX_CAL_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+#ifdef cisonew
+        IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))
+        IF (SRF_CO213FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco213fxu(n)=i_bsc_m2d*min(1,SRF_CO213FXU(n))
+        IF (SRF_CO214FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco214fxd(n)=i_bsc_m2d*min(1,SRF_CO214FXD(n))
+        IF (SRF_CO214FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco214fxu(n)=i_bsc_m2d*min(1,SRF_CO214FXU(n))
+#endif
 #ifdef CFC
         IF (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcfc11fx(n)=i_bsc_m2d*min(1,SRF_CFC11(n))
@@ -611,14 +652,16 @@
         jco3(n)=i_bsc_m3d*min(1,LYR_CO3(n))
         IF (LYR_PH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jph(n)=i_bsc_m3d*min(1,LYR_PH(n))
+        IF (LYR_OMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jomegaa(n)=i_bsc_m3d*min(1,LYR_OMEGAA(n))
         IF (LYR_OMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jomegac(n)=i_bsc_m3d*min(1,LYR_OMEGAC(n))
         IF (LYR_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jn2o(n)=i_bsc_m3d*min(1,LYR_N2O(n))
-        IF (LYR_AOU(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
-        jaou(n)=i_bsc_m3d*min(1,LYR_AOU(n))
         IF (LYR_PREFO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
+        IF (LYR_O2SAT(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
         IF (LYR_PREFPO4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
         IF (LYR_PREFALK(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
@@ -644,6 +687,10 @@
         jdic14(n)=i_bsc_m3d*min(1,LYR_DIC14(n))
         IF (LYR_D13C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jd13c(n)=i_bsc_m3d*min(1,LYR_D13C(n))
+        IF (LYR_D14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jd14c(n)=i_bsc_m3d*min(1,LYR_D14C(n))
+        IF (LYR_BIGD14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jbigd14c(n)=i_bsc_m3d*min(1,LYR_BIGD14C(n))
         IF (LYR_POC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jpoc13(n)=i_bsc_m3d*min(1,LYR_POC13(n))
         IF (LYR_DOC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
@@ -676,6 +723,8 @@
         jnatdic(n)=i_bsc_m3d*min(1,LYR_NATDIC(n))
         IF (LYR_NATCALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatcalc(n)=i_bsc_m3d*min(1,LYR_NATCALC(n))
+        IF (LYR_NATOMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatomegaa(n)=i_bsc_m3d*min(1,LYR_NATOMEGAA(n))
         IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
 #endif
@@ -712,14 +761,16 @@
         jlvlco3(n)=ilvl_bsc_m3d*min(1,LVL_CO3(n))
         IF (LVL_PH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlph(n)=ilvl_bsc_m3d*min(1,LVL_PH(n))
+        IF (LVL_OMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlomegaa(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAA(n))
         IF (LVL_OMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlomegac(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAC(n))
         IF (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvln2o(n)=ilvl_bsc_m3d*min(1,LVL_N2O(n))
-        IF (LVL_AOU(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
-        jlvlaou(n)=ilvl_bsc_m3d*min(1,LVL_AOU(n))
         IF (LVL_PREFO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
+        IF (LVL_O2SAT(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
         IF (LVL_PREFPO4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
         IF (LVL_PREFALK(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -743,6 +794,10 @@
         jlvldic14(n)=ilvl_bsc_m3d*min(1,LVL_DIC14(n))
         IF (LVL_D13C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvld13c(n)=ilvl_bsc_m3d*min(1,LVL_D13C(n))
+        IF (LVL_D14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvld14c(n)=ilvl_bsc_m3d*min(1,LVL_D14C(n))
+        IF (LVL_BIGD14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlbigd14c(n)=ilvl_bsc_m3d*min(1,LVL_BIGD14C(n))
         IF (LVL_POC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlpoc13(n)=ilvl_bsc_m3d*min(1,LVL_POC13(n))
         IF (LVL_DOC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -775,6 +830,8 @@
         jlvlnatdic(n)=ilvl_bsc_m3d*min(1,LVL_NATDIC(n))
         IF (LVL_NATCALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatcalc(n)=ilvl_bsc_m3d*min(1,LVL_NATCALC(n))
+        IF (LVL_NATOMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
         IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
 #endif

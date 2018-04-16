@@ -35,7 +35,6 @@ c initialise 3D arrays for HAMOCC interface
       do j=1,jj
       do i=1,ii
         bgc_dp  (i,j,k)=0.0
-        bgc_dpio(i,j,k)=0.0
         bgc_rho (i,j,k)=0.0
         bgc_t   (i,j,k)=0.0
         bgc_s   (i,j,k)=0.0

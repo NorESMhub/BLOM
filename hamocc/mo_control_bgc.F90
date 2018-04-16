@@ -12,6 +12,8 @@
 !
 !     Modified
 !     --------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - removed unused variables
 !     
 !     Purpose
 !     -------
@@ -24,11 +26,6 @@
 ! Logical unit number for I/O.
 
       INTEGER :: io_stdo_bgc           !  standard out.
-      INTEGER :: io_stdi_bgc           !  standard in.
-
-      INTEGER :: io_rsti_bgc           !  restart in. 
-      INTEGER :: io_rsto_bgc           !  restart out. 
-
       INTEGER :: io_nml                !  namelist
 
 ! Control variables
@@ -41,7 +38,6 @@
       INTEGER :: ldtrunbgc        !  actual time steps of run.
 
 
-      INTEGER :: icyclibgc        !  switch for cyclicity.
       INTEGER :: ndtrunbgc        !  total no. of time steps of run.
 
 
@@ -52,6 +48,5 @@
       REAL    :: rmasko = 99999.00  !  value at wet cells in ocean.
 
 
-      INTEGER :: kchck = 0          !  switch for extended print control (0/1). 
       
       END MODULE mo_control_bgc

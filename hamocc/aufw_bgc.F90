@@ -24,9 +24,20 @@
 !     - tracer field is passed from ocean model for writing now
 !     - removed writing of chemcm and ak* fields
 !     - code cleanup, removed preprocessor option "PNETCDF"
+!
 !     J.Schwinger,      *GFI, Bergen*     2014-05-21
 !     - adapted code for writing of two time level tracer and 
 !       sediment fields
+!
+!     A.Moree,          *GFI, Bergen*   2018-04-12
+!     - new version of carbon isotope code
+!
+!     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+!     - added preformed and saturated DIC tracers
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - removed satn2o which is not needed to restart the model
+!     - added sediment bypass preprocessor option
 !
 !     Purpose
 !     -------

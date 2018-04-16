@@ -14,24 +14,19 @@
 !     - new: atm, atdifv, suppco2
 !     - changed: chemc(:,:,:) to chemcm(:,:,:,:)
 !     - new: bgcmean(:,:,:,:)
+!
 !     J. Schwinger      *UiB-GfI, Bergen* 04.05.12
 !     - added initialisation of all vars after allocation
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - moved accumulation of all output fields to seperate subroutine,
+!       new global fields for output defined here
+!     - added OmegaA
 !
 !     Purpose
 !     -------
 !     - declaration and memory allocation
 !
-!     *ocetra*       *REAL*  - .
-!     *hi*           *REAL*  - .
-!     *co3*          *REAL*  - .
-!     *chemcm*       *REAL*  - .
-!     *co2flu*       *REAL*  - .
-!     *co2fluacc     *REAL*  - .
-!     *akw3*         *REAL*  - .
-!     *akb3*         *REAL*  - .
-!     *ak13*         *REAL*  - .
-!     *ak23*         *REAL*  - .
-!     *aksp*         *REAL*  - .
 !
 !**********************************************************************
       
@@ -43,6 +38,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaA 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: keqb
 
@@ -52,25 +48,29 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
+
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: pco2d
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: kwco2sol
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co2fxd
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co2fxu
+#ifdef cisonew
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co213fxd
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co213fxu
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxd
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxu
+#endif
       REAL :: dmspar(6)
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
 #ifdef natDIC
       REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
 #endif
 #ifdef cisonew
       REAL :: c14_t_half, c14dec
-      REAL :: roc14, roc13
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc13
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc14
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: phyto_growth
 #endif
-#ifdef boxatm
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: atc12
-#endif
-
 #ifndef DIFFAT            
       REAL :: atm_co2, atm_o2, atm_n2 
       REAL :: atm_c13, atm_c14
@@ -146,6 +146,22 @@
         if(errstat.ne.0) stop 'not enough memory co2star'
         co2star(:,:,:) = 0.0
 
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaA, OmegaC ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+        ENDIF
+
+        ALLOCATE (OmegaA(kpie,kpje,kpke),stat=errstat)
+        ALLOCATE (OmegaC(kpie,kpje,kpke),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory OmegaA, OmegaC'
+        OmegaA(:,:,:) = 0.0
+        OmegaC(:,:,:) = 0.0
+
+
+#ifdef DMSPH
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -156,7 +172,7 @@
         ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory pi_ph'
         pi_ph(:,:,:) = 0.0
-
+#endif
 #ifdef natDIC
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
@@ -181,28 +197,18 @@
         natco3(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable natOmegaC ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable natOmegaA, natOmegaC ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
         ENDIF
 
+        ALLOCATE (natOmegaA(kpie,kpje,kpke),stat=errstat)
         ALLOCATE (natOmegaC(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory natOmegaC'
+        if(errstat.ne.0) stop 'not enough memory natOmegaA, natOmegaC'
+        natOmegaA(:,:,:) = 0.0
         natOmegaC(:,:,:) = 0.0
 #endif
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable OmegaC ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-        ENDIF
-
-        ALLOCATE (OmegaC(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory OmegaC'
-        OmegaC(:,:,:) = 0.0
-
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable sedfluxo ..'
@@ -314,48 +320,57 @@
         if(errstat.ne.0) stop 'not enough memory Rbomb'
         Rbomb(:,:) = 0.0
 #endif	
-#ifdef boxatm
+
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc12 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable pco2d ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
         ENDIF
-        
-        ALLOCATE (atc12(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory atc12'
-        atc12(:,:) = 0.0
-#endif
+
+        ALLOCATE (pco2d(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory pco2d'
+        pco2d(:,:) = 0.0
+
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable kwco2sol ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+
+        ALLOCATE (kwco2sol(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co2fxd,co2fxu'
+        kwco2sol(:,:) = 0.0
+
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable co2fxd, co2fxu ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+
+        ALLOCATE (co2fxd(kpie,kpje),stat=errstat)
+        ALLOCATE (co2fxu(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co2fxd,co2fxu'
+        co2fxd(:,:) = 0.0
+        co2fxu(:,:) = 0.0
+
 #ifdef cisonew
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc13 ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable co213fxd,..., co214fxu ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
         ENDIF
-        
-        ALLOCATE (atc13(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory atc13'
-        atc13(:,:) = 0.0
 
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atc14 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-        
-        ALLOCATE (atc14(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory atc14'
-        atc14(:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable phyto_growth ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-        ENDIF
-
-        ALLOCATE (phyto_growth(kpie,kpje,kpke),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory phyto_growth'
-        phyto_growth(:,:,:) = 0.0
+        ALLOCATE (co213fxd(kpie,kpje),stat=errstat)
+        ALLOCATE (co213fxu(kpie,kpje),stat=errstat)
+        ALLOCATE (co214fxd(kpie,kpje),stat=errstat)
+        ALLOCATE (co214fxu(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co213fxd,..., co214fxu'
+        co213fxd(:,:) = 0.0
+        co213fxu(:,:) = 0.0
+        co214fxd(:,:) = 0.0
+        co214fxu(:,:) = 0.0
 #endif
 
       END SUBROUTINE ALLOC_MEM_CARBCH

@@ -8,6 +8,8 @@
 !
 !     Modified
 !     --------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - added constants for Kh CO2 w.r.t. dry air (Weiss, 1974)
 !     
 !     
 !     Purpose
@@ -120,6 +122,19 @@
       real, parameter :: bc2=   -0.025225
       real, parameter :: bc3=    0.0049867
 
+
+!     -----------------------------------------------------------------
+!     Constants for CO2 solubility in mol/kg/atm for dry 
+!     air at one atm total pressure. Table 1 in WEISS, R.F.,
+!     CARBON DIOXIDE IN WATER AND SEAWATER: THE SOLUBILITY OF
+!     A NON - IDEAL GAS, Marine Chemistry, 2, 203-215, 1974
+!
+      real, parameter :: ad1= -60.2409
+      real, parameter :: ad2=  93.4517
+      real, parameter :: ad3=  23.3585
+      real, parameter :: bd1=   0.023517
+      real, parameter :: bd2=  -0.023656
+      real, parameter :: bd3=   0.0047036
 
 
 !     -----------------------------------------------------------------

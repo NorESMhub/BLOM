@@ -1,4 +1,4 @@
-      SUBROUTINE BELEG_BGC(kpie,kpje,kpke,pddpo,ptiestw,prho,  &
+      SUBROUTINE BELEG_BGC(kpaufr,kpie,kpje,kpke,pddpo,ptiestw,prho,  &
      &                     omask,pglon,pglat,path)
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/beleg_bgc.f90,v $\\
 !$Revision: 1.2 $\\
@@ -24,21 +24,33 @@
 !     - included T-dependence of cyanobacteria growth
 !     - modified stoichiometry for denitrification
 ! 
+!     A.Moree,          *GFI, Bergen*   2018-04-12
+!     - new version of carbon isotope code
+!
+!     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+!     - added preformed and saturated DIC tracers
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - moved reading of namelist and initialisation of dust to 
+!       ini_hamocc.F90
+!     - initialisation of tracer fields is skipped if the model is
+!       restarted
+!     - added sediment bypass preprocessor option
+!
+!
 !     Purpose
 !     -------
-!     - set start values for  bgc variables.
+!     - set start values for bgc variables.
 !
 !     Method
 !     -------
-!     - bgc variables are initialized. They might be overwritten
-!       if read from restart by call of AUFR_BGC.
+!     - bgc variables are initialized unless it is a restart run
 !     - physical constants are defined
-!     - fields used for budget calculations (should be in extra SBR!)
-!       and as boundary conditions are set to zero.
 !     
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
+!     *INTEGER*   *kpaufr*  - 1/0 flag, 1 indicating a restart run
 !     *INTEGER*   *kpie*    - 1st dimension of model grid.
 !     *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
@@ -60,57 +72,45 @@
       use mo_param1_bgc 
       USE mod_xc, only: mnproc
 
-
       implicit none      
 
+      INTEGER :: kpaufr,kpie,kpje,kpke
       REAL :: pddpo(kpie,kpje,kpke)
       REAL :: ptiestw(kpie,kpje,kpke+1)
       REAL :: prho (kpie,kpje,kpke)
       REAL :: omask(kpie,kpje)
       REAL :: pglon(kpie,kpje)
       REAL :: pglat(kpie,kpje)
-      REAL :: north, south
-#ifdef cisonew
-      REAL :: alpha,beta,c14norm_fac,d14cat
-#endif
-      INTEGER :: i,j,k,l,ii,jj,kpie,kpje,kpke
       character(len=*) :: path
 
+      ! local variables
+      INTEGER :: i,j,k,l,ii,jj
+      integer :: p_joff,p_ioff
+      REAL :: north, south
+#ifdef cisonew
+      REAL :: alpha,beta,rco213,rco214,d14cat
+#endif
 #ifdef AGG
       REAL :: shear,snow
-#endif 
-
-#ifndef AGG
+#else
       REAL :: dustd1, dustd2, dustsink
 #endif
 
-      integer :: p_joff,p_ioff
-
-      namelist /bgcnml/ atm_co2
 
 !
 ! Initialize overall time step counter.
 !
       ldtbgc = 0
+
 !
+! Atmospheric concentrations (atm_co2 is set via namelist).
 !
-#ifndef DIFFAT            
-!
-! Obtain the CCSM value of atmospheric co2 concentration.
-!
-      open (unit=io_nml,file='ocn_in',status='old',action='read',      &
-     &      recl=80)
-      read (unit=io_nml,nml=BGCNML)
-      close (unit=io_nml)
-      IF (mnproc.eq.1) THEN
-        write(io_stdo_bgc,*) 'HAMOCC: atmospheric co2:',atm_co2
-      ENDIF
       atm_o2  = 196800.
       atm_n2  = 802000.
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
 #endif   
-#endif
+
 
 #ifdef cisonew
 ! set standard carbon isotope ratios
@@ -138,6 +138,7 @@
       endif
 #endif
 
+
 #ifdef boxatm
 ! initialise prognostic 1-box atmosphere
       do j=1,kpje
@@ -149,6 +150,21 @@
 #endif
       enddo
       enddo
+#endif
+#ifdef DIFFAT
+! initiaise atmospheric diffusion parameters.    
+      DO  j=1,kpje
+      DO  i=1,kpie 
+         atm(i,j,iatmco2) = 278.
+         atm(i,j,iatmo2)  = 196800.
+         atm(i,j,iatmn2)  = 802000.
+#ifdef cisonew
+         atm(i,j,iatmc13) = atm_c13
+         atm(i,j,iatmc14) = atm_c14/c14fac
+#endif
+         atdifv(i,j)=1.
+      ENDDO
+      ENDDO
 #endif
 
 !
@@ -182,9 +198,6 @@
 ! Initial fractionation during photosynthesis
       bifr13=0.98
       bifr14=bifr13**2
-! Coefficients for T dependent fractionation of C isotopes (Mook, 1986)
-      evfr00=1.02389
-      evfr01=9.483
 ! Decay parameter for sco214, HalfLive = 5730 years
       c14_t_half=5730.*365.                ! Half life of 14C [days]	
       c14dec=1.-(log(2.)/c14_t_half)*dtb   ! labda [1/day]; c14dec[-]
@@ -508,29 +521,55 @@
 #endif /*AGG*/  
 
 
+#ifdef ANTC14
       DO  i=1,kpie
-      DO  j=1,kpje
-         keqb(:,i,j)=rmasko
+        ii=1+(i+p_ioff-1)   ! global i-index for giph_g
+        north=1.
+        DO  j=1,kpje
+          jj=1+(j+p_joff-1) ! global j-index for giph_g
+          north=pglat(ii,jj)
+          if (north .gt. 20.) then
+            Rbomb(i,j) = D14C_north
+          endif
+          if (north .lt. -20.) then
+            Rbomb(i,j) = D14C_south
+          endif
+          if ((north .le. 20.).and.(north .ge. -20.)) then
+            Rbomb(i,j) = D14C_equator
+          endif
+!         WRITE(io_stdo_bgc,*)'Rbomb: ',i,j,north,Rbomb(i,j)
+        ENDDO
       ENDDO
-      ENDDO
+#endif
 
 
-      DO  j=1,kpje
-      DO  i=1,kpie
-         expoor(i,j)=0.
-         expoca(i,j)=0.
-         exposi(i,j)=0.
+#ifdef FB_BGC_OCE
+      DO k=1,kpke
+      DO j=1,kpje
+      DO i=1,kpie
+        abs_oce(i,j,k)=1.
       ENDDO
       ENDDO
+      ENDDO
+#endif
 
 
-! Initialise ocean tracers with WOA and GLODAP data
+!
+! Initialisation of ocean tracers and sediment
+!
+
+! Initialise ocean tracers with WOA and GLODAP data. This is done even in case
+! of a restart since some tracers (e.g. C-isotopes) might not be in the restart 
+! file and aufr.f90 instead expects an initialised field.
       call profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,TRIM(path))
 
-      do k=1,kpke
-      do j=1,kpje
-      do i=1,kpie
-        if (omask(i,j) .gt. 0.5 ) then
+! If this is a restart run initialisation is done in aufr.F90 
+      IF(kpaufr.EQ.1) RETURN
+
+      DO k=1,kpke
+      DO j=1,kpje
+      DO i=1,kpie
+        IF (omask(i,j) .GT. 0.5 ) THEN
           ! convert WOA tracers kmol/m^3 -> mol/kg; GLODAP dic and alk
           ! are already in mol/kg. We need these units here, since after 
           ! initialisation the tracer field is passed to the ocean model
@@ -539,10 +578,20 @@
           ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)/prho(i,j,k)
           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)  /prho(i,j,k)
           ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)/prho(i,j,k)
-        endif
-      enddo
-      enddo
-      enddo
+#ifdef cisonew
+          ! 13C is read in as delta13C, convert to 13C
+          beta=ocetra(i,j,k,isco213)/1000.+1.
+          ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta*re1312/(1.+beta*re1312)
+
+          ! 14C is read in as delta14C, convert to 14C using model total C, normalize 
+          ! 14C by c14fac to prevent numerical errors
+          beta=ocetra(i,j,k,isco214)/1000.+1.
+          ocetra(i,j,k,isco214) =ocetra(i,j,k,isco212)*beta*re14to/c14fac 
+#endif
+        ENDIF
+      ENDDO
+      ENDDO
+      ENDDO
 
 ! Initialise remaining ocean tracers 
       DO k=1,kpke
@@ -589,18 +638,18 @@
          ocetra(i,j,k,inatcalc) =0. 
 #endif
 #ifdef cisonew
-         ocetra(i,j,k,isco214)  =ocetra(i,j,k,isco214)/c14fac ! normalization of 14C to prevent numerical errors
-         c14norm_fac            =ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv) ! 14C/12Cratio with normalized 14C
-         ocetra(i,j,k,iphy13)   =1.e-8/100.*bifr13
-         ocetra(i,j,k,iphy14)   =1.e-8*c14norm_fac*bifr14
-         ocetra(i,j,k,izoo13)   =1.e-8/100.*bifr13
-         ocetra(i,j,k,izoo14)   =1.e-8*c14norm_fac*bifr14
-         ocetra(i,j,k,idoc13)   =1.e-8/100.*bifr13
-         ocetra(i,j,k,idoc14)   =1.e-8*c14norm_fac*bifr14
-         ocetra(i,j,k,idet13)   =1.e-8/100.*bifr13
-         ocetra(i,j,k,idet14)   =1.e-8*c14norm_fac*bifr14
-         ocetra(i,j,k,icalc13)  =0.
-         ocetra(i,j,k,icalc14)  =0.
+         rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
+         rco214=ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv)
+         ocetra(i,j,k,iphy13) =ocetra(i,j,k,iphy)*rco213*bifr13
+         ocetra(i,j,k,iphy14) =ocetra(i,j,k,iphy)*rco214*bifr14
+         ocetra(i,j,k,izoo13) =ocetra(i,j,k,izoo)*rco213*bifr13
+         ocetra(i,j,k,izoo14) =ocetra(i,j,k,izoo)*rco214*bifr14
+         ocetra(i,j,k,idoc13) =ocetra(i,j,k,idoc)*rco213*bifr13
+         ocetra(i,j,k,idoc14) =ocetra(i,j,k,idoc)*rco214*bifr14
+         ocetra(i,j,k,idet13) =ocetra(i,j,k,idet)*rco213*bifr13
+         ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
+         ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
+         ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
 #endif
       ENDIF ! omask > 0.5
 
@@ -625,11 +674,6 @@
       ENDDO
       ENDDO
 
-! read in dust fields
-     CALL GET_DUST(kpie,kpje,kpke,omask,path)
-
-! read in pi_ph fields
-!     CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
 
 ! Initial values for sediment
 #ifndef sedbypass
@@ -650,13 +694,14 @@
          sedlay(i,j,k,issssil)=1.e-8
          sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
 #ifdef cisonew
-         c14norm_fac=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv) ! 14C/12Cratio with normalized 14C
-         powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)/100.*bifr13
-	 powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*c14norm_fac*bifr14
-         sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)/100.*bifr13
-         sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*c14norm_fac*bifr14
-         sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)/100.*bifr13
-         sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*c14norm_fac*bifr14
+         rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+         rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+         powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)*rco213*bifr13
+	 powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*rco214*bifr14
+         sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)*rco213*bifr13
+         sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14
+         sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
+         sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
 #endif
       ELSE
          powtra(i,j,k,ipowno3)=rmasks
@@ -695,83 +740,6 @@
       ENDDO
 #endif
 
-!
-! values for sediment fluxes
-!     
-      DO j=1,kpje
-      DO i=1,kpie
-      DO k=1,npowtra
-        sedfluxo(i,j,k)=0.     
-      ENDDO
-      ENDDO
-      ENDDO
-!
-! values for sedimentation
-!     
-      DO j=1,kpje
-      DO i=1,kpie
-        prorca(i,j)=0.
-        prcaca(i,j)=0.
-        silpro(i,j)=0.
-        produs(i,j)=0.
-#ifdef cisonew
-        pror13(i,j)=0.
-        prca13(i,j)=0.
-        pror14(i,j)=0.
-        prca14(i,j)=0.
-#endif
-      ENDDO
-      ENDDO
-      
-!
-!  atmospheric diffusion parameters.
-!    
-#ifdef DIFFAT
-      DO  j=1,kpje
-      DO  i=1,kpie 
-         atm(i,j,iatmco2) = 278.
-         atm(i,j,iatmo2)  = 196800.
-         atm(i,j,iatmn2)  = 802000.
-#ifdef cisonew
-         atm(i,j,iatmc13) = atm_c13
-         atm(i,j,iatmc14) = atm_c14 
-#endif
-         atdifv(i,j)=1.
-      ENDDO
-      ENDDO
-#endif
-   
-#ifdef ANTC14
-      DO  i=1,kpie
-        ii=1+(i+p_ioff-1)   ! global i-index for giph_g
-        north=1.
-        DO  j=1,kpje
-          jj=1+(j+p_joff-1) ! global j-index for giph_g
-          north=pglat(ii,jj)
-          if (north .gt. 20.) then
-            Rbomb(i,j) = D14C_north
-          endif
-          if (north .lt. -20.) then
-            Rbomb(i,j) = D14C_south
-          endif
-          if ((north .le. 20.).and.(north .ge. -20.)) then
-            Rbomb(i,j) = D14C_equator
-          endif
-!         WRITE(io_stdo_bgc,*)'Rbomb: ',i,j,north,Rbomb(i,j)
-        ENDDO
-      ENDDO
-#endif
-
-
-#ifdef FB_BGC_OCE
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-        abs_oce(i,j,k)=1.
-      ENDDO
-      ENDDO
-      ENDDO
-#endif
 
       RETURN
       END

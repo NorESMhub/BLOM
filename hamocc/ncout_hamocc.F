@@ -115,10 +115,11 @@ c --- finalize accumulation
       call finlyr(jopal(iogrp),jdp(iogrp))
       call finlyr(jco3(iogrp),jdp(iogrp))
       call finlyr(jph(iogrp),jdp(iogrp))
+      call finlyr(jomegaa(iogrp),jdp(iogrp))
       call finlyr(jomegac(iogrp),jdp(iogrp))
       call finlyr(jn2o(iogrp),jdp(iogrp))
-      call finlyr(jaou(iogrp),jdp(iogrp))
       call finlyr(jprefo2(iogrp),jdp(iogrp))
+      call finlyr(jo2sat(iogrp),jdp(iogrp))
       call finlyr(jprefpo4(iogrp),jdp(iogrp))
       call finlyr(jprefalk(iogrp),jdp(iogrp))
       call finlyr(jprefdic(iogrp),jdp(iogrp))
@@ -127,6 +128,8 @@ c --- finalize accumulation
       call finlyr(jdic13(iogrp),jdp(iogrp))
       call finlyr(jdic14(iogrp),jdp(iogrp))
       call finlyr(jd13c(iogrp),jdp(iogrp))
+      call finlyr(jd14c(iogrp),jdp(iogrp))
+      call finlyr(jbigd14c(iogrp),jdp(iogrp))
       call finlyr(jpoc13(iogrp),jdp(iogrp))
       call finlyr(jdoc13(iogrp),jdp(iogrp))
       call finlyr(jcalc13(iogrp),jdp(iogrp))
@@ -150,6 +153,7 @@ c --- finalize accumulation
       call finlyr(jnatdic(iogrp),jdp(iogrp))
       call finlyr(jnatcalc(iogrp),jdp(iogrp))
       call finlyr(jnatco3(iogrp),jdp(iogrp))
+      call finlyr(jnatomegaa(iogrp),jdp(iogrp))
       call finlyr(jnatomegac(iogrp),jdp(iogrp))
 #endif
 c
@@ -187,10 +191,11 @@ c --- Mask sea floor in level data
       call msklvl(jlvlopal(iogrp),depths)
       call msklvl(jlvlco3(iogrp),depths)
       call msklvl(jlvlph(iogrp),depths)
+      call msklvl(jlvlomegaa(iogrp),depths)
       call msklvl(jlvlomegac(iogrp),depths)
       call msklvl(jlvln2o(iogrp),depths)
-      call msklvl(jlvlaou(iogrp),depths)
       call msklvl(jlvlprefo2(iogrp),depths)
+      call msklvl(jlvlo2sat(iogrp),depths)
       call msklvl(jlvlprefpo4(iogrp),depths)
       call msklvl(jlvlprefalk(iogrp),depths)
       call msklvl(jlvlprefdic(iogrp),depths)
@@ -199,6 +204,8 @@ c --- Mask sea floor in level data
       call msklvl(jlvldic13(iogrp),depths)
       call msklvl(jlvldic14(iogrp),depths)
       call msklvl(jlvld13c(iogrp),depths)
+      call msklvl(jlvld14c(iogrp),depths)
+      call msklvl(jlvlbigd14c(iogrp),depths)
       call msklvl(jlvlpoc13(iogrp),depths)
       call msklvl(jlvldoc13(iogrp),depths)
       call msklvl(jlvlcalc13(iogrp),depths)
@@ -222,6 +229,7 @@ c --- Mask sea floor in level data
       call msklvl(jlvlnatdic(iogrp),depths)
       call msklvl(jlvlnatcalc(iogrp),depths)
       call msklvl(jlvlnatco3(iogrp),depths)
+      call msklvl(jlvlnatomegaa(iogrp),depths)
       call msklvl(jlvlnatomegac(iogrp),depths)
 #endif
 c
@@ -285,65 +293,81 @@ c --- Store 2d fields
      .  rnacc*1e3/dtbgc,0.,cmpflg,'ppint',    
      .  'Integrated primary production',' ','mol C m-2 s-1')
       call wrtsrf(jintnfix(iogrp),INT_NFIX(iogrp),
-     .  1e3,0.,cmpflg,'nfixint',    
-     .  'Integrated nitrogen fixation',' ','mol N m-2')
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'nfixint',    
+     .  'Integrated nitrogen fixation',' ','mol N m-2 s-1')
       call wrtsrf(jintdnit(iogrp),INT_DNIT(iogrp),
-     .  1e3,0.,cmpflg,'dnitint',    
-     .  'Integrated denitrification',' ','mol N m-2')
-      call wrtsrf(jcarflx0100(iogrp),CARFLX0100(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'dnitint',    
+     .  'Integrated denitrification',' ','mol N m-2 s-1')
+      call wrtsrf(jcarflx0100(iogrp),FLX_CAR0100(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100',
      .  'C flux at 100m',' ','mol C m-2 s-1')
-      call wrtsrf(jcarflx0500(iogrp),CARFLX0500(iogrp),
+      call wrtsrf(jcarflx0500(iogrp),FLX_CAR0500(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500',
      .  'C flux at 500m',' ','mol C m-2 s-1')
-      call wrtsrf(jcarflx1000(iogrp),CARFLX1000(iogrp),
+      call wrtsrf(jcarflx1000(iogrp),FLX_CAR1000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx1000',
      .  'C flux at 1000m',' ','mol C m-2 s-1')
-      call wrtsrf(jcarflx2000(iogrp),CARFLX2000(iogrp),
+      call wrtsrf(jcarflx2000(iogrp),FLX_CAR2000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx2000',
      .  'C flux at 2000m',' ','mol C m-2 s-1')
-      call wrtsrf(jcarflx4000(iogrp),CARFLX4000(iogrp),
+      call wrtsrf(jcarflx4000(iogrp),FLX_CAR4000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx4000',
      .  'C flux at 4000m',' ','mol C m-2 s-1')
-      call wrtsrf(jcarflx_bot(iogrp),CARFLX_BOT(iogrp),
+      call wrtsrf(jcarflx_bot(iogrp),FLX_CAR_BOT(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'carflx_bot',
      .  'C flux to sediment',' ','mol C m-2 s-1')
-      call wrtsrf(jbsiflx0100(iogrp),BSIFLX0100(iogrp),
+      call wrtsrf(jbsiflx0100(iogrp),FLX_BSI0100(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx0100',
      .  'Opal flux at 100m',' ','mol Si m-2 s-1')
-      call wrtsrf(jbsiflx0500(iogrp),BSIFLX0500(iogrp),
+      call wrtsrf(jbsiflx0500(iogrp),FLX_BSI0500(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx0500',
      .  'Opal flux at 500m',' ','mol Si m-2 s-1')
-      call wrtsrf(jbsiflx1000(iogrp),BSIFLX1000(iogrp),
+      call wrtsrf(jbsiflx1000(iogrp),FLX_BSI1000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx1000',
      . 'Opal flux at 1000m',' ','mol Si m-2 s-1')
-      call wrtsrf(jbsiflx2000(iogrp),BSIFLX2000(iogrp),
+      call wrtsrf(jbsiflx2000(iogrp),FLX_BSI2000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx2000',
      .  'Opal flux at 2000m',' ','mol Si m-2 s-1')
-      call wrtsrf(jbsiflx4000(iogrp),BSIFLX4000(iogrp),
+      call wrtsrf(jbsiflx4000(iogrp),FLX_BSI4000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx4000',
      .  'Opal flux at 4000m',' ','mol Si m-2 s-1')
-      call wrtsrf(jbsiflx_bot(iogrp),BSIFLX_BOT(iogrp),
+      call wrtsrf(jbsiflx_bot(iogrp),FLX_BSI_BOT(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'bsiflx_bot',
      .  'Opal flux to sediment',' ','mol Si m-2 s-1')
-      call wrtsrf(jcalflx0100(iogrp),CALFLX0100(iogrp),
+      call wrtsrf(jcalflx0100(iogrp),FLX_CAL0100(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx0100',
      .  'CaCO3 flux at 100m',' ','mol Ca m-2 s-1')
-      call wrtsrf(jcalflx0500(iogrp),CALFLX0500(iogrp),
+      call wrtsrf(jcalflx0500(iogrp),FLX_CAL0500(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx0500',
      .  'CaCO3 flux at 500m',' ','mol Ca m-2 s-1')
-      call wrtsrf(jcalflx1000(iogrp),CALFLX1000(iogrp),
+      call wrtsrf(jcalflx1000(iogrp),FLX_CAL1000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx1000',
      .  'CaCO3 flux at 1000m',' ','mol Ca m-2 s-1')
-      call wrtsrf(jcalflx2000(iogrp),CALFLX2000(iogrp),
+      call wrtsrf(jcalflx2000(iogrp),FLX_CAL2000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx2000',
      .  'CaCO3 flux at 2000m',' ','mol Ca m-2 s-1')
-      call wrtsrf(jcalflx4000(iogrp),CALFLX4000(iogrp),
+      call wrtsrf(jcalflx4000(iogrp),FLX_CAL4000(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx4000',
      .  'CaCO3 flux at 4000m',' ','mol Ca m-2 s-1')
-      call wrtsrf(jcalflx_bot(iogrp),CALFLX_BOT(iogrp),
+      call wrtsrf(jcalflx_bot(iogrp),FLX_CAL_BOT(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx_bot',
      .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1')
+      call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,
+     .  cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
+#ifdef cisonew
+      call wrtsrf(jco213fxd(iogrp),SRF_CO213FXD(iogrp),
+     .  rnacc*12./dtbgc,0.,cmpflg,'co213fxd',
+     .  'Downward 13CO2 flux',' ','kg C m-2 s-1')
+      call wrtsrf(jco213fxu(iogrp),SRF_CO213FXU(iogrp),
+     .  rnacc*12./dtbgc,0.,cmpflg,'co213fxu',
+     .  'Upward 13CO2 flux',' ','kg C m-2 s-1')
+      call wrtsrf(jco214fxd(iogrp),SRF_CO214FXD(iogrp),
+     .  rnacc*12.*c14fac/dtbgc,0.,cmpflg,'co214fxd',
+     .  'Downward 14CO2 flux',' ','kg C m-2 s-1')
+      call wrtsrf(jco214fxu(iogrp),SRF_CO214FXU(iogrp),
+     .  rnacc*12.*c14fac/dtbgc,0.,cmpflg,'co214fxu',
+     .  'Upward 14CO2 flux',' ','kg C m-2 s-1')
+#endif
 #ifdef CFC
       call wrtsrf(jcfc11fx(iogrp),SRF_CFC11(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'cfc11flux','CFC-11 flux',' ','mol CFC12 m-2 s-1')
@@ -352,6 +376,12 @@ c --- Store 2d fields
       call wrtsrf(jsf6fx(iogrp),SRF_SF6(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1')
 #endif
+#ifdef natDIC
+      call wrtsrf(jnatco2fx(iogrp),SRF_NATCO2FX(iogrp),   
+     .  rnacc*12./dtbgc,0.,cmpflg,'natco2fx',
+     .  'Natural CO2 flux',' ','kg C m-2 s-1')
+#endif
+
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
 #ifdef DIFFAT
@@ -360,13 +390,6 @@ c --- Store 2d fields
       call wrtsrf(jatmn2(iogrp),SRF_ATMN2(iogrp),rnacc,0.,cmpflg,       
      .  'atmn2','Atmospheric N2',' ','ppm')
 #endif 
-      call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,
-     .  cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
-#ifdef natDIC
-      call wrtsrf(jnatco2fx(iogrp),SRF_NATCO2FX(iogrp),   
-     .  rnacc*12./dtbgc,0.,cmpflg,'natco2fx','Natural CO2 flux',' ',
-     .  'kg C m-2 s-1')
-#endif
 c
 c --- Store 3d layer fields
       call wrtlyr(jdp(iogrp),LYR_DP(iogrp),rnacc,0.,cmpflg, 
@@ -403,14 +426,16 @@ c --- Store 3d layer fields
      .  'co3','Carbonate ions',' ','mol C m-3')
       call wrtlyr(jph(iogrp),LYR_PH(iogrp),-1.,0.,cmpflg,             
      .  'ph','pH',' ','-log10([h+])')
+      call wrtlyr(jomegaa(iogrp),LYR_OMEGAA(iogrp),1.,0.,cmpflg,        
+     .  'omegaa','OmegaA',' ','-')
       call wrtlyr(jomegac(iogrp),LYR_OMEGAC(iogrp),1.,0.,cmpflg,        
      .  'omegac','OmegaC',' ','-')
       call wrtlyr(jn2o(iogrp),LYR_N2O(iogrp),1e3,0.,cmpflg,            
      .  'n2o','N2O',' ','mol N2O m-3')
-      call wrtlyr(jaou(iogrp),LYR_AOU(iogrp),1e3,0.,cmpflg,            
-     .  'aou','AOU',' ','mol O2 m-3')
       call wrtlyr(jprefo2(iogrp),LYR_PREFO2(iogrp),1e3,0.,cmpflg,        
      .  'p_o2','Preformed oxygen',' ','mol O2 m-3')
+      call wrtlyr(jo2sat(iogrp),LYR_O2SAT(iogrp),1e3,0.,cmpflg,            
+     .  'satoxy','Saturated oxygen',' ','mol O2 m-3')
       call wrtlyr(jprefpo4(iogrp),LYR_PREFPO4(iogrp),1e3,0.,cmpflg,        
      .  'p_po4','Preformed phosphorus',' ','mol P m-3')
       call wrtlyr(jprefalk(iogrp),LYR_PREFALK(iogrp),1e3,0.,cmpflg,     
@@ -426,6 +451,10 @@ c --- Store 3d layer fields
      .  'dissic14','Dissolved C14',' ','mol 14C m-3')
       call wrtlyr(jd13c(iogrp),LYR_D13C(iogrp),1.,0.,cmpflg,          
      .  'delta13c','delta13C of DIC',' ','permil')
+      call wrtlyr(jd14c(iogrp),LYR_D14C(iogrp),1.,0.,cmpflg,          
+     .  'delta14c','delta14C of DIC',' ','permil')
+      call wrtlyr(jbigd14c(iogrp),LYR_BIGD14C(iogrp),1.,0.,cmpflg,          
+     .  'bigdelta14c','big delta14C of DIC',' ','permil')
       call wrtlyr(jpoc13(iogrp),LYR_POC13(iogrp),1e3,0.,cmpflg,              
      .  'detoc13','Detritus13',' ','mol P m-3')
       call wrtlyr(jdoc13(iogrp),LYR_DOC13(iogrp),1e3,0.,cmpflg,              
@@ -467,6 +496,8 @@ c --- Store 3d layer fields
      .  'mol C m-3')
       call wrtlyr(jnatcalc(iogrp),LYR_NATCALC(iogrp),1e3,0.,cmpflg,        
      .  'natcalc','Natural CaCO3 shells',' ','mol C m-3')
+      call wrtlyr(jnatomegaa(iogrp),LYR_NATOMEGAA(iogrp),1.,0.,cmpflg,  
+     .  'natomegaa','Natural OmegaA',' ','-')
       call wrtlyr(jnatomegac(iogrp),LYR_NATOMEGAC(iogrp),1.,0.,cmpflg,  
      .  'natomegac','Natural OmegaC',' ','-')
 #endif
@@ -504,14 +535,16 @@ c --- Store 3d level fields
      .  'co3lvl','Carbonate ions',' ','mol C m-3')
       call wrtlvl(jlvlph(iogrp),LVL_PH(iogrp),-1.,0.,cmpflg,          
      .  'phlvl','pH',' ','-log10([h+])')
+      call wrtlvl(jlvlomegaa(iogrp),LVL_OMEGAA(iogrp),rnacc,0.,cmpflg,  
+     .  'omegaalvl','OmegaA',' ','-')
       call wrtlvl(jlvlomegac(iogrp),LVL_OMEGAC(iogrp),rnacc,0.,cmpflg,  
      .  'omegaclvl','OmegaC',' ','-')
       call wrtlvl(jlvln2o(iogrp),LVL_N2O(iogrp),rnacc*1e3,0.,cmpflg,      
      .  'n2olvl','N2O',' ','mol N2O m-3')
-      call wrtlvl(jlvlaou(iogrp),LVL_AOU(iogrp),rnacc*1e3,0.,cmpflg,      
-     .  'aoulvl','AOU',' ','mol O2 m-3')
       call wrtlvl(jlvlprefo2(iogrp),LVL_PREFO2(iogrp),rnacc*1e3,0.,
      .  cmpflg,'p_o2lvl','Preformed oxygen',' ','mol O2 m-3')
+      call wrtlvl(jlvlo2sat(iogrp),LVL_O2SAT(iogrp),rnacc*1e3,0.,      
+     .  cmpflg,'satoxylvl','Saturated oxygen',' ','mol O2 m-3')
       call wrtlvl(jlvlprefpo4(iogrp),LVL_PREFPO4(iogrp),rnacc*1e3,0.,
      .  cmpflg,'p_po4lvl','Preformed phosphorus',' ','mol P m-3')
       call wrtlvl(jlvlprefalk(iogrp),LVL_PREFALK(iogrp),rnacc*1e3,0.,
@@ -527,6 +560,10 @@ c --- Store 3d level fields
      .  0.,cmpflg,'dissic14lvl','Dissolved C14',' ','mol 14C m-3')
       call wrtlvl(jlvld13c(iogrp),LVL_D13C(iogrp),rnacc,    
      .  0.,cmpflg,'delta13clvl','delta13C of DIC',' ','permil')
+      call wrtlvl(jlvld14c(iogrp),LVL_D14C(iogrp),rnacc,    
+     .  0.,cmpflg,'delta14clvl','delta14C of DIC',' ','permil')
+      call wrtlvl(jlvlbigd14c(iogrp),LVL_BIGD14C(iogrp),rnacc,    
+     .  0.,cmpflg,'bigdelta14clvl','big delta14C of DIC',' ','permil')
       call wrtlvl(jlvlpoc13(iogrp),LVL_POC13(iogrp),rnacc*1e3,       
      .  0.,cmpflg,'detoc13lvl','Detritus13',' ','mol P m-3')
       call wrtlvl(jlvldoc13(iogrp),LVL_DOC13(iogrp),rnacc*1e3,       
@@ -577,6 +614,9 @@ c --- Store 3d level fields
       call wrtlvl(jlvlnatcalc(iogrp),LVL_NATCALC(iogrp),
      .  rnacc*1e3,0.,cmpflg,'natcalclvl',
      .  'Natural CaCO3 shells',' ','mol C m-3')
+      call wrtlvl(jlvlnatomegaa(iogrp),LVL_NATOMEGAA(iogrp),
+     .  rnacc,0.,cmpflg,'natomegaalvl',
+     .  'Natural OmegaA',' ','-')
       call wrtlvl(jlvlnatomegac(iogrp),LVL_NATOMEGAC(iogrp),
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
@@ -664,20 +704,27 @@ c --- Initialise fields
       call inisrf(jcalflx1000(iogrp),0.)       
       call inisrf(jcalflx2000(iogrp),0.)       
       call inisrf(jcalflx4000(iogrp),0.)       
-      call inisrf(jcalflx_bot(iogrp),0.)       
+      call inisrf(jcalflx_bot(iogrp),0.)
+#ifdef cisonew
+      call inisrf(jco213fxd(iogrp),0.)       
+      call inisrf(jco213fxu(iogrp),0.)       
+      call inisrf(jco214fxd(iogrp),0.)       
+      call inisrf(jco214fxu(iogrp),0.)       
+#endif     
 #ifdef CFC
       call inisrf(jcfc11fx(iogrp),0.)       
       call inisrf(jcfc12fx(iogrp),0.)       
       call inisrf(jsf6fx(iogrp),0.)       
 #endif
+#ifdef natDIC
+      call inisrf(jnatco2fx(iogrp),0.)       
+#endif
+
       call inisrf(jatmco2(iogrp),0.)       
 #ifdef DIFFAT 
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
 #endif   
-#ifdef natDIC
-      call inisrf(jnatco2fx(iogrp),0.)       
-#endif
 c
       call inilyr(jdp(iogrp),0.)       
       call inilyr(jdic(iogrp),0.)       
@@ -696,10 +743,11 @@ c
       call inilyr(jiron(iogrp),0.)       
       call inilyr(jco3(iogrp),0.)       
       call inilyr(jph(iogrp),0.)       
+      call inilyr(jomegaa(iogrp),0.)       
       call inilyr(jomegac(iogrp),0.)       
       call inilyr(jn2o(iogrp),0.)       
-      call inilyr(jaou(iogrp),0.)       
       call inilyr(jprefo2(iogrp),0.)       
+      call inilyr(jo2sat(iogrp),0.)       
       call inilyr(jprefpo4(iogrp),0.)       
       call inilyr(jprefalk(iogrp),0.)       
       call inilyr(jprefdic(iogrp),0.)       
@@ -708,6 +756,8 @@ c
       call inilyr(jdic13(iogrp),0.)       
       call inilyr(jdic14(iogrp),0.)      
       call inilyr(jd13c(iogrp),0.)
+      call inilyr(jd14c(iogrp),0.)
+      call inilyr(jbigd14c(iogrp),0.)
       call inilyr(jpoc13(iogrp),0.)
       call inilyr(jdoc13(iogrp),0.)
       call inilyr(jcalc13(iogrp),0.)
@@ -731,6 +781,7 @@ c
       call inilyr(jnatalkali(iogrp),0.)       
       call inilyr(jnatdic(iogrp),0.)       
       call inilyr(jnatcalc(iogrp),0.)       
+      call inilyr(jnatomegaa(iogrp),0.)       
       call inilyr(jnatomegac(iogrp),0.)       
 #endif
 c
@@ -750,10 +801,11 @@ c
       call inilvl(jlvliron(iogrp),0.)
       call inilvl(jlvlco3(iogrp),0.)
       call inilvl(jlvlph(iogrp),0.)
+      call inilvl(jlvlomegaa(iogrp),0.)
       call inilvl(jlvlomegac(iogrp),0.)
       call inilvl(jlvln2o(iogrp),0.)       
-      call inilvl(jlvlaou(iogrp),0.)       
       call inilvl(jlvlprefo2(iogrp),0.)       
+      call inilvl(jlvlo2sat(iogrp),0.)       
       call inilvl(jlvlprefpo4(iogrp),0.)       
       call inilvl(jlvlprefalk(iogrp),0.)       
       call inilvl(jlvlprefdic(iogrp),0.)       
@@ -762,6 +814,8 @@ c
       call inilvl(jlvldic13(iogrp),0.)
       call inilvl(jlvldic14(iogrp),0.)
       call inilvl(jlvld13c(iogrp),0.)
+      call inilvl(jlvld14c(iogrp),0.)
+      call inilvl(jlvlbigd14c(iogrp),0.)
       call inilvl(jlvlpoc13(iogrp),0.)
       call inilvl(jlvldoc13(iogrp),0.)
       call inilvl(jlvlcalc13(iogrp),0.)
@@ -785,6 +839,7 @@ c
       call inilvl(jlvlnatalkali(iogrp),0.)       
       call inilvl(jlvlnatdic(iogrp),0.)       
       call inilvl(jlvlnatcalc(iogrp),0.)       
+      call inilvl(jlvlnatomegaa(iogrp),0.)       
       call inilvl(jlvlnatomegac(iogrp),0.)       
 #endif
 c
@@ -877,45 +932,57 @@ c
       call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',
      .  'Integrated primary production',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',
-     .  'Integrated nitrogen fixation',' ','mol N m-2',0)
+     .  'Integrated nitrogen fixation',' ','mol N m-2 s-1',0)
       call ncdefvar3d(INT_DNIT(iogrp),cmpflg,'p','dnitint',
-     .  'Integrated denitrification',' ','mol N m-2',0)
-      call ncdefvar3d(CARFLX0100(iogrp),cmpflg,'p','carflx0100',
+     .  'Integrated denitrification',' ','mol N m-2 s-1',0)
+      call ncdefvar3d(FLX_CAR0100(iogrp),cmpflg,'p','carflx0100',
      .  'C flux at 100m',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(CARFLX0500(iogrp),cmpflg,'p','carflx0500',
+      call ncdefvar3d(FLX_CAR0500(iogrp),cmpflg,'p','carflx0500',
      .  'C flux at 500m',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(CARFLX1000(iogrp),cmpflg,'p','carflx1000',
+      call ncdefvar3d(FLX_CAR1000(iogrp),cmpflg,'p','carflx1000',
      .  'C flux at 1000m',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(CARFLX2000(iogrp),cmpflg,'p','carflx2000',
+      call ncdefvar3d(FLX_CAR2000(iogrp),cmpflg,'p','carflx2000',
      .  'C flux at 2000m',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(CARFLX4000(iogrp),cmpflg,'p','carflx4000',
+      call ncdefvar3d(FLX_CAR4000(iogrp),cmpflg,'p','carflx4000',
      .  'C flux at 4000m',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(CARFLX_BOT(iogrp),cmpflg,'p','carflx_bot',
+      call ncdefvar3d(FLX_CAR_BOT(iogrp),cmpflg,'p','carflx_bot',
      .  'C flux to sediment',' ','mol C m-2 s-1',0)
-      call ncdefvar3d(BSIFLX0100(iogrp),cmpflg,'p','bsiflx0100',
+      call ncdefvar3d(FLX_BSI0100(iogrp),cmpflg,'p','bsiflx0100',
      .  'Opal flux at 100m',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(BSIFLX0500(iogrp),cmpflg,'p','bsiflx0500',
+      call ncdefvar3d(FLX_BSI0500(iogrp),cmpflg,'p','bsiflx0500',
      .  'Opal flux at 500m',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(BSIFLX1000(iogrp),cmpflg,'p','bsiflx1000',
+      call ncdefvar3d(FLX_BSI1000(iogrp),cmpflg,'p','bsiflx1000',
      . 'Opal flux at 1000m',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(BSIFLX2000(iogrp),cmpflg,'p','bsiflx2000',
+      call ncdefvar3d(FLX_BSI2000(iogrp),cmpflg,'p','bsiflx2000',
      .  'Opal flux at 2000m',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(BSIFLX4000(iogrp),cmpflg,'p','bsiflx4000',
+      call ncdefvar3d(FLX_BSI4000(iogrp),cmpflg,'p','bsiflx4000',
      .  'Opal flux at 4000m',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(BSIFLX_BOT(iogrp),cmpflg,'p','bsiflx_bot',
+      call ncdefvar3d(FLX_BSI_BOT(iogrp),cmpflg,'p','bsiflx_bot',
      .  'Opal flux to sediment',' ','mol Si m-2 s-1',0)
-      call ncdefvar3d(CALFLX0100(iogrp),cmpflg,'p','calflx0100',
+      call ncdefvar3d(FLX_CAL0100(iogrp),cmpflg,'p','calflx0100',
      .  'CaCO3 flux at 100m',' ','mol Ca m-2 s-1',0)
-      call ncdefvar3d(CALFLX0500(iogrp),cmpflg,'p','calflx0500',
+      call ncdefvar3d(FLX_CAL0500(iogrp),cmpflg,'p','calflx0500',
      .  'CaCO3 flux at 500m',' ','mol Ca m-2 s-1',0)
-      call ncdefvar3d(CALFLX1000(iogrp),cmpflg,'p','calflx1000',
+      call ncdefvar3d(FLX_CAL1000(iogrp),cmpflg,'p','calflx1000',
      .  'CaCO3 flux at 1000m',' ','mol Ca m-2 s-1',0)
-      call ncdefvar3d(CALFLX2000(iogrp),cmpflg,'p','calflx2000',
+      call ncdefvar3d(FLX_CAL2000(iogrp),cmpflg,'p','calflx2000',
      .  'CaCO3 flux at 2000m',' ','mol Ca m-2 s-1',0)
-      call ncdefvar3d(CALFLX4000(iogrp),cmpflg,'p','calflx4000',
+      call ncdefvar3d(FLX_CAL4000(iogrp),cmpflg,'p','calflx4000',
      .  'CaCO3 flux at 4000m',' ','mol Ca m-2 s-1',0)
-      call ncdefvar3d(CALFLX_BOT(iogrp),cmpflg,'p','calflx_bot',
+      call ncdefvar3d(FLX_CAL_BOT(iogrp),cmpflg,'p','calflx_bot',
      .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1',0)
+      call ncdefvar3d(SRF_N2OFX(iogrp),cmpflg,'p','n2oflux',
+     .  'N2O flux',' ','mol N2O m-2 s-1',0)
+#ifdef cisonew
+      call ncdefvar3d(SRF_CO213FXD(iogrp),cmpflg,'p','co213fxd',
+     .  'Downward 13CO2 flux',' ','kg C m-2 s-1',0)
+      call ncdefvar3d(SRF_CO213FXU(iogrp),cmpflg,'p','co213fxu',
+     .  'Upward 13CO2 flux',' ','kg C m-2 s-1',0)
+      call ncdefvar3d(SRF_CO214FXD(iogrp),cmpflg,'p','co214fxd',
+     .  'Downward 14CO2 flux',' ','kg C m-2 s-1',0)
+      call ncdefvar3d(SRF_CO214FXU(iogrp),cmpflg,'p','co214fxu',
+     .  'Upward 14CO2 flux',' ','kg C m-2 s-1',0)
+#endif
 #ifdef CFC
       call ncdefvar3d(SRF_CFC11(iogrp),cmpflg,'p','cfc11flux',
      .   'CFC-11 flux',' ','mol CFC12 m-2 s-1',0)
@@ -924,6 +991,11 @@ c
       call ncdefvar3d(SRF_SF6(iogrp),
      .  cmpflg,'p','sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1',0)
 #endif
+#ifdef natDIC
+      call ncdefvar3d(SRF_NATCO2FX(iogrp),
+     .  cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
+#endif
+
       call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
      .  'atmco2','Atmospheric CO2',' ','ppm',0)
 #ifdef DIFFAT
@@ -932,12 +1004,6 @@ c
       call ncdefvar3d(SRF_ATMN2(iogrp),cmpflg,'p',
      .  'atmn2','Atmospheric N2',' ','ppm',0)
 #endif 
-      call ncdefvar3d(SRF_N2OFX(iogrp),
-     .  cmpflg,'p','n2oflux','N2O flux',' ','mol N2O m-2 s-1',0)
-#ifdef natDIC
-      call ncdefvar3d(SRF_NATCO2FX(iogrp),
-     .  cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
-#endif
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',
@@ -974,14 +1040,16 @@ c --- define 3d layer fields
      .  'co3','Carbonate ions',' ','mol C m-3',1)
       call ncdefvar3d(LYR_PH(iogrp),cmpflg,'p',
      .  'ph','pH',' ','-log10([h+])',1)
+      call ncdefvar3d(LYR_OMEGAA(iogrp),cmpflg,'p',
+     .  'omegaa','OmegaA',' ','1',1)
       call ncdefvar3d(LYR_OMEGAC(iogrp),cmpflg,'p',
      .  'omegac','OmegaC',' ','1',1)
       call ncdefvar3d(LYR_N2O(iogrp),cmpflg,'p',
      .  'n2o','N2O',' ','mol N2O m-3',1)
-      call ncdefvar3d(LYR_AOU(iogrp),cmpflg,'p',
-     .  'aou','AOU',' ','mol O2 m-3',1)
       call ncdefvar3d(LYR_PREFO2(iogrp),cmpflg,'p',       
      .  'p_o2','Preformed oxygen',' ','mol O2 m-3',1)
+      call ncdefvar3d(LYR_O2SAT(iogrp),cmpflg,'p',
+     .  'satoxy','Saturated oxygen',' ','mol O2 m-3',1)
       call ncdefvar3d(LYR_PREFPO4(iogrp),cmpflg,'p',        
      .  'p_po4','Preformed phosphorus',' ','mol P m-3',1)
       call ncdefvar3d(LYR_PREFALK(iogrp),cmpflg,'p',
@@ -997,6 +1065,10 @@ c --- define 3d layer fields
      .  'dissic14','Dissolved C14',' ','mol 14C m-3',1)
       call ncdefvar3d(LYR_D13C(iogrp),cmpflg,'p',
      .  'delta13c','delta13C of DIC',' ','permil',1)
+      call ncdefvar3d(LYR_D14C(iogrp),cmpflg,'p',
+     .  'delta14c','delta14C of DIC',' ','permil',1)
+      call ncdefvar3d(LYR_BIGD14C(iogrp),cmpflg,'p',
+     .  'bigdelta14c','big delta14C of DIC',' ','permil',1)
       call ncdefvar3d(LYR_POC13(iogrp),cmpflg,'p',              
      .  'detoc13','Detritus13',' ','mol P m-3',1)
       call ncdefvar3d(LYR_DOC13(iogrp),cmpflg,'p',              
@@ -1037,6 +1109,8 @@ c --- define 3d layer fields
      .  'Natural dissolved inorganic carbon',' ','mol C m-3',1)
       call ncdefvar3d(LYR_NATCALC(iogrp),cmpflg,'p','natcalc',
      .  'Natural CaCO3',' ','mol C m-3',1)
+      call ncdefvar3d(LYR_NATOMEGAA(iogrp),cmpflg,'p','natomegaa',
+     .  'Natural OmegaA',' ','1',1)
       call ncdefvar3d(LYR_NATOMEGAC(iogrp),cmpflg,'p','natomegac',
      .  'Natural OmegaC',' ','1',1)
 #endif
@@ -1074,14 +1148,16 @@ c --- define 3d level fields
      .  'co3lvl','Carbonate ions',' ','mol C m-3',2)
       call ncdefvar3d(LVL_PH(iogrp),cmpflg,'p',
      .  'phlvl','pH',' ','-log10([h+])',2)
+      call ncdefvar3d(LVL_OMEGAA(iogrp),cmpflg,'p',
+     .  'omegaalvl','OmegaA',' ','1',2)
       call ncdefvar3d(LVL_OMEGAC(iogrp),cmpflg,'p',
      .  'omegaclvl','OmegaC',' ','1',2)
       call ncdefvar3d(LVL_N2O(iogrp),cmpflg,'p',      
      .  'n2olvl','N2O',' ','mol N2O m-3',2)
-      call ncdefvar3d(LVL_AOU(iogrp),cmpflg,'p',      
-     .  'aoulvl','AOU',' ','mol O2 m-3',2)
       call ncdefvar3d(LVL_PREFO2(iogrp),cmpflg,'p',
      .  'p_o2lvl','Preformed oxygen',' ','mol O2 m-3',2)
+      call ncdefvar3d(LVL_O2SAT(iogrp),cmpflg,'p',      
+     .  'satoxylvl','Saturated oxygen',' ','mol O2 m-3',2)
       call ncdefvar3d(LVL_PREFPO4(iogrp),cmpflg,'p',
      .  'p_po4lvl','Preformed phosphorus',' ','mol P m-3',2)
       call ncdefvar3d(LVL_PREFALK(iogrp),cmpflg,'p',
@@ -1097,6 +1173,10 @@ c --- define 3d level fields
      .  'dissic14lvl','Dissolved C14',' ','mol 14C m-3',2)
       call ncdefvar3d(LVL_D13C(iogrp),cmpflg,'p',
      .  'delta13clvl','delta13C of DIC',' ','permil',2)
+      call ncdefvar3d(LVL_D14C(iogrp),cmpflg,'p',
+     .  'delta14clvl','delta14C of DIC',' ','permil',2)
+      call ncdefvar3d(LVL_BIGD14C(iogrp),cmpflg,'p',
+     .  'bigdelta14clvl','big delta14C of DIC',' ','permil',2)
       call ncdefvar3d(LVL_POC13(iogrp),cmpflg,'p',        
      .  'detoc13lvl','Detritus13',' ','mol P m-3',2)
       call ncdefvar3d(LVL_DOC13(iogrp),cmpflg,'p',       
@@ -1137,6 +1217,8 @@ c --- define 3d level fields
      . 'Natual dissolved inorganic carbon',' ','mol C m-3',2)
       call ncdefvar3d(LVL_NATCALC(iogrp),cmpflg,'p',     
      .  'natcalclvl','Natural CaCO3 shells',' ','mol C m-3',2)
+      call ncdefvar3d(LVL_NATOMEGAA(iogrp),cmpflg,'p',
+     .  'natomegaalvl','Natural OmegaA',' ','1',2)
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif

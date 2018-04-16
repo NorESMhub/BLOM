@@ -1,4 +1,5 @@
-SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc)
+SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,           &
+                        K1p,K2p,K3p,Kspc,Kspa)
 !*******************************************************************************
 !
 !**** *CARCHM_SOLVE* - .
@@ -14,6 +15,9 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc
 !
 !     Method
 !     -------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - added output Khd (CO2 solubility w.r.t. dry air) and
+!       Kspa
 !
 !
 !**** Parameter list:
@@ -22,7 +26,8 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc
 !     *REAL*    *temp*    - potential temperature [degr C].
 !     *REAL*    *saln*    - salinity [psu].
 !     *REAL*    *prb*     - pressure [bar].
-!     *REAL*    *Kh*      - equilibrium constant Kh  =  [CO2]/pCO2.
+!     *REAL*    *Kh*      - equilibrium constant Kh  =  [CO2]/pCO2, moist air.
+!     *REAL*    *Khd*     - equilibrium constant Kh  =  [CO2]/pCO2, dry air.
 !     *REAL*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
 !     *REAL*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
 !     *REAL*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
@@ -34,6 +39,7 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc
 !     *REAL*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
 !     *REAL*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
 !     *REAL*    *Kspc*    - equilibrium constant Kspc= [Ca2+]T [CO3]T.
+!     *REAL*    *Kspa*    - equilibrium constant Kspa= [Ca2+]T [CO3]T.
 !
 !     Externals
 !     ---------
@@ -42,11 +48,12 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc
 !*******************************************************************************
 USE mo_chemcon, only: tzero,rgas,bor1,bor2,salchl,  &
                       ac1,ac2,ac3,ac4,bc1,bc2,bc3,  &
+                      ad1,ad2,ad3,bd1,bd2,bd3,      &
                       a0,a1,a2,b0,b1,b2
 
 IMPLICIT NONE
 REAL,    INTENT(IN)    :: temp,saln,prb
-REAL,    INTENT(OUT)   :: Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc
+REAL,    INTENT(OUT)   :: Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc,Kspa
 
 ! Local varibles
 INTEGER                :: js
@@ -72,6 +79,10 @@ scl    = s * salchl
 ! Weiss (1974), refitted for moist air Weiss and Price (1980) [mol/kg/atm]
 nKhwe74 = ac1+ac2/tk100+ac3*log(tk100)+ac4*tk100**2+s*(bc1+bc2*tk100+bc3*tk100**2)
 Kh      = exp( nKhwe74 )
+! Khd = [CO2]/ p CO2
+! Weiss (1974) for dry air [mol/kg/atm]
+nKhwe74 = ad1+ad2/tk100+ad3*log(tk100)+s*(bd1+bd2*tk100+bd3*tk100**2)
+Khd     = exp( nKhwe74 )
 ! K1 = [H][HCO3]/[H2CO3]   ; K2 = [H][CO3]/[HCO3]
 ! Millero p.664 (1995) using Mehrbach et al. data on seawater scale
 K1 = 10**( -1.0 * ( 3670.7 * invtk - 62.008 + 9.7944 * dlogtk - 0.0118 * s + 0.000116 * s2 ) )
@@ -117,9 +128,8 @@ Kspc = 10**( -171.9065 - 0.077993 * tk + 2839.319 / tk + 71.595 * log10( tk ) + 
 ! apparent solubility product of aragonite : Kspa = [Ca2+]T [CO32-]T
 ! where $[]_T$ refers to the equilibrium total (free + complexed) ion concentration.
 !          Mucci 1983 mol/kg-soln
-!    Kspa = 10^( -171.945 - 0.077993 * tk + 2903.293 / tk  + 71.595 * log10( tk ) ...
-!           +( -0.068393 + 0.0017276 * tk + 88.135 / tk ) * sqrts ...
-!           - 0.10018 * s + 0.0059415 * s15 );
+Kspa = 10**( -171.945 - 0.077993 * tk + 2903.293 / tk  + 71.595 * log10( tk ) + ( -0.068393 +    &
+             0.0017276 * tk + 88.135 / tk ) * sqrts - 0.10018 * s + 0.0059415 * s15 );
 
 
 !---------------------- Pressure effect on Ks (Millero, 95) --------------------
@@ -139,7 +149,7 @@ Kw   = Kw   * exp( lnkpok0(4)  )
 Ks1  = Ks1  * exp( lnkpok0(5)  )
 Kf   = Kf   * exp( lnkpok0(6)  )
 Kspc = Kspc * exp( lnkpok0(7)  )
-!Kspa = Kspa * exp( lnkpok0(8)  )
+Kspa = Kspa * exp( lnkpok0(8)  )
 K1p  = K1p  * exp( lnkpok0(9)  )
 K2p  = K2p  * exp( lnkpok0(10) )
 K3p  = K3p  * exp( lnkpok0(11) )

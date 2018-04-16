@@ -6,6 +6,10 @@ c
 c     J. Schwinger      *GFI, UiB        2014-05-21 initial version
 c      - 
 c
+c     Modified
+c     --------
+c     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+c     - added sediment bypass preprocessor option
 c  
 c     Purpose
 c     -------

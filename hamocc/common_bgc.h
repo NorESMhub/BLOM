@@ -3,7 +3,7 @@ c arrays to feed BCM variables to HAMOCC
 c
       c o m m o n  /bgc_hamocc/
      . bgc_dx  (idm,jdm)      ,bgc_dy  (idm,jdm)
-     .,bgc_dp  (idm,jdm,kdm)  ,bgc_dpio(idm,jdm,kdm)
+     .,bgc_dp  (idm,jdm,kdm)
      .,bgc_pu  (idm,jdm,kdm+1),bgc_pw  (idm,jdm,kdm+1)
      .,bgc_rho (idm,jdm,kdm)
      .,bgc_t   (idm,jdm,kdm)  ,bgc_s   (idm,jdm,kdm)
@@ -13,7 +13,7 @@ c
      .,bgc_atmco2(idm,jdm)    ,bgc_flxco2(idm,jdm)
      .,bgc_flxdms(idm,jdm)
 c
-      real bgc_dx,bgc_dy,bgc_dp,bgc_dpio
+      real bgc_dx,bgc_dy,bgc_dp
       real bgc_pu,bgc_pw,bgc_rho,bgc_t,bgc_s,omask
       real bgc_swr,bgc_fice,bgc_awnd,bgc_slp
       real bgc_atmco2,bgc_flxco2,bgc_flxdms

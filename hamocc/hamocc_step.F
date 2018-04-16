@@ -31,7 +31,7 @@ c
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
      .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
-     .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
+     .            bgc_pu,bgc_pw,bgc_awnd,bgc_atmco2,bgc_flxco2,
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,nday_in_year,bgc_flxdms)
 c

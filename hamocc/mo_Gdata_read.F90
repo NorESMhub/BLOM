@@ -6,7 +6,10 @@ module mo_Gdata_read
 ! Modified
 ! --------
 !    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
-!    - Adapted this module to read the initial conditions for OMIP-BGC.
+!    - adapted this module to read the initial conditions for OMIP-BGC.
+!
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - adaptions for reading c-isotope initial values as d13C and d14C
 !     
 ! Purpose
 ! -------
@@ -57,7 +60,7 @@ implicit none
 
 private
 
-public:: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds
+public:: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds,fillval
 
 ! Number of latitudes, longitudes, and z-levels in the WOA and GLODAP data
 integer, parameter          :: nlon   = 360
@@ -76,7 +79,7 @@ integer, parameter          :: dnmax = 100.0
 
 ! Fill value used in this module, original fill values of data files are
 ! replaced by this fill value during read
-real,             parameter :: fillval = -999.9
+real,             parameter :: fillval = -1.e+32
 
 ! Variables set by call to Gdata_set
 character(len=16)                     :: var,ncname
@@ -207,7 +210,9 @@ subroutine set_Gdata(path,vname,inddeg)
 !                'alk' - GLODAP alkalinity
 !                'dic' - GLODAP dissolved inorganic carbon
 !                'C13' - Dissolved inorganic 13C carbon isotope
+!                'd13' - delta13C of dissolved inorganic carbon
 !                'C14' - Dissolved inorganic 14C carbon isotope
+!                'd14' - delta14C of dissolved inorganic carbon
 !  inddeg:       extent (in degrees) of region used for averaging
 !
 !--------------------------------------------------------------------------------
@@ -270,11 +275,23 @@ case ('C13') ! natural 13C [micromoles/kg]
    dsrc   = 'ISO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
+case ('d13') ! natural delta13C [permil]
+   file   = trim(path)//'/C_Isotopes/'//'d13C_permil.nc'
+   ncname = 'd13C'
+   dsrc   = 'ISO'
+   cfac   = 1.0
+
 case ('C14') ! natural 14C [micromoles/kg]
    file   = trim(path)//'/C_Isotopes/'//'C14_micromol_per_kg.nc'
    ncname = 'C14'
    dsrc   = 'ISO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
+
+case ('d14') ! natural delta14C [permil]
+   file   = trim(path)//'/C_Isotopes/'//'d14C_permil.nc'
+   ncname = 'd14C'
+   dsrc   = 'ISO'
+   cfac   = 1.0
 
 case default
    call moderr(routinestr,'Invalid vname')  
@@ -598,13 +615,16 @@ do i=1,nlon
    if(lon(i)>360.0) lon(i)=lon(i)-360.0
 end do
 
+! Fillvalues are assumed to be < 0 currently, otherwise the below code would fail
+if(fval > 0.0) call moderr(routinestr,'FillValue > 0 found in data')  
 
-! Replace fill values:
-where( rvar < fval*0.1 ) rvar = fillval
-
-! unit conversion
-where( rvar > 0.0 ) rvar = rvar*cfac
-
+where( rvar < fval*0.1 )
+   ! Replace fill values:
+   rvar = fillval
+elsewhere
+   ! unit conversion
+   rvar = rvar*cfac
+end where
 
 
 ! Close data file
@@ -699,7 +719,7 @@ else
    ilats = ilatc-dnlat
    
    ! There is no "wrap-around" if southern/northen boundary of rectangle
-   ! goes beyond the pole. Insted rectangle is adjusted such that boundaries
+   ! goes beyond the pole. Instead rectangle is adjusted such that boundaries
    ! are aligned with northernmost/sothernmost data gridpoint
    if(ilats <= 0            ) ilats=1
    if(ilats > nlat-nelmlat+1) ilats= nlat-nelmlat+1
@@ -717,8 +737,8 @@ end if
 ! Calculate mean profile:
 do l=1,nz
 
-   npts(l) = count(gdata(ilons:ilone,ilats:ilate,l)>0.0)
-   prf(l)  = sum(gdata(ilons:ilone,ilats:ilate,l), mask=gdata(ilons:ilone,ilats:ilate,l)>0.0)
+   npts(l) = count(gdata(ilons:ilone,ilats:ilate,l) > fillval*0.1)
+   prf(l)  = sum(gdata(ilons:ilone,ilats:ilate,l), mask=gdata(ilons:ilone,ilats:ilate,l) > fillval*0.1)
    if( npts(l) > 0) then
       prf(l) = prf(l)/npts(l)
    else

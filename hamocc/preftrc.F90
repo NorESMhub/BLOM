@@ -8,6 +8,8 @@
 !
 !     Modified
 !     --------
+!     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+!     - added preformed DIC tracer
 !
 !
 !     Method
