@@ -30,19 +30,21 @@ c
       enddo
       call xcaget(rrmsk,rmsk,1)
 c
-      do kcs=1,kcsd
-        do jcs=1,jtdm
-          do ics=1,itdm
-            if (rrmsk(ics,jcs).lt..5) then
-              aa(ics,jcs,kcs)=0.
-            endif
+      if (mnproc.eq.1) then
+c
+        do kcs=1,kcsd
+          do jcs=1,jtdm
+            do ics=1,itdm
+              if (rrmsk(ics,jcs).lt..5) then
+                aa(ics,jcs,kcs)=0.
+              endif
+            enddo
           enddo
         enddo
-      enddo
 c
-      if (mnproc.eq.1) then
         write (lp,'(3a,z8.8)') ' chksum: ',text,': 0x',
      .    crcfast(aa,itdm*jtdm*kcsd*8)
+c
       endif
 c
       return

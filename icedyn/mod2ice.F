@@ -33,6 +33,7 @@ c ---
 c --- n o t e :  dynamic ocean model is formulated in c-grid, whereas
 c ---            dynamic ice model is in b-grid
 c --- ------------------------------------------------------------------------
+c
       call xctilr(ztx, 1,1, 1,1, halo_uv)
       call xctilr(mty, 1,1, 1,1, halo_vv)
 c$OMP PARALLEL DO
@@ -103,8 +104,8 @@ c$OMP END PARALLEL DO
       call xctilr(tmp1, 1,1, 1,1, halo_uv)
       call xctilr(tmp2, 1,1, 1,1, halo_vv)
 c$OMP PARALLEL DO
-      do j=1,jdm
-        do i=1,idm
+      do j=1,jj
+        do i=1,ii
           if (iu(i,j).eq.0) then
             tmp1(i,j)=tmp1(i-1,j)*iu(i-1,j)+tmp1(i+1,j)*iu(i+1,j)
           endif

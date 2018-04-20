@@ -1005,7 +1005,7 @@ c$OMP PARALLEL DO
           do k=1,kk
             km=k+mm
             do l=1,isu(j)
-              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 uvel(i,j,k)=u(i,j,km)+ub(i,j,m)
               enddo
             enddo
@@ -1015,7 +1015,7 @@ c$OMP END PARALLEL DO
       endif
       if (sum(ACC_VVEL(1:nphy)+ACC_VVELLVL(1:nphy)).ne.0) then
 c$OMP PARALLEL DO
-        do j=1,jj
+        do j=1,jj+1
           do k=1,kk
             km=k+mm
             do l=1,isv(j)
