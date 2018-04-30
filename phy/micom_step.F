@@ -57,7 +57,7 @@ c
       k1n=1+nn
 c
       nstep=nstep+1
-      time=nstep*baclin/86400.
+      time=time0+nstep*baclin/86400.
 c
       if (cnsvdi) call stdbud(1,n,nn)
 c

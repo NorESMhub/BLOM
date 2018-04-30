@@ -119,6 +119,7 @@ end
 #------------------------------------------------------------------------------
 
 # set LIMITS defaults
+set ICFILE   = "'inicon.nc'"
 set BACLIN   = 1800.
 set BATROP   = 36.
 set MDV2HI   = 2.
@@ -529,6 +530,9 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! RUNID    : Experiment name (a)
 ! EXPCNF   : Experiment configuration (a)
 ! RUNTYP   : CESM run type (a)
+! ICFILE   : Name of file containing initial conditions, that is either
+!            a valid restart file or 'inicon.nc' if climatological based
+!            initial conditions are desired (a)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -600,8 +604,6 @@ cat >! $RUNDIR/ocn_in << EOF1
 ! SMTFRC   : Smooth CESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! PATH     : Path to input files (a)
-! PATH1    : Path to diagnostic files (a)
-! PATH2    : Path to restart files (a)
 ! ATM_PATH : Path to synoptic NCEP fields (a)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
@@ -616,6 +618,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   RUNID    = 'xxxx',
   EXPCNF   = 'cesm',
   RUNTYP   = "${RUN_TYPE}",
+  ICFILE   = ${ICFILE},
   BACLIN   = ${BACLIN},
   BATROP   = ${BATROP},
   MDV2HI   = ${MDV2HI},
@@ -668,8 +671,6 @@ cat >! $RUNDIR/ocn_in << EOF1
   SMTFRC   = ${SMTFRC},
   SPRFAC   = ${SPRFAC},
   PATH     = "${INPUTPATH}/",
-  PATH1    = './',
-  PATH2    = './',
   ATM_PATH = './',
   RSTFRQ   = ${RSTFRQ},
   RSTFMT   = ${RSTFMT},

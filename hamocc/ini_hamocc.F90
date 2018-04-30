@@ -5,7 +5,7 @@
 #ifndef sedbypass
      &            ,sedlay2,powtra2,burial2                               &    
 #endif
-     &            ,rstfnm_ocn,path,path2)
+     &            ,rstfnm_ocn,path)
 
 !****************************************************************
 !
@@ -69,7 +69,6 @@
 !     *REAL*    *burial2*    - initial/restart sediment burial (two time levels) field
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
 !     *CHAR*    *path*       - path to data files
-!     *CHAR*    *path2*      - path to restart files
 !
 !**********************************************************************
 
@@ -106,7 +105,7 @@
       REAL    :: burial2(kpie,kpje,2,   nsedtra)
 #endif
       REAL    :: pdt
-      character(len=*) :: rstfnm_ocn,path,path2
+      character(len=*) :: rstfnm_ocn,path
 
       namelist /bgcnml/ atm_co2,ndepfname
 
@@ -210,7 +209,7 @@
      &                 sedlay2,powtra2,burial2,                          &
 #endif
      &                 kplyear,kplmonth,kplday,kpldtoce,omask,           &
-     &                 rstfnm_ocn,path2)
+     &                 rstfnm_ocn)
       ELSE
          trc(1:kpie,1:kpje,1:kpke,       itrbgc:itrbgc+ntrbgc-1) =       &
      &     ocetra(:,:,:,:)

@@ -3,7 +3,7 @@
      &                    sedlay2,powtra2,burial2,                      &
 #endif
      &                    kplyear,kplmon,kplday,kpldtoce,omask,         &
-     &                    rstfnm_ocn,path)
+     &                    rstfnm_ocn)
 
 !****************************************************************
 !
@@ -73,7 +73,6 @@
 !     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
-!     *CHAR*    *path*       - path to restart files
 !
 !**************************************************************************
       USE netcdf
@@ -94,11 +93,11 @@
 #endif
       REAL              :: omask(kpie,kpje)    
       INTEGER           :: kplyear,kplmon,kplday,kpldtoce
-      character(len=*)  :: rstfnm_ocn,path
+      character(len=*)  :: rstfnm_ocn
 
       REAL              :: locetra(kpie,kpje,2*kpke,nocetra)
       INTEGER           :: i,j
-      CHARACTER(LEN=80) :: rstfnm
+      CHARACTER(LEN=200):: rstfnm
 
       INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
      &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
@@ -169,7 +168,7 @@
       rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-      ncstat = NF90_CREATE(trim(path)//rstfnm,NF90_64BIT_OFFSET,ncid)
+      ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
       IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF1)')
                stop '(AUFW: Problem with netCDF1)'
@@ -197,7 +196,7 @@
       call mpi_info_set(info,'romio_ds_write','disable',ierr)
       call mpi_info_set(info,"striping_factor",stripestr,ierr)
       call mpi_info_set(info,"striping_unit",stripestr2,ierr)
-      ncstat = NFMPI_CREATE(mpicomm,trim(path)//rstfnm,             &
+      ncstat = NFMPI_CREATE(mpicomm,rstfnm,                         &
      &       IOR(nf_clobber,nf_64bit_offset),info,ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF1)')
@@ -394,10 +393,12 @@
 ! Define variables : advected ocean tracer
 ! ----------------------------------------------------------------------    
 !
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = nclev2id
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = nclev2id
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdimst,ncvarid,          &
      &    6,'mol/kg',13, 'Dissolved CO2',rmissing,10,io_stdo_bgc)
@@ -575,10 +576,12 @@
 ! Define variables : diagnostic ocean fields
 ! ----------------------------------------------------------------------    
 !
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = nclevid
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = nclevid
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,              &
      &    6,'mol/kg',26,'Hydrogen ion concentration',                   &
@@ -608,10 +611,12 @@
 ! ----------------------------------------------------------------------    
 !
 #ifndef sedbypass
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = ncks2id
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = ncks2id
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',35,'Sediment accumulated organic carbon',       &
@@ -683,10 +688,12 @@
      &    rmasks,86,io_stdo_bgc)
 #endif
 
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = ncksid
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = ncksid
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**2',34,'Sediment accumulated hydrogen ions',        &
@@ -696,10 +703,12 @@
 ! Define variables : sediment burial
 ! ----------------------------------------------------------------------    
 !
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = ncbur2id
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = ncbur2id
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,7,'bur_o12',3,ncdimst,ncvarid,         &
      &    9,'kmol/m**2',30,'Burial layer of organic carbon',            &
@@ -723,10 +732,12 @@
 ! Define variables : co2 diffusion
 ! ----------------------------------------------------------------------    
 !
-      ncdimst(1) = nclonid
-      ncdimst(2) = nclatid
-      ncdimst(3) = 0
-      ncdimst(4) = 0
+      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+        ncdimst(1) = nclonid
+        ncdimst(2) = nclatid
+        ncdimst(3) = 0
+        ncdimst(4) = 0
+      ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,7,'suppco2',2,ncdimst,ncvarid,         &
      &    4,'ppmv',42,'pCO2 from total dissolved inorganic carbon',     &

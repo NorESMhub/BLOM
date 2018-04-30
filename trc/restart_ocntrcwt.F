@@ -35,9 +35,9 @@ c
         do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            if(mnproc .eq. 1)
-     &       write (lp,*)
-     &        'Could not generate ocean tracer restart file name!'
+            if (mnproc.eq.1)
+     .        write (lp,*)
+     .          'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
           endif
@@ -48,25 +48,25 @@ c
         do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
-            if(mnproc .eq. 1)
-     &       write (lp,*)
-     &        'Could not generate ocean tracer restart file name!'
+            if (mnproc.eq.1)
+     .        write (lp,*)
+     .          'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
           endif
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
 #endif
-        if(mnproc .eq. 1)
-     .   write (lp,'(2a)')
-     .    ' saving ocean tracer restart file ',
-     .    trim(path2(1:path2_len)//rstfnm)
+        if (mnproc.eq.1) then
+          write (lp,'(2a)') ' saving ocean tracer restart file ',
+     .                      trim(rstfnm)
+        endif
         if (rstfmt.eq.1) then 
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1,iotype)
+          call ncfopn(rstfnm,'w','6',1,iotype)
         elseif (rstfmt.eq.2) then
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1,iotype)
+          call ncfopn(rstfnm,'w','h',1,iotype)
         else
-          call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1,iotype)
+          call ncfopn(rstfnm,'w','c',1,iotype)
         endif
 c
 c --- ------------------------------------------------------------------

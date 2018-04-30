@@ -68,14 +68,11 @@ c --- prepare output fields
 c
 c --- create output file
       if (GLB_NCFORMAT(iogrp).eq.1) then
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','6',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','6',irec(iogrp),iotype)
       elseif (GLB_NCFORMAT(iogrp).eq.2) then
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','h',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','h',irec(iogrp),iotype)
       else 
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','c',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','c',irec(iogrp),iotype)
       endif 
 c      
 c --- define spatial and time dimensions

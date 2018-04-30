@@ -131,16 +131,16 @@ c --- ------------------------------------------------------------------
 c --- Set up initial conditions or start from restart file
 c --- ------------------------------------------------------------------
 c
-      if (nstep1.eq.nstep0) then
+      if (nstep1.eq.nstep0.and.icfile.eq.'inicon.nc') then
 c
-c --- ------------------------------------------------------------------
-c --- - start from initial conditions
-c --- ------------------------------------------------------------------
+c --- ----------------------------------------------------------------
+c --- - start from initial conditions derived from climatology
+c --- ----------------------------------------------------------------
 c
         if (nmonth.ne.1.or.nday.ne.1) then
           if (mnproc.eq.1) then
             write (lp,*)
-     .        'Warning! date is inconsistent with ini. cond. (Jan 1st)!'
+     .'Warning! date is inconsistent with ini. cond. (Jan 1st)!'
             call flush(lp)
           endif
         endif
@@ -157,7 +157,7 @@ c
 c
         time0=0.
 c
-      else !  nstep1 > 0
+      else !  nstep1 > 0 .or. icfile .ne. 'inicon.nc'
 c
 c --- ------------------------------------------------------------------
 c --- - start from restart file
@@ -167,7 +167,7 @@ c
 c
         delt1=baclin+baclin
 c
-      end if !  nstep1 > 0  or  = 0
+      end if
 c
 c --- ------------------------------------------------------------------
 c --- Set layer thickness at u,v points

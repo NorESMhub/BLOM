@@ -21,12 +21,12 @@ c
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
-     .  baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,vsc2hi,
-     .  vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,edritp,
-     .  bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,egmndf,
-     .  egmxdf,egidfq,ri0,rm0,rm5,ce,swamth,jwtype,chlopt,trxday,srxday,
-     .  trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,
-     .  srxsrc,smtfrc,sprfac,path,path1,path2,atm_path,rstfrq,rstfmt,
+     .  icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
+     .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,
+     .  edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,
+     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,swamth,jwtype,chlopt,trxday,
+     .  srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,
+     .  srxbal,srxsrc,smtfrc,sprfac,path,atm_path,rstfrq,rstfmt,
      .  rstcmp,iotype
 c
 c --- read namelists
@@ -64,6 +64,7 @@ c --- - print namelist on stdout
         write (lp,*) 'RUNID ',trim(RUNID)
         write (lp,*) 'EXPCNF ',trim(EXPCNF)
         write (lp,*) 'RUNTYP ',trim(RUNTYP)
+        write (lp,*) 'ICFILE ',trim(ICFILE)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'MDV2HI',MDV2HI
@@ -115,8 +116,6 @@ c --- - print namelist on stdout
         write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'SPRFAC',SPRFAC
         write (lp,*) 'PATH ',trim(PATH)
-        write (lp,*) 'PATH1 ',trim(PATH1)
-        write (lp,*) 'PATH2 ',trim(PATH2)
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
@@ -274,6 +273,7 @@ c
       call xcbcst(runid)
       call xcbcst(expcnf)
       call xcbcst(runtyp)
+      call xcbcst(icfile)
       call xcbcst(baclin)
       call xcbcst(batrop)
       call xcbcst(mdv2hi)
@@ -326,8 +326,6 @@ c
       call xcbcst(smtfrc)
       call xcbcst(sprfac)
       call xcbcst(path)
-      call xcbcst(path1)
-      call xcbcst(path2)
       call xcbcst(atm_path)
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
@@ -480,16 +478,6 @@ c --- set path lengths
         path_len=path_len+1
       enddo
       path_len=path_len-1
-      path1_len=1
-      do while (path1_len.lt.80.and.path1(path1_len:path1_len).ne.' ')
-        path1_len=path1_len+1
-      enddo
-      path1_len=path1_len-1
-      path2_len=1
-      do while (path2_len.lt.80.and.path2(path2_len:path2_len).ne.' ')
-        path2_len=path2_len+1
-      enddo
-      path2_len=path2_len-1
       if (expcnf.eq.'ben02syn') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.
@@ -556,6 +544,7 @@ c
 c --- --- when runtyp equal 'startup' the ocean integration start after
 c --- --- first coupling interval
 c
+          nday1=0
           nstep1=nstep0
           nstep2=nstep1
 c
@@ -579,7 +568,7 @@ c
             open (unit=nfu,file='rpointer.ocn')
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
-            inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+            inquire(file=rstfnm,exist=fexist)
           endif
           call xcbcst(fexist)
           if (.not.fexist) then
@@ -590,7 +579,7 @@ c
                    stop '(rdlim)'
           endif
           call xcbcst(rstfnm)
-          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+          call ncfopn(rstfnm,'r',' ',1,iotype)
           call ncgetr('time',time)
           call ncfcls
           nday1=nint(time)

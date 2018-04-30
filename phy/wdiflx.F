@@ -21,9 +21,9 @@ c
      .    runid(1:runid_len),'_tflxdi_',nyear-1,'.nc'
         if (mnproc.eq.1) then
           write (lp,'(2a)')
-     .      'Writing diagnostic heat flux to ',path1(1:path1_len)//fname
+     .      'Writing diagnostic heat flux to ',trim(fname)
         endif
-        call ncfopn(path1(1:path1_len)//fname,'w','c',1,iotype)
+        call ncfopn(fname,'w','c',1,iotype)
 c
 #ifdef COMPDIA
         call ncdimc('pcomp',ip,0)
@@ -67,9 +67,9 @@ c
      .    runid(1:runid_len),'_sflxdi_',nyear-1,'.nc'
         if (mnproc.eq.1) then
           write (lp,'(2a)')
-     .      'Writing diagnostic salt flux to ',path1(1:path1_len)//fname
+     .      'Writing diagnostic salt flux to ',trim(fname)
         endif
-        call ncfopn(path1(1:path1_len)//fname,'w','c',1,iotype)
+        call ncfopn(fname,'w','c',1,iotype)
 c
 #ifdef COMPDIA
         call ncdimc('pcomp',ip,0)

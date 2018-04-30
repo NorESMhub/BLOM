@@ -220,6 +220,7 @@ c ---            to the horizontal grid spacing
 c --- 'mlrttp' = type of mixed layer restratification time scale
 c --- 'edsprs' = if set to .true,, apply eddy mixing suppression away
 c ---            from steering level
+c --- 'icfile' = name of file containing initial conditions
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
@@ -228,6 +229,7 @@ c
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
+      character*200 icfile
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
@@ -235,7 +237,7 @@ c
      .                wpgf,mltmin,thktop,thkbot,egc,eggam,eglsmn,egmndf,
      .                egmxdf,egidfq,ri0,rm0,rm5,ce,csdiag,cnsvdi,edsprs,
      .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
-     .                mlrttp
+     .                mlrttp,icfile
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
@@ -257,11 +259,10 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path,path1,path2,runid
-      integer path_len,path1_len,path2_len,runid_len
+      character*80 path,runid
+      integer path_len,runid_len
 c
-      common /iovars/ path,path1,path2,runid,
-     .                path_len,path1_len,path2_len,runid_len
+      common /iovars/ path,runid,path_len,runid_len
 c
 c
 c> Revision history:

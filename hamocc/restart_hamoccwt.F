@@ -23,7 +23,7 @@ c
      .             ,sedlay2,powtra2,burial2
 #endif
      .             ,nyear,nmonth,nday,nstep,omask
-     .             ,rstfnm_ocn,path2)
+     .             ,rstfnm_ocn)
 c
       return
       end

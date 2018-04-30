@@ -36,7 +36,7 @@ c
 #ifndef sedbypass
      .               ,sedlay2,powtra2,burial2
 #endif
-     .               ,cdummy,path,path2)
+     .               ,cdummy,path)
 c
 #ifdef DIFFAT
 c     initialize slab atmosphere

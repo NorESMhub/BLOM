@@ -214,7 +214,7 @@ c         z(i,j,1)=z(i,j,1)*1.e2
         enddo
       enddo
 c
-c --- Compute layre interface geopotential
+c --- Compute layer interface geopotential
       do j=1,jj
         do k=1,kk+1
           do l=1,isp(j)

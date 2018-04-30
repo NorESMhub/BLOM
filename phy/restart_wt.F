@@ -50,7 +50,6 @@ c --- set time information
 c
 c --- formulate restart name and open restart file
 c
-c
       if (expcnf.eq.'cesm') then
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
@@ -69,7 +68,7 @@ c
      .        runid(1:runid_len),'_restphy_',
      .        mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
           endif
-          open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+          open (unit=nfu,file='rstdate.txt')
           i=1
  300      read (nfu,'(a)',end=301) rstdate_str(i)
           i=i+1
@@ -80,12 +79,12 @@ c
      .      nday,', integration day ',nint(time)
           if (mnproc.eq.1) then
             if (i.eq.1) then
-              open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+              open (unit=nfu,file='rstdate.txt')
               write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
               close (unit=nfu)
             elseif (rstdate_str(max(1,i-2)).ne.rstdate_str(i).and.
      .              rstdate_str(i-1       ).ne.rstdate_str(i)) then
-              open (unit=nfu,file=path2(1:path2_len)//'rstdate.txt')
+              open (unit=nfu,file='rstdate.txt')
               do j=max(1,i-2),i
                 write (nfu,'(a)') rstdate_str(j)(1:runid_len+54)
               enddo
@@ -94,24 +93,22 @@ c
           endif
         endif
         if (mnproc.eq.1) then
-          write (lp,'(a,a)')
-     .      ' saving restart file ',trim(path2(1:path2_len)//rstfnm)
+          write (lp,'(a,a)') ' saving restart file ',trim(rstfnm)
         endif
       endif
 c
       if (rstfmt.eq.1) then 
-        call ncfopn(path2(1:path2_len)//rstfnm,'w','6',1,iotype)
+        call ncfopn(rstfnm,'w','6',1,iotype)
       elseif (rstfmt.eq.2) then
-        call ncfopn(path2(1:path2_len)//rstfnm,'w','h',1,iotype)
+        call ncfopn(rstfnm,'w','h',1,iotype)
       else
-        call ncfopn(path2(1:path2_len)//rstfnm,'w','c',1,iotype)
+        call ncfopn(rstfnm,'w','c',1,iotype)
       endif
       call ncputi('nday0',nday0)
       call ncputi('nmonth0',nmonth0)
       call ncputi('nyear0',nyear0)
       call ncputr('time0',time0)
       call ncputr('time',time)
-c
 c
 c --- define spatial and time dimensions
       if (first) then
@@ -612,7 +609,7 @@ c
       call ncfcls
 c
 #ifdef ICEDYN
-      call restart_icewt(time,rstfnm,path2,path2_len)
+      call restart_icewt(time,rstfnm)
 #endif
 c
 #ifdef TRC
@@ -627,15 +624,15 @@ c --- - write diag. heat flux restart file
         else
           fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
         endif
-        if (mnproc.eq.1) write (lp,'(a,a)')
-     .    ' saving diag. heat flux restart file ',
-     .    trim(path2(1:path2_len)//fnm)
+        if (mnproc.eq.1)
+     .    write (lp,'(a,a)') ' saving diag. heat flux restart file ',
+     .                       trim(fnm)
         if (rstfmt.eq.1) then 
-          call ncfopn(path2(1:path2_len)//fnm,'w','6',1,iotype)
+          call ncfopn(fnm,'w','6',1,iotype)
         elseif (rstfmt.eq.2) then
-          call ncfopn(path2(1:path2_len)//fnm,'w','h',1,iotype)
+          call ncfopn(fnm,'w','h',1,iotype)
         else
-          call ncfopn(path2(1:path2_len)//fnm,'w','c',1,iotype)
+          call ncfopn(fnm,'w','c',1,iotype)
         endif
 c
         if (rstcmp.eq.1) then 
@@ -664,15 +661,15 @@ c --- - write diag. salt flux restart file
         else
           fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
         endif
-        if (mnproc.eq.1) write (lp,'(a,a)')
-     .    ' saving diag. salt flux restart file ',
-     .    path2(1:path2_len)//trim(fnm)
+        if (mnproc.eq.1)
+     .    write (lp,'(a,a)') ' saving diag. salt flux restart file ',
+     .                       trim(fnm)
         if (rstfmt.eq.1) then 
-          call ncfopn(path2(1:path2_len)//fnm,'w','6',1,iotype)
+          call ncfopn(fnm,'w','6',1,iotype)
         elseif (rstfmt.eq.2) then
-          call ncfopn(path2(1:path2_len)//fnm,'w','h',1,iotype)
+          call ncfopn(fnm,'w','h',1,iotype)
         else
-          call ncfopn(path2(1:path2_len)//fnm,'w','c',1,iotype)
+          call ncfopn(fnm,'w','c',1,iotype)
         endif
 c
         if (rstcmp.eq.1) then 

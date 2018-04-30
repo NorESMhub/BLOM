@@ -1680,18 +1680,14 @@ c --- create file name
 c
 c --- open output file
       if (mnproc.eq.1)
-     .   write (lp,'(2a)')
-     .    'Writing physical diagnostics to file: ',
-     .    path1(1:path1_len)//fname(iogrp)
+     .   write (lp,'(2a)') 'Writing physical diagnostics to file: ',
+     .                     trim(fname(iogrp))
       if (GLB_NCFORMAT(iogrp).eq.1) then
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','6',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','6',irec(iogrp),iotype)
       elseif (GLB_NCFORMAT(iogrp).eq.2) then
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','h',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','h',irec(iogrp),iotype)
       else
-        call ncfopn(path1(1:path1_len)//fname(iogrp),'w','c',
-     .    irec(iogrp),iotype)
+        call ncfopn(fname(iogrp),'w','c',irec(iogrp),iotype)
       endif
 c
 c --- compute extended ocean masks 

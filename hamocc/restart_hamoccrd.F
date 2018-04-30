@@ -1,4 +1,4 @@
-      subroutine restart_hamoccrd(nday1,rstfnm_ocn)
+      subroutine restart_hamoccrd(rstfnm_ocn)
 c
 c initialisation of HAMOCC      
 c
@@ -16,7 +16,7 @@ c
 #include "common_bgcs.h"
 #endif
 c
-      integer          :: nday1,read_rest
+      integer          :: read_rest
       character(len=*) :: rstfnm_ocn
 c
 #ifdef RESTART_BGC
@@ -40,7 +40,7 @@ c
 #ifndef sedbypass
      .               ,sedlay2,powtra2,burial2
 #endif
-     .               ,rstfnm_ocn,path,path2)
+     .               ,rstfnm_ocn,path)
 c
 
       return

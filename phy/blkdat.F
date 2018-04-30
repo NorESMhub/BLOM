@@ -52,8 +52,6 @@ c
 c --- i/o file names
 c
       data path /'./ '/
-      data path1/'./ '/
-      data path2/'./ '/
 c
       end
 c

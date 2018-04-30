@@ -20,7 +20,7 @@ c
       integer i,ndayr,nmonthr,nyearr,nt,nat
       real time0r,timer
       logical fexist
-      character(len=80) :: rstfnm,trcnm
+      character(len=200) :: rstfnm,trcnm
 c
 c --- ------------------------------------------------------------------
 c --- If no ocean tracers are defined, return
@@ -38,8 +38,8 @@ c
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             if (mnproc.eq.1) 
-     &       write (lp,*)
-     &        'Could not generate ocean tracer restart file name!'
+     .        write (lp,*)
+     .          'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
           endif
@@ -51,15 +51,15 @@ c
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             if (mnproc.eq.1) 
-     &       write (lp,*)
-     &        'Could not generate ocean tracer restart file name!'
+     .        write (lp,*)
+     .          'Could not generate ocean tracer restart file name!'
             call xchalt('(restart_ocntrcrd)')
             stop '(restart_ocntrcrd)'
           endif
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
 #endif
-        inquire(file=path2(1:path2_len)//rstfnm,exist=fexist)
+        inquire(file=rstfnm,exist=fexist)
 c
       call xcbcst(fexist)
 c
@@ -78,7 +78,7 @@ c
           write (lp,'(2a)') ' reading ocean tracer restart file ',
      .                      trim(rstfnm)
         endif  
-          call ncfopn(path2(1:path2_len)//rstfnm,'r',' ',1,iotype)
+          call ncfopn(rstfnm,'r',' ',1,iotype)
           call ncgeti('nday0',ndayr)
           call ncgeti('nmonth0',nmonthr)
           call ncgeti('nyear0',nyearr)

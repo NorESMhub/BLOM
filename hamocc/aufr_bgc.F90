@@ -3,7 +3,7 @@
      &                    sedlay2,powtra2,burial2,              &
 #endif
      &                    kplyear,kplmon,kplday,kpldtoce,omask, &
-     &                    rstfnm_ocn,path)
+     &                    rstfnm_ocn)
 
 !****************************************************************
 !
@@ -82,7 +82,6 @@
 !     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
-!     *CHAR*    *path*       - path to restart files
 !
 !
 !**************************************************************************
@@ -108,7 +107,7 @@
 #endif
       REAL             :: omask(kpie,kpje)    
       INTEGER          :: kplyear,kplmon,kplday,kpldtoce
-      character(len=*) :: rstfnm_ocn,path
+      character(len=*) :: rstfnm_ocn
 
       ! Local variables
       REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading 
@@ -117,7 +116,7 @@
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      character :: rstfnm*80
+      character :: rstfnm*200
       logical   :: lread_cfc, lread_nat, lread_iso
 #ifdef cisonew
       REAL      :: beta,rco213,rco214
@@ -153,7 +152,7 @@
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
 
-        ncstat = NF90_OPEN(trim(path)//rstfnm,NF90_NOWRITE, ncid)
+        ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
              CALL xchalt('(AUFR: Problem with netCDF1)')
                     stop '(AUFR: Problem with netCDF1)'
@@ -202,8 +201,7 @@
         call mpi_info_set(info,"striping_factor",stripestr,ierr)
         call mpi_info_set(info,"striping_unit",stripestr2,ierr)
 
-        ncstat = NFMPI_OPEN(mpicomm,trim(path)//rstfnm,NF_NOWRITE,   &
-     &    INFO, ncid)
+        ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,INFO, ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
              CALL xchalt('(AUFR: Problem with netCDF1)')
                     stop '(AUFR: Problem with netCDF1)'
@@ -242,28 +240,26 @@
 !
 ! Compare with date read from ocean restart file
 !
-      IF ( kplyear  .NE. restyear  ) THEN
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)                                     &
-     &   'WARNING: restart years in oce/bgc are not the same : '  &
-     &   ,kplyear,'/',restyear,' !!!'
-         ENDIF
-      ENDIF
+      IF (mnproc.eq.1) THEN
 
-      IF ( kplmon .NE. restmonth ) THEN
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)                                     &
-     &   'WARNING: restart months in oce/bgc are not the same : ' &
-     &   ,kplmon,'/',restmonth,' !!!'
+         IF ( kplyear  .NE. restyear  ) THEN
+            WRITE(io_stdo_bgc,*)                                     &
+     &      'WARNING: restart years in oce/bgc are not the same : '  &
+     &      ,kplyear,'/',restyear,' !!!'
          ENDIF
-      ENDIF
 
-      IF ( kplday   .NE. restday   ) THEN
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)                                     &
-     &   'WARNING: restart days in oce/bgc are not the same : '   &
-     &   ,kplday,'/',restday,' !!!'
+         IF ( kplmon .NE. restmonth ) THEN
+            WRITE(io_stdo_bgc,*)                                     &
+     &      'WARNING: restart months in oce/bgc are not the same : ' &
+     &      ,kplmon,'/',restmonth,' !!!'
          ENDIF
+
+         IF ( kplday   .NE. restday   ) THEN
+            WRITE(io_stdo_bgc,*)                                     &
+     &      'WARNING: restart days in oce/bgc are not the same : '   &
+     &      ,kplday,'/',restday,' !!!'
+         ENDIF
+
       ENDIF 
 
 ! Find out whether to restart CFCs
