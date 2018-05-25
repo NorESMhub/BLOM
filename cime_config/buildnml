@@ -490,6 +490,11 @@ else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
 else if ( $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set BACLIN = 3200.
   set BATROP = 64.
+  set CWMTAG = "'Gibraltar','Gibraltar'"
+  set CWMEDG = "        'u',        'u'"
+  set CWMI   = "        105,        106"
+  set CWMJ   = "        273,        273"
+  set CWMWTH = "      15.e3,      15.e3"
 else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 800.
   set BATROP = 16.
@@ -677,6 +682,33 @@ cat >! $RUNDIR/ocn_in << EOF1
   RSTCMP   = ${RSTCMP},
   IOTYPE   = ${IOTYPE}
 /
+EOF1
+
+if ($?CWMTAG) then
+cat >>! $RUNDIR/ocn_in << EOF2
+ 
+! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
+!
+! CONTENTS:
+!
+! CWMTAG   : Array of geographical names of channels to be modified (a)
+! CWMEDG   : Array of C grid cell edges to be modified. Valid options:
+!            'u' or 'v' (a)
+! CWMI     : Array of grid cell i-indices (i)
+! CWMJ     : Array of grid cell j-indices (i)
+! CWMWTH   : Array of modified grid cell widths (m) (f)
+! 
+&CWMOD
+  CWMTAG = ${CWMTAG},
+  CWMEDG = ${CWMEDG},
+  CWMI   = ${CWMI},
+  CWMJ   = ${CWMJ},
+  CWMWTH = ${CWMWTH},
+/
+EOF2
+endif
+
+cat >>! $RUNDIR/ocn_in << EOF3
 
 ! BGCNML NAMELIST
 !
@@ -686,6 +718,9 @@ cat >! $RUNDIR/ocn_in << EOF1
 &BGCNML
   ATM_CO2  = $CCSM_CO2_PPMV
 /
+EOF3
+
+cat >>! $RUNDIR/ocn_in << EOF4
 
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
@@ -1130,4 +1165,4 @@ cat >! $RUNDIR/ocn_in << EOF1
   SDM_SSSC12         = ${SDM_SSSC12},
   SDM_SSSTER         = ${SDM_SSSTER}
 /
-EOF1
+EOF4
