@@ -44,6 +44,8 @@ c ---            Richardson number [g/cm*3].
 c ---   thkdff - diffusive velocity for thickness diffusion [cm/s].
 c ---   temdff - diffusive velocity for tracer isopycnal diffusion
 c ---            [cm/s].
+c ---   nu0    - diapycnal diffusivity when range of isopycnic physical
+c ---            layers is restricted [cm**2/s].
 c ---   nus0   - maximum shear driven diapycnal diffusivity
 c ---            [cm**2/s].
 c ---   nug0   - maximum gravity current diapycnal diffusivity
@@ -84,13 +86,13 @@ c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,
-     .     nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
+     .     nu0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
      .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori30,bvf0,nubmin,dpgc,
      .     dpgrav,dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,
      .     as,cs
       parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
      .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
-     .           temdff=.35,nus0=50.,nug0=2500.,
+     .           temdff=.35,nu0=.1,nus0=50.,nug0=2500.,
      .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
      .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
@@ -861,7 +863,7 @@ c --- ------------------------------------------------------------------
 c
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          difdia(i,j,1)=nubmin
+          difdia(i,j,1)=nu0
           dfddsu(i)=0.
           dfddsl(i)=0.
           dps(i)=0.
@@ -1118,8 +1120,8 @@ c             trc(i,j,kn,itrgls)=gls_psi_min
             dfddsu(i)=dfddsu(i)/dps(i)
             dfddsl(i)=dfddsl(i)/dps(i)
           else
-            dfddsu(i)=nubmin
-            dfddsl(i)=nubmin
+            dfddsu(i)=nu0
+            dfddsl(i)=nu0
           endif
         enddo
         enddo
