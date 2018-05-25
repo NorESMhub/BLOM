@@ -43,9 +43,7 @@ c
             open (unit=nfu,file='limits',status='old',action='read',
      .            recl=80)
           else
-            if (mnproc.eq.1) then
-              write (lp,*) 'rdlim: could not find namelist file!'
-            endif
+            write (lp,*) 'rdlim: could not find namelist file!'
             call xchalt('(rdlim)')
                    stop '(rdlim)'
           endif
