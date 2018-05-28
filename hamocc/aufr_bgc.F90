@@ -269,7 +269,8 @@
       ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
       if(ncstat.eq.nf_enotvar) lread_cfc=.false.
 #else
-      ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
+      if(mnproc.eq.1) ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
+      call xcbcst(ncstat)
       if(ncstat.eq.nf90_enotvar) lread_cfc=.false.
 #endif
       IF(mnproc==1 .and. .not. lread_cfc) THEN
@@ -286,7 +287,8 @@
       ncstat=nfmpi_inq_varid(ncid,'natsco212',ncvarid)
       if(ncstat.eq.nf_enotvar) lread_nat=.false.
 #else
-      ncstat=nf90_inq_varid(ncid,'natsco212',ncvarid)
+      if(mnproc.eq.1) ncstat=nf90_inq_varid(ncid,'natsco212',ncvarid)
+      call xcbcst(ncstat)
       if(ncstat.eq.nf90_enotvar) lread_nat=.false.
 #endif
       IF(mnproc==1 .and. .not. lread_nat) THEN
@@ -304,7 +306,8 @@
       ncstat=nfmpi_inq_varid(ncid,'sco213',ncvarid)
       if(ncstat.eq.nf_enotvar) lread_iso=.false.
 #else
-      ncstat=nf90_inq_varid(ncid,'sco213',ncvarid)
+      if(mnproc.eq.1) ncstat=nf90_inq_varid(ncid,'sco213',ncvarid)
+      call xcbcst(ncstat)
       if(ncstat.eq.nf90_enotvar) lread_iso=.false.
 #endif
       IF(mnproc==1 .and. .not. lread_iso) THEN
