@@ -536,7 +536,7 @@
        	    ocetra(i,j,k,izoo14)=ocetra(i,j,k,izoo14)-sterzo14
 #endif
 
-            IF(ocetra(i,j,k,ioxygen).gt.5.e-7) THEN
+            IF(ocetra(i,j,k,ioxygen).gt.5.e-8) THEN
                pocrem=MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                docrem=MIN(dremdoc*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
                phyrem=MIN(0.5*dphymor*phythresh,     0.33*ocetra(i,j,k,ioxygen)/ro2ut)

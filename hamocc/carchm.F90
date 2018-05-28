@@ -172,7 +172,7 @@
 !$OMP+ ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega,natsupsat,natundsa,natdissol
 #endif
 #ifdef cisonew
-!$OMP+ ,atco213,atco214,rco213,rco214,pco213,pco214,evfr13,evfr14,frac_aqg,frac_dicg
+!$OMP+ ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg,frac_dicg
 !$OMP+ ,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14
 #endif
 !$OMP+ )
