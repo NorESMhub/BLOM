@@ -2028,22 +2028,22 @@ c
       call wrtlyr(ACC_USFLTD(iogrp),LYR_USFLTD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usfltd',
      .  'Salt flux due to thickness diffusion in x-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLTD(iogrp),LYR_VSFLTD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsfltd',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_USFLLD(iogrp),LYR_USFLLD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usflld',
      .  'Salt flux due to lateral diffusion in x-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLLD(iogrp),LYR_VSFLLD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsflld',
      .  'Salt flux due to lateral diffusion in y-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_WFLX(iogrp),LYR_WFLX(iogrp),
      .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ip,'p','wflx',
