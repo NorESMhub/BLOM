@@ -62,21 +62,21 @@ else if ($OCN_GRID == gx1v6) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
 else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
-else if ( $OCN_GRID == tnx2v1) then
+else if ($OCN_GRID == tnx2v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
-else if ( $OCN_GRID == tnx1.5v1) then
+else if ($OCN_GRID == tnx1.5v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20131011
-else if ( $OCN_GRID == tnx1v1) then
+else if ($OCN_GRID == tnx1v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
-else if ( $OCN_GRID == tnx1v3) then
+else if ($OCN_GRID == tnx1v3) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170612
-else if ( $OCN_GRID == tnx1v4) then
+else if ($OCN_GRID == tnx1v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170601
-else if ( $OCN_GRID == tnx0.25v1) then
+else if ($OCN_GRID == tnx0.25v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
-else if ( $OCN_GRID == tnx0.25v3) then
+else if ($OCN_GRID == tnx0.25v3) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170623
-else if ( $OCN_GRID == tnx0.25v4) then
+else if ($OCN_GRID == tnx0.25v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170619
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
@@ -446,7 +446,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
+else if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
@@ -492,15 +492,22 @@ else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set LVL_WFLX     =  '0,   4'
   set LVL_WFLX2    =  '0,   0'
   set LVL_PV       =  '0,   0'
-else if ( $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
-  set BACLIN = 3200.
-  set BATROP = 64.
+else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
+  if ($OCN_NCPL == 24) then
+    set BACLIN = 3600.
+    set BATROP = 60.
+    set CE     = .5
+    set SMTFRC = .false.
+  else
+    set BACLIN = 3200.
+    set BATROP = 64.
+  endif
   set CWMTAG = "'Gibraltar','Gibraltar'"
   set CWMEDG = "        'u',        'u'"
   set CWMI   = "        105,        106"
   set CWMJ   = "        273,        273"
   set CWMWTH = "      15.e3,      15.e3"
-else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
+else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 800.
   set BATROP = 16.
   set MDV2HI = .15
