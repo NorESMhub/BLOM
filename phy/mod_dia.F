@@ -104,13 +104,14 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
-     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
-     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
-     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
-     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
-     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
-     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
-     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
+     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
+     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
+     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
+     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
+     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
+     . SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -133,13 +134,14 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    ,
      . ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,
-     . ACC_HSNW   ,ACC_IAGE   ,ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,
-     . ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,ACC_MXLV   ,
-     . ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,
-     . ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,
-     . ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_TAUX   ,
-     . ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UICE   ,
-     . ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,ACC_ZTX    ,
+     . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LIP    ,ACC_MAXMLD ,
+     . ACC_MLD    ,ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,
+     . ACC_MXLV   ,ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,
+     . ACC_SALRLX ,ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,
+     . ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,
+     . ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,
+     . ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VICE   ,
+     . ACC_ZTX    ,
      . ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
@@ -162,13 +164,14 @@ c --- Namelist
       namelist /DIAPHY/
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
-     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
-     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
-     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
-     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
-     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
-     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
-     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
+     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
+     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
+     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
+     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
+     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
+     . SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -343,7 +346,7 @@ c
       nphysrf=0
       nphylyr=0
       nphylvl=0
-c 
+c
 c --- Loop over io groups
       do n=1,nphy
         nacc_phy(n)=0
@@ -362,6 +365,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_HMLTFZ(n)   = SRF_HMLTFZ(n)
         ACC_HSNW(n)     = SRF_HSNW(n)
         ACC_IAGE(n)     = SRF_IAGE(n)
+        ACC_IDKEDT(n)   = SRF_IDKEDT(n)
         ACC_IVOLU(n)    = SRF_UICE(n)
         ACC_IVOLV(n)    = SRF_VICE(n)
         ACC_LIP(n)      = SRF_LIP(n)
@@ -393,6 +397,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_UB(n)       = SRF_UB(n)
         ACC_UICE(n)     = SRF_UICE(n)
         ACC_USTAR(n)    = SRF_USTAR(n)
+        ACC_USTAR3(n)   = SRF_USTAR3(n)
         ACC_VB(n)       = SRF_VB(n)
         ACC_VICE(n)     = SRF_VICE(n)
         ACC_ZTX(n)      = SRF_ZTX(n)
@@ -513,6 +518,8 @@ c --- - Determine position in buffer
          ACC_HSNW(n)=nphysrf*min(1,ACC_HSNW(n)) 
         if (ACC_IAGE(n).ne.0) nphysrf=nphysrf+1
          ACC_IAGE(n)=nphysrf*min(1,ACC_IAGE(n)) 
+        if (ACC_IDKEDT(n).ne.0) nphysrf=nphysrf+1 
+         ACC_IDKEDT(n)=nphysrf*min(1,ACC_IDKEDT(n))
         if (ACC_IVOLU(n).ne.0) nphysrf=nphysrf+1 
          ACC_IVOLU(n)=nphysrf*min(1,ACC_IVOLU(n))
         if (ACC_IVOLV(n).ne.0) nphysrf=nphysrf+1 
@@ -575,6 +582,8 @@ c --- - Determine position in buffer
          ACC_UICE(n)=nphysrf*min(1,ACC_UICE(n)) 
         if (ACC_USTAR(n).ne.0) nphysrf=nphysrf+1 
          ACC_USTAR(n)=nphysrf*min(1,ACC_USTAR(n))
+        if (ACC_USTAR3(n).ne.0) nphysrf=nphysrf+1 
+         ACC_USTAR3(n)=nphysrf*min(1,ACC_USTAR3(n))
         if (ACC_VB(n).ne.0) nphysrf=nphysrf+1
          ACC_VB(n)=nphysrf*min(1,ACC_VB(n)) 
         if (ACC_VICE(n).ne.0) nphysrf=nphysrf+1
@@ -1184,6 +1193,12 @@ c --- frozen runoff [kg m-2 s-1]
 c
 c --- friction velocity [cm s-1]
       call accsrf(ACC_USTAR,ustar,dummy,0,'p')
+c
+c --- friction velocity cubed [cm3 s-3]
+      call accsrf(ACC_USTAR3,ustar3,dummy,0,'p')
+c
+c --- mixed layer integrated inertial kinetic energy tendency [cm3 s-3]
+      call accsrf(ACC_IDKEDT,idkedt,dummy,0,'p')
 c
 c --- absolute wind speed [m s-1]
       call accsrf(ACC_ABSWND,abswnd,dummy,0,'p')
@@ -1901,9 +1916,18 @@ c
      .  0.,cmpflg,ivv,'v','tauy', 
      .  'Momentum flux received by ocean y-component',' ','N m-2')
 c
+      call wrtsrf(ACC_IDKEDT(iogrp),SRF_IDKEDT(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','idkedt',
+     .  'Mixed layer inertial kinetic energy tendency per unit area',
+     .  ' ','kg s-3')
+c
       call wrtsrf(ACC_USTAR(iogrp),SRF_USTAR(iogrp),
      .  rnacc*1e-2,0.,cmpflg,ip,'p','ustar','Friction velocity',' ',
      .  'm s-1')
+c
+      call wrtsrf(ACC_USTAR3(iogrp),SRF_USTAR3(iogrp),
+     .  rnacc*1.e-6,0.,cmpflg,ip,'p','ustar3',
+     .  'Friction velocity cubed',' ','m3 s-3')
 c
       call wrtsrf(ACC_ABSWND(iogrp),SRF_ABSWND(iogrp),
      .  rnacc,0.,cmpflg,ip,'p','abswnd','Absolute wind speed',' ',
@@ -2500,6 +2524,8 @@ c
       call inisrf(ACC_SURRLX(iogrp),'p',0.)
       call inisrf(ACC_SALFLX(iogrp),'p',0.)
       call inisrf(ACC_SALRLX(iogrp),'p',0.)
+      call inisrf(ACC_IDKEDT(iogrp),'p',0.)
+      call inisrf(ACC_USTAR3(iogrp),'p',0.)
       call inisrf(ACC_ABSWND(iogrp),'p',0.)
       call inisrf(ACC_BRNFLX(iogrp),'p',0.)
       call inisrf(ACC_BRNPD(iogrp),'p',0.)
@@ -5078,8 +5104,15 @@ c
       call ncdefvar3d(SRF_TAUY(iogrp),cmpflg,'v','tauy',
      .  'Momentum flux received by ocean y-component',' ','N m-2',0)
 c
+      call ncdefvar3d(SRF_IDKEDT(iogrp),cmpflg,'p','idkedt',
+     .  'Mixed layer inertial kinetic energy tendency per unit area',
+     .  ' ','kg s-3',0)
+c
       call ncdefvar3d(SRF_USTAR(iogrp),cmpflg,'p','ustar',
      . 'Friction velocity',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_USTAR3(iogrp),cmpflg,'p','ustar3',
+     .  'Friction velocity cubed',' ','m3 s-3',0)
 c
       call ncdefvar3d(SRF_ABSWND(iogrp),cmpflg,'p','abswnd',
      . 'Absolute wind speed',' ','m s-1',0)

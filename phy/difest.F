@@ -36,6 +36,8 @@ c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
 c ---   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
 c ---            due to internal wave damping under sea-ice.
+c ---   ipfac  - intertial period factor for the velocity averaging time
+c ---            scale [].
 c ---   dpbmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2].
 c ---   drhomn - minimum density difference in evaluations the
@@ -66,6 +68,7 @@ c ---            latitude [g/cm/s**2].
 c ---   tdclat - critical latitude for tide M2 propagation [].
 c ---   tddlat - latitudinal transition zone for different tidal driven
 c ---            mixing length scales near the critical latitude.
+c ---   cori10 - coriolis parameter at 10N [1/s].
 c ---   cori30 - coriolis parameter at 30N [1/s].
 c ---   bvf0   - reference stratification in the parameterization of
 c ---            latitude dependent background diapycnal mixing [1/s].
@@ -85,18 +88,18 @@ c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
-      real dptmin,dpbmin,drhomn,thkdff,temdff,
+      real ipfac,dptmin,dpbmin,drhomn,thkdff,temdff,
      .     nu0,nus0,nug0,drho0,nuls0,bdmc1,bdmc2,iwdfac,dmxeff,
-     .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori30,bvf0,nubmin,dpgc,
+     .     tdmq,tdmls0,tdmls1,tdclat,tddlat,cori10,cori30,bvf0,nubmin,dpgc,
      .     dpgrav,dpdiav,dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,
      .     as,cs
       parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
-     .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
+     .           ipfac=2.,dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,thkdff=.5,
      .           temdff=.35,nu0=.1,nus0=50.,nug0=2500.,
      .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
      .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
-     .           cori30=7.2722e-5,bvf0=5.24e-3,nubmin=.001,
+     .           cori10=2.5256e-5,cori30=7.2722e-5,bvf0=5.24e-3,nubmin=.001,
      .           dpgc=300.*98060.,dpgrav=100.*98060.,dpdiav=100.*98060.,
      .           dpddav=10.*98060.,
      .           dpnbav=250.*98060.,ustmin=.1,kappa=.4,bfeps=1.e-12,
@@ -117,8 +120,9 @@ c
      .  msku
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
-      integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
+      integer i,j,k,l,kn,mmm
+      real ubt,uml1t,uml2t,q,uml1a,uml2a,vbt,vml1t,vml2t,vml1a,vml2a,
+     .     plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
      .     tdmf,ust,mols,h,sg,zeta,phis,ws
 c
       real rho,sig
@@ -174,6 +178,108 @@ c$OMP END PARALLEL DO
 c
       call xctilr(u, 1,2*kk, 2,2, halo_uv)
       call xctilr(v, 1,2*kk, 2,2, halo_vv)
+      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
+      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
+      call xctilr(pbu, 1,2, 2,2, halo_us)
+      call xctilr(pbv, 1,2, 2,2, halo_vs)
+c
+c --- ------------------------------------------------------------------
+c --- Estimate energy input by near-intertial motions by considering the
+c --- mixed layer kinetic energy change over a model time step of
+c --- velocity deviations from time averaged velocities. The velocity
+c --- averaging time scale is the intertial period times -ipfac- with
+c --- the intertial period limited to the one at 10N/S.
+c --- ------------------------------------------------------------------
+c
+      mmm=(m-1)*2
+c
+c$OMP PARALLEL DO PRIVATE(l,i,ubt,uml1t,uml2t,q,uml1a,uml2a)
+      do j=1,jj
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+c
+          ubt=ubflxs_p(i,j,m)*dlt/(delt1*scuy(i,j)*pbu(i,j,m))
+          uml1t=u(i,j,1+mm)+ubt
+          uml2t=u(i,j,2+mm)+ubt
+c
+          q=delt1*max(cori10,abs(.5*(coriop(i-1,j)+coriop(i,j))))
+     .      /(ipfac*2.*pi)
+          umlres(i,j,1)=umlres(i,j,1)+uml1t
+          uml1a=umlres(i,j,1)*q
+          umlres(i,j,1)=umlres(i,j,1)*(1.-q)
+          umlres(i,j,2)=umlres(i,j,2)+uml2t
+          uml2a=umlres(i,j,2)*q
+          umlres(i,j,2)=umlres(i,j,2)*(1.-q)
+c
+          util1(i,j)=((uml1t-uml1a)**2-(uml(i,j,1+mmm)-uml1a)**2)
+     .               *dpu(i,j,1+mm)
+     .              +((uml2t-uml2a)**2-(uml(i,j,2+mmm)-uml2a)**2)
+     .               *dpu(i,j,2+mm)
+
+          uml(i,j,1+mmm)=uml1t
+          uml(i,j,2+mmm)=uml2t
+c
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,vbt,vml1t,vml2t,q,vml1a,vml2a)
+      do j=1,jj+1
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+c
+          vbt=vbflxs_p(i,j,m)*dlt/(delt1*scvx(i,j)*pbv(i,j,m))
+          vml1t=v(i,j,1+mm)+vbt
+          vml2t=v(i,j,2+mm)+vbt
+c
+          q=delt1*max(cori10,abs(.5*(coriop(i,j-1)+coriop(i,j))))
+     .      /(ipfac*2.*pi)
+          vmlres(i,j,1)=vmlres(i,j,1)+vml1t
+          vml1a=vmlres(i,j,1)*q
+          vmlres(i,j,1)=vmlres(i,j,1)*(1.-q)
+          vmlres(i,j,2)=vmlres(i,j,2)+vml2t
+          vml2a=vmlres(i,j,2)*q
+          vmlres(i,j,2)=vmlres(i,j,2)*(1.-q)
+c
+          util2(i,j)=((vml1t-vml1a)**2-(vml(i,j,1+mmm)-vml1a)**2)
+     .               *dpv(i,j,1+mm)
+     .              +((vml2t-vml2a)**2-(vml(i,j,2+mmm)-vml2a)**2)
+     .               *dpv(i,j,2+mm)
+
+          vml(i,j,1+mmm)=vml1t
+          vml(i,j,2+mmm)=vml2t
+c
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          idkedt(i,j)=abs((util1(i,j)*iu(i,j)+util1(i+1,j)*iu(i+1,j))
+     .                    /max(1,iu(i,j)+iu(i+1,j))
+     .                   +(util2(i,j)*iv(i,j)+util2(i,j+1)*iv(i,j+1))
+     .                    /max(1,iv(i,j)+iv(i,j+1)))
+     .                *alpha0/(2.*g*delt1)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- Estimate friction velocity cubed.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          ustar3(i,j)=ustar(i,j)**3
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
@@ -1272,6 +1378,8 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'difest:'
         endif
+        call chksummsk(idkedt,ip,1,'idkedt')
+        call chksummsk(ustar3,ip,1,'ustar3')
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
         call chksummsk(difdia,ip,kk,'difdia')

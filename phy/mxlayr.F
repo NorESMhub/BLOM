@@ -20,7 +20,7 @@ c
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
-      real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
+      real q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,
      .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
@@ -180,7 +180,7 @@ c
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
-c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
+c$OMP+ q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
 c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,sfsl,
 c$OMP+ dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,
 c$OMP+ dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
@@ -216,8 +216,6 @@ c --- --- Compute the turbulent kinetic energy (TKE) balance of the
 c --- --- mixed layer.
 c --- ------------------------------------------------------------------
 c
-          ustar3=ustar(i,j)**3
-c
 c --- --- bfltot = total buoyancy flux [cm**2/sec**3]
 c --- --- bflpsw = buoyancy flux due to penetrating short-wave radiation
 c ---              [cm**2/sec**3]
@@ -242,7 +240,7 @@ c
             lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
           lei=1./(onem*swbgal(i,j))
-          cus=rm0*ustar3
+          cus=rm0*ustar3(i,j)+niwgf*niwbf*idkedt(i,j)
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
           if     (rtsflg.eq.1) then

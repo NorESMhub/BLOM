@@ -185,6 +185,14 @@ c
             enddo
 #endif
           enddo
+          do k=1,4
+            uml(i,j,k)=huge
+            vml(i,j,k)=huge
+          enddo
+          do k=1,2
+            umlres(i,j,k)=huge
+            vmlres(i,j,k)=huge
+          enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -255,7 +263,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -266,6 +274,30 @@ c$OMP PARALLEL DO
           uicem(i,j)=0.
           vicem(i,j)=0.
         enddo
+        enddo
+        do k=1,4
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            uml(i,j,k)=0.
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vml(i,j,k)=0.
+          enddo
+          enddo
+        enddo
+        do k=1,2
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            umlres(i,j,k)=0.
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vmlres(i,j,k)=0.
+          enddo
+          enddo
         enddo
       enddo
 c$OMP END PARALLEL DO

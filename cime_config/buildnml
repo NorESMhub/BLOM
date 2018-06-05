@@ -154,6 +154,9 @@ set RI0      = 1.2
 set RM0      = 1.2
 set RM5      = 0.
 set CE       = .06
+set NIWGF    = .7
+set NIWBF    = .7
+set NIWLF    = .5
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
 set CHLOPT   = "'climatology'"
@@ -195,6 +198,7 @@ set SRF_HICE     =  '0,   0'
 set SRF_HMLTFZ   =  '0,   4'
 set SRF_HSNW     =  '0,   0'
 set SRF_IAGE     =  '0,   0'
+set SRF_IDKEDT   =  '0,   4'
 set SRF_LIP      =  '0,   4'
 set SRF_MAXMLD   =  '4,   4'
 set SRF_MLD      =  '0,   4'
@@ -224,6 +228,7 @@ set SRF_TSRF     =  '0,   0'
 set SRF_UB       =  '0,   4'
 set SRF_UICE     =  '0,   0'
 set SRF_USTAR    =  '0,   4'
+set SRF_USTAR3   =  '0,   4'
 set SRF_VB       =  '0,   4'
 set SRF_VICE     =  '0,   0'
 set SRF_ZTX      =  '0,   4'
@@ -589,6 +594,12 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
+! NIWGF    : Global factor applied to the energy input by near-intertial
+!            motions () (f)
+! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
+!            layer () (f)
+! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
+!            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
 !            'top-layer', 'jerlov', 'chlorophyll' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
@@ -658,6 +669,9 @@ cat >! $RUNDIR/ocn_in << EOF1
   RM0      = ${RM0},
   RM5      = ${RM5},
   CE       = ${CE},
+  NIWGF    = ${NIWGF},
+  NIWBF    = ${NIWBF},
+  NIWLF    = ${NIWLF},
   SWAMTH   = ${SWAMTH},
   JWTYPE   = ${JWTYPE},
   CHLOPT   = ${CHLOPT},
@@ -780,6 +794,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   HMLTFZ   - heat flux due to melting/freezing [W m-2]
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
+!   IDKEDT   - mixed layer inertial kinetic energy tendency per unit area [kg s-3]
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
@@ -809,6 +824,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   UB       - barotropic velocity x-component [m s-1]
 !   UICE     - ice velocity x-component [m s-1]
 !   USTAR    - friction velocity [m s-1]
+!   USTAR3   - friction velocity cubed [m3 s-3]
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
@@ -875,6 +891,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SRF_HMLTFZ   = ${SRF_HMLTFZ},
   SRF_HSNW     = ${SRF_HSNW},
   SRF_IAGE     = ${SRF_IAGE},
+  SRF_IDKEDT   = ${SRF_IDKEDT},
   SRF_LIP      = ${SRF_LIP},
   SRF_MAXMLD   = ${SRF_MAXMLD},
   SRF_MLD      = ${SRF_MLD},
@@ -904,6 +921,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SRF_UB       = ${SRF_UB},
   SRF_UICE     = ${SRF_UICE},
   SRF_USTAR    = ${SRF_USTAR},
+  SRF_USTAR3   = ${SRF_USTAR3},
   SRF_VB       = ${SRF_VB},
   SRF_VICE     = ${SRF_VICE},
   SRF_ZTX      = ${SRF_ZTX},

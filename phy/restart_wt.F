@@ -152,6 +152,7 @@ c --- define spatial and time dimensions
       endif 
       call ncdims('k2',2)
       call ncdims('k3',3)
+      call ncdims('k4',4)
       call ncdims('kk',kk)
       call ncdims('kk2',2*kk)
       call ncdims('plev',ddm)
@@ -244,6 +245,10 @@ c
       call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
+      call wrtrst('uml',trim(c5u)//' k4 time',uml,iuu)
+      call wrtrst('vml',trim(c5v)//' k4 time',vml,ivv)
+      call wrtrst('umlres',trim(c5u)//' k2 time',umlres,iuu)
+      call wrtrst('vmlres',trim(c5v)//' k2 time',vmlres,ivv)
 c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
@@ -798,6 +803,10 @@ c
       call defvarrst('buoyfl',trim(c5p)//' time')
       call defvarrst('kfpla',trim(c5p)//' k2 time')
       call defvarrst('ficem',trim(c5p)//' time')
+      call defvarrst('uml',trim(c5u)//' k4 time')
+      call defvarrst('vml',trim(c5v)//' k4 time')
+      call defvarrst('umlres',trim(c5u)//' k2 time')
+      call defvarrst('vmlres',trim(c5v)//' k2 time')
 c
       if (sprfac) then
         call defvarrst('eiacc',trim(c5p)//' time')

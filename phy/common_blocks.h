@@ -125,6 +125,12 @@ c
      .  difiso,        ! isopycnal diffusivity
      .  difdia         ! diapycnal diffusivity
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,4) ::
+     .  uml,vml        ! total mixed layer 1 velocity
+c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
+     .  umlres,vmlres  ! mixed layer velocity reservoar for temporal smoothing
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  uja,ujb,       ! velocities at lateral ...
      .  via,vib,       ! ... neighbor points
@@ -141,6 +147,8 @@ c
      .  taux,tauy,     ! surface stress components
      .  ustar,         ! surface friction velocity
      .  ustarb,        ! bottom friction velocity
+     .  idkedt,        ! vertically integrated inertial kinetic energy tendency
+     .  ustar3,        ! friction velocity cubed
      .  buoyfl,        ! surface buoyancy flux
      .  twedon,        ! tidal wave energy diffipation over buoyancy frequency
      .  pbrnda         ! brine plume pressure depth
@@ -149,9 +157,10 @@ c
      .  kfpla          ! index of first physical layer
 c
       common /micom4/ bfsqf,nslpx,nslpy,nnslpx,nnslpy,difint,difiso,
-     .                difdia,uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
-     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,taux,
-     .                tauy,ustar,ustarb,buoyfl,twedon,pbrnda,kfpla
+     .                difdia,uml,vml,umlres,vmlres,uja,ujb,via,vib,
+     .                difmxp,difmxq,difwgt,sealv,surflx,surrlx,sswflx,
+     .                salflx,brnflx,salrlx,taux,tauy,ustar,ustarb,
+     .                idkedt,ustar3,buoyfl,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep
@@ -200,10 +209,16 @@ c --- 'ri0'    = critical gradient richardson number for shear driven
 c ---            vertical mixing
 c --- 'rm0'    = efficiency factor of wind TKE generation in the
 c ---            Oberhuber (1993) TKE closure
-c --- 'rm5'    = Efficiency factor of TKE generation by momentum
+c --- 'rm5'    = efficiency factor of TKE generation by momentum
 c ---            entrainment in the Oberhuber (1993) TKE closure
 c --- 'ce'     = efficiency factor for the restratification by mixed
 c ---            layer eddies (Fox-Kemper et al., 2008)
+c --- 'niwgf'  = global factor applied to the energy input by
+c ---            near-intertial motions
+c --- 'niwbf'  = fraction of near-inertial energy dissipated in the
+c ---            boundary layer
+c --- 'niwlf'  = fraction of near-inertial energy dissipated locally
+c ---            beneath the boundary layer
 c --- 'csdiag' = if set to .true., then output check sums
 c --- 'cnsvdi' = if set to .true., then output conservation diagnostics
 c --- 'expcnf' = experiment configuration
@@ -225,7 +240,8 @@ c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
      .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,egc,
-     .     eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce
+     .     eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,
+     .     niwgf,niwbf,niwlf
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
@@ -235,9 +251,9 @@ c
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
      .                wpgf,mltmin,thktop,thkbot,egc,eggam,eglsmn,egmndf,
-     .                egmxdf,egidfq,ri0,rm0,rm5,ce,csdiag,cnsvdi,edsprs,
-     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
-     .                mlrttp,icfile
+     .                egmxdf,egidfq,ri0,rm0,rm5,ce,niwgf,niwbf,niwlf,
+     .                csdiag,cnsvdi,edsprs,expcnf,mommth,eitmth,edritp,
+     .                bmcmth,rmpmth,edwmth,mlrttp,icfile
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

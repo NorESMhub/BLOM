@@ -253,6 +253,10 @@ c
       call xctilr(pgfym, 1,2, 1,2, halo_vv)
       call xctilr(xiyp, 1,2, 1,2, halo_vs)
       call xctilr(xiym, 1,2, 1,2, halo_vs)
+      call xctilr(uml, 1,4, 1,0, halo_uv)
+      call xctilr(vml, 1,4, 0,1, halo_vv)
+      call xctilr(umlres, 1,2, 1,0, halo_uv)
+      call xctilr(vmlres, 1,2, 0,1, halo_vv)
 c
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection

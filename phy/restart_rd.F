@@ -478,6 +478,102 @@ c
       call ncread('kfpla',rkfpla,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)
 c
+      vexist=ncinqv('uml')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('uml',uml,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''uml'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,4
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              uml(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('vml')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('vml',vml,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vml'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj+1
+          do k=1,4
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vml(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('umlres')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('umlres',umlres,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''umlres'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,2
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              umlres(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('vmlres')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('vmlres',vmlres,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vmlres'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj+1
+          do k=1,2
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vmlres(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
       if (sprfac) then
         vexist=ncinqa('prfac')
 !        call xcbcst(vexist)
