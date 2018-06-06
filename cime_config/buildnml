@@ -496,6 +496,7 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   if ($OCN_NCPL == 24) then
     set BACLIN = 3600.
     set BATROP = 60.
+    set CWBDTS = 1.e-4
     set CE     = .5
     set SMTFRC = .false.
   else
