@@ -214,7 +214,7 @@ c ---            entrainment in the Oberhuber (1993) TKE closure
 c --- 'ce'     = efficiency factor for the restratification by mixed
 c ---            layer eddies (Fox-Kemper et al., 2008)
 c --- 'niwgf'  = global factor applied to the energy input by
-c ---            near-intertial motions
+c ---            near-inertial motions
 c --- 'niwbf'  = fraction of near-inertial energy dissipated in the
 c ---            boundary layer
 c --- 'niwlf'  = fraction of near-inertial energy dissipated locally
