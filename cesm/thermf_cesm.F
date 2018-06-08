@@ -52,8 +52,12 @@ c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,sstc,rice,
-c$OMP+ trxflx,sssc,srxflx)
+c$OMP+ l,i,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,sstc,
+c$OMP+ rice,trxflx,sssc,srxflx
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -256,7 +260,7 @@ c --- Correction for the virtual salt flux [kg m-2 s-1]
 c
 c --- Apply the virtual salt flux correction and the compute the total
 c --- salt flux by combining the virtual and true salt flux
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -276,7 +280,7 @@ c --- ocean is zero
         if (abs(totsrp-totsrn).gt.0.) then
           qp=2.*totsrn/(totsrn-totsrp)
           qn=2.*totsrp/(totsrp-totsrn)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -297,7 +301,7 @@ c
 #  ifdef TKE
         if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #  endif
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -317,7 +321,7 @@ c
 c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
 c        trflxc=0.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -347,7 +351,6 @@ c
         call chksummsk(frzpot,ip,1,'frzpot')
         call chksummsk(mltpot,ip,1,'mltpot')
       endif
-c
 c
       return
       end

@@ -22,7 +22,7 @@ c
       integer i,j,l
 c
 c --- obtain volume of ice and snow
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -49,7 +49,7 @@ c
 c
 c --- get scalar fields from updated volume estimates and limit ice
 c --- concentration in a volume conservative manner
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

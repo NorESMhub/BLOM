@@ -64,6 +64,7 @@ c --- bound and make temperature, salinity, and potential density
 c --- variables consistent.
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -87,6 +88,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       if (mnproc.eq.ptest) then
         write (lp,'('' sigmar(k)    :'',7f9.5/(15x,7f9.5))')
@@ -97,6 +99,7 @@ c --- ------------------------------------------------------------------
 c --- Find layer interface pressure
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -112,6 +115,7 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call xctilr(p, 1,kk+1, 2,2, halo_ps)
       call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
@@ -122,6 +126,7 @@ c --- ------------------------------------------------------------------
 c --- Set layer thickness and bottom pressure
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=0,jj+1
         do k=1,kk
           do l=1,isp(j)
@@ -132,7 +137,9 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=0,jj+1
         do k=1,kk
           do l=1,isp(j)
@@ -142,7 +149,9 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -154,7 +163,9 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -171,8 +182,9 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(k,l,i,q)
       do j=-1,jj+2
         do k=1,kk
           do l=1,isu(j)
@@ -195,7 +207,7 @@ c$OMP PARALLEL DO PRIVATE(q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk
           do l=1,isu(j)
@@ -218,7 +230,7 @@ c --- ------------------------------------------------------------------
 c --- Initialize potential vorticity of barotropic flow
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=0,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -231,7 +243,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj
         do l=1,isv(j)
         do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -245,7 +257,7 @@ c$OMP PARALLEL DO PRIVATE(q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isq(j)
         do i=max(1,ifq(j,l)),min(ii,ilq(j,l))
@@ -263,7 +275,7 @@ c --- ------------------------------------------------------------------
 c
       call pgforc(2,1,kk,0,kk+1,1)
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk
           do l=1,isu(j)
@@ -298,7 +310,7 @@ c --- ------------------------------------------------------------------
 c --- Define first physical interior layer
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(k,dps)
+c$OMP PARALLEL DO PRIVATE(l,i,k,dps)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -329,7 +341,7 @@ c --- ------------------------------------------------------------------
 c --- Set other time level layer thicknesses
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk
           do l=1,isp(j)
@@ -349,6 +361,7 @@ c --- ------------------------------------------------------------------
 c
       if (sprfac) then
         prfac=1.
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -357,8 +370,10 @@ c
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -366,6 +381,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       if (mnproc.eq.ptest) then
         i=itest

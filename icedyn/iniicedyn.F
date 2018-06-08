@@ -23,7 +23,7 @@ c----------------------------------------------------------------------
 c dummy mask of ones
 c----------------------------------------------------------------------
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=0,m
           do i=0,l
             ones(i,j) = 1
@@ -51,7 +51,7 @@ c----------------------------------------------------------------------
 
       dx = 1.
       dy = 1.
-c$OMP PARALLEL DO REDUCTION(max:dx,dy)
+c$OMP PARALLEL DO PRIVATE(i) REDUCTION(max:dx,dy)
       do 101 j=1,jj
       do 101 i=1,ii
       dx=max(dx,scpx(i,j))
@@ -69,7 +69,7 @@ c where phi is the latitude of the corresponding scalar grid point
 c----------------------------------------------------------------------
       call xcaget(tmp2d,scpx,1)
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
             tmp2d(i,j) = dx/max(1.,tmp2d(i,j))
@@ -80,7 +80,7 @@ c$OMP END PARALLEL DO
       endif
       call xcaget(tmp2d,scpy,1)
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
             tmp2d(i,j) = dy/max(1.,tmp2d(i,j))
@@ -105,7 +105,7 @@ c----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c Grid parameters and constants for subroutines RELCON and RELAX
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(jm1)
+c$OMP PARALLEL DO PRIVATE(jm1,i)
         do 103 j=0,M
         jm1=mod(j-1+MP,MP)
         do 103 i=1,L
@@ -179,7 +179,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c Southern hemisphere: Ekman turning in the opposite direction
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=0,M
            do i=1,L
               sinwin(i,j)=sign(1.,f(i,j))*swin
@@ -223,7 +223,7 @@ c..   pstar=25000.   ! Arctic
 
 
         if (expcnf.eq.'ben02syn') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=0,M
             do i=0,L
               pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*20000.
@@ -232,7 +232,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=0,M
             do i=0,L
               pstar(i,j)=.5*((1.+sign(1.,f(i,j)))*7500.
@@ -266,7 +266,7 @@ c       mwt=   1      ! iterations with overrelaxation
 c-----------------------------------------------------------------------
 c Define HM and OM mask for scalar grid points
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(j1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
         do j=1,jtdm
           j1=j-1
           do i=1,itdm
@@ -284,7 +284,7 @@ c$OMP END PARALLEL DO
 c-----------------------------------------------------------------------
 c Define VM mask for vector grid points
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(jm1)
+c$OMP PARALLEL DO PRIVATE(jm1,i)
         do j=0,M
           jm1=mod(j-1+MP,MP)
           do i=1,L
@@ -299,7 +299,7 @@ c$OMP END PARALLEL DO
 C----------------------------------------------------------------------
 c Initial conditions for vector points
 C----------------------------------------------------------------------
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
          do 105 j=0,M
           do 105 i=1,L
 c----------------------------------------------------------------------
@@ -320,7 +320,7 @@ c$OMP END PARALLEL DO
 C----------------------------------------------------------------------
 c Initial conditions for scalar points
 C----------------------------------------------------------------------
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do 106 j=0,M
           do 106 i=0,L
 c-----------------------------------------------------------------------

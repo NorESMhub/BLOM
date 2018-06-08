@@ -21,7 +21,7 @@ c
 c
       integer i,j,n
       character(len=80), dimension(4) :: rstdate_str
-      character(len=80) :: rstfnm,fnm
+      character(len=200) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
 c
@@ -113,6 +113,7 @@ c
 c --- define spatial and time dimensions
       if (first) then
         first=.false.
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             if ((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -132,6 +133,7 @@ c --- define spatial and time dimensions
             endif
           enddo 
         enddo
+c$OMP END PARALLEL DO
       endif
       if (rstcmp.eq.1) then 
         call ncdimc('pcomp',ip,0)
@@ -152,6 +154,7 @@ c --- define spatial and time dimensions
       endif 
       call ncdims('k2',2)
       call ncdims('k3',3)
+      call ncdims('k4',4)
       call ncdims('kk',kk)
       call ncdims('kk2',2*kk)
       call ncdims('plev',ddm)
@@ -173,6 +176,7 @@ c --- output model fields to restart file
         call ncputi('l2ci',l2ci)
       endif
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i,j).eq.1) then
@@ -184,6 +188,7 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call defvar_restart(c5p,c5u,c5v,c5q)
       call wrtrst('u',trim(c5u)//' kk2 time',u,iuu)
@@ -244,6 +249,10 @@ c
       call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
+      call wrtrst('uml',trim(c5u)//' k4 time',uml,iuu)
+      call wrtrst('vml',trim(c5v)//' k4 time',vml,ivv)
+      call wrtrst('umlres',trim(c5u)//' k2 time',umlres,iuu)
+      call wrtrst('vmlres',trim(c5v)//' k2 time',vmlres,ivv)
 c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
@@ -337,22 +346,28 @@ c --- write accumulated fields
      .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu)
           if (ACC_MLDV(n)  .ne.0) call wrtrst('mldv_phy'//c2,
      .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv)
+          if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
+          if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv)
+          if (ACC_IVOLU(n)  .ne.0) call wrtrst('ivolu_phy'//c2,
+     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu)
+          if (ACC_IVOLV(n)  .ne.0) call wrtrst('ivolv_phy'//c2,
+     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv)
           if (ACC_SEALV(n) .ne.0) call wrtrst('sealv_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SEALV(n)),ip)
+          if (ACC_SST(n)   .ne.0) call wrtrst('sst_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip)
+          if (ACC_SSS(n)   .ne.0) call wrtrst('sss_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip)
           if (ACC_SIGMX(n) .ne.0) call wrtrst('sigmx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip)
-          if (ACC_HICE(n)  .ne.0) call wrtrst('hice_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip)
-          if (ACC_IAGE(n)  .ne.0) call wrtrst('iage_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_IAGE(n)),ip)
-          if (ACC_HSNW(n)  .ne.0) call wrtrst('hsnw_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip)
-          if (ACC_FICE(n)  .ne.0) call wrtrst('fice_phy'//c2, 
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip)
-          if (ACC_TSRF(n)  .ne.0) call wrtrst('tsrf_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip)
-          if (ACC_TICE(n)  .ne.0) call wrtrst('tice_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip)
+          if (ACC_MLD(n)   .ne.0) call wrtrst('mld_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip)
+          if (ACC_MAXMLD(n).ne.0) call wrtrst('maxmld_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip)
+          if (ACC_ALB(n)   .ne.0) call wrtrst('alb_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip)
           if (ACC_SWA(n)   .ne.0) call wrtrst('swa_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SWA(n)),ip)
           if (ACC_NSF(n)   .ne.0) call wrtrst('nsf_phy'//c2,
@@ -365,34 +380,16 @@ c --- write accumulated fields
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SOP(n)),ip)
           if (ACC_EVA(n)   .ne.0) call wrtrst('eva_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_EVA(n)),ip)
-          if (ACC_ABSWND(n)   .ne.0) call wrtrst('abswnd_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip)
-          if (ACC_ALB(n)   .ne.0) call wrtrst('alb_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip)
+          if (ACC_RNFFLX(n).ne.0) call wrtrst('rnfflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip)
+          if (ACC_RFIFLX(n).ne.0) call wrtrst('rfiflx_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip)
           if (ACC_SFL(n)   .ne.0) call wrtrst('sfl_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip)
           if (ACC_BRNFLX(n)   .ne.0) call wrtrst('brnflx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip)
           if (ACC_BRNPD(n)   .ne.0) call wrtrst('brnpd_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip)
-          if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
-          if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip)
-          if (ACC_RFIFLX(n).ne.0) call wrtrst('rfiflx_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip)
-          if (ACC_RNFFLX(n).ne.0) call wrtrst('rnfflx_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip)
-          if (ACC_USTAR(n) .ne.0) call wrtrst('ustar_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip)
-          if (ACC_SSS(n)   .ne.0) call wrtrst('sss_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip)
-          if (ACC_SST(n)   .ne.0) call wrtrst('sst_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip)
-          if (ACC_MLD(n)   .ne.0) call wrtrst('mld_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip)
-          if (ACC_MAXMLD(n).ne.0) call wrtrst('maxmld_phy'//c2,
-     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip)
           if (ACC_SURFLX(n).ne.0) call wrtrst('surflx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip)
           if (ACC_SURRLX(n).ne.0) call wrtrst('surrlx_phy'//c2,
@@ -401,14 +398,28 @@ c --- write accumulated fields
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip)
           if (ACC_SALRLX(n).ne.0) call wrtrst('salrlx_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip)
-          if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
-     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
-          if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
-     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv)
-          if (ACC_IVOLU(n)  .ne.0) call wrtrst('ivolu_phy'//c2,
-     .      trim(c5u)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu)
-          if (ACC_IVOLV(n)  .ne.0) call wrtrst('ivolv_phy'//c2,
-     .      trim(c5v)//' time',physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv)
+          if (ACC_ABSWND(n)   .ne.0) call wrtrst('abswnd_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip)
+          if (ACC_USTAR(n) .ne.0) call wrtrst('ustar_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip)
+          if (ACC_USTAR3(n) .ne.0) call wrtrst('ustar3_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip)
+          if (ACC_IDKEDT(n) .ne.0) call wrtrst('idkedt_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip)
+          if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
+          if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip)
+          if (ACC_HICE(n)  .ne.0) call wrtrst('hice_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip)
+          if (ACC_HSNW(n)  .ne.0) call wrtrst('hsnw_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip)
+          if (ACC_FICE(n)  .ne.0) call wrtrst('fice_phy'//c2, 
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip)
+          if (ACC_TSRF(n)  .ne.0) call wrtrst('tsrf_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip)
+          if (ACC_TICE(n)  .ne.0) call wrtrst('tice_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip)
           if (ACC_UVEL(n)  .ne.0) call wrtrst('uvel_phy'//c2,
      .      trim(c5u)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)),
      .      iuu)
@@ -798,6 +809,10 @@ c
       call defvarrst('buoyfl',trim(c5p)//' time')
       call defvarrst('kfpla',trim(c5p)//' k2 time')
       call defvarrst('ficem',trim(c5p)//' time')
+      call defvarrst('uml',trim(c5u)//' k4 time')
+      call defvarrst('vml',trim(c5v)//' k4 time')
+      call defvarrst('umlres',trim(c5u)//' k2 time')
+      call defvarrst('vmlres',trim(c5v)//' k2 time')
 c
       if (sprfac) then
         call defvarrst('eiacc',trim(c5p)//' time')
@@ -852,16 +867,16 @@ c
       endif
 c
 #ifdef TRC
-# ifdef TKE
+#  ifdef TKE
       call defvarrst('tke',trim(c5p)//' kk2 time')
       call defvarrst('gls_psi',trim(c5p)//' kk2 time')
       call defvarrst('L_scale',trim(c5p)//' kk time')
       call defvarrst('difdia',trim(c5p)//' kk time')
       call defvarrst('ustarb',trim(c5p)//' time')
-#endif
-#ifdef  IDLAGE
+#  endif
+#  ifdef IDLAGE
       call defvarrst('idlage',trim(c5p)//' kk2 time')
-#endif
+#  endif
 #endif
 c
 c --- write accumulated fields
@@ -888,21 +903,27 @@ c --- write accumulated fields
      .      trim(c5u)//' time')
           if (ACC_MLDV(n)  .ne.0) call defvarrst('mldv_phy'//c2,
      .      trim(c5v)//' time')
+          if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
+     .      trim(c5u)//' time')
+          if (ACC_VICE(n)  .ne.0) call defvarrst('vice_phy'//c2,
+     .      trim(c5v)//' time')
+          if (ACC_IVOLU(n)  .ne.0) call defvarrst('ivolu_phy'//c2,
+     .      trim(c5u)//' time')
+          if (ACC_IVOLV(n)  .ne.0) call defvarrst('ivolv_phy'//c2,
+     .      trim(c5v)//' time')
           if (ACC_SEALV(n) .ne.0) call defvarrst('sealv_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_SST(n)   .ne.0) call defvarrst('sst_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_SSS(n)   .ne.0) call defvarrst('sss_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_SIGMX(n) .ne.0) call defvarrst('sigmx_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_HICE(n)  .ne.0) call defvarrst('hice_phy'//c2,
+          if (ACC_MLD(n)   .ne.0) call defvarrst('mld_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_IAGE(n)  .ne.0) call defvarrst('iage_phy'//c2,
+          if (ACC_MAXMLD(n).ne.0) call defvarrst('maxmld_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_HSNW(n)  .ne.0) call defvarrst('hsnw_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_FICE(n)  .ne.0) call defvarrst('fice_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_TSRF(n)  .ne.0) call defvarrst('tsrf_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_TICE(n)  .ne.0) call defvarrst('tice_phy'//c2,
+          if (ACC_ALB(n)   .ne.0) call defvarrst('alb_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_SWA(n)   .ne.0) call defvarrst('swa_phy'//c2,
      .      trim(c5p)//' time')
@@ -916,33 +937,15 @@ c --- write accumulated fields
      .      trim(c5p)//' time')
           if (ACC_EVA(n)   .ne.0) call defvarrst('eva_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_ABSWND(n)   .ne.0) call defvarrst('abswnd_phy'//c2,
+          if (ACC_RNFFLX(n).ne.0) call defvarrst('rnfflx_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_ALB(n)   .ne.0) call defvarrst('alb_phy'//c2,
+          if (ACC_RFIFLX(n).ne.0) call defvarrst('rfiflx_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_SFL(n)   .ne.0) call defvarrst('sfl_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_BRNFLX(n)   .ne.0) call defvarrst('brnflx_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_BRNPD(n)   .ne.0) call defvarrst('brnpd_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_HMLTFZ(n)   .ne.0) call defvarrst('hmltfz_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_RFIFLX(n).ne.0) call defvarrst('rfiflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_RNFFLX(n).ne.0) call defvarrst('rnfflx_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_USTAR(n) .ne.0) call defvarrst('ustar_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SSS(n)   .ne.0) call defvarrst('sss_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_SST(n)   .ne.0) call defvarrst('sst_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_MLD(n)   .ne.0) call defvarrst('mld_phy'//c2,
-     .      trim(c5p)//' time')
-          if (ACC_MAXMLD(n).ne.0) call defvarrst('maxmld_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_SURFLX(n).ne.0) call defvarrst('surflx_phy'//c2,
      .      trim(c5p)//' time')
@@ -952,14 +955,28 @@ c --- write accumulated fields
      .      trim(c5p)//' time')
           if (ACC_SALRLX(n).ne.0) call defvarrst('salrlx_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_VICE(n)  .ne.0) call defvarrst('vice_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_IVOLU(n)  .ne.0) call defvarrst('ivolu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_IVOLV(n)  .ne.0) call defvarrst('ivolv_phy'//c2,
-     .      trim(c5v)//' time')
+          if (ACC_ABSWND(n)   .ne.0) call defvarrst('abswnd_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_USTAR(n) .ne.0) call defvarrst('ustar_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_USTAR3(n) .ne.0) call defvarrst('ustar3_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_IDKEDT(n) .ne.0) call defvarrst('idkedt_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_HMLTFZ(n)   .ne.0) call defvarrst('hmltfz_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_HICE(n)  .ne.0) call defvarrst('hice_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_HSNW(n)  .ne.0) call defvarrst('hsnw_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_FICE(n)  .ne.0) call defvarrst('fice_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_TSRF(n)  .ne.0) call defvarrst('tsrf_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_TICE(n)  .ne.0) call defvarrst('tice_phy'//c2,
+     .      trim(c5p)//' time')
           if (ACC_UVEL(n)  .ne.0) call defvarrst('uvel_phy'//c2,
      .      trim(c5u)//' kk time')
           if (ACC_VVEL(n)  .ne.0) call defvarrst('vvel_phy'//c2,

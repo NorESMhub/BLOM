@@ -33,7 +33,7 @@ c
         done=1
         changed=0
 c
-c$OMP PARALLEL DO PRIVATE(sum,num,jl,il)
+c$OMP PARALLEL DO PRIVATE(i,sum,num,jl,il)
 c$OMP+REDUCTION(min:done) REDUCTION(max:changed)
         do j=1-mbdy+1,jj+mbdy-1
           do i=1-mbdy+1,ii+mbdy-1
@@ -63,7 +63,7 @@ c$OMP+REDUCTION(min:done) REDUCTION(max:changed)
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-mbdy+1,jj+mbdy-1
           do i=1-mbdy+1,ii+mbdy-1
             field(i,j)=tmp(i,j)

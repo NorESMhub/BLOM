@@ -13,9 +13,19 @@ c
 #include "common_blocks.h"
 #include "common_geo.h"
 c
+      integer cwmlen
+      parameter (cwmlen=100)
+c
+      character (len=80), dimension(cwmlen) :: cwmtag
+      character (len=1), dimension(cwmlen) :: cwmedg
       real, dimension(itdm,jtdm) :: tmpg
+      real, dimension(cwmlen) :: cwmwth
+      integer, dimension(cwmlen) :: cwmi,cwmj
       integer, dimension(3) :: start,count
-      integer i,j,k,status,ncid,dimid,varid
+      integer i,j,k,status,ncid,dimid,varid,ios,ncwm,l
+      logical fexist
+c
+      namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth
 c
 c --- ------------------------------------------------------------------
 c --- read grid information from grid.nc
@@ -653,11 +663,98 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
+c --- Apply channel width modifications if specified in namelist
+c --- ------------------------------------------------------------------
+c
+      if (mnproc.eq.1) then
+        inquire(file='ocn_in',exist=fexist)
+        if (fexist) then
+          open (unit=nfu,file='ocn_in',status='old',action='read')
+        else
+          inquire(file='limits',exist=fexist)
+          if (fexist) then
+            open (unit=nfu,file='limits',status='old',action='read')
+          else
+            write (lp,*) 'geoenv_file: could not find namelist file!'
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        cwmtag=''
+        read (unit=nfu,nml=cwmod,iostat=ios)
+        close (unit=nfu)
+      endif
+      call xcbcst(ios)
+      if (ios.ne.0) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'geoenv_file: no valid channel width '//
+     .                 'modifications found in namelist.'
+        endif
+      else
+        if (mnproc.eq.1) then
+          ncwm=1
+          do while (cwmtag(ncwm).ne.'')
+            ncwm=ncwm+1
+            if (ncwm.gt.cwmlen) exit
+          enddo
+          ncwm=ncwm-1
+        endif
+        call xcbcst(ncwm)
+        do l=1,ncwm
+          if (mnproc.eq.1) then
+            write (lp,'(a,i3,a)') ' channel width modification number ',
+     .                            l,':'
+            write (lp,'(3a)') '   cwmtag = ''',trim(cwmtag(l)),''''
+            write (lp,'(3a)') '   cwmedg = ''',cwmedg(l),''''
+            write (lp,'(a,i5)') '   cwmi   =',cwmi(l)
+            write (lp,'(a,i5)') '   cwmj   =',cwmj(l)
+            write (lp,'(a,e10.3)') '   cwmwth = ',cwmwth(l)
+            if (cwmedg(l).ne.'u'.and.cwmedg(l).ne.'v') then
+              write (lp,*)
+     .'geoenv_file: channel width modification grid cell edge '//
+     .'specification must be either ''u'' or ''v''!'
+              call xchalt('(geoenv_file)')
+                     stop '(geoenv_file)'
+            endif
+            if (cwmi(l).lt.1.or.cwmi(l).gt.itdm.or.
+     .          cwmj(l).lt.1.or.cwmj(l).gt.jtdm) then
+              write (lp,*)
+     .'geoenv_file: channel width modification indices out of bounds!'
+              call xchalt('(geoenv_file)')
+                     stop '(geoenv_file)'
+            endif
+          endif
+          call xcbcst(cwmtag(l))
+          call xcbcst(cwmedg(l))
+          call xcbcst(cwmi(l))
+          call xcbcst(cwmj(l))
+          call xcbcst(cwmwth(l))
+          if (cwmi(l).gt.i0.and.cwmi(l).le.i0+ii.and.
+     .        cwmj(l).gt.j0.and.cwmj(l).le.j0+jj) then
+            i=cwmi(l)-i0
+            j=cwmj(l)-j0
+            if (cwmedg(l).eq.'u') then
+              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+     .                     i+i0,j+j0,'scuy:',scuy(i,j),'->',cwmwth(l)
+              scu2(i,j) = scu2(i,j)*cwmwth(l)/scuy(i,j)
+              scuy(i,j) = cwmwth(l)
+            else
+              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+     .                     i+i0,j+j0,'scvx:',scvx(i,j),'->',cwmwth(l)
+              scv2(i,j) = scv2(i,j)*cwmwth(l)/scvx(i,j)
+              scvx(i,j) = cwmwth(l)
+            endif
+          endif
+        enddo
+      endif
+c
+c --- ------------------------------------------------------------------
 c --- Get correct units of scale factors, precompute cosine and sine of
 c --- local angle of i-direction and with eastward direction, and
 c --- compute Coriolis and beta plane parameter
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
 c
@@ -683,6 +780,7 @@ c
 c
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       return
       end

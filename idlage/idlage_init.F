@@ -13,7 +13,7 @@ c
 c
       integer i,j,k,l
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1-nbdy,jj+nbdy
         do k=1,kk
           do l=1,isp(j)

@@ -24,7 +24,7 @@ c --- barotropic velocities, and determine coefficients for coastal wave
 c --- breaking parameterization
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -77,14 +77,14 @@ c --- ------------------------------------------------------------------
 c --- potential vorticity of barotropic flow
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=-2,jj+3
         do i=0,ii+1
           pvtrop_o(i,j)=pvtrop(i,j,n)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=0,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -95,7 +95,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj
         do l=1,isv(j)
         do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -107,7 +107,7 @@ c$OMP PARALLEL DO PRIVATE(q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isq(j)
         do i=max(1,ifq(j,l)),min(ii,ilq(j,l))
@@ -185,7 +185,7 @@ c
           wob=.5+(lll0-.5)/lstep
           wna=0.
           wnb=0.
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,jj
             do i=1,ii
               pb_t(i,j,ml)=pb_mn(i,j,ml)
@@ -207,7 +207,7 @@ c$OMP END PARALLEL DO
           wnb=1.
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=-1,jj+2
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -218,7 +218,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=0,jj+2
           do l=1,isv(j)
           do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -248,7 +248,7 @@ c
 c
 c --- ----- continuity equation
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=-1,jj+2
               do l=1,isp(j)
               do i=max(-1,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -267,7 +267,7 @@ c
 c
 c --- ------- Sadourny (1975) enstrophy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,utndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,utndcy)
               do j=-1,jj+2
                 do l=1,isu(j)
                 do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -311,7 +311,7 @@ c
 c
 c --- ------- Sadourny (1975) energy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,utndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,utndcy)
               do j=-1,jj+2
                 do l=1,isu(j)
                 do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -367,7 +367,7 @@ c
 c
 c --- ------- Sadourny (1975) enstrophy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,vtndcy)
             do j=0,jj+2
               do l=1,isv(j)
               do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -411,7 +411,7 @@ c
 c
 c --- ------- Sadourny (1975) energy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,vtndcy)
               do j=0,jj+2
                 do l=1,isv(j)
                 do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -474,7 +474,7 @@ c
 c
 c --- ----- continuity equation
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=0,jj+1
               do l=1,isp(j)
               do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
@@ -493,7 +493,7 @@ c
 c
 c --- ------- Sadourny (1975) enstrophy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,vtndcy)
               do j=1,jj+1
                 do l=1,isv(j)
                 do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -537,7 +537,7 @@ c
 c
 c --- ------- Sadourny (1975) energy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,vtndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,vtndcy)
               do j=1,jj+1
                 do l=1,isv(j)
                 do i=max(0,ifv(j,l)),min(ii,ilv(j,l))
@@ -593,7 +593,7 @@ c
 c
 c --- ------- Sadourny (1975) enstrophy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,utndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,utndcy)
               do j=1,jj
                 do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -637,7 +637,7 @@ c
 c
 c --- ------- Sadourny (1975) energy conserving scheme
 c
-c$OMP PARALLEL DO PRIVATE(q,utndcy)
+c$OMP PARALLEL DO PRIVATE(l,i,q,utndcy)
               do j=1,jj
                 do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -698,7 +698,7 @@ c
         lll0=lll0+lstep/2
 c
         if     (nb.eq.1) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -726,7 +726,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (nb.eq.2) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -757,7 +757,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (nb.eq.3) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -787,7 +787,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (nb.eq.4) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -804,7 +804,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (nb.eq.5) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

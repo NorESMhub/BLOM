@@ -39,7 +39,7 @@ c
         vh_max=0.
       endif
 c
-c$OMP PARALLEL DO PRIVATE(km)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
       do j=-1,jj+2
         do k=1,kk
           km=k+mm
@@ -54,7 +54,7 @@ c$OMP END PARALLEL DO
 c
 c --- bottom drag (standard bulk formula)
 c
-c$OMP PARALLEL DO PRIVATE(kn,pbotl,ptopl,ubot,vbot,ubbl)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn,pbotl,ptopl,ubot,vbot,ubbl,q)
       do 803 j=0,jj
       do 803 l=1,isp(j)
 c
@@ -86,7 +86,7 @@ c
 c --- store r.h.s. of barotropic u/v eqn. in -ubrhs,vbrhs-
 c --- store wind forcing in -stresx,stresy-
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 69 j=1,jj
 c
       do 68 l=1,isu(j)
@@ -98,7 +98,7 @@ c
  69   vbrhs(i,j)=vbcors_p(i,j)*tsfac
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do 804 j=0,jj+1
       do 804 i=0,ii+1
       dl2u(i,j)=0.
@@ -107,7 +107,7 @@ c$OMP END PARALLEL DO
 c
       do 8 k=1,kk
       km=k+mm
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 81 j=-1,jj+2
       do 82 l=1,isu(j)
       do 82 i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -120,15 +120,15 @@ c$OMP END PARALLEL DO
 c
       call xctilr(difwgt,  1,1, 2,2, halo_ps)
 c
-c$OMP PARALLEL DO
-c$OMP+PRIVATE(km,kn,dpmx,wgtja,wgtjb,wgtia,wgtib,i,vort,potvor,j,
-c$OMP+  defor1,dl2uja,dl2ujb,dl2via,dl2vib,ke,vp,vm,up2,um2,vp2,vm2,
-c$OMP+  uhc,uhm,vhc,vhm,cau,cav,temp1,temp2,deform,vsc2,vsc4,dpxy,dpja,
-c$OM{+  dpjb,vsc2a,vsc2b,vsc4a,vsc4b,stress,ptopl,pbotl,uflux1,botstr,
-c$OMP+  pgf,dpia,dpib,vflux1,q)
-c$OMP+FIRSTPRIVATE(defor2,utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,
-c$OMP+  dl2u,via,vib,dl2v,uh_min,uh_max,vh_min,vh_max,uflux2,uflux3,
-c$OMP+  vflux2,vflux3)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ km,kn,j,i,l,dpmx,wgtja,wgtjb,wgtia,wgtib,vort,potvor,defor1,
+c$OMP+ dl2uja,dl2ujb,dl2via,dl2vib,ke,up,um,vp,vm,up2,um2,vp2,vm2,uhc,
+c$OMP+ uhm,vhc,vhm,cau,cav,temp1,temp2,q,deform,vsc2,vsc4,dpxy,dpja,
+c$OMP+ dpjb,dpia,dpib,vsc2a,vsc2b,vsc4a,vsc4b,stress,ptopl,pbotl,uflux1,
+c$OMP+ botstr,pgf,vflux1)
+c$OMP+FIRSTPRIVATE(
+c$OMP+ defor2,utotm,utotn,uflux,vtotm,vtotn,vflux,uja,ujb,dl2u,via,vib,
+c$OMP+ dl2v,uh_min,uh_max,vh_min,vh_max,uflux2,uflux3,vflux2,vflux3)
       do 9 k=1,kk
       km=k+mm
       kn=k+nn
@@ -798,7 +798,7 @@ c --- (scan layers in top-down direction to save time.)
 c --- extract barotropic velocities generated during most recent baroclinic
 c --- time step and use them to force barotropic flow field.
 c
-c$OMP PARALLEL DO PRIVATE(km,kn,kan,q)
+c$OMP PARALLEL DO PRIVATE(l,i,k,km,kn,kan,q)
       do j=1,jj
 c
       do 31 l=1,isu(j)
@@ -843,7 +843,7 @@ c
       km=k+mm
       kn=k+nn
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 24 j=1,jj
       do 24 l=1,isu(j)
       do 24 i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -852,7 +852,7 @@ c$OMP PARALLEL DO
      .(wuv1*dpu(i,j,km)+onemm+wuv2*(dpuold(i,j,k)+dpu(i,j,kn)))
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 25 j=1,jj
       do 25 l=1,isv(j)
       do 25 i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -863,7 +863,7 @@ c$OMP END PARALLEL DO
 c
  22   continue
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 866 j=1,jj
 c
       do 865 l=1,isu(j)
@@ -878,7 +878,7 @@ c
 c --- store 'old' interface pressures in -pu,pv- (to be used later for
 c --- momentum redistribution)
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
         do 16 k=1,kk
         kn=k+nn

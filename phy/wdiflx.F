@@ -48,7 +48,7 @@ c
 c       
         call ncfcls
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j,i)
         do k=1,48
           nflxdi(k)=0
           do j=1,jj
@@ -90,7 +90,7 @@ c
 c       
         call ncfcls
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j,i)
         do k=1,48
           nflxdi(k)=0
           do j=1,jj

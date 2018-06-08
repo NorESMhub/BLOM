@@ -23,7 +23,7 @@ c --- Accumulate two groups of fresh water fluxes. One is evaporation
 c --- and sea-ice melting/freezing and the other is precipitation and
 c --- runoff. The fresh water fluxes are weighted with the time step in
 c --- case it varies during the accumulation period.
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -42,7 +42,7 @@ c --- accumulation arrays
 c
 c --- - Weight the accumulated fluxes with grid cell area and do global
 c --- - sums, but only including grid cells connected to the world ocean.
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -64,7 +64,7 @@ c --- - Update correction factor
         endif
 c
 c --- - Reset accumulation arrays
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

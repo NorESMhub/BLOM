@@ -104,13 +104,14 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
-     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
-     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
-     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
-     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
-     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
-     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
-     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
+     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
+     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
+     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
+     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
+     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
+     . SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -133,13 +134,14 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    ,
      . ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,
-     . ACC_HSNW   ,ACC_IAGE   ,ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,
-     . ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,ACC_MXLV   ,
-     . ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,
-     . ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,
-     . ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_TAUX   ,
-     . ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UICE   ,
-     . ACC_USTAR  ,ACC_VB     ,ACC_VICE   ,ACC_ZTX    ,
+     . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LIP    ,ACC_MAXMLD ,
+     . ACC_MLD    ,ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,
+     . ACC_MXLV   ,ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,
+     . ACC_SALRLX ,ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,
+     . ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,
+     . ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,
+     . ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VICE   ,
+     . ACC_ZTX    ,
      . ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
@@ -162,13 +164,14 @@ c --- Namelist
       namelist /DIAPHY/
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
-     . SRF_HSNW   ,SRF_IAGE   ,SRF_LIP    ,SRF_MAXMLD ,SRF_MLD    ,
-     . SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,SRF_MXLV   ,
-     . SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,SRF_SALRLX ,
-     . SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,SRF_SSS    ,
-     . SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,SRF_TAUX   ,
-     . SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,SRF_UICE   ,
-     . SRF_USTAR  ,SRF_VB     ,SRF_VICE   ,SRF_ZTX    ,
+     . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
+     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
+     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
+     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
+     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
+     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
+     . SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -343,7 +346,7 @@ c
       nphysrf=0
       nphylyr=0
       nphylvl=0
-c 
+c
 c --- Loop over io groups
       do n=1,nphy
         nacc_phy(n)=0
@@ -362,6 +365,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_HMLTFZ(n)   = SRF_HMLTFZ(n)
         ACC_HSNW(n)     = SRF_HSNW(n)
         ACC_IAGE(n)     = SRF_IAGE(n)
+        ACC_IDKEDT(n)   = SRF_IDKEDT(n)
         ACC_IVOLU(n)    = SRF_UICE(n)
         ACC_IVOLV(n)    = SRF_VICE(n)
         ACC_LIP(n)      = SRF_LIP(n)
@@ -393,6 +397,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_UB(n)       = SRF_UB(n)
         ACC_UICE(n)     = SRF_UICE(n)
         ACC_USTAR(n)    = SRF_USTAR(n)
+        ACC_USTAR3(n)   = SRF_USTAR3(n)
         ACC_VB(n)       = SRF_VB(n)
         ACC_VICE(n)     = SRF_VICE(n)
         ACC_ZTX(n)      = SRF_ZTX(n)
@@ -513,6 +518,8 @@ c --- - Determine position in buffer
          ACC_HSNW(n)=nphysrf*min(1,ACC_HSNW(n)) 
         if (ACC_IAGE(n).ne.0) nphysrf=nphysrf+1
          ACC_IAGE(n)=nphysrf*min(1,ACC_IAGE(n)) 
+        if (ACC_IDKEDT(n).ne.0) nphysrf=nphysrf+1 
+         ACC_IDKEDT(n)=nphysrf*min(1,ACC_IDKEDT(n))
         if (ACC_IVOLU(n).ne.0) nphysrf=nphysrf+1 
          ACC_IVOLU(n)=nphysrf*min(1,ACC_IVOLU(n))
         if (ACC_IVOLV(n).ne.0) nphysrf=nphysrf+1 
@@ -575,6 +582,8 @@ c --- - Determine position in buffer
          ACC_UICE(n)=nphysrf*min(1,ACC_UICE(n)) 
         if (ACC_USTAR(n).ne.0) nphysrf=nphysrf+1 
          ACC_USTAR(n)=nphysrf*min(1,ACC_USTAR(n))
+        if (ACC_USTAR3(n).ne.0) nphysrf=nphysrf+1 
+         ACC_USTAR3(n)=nphysrf*min(1,ACC_USTAR3(n))
         if (ACC_VB(n).ne.0) nphysrf=nphysrf+1
          ACC_VB(n)=nphysrf*min(1,ACC_VB(n)) 
         if (ACC_VICE(n).ne.0) nphysrf=nphysrf+1
@@ -747,7 +756,7 @@ c --- Allocate buffers
       endif
 c
 c --- Set buffers to zero (ocean+land+halo) 
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,i)
       do j=jmn,jmx
         do n=1,nphysrf
           do i=imn,imx
@@ -757,7 +766,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,k,i)
       do j=jmn,jmx
         do n=1,nphylyr
           do k=1,kdm
@@ -769,7 +778,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,k,i)
       do j=jmn,jmx
         do n=1,nphylvl
           do k=1,ddm
@@ -781,7 +790,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
       do j=jmn,jmx
         do k=1,kdm
           do i=imn,imx
@@ -794,7 +803,7 @@ c
 c --- Load bathymetry into module mod_dia (used for vertical 
 c --- interpolation in MICOM and HAMOCC)
       nstepinday=nstep_in_day
-c$OMP PARALLEL DO  
+c$OMP PARALLEL DO PRIVATE(l,i) 
       do j=1,jj+1
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -887,7 +896,7 @@ c --- Define auxillary variables
       if (sum(ACC_UICE(1:nphy)+ACC_VICE(1:nphy)).ne.0) then
         call xctilr(hicem, 1,1, 1,1, halo_ps)
         call xctilr(ficem, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -906,7 +915,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_MXLU(1:nphy)+ACC_MXLV(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -923,7 +932,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SURFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -935,7 +944,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SALFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -947,7 +956,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SURRLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -959,7 +968,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SALRLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -971,7 +980,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_MLD(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -985,7 +994,7 @@ c
 c --- maximum mixed layer pressure thickness [g/cm/s^2]
       do iogrp=1,nphy
         if (ACC_MAXMLD(iogrp).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1000,7 +1009,7 @@ c$OMP END PARALLEL DO
       enddo
 c
       if (sum(ACC_UVEL(1:nphy)+ACC_UVELLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
         do j=1,jj
           do k=1,kk
             km=k+mm
@@ -1014,7 +1023,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_VVEL(1:nphy)+ACC_VVELLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
         do j=1,jj+1
           do k=1,kk
             km=k+mm
@@ -1028,7 +1037,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -1041,7 +1050,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_AVDSG(1:nphy)+ACC_PVLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO PRIVATE(km,dsig)
+c$OMP PARALLEL DO PRIVATE(l,i,k,km,dsig)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1184,6 +1193,12 @@ c --- frozen runoff [kg m-2 s-1]
 c
 c --- friction velocity [cm s-1]
       call accsrf(ACC_USTAR,ustar,dummy,0,'p')
+c
+c --- friction velocity cubed [cm3 s-3]
+      call accsrf(ACC_USTAR3,ustar3,dummy,0,'p')
+c
+c --- mixed layer integrated inertial kinetic energy tendency [cm3 s-3]
+      call accsrf(ACC_IDKEDT,idkedt,dummy,0,'p')
 c
 c --- absolute wind speed [m s-1]
       call accsrf(ACC_ABSWND,abswnd,dummy,0,'p')
@@ -1328,7 +1343,7 @@ c --- ------------------------------------------------------------------
 c
       do iogrp=1,nphy 
         if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
           do j=1,jj+1
             do k=1,ddm
               do l=1,isu(j)
@@ -1495,7 +1510,7 @@ c --- Accumulate vertical velocity
 c
 c --- Reset diaflx 
       if (sum(ACC_DIAFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kdm
             do l=1,isp(j)
@@ -1693,6 +1708,7 @@ c
 c --- compute extended ocean masks 
       if (iniflg) then
          iniflg=.false.
+c$OMP PARALLEL DO PRIVATE(i)
          do j=1,jj
             do i=1,ii
                if((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -1707,6 +1723,7 @@ c --- compute extended ocean masks
                endif
             enddo
          enddo
+c$OMP END PARALLEL DO
       endif
 c
 c --- define output dimensions  
@@ -1901,9 +1918,18 @@ c
      .  0.,cmpflg,ivv,'v','tauy', 
      .  'Momentum flux received by ocean y-component',' ','N m-2')
 c
+      call wrtsrf(ACC_IDKEDT(iogrp),SRF_IDKEDT(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','idkedt',
+     .  'Mixed layer inertial kinetic energy tendency per unit area',
+     .  ' ','kg s-3')
+c
       call wrtsrf(ACC_USTAR(iogrp),SRF_USTAR(iogrp),
      .  rnacc*1e-2,0.,cmpflg,ip,'p','ustar','Friction velocity',' ',
      .  'm s-1')
+c
+      call wrtsrf(ACC_USTAR3(iogrp),SRF_USTAR3(iogrp),
+     .  rnacc*1.e-6,0.,cmpflg,ip,'p','ustar3',
+     .  'Friction velocity cubed',' ','m3 s-3')
 c
       call wrtsrf(ACC_ABSWND(iogrp),SRF_ABSWND(iogrp),
      .  rnacc,0.,cmpflg,ip,'p','abswnd','Absolute wind speed',' ',
@@ -2028,22 +2054,22 @@ c
       call wrtlyr(ACC_USFLTD(iogrp),LYR_USFLTD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usfltd',
      .  'Salt flux due to thickness diffusion in x-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLTD(iogrp),LYR_VSFLTD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsfltd',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_USFLLD(iogrp),LYR_USFLLD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,iuu,'u','usflld',
      .  'Salt flux due to lateral diffusion in x-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLLD(iogrp),LYR_VSFLLD(iogrp),
      .  rnacc*0.5e-6/(g*baclin),0.,cmpflg,ivv,'v','vsflld',
      .  'Salt flux due to lateral diffusion in y-direction',' ',
-     .  'W')
+     .  'kg s-1')
 c
       call wrtlyr(ACC_WFLX(iogrp),LYR_WFLX(iogrp),
      .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,ip,'p','wflx',
@@ -2372,9 +2398,10 @@ c --- ocean tracers
         do nt=1,natr
           nat=ntr-natr+nt
           call inilyr(ACC_UTIL(1),'p',0.)
-          do k=1,kk
-            km=k+mm
-            do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
+          do j=1,jj
+            do k=1,kk
+              km=k+mm
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 tmp3d(i,j,k)=trc(i,j,km,nat)/max(trc(i,j,km,nt),treps)
@@ -2382,6 +2409,7 @@ c --- ocean tracers
               enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
           call acclyr(ACC_UTIL,tmp3d,tmp3d,0,'p')
           write (trcnm,'(a,i3.3)') 'atrc',nt
           write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
@@ -2417,9 +2445,10 @@ c --- ocean tracers
         do nt=1,natr
           nat=ntr-natr+nt
           call inilvl(ACC_UTILLVL(1),'p',0.)
-          do k=1,kk
-            km=k+mm
-            do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
+          do j=1,jj
+            do k=1,kk
+              km=k+mm
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 tmp3d(i,j,k)=trc(i,j,km,nat)/max(trc(i,j,km,nt),treps)
@@ -2427,6 +2456,7 @@ c --- ocean tracers
               enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
           do k=1,kk
             call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
             call acclvl(ACC_UTILLVL,tmp3d,'p',k,ind1,ind2,wghts)
@@ -2462,50 +2492,52 @@ c --- initialisation of 2d fields
       call inisrf(ACC_UB(iogrp),'u',0.)
       call inisrf(ACC_ZTX(iogrp),'u',0.)
       call inisrf(ACC_TAUX(iogrp),'u',0.)
-      call inisrf(ACC_UICE(iogrp),'u',0.)
       call inisrf(ACC_MXLU(iogrp),'u',0.)
       call inisrf(ACC_MLDU(iogrp),'u',0.)
+      call inisrf(ACC_UICE(iogrp),'u',0.)
       call inisrf(ACC_IVOLU(iogrp),'u',0.)
 c
       call inisrf(ACC_VB(iogrp),'v',0.)
       call inisrf(ACC_MTY(iogrp),'v',0.)
       call inisrf(ACC_TAUY(iogrp),'v',0.)
-      call inisrf(ACC_VICE(iogrp),'v',0.)
       call inisrf(ACC_MXLV(iogrp),'v',0.)
       call inisrf(ACC_MLDV(iogrp),'v',0.)
+      call inisrf(ACC_VICE(iogrp),'v',0.)
       call inisrf(ACC_IVOLV(iogrp),'v',0.)
 c
       call inisrf(ACC_SEALV(iogrp),'p',0.)
+      call inisrf(ACC_SST(iogrp),'p',0.)
+      call inisrf(ACC_SSS(iogrp),'p',0.)
       call inisrf(ACC_SIGMX(iogrp),'p',0.)
-      call inisrf(ACC_HICE(iogrp),'p',0.)
-      call inisrf(ACC_HSNW(iogrp),'p',0.)
-      call inisrf(ACC_FICE(iogrp),'p',0.)
-      call inisrf(ACC_TSRF(iogrp),'p',0.)
-      call inisrf(ACC_TICE(iogrp),'p',0.)
+      call inisrf(ACC_MLD(iogrp),'p',0.)
+      call inisrf(ACC_MAXMLD(iogrp),'p',0.)
+      call inisrf(ACC_ALB(iogrp),'p',0.)
       call inisrf(ACC_SWA(iogrp),'p',0.)
       call inisrf(ACC_NSF(iogrp),'p',0.)
       call inisrf(ACC_DFL(iogrp),'p',0.)
       call inisrf(ACC_LIP(iogrp),'p',0.)
       call inisrf(ACC_SOP(iogrp),'p',0.)
       call inisrf(ACC_EVA(iogrp),'p',0.)
-      call inisrf(ACC_SFL(iogrp),'p',0.)
-      call inisrf(ACC_ALB(iogrp),'p',0.)
       call inisrf(ACC_RNFFLX(iogrp),'p',0.)
-      call inisrf(ACC_USTAR(iogrp),'p',0.)
-      call inisrf(ACC_SSS(iogrp),'p',0.)
-      call inisrf(ACC_SST(iogrp),'p',0.)
-      call inisrf(ACC_MLD(iogrp),'p',0.)
-      call inisrf(ACC_MAXMLD(iogrp),'p',0.)
+      call inisrf(ACC_RFIFLX(iogrp),'p',0.)
+      call inisrf(ACC_SFL(iogrp),'p',0.)
+      call inisrf(ACC_BRNFLX(iogrp),'p',0.)
+      call inisrf(ACC_BRNPD(iogrp),'p',0.)
       call inisrf(ACC_SURFLX(iogrp),'p',0.)
       call inisrf(ACC_SURRLX(iogrp),'p',0.)
       call inisrf(ACC_SALFLX(iogrp),'p',0.)
       call inisrf(ACC_SALRLX(iogrp),'p',0.)
       call inisrf(ACC_ABSWND(iogrp),'p',0.)
-      call inisrf(ACC_BRNFLX(iogrp),'p',0.)
-      call inisrf(ACC_BRNPD(iogrp),'p',0.)
+      call inisrf(ACC_USTAR(iogrp),'p',0.)
+      call inisrf(ACC_USTAR3(iogrp),'p',0.)
+      call inisrf(ACC_IDKEDT(iogrp),'p',0.)
       call inisrf(ACC_FMLTFZ(iogrp),'p',0.)
       call inisrf(ACC_HMLTFZ(iogrp),'p',0.)
-      call inisrf(ACC_RFIFLX(iogrp),'p',0.)
+      call inisrf(ACC_HICE(iogrp),'p',0.)
+      call inisrf(ACC_HSNW(iogrp),'p',0.)
+      call inisrf(ACC_FICE(iogrp),'p',0.)
+      call inisrf(ACC_TSRF(iogrp),'p',0.)
+      call inisrf(ACC_TICE(iogrp),'p',0.)
 c 
 c --- initialisation of 3d layer fields
       call inilyr(ACC_UVEL(iogrp),'u',0.)
@@ -2646,7 +2678,7 @@ c --- ------------------------------------------------------------------
       endif
 c      
 c --- Prepare 2d field   
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           uflx_cum(i,j)=0.
@@ -2658,7 +2690,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- Compute accumulated transports
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,ddm
           do l=1,isu(j)
@@ -2862,7 +2894,7 @@ c
 c
 c --- Compute vertical integrated heat and salt transports 
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           ucum(i,j)=0.
@@ -2909,7 +2941,7 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,k)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3014,7 +3046,7 @@ c --- Compute overturning stream function at isopycnic layer interfaces
 c
       r=1./real(nacc_phy(iogrp))
       kmxl=0
-c$OMP PARALLEL DO PRIVATE(k)
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3028,7 +3060,7 @@ c$OMP PARALLEL DO PRIVATE(k)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3038,7 +3070,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -3066,14 +3098,12 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
         do o=1,odm
           do l=1,lmax
             mflx_last_lo(l,o)=0.
           enddo
         enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3088,7 +3118,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
         do k=1,kk
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3214,7 +3244,7 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3229,7 +3259,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
         do k=1,ddm
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3322,7 +3352,7 @@ c --- Compute vertical mass flux at isopycnic layer interfaces
 c ---
       if (ACC_WFLX(iogrp)+ACC_WFLX2(IOGRP).ne.0) then
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             wflx(i,j)=0.
@@ -3332,7 +3362,7 @@ c$OMP END PARALLEL DO
         do k=kk,1,-1
           km=k+mm
           kn=k+nn
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
@@ -3362,7 +3392,7 @@ c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXOLD(iogrp)),
 c    .              1,kk, 1,1, halo_uv)
 c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXOLD(iogrp)),
 c    .              1,kk, 1,1, halo_vv)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj+1
           do i=1,ii+1
             ucum(i,j)=0.
@@ -3371,7 +3401,7 @@ c$OMP PARALLEL DO
         enddo  
 c$OMP END PARALLEL DO
         do k=ddm,1,-1
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
@@ -3382,7 +3412,7 @@ c$OMP PARALLEL DO
             enddo
           enddo  
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj+1 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
@@ -3393,7 +3423,7 @@ c$OMP PARALLEL DO
             enddo
           enddo  
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,q)
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
@@ -3447,8 +3477,8 @@ c --- Sort out stuff related to time stepping
 c
 c --- Adjust bounds of levitus levels according to model bathymetry
       if (iniflg) then
+c$OMP PARALLEL DO PRIVATE(d,l,i)
         do j=1,jj+1
-c$OMP PARALLEL DO  
           do d=1,ddm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3469,8 +3499,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
         iniflg=.false.
       endif
 c
@@ -3478,7 +3508,7 @@ c
 c --- Compute top and bottom depths of density layers 
       if (k.eq.1) then
         if (gridid.eq.'p') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3511,7 +3541,7 @@ c$OMP PARALLEL DO PRIVATE(kml)
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -3544,7 +3574,7 @@ c$OMP PARALLEL DO PRIVATE(kml)
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3586,7 +3616,7 @@ c$OMP END PARALLEL DO
 c
 c --- Compute interpolation weights 
       if (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i,d)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3611,7 +3641,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
       elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO PRIVATE(r) 
+c$OMP PARALLEL DO PRIVATE(l,i,d,r) 
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -3637,7 +3667,7 @@ c$OMP PARALLEL DO PRIVATE(r)
 c$OMP END PARALLEL DO
 c
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO PRIVATE(r)
+c$OMP PARALLEL DO PRIVATE(l,i,d,r)
         do j=1,jj+1
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3700,7 +3730,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3710,7 +3740,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3720,7 +3750,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3730,7 +3760,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             physrf(i,j,pos)=inival
@@ -3766,7 +3796,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isu(j)
@@ -3778,7 +3808,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isv(j)
@@ -3790,7 +3820,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isp(j)
@@ -3802,7 +3832,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1,jj
           do k=1,kk 
             do i=1,ii
@@ -3840,7 +3870,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isu(j)
@@ -3852,7 +3882,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj+1
           do k=1,ddm
             do l=1,isv(j)
@@ -3864,7 +3894,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isp(j)
@@ -3876,7 +3906,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1,jj
           do k=1,ddm
             do i=1,ii
@@ -3918,7 +3948,7 @@ c --- Check whether field should be accumulated
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3928,7 +3958,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3941,7 +3971,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3951,7 +3981,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3964,7 +3994,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3974,7 +4004,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4024,7 +4054,7 @@ c --- Check whether field should be accumulated
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isu(j)
@@ -4036,7 +4066,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isu(j)
@@ -4051,7 +4081,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isv(j)
@@ -4063,9 +4093,9 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-            do k=1,kdm
-c$OMP PARALLEL DO 
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
@@ -4073,12 +4103,12 @@ c$OMP PARALLEL DO
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isp(j)
@@ -4090,7 +4120,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isp(j)
@@ -4145,7 +4175,7 @@ c --- Check whether field should be accumulated
         if (pos(o).eq.0) cycle
 c
         if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -4158,7 +4188,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4171,7 +4201,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4217,7 +4247,7 @@ c --- Check whether field should be initialised
       if (posacc.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -4228,7 +4258,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4239,7 +4269,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4282,7 +4312,7 @@ c --- Check whether field should be initialised
       if (posacc.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isu(j)
@@ -4299,7 +4329,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isv(j)
@@ -4316,7 +4346,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -4631,7 +4661,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -4645,7 +4675,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4659,7 +4689,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4706,7 +4736,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isu(j)
@@ -4722,7 +4752,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isv(j)
@@ -4738,7 +4768,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -4787,7 +4817,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isu(j)
@@ -4803,7 +4833,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isv(j)
@@ -4819,7 +4849,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isp(j)
@@ -4873,7 +4903,7 @@ c
 c --- Prepare index fields for masking
 
       if (iniflg) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             kmaxp(i,j)=0
@@ -4895,7 +4925,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxu(i,j)+1,ddm
@@ -4905,7 +4935,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxv(i,j)+1,ddm
@@ -4915,7 +4945,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxp(i,j)+1,ddm
@@ -5078,8 +5108,15 @@ c
       call ncdefvar3d(SRF_TAUY(iogrp),cmpflg,'v','tauy',
      .  'Momentum flux received by ocean y-component',' ','N m-2',0)
 c
+      call ncdefvar3d(SRF_IDKEDT(iogrp),cmpflg,'p','idkedt',
+     .  'Mixed layer inertial kinetic energy tendency per unit area',
+     .  ' ','kg s-3',0)
+c
       call ncdefvar3d(SRF_USTAR(iogrp),cmpflg,'p','ustar',
      . 'Friction velocity',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_USTAR3(iogrp),cmpflg,'p','ustar3',
+     .  'Friction velocity cubed',' ','m3 s-3',0)
 c
       call ncdefvar3d(SRF_ABSWND(iogrp),cmpflg,'p','abswnd',
      . 'Absolute wind speed',' ','m s-1',0)

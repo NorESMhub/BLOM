@@ -180,7 +180,7 @@ c
       do m=n,3-n,3-2*n
         mm=(m-1)*kk
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=-2,jj+2
           do k=1,kk
             do l=1,isp(j)
@@ -192,7 +192,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(km,q)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
         do j=-1,jj+2
           do k=1,kk
             km=k+mm
@@ -227,7 +227,7 @@ c
       endif
 c
       if (cnsvdi) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -253,6 +253,10 @@ c
       call xctilr(pgfym, 1,2, 1,2, halo_vv)
       call xctilr(xiyp, 1,2, 1,2, halo_vs)
       call xctilr(xiym, 1,2, 1,2, halo_vs)
+      call xctilr(uml, 1,4, 1,0, halo_uv)
+      call xctilr(vml, 1,4, 0,1, halo_vv)
+      call xctilr(umlres, 1,2, 1,0, halo_uv)
+      call xctilr(vmlres, 1,2, 0,1, halo_vv)
 c
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection

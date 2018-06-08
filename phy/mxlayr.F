@@ -20,7 +20,7 @@ c
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
-      real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
+      real q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,
      .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
@@ -113,7 +113,7 @@ c --- Compute squared lateral buoyancy gradient in the mixed layer and
 c --- store it in -util1-.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(q,tmxl,smxl)
+c$OMP PARALLEL DO PRIVATE(l,i,q,tmxl,smxl)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -128,7 +128,7 @@ c$OMP PARALLEL DO PRIVATE(q,tmxl,smxl)
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -138,7 +138,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -148,7 +148,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -179,15 +179,15 @@ c
       endif
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
-c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
-c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,sfsl,
-c$OMP+ dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,
-c$OMP+ dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
-c$OMP+ sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
-c$OMP+ k,kn,kfpl,nitr,kmax,kfmax
+c$OMP+ l,i,pres,k,kn,ttem,ssal,delp,dens,densr,q,tmxl,smxl,alfa,beta,
+c$OMP+ bfltot,bflpsw,pmxl,lui,lbi,lei,cus,cbftot,cbfpsw,crs,rm1,rm2,rm3,
+c$OMP+ rm4,tkew,pradd,kfpl,dpmxl,tkeo,nitr,dtke,dpfsl,dptopl,tfsl,sfsl,
+c$OMP+ dpt,kmax,kfmax,bpmldp,pup,drhup,plo,drhlo,pbrnd,bcwsum,bdpsum,
+c$OMP+ tup,sup,dup,dsgdt,dsgds,bc,bpc,pswbas,pswup,pswlo,ttmp,stmp,
+c$OMP+ sigtmp,sigfsl,dps,tdps,sdps,tmxl0,smxl0,um,vm,dpe0,dke0,tkeu,uk,
+c$OMP+ vk,dpe,dke,tkel
 #ifdef TRC
-c$OMP+,ttrc,trfsl,trdps
+c$OMP+ ,nt,ttrc,trfsl,trdps
 #endif
 c$OMP+ )
       do j=1,jj
@@ -216,8 +216,6 @@ c --- --- Compute the turbulent kinetic energy (TKE) balance of the
 c --- --- mixed layer.
 c --- ------------------------------------------------------------------
 c
-          ustar3=ustar(i,j)**3
-c
 c --- --- bfltot = total buoyancy flux [cm**2/sec**3]
 c --- --- bflpsw = buoyancy flux due to penetrating short-wave radiation
 c ---              [cm**2/sec**3]
@@ -242,7 +240,7 @@ c
             lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
           lei=1./(onem*swbgal(i,j))
-          cus=rm0*ustar3
+          cus=rm0*ustar3(i,j)+niwgf*niwbf*idkedt(i,j)
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
           if     (rtsflg.eq.1) then
@@ -1116,7 +1114,7 @@ c$OMP END PARALLEL DO
 c
 c --- store 'old' interface pressures in -pu,pv-
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
         do k=1,kk
           kn=k+nn
@@ -1138,7 +1136,7 @@ c --- store 'new' layer thicknesses in -dpu,dpv-
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=-2,jj+2
         do k=1,kk
           kn=k+nn
@@ -1151,7 +1149,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=-1,jj+2
         do k=1,kk
           kn=k+nn
@@ -1175,7 +1173,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,uo,po,pn,ko,un,udpn)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn,uo,po,pn,ko,un,udpn)
       do j=1,jj
 c
         do l=1,isu(j)

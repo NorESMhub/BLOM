@@ -20,7 +20,12 @@ c
       integer nt
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(aux,pbfaco,pbfacn,km,kn,kp,pold,pmid,pnew,q)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ l,i,aux,pbfaco,pbfacn,k,kn,km,kp,pold,pmid,pnew,q
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -82,7 +87,7 @@ c$OMP END PARALLEL DO
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=-2,jj+2
         do k=1,kk
           do l=1,isp(j)
@@ -94,7 +99,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(km,q)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
       do j=-1,jj+2
         do k=1,kk
           km=k+mm

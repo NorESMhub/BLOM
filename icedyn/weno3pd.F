@@ -31,7 +31,7 @@ c
 c --- Compute grid cell boundary fluxes. Split in a low order flux
 c --- (donor cell) and a high order correction flux.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=0,jj+2
         do i=0,ii+2
           ful(i,j)=0.
@@ -44,7 +44,7 @@ c$OMP END PARALLEL DO
 c
       call xctilr(g, 1,1, 3,3, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(im1,im2,q0,q1,a0,a1,ip1)
+c$OMP PARALLEL DO PRIVATE(l,i,im1,im2,q0,q1,a0,a1,ip1)
       do j=0,jj+1
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -83,7 +83,7 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(jm1,q0,q1,a0,a1,jm2,jp1)
+c$OMP PARALLEL DO PRIVATE(jm1,l,i,jm2,q0,q1,a0,a1,jp1)
       do j=0,jj+2
         jm1=j-1
         do l=1,isv(j)
@@ -123,7 +123,7 @@ c
 c$OMP END PARALLEL DO
 c
 c --- Update field with low order fluxes.
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -136,7 +136,7 @@ c$OMP END PARALLEL DO
 c
 c --- Obtain fluxes with limited high order correction fluxes.
       q=.25/dt
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -146,7 +146,7 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -158,7 +158,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- Compute the spatial advective operator.
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

@@ -23,7 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Compute geopotential at layer interfaces.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=-1,jj+2
         do k=kk,1,-1
           kn=k+nn
@@ -53,6 +53,8 @@ c --- ------------------------------------------------------------------
 c
       rho0=1./alpha0
 c
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,k,kmax,kn,kintr,knnsl,pm,rho_x,phi_x,bfsqm)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -133,7 +135,10 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,k,kmax,kn,kintr,knnsl,pm,rho_y,phi_y,bfsqm)
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
@@ -214,6 +219,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       if (csdiag) then
         if (mnproc.eq.1) then

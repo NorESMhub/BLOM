@@ -21,7 +21,7 @@ c
 c --- compute new -dpu,dpv- field. save old -dpu,dpv- values in
 c --- -dpuold,dpvold-.
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=0,jj+1
         do k=1,kk
           kn=k+nn
@@ -34,7 +34,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj
         do k=1,kk
           kn=k+nn
@@ -51,7 +51,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj+1
         do k=1,kk
           kn=k+nn
@@ -69,7 +69,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,dphi,alpu,alpl)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn,dphi,alpu,alpl)
       do j=0,jj
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
@@ -95,7 +95,7 @@ c$OMP PARALLEL DO PRIVATE(kn,dphi,alpu,alpl)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -114,8 +114,9 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kup,kum,kvp,kvm,kn,prs,dphip,alpup,alplp,
-c$OMP+ dphim,alpum,alplm,cp,cm,q,phi_p,phi_m)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ l,i,kup,kum,kvp,kvm,k,kn,prs,dphip,alpup,alplp,dphim,alpum,alplm,
+c$OMP+ cp,cm,q,phi_p,phi_m)
       do j=1,jj
 c
         do l=1,isu(j)
@@ -242,7 +243,7 @@ c$OMP END PARALLEL DO
 c
       call xctilr(pb_p, 1,1, 1,1, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(q,kn)
+c$OMP PARALLEL DO PRIVATE(l,i,q,k,kn)
       do j=1,jj
 c
         do l=1,isu(j)
@@ -301,6 +302,9 @@ c
 c$OMP END PARALLEL DO
 c
       if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'pgforc:'
+        endif
         call chksummsk(phi,ip,kk+1,'phi')
         call chksummsk(pgfx,iu,2*kk,'pgfx')
         call chksummsk(pgfy,iv,2*kk,'pgfy')

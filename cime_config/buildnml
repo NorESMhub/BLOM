@@ -62,21 +62,21 @@ else if ($OCN_GRID == gx1v6) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
 else if ($OCN_GRID == gx3v7) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
-else if ( $OCN_GRID == tnx2v1) then
+else if ($OCN_GRID == tnx2v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
-else if ( $OCN_GRID == tnx1.5v1) then
+else if ($OCN_GRID == tnx1.5v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20131011
-else if ( $OCN_GRID == tnx1v1) then
+else if ($OCN_GRID == tnx1v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
-else if ( $OCN_GRID == tnx1v3) then
+else if ($OCN_GRID == tnx1v3) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170612
-else if ( $OCN_GRID == tnx1v4) then
+else if ($OCN_GRID == tnx1v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170601
-else if ( $OCN_GRID == tnx0.25v1) then
+else if ($OCN_GRID == tnx0.25v1) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
-else if ( $OCN_GRID == tnx0.25v3) then
+else if ($OCN_GRID == tnx0.25v3) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170623
-else if ( $OCN_GRID == tnx0.25v4) then
+else if ($OCN_GRID == tnx0.25v4) then
   setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170619
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
@@ -154,6 +154,9 @@ set RI0      = 1.2
 set RM0      = 1.2
 set RM5      = 0.
 set CE       = .06
+set NIWGF    = .7
+set NIWBF    = .7
+set NIWLF    = .5
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
 set CHLOPT   = "'climatology'"
@@ -183,126 +186,128 @@ set GLB_AVEPERIO =  '1,  30'
 set GLB_FILEFREQ = '30,  30'
 set GLB_COMPFLAG =  '0,   0'
 set GLB_NCFORMAT =  '0,   0'
-set SRF_ABSWND   =  '0,   2'
+set SRF_ABSWND   =  '0,   4'
 set SRF_ALB      =  '0,   0'
-set SRF_BRNFLX   =  '0,   2'
-set SRF_BRNPD    =  '0,   2'
+set SRF_BRNFLX   =  '0,   4'
+set SRF_BRNPD    =  '0,   4'
 set SRF_DFL      =  '0,   0'
-set SRF_EVA      =  '0,   2'
-set SRF_FICE     =  '0,   2'
-set SRF_FMLTFZ   =  '0,   2'
+set SRF_EVA      =  '0,   4'
+set SRF_FICE     =  '0,   4'
+set SRF_FMLTFZ   =  '0,   4'
 set SRF_HICE     =  '0,   0'
-set SRF_HMLTFZ   =  '0,   2'
+set SRF_HMLTFZ   =  '0,   4'
 set SRF_HSNW     =  '0,   0'
 set SRF_IAGE     =  '0,   0'
-set SRF_LIP      =  '0,   2'
-set SRF_MAXMLD   =  '4,   2'
-set SRF_MLD      =  '0,   2'
+set SRF_IDKEDT   =  '0,   4'
+set SRF_LIP      =  '0,   4'
+set SRF_MAXMLD   =  '4,   4'
+set SRF_MLD      =  '0,   4'
 set SRF_MLDU     =  '0,   0'
 set SRF_MLDV     =  '0,   0'
-set SRF_MTY      =  '0,   2'
-set SRF_MXLU     =  '0,   2'
-set SRF_MXLV     =  '0,   2'
-set SRF_NSF      =  '0,   2'
-set SRF_RFIFLX   =  '0,   2'
-set SRF_RNFFLX   =  '0,   2'
-set SRF_SALFLX   =  '0,   2'
-set SRF_SALRLX   =  '0,   2'
-set SRF_SEALV    =  '4,   2'
-set SRF_SFL      =  '0,   2'
-set SRF_SOP      =  '0,   2'
-set SRF_SIGMX    =  '0,   2'
-set SRF_SSS      =  '0,   2'
-set SRF_SST      =  '4,   2'
-set SRF_SURFLX   =  '0,   2'
-set SRF_SURRLX   =  '0,   2'
-set SRF_SWA      =  '0,   2'
-set SRF_TAUX     =  '0,   2'
-set SRF_TAUY     =  '0,   2'
+set SRF_MTY      =  '0,   4'
+set SRF_MXLU     =  '0,   4'
+set SRF_MXLV     =  '0,   4'
+set SRF_NSF      =  '0,   4'
+set SRF_RFIFLX   =  '0,   4'
+set SRF_RNFFLX   =  '0,   4'
+set SRF_SALFLX   =  '0,   4'
+set SRF_SALRLX   =  '0,   4'
+set SRF_SEALV    =  '4,   4'
+set SRF_SFL      =  '0,   4'
+set SRF_SOP      =  '0,   4'
+set SRF_SIGMX    =  '0,   4'
+set SRF_SSS      =  '0,   4'
+set SRF_SST      =  '4,   4'
+set SRF_SURFLX   =  '0,   4'
+set SRF_SURRLX   =  '0,   4'
+set SRF_SWA      =  '0,   4'
+set SRF_TAUX     =  '0,   4'
+set SRF_TAUY     =  '0,   4'
 set SRF_TICE     =  '0,   0'
 set SRF_TSRF     =  '0,   0'
-set SRF_UB       =  '0,   2'
+set SRF_UB       =  '0,   4'
 set SRF_UICE     =  '0,   0'
-set SRF_USTAR    =  '0,   2'
-set SRF_VB       =  '0,   2'
+set SRF_USTAR    =  '0,   4'
+set SRF_USTAR3   =  '0,   4'
+set SRF_VB       =  '0,   4'
 set SRF_VICE     =  '0,   0'
-set SRF_ZTX      =  '0,   2'
+set SRF_ZTX      =  '0,   4'
 set LYR_DIAFLX   =  '0,   0'
-set LYR_DIFDIA   =  '0,   2'
-set LYR_DIFINT   =  '0,   2'
-set LYR_DIFISO   =  '0,   2'
-set LYR_DP       =  '0,   2'
-set LYR_DZ       =  '0,   2'
-set LYR_SALN     =  '0,   2'
-set LYR_TEMP     =  '0,   2'
+set LYR_DIFDIA   =  '0,   4'
+set LYR_DIFINT   =  '0,   4'
+set LYR_DIFISO   =  '0,   4'
+set LYR_DP       =  '0,   4'
+set LYR_DZ       =  '0,   4'
+set LYR_SALN     =  '0,   4'
+set LYR_TEMP     =  '0,   4'
 set LYR_TRC      =  '0,   0'
-set LYR_UFLX     =  '0,   2'
-set LYR_UTFLX    =  '0,   2'
-set LYR_USFLX    =  '0,   2'
+set LYR_UFLX     =  '0,   4'
+set LYR_UTFLX    =  '0,   4'
+set LYR_USFLX    =  '0,   4'
 set LYR_UMFLTD   =  '0,   0'
 set LYR_UTFLTD   =  '0,   0'
 set LYR_UTFLLD   =  '0,   0'
 set LYR_USFLTD   =  '0,   0'
 set LYR_USFLLD   =  '0,   0'
-set LYR_UVEL     =  '0,   2'
-set LYR_VFLX     =  '0,   2'
-set LYR_VTFLX    =  '0,   2'
-set LYR_VSFLX    =  '0,   2'
+set LYR_UVEL     =  '0,   4'
+set LYR_VFLX     =  '0,   4'
+set LYR_VTFLX    =  '0,   4'
+set LYR_VSFLX    =  '0,   4'
 set LYR_VMFLTD   =  '0,   0'
 set LYR_VTFLTD   =  '0,   0'
 set LYR_VTFLLD   =  '0,   0'
 set LYR_VSFLTD   =  '0,   0'
 set LYR_VSFLLD   =  '0,   0'
-set LYR_VVEL     =  '0,   2'
-set LYR_WFLX     =  '0,   2'
-set LYR_WFLX2    =  '0,   2'
-set LYR_PV       =  '0,   2'
-set LYR_TKE      =  '0,   2'
-set LYR_GLS_PSI  =  '0,   2'
-set LYR_IDLAGE   =  '0,   2'
+set LYR_VVEL     =  '0,   4'
+set LYR_WFLX     =  '0,   4'
+set LYR_WFLX2    =  '0,   4'
+set LYR_PV       =  '0,   4'
+set LYR_TKE      =  '0,   4'
+set LYR_GLS_PSI  =  '0,   4'
+set LYR_IDLAGE   =  '0,   4'
 set LVL_DIAFLX   =  '0,   0'
-set LVL_DIFDIA   =  '0,   2'
-set LVL_DIFINT   =  '0,   2'
-set LVL_DIFISO   =  '0,   2'
-set LVL_DZ       =  '0,   2'
-set LVL_SALN     =  '0,   2'
-set LVL_TEMP     =  '0,   2'
+set LVL_DIFDIA   =  '0,   4'
+set LVL_DIFINT   =  '0,   4'
+set LVL_DIFISO   =  '0,   4'
+set LVL_DZ       =  '0,   4'
+set LVL_SALN     =  '0,   4'
+set LVL_TEMP     =  '0,   4'
 set LVL_TRC      =  '0,   0'
-set LVL_UFLX     =  '0,   2'
-set LVL_UTFLX    =  '0,   2'
-set LVL_USFLX    =  '0,   2'
+set LVL_UFLX     =  '0,   4'
+set LVL_UTFLX    =  '0,   4'
+set LVL_USFLX    =  '0,   4'
 set LVL_UMFLTD   =  '0,   0'
 set LVL_UTFLTD   =  '0,   0'
 set LVL_UTFLLD   =  '0,   0'
 set LVL_USFLTD   =  '0,   0'
 set LVL_USFLLD   =  '0,   0'
-set LVL_UVEL     =  '0,   2'
-set LVL_VFLX     =  '0,   2'
-set LVL_VTFLX    =  '0,   2'
-set LVL_VSFLX    =  '0,   2'
+set LVL_UVEL     =  '0,   4'
+set LVL_VFLX     =  '0,   4'
+set LVL_VTFLX    =  '0,   4'
+set LVL_VSFLX    =  '0,   4'
 set LVL_VMFLTD   =  '0,   0'
 set LVL_VTFLTD   =  '0,   0'
 set LVL_VTFLLD   =  '0,   0'
 set LVL_VSFLTD   =  '0,   0'
 set LVL_VSFLLD   =  '0,   0'
-set LVL_VVEL     =  '0,   2'
-set LVL_WFLX     =  '0,   2'
-set LVL_WFLX2    =  '0,   2'
-set LVL_PV       =  '0,   2'
-set LVL_TKE      =  '0,   2'
-set LVL_GLS_PSI  =  '0,   2'
-set LVL_IDLAGE   =  '0,   2'
-set MSC_MMFLXL   =  '0,   2'
-set MSC_MMFLXD   =  '0,   2'
-set MSC_MMFTDL   =  '0,   2'
-set MSC_MMFTDD   =  '0,   2'
-set MSC_MHFLX    =  '0,   2'
-set MSC_MHFTD    =  '0,   2'
-set MSC_MHFLD    =  '0,   2'
-set MSC_MSFLX    =  '0,   2'
-set MSC_MSFTD    =  '0,   2'
-set MSC_MSFLD    =  '0,   2'
-set MSC_VOLTR    =  '0,   2'
+set LVL_VVEL     =  '0,   4'
+set LVL_WFLX     =  '0,   4'
+set LVL_WFLX2    =  '0,   4'
+set LVL_PV       =  '0,   4'
+set LVL_TKE      =  '0,   4'
+set LVL_GLS_PSI  =  '0,   4'
+set LVL_IDLAGE   =  '0,   4'
+set MSC_MMFLXL   =  '0,   4'
+set MSC_MMFLXD   =  '0,   4'
+set MSC_MMFTDL   =  '0,   4'
+set MSC_MMFTDD   =  '0,   4'
+set MSC_MHFLX    =  '0,   4'
+set MSC_MHFTD    =  '0,   4'
+set MSC_MHFLD    =  '0,   4'
+set MSC_MSFLX    =  '0,   4'
+set MSC_MSFTD    =  '0,   4'
+set MSC_MSFLD    =  '0,   4'
+set MSC_VOLTR    =  '0,   4'
 # set DIABGC defaults
 set BGC_FNAMETAG  = "'hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '30,365'
@@ -441,7 +446,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
+else if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
@@ -451,14 +456,14 @@ else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set GLB_FILEFREQ = '30, 365'
   set SRF_BRNFLX   =  '0,   0'
   set SRF_BRNPD    =  '0,   0'
-  set SRF_FICE     =  '2,   0'
+  set SRF_FICE     =  '4,   0'
   set SRF_FMLTFZ   =  '0,   0'
   set SRF_HMLTFZ   =  '0,   0'
-  set SRF_MAXMLD   =  '2,   0'
-  set SRF_MLD      =  '2,   0'
-  set SRF_SEALV    =  '2,   2'
-  set SRF_SSS      =  '2,   0'
-  set SRF_SST      =  '2,   0'
+  set SRF_MAXMLD   =  '4,   0'
+  set SRF_MLD      =  '4,   0'
+  set SRF_SEALV    =  '4,   4'
+  set SRF_SSS      =  '4,   0'
+  set SRF_SST      =  '4,   0'
   set SRF_USTAR    =  '0,   0'
   set LYR_DIFDIA   =  '0,   0'
   set LYR_DIFINT   =  '0,   0'
@@ -476,21 +481,34 @@ else if ( $OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 ) then
   set LVL_DIFINT   =  '0,   0'
   set LVL_DIFISO   =  '0,   0'
   set LVL_DZ       =  '0,   0'
-  set LVL_SALN     =  '2,   0'
-  set LVL_TEMP     =  '2,   0'
+  set LVL_SALN     =  '4,   0'
+  set LVL_TEMP     =  '4,   0'
   set LVL_UFLX     =  '0,   0'
   set LVL_UTFLX    =  '0,   0'
   set LVL_USFLX    =  '0,   0'
   set LVL_VFLX     =  '0,   0'
   set LVL_VTFLX    =  '0,   0'
   set LVL_VSFLX    =  '0,   0'
-  set LVL_WFLX     =  '0,   2'
+  set LVL_WFLX     =  '0,   4'
   set LVL_WFLX2    =  '0,   0'
   set LVL_PV       =  '0,   0'
-else if ( $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
-  set BACLIN = 3200.
-  set BATROP = 64.
-else if ( $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
+else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
+  if ($OCN_NCPL == 24) then
+    set BACLIN = 3600.
+    set BATROP = 60.
+    set CWBDTS = 1.e-4
+    set CE     = .5
+    set SMTFRC = .false.
+  else
+    set BACLIN = 3200.
+    set BATROP = 64.
+  endif
+  set CWMTAG = "'Gibraltar','Gibraltar'"
+  set CWMEDG = "        'u',        'u'"
+  set CWMI   = "        105,        106"
+  set CWMJ   = "        273,        273"
+  set CWMWTH = "      15.e3,      15.e3"
+else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 800.
   set BATROP = 16.
   set MDV2HI = .15
@@ -584,6 +602,12 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
+! NIWGF    : Global factor applied to the energy input by near-intertial
+!            motions () (f)
+! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
+!            layer () (f)
+! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
+!            the boundary layer () (f)
 ! SWAMTH   : Shortwave radiation absorption method. Valid methods:
 !            'top-layer', 'jerlov', 'chlorophyll' (a)
 ! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
@@ -653,6 +677,9 @@ cat >! $RUNDIR/ocn_in << EOF1
   RM0      = ${RM0},
   RM5      = ${RM5},
   CE       = ${CE},
+  NIWGF    = ${NIWGF},
+  NIWBF    = ${NIWBF},
+  NIWLF    = ${NIWLF},
   SWAMTH   = ${SWAMTH},
   JWTYPE   = ${JWTYPE},
   CHLOPT   = ${CHLOPT},
@@ -677,6 +704,33 @@ cat >! $RUNDIR/ocn_in << EOF1
   RSTCMP   = ${RSTCMP},
   IOTYPE   = ${IOTYPE}
 /
+EOF1
+
+if ($?CWMTAG) then
+cat >>! $RUNDIR/ocn_in << EOF2
+ 
+! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
+!
+! CONTENTS:
+!
+! CWMTAG   : Array of geographical names of channels to be modified (a)
+! CWMEDG   : Array of C grid cell edges to be modified. Valid options:
+!            'u' or 'v' (a)
+! CWMI     : Array of grid cell i-indices (i)
+! CWMJ     : Array of grid cell j-indices (i)
+! CWMWTH   : Array of modified grid cell widths (m) (f)
+! 
+&CWMOD
+  CWMTAG = ${CWMTAG},
+  CWMEDG = ${CWMEDG},
+  CWMI   = ${CWMI},
+  CWMJ   = ${CWMJ},
+  CWMWTH = ${CWMWTH},
+/
+EOF2
+endif
+
+cat >>! $RUNDIR/ocn_in << EOF3
 
 ! BGCNML NAMELIST
 !
@@ -686,6 +740,9 @@ cat >! $RUNDIR/ocn_in << EOF1
 &BGCNML
   ATM_CO2  = $CCSM_CO2_PPMV
 /
+EOF3
+
+cat >>! $RUNDIR/ocn_in << EOF4
 
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
@@ -745,6 +802,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 !   HMLTFZ   - heat flux due to melting/freezing [W m-2]
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
+!   IDKEDT   - mixed layer inertial kinetic energy tendency per unit area [kg s-3]
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
@@ -774,6 +832,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 !   UB       - barotropic velocity x-component [m s-1]
 !   UICE     - ice velocity x-component [m s-1]
 !   USTAR    - friction velocity [m s-1]
+!   USTAR3   - friction velocity cubed [m3 s-3]
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
@@ -840,6 +899,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   SRF_HMLTFZ   = ${SRF_HMLTFZ},
   SRF_HSNW     = ${SRF_HSNW},
   SRF_IAGE     = ${SRF_IAGE},
+  SRF_IDKEDT   = ${SRF_IDKEDT},
   SRF_LIP      = ${SRF_LIP},
   SRF_MAXMLD   = ${SRF_MAXMLD},
   SRF_MLD      = ${SRF_MLD},
@@ -869,6 +929,7 @@ cat >! $RUNDIR/ocn_in << EOF1
   SRF_UB       = ${SRF_UB},
   SRF_UICE     = ${SRF_UICE},
   SRF_USTAR    = ${SRF_USTAR},
+  SRF_USTAR3   = ${SRF_USTAR3},
   SRF_VB       = ${SRF_VB},
   SRF_VICE     = ${SRF_VICE},
   SRF_ZTX      = ${SRF_ZTX},
@@ -1130,4 +1191,4 @@ cat >! $RUNDIR/ocn_in << EOF1
   SDM_SSSC12         = ${SDM_SSSC12},
   SDM_SSSTER         = ${SDM_SSSTER}
 /
-EOF1
+EOF4

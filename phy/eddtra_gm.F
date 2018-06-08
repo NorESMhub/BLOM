@@ -41,6 +41,7 @@ c --- ------------------------------------------------------------------
 c --- Compute top pressure at velocity points.
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -48,6 +49,8 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
@@ -55,12 +58,15 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- Compute u-component of eddy-induced mass fluxes.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE()
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,k,km,et2mf,kmax,kn,kintr,kappa,upsilon,
+c$OMP+  kmin,mfl,dlm,dlp,fhi,flo,changed,niter,kdir,q)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -429,12 +435,15 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- Compute v-component of eddy-induced mass fluxes.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE()
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,k,km,et2mf,kmax,kn,kintr,kappa,upsilon,
+c$OMP+  kmin,mfl,dlm,dlp,fhi,flo,changed,niter,kdir,q)
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
@@ -803,6 +812,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       return
       end

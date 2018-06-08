@@ -45,6 +45,7 @@ c --- ------------------------------------------------------------------
 c --- Compute auxilary grid parameters
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           scq2i(i,j)=1./max(1.,scq2(i,j))
@@ -55,6 +56,7 @@ c
           scvxi(i,j)=1./max(1.,scvx(i,j))
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- Determine do-loop limits for u,v,p,q points
@@ -104,17 +106,21 @@ c
       call xctilr(vclat, 1,4, nbdy,nbdy, halo_vs)
       call xctilr(vclon, 1,4, nbdy,nbdy, halo_vs)
       if (expcnf.eq.'cesm') then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             util1(i,j)=cplmsk(i,j)
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xctilr(util1, 1,1, nbdy,nbdy, halo_ps)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             cplmsk(i,j)=nint(util1(i,j))
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
 c --- ------------------------------------------------------------------
@@ -122,36 +128,44 @@ c --- Set mask used for global sums
 c --- ------------------------------------------------------------------
 c
       if (nreg.eq.2.and.nproc.eq.jpr) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj-1
           do i=1-nbdy,ii+nbdy
             ips(i,j)=ip(i,j)
           enddo
         enddo
+c$OMP END PARALLEL DO
         do j=jj,jj+nbdy
           do i=1-nbdy,ii+nbdy
             ips(i,j)=0
           enddo
         enddo
       else
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             ips(i,j)=ip(i,j)
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           util1(i,j)=ip(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcsum(rnwp,util1,ip)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           util1(i,j)=depths(i,j)*scp2(i,j)
           util2(i,j)=scp2(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcsum(avgbot,util1,ips)
       call xcsum(area,  util2,ips)
       avgbot=avgbot/area
@@ -173,17 +187,20 @@ c --- ------------------------------------------------------------------
 c --- Set mask for grid cells connected to the world ocean
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           util1(i,j)=ips(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcsum(rnwp,util1,ips)
       if (mnproc.eq.1) then
         write (lp,*) 'Number of wet points',nint(rnwp)
         call flush(lp)
       endif
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ips(i,j).eq.1) then
@@ -193,6 +210,7 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       k=0
       rmxnbp=0.
@@ -212,6 +230,7 @@ c
         endif
         call xcaput(tmpg,util1,1)
         call fill_global(mval,fval,halo_ps,util1)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             if (util1(i,j).eq.mval.or.util1(i,j).eq.fval) then
@@ -225,6 +244,7 @@ c
             endif
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcsum(rnbp,util2,ips)
         if (mnproc.eq.1) then
           write (lp,*) 'Number of basin points',nint(rnbp)
@@ -238,6 +258,7 @@ c
         if (nint(rtnbp-rnwp).eq.0) exit
       enddo
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (util1(i,j).eq.mval) then
@@ -251,12 +272,15 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, nbdy,nbdy, halo_ps)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
           ipwocn(i,j)=nint(util1(i,j))
         enddo
       enddo
+c$OMP END PARALLEL DO
 c      
       call ncfopn('ipwocn.nc','w','c',1,iotype)
       call ncdims('x',itdm)
@@ -271,6 +295,7 @@ c --- Determine upper bound of lateral diffusivity based on numerical
 c --- stability concerns
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(i,dx2,dy2)
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
           dx2=scpx(i,j)*scpx(i,j)
@@ -281,12 +306,15 @@ c
           difmxq(i,j)=.9*.5*dx2*dy2/max(1.,(dx2+dy2)*(baclin+baclin))
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- Estimate maximum barotropic time step
 c --- ------------------------------------------------------------------
 c
       btdtmx=86400.
+c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP+REDUCTION(min:btdtmx)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -297,6 +325,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcmin(btdtmx)
       if (mnproc.eq.1) then
         write (lp,*) 'estimated max. barotropic time step:',
@@ -313,6 +342,8 @@ c
       vmaxmin=huge
       umaxmax=0.
       vmaxmax=0.
+c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP+REDUCTION(min:umaxmin,vmaxmin) REDUCTION(max:umaxmax,vmaxmax)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -331,6 +362,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call xctilr(umax, 1,1, nbdy,nbdy, halo_us)
       call xctilr(vmax, 1,1, nbdy,nbdy, halo_vs)

@@ -32,10 +32,11 @@ c
 c
       integer niter
 c
-c$OMP PARALLEL DO PRIVATE(ttem,ssal,delp,dens,densr,
-c$OMP+ done,k,kn,tdps,sdps,dps,ttmp,stmp,dtmp,q,kfpl,kfplo,kmix,niter
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ l,i,k,kn,ttem,ssal,delp,dens,densr,dps,kfpl,kfplo,tdps,sdps,q,
+c$OMP+ ttmp,stmp,dtmp,done,niter,kmix
 #ifdef TRC
-c$OMP+,ttrc,trdps
+c$OMP+ ,nt,ttrc,trdps
 #endif
 c$OMP+ )
       do j=1,jj
@@ -276,7 +277,7 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(p, 1,kk+1, 1,1, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(kn,uo,po,pn,ko,un,udpn)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn,uo,po,pn,ko,un,udpn)
       do j=1,jj
 c
         do l=1,isu(j)
@@ -353,7 +354,7 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj
         do k=1,kk
           kn=k+nn
