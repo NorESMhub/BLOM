@@ -754,6 +754,7 @@ c --- local angle of i-direction and with eastward direction, and
 c --- compute Coriolis and beta plane parameter
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
 c
@@ -779,6 +780,7 @@ c
 c
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       return
       end

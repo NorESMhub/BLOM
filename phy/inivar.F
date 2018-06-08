@@ -24,7 +24,11 @@ c --- ------------------------------------------------------------------
 c --- initialize some arrays
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
           p(i,j,1)=huge
@@ -197,7 +201,7 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj+1
         do l=1,isq(j)
         do i=max(1,ifq(j,l)),min(ii+1,ilq(j,l))
@@ -240,7 +244,7 @@ c
       call xctilr(p,    1,   1, nbdy,nbdy, halo_ps)
       call xctilr(dp,   1,2*kk, nbdy,nbdy, halo_ps)
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1-nbdy,jj+nbdy
         do l=1,isp(j)
         do i=ifp(j,l),ilp(j,l)
@@ -250,7 +254,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -263,7 +267,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -307,7 +311,7 @@ c --- located upstream and downstream (in i direction) of p points.
 c --- initialize  pbu,dpu,utotn  upstream and downstream of p
 c --- points as well as at lateral neighbors of interior u points.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=0,jj+1
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -333,7 +337,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l)+1)
@@ -400,6 +404,7 @@ c
       call xctilr(umfltd, 1,2*kk, nbdy,nbdy, halo_us)
       call xctilr(u   ,   1,2*kk, nbdy,nbdy, halo_us)
 #ifdef TRC
+c$OMP PARALLEL DO PRIVATE(i,nt)
       do j=1-nbdy,jdm+nbdy
         do i=1-nbdy,idm+nbdy
           do nt=1,ntr
@@ -407,6 +412,7 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 #endif
 c
 c --- initialize  v,vb,vtotm,vflx,vflux,vflux2/3,via,vib  at points
@@ -414,6 +420,7 @@ c --- located upstream and downstream (in j direction) of p points.
 c --- initialize  pby,dpv,vtotn  upstream and downstream of p
 c --- points as well as at lateral neighbors of interior v points.
 c
+c$OMP PARALLEL DO PRIVATE(l,j,k)
       do i=0,ii+1
         do l=1,jsv(i)
         do j=max(1,jfv(i,l)),min(jj,jlv(i,l))
@@ -437,7 +444,9 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
+c$OMP PARALLEL DO PRIVATE(l,j,k)
       do i=1,ii
         do l=1,jsp(i)
         do j=max(1,jfp(i,l)),min(jj,jlp(i,l)+1)
@@ -478,6 +487,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call xctilr(pv,     1,   1, nbdy,nbdy, halo_vs)
       call xctilr(vtotn,  1,   1, nbdy,nbdy, halo_vs)
@@ -503,6 +513,7 @@ c
       call xctilr(vmfltd, 1,2*kk, nbdy,nbdy, halo_vs)
       call xctilr(v   ,   1,2*kk, nbdy,nbdy, halo_vs)
 #ifdef TRC
+c$OMP PARALLEL DO PRIVATE(i,nt)
       do j=1-nbdy,jdm+nbdy
         do i=1-nbdy,idm+nbdy
           do nt=1,ntr
@@ -510,6 +521,7 @@ c
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 #endif
 c
       if (csdiag) then

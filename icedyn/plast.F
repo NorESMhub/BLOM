@@ -29,7 +29,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c*** Ice pressure and viscosities
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(Pplast,delta)
+c$OMP PARALLEL DO PRIVATE(jp1,i,Pplast,e11,e22,e12,delta)
       do j=0,M
         jp1=mod(j+1,MP)
         do i=1,LM

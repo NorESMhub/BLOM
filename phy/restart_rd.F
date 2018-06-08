@@ -186,6 +186,7 @@ c
 c --- Compute extended uv masks 
       if (first) then
         first=.false.
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             if ((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -205,6 +206,7 @@ c --- Compute extended uv masks
             endif
           enddo 
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('u',u,iuu,1,0.)
@@ -241,8 +243,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 umfltd(i,j,k)=0.
@@ -250,6 +253,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('utfltd')
@@ -263,8 +267,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 utfltd(i,j,k)=0.
@@ -272,6 +277,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('utflld')
@@ -285,8 +291,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 utflld(i,j,k)=0.
@@ -294,6 +301,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('usfltd')
@@ -307,8 +315,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 usfltd(i,j,k)=0.
@@ -316,6 +325,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('usflld')
@@ -329,8 +339,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 usflld(i,j,k)=0.
@@ -338,6 +349,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('vflx',vflx,ivv,1,0.)
@@ -355,8 +367,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vmfltd(i,j,k)=0.
@@ -364,6 +377,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vtfltd')
@@ -377,8 +391,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vtfltd(i,j,k)=0.
@@ -386,6 +401,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vtflld')
@@ -399,8 +415,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vtflld(i,j,k)=0.
@@ -408,6 +425,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vsfltd')
@@ -421,8 +439,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vsfltd(i,j,k)=0.
@@ -430,6 +449,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vsflld')
@@ -443,8 +463,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vsflld(i,j,k)=0.
@@ -452,6 +473,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('ubflx',ubflx,iuu,1,0.)
@@ -590,6 +612,7 @@ c
             write (lp,*) 'from restart file and will be initialized.'
           endif
           prfac=1.
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -598,6 +621,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
       endif
 c
@@ -675,6 +699,7 @@ c
             write (lp,*)
      .       'will be initialized to zero.'
           endif
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -682,6 +707,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
         vexist=ncinqv('flxdms')
 !        call xcbcst(vexist)
@@ -694,6 +720,7 @@ c
             write (lp,*)
      .       'will be initialized to zero.'
           endif
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -701,6 +728,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
       endif
 c
@@ -756,8 +784,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               difdia(i,j,k)=0.
@@ -765,6 +794,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('ustarb')
@@ -778,6 +808,7 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -785,6 +816,7 @@ c
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 #  endif
 #  ifdef IDLAGE
@@ -1059,6 +1091,7 @@ c --- read accumulated fields
 c
       call ncfcls
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i,j).eq.1) then
@@ -1067,6 +1100,7 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- set minimum physical temperature for each isopycnic layer

@@ -23,7 +23,7 @@ c --- factors are in cm
 c
 c --- Prediction step
       call weno3pd(h,sao,u,v,scuy,scvx,scp2i,scp2,dtm)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -35,7 +35,7 @@ c$OMP END PARALLEL DO
 c
 c --- Correction step
       call weno3pd(hp,sao,u,v,scuy,scvx,scp2i,scp2,dtm)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

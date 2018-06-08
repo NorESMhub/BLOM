@@ -180,6 +180,7 @@ c
 c --- Construct interface depths [cm] from layer thicknesses [m] and
 c --- convert unit of reference potential density from [kg/m^3] to
 c --- [g/cm^3]
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -188,7 +189,9 @@ c         z(i,j,1)=z(i,j,1)*1.e2
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
       do k=1,kk
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -197,7 +200,9 @@ c         z(i,j,1)=z(i,j,1)*1.e2
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       enddo
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=2,kk
           do l=1,isp(j)
@@ -213,8 +218,10 @@ c         z(i,j,1)=z(i,j,1)*1.e2
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- Compute layer interface geopotential
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk+1
           do l=1,isp(j)
@@ -224,6 +231,7 @@ c --- Compute layer interface geopotential
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       return
       end

@@ -18,7 +18,11 @@ c
       integer nt
 #endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

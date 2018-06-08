@@ -180,7 +180,7 @@ c
       do m=n,3-n,3-2*n
         mm=(m-1)*kk
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=-2,jj+2
           do k=1,kk
             do l=1,isp(j)
@@ -192,7 +192,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(km,q)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
         do j=-1,jj+2
           do k=1,kk
             km=k+mm
@@ -227,7 +227,7 @@ c
       endif
 c
       if (cnsvdi) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

@@ -36,7 +36,7 @@ c ---  uwat,vwat , is the ml velocity components on b-grid [m/s]
 c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO PRIVATE(du2,q)
+c$OMP PARALLEL DO PRIVATE(i,du2,q)
         do j=0,M
           do i=1,L
             du2=(u(i,j,lold)-uwat(i,j))**2+(v(i,j,lold)-vwat(i,j))**2
@@ -47,7 +47,7 @@ c$OMP PARALLEL DO PRIVATE(du2,q)
           enddo
         enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
         do j=1,jtdm
           j1=j-1
           do i=1,itdm
@@ -56,7 +56,7 @@ c$OMP PARALLEL DO
           enddo
         enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(jm1,i)
         do j=1,jtdm
           jm1=mod(j-2+jtdm,jtdm)+1
           do i=1,itdm
@@ -98,7 +98,7 @@ c
       enddo
       call xcaget(tmp2db,util1,1)
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
             iuvt(i,j)=0
@@ -115,7 +115,7 @@ c$OMP END PARALLEL DO
       endif
       call xcaput(tmp2da,uicem,1)
       if (mnproc.eq.1) then
-c$OMP PARALLEL DO PRIVATE(jm1)
+c$OMP PARALLEL DO PRIVATE(jm1,i)
         do j=1,jtdm
           jm1=mod(j-2+jtdm,jtdm)+1
           do i=1,itdm

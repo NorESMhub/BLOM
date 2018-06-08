@@ -23,7 +23,8 @@ c
       real dpeps
       parameter (dpeps=1.e-4)
 c
-c$OMP PARALLEL DO PRIVATE(iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne)
       do j=-1,jj+2
         do l=1,isp(j)
         do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
@@ -62,7 +63,7 @@ c
 #endif
 c
       if     (rmpmth.eq.'eitvel') then
-c$OMP PARALLEL DO PRIVATE(km,kn)
+c$OMP PARALLEL DO PRIVATE(km,kn,j,l,i)
 c$OMP+FIRSTPRIVATE(utotm,vtotm)
         do k=1,kk
           km=k+mm
@@ -113,7 +114,7 @@ c
         enddo
 c$OMP END PARALLEL DO
       elseif (rmpmth.eq.'eitflx') then
-c$OMP PARALLEL DO PRIVATE(km,kn)
+c$OMP PARALLEL DO PRIVATE(km,kn,j,l,i)
 c$OMP+FIRSTPRIVATE(utotm,vtotm)
         do k=1,kk
           km=k+mm
@@ -177,7 +178,7 @@ c --- by utilizing the time averaged barotropic mass flux, correct the
 c --- layer thicknesses to better match the predictive bottom pressure
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=0,jj+1
         do k=1,kk
           kn=k+nn
@@ -189,7 +190,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(km)
+c$OMP PARALLEL DO PRIVATE(l,i,k,km)
       do j=1,jj
         if     (bmcmth.eq.'uc') then
           do l=1,isu(j)
@@ -221,7 +222,7 @@ c$OMP PARALLEL DO PRIVATE(km)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(km)
+c$OMP PARALLEL DO PRIVATE(l,i,k,km)
       do j=1,jj+1
         if     (bmcmth.eq.'uc') then
           do l=1,isv(j)
@@ -259,7 +260,11 @@ c
         kn=k+nn
 c
         if     (bmcmth.eq.'uc') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
           do j=1,jj
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -295,7 +300,11 @@ c$OMP PARALLEL DO
             enddo
           enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
           do j=1,jj+1
             do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -332,7 +341,11 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (bmcmth.eq.'dluc') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
           do j=1,jj
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -374,7 +387,11 @@ c$OMP PARALLEL DO
             enddo
           enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
           do j=1,jj+1
             do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -424,7 +441,11 @@ c$OMP END PARALLEL DO
                  stop '(advect)'
         endif
 c
-c$OMP PARALLEL DO PRIVATE(dpo,dpni)
+c$OMP PARALLEL DO PRIVATE(l,i,dpo,dpni
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -457,7 +478,7 @@ c$OMP END PARALLEL DO
 c
       enddo
 c
-c$OMP PARALLEL DO PRIVATE(kn,pbfac)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,pbfac)
       do j=1,jj
         do k=1,kk
           kn=k+nn

@@ -22,7 +22,7 @@ c
       call xctilr(saln, 1,2*kk, 3,3, halo_ps)
 c     call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
 c     call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -32,7 +32,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 2,2, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=-1,jj+2
         do l=1,isp(j)
         do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))

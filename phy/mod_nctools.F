@@ -344,11 +344,13 @@ c
       real, dimension(itdm,jtdm) :: rmskt
       character*(*) dnm 
 c 
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           rmsk(i,j)=msk(i,j)
         enddo
       enddo 
+c$OMP END PARALLEL DO
       call xcaget(rmskt,rmsk,1)
       if (mnproc.eq.1.and.rec.eq.1) then 
         n=0
@@ -878,11 +880,13 @@ c --- Get attributes
 c
 c --- get mask for the full domain  
       if (mskflg.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcaget(rmskt,rmsk,1)
       endif
 c
@@ -914,6 +918,7 @@ c --- Get data
             call xcaput(rfldt,rfld,1)
             if (mskflg.eq.1) then
               if (scf.eq.1..and.ofs.eq.0) then
+c$OMP PARALLEL DO PRIVATE(i,ij)
                 do j=1,jj
                   do i=1,ii
                     ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -924,7 +929,9 @@ c --- Get data
                     endif
                   enddo
                 enddo
+c$OMP END PARALLEL DO
               else
+c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -935,22 +942,27 @@ c --- Get data
                   endif
                 enddo
               enddo
+c$OMP END PARALLEL DO
             endif
           else
             if (scf.eq.1..and.ofs.eq.0) then
+c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs
                 enddo
               enddo
+c$OMP END PARALLEL DO
             else
+c$OMP PARALLEL DO PRIVATE(i,ij)
               do j=1,jj
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   fld(ij+(k-1)*ijdm)=rfld(i,j)
                 enddo
               enddo
+c$OMP END PARALLEL DO
             endif
           endif
         enddo
@@ -967,8 +979,9 @@ c --- Get data
 
         if (mskflg.eq.1) then
           if (scf.eq.1..and.ofs.eq.0) then
-            do k=1,kd
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i,ij)
+            do j=1,jj
+              do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   if (msk(ij).eq.1) then
@@ -979,9 +992,11 @@ c --- Get data
                 enddo
               enddo
             enddo
+c$OMP END PARALLEL DO
           else
-            do k=1,kd
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i,ij)
+            do j=1,jj
+              do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   if (msk(ij).eq.1) then
@@ -992,26 +1007,31 @@ c --- Get data
                 enddo
               enddo
             enddo
+c$OMP END PARALLEL DO
           endif
         else
           if (scf.eq.1..and.ofs.eq.0) then
-            do k=1,kd
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i,ij)
+            do j=1,jj
+              do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   fld(ij+(k-1)*ijdm)=rfldt(i,j,k)*scf+ofs
                 enddo
               enddo
             enddo
+c$OMP END PARALLEL DO
           else
-            do k=1,kd
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i,ij)
+            do j=1,jj
+              do k=1,kd
                 do i=1,ii
                   ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                   fld(ij+(k-1)*ijdm)=rfldt(i,j,k)
                 enddo
               enddo
             enddo
+c$OMP END PARALLEL DO
           endif
         endif
       endif
@@ -1058,11 +1078,13 @@ c --- Get attributes
 c
 c --- get mask for the full domain  
       if (mskflg.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcaget(rmskt,rmsk,1)
       endif
       allocate(rfldt(itdm,jtdm,1))
@@ -1096,6 +1118,7 @@ c --- Get data
         call xcaput(rfldt,rfld,1)
         if (mskflg.eq.1) then 
           if (scf.eq.1..and.ofs.eq.0) then 
+c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1106,7 +1129,9 @@ c --- Get data
                 endif
               enddo
             enddo
+c$OMP END PARALLEL DO
           else
+c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1117,22 +1142,27 @@ c --- Get data
                 endif
               enddo
             enddo
+c$OMP END PARALLEL DO
           endif  
         else
           if (scf.eq.1..and.ofs.eq.0) then
+c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                 fld(ij+(k-1)*ijdm)=rfld(i,j)*scf+ofs 
               enddo
             enddo     
+c$OMP END PARALLEL DO
           else
+c$OMP PARALLEL DO PRIVATE(i,ij)
             do j=1,jj
               do i=1,ii
                 ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
                 fld(ij+(k-1)*ijdm)=rfld(i,j)
               enddo
             enddo
+c$OMP END PARALLEL DO
           endif
         endif        
       enddo 
@@ -1228,7 +1258,7 @@ c --- compute scale factor and offset
       
       if (mskflg.eq.1) then
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(j,i,ij,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1244,7 +1274,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
       elseif (mskflg.eq.2) then
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(j,i,ij,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1260,7 +1290,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
       else
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+   PRIVATE(ijk) 
+c$OMP+   PRIVATE(j,i,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1313,7 +1343,7 @@ c
 c --- Prepare and write output field
       if (mskflg.eq.1) then
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij) 
+c$OMP+  PRIVATE(j,i,ij) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1330,7 +1360,7 @@ c$OMP+  PRIVATE(ij)
 c$OMP END PARALLEL DO
       elseif (mskflg.eq.2) then
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(j,i,ij,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1347,7 +1377,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
       else
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ijk) 
+c$OMP+  PRIVATE(j,i,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1359,7 +1389,7 @@ c$OMP+  PRIVATE(ijk)
 c$OMP END PARALLEL DO
       endif
 c
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(j,i)
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1412,7 +1442,7 @@ c --- compute scale factor and offset
       fldmax=-abs(fillr8)
       if (mskflg.eq.1) then 
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(j,i,ij,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1428,7 +1458,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
       elseif (mskflg.eq.2) then 
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(j,i,ij,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1444,7 +1474,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
       else
 c$OMP PARALLEL DO REDUCTION(min:fldmin) REDUCTION(max:fldmax)
-c$OMP+   PRIVATE(ijk) 
+c$OMP+   PRIVATE(j,i,ijk) 
         do k=1,kd
           do j=1,jj
             do i=1,ii
@@ -1493,7 +1523,7 @@ c --- Prepare and write output field
         if (k.gt.1) start(3)=k
         if (mskflg.eq.1) then
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij) 
+c$OMP+  PRIVATE(i,ij) 
           do j=1,jj
             do i=1,ii
               ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1508,7 +1538,7 @@ c$OMP+  PRIVATE(ij)
 c$OMP END PARALLEL DO
         elseif (mskflg.eq.2) then
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(i,ij,ijk) 
           do j=1,jj
             do i=1,ii
               ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1523,7 +1553,7 @@ c$OMP+  PRIVATE(ij,ijk)
 c$OMP END PARALLEL DO
         else
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ijk) 
+c$OMP+  PRIVATE(i,ijk) 
           do j=1,jj
             do i=1,ii 
               ijk=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm
@@ -1653,16 +1683,19 @@ c --- define variable
       endif
 c
 c --- get mask for the full domain
+c$OMP PARALLEL DO PRIVATE(i,ij)
       do j=1,jj
         do i=1,ii
           ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
           rmsk(i,j)=msk(ij)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcaget(rmskt,rmsk,1)
 c
 c --- Prepare output field    
       do k=1,kd
+c$OMP PARALLEL DO PRIVATE(i,ij,ijk)
         do j=1,jj
           do i=1,ii 
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1674,6 +1707,7 @@ c --- Prepare output field
             endif
           enddo 
         enddo       
+c$OMP END PARALLEL DO
         call xcaget(rfldt,rfld,1) 
        IF(IO_TYPE .eq. 1) then
 #ifdef PNETCDF
@@ -1811,7 +1845,7 @@ c --- compute scale factor and offset
       fldmax=-abs(fillr8)
 c
       ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-c$OMP PARALLEL DO PRIVATE(ij,ijk) 
+c$OMP PARALLEL DO PRIVATE(j,i,ij,ijk) 
 c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
       do k=1,kd
         do j=1,jj
@@ -1865,7 +1899,7 @@ c
       endif
 c
 c --- get mask for the full domain
-c$OMP PARALLEL DO PRIVATE(ij)
+c$OMP PARALLEL DO PRIVATE(i,ij)
       do j=1,jj
         do i=1,ii
           ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1878,7 +1912,7 @@ c
 c --- Prepare and write output field    
       do k=1,kd
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(i,ij,ijk) 
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -1943,7 +1977,7 @@ c --- compute scale factor and offset
       fldmax=-abs(fillr8)
 c
       ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-c$OMP PARALLEL DO PRIVATE(ij,ijk) 
+c$OMP PARALLEL DO PRIVATE(j,i,ij,ijk) 
 c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
       do k=1,kd
         do j=1,jj
@@ -1988,7 +2022,7 @@ c --- Define attributes
       endif
 c
 c --- get mask for the full domain
-c$OMP PARALLEL DO PRIVATE(ij)
+c$OMP PARALLEL DO PRIVATE(i,ij)
       do j=1,jj
         do i=1,ii
           ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -2001,7 +2035,7 @@ c
 c --- Prepare and write output field    
       do k=1,kd
 c$OMP PARALLEL DO 
-c$OMP+  PRIVATE(ij,ijk) 
+c$OMP+  PRIVATE(i,ij,ijk) 
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
@@ -2221,18 +2255,22 @@ c --- Initialise fields
 c
 c --- get mask for the full domain
       if (mskflg.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i,ij)
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
             rmsk(i,j)=msk(ij)
           enddo
         enddo
+c$OMP END PARALLEL DO
       else
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=1.
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
 c --- Prepare output field   
@@ -2241,7 +2279,7 @@ c --- Prepare output field
       allocate(rfld(ii,jj,kd))
       rfld=fillr8
       do k=1,kd
-c$OMP PARALLEL DO PRIVATE(ij,ijk)
+c$OMP PARALLEL DO PRIVATE(i,ij,ijk)
 c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
         do j=1,jj
           do i=1,ii
@@ -2254,13 +2292,13 @@ c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
             endif
           enddo
         enddo
-      enddo
 c$OMP END PARALLEL DO
+      enddo
       if (prec.ne.4) then
        allocate(wrfld(itdm,jj,kd))
        wrfld=fillr8
         if (sfac.ne.1..or.offs.ne.0.) then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(j,i)
           do k=1,kd
             do j=1,jj
               do i=1,ii
@@ -2274,7 +2312,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(j,i)
           do k=1,kd
             do j=1,jj
               do i=1,ii
@@ -2295,7 +2333,7 @@ c$OMP END PARALLEL DO
       r4fldt=fillr8
       wr4fldt=fillr8
         if (sfac.ne.1..or.offs.ne.0.) then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(j,i)
           do k=1,kd
             do j=1,jj
               do i=1,ii
@@ -2309,7 +2347,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(j,i)
           do k=1,kd
             do j=1,jj
               do i=1,ii
@@ -2365,18 +2403,22 @@ c$OMP END PARALLEL DO
 c
 c --- get mask for the full domain
       if (mskflg.eq.1) then 
+c$OMP PARALLEL DO PRIVATE(i,ij)
         do j=1,jj
           do i=1,ii
             ij=i+nbdy+(idm+2*nbdy)*(j+nbdy-1)
             rmsk(i,j)=msk(ij)
           enddo
         enddo
+c$OMP END PARALLEL DO
       else 
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=1.
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif 
       call xcaget(rmskt,rmsk,1)
 c
@@ -2386,7 +2428,7 @@ c --- Prepare output field
 
       do k=1,kd
         if (k.gt.1) start(3)=k 
-c$OMP PARALLEL DO PRIVATE(ij,ijk)
+c$OMP PARALLEL DO PRIVATE(i,ij,ijk)
 c$OMP+  REDUCTION(min:fldmin) REDUCTION(max:fldmax)
         do j=1,jj
           do i=1,ii
@@ -2404,7 +2446,7 @@ c$OMP END PARALLEL DO
         if (mnproc.eq.1) then
           if (prec.ne.4) then 
             if (sfac.ne.1..or.offs.ne.0.) then   
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(i)
               do j=1,jtdm
                 do i=1,itdm
                   if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fillr8) then
@@ -2416,7 +2458,7 @@ c$OMP PARALLEL DO
               enddo
 c$OMP END PARALLEL DO
             else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(i)
               do j=1,jtdm
                 do i=1,itdm
                   if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fillr8)
@@ -2428,7 +2470,7 @@ c$OMP END PARALLEL DO
             call ncerro(nf90_put_var(ncid,rhid,rfldt,start,count))
           else
             if (sfac.ne.1..or.offs.ne.0.) then   
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(i)
               do j=1,jtdm
                 do i=1,itdm                
                   if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fillr8) then 
@@ -2440,7 +2482,7 @@ c$OMP PARALLEL DO
               enddo 
 c$OMP END PARALLEL DO
             else 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(i)
               do j=1,jtdm
                 do i=1,itdm
                   if (rmskt(i,j).lt.0.5.or.rfldt(i,j).eq.fillr8) then
@@ -2553,44 +2595,54 @@ c --- define variable
 c
 c --- get mask for the full domain
       if (mskflg.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
           enddo
         enddo
+c$OMP END PARALLEL DO
       else
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=1.
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
-      do k=1,kd
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+      do j=1,jj
+        do k=1,kd
           do i=1,ii
             rfld(i,j,k)=fld(i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm)
           enddo
         enddo
       enddo
-      do k=1,kd
-        do j=1,jj
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
+      do j=1,jj
+        do k=1,kd
           do i=1,ii
             if (rmsk(i,j).lt.0.5) rfld(i,j,k)=fill
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c 
       allocate(wrfld(itdm,jj,kd))
       allocate(irfld(itdm,jj,kd))
       wrfld=fill
       call xcgetrow(wrfld, rfld, kd)
-      do k=1,kd
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+      do j=1,jj
+        do k=1,kd
           do i=1,itdm
           irfld(i,j,k)=wrfld(i,j,k)
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 
       call ncerro(nfmpi_put_vara_int_all(ncid,rhid,istart,icount,irfld))
 c
@@ -2632,35 +2684,43 @@ c
 c
 c --- get mask for the full domain
       if (mskflg.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=msk(i+nbdy+(idm+2*nbdy)*(j+nbdy-1))
           enddo
         enddo
+c$OMP END PARALLEL DO
       else
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rmsk(i,j)=1.
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
       call xcaget(rmskt,rmsk,1)
 c
 c --- Prepare output field    
       do k=1,kd
         if (k.gt.1) start(3)=k
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             rfld(i,j,1)=fld(i+nbdy+(idm+2*nbdy)*(j+nbdy-1)+(k-1)*ijdm)
           enddo
         enddo
+c$OMP END PARALLEL DO
         call xcaget(rfldt,rfld,1)
         if (mnproc.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,jtdm
             do i=1,itdm
               if (rmskt(i,j).lt.0.5) rfldt(i,j)=fill
             enddo
           enddo
+c$OMP END PARALLEL DO
           call ncerro(nf90_put_var(ncid,rhid,rfldt,start,count))
         endif
       enddo

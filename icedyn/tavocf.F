@@ -9,7 +9,7 @@ c
 c
       integer i,j
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=0,M
         do i=1,L
           uwat(i,j)=.5*(uwat2l(i,j,1)+uwat2l(i,j,2))

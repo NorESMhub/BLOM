@@ -15,7 +15,7 @@ c
 c
       integer i,j,l
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do 200 j=1,jj
 c
       do 210 l=1,isu(j)

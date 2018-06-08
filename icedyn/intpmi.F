@@ -11,7 +11,7 @@ c
 c
       integer i,j,i1,j1
 c
-c$OMP PARALLEL DO PRIVATE(j1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
       do j=1,jdm
         j1=j-1
         do i=1,idm
@@ -43,7 +43,7 @@ c
 c
       integer i,j,i1,j1
 c
-c$OMP PARALLEL DO PRIVATE(j1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
       do j=1,jdm
         j1=j-1
         do i=1,idm
@@ -71,7 +71,7 @@ c
 c
       integer i,j,i1,j1,jm1
 c
-c$OMP PARALLEL DO PRIVATE(j1,jm1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,jm1,i,i1)
       do j=1,jdm
         j1=j-1
         jm1=mod(j-2+jdm,jdm)+1
@@ -104,7 +104,7 @@ c
 c
       integer i,j,i1,j1
 c
-c$OMP PARALLEL DO PRIVATE(j1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
       do j=1,jdm
         j1=j-1
         do i=2,idm
@@ -136,7 +136,7 @@ c
 c
       integer i,j,i1,j1,j1p1
 c
-c$OMP PARALLEL DO PRIVATE(j1,j1p1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,j1p1,i,i1)
       do j=1,jdm
         j1=j-1
         j1p1=mod(j1+1,jdm)
@@ -170,7 +170,7 @@ c
 c
       integer i,j,i1,j1,j1p1
 c
-c$OMP PARALLEL DO PRIVATE(j1,j1p1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,j1p1,i,i1)
       do j=1,jdm
         j1=j-1
         j1p1=mod(j1+1,jdm)
@@ -203,7 +203,7 @@ c
 c
       integer i,j,i1,j1
 c
-c$OMP PARALLEL DO PRIVATE(j1,i1)
+c$OMP PARALLEL DO PRIVATE(j1,i,i1)
       do j=1,jdm
         j1=j-1
         do i=1,idm

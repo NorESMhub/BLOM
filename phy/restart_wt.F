@@ -21,7 +21,7 @@ c
 c
       integer i,j,n
       character(len=80), dimension(4) :: rstdate_str
-      character(len=80) :: rstfnm,fnm
+      character(len=200) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
 c
@@ -113,6 +113,7 @@ c
 c --- define spatial and time dimensions
       if (first) then
         first=.false.
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             if ((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -132,6 +133,7 @@ c --- define spatial and time dimensions
             endif
           enddo 
         enddo
+c$OMP END PARALLEL DO
       endif
       if (rstcmp.eq.1) then 
         call ncdimc('pcomp',ip,0)
@@ -174,6 +176,7 @@ c --- output model fields to restart file
         call ncputi('l2ci',l2ci)
       endif
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i,j).eq.1) then
@@ -185,6 +188,7 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       call defvar_restart(c5p,c5u,c5v,c5q)
       call wrtrst('u',trim(c5u)//' kk2 time',u,iuu)
@@ -863,16 +867,16 @@ c
       endif
 c
 #ifdef TRC
-# ifdef TKE
+#  ifdef TKE
       call defvarrst('tke',trim(c5p)//' kk2 time')
       call defvarrst('gls_psi',trim(c5p)//' kk2 time')
       call defvarrst('L_scale',trim(c5p)//' kk time')
       call defvarrst('difdia',trim(c5p)//' kk time')
       call defvarrst('ustarb',trim(c5p)//' time')
-#endif
-#ifdef  IDLAGE
+#  endif
+#  ifdef IDLAGE
       call defvarrst('idlage',trim(c5p)//' kk2 time')
-#endif
+#  endif
 #endif
 c
 c --- write accumulated fields

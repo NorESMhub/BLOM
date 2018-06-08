@@ -22,7 +22,7 @@ c
 c
       integer i,j,jm1
 c-----------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(jm1)
+c$OMP PARALLEL DO PRIVATE(jm1,i)
       do 10 j=0,m
         jm1=mod(j-1+mp,mp)
         do 10 i=2,l

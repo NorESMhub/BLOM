@@ -162,8 +162,7 @@ c --- detect (and abort on) single-width inlets and 1-point seas.
       endif
 c
 c --- start out with masks as land everywhere
-!$OMP PARALLEL DO PRIVATE(j,i)
-!$OMP&         SCHEDULE(STATIC,jblk)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1-nbdy,jdm+nbdy
         do i=1-nbdy,idm+nbdy
           ip(i,j)=0
@@ -172,10 +171,10 @@ c --- start out with masks as land everywhere
           iv(i,j)=0
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- mass points are defined where water depth is greater than zero
-!$OMP PARALLEL DO PRIVATE(j,i)
-!$OMP&         SCHEDULE(STATIC,jblk)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
           if (depth(i,j).gt.0.) then
@@ -183,13 +182,13 @@ c --- mass points are defined where water depth is greater than zero
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- u,v points are located halfway between any 2 adjoining mass points
 c --- 'interior' q points require water on all 4 sides.
 c --- 'promontory' q points require water on 3 (or at least 2
 c --- diametrically opposed) sides
-!$OMP PARALLEL DO PRIVATE(j,i)
-!$OMP&         SCHEDULE(STATIC,jblk)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i-1,j).gt.0.and.ip(i,j).gt.0) then
@@ -209,11 +208,11 @@ c --- diametrically opposed) sides
           util3(i,j)=iq(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xctilr(util1,1,1, nbdy,nbdy, halo_us)
       call xctilr(util2,1,1, nbdy,nbdy, halo_vs)
       call xctilr(util3,1,1, nbdy,nbdy, halo_qs)
-!$OMP PARALLEL DO PRIVATE(j,i)
-!$OMP&         SCHEDULE(STATIC,jblk)
+c$OMP PARALLEL DO PRIVATE(i)
       do j= 1-nbdy,jj+nbdy
         do i= 1-nbdy,ii+nbdy
           iu(i,j)=util1(i,j)
@@ -221,6 +220,7 @@ c --- diametrically opposed) sides
           iq(i,j)=util3(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- allow for non-periodic and non-arctic boundaries (part II).
       if     (.not.lperiodj .and. j0.eq.0) then

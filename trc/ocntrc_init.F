@@ -42,8 +42,9 @@ c --- initialization of tracers
 c --- ------------------------------------------------------------------
 c
       do nt=1,ntrocn-natr
-        do k=1,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)+nt
@@ -52,6 +53,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       enddo
 c
 c --- ------------------------------------------------------------------
@@ -60,8 +62,9 @@ c --- ------------------------------------------------------------------
 c
       do nt=1,natr
         nat=ntr-natr+nt
-        do k=1,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               trc(i,j,k,nat)=(mod(k,5)*(plon(i,j)+180.)/(4.*360.)+nat)
@@ -71,6 +74,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       enddo
 c
 #else
@@ -79,8 +83,9 @@ c --- initialization of tracers
 c --- ------------------------------------------------------------------
 c
       do nt=1,ntrocn
-        do k=1,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)+nt
@@ -89,6 +94,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       enddo
 #endif
 c

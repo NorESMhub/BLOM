@@ -166,7 +166,7 @@ c
       tmp2d_7=0.
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=-2,jj+3
         do k=1,kk
           kn=k+nn
@@ -312,7 +312,7 @@ c --- diffusivities.
         enddo
       enddo
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -326,7 +326,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -337,7 +337,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- Compute squared vertical velocity gradients of v-component
-c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
+c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -394,9 +394,18 @@ c$OMP PARALLEL DO PRIVATE(kfpl,klpl,kn,q,tup)
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ kfpl,klpl,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,
-c$OMP+ bvfbot,dps,drho,bvfsq,bvf,egrs,egr,egrup,dfints,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,rig,rhisc,els,
-c$OMP+ nus,nub,nut,nuls,tdmf,ust,mols,h,sg,zeta,phis,ws)
+c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
+c$OMP+ afeql,bvfbot,dps,drho,bvfsq,bvf,rig,egrs,egr,egrup,egrlo,dfints,
+c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,nub,nus,ust,vsf,
+c$OMP+ nut,nuls,nusm,mols,h,sg,zeta,phis,ws
+#if defined(TRC) && defined(TKE)
+c$OMP+ ,gls_c3,tke_epsilon,tke_prod,tke_buoy,tke_Q,Ls_unlmt,Ls_lmt,Gh,
+c$OMP+ Gm,cff,Sm,Sh,ql
+# ifdef GLS
+c$OMP+ ,gls_prod,gls_buoy,gls_diss,gls_Q
+# endif
+#endif
+c$OMP+ )
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component

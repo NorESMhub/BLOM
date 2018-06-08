@@ -756,7 +756,7 @@ c --- Allocate buffers
       endif
 c
 c --- Set buffers to zero (ocean+land+halo) 
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,i)
       do j=jmn,jmx
         do n=1,nphysrf
           do i=imn,imx
@@ -766,7 +766,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,k,i)
       do j=jmn,jmx
         do n=1,nphylyr
           do k=1,kdm
@@ -778,7 +778,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(n,k,i)
       do j=jmn,jmx
         do n=1,nphylvl
           do k=1,ddm
@@ -790,7 +790,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
       do j=jmn,jmx
         do k=1,kdm
           do i=imn,imx
@@ -803,7 +803,7 @@ c
 c --- Load bathymetry into module mod_dia (used for vertical 
 c --- interpolation in MICOM and HAMOCC)
       nstepinday=nstep_in_day
-c$OMP PARALLEL DO  
+c$OMP PARALLEL DO PRIVATE(l,i) 
       do j=1,jj+1
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -896,7 +896,7 @@ c --- Define auxillary variables
       if (sum(ACC_UICE(1:nphy)+ACC_VICE(1:nphy)).ne.0) then
         call xctilr(hicem, 1,1, 1,1, halo_ps)
         call xctilr(ficem, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -915,7 +915,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_MXLU(1:nphy)+ACC_MXLV(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -932,7 +932,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SURFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -944,7 +944,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SALFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -956,7 +956,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SURRLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -968,7 +968,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_SALRLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -980,7 +980,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_MLD(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -994,7 +994,7 @@ c
 c --- maximum mixed layer pressure thickness [g/cm/s^2]
       do iogrp=1,nphy
         if (ACC_MAXMLD(iogrp).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1009,7 +1009,7 @@ c$OMP END PARALLEL DO
       enddo
 c
       if (sum(ACC_UVEL(1:nphy)+ACC_UVELLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
         do j=1,jj
           do k=1,kk
             km=k+mm
@@ -1023,7 +1023,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_VVEL(1:nphy)+ACC_VVELLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
         do j=1,jj+1
           do k=1,kk
             km=k+mm
@@ -1037,7 +1037,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -1050,7 +1050,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       endif
       if (sum(ACC_AVDSG(1:nphy)+ACC_PVLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO PRIVATE(km,dsig)
+c$OMP PARALLEL DO PRIVATE(l,i,k,km,dsig)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1343,7 +1343,7 @@ c --- ------------------------------------------------------------------
 c
       do iogrp=1,nphy 
         if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
           do j=1,jj+1
             do k=1,ddm
               do l=1,isu(j)
@@ -1510,7 +1510,7 @@ c --- Accumulate vertical velocity
 c
 c --- Reset diaflx 
       if (sum(ACC_DIAFLX(1:nphy)).ne.0) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kdm
             do l=1,isp(j)
@@ -1708,6 +1708,7 @@ c
 c --- compute extended ocean masks 
       if (iniflg) then
          iniflg=.false.
+c$OMP PARALLEL DO PRIVATE(i)
          do j=1,jj
             do i=1,ii
                if((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -1722,6 +1723,7 @@ c --- compute extended ocean masks
                endif
             enddo
          enddo
+c$OMP END PARALLEL DO
       endif
 c
 c --- define output dimensions  
@@ -2396,9 +2398,10 @@ c --- ocean tracers
         do nt=1,natr
           nat=ntr-natr+nt
           call inilyr(ACC_UTIL(1),'p',0.)
-          do k=1,kk
-            km=k+mm
-            do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
+          do j=1,jj
+            do k=1,kk
+              km=k+mm
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 tmp3d(i,j,k)=trc(i,j,km,nat)/max(trc(i,j,km,nt),treps)
@@ -2406,6 +2409,7 @@ c --- ocean tracers
               enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
           call acclyr(ACC_UTIL,tmp3d,tmp3d,0,'p')
           write (trcnm,'(a,i3.3)') 'atrc',nt
           write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
@@ -2441,9 +2445,10 @@ c --- ocean tracers
         do nt=1,natr
           nat=ntr-natr+nt
           call inilvl(ACC_UTILLVL(1),'p',0.)
-          do k=1,kk
-            km=k+mm
-            do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
+          do j=1,jj
+            do k=1,kk
+              km=k+mm
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 tmp3d(i,j,k)=trc(i,j,km,nat)/max(trc(i,j,km,nt),treps)
@@ -2451,6 +2456,7 @@ c --- ocean tracers
               enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
           do k=1,kk
             call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
             call acclvl(ACC_UTILLVL,tmp3d,'p',k,ind1,ind2,wghts)
@@ -2672,7 +2678,7 @@ c --- ------------------------------------------------------------------
       endif
 c      
 c --- Prepare 2d field   
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           uflx_cum(i,j)=0.
@@ -2684,7 +2690,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- Compute accumulated transports
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,ddm
           do l=1,isu(j)
@@ -2888,7 +2894,7 @@ c
 c
 c --- Compute vertical integrated heat and salt transports 
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           ucum(i,j)=0.
@@ -2935,7 +2941,7 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,k)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3040,7 +3046,7 @@ c --- Compute overturning stream function at isopycnic layer interfaces
 c
       r=1./real(nacc_phy(iogrp))
       kmxl=0
-c$OMP PARALLEL DO PRIVATE(k)
+c$OMP PARALLEL DO PRIVATE(l,i,k)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3054,7 +3060,7 @@ c$OMP PARALLEL DO PRIVATE(k)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3064,7 +3070,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -3092,14 +3098,12 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
         do o=1,odm
           do l=1,lmax
             mflx_last_lo(l,o)=0.
           enddo
         enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3114,7 +3118,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
         do k=1,kk
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3240,7 +3244,7 @@ c
                  stop '(diamer)'
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3255,7 +3259,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
         do k=1,ddm
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3348,7 +3352,7 @@ c --- Compute vertical mass flux at isopycnic layer interfaces
 c ---
       if (ACC_WFLX(iogrp)+ACC_WFLX2(IOGRP).ne.0) then
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             wflx(i,j)=0.
@@ -3358,7 +3362,7 @@ c$OMP END PARALLEL DO
         do k=kk,1,-1
           km=k+mm
           kn=k+nn
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
@@ -3388,7 +3392,7 @@ c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXOLD(iogrp)),
 c    .              1,kk, 1,1, halo_uv)
 c       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXOLD(iogrp)),
 c    .              1,kk, 1,1, halo_vv)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj+1
           do i=1,ii+1
             ucum(i,j)=0.
@@ -3397,7 +3401,7 @@ c$OMP PARALLEL DO
         enddo  
 c$OMP END PARALLEL DO
         do k=ddm,1,-1
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
@@ -3408,7 +3412,7 @@ c$OMP PARALLEL DO
             enddo
           enddo  
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj+1 
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
@@ -3419,7 +3423,7 @@ c$OMP PARALLEL DO
             enddo
           enddo  
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,q)
           do j=1,jj  
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
@@ -3473,8 +3477,8 @@ c --- Sort out stuff related to time stepping
 c
 c --- Adjust bounds of levitus levels according to model bathymetry
       if (iniflg) then
+c$OMP PARALLEL DO PRIVATE(d,l,i)
         do j=1,jj+1
-c$OMP PARALLEL DO  
           do d=1,ddm
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3495,8 +3499,8 @@ c$OMP PARALLEL DO
               enddo
             enddo
           enddo
-c$OMP END PARALLEL DO
         enddo
+c$OMP END PARALLEL DO
         iniflg=.false.
       endif
 c
@@ -3504,7 +3508,7 @@ c
 c --- Compute top and bottom depths of density layers 
       if (k.eq.1) then
         if (gridid.eq.'p') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3537,7 +3541,7 @@ c$OMP PARALLEL DO PRIVATE(kml)
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -3570,7 +3574,7 @@ c$OMP PARALLEL DO PRIVATE(kml)
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO PRIVATE(kml)
+c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
           do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3612,7 +3616,7 @@ c$OMP END PARALLEL DO
 c
 c --- Compute interpolation weights 
       if (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i,d)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3637,7 +3641,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
       elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO PRIVATE(r) 
+c$OMP PARALLEL DO PRIVATE(l,i,d,r) 
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -3663,7 +3667,7 @@ c$OMP PARALLEL DO PRIVATE(r)
 c$OMP END PARALLEL DO
 c
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO PRIVATE(r)
+c$OMP PARALLEL DO PRIVATE(l,i,d,r)
         do j=1,jj+1
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3726,7 +3730,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3736,7 +3740,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3746,7 +3750,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3756,7 +3760,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             physrf(i,j,pos)=inival
@@ -3792,7 +3796,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isu(j)
@@ -3804,7 +3808,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isv(j)
@@ -3816,7 +3820,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk 
             do l=1,isp(j)
@@ -3828,7 +3832,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1,jj
           do k=1,kk 
             do i=1,ii
@@ -3866,7 +3870,7 @@ c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isu(j)
@@ -3878,7 +3882,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj+1
           do k=1,ddm
             do l=1,isv(j)
@@ -3890,7 +3894,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isp(j)
@@ -3902,7 +3906,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       else
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1,jj
           do k=1,ddm
             do i=1,ii
@@ -3944,7 +3948,7 @@ c --- Check whether field should be accumulated
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3954,7 +3958,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isu(j)
                 do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -3967,7 +3971,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3977,7 +3981,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isv(j)
                 do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -3990,7 +3994,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4000,7 +4004,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
                 do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4050,7 +4054,7 @@ c --- Check whether field should be accumulated
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isu(j)
@@ -4062,7 +4066,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isu(j)
@@ -4077,7 +4081,7 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isv(j)
@@ -4089,9 +4093,9 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-            do k=1,kdm
-c$OMP PARALLEL DO 
-              do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kdm
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
@@ -4099,12 +4103,12 @@ c$OMP PARALLEL DO
                   enddo
                 enddo
               enddo
-c$OMP END PARALLEL DO
             enddo
+c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isp(j)
@@ -4116,7 +4120,7 @@ c$OMP PARALLEL DO
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kdm
                 do l=1,isp(j)
@@ -4171,7 +4175,7 @@ c --- Check whether field should be accumulated
         if (pos(o).eq.0) cycle
 c
         if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -4184,7 +4188,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj+1
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4197,7 +4201,7 @@ c$OMP PARALLEL DO
           enddo
 c$OMP END PARALLEL DO
         elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i,d)
           do j=1,jj
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4243,7 +4247,7 @@ c --- Check whether field should be initialised
       if (posacc.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -4254,7 +4258,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4265,7 +4269,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4308,7 +4312,7 @@ c --- Check whether field should be initialised
       if (posacc.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isu(j)
@@ -4325,7 +4329,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isv(j)
@@ -4342,7 +4346,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -4657,7 +4661,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -4671,7 +4675,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -4685,7 +4689,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -4732,7 +4736,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isu(j)
@@ -4748,7 +4752,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isv(j)
@@ -4764,7 +4768,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,kk
             do l=1,isp(j)
@@ -4813,7 +4817,7 @@ c --- Check whether field should be processed
       if (pos.eq.0) return
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isu(j)
@@ -4829,7 +4833,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isv(j)
@@ -4845,7 +4849,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO 
+c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=1,jj
           do k=1,ddm
             do l=1,isp(j)
@@ -4899,7 +4903,7 @@ c
 c --- Prepare index fields for masking
 
       if (iniflg) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             kmaxp(i,j)=0
@@ -4921,7 +4925,7 @@ c$OMP END PARALLEL DO
       endif
 c
       if (gridid.eq.'u') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxu(i,j)+1,ddm
@@ -4931,7 +4935,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'v') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxv(i,j)+1,ddm
@@ -4941,7 +4945,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid.eq.'p') then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i,k)
         do j=1,jj
           do i=1,ii
             do k=kmaxp(i,j)+1,ddm

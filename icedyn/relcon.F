@@ -48,7 +48,7 @@ c-----------------------------------------------------------------------
 c Start
 c-----------------------------------------------------------------------
 
-c$OMP PARALLEL DO PRIVATE(jm1)
+c$OMP PARALLEL DO PRIVATE(jm1,i)
       do j=0,M
         jm1=mod(j-1+MP,MP)
         do i=1,L
@@ -73,7 +73,7 @@ c-----------------------------------------------------------------------
 c---------------------------------------------------------------------
 c Main loop for all inner grid points
 c---------------------------------------------------------------------
-c$OMP PARALLEL DO PRIVATE(jm1,px,py,tmp1,tauax,tauay)
+c$OMP PARALLEL DO PRIVATE(jm1,i,px,py,tmp1,tauax,tauay)
       do 600 j=0,m
          jm1=mod(j-1+mp,mp)
          do 600 i=1,l
@@ -188,7 +188,7 @@ c time step may not be a good guess for the new velocity.
 c Markus Harder, August 1994
 c-----------------------------------------------------------------------
 
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=0,M
           do i=1,L
             u(i,j,ln)=u(i,j,lr)
@@ -204,7 +204,7 @@ C     REALLY NEED TO DO CALCULATION BY USING THE V-MASK
 c     -> set DEN = 1.0 where vm=0
 c-----------------------------------------------------------------------
 
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do 20 j=0,m
         do 20 i=1,l
    20   den(i,j) = 1./(1.+(vm(i,j)*asy(i,j))**2*
@@ -298,7 +298,7 @@ c-----------------------------------------------------------------------
 
       verr=0.
       DO 171 K = 0,1
-c$OMP PARALLEL DO PRIVATE(PDD,JM1,J,JP1,IB,TMP1,TMP2,TMPU,TMPV)
+c$OMP PARALLEL DO PRIVATE(PDD,JM1,I,JJ,J,JP1,IB,TMP1,TMP2,TMPU,TMPV)
 c$OMP+  REDUCTION(MAX:VERR)
       DO 172 N=1,NPP
       PDD=MOD(MIN(N*PD-1,M),PD)
@@ -572,7 +572,7 @@ c-----------------------------------------------------------------------
   172      continue            ! N loop
 c$OMP END PARALLEL DO
 
-c$OMP PARALLEL DO PRIVATE(PDD,J)
+c$OMP PARALLEL DO PRIVATE(PDD,JJ,J,I)
       DO 174 N=1,NPP
       PDD=MOD(MIN(N*PD-1,M),PD)
 
@@ -628,7 +628,7 @@ c-----------------------------------------------------------------------
       numax=0
       numaxi=0
 
-c$OMP PARALLEL DO REDUCTION(+:numax,numaxi)
+c$OMP PARALLEL DO PRIVATE(i) REDUCTION(+:numax,numaxi)
       do j=0,M
         do i=1,L
           if ((abs(u(i,j,ln)).gt.umax).or.(abs(v(i,j,ln)).gt.umax)
@@ -640,7 +640,7 @@ c$OMP PARALLEL DO REDUCTION(+:numax,numaxi)
       enddo
 c$OMP END PARALLEL DO
 
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=0,M
         do i=1,L
           u(i,j,ln)=max(u(i,j,ln),-umax)

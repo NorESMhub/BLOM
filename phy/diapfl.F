@@ -63,13 +63,13 @@ c --- Constant in the diffusion equation
       c=g*g*delt1/(alpha0*alpha0)
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
-c$OMP+ dsgui,dsgli,fmax,f,f0,fold,h,gtd,pres,delpu,delpl,nubbl,dsgdt,
-c$OMP+ dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,s,t,dfdg,atd,maxdf,dtd,k,kn,
-c$OMP+ kfpl,kmin,kmax,kfmaxu,rstdns,done,dwnwrd,remfmx,ttem0,ssal0,
-c$OMP+ delp0,dens0,sigr0,nu0,niter
+c$OMP+ l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0,
+c$OMP+ dens0,sigr0,nu0,kfpl,kmin,kmax,pres,fpu,fpl,delpu,delpl,nubbl,
+c$OMP+ dsgli,fcl,dsgdt,dsgds,dsgu,dsgl,dsghm,dsg,dsgui,fcmx,dsgc,q,fcu,
+c$OMP+ fmax,done,niter,kfmaxu,f0,f,gtd,dflim,fold,h,dwnwrd,ctd,bitd,
+c$OMP+ remfmx,r,t,s,dfdg,atd,maxdf,dtd
 #ifdef TRC
-c$OMP+,ttrc
+c$OMP+ ,nt,ttrc
 #endif
 c$OMP+ )
       do j=1,jj
@@ -681,7 +681,7 @@ c
       call xctilr(p, 1,kk+1, 1,1, halo_ps)
       call xctilr(fpug, 1,kk, 1,1, halo_ps)
       call xctilr(fplg, 1,kk, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -691,7 +691,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
         do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
@@ -702,8 +702,8 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ kmin,kmax,uc,delp,kn,k,fpu,fpl,pold,pnew,fpum,fplm,fpup,fplp,q,
-c$OMP+ ctd,bitd,gtd,atd,ctd,dtd)
+c$OMP+ l,i,kmin,kmax,k,uc,delp,kn,fpu,pold,pnew,fpum,fplm,fpup,fplp,fpl,
+c$OMP+ ctd,bitd,gtd,q,atd,dtd)
       do j=1,jj
 c
 c --- - Mixing of u-component.
@@ -934,7 +934,7 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj
         do k=1,kk
           kn=k+nn
@@ -949,7 +949,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj+1
         do k=1,kk
           kn=k+nn
