@@ -154,6 +154,10 @@ set RI0      = 1.2
 set RM0      = 1.2
 set RM5      = 0.
 set CE       = .06
+set BDMTYP   = 2
+set BDMC1    = 5.e-4
+set BDMC2    = .1
+set TKEPF    = 0.
 set NIWGF    = .7
 set NIWBF    = .7
 set NIWLF    = .5
@@ -602,6 +606,15 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
+! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
+!            background diffusivity is a constant divided by the
+!            Brunt-Vaisala frequency, if bdmtyp=2 the background
+!            diffusivity is constant () (i)
+! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
+!            frequency (cm**2/s**2) (f)
+! BDMC2    : Background diapycnal diffusivity (cm**2/s**2) (f)
+! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
+!            () (f)
 ! NIWGF    : Global factor applied to the energy input by near-intertial
 !            motions () (f)
 ! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
@@ -677,6 +690,10 @@ cat >! $RUNDIR/ocn_in << EOF1
   RM0      = ${RM0},
   RM5      = ${RM5},
   CE       = ${CE},
+  BDMTYP   = ${BDMTYP},
+  BDMC1    = ${BDMC1},
+  BDMC2    = ${BDMC2},
+  TKEPF    = ${TKEPF},
   NIWGF    = ${NIWGF},
   NIWBF    = ${NIWBF},
   NIWLF    = ${NIWLF},

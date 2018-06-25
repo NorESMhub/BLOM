@@ -27,10 +27,6 @@ c ---            iidtyp=1 the diffusivities are diffusive velocities
 c ---            multiplied by the local horizontal grid scale, if
 c ---            iidtyp=2 the diffusivities are parameterized according
 c ---            to Eden and Greatbatch (2008).
-c ---   bdmtyp - type of background diapycnal mixing. If bdmtyp=1
-c ---            the background diffusivity is a constant divided by the
-c ---            Brunt-Vaisala frequency, if bdmtyp=2 the background
-c ---            diffusivity is constant.
 c ---   bdmldp - If bdmldp=1, make the background mixing latitude
 c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
@@ -55,9 +51,6 @@ c ---            [cm**2/s].
 c ---   drho0  - critical local interface density difference [g/cm**3]
 c ---   nuls0  - maximum diapycnal diffusivity applied when local
 c ---            stability is weak [cm**2/s].
-c ---   bdmc1  - background diapycnal diffusivity times buoyancy
-c ---            frequency [cm**2/s**2].
-c ---   bdmc2  - background diapycnal diffusivity [cm**2/s].
 c ---   iwdfac - internal wave dissipation factor under sea ice [].
 c ---   dmxeff - diapycnal mixing efficiency [].
 c ---   tdmq   - tidal dissipation efficiency [].
@@ -68,6 +61,8 @@ c ---            latitude [g/cm/s**2].
 c ---   tdclat - critical latitude for tide M2 propagation [].
 c ---   tddlat - latitudinal transition zone for different tidal driven
 c ---            mixing length scales near the critical latitude.
+c ---   tkepls - length scale of surface TKE penetration beneath the
+c ---            mixed layer [g/cm/s**2]
 c ---   niwls  - near-inertial waves driven mixing length scale
 c ---            beneath the mixed layer [g/cm/s**2].
 c ---   cori10 - coriolis parameter at 10N [1/s].
@@ -89,23 +84,22 @@ c ---            layers used to estimate diapycnal diffusivities in the
 c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
-      integer iidtyp,bdmtyp,bdmldp,tdmflg,iwdflg
+      integer iidtyp,bdmldp,tdmflg,iwdflg
       real ipfac,dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,
-     .     nuls0,bdmc1,bdmc2,iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,
-     .     tddlat,niwls,cori10,cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,
-     .     dpddav,dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
-      parameter (iidtyp=2,bdmtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,
-     .           ipfac=2.,dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,
+     .     nuls0,iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,
+     .     niwls,cori10,cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,
+     .     dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
+      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,ipfac=2.,
+     .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,
      .           thkdff=.5,temdff=.35,nu0=.1,nus0=50.,nug0=2500.,
-     .           drho0=6.e-6,nuls0=500.,bdmc1=5.e-4,bdmc2=.1,iwdfac=.06,
-     .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
-     .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
-     .           niwls=300.*98060.,cori10=2.5256e-5,cori30=7.2722e-5,
-     .           bvf0=5.24e-3,nubmin=.001,dpgc=300.*98060.,
-     .           dpgrav=100.*98060.,dpdiav=100.*98060.,
-     .           dpddav=10.*98060.,dpnbav=250.*98060.,ustmin=.1,
-     .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
-     .           cs=98.96)
+     .           drho0=6.e-6,nuls0=500.,iwdfac=.06,dmxeff=.2,tdmq=1./3.,
+     .           tdmls0=500.*98060.,tdmls1=100.*98060.,tdclat=74.5,
+     .           tddlat=3.,tkepls=20.*98060.,niwls=300.*98060.,
+     .           cori10=2.5256e-5,cori30=7.2722e-5,bvf0=5.24e-3,
+     .           nubmin=.01,dpgc=300.*98060.,dpgrav=100.*98060.,
+     .           dpdiav=100.*98060.,dpddav=10.*98060.,
+     .           dpnbav=250.*98060.,ustmin=.1,kappa=.4,bfeps=1.e-12,
+     .           sleps=.1,zetas=-1.,as=-28.86,cs=98.96)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
@@ -1099,6 +1093,29 @@ c
      .            /(1.+delt1*(tke_Q-(tke_buoy/trc(i,j,kn,itrtke))))
                 trc(i,j,kn,itrtke)=max(trc(i,j,kn,itrtke),tke_min)
               endif
+c
+c --- ------- Penetration of surface TKE below mixed layer.
+              if (tkepf.gt.0.) then
+                if (dp(i,j,kn).lt.epsil) then
+                  q=exp(-p(i,j,k)/tkepls)
+                else
+                  q=tkepls*(exp(-p(i,j,k  )/tkepls)
+     .                     -exp(-p(i,j,k+1)/tkepls))/dp(i,j,kn)
+                endif
+                trc(i,j,kn,itrtke)=trc(i,j,kn,itrtke)
+     .                            +tkepf*q*ustar(i,j)**2
+              endif
+c
+c --- ------- Set TKE and GLS to prescribed minimum values in surface
+c --- ------- mixed layers and thin layers
+              if (dp(i,j,kn).lt.epsil) then
+                trc(i,j,kn,itrtke)=tke_min
+                trc(i,j,kn,itrgls)=gls_psi_min
+              endif
+              trc(i,j,1+nn,itrtke)=tke_min
+              trc(i,j,2+nn,itrtke)=tke_min
+              trc(i,j,1+nn,itrgls)=gls_psi_min
+              trc(i,j,2+nn,itrgls)=gls_psi_min
 c
 c --- ------- Bottom Boundary Conditions
               if (k.eq.kmax(i,j)) then

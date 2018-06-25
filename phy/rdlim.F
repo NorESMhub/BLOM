@@ -24,10 +24,10 @@ c
      .  icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,
      .  edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,
-     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,niwgf,niwbf,niwlf,swamth,
-     .  jwtype,chlopt,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,
-     .  apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,path,atm_path,
-     .  rstfrq,rstfmt,rstcmp,iotype
+     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tkepf,
+     .  niwgf,niwbf,niwlf,swamth,jwtype,chlopt,trxday,srxday,trxdpt,
+     .  srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,
+     .  smtfrc,sprfac,path,atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -96,6 +96,10 @@ c --- - print namelist on stdout
         write (lp,*) 'RM0',RM0
         write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
+        write (lp,*) 'BDMTYP',BDMTYP
+        write (lp,*) 'BDMC1',BDMC1
+        write (lp,*) 'BDMC2',BDMC2
+        write (lp,*) 'TKEPF',TKEPF
         write (lp,*) 'NIWGF',NIWGF
         write (lp,*) 'NIWBF',NIWBF
         write (lp,*) 'NIWLF',NIWLF
@@ -311,6 +315,10 @@ c
       call xcbcst(rm0)
       call xcbcst(rm5)
       call xcbcst(ce)
+      call xcbcst(bdmtyp)
+      call xcbcst(bdmc1)
+      call xcbcst(bdmc2)
+      call xcbcst(tkepf)
       call xcbcst(niwgf)
       call xcbcst(niwbf)
       call xcbcst(niwlf)
