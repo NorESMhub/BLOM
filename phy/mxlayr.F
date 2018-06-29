@@ -226,10 +226,10 @@ c --- --- bfltot > 0
           smxl=(ssal(1)*delp(1)+ssal(2)*delp(2))*q
           alfa=-alpha0*dsigdt0(tmxl,smxl)
           beta=alpha0*dsigds0(tmxl,smxl)
-          bfltot=g*(alfa*surflx(i,j)/spcifh
-     .             -beta*(salflx(i,j)-brnflx(i,j)))
+          bfltot=g*alpha0*(alfa*surflx(i,j)/spcifh
+     .                    -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j)=bfltot
-          bflpsw=g*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
+          bflpsw=g*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
           q=alpha0/g
