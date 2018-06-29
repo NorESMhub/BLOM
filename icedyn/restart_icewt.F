@@ -15,7 +15,7 @@ c
 #include "common_icedyn.h"
 c
       integer i
-      character rstfnm*200
+      character rstfnm*256
 c
       if (mnproc.eq.1) then
 

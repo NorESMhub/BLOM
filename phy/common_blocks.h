@@ -290,7 +290,8 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path,runid
+      character*80 path
+      character*256 runid
       integer path_len,runid_len
 c
       common /iovars/ path,runid,path_len,runid_len

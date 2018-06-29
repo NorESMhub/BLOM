@@ -534,7 +534,7 @@ c
 c
 c --- - override namelist experiment id with the one received from
 c --- - coupler
-        runid(1:80)=runid_mct(1:80)
+        runid=runid_mct
 c
 c --- - verify integer number of baroclinic time steps per coupling
 c --- - interval
@@ -694,7 +694,7 @@ c
 c
 c --- set experiment id length
       runid_len=1
-      do while (runid_len.lt.80.and.runid(runid_len:runid_len).ne.' ')
+      do while (runid_len.lt.256.and.runid(runid_len:runid_len).ne.' ')
         runid_len=runid_len+1
       enddo
       runid_len=runid_len-1
