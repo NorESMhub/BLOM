@@ -24,10 +24,10 @@ c
      .  icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,
      .  edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,
-     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,niwgf,niwbf,niwlf,swamth,
-     .  jwtype,chlopt,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,
-     .  apsflx,ditflx,disflx,srxbal,srxsrc,smtfrc,sprfac,path,atm_path,
-     .  rstfrq,rstfmt,rstcmp,iotype
+     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tkepf,
+     .  niwgf,niwbf,niwlf,swamth,jwtype,chlopt,trxday,srxday,trxdpt,
+     .  srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,
+     .  smtfrc,sprfac,path,atm_path,rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -96,6 +96,10 @@ c --- - print namelist on stdout
         write (lp,*) 'RM0',RM0
         write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
+        write (lp,*) 'BDMTYP',BDMTYP
+        write (lp,*) 'BDMC1',BDMC1
+        write (lp,*) 'BDMC2',BDMC2
+        write (lp,*) 'TKEPF',TKEPF
         write (lp,*) 'NIWGF',NIWGF
         write (lp,*) 'NIWBF',NIWBF
         write (lp,*) 'NIWLF',NIWLF
@@ -153,17 +157,18 @@ c --- - determine number of io groups and print namelist
         write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
         write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
         write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
-        write (lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
-        write (lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
-        write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
-        write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
-        write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
         write (lp,*) 'SRF_IDKEDT  ',SRF_IDKEDT(1:nphy)
         write (lp,*) 'SRF_LIP     ',SRF_LIP(1:nphy)
         write (lp,*) 'SRF_MAXMLD  ',SRF_MAXMLD(1:nphy)
         write (lp,*) 'SRF_MLD     ',SRF_MLD(1:nphy)
         write (lp,*) 'SRF_MLDU    ',SRF_MLDU(1:nphy)
         write (lp,*) 'SRF_MLDV    ',SRF_MLDV(1:nphy)
+        write (lp,*) 'SRF_MTKEUS  ',SRF_MTKEUS(1:nphy)
+        write (lp,*) 'SRF_MTKENI  ',SRF_MTKENI(1:nphy)
+        write (lp,*) 'SRF_MTKEBF  ',SRF_MTKEBF(1:nphy)
+        write (lp,*) 'SRF_MTKERS  ',SRF_MTKERS(1:nphy)
+        write (lp,*) 'SRF_MTKEPE  ',SRF_MTKEPE(1:nphy)
+        write (lp,*) 'SRF_MTKEKE  ',SRF_MTKEKE(1:nphy)
         write (lp,*) 'SRF_MTY     ',SRF_MTY(1:nphy)
         write (lp,*) 'SRF_MXLU    ',SRF_MXLU(1:nphy)
         write (lp,*) 'SRF_MXLV    ',SRF_MXLV(1:nphy)
@@ -311,6 +316,10 @@ c
       call xcbcst(rm0)
       call xcbcst(rm5)
       call xcbcst(ce)
+      call xcbcst(bdmtyp)
+      call xcbcst(bdmc1)
+      call xcbcst(bdmc2)
+      call xcbcst(tkepf)
       call xcbcst(niwgf)
       call xcbcst(niwbf)
       call xcbcst(niwlf)
@@ -356,6 +365,12 @@ c
       call xcbcst(SRF_MLD)
       call xcbcst(SRF_MLDU)
       call xcbcst(SRF_MLDV)
+      call xcbcst(SRF_MTKEUS)
+      call xcbcst(SRF_MTKENI)
+      call xcbcst(SRF_MTKEBF)
+      call xcbcst(SRF_MTKERS)
+      call xcbcst(SRF_MTKEPE)
+      call xcbcst(SRF_MTKEKE)
       call xcbcst(SRF_MTY)
       call xcbcst(SRF_MXLU)
       call xcbcst(SRF_MXLV)

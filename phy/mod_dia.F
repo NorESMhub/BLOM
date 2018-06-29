@@ -105,13 +105,14 @@ c --- Namelist
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
      . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
-     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
-     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
-     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
-     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
-     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
-     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX    ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTKEUS ,SRF_MTKENI ,
+     . SRF_MTKEBF ,SRF_MTKERS ,SRF_MTKEPE ,SRF_MTKEKE ,SRF_MTY    ,
+     . SRF_MXLU   ,SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,
+     . SRF_SALFLX ,SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,
+     . SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,
+     . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
+     . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,
+     . SRF_VICE   ,SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -135,13 +136,14 @@ c --- Namelist
      . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    ,
      . ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,
      . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LIP    ,ACC_MAXMLD ,
-     . ACC_MLD    ,ACC_MLDU   ,ACC_MLDV   ,ACC_MTY    ,ACC_MXLU   ,
-     . ACC_MXLV   ,ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,
-     . ACC_SALRLX ,ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,
-     . ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,
-     . ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,
-     . ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VICE   ,
-     . ACC_ZTX    ,
+     . ACC_MLD    ,ACC_MLDU   ,ACC_MLDV   ,ACC_MTKEUS ,ACC_MTKENI ,
+     . ACC_MTKEBF ,ACC_MTKERS ,ACC_MTKEPE ,ACC_MTKEKE ,ACC_MTY    ,
+     . ACC_MXLU   ,ACC_MXLV   ,ACC_NSF    ,ACC_RFIFLX ,ACC_RNFFLX ,
+     . ACC_SALFLX ,ACC_SALRLX ,ACC_SEALV  ,ACC_SFL    ,ACC_SOP    ,
+     . ACC_SIGMX  ,ACC_SSS    ,ACC_SST    ,ACC_SURFLX ,ACC_SURRLX ,
+     . ACC_SWA    ,ACC_TAUX   ,ACC_TAUY   ,ACC_TICE   ,ACC_TSRF   ,
+     . ACC_UB     ,ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,
+     . ACC_VICE   ,ACC_ZTX    ,
      . ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTIL   ,
      . ACC_DIAFLX ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
@@ -165,13 +167,14 @@ c --- Namelist
      . SRF_ABSWND ,SRF_ALB    ,SRF_BRNFLX ,SRF_BRNPD  ,SRF_DFL    ,
      . SRF_EVA    ,SRF_FICE   ,SRF_FMLTFZ ,SRF_HICE   ,SRF_HMLTFZ ,
      . SRF_HSNW   ,SRF_IAGE   ,SRF_IDKEDT ,SRF_LIP    ,SRF_MAXMLD ,
-     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTY    ,SRF_MXLU   ,
-     . SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,SRF_SALFLX ,
-     . SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,SRF_SIGMX  ,
-     . SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,SRF_SWA    ,
-     . SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,SRF_UB     ,
-     . SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,SRF_VICE   ,
-     . SRF_ZTX    ,
+     . SRF_MLD    ,SRF_MLDU   ,SRF_MLDV   ,SRF_MTKEUS ,SRF_MTKENI ,
+     . SRF_MTKEBF ,SRF_MTKERS ,SRF_MTKEPE ,SRF_MTKEKE ,SRF_MTY    ,
+     . SRF_MXLU   ,SRF_MXLV   ,SRF_NSF    ,SRF_RFIFLX ,SRF_RNFFLX ,
+     . SRF_SALFLX ,SRF_SALRLX ,SRF_SEALV  ,SRF_SFL    ,SRF_SOP    ,
+     . SRF_SIGMX  ,SRF_SSS    ,SRF_SST    ,SRF_SURFLX ,SRF_SURRLX ,
+     . SRF_SWA    ,SRF_TAUX   ,SRF_TAUY   ,SRF_TICE   ,SRF_TSRF   ,
+     . SRF_UB     ,SRF_UICE   ,SRF_USTAR  ,SRF_USTAR3 ,SRF_VB     ,
+     . SRF_VICE   ,SRF_ZTX    ,
      . LYR_DIAFLX ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -373,6 +376,12 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_MLD(n)      = SRF_MLD(n)
         ACC_MLDU(n)     = SRF_MLDU(n)   + SRF_MXLU(n)
         ACC_MLDV(n)     = SRF_MLDV(n)   + SRF_MXLV(n)
+        ACC_MTKEUS(n)   = SRF_MTKEUS(n)
+        ACC_MTKENI(n)   = SRF_MTKENI(n)
+        ACC_MTKEBF(n)   = SRF_MTKEBF(n)
+        ACC_MTKERS(n)   = SRF_MTKERS(n)
+        ACC_MTKEPE(n)   = SRF_MTKEPE(n)
+        ACC_MTKEKE(n)   = SRF_MTKEKE(n)
         ACC_MTY(n)      = SRF_MTY(n)
         ACC_MXLU(n)     = SRF_MXLU(n)
         ACC_MXLV(n)     = SRF_MXLV(n)
@@ -534,6 +543,18 @@ c --- - Determine position in buffer
          ACC_MLDU(n)=nphysrf*min(1,ACC_MLDU(n)) 
         if (ACC_MLDV(n).ne.0) nphysrf=nphysrf+1
          ACC_MLDV(n)=nphysrf*min(1,ACC_MLDV(n))
+        if (ACC_MTKEUS(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKEUS(n)=nphysrf*min(1,ACC_MTKEUS(n)) 
+        if (ACC_MTKENI(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKENI(n)=nphysrf*min(1,ACC_MTKENI(n)) 
+        if (ACC_MTKEBF(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKEBF(n)=nphysrf*min(1,ACC_MTKEBF(n)) 
+        if (ACC_MTKERS(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKERS(n)=nphysrf*min(1,ACC_MTKERS(n)) 
+        if (ACC_MTKEPE(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKEPE(n)=nphysrf*min(1,ACC_MTKEPE(n)) 
+        if (ACC_MTKEKE(n).ne.0) nphysrf=nphysrf+1
+         ACC_MTKEKE(n)=nphysrf*min(1,ACC_MTKEKE(n)) 
         if (ACC_MTY(n).ne.0) nphysrf=nphysrf+1
          ACC_MTY(n)=nphysrf*min(1,ACC_MTY(n)) 
         if (ACC_MXLU(n).ne.0) nphysrf=nphysrf+1
@@ -1202,6 +1223,24 @@ c --- mixed layer integrated inertial kinetic energy tendency [cm3 s-3]
 c
 c --- absolute wind speed [m s-1]
       call accsrf(ACC_ABSWND,abswnd,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to friction velocity [cm3 s-3]
+      call accsrf(ACC_MTKEUS,mtkeus,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to near inertial motions [cm3 s-3]
+      call accsrf(ACC_MTKENI,mtkeni,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to buoyancy forcing [cm3 s-3]
+      call accsrf(ACC_MTKEBF,mtkebf,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to eddy restratification [cm3 s-3]
+      call accsrf(ACC_MTKERS,mtkers,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to potential energy change [cm3 s-3]
+      call accsrf(ACC_MTKEPE,mtkepe,dummy,0,'p')
+c
+c --- mixed layer TKE tendency related to kinetic energy change [cm3 s-3]
+      call accsrf(ACC_MTKEKE,mtkeke,dummy,0,'p')
 c
 c --- sea surface salinity [g kg-1]
       call accsrf(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),dummy,0,'p')
@@ -1935,6 +1974,42 @@ c
      .  rnacc,0.,cmpflg,ip,'p','abswnd','Absolute wind speed',' ',
      .  'm s-1')
 c
+      call wrtsrf(ACC_MTKEUS(iogrp),SRF_MTKEUS(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkeus',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to friction velocity',
+     .  ' ','kg s-3')
+c
+      call wrtsrf(ACC_MTKENI(iogrp),SRF_MTKENI(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkeni',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to near inertial motions',
+     .  ' ','kg s-3')
+c
+      call wrtsrf(ACC_MTKEBF(iogrp),SRF_MTKEBF(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkebf',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to buoyancy forcing',
+     .  ' ','kg s-3')
+c
+      call wrtsrf(ACC_MTKERS(iogrp),SRF_MTKERS(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkers',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to eddy restratification',
+     .  ' ','kg s-3')
+c
+      call wrtsrf(ACC_MTKEPE(iogrp),SRF_MTKEPE(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkepe',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to potential energy change',
+     .  ' ','kg s-3')
+c
+      call wrtsrf(ACC_MTKEKE(iogrp),SRF_MTKEKE(iogrp),
+     .  rnacc*1.e-3/alpha0,0.,cmpflg,ip,'p','mtkeke',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to kinetic energy change',
+     .  ' ','kg s-3')
+c
       call wrtsrf(ACC_SFL(iogrp),SRF_SFL(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','sfl','Salt flux',' ','kg m-2 s-1')
 c
@@ -2531,6 +2606,12 @@ c
       call inisrf(ACC_USTAR(iogrp),'p',0.)
       call inisrf(ACC_USTAR3(iogrp),'p',0.)
       call inisrf(ACC_IDKEDT(iogrp),'p',0.)
+      call inisrf(ACC_MTKEUS(iogrp),'p',0.)
+      call inisrf(ACC_MTKENI(iogrp),'p',0.)
+      call inisrf(ACC_MTKEBF(iogrp),'p',0.)
+      call inisrf(ACC_MTKERS(iogrp),'p',0.)
+      call inisrf(ACC_MTKEPE(iogrp),'p',0.)
+      call inisrf(ACC_MTKEKE(iogrp),'p',0.)
       call inisrf(ACC_FMLTFZ(iogrp),'p',0.)
       call inisrf(ACC_HMLTFZ(iogrp),'p',0.)
       call inisrf(ACC_HICE(iogrp),'p',0.)
@@ -5120,6 +5201,36 @@ c
 c
       call ncdefvar3d(SRF_ABSWND(iogrp),cmpflg,'p','abswnd',
      . 'Absolute wind speed',' ','m s-1',0)
+c
+      call ncdefvar3d(SRF_MTKEUS(iogrp),cmpflg,'p','mtkeus',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to friction velocity',
+     .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(SRF_MTKENI(iogrp),cmpflg,'p','mtkeni',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to near inertial motions',
+     .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(SRF_MTKEBF(iogrp),cmpflg,'p','mtkebf',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to buoyancy forcing',
+     .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(SRF_MTKERS(iogrp),cmpflg,'p','mtkers',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to eddy restratification',
+     .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(SRF_MTKEPE(iogrp),cmpflg,'p','mtkepe',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to potential energy change',
+     .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(SRF_MTKEKE(iogrp),cmpflg,'p','mtkeke',
+     .  'Mixed layer turbulent kinetic energy tendency '//
+     .  'per unit area related to kinetic energy change',
+     .  ' ','kg s-3',0)
 c
       call ncdefvar3d(SRF_SFL(iogrp),cmpflg,'p','sfl',
      . 'Salt flux',' ','kg m-2 s-1',0)

@@ -150,6 +150,12 @@ c
      .  idkedt,        ! vertically integrated inertial kinetic energy tendency
      .  ustar3,        ! friction velocity cubed
      .  buoyfl,        ! surface buoyancy flux
+     .  mtkeus,        ! mixed layer TKE tendency related to friction velocity
+     .  mtkeni,        ! mixed layer TKE tendency related to near inertial mot.
+     .  mtkebf,        ! mixed layer TKE tendency related to buoyancy forcing
+     .  mtkers,        ! mixed layer TKE tendency related to eddy restratific.
+     .  mtkepe,        ! mixed layer TKE tendency related to pot. energy change
+     .  mtkeke,        ! mixed layer TKE tendency related to kin. energy change
      .  twedon,        ! tidal wave energy diffipation over buoyancy frequency
      .  pbrnda         ! brine plume pressure depth
 c
@@ -160,7 +166,8 @@ c
      .                difdia,uml,vml,umlres,vmlres,uja,ujb,via,vib,
      .                difmxp,difmxq,difwgt,sealv,surflx,surrlx,sswflx,
      .                salflx,brnflx,salrlx,taux,tauy,ustar,ustarb,
-     .                idkedt,ustar3,buoyfl,twedon,pbrnda,kfpla
+     .                idkedt,ustar3,buoyfl,mtkeus,mtkeni,mtkebf,mtkers,
+     .                mtkepe,mtkeke,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep
@@ -213,6 +220,12 @@ c --- 'rm5'    = efficiency factor of TKE generation by momentum
 c ---            entrainment in the Oberhuber (1993) TKE closure
 c --- 'ce'     = efficiency factor for the restratification by mixed
 c ---            layer eddies (Fox-Kemper et al., 2008)
+c --- 'bdmtyp' = type of background diapycnal mixing
+c --- 'bdmc1'  = background diapycnal diffusivity times buoyancy
+c ---            frequency [cm**2/s**2]
+c --- 'bdmc2'  = background diapycnal diffusivity [cm**2/s]
+c --- 'tkepf'  = fraction of surface TKE that penetrates beneath mixed
+c ---            layer
 c --- 'niwgf'  = global factor applied to the energy input by
 c ---            near-inertial motions
 c --- 'niwbf'  = fraction of near-inertial energy dissipated in the
@@ -241,7 +254,8 @@ c
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
      .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,egc,
      .     eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,
-     .     niwgf,niwbf,niwlf
+     .     bdmc1,bdmc2,tkepf,niwgf,niwbf,niwlf
+      integer bdmtyp
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
@@ -251,9 +265,10 @@ c
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
      .                wpgf,mltmin,thktop,thkbot,egc,eggam,eglsmn,egmndf,
-     .                egmxdf,egidfq,ri0,rm0,rm5,ce,niwgf,niwbf,niwlf,
-     .                csdiag,cnsvdi,edsprs,expcnf,mommth,eitmth,edritp,
-     .                bmcmth,rmpmth,edwmth,mlrttp,icfile
+     .                egmxdf,egidfq,ri0,rm0,rm5,ce,bdmc1,bdmc2,tkepf,
+     .                niwgf,niwbf,niwlf,bdmtyp,csdiag,cnsvdi,edsprs,
+     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
+     .                mlrttp,icfile
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration

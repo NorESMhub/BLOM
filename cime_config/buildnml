@@ -154,6 +154,10 @@ set RI0      = 1.2
 set RM0      = 1.2
 set RM5      = 0.
 set CE       = .06
+set BDMTYP   = 2
+set BDMC1    = 5.e-4
+set BDMC2    = .1
+set TKEPF    = 0.
 set NIWGF    = .7
 set NIWBF    = .7
 set NIWLF    = .5
@@ -204,6 +208,12 @@ set SRF_MAXMLD   =  '4,   4'
 set SRF_MLD      =  '0,   4'
 set SRF_MLDU     =  '0,   0'
 set SRF_MLDV     =  '0,   0'
+set SRF_MTKEUS   =  '0,   4'
+set SRF_MTKENI   =  '0,   4'
+set SRF_MTKEBF   =  '0,   4'
+set SRF_MTKERS   =  '0,   4'
+set SRF_MTKEPE   =  '0,   4'
+set SRF_MTKEKE   =  '0,   4'
 set SRF_MTY      =  '0,   4'
 set SRF_MXLU     =  '0,   4'
 set SRF_MXLV     =  '0,   4'
@@ -602,6 +612,15 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
+! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
+!            background diffusivity is a constant divided by the
+!            Brunt-Vaisala frequency, if bdmtyp=2 the background
+!            diffusivity is constant () (i)
+! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
+!            frequency (cm**2/s**2) (f)
+! BDMC2    : Background diapycnal diffusivity (cm**2/s**2) (f)
+! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
+!            () (f)
 ! NIWGF    : Global factor applied to the energy input by near-intertial
 !            motions () (f)
 ! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
@@ -677,6 +696,10 @@ cat >! $RUNDIR/ocn_in << EOF1
   RM0      = ${RM0},
   RM5      = ${RM5},
   CE       = ${CE},
+  BDMTYP   = ${BDMTYP},
+  BDMC1    = ${BDMC1},
+  BDMC2    = ${BDMC2},
+  TKEPF    = ${TKEPF},
   NIWGF    = ${NIWGF},
   NIWBF    = ${NIWBF},
   NIWLF    = ${NIWLF},
@@ -802,12 +825,18 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   HMLTFZ   - heat flux due to melting/freezing [W m-2]
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
-!   IDKEDT   - mixed layer inertial kinetic energy tendency per unit area [kg s-3]
+!   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
 !   MLDU     - mixed layer depth at u-point [m]
 !   MLDV     - mixed layer depth at v-point [m]
+!   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
+!   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
+!   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
+!   MTKERS   - mixed layer TKE tendency related to eddy restrat. [kg s-3]
+!   MTKEPE   - mixed layer TKE tendency related to pot. energy change [kg s-3]
+!   MTKEKE   - mixed layer TKE tendency related to kin. energy change [kg s-3]
 !   MTY      - wind stress y-component [N m-2]
 !   MXLU     - mixed layer velocity x-component [m s-1]
 !   MXLV     - mixed layer velocity y-component [m s-1]
@@ -905,6 +934,12 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SRF_MLD      = ${SRF_MLD},
   SRF_MLDU     = ${SRF_MLDU},
   SRF_MLDV     = ${SRF_MLDV},
+  SRF_MTKEUS   = ${SRF_MTKEUS},
+  SRF_MTKENI   = ${SRF_MTKENI},
+  SRF_MTKEBF   = ${SRF_MTKEBF},
+  SRF_MTKERS   = ${SRF_MTKERS},
+  SRF_MTKEPE   = ${SRF_MTKEPE},
+  SRF_MTKEKE   = ${SRF_MTKEKE},
   SRF_MTY      = ${SRF_MTY},
   SRF_MXLU     = ${SRF_MXLU},
   SRF_MXLV     = ${SRF_MXLV},
