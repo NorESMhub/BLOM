@@ -20,7 +20,7 @@ c
 #include "common_seaice.h"
 c
       integer i,j,k,n,ndayr,nmonthr,nyearr,l
-      character(len=200) :: rstfnm,fnm
+      character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
 c
       integer daydif

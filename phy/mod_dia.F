@@ -1550,7 +1550,7 @@ c
       save iniflg,iuu,ivv,append2file
 c
       integer i,j,k,l,cmpflg,irec(nphymax)
-      character startdate*20,timeunits*30,fname(nphymax)*80
+      character startdate*20,timeunits*30,fname(nphymax)*256
       real datenum,rnacc
       save fname,irec
 c

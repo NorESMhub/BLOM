@@ -23,7 +23,7 @@ c
 c
       integer i,j,k,l,nt
       integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
-      character*80 fname(nbgcmax)
+      character*256 fname(nbgcmax)
       character startdate*20,timeunits*30
       real datenum,rnacc
       logical append2file(nbgcmax)

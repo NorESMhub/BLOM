@@ -12,7 +12,7 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 c
-      character fname*80
+      character fname*256
       integer i,j,k
 c
       if (ditflx) then

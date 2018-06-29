@@ -245,7 +245,7 @@ c
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
-      character*200 icfile
+      character*256 icfile
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,

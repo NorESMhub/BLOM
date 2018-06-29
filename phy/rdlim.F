@@ -17,7 +17,7 @@ c
 #include "common_forc.h"
 c
       integer :: i,j,m,n
-      character*80 :: runtyp,rstfnm
+      character*256 :: runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
@@ -606,7 +606,7 @@ c --- ----- For runtypes 'branch' or 'continue' override namelist date
 c --- ----- with date extracted from restart file name
 c
             n=1
-            do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+            do while (n.lt.256.and.rstfnm(n:n).ne.' ')
               n=n+1
             enddo
             n=n-1
