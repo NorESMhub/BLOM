@@ -150,6 +150,12 @@ c
      .  idkedt,        ! vertically integrated inertial kinetic energy tendency
      .  ustar3,        ! friction velocity cubed
      .  buoyfl,        ! surface buoyancy flux
+     .  mtkeus,        ! mixed layer TKE tendency related to friction velocity
+     .  mtkeni,        ! mixed layer TKE tendency related to near inertial mot.
+     .  mtkebf,        ! mixed layer TKE tendency related to buoyancy forcing
+     .  mtkers,        ! mixed layer TKE tendency related to eddy restratific.
+     .  mtkepe,        ! mixed layer TKE tendency related to pot. energy change
+     .  mtkeke,        ! mixed layer TKE tendency related to kin. energy change
      .  twedon,        ! tidal wave energy diffipation over buoyancy frequency
      .  pbrnda         ! brine plume pressure depth
 c
@@ -160,7 +166,8 @@ c
      .                difdia,uml,vml,umlres,vmlres,uja,ujb,via,vib,
      .                difmxp,difmxq,difwgt,sealv,surflx,surrlx,sswflx,
      .                salflx,brnflx,salrlx,taux,tauy,ustar,ustarb,
-     .                idkedt,ustar3,buoyfl,twedon,pbrnda,kfpla
+     .                idkedt,ustar3,buoyfl,mtkeus,mtkeni,mtkebf,mtkers,
+     .                mtkepe,mtkeke,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep

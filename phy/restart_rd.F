@@ -927,6 +927,18 @@ c --- read accumulated fields
      .        physrf(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip,1,0.)
             if (ACC_IDKEDT(n).ne.0) call ncread('idkedt_phy'//c2,
      .        physrf(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip,1,0.)
+            if (ACC_MTKEUS(n).ne.0) call ncread('mtkeus_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEUS(n)),ip,1,0.)
+            if (ACC_MTKENI(n).ne.0) call ncread('mtkeni_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKENI(n)),ip,1,0.)
+            if (ACC_MTKEBF(n).ne.0) call ncread('mtkebf_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEBF(n)),ip,1,0.)
+            if (ACC_MTKERS(n).ne.0) call ncread('mtkers_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKERS(n)),ip,1,0.)
+            if (ACC_MTKEPE(n).ne.0) call ncread('mtkepe_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
+            if (ACC_MTKEKE(n).ne.0) call ncread('mtkeke_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
             if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
      .        physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
             if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,

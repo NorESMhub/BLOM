@@ -406,6 +406,18 @@ c --- write accumulated fields
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip)
           if (ACC_IDKEDT(n) .ne.0) call wrtrst('idkedt_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip)
+          if (ACC_MTKEUS(n) .ne.0) call wrtrst('mtkeus_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKEUS(n)),ip)
+          if (ACC_MTKENI(n) .ne.0) call wrtrst('mtkeni_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKENI(n)),ip)
+          if (ACC_MTKEBF(n) .ne.0) call wrtrst('mtkebf_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKEBF(n)),ip)
+          if (ACC_MTKERS(n) .ne.0) call wrtrst('mtkers_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKERS(n)),ip)
+          if (ACC_MTKEPE(n) .ne.0) call wrtrst('mtkepe_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip)
+          if (ACC_MTKEKE(n) .ne.0) call wrtrst('mtkeke_phy'//c2,
+     .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip)
           if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time',physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
           if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
@@ -962,6 +974,18 @@ c --- write accumulated fields
           if (ACC_USTAR3(n) .ne.0) call defvarrst('ustar3_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_IDKEDT(n) .ne.0) call defvarrst('idkedt_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKEUS(n) .ne.0) call defvarrst('mtkeus_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKENI(n) .ne.0) call defvarrst('mtkeni_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKEBF(n) .ne.0) call defvarrst('mtkebf_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKERS(n) .ne.0) call defvarrst('mtkers_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKEPE(n) .ne.0) call defvarrst('mtkepe_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_MTKEKE(n) .ne.0) call defvarrst('mtkeke_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time')
