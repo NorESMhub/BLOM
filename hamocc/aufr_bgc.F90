@@ -116,7 +116,7 @@
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      character :: rstfnm*200
+      character :: rstfnm*256
       logical   :: lread_cfc, lread_nat, lread_iso
 #ifdef cisonew
       REAL      :: beta,rco213,rco214

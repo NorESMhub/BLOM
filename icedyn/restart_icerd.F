@@ -15,7 +15,7 @@ c
 #include "common_icedyn.h"
 c
       integer i,rolen
-      character rstfnm*200
+      character rstfnm*256
       logical fexist
       real timer
 c

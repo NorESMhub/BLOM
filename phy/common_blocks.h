@@ -150,6 +150,12 @@ c
      .  idkedt,        ! vertically integrated inertial kinetic energy tendency
      .  ustar3,        ! friction velocity cubed
      .  buoyfl,        ! surface buoyancy flux
+     .  mtkeus,        ! mixed layer TKE tendency related to friction velocity
+     .  mtkeni,        ! mixed layer TKE tendency related to near inertial mot.
+     .  mtkebf,        ! mixed layer TKE tendency related to buoyancy forcing
+     .  mtkers,        ! mixed layer TKE tendency related to eddy restratific.
+     .  mtkepe,        ! mixed layer TKE tendency related to pot. energy change
+     .  mtkeke,        ! mixed layer TKE tendency related to kin. energy change
      .  twedon,        ! tidal wave energy diffipation over buoyancy frequency
      .  pbrnda         ! brine plume pressure depth
 c
@@ -160,7 +166,8 @@ c
      .                difdia,uml,vml,umlres,vmlres,uja,ujb,via,vib,
      .                difmxp,difmxq,difwgt,sealv,surflx,surrlx,sswflx,
      .                salflx,brnflx,salrlx,taux,tauy,ustar,ustarb,
-     .                idkedt,ustar3,buoyfl,twedon,pbrnda,kfpla
+     .                idkedt,ustar3,buoyfl,mtkeus,mtkeni,mtkebf,mtkers,
+     .                mtkepe,mtkeke,twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep
@@ -252,7 +259,7 @@ c
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
-      character*200 icfile
+      character*256 icfile
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
@@ -283,7 +290,8 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path,runid
+      character*80 path
+      character*256 runid
       integer path_len,runid_len
 c
       common /iovars/ path,runid,path_len,runid_len

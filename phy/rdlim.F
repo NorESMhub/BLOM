@@ -17,7 +17,7 @@ c
 #include "common_forc.h"
 c
       integer :: i,j,m,n
-      character*80 :: runtyp,rstfnm
+      character*256 :: runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
@@ -157,17 +157,18 @@ c --- - determine number of io groups and print namelist
         write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
         write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
         write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
-        write (lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
-        write (lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
-        write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
-        write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
-        write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
         write (lp,*) 'SRF_IDKEDT  ',SRF_IDKEDT(1:nphy)
         write (lp,*) 'SRF_LIP     ',SRF_LIP(1:nphy)
         write (lp,*) 'SRF_MAXMLD  ',SRF_MAXMLD(1:nphy)
         write (lp,*) 'SRF_MLD     ',SRF_MLD(1:nphy)
         write (lp,*) 'SRF_MLDU    ',SRF_MLDU(1:nphy)
         write (lp,*) 'SRF_MLDV    ',SRF_MLDV(1:nphy)
+        write (lp,*) 'SRF_MTKEUS  ',SRF_MTKEUS(1:nphy)
+        write (lp,*) 'SRF_MTKENI  ',SRF_MTKENI(1:nphy)
+        write (lp,*) 'SRF_MTKEBF  ',SRF_MTKEBF(1:nphy)
+        write (lp,*) 'SRF_MTKERS  ',SRF_MTKERS(1:nphy)
+        write (lp,*) 'SRF_MTKEPE  ',SRF_MTKEPE(1:nphy)
+        write (lp,*) 'SRF_MTKEKE  ',SRF_MTKEKE(1:nphy)
         write (lp,*) 'SRF_MTY     ',SRF_MTY(1:nphy)
         write (lp,*) 'SRF_MXLU    ',SRF_MXLU(1:nphy)
         write (lp,*) 'SRF_MXLV    ',SRF_MXLV(1:nphy)
@@ -364,6 +365,12 @@ c
       call xcbcst(SRF_MLD)
       call xcbcst(SRF_MLDU)
       call xcbcst(SRF_MLDV)
+      call xcbcst(SRF_MTKEUS)
+      call xcbcst(SRF_MTKENI)
+      call xcbcst(SRF_MTKEBF)
+      call xcbcst(SRF_MTKERS)
+      call xcbcst(SRF_MTKEPE)
+      call xcbcst(SRF_MTKEKE)
       call xcbcst(SRF_MTY)
       call xcbcst(SRF_MXLU)
       call xcbcst(SRF_MXLV)
@@ -527,7 +534,7 @@ c
 c
 c --- - override namelist experiment id with the one received from
 c --- - coupler
-        runid(1:80)=runid_mct(1:80)
+        runid=runid_mct
 c
 c --- - verify integer number of baroclinic time steps per coupling
 c --- - interval
@@ -614,7 +621,7 @@ c --- ----- For runtypes 'branch' or 'continue' override namelist date
 c --- ----- with date extracted from restart file name
 c
             n=1
-            do while (n.lt.80.and.rstfnm(n:n).ne.' ')
+            do while (n.lt.256.and.rstfnm(n:n).ne.' ')
               n=n+1
             enddo
             n=n-1
@@ -687,7 +694,7 @@ c
 c
 c --- set experiment id length
       runid_len=1
-      do while (runid_len.lt.80.and.runid(runid_len:runid_len).ne.' ')
+      do while (runid_len.lt.256.and.runid(runid_len:runid_len).ne.' ')
         runid_len=runid_len+1
       enddo
       runid_len=runid_len-1

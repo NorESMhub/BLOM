@@ -18,7 +18,7 @@ c
 #include "common_trc.h"
 c
       integer i,nt,nat
-      character(len=80) :: rstfnm,trcnm
+      character(len=256) :: rstfnm,trcnm
 c
 c --- ------------------------------------------------------------------
 c --- if no ocean tracers are defined, return

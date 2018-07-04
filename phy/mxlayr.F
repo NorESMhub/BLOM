@@ -20,7 +20,7 @@ c
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
-      real q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
+      real q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,cni,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,
      .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
@@ -180,12 +180,12 @@ c
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ l,i,pres,k,kn,ttem,ssal,delp,dens,densr,q,tmxl,smxl,alfa,beta,
-c$OMP+ bfltot,bflpsw,pmxl,lui,lbi,lei,cus,cbftot,cbfpsw,crs,rm1,rm2,rm3,
-c$OMP+ rm4,tkew,pradd,kfpl,dpmxl,tkeo,nitr,dtke,dpfsl,dptopl,tfsl,sfsl,
-c$OMP+ dpt,kmax,kfmax,bpmldp,pup,drhup,plo,drhlo,pbrnd,bcwsum,bdpsum,
-c$OMP+ tup,sup,dup,dsgdt,dsgds,bc,bpc,pswbas,pswup,pswlo,ttmp,stmp,
-c$OMP+ sigtmp,sigfsl,dps,tdps,sdps,tmxl0,smxl0,um,vm,dpe0,dke0,tkeu,uk,
-c$OMP+ vk,dpe,dke,tkel
+c$OMP+ bfltot,bflpsw,pmxl,lui,lbi,lei,cus,cni,cbftot,cbfpsw,crs,rm1,rm2,
+c$OMP+ rm3,rm4,tkew,pradd,kfpl,dpmxl,tkeo,nitr,dtke,dpfsl,dptopl,tfsl,
+c$OMP+ sfsl,dpt,kmax,kfmax,bpmldp,pup,drhup,plo,drhlo,pbrnd,bcwsum,
+c$OMP+ bdpsum,tup,sup,dup,dsgdt,dsgds,bc,bpc,pswbas,pswup,pswlo,ttmp,
+c$OMP+ stmp,sigtmp,sigfsl,dps,tdps,sdps,tmxl0,smxl0,um,vm,dpe0,dke0,
+c$OMP+ tkeu,uk,vk,dpe,dke,tkel
 #ifdef TRC
 c$OMP+ ,nt,ttrc,trfsl,trdps
 #endif
@@ -226,10 +226,10 @@ c --- --- bfltot > 0
           smxl=(ssal(1)*delp(1)+ssal(2)*delp(2))*q
           alfa=-alpha0*dsigdt0(tmxl,smxl)
           beta=alpha0*dsigds0(tmxl,smxl)
-          bfltot=g*(alfa*surflx(i,j)/spcifh
-     .             -beta*(salflx(i,j)-brnflx(i,j)))
+          bfltot=g*alpha0*(alfa*surflx(i,j)/spcifh
+     .                    -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j)=bfltot
-          bflpsw=g*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
+          bflpsw=g*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
           q=alpha0/g
@@ -240,7 +240,8 @@ c
             lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
           endif
           lei=1./(onem*swbgal(i,j))
-          cus=rm0*ustar3(i,j)+niwgf*niwbf*idkedt(i,j)
+          cus=rm0*ustar3(i,j)
+          cni=niwgf*niwbf*idkedt(i,j)
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
           if     (rtsflg.eq.1) then
@@ -255,9 +256,13 @@ c
           q=lei*pmxl
           rm3=exp(-q)
           rm4=2./q
-          tkew=cus*rm1
-     .        +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .         -crs*pmxl*pmxl)*pmxl
+          mtkeus(i,j)=cus*rm1
+          mtkeni(i,j)=cni*rm1
+          mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2*pmxl
+          mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+          mtkepe(i,j)=0.
+          mtkeke(i,j)=0.
+          tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
 c
           pradd=swamxd*onem
           kfpl=kfpla(i,j,n)
@@ -286,9 +291,13 @@ c
               q=lei*max(tencm,pmxl)
               rm3=exp(-q)
               rm4=2./q
-              tkew=cus*rm1
-     .            +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .             -crs*pmxl*pmxl)*pmxl
+              mtkeus(i,j)=cus*rm1
+              mtkeni(i,j)=cni*rm1
+              mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2*pmxl
+              mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+              mtkepe(i,j)=0.
+              mtkeke(i,j)=0.
+              tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
               if (.not.(nitr.eq.1.and.pres(3)*lbi.gt.1.)) then
                 dtke=(tkew-tkeo)/dpmxl
                 if (abs(dtke)<(abs(tkew)+1.e-16)/(pres(3)-pres(1))) then
@@ -766,11 +775,15 @@ c
      .                 +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k))
      .                    *((uk-um)**2+(vk-vm)**2)*alpha0
      .                    /((pmxl-pres(1))*delt1*g)
-                    tkew=cus*rm1
-     .                  +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .                   -crs*pmxl*pmxl)*pmxl
-     .                  -dpe
-     .                  +dke
+                    mtkeus(i,j)=cus*rm1
+                    mtkeni(i,j)=cni*rm1
+                    mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+     .                          *rm2*pmxl
+                    mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+                    mtkepe(i,j)=-dpe
+                    mtkeke(i,j)=dke
+                    tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
+     .                  +mtkepe(i,j)+mtkeke(i,j)
                     if (nitr.eq.1) then
                       if (tkew.gt.0.) then
                         exit
