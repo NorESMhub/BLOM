@@ -19,7 +19,7 @@ module mo_riverinpt
 !  -subroutine riverinpt
 !    apply riverine input to the ocean tracer fields
 !
-!  MICOM_RIVER_NUTRIENTS must be set to TRUE in env_build.xml before building 
+!  MICOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml before building 
 !  the model to activate riverine nutrients.
 !
 ! 
@@ -63,10 +63,16 @@ contains
 
 
 subroutine ini_riverinpt(path)
-
+!--------------------------------------------------------------------------------
+!
+! Purpose:
+! --------
+!  Initialise riverine input to oceanic tracer fields
+!
+!--------------------------------------------------------------------------------
 use mod_dia,        only: iotype
 use mod_nctools,    only: ncfopn,ncread,ncfcls 
-use mo_control_bgc, only: io_stdo_bgc
+use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
 
 implicit none
 
@@ -75,8 +81,22 @@ character(len=*)   :: path
 ! local variables
 integer            :: dummymask(2)
 
+
+! Return if N deposition is turned off
+if (.not. do_rivinpt) then
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*) ''
+    write(io_stdo_bgc,*) 'ini_riverinpt: riverine input is not activated.'
+  endif
+  return
+endif
+
+
 ! read riverine nutrient fluxes from file
-if (mnproc.eq.1) write(io_stdo_bgc,*) 'Read riverine nutrients from ',trim(path)//trim(infile)
+if (mnproc.eq.1) then
+  write(io_stdo_bgc,*) ''
+  write(io_stdo_bgc,*) 'ini_riverinpt: read riverine nutrients from ',trim(path)//trim(infile)
+endif
 call ncfopn(trim(path)//trim(infile),'r',' ',1,iotype)
 call ncread('DIN',riv_DIN2d,dummymask,0,0.)
 call ncread('DIP',riv_DIP2d,dummymask,0,0.)
@@ -87,6 +107,7 @@ call ncread('DOC',riv_idoc2d,dummymask,0,0.)
 call ncread('DET',riv_idet2d,dummymask,0,0.)
 call ncfcls
 
+!--------------------------------------------------------------------------------
 end subroutine ini_riverinpt 
 
 
@@ -113,8 +134,13 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
 !     *REAL*    *omask*   - ocean mask
 !
 !--------------------------------------------------------------------------------
-use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali
-use mo_control_bgc, only: dtb
+#ifdef natDIC
+use mo_param1_bgc,  only: kmle,iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali, &
+                          inatsco212,inatalkali
+#else
+use mo_param1_bgc,  only: kmle,iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali
+#endif
+use mo_control_bgc, only: dtb,do_rivinpt
 use mo_carbch,      only: ocetra
 
 implicit none
@@ -125,8 +151,11 @@ real,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
 real,   intent(in) :: omask(kpie,kpje)
 
 ! local variables
-integer            :: i,j,dummymask(2)
+integer            :: i,j,k,dummymask(2)
 real               :: fdt,volij
+
+
+if (.not. do_rivinpt) return
 
 !$OMP PARALLEL DO PRIVATE(fdt,volij)
 DO j=1,kpje
@@ -135,26 +164,31 @@ DO i=1,kpie
 
     fdt   = dtb/365.
 
-    ! Distribute riverine inputs over the top two model layers
-    ! THIS MIGHT BE DEPENDENT ON FUTURE CHANGES IN MICOM!
-    volij = pddpo(i,j,1)+pddpo(i,j,2)
+    ! Distribute riverine inputs over the model mixed layer
+    volij = 0.
+    DO k=1,kmle
+      volij=volij+pddpo(i,j,k)
+    ENDDO
 
     ! Inorganic elements
-    ocetra(i,j,1:2,iano3)   = ocetra(i,j,1:2,iano3)   + riv_DIN2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,iphosph) = ocetra(i,j,1:2,iphosph) + riv_DIP2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,isilica) = ocetra(i,j,1:2,isilica) + riv_DSI2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,isco212) = ocetra(i,j,1:2,isco212) + riv_DIC2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,ialkali) = ocetra(i,j,1:2,ialkali) + riv_DIC2d(i,j)*fdt/volij
-    ocetra(i,j,1:2,iiron)   = ocetra(i,j,1:2,iiron)   + riv_DFe2d(i,j)*fdt/volij*0.01
-
+    ocetra(i,j,1:kmle,iano3)      = ocetra(i,j,1:kmle,iano3)      + riv_DIN2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,iphosph)    = ocetra(i,j,1:kmle,iphosph)    + riv_DIP2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,isilica)    = ocetra(i,j,1:kmle,isilica)    + riv_DSI2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,isco212)    = ocetra(i,j,1:kmle,isco212)    + riv_DIC2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,ialkali)    = ocetra(i,j,1:kmle,ialkali)    + riv_DIC2d(i,j)*fdt/volij
+#ifdef natDIC
+    ocetra(i,j,1:kmle,inatsco212) = ocetra(i,j,1:kmle,inatsco212) + riv_DIC2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,inatalkali) = ocetra(i,j,1:kmle,inatalkali) + riv_DIC2d(i,j)*fdt/volij
+#endif
+    ocetra(i,j,1:kmle,iiron)      = ocetra(i,j,1:kmle,iiron)      + riv_DFe2d(i,j)*fdt/volij*0.01
 !SG: Approx. 80-99% of dFe input is lost to the particulate phase in estuaries at low salinities 
 !    [Boyle et al., 1977; Chester, 1990; Dai and Martin, 1995; Lohan and Bruland, 2006; Sholkovitz, 1978] 
 
     ! Dissolved organic matter
-    ocetra(i,j,1:2,idoc)    = ocetra(i,j,1:2,idoc)    + riv_idoc2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,idoc)       = ocetra(i,j,1:kmle,idoc)       + riv_idoc2d(i,j)*fdt/volij
 
     ! Particulate organic matter
-    ocetra(i,j,1:2,idet)    = ocetra(i,j,1:2,idet)    + riv_idet2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,idet)       = ocetra(i,j,1:kmle,idet)       + riv_idet2d(i,j)*fdt/volij
 
   ENDIF
 ENDDO

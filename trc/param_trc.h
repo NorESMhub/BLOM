@@ -48,48 +48,32 @@ c --- HAMOCC tracers
 c --- ------------------------------------------------------------------
 c
 #ifdef HAMOCC
-      integer i_base_adv,i_iso_adv,i_cfc_adv,i_agg_adv,ntraad,i_base,
-     .        i_iso,i_nat_dic
+      integer i_base,i_iso,i_cfc,i_agg,i_nat_dic
 c
 c --- Advected HAMOCC tracers
-      parameter (i_base_adv=19)      
+      parameter (i_base=22)      
 #  ifdef cisonew
-      parameter (i_iso_adv=8)      
+      parameter (i_iso=12)      
 #  else 
-      parameter (i_iso_adv=0)      
+      parameter (i_iso=0)      
 #  endif
 #  ifdef CFC  
-      parameter (i_cfc_adv=3)
+      parameter (i_cfc=3)
 #  else 
-      parameter (i_cfc_adv=0)
+      parameter (i_cfc=0)
 #  endif
 #  ifdef AGG
-      parameter (i_agg_adv=2)
+      parameter (i_agg=2)
 #  else 
-      parameter (i_agg_adv=0)
+      parameter (i_agg=0)
 #  endif
 #  ifdef natDIC
-      parameter (i_nat_dic=2)
+      parameter (i_nat_dic=3)
 #  else
       parameter (i_nat_dic=0)
 #  endif
-      parameter (ntraad=i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+
-     .                  i_nat_dic)
-c
-c --- Non-advected (fast sinking) HAMOCC tracers
-#  ifdef natDIC
-      parameter (i_base=4) 
-#  else
-      parameter (i_base=3) 
-#  endif
-#  ifdef cisonew
-      parameter (i_iso=4)  
-#  else
-      parameter (i_iso=0)  
-#  endif
-c
 c --- Total number of HAMOCC tracers
-      parameter (ntrbgc=ntraad+i_base+i_iso)
+      parameter (ntrbgc=i_base+i_iso+i_cfc+i_agg+i_nat_dic)
 #else
       parameter (ntrbgc=0)
 #endif

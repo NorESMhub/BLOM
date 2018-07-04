@@ -17,8 +17,11 @@ setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
 setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
 setenv RUNDIR `./xmlquery  RUNDIR --value`
 setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
-setenv MICOM_RIVER_NUTRIENTS `./xmlquery  MICOM_RIVER_NUTRIENTS --value`
 setenv MICOM_TURBULENT_CLOSURE `./xmlquery MICOM_TURBULENT_CLOSURE --value`
+setenv HAMOCC_CFC `./xmlquery HAMOCC_CFC --value`
+setenv HAMOCC_NATTRC `./xmlquery HAMOCC_NATTRC --value`
+setenv HAMOCC_SEDBYPASS `./xmlquery HAMOCC_SEDBYPASS --value`
+setenv HAMOCC_CISO `./xmlquery HAMOCC_CISO --value`
 setenv GMAKE `./xmlquery GMAKE --value`
 setenv GMAKE_J `./xmlquery  GMAKE_J --value`
 setenv OCN_CO2_TYPE `./xmlquery OCN_CO2_TYPE --value`
@@ -43,7 +46,6 @@ EOF1
 set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
 set tracers = (`echo $MICOM_TRACER_MODULES`)
 set co2type = (`echo $OCN_CO2_TYPE`)
-set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
 
 set cpp_ocn = "-DMPI"
 if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4 || $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
@@ -92,6 +94,22 @@ if ($#tracers != 0) then
     else if ($module == ecosys) then
       echo $SRCROOT/components/micom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC -DWLIN"
+      if ($HAMOCC_CFC == TRUE) then
+        set cpp_ocn = "$cpp_ocn -DCFC"
+      endif       
+      if ($HAMOCC_NATTRC == TRUE) then
+        set cpp_ocn = "$cpp_ocn -DnatDIC"
+      endif       
+      if ($HAMOCC_SEDBYPASS == TRUE) then
+        set cpp_ocn = "$cpp_ocn -Dsedbypass"
+      endif       
+      if ($HAMOCC_CISO == TRUE) then
+        if($HAMOCC_SEDBYPASS == FALSE) then
+          echo $0": HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE."
+          exit -1
+        endif
+        set cpp_ocn = "$cpp_ocn -Dcisonew"
+      endif       
       if ($co2type == prognostic) then
         set cpp_ocn = "$cpp_ocn -DPROGCO2"
       else if ($co2type == diagnostic) then
@@ -100,9 +118,6 @@ if ($#tracers != 0) then
         echo $0": CO2 type $co2type is not recognized!"
         exit -1
       endif
-      if ($rivnutr == TRUE) then 
-        set cpp_ocn = "$cpp_ocn -DRIV_GNEWS"
-      endif 
     else
       echo $0": tracer module $module is not recognized!"
       exit -1

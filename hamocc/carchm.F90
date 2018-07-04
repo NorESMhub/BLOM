@@ -153,6 +153,7 @@
        omegaA (:,:,:)=0.
        omegaC (:,:,:)=0.
 #ifdef natDIC
+       natpco2d   (:,:)=0. 
        natco3   (:,:,:)=0.
        natomegaA(:,:,:)=0.
        natomegaC(:,:,:)=0.
@@ -459,6 +460,9 @@
 
 ! Save pco2 w.r.t. dry air for output
        pco2d(i,j) = cu * 1.e6 / Khd
+#ifdef natDIC
+       natpco2d(i,j) = natcu * 1.e6 / Khd
+#endif
 
 ! Save product of piston velocity and solubility for output
        kwco2sol(i,j) = kwco2*Kh*1e-6

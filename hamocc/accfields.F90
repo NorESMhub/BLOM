@@ -139,6 +139,11 @@
       call accsrf(jintphosy,intphosy,omask,0)     
       call accsrf(jintdnit,intdnit,omask,0)
       call accsrf(jintnfix,intnfix,omask,0)
+#ifdef natDIC
+      call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
+      call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
+      call accsrf(jnatpco2,natpco2d,omask,0)
+#endif
 
 ! Accumulate the diagnostic mass sinking field 
       IF( domassfluxes ) THEN
@@ -194,6 +199,7 @@
       call acclyr(jnatdic,ocetra(1,1,1,inatsco212),pddpo,1)
       call acclyr(jnatcalc,ocetra(1,1,1,inatcalc),pddpo,1)
       call acclyr(jnatco3,natco3,pddpo,1)                      
+      call acclyr(jnatph,nathi,pddpo,1)
       call acclyr(jnatomegaa,natOmegaA,pddpo,1)
       call acclyr(jnatomegac,natOmegaC,pddpo,1)
 #endif
@@ -265,6 +271,7 @@
           call acclvl(jlvlnatalkali,ocetra(1,1,1,inatalkali),k,ind1,ind2,wghts)
           call acclvl(jlvlnatcalc,ocetra(1,1,1,inatcalc),k,ind1,ind2,wghts)
           call acclvl(jlvlnatco3,natco3,k,ind1,ind2,wghts)
+          call acclvl(jlvlnatph,nathi,k,ind1,ind2,wghts)
           call acclvl(jlvlnatomegaa,natOmegaA,k,ind1,ind2,wghts)
           call acclvl(jlvlnatomegac,natOmegaC,k,ind1,ind2,wghts)
 #endif

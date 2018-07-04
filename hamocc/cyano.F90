@@ -91,7 +91,9 @@
 ! Nitrogen fixation followed by remineralisation and nitrification decreases
 ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
             ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
-
+#ifdef natDIC
+            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
+#endif
 
             intnfix(i,j) = intnfix(i,j) +                          &
      &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)

@@ -109,7 +109,7 @@
       atm_n2  = 802000.
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-#endif   
+#endif
 
 
 #ifdef cisonew
@@ -218,13 +218,8 @@
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
 #endif
 
-      
 ! deep see remineralisation constants
-
       drempoc  = 0.025*dtb    !1/d
-      dremdoc  = 0.004*dtb    !1/d
-      dphymor  = 0.008 *dtb   !1/d
-      dzoomor  = 3.*1.e6*dtb  !1/d -mortality rate
       dremopal = 0.005*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
@@ -370,13 +365,7 @@
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              drempoc      = ',drempoc    
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dremdoc      = ',dremdoc   
-      WRITE(io_stdo_bgc,*)                                             &
      &'*                              dremopal     = ',dremopal   
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dphymor      = ',dphymor   
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dzoomor      = ',dzoomor   
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              bluefix      = ',bluefix   
       WRITE(io_stdo_bgc,*)                                             &

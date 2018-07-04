@@ -81,14 +81,10 @@
       REAL :: ro2ut,rcar,rnit,rnoi,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
       REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal
-      REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o
-      REAL :: dphymor,dzoomor,dremopal
-      REAL :: dremsul
-      REAL :: psedi,csedi,ssedi
-      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust,bolaymin 
-      REAL :: perc_disil
+      REAL :: wpoc,wcal,wopal
+      REAL :: drempoc,dremopal,dremn2o,dremsul
+      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
       REAL :: ctochl, atten_w, atten_c, atten_f
-      REAL :: vol0
 #ifdef cisonew
       REAL :: c13fac,c14fac
       REAL :: re1312,re14to,prei13,prei14

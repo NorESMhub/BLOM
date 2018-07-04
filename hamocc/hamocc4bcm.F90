@@ -56,13 +56,11 @@
       USE mo_control_bgc
       use mo_param1_bgc 
       use mod_xc
+      use mo_riverinpt, only: riverinpt
+      use mo_ndep, only: n_deposition
 #ifdef DIFFAT
       use mo_satm
 #endif
-#ifdef RIV_GNEWS
-      use mo_riverinpt
-#endif
-      use mo_ndep, only: n_deposition
 
 
       implicit none
@@ -275,10 +273,8 @@
       ! Apply n-deposition
       CALL n_deposition(kpie,kpje,kpke,kplyear,kplmon,pddpo,omask)
 
-#ifdef RIV_GNEWS
       ! Apply riverine input of carbon and nutrients
       call riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
-#endif
 
 
 #ifdef DIFFAT     

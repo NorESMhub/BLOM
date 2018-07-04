@@ -36,10 +36,7 @@
 
       INTEGER :: ldtbgc           !  time step number from bgc restart file
       INTEGER :: ldtrunbgc        !  actual time steps of run.
-
-
       INTEGER :: ndtrunbgc        !  total no. of time steps of run.
-
 
       INTEGER :: isac             !  acceleration factor for sediment, read from namelist
 
@@ -47,6 +44,8 @@
       REAL    :: rmasks = 0.0       !  value at wet cells in sediment.
       REAL    :: rmasko = 99999.00  !  value at wet cells in ocean.
 
-
+! Logical switches
+      LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
+      LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
       
       END MODULE mo_control_bgc

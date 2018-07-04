@@ -21,6 +21,8 @@ setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
 setenv RUNDIR `./xmlquery RUNDIR --value`
 setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
 setenv MICOM_RIVER_NUTRIENTS `./xmlquery MICOM_RIVER_NUTRIENTS --value`
+setenv MICOM_N_DEPOSITION `./xmlquery MICOM_N_DEPOSITION --value`
+setenv MICOM_N_DEP_FILE `./xmlquery MICOM_N_DEP_FILE --value`
 setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
 echo $CASE ${EXEROOT} $CASEBUILD
 cd $EXEROOT/ocn/obj
@@ -101,6 +103,7 @@ EOF1
 endif
 set tracers = (`echo $MICOM_TRACER_MODULES`)
 set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
+set ndep    = (`echo $MICOM_N_DEPOSITION`)
 foreach module ($tracers)
   if ($module == ecosys) then
 cat >> $CASEBUILD/micom.input_data_list << EOF1
@@ -108,7 +111,12 @@ dust_file = $INPUTPATH/INPDUST_mhw.nc
 EOF1
     if ($rivnutr == TRUE) then
 cat >> $CASEBUILD/micom.input_data_list << EOF1
-river_file = $INPUTPATH/riv_in.txt
+river_file = $INPUTPATH/river_nutrients_GNEWS2000.nc
+EOF1
+    endif
+    if ($ndep == TRUE) then
+cat >> $CASEBUILD/micom.input_data_list << EOF1
+n_deposition_file = $INPUTPATH/$MICOM_N_DEP_FILE
 EOF1
     endif
   endif
@@ -184,6 +192,18 @@ set RSTCMP   =  0
 set IOTYPE   =  0 
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
+if ($rivnutr == TRUE) then
+  set DO_RIVINPT = .true.
+else
+  set DO_RIVINPT   = .false.
+endif
+if ($ndep == TRUE) then
+  set DO_NDEP   = .true.
+  set NDEPFNAME = $MICOM_N_DEP_FILE
+else
+  set DO_NDEP   = .false.
+  set NDEPFNAME = "''"
+endif
 # set DAIPHY defaults 
 set GLB_FNAMETAG = "'hd','hm'"  
 set GLB_AVEPERIO =  '1,  30'
@@ -319,69 +339,114 @@ set BGC_FILEFREQ  = '30,365'
 set BGC_COMPFLAG  = '0,   0'
 set BGC_NCFORMAT  = '0,   0'
 set BGC_INVENTORY = '1,   0'
-set SRF_KWCO2     = '2,   2'
-set SRF_PCO2      = '2,   2'
-set SRF_DMSFLUX   = '2,   2'
-set SRF_CO2FXD    = '2,   2'
-set SRF_CO2FXU    = '2,   2'
+set SRF_PHOSPH    = '2,   2'
+set SRF_OXYGEN    = '2,   2'    
+set SRF_IRON      = '2,   2'   
+set SRF_ANO3      = '2,   2'
+set SRF_ALKALI    = '2,   2'
+set SRF_SILICA    = '2,   2' 
+set SRF_DIC       = '2,   2' 
+set SRF_EXPORT    = '2,   2' 
+set SRF_EXPOSI    = '2,   2' 
+set SRF_EXPOCA    = '2,   2' 
+set SRF_KWCO2     = '2,   2' 
+set SRF_PCO2      = '2,   2' 
+set SRF_CO2FXD    = '2,   2' 
+set SRF_CO2FXU    = '2,   2' 
+set SRF_OXFLUX    = '2,   2' 
+set SRF_NIFLUX    = '2,   2' 
+set SRF_N2OFX     = '2,   2' 
+set SRF_DMSFLUX   = '2,   2' 
+set SRF_DMS       = '2,   2' 
+set SRF_DMSPROD   = '2,   2' 
+set SRF_DMS_BAC   = '2,   2' 
+set SRF_DMS_UV    = '2,   2' 
+set SRF_ATMCO2    = '2,   2' 
+set SRF_ATMO2     = '2,   2' 
+set SRF_ATMN2     = '2,   2' 
+set SRF_NATDIC    = '2,   2'
+set SRF_NATALKALI = '2,   2'
+set SRF_NATPCO2   = '2,   2'
 set SRF_NATCO2FX  = '2,   2'
-set SRF_OXFLUX    = '2,   2'
-set SRF_NIFLUX    = '2,   2'
-set SRF_DMS       = '2,   2'
-set SRF_DMSPROD   = '2,   2'
-set SRF_DMS_BAC   = '2,   2'
-set SRF_DMS_UV    = '2,   2'
-set SRF_EXPORT    = '2,   2'
-set SRF_EXPOSI    = '2,   2'
-set SRF_EXPOCA    = '2,   2'
-set SRF_ATMCO2    = '2,   2'
-set SRF_ATMO2     = '2,   2'
-set SRF_ATMN2     = '2,   2'
-set SRF_PHOSPH    = '2,   0'
-set SRF_OXYGEN    = '2,   0'
-set SRF_IRON      = '2,   0'
-set SRF_ANO3      = '2,   0'
-set SRF_ALKALI    = '2,   0'
-set SRF_SILICA    = '2,   0'
-set SRF_DIC       = '2,   0'
-set INT_PHOSY     = '2,   0'
-set LYR_PHYTO     = '2,   0'
-set LYR_GRAZER    = '2,   0'
-set LYR_DOC       = '2,   0'
-set LYR_PHOSY     = '2,   0'
-set LYR_PHOSPH    = '2,   0'
-set LYR_OXYGEN    = '2,   0'
-set LYR_IRON      = '2,   0'
-set LYR_ANO3      = '2,   0'
-set LYR_ALKALI    = '2,   0'
-set LYR_SILICA    = '2,   0'
-set LYR_DIC       = '2,   0'
-set LYR_POC       = '2,   0'
-set LYR_CALC      = '2,   0'
-set LYR_OPAL      = '2,   0'
-set LYR_CO3       = '2,   0'
-set LYR_PH        = '2,   0'
-set LYR_OMEGAC    = '2,   0'
-set LYR_PREFO2    = '0,   0'
-set LYR_PREFPO4   = '0,   0'
-set LYR_PREFALK   = '0,   0'
-set LYR_PREFDIC   = '0,   0'
-set LYR_DICSAT    = '0,   0'
-set LYR_NATDIC    = '0,   0' 
-set LYR_NATALKALI = '0,   0'
-set LYR_NATCO3    = '0,   0'
-set LYR_NATCALC   = '0,   0'
-set LYR_NATOMEGAC = '0,   0'
-set LYR_DIC13     = '2,   2'
+set SRF_CO213FXD  = '2,   2' 
+set SRF_CO213FXU  = '2,   2' 
+set SRF_CO214FXD  = '2,   2' 
+set SRF_CO214FXU  = '2,   2' 
+set SRF_CFC11     = '2,   2' 
+set SRF_CFC12     = '2,   2' 
+set SRF_SF6       = '2,   2' 
+set INT_PHOSY     = '2,   2' 
+set INT_NFIX      = '2,   2' 
+set INT_DNIT      = '2,   2' 
+set FLX_CAR0100   = '2,   2'
+set FLX_CAR0500   = '2,   2'
+set FLX_CAR1000   = '2,   2'
+set FLX_CAR2000   = '2,   2'
+set FLX_CAR4000   = '2,   2'
+set FLX_CAR_BOT   = '2,   2'
+set FLX_BSI0100   = '2,   2'
+set FLX_BSI0500   = '2,   2'
+set FLX_BSI1000   = '2,   2'
+set FLX_BSI2000   = '2,   2'
+set FLX_BSI4000   = '2,   2'
+set FLX_BSI_BOT   = '2,   2'
+set FLX_CAL0100   = '2,   2'
+set FLX_CAL0500   = '2,   2'
+set FLX_CAL1000   = '2,   2'
+set FLX_CAL2000   = '2,   2'
+set FLX_CAL4000   = '2,   2'
+set FLX_CAL_BOT   = '2,   2'
+set LYR_PHYTO     = '0,   2' 
+set LYR_GRAZER    = '0,   2' 
+set LYR_DOC       = '0,   2' 
+set LYR_PHOSY     = '0,   2' 
+set LYR_PHOSPH    = '0,   2' 
+set LYR_OXYGEN    = '0,   2' 
+set LYR_IRON      = '0,   2'
+set LYR_ANO3      = '0,   2'
+set LYR_ALKALI    = '0,   2'
+set LYR_SILICA    = '0,   2'
+set LYR_DIC       = '0,   2'
+set LYR_POC       = '0,   2'
+set LYR_CALC      = '0,   2'
+set LYR_OPAL      = '0,   2'
+set LYR_CO3       = '0,   2'
+set LYR_N2O       = '0,   0'
+set LYR_PH        = '0,   2'
+set LYR_OMEGAC    = '0,   2'
+set LYR_OMEGAA    = '0,   2'
+set LYR_PREFO2    = '0,   2'
+set LYR_O2SAT     = '0,   2'
+set LYR_PREFPO4   = '0,   2'
+set LYR_PREFALK   = '0,   2'
+set LYR_PREFDIC   = '0,   2'
+set LYR_DICSAT    = '0,   2'
+set LYR_NATDIC    = '0,   2'
+set LYR_NATALKALI = '0,   2'
+set LYR_NATCO3    = '0,   2'
+set LYR_NATCALC   = '0,   2'
+set LYR_NATPH     = '0,   2'
+set LYR_NATOMEGAC = '0,   2'
+set LYR_NATOMEGAA = '0,   2'
+set LYR_DIC13     = '0,   2'
 set LYR_DIC14     = '0,   2'
-set LYR_D13C      = '2,   2'
+set LYR_D13C      = '0,   2'
+set LYR_D14C      = '0,   2'
+set LYR_BIGD14C   = '0,   2'
 set LYR_POC13     = '0,   2'
 set LYR_DOC13     = '0,   2'
 set LYR_CALC13    = '0,   2'
 set LYR_PHYTO13   = '0,   2'
 set LYR_GRAZER13  = '0,   2'
-set BGC_DP        = '2,   0'
-set LYR_NOS       = '2,   0'
+set LYR_CFC11     = '0,   2'
+set LYR_CFC12     = '0,   2'
+set LYR_SF6       = '0,   2'
+set LYR_NOS       = '0,   2'
+set LYR_WPHY      = '0,   2'
+set LYR_WNOS      = '0,   2'
+set LYR_EPS       = '0,   0'
+set LYR_ASIZE     = '0,   0'
+set BGC_DP        = '0,   2'
 set LVL_PHYTO     = '0,   2'
 set LVL_GRAZER    = '0,   2'
 set LVL_DOC       = '0,   2'
@@ -397,18 +462,23 @@ set LVL_POC       = '0,   2'
 set LVL_CALC      = '0,   2'
 set LVL_OPAL      = '0,   2'
 set LVL_CO3       = '0,   2'
+set LVL_N2O       = '0,   0'
 set LVL_PH        = '0,   2'
 set LVL_OMEGAC    = '0,   2'
+set LVL_OMEGAA    = '0,   2'
 set LVL_PREFO2    = '0,   2'
+set LVL_O2SAT     = '0,   2'
 set LVL_PREFPO4   = '0,   2'
 set LVL_PREFALK   = '0,   2'
 set LVL_PREFDIC   = '0,   2'
 set LVL_DICSAT    = '0,   2'
-set LVL_NATDIC    = '0,   2' 
+set LVL_NATDIC    = '0,   2'
 set LVL_NATALKALI = '0,   2'
-set LVL_NATCO3    = '0,   2'    
+set LVL_NATCO3    = '0,   2'
 set LVL_NATCALC   = '0,   2'
+set LVL_NATPH     = '0,   2'
 set LVL_NATOMEGAC = '0,   2'
+set LVL_NATOMEGAA = '0,   2'
 set LVL_DIC13     = '0,   2'
 set LVL_DIC14     = '0,   2'
 set LVL_D13C      = '0,   2'
@@ -417,7 +487,14 @@ set LVL_DOC13     = '0,   2'
 set LVL_CALC13    = '0,   2'
 set LVL_PHYTO13   = '0,   2'
 set LVL_GRAZER13  = '0,   2'
+set LVL_CFC11     = '0,   2'
+set LVL_CFC12     = '0,   2'
+set LVL_SF6       = '0,   2'
 set LVL_NOS       = '0,   2'
+set LVL_WPHY      = '0,   2'
+set LVL_WNOS      = '0,   2'
+set LVL_EPS       = '0,   0'
+set LVL_ASIZE     = '0,   0'
 set SDM_POWAIC    = '0,   2'
 set SDM_POWAAL    = '0,   2'
 set SDM_POWAPH    = '0,   2'
@@ -429,7 +506,10 @@ set SDM_SSSO12    = '0,   2'
 set SDM_SSSSIL    = '0,   2'
 set SDM_SSSC12    = '0,   2'
 set SDM_SSSTER    = '0,   2'
-
+set BUR_SSSO12    = '0,   2'
+set BUR_SSSSIL    = '0,   2'
+set BUR_SSSC12    = '0,   2'
+set BUR_SSSTER    = '0,   2'
 
 #set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
 #set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
@@ -753,9 +833,15 @@ cat >>! $RUNDIR/ocn_in << EOF3
 !
 ! CONTENTS:
 !
-! ATM_CO2  : Atmospheric CO2 concentration [ppmv]
+! ATM_CO2   : Atmospheric CO2 concentration [ppmv]
+! DO_RIVINPT: Logical switch to activate riverine input
+! DO_NDEP   : Logical switch to activate N-deposition
+! NDEPFNAME : File name for atmopheric N-deposition data
 &BGCNML
-  ATM_CO2  = $CCSM_CO2_PPMV
+  ATM_CO2    = ${CCSM_CO2_PPMV}
+  DO_RIVINPT = ${DO_RIVINPT}
+  DO_NDEP    = ${DO_NDEP}
+  NDEPFNAME  = ${NDEPFNAME}
 /
 EOF3
 
@@ -1028,56 +1114,133 @@ cat >>! $RUNDIR/ocn_in << EOF4
   MSC_VOLTR    = ${MSC_VOLTR}
 /
 
-!3D HIGH PRIORITY
+! IO-NAMELIST FOR DIAGNOSTIC HAMOCC OUTPUT
+!
+! Namelist acronyms:
+!   GLB_     - global parameters i.e. valid for entire output group
+!   SRF_     - surface variables (includes some non-surface 2d fields)
+!   FLX_     - interior ocean particle fuxes at different depth (2d)
+!   INT_     - vertically integrated fields (2d)
+!   LYR_     - 3d fields with sigma layers as vertical coordinate
+!   LVL_     - 3d fields with levitus levels as vertical coordinate
+!   SDM_     - 3d sediment fields
+!   BUR_     - 2d fields of sediment burial
+!
+! Global parameters:
+!   FNAMETAG - tag used in file name (c10) 
+!   AVEPERIO - average period in days (i) 
+!   FILEFREQ - how often to start a new file in days (i) 
+!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
+!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
+!   INVENTORY- how often to write an inventory of tracers to ocean 
+!              output file
+!  
+! Arguments for diagnostic variables:
+!   0        - variable is not written
+!   2        - variable is written as int2 with scale factor and offset
+!   4        - variable is written as real4
+!   8        - variable is written as real8
+!
+! Output variables:
+!
+! Main BGC tracer fields (SFR, LYR or LVL)
 !   DIC            - Dissolved carbon (dissic) [mol C m-3]
 !   ALKALI         - Alkalinity (talk) [eq m-3]
-!   PH             - Ph (ph) [-log10([h+])]
 !   OXYGEN         - Oxygen (o2) [mol O2 m-3]
 !   ANO3           - Nitrate (no3) [mol N m-3]
 !   PHOSPH         - Phosphorus (po4) [mol P m-3]
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
+!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
+!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
 !
-!3D MEDIUM PRIORITY
+! Other 3d tracer or diagnostic variables (LYR or LVL)
+!   DP             - Layer thickness (pddpo) [m]
+!   PREFO2         - preformed oxygen (p_o2) [mol O2 m-3]
+!   O2SAT          - Saturated oxygen (satoxy) [mol O2 m-3]
+!   PREFPO4        - preformed phosphate (p_po4) [mol PO4 m-3]
+!   PREFALK        - preformed alkalinity (p_talk) [eq m-3]
+!   PREFDIC        - preformed DIC (p_dic) [mol C m-3]
+!   DICSAT         - saturated DIC (dic_sat) [mol C m-3]
+!   POC            - Detrius (detoc) [mol C m-3]
+!   CALC           - CaCO3 shells (calc) [mol C m-3]
+!   OPAL           - Opal shells (opal) [mol Si m-3]
 !   DOC            - Dissolved organic carbon (dissoc) [mol C m-3]
 !   PHYTO          - Phytoplankton (phyc) [mol C m-3]
 !   GRAZER         - Zooplankton (zooc) [mol C m-3]
-!   POC            - Detrius (detoc) [mol C m-3]
-!   CALC           - CaCO3 shells (calc) [mol C m-3]
-!
-!3D LOW PRIORITY
 !   PHOSY          - Primary production (pp) [mol C m-3 s-1]
-!
-!3D NOT REQUESTED
-!   OPAL           - Opal shells (opal) [mol Si m-3]
 !   CO3            - Carbonate ions (co3) [mol C m-3]
-!   OMEGAC         - Saturation state (omegac) [1]
+!   N2O            - Nitrous oxide concentration [mol N2O m-3]
+!   PH             - pH (ph) [-log10([h+])]
+!   OMEGAA         - Aragonite saturation state (omegaa) [1]
+!   OMEGAC         - Calcite saturation state (omegac) [1]
+!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
+!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
+!   NATCO3         - Natural carbonate ion concentration (natco3) [mol C m-3]
+!   NATCALC        - Natural CaCO3 shells (natcalc) [mol C m-3]
+!   NATPH          - Natural pH (natph) [-log10([h+])]
+!   NATOMEGAA      - Natural aragonite saturation state (natomegaa) [1]
+!   NATOMEGAC      - Natural calcite saturation state (natomegac) [1]
 !   DIC13          - Dissolved C13 (dissic13) [mol C m-3]
 !   DIC14          - Dissolved C14 (dissic14) [mol C m-3]
-!   DP             - Layer thickness (pddpo) [m]
-!   NOS            - ???  (nos) [???]
+!   D13C           - delta 13C of DIC [1]
+!   D14C           - delta 14C of DIC [1]
+!   BIGD14C        - Delta 14C of DIC [1]
+!   POC13          - Particulate organic carbon 13 (detoc13) [mol C m-3]
+!   DOC13          - Dissolved organic carbon 13 (dissoc13) [mol C m-3]
+!   CALC13         - Particulate inorganic carbon 13 (calc13) [mol C m-3]
+!   PHYTO13        - 13C of phytoplankton biomass (phyc13) [mol C m-3]
+!   GRAZER13       - 13C of zootoplankton biomass (zooc13) [mol C m-3]
+!   CFC11          - CFC11 concentration [mol CFC11 m-3]
+!   CFC12          - CFC12 concentration [mol CFC12 m-3]
+!   SF6            - SF6 concentration [mol SF6 m-3]
+!   NOS            - Number of sinking particles (aggregate scheme, nos) [cm-3]
+!   WPHY           - Mass sinking velocity (aggregate scheme) [m d-1]
+!   WNOS           - Number sinking velocity (aggregate scheme) [m d-1]
+!   EPS            - Epsilon exponent (aggregate scheme) [1]
+!   ASIZE          - Average particle size (aggregate scheme)
 !
-!2D HIGH PRIORITY
+! 2d-fields (SFR)
 !   EXPORT         - Export production (epc100) [mol C m-2 s-1]
 !   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
+!   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
 !   PCO2           - Surface PCO2 (spco2) [uatm]
-!   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   KWCO2          - kwco2 x solubility
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
-!
-!2D NOT REQUESTED
-!   KWCO2          - ??? (kwco2) [???]
-!   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
-!   DMSPROD        - DMS production (dmsprod) [???]
-!   DMS_BAC        - ??? (dms_bac) [???]
-!   DMS_UV         - ??? (dms_uv) [???]
-!   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
+!   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
+!   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
+!   DMS            - surface DMS concentration (dms) [mol DMS m-3]
+!   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
+!   DMS_BAC        - DMS bacterial consuption (dms_bac) [mol DMS m-2 s-1]
+!   DMS_UV         - DMS decomposition by UV (dms_uv) [mol DMS m-2 s-1]
 !   ATMCO2         - Atmospheric CO2 (atmco2) [ppm]
 !   ATMO2          - Atmospheric O2 (atmo2) [ppm]
 !   ATMN2          - Atmospheric N2 (atmn2) [ppm]
+!   NATPCO2        - Natural surface PCO2 (spco2) [uatm]
+!   NATCO2FX       - Natural net CO2 flux (natco2fx) [kg C m-2 s-1]
+!   CO213FXD       - Downward 13CO2 flux (co213fxd) [kg C m-2 s-1]
+!   CO213FXU       - Upward 13CO2 flux (co213fxu) [kg C m-2 s-1]
+!   CO214FXD       - Downward 14CO2 flux (co214fxd) [kg C m-2 s-1]
+!   CO214FXU       - Upward 14CO2 flux (co214fxu) [kg C m-2 s-1]
+!   CFC11          - CFC11 flux [mol CFC11 m-2 s-1]
+!   CFC12          - CFC12 flux [mol CFC12 m-2 s-1]
+!   SF6            - SF6 flux [mol SF6 m-2 s-1]
 !
-!SEDIMENTS
+! Vertically integrated fields (INT)
+!   PHOSY          - Vertically integrated primary production [mol C m-3 s-1]
+!   NFIX           - Vertically integrated nitrogen fixation
+!   DNIT           - Vertically integrated denitrification
+!
+! Particle fluxes (FLX, where ****=0100,0500,1000,2000,4000, or _BOT)
+!   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
+!   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
+!   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
+!
+! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
 !   POWAAL         - (powalk) [eq m-3]
 !   POWAPH         - (powpho) [eq m-3]
@@ -1090,6 +1253,12 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   SSSC12         - (sssc12) [mol C m-3]
 !   SSSTER         - (ssster) [mol m-3]
 !
+! Burial fields (BUR)
+!   SSSO12         - Solid sediment organic carbon [mol P m-2]
+!   SSSSIL         - Solid sediment silica [mol Si m-2]
+!   SSSC12         - Solid sediment inorganic carbon [mol C m-2]
+!   SSSTER         - 
+!
 &DIABGC
   GLB_FNAMETAG       = ${BGC_FNAMETAG},
   GLB_AVEPERIO       = ${BGC_AVEPERIO},
@@ -1097,24 +1266,6 @@ cat >>! $RUNDIR/ocn_in << EOF4
   GLB_COMPFLAG       = ${BGC_COMPFLAG},
   GLB_NCFORMAT       = ${BGC_NCFORMAT},
   GLB_INVENTORY      = ${BGC_INVENTORY},
-  SRF_KWCO2          = ${SRF_KWCO2},
-  SRF_PCO2           = ${SRF_PCO2},
-  SRF_DMSFLUX        = ${SRF_DMSFLUX},
-  SRF_CO2FXD         = ${SRF_CO2FXD},
-  SRF_CO2FXU         = ${SRF_CO2FXU},
-  SRF_NATCO2FX       = ${SRF_NATCO2FX},
-  SRF_OXFLUX         = ${SRF_OXFLUX},
-  SRF_NIFLUX         = ${SRF_NIFLUX},
-  SRF_DMS            = ${SRF_DMS},
-  SRF_DMSPROD        = ${SRF_DMSPROD},
-  SRF_DMS_BAC        = ${SRF_DMS_BAC},
-  SRF_DMS_UV         = ${SRF_DMS_UV},
-  SRF_EXPORT         = ${SRF_EXPORT},
-  SRF_EXPOSI         = ${SRF_EXPOSI},
-  SRF_EXPOCA         = ${SRF_EXPOCA},
-  SRF_ATMCO2         = ${SRF_ATMCO2},
-  SRF_ATMO2          = ${SRF_ATMO2},
-  SRF_ATMN2          = ${SRF_ATMN2},
   SRF_PHOSPH         = ${SRF_PHOSPH},
   SRF_OXYGEN         = ${SRF_OXYGEN}, 
   SRF_IRON           = ${SRF_IRON},    
@@ -1122,7 +1273,56 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SRF_ALKALI         = ${SRF_ALKALI},
   SRF_SILICA         = ${SRF_SILICA}, 
   SRF_DIC            = ${SRF_DIC},
+  SRF_EXPORT         = ${SRF_EXPORT},
+  SRF_EXPOSI         = ${SRF_EXPOSI},
+  SRF_EXPOCA         = ${SRF_EXPOCA},
+  SRF_KWCO2          = ${SRF_KWCO2},
+  SRF_PCO2           = ${SRF_PCO2},
+  SRF_CO2FXD         = ${SRF_CO2FXD},
+  SRF_CO2FXU         = ${SRF_CO2FXU},
+  SRF_OXFLUX         = ${SRF_OXFLUX},
+  SRF_NIFLUX         = ${SRF_NIFLUX},
+  SRF_N2OFX          = ${SRF_N2OFX},
+  SRF_DMSFLUX        = ${SRF_DMSFLUX},
+  SRF_DMS            = ${SRF_DMS},
+  SRF_DMSPROD        = ${SRF_DMSPROD},
+  SRF_DMS_BAC        = ${SRF_DMS_BAC},
+  SRF_DMS_UV         = ${SRF_DMS_UV},
+  SRF_ATMCO2         = ${SRF_ATMCO2},
+  SRF_ATMO2          = ${SRF_ATMO2},
+  SRF_ATMN2          = ${SRF_ATMN2},
+  SRF_NATDIC         = ${SRF_NATDIC},
+  SRF_NATALKALI      = ${SRF_NATALKALI},
+  SRF_NATPCO2        = ${SRF_NATPCO2},
+  SRF_NATCO2FX       = ${SRF_NATCO2FX},
+  SRF_CO213FXD       = ${SRF_CO213FXD}, 
+  SRF_CO213FXU       = ${SRF_CO213FXU},
+  SRF_CO214FXD       = ${SRF_CO214FXD},
+  SRF_CO214FXU       = ${SRF_CO214FXU},
+  SRF_CFC11          = ${SRF_CFC11},
+  SRF_CFC12          = ${SRF_CFC12},
+  SRF_SF6            = ${SRF_SF6},
   INT_PHOSY          = ${INT_PHOSY},
+  INT_NFIX           = ${INT_NFIX},
+  INT_DNIT           = ${INT_DNIT},
+  FLX_CAR0100        = ${FLX_CAR0100},
+  FLX_CAR0500        = ${FLX_CAR0500},
+  FLX_CAR1000        = ${FLX_CAR1000},
+  FLX_CAR2000        = ${FLX_CAR2000},
+  FLX_CAR4000        = ${FLX_CAR4000},
+  FLX_CAR_BOT        = ${FLX_CAR_BOT},
+  FLX_BSI0100        = ${FLX_BSI0100},
+  FLX_BSI0500        = ${FLX_BSI0500},
+  FLX_BSI1000        = ${FLX_BSI1000},
+  FLX_BSI2000        = ${FLX_BSI2000},
+  FLX_BSI4000        = ${FLX_BSI4000},
+  FLX_BSI_BOT        = ${FLX_BSI_BOT},
+  FLX_CAL0100        = ${FLX_CAL0100},
+  FLX_CAL0500        = ${FLX_CAL0500},
+  FLX_CAL1000        = ${FLX_CAL1000},
+  FLX_CAL2000        = ${FLX_CAL2000},
+  FLX_CAL4000        = ${FLX_CAL4000},
+  FLX_CAL_BOT        = ${FLX_CAL_BOT},
   LYR_PHYTO          = ${LYR_PHYTO},
   LYR_GRAZER         = ${LYR_GRAZER},
   LYR_DOC            = ${LYR_DOC},
@@ -1138,9 +1338,12 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LYR_CALC           = ${LYR_CALC},
   LYR_OPAL           = ${LYR_OPAL},
   LYR_CO3            = ${LYR_CO3},
+  LYR_N2O            = ${LYR_N2O},
   LYR_PH             = ${LYR_PH},
   LYR_OMEGAC         = ${LYR_OMEGAC},
+  LYR_OMEGAA         = ${LYR_OMEGAA},
   LYR_PREFO2         = ${LYR_PREFO2},
+  LYR_O2SAT          = ${LYR_O2SAT},
   LYR_PREFPO4        = ${LYR_PREFPO4},
   LYR_PREFALK        = ${LYR_PREFALK},
   LYR_PREFDIC        = ${LYR_PREFDIC},
@@ -1149,17 +1352,28 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LYR_NATALKALI      = ${LYR_NATALKALI},
   LYR_NATCO3         = ${LYR_NATCO3},
   LYR_NATCALC        = ${LYR_NATCALC},
+  LYR_NATPH          = ${LYR_NATPH},
   LYR_NATOMEGAC      = ${LYR_NATOMEGAC},
+  LYR_NATOMEGAA      = ${LYR_NATOMEGAA},
   LYR_DIC13          = ${LYR_DIC13},
   LYR_DIC14          = ${LYR_DIC14},
   LYR_D13C           = ${LYR_D13C},
+  LYR_D14C           = ${LYR_D14C},
+  LYR_BIGD14C        = ${LYR_BIGD14C},
   LYR_POC13          = ${LYR_POC13},
   LYR_DOC13          = ${LYR_DOC13},
   LYR_CALC13         = ${LYR_CALC13},
   LYR_PHYTO13        = ${LYR_PHYTO13},
   LYR_GRAZER13       = ${LYR_GRAZER13},
-  LYR_DP             = ${BGC_DP},
+  LYR_CFC11          = ${LYR_CFC11},
+  LYR_CFC12          = ${LYR_CFC12},
+  LYR_SF6            = ${LYR_SF6},
   LYR_NOS            = ${LYR_NOS},
+  LYR_WPHY           = ${LYR_WPHY},
+  LYR_WNOS           = ${LYR_WNOS},
+  LYR_EPS            = ${LYR_EPS},
+  LYR_ASIZE          = ${LYR_ASIZE},
+  LYR_DP             = ${BGC_DP},
   LVL_PHYTO          = ${LVL_PHYTO},
   LVL_GRAZER         = ${LVL_GRAZER},
   LVL_DOC            = ${LVL_DOC},
@@ -1175,9 +1389,12 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LVL_CALC           = ${LVL_CALC},
   LVL_OPAL           = ${LVL_OPAL},
   LVL_CO3            = ${LVL_CO3},
+  LVL_N2O            = ${LVL_N2O},
   LVL_PH             = ${LVL_PH},
   LVL_OMEGAC         = ${LVL_OMEGAC},
+  LVL_OMEGAA         = ${LVL_OMEGAA},
   LVL_PREFO2         = ${LVL_PREFO2},
+  LVL_O2SAT          = ${LVL_O2SAT},
   LVL_PREFPO4        = ${LVL_PREFPO4},
   LVL_PREFALK        = ${LVL_PREFALK},
   LVL_PREFDIC        = ${LVL_PREFDIC},
@@ -1186,7 +1403,9 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LVL_NATALKALI      = ${LVL_NATALKALI},
   LVL_NATCO3         = ${LVL_NATCO3},
   LVL_NATCALC        = ${LVL_NATCALC},
+  LVL_NATPH          = ${LVL_NATPH},
   LVL_NATOMEGAC      = ${LVL_NATOMEGAC},
+  LVL_NATOMEGAA      = ${LVL_NATOMEGAA},
   LVL_DIC13          = ${LVL_DIC13},
   LVL_DIC14          = ${LVL_DIC14},
   LVL_D13C           = ${LVL_D13C},
@@ -1195,7 +1414,14 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LVL_CALC13         = ${LVL_CALC13},
   LVL_PHYTO13        = ${LVL_PHYTO13},
   LVL_GRAZER13       = ${LVL_GRAZER13},
+  LVL_CFC11          = ${LVL_CFC11},
+  LVL_CFC12          = ${LVL_CFC12},
+  LVL_SF6            = ${LVL_SF6},
   LVL_NOS            = ${LVL_NOS},
+  LVL_WPHY           = ${LVL_WPHY},
+  LVL_WNOS           = ${LVL_WNOS},
+  LVL_EPS            = ${LVL_EPS},
+  LVL_ASIZE          = ${LVL_ASIZE},
   SDM_POWAIC         = ${SDM_POWAIC},
   SDM_POWAAL         = ${SDM_POWAAL},
   SDM_POWAPH         = ${SDM_POWAPH},
@@ -1206,6 +1432,10 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SDM_SSSO12         = ${SDM_SSSO12},
   SDM_SSSSIL         = ${SDM_SSSSIL},
   SDM_SSSC12         = ${SDM_SSSC12},
-  SDM_SSSTER         = ${SDM_SSSTER}
+  SDM_SSSTER         = ${SDM_SSSTER},
+  BUR_SSSO12         = ${BUR_SSSO12},
+  BUR_SSSSIL         = ${BUR_SSSSIL},
+  BUR_SSSC12         = ${BUR_SSSC12},
+  BUR_SSSTER         = ${BUR_SSSTER}
 /
 EOF4
