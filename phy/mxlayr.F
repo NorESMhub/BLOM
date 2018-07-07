@@ -234,11 +234,6 @@ c
           pmxl=pres(3)
           q=alpha0/g
           lui=abs(coriop(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
-          if (bfltot.lt.0) then
-            lbi=lui
-          else
-            lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
-          endif
           lei=1./(onem*swbgal(i,j))
           cus=rm0*ustar3(i,j)
           cni=niwgf*niwbf*idkedt(i,j)
@@ -250,15 +245,22 @@ c
           elseif (rtsflg.eq.2) then
             crs=ci*ce*util1(i,j)*q**3*sqrt(scp2(i,j))*rlf/cori20
           endif
-c      
+c
           rm1=exp(-lui*pmxl)
-          rm2=exp(-lbi*pmxl)
           q=lei*pmxl
           rm3=exp(-q)
           rm4=2./q
+          q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+          if (q.lt.0.) then
+            lbi=lui
+            rm2=rm1
+          else
+            lbi=lui*kappa/mu
+            rm2=exp(-lbi*pmxl)
+          endif
           mtkeus(i,j)=cus*rm1
           mtkeni(i,j)=cni*rm1
-          mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2*pmxl
+          mtkebf(i,j)=q*rm2*pmxl
           mtkers(i,j)=-crs*pmxl*pmxl*pmxl
           mtkepe(i,j)=0.
           mtkeke(i,j)=0.
@@ -287,13 +289,20 @@ c
             do
               nitr=nitr+1
               rm1=exp(-lui*pmxl)
-              rm2=exp(-lbi*pmxl)
               q=lei*max(tencm,pmxl)
               rm3=exp(-q)
               rm4=2./q
+              q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+              if (q.lt.0.) then
+                lbi=lui
+                rm2=rm1
+              else
+                lbi=lui*kappa/mu
+                rm2=exp(-lbi*pmxl)
+              endif
               mtkeus(i,j)=cus*rm1
               mtkeni(i,j)=cni*rm1
-              mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2*pmxl
+              mtkebf(i,j)=q*rm2*pmxl
               mtkers(i,j)=-crs*pmxl*pmxl*pmxl
               mtkepe(i,j)=0.
               mtkeke(i,j)=0.
@@ -753,11 +762,6 @@ c
                   nitr=0
                   do
                     nitr=nitr+1
-                    rm1=exp(-lui*pmxl)
-                    rm2=exp(-lbi*pmxl)
-                    q=lei*pmxl
-                    rm3=exp(-q)
-                    rm4=2./q
                     tmxl=(tmxl0*(pres(k)-pres(1))
      .                   +ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
                     smxl=(smxl0*(pres(k)-pres(1))
@@ -775,10 +779,21 @@ c
      .                 +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k))
      .                    *((uk-um)**2+(vk-vm)**2)*alpha0
      .                    /((pmxl-pres(1))*delt1*g)
+                    rm1=exp(-lui*pmxl)
+                    q=lei*pmxl
+                    rm3=exp(-q)
+                    rm4=2./q
+                    q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+                    if (q.lt.0.) then
+                      lbi=lui
+                      rm2=rm1
+                    else
+                      lbi=lui*kappa/mu
+                      rm2=exp(-lbi*pmxl)
+                    endif
                     mtkeus(i,j)=cus*rm1
                     mtkeni(i,j)=cni*rm1
-                    mtkebf(i,j)=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
-     .                          *rm2*pmxl
+                    mtkebf(i,j)=q*rm2*pmxl
                     mtkers(i,j)=-crs*pmxl*pmxl*pmxl
                     mtkepe(i,j)=-dpe
                     mtkeke(i,j)=dke
