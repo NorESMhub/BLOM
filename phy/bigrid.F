@@ -169,6 +169,9 @@ c$OMP PARALLEL DO PRIVATE(i)
           iq(i,j)=0
           iu(i,j)=0
           iv(i,j)=0
+          util1(i,j)=0.
+          util2(i,j)=0.
+          util3(i,j)=0.
         enddo
       enddo
 c$OMP END PARALLEL DO

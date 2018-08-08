@@ -152,7 +152,7 @@ set RMPMTH   = "'eitvel'"
 set EDWMTH   = "'smooth'"
 set MLRTTP   = "'constant'"
 set EDSPRS   = .true.
-set EGC      = 1.25
+set EGC      = 0.85
 set EGGAM    = 200.
 set EGLSMN   = 4000.e2
 set EGMNDF   = 100.e4
@@ -164,10 +164,10 @@ set RM5      = 0.
 set CE       = .06
 set BDMTYP   = 2
 set BDMC1    = 5.e-4
-set BDMC2    = .1
-set TKEPF    = 0.
-set NIWGF    = .7
-set NIWBF    = .7
+set BDMC2    = .12
+set TKEPF    = .05
+set NIWGF    = 0.
+set NIWBF    = .35
 set NIWLF    = .5
 set SWAMTH   = "'jerlov'"
 set JWTYPE   = 3
@@ -586,8 +586,9 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   if ($OCN_NCPL == 24) then
     set BACLIN = 3600.
     set BATROP = 60.
-    set CWBDTS = 1.e-4
+    set CWBDTS = .75e-4
     set CE     = .5
+    set NIWGF  = .5
     set SMTFRC = .false.
   else
     set BACLIN = 3200.
