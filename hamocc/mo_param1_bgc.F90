@@ -117,8 +117,7 @@
       INTEGER, PARAMETER :: i_cfc_atm = 3,                              &
      &                      iatmf11 = i_base_atm+i_iso_atm+1,           &
      &                      iatmf12 = i_base_atm+i_iso_atm+2,           &
-     &                      iatmsf6 = i_base_atm+i_iso_atm+3,           &
-     &                      
+     &                      iatmsf6 = i_base_atm+i_iso_atm+3                      
 #else
       INTEGER, PARAMETER :: i_cfc_atm = 0
 #endif
