@@ -321,7 +321,7 @@
            bifr13=1.
          else
            phygrowth   = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
-      	   growth_co2  = phygrowth/(co2star(i,j,k)*1.e6)                     ! CO2* in [mol/kg]
+      	   growth_co2  = phygrowth/(co2star(i,j,k)*1.e6+safediv)             ! CO2* in [mol/kg]
       	   bifr13_perm = (6.03 + 5.5*growth_co2)/(0.225 + growth_co2)        ! Permil (~20)
       	   bifr13_perm = max(5.,min(26.,bifr13_perm))                        ! Limit the range to [5,26]
       	   bifr13      = (1000. - bifr13_perm) / 1000.                       ! Fractionation factor 13c (~0.98)
