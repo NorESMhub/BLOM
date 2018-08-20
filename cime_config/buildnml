@@ -164,8 +164,8 @@ set RM5      = 0.
 set CE       = .06
 set BDMTYP   = 2
 set BDMC1    = 5.e-4
-set BDMC2    = .12
-set TKEPF    = .05
+set BDMC2    = .15
+set TKEPF    = .01
 set NIWGF    = 0.
 set NIWBF    = .35
 set NIWLF    = .5
@@ -699,7 +699,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            diffusivity is constant () (i)
 ! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
 !            frequency (cm**2/s**2) (f)
-! BDMC2    : Background diapycnal diffusivity (cm**2/s**2) (f)
+! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
 ! NIWGF    : Global factor applied to the energy input by near-intertial
