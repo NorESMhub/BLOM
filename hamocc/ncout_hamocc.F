@@ -33,7 +33,6 @@ c
 c --- set time information
       timeunits=' '
       startdate=' '
-      fname=' ' 
       write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')
      . 'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
       write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')
@@ -52,8 +51,8 @@ c --- get file name
       endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .le.1).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
-     .  mod(nstep+.5,filefq_bgc(iogrp)).lt.2.) then
+     .  .eq.0).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
+     .  mod(nstep+.5,filefq_bgc(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
       endif
 c
