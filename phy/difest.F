@@ -1103,7 +1103,7 @@ c --- ------- Penetration of surface TKE below mixed layer.
      .                     -exp(-p(i,j,k+1)/tkepls))/dp(i,j,kn)
                 endif
                 trc(i,j,kn,itrtke)=trc(i,j,kn,itrtke)
-     .                            +tkepf*q*ustar(i,j)**2
+     .                            +67.83*tkepf*q*ustar(i,j)**2
               endif
 c
 c --- ------- Set TKE and GLS to prescribed minimum values in surface
