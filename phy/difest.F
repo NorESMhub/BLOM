@@ -955,7 +955,7 @@ c
           enddo
 c
 c --- --- Set isopycnal tracer diffusivity proportional to the layer
-c --- --- interface diffusivity by the factor EQIDFQ.
+c --- --- interface diffusivity by the factor EGIDFQ.
           do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
