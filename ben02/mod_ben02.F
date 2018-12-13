@@ -1579,6 +1579,8 @@ c --- Compute air-sea fluxes. Same routine is used both for
 c --- climatological and synoptic forcing
 c --- ------------------------------------------------------------------
 c
+      use mod_swtfrz, only: swtfrz
+c
       implicit none
 c
 #include "common_blocks.h"
@@ -1599,8 +1601,8 @@ c
      .     tml,sml,albedo,fice,tice_f,tml_d,tsi_d,qsrf_d,le,ua,sa,ta,qa,
      .     tsrf_m,qsrf_m,dqsrf_m,dangle
 c
-      real intp1d,swtfrz
-      external intp1d,swtfrz
+      real intp1d
+      external intp1d
 c
       rntda=1./real(ntda)
       ntda=0

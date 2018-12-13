@@ -22,7 +22,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
           do k=2,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              temmin(i,j,k)=-1.8
+              temmin(i,j,k)=-3.
             enddo
             enddo
           enddo

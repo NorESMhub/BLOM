@@ -5,6 +5,7 @@ c --- Define initial conditions
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_swtfrz, only: swtfrz
 c
       implicit none
 c
@@ -12,11 +13,13 @@ c
 #include "common_forc.h"
 #include "common_seaice.h"
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz
+c
       integer i,j,k,l
       real q,dps
 c
-      real swtfrz,sig,sofsig,getlpi
-      external swtfrz,sig,sofsig,getlpi
+      real sig,sofsig,getlpi
+      external sig,sofsig,getlpi
 c
 c --- ------------------------------------------------------------------
 c --- Define layer interface heights and layer temperature and salinity
@@ -64,25 +67,43 @@ c --- bound and make temperature, salinity, and potential density
 c --- variables consistent.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(l,i,k)
+      do k=1,2
+        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+c$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+            sigma(i,j,k+kk)=sigma(i,j,k)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      enddo
+      do k=3,kk
+        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+c$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+            saln(i,j,k)=sofsig(sigmar(i,j,k),temp(i,j,k))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+            sigma(i,j,k+kk)=sigma(i,j,k)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      enddo
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          do k=1,2
-            temp(i,j,k)=max(swtfrz(p(i,j,1),saln(i,j,k)),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
-          do k=3,kk
-            temp(i,j,k)=max(temmin(i,j,k),temp(i,j,k))
-            saln(i,j,k   )=sofsig(sigmar(i,j,k),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
           ustar(i,j)=0.
           buoyfl(i,j)=0.
         enddo

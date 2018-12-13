@@ -3,6 +3,7 @@ c
 c --- NERSC version of thermf. 
 c
       use mod_xc
+      use mod_swtfrz, only: swtfrz
       use mod_swabs, only: swbgal,swbgfc
       use mod_ben02, only: tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,
      .                     ntda
@@ -43,8 +44,8 @@ c
 #  endif
 #endif
 c
-      real swtfrz,intp1d
-      external swtfrz,intp1d
+      real intp1d
+      external intp1d
 c
 c --- Due to conservation, the ratio of ice and snow density must be
 c --- equal to the ratio of ice and snow heat of fusion
