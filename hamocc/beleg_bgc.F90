@@ -220,7 +220,7 @@
 
 ! deep see remineralisation constants
       drempoc  = 0.025*dtb    !1/d
-      dremopal = 0.005*dtb    !1/d
+      dremopal = 0.003*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       
@@ -289,7 +289,7 @@
 
 !ik weight percent iron in dust deposition times Fe solubility
 ! the latter three values come from Johnson et al., 1997
-      fetune=0.5                  ! factor introduced to tune deposistion/solubility
+      fetune=0.6                  ! factor introduced to tune deposistion/solubility
       perc_diron = fetune * 0.035 * 0.01 / 55.85
       riron= 5.*rcar*1.e-6        ! fe to P ratio in organic matter
       fesoly=0.5*1.e-9            ! max. diss. iron concentration in deep water 
