@@ -740,7 +740,7 @@ cat >! $RUNDIR/ocn_in << EOF1
 !            the ration of Rossby radius of deformation to the
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
-!            types: 'variable', 'constant' (a)
+!            types: 'variable', 'constant', 'limited' (a)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)

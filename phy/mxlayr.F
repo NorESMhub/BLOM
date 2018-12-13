@@ -72,9 +72,9 @@ c ---   rlf    - reciprocal of length scale of mixed layer fronts
 c ---            [1/cm].
 c ---   ci     - constant that appears when integrating the shape
 c ---            function over the mixed layer depth [].
-      real rtau,cori20,rlf,ci
-      parameter (rtau=1./(2.*86400.),cori20=4.9745e-5,rlf=1./5.e5,
-     .           ci=44./63.)
+      real rtau,cori20,rlf,ci,slbg0
+      parameter (rtau=1./86400.,cori20=4.9745e-5,rlf=1./5.e5,
+     .           ci=44./63.,slbg0=0.)
 c
 c --- Parameters for brine plume parameterization:
 c ---   bpdrho - density contrast between surface and brine plume depth
@@ -99,6 +99,8 @@ c
         rtsflg=1
       elseif (mlrttp.eq.'constant') then
         rtsflg=2
+      elseif (mlrttp.eq.'limited') then
+        rtsflg=3
       else
         if (mnproc.eq.1) then
           write (lp,'(3a)') ' mlrttp=',trim(mlrttp),
@@ -168,6 +170,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
           elseif (ip(i,j+1).eq.1) then
             util1(i,j)=util1(i,j)+util3(i,j+1)
           endif
+          util1(i,j)=util1(i,j)+slbg0
         enddo
         enddo
       enddo
@@ -244,6 +247,10 @@ c
      .          *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
           elseif (rtsflg.eq.2) then
             crs=ci*ce*util1(i,j)*q**3*sqrt(scp2(i,j))*rlf/cori20
+          elseif (rtsflg.eq.3) then
+            crs=ci*ce*util1(i,j)*rlf*q**3
+     .          *sqrt(scp2(i,j)/min(cori20*cori20,
+     .                              coriop(i,j)*coriop(i,j)+rtau*rtau))
           endif
 c
           rm1=exp(-lui*pmxl)
