@@ -164,8 +164,8 @@ set RM5      = 0.
 set CE       = .06
 set BDMTYP   = 2
 set BDMC1    = 5.e-4
-set BDMC2    = .15
-set TKEPF    = .01
+set BDMC2    = .1
+set TKEPF    = .005
 set NIWGF    = 0.
 set NIWBF    = .35
 set NIWLF    = .5
@@ -653,7 +653,7 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
     set BATROP = 60.
     set CWBDTS = .75e-4
     set CE     = .5
-    set NIWGF  = .5
+    set NIWGF  = .4
     set SMTFRC = .false.
   else
     set BACLIN = 3200.
