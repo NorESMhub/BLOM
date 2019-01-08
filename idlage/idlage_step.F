@@ -20,7 +20,7 @@ c
 c
 c --- set ideal age to zero in the surface layer and increment the age
 c --- in the subsurface layers
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1-nbdy,jj+nbdy
         do l=1,isp(j)
         do i=ifp(j,l),ilp(j,l)
@@ -30,7 +30,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       q=delt1/(86400.*nday_in_year)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1-nbdy,jj+nbdy
         do k=2,kk
           kn=k+nn

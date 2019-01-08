@@ -12,7 +12,7 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 c
-      character fname*80
+      character fname*256
       integer i,j,k
 c
       if (ditflx) then
@@ -48,7 +48,7 @@ c
 c       
         call ncfcls
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j,i)
         do k=1,48
           nflxdi(k)=0
           do j=1,jj
@@ -90,7 +90,7 @@ c
 c       
         call ncfcls
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j,i)
         do k=1,48
           nflxdi(k)=0
           do j=1,jj

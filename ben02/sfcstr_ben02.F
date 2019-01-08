@@ -20,7 +20,7 @@ c
       call xctilr(ficem, 1,1, 1,1, halo_ps)
       call xctilr(hicem, 1,1, 1,1, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(facice)
+c$OMP PARALLEL DO PRIVATE(l,i,facice)
       do 200 j=1,jj
 c
       do 210 l=1,isu(j)

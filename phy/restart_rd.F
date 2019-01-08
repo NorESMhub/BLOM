@@ -20,7 +20,7 @@ c
 #include "common_seaice.h"
 c
       integer i,j,k,n,ndayr,nmonthr,nyearr,l
-      character(len=200) :: rstfnm,fnm
+      character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
 c
       integer daydif
@@ -186,6 +186,7 @@ c
 c --- Compute extended uv masks 
       if (first) then
         first=.false.
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
           do i=1,ii
             if ((ip(i,j)+ip(i-1,j)).ge.1) then
@@ -205,6 +206,7 @@ c --- Compute extended uv masks
             endif
           enddo 
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('u',u,iuu,1,0.)
@@ -241,8 +243,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 umfltd(i,j,k)=0.
@@ -250,6 +253,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('utfltd')
@@ -263,8 +267,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 utfltd(i,j,k)=0.
@@ -272,6 +277,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('utflld')
@@ -285,8 +291,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 utflld(i,j,k)=0.
@@ -294,6 +301,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('usfltd')
@@ -307,8 +315,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 usfltd(i,j,k)=0.
@@ -316,6 +325,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('usflld')
@@ -329,8 +339,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (iuu(i,j).eq.1) then
                 usflld(i,j,k)=0.
@@ -338,6 +349,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('vflx',vflx,ivv,1,0.)
@@ -355,8 +367,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vmfltd(i,j,k)=0.
@@ -364,6 +377,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vtfltd')
@@ -377,8 +391,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vtfltd(i,j,k)=0.
@@ -386,6 +401,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vtflld')
@@ -399,8 +415,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vtflld(i,j,k)=0.
@@ -408,6 +425,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vsfltd')
@@ -421,8 +439,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vsfltd(i,j,k)=0.
@@ -430,6 +449,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('vsflld')
@@ -443,8 +463,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,2*kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,i)
+        do j=1,jj
+          do k=1,2*kk
             do i=1,ii
               if (ivv(i,j).eq.1) then
                 vsflld(i,j,k)=0.
@@ -452,6 +473,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       call ncread('ubflx',ubflx,iuu,1,0.)
@@ -478,6 +500,102 @@ c
       call ncread('kfpla',rkfpla,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)
 c
+      vexist=ncinqv('uml')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('uml',uml,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''uml'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,4
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              uml(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('vml')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('vml',vml,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vml'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj+1
+          do k=1,4
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vml(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('umlres')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('umlres',umlres,iuu,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''umlres'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,2
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+              umlres(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      vexist=ncinqv('vmlres')
+!      call xcbcst(vexist)
+      if (vexist) then
+        call ncread('vmlres',vmlres,ivv,1,0.)
+      else
+        if (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: field ''vmlres'' is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj+1
+          do k=1,2
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vmlres(i,j,k)=0.
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
       if (sprfac) then
         vexist=ncinqa('prfac')
 !        call xcbcst(vexist)
@@ -494,6 +612,7 @@ c
             write (lp,*) 'from restart file and will be initialized.'
           endif
           prfac=1.
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -502,6 +621,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
       endif
 c
@@ -579,6 +699,7 @@ c
             write (lp,*)
      .       'will be initialized to zero.'
           endif
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -586,6 +707,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
         vexist=ncinqv('flxdms')
 !        call xcbcst(vexist)
@@ -598,6 +720,7 @@ c
             write (lp,*)
      .       'will be initialized to zero.'
           endif
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -605,6 +728,7 @@ c
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
         endif
       endif
 c
@@ -660,8 +784,9 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
-        do k=1,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               difdia(i,j,k)=0.
@@ -669,6 +794,7 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       vexist=ncinqv('ustarb')
@@ -682,6 +808,7 @@ c
           write (lp,*)
      .     'will be initialized to zero.'
         endif
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -689,6 +816,7 @@ c
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 #  endif
 #  ifdef IDLAGE
@@ -719,6 +847,112 @@ c --- read accumulated fields
             endif 
           call xcbcst(nacc_phy(n))
           if (nacc_phy(n).gt.0) then
+            if (ACC_UB(n).ne.0) call ncread('ub_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_UB(n)),iuu,1,0.)
+            if (ACC_VB(n).ne.0) call ncread('vb_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_VB(n)),ivv,1,0.)
+            if (ACC_ZTX(n).ne.0) call ncread('ztx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_ZTX(n)),iuu,1,0.)
+            if (ACC_MTY(n).ne.0) call ncread('mty_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTY(n)),ivv,1,0.)
+            if (ACC_TAUX(n).ne.0) call ncread('taux_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
+            if (ACC_TAUY(n).ne.0) call ncread('tauy_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
+            if (ACC_MXLU(n).ne.0) call ncread('mxlu_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
+            if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
+            if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
+            if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
+            if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
+            if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv,1,0.)
+            if (ACC_IVOLU(n).ne.0) call ncread('ivolu_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu,1,0.)
+            if (ACC_IVOLV(n).ne.0) call ncread('ivolv_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv,1,0.)
+            if (ACC_SEALV(n).ne.0) call ncread('sealv_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SEALV(n)),ip,1,0.)
+            if (ACC_SST(n).ne.0) call ncread('sst_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip,1,0.)
+            if (ACC_SSS(n).ne.0) call ncread('sss_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip,1,0.)
+            if (ACC_SIGMX(n).ne.0) call ncread('sigmx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip,1,0.)
+            if (ACC_MLD(n).ne.0) call ncread('mld_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip,1,0.)
+            if (ACC_MAXMLD(n).ne.0) call ncread('maxmld_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip,1,0.)
+            if (ACC_ALB(n).ne.0) call ncread('alb_phy'//c2, 
+     .        physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip,1,0.)
+            if (ACC_SWA(n).ne.0) call ncread('swa_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SWA(n)),ip,1,0.)
+            if (ACC_NSF(n).ne.0) call ncread('nsf_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_NSF(n)),ip,1,0.)
+            if (ACC_DFL(n).ne.0) call ncread('dfl_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_DFL(n)),ip,1,0.)
+            if (ACC_LIP(n).ne.0) call ncread('lip_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_LIP(n)),ip,1,0.)
+            if (ACC_SOP(n).ne.0) call ncread('sop_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SOP(n)),ip,1,0.)
+            if (ACC_EVA(n).ne.0) call ncread('eva_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_EVA(n)),ip,1,0.)
+            if (ACC_RNFFLX(n).ne.0) call ncread('rnfflx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip,1,0.)
+            if (ACC_RFIFLX(n).ne.0) call ncread('rfiflx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip,1,0.)
+            if (ACC_SFL(n).ne.0) call ncread('sfl_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip,1,0.)
+            if (ACC_BRNFLX(n).ne.0) call ncread('brnflx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip,1,0.)
+            if (ACC_BRNPD(n).ne.0) call ncread('brnpd_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip,1,0.)
+            if (ACC_SURFLX(n).ne.0) call ncread('surflx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip,1,0.)
+            if (ACC_SURRLX(n).ne.0) call ncread('surrlx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip,1,0.)
+            if (ACC_SALFLX(n).ne.0) call ncread('salflx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip,1,0.)
+            if (ACC_SALRLX(n).ne.0) call ncread('salrlx_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip,1,0.)
+            if (ACC_ABSWND(n).ne.0) call ncread('abswnd_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
+            if (ACC_USTAR(n).ne.0) call ncread('ustar_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip,1,0.)
+            if (ACC_USTAR3(n).ne.0) call ncread('ustar3_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip,1,0.)
+            if (ACC_IDKEDT(n).ne.0) call ncread('idkedt_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip,1,0.)
+            if (ACC_MTKEUS(n).ne.0) call ncread('mtkeus_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEUS(n)),ip,1,0.)
+            if (ACC_MTKENI(n).ne.0) call ncread('mtkeni_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKENI(n)),ip,1,0.)
+            if (ACC_MTKEBF(n).ne.0) call ncread('mtkebf_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEBF(n)),ip,1,0.)
+            if (ACC_MTKERS(n).ne.0) call ncread('mtkers_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKERS(n)),ip,1,0.)
+            if (ACC_MTKEPE(n).ne.0) call ncread('mtkepe_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
+            if (ACC_MTKEKE(n).ne.0) call ncread('mtkeke_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
+            if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
+            if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip,1,0.)
+            if (ACC_HICE(n).ne.0) call ncread('hice_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip,1,0.)
+            if (ACC_HSNW(n).ne.0) call ncread('hsnw_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip,1,0.)
+            if (ACC_FICE(n).ne.0) call ncread('fice_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip,1,0.)
+            if (ACC_TSRF(n).ne.0) call ncread('tsrf_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip,1,0.)
+            if (ACC_TICE(n).ne.0) call ncread('tice_phy'//c2,
+     .        physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip,1,0.)
             if (ACC_UVEL(n).ne.0) call ncread('uvel_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)),iuu,1,0.)
             if (ACC_VVEL(n).ne.0) call ncread('vvel_phy'//c2,
@@ -863,104 +1097,13 @@ c --- read accumulated fields
      .                    phylvl(1-nbdy,1-nbdy,1,ACC_GLS_PSILVL(n)),
      .                    ip,1,0.)
 #endif
-            if (ACC_UB(n).ne.0) call ncread('ub_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_UB(n)),iuu,1,0.)
-            if (ACC_VB(n).ne.0) call ncread('vb_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_VB(n)),ivv,1,0.)
-            if (ACC_ZTX(n).ne.0) call ncread('ztx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_ZTX(n)),iuu,1,0.)
-            if (ACC_MTY(n).ne.0) call ncread('mty_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTY(n)),ivv,1,0.)
-            if (ACC_TAUX(n).ne.0) call ncread('taux_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
-            if (ACC_TAUY(n).ne.0) call ncread('tauy_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
-            if (ACC_MXLU(n).ne.0) call ncread('mxlu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
-            if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
-            if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
-            if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
-            if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
-            if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv,1,0.)
-            if (ACC_IVOLU(n).ne.0) call ncread('ivolu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu,1,0.)
-            if (ACC_IVOLV(n).ne.0) call ncread('ivolv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv,1,0.)
-            if (ACC_SEALV(n).ne.0) call ncread('sealv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SEALV(n)),ip,1,0.)
-            if (ACC_SFL(n).ne.0) call ncread('sfl_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip,1,0.)
-            if (ACC_SIGMX(n).ne.0) call ncread('sigmx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip,1,0.)
-            if (ACC_HICE(n).ne.0) call ncread('hice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip,1,0.)
-            if (ACC_HSNW(n).ne.0) call ncread('hsnw_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip,1,0.)
-            if (ACC_FICE(n).ne.0) call ncread('fice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip,1,0.)
-            if (ACC_TSRF(n).ne.0) call ncread('tsrf_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip,1,0.)
-            if (ACC_TICE(n).ne.0) call ncread('tice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip,1,0.)
-            if (ACC_IAGE(n).ne.0) call ncread('iage_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IAGE(n)),ip,1,0.)
-            if (ACC_SWA(n).ne.0) call ncread('swa_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SWA(n)),ip,1,0.)
-            if (ACC_NSF(n).ne.0) call ncread('nsf_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_NSF(n)),ip,1,0.)
-            if (ACC_DFL(n).ne.0) call ncread('dfl_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_DFL(n)),ip,1,0.)
-            if (ACC_LIP(n).ne.0) call ncread('lip_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_LIP(n)),ip,1,0.)
-            if (ACC_SOP(n).ne.0) call ncread('sop_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SOP(n)),ip,1,0.)
-            if (ACC_EVA(n).ne.0) call ncread('eva_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_EVA(n)),ip,1,0.)
-            if (ACC_ALB(n).ne.0) call ncread('alb_phy'//c2, 
-     .        physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip,1,0.)
-            if (ACC_RNFFLX(n).ne.0) call ncread('rnfflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip,1,0.)
-            if (ACC_USTAR(n).ne.0) call ncread('ustar_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip,1,0.)
-            if (ACC_SSS(n).ne.0) call ncread('sss_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip,1,0.)
-            if (ACC_SST(n).ne.0) call ncread('sst_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip,1,0.)
-            if (ACC_MLD(n).ne.0) call ncread('mld_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip,1,0.)
-            if (ACC_MAXMLD(n).ne.0) call ncread('maxmld_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip,1,0.)
-            if (ACC_SURFLX(n).ne.0) call ncread('surflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip,1,0.)
-            if (ACC_SURRLX(n).ne.0) call ncread('surrlx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip,1,0.)
-            if (ACC_SALFLX(n).ne.0) call ncread('salflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip,1,0.)
-            if (ACC_SALRLX(n).ne.0) call ncread('salrlx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip,1,0.)
-            if (ACC_ABSWND(n).ne.0) call ncread('abswnd_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
-            if (ACC_BRNFLX(n).ne.0) call ncread('brnflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip,1,0.)
-            if (ACC_BRNPD(n).ne.0) call ncread('brnpd_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip,1,0.)
-            if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
-            if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip,1,0.)
-            if (ACC_RFIFLX(n).ne.0) call ncread('rfiflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip,1,0.)
           endif
         enddo
       endif
 c
       call ncfcls
 c
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i,j).eq.1) then
@@ -969,6 +1112,7 @@ c
           endif
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
 c --- set minimum physical temperature for each isopycnic layer

@@ -42,12 +42,28 @@
   </compset>
 
   <compset>
+    <alias>NOINYOC</alias>
+    <lname>2000_DATM%NYF_SLND_CICE_MICOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+  </compset>
+
+  <compset>
     <alias>NOIIA</alias>
     <lname>2000_DATM%IAF_SLND_CICE_MICOM_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
-    <alias>NOINYOC</alias>
-    <lname>2000_DATM%NYF_SLND_CICE_MICOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+    <alias>NOIIAOC</alias>
+    <lname>2000_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
+
+  <compset>
+    <alias>NOIIAJRA</alias>
+    <lname>2000_DATM%JRA_SLND_CICE_MICOM_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>NOIIAJRAOC</alias>
+    <lname>2000_DATM%JRA_SLND_CICE_MICOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
+
 </compsets>

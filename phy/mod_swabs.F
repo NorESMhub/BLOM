@@ -123,6 +123,7 @@ c
 c
 c --- - Set penetrative blue/green shortwave radiation fraction to zero
 c --- - to ensure all shortwave radiation is absorbed in the top layer.
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -131,6 +132,7 @@ c --- - to ensure all shortwave radiation is absorbed in the top layer.
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       elseif (swamth.eq.'jerlov') then
 c
@@ -144,6 +146,7 @@ c --- - attenuation length according to Jerlov water type.
           call xcstop('(iniswa)')
                  stop '(iniswa)'
         endif
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -152,6 +155,7 @@ c --- - attenuation length according to Jerlov water type.
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       elseif (swamth.eq.'chlorophyll') then
 c
@@ -275,8 +279,9 @@ c --- --- Close file.
           endif
 c
 c --- --- Convert to log10 of chlorophyll concentration.
-          do k=1,12
-            do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+          do j=1,jj
+            do k=1,12
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 chl10c(i,j,k)=log10(chl10c(i,j,k))
@@ -284,6 +289,7 @@ c --- --- Convert to log10 of chlorophyll concentration.
               enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
 c
 c --- --- Make sure halos are updated.
           call xctilr(chl10c, 1,12, nbdy,nbdy, halo_ps)
@@ -334,6 +340,7 @@ c
 c
 c --- - Time interpolation of chlorophyll concentration climatology.
         if     (chlopt.eq.'climatology') then
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -343,6 +350,7 @@ c --- - Time interpolation of chlorophyll concentration climatology.
             enddo
             enddo
           enddo
+c$OMP END PARALLEL DO
 c
         else
           if (mnproc.eq.1) then
@@ -355,6 +363,7 @@ c
 c --- - Compute blue/green penetrative shortwave radiation fraction and
 c --- - attenuation length according to modified Morel and Antoine
 c --- - (1994) scheme.
+c$OMP PARALLEL DO PRIVATE(l,i,q)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -367,6 +376,7 @@ c --- - (1994) scheme.
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       else
         if (mnproc.eq.1) then

@@ -3,6 +3,7 @@ c
 c --- NERSC version of thermf. To be used when coupled to CESM
 c
       use mod_xc
+      use mod_swtfrz, only: swtfrz
 c
       implicit none
 c
@@ -13,7 +14,8 @@ c
 #include "common_geo.h"
 #include "common_clndr.h"
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  tfrz,tfrzm,vrtsfl
 c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
@@ -32,8 +34,8 @@ c
 #  endif
 #endif
 c
-      real swtfrz,intp1d
-      external swtfrz,intp1d
+      real intp1d
+      external intp1d
 c
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
@@ -49,11 +51,19 @@ c
 c --- Time level for diagnosing heat and salt relaxation fluxes
       k=m3
 c
+c --- Compute freezing temperatures of sea water
+      tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k1n))
+      tfrzm(:,:)=swtfrz(p(:,:,1),.5*(saln(:,:,k1m)+saln(:,:,k1n)))
+c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,sstc,rice,
-c$OMP+ trxflx,sssc,srxflx)
+c$OMP+ l,i,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,sstc,
+c$OMP+ rice,trxflx,sssc,srxflx
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -76,7 +86,7 @@ c --- --- ocean mixed layer quantities
           smxl=(saln(i,j,1+nn)*dp(i,j,1+nn)
      .         +saln(i,j,2+nn)*dp(i,j,2+nn))/dpmxl
 c
-          tice_f=swtfrz(p(i,j,1),sotl)+t0deg
+          tice_f=tfrz(i,j)+t0deg
 c
 c --- ------------------------------------------------------------------
 c --- --- Fresh water and salt fluxes
@@ -113,8 +123,7 @@ c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
           frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*1.e4
           mltpot(i,j)=
-     .      min(0.,swtfrz(p(i,j,1),.5*(saln(i,j,k1m)+saln(i,j,k1n)))
-     .            -.5*(temp(i,j,k1m)+temp(i,j,k1n)))
+     .      min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n)))
      .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
 c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
@@ -256,7 +265,7 @@ c --- Correction for the virtual salt flux [kg m-2 s-1]
 c
 c --- Apply the virtual salt flux correction and the compute the total
 c --- salt flux by combining the virtual and true salt flux
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -276,7 +285,7 @@ c --- ocean is zero
         if (abs(totsrp-totsrn).gt.0.) then
           qp=2.*totsrn/(totsrn-totsrp)
           qn=2.*totsrp/(totsrp-totsrn)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -297,7 +306,7 @@ c
 #  ifdef TKE
         if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #  endif
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -317,7 +326,7 @@ c
 c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
 c        trflxc=0.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -347,7 +356,6 @@ c
         call chksummsk(frzpot,ip,1,'frzpot')
         call chksummsk(mltpot,ip,1,'mltpot')
       endif
-c
 c
       return
       end

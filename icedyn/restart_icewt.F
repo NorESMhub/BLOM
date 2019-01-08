@@ -1,4 +1,4 @@
-      subroutine restart_icewt(time,rstfnm_ocn,path2,path2_len)
+      subroutine restart_icewt(time,rstfnm_ocn)
 c
 c --- ------------------------------------------------------------------
 c --- Write ice dynamics state to restart file
@@ -9,14 +9,13 @@ c
       implicit none
 c
       real time
-      character rstfnm_ocn*(*),path2*(*)
-      integer path2_len
+      character rstfnm_ocn*(*)
 c
 #include "param_icedyn.h"
 #include "common_icedyn.h"
 c
       integer i
-      character rstfnm*80
+      character rstfnm*256
 c
       if (mnproc.eq.1) then
 
@@ -32,8 +31,8 @@ c
         rstfnm=rstfnm_ocn(1:i-1)//'_restice_'//rstfnm_ocn(i+9:)
 c
         write (*,'(a,a)') ' saving ice dynamics restart file ',
-     .                    trim(path2(1:path2_len)//rstfnm)
-        open (unit=nfu,file=path2(1:path2_len)//rstfnm,
+     .                    trim(rstfnm)
+        open (unit=nfu,file=rstfnm,
      .        form='unformatted',status='unknown',action='write')
         write (nfu) time
         write (nfu) lold,lnew,u,v,uwat2l,vwat2l,gradhx2l,gradhy2l

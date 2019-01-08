@@ -46,6 +46,9 @@ c --- approaches sls0 with an e-folding length scale of MLD times
 c --- slsels.
 c --- ------------------------------------------------------------------
 c
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+  l,i,kfpl,k,pml,delp,bfsq,q,sls2,pup,tup,sup,kn,plo,tlo,slo,ctd,
+c$OMP+  btd,rtd,atd,bei,gam)
       do j=-1,jj+2
         do l=1,isp(j)
         do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
@@ -139,6 +142,7 @@ c
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
       if (csdiag) then
         if (mnproc.eq.1) then

@@ -63,8 +63,9 @@
      & SRF_N2OFX     =0    ,SRF_CFC11     =0    ,SRF_CFC12     =0    ,  &
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
-     & SRF_SILICA    =0    ,SRF_DIC       =0    ,INT_PHOSY     =0    ,  &
-     & INT_NFIX      =0    ,INT_DNIT      =0    ,SRF_NATCO2FX  =0    ,  &
+     & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_NATDIC    =0    ,  &
+     & SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,SRF_NATCO2FX  =0    ,  &
+     & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
      & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
@@ -84,7 +85,8 @@
      & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
      & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
      & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
-     & LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,LYR_NATCO3    =0    ,  &
+     & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
+     & LYR_NATCO3    =0    ,                                            &
      & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
@@ -101,7 +103,8 @@
      & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
      & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
      & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
-     & LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,LVL_NATCO3    =0    ,  &
+     & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
+     & LVL_NATCO3    =0    ,                                            &
      & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
@@ -125,8 +128,9 @@
      & SRF_N2OFX         ,SRF_CFC11         ,SRF_CFC12         ,        &
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
-     & SRF_SILICA        ,SRF_DIC           ,INT_PHOSY         ,        &
-     & INT_NFIX          ,INT_DNIT          ,SRF_NATCO2FX      ,        &
+     & SRF_SILICA        ,SRF_DIC           ,SRF_NATDIC        ,        &
+     & SRF_NATALKALI     ,SRF_NATPCO2       ,SRF_NATCO2FX      ,        &
+     & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
      & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
@@ -146,7 +150,8 @@
      & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
      & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
      & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
-     & LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,LYR_NATCO3        ,        &
+     & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
+     & LYR_NATCO3        ,                                              &
      & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
      & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
      & LYR_DOC13         ,LYR_CALC13        ,                           &
@@ -163,7 +168,8 @@
      & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
      & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
      & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
-     & LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,LVL_NATCO3        ,        &
+     & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
+     & LVL_NATCO3        ,                                              &
      & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
      & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
      & LVL_DOC13         ,LVL_CALC13        ,                           &
@@ -242,7 +248,12 @@
      &          jcalflx1000= 0 ,                                        &
      &          jcalflx2000= 0 ,                                        &
      &          jcalflx4000= 0 ,                                        &
-     &          jcalflx_bot= 0 ,                                        &
+     &          jcalflx_bot= 0
+
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jsrfnatdic = 0 ,                                        &
+     &          jsrfnatalk = 0 ,                                        &
+     &          jnatpco2   = 0 ,                                        &
      &          jnatco2fx  = 0
 
 
@@ -336,7 +347,7 @@
      &          jlvlpoc13  = 0 ,                                        &
      &          jlvldoc13  = 0 ,                                        &
      &          jlvlcalc13 = 0 ,                                        &
-     &          jlvlphyto13 = 0 ,                                       &
+     &          jlvlphyto13 = 0,                                        &
      &          jlvlgrazer13= 0                                                                                        
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -356,12 +367,14 @@
      &          jnatalkali    = 0 ,                                     &
      &          jnatdic       = 0 ,                                     &
      &          jnatcalc      = 0 ,                                     &
+     &          jnatph        = 0 ,                                     &
      &          jnatomegaa    = 0 ,                                     &
      &          jnatomegac    = 0 ,                                     &
      &          jlvlnatco3    = 0 ,                                     &
      &          jlvlnatalkali = 0 ,                                     &
      &          jlvlnatdic    = 0 ,                                     &
      &          jlvlnatcalc   = 0 ,                                     &
+     &          jlvlnatph     = 0 ,                                     &
      &          jlvlnatomegaa = 0 ,                                     &
      &          jlvlnatomegac = 0 
 
@@ -589,6 +602,12 @@
         jsf6fx(n)=i_bsc_m2d*min(1,SRF_SF6(n))
 #endif
 #ifdef natDIC
+        IF (SRF_NATDIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfnatdic(n)=i_bsc_m2d*min(1,SRF_NATDIC(n))
+        IF (SRF_NATALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfnatalk(n)=i_bsc_m2d*min(1,SRF_NATALKALI(n))
+        IF (SRF_NATPCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jnatpco2(n)=i_bsc_m2d*min(1,SRF_NATPCO2(n))
         IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
 #endif
@@ -723,6 +742,8 @@
         jnatdic(n)=i_bsc_m3d*min(1,LYR_NATDIC(n))
         IF (LYR_NATCALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatcalc(n)=i_bsc_m3d*min(1,LYR_NATCALC(n))
+        IF (LYR_NATPH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnatph(n)=i_bsc_m3d*min(1,LYR_NATPH(n))
         IF (LYR_NATOMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatomegaa(n)=i_bsc_m3d*min(1,LYR_NATOMEGAA(n))
         IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
@@ -830,6 +851,8 @@
         jlvlnatdic(n)=ilvl_bsc_m3d*min(1,LVL_NATDIC(n))
         IF (LVL_NATCALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatcalc(n)=ilvl_bsc_m3d*min(1,LVL_NATCALC(n))
+        IF (LVL_NATPH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlnatph(n)=ilvl_bsc_m3d*min(1,LVL_NATPH(n))
         IF (LVL_NATOMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
         IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

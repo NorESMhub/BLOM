@@ -97,7 +97,7 @@
 
       REAL              :: locetra(kpie,kpje,2*kpke,nocetra)
       INTEGER           :: i,j
-      CHARACTER(LEN=200):: rstfnm
+      CHARACTER(LEN=256):: rstfnm
 
       INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
      &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &

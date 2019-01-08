@@ -36,7 +36,7 @@ c --- ------------------------------------------------------------------------
 c
       call xctilr(ztx, 1,1, 1,1, halo_uv)
       call xctilr(mty, 1,1, 1,1, halo_vv)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (iu(i,j).eq.1) then
@@ -61,7 +61,7 @@ c$OMP END PARALLEL DO
         call intp_mv2iq(itdm,jtdm,vm,tmp2d,tauyw)
       endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (iu(i,j).eq.1) then
@@ -89,7 +89,7 @@ c$OMP END PARALLEL DO
       endif
 c
       call xctilr(sealv, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (iu(i,j).eq.1) then
@@ -103,7 +103,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
       call xctilr(tmp1, 1,1, 1,1, halo_uv)
       call xctilr(tmp2, 1,1, 1,1, halo_vv)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (iu(i,j).eq.0) then
@@ -130,7 +130,7 @@ c --- ------------------------------------------------------------------------
 c
 c --- note that the dynamic ice code need mean ice thickness, while the
 c --- ocean model operates with thickness of the ice covered fraction
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           if (ip(i,j).eq.1) then

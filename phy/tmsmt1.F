@@ -18,7 +18,11 @@ c
 c
       integer i,j,k,l,kn
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ )
       do j=1,jj
         do k=1,kk
           kn=k+nn

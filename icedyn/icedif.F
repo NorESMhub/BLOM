@@ -18,7 +18,7 @@ c
       integer i,j,l
 c
 c --- compute fluxes at grid cell boundaries
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj+1
         do i=1,ii+1
           fu(i,j)=0.
@@ -27,7 +27,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
       call xctilr(h, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -38,7 +38,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -52,7 +52,7 @@ c$OMP END PARALLEL DO
 c
 c --- update scalar field (note that diffusivity is in m^2/s while scale
 c --- factors are in cm)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))

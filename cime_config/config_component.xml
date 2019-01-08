@@ -63,9 +63,66 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>TRUE</default_value>
+    <group>run_component_micom</group>
+    <file>env_run.xml</file>
+    <desc>Optional input of riverine nutrients. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="MICOM_N_DEPOSITION">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>TRUE</default_value>
+    <group>run_component_micom</group>
+    <file>env_run.xml</file>
+    <desc>Optional nitrogen deposition. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="MICOM_N_DEP_FILE">
+    <type>char</type>
+    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,UNSET</valid_values>
+    <default_value>ndep_CMIP6_1850.nc</default_value>
+    <values>
+      <value compset="HIST" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+    </values>
+    <group>run_component_micom</group>
+    <file>env_run.xml</file>
+    <desc>File name for nitrogen deposition data. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_CFC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
-    <desc>Optional input of riverine nutrients.  Requires module ecosys</desc>
+    <desc>Set preprocessor option to activate CFC code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_NATTRC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_micom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate natural tracer code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDBYPASS">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_micom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_CISO">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_micom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
   <!--- Note that positive second match will overwrite positive first match -->

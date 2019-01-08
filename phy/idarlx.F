@@ -64,9 +64,9 @@ c
           nflxdi(k)=0
         enddo
         if (ditflx) then
-c$OMP PARALLEL DO
-          do k=1,48
-            do j=1-nbdy,jj+nbdy
+c$OMP PARALLEL DO PRIVATE(k,i)
+          do j=1-nbdy,jj+nbdy
+            do k=1,48
               do i=1-nbdy,ii+nbdy
                 tflxdi(i,j,k)=0.
               enddo
@@ -75,9 +75,9 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
         endif
         if (disflx) then
-c$OMP PARALLEL DO
-          do k=1,48
-            do j=1-nbdy,jj+nbdy
+c$OMP PARALLEL DO PRIVATE(k,i)
+          do j=1-nbdy,jj+nbdy
+            do k=1,48
               do i=1-nbdy,ii+nbdy
                 sflxdi(i,j,k)=0.
               enddo

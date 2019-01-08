@@ -20,7 +20,7 @@ c
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un
-      real q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
+      real q,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,cni,
      .     cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,
      .     sfsl,dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,
      .     bdpsum,tup,sup,dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,
@@ -72,9 +72,9 @@ c ---   rlf    - reciprocal of length scale of mixed layer fronts
 c ---            [1/cm].
 c ---   ci     - constant that appears when integrating the shape
 c ---            function over the mixed layer depth [].
-      real rtau,cori20,rlf,ci
-      parameter (rtau=1./(2.*86400.),cori20=4.9745e-5,rlf=1./5.e5,
-     .           ci=44./63.)
+      real rtau,cori20,rlf,ci,slbg0
+      parameter (rtau=1./86400.,cori20=4.9745e-5,rlf=1./5.e5,
+     .           ci=44./63.,slbg0=0.)
 c
 c --- Parameters for brine plume parameterization:
 c ---   bpdrho - density contrast between surface and brine plume depth
@@ -99,6 +99,8 @@ c
         rtsflg=1
       elseif (mlrttp.eq.'constant') then
         rtsflg=2
+      elseif (mlrttp.eq.'limited') then
+        rtsflg=3
       else
         if (mnproc.eq.1) then
           write (lp,'(3a)') ' mlrttp=',trim(mlrttp),
@@ -113,7 +115,7 @@ c --- Compute squared lateral buoyancy gradient in the mixed layer and
 c --- store it in -util1-.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(q,tmxl,smxl)
+c$OMP PARALLEL DO PRIVATE(l,i,q,tmxl,smxl)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -128,7 +130,7 @@ c$OMP PARALLEL DO PRIVATE(q,tmxl,smxl)
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -138,7 +140,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(q)
+c$OMP PARALLEL DO PRIVATE(l,i,q)
       do j=1,jj+1
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
@@ -148,7 +150,7 @@ c$OMP PARALLEL DO PRIVATE(q)
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -168,6 +170,7 @@ c$OMP PARALLEL DO
           elseif (ip(i,j+1).eq.1) then
             util1(i,j)=util1(i,j)+util3(i,j+1)
           endif
+          util1(i,j)=util1(i,j)+slbg0
         enddo
         enddo
       enddo
@@ -179,15 +182,15 @@ c
       endif
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ pres,ttem,ssal,delp,dens,densr,bc,
-c$OMP+ q,ustar3,alfa,beta,bfltot,bflpsw,pradd,pmxl,lui,lbi,lei,cus,
-c$OMP+ cbftot,cbfpsw,crs,rm1,rm2,rm3,rm4,tkew,dpmxl,tkeo,dtke,tfsl,sfsl,
-c$OMP+ dpfsl,dptopl,dpt,pup,plo,drhup,drhlo,pbrnd,bcwsum,bdpsum,tup,sup,
-c$OMP+ dup,dsgdt,dsgds,bpc,bpmldp,pswbas,pswup,pswlo,ttmp,stmp,sigtmp,
-c$OMP+ sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,dpe,dps,
-c$OMP+ k,kn,kfpl,nitr,kmax,kfmax
+c$OMP+ l,i,pres,k,kn,ttem,ssal,delp,dens,densr,q,tmxl,smxl,alfa,beta,
+c$OMP+ bfltot,bflpsw,pmxl,lui,lbi,lei,cus,cni,cbftot,cbfpsw,crs,rm1,rm2,
+c$OMP+ rm3,rm4,tkew,pradd,kfpl,dpmxl,tkeo,nitr,dtke,dpfsl,dptopl,tfsl,
+c$OMP+ sfsl,dpt,kmax,kfmax,bpmldp,pup,drhup,plo,drhlo,pbrnd,bcwsum,
+c$OMP+ bdpsum,tup,sup,dup,dsgdt,dsgds,bc,bpc,pswbas,pswup,pswlo,ttmp,
+c$OMP+ stmp,sigtmp,sigfsl,dps,tdps,sdps,tmxl0,smxl0,um,vm,dpe0,dke0,
+c$OMP+ tkeu,uk,vk,dpe,dke,tkel
 #ifdef TRC
-c$OMP+,ttrc,trfsl,trdps
+c$OMP+ ,nt,ttrc,trfsl,trdps
 #endif
 c$OMP+ )
       do j=1,jj
@@ -216,8 +219,6 @@ c --- --- Compute the turbulent kinetic energy (TKE) balance of the
 c --- --- mixed layer.
 c --- ------------------------------------------------------------------
 c
-          ustar3=ustar(i,j)**3
-c
 c --- --- bfltot = total buoyancy flux [cm**2/sec**3]
 c --- --- bflpsw = buoyancy flux due to penetrating short-wave radiation
 c ---              [cm**2/sec**3]
@@ -228,21 +229,17 @@ c --- --- bfltot > 0
           smxl=(ssal(1)*delp(1)+ssal(2)*delp(2))*q
           alfa=-alpha0*dsigdt0(tmxl,smxl)
           beta=alpha0*dsigds0(tmxl,smxl)
-          bfltot=g*(alfa*surflx(i,j)/spcifh
-     .             -beta*(salflx(i,j)-brnflx(i,j)))
+          bfltot=g*alpha0*(alfa*surflx(i,j)/spcifh
+     .                    -beta*(salflx(i,j)-brnflx(i,j)))
           buoyfl(i,j)=bfltot
-          bflpsw=g*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
+          bflpsw=g*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
           q=alpha0/g
           lui=abs(coriop(i,j))*q/(kappa*max(ustmin,ustar(i,j)))
-          if (bfltot.lt.0) then
-            lbi=lui
-          else
-            lbi=abs(coriop(i,j))*q/(mu*max(ustmin,ustar(i,j)))
-          endif
           lei=1./(onem*swbgal(i,j))
-          cus=rm0*ustar3
+          cus=rm0*ustar3(i,j)
+          cni=niwgf*niwbf*idkedt(i,j)
           cbftot=.5*bfltot*q
           cbfpsw=.5*bflpsw*q
           if     (rtsflg.eq.1) then
@@ -250,16 +247,31 @@ c
      .          *sqrt(scp2(i,j)/(coriop(i,j)*coriop(i,j)+rtau*rtau))*rlf
           elseif (rtsflg.eq.2) then
             crs=ci*ce*util1(i,j)*q**3*sqrt(scp2(i,j))*rlf/cori20
+          elseif (rtsflg.eq.3) then
+            crs=ci*ce*util1(i,j)*rlf*q**3
+     .          *sqrt(scp2(i,j)/min(cori20*cori20,
+     .                              coriop(i,j)*coriop(i,j)+rtau*rtau))
           endif
-c      
+c
           rm1=exp(-lui*pmxl)
-          rm2=exp(-lbi*pmxl)
           q=lei*pmxl
           rm3=exp(-q)
           rm4=2./q
-          tkew=cus*rm1
-     .        +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .         -crs*pmxl*pmxl)*pmxl
+          q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+          if (q.lt.0.) then
+            lbi=lui
+            rm2=rm1
+          else
+            lbi=lui*kappa/mu
+            rm2=exp(-lbi*pmxl)
+          endif
+          mtkeus(i,j)=cus*rm1
+          mtkeni(i,j)=cni*rm1
+          mtkebf(i,j)=q*rm2*pmxl
+          mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+          mtkepe(i,j)=0.
+          mtkeke(i,j)=0.
+          tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
 c
           pradd=swamxd*onem
           kfpl=kfpla(i,j,n)
@@ -284,13 +296,24 @@ c
             do
               nitr=nitr+1
               rm1=exp(-lui*pmxl)
-              rm2=exp(-lbi*pmxl)
               q=lei*max(tencm,pmxl)
               rm3=exp(-q)
               rm4=2./q
-              tkew=cus*rm1
-     .            +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .             -crs*pmxl*pmxl)*pmxl
+              q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+              if (q.lt.0.) then
+                lbi=lui
+                rm2=rm1
+              else
+                lbi=lui*kappa/mu
+                rm2=exp(-lbi*pmxl)
+              endif
+              mtkeus(i,j)=cus*rm1
+              mtkeni(i,j)=cni*rm1
+              mtkebf(i,j)=q*rm2*pmxl
+              mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+              mtkepe(i,j)=0.
+              mtkeke(i,j)=0.
+              tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
               if (.not.(nitr.eq.1.and.pres(3)*lbi.gt.1.)) then
                 dtke=(tkew-tkeo)/dpmxl
                 if (abs(dtke)<(abs(tkew)+1.e-16)/(pres(3)-pres(1))) then
@@ -746,11 +769,6 @@ c
                   nitr=0
                   do
                     nitr=nitr+1
-                    rm1=exp(-lui*pmxl)
-                    rm2=exp(-lbi*pmxl)
-                    q=lei*pmxl
-                    rm3=exp(-q)
-                    rm4=2./q
                     tmxl=(tmxl0*(pres(k)-pres(1))
      .                   +ttem(k)*(pmxl-pres(k)))/(pmxl-pres(1))
                     smxl=(smxl0*(pres(k)-pres(1))
@@ -768,11 +786,26 @@ c
      .                 +.5*rm5*(pres(k)-pres(1))*(pmxl-pres(k))
      .                    *((uk-um)**2+(vk-vm)**2)*alpha0
      .                    /((pmxl-pres(1))*delt1*g)
-                    tkew=cus*rm1
-     .                  +((cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))*rm2
-     .                   -crs*pmxl*pmxl)*pmxl
-     .                  -dpe
-     .                  +dke
+                    rm1=exp(-lui*pmxl)
+                    q=lei*pmxl
+                    rm3=exp(-q)
+                    rm4=2./q
+                    q=(cbftot-cbfpsw*(rm4*(1.-rm3)-rm3))
+                    if (q.lt.0.) then
+                      lbi=lui
+                      rm2=rm1
+                    else
+                      lbi=lui*kappa/mu
+                      rm2=exp(-lbi*pmxl)
+                    endif
+                    mtkeus(i,j)=cus*rm1
+                    mtkeni(i,j)=cni*rm1
+                    mtkebf(i,j)=q*rm2*pmxl
+                    mtkers(i,j)=-crs*pmxl*pmxl*pmxl
+                    mtkepe(i,j)=-dpe
+                    mtkeke(i,j)=dke
+                    tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
+     .                  +mtkepe(i,j)+mtkeke(i,j)
                     if (nitr.eq.1) then
                       if (tkew.gt.0.) then
                         exit
@@ -1116,7 +1149,7 @@ c$OMP END PARALLEL DO
 c
 c --- store 'old' interface pressures in -pu,pv-
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
         do k=1,kk
           kn=k+nn
@@ -1138,7 +1171,7 @@ c --- store 'new' layer thicknesses in -dpu,dpv-
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=-2,jj+2
         do k=1,kk
           kn=k+nn
@@ -1151,7 +1184,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,q)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=-1,jj+2
         do k=1,kk
           kn=k+nn
@@ -1175,7 +1208,7 @@ c$OMP PARALLEL DO PRIVATE(kn,q)
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(kn,uo,po,pn,ko,un,udpn)
+c$OMP PARALLEL DO PRIVATE(l,i,k,kn,uo,po,pn,ko,un,udpn)
       do j=1,jj
 c
         do l=1,isu(j)

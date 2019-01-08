@@ -34,11 +34,10 @@ c --- ------------------------------------------------------------------
 c --- Diagnose eddy-induced transport components of heat and salt.
 c --- ------------------------------------------------------------------
 c
-      do k=1,kk
-        km=k+mm
-c
-c$OMP PARALLEL DO
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
+      do j=1,jj
+        do k=1,kk
+          km=k+mm
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             utfltd(i,j,km)=.5*umfltd(i,j,km)
@@ -56,9 +55,8 @@ c$OMP PARALLEL DO
           enddo
           enddo
         enddo
-c$OMP END PARALLEL DO
-c
       enddo
+c$OMP END PARALLEL DO
 c
       if (csdiag) then
         if (mnproc.eq.1) then

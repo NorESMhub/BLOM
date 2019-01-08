@@ -29,7 +29,7 @@
 
      REAL, PARAMETER :: safediv = 1.0e-25     ! added to the denominator of isotopic ratios (avoid div. by zero)
 ! advected tracers
-      INTEGER, PARAMETER :: i_base_adv=19,                              &
+      INTEGER, PARAMETER :: i_base=22,                                  &
      &                      isco212  =1,                                &
      &                      ialkali  =2,                                &
      &                      iphosph  =3,                                &
@@ -40,123 +40,98 @@
      &                      idoc     =8,                                &
      &                      iphy     =9,                                &
      &                      izoo     =10,                               &
-     &                      ian2o    =11,                               &
-     &                      idms     =12,                               &
-     &                      iiron    =13,                               &
-     &                      ifdust   =14,                               &
-     &                      iprefo2  =15,                               &
-     &                      iprefpo4 =16,                               &
-     &                      iprefalk =17,                               &
-     &                      iprefdic =18,                               &
-     &                      idicsat  =19  
+     &                      idet     =11,                               &
+     &                      icalc    =12,                               &
+     &                      iopal    =13,                               &
+     &                      ian2o    =14,                               &
+     &                      idms     =15,                               &
+     &                      iiron    =16,                               &
+     &                      ifdust   =17,                               &
+     &                      iprefo2  =18,                               &
+     &                      iprefpo4 =19,                               &
+     &                      iprefalk =20,                               &
+     &                      iprefdic =21,                               &
+     &                      idicsat  =22  
 #ifdef cisonew
-      INTEGER, PARAMETER ::                                             &
-     &                      isco213  =i_base_adv+1,                     &
-     &                      isco214  =i_base_adv+2,                     &
-     &                      idoc13   =i_base_adv+3,                     &
-     &                      idoc14   =i_base_adv+4,                     &
-     &                      iphy13   =i_base_adv+5,                     &
-     &                      iphy14   =i_base_adv+6,                     &
-     &                      izoo13   =i_base_adv+7,                     &
-     &                      izoo14   =i_base_adv+8,                     &
-     &                      i_iso_adv=8                    
+      INTEGER, PARAMETER :: i_iso=12,                                   &
+     &                      isco213  = i_base+1,                        &
+     &                      isco214  = i_base+2,                        &
+     &                      idoc13   = i_base+3,                        &
+     &                      idoc14   = i_base+4,                        &
+     &                      iphy13   = i_base+5,                        &
+     &                      iphy14   = i_base+6,                        &
+     &                      izoo13   = i_base+7,                        &
+     &                      izoo14   = i_base+8,                        &
+     &                      idet13   = i_base+9,                        &
+     &                      idet14   = i_base+10,                       &
+     &                      icalc13  = i_base+11,                       &
+     &                      icalc14  = i_base+12                                        
 #else 
-      INTEGER, PARAMETER ::                                             &
-     &                      i_iso_adv=0
+      INTEGER, PARAMETER :: i_iso=0
 #endif
-
-      INTEGER, PARAMETER ::                                             &
 #ifdef CFC  
-     &                      i_cfc_adv= 3,                               &
-     &                      icfc11   = i_base_adv+i_iso_adv+1,          &
-     &                      icfc12   = i_base_adv+i_iso_adv+2,          &
-     &                      isf6     = i_base_adv+i_iso_adv+3           
+      INTEGER, PARAMETER :: i_cfc=3,                                    &
+     &                      icfc11   = i_base+i_iso+1,                  &
+     &                      icfc12   = i_base+i_iso+2,                  &
+     &                      isf6     = i_base+i_iso+3           
 #else 
-     &                      i_cfc_adv= 0
+      INTEGER, PARAMETER :: i_cfc=0
 #endif
-      INTEGER, PARAMETER ::                                             &
 #ifdef AGG
-     &                      i_agg_adv= 2,                               &
-     &                      inos     = i_base_adv+i_iso_adv+i_cfc_adv+1,&
-     &                      iadust   = i_base_adv+i_iso_adv+i_cfc_adv+2
+      INTEGER, PARAMETER :: i_agg=2,                                    &
+     &                      inos     = i_base+i_iso+i_cfc+1,            &
+     &                      iadust   = i_base+i_iso+i_cfc+2
 #else 
-                            i_agg_adv= 0
+      INTEGER, PARAMETER :: i_agg=0
 #endif
-      INTEGER, PARAMETER ::                                             &
 #ifdef natDIC
-     &       i_nat_dic   = 2,                                           &
-     &       inatsco212  = i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+1,  &
-     &       inatalkali  = i_base_adv+i_iso_adv+i_cfc_adv+i_agg_adv+2  
+      INTEGER, PARAMETER :: i_nat_dic=3,                                &
+     &                      inatsco212 = i_base+i_iso+i_cfc+i_agg+1,    &
+     &                      inatalkali = i_base+i_iso+i_cfc+i_agg+2,    &
+     &                      inatcalc   = i_base+i_iso+i_cfc+i_agg+3
 #else 
-             i_nat_dic  = 0
+      INTEGER, PARAMETER :: i_nat_dic=0
 #endif
 
 ! total number of advected tracers
-      INTEGER, PARAMETER :: ntraad=i_base_adv+i_iso_adv+i_cfc_adv+      &
-     &                             i_agg_adv+i_nat_dic
+      INTEGER, PARAMETER :: nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic
 
-! non-advected (fast sinking) tracers
-      INTEGER, PARAMETER ::                                             &
-     &                      idet     =ntraad+1,                         &
-     &                      icalc    =ntraad+2,                         &
-     &                      iopal    =ntraad+3,                         &
-#ifdef natDIC
-     &                      inatcalc =ntraad+4,                         &
-     &                      i_base   =4 
-#else
-     &                      i_base   =3 
-#endif
-                            
-      INTEGER, PARAMETER ::                                             &
-#ifdef cisonew
-     &                      idet13   =ntraad+i_base+1,                  &
-     &                      icalc13  =ntraad+i_base+2,                  &      
-     &                      idet14   =ntraad+i_base+3,                  &
-     &                      icalc14  =ntraad+i_base+4,                  &
-     &                      i_iso    =4  
-#else
-     &                      i_iso    =0
-
-#endif
-
-     INTEGER, PARAMETER :: nocetra = ntraad+i_base+i_iso
 
 ! ATMOSPHERE
-      INTEGER, PARAMETER :: iatmco2=1,                                  &
+      INTEGER, PARAMETER :: i_base_atm=5,                               &
+     &                      iatmco2=1,                                  &
      &                      iatmo2 =2,                                  &
      &                      iatmn2 =3,                                  &
      &                      iatmn2o=4,                                  &
-     &                      iatmdms=5,                                  &
-     &                      i_base_atm=5
+     &                      iatmdms=5
 
-      INTEGER, PARAMETER ::                                             &
 #ifdef cisonew
+      INTEGER, PARAMETER :: i_iso_atm = 2,                              &
      &                      iatmc13 = i_base_atm+1,                     &
-     &                      iatmc14 = i_base_atm+2,                     &
-     &                      i_iso_atm = 2
+     &                      iatmc14 = i_base_atm+2
 #else
-     &                      i_iso_atm = 0
+      INTEGER, PARAMETER :: i_iso_atm = 0
 #endif
 
-      INTEGER, PARAMETER ::                                             &
 #ifdef CFC
+      INTEGER, PARAMETER :: i_cfc_atm = 3,                              &
      &                      iatmf11 = i_base_atm+i_iso_atm+1,           &
      &                      iatmf12 = i_base_atm+i_iso_atm+2,           &
-     &                      iatmsf6 = i_base_atm+i_iso_atm+3,           &
-     &                      i_cfc_atm = 3
+     &                      iatmsf6 = i_base_atm+i_iso_atm+3                      
 #else
-     &                      i_cfc_atm = 0
+      INTEGER, PARAMETER :: i_cfc_atm = 0
 #endif
 
-      INTEGER, PARAMETER ::                                             &
 #ifdef natDIC
-     &                      iatmnco2 = i_base_atm+i_iso_atm+i_cfc_atm+1,&
-     &                      i_ndic_atm = 3
+      INTEGER, PARAMETER :: i_ndic_atm = 1,                             &
+     &                      iatmnco2 = i_base_atm+i_iso_atm+i_cfc_atm+1
 #else
-     &                      i_ndic_atm = 0
+      INTEGER, PARAMETER :: i_ndic_atm = 0
 #endif
 
+! total number of atmosphere tracers
       INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm
+
 
 ! sediment
 #ifdef cisonew
@@ -167,7 +142,7 @@
      &                      issso13=5,                                  &
      &                      issso14=6,                                  &
      &                      isssc13=7,                                  &
-     &                      isssc14=8,                                   &
+     &                      isssc14=8,                                  &
      &                      nsedtra=8
      
 ! pore water tracers, index should be the same as for ocetra
@@ -188,7 +163,7 @@
      &                      nsedtra=4
 
 ! pore water tracers, index should be the same as for ocetra
-     INTEGER, PARAMETER :: ipowaic=1,npowtra=7,                        &
+      INTEGER, PARAMETER :: ipowaic=1,npowtra=7,                        &
      &                      ipowaal=2,                                  &
      &                      ipowaph=3,                                  &
      &                      ipowaox=4,                                  &

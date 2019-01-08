@@ -17,15 +17,17 @@ c
       if     (expcnf.eq.'cesm') then
 c
 c --- - Set temmin to a constant freezing temperature for all layers
-        do k=2,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=2,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              temmin(i,j,k)=-1.8
+              temmin(i,j,k)=-3.
             enddo
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
 c
@@ -34,8 +36,9 @@ c --- - density. This can be achieved by using potential density given
 c --- - in the function sig and the salinity dependent freezing
 c --- - temperature given in the function swtfrz.
 c
-        do k=2,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i,a,b,c,salfrz)
+        do j=1,jj
+          do k=2,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               a=((ap14-ap24*sigmar(i,j,k))*atf
@@ -49,12 +52,14 @@ c
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       elseif (expcnf.eq.'isomip1'.or.expcnf.eq.'isomip2') then
 c
 c --- - Set temmin to a low value.
-        do k=2,kk
-          do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=2,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               temmin(i,j,k)=-10.
@@ -62,6 +67,7 @@ c --- - Set temmin to a low value.
             enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
       else
         if (mnproc.eq.1) then

@@ -17,7 +17,7 @@ c
 c
       call xctilr(difint, 1,kk, 2,2, halo_ps)
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -28,7 +28,7 @@ c$OMP PARALLEL DO
         enddo
       enddo
 c$OMP END PARALLEL DO
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
@@ -44,7 +44,7 @@ c
         km=k+mm
         kn=k+nn
 c
-c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
+c$OMP PARALLEL DO PRIVATE(l,i,flxhi,flxlo,q)
         do j=-1,jj+2
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -63,7 +63,7 @@ c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(flxhi,flxlo,q)
+c$OMP PARALLEL DO PRIVATE(l,i,flxhi,flxlo,q)
         do j=0,jj+2
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))

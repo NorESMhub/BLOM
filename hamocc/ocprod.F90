@@ -321,7 +321,7 @@
            bifr13=1.
          else
            phygrowth   = ((ocetra(i,j,k,iphy)+phosy)/ocetra(i,j,k,iphy))/dtb ! Growth rate phytoplankton [1/d]
-      	   growth_co2  = phygrowth/(co2star(i,j,k)*1.e6)                     ! CO2* in [mol/kg]
+      	   growth_co2  = phygrowth/(co2star(i,j,k)*1.e6+safediv)             ! CO2* in [mol/kg]
       	   bifr13_perm = (6.03 + 5.5*growth_co2)/(0.225 + growth_co2)        ! Permil (~20)
       	   bifr13_perm = max(5.,min(26.,bifr13_perm))                        ! Limit the range to [5,26]
       	   bifr13      = (1000. - bifr13_perm) / 1000.                       ! Fractionation factor 13c (~0.98)
@@ -510,8 +510,8 @@
 #endif /*AGG*/	    
             phythresh=MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
             zoothresh=MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))             
-            sterph=0.5*dphymor*phythresh                                ! phytoplankton to detritus
-            sterzo=dzoomor*zoothresh*zoothresh                          ! quadratic mortality
+            sterph=0.5*dyphy*phythresh                                ! phytoplankton to detritus
+            sterzo=spemor*zoothresh*zoothresh                         ! quadratic mortality
 #ifdef cisonew
             rphy13 = ocetra(i,j,k,iphy13)/(ocetra(i,j,k,iphy)+safediv)
             rphy14 = ocetra(i,j,k,iphy14)/(ocetra(i,j,k,iphy)+safediv)
@@ -536,10 +536,10 @@
        	    ocetra(i,j,k,izoo14)=ocetra(i,j,k,izoo14)-sterzo14
 #endif
 
-            IF(ocetra(i,j,k,ioxygen).gt.5.e-7) THEN
+            IF(ocetra(i,j,k,ioxygen).gt.5.e-8) THEN
                pocrem=MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               docrem=MIN(dremdoc*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
-               phyrem=MIN(0.5*dphymor*phythresh,     0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+               docrem=MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+               phyrem=MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
 #ifdef cisonew
                pocrem13=pocrem*rdet13
                pocrem14=pocrem*rdet14

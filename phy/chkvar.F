@@ -17,7 +17,7 @@ c
       logical isnan,isinf
       external isnan,isinf
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
         do k=1,kk
           kn=k+nn

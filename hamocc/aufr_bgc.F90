@@ -116,7 +116,7 @@
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      character :: rstfnm*200
+      character :: rstfnm*256
       logical   :: lread_cfc, lread_nat, lread_iso
 #ifdef cisonew
       REAL      :: beta,rco213,rco214
@@ -265,13 +265,16 @@
 ! Find out whether to restart CFCs
 #ifdef CFC
       lread_cfc=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_cfc=.false.
+      ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
-      ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
-      if(ncstat.eq.nf_enotvar) lread_cfc=.false.
-#else
-      ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
-      if(ncstat.eq.nf90_enotvar) lread_cfc=.false.
+        ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_cfc=.false.
 #endif
+      ENDIF
       IF(mnproc==1 .and. .not. lread_cfc) THEN
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
@@ -282,13 +285,16 @@
 ! Find out whether to restart natural tracers
 #ifdef natDIC
       lread_nat=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'natsco212',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_nat=.false.
+      ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
-      ncstat=nfmpi_inq_varid(ncid,'natsco212',ncvarid)
-      if(ncstat.eq.nf_enotvar) lread_nat=.false.
-#else
-      ncstat=nf90_inq_varid(ncid,'natsco212',ncvarid)
-      if(ncstat.eq.nf90_enotvar) lread_nat=.false.
+        ncstat=nfmpi_inq_varid(ncid,'natsco212',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_nat=.false.
 #endif
+      ENDIF
       IF(mnproc==1 .and. .not. lread_nat) THEN
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: natural tracers not in restart file. '
@@ -300,13 +306,16 @@
 ! Find out whether to restart carbon isotopes
 #ifdef cisonew
       lread_iso=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'sco213',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_iso=.false.
+      ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
-      ncstat=nfmpi_inq_varid(ncid,'sco213',ncvarid)
-      if(ncstat.eq.nf_enotvar) lread_iso=.false.
-#else
-      ncstat=nf90_inq_varid(ncid,'sco213',ncvarid)
-      if(ncstat.eq.nf90_enotvar) lread_iso=.false.
+        ncstat=nfmpi_inq_varid(ncid,'sco213',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_iso=.false.
 #endif
+      ENDIF
       IF(mnproc==1 .and. .not. lread_iso) THEN
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: carbon isotopes not in restart file. '

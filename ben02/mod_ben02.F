@@ -318,7 +318,7 @@ c --- Close netcdf file.
                stop '(rdatm_dim)'
       endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,atm_jdm
         do i=1,atm_idm
           atm_lon(i,j)=r4lon(i)
@@ -382,7 +382,7 @@ c --- Close netcdf file.
       endif
 c
 c --- Convert field to real topography field
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,atm_jdm
         do i=1,atm_idm
           atm_topo(i,j)=r4field(i,atm_jdm+1-j)
@@ -546,7 +546,7 @@ c --- - read offset, scale factor, and value of no data
         endif
 c
 c --- - scale and add offset to field
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,atm_jdm
           do i=1,atm_idm
             if (i2field(i,j).eq.i2_mval) then
@@ -790,18 +790,22 @@ c
       endif
 c
 c --- Get mask for the full domain
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           util1(i,j)=ip(i,j)
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcaget(tmp2da,util1,1)
       if (mnproc.eq.1) then
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
             itp(i,j)=tmp2da(i,j)
           enddo
         enddo
+c$OMP END PARALLEL DO
       endif
 c
       return
@@ -847,7 +851,7 @@ c
       integer it,jt,m,n,is,js
 c
 c --- interpolate
-c$OMP PARALLEL DO PRIVATE(w_sum,d_sum,n,is,js,w)
+c$OMP PARALLEL DO PRIVATE(it,w_sum,d_sum,n,is,js,w)
       do jt=1,jtdm
         do it=1,itdm
           if (itp(it,jt).eq.0) then
@@ -912,7 +916,7 @@ c
           mbdy=mbdy-1
         endif
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-mbdy+1,jj+mbdy
           do i=1-mbdy+1,ii+mbdy
             if (msk(i-1,j).eq.1.and.msk(i,j).eq.1) then
@@ -929,7 +933,7 @@ c$OMP PARALLEL DO
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-mbdy+1,jj+mbdy-1
           do i=1-mbdy+1,ii+mbdy-1
             if (msk(i,j).eq.1)
@@ -971,7 +975,7 @@ c --- ------------------------------------------------------------------
 c --- rotate vector components
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(mlat,dlat,dlon,psi)
+c$OMP PARALLEL DO PRIVATE(i,mlat,dlat,dlon,psi)
       do j=1,jj
         do i=1,ii
 c
@@ -1017,7 +1021,7 @@ c
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           u(i,j)=utmp(i,j)
@@ -1074,8 +1078,9 @@ c
       sundv=1.00011+.001280*sin(dangle)   +.034221*cos(dangle)
      $             +.000077*sin(2.*dangle)+.000719*cos(2.*dangle)
 c
-c$OMP PARALLEL DO PRIVATE(sin2,cos2,stot,sads,hangle,cosz,srad,sdir,
-c$OMP+ sdif,altdeg,cfac,ssurf,albdir)
+c$OMP PARALLEL DO PRIVATE(
+c$OMP+ l,i,sin2,cos2,stot,sads,npart,hangle,cosz,srad,sdir,sdif,altdeg,
+c$OMP+ cfac,ssurf,albdir)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1217,7 +1222,7 @@ c
      .                 ricec(1-nbdy,1-nbdy,l5gi))
 c
 c --- create smoothing mask - smooth where ice conc. is above 0.5
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
           if (ricec(i,j,l5gi).gt..5.and.ip(i,j).eq.1) then
@@ -1247,7 +1252,7 @@ c
      .            atm_ice_nsmt,atm_ice_swgt)
 c
 c --- Adjust short-wave radiation field
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1292,7 +1297,7 @@ c
      .            atm_ice_nsmt,atm_ice_swgt)
 c
 c --- Convert range of cloudiness from 0-100 to 0-1
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1364,7 +1369,7 @@ c
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_skt)
 c
 c --- - Compute sea level temperature
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,atm_jdm
           do i=1,atm_idm
             atm_skt(i,j)=atm_skt(i,j)+.0065*atm_topo(i,j)
@@ -1391,7 +1396,7 @@ c
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
 c
 c --- - Compute sea level pressure
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,atm_jdm
           do i=1,atm_idm
             atm_field(i,j)=atm_field(i,j)
@@ -1417,7 +1422,7 @@ c
         fieldname='uflx'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,atm_jdm
           do i=1,atm_idm
             atm_tau(i,j)=atm_field(i,j)*atm_field(i,j)
@@ -1434,7 +1439,7 @@ c$OMP END PARALLEL DO
         fieldname='vflx'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,atm_jdm
           do i=1,atm_idm
             atm_tau(i,j)=sqrt(atm_tau(i,j)
@@ -1454,7 +1459,7 @@ c$OMP END PARALLEL DO
      .                 taud(1-nbdy,1-nbdy,l5gi))
 c
 c --- Change sign of momentum flux
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1481,7 +1486,7 @@ c
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
 c
 c --- - Place runoff at ocean discharge points
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
             tmp2d(i,j)=0.
@@ -1506,7 +1511,7 @@ c
 c --- Multiply runoff by 2 for fields prior to May 1957 
       if ( nyear1.lt.1957.or.
      .    (nyear1.eq.1957.and.nday_of_year1.le.120)) then
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1518,7 +1523,7 @@ c$OMP END PARALLEL DO
       endif
 c
 c --- Adjust runoff field
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1533,7 +1538,7 @@ c --- Smooth the runoff field
      .            atm_rnf_nsmt,atm_rnf_swgt)
 c
 c --- Convert unit of runoff from kg/m^2/day to kg/m^2/s
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1574,6 +1579,8 @@ c --- Compute air-sea fluxes. Same routine is used both for
 c --- climatological and synoptic forcing
 c --- ------------------------------------------------------------------
 c
+      use mod_swtfrz, only: swtfrz
+c
       implicit none
 c
 #include "common_blocks.h"
@@ -1594,17 +1601,17 @@ c
      .     tml,sml,albedo,fice,tice_f,tml_d,tsi_d,qsrf_d,le,ua,sa,ta,qa,
      .     tsrf_m,qsrf_m,dqsrf_m,dangle
 c
-      real intp1d,swtfrz
-      external intp1d,swtfrz
+      real intp1d
+      external intp1d
 c
       rntda=1./real(ntda)
       ntda=0
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+  tau_d,prcp,dswrf,nlwrs,shtfl,lhtfl,slpr,tsrf_d,rice,tml,sml,
-c$OMP+  albedo,fice,tice_f,tml_d,tsi_d,qsrf_d,le,ua,sa,ta,qa,niter,
-c$OMP+  tsrf_m,qsrf_m,dqsrf_m)
-c$OMP+  SHARED(xgi,zu,zt,zq)
+c$OMP+ l,i,tau_d,prcp,dswrf,nlwrs,shtfl,lhtfl,slpr,tsrf_d,rice,tml,sml,
+c$OMP+ albedo,fice,tice_f,tml_d,tsi_d,qsrf_d,le,ua,sa,ta,qa,niter,
+c$OMP+ tsrf_m,qsrf_m,dqsrf_m)
+c$OMP+SHARED(xgi,zu,zt,zq)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1822,7 +1829,7 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(taufac,  1,1, 1,1, halo_ps)
 c
-c$OMP PARALLEL DO SHARED(xgi)
+c$OMP PARALLEL DO PRIVATE(l,i) SHARED(xgi)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -1848,7 +1855,7 @@ c --- Compute open water albedo
 c --- ------------------------------------------------------------------
 c 
 c --- Time interpolation of cloud cover
-c$OMP PARALLEL DO SHARED(x)
+c$OMP PARALLEL DO PRIVATE(l,i) SHARED(xgi)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1915,7 +1922,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read(nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -1973,7 +1980,7 @@ c
 c --- Compute smooting weight atm_ice_swgt. For stability
 c --- atm_ice_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
       atm_ice_swgt=huge
-c$OMP PARALLEL DO PRIVATE(dx2,dy2) REDUCTION(min:atm_ice_swgt)
+c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2) REDUCTION(min:atm_ice_swgt)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2012,7 +2019,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)+.0065*atm_topo(i,j)
@@ -2026,6 +2033,7 @@ c$OMP END PARALLEL DO
      .                   sstclm(1-nbdy,1-nbdy,k))
 c
 c --- - create smoothing mask - smooth where ice conc. is above 0.5
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             if (ricclm(i,j,k).gt..5.and.ip(i,j).eq.1) then
@@ -2035,6 +2043,7 @@ c --- - create smoothing mask - smooth where ice conc. is above 0.5
             endif
           enddo
         enddo
+c$OMP END PARALLEL DO
 c
         call smtfld(sstclm(1-nbdy,1-nbdy,k),smtmsk,
      .              atm_ice_nsmt,atm_ice_swgt)
@@ -2121,7 +2130,8 @@ c --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
 c --- stability atm_ice_swgt,atm_rnf_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
       atm_ice_swgt=huge
       atm_rnf_swgt=huge
-c$OMP PARALLEL DO PRIVATE(dx2,dy2) REDUCTION(min:atm_ice_swgt)
+c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2)
+c$OMP+REDUCTION(min:atm_ice_swgt,atm_rnf_swgt)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2162,7 +2172,7 @@ c --- extent of the smoothing independent of the grid resolution
 c
 c --- create smoothing mask - smooth where ice conc. is above 0.5
       do k=1,12
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             if (ricclm(i,j,k).gt..5.and.ip(i,j).eq.1) then
@@ -2189,7 +2199,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2225,7 +2235,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2260,7 +2270,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2276,7 +2286,7 @@ c$OMP END PARALLEL DO
      .              atm_ice_nsmt,atm_ice_swgt)
 c
 c --- - convert range of cloudiness from 0-100 to 0-1
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2306,7 +2316,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2341,7 +2351,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2376,7 +2386,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2411,7 +2421,7 @@ c
 c
         do k=1,12
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_sktclm(i,j,k)=atm_field_r4(i,j)+.0065*atm_topo(i,j)
@@ -2436,7 +2446,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=
@@ -2471,7 +2481,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2505,7 +2515,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2533,7 +2543,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2554,7 +2564,7 @@ c
       do k=1,12
 c
 c --- - change sign of momentum flux
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2621,7 +2631,7 @@ c
       do k=1,12
         if (mnproc.eq.1) then
           read (nfu) atm_field_r4
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,atm_jdm
             do i=1,atm_idm
               atm_field(i,j)=atm_field_r4(i,j)
@@ -2630,7 +2640,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
 c
 c --- --- place runoff at ocean discharge points
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
           do j=1,jtdm
             do i=1,itdm
               tmp2d(i,j)=0.
@@ -2658,7 +2668,7 @@ c --- - smooth the runoff field
      .              atm_rnf_nsmt,atm_rnf_swgt)
 c
 c --- - convert unit of runoff from kg/m^2/day to kg/m^2/s
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2697,6 +2707,7 @@ c
       fwf_fac=1.e-3 ! conversion factor kg/m^2/s -> m/s
 c
 c --- sum up freshwater fluxes
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2706,9 +2717,11 @@ c --- sum up freshwater fluxes
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
-      do k=1,12
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i,garea,le)
+      do j=1,jj
+        do k=1,12
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             garea=scp2(i,j)*1.e-4 ! [m^2]
@@ -2722,6 +2735,7 @@ c --- ----- freshwater fluxes [m/s]
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
       call xcsum(prc_sum,util1,ip)
       call xcsum(eva_sum,util2,ip)
       call xcsum(rnf_sum,util3,ip)
@@ -2732,6 +2746,7 @@ c
       rnf_sum=rnf_sum*fac
 c
 c --- sum up heat fluxes
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2742,12 +2757,14 @@ c --- sum up heat fluxes
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 
       do k=1,12
 c
 c --- - compute albedo
         dangle=8.*atan(1.)*real(30*k-15)/360.
         call albw_eval(dangle,plat,clouds(1-nbdy,1-nbdy,k),albw_d,albw)
+c$OMP PARALLEL DO PRIVATE(l,i,area,albedo)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2762,6 +2779,7 @@ c --- ----- heat fluxes
           enddo
           enddo
         enddo
+c$OMP END PARALLEL DO
       enddo
 c
       call xcsum(swa_sum,util1,ip)
@@ -2796,8 +2814,9 @@ c --- Adjust runoff and short-wave radiation to balance freshwater and
 c --- heat fluxes, respectively.
       crnf=-(prc_sum+eva_sum)/rnf_sum
       cswa=-(lwa_ave+lht_ave+sht_ave)/swa_ave
-      do k=1,12
-        do j=1-nbdy,jj+nbdy
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+      do j=1-nbdy,jj+nbdy
+        do k=1,12
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             runoff(i,j,k)=runoff(i,j,k)*crnf
@@ -2806,6 +2825,7 @@ c --- heat fluxes, respectively.
           enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
       if (mnproc.eq.1) then
       write (lp,*) 'Runoff has been adjusted by a factor',crnf
       write (lp,*) 'Short-wave radiation has been adjusted by a factor',
@@ -2834,6 +2854,7 @@ c --- air density
      .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 c
 c --- Initialize transfer coefficients, gustiness squared, and air density
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2849,6 +2870,7 @@ c --- Initialize transfer coefficients, gustiness squared, and air density
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- Number of iteration in the computation of transfer coefficients.
       tciter=5
@@ -2935,7 +2957,8 @@ c --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
 c --- stability atm_ice_swgt,atm_rnf_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
       atm_ice_swgt=huge
       atm_rnf_swgt=huge
-c$OMP PARALLEL DO PRIVATE(dx2,dy2) REDUCTION(min:atm_ice_swgt)
+c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2)
+c$OMP+REDUCTION(min:atm_ice_swgt,atm_rnf_swgt)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3038,6 +3061,7 @@ c --- air density
      .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
 c
 c --- Initialize transfer coefficients, gustiness squared, and air density
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -3053,6 +3077,7 @@ c --- Initialize transfer coefficients, gustiness squared, and air density
         enddo
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- Number of iteration in the computation of transfer coefficients.
       tciter=1

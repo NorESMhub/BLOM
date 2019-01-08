@@ -63,6 +63,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
 #ifdef natDIC
       REAL                                   :: atm_co2_nat
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: natpco2d
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
@@ -174,6 +175,16 @@
         pi_ph(:,:,:) = 0.0
 #endif
 #ifdef natDIC
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable natpco2d ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+
+        ALLOCATE (natpco2d(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory natpco2d'
+        natpco2d(:,:) = 0.0
+
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie

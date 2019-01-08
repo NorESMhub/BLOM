@@ -80,9 +80,8 @@
       use mod_xc, only: mnproc,lp,nfu
       use mo_bgcmean
       use mo_ndep, only: ini_ndep,ndepfname
-#ifdef RIV_GNEWS
-      use mo_riverinpt
-#endif
+      use mo_riverinpt, only: ini_riverinpt
+
  
       implicit none
       INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
@@ -107,7 +106,7 @@
       REAL    :: pdt
       character(len=*) :: rstfnm_ocn,path
 
-      namelist /bgcnml/ atm_co2,ndepfname
+      namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,ndepfname
 
 
 !
@@ -191,9 +190,7 @@
 
       CALL ini_ndep(kpie,kpje,path)
 
-#ifdef RIV_GNEWS
       CALL INI_RIVERINPT(path)
-#endif
 #ifdef DMSPH
       CALL GET_PI_PH(kpie,kpje,kpke,omask,path)
 #endif

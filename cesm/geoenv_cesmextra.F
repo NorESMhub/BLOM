@@ -86,11 +86,13 @@ c
         endif
       endif
       call xcaput(tmpg,util1,1)
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
           cplmsk(i,j)=nint(util1(i,j))
         enddo
       enddo
+c$OMP END PARALLEL DO
 c
 c --- close grid information file
 c

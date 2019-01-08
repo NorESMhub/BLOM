@@ -20,7 +20,7 @@ c
       integer i,ndayr,nmonthr,nyearr,nt,nat
       real time0r,timer
       logical fexist
-      character(len=200) :: rstfnm,trcnm
+      character(len=256) :: rstfnm,trcnm
 c
 c --- ------------------------------------------------------------------
 c --- If no ocean tracers are defined, return

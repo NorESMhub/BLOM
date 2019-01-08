@@ -109,7 +109,7 @@
       atm_n2  = 802000.
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-#endif   
+#endif
 
 
 #ifdef cisonew
@@ -176,10 +176,10 @@
 
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.004*dtb      !1/d -remineralization rate (of DOM)
-      dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
-      grazra=1.0*dtb        !1/d -grazing rate
+      dyphy=0.004*dtb       !1/d -mortality rate of phytoplankton 
+      grazra=1.2*dtb        !1/d -grazing rate
       spemor=3.*1.e6*dtb    !1/d -mortality rate
-      gammap=0.03*dtb       !1/d -exudation rate
+      gammap=0.04*dtb       !1/d -exudation rate
       gammaz=0.06*dtb       !1/d -excretion rate
       ecan=0.95             ! fraction of mortality as PO_4
       pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
@@ -187,8 +187,8 @@
       zinges = 0.5          !dimensionless fraction -assimilation efficiency
       epsher = 0.9          !dimensionless fraction -fraction of grazing egested
 #elif defined(WLIN)
-      zinges = 0.55         !dimensionless fraction -assimilation efficiency
-      epsher = 0.85         !dimensionless fraction -fraction of grazing egest      
+      zinges = 0.7          !dimensionless fraction -assimilation efficiency
+      epsher = 0.9          !dimensionless fraction -fraction of grazing egested
 #else
       zinges = 0.6          !dimensionless fraction -assimilation efficiency
       epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
@@ -205,7 +205,7 @@
 
 ! half sat. constants, note that the units are kmol/m3 !
       bkphy  = 4.e-8    !i.e. 0.04 mmol P/m3
-      bkzoo  = 4.e-8    !i.e. 0.04 mmol P/m3
+      bkzoo  = 8.e-8    !i.e. 0.08 mmol P/m3
       bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
 
 !sinking speed
@@ -218,14 +218,9 @@
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
 #endif
 
-      
 ! deep see remineralisation constants
-
       drempoc  = 0.025*dtb    !1/d
-      dremdoc  = 0.004*dtb    !1/d
-      dphymor  = 0.008 *dtb   !1/d
-      dzoomor  = 3.*1.e6*dtb  !1/d -mortality rate
-      dremopal = 0.005*dtb    !1/d
+      dremopal = 0.003*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       
@@ -271,8 +266,8 @@
       ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
 #elif defined(WLIN)
-      rcalc = 40.  ! calcium carbonate to organic phosphorous production ratio
-      ropal = 30.  ! opal to organic phosphorous production ratio      
+      rcalc = 48.  ! calcium carbonate to organic phosphorous production ratio
+      ropal = 35.  ! opal to organic phosphorous production ratio      
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
@@ -294,7 +289,7 @@
 
 !ik weight percent iron in dust deposition times Fe solubility
 ! the latter three values come from Johnson et al., 1997
-      fetune=0.5                  ! factor introduced to tune deposistion/solubility
+      fetune=0.6                  ! factor introduced to tune deposistion/solubility
       perc_diron = fetune * 0.035 * 0.01 / 55.85
       riron= 5.*rcar*1.e-6        ! fe to P ratio in organic matter
       fesoly=0.5*1.e-9            ! max. diss. iron concentration in deep water 
@@ -370,13 +365,7 @@
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              drempoc      = ',drempoc    
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dremdoc      = ',dremdoc   
-      WRITE(io_stdo_bgc,*)                                             &
      &'*                              dremopal     = ',dremopal   
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dphymor      = ',dphymor   
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dzoomor      = ',dzoomor   
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              bluefix      = ',bluefix   
       WRITE(io_stdo_bgc,*)                                             &

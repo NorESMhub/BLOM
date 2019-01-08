@@ -1,4 +1,4 @@
-      subroutine restart_icerd(nday1,rstfnm_ocn,path2,path2_len)
+      subroutine restart_icerd(time,rstfnm_ocn)
 c
 c --- ------------------------------------------------------------------
 c --- Read ice dynamics initial conditions from restart file
@@ -8,16 +8,16 @@ c
 c
       implicit none
 c
-      integer nday1,path2_len
-      character rstfnm_ocn*(*),path2*(*)
+      real time
+      character rstfnm_ocn*(*)
 c
 #include "param_icedyn.h"
 #include "common_icedyn.h"
 c
       integer i,rolen
-      character rstfnm*80
+      character rstfnm*256
       logical fexist
-      real time
+      real timer
 c
       if (mnproc.eq.1) then
 c
@@ -32,20 +32,19 @@ c
         enddo
         rstfnm=rstfnm_ocn(1:i-1)//'_restice_'//rstfnm_ocn(i+9:)
 c
-        inquire (file=path2(1:path2_len)//rstfnm,exist=fexist)
+        inquire (file=rstfnm,exist=fexist)
 c
         if (fexist) then
-          open (unit=nfu,file=path2(1:path2_len)//rstfnm,
-     .          form='unformatted')
+          open (unit=nfu,file=rstfnm,form='unformatted')
           write (*,'(a,a)') ' reading ice dynamics restart file ',
-     .                      trim(path2(1:path2_len)//rstfnm)
-          read (nfu) time
-          if (nint(time).ne.nday1) then
+     .                      trim(rstfnm)
+          read (nfu) timer
+          if (nint(timer).ne.nint(time)) then
             write (*,'(a,i6.6,a)')
-     .        ' Warning! Integration day ',nint(time),
+     .        ' Warning! Integration day ',nint(timer),
      .        ' in ice dynamics restart file differs from'
             write (*,'(a,i6.6,a)')
-     .        ' start day ',nday1,' in limits file'
+     .        ' integration day ',nint(time),' in ocean model'
           endif
           read (nfu) lold,lnew,u,v,uwat2l,vwat2l,gradhx2l,gradhy2l
           close (unit=nfu)

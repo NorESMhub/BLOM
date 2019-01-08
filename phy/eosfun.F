@@ -360,23 +360,6 @@ c
 c
 c --- ------------------------------------------------------------------
 c
-      real function swtfrz(p,s)
-c
-c --- freezing temperature as function of pressure and salinity
-c
-      implicit none
-c
-#include "common_eos.h"
-c
-      real p,s
-c
-      swtfrz=atf*s+btf+ctf*p
-c
-      return
-      end
-c
-c --- ------------------------------------------------------------------
-c
       subroutine delphi(p1,p2,th,s,dphi,alp1,alp2)
 c
 c --- integrate specific volume with respect to pressure to find the

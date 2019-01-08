@@ -23,7 +23,7 @@ c --- Initialize fields holding turbulent kinetic energy, generic length
 c --- scale, and other fields used in the turbulence closure.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1-nbdy,jj+nbdy
         do k=1,2*kdm
           do l=1,isp(j)

@@ -153,6 +153,7 @@
        omegaA (:,:,:)=0.
        omegaC (:,:,:)=0.
 #ifdef natDIC
+       natpco2d   (:,:)=0. 
        natco3   (:,:,:)=0.
        natomegaA(:,:,:)=0.
        natomegaC(:,:,:)=0.
@@ -172,7 +173,7 @@
 !$OMP+ ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega,natsupsat,natundsa,natdissol
 #endif
 #ifdef cisonew
-!$OMP+ ,atco213,atco214,rco213,rco214,pco213,pco214,evfr13,evfr14,frac_aqg,frac_dicg
+!$OMP+ ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg,frac_dicg
 !$OMP+ ,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14
 #endif
 !$OMP+ )
@@ -459,6 +460,9 @@
 
 ! Save pco2 w.r.t. dry air for output
        pco2d(i,j) = cu * 1.e6 / Khd
+#ifdef natDIC
+       natpco2d(i,j) = natcu * 1.e6 / Khd
+#endif
 
 ! Save product of piston velocity and solubility for output
        kwco2sol(i,j) = kwco2*Kh*1e-6

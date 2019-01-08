@@ -3,6 +3,7 @@ c
 c --- NERSC version of thermf. 
 c
       use mod_xc
+      use mod_swtfrz, only: swtfrz
       use mod_swabs, only: swbgal,swbgfc
       use mod_ben02, only: tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,
      .                     ntda
@@ -43,8 +44,8 @@ c
 #  endif
 #endif
 c
-      real swtfrz,intp1d
-      external swtfrz,intp1d
+      real intp1d
+      external intp1d
 c
 c --- Due to conservation, the ratio of ice and snow density must be
 c --- equal to the ratio of ice and snow heat of fusion
@@ -81,11 +82,14 @@ c
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,fice,
-c$OMP+ hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,
+c$OMP+ l,i,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
+c$OMP+ fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,
 c$OMP+ albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,
-c$OMP+ volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx)
-c$OMP+ SHARED(x,y)
+c$OMP+ volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx
+#ifdef TRC
+c$OMP+ ,nt
+#endif
+c$OMP+ ) SHARED(xmi,y)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -525,7 +529,7 @@ c --- Correction for the virtual salt flux [kg m-2 s-1]
 c
 c --- Apply the virtual salt flux correction and the compute the total
 c --- salt flux by combining the virtual and true salt flux
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -544,7 +548,7 @@ c --- ocean is zero
         call xcsum(totsrn,util4,ipwocn)
         if (abs(totsrp).gt.abs(totsrn)) then
           q=-totsrn/totsrp
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -557,7 +561,7 @@ c$OMP PARALLEL DO
 c$OMP END PARALLEL DO
         else
           q=-totsrp/totsrn
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -577,7 +581,7 @@ c
 #  ifdef TKE
         if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #  endif
-cc$OMP PARALLEL DO
+cc$OMP PARALLEL DO PRIVATE(l,i)
 c        do j=1,jj
 c          do l=1,isp(j)
 c          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -597,7 +601,7 @@ c        trflxc=(-tottrsf)/area
 c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
         trflxc=0.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
