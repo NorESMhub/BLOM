@@ -17,16 +17,16 @@
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
 !     - moved accumulation of all output fields to seperate subroutine,
 !       related code-restructuring
-!     - added reduction of alkalinity through N-fixation
+
 !
 !     Purpose
 !     -------
-!     Nitrogen-fixation by cyano bacteria, followed by remineralisation 
-!     and nitrification
+!     Nitrate reduction by cyano bacteria (2NO3 + O2 => N2O + O2).
 !
 !     Method:
 !     ------
 !
+!     *CALL*       *CYANO(kpie,kpje,kpke,pddpo)*
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
@@ -55,17 +55,16 @@
       REAL :: omask(kpie,kpje)
 
       INTEGER :: i,j,k
-      REAL :: oldocetra,dano3
+      REAL :: oldocetra
       REAL :: ttemp,nfixtfac
 
       intnfix(:,:)=0.0
       
 !
-! N-fixation by cyano bacteria (followed by remineralisation and nitrification), 
-! it is assumed here that this process is limited to the mixed layer
+!  N-fixation by cyano bacteria (this is not a surface flux!)
 !
       DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(oldocetra,dano3) 
+!$OMP PARALLEL DO PRIVATE(oldocetra) 
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN
@@ -80,17 +79,13 @@
             ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac) &
      &                      +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
 
-            dano3=ocetra(i,j,k,iano3)-oldocetra
-
-            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
+            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-                 &
+     &         (ocetra(i,j,k,iano3)-oldocetra)*(1./2.)
 
 ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
 ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
-            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
-
-! Nitrogen fixation followed by remineralisation and nitrification decreases
-! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
-            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
+            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-                 &
+     &         (ocetra(i,j,k,iano3)-oldocetra)*1.25
 
 
             intnfix(i,j) = intnfix(i,j) +                          &

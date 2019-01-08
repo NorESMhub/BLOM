@@ -176,10 +176,10 @@
 
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.004*dtb      !1/d -remineralization rate (of DOM)
-      dyphy=0.003*dtb       !1/d -mortality rate of phytoplankton (jt) org= 0.008
+      dyphy=0.008*dtb       !1/d -mortality rate of phytoplankton 
       grazra=1.0*dtb        !1/d -grazing rate
       spemor=3.*1.e6*dtb    !1/d -mortality rate
-      gammap=0.035*dtb       !1/d -exudation rate (jt) org=0.03
+      gammap=0.03*dtb       !1/d -exudation rate
       gammaz=0.06*dtb       !1/d -excretion rate
       ecan=0.95             ! fraction of mortality as PO_4
       pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
@@ -204,7 +204,7 @@
 #endif
 
 ! half sat. constants, note that the units are kmol/m3 !
-      bkphy  = 2.e-8    !i.e. 0.04 mmol P/m3 (jt) org= 4e-8
+      bkphy  = 4.e-8    !i.e. 0.04 mmol P/m3
       bkzoo  = 4.e-8    !i.e. 0.04 mmol P/m3
       bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
 
