@@ -97,7 +97,6 @@
       REAL :: dtr,dz
       REAL :: wpocd,wcald,wopald,dagg
 #ifdef sedbypass
-      INTEGER :: kbs
       REAL :: florca,flcaca,flsil
 #endif
 #ifdef cisonew
@@ -1337,12 +1336,11 @@
 
 #ifdef sedbypass
 ! If sediment bypass is activated, fluxes to the sediment are distributed 
-! over a bottom layer, which is at least 100m thick (unless water column
-! is shallower than this. Detritus is kept as detritus, while opal and CaCO3 
+! over the water column. Detritus is kept as detritus, while opal and CaCO3 
 ! are remineralised instantanously
 
 !$OMP PARALLEL DO PRIVATE(
-!$OMP+  kbs,dz,florca,flcaca,flsil
+!$OMP+  dz,florca,flcaca,flsil
 #ifdef cisonew
 !$OMP+ ,flor13,flor14,flca13,flca14
 #endif
@@ -1352,15 +1350,10 @@
         IF(omask(i,j).gt.0.5) THEN
 
         ! calculate depth of water column
-        kbs=1
         dz=0.0
-        DO k=kpke,1,-1
+        DO k=1,kpke
 
           if( pddpo(i,j,k).GT.dp_min ) dz=dz+pddpo(i,j,k)
-          if( dz .GT. 100. ) then
-            kbs=k
-            exit
-          endif
 
         ENDDO
 
@@ -1381,7 +1374,7 @@
         prca14(i,j)=0.
 #endif
 
-        DO k=kbs,kpke
+        DO k=1,kpke
 
           IF( pddpo(i,j,k).LE.dp_min ) CYCLE
 
@@ -1395,7 +1388,7 @@
           ocetra(i,j,k,isco213)=ocetra(i,j,k,isco213)+flca13
           ocetra(i,j,k,isco214)=ocetra(i,j,k,isco214)+flca14
 #endif
-        ENDDO ! k=kbs,kpke
+        ENDDO ! k=1,kpke
 
         ENDIF ! omask>0.5
       ENDDO

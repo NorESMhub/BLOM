@@ -20,8 +20,8 @@ c
 c**********************************************************************
 c
       use mod_xc
-      use mo_param1_bgc, only: ks,nsedtra,npowtra
-      use mo_carbch,     only: ocetra
+      use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
+      use mo_carbch,     only: ocetra,atm,atm2
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
 c
       implicit none
@@ -179,7 +179,7 @@ c$OMP PARALLEL DO PRIVATE(kn)
 c$OMP END PARALLEL DO
 c
 c --- ------------------------------------------------------------------
-c --- pass sediments fields (a two time-level copy off sediment fields
+c --- pass sediments fields (a two time-level copy of sediment fields
 c --- is kept outside HAMOCC)
 c --- ------------------------------------------------------------------
 c
@@ -198,6 +198,21 @@ c
         burial(i,j,:)   = burial2(i,j,n,:)
       enddo
       enddo
+      enddo
+      enddo
+c$OMP END PARALLEL DO
+#endif
+c
+c --- ------------------------------------------------------------------
+c --- pass atmosphere fields if required (a two time-level copy of
+c --- atmosphere fields is kept outside HAMOCC)
+c --- ------------------------------------------------------------------
+c
+#if defined(BOXATM) || defined(DIFFAT)
+c$OMP PARALLEL DO
+      do j=1,jj
+      do i=1,ii
+        atm(i,j,:) = atm2(i,j,n,:)
       enddo
       enddo
 c$OMP END PARALLEL DO

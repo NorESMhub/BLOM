@@ -47,6 +47,9 @@
 !     - removed satn2o which is not needed to restart the model
 !     - added sediment bypass preprocessor option
 !
+!     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
+!     - added reading of atmosphere field for BOXATM and DIFFAT
+!
 !     Purpose
 !     -------
 !     Read restart data to continue an interrupted integration.
@@ -117,9 +120,9 @@
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
       character :: rstfnm*256
-      logical   :: lread_cfc, lread_nat, lread_iso
+      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm
 #ifdef cisonew
-      REAL      :: beta,rco213,rco214
+      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
       INTEGER ncid,ncstat,ncvarid
 #ifdef PNETCDF
@@ -303,7 +306,7 @@
       ENDIF
 #endif
 
-! Find out whether to restart carbon isotopes
+! Find out whether to restart marine carbon isotopes
 #ifdef cisonew
       lread_iso=.true.
       IF(IOTYPE==0) THEN
@@ -320,6 +323,26 @@
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: carbon isotopes not in restart file. '
         WRITE(io_stdo_bgc,*) ' Initialising carbon isotopes from scratch '
+      ENDIF
+#endif
+
+! Find out whether to restart atmosphere
+#if defined(BOXATM) || defined(DIFFAT)
+      lread_atm=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'atmco2',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_atm=.false.
+      ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'atmco2',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_atm=.false.
+#endif
+      ENDIF
+      IF(mnproc==1 .and. .not. lread_atm) THEN
+        WRITE(io_stdo_bgc,*) ' '
+        WRITE(io_stdo_bgc,*) 'AUFR_BGC info: atmosphere fields not in restart file. '
+        WRITE(io_stdo_bgc,*) ' Initialising atmosphere from scratch '
       ENDIF
 #endif
 
@@ -432,13 +455,47 @@
       ENDIF
 #endif
 #endif
-#ifdef DIFFAT 
+
 !
-! Read restart data : co2 diffusion
+! Read restart data: atmosphere
 !
-      CALL read_netcdf_var(ncid,'atmco2',atm(1,1,iatmco2),1,0,iotype)
-      CALL read_netcdf_var(ncid,'atmo2',atm(1,1,iatmo2),1,0,iotype)
-      CALL read_netcdf_var(ncid,'atmn2',atm(1,1,iatmn2),1,0,iotype)
+#if defined(BOXATM) || defined(DIFFAT)
+      IF(lread_atm) THEN
+      CALL read_netcdf_var(ncid,'atmco2',atm2(1,1,1,iatmco2),2,0,iotype)
+      CALL read_netcdf_var(ncid,'atmo2',atm2(1,1,1,iatmo2),2,0,iotype)
+      CALL read_netcdf_var(ncid,'atmn2',atm2(1,1,1,iatmn2),2,0,iotype)
+#ifdef cisonew
+      IF(lread_iso) THEN
+      CALL read_netcdf_var(ncid,'atmc13',atm2(1,1,1,iatmc13),2,0,iotype)
+      CALL read_netcdf_var(ncid,'atmc14',atm2(1,1,1,iatmc14),2,0,iotype)
+      ELSE
+      ! If atm isotopes are not in restart but boxatm is on, calculate initial value using atmco2
+      ! that is just read in from restart files. Normalize atmc14 using beleg c14fac.
+      DO j=1,kpje
+      DO i=1,kpie
+        beta13 = (prei13/1000.)+1.
+        alpha14 = 2.*(prei13+25.)
+        d14cat  = (prei14+alpha14)/(1.-alpha14/1000.)
+        atm(i,j,iatmc13) = beta13*re1312*atm2(i,j,1,iatmco2)/(1.+beta13*re1312)
+        atm(i,j,iatmc14) = ((d14cat/1000.)+1.)*re14to*atm2(i,j,1,iatmco2)/c14fac
+      ENDDO
+      ENDDO
+      ! Copy the isotope atmosphere fields into both timelevels of atm2.
+      atm2(:,:,1,iatmc13) = atm(:,:,iatmc13)
+      atm2(:,:,2,iatmc13) = atm(:,:,iatmc13)
+      atm2(:,:,1,iatmc14) = atm(:,:,iatmc14)
+      atm2(:,:,2,iatmc14) = atm(:,:,iatmc14)
+      ENDIF
+#endif
+#ifdef natDIC
+      CALL read_netcdf_var(ncid,'atmnco2',atm2(1,1,1,iatmnco2),2,0,iotype)
+#endif
+      ELSE
+      ! If atmosphere field is not in restart, copy the atmosphere field
+      ! (initialised in beleg.F90) into both timelevels of atm2.
+      atm2(:,:,1,:) = atm(:,:,:)
+      atm2(:,:,2,:) = atm(:,:,:)
+      ENDIF
 #endif
 
       IF(mnproc==1 .AND. IOTYPE==0) THEN
@@ -452,28 +509,27 @@
 
 #ifdef cisonew
       IF(.NOT. lread_iso) THEN
-      ! If carbon isotope fields are not read from restart file, copy the ocetra 13C
-      ! and 14C fields (initialised in beleg.F90) into both timelevels of locetra.
+      ! If carbon isotope fields are not read from restart file, copy the d13C
+      ! d14C fields (initialised in beleg.F90) into both timelevels of locetra.
       locetra(:,:,1:kpke,       isco213)=ocetra(:,:,:,isco213)
       locetra(:,:,kpke+1:2*kpke,isco213)=ocetra(:,:,:,isco213)
       locetra(:,:,1:kpke,       isco214)=ocetra(:,:,:,isco214)
       locetra(:,:,kpke+1:2*kpke,isco214)=ocetra(:,:,:,isco214)
-      ! Initialise the remaining 13C and 14C fields in the same way as in beleg.F90
+      ! Initialise 13C and 14C fields in the same way as in beleg.F90
       DO k=1,2*kpke
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j) .GT. 0.5) THEN
+        ! 13C is read in as delta13C, convert to 13C using model restart total C
+        beta13=locetra(i,j,k,isco213)/1000.+1.
+        locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
 
-        ! 13C is read in as delta13C, convert to 13C using model 12C
-        beta=locetra(i,j,k,isco213)/1000.+1.
-        locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta*re1312/(1.+beta*re1312)
-
-        ! 14C is read in as delta14C, convert to 14C using model total C, normalize 
-        ! 14C by c14fac to prevent numerical errors
-        beta=locetra(i,j,k,isco214)/1000.+1.
-        locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta*re14to/c14fac
+        ! 14C is read in as delta14C, convert to 14C using model restart total C, 
+        ! normalize 14C by c14fac to prevent numerical errors
+        beta14=locetra(i,j,k,isco214)/1000.+1.
+        locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
         
-        ! Initialise the remaining 13C and 14C fields in the same way as in beleg.F90
+        ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
         rco213=locetra(i,j,k,isco213)/(locetra(i,j,k,isco212)+safediv)
         rco214=locetra(i,j,k,isco214)/(locetra(i,j,k,isco212)+safediv)
         locetra(i,j,k,idoc13)=locetra(i,j,k,idoc)*rco213*bifr13

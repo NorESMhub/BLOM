@@ -220,6 +220,10 @@
          burial2(:,:,1,:)         = burial(:,:,:)
          burial2(:,:,2,:)         = burial(:,:,:) 
 #endif
+#if defined(BOXATM) || defined(DIFFAT)
+         atm2(:,:,1,:)            = atm(:,:,:)
+         atm2(:,:,2,:)            = atm(:,:,:)
+#endif
       ENDIF
 
 

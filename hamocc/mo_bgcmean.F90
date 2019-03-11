@@ -60,6 +60,7 @@
      & SRF_DMSPROD   =0    ,SRF_DMS_BAC   =0    ,SRF_DMS_UV    =0    ,  &
      & SRF_EXPORT    =0    ,SRF_EXPOSI    =0    ,SRF_EXPOCA    =0    ,  &
      & SRF_ATMCO2    =0    ,SRF_ATMO2     =0    ,SRF_ATMN2     =0    ,  &
+     & SRF_ATMC13    =0    ,SRF_ATMC14    =0    ,                       &
      & SRF_N2OFX     =0    ,SRF_CFC11     =0    ,SRF_CFC12     =0    ,  &
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
@@ -125,6 +126,7 @@
      & SRF_DMSPROD       ,SRF_DMS_BAC       ,SRF_DMS_UV        ,        &
      & SRF_EXPORT        ,SRF_EXPOSI        ,SRF_EXPOCA        ,        &
      & SRF_ATMCO2        ,SRF_ATMO2         ,SRF_ATMN2         ,        &
+     & SRF_ATMC13        ,SRF_ATMC14        ,                           &
      & SRF_N2OFX         ,SRF_CFC11         ,SRF_CFC12         ,        &
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
@@ -261,7 +263,9 @@
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jatmco2  = 0 ,                                          &
      &          jatmo2   = 0 ,                                          &
-     &          jatmn2   = 0        
+     &          jatmn2   = 0 ,                                          &
+     &          jatmc13  = 0 ,                                          &
+     &          jatmc14  = 0  
 
       INTEGER, SAVE :: nbgcm2d 
 
@@ -625,12 +629,18 @@
       DO n=1,nbgc
         IF (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmco2(n)=i_atm_m2d*min(1,SRF_ATMCO2(n))
-#ifdef DIFFAT
+#if defined(BOXATM) || defined(DIFFAT)
         IF (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
         IF (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmn2(n)=i_atm_m2d*min(1,SRF_ATMN2(n))
 #endif 
+#ifdef cisonew
+        IF (SRF_ATMC13(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
+        IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
+#endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
 

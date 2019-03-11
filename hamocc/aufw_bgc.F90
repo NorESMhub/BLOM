@@ -39,6 +39,9 @@
 !     - removed satn2o which is not needed to restart the model
 !     - added sediment bypass preprocessor option
 !
+!     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
+!     - added writing of atmosphere field for BOXATM and DIFFAT
+!
 !     Purpose
 !     -------
 !     Write restart data for continuation of interrupted integration.
@@ -100,7 +103,7 @@
       CHARACTER(LEN=256):: rstfnm
 
       INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
-     &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
+     &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,nctlvl2id  &
      &       ,idate(5)
       REAL rmissing
 #ifdef PNETCDF
@@ -136,19 +139,6 @@
       ENDIF
 
       rmissing = rmasko
-
-#ifdef DIFFAT
-!
-!  Masking co2.
-!      
-      DO  j=1,kpje
-      DO  i=1,kpie 
-      IF(omask(i,j) .LT. 0.5) THEN
-      suppco2(i,j)=rmissing
-      ENDIF
-      ENDDO
-      ENDDO      
-#endif      
 
 !
 ! Open netCDF data file
@@ -251,7 +241,7 @@
                stop '(AUFW: Problem with netCDF7)'
       ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'bur2', 2, ncbur2id)
+      ncstat = NF90_DEF_DIM(ncid, 'tlvl2', 2, nctlvl2id)
       IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF7)')
                stop '(AUFW: Problem with netCDF7)'
@@ -301,7 +291,7 @@
       ENDIF
 
       clen=2
-      ncstat = NFMPI_DEF_DIM(ncid, 'bur2', clen, ncbur2id)
+      ncstat = NFMPI_DEF_DIM(ncid, 'tlvl2', clen, nctlvl2id)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with PnetCDF7)')
                stop '(AUFW: Problem with PnetCDF7)'
@@ -706,7 +696,7 @@
       IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
         ncdimst(1) = nclonid
         ncdimst(2) = nclatid
-        ncdimst(3) = ncbur2id
+        ncdimst(3) = nctlvl2id
         ncdimst(4) = 0
       ENDIF
 
@@ -727,43 +717,44 @@
      &    rmissing,93,io_stdo_bgc)
 
 #endif /* sedbypass */
-#ifdef DIFFAT
+
 !
-! Define variables : co2 diffusion
+! Define variables: atmosphere
 ! ----------------------------------------------------------------------    
 !
-      IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
-        ncdimst(1) = nclonid
-        ncdimst(2) = nclatid
-        ncdimst(3) = 0
-        ncdimst(4) = 0
-      ENDIF
-
-      CALL NETCDF_DEF_VARDB(ncid,7,'suppco2',2,ncdimst,ncvarid,         &
-     &    4,'ppmv',42,'pCO2 from total dissolved inorganic carbon',     &
-     &    rmissing,100,io_stdo_bgc)
+#if defined(BOXATM) || defined(DIFFAT)
+    IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
+      ncdimst(1) = nclonid
+      ncdimst(2) = nclatid
+      ncdimst(3) = nctlvl2id
+      ncdimst(4) = 0
+    ENDIF
      
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',2,ncdimst,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',3,ncdimst,ncvarid,          &
      &    3,'ppm',15,'atmospheric CO2',                                 &
      &    rmissing,101,io_stdo_bgc)         
      
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',2,ncdimst,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',3,ncdimst,ncvarid,           &
      &    3,'ppm',14,'atmospheric O2',                                  &
      &    rmissing,102,io_stdo_bgc)    
      
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',2,ncdimst,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',3,ncdimst,ncvarid,           &
      &    3,'ppm',14,'atmospheric N2',                                  &
      &    rmissing,103,io_stdo_bgc)    
 
 #ifdef cisonew
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',2,ncdimst,ncvarid,          &
-     &    3,'ppm',15,'atmospheric CO2',                                 &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',3,ncdimst,ncvarid,          &
+     &    3,'ppm',17,'atmospheric 13CO2',                               &
      &    rmissing,104,io_stdo_bgc)      
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',2,ncdimst,ncvarid,          &
-     &    3,'ppm',15,'atmospheric CO2',                                 &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',3,ncdimst,ncvarid,          &
+     &    3,'ppm',17,'atmospheric 14CO2',                               &
      &    rmissing,105,io_stdo_bgc)      
 #endif
-
+#ifdef natDIC
+      CALL NETCDF_DEF_VARDB(ncid,7,'atmnco2',3,ncdimst,ncvarid,         &
+     &    3,'ppm',23,'natural atmospheric CO2',                         &
+     &    rmissing,106,io_stdo_bgc)      
+#endif
 #endif
       IF(mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_ENDDEF(ncid)
@@ -892,14 +883,19 @@
       CALL write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
 #endif
 #endif
-#ifdef DIFFAT
-      CALL write_netcdf_var(ncid,'suppco2',suppco2(1,1),1,0)
-      CALL write_netcdf_var(ncid,'atmco2',atm(1,1,iatmco2),1,0)
-      CALL write_netcdf_var(ncid,'atmo2',atm(1,1,iatmo2),1,0)
-      CALL write_netcdf_var(ncid,'atmn2',atm(1,1,iatmn2),1,0)
+!
+! Write restart data: atmosphere.
+!
+#if defined(BOXATM) || defined(DIFFAT)
+      CALL write_netcdf_var(ncid,'atmco2',atm2(1,1,1,iatmco2),2,0)
+      CALL write_netcdf_var(ncid,'atmo2',atm2(1,1,1,iatmo2),2,0)
+      CALL write_netcdf_var(ncid,'atmn2',atm2(1,1,1,iatmn2),2,0)
 #ifdef cisonew
-      CALL write_netcdf_var(ncid,'atmc13',atm(1,1,iatmc13),1,0)
-      CALL write_netcdf_var(ncid,'atmc14',atm(1,1,iatmc14),1,0)
+      CALL write_netcdf_var(ncid,'atmc13',atm2(1,1,1,iatmc13),2,0)
+      CALL write_netcdf_var(ncid,'atmc14',atm2(1,1,1,iatmc14),2,0)
+#endif
+#ifdef natDIC
+      CALL write_netcdf_var(ncid,'atmnco2',atm2(1,1,1,iatmnco2),2,0)
 #endif
 #endif
 

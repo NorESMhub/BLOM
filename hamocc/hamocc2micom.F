@@ -24,8 +24,8 @@ c
 c***********************************************************************
 c
       use mod_xc
-      use mo_carbch,     only: ocetra
-      use mo_param1_bgc, only: ks,nsedtra,npowtra
+      use mo_carbch,     only: ocetra,atm,atm2
+      use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
 c
       implicit none
@@ -124,5 +124,29 @@ c$OMP PARALLEL DO PRIVATE(kn)
 c$OMP END PARALLEL DO
 #endif
 c
+c --- ------------------------------------------------------------------
+c --- apply time smoothing for atmosphere fields if required
+c --- ------------------------------------------------------------------
+c
+#if defined(BOXATM) || defined(DIFFAT)
+c$OMP PARALLEL DO
+      do j=1,jj
+      do i=1,ii                            ! time smoothing (analog to tmsmt2.F)
+        atm2(i,j,m,:) = wts1*atm2(i,j,m,:) ! mid timelevel
+     .                 +wts2*atm2(i,j,n,:) ! old timelevel
+     .                 +wts2*atm(i,j,:)    ! new timelevel
+      enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO
+      do j=1,jj
+      do i=1,ii
+        atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
+      enddo
+      enddo
+c$OMP END PARALLEL DO
+#endif
+
       return
       end

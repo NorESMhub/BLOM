@@ -394,12 +394,18 @@ c --- Store 2d fields
 
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
-#ifdef DIFFAT
+#if defined(BOXATM) || defined(DIFFAT)
       call wrtsrf(jatmo2(iogrp),SRF_ATMO2(iogrp),rnacc,0.,cmpflg,       
      .  'atmo2','Atmospheric O2',' ','ppm')
       call wrtsrf(jatmn2(iogrp),SRF_ATMN2(iogrp),rnacc,0.,cmpflg,       
      .  'atmn2','Atmospheric N2',' ','ppm')
-#endif 
+#endif
+#ifdef cisonew
+      call wrtsrf(jatmc13(iogrp),SRF_ATMC13(iogrp),rnacc,0.,cmpflg,     
+     .  'atmc13','Atmospheric 13CO2',' ','ppm')
+      call wrtsrf(jatmc14(iogrp),SRF_ATMC14(iogrp),rnacc,0.,cmpflg,     
+     .  'atmc14','Atmospheric 14CO2',' ','ppm')
+#endif
 c
 c --- Store 3d layer fields
       call wrtlyr(jdp(iogrp),LYR_DP(iogrp),rnacc,0.,cmpflg, 
@@ -737,11 +743,15 @@ c --- Initialise fields
       call inisrf(jnatco2fx(iogrp),0.)       
 #endif
 
-      call inisrf(jatmco2(iogrp),0.)       
-#ifdef DIFFAT 
+      call inisrf(jatmco2(iogrp),0.)        
+#if defined(BOXATM) || defined(DIFFAT)
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
 #endif   
+#ifdef cisonew
+      call inisrf(jatmc13(iogrp),0.)
+      call inisrf(jatmc14(iogrp),0.)
+#endif
 c
       call inilyr(jdp(iogrp),0.)       
       call inilyr(jdic(iogrp),0.)       
@@ -1023,12 +1033,18 @@ c
 
       call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
      .  'atmco2','Atmospheric CO2',' ','ppm',0)
-#ifdef DIFFAT
+#if defined(BOXATM) || defined(DIFFAT)
       call ncdefvar3d(SRF_ATMO2(iogrp),cmpflg,'p',
      .  'atmo2','Atmospheric O2',' ','ppm',0)
       call ncdefvar3d(SRF_ATMN2(iogrp),cmpflg,'p',
      .  'atmn2','Atmospheric N2',' ','ppm',0)
 #endif 
+#ifdef cisonew
+      call ncdefvar3d(SRF_ATMC13(iogrp),cmpflg,'p',
+     .  'atmc13','Atmospheric 13CO2',' ','ppm',0)
+      call ncdefvar3d(SRF_ATMC14(iogrp),cmpflg,'p',
+     .  'atmc14','Atmospheric 14CO2',' ','ppm',0)
+#endif
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',
