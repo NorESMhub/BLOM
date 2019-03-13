@@ -133,6 +133,7 @@
       call accsrf(jsrfalkali,ocetra(1,1,1,ialkali),omask,0)
       call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
       call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
+      call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
       call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
       call accsrf(jexport,expoor,omask,0)      
       call accsrf(jexpoca,expoca,omask,0)     

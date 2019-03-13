@@ -291,6 +291,9 @@ c --- Store 2d fields
       call wrtsrf(jsrfiron(iogrp),SRF_IRON(iogrp),
      .  rnacc*1e3,0.,cmpflg,'srfdfe',           
      .  'Surface dissolved iron',' ','mol Fe m-3')
+      call wrtsrf(jsrfphyto(iogrp),SRF_PHYTO(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfphyc',           
+     .  'Surface phytoplankton',' ','mol P m-3')
       call wrtsrf(jintphosy(iogrp),INT_PHOSY(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'ppint',    
      .  'Integrated primary production',' ','mol C m-2 s-1')
@@ -704,6 +707,7 @@ c --- Initialise fields
       call inisrf(jsrfano3(iogrp),0.)       
       call inisrf(jsrfsilica(iogrp),0.)       
       call inisrf(jsrfiron(iogrp),0.)       
+      call inisrf(jsrfphyto(iogrp),0.)       
       call inisrf(jintphosy(iogrp),0.)       
       call inisrf(jintnfix(iogrp),0.)       
       call inisrf(jintdnit(iogrp),0.)       
@@ -958,6 +962,8 @@ c
      .  'Surface silicate',' ','mol Si m-3',0)
       call ncdefvar3d(SRF_IRON(iogrp),cmpflg,'p','srfdfe',
      .  'Surface dissolved iron',' ','mol Fe m-3',0)
+      call ncdefvar3d(SRF_PHYTO(iogrp),cmpflg,'p','srfphyc',
+     .  'Surface phytoplankton',' ','mol P m-3',0)
       call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',
      .  'Integrated primary production',' ','mol C m-2 s-1',0)
       call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',
