@@ -250,7 +250,7 @@
       ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
 #elif defined(WLIN)
-      rcalc = 38.  ! calcium carbonate to organic phosphorous production ratio
+      rcalc = 35.  ! calcium carbonate to organic phosphorous production ratio
       ropal = 45.  ! opal to organic phosphorous production ratio      
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
