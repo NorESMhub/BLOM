@@ -131,7 +131,7 @@ c --- ------------------------------------------------------------------
 c --- Set up initial conditions or start from restart file
 c --- ------------------------------------------------------------------
 c
-      if (nstep1.eq.nstep0.and.icfile.eq.'inicon.nc') then
+      if (nday1+nint(time0).eq.0.and.icfile.eq.'inicon.nc') then
 c
 c --- ----------------------------------------------------------------
 c --- - start from initial conditions derived from climatology
@@ -155,9 +155,7 @@ c
 c
         delt1=baclin
 c
-        time0=0.
-c
-      else !  nstep1 > 0 .or. icfile .ne. 'inicon.nc'
+      else !  nday1+nint(time0) > 0 .or. icfile .ne. 'inicon.nc'
 c
 c --- ------------------------------------------------------------------
 c --- - start from restart file
