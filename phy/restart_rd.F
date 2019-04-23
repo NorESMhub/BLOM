@@ -42,7 +42,7 @@ c
 c
 c --- open restart file and adjust time information if needed
 c
-      if     (nstep1.eq.nstep0) then
+      if     (nday1+nint(time0).eq.0) then
 c
 c --- - open restart file for initial conditions and adjust integration
 c --- - time corresponding to start date
@@ -93,21 +93,6 @@ c --- - open restart file
                  stop '(restart_rd)'
         endif
         call ncfopn(rstfnm,'r',' ',1,iotype)
-c
-c --- - for 'hybrid' run type, modify integration time corresponding to
-c --- - start date
-        call ncgeti('nday0',ndayr)
-        call ncgeti('nmonth0',nmonthr)
-        call ncgeti('nyear0',nyearr)
-        call ncgetr('time0',time0)
-        call ncgetr('time',time)
-        if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
-     .      ndayr.ne.nday0) then
-          time0=time
-          nday1=0
-          nstep1=nstep0
-          nstep2=nstep1
-        endif
 c
       else
 c

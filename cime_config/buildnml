@@ -352,6 +352,7 @@ set SRF_ANO3      = '2,   2'
 set SRF_ALKALI    = '2,   2'
 set SRF_SILICA    = '2,   2' 
 set SRF_DIC       = '2,   2' 
+set SRF_PHYTO     = '2,   2' 
 set SRF_EXPORT    = '2,   2' 
 set SRF_EXPOSI    = '2,   2' 
 set SRF_EXPOCA    = '2,   2' 
@@ -563,39 +564,39 @@ else if ($OCN_GRID == tnx2v1 ) then
   set LYR_DIFDIA   =  '0,   0'
   set LYR_DIFINT   =  '0,   0'
   set LYR_DIFISO   =  '0,   0'
-  set LYR_DP       =  '2,   2'
-  set LYR_DZ       =  '2,   2'
-  set LYR_SALN     =  '0,   0'
-  set LYR_TEMP     =  '0,   0'
-  set LYR_UVEL     =  '0,   2'
+  set LYR_DP       =  '2,   0'
+  set LYR_DZ       =  '2,   0'
+  set LYR_SALN     =  '2,   0'
+  set LYR_TEMP     =  '2,   0'
+  set LYR_UVEL     =  '0,   0'
   set LYR_UFLX     =  '0,   0'
   set LYR_UTFLX    =  '0,   0'
   set LYR_USFLX    =  '0,   0'
-  set LYR_VVEL     =  '0,   2'
+  set LYR_VVEL     =  '0,   0'
   set LYR_VFLX     =  '0,   0'
   set LYR_VTFLX    =  '0,   0'
   set LYR_VSFLX    =  '0,   0'
   set LYR_WFLX     =  '0,   0'
   set LYR_WFLX2    =  '0,   0'
   set LYR_PV       =  '0,   0'
-  set LYR_TKE      =  '0,   2'
-  set LYR_GLS_PSI  =  '0,   2'
-  set LYR_IDLAGE   =  '0,   0'
+  set LYR_TKE      =  '0,   0'
+  set LYR_GLS_PSI  =  '0,   0'
+  set LYR_IDLAGE   =  '2,   0'
   set LVL_DIFDIA   =  '0,   0'
   set LVL_DIFINT   =  '0,   0'
   set LVL_DIFISO   =  '0,   0'
-  set LVL_DZ       =  '2,   2'
-  set LVL_SALN     =  '2,   2'
-  set LVL_TEMP     =  '2,   2'
-  set LVL_UFLX     =  '0,   0'
+  set LVL_DZ       =  '0,   0'
+  set LVL_SALN     =  '0,   2'
+  set LVL_TEMP     =  '0,   2'
+  set LVL_UFLX     =  '0,   2'
   set LVL_UTFLX    =  '0,   0'
   set LVL_USFLX    =  '0,   0'
   set LVL_UVEL     =  '0,   2'
-  set LVL_VFLX     =  '0,   0'
+  set LVL_VFLX     =  '0,   2'
   set LVL_VTFLX    =  '0,   0'
   set LVL_VSFLX    =  '0,   0'
   set LVL_VVEL     =  '0,   2'
-  set LVL_WFLX     =  '0,   0'
+  set LVL_WFLX     =  '0,   2'
   set LVL_WFLX2    =  '0,   0'
   set LVL_PV       =  '0,   0'
   set LVL_TKE      =  '0,   2'
@@ -1236,6 +1237,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   PHOSPH         - Phosphorus (po4) [mol P m-3]
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
+!   PHYTO          - Phytoplankton (phyc) [mol C m-3]
 !   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
 !   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
 !
@@ -1251,7 +1253,6 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   CALC           - CaCO3 shells (calc) [mol C m-3]
 !   OPAL           - Opal shells (opal) [mol Si m-3]
 !   DOC            - Dissolved organic carbon (dissoc) [mol C m-3]
-!   PHYTO          - Phytoplankton (phyc) [mol C m-3]
 !   GRAZER         - Zooplankton (zooc) [mol C m-3]
 !   PHOSY          - Primary production (pp) [mol C m-3 s-1]
 !   CO3            - Carbonate ions (co3) [mol C m-3]
@@ -1357,6 +1358,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
   SRF_ALKALI         = ${SRF_ALKALI},
   SRF_SILICA         = ${SRF_SILICA}, 
   SRF_DIC            = ${SRF_DIC},
+  SRF_PHYTO          = ${SRF_PHYTO},
   SRF_EXPORT         = ${SRF_EXPORT},
   SRF_EXPOSI         = ${SRF_EXPOSI},
   SRF_EXPOCA         = ${SRF_EXPOCA},

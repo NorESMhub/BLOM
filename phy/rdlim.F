@@ -8,7 +8,7 @@ c
       use mod_swabs, only: swamth, jwtype, chlopt
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
-      use data_mct, only: runid_mct, runtyp_mct, ocn_cpl_dt_mct
+      use data_mct, only: runid_mct, ocn_cpl_dt_mct
 c
       implicit none
 c
@@ -16,7 +16,7 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 c
-      integer :: i,j,m,n
+      integer :: i,j,m,n,nd0rst,nm0rst,ny0rst
       character*256 :: runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
@@ -567,6 +567,7 @@ c
 c --- --- when runtyp equal 'startup' the ocean integration start after
 c --- --- first coupling interval
 c
+          time0=0.
           nday1=0
           nstep1=nstep0
           nstep2=nstep1
@@ -603,19 +604,36 @@ c
           endif
           call xcbcst(rstfnm)
           call ncfopn(rstfnm,'r',' ',1,iotype)
+          call ncgeti('nday0',nd0rst)
+          call ncgeti('nmonth0',nm0rst)
+          call ncgeti('nyear0',ny0rst)
+          call ncgetr('time0',time0)
           call ncgetr('time',time)
-          call ncfcls
-          nday1=nint(time)
-          nstep1=nday1*nstep_in_day
+          nday1=nint(time-time0)
 c
           if (runtyp.eq.'hybrid') then
 c 
-c --- ----- when runtyp equal 'hybrid' the ocean integration starts after
-c --- ----- first coupling interval
-c
-            nstep1=nstep1+nstep0
+c --- ----- When runtyp equal 'hybrid' the ocean integration starts
+c --- ----- after first coupling interval. If integration start date
+c --- ----- differ in restart file and namelist, keep the latter and
+c --- ----- modify integration time corresponding to start date.
+            if (ny0rst.eq.nyear0.and.
+     .          nm0rst.eq.nmonth0.and.
+     .          nd0rst.eq.nday0) then
+              nstep1=nday1*nstep_in_day+nstep0
+            else
+              time0=time
+              nday1=0
+              nstep1=nstep0
+              nstep2=nstep1
+            endif
 c
           else
+c
+            nday0=nd0rst
+            nmonth0=nm0rst
+            nyear0=ny0rst
+            nstep1=nday1*nstep_in_day
 c
 c --- ----- For runtypes 'branch' or 'continue' override namelist date
 c --- ----- with date extracted from restart file name
@@ -632,11 +650,11 @@ c
 c
           endif
 c
+          call ncfcls
+c
           nstep2=nstep1
 c
         endif
-c
-        time=nstep1*baclin/86400.
 c
       else
 c
@@ -682,7 +700,7 @@ c
         endif
 c
 c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
-        nstep0=0
+        time0=0.
         nstep1=nday1*nstep_in_day
         nstep2=nday2*nstep_in_day
 c

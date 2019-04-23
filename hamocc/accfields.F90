@@ -92,7 +92,7 @@
 
 ! Accumulate atmosphere fields and fluxes
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
-#ifdef DIFFAT     
+#if defined(BOXATM) || defined(DIFFAT)
       call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
       call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
 #endif
@@ -107,6 +107,10 @@
 #endif
 #ifdef natDIC
       call accsrf(jnatco2fx,atmflx(1,1,iatmnco2),omask,0)
+#endif
+#ifdef cisonew
+      call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
+      call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
 #endif
 
       ! Save up and downward fluxes for CO2 seperately
@@ -129,6 +133,7 @@
       call accsrf(jsrfalkali,ocetra(1,1,1,ialkali),omask,0)
       call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
       call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
+      call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
       call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
       call accsrf(jexport,expoor,omask,0)      
       call accsrf(jexpoca,expoca,omask,0)     

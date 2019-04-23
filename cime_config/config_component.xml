@@ -21,6 +21,7 @@
       <value compset="_MICOM%ECO"           >constant</value>
       <value compset="_MICOM%ECO.*_BGC%BPRP">prognostic</value>
       <value compset="_MICOM%ECO.*_BGC%BDRD">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_MICOM%ECO">diagnostic</value>
     </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
@@ -47,6 +48,7 @@
     <default_value>full</default_value>
     <values>
       <value compset="_DATM.*_MICOM">partial</value>
+      <value compset="_DATM%CPLHIST.*_MICOM">full</value>
     </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
@@ -82,7 +84,7 @@
     <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,UNSET</valid_values>
     <default_value>ndep_CMIP6_1850.nc</default_value>
     <values>
-      <value compset="HIST" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+      <value compset="NHIST" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
     </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
@@ -123,18 +125,6 @@
     <group>build_component_micom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
-  </entry>
-
-  <!--- Note that positive second match will overwrite positive first match -->
-  <entry id="MICOM_CO2_TYPE">
-    <type>char</type>
-    <valid_values>constant,prognostic,diagnostic</valid_values>
-    <default_value>constant</default_value>
-    <group>run_component_micom</group>
-    <file>env_run.xml</file>
-    <desc>Determines provenance of atmospheric CO2 for gas flux computation.
-      This option is used in the MICOM ecosystem model.
-      The default is constant.</desc>
   </entry>
 
   <entry id="MICOM_TURBULENT_CLOSURE">

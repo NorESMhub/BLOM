@@ -58,7 +58,9 @@
       use mod_xc
       use mo_riverinpt, only: riverinpt
       use mo_ndep, only: n_deposition
-#ifdef DIFFAT
+#if defined(BOXATM)
+      use mo_boxatm
+#elif defined(DIFFAT)
       use mo_satm
 #endif
 
@@ -134,7 +136,7 @@
 
 
 !--------------------------------------------------------------------
-! Pass atmospheric co2
+! Pass atmospheric co2 if coupled to an active atmosphere model
 !
 #if defined(PROGCO2) || defined(DIAGCO2)
 !$OMP PARALLEL DO
@@ -144,22 +146,9 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-         if (mnproc.eq.1) then 
-           write (io_stdo_bgc,*) 'jt: getting x2o co2'
-         endif
-
-#else
-!$OMP PARALLEL DO
-      DO  j=1,kpje
-      DO  i=1,kpie
-        if (patmco2(i,j).lt.0) then
-          atm(i,j,iatmco2)=atm_co2
-        else
-          atm(i,j,iatmco2)=patmco2(i,j)
-        endif
-      ENDDO
-      ENDDO
-!$OMP END PARALLEL DO
+      if (mnproc.eq.1) then 
+        write (io_stdo_bgc,*) 'jt: getting x2o co2'
+      endif
 #endif
 
 
@@ -171,28 +160,6 @@
                            atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
 #endif
 
-
-!---------------------------------------------------------------------
-! Read emission data
-!
-#ifdef EMS_CO2
-#ifdef DIFFAT 
-      IF (kldtmon.eq.1.and.kldtmon.eq.1) THEN 
-             
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*) 'CO2_EMS gerufen bei kldtmon: ',          &
-     &                         kplmon,kplday,kmonlen,kldtmon
-         ENDIF
-      call co2_ems(kplyear,emissions)
-!      emissions= 2000.
-      emission = emissions/1000. ! million metric tons --> GigaTons
-      ems_per_step=(1.e12/12.)*emission/(float(days_in_yr)*20.)
-      write(io_stdo_bgc,*) 'CO2_EMS',emissions,emission,ems_per_step
-      write(io_stdo_bgc,*) (1.e12/12.)*emission,float(days_in_yr)*20.
-
-      ENDIF ! First timestep of the month
-#endif
-#endif
 
 
 #ifdef PBGC_CK_TIMESTEP
@@ -276,8 +243,10 @@
       ! Apply riverine input of carbon and nutrients
       call riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
 
-
-#ifdef DIFFAT     
+      ! Update atmospheric pCO2 [ppm]
+#if defined(BOXATM)
+      CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)
+#elif defined(DIFFAT)     
       CALL SATM_STEP(atmflx,atm)
 #endif	 
 

@@ -60,11 +60,13 @@
      & SRF_DMSPROD   =0    ,SRF_DMS_BAC   =0    ,SRF_DMS_UV    =0    ,  &
      & SRF_EXPORT    =0    ,SRF_EXPOSI    =0    ,SRF_EXPOCA    =0    ,  &
      & SRF_ATMCO2    =0    ,SRF_ATMO2     =0    ,SRF_ATMN2     =0    ,  &
+     & SRF_ATMC13    =0    ,SRF_ATMC14    =0    ,                       &
      & SRF_N2OFX     =0    ,SRF_CFC11     =0    ,SRF_CFC12     =0    ,  &
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
-     & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_NATDIC    =0    ,  &
-     & SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,SRF_NATCO2FX  =0    ,  &
+     & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
+     & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
+     & SRF_NATCO2FX  =0    ,                                            &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
@@ -125,11 +127,13 @@
      & SRF_DMSPROD       ,SRF_DMS_BAC       ,SRF_DMS_UV        ,        &
      & SRF_EXPORT        ,SRF_EXPOSI        ,SRF_EXPOCA        ,        &
      & SRF_ATMCO2        ,SRF_ATMO2         ,SRF_ATMN2         ,        &
+     & SRF_ATMC13        ,SRF_ATMC14        ,                           &
      & SRF_N2OFX         ,SRF_CFC11         ,SRF_CFC12         ,        &
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
-     & SRF_SILICA        ,SRF_DIC           ,SRF_NATDIC        ,        &
-     & SRF_NATALKALI     ,SRF_NATPCO2       ,SRF_NATCO2FX      ,        &
+     & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
+     & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
+     & SRF_NATCO2FX      ,                                              &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
@@ -228,6 +232,7 @@
      &          jsrfalkali = 0 ,                                        &
      &          jsrfsilica = 0 ,                                        &
      &          jsrfdic    = 0 ,                                        &
+     &          jsrfphyto  = 0 ,                                        &
      &          jintphosy  = 0 ,                                        &
      &          jintnfix   = 0 ,                                        &
      &          jintdnit   = 0 ,                                        &
@@ -261,7 +266,9 @@
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jatmco2  = 0 ,                                          &
      &          jatmo2   = 0 ,                                          &
-     &          jatmn2   = 0        
+     &          jatmn2   = 0 ,                                          &
+     &          jatmc13  = 0 ,                                          &
+     &          jatmc14  = 0  
 
       INTEGER, SAVE :: nbgcm2d 
 
@@ -541,6 +548,8 @@
         jsrfsilica(n)=i_bsc_m2d*min(1,SRF_SILICA(n))
         IF (SRF_DIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
+        IF (SRF_PHYTO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfphyto(n)=i_bsc_m2d*min(1,SRF_PHYTO(n))
         IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
         IF (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -625,12 +634,18 @@
       DO n=1,nbgc
         IF (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmco2(n)=i_atm_m2d*min(1,SRF_ATMCO2(n))
-#ifdef DIFFAT
+#if defined(BOXATM) || defined(DIFFAT)
         IF (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
         IF (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmn2(n)=i_atm_m2d*min(1,SRF_ATMN2(n))
 #endif 
+#ifdef cisonew
+        IF (SRF_ATMC13(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
+        IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
+#endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
 

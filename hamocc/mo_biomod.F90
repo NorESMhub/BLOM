@@ -86,7 +86,7 @@
       REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
       REAL :: ctochl, atten_w, atten_c, atten_f
 #ifdef cisonew
-      REAL :: c13fac,c14fac
+      REAL :: c14fac
       REAL :: re1312,re14to,prei13,prei14
       REAL :: bifr13,bifr14,growth_co2,bifr13_perm
 #endif

@@ -88,7 +88,7 @@
       integer :: p_joff,p_ioff
       REAL :: north, south
 #ifdef cisonew
-      REAL :: alpha,beta,rco213,rco214,d14cat
+      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
 #ifdef AGG
       REAL :: shear,snow
@@ -117,55 +117,39 @@
       re1312=0.0112372
       re14to=1.176e-12
 ! set preindustr. d13c and bigd14C in atmosphere
-      prei13=-6.5
-      prei14=0.
-! absolute atm. 13c for d13c=prei13
-      beta=(prei13/1000.)+1.
-      atm_c13=beta*re1312*atm_co2/(1.+beta*re1312)
-      c13fac=atm_c13/atm_co2 ! should be ~0.01
-      if(mnproc.eq.1) then
-        write(io_stdo_bgc,*)' beleg_bgc: c13fac ',c13fac
-      endif
-! little d14c in atm. for big delta 14c in atm.=0
-      alpha=2.*(prei13+25.)
-      d14cat=(prei14+alpha)/(1.-alpha/1000.)
-! absolute 14c concentration in preindustr. atmosph.------------------
-      atm_c14=((d14cat/1000.)+1.)*re14to*atm_co2
-! factor for normalizing 14C tracers
-      c14fac=atm_c14/atm_co2 ! should be ~e-12
-      if(mnproc.eq.1) then
-        write(io_stdo_bgc,*)' beleg_bgc: c14fac ',c14fac
-      endif
+      prei13  = -6.5
+      prei14  = 0.
+      beta13  = (prei13/1000.)+1.
+      alpha14 = 2.*(prei13+25.)
+      d14cat  = (prei14+alpha14)/(1.-alpha14/1000.)
+! calculate atm_c13 and atm_c14
+      atm_c13  = beta13*re1312*atm_co2/(1.+beta13*re1312)
+      d13C_atm = (((atm_c13/(atm_co2-atm_c13))/re1312)-1.)*1000.
+! absolute 14c concentration in preindustrial atmosphere
+      atm_c14  = ((d14cat/1000.)+1.)*re14to*atm_co2
+! factor for normalizing 14C tracers (~1e-12)
+      c14fac   = atm_c14/atm_co2
 #endif
 
-
-#ifdef boxatm
-! initialise prognostic 1-box atmosphere
-      do j=1,kpje
-      do i=1,kpie
-        atc12(i,j)=atm_co2
+! Initialise atmosphere fields. We use a 2D representation of atmospheric
+! fields for simplicity, even for cases where actually only a scalar value 
+! is used. The overhead of this is small. If an atm-field is present in
+! restart file (if BOXATM or DIFFAT is activated), this will be overwritten
+! later.
+      DO j=1,kpje
+      DO i=1,kpie 
+        atm(i,j,iatmco2)  = atm_co2
+        atm(i,j,iatmo2)   = atm_o2
+        atm(i,j,iatmn2)   = atm_n2
+#ifdef natDIC
+        atm(i,j,iatmnco2) = atm_co2_nat
+#endif   
 #ifdef cisonew
-        atc13(i,j)=atm_c13
-        atc14(i,j)=atm_c14
+        atm(i,j,iatmc13)  = atm_c13
+        atm(i,j,iatmc14)  = atm_c14/c14fac
 #endif
-      enddo
-      enddo
-#endif
-#ifdef DIFFAT
-! initiaise atmospheric diffusion parameters.    
-      DO  j=1,kpje
-      DO  i=1,kpie 
-         atm(i,j,iatmco2) = 278.
-         atm(i,j,iatmo2)  = 196800.
-         atm(i,j,iatmn2)  = 802000.
-#ifdef cisonew
-         atm(i,j,iatmc13) = atm_c13
-         atm(i,j,iatmc14) = atm_c14/c14fac
-#endif
-         atdifv(i,j)=1.
       ENDDO
       ENDDO
-#endif
 
 !
 ! Biology
@@ -206,7 +190,7 @@
 ! half sat. constants, note that the units are kmol/m3 !
       bkphy  = 4.e-8    !i.e. 0.04 mmol P/m3
       bkzoo  = 8.e-8    !i.e. 0.08 mmol P/m3
-      bkopal = 1.e-6    !i.e. 1.0 mmol Si/m3
+      bkopal = 5.e-6    !i.e. 4.0 mmol Si/m3
 
 !sinking speed
       wpoc  =  5.*dtb       !m/d  iris : 5.
@@ -266,8 +250,8 @@
       ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
 #elif defined(WLIN)
-      rcalc = 48.  ! calcium carbonate to organic phosphorous production ratio
-      ropal = 35.  ! opal to organic phosphorous production ratio      
+      rcalc = 35.  ! calcium carbonate to organic phosphorous production ratio
+      ropal = 45.  ! opal to organic phosphorous production ratio      
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
@@ -314,12 +298,13 @@
      &'* '
       WRITE(io_stdo_bgc,*)                                             &
      &'* Values of BELEG_BGC variables : '
-#ifndef DIFFAT      
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_co2      = ',atm_co2      
 #ifdef cisonew
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_c13      = ',atm_c13      
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              d13C_atm     = ',d13C_atm    
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_c14      = ',atm_c14      
 #endif
@@ -327,7 +312,6 @@
      &'*                              atm_o2       = ',atm_o2           
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_n2       = ',atm_n2 
-#endif  
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              phytomi      = ',phytomi
       WRITE(io_stdo_bgc,*)                                             &
@@ -568,14 +552,16 @@
           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)  /prho(i,j,k)
           ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)/prho(i,j,k)
 #ifdef cisonew
-          ! 13C is read in as delta13C, convert to 13C
-          beta=ocetra(i,j,k,isco213)/1000.+1.
-          ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta*re1312/(1.+beta*re1312)
+          ! d13C based on Eide data is read in above (profile_gd)                        
+          ! Convert to 13C using model initial (ie GLODAP) total C
+          ! If restarting, this is redone with model total C from restart in aufr_bgc.F90 
+          beta13=ocetra(i,j,k,isco213)/1000.+1.
+          ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
 
-          ! 14C is read in as delta14C, convert to 14C using model total C, normalize 
-          ! 14C by c14fac to prevent numerical errors
-          beta=ocetra(i,j,k,isco214)/1000.+1.
-          ocetra(i,j,k,isco214) =ocetra(i,j,k,isco212)*beta*re14to/c14fac 
+          ! 14C is read in as small delta14C (calculated from R. Key, 2003 and Eide et al. 2017)
+          ! Convert to 14C using model total C, and normalize by c14fac to prevent numerical errors
+          beta14=ocetra(i,j,k,isco214)/1000.+1.
+          ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
 #endif
         ENDIF
       ENDDO

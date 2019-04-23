@@ -42,6 +42,10 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: keqb
 
+      ! Two time level copy of prognostic atmosphere field 
+      ! used if BOXATM or DIFFAT is activated
+      REAL, DIMENSION (:,:,:,:),   ALLOCATABLE :: atm2      
+
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: satoxy
       REAL, DIMENSION (:,:),     ALLOCATABLE :: satn2o
       REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
@@ -69,22 +73,17 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
 #endif
+      REAL :: atm_co2, atm_o2, atm_n2 
+      REAL :: atm_c13, atm_c14  
 #ifdef cisonew
       REAL :: c14_t_half, c14dec
 #endif
-#ifndef DIFFAT            
-      REAL :: atm_co2, atm_o2, atm_n2 
-      REAL :: atm_c13, atm_c14
-#endif  
 #ifdef CFC
       REAL :: atm_cfc11_nh,atm_cfc11_sh
       REAL :: atm_cfc12_nh,atm_cfc12_sh
       REAL :: atm_sf6_nh,atm_sf6_sh
 #endif
 
-#ifdef EMS_CO2
-      REAL :: emission, ems_per_step
-#endif
 #ifdef ANTC14
       REAL :: D14C_north, D14C_south, D14C_equator
       REAL, DIMENSION (:,:), ALLOCATABLE :: Rbomb
@@ -265,7 +264,7 @@
         satoxy(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atm ...'
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable atm,atm2 ...'
         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
         WRITE(io_stdo_bgc,*)'Third dimension    : ',natm
@@ -274,6 +273,11 @@
         ALLOCATE (atm(kpie,kpje,natm),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atm'
         atm(:,:,:) = 0.0
+#if defined(BOXATM) || defined(DIFFAT)
+        ALLOCATE (atm2(kpie,kpje,2,natm),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory atm2'
+        atm2(:,:,:,:) = 0.0
+#endif
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable atmflx ...'
@@ -285,29 +289,6 @@
         ALLOCATE (atmflx(kpie,kpje,natm),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory atmflx'
         atmflx(:,:,:) = 0.0
-
-
-#if defined(DIFFAT)
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atdifv ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (atdifv(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory atdifv'
-        atdifv(:,:) = 0.0
-
-        IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable suppco2 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        ENDIF
-
-        ALLOCATE (suppco2(kpie,kpje),stat=errstat)
-        if(errstat.ne.0) stop 'not enough memory suppco2'
-        suppco2(:,:) = 0.0
-#endif	
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable dusty ...'

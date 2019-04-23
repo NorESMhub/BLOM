@@ -308,22 +308,12 @@
 #endif
 
 
-#ifdef DIFFAT      
-         atco2 = atm(i,j,iatmco2)
-         ato2  = atm(i,j,iatmo2)
-         atn2  = atm(i,j,iatmn2)
+       atco2 = atm(i,j,iatmco2)
+       ato2  = atm(i,j,iatmo2)
+       atn2  = atm(i,j,iatmn2)
 #ifdef cisonew
-         atco213 = atm(i,j,iatmc13)
-         atco214 = atm(i,j,iatmc14)
-#endif
-#else
-         atco2 = atm(i,j,iatmco2)
-         ato2  = atm_o2
-         atn2  = atm_n2
-#ifdef cisonew
-         atco213 = atm_c13
-         atco214 = atm_c14/c14fac
-#endif
+       atco213 = atm(i,j,iatmc13)
+       atco214 = atm(i,j,iatmc14)
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
