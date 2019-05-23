@@ -664,7 +664,7 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set CWMEDG = "        'u',        'u'"
   set CWMI   = "        105,        106"
   set CWMJ   = "        273,        273"
-  set CWMWTH = "      15.e3,      15.e3"
+  set CWMWTH = "      30.e3,      30.e3"
 else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 800.
   set BATROP = 16.
