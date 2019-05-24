@@ -19,8 +19,8 @@ module mo_riverinpt
 !  -subroutine riverinpt
 !    apply riverine input to the ocean tracer fields
 !
-!  MICOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml before building 
-!  the model to activate riverine nutrients.
+!  MICOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate 
+!  riverine nutrients.
 !
 ! 
 ! Changes: 
@@ -37,7 +37,9 @@ module mo_riverinpt
 !  This has been achieved by using the mapping file used to interpolate the 
 !  runoff also to interpolate the GNEWS nutrient fluxes to the ocean grid.     
 !  
-!  Alkalinity is updated using the DIC flux.  
+!  Since only alkalinity is available from measurements, DIC is updated using
+!  the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total alkalinity, 
+!  a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
 !  
 !********************************************************************************
 
@@ -82,7 +84,7 @@ character(len=*)   :: path
 integer            :: dummymask(2)
 
 
-! Return if N deposition is turned off
+! Return if riverine input is turned off
 if (.not. do_rivinpt) then
   if (mnproc.eq.1) then
     write(io_stdo_bgc,*) ''
@@ -174,10 +176,14 @@ DO i=1,kpie
     ocetra(i,j,1:kmle,iano3)      = ocetra(i,j,1:kmle,iano3)      + riv_DIN2d(i,j)*fdt/volij
     ocetra(i,j,1:kmle,iphosph)    = ocetra(i,j,1:kmle,iphosph)    + riv_DIP2d(i,j)*fdt/volij
     ocetra(i,j,1:kmle,isilica)    = ocetra(i,j,1:kmle,isilica)    + riv_DSI2d(i,j)*fdt/volij
-    ocetra(i,j,1:kmle,isco212)    = ocetra(i,j,1:kmle,isco212)    + riv_DIC2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,isco212)    = ocetra(i,j,1:kmle,isco212)    + riv_DIC2d(i,j)*fdt/volij  &
+                                                                  + riv_DIN2d(i,j)*fdt/volij  &
+                                                                  + riv_DIP2d(i,j)*fdt/volij
     ocetra(i,j,1:kmle,ialkali)    = ocetra(i,j,1:kmle,ialkali)    + riv_DIC2d(i,j)*fdt/volij
 #ifdef natDIC
-    ocetra(i,j,1:kmle,inatsco212) = ocetra(i,j,1:kmle,inatsco212) + riv_DIC2d(i,j)*fdt/volij
+    ocetra(i,j,1:kmle,inatsco212) = ocetra(i,j,1:kmle,inatsco212) + riv_DIC2d(i,j)*fdt/volij  &
+                                                                  + riv_DIN2d(i,j)*fdt/volij  &
+                                                                  + riv_DIP2d(i,j)*fdt/volij
     ocetra(i,j,1:kmle,inatalkali) = ocetra(i,j,1:kmle,inatalkali) + riv_DIC2d(i,j)*fdt/volij
 #endif
     ocetra(i,j,1:kmle,iiron)      = ocetra(i,j,1:kmle,iiron)      + riv_DFe2d(i,j)*fdt/volij*0.01
