@@ -172,7 +172,7 @@
       epsher = 0.9          !dimensionless fraction -fraction of grazing egested
 #elif defined(WLIN)
       zinges = 0.7          !dimensionless fraction -assimilation efficiency
-      epsher = 0.9          !dimensionless fraction -fraction of grazing egested
+      epsher = 0.85         !dimensionless fraction -fraction of grazing egested
 #else
       zinges = 0.6          !dimensionless fraction -assimilation efficiency
       epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
@@ -250,7 +250,7 @@
       ropal = 10.5 ! opal to organic phosphorous production ratio      
       calmax= 0.20
 #elif defined(WLIN)
-      rcalc = 35.  ! calcium carbonate to organic phosphorous production ratio
+      rcalc = 33.  ! calcium carbonate to organic phosphorous production ratio
       ropal = 45.  ! opal to organic phosphorous production ratio      
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
@@ -284,11 +284,11 @@
 ! Parameters are a result from kettle optimisation 02.03.04
 
        dmspar(6)=0.100000000E-07  !0 half saturation microbial
-       dmspar(5)=1.25*0.109784522E-01  !2*0.02   production with delsil
-       dmspar(4)=1.25*0.107638502E+00  !2*1.3e-5 production with delcar
-       dmspar(3)=0.0864 ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
-       dmspar(2)=0.0011 ! following Kloster et al., 06 Table 1
-       dmspar(1)=10.              !2*5.     production with temp
+       dmspar(5)=1.25*0.02  ! production with delsil, following Kloster et al., 06 Table 1, but increased by a factor of ~2
+       dmspar(4)=1.25*0.10  ! production with delcar, following Kloster et al., 06 Table 1, but reduced by ~7%
+       dmspar(3)=0.0864     ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
+       dmspar(2)=0.0011     ! following Kloster et al., 06 Table 1
+       dmspar(1)=10.        ! 2*5. production with temp
 
 
       IF (mnproc.eq.1) THEN
