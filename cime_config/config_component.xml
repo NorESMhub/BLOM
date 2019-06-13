@@ -84,7 +84,7 @@
     <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,UNSET</valid_values>
     <default_value>ndep_CMIP6_1850.nc</default_value>
     <values>
-      <value compset="NHIST" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+      <value compset="HIST.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
     </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
@@ -95,6 +95,9 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
+    <values>
+      <value compset="HIST.*_MICOM%ECO">TRUE</value>
+    </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate CFC code. Requires module ecosys</desc>
@@ -104,6 +107,9 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
+    <values>
+      <value compset="HIST.*_MICOM%ECO">TRUE</value>
+    </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate natural tracer code. Requires module ecosys</desc>
