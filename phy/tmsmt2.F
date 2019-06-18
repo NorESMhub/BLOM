@@ -10,7 +10,7 @@ c
 c
 #include "common_blocks.h"
 c
-      real, dimension(1-nbdy:idm+nbdy) :: aux,pbfaco,pbfacn
+      real, dimension(1-nbdy:idm+nbdy) :: pbfaco,pbfacn
       integer i,j,k,l,kn,km,kp
       real pold,pmid,pnew,q
 c
@@ -21,7 +21,7 @@ c
 #endif
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,aux,pbfaco,pbfacn,k,kn,km,kp,pold,pmid,pnew,q
+c$OMP+ l,i,pbfaco,pbfacn,k,kn,km,kp,pold,pmid,pnew,q
 #ifdef TRC
 c$OMP+ ,nt
 #endif
@@ -29,7 +29,6 @@ c$OMP+ )
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          aux(i)=0.
           pbfaco(i)=0.
           pbfacn(i)=0.
         enddo
@@ -59,9 +58,6 @@ c$OMP+ )
             pmid=max(0.,dp(i,j,km))
             pnew=max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)
-            aux(i)=aux(i)+(dp(i,j,km)-pmid)			! diapyc.flux
-            diaflx(i,j,k )=diaflx(i,j,k )+aux(i)		! diapyc.flux
-            diaflx(i,j,kp)=diaflx(i,j,kp)-aux(i)		! diapyc.flux
             pold=pold+epsil
             pmid=pmid+epsil
             pnew=pnew+epsil
@@ -130,7 +126,6 @@ c
         call chksummsk(dp,ip,2*kk,'dp')
         call chksummsk(temp,ip,2*kk,'temp')
         call chksummsk(saln,ip,2*kk,'saln')
-        call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(dpu,iu,2*kk,'dpu')
         call chksummsk(dpv,iv,2*kk,'dpv')
 #ifdef TRC

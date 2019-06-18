@@ -49,6 +49,7 @@ c
           endif
         endif
         read (unit=nfu,nml=LIMITS)
+        read (unit=nfu,nml=MERREG)
         read (unit=nfu,nml=DIAPHY)
         close (unit=nfu)
 c
@@ -127,16 +128,44 @@ c --- - print namelist on stdout
         write (lp,*) 'RSTCMP',RSTCMP
         write (lp,*) 'IOTYPE',IOTYPE
 c
+c --- - determine number of regions for meridional overturning and flux
+c --- - diagnostics and print namelist
+        mer_nreg=1
+        do while (mer_regnam(mer_nreg).ne.'')
+          mer_nreg=mer_nreg+1
+          if (mer_nreg.gt.odm) exit
+        enddo
+        mer_nreg=mer_nreg-1
+c
+        do m=1,mer_nreg
+          mer_nflg(m)=1
+          do while (mer_regflg(m,mer_nflg(m)).ne.-1)
+            mer_nflg(m)=mer_nflg(m)+1
+            if (mer_nflg(m).gt.rflgdm) exit
+          enddo
+          mer_nflg(m)=mer_nflg(m)-1
+        enddo
+c
+        write (lp,*)
+        write (lp,*) 'rdlim: MICOM MERREG NAMELIST GROUP:'
+        do m=1,mer_nreg
+          write (lp,*)
+          write (lp,*) 'MER_REGNAM ',trim(mer_regnam(m))
+          write (lp,*) 'MER_MINLAT ',mer_minlat(m)
+          write (lp,*) 'MER_MAXLAT ',mer_maxlat(m)
+          write (lp,*) 'MER_REGFLG ',(mer_regflg(m,n),n=1,mer_nflg(m))
+        enddo
+c
 c --- - determine number of io groups and print namelist
         nphy=0  
         do n=1,nphymax 
           if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
         end do     
         if (trxday.eq.0.) then
-          SRF_SURRLX(1:nphy)=0
+          H2D_SURRLX(1:nphy)=0
         endif
         if (srxday.eq.0.) then
-          SRF_SALRLX(1:nphy)=0
+          H2D_SALRLX(1:nphy)=0
         endif
         write (lp,*)
         write (lp,*) 'rdlim: MICOM DIAPHY NAMELIST GROUP:' 
@@ -145,59 +174,71 @@ c --- - determine number of io groups and print namelist
         write (lp,*) 'GLB_FILEFREQ',GLB_FILEFREQ(1:nphy)
         write (lp,*) 'GLB_COMPFLAG',GLB_COMPFLAG(1:nphy)
         write (lp,*) 'GLB_NCFORMAT',GLB_NCFORMAT(1:nphy)
-        write (lp,*) 'SRF_ABSWND  ',SRF_ABSWND(1:nphy)
-        write (lp,*) 'SRF_ALB     ',SRF_ALB(1:nphy)
-        write (lp,*) 'SRF_BRNFLX  ',SRF_BRNFLX(1:nphy)
-        write (lp,*) 'SRF_BRNPD   ',SRF_BRNPD(1:nphy)
-        write (lp,*) 'SRF_DFL     ',SRF_DFL(1:nphy)
-        write (lp,*) 'SRF_EVA     ',SRF_EVA(1:nphy)
-        write (lp,*) 'SRF_FMLTFZ  ',SRF_FMLTFZ(1:nphy)
-        write (lp,*) 'SRF_FICE    ',SRF_FICE(1:nphy)
-        write (lp,*) 'SRF_HICE    ',SRF_HICE(1:nphy)
-        write (lp,*) 'SRF_HMLTFZ  ',SRF_HMLTFZ(1:nphy)
-        write (lp,*) 'SRF_HSNW    ',SRF_HSNW(1:nphy)
-        write (lp,*) 'SRF_IAGE    ',SRF_IAGE(1:nphy)
-        write (lp,*) 'SRF_IDKEDT  ',SRF_IDKEDT(1:nphy)
-        write (lp,*) 'SRF_LIP     ',SRF_LIP(1:nphy)
-        write (lp,*) 'SRF_MAXMLD  ',SRF_MAXMLD(1:nphy)
-        write (lp,*) 'SRF_MLD     ',SRF_MLD(1:nphy)
-        write (lp,*) 'SRF_MLDU    ',SRF_MLDU(1:nphy)
-        write (lp,*) 'SRF_MLDV    ',SRF_MLDV(1:nphy)
-        write (lp,*) 'SRF_MTKEUS  ',SRF_MTKEUS(1:nphy)
-        write (lp,*) 'SRF_MTKENI  ',SRF_MTKENI(1:nphy)
-        write (lp,*) 'SRF_MTKEBF  ',SRF_MTKEBF(1:nphy)
-        write (lp,*) 'SRF_MTKERS  ',SRF_MTKERS(1:nphy)
-        write (lp,*) 'SRF_MTKEPE  ',SRF_MTKEPE(1:nphy)
-        write (lp,*) 'SRF_MTKEKE  ',SRF_MTKEKE(1:nphy)
-        write (lp,*) 'SRF_MTY     ',SRF_MTY(1:nphy)
-        write (lp,*) 'SRF_MXLU    ',SRF_MXLU(1:nphy)
-        write (lp,*) 'SRF_MXLV    ',SRF_MXLV(1:nphy)
-        write (lp,*) 'SRF_NSF     ',SRF_NSF(1:nphy)
-        write (lp,*) 'SRF_RFIFLX  ',SRF_RFIFLX(1:nphy)
-        write (lp,*) 'SRF_RNFFLX  ',SRF_RNFFLX(1:nphy)
-        write (lp,*) 'SRF_SALFLX  ',SRF_SALFLX(1:nphy)
-        write (lp,*) 'SRF_SALRLX  ',SRF_SALRLX(1:nphy)
-        write (lp,*) 'SRF_SEALV   ',SRF_SEALV(1:nphy)
-        write (lp,*) 'SRF_SFL     ',SRF_SFL(1:nphy)
-        write (lp,*) 'SRF_SIGMX   ',SRF_SIGMX(1:nphy)
-        write (lp,*) 'SRF_SOP     ',SRF_SOP(1:nphy)
-        write (lp,*) 'SRF_SSS     ',SRF_SSS(1:nphy)
-        write (lp,*) 'SRF_SST     ',SRF_SST(1:nphy)
-        write (lp,*) 'SRF_SURFLX  ',SRF_SURFLX(1:nphy)
-        write (lp,*) 'SRF_SURRLX  ',SRF_SURRLX(1:nphy)
-        write (lp,*) 'SRF_SWA     ',SRF_SWA(1:nphy)
-        write (lp,*) 'SRF_TAUX    ',SRF_TAUX(1:nphy)
-        write (lp,*) 'SRF_TAUY    ',SRF_TAUY(1:nphy)
-        write (lp,*) 'SRF_TICE    ',SRF_TICE(1:nphy)
-        write (lp,*) 'SRF_TSRF    ',SRF_TSRF(1:nphy)
-        write (lp,*) 'SRF_UB      ',SRF_UB(1:nphy)
-        write (lp,*) 'SRF_UICE    ',SRF_UICE(1:nphy)
-        write (lp,*) 'SRF_USTAR   ',SRF_USTAR(1:nphy)
-        write (lp,*) 'SRF_USTAR3  ',SRF_USTAR3(1:nphy)
-        write (lp,*) 'SRF_VB      ',SRF_VB(1:nphy)
-        write (lp,*) 'SRF_VICE    ',SRF_VICE(1:nphy)
-        write (lp,*) 'SRF_ZTX     ',SRF_ZTX(1:nphy)
-        write (lp,*) 'LYR_DIAFLX  ',LYR_DIAFLX(1:nphy)
+        write (lp,*) 'H2D_ABSWND  ',H2D_ABSWND(1:nphy)
+        write (lp,*) 'H2D_ALB     ',H2D_ALB(1:nphy)
+        write (lp,*) 'H2D_BTMSTR  ',H2D_BTMSTR(1:nphy)
+        write (lp,*) 'H2D_BRNFLX  ',H2D_BRNFLX(1:nphy)
+        write (lp,*) 'H2D_BRNPD   ',H2D_BRNPD(1:nphy)
+        write (lp,*) 'H2D_DFL     ',H2D_DFL(1:nphy)
+        write (lp,*) 'H2D_EVA     ',H2D_EVA(1:nphy)
+        write (lp,*) 'H2D_FMLTFZ  ',H2D_FMLTFZ(1:nphy)
+        write (lp,*) 'H2D_FICE    ',H2D_FICE(1:nphy)
+        write (lp,*) 'H2D_HICE    ',H2D_HICE(1:nphy)
+        write (lp,*) 'H2D_HMLTFZ  ',H2D_HMLTFZ(1:nphy)
+        write (lp,*) 'H2D_HSNW    ',H2D_HSNW(1:nphy)
+        write (lp,*) 'H2D_IAGE    ',H2D_IAGE(1:nphy)
+        write (lp,*) 'H2D_IDKEDT  ',H2D_IDKEDT(1:nphy)
+        write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
+        write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
+        write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
+        write (lp,*) 'H2D_MLDU    ',H2D_MLDU(1:nphy)
+        write (lp,*) 'H2D_MLDV    ',H2D_MLDV(1:nphy)
+        write (lp,*) 'H2D_MLTS    ',H2D_MLTS(1:nphy)
+        write (lp,*) 'H2D_MLTSMN  ',H2D_MLTSMN(1:nphy)
+        write (lp,*) 'H2D_MLTSMX  ',H2D_MLTSMX(1:nphy)
+        write (lp,*) 'H2D_MLTSSQ  ',H2D_MLTSSQ(1:nphy)
+        write (lp,*) 'H2D_MTKEUS  ',H2D_MTKEUS(1:nphy)
+        write (lp,*) 'H2D_MTKENI  ',H2D_MTKENI(1:nphy)
+        write (lp,*) 'H2D_MTKEBF  ',H2D_MTKEBF(1:nphy)
+        write (lp,*) 'H2D_MTKERS  ',H2D_MTKERS(1:nphy)
+        write (lp,*) 'H2D_MTKEPE  ',H2D_MTKEPE(1:nphy)
+        write (lp,*) 'H2D_MTKEKE  ',H2D_MTKEKE(1:nphy)
+        write (lp,*) 'H2D_MTY     ',H2D_MTY(1:nphy)
+        write (lp,*) 'H2D_MXLU    ',H2D_MXLU(1:nphy)
+        write (lp,*) 'H2D_MXLV    ',H2D_MXLV(1:nphy)
+        write (lp,*) 'H2D_NSF     ',H2D_NSF(1:nphy)
+        write (lp,*) 'H2D_PBOT    ',H2D_PBOT(1:nphy)
+        write (lp,*) 'H2D_PSRF    ',H2D_PSRF(1:nphy)
+        write (lp,*) 'H2D_RFIFLX  ',H2D_RFIFLX(1:nphy)
+        write (lp,*) 'H2D_RNFFLX  ',H2D_RNFFLX(1:nphy)
+        write (lp,*) 'H2D_SALFLX  ',H2D_SALFLX(1:nphy)
+        write (lp,*) 'H2D_SALRLX  ',H2D_SALRLX(1:nphy)
+        write (lp,*) 'H2D_SBOT    ',H2D_SBOT(1:nphy)
+        write (lp,*) 'H2D_SEALV   ',H2D_SEALV(1:nphy)
+        write (lp,*) 'H2D_SLVSQ   ',H2D_SLVSQ(1:nphy)
+        write (lp,*) 'H2D_SFL     ',H2D_SFL(1:nphy)
+        write (lp,*) 'H2D_SIGMX   ',H2D_SIGMX(1:nphy)
+        write (lp,*) 'H2D_SOP     ',H2D_SOP(1:nphy)
+        write (lp,*) 'H2D_SSS     ',H2D_SSS(1:nphy)
+        write (lp,*) 'H2D_SSSSQ   ',H2D_SSSSQ(1:nphy)
+        write (lp,*) 'H2D_SST     ',H2D_SST(1:nphy)
+        write (lp,*) 'H2D_SSTSQ   ',H2D_SSTSQ(1:nphy)
+        write (lp,*) 'H2D_SURFLX  ',H2D_SURFLX(1:nphy)
+        write (lp,*) 'H2D_SURRLX  ',H2D_SURRLX(1:nphy)
+        write (lp,*) 'H2D_SWA     ',H2D_SWA(1:nphy)
+        write (lp,*) 'H2D_TAUX    ',H2D_TAUX(1:nphy)
+        write (lp,*) 'H2D_TAUY    ',H2D_TAUY(1:nphy)
+        write (lp,*) 'H2D_TBOT    ',H2D_TBOT(1:nphy)
+        write (lp,*) 'H2D_TICE    ',H2D_TICE(1:nphy)
+        write (lp,*) 'H2D_TSRF    ',H2D_TSRF(1:nphy)
+        write (lp,*) 'H2D_UB      ',H2D_UB(1:nphy)
+        write (lp,*) 'H2D_UICE    ',H2D_UICE(1:nphy)
+        write (lp,*) 'H2D_USTAR   ',H2D_USTAR(1:nphy)
+        write (lp,*) 'H2D_USTAR3  ',H2D_USTAR3(1:nphy)
+        write (lp,*) 'H2D_VB      ',H2D_VB(1:nphy)
+        write (lp,*) 'H2D_VICE    ',H2D_VICE(1:nphy)
+        write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
+        write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
         write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
         write (lp,*) 'LYR_DIFINT  ',LYR_DIFINT(1:nphy)
         write (lp,*) 'LYR_DIFISO  ',LYR_DIFISO(1:nphy)
@@ -230,6 +271,7 @@ c --- - determine number of io groups and print namelist
         write (lp,*) 'LYR_TKE     ',LYR_TKE(1:nphy)
         write (lp,*) 'LYR_GLS_PSI ',LYR_GLS_PSI(1:nphy)
         write (lp,*) 'LYR_IDLAGE  ',LYR_IDLAGE(1:nphy)
+        write (lp,*) 'LVL_BFSQ    ',LVL_BFSQ(1:nphy)
         write (lp,*) 'LVL_SALN    ',LVL_SALN(1:nphy)
         write (lp,*) 'LVL_TEMP    ',LVL_TEMP(1:nphy)
         write (lp,*) 'LVL_TRC     ',LVL_TRC(1:nphy)
@@ -268,6 +310,12 @@ c --- - determine number of io groups and print namelist
         write (lp,*) 'MSC_MSFTD   ',MSC_MSFTD(1:nphy)
         write (lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
         write (lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
+        write (lp,*) 'MSC_MASSGS  ',MSC_MASSGS(1:nphy)
+        write (lp,*) 'MSC_VOLGS   ',MSC_VOLGS(1:nphy)
+        write (lp,*) 'MSC_SALNGA  ',MSC_SALNGA(1:nphy)
+        write (lp,*) 'MSC_TEMPGA  ',MSC_TEMPGA(1:nphy)
+        write (lp,*) 'MSC_SSSGA   ',MSC_SSSGA(1:nphy)
+        write (lp,*) 'MSC_SSTGA   ',MSC_SSTGA(1:nphy)
         write (lp,*)
 c
       endif
@@ -347,59 +395,76 @@ c
       call xcbcst(rstcmp)
       call xcbcst(iotype)
 c
-      call xcbcst(SRF_ABSWND)
-      call xcbcst(SRF_ALB)
-      call xcbcst(SRF_BRNFLX)
-      call xcbcst(SRF_BRNPD)
-      call xcbcst(SRF_DFL)
-      call xcbcst(SRF_EVA)
-      call xcbcst(SRF_FICE)
-      call xcbcst(SRF_FMLTFZ)
-      call xcbcst(SRF_HICE)
-      call xcbcst(SRF_HMLTFZ)
-      call xcbcst(SRF_HSNW)
-      call xcbcst(SRF_IAGE)
-      call xcbcst(SRF_IDKEDT)
-      call xcbcst(SRF_LIP)
-      call xcbcst(SRF_MAXMLD)
-      call xcbcst(SRF_MLD)
-      call xcbcst(SRF_MLDU)
-      call xcbcst(SRF_MLDV)
-      call xcbcst(SRF_MTKEUS)
-      call xcbcst(SRF_MTKENI)
-      call xcbcst(SRF_MTKEBF)
-      call xcbcst(SRF_MTKERS)
-      call xcbcst(SRF_MTKEPE)
-      call xcbcst(SRF_MTKEKE)
-      call xcbcst(SRF_MTY)
-      call xcbcst(SRF_MXLU)
-      call xcbcst(SRF_MXLV)
-      call xcbcst(SRF_NSF)
-      call xcbcst(SRF_RFIFLX)
-      call xcbcst(SRF_RNFFLX)
-      call xcbcst(SRF_SALFLX)
-      call xcbcst(SRF_SALRLX)
-      call xcbcst(SRF_SEALV)
-      call xcbcst(SRF_SFL)
-      call xcbcst(SRF_SOP)
-      call xcbcst(SRF_SIGMX)
-      call xcbcst(SRF_SSS)
-      call xcbcst(SRF_SST)
-      call xcbcst(SRF_SURFLX)
-      call xcbcst(SRF_SURRLX)
-      call xcbcst(SRF_SWA)
-      call xcbcst(SRF_TAUX)
-      call xcbcst(SRF_TAUY)
-      call xcbcst(SRF_TICE)
-      call xcbcst(SRF_TSRF)
-      call xcbcst(SRF_UB)
-      call xcbcst(SRF_UICE)
-      call xcbcst(SRF_USTAR)
-      call xcbcst(SRF_USTAR3)
-      call xcbcst(SRF_VB)
-      call xcbcst(SRF_VICE)
-      call xcbcst(SRF_ZTX)
-      call xcbcst(LYR_DIAFLX)
+      call xcbcst(mer_nreg)
+      do m=1,mer_nreg
+        call xcbcst(mer_regnam(m))
+      enddo
+c
+      call xcbcst(H2D_ABSWND)
+      call xcbcst(H2D_ALB)
+      call xcbcst(H2D_BTMSTR)
+      call xcbcst(H2D_BRNFLX)
+      call xcbcst(H2D_BRNPD)
+      call xcbcst(H2D_DFL)
+      call xcbcst(H2D_EVA)
+      call xcbcst(H2D_FICE)
+      call xcbcst(H2D_FMLTFZ)
+      call xcbcst(H2D_HICE)
+      call xcbcst(H2D_HMLTFZ)
+      call xcbcst(H2D_HSNW)
+      call xcbcst(H2D_IAGE)
+      call xcbcst(H2D_IDKEDT)
+      call xcbcst(H2D_LIP)
+      call xcbcst(H2D_MAXMLD)
+      call xcbcst(H2D_MLD)
+      call xcbcst(H2D_MLDU)
+      call xcbcst(H2D_MLDV)
+      call xcbcst(H2D_MLTS)
+      call xcbcst(H2D_MLTSMN)
+      call xcbcst(H2D_MLTSMX)
+      call xcbcst(H2D_MLTSSQ)
+      call xcbcst(H2D_MTKEUS)
+      call xcbcst(H2D_MTKENI)
+      call xcbcst(H2D_MTKEBF)
+      call xcbcst(H2D_MTKERS)
+      call xcbcst(H2D_MTKEPE)
+      call xcbcst(H2D_MTKEKE)
+      call xcbcst(H2D_MTY)
+      call xcbcst(H2D_MXLU)
+      call xcbcst(H2D_MXLV)
+      call xcbcst(H2D_NSF)
+      call xcbcst(H2D_PBOT)
+      call xcbcst(H2D_PSRF)
+      call xcbcst(H2D_RFIFLX)
+      call xcbcst(H2D_RNFFLX)
+      call xcbcst(H2D_SALFLX)
+      call xcbcst(H2D_SALRLX)
+      call xcbcst(H2D_SBOT)
+      call xcbcst(H2D_SEALV)
+      call xcbcst(H2D_SLVSQ)
+      call xcbcst(H2D_SFL)
+      call xcbcst(H2D_SOP)
+      call xcbcst(H2D_SIGMX)
+      call xcbcst(H2D_SSS)
+      call xcbcst(H2D_SSSSQ)
+      call xcbcst(H2D_SST)
+      call xcbcst(H2D_SSTSQ)
+      call xcbcst(H2D_SURFLX)
+      call xcbcst(H2D_SURRLX)
+      call xcbcst(H2D_SWA)
+      call xcbcst(H2D_TAUX)
+      call xcbcst(H2D_TAUY)
+      call xcbcst(H2D_TBOT)
+      call xcbcst(H2D_TICE)
+      call xcbcst(H2D_TSRF)
+      call xcbcst(H2D_UB)
+      call xcbcst(H2D_UICE)
+      call xcbcst(H2D_USTAR)
+      call xcbcst(H2D_USTAR3)
+      call xcbcst(H2D_VB)
+      call xcbcst(H2D_VICE)
+      call xcbcst(H2D_ZTX)
+      call xcbcst(LYR_BFSQ)
       call xcbcst(LYR_DIFDIA)
       call xcbcst(LYR_DIFINT)
       call xcbcst(LYR_DIFISO)
@@ -434,7 +499,7 @@ c
       call xcbcst(LYR_TKE)
       call xcbcst(LYR_GLS_PSI)
       call xcbcst(LYR_IDLAGE)
-      call xcbcst(LVL_DIAFLX)
+      call xcbcst(LVL_BFSQ)
       call xcbcst(LVL_DIFDIA)
       call xcbcst(LVL_DIFINT)
       call xcbcst(LVL_DIFISO)
@@ -477,6 +542,12 @@ c
       call xcbcst(MSC_MSFTD)
       call xcbcst(MSC_MSFLD)
       call xcbcst(MSC_VOLTR)
+      call xcbcst(MSC_MASSGS)
+      call xcbcst(MSC_VOLGS)
+      call xcbcst(MSC_SALNGA)
+      call xcbcst(MSC_TEMPGA)
+      call xcbcst(MSC_SSSGA)
+      call xcbcst(MSC_SSTGA)
       call xcbcst(GLB_AVEPERIO)
       call xcbcst(GLB_FILEFREQ)
       call xcbcst(GLB_COMPFLAG)
@@ -614,18 +685,30 @@ c
           if (runtyp.eq.'hybrid') then
 c 
 c --- ----- When runtyp equal 'hybrid' the ocean integration starts
-c --- ----- after first coupling interval. If integration start date
-c --- ----- differ in restart file and namelist, keep the latter and
-c --- ----- modify integration time corresponding to start date.
-            if (ny0rst.eq.nyear0.and.
-     .          nm0rst.eq.nmonth0.and.
-     .          nd0rst.eq.nday0) then
+c --- ----- after first coupling interval.
+            n=1
+            do while (n.lt.256.and.rstfnm(n:n).ne.' ')
+              n=n+1
+            enddo
+            n=n-1
+            read (rstfnm(n-18:n-15),'(i4)') nyear
+            read (rstfnm(n-13:n-12),'(i2)') nmonth
+            read (rstfnm(n-10:n-9 ),'(i2)') nday
+            if (nyear.eq.nyear0.and.
+     .          nmonth.eq.nmonth0.and.
+     .          nday.eq.nday0) then
+              nday0=nd0rst
+              nmonth0=nm0rst
+              nyear0=ny0rst
               nstep1=nday1*nstep_in_day+nstep0
             else
               time0=time
               nday1=0
               nstep1=nstep0
               nstep2=nstep1
+              nyear=nyear0
+              nmonth=nmonth0
+              nday=nday0
             endif
 c
           else

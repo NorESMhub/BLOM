@@ -119,7 +119,6 @@ cdiag write (lp,*) 'tmsmt1...'
       tmsmt1_time=gettime()
 c
 cdiag write (lp,*) 'advdif...'
-      call cmnfld(m,n,mm,nn,k1m,k1n)
       call difest(m,n,mm,nn,k1m,k1n)
       call eddtra(m,n,mm,nn,k1m,k1n)
       call advect(m,n,mm,nn,k1m,k1n)
@@ -185,6 +184,8 @@ c
 cdiag write (lp,*) 'tmsmt2...'
       call tmsmt2(m,n,mm,nn,k1m,k1n)
       tmsmt2_time=gettime()
+c
+      call cmnfld(m,n,mm,nn,k1m,k1n)
 c
       if (cnsvdi) call stdbud(7,m,mm)
 c

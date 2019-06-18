@@ -9,7 +9,6 @@ c
       use mod_swabs, only: swbgal,swbgfc,swamxd
 c
       use mod_nctools
-      use mod_dia, only : iotype
 c
       implicit none
 c
@@ -1121,7 +1120,6 @@ c --- --- Put single column back into 3-d fields.
             temp(i,j,kn)=ttem(k)
             saln(i,j,kn)=ssal(k)
             sigma(i,j,kn)=dens(k)
-            diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
             dp(i,j,kn)=delp(k)
 #ifdef TRC
             do nt=1,ntr 
@@ -1319,7 +1317,6 @@ c
         call chksummsk(temp,ip,2*kk,'temp')
         call chksummsk(saln,ip,2*kk,'saln')
         call chksummsk(sigma,ip,2*kk,'sigma')
-        call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(u,iu,2*kk,'u')
         call chksummsk(v,iv,2*kk,'v')
         call chksummsk(dpu,iu,2*kk,'dpu')

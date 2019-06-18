@@ -256,7 +256,6 @@ c --- --- Copy 1d arrays to 3d arrays
             temp(i,j,kn)=ttem(k)
             saln(i,j,kn)=ssal(k)
             sigma(i,j,kn)=dens(k)
-            diaflx(i,j,k)=diaflx(i,j,k)+delp(k)-dp(i,j,kn)
             dp(i,j,kn)=delp(k)
             p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
 #ifdef TRC
@@ -412,7 +411,6 @@ c
         call chksummsk(temp,ip,2*kk,'temp')
         call chksummsk(saln,ip,2*kk,'saln')
         call chksummsk(sigma,ip,2*kk,'sigma')
-        call chksummsk(diaflx,ip,kk,'diaflx')
         call chksummsk(u,iu,2*kk,'u')
         call chksummsk(v,iv,2*kk,'v')
 #ifdef TRC
