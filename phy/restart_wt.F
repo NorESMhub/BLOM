@@ -392,6 +392,8 @@ c --- write accumulated fields
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLTSMX(n)),ip)
           if (ACC_MLTSSQ(n)   .ne.0) call wrtrst('mltssq_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLTSSQ(n)),ip)
+          if (ACC_T20D(n)   .ne.0) call wrtrst('t20d_phy'//c2,
+     .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_T20D(n)),ip)
           if (ACC_ALB(n)   .ne.0) call wrtrst('alb_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_ALB(n)),ip)
           if (ACC_SWA(n)   .ne.0) call wrtrst('swa_phy'//c2,
@@ -986,6 +988,8 @@ c --- write accumulated fields
           if (ACC_MLTSMX(n)   .ne.0) call defvarrst('mltsmx_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_MLTSSQ(n)   .ne.0) call defvarrst('mltssq_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_T20D(n)   .ne.0) call defvarrst('t20d_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_ALB(n)   .ne.0) call defvarrst('alb_phy'//c2,
      .      trim(c5p)//' time')

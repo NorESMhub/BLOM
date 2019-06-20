@@ -229,7 +229,7 @@ set H2D_MAXMLD   =  '4,   4,   0'
 set H2D_MLD      =  '0,   4,   0'
 set H2D_MLDU     =  '0,   0,   0'
 set H2D_MLDV     =  '0,   0,   0'
-set H2D_MLTS     =  '0,   4,   0'
+set H2D_MLTS     =  '4,   4,   0'
 set H2D_MLTSMN   =  '0,   4,   0'
 set H2D_MLTSMX   =  '0,   4,   0'
 set H2D_MLTSSQ   =  '0,   4,   0'
@@ -262,6 +262,7 @@ set H2D_SSTSQ    =  '4,   4,   0'
 set H2D_SURFLX   =  '0,   4,   0'
 set H2D_SURRLX   =  '0,   4,   0'
 set H2D_SWA      =  '0,   4,   0'
+set H2D_T20D     =  '4,   4,   0'
 set H2D_TAUX     =  '0,   4,   0'
 set H2D_TAUY     =  '0,   4,   0'
 set H2D_TBOT     =  '0,   4,   0'
@@ -961,6 +962,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   SURFLX   - heat flux received by ocean [W m-2]
 !   SURRLX   - restoring heat flux received by ocean [W m-2]
 !   SWA      - short-wave heat flux [W m-2]
+!   T20D     - 20C isoterm depth [m]
 !   TAUX     - momentum flux received by ocean x-component [N m-2]
 !   TAUY     - momentum flux received by ocean y-component [N m-2]
 !   TBOT     - bottom temperature [degC]
@@ -1082,6 +1084,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
   H2D_SURFLX   = ${H2D_SURFLX},
   H2D_SURRLX   = ${H2D_SURRLX},
   H2D_SWA      = ${H2D_SWA},
+  H2D_T20D     = ${H2D_T20D},
   H2D_TAUX     = ${H2D_TAUX},
   H2D_TAUY     = ${H2D_TAUY},
   H2D_TBOT     = ${H2D_TBOT},

@@ -898,6 +898,8 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_MLTSMX(n)),ip,1,0.)
             if (ACC_MLTSSQ(n).ne.0) call ncread('mltssq_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_MLTSSQ(n)),ip,1,0.)
+            if (ACC_T20D(n).ne.0) call ncread('t20d_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_T20D(n)),ip,1,0.)
             if (ACC_ALB(n).ne.0) call ncread('alb_phy'//c2, 
      .        phyh2d(1-nbdy,1-nbdy,ACC_ALB(n)),ip,1,0.)
             if (ACC_SWA(n).ne.0) call ncread('swa_phy'//c2,

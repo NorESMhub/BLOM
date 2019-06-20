@@ -127,9 +127,9 @@ c --- Namelist
      . H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,
      . H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,
      . H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,
-     . H2D_SURRLX ,H2D_SWA    ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,
-     . H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,
-     . H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
+     . H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,
+     . H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,
+     . H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -161,10 +161,10 @@ c --- Namelist
      . ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,ACC_SBOT   ,ACC_SEALV  ,
      . ACC_SLVSQ  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,
      . ACC_SSSSQ  ,ACC_SST    ,ACC_SSTSQ  ,ACC_SURFLX ,ACC_SURRLX ,
-     . ACC_SWA    ,ACC_TAUX   ,ACC_TAUY   ,ACC_TBOT   ,ACC_TICE   ,
-     . ACC_TSRF   ,ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,ACC_USTAR  ,
-     . ACC_USTAR3 ,ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,ACC_ZTX    ,
-     . ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
+     . ACC_SWA    ,ACC_T20D   ,ACC_TAUX   ,ACC_TAUY   ,ACC_TBOT   ,
+     . ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,
+     . ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,
+     . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
      . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
      . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
      . ACC_UFLX   ,ACC_UTFLX  ,ACC_USFLX  ,ACC_UMFLTD ,ACC_UTFLTD ,
@@ -196,9 +196,9 @@ c --- Namelist
      . H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,
      . H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,
      . H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,
-     . H2D_SURRLX ,H2D_SWA    ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,
-     . H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,
-     . H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
+     . H2D_SURRLX ,H2D_SWA    ,H2d_T20D   ,H2D_TAUX   ,H2D_TAUY   ,
+     . H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,
+     . H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
      . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
      . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
@@ -434,6 +434,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_SST(n)      = H2D_SST(n)    + MSC_SSTGA(n)
         ACC_SSTSQ(n)    = H2D_SSTSQ(n)
         ACC_SWA(n)      = H2D_SWA(n)
+        ACC_T20D(n)     = H2D_T20D(n)
         ACC_TAUX(n)     = H2D_TAUX(n)
         ACC_TAUY(n)     = H2D_TAUY(n)
         ACC_TBOT(n)     = H2D_TBOT(n)
@@ -648,6 +649,8 @@ c --- - Determine position in buffer
          ACC_SSTSQ(n)=nphyh2d*min(1,ACC_SSTSQ(n)) 
         if (ACC_SWA(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SWA(n)=nphyh2d*min(1,ACC_SWA(n)) 
+        if (ACC_T20D(n).ne.0) nphyh2d=nphyh2d+1
+         ACC_T20D(n)=nphyh2d*min(1,ACC_T20D(n)) 
         if (ACC_TAUX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_TAUX(n)=nphyh2d*min(1,ACC_TAUX(n)) 
         if (ACC_TAUY(n).ne.0) nphyh2d=nphyh2d+1
@@ -925,7 +928,7 @@ c
 #  include "common_trc.h"
 #endif
 c
-      integer d,i,j,k,l,km,iogrp
+      integer d,i,j,k,l,km,kup,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
      .  ipsw,ipse,ipnw,ipne
 c     
@@ -935,8 +938,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
      .  dz,avdsg_p,dpvor_p,pv_p,dummy
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: 
-     .  dpml,sbot,tbot,dps,mlts
-      real dsig,q,zup,zlo,plo,dbup,dblo
+     .  dpml,sbot,tbot,dps,mlts,t20d
+      real dsig,q,zup,zlo,plo,dbup,dblo,tup,tlo
 c
       real p_alpha,rho
       external p_alpha,rho
@@ -1170,12 +1173,48 @@ c$OMP PARALLEL DO PRIVATE(l,i,k,km,zup,dbup,plo,zlo,dblo)
                   endif
                 endif
                 k=k+1
-                if (k.eq.kk+1) then
+                if (k.gt.kk) then
                   mlts(i,j)=z(i,j,kk+1)-z(i,j,1)
                   exit
                 endif
                 km=k+mm
               enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
+c
+      if (sum(ACC_T20D(1:nphy)).ne.0) then
+c$OMP PARALLEL DO PRIVATE(l,i,k,km,kup,zup,zlo,tup,tlo)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              k=1
+              km=k+mm
+              do 
+                if (dp(i,j,km).gt.onecm) then
+                  if (temp(i,j,km).gt.20.) then
+                    kup=k
+                  else
+                    exit
+                  endif
+                endif
+                k=k+1
+                km=k+mm
+                if (k.gt.kk) exit
+              enddo
+              if     (k.eq.1) then
+                t20d(i,j)=0.
+              elseif (k.gt.kk) then
+                t20d(i,j)=z(i,j,kk+1)
+              else
+                zup=z(i,j,kup)+.5*dz(i,j,kup)
+                zlo=z(i,j,k  )+.5*dz(i,j,k  )
+                tup=temp(i,j,kup+mm)
+                tlo=min(temp(i,j,km),tup-epsil)
+                t20d(i,j)=(zup*(tlo-20.)+zlo*(20.-tup))/(tlo-tup)
+              endif
             enddo
           enddo
         enddo
@@ -1344,6 +1383,9 @@ c --- mixed layer pressure thickness [g/cm/s^2]
 c
 c --- mixed layer thickness using "sigma-t" criterion [cm]
       call acch2d(ACC_MLTS,mlts,dummy,0,'p')
+c
+c --- 20C isoterm depth [cm]
+      call acch2d(ACC_T20D,t20d,dummy,0,'p')
 c
 c --- heat flux given by the ocean [W/m^2]
       call acch2d(ACC_SURFLX,surflx,dummy,0,'p')
@@ -2382,6 +2424,9 @@ c
       call wrth2d(ACC_MLTSSQ(iogrp),H2D_MLTSSQ(iogrp),rnacc*1e-4,
      .  0.,cmpflg,ip,'p','mltssq',
      . 'Mixed layer thickness squared defined by sigma t',' ','m')
+c
+      call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc*1e-2,
+     .  0.,cmpflg,ip,'p','t20d','20C isoterm depth',' ','m')
 c
       call wrth2d(ACC_BRNPD(iogrp),H2D_BRNPD(iogrp),rnacc/onem,
      .  0.,cmpflg,ip,'p','brnpd','Brine plume depth',' ','m')
@@ -4854,6 +4899,7 @@ c
       call inih2d(ACC_MLTSMN(iogrp),'p', huge)
       call inih2d(ACC_MLTSMX(iogrp),'p',-huge)
       call inih2d(ACC_MLTSSQ(iogrp),'p',0.)
+      call inih2d(ACC_T20D(iogrp),'p',0.)
       call inih2d(ACC_ALB(iogrp),'p',0.)
       call inih2d(ACC_SWA(iogrp),'p',0.)
       call inih2d(ACC_NSF(iogrp),'p',0.)
@@ -5934,6 +5980,9 @@ c
       call ncdefvar3d(H2D_MLTSSQ(iogrp),cmpflg,'p','mltssq',
      . 'Maximum mixed layer thickness squared defined by sigma t',' ',
      . 'm2',0)
+c
+      call ncdefvar3d(H2D_T20D(iogrp),cmpflg,'p','t20d',
+     . '20C isoterm depth',' ','m',0)
 c
       call ncdefvar3d(H2D_BRNPD(iogrp),cmpflg,'p','brnpd',
      . 'Brine plume depth',' ','m',0)
