@@ -22,6 +22,7 @@
       <value compset="_MICOM%ECO.*_BGC%BPRP">prognostic</value>
       <value compset="_MICOM%ECO.*_BGC%BDRD">diagnostic</value>
       <value compset="_DATM%CPLHIST.*_MICOM%ECO">diagnostic</value>
+      <value compset="20TR_DATM%IAF.*_MICOM%ECO">diagnostic</value>
     </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
@@ -85,7 +86,8 @@
     <default_value>ndep_CMIP6_1850.nc</default_value>
     <values>
       <value compset="HIST.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
-    </values>
+      <value compset="20TR.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+     </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
     <desc>File name for nitrogen deposition data. Requires module ecosys</desc>
@@ -97,6 +99,7 @@
     <default_value>FALSE</default_value>
     <values>
       <value compset="HIST.*_MICOM%ECO">TRUE</value>
+      <value compset="20TR.*_MICOM%ECO">TRUE</value>
     </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>
@@ -109,6 +112,7 @@
     <default_value>FALSE</default_value>
     <values>
       <value compset="HIST.*_MICOM%ECO">TRUE</value>
+      <value compset="20TR.*_MICOM%ECO">TRUE</value>
     </values>
     <group>build_component_micom</group>
     <file>env_build.xml</file>

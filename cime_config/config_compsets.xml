@@ -53,7 +53,7 @@
 
   <compset>
     <alias>NOIIAOC</alias>
-    <lname>2000_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+    <lname>20TR_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
@@ -71,4 +71,17 @@
     <lname>1850_DATM%CPLHIST_SLND_CICE_MICOM%ECO_DROF%CPLHIST_SGLC_SWAV</lname>
   </compset>
 
+
+  <entries>
+
+    <entry id="RUN_STARTDATE">
+      <values match="last">
+        <value  compset="20TR_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+      </values>
+    </entry>
+
+  </entries>
+
 </compsets>
+
+
