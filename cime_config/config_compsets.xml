@@ -81,7 +81,7 @@
 
     <entry id="RUN_STARTDATE">
       <values match="last">
-        <value  compset="20TR_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+        <value  compset="20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
       </values>
     </entry>
 
