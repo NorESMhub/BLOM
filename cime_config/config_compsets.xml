@@ -48,12 +48,17 @@
 
   <compset>
     <alias>NOIIA</alias>
-    <lname>2000_DATM%IAF_SLND_CICE_MICOM_DROF%IAF_SGLC_SWAV</lname>
+    <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_MICOM_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIAOC</alias>
-    <lname>20TR_DATM%IAF_SLND_CICE_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+    <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>NOIIAOC20TR</alias>
+    <lname>20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%IAF_SGLC_SWAV</lname>
   </compset>
 
   <compset>

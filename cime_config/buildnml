@@ -589,8 +589,8 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set CWMJ   = "        273,        273"
   set CWMWTH = "      30.e3,      30.e3"
 else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
-  set BACLIN = 800.
-  set BATROP = 16.
+  set BACLIN = 900.
+  set BATROP = 15.
   set MDV2HI = .15
   set MDV2LO = .15
   set VSC2HI = .15
@@ -598,12 +598,12 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set VSC4HI = 0.0625
   set VSC4LO = 0.0625
   set MDC2HI = 300.e4
-  set CWBDTS = 2.e-4
-  set CWBDLS = 50.
+  set CWBDTS = 0.75e-4
+  set CWBDLS = 25.
   set EDWMTH = "'step'"
-  set EGC    = 1.25
+  set EGC    = 0.85
   set EGMXDF = 1500.e4
-  set CE     = .12
+  set CE     = 1.0
   set GLB_NCFORMAT =  '1,   1,   1'
   set BGC_NCFORMAT  = '1,   1,   1'
 else
