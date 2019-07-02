@@ -63,12 +63,17 @@
 
   <compset>
     <alias>NOIIAJRA</alias>
-    <lname>2000_DATM%JRA_SLND_CICE_MICOM_DROF%JRA_SGLC_SWAV</lname>
+    <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_MICOM_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
     <alias>NOIIAJRAOC</alias>
-    <lname>2000_DATM%JRA_SLND_CICE_MICOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+  </compset>
+
+  <compset>
+    <alias>NOIIAJRAOC20TR</alias>
+    <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%JRA_SGLC_SWAV</lname>
   </compset>
 
   <compset>
@@ -82,6 +87,7 @@
     <entry id="RUN_STARTDATE">
       <values match="last">
         <value  compset="20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%IAF_SGLC_SWAV">1700-01-01</value>
+        <value  compset="20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_MICOM%ECO_DROF%JRA_SGLC_SWAV">1653-01-01</value>
       </values>
     </entry>
 
