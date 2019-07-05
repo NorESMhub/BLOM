@@ -82,11 +82,13 @@
 
   <entry id="MICOM_N_DEP_FILE">
     <type>char</type>
-    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,UNSET</valid_values>
+    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,ndep_tnx0.25v4_185001-201412.nc,UNSET</valid_values>
     <default_value>ndep_CMIP6_1850.nc</default_value>
     <values>
       <value compset="HIST.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
       <value compset="20TR.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+      <value compset="HIST.*_MICOM%ECO" grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
+      <value compset="20TR.*_MICOM%ECO" grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
      </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
