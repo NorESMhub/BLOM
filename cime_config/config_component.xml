@@ -82,13 +82,22 @@
 
   <entry id="MICOM_N_DEP_FILE">
     <type>char</type>
-    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx1v4_185001-201412.nc,ndep_tnx0.25v4_185001-201412.nc,UNSET</valid_values>
+    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx2v1_185001-201412.nc,ndep_tnx1v4_185001-201412.nc,ndep_tnx0.25v4_185001-201412.nc,ndep_tnx1v4_201501-210012-ssp119.nc,ndep_tnx1v4_201501-210012-ssp126.nc,ndep_tnx1v4_201501-210012-ssp245.nc,ndep_tnx1v4_201501-210012-ssp370.nc,ndep_tnx1v4_201501-210012-ssp434.nc,ndep_tnx1v4_201501-210012-ssp460.nc,ndep_tnx1v4_201501-210012-ssp534os.nc,ndep_tnx1v4_201501-210012-ssp585.nc,UNSET</valid_values>
     <default_value>ndep_CMIP6_1850.nc</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
-      <value compset="20TR_DATM.*_MICOM%ECO"         grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO" grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
-      <value compset="20TR_DATM.*_MICOM%ECO"         grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
+      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO"     grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO"     grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
+      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx2v1">ndep_tnx2v1_185001-201412.nc</value>
+      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
+      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
+      <value compset="SSP119_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp119.nc</value>
+      <value compset="SSP126_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp126.nc</value>
+      <value compset="SSP245_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp245.nc</value>
+      <value compset="SSP370_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp370.nc</value>
+      <value compset="SSP434_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp434.nc</value>
+      <value compset="SSP460_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp460.nc</value>
+      <value compset="SSP534OS_CAM60%NORESM.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp534os.nc</value>
+      <value compset="SSP585_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp585.nc</value>
      </values>
     <group>run_component_micom</group>
     <file>env_run.xml</file>
