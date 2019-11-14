@@ -1,7 +1,9 @@
       subroutine cmnfld_bfsqf(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- Compute filtered buoyancy frequency squared.
+c --- Compute buoyancy frequency squared (BFSQ) on layer interfaces and
+c --- representative of the layer itself. Also compute a filtered BFSQ
+c --- on interfaces.
 c --- ------------------------------------------------------------------
 c
       use mod_xc
@@ -14,72 +16,86 @@ c
 c
 c --- Parameters:
 c ---   sls0   - minimum smoothing length scale in the computation of
-c ---            buoyancy frequency squared [g/cm/s**2].
+c ---            filtered BFSQ [g/cm/s**2].
 c ---   slsmfq - factor to be multiplied with the mixed layer depth to
 c ---            find the smoothing length scale at the base of the
-c ---            mixed layer in the computation of buoyancy frequency
-c ---            squared [].
+c ---            mixed layer in the computation of filtered BFSQ [].
 c ---   slsels - factor to be multiplied with the mixed layer depth to
 c ---            find the e-folding length scale of the smoothing length
-c ---            scale in the computation of buoyancy frequency squared
-c ---            [].
-c ---   bfsqmn - minimum value of buoyancy frequency squared used in the
-c ---            computation of neutral slope [s-2].
+c ---            scale in the computation of filtered BFSQ [].
+c ---   bfsqmn - minimum value of BFSQ used in the computation of
+c ---            neutral slope [s-2].
 c
       real sls0,slsmfq,slsels,bfsqmn
       parameter (sls0=10.*98060.,slsmfq=2.,slsels=2.,bfsqmn=1.e-7)
 c
       real, dimension(kdm) :: delp,bfsq,sls2,atd,btd,ctd,rtd,gam
       real rho0,pml,q,pup,tup,sup,plo,tlo,slo,bei,pm,bfsqm
-      integer i,j,k,l,kn,kfpl,kintr,kmax
+      integer i,j,k,l,km,kfpl,kintr,kmax
 c
       real rho
       external rho
 c
 c --- ------------------------------------------------------------------
-c --- The buoyancy frequency squared is esitmated locally at each layer
-c --- interface and smoothed in the vertical direction by solving a
-c --- diffusion equation. At the mixed layer base the diffusion length
-c --- scale is set to the maximum of sls0 and mixed layer depth (MLD)
-c --- times slsmfq. Below the mixed layer, the diffusion length scale
+c --- The BFSQ is estimated locally at layer interfaces. The filtered
+c --- BFSQ is smoothed in the vertical direction by solving a diffusion
+c --- equation. At the mixed layer base the diffusion length scale is
+c --- set to the maximum of sls0 and mixed layer depth (MLD) times
+c --- slsmfq. Below the mixed layer, the diffusion length scale
 c --- approaches sls0 with an e-folding length scale of MLD times
 c --- slsels.
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+  l,i,kfpl,k,pml,delp,bfsq,q,sls2,pup,tup,sup,kn,plo,tlo,slo,ctd,
+c$OMP+  l,i,kfpl,k,pml,delp,bfsq,q,sls2,pup,tup,sup,km,plo,tlo,slo,ctd,
 c$OMP+  btd,rtd,atd,bei,gam)
       do j=-1,jj+2
         do l=1,isp(j)
         do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
 c
-          kfpl=kfpla(i,j,n)
+c --- --- Compute BFSQ in the mixed layer.
+          bfsqi(i,j,1)=
+     .      .5*g*g*(rho(p(i,j,2),temp(i,j,2+mm),saln(i,j,2+mm))
+     .             -rho(p(i,j,2),temp(i,j,1+mm),saln(i,j,1+mm)))
+     .      /(dp(i,j,1+mm)+dp(i,j,2+mm))
+          bfsqi(i,j,2)=bfsqi(i,j,1)
+          bfsql(i,j,1)=bfsqi(i,j,1)
+          bfsql(i,j,2)=bfsqi(i,j,1)
+c
+          kfpl=kfpla(i,j,m)
 c
           if (kfpl.gt.kk) then
 c
-c --- ----- If the mixed layer extends to the bottom, set the buoyancy
-c --- ----- frequency to a minimum value.
+c --- ----- If the mixed layer extends to the bottom, propagate the
+c --- ----- interface and layer BFSQ of the mixed layer downwards while
+c --- ----- the filtered BFSQ is set to a minimum value.
+            do k=3,kk
+              bfsqi(i,j,k)=bfsqi(i,j,1)
+              bfsql(i,j,k)=bfsqi(i,j,1)
+            enddo
             do k=1,kk
               bfsqf(i,j,k)=bfsqmn
             enddo
 c
           else
 c
-c --- ----- At layer interfaces, compute buoyancy frequency squared and
-c --- ----- length scale for the subsequent smoothing.
+c --- ----- At layer interfaces, compute BFSQ and length scale for the
+c --- ----- subsequent smoothing.
             pml=max(.5*(p(i,j,3)+p(i,j,1)),
      .              .5*(3.*p(i,j,3)-p(i,j,kfpl+1)))
             delp(kfpl-1)=pml-p(i,j,1)
+            bfsqi(i,j,kfpl-1)=bfsqi(i,j,2)
             bfsq(kfpl-1)=bfsqmn
             q=max(sls0,delp(kfpl-1)*slsmfq)
             sls2(kfpl-1)=q*q
             pup=pml
-            tup=temp(i,j,2+nn)
-            sup=saln(i,j,2+nn)
+            tup=temp(i,j,2+mm)
+            sup=saln(i,j,2+mm)
             do k=kfpl,kk
-              kn=k+nn
+              km=k+mm
               if (p(i,j,kk+1)-p(i,j,k).lt.epsil) then
                 delp(k)=onemm
+                bfsqi(i,j,k)=bfsqi(i,j,k-1)
                 bfsq(k)=bfsqmn
                 q=exp(-(p(i,j,kk+1)-pml)/(slsels*delp(kfpl-1)))
                 q=max(sls0,delp(kfpl-1)*slsmfq*q+sls0*(1.-q))
@@ -90,12 +106,16 @@ c --- ----- length scale for the subsequent smoothing.
                 else
                   plo=.5*(p(i,j,k)+p(i,j,k+1))
                 endif
-                tlo=temp(i,j,kn)
-                slo=saln(i,j,kn)
+                tlo=temp(i,j,km)
+                slo=saln(i,j,km)
                 delp(k)=max(onemm,plo-pup)
-                bfsq(k)=max(bfsqmn,
-     .                      g*g*max(0.,rho(p(i,j,k),tlo,slo)
-     .                                -rho(p(i,j,k),tup,sup))/delp(k))
+                bfsqi(i,j,k)=g*g*(rho(p(i,j,k),tlo,slo)
+     .                           -rho(p(i,j,k),tup,sup))/delp(k)
+                bfsq(k)=max(bfsqmn,bfsqi(i,j,k))
+                bfsqi(i,j,k)=bfsqi(i,j,k)*delp(k)/max(onem,delp(k))
+                if (p(i,j,kk+1)-p(i,j,k).lt.onem) then
+                  bfsqi(i,j,k)=bfsqi(i,j,k-1)
+                endif
                 q=exp(-(p(i,j,k)-pml)/(slsels*delp(kfpl-1)))
                 q=max(sls0,delp(kfpl-1)*slsmfq*q+sls0*(1.-q))
                 sls2(k)=q*q
@@ -105,8 +125,20 @@ c --- ----- length scale for the subsequent smoothing.
               endif
             enddo
 c
-c --- ----- Compute the coefficients for the tridiagonal set of
-c --- ----- equations arising from the implicit backward discretization.
+c --- ----- Compute the layer BFSQ as the arithmetic mean of the layer
+c --- ----- interface BFSQ.
+            do k=kfpl,kk-1
+              bfsql(i,j,k)=.5*(bfsqi(i,j,k)+bfsqi(i,j,k+1))
+            enddo
+            bfsql(i,j,kk)=bfsqi(i,j,kk)
+            do k=3,kfpl-1
+              bfsqi(i,j,k)=bfsqi(i,j,kfpl)
+              bfsql(i,j,k)=bfsql(i,j,kfpl)
+            enddo
+c
+c --- ----- For the filtered BFSQ, compute the coefficients for the
+c --- ----- tridiagonal set of equations arising from the implicit
+c --- ----- backward discretization.
             k=kfpl-1
             ctd(k)=-2.*sls2(k  )/(delp(k)*(delp(k  )+delp(k+1)))
             btd(k)=1.-ctd(k)
@@ -148,6 +180,8 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'cmnfld_bfsqf:'
         endif
+        call chksummsk(bfsqi,ip,kk,'bfsqi')
+        call chksummsk(bfsql,ip,kk,'bfsql')
         call chksummsk(bfsqf,ip,kk,'bfsqf')
       endif
 c

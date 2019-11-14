@@ -181,7 +181,6 @@ c
             pgfy(i,j,k+kk)=huge
             pgfxo(i,j,k)=huge
             pgfyo(i,j,k)=huge
-            diaflx(i,j,k)=0.
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,k   ,nt)=huge

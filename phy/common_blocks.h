@@ -23,8 +23,7 @@ c
      .  temmin,        ! minimum temperature allowed in an isopycnic layer
      .  dpuold,dpvold, ! layer thickness at u- and v-points at old time level
      .  told,          ! temperature at old time level
-     .  sold,          ! salinity at old time level
-     .  diaflx         ! time integral of diapycnal flux
+     .  sold           ! salinity at old time level
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  corioq,        ! coriolis parameter at q-point
@@ -34,7 +33,7 @@ c
 c
       common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
      .                p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
-     .                diaflx,corioq,coriop,betafp,potvor
+     .                corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  uflx,vflx,     ! horizontal mass fluxes
@@ -118,7 +117,9 @@ c
      .                depths
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  bfsqf,         ! filtered buoyancy frequency squared
+     .  bfsqi,         ! interface buoyancy frequency squared
+     .  bfsql,         ! layer buoyancy frequency squared
+     .  bfsqf,         ! filtered interface buoyancy frequency squared
      .  nslpx,nslpy,   ! local neutral slope
      .  nnslpx,nnslpy, ! local neutral slope times buoyancy frequency
      .  difint,        ! layer interface diffusivity
@@ -162,12 +163,13 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
-      common /micom4/ bfsqf,nslpx,nslpy,nnslpx,nnslpy,difint,difiso,
-     .                difdia,uml,vml,umlres,vmlres,uja,ujb,via,vib,
-     .                difmxp,difmxq,difwgt,sealv,surflx,surrlx,sswflx,
-     .                salflx,brnflx,salrlx,taux,tauy,ustar,ustarb,
-     .                idkedt,ustar3,buoyfl,mtkeus,mtkeni,mtkebf,mtkers,
-     .                mtkepe,mtkeke,twedon,pbrnda,kfpla
+      common /micom4/ bfsqi,bfsql,bfsqf,nslpx,nslpy,nnslpx,nnslpy,
+     .                difint,difiso,difdia,uml,vml,umlres,vmlres,
+     .                uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
+     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,
+     .                taux,tauy,ustar,ustarb,idkedt,ustar3,buoyfl,
+     .                mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
+     .                twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep

@@ -289,6 +289,9 @@ c --- halo region adjacent to the arctic grid intersection
         enddo
       endif
 c
+      m=3-n
+      call cmnfld(m,n,(m-1)*kk,(n-1)*kk,1+(m-1)*kk,1+(n-1)*kk)
+c
 c --- print seconds elapsed since last call to system_clock (Time 0)
       if (mnproc.eq.1) then
         write (lp,'(f12.4,a,i8)')

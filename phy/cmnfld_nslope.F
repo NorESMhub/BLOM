@@ -14,7 +14,7 @@ c
 #include "common_blocks.h"
 c
       real rho0,pm,rho_x,phi_x,bfsqm,rho_y,phi_y
-      integer i,j,k,l,kn,kintr,kmax,knnsl
+      integer i,j,k,l,km,kintr,kmax,knnsl
 c
       real p_alpha,rho
       external p_alpha,rho
@@ -23,18 +23,18 @@ c --- ------------------------------------------------------------------
 c --- Compute geopotential at layer interfaces.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
       do j=-1,jj+2
         do k=kk,1,-1
-          kn=k+nn
+          km=k+mm
           do l=1,isp(j)
           do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
-            if (dp(i,j,kn).lt.epsil) then
+            if (dp(i,j,km).lt.epsil) then
               phi(i,j,k)=phi(i,j,k+1)
             else
               phi(i,j,k)=phi(i,j,k+1)
      .                  -p_alpha(p(i,j,k+1),p(i,j,k),
-     .                           temp(i,j,kn),saln(i,j,kn))
+     .                           temp(i,j,km),saln(i,j,km))
             endif
           enddo
           enddo
@@ -54,7 +54,7 @@ c
       rho0=1./alpha0
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+  l,i,k,kmax,kn,kintr,knnsl,pm,rho_x,phi_x,bfsqm)
+c$OMP+  l,i,k,kmax,km,kintr,knnsl,pm,rho_x,phi_x,bfsqm)
       do j=-1,jj+2
         do l=1,isu(j)
         do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
@@ -65,19 +65,19 @@ c --- --- Set the x-component of the slope vector to zero initially.
             nnslpx(i,j,k)=0.
           enddo
 c
-          if     (kfpla(i-1,j,n).le.kk.or.kfpla(i,j,n).le.kk) then
+          if     (kfpla(i-1,j,m).le.kk.or.kfpla(i,j,m).le.kk) then
 c
 c --- ----- Index of last layer containing mass at either of the scalar
 c --- ----- points adjacent to the velocity point.
             kmax=1
             do k=3,kk
-              kn=k+nn
-              if (dp(i-1,j,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
+              km=k+mm
+              if (dp(i-1,j,km).gt.epsil.or.dp(i,j,km).gt.epsil) kmax=k
             enddo
 c
 c --- ----- The first interior interface where the x-component of the
 c --- ----- slope vector is estimated is at index kintr+1.
-            kintr=max(kfpla(i-1,j,n),kfpla(i,j,n))
+            kintr=max(kfpla(i-1,j,m),kfpla(i,j,m))
 c
 c --- ----- Index of last interface where slope vector times
 c --- ----- Brunt-Vaisala frequency is computed.
@@ -86,8 +86,8 @@ c
 c --- ----- Compute the x-component of the slope vector at the mixed
 c --- ----- layer base.
             pm=.5*(p(i-1,j,3)+p(i,j,3))
-            rho_x=rho(pm,temp(i  ,j,2+nn),saln(i  ,j,2+nn))
-     .           -rho(pm,temp(i-1,j,2+nn),saln(i-1,j,2+nn))
+            rho_x=rho(pm,temp(i  ,j,2+mm),saln(i  ,j,2+mm))
+     .           -rho(pm,temp(i-1,j,2+mm),saln(i-1,j,2+mm))
             phi_x=phi(i,j,3)-phi(i-1,j,3)
             bfsqm=.5*(bfsqf(i-1,j,3)+bfsqf(i,j,3))
             nslpx(i,j,3)=(g*rho_x/(rho0*bfsqm)+phi_x/g)*scuxi(i,j)
@@ -100,12 +100,12 @@ c
 c --- ----- Compute the x-component of the slope vector at interior
 c --- ----- interfaces.
             do k=kintr+1,kmax
-              kn=k+nn
+              km=k+mm
               pm=.5*(p(i-1,j,k)+p(i,j,k))
-              rho_x=.5*(rho(pm,temp(i  ,j,kn-1),saln(i  ,j,kn-1))
-     .                 -rho(pm,temp(i-1,j,kn-1),saln(i-1,j,kn-1))
-     .                 +rho(pm,temp(i  ,j,kn  ),saln(i  ,j,kn  ))
-     .                 -rho(pm,temp(i-1,j,kn  ),saln(i-1,j,kn  )))
+              rho_x=.5*(rho(pm,temp(i  ,j,km-1),saln(i  ,j,km-1))
+     .                 -rho(pm,temp(i-1,j,km-1),saln(i-1,j,km-1))
+     .                 +rho(pm,temp(i  ,j,km  ),saln(i  ,j,km  ))
+     .                 -rho(pm,temp(i-1,j,km  ),saln(i-1,j,km  )))
               phi_x=phi(i,j,k)-phi(i-1,j,k)
               bfsqm=.5*(bfsqf(i-1,j,k)+bfsqf(i,j,k))
               nslpx(i,j,k)=(g*rho_x/(rho0*bfsqm)+phi_x/g)*scuxi(i,j)
@@ -138,7 +138,7 @@ c
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+  l,i,k,kmax,kn,kintr,knnsl,pm,rho_y,phi_y,bfsqm)
+c$OMP+  l,i,k,kmax,km,kintr,knnsl,pm,rho_y,phi_y,bfsqm)
       do j=0,jj+2
         do l=1,isv(j)
         do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
@@ -149,19 +149,19 @@ c --- --- Set the y-component of the slope vector to zero initially.
             nnslpy(i,j,k)=0.
           enddo
 c
-          if     (kfpla(i,j-1,n).le.kk.or.kfpla(i,j,n).le.kk) then
+          if     (kfpla(i,j-1,m).le.kk.or.kfpla(i,j,m).le.kk) then
 c
 c --- ----- Index of last layer containing mass at either of the scalar
 c --- ----- points adjacent to the velocity point.
             kmax=1
             do k=3,kk
-              kn=k+nn
-              if (dp(i,j-1,kn).gt.epsil.or.dp(i,j,kn).gt.epsil) kmax=k
+              km=k+mm
+              if (dp(i,j-1,km).gt.epsil.or.dp(i,j,km).gt.epsil) kmax=k
             enddo
 c
 c --- ----- The first interior interface where the y-component of the
 c --- ----- slope vector is estimated is at index kintr+1.
-            kintr=max(kfpla(i,j-1,n),kfpla(i,j,n))
+            kintr=max(kfpla(i,j-1,m),kfpla(i,j,m))
 c
 c --- ----- Index of last interface where slope vector times
 c --- ----- Brunt-Vaisala frequency is computed.
@@ -170,8 +170,8 @@ c
 c --- ----- Compute the y-component of the slope vector at the mixed
 c --- ----- layer base.
             pm=.5*(p(i,j-1,3)+p(i,j,3))
-            rho_y=rho(pm,temp(i,j  ,2+nn),saln(i,j  ,2+nn))
-     .           -rho(pm,temp(i,j-1,2+nn),saln(i,j-1,2+nn))
+            rho_y=rho(pm,temp(i,j  ,2+mm),saln(i,j  ,2+mm))
+     .           -rho(pm,temp(i,j-1,2+mm),saln(i,j-1,2+mm))
             phi_y=phi(i,j,3)-phi(i,j-1,3)
             bfsqm=.5*(bfsqf(i,j-1,3)+bfsqf(i,j,3))
             nslpy(i,j,3)=(g*rho_y/(rho0*bfsqm)+phi_y/g)*scvyi(i,j)
@@ -184,12 +184,12 @@ c
 c --- ----- Compute the y-component of the slope vector at interior
 c --- ----- interfaces.
             do k=kintr+1,kmax
-              kn=k+nn
+              km=k+mm
               pm=.5*(p(i,j-1,k)+p(i,j,k))
-              rho_y=.5*(rho(pm,temp(i,j  ,kn-1),saln(i,j  ,kn-1))
-     .                 -rho(pm,temp(i,j-1,kn-1),saln(i,j-1,kn-1))
-     .                 +rho(pm,temp(i,j  ,kn  ),saln(i,j  ,kn  ))
-     .                 -rho(pm,temp(i,j-1,kn  ),saln(i,j-1,kn  )))
+              rho_y=.5*(rho(pm,temp(i,j  ,km-1),saln(i,j  ,km-1))
+     .                 -rho(pm,temp(i,j-1,km-1),saln(i,j-1,km-1))
+     .                 +rho(pm,temp(i,j  ,km  ),saln(i,j  ,km  ))
+     .                 -rho(pm,temp(i,j-1,km  ),saln(i,j-1,km  )))
               phi_y=phi(i,j,k)-phi(i,j-1,k)
               bfsqm=.5*(bfsqf(i,j-1,k)+bfsqf(i,j,k))
               nslpy(i,j,k)=(g*rho_y/(rho0*bfsqm)+phi_y/g)*scvyi(i,j)

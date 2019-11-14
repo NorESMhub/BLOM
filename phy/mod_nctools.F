@@ -2510,7 +2510,11 @@ c
 c --- Put file back to define mode
 
       if (mnproc.eq.1 ) then
-        write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
+        if (sfac.gt.0.) then
+          write(lp,*) trim(vnm),(fldmin*sfac+offs),(fldmax*sfac+offs)
+        else
+          write(lp,*) trim(vnm),(fldmax*sfac+offs),(fldmin*sfac+offs)
+        endif
       endif
       end subroutine ncwrtr
 
@@ -3313,8 +3317,8 @@ c --- Check output format
      .          nf_double,clen,fillr8))
       else
         write (lp,*) 'unknown output format!'
-        call xchalt('(wrtsrf)')
-               stop '(wrtsrf)'
+        call xchalt('(ncdefvar3d)')
+               stop '(ncdefvar3d)'
       endif
 #endif
       elseif( IO_TYPE .EQ. 0) then
@@ -3350,8 +3354,8 @@ c --- Check output format
 
       else
         write (lp,*) 'unknown output format!'
-        call xchalt('(wrtsrf)')
-               stop '(wrtsrf)'
+        call xchalt('(ncdefvar3d)')
+               stop '(ncdefvar3d)'
       endif
 
       endif

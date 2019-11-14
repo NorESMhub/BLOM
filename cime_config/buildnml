@@ -204,319 +204,338 @@ else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
 endif
-# set DAIPHY defaults 
-set GLB_FNAMETAG = "'hd','hm'"  
-set GLB_AVEPERIO =  '1,  30'
-set GLB_FILEFREQ = '30,  30'
-set GLB_COMPFLAG =  '0,   0'
-set GLB_NCFORMAT =  '0,   0'
-set SRF_ABSWND   =  '0,   4'
-set SRF_ALB      =  '0,   0'
-set SRF_BRNFLX   =  '0,   4'
-set SRF_BRNPD    =  '0,   4'
-set SRF_DFL      =  '0,   0'
-set SRF_EVA      =  '0,   4'
-set SRF_FICE     =  '0,   4'
-set SRF_FMLTFZ   =  '0,   4'
-set SRF_HICE     =  '0,   0'
-set SRF_HMLTFZ   =  '0,   4'
-set SRF_HSNW     =  '0,   0'
-set SRF_IAGE     =  '0,   0'
-set SRF_IDKEDT   =  '0,   4'
-set SRF_LIP      =  '0,   4'
-set SRF_MAXMLD   =  '4,   4'
-set SRF_MLD      =  '0,   4'
-set SRF_MLDU     =  '0,   0'
-set SRF_MLDV     =  '0,   0'
-set SRF_MTKEUS   =  '0,   4'
-set SRF_MTKENI   =  '0,   4'
-set SRF_MTKEBF   =  '0,   4'
-set SRF_MTKERS   =  '0,   4'
-set SRF_MTKEPE   =  '0,   4'
-set SRF_MTKEKE   =  '0,   4'
-set SRF_MTY      =  '0,   4'
-set SRF_MXLU     =  '0,   4'
-set SRF_MXLV     =  '0,   4'
-set SRF_NSF      =  '0,   4'
-set SRF_RFIFLX   =  '0,   4'
-set SRF_RNFFLX   =  '0,   4'
-set SRF_SALFLX   =  '0,   4'
-set SRF_SALRLX   =  '0,   4'
-set SRF_SEALV    =  '4,   4'
-set SRF_SFL      =  '0,   4'
-set SRF_SOP      =  '0,   4'
-set SRF_SIGMX    =  '0,   4'
-set SRF_SSS      =  '0,   4'
-set SRF_SST      =  '4,   4'
-set SRF_SURFLX   =  '0,   4'
-set SRF_SURRLX   =  '0,   4'
-set SRF_SWA      =  '0,   4'
-set SRF_TAUX     =  '0,   4'
-set SRF_TAUY     =  '0,   4'
-set SRF_TICE     =  '0,   0'
-set SRF_TSRF     =  '0,   0'
-set SRF_UB       =  '0,   4'
-set SRF_UICE     =  '0,   0'
-set SRF_USTAR    =  '0,   4'
-set SRF_USTAR3   =  '0,   4'
-set SRF_VB       =  '0,   4'
-set SRF_VICE     =  '0,   0'
-set SRF_ZTX      =  '0,   4'
-set LYR_DIAFLX   =  '0,   0'
-set LYR_DIFDIA   =  '0,   4'
-set LYR_DIFINT   =  '0,   4'
-set LYR_DIFISO   =  '0,   4'
-set LYR_DP       =  '0,   4'
-set LYR_DZ       =  '0,   4'
-set LYR_SALN     =  '0,   4'
-set LYR_TEMP     =  '0,   4'
-set LYR_TRC      =  '0,   0'
-set LYR_UFLX     =  '0,   4'
-set LYR_UTFLX    =  '0,   4'
-set LYR_USFLX    =  '0,   4'
-set LYR_UMFLTD   =  '0,   0'
-set LYR_UTFLTD   =  '0,   0'
-set LYR_UTFLLD   =  '0,   0'
-set LYR_USFLTD   =  '0,   0'
-set LYR_USFLLD   =  '0,   0'
-set LYR_UVEL     =  '0,   4'
-set LYR_VFLX     =  '0,   4'
-set LYR_VTFLX    =  '0,   4'
-set LYR_VSFLX    =  '0,   4'
-set LYR_VMFLTD   =  '0,   0'
-set LYR_VTFLTD   =  '0,   0'
-set LYR_VTFLLD   =  '0,   0'
-set LYR_VSFLTD   =  '0,   0'
-set LYR_VSFLLD   =  '0,   0'
-set LYR_VVEL     =  '0,   4'
-set LYR_WFLX     =  '0,   4'
-set LYR_WFLX2    =  '0,   4'
-set LYR_PV       =  '0,   4'
-set LYR_TKE      =  '0,   4'
-set LYR_GLS_PSI  =  '0,   4'
-set LYR_IDLAGE   =  '0,   4'
-set LVL_DIAFLX   =  '0,   0'
-set LVL_DIFDIA   =  '0,   4'
-set LVL_DIFINT   =  '0,   4'
-set LVL_DIFISO   =  '0,   4'
-set LVL_DZ       =  '0,   4'
-set LVL_SALN     =  '0,   4'
-set LVL_TEMP     =  '0,   4'
-set LVL_TRC      =  '0,   0'
-set LVL_UFLX     =  '0,   4'
-set LVL_UTFLX    =  '0,   4'
-set LVL_USFLX    =  '0,   4'
-set LVL_UMFLTD   =  '0,   0'
-set LVL_UTFLTD   =  '0,   0'
-set LVL_UTFLLD   =  '0,   0'
-set LVL_USFLTD   =  '0,   0'
-set LVL_USFLLD   =  '0,   0'
-set LVL_UVEL     =  '0,   4'
-set LVL_VFLX     =  '0,   4'
-set LVL_VTFLX    =  '0,   4'
-set LVL_VSFLX    =  '0,   4'
-set LVL_VMFLTD   =  '0,   0'
-set LVL_VTFLTD   =  '0,   0'
-set LVL_VTFLLD   =  '0,   0'
-set LVL_VSFLTD   =  '0,   0'
-set LVL_VSFLLD   =  '0,   0'
-set LVL_VVEL     =  '0,   4'
-set LVL_WFLX     =  '0,   4'
-set LVL_WFLX2    =  '0,   4'
-set LVL_PV       =  '0,   4'
-set LVL_TKE      =  '0,   4'
-set LVL_GLS_PSI  =  '0,   4'
-set LVL_IDLAGE   =  '0,   4'
-set MSC_MMFLXL   =  '0,   4'
-set MSC_MMFLXD   =  '0,   4'
-set MSC_MMFTDL   =  '0,   4'
-set MSC_MMFTDD   =  '0,   4'
-set MSC_MHFLX    =  '0,   4'
-set MSC_MHFTD    =  '0,   4'
-set MSC_MHFLD    =  '0,   4'
-set MSC_MSFLX    =  '0,   4'
-set MSC_MSFTD    =  '0,   4'
-set MSC_MSFLD    =  '0,   4'
-set MSC_VOLTR    =  '0,   4'
+# set DIAPHY defaults 
+set GLB_FNAMETAG = "'hd','hm','hy'"  
+set GLB_AVEPERIO =  '1,  30, 365'
+set GLB_FILEFREQ = '30,  30, 365'
+set GLB_COMPFLAG =  '0,   0,   0'
+set GLB_NCFORMAT =  '0,   0,   0'
+set H2D_ABSWND   =  '0,   4,   0'
+set H2D_ALB      =  '0,   0,   0'
+set H2D_BTMSTR   =  '0,   4,   0'
+set H2D_BRNFLX   =  '0,   4,   0'
+set H2D_BRNPD    =  '0,   4,   0'
+set H2D_DFL      =  '0,   0,   0'
+set H2D_EVA      =  '0,   4,   0'
+set H2D_FICE     =  '0,   4,   0'
+set H2D_FMLTFZ   =  '0,   4,   0'
+set H2D_HICE     =  '0,   0,   0'
+set H2D_HMLTFZ   =  '0,   4,   0'
+set H2D_HSNW     =  '0,   0,   0'
+set H2D_IAGE     =  '0,   0,   0'
+set H2D_IDKEDT   =  '0,   4,   0'
+set H2D_LIP      =  '0,   4,   0'
+set H2D_MAXMLD   =  '4,   4,   0'
+set H2D_MLD      =  '0,   4,   0'
+set H2D_MLDU     =  '0,   0,   0'
+set H2D_MLDV     =  '0,   0,   0'
+set H2D_MLTS     =  '4,   4,   0'
+set H2D_MLTSMN   =  '0,   4,   0'
+set H2D_MLTSMX   =  '0,   4,   0'
+set H2D_MLTSSQ   =  '0,   4,   0'
+set H2D_MTKEUS   =  '0,   4,   0'
+set H2D_MTKENI   =  '0,   4,   0'
+set H2D_MTKEBF   =  '0,   4,   0'
+set H2D_MTKERS   =  '0,   4,   0'
+set H2D_MTKEPE   =  '0,   4,   0'
+set H2D_MTKEKE   =  '0,   4,   0'
+set H2D_MTY      =  '0,   4,   0'
+set H2D_MXLU     =  '0,   4,   0'
+set H2D_MXLV     =  '0,   4,   0'
+set H2D_NSF      =  '0,   4,   0'
+set H2D_PBOT     =  '0,   4,   0'
+set H2D_PSRF     =  '0,   4,   0'
+set H2D_RFIFLX   =  '0,   4,   0'
+set H2D_RNFFLX   =  '0,   4,   0'
+set H2D_SALFLX   =  '0,   4,   0'
+set H2D_SALRLX   =  '0,   4,   0'
+set H2D_SBOT     =  '0,   4,   0'
+set H2D_SEALV    =  '4,   4,   0'
+set H2D_SLVSQ    =  '0,   4,   0'
+set H2D_SFL      =  '0,   4,   0'
+set H2D_SOP      =  '0,   4,   0'
+set H2D_SIGMX    =  '0,   4,   0'
+set H2D_SSS      =  '4,   4,   0'
+set H2D_SSSSQ    =  '4,   4,   0'
+set H2D_SST      =  '4,   4,   0'
+set H2D_SSTSQ    =  '4,   4,   0'
+set H2D_SURFLX   =  '0,   4,   0'
+set H2D_SURRLX   =  '0,   4,   0'
+set H2D_SWA      =  '0,   4,   0'
+set H2D_T20D     =  '4,   4,   0'
+set H2D_TAUX     =  '0,   4,   0'
+set H2D_TAUY     =  '0,   4,   0'
+set H2D_TBOT     =  '0,   4,   0'
+set H2D_TICE     =  '0,   0,   0'
+set H2D_TSRF     =  '0,   0,   0'
+set H2D_UB       =  '0,   4,   0'
+set H2D_UICE     =  '0,   0,   0'
+set H2D_USTAR    =  '0,   4,   0'
+set H2D_USTAR3   =  '0,   4,   0'
+set H2D_VB       =  '0,   4,   0'
+set H2D_VICE     =  '0,   0,   0'
+set H2D_ZTX      =  '0,   4,   0'
+set LYR_BFSQ     =  '0,   4,   0'
+set LYR_DIFDIA   =  '0,   4,   0'
+set LYR_DIFINT   =  '0,   4,   0'
+set LYR_DIFISO   =  '0,   4,   0'
+set LYR_DP       =  '0,   4,   0'
+set LYR_DZ       =  '0,   4,   0'
+set LYR_SALN     =  '0,   4,   0'
+set LYR_TEMP     =  '0,   4,   0'
+set LYR_TRC      =  '0,   0,   0'
+set LYR_UFLX     =  '0,   4,   0'
+set LYR_UTFLX    =  '0,   4,   0'
+set LYR_USFLX    =  '0,   4,   0'
+set LYR_UMFLTD   =  '0,   0,   4'
+set LYR_UTFLTD   =  '0,   0,   4'
+set LYR_UTFLLD   =  '0,   0,   4'
+set LYR_USFLTD   =  '0,   0,   4'
+set LYR_USFLLD   =  '0,   0,   4'
+set LYR_UVEL     =  '0,   4,   0'
+set LYR_VFLX     =  '0,   4,   0'
+set LYR_VTFLX    =  '0,   4,   0'
+set LYR_VSFLX    =  '0,   4,   0'
+set LYR_VMFLTD   =  '0,   4,   0'
+set LYR_VTFLTD   =  '0,   4,   0'
+set LYR_VTFLLD   =  '0,   4,   0'
+set LYR_VSFLTD   =  '0,   4,   0'
+set LYR_VSFLLD   =  '0,   4,   0'
+set LYR_VVEL     =  '0,   4,   0'
+set LYR_WFLX     =  '0,   4,   0'
+set LYR_WFLX2    =  '0,   4,   0'
+set LYR_PV       =  '0,   4,   0'
+set LYR_TKE      =  '0,   4,   0'
+set LYR_GLS_PSI  =  '0,   4,   0'
+set LYR_IDLAGE   =  '0,   4,   0'
+set LVL_BFSQ     =  '0,   4,   0'
+set LVL_DIFDIA   =  '0,   4,   0'
+set LVL_DIFINT   =  '0,   4,   0'
+set LVL_DIFISO   =  '0,   4,   0'
+set LVL_DZ       =  '0,   4,   0'
+set LVL_SALN     =  '0,   4,   0'
+set LVL_TEMP     =  '0,   4,   0'
+set LVL_TRC      =  '0,   0,   0'
+set LVL_UFLX     =  '0,   4,   0'
+set LVL_UTFLX    =  '0,   4,   0'
+set LVL_USFLX    =  '0,   4,   0'
+set LVL_UMFLTD   =  '0,   0,   4'
+set LVL_UTFLTD   =  '0,   0,   4'
+set LVL_UTFLLD   =  '0,   0,   4'
+set LVL_USFLTD   =  '0,   0,   4'
+set LVL_USFLLD   =  '0,   0,   4'
+set LVL_UVEL     =  '0,   4,   0'
+set LVL_VFLX     =  '0,   4,   0'
+set LVL_VTFLX    =  '0,   4,   0'
+set LVL_VSFLX    =  '0,   4,   0'
+set LVL_VMFLTD   =  '0,   0,   4'
+set LVL_VTFLTD   =  '0,   0,   4'
+set LVL_VTFLLD   =  '0,   0,   4'
+set LVL_VSFLTD   =  '0,   0,   4'
+set LVL_VSFLLD   =  '0,   0,   4'
+set LVL_VVEL     =  '0,   4,   0'
+set LVL_WFLX     =  '0,   4,   0'
+set LVL_WFLX2    =  '0,   4,   0'
+set LVL_PV       =  '0,   4,   0'
+set LVL_TKE      =  '0,   4,   0'
+set LVL_GLS_PSI  =  '0,   4,   0'
+set LVL_IDLAGE   =  '0,   4,   0'
+set MSC_MMFLXL   =  '0,   4,   0'
+set MSC_MMFLXD   =  '0,   4,   0'
+set MSC_MMFTDL   =  '0,   4,   0'
+set MSC_MMFTDD   =  '0,   4,   0'
+set MSC_MHFLX    =  '0,   4,   0'
+set MSC_MHFTD    =  '0,   4,   0'
+set MSC_MHFLD    =  '0,   4,   0'
+set MSC_MSFLX    =  '0,   4,   0'
+set MSC_MSFTD    =  '0,   4,   0'
+set MSC_MSFLD    =  '0,   4,   0'
+set MSC_VOLTR    =  '0,   4,   0'
+set MSC_MASSGS   =  '0,   4,   0'
+set MSC_VOLGS    =  '0,   4,   0'
+set MSC_SALNGA   =  '0,   4,   0'
+set MSC_TEMPGA   =  '0,   4,   0'
+set MSC_SSSGA    =  '0,   4,   0'
+set MSC_SSTGA    =  '0,   4,   0'
 # set DIABGC defaults
-set BGC_FNAMETAG  = "'hbgcm','hbgcy'"
-set BGC_AVEPERIO  = '30,365'
-set BGC_FILEFREQ  = '30,365'
-set BGC_COMPFLAG  = '0,   0'
-set BGC_NCFORMAT  = '0,   0'
-set BGC_INVENTORY = '1,   0'
-set SRF_PHOSPH    = '2,   2'
-set SRF_OXYGEN    = '2,   2'    
-set SRF_IRON      = '2,   2'   
-set SRF_ANO3      = '2,   2'
-set SRF_ALKALI    = '2,   2'
-set SRF_SILICA    = '2,   2' 
-set SRF_DIC       = '2,   2' 
-set SRF_PHYTO     = '2,   2' 
-set SRF_EXPORT    = '2,   2' 
-set SRF_EXPOSI    = '2,   2' 
-set SRF_EXPOCA    = '2,   2' 
-set SRF_KWCO2     = '2,   2' 
-set SRF_PCO2      = '2,   2' 
-set SRF_CO2FXD    = '2,   2' 
-set SRF_CO2FXU    = '2,   2' 
-set SRF_OXFLUX    = '2,   2' 
-set SRF_NIFLUX    = '2,   2' 
-set SRF_N2OFX     = '2,   2' 
-set SRF_DMSFLUX   = '2,   2' 
-set SRF_DMS       = '2,   2' 
-set SRF_DMSPROD   = '2,   2' 
-set SRF_DMS_BAC   = '2,   2' 
-set SRF_DMS_UV    = '2,   2' 
-set SRF_ATMCO2    = '2,   2' 
-set SRF_ATMO2     = '2,   2' 
-set SRF_ATMN2     = '2,   2' 
-set SRF_NATDIC    = '2,   2'
-set SRF_NATALKALI = '2,   2'
-set SRF_NATPCO2   = '2,   2'
-set SRF_NATCO2FX  = '2,   2'
-set SRF_CO213FXD  = '2,   2' 
-set SRF_CO213FXU  = '2,   2' 
-set SRF_CO214FXD  = '2,   2' 
-set SRF_CO214FXU  = '2,   2' 
-set SRF_CFC11     = '2,   2' 
-set SRF_CFC12     = '2,   2' 
-set SRF_SF6       = '2,   2' 
-set INT_PHOSY     = '2,   2' 
-set INT_NFIX      = '2,   2' 
-set INT_DNIT      = '2,   2' 
-set FLX_CAR0100   = '2,   2'
-set FLX_CAR0500   = '2,   2'
-set FLX_CAR1000   = '2,   2'
-set FLX_CAR2000   = '2,   2'
-set FLX_CAR4000   = '2,   2'
-set FLX_CAR_BOT   = '2,   2'
-set FLX_BSI0100   = '2,   2'
-set FLX_BSI0500   = '2,   2'
-set FLX_BSI1000   = '2,   2'
-set FLX_BSI2000   = '2,   2'
-set FLX_BSI4000   = '2,   2'
-set FLX_BSI_BOT   = '2,   2'
-set FLX_CAL0100   = '2,   2'
-set FLX_CAL0500   = '2,   2'
-set FLX_CAL1000   = '2,   2'
-set FLX_CAL2000   = '2,   2'
-set FLX_CAL4000   = '2,   2'
-set FLX_CAL_BOT   = '2,   2'
-set LYR_PHYTO     = '0,   2' 
-set LYR_GRAZER    = '0,   2' 
-set LYR_DOC       = '0,   2' 
-set LYR_PHOSY     = '0,   2' 
-set LYR_PHOSPH    = '0,   2' 
-set LYR_OXYGEN    = '0,   2' 
-set LYR_IRON      = '0,   2'
-set LYR_ANO3      = '0,   2'
-set LYR_ALKALI    = '0,   2'
-set LYR_SILICA    = '0,   2'
-set LYR_DIC       = '0,   2'
-set LYR_POC       = '0,   2'
-set LYR_CALC      = '0,   2'
-set LYR_OPAL      = '0,   2'
-set LYR_CO3       = '0,   2'
-set LYR_N2O       = '0,   0'
-set LYR_PH        = '0,   2'
-set LYR_OMEGAC    = '0,   2'
-set LYR_OMEGAA    = '0,   2'
-set LYR_PREFO2    = '0,   2'
-set LYR_O2SAT     = '0,   2'
-set LYR_PREFPO4   = '0,   2'
-set LYR_PREFALK   = '0,   2'
-set LYR_PREFDIC   = '0,   2'
-set LYR_DICSAT    = '0,   2'
-set LYR_NATDIC    = '0,   2'
-set LYR_NATALKALI = '0,   2'
-set LYR_NATCO3    = '0,   2'
-set LYR_NATCALC   = '0,   2'
-set LYR_NATPH     = '0,   2'
-set LYR_NATOMEGAC = '0,   2'
-set LYR_NATOMEGAA = '0,   2'
-set LYR_DIC13     = '0,   2'
-set LYR_DIC14     = '0,   2'
-set LYR_D13C      = '0,   2'
-set LYR_D14C      = '0,   2'
-set LYR_BIGD14C   = '0,   2'
-set LYR_POC13     = '0,   2'
-set LYR_DOC13     = '0,   2'
-set LYR_CALC13    = '0,   2'
-set LYR_PHYTO13   = '0,   2'
-set LYR_GRAZER13  = '0,   2'
-set LYR_CFC11     = '0,   2'
-set LYR_CFC12     = '0,   2'
-set LYR_SF6       = '0,   2'
-set LYR_NOS       = '0,   2'
-set LYR_WPHY      = '0,   2'
-set LYR_WNOS      = '0,   2'
-set LYR_EPS       = '0,   0'
-set LYR_ASIZE     = '0,   0'
-set BGC_DP        = '0,   2'
-set LVL_PHYTO     = '0,   2'
-set LVL_GRAZER    = '0,   2'
-set LVL_DOC       = '0,   2'
-set LVL_PHOSY     = '0,   2'
-set LVL_PHOSPH    = '0,   2'
-set LVL_OXYGEN    = '0,   2'
-set LVL_IRON      = '0,   2'
-set LVL_ANO3      = '0,   2'
-set LVL_ALKALI    = '0,   2'
-set LVL_SILICA    = '0,   2'
-set LVL_DIC       = '0,   2'
-set LVL_POC       = '0,   2'
-set LVL_CALC      = '0,   2'
-set LVL_OPAL      = '0,   2'
-set LVL_CO3       = '0,   2'
-set LVL_N2O       = '0,   0'
-set LVL_PH        = '0,   2'
-set LVL_OMEGAC    = '0,   2'
-set LVL_OMEGAA    = '0,   2'
-set LVL_PREFO2    = '0,   2'
-set LVL_O2SAT     = '0,   2'
-set LVL_PREFPO4   = '0,   2'
-set LVL_PREFALK   = '0,   2'
-set LVL_PREFDIC   = '0,   2'
-set LVL_DICSAT    = '0,   2'
-set LVL_NATDIC    = '0,   2'
-set LVL_NATALKALI = '0,   2'
-set LVL_NATCO3    = '0,   2'
-set LVL_NATCALC   = '0,   2'
-set LVL_NATPH     = '0,   2'
-set LVL_NATOMEGAC = '0,   2'
-set LVL_NATOMEGAA = '0,   2'
-set LVL_DIC13     = '0,   2'
-set LVL_DIC14     = '0,   2'
-set LVL_D13C      = '0,   2'
-set LVL_POC13     = '0,   2'
-set LVL_DOC13     = '0,   2'
-set LVL_CALC13    = '0,   2'
-set LVL_PHYTO13   = '0,   2'
-set LVL_GRAZER13  = '0,   2'
-set LVL_CFC11     = '0,   2'
-set LVL_CFC12     = '0,   2'
-set LVL_SF6       = '0,   2'
-set LVL_NOS       = '0,   2'
-set LVL_WPHY      = '0,   2'
-set LVL_WNOS      = '0,   2'
-set LVL_EPS       = '0,   0'
-set LVL_ASIZE     = '0,   0'
-set SDM_POWAIC    = '0,   2'
-set SDM_POWAAL    = '0,   2'
-set SDM_POWAPH    = '0,   2'
-set SDM_POWAOX    = '0,   2'
-set SDM_POWN2     = '0,   2'
-set SDM_POWNO3    = '0,   2'
-set SDM_POWASI    = '0,   2'
-set SDM_SSSO12    = '0,   2'
-set SDM_SSSSIL    = '0,   2'
-set SDM_SSSC12    = '0,   2'
-set SDM_SSSTER    = '0,   2'
-set BUR_SSSO12    = '0,   2'
-set BUR_SSSSIL    = '0,   2'
-set BUR_SSSC12    = '0,   2'
-set BUR_SSSTER    = '0,   2'
+set BGC_FNAMETAG  = "'hbgcd','hbgcm','hbgcy'"
+set BGC_AVEPERIO  = '1,30,365'
+set BGC_FILEFREQ  = '30,30,365'
+set BGC_COMPFLAG  = '0, 0, 0'
+set BGC_NCFORMAT  = '0, 0, 0'
+set BGC_INVENTORY = '0, 1, 0'
+set SRF_PHOSPH    = '0, 2, 2'
+set SRF_OXYGEN    = '0, 2, 2'    
+set SRF_IRON      = '0, 2, 2'   
+set SRF_ANO3      = '0, 2, 2'
+set SRF_ALKALI    = '4, 2, 2'
+set SRF_SILICA    = '0, 2, 2' 
+set SRF_DIC       = '4, 2, 2' 
+set SRF_PHYTO     = '4, 2, 2' 
+set SRF_EXPORT    = '0, 2, 2' 
+set SRF_EXPOSI    = '0, 2, 2' 
+set SRF_EXPOCA    = '0, 2, 2' 
+set SRF_KWCO2     = '0, 2, 2' 
+set SRF_PCO2      = '0, 2, 2' 
+set SRF_CO2FXD    = '4, 2, 2' 
+set SRF_CO2FXU    = '4, 2, 2' 
+set SRF_OXFLUX    = '0, 2, 2' 
+set SRF_NIFLUX    = '0, 2, 2' 
+set SRF_N2OFX     = '0, 0, 2' 
+set SRF_DMSFLUX   = '0, 2, 2' 
+set SRF_DMS       = '0, 2, 2' 
+set SRF_DMSPROD   = '0, 2, 2' 
+set SRF_DMS_BAC   = '0, 2, 2' 
+set SRF_DMS_UV    = '0, 2, 2' 
+set SRF_ATMCO2    = '0, 2, 2' 
+set SRF_ATMO2     = '0, 2, 2' 
+set SRF_ATMN2     = '0, 2, 2' 
+set SRF_NATDIC    = '0, 2, 2'
+set SRF_NATALKALI = '0, 2, 2'
+set SRF_NATPCO2   = '0, 2, 2'
+set SRF_NATCO2FX  = '0, 2, 2'
+set SRF_CO213FXD  = '0, 2, 2' 
+set SRF_CO213FXU  = '0, 2, 2' 
+set SRF_CO214FXD  = '0, 2, 2' 
+set SRF_CO214FXU  = '0, 2, 2' 
+set SRF_CFC11     = '0, 2, 2' 
+set SRF_CFC12     = '0, 2, 2' 
+set SRF_SF6       = '0, 2, 2' 
+set INT_PHOSY     = '4, 2, 2' 
+set INT_NFIX      = '0, 2, 2' 
+set INT_DNIT      = '0, 2, 2' 
+set FLX_CAR0100   = '0, 2, 2'
+set FLX_CAR0500   = '0, 2, 2'
+set FLX_CAR1000   = '0, 2, 2'
+set FLX_CAR2000   = '0, 2, 2'
+set FLX_CAR4000   = '0, 2, 2'
+set FLX_CAR_BOT   = '0, 2, 2'
+set FLX_BSI0100   = '0, 2, 2'
+set FLX_BSI0500   = '0, 2, 2'
+set FLX_BSI1000   = '0, 2, 2'
+set FLX_BSI2000   = '0, 2, 2'
+set FLX_BSI4000   = '0, 2, 2'
+set FLX_BSI_BOT   = '0, 2, 2'
+set FLX_CAL0100   = '0, 2, 2'
+set FLX_CAL0500   = '0, 2, 2'
+set FLX_CAL1000   = '0, 2, 2'
+set FLX_CAL2000   = '0, 2, 2'
+set FLX_CAL4000   = '0, 2, 2'
+set FLX_CAL_BOT   = '0, 2, 2'
+set LYR_PHYTO     = '0, 0, 2' 
+set LYR_GRAZER    = '0, 0, 2' 
+set LYR_DOC       = '0, 0, 2' 
+set LYR_PHOSY     = '0, 0, 2' 
+set LYR_PHOSPH    = '0, 0, 2' 
+set LYR_OXYGEN    = '0, 0, 4' 
+set LYR_IRON      = '0, 0, 2'
+set LYR_ANO3      = '0, 0, 2'
+set LYR_ALKALI    = '0, 0, 2'
+set LYR_SILICA    = '0, 0, 2'
+set LYR_DIC       = '0, 0, 2'
+set LYR_POC       = '0, 0, 2'
+set LYR_CALC      = '0, 0, 2'
+set LYR_OPAL      = '0, 0, 2'
+set LYR_CO3       = '0, 0, 2'
+set LYR_N2O       = '0, 0, 0'
+set LYR_PH        = '0, 0, 2'
+set LYR_OMEGAC    = '0, 0, 2'
+set LYR_OMEGAA    = '0, 0, 2'
+set LYR_PREFO2    = '0, 0, 4'
+set LYR_O2SAT     = '0, 0, 4'
+set LYR_PREFPO4   = '0, 0, 2'
+set LYR_PREFALK   = '0, 0, 2'
+set LYR_PREFDIC   = '0, 0, 2'
+set LYR_DICSAT    = '0, 0, 2'
+set LYR_NATDIC    = '0, 0, 2'
+set LYR_NATALKALI = '0, 0, 2'
+set LYR_NATCO3    = '0, 0, 2'
+set LYR_NATCALC   = '0, 0, 2'
+set LYR_NATPH     = '0, 0, 2'
+set LYR_NATOMEGAC = '0, 0, 2'
+set LYR_NATOMEGAA = '0, 0, 2'
+set LYR_DIC13     = '0, 0, 2'
+set LYR_DIC14     = '0, 0, 2'
+set LYR_D13C      = '0, 0, 2'
+set LYR_D14C      = '0, 0, 2'
+set LYR_BIGD14C   = '0, 0, 2'
+set LYR_POC13     = '0, 0, 2'
+set LYR_DOC13     = '0, 0, 2'
+set LYR_CALC13    = '0, 0, 2'
+set LYR_PHYTO13   = '0, 0, 2'
+set LYR_GRAZER13  = '0, 0, 2'
+set LYR_CFC11     = '0, 0, 2'
+set LYR_CFC12     = '0, 0, 2'
+set LYR_SF6       = '0, 0, 2'
+set LYR_NOS       = '0, 0, 2'
+set LYR_WPHY      = '0, 0, 2'
+set LYR_WNOS      = '0, 0, 2'
+set LYR_EPS       = '0, 0, 0'
+set LYR_ASIZE     = '0, 0, 0'
+set BGC_DP        = '0, 2, 2'
+set LVL_PHYTO     = '0, 2, 2'
+set LVL_GRAZER    = '0, 2, 2'
+set LVL_DOC       = '0, 2, 2'
+set LVL_PHOSY     = '0, 2, 2'
+set LVL_PHOSPH    = '0, 2, 2'
+set LVL_OXYGEN    = '0, 4, 4'
+set LVL_IRON      = '0, 2, 2'
+set LVL_ANO3      = '0, 2, 2'
+set LVL_ALKALI    = '0, 2, 2'
+set LVL_SILICA    = '0, 2, 2'
+set LVL_DIC       = '0, 2, 2'
+set LVL_POC       = '0, 2, 2'
+set LVL_CALC      = '0, 2, 2'
+set LVL_OPAL      = '0, 2, 2'
+set LVL_CO3       = '0, 2, 2'
+set LVL_N2O       = '0, 0, 2'
+set LVL_PH        = '0, 2, 2'
+set LVL_OMEGAC    = '0, 2, 2'
+set LVL_OMEGAA    = '0, 2, 2'
+set LVL_PREFO2    = '0, 4, 4'
+set LVL_O2SAT     = '0, 4, 4'
+set LVL_PREFPO4   = '0, 2, 2'
+set LVL_PREFALK   = '0, 2, 2'
+set LVL_PREFDIC   = '0, 2, 2'
+set LVL_DICSAT    = '0, 2, 2'
+set LVL_NATDIC    = '0, 2, 2'
+set LVL_NATALKALI = '0, 2, 2'
+set LVL_NATCO3    = '0, 2, 2'
+set LVL_NATCALC   = '0, 2, 2'
+set LVL_NATPH     = '0, 2, 2'
+set LVL_NATOMEGAC = '0, 2, 2'
+set LVL_NATOMEGAA = '0, 2, 2'
+set LVL_DIC13     = '0, 2, 2'
+set LVL_DIC14     = '0, 2, 2'
+set LVL_D13C      = '0, 2, 2'
+set LVL_POC13     = '0, 2, 2'
+set LVL_DOC13     = '0, 2, 2'
+set LVL_CALC13    = '0, 2, 2'
+set LVL_PHYTO13   = '0, 2, 2'
+set LVL_GRAZER13  = '0, 2, 2'
+set LVL_CFC11     = '0, 2, 2'
+set LVL_CFC12     = '0, 2, 2'
+set LVL_SF6       = '0, 2, 2'
+set LVL_NOS       = '0, 2, 2'
+set LVL_WPHY      = '0, 2, 2'
+set LVL_WNOS      = '0, 2, 2'
+set LVL_EPS       = '0, 0, 0'
+set LVL_ASIZE     = '0, 0, 0'
+set SDM_POWAIC    = '0, 0, 2'
+set SDM_POWAAL    = '0, 0, 2'
+set SDM_POWAPH    = '0, 0, 2'
+set SDM_POWAOX    = '0, 0, 2'
+set SDM_POWN2     = '0, 0, 2'
+set SDM_POWNO3    = '0, 0, 2'
+set SDM_POWASI    = '0, 0, 2'
+set SDM_SSSO12    = '0, 0, 2'
+set SDM_SSSSIL    = '0, 0, 2'
+set SDM_SSSC12    = '0, 0, 2'
+set SDM_SSSTER    = '0, 0, 2'
+set BUR_SSSO12    = '0, 0, 2'
+set BUR_SSSSIL    = '0, 0, 2'
+set BUR_SSSC12    = '0, 0, 2'
+set BUR_SSSTER    = '0, 0, 2'
 
 #set IYEAR0   = `echo $RUN_STARTDATE | cut -c1-4  | sed -e 's/^0*//'`
 #set IMONTH0  = `echo $RUN_STARTDATE | cut -c6-7  | sed -e 's/^0*//'`
@@ -546,108 +565,12 @@ else if ($OCN_GRID == tnx2v1 ) then
   set CWMEDG = "        'u',        'u'"
   set CWMI   = "         53,         54"
   set CWMJ   = "        137,        137"
-  set CWMWTH = "      15.e3,      15.e3"
-  set GLB_FNAMETAG = "'hm','hy'"
-  set GLB_AVEPERIO = '30, 365'
-  set GLB_FILEFREQ = '30, 365'
-  set SRF_BRNFLX   =  '2,   0'
-  set SRF_BRNPD    =  '2,   0'
-  set SRF_FICE     =  '2,   0'
-  set SRF_FMLTFZ   =  '2,   0'
-  set SRF_HMLTFZ   =  '2,   0'
-  set SRF_MAXMLD   =  '2,   2'
-  set SRF_MLD      =  '2,   2'
-  set SRF_SEALV    =  '2,   2'
-  set SRF_SSS      =  '2,   2'
-  set SRF_SST      =  '2,   2'
-  set SRF_USTAR    =  '0,   0'
-  set LYR_DIFDIA   =  '0,   0'
-  set LYR_DIFINT   =  '0,   0'
-  set LYR_DIFISO   =  '0,   0'
-  set LYR_DP       =  '2,   0'
-  set LYR_DZ       =  '2,   0'
-  set LYR_SALN     =  '2,   0'
-  set LYR_TEMP     =  '2,   0'
-  set LYR_UVEL     =  '0,   0'
-  set LYR_UFLX     =  '0,   0'
-  set LYR_UTFLX    =  '0,   0'
-  set LYR_USFLX    =  '0,   0'
-  set LYR_VVEL     =  '0,   0'
-  set LYR_VFLX     =  '0,   0'
-  set LYR_VTFLX    =  '0,   0'
-  set LYR_VSFLX    =  '0,   0'
-  set LYR_WFLX     =  '0,   0'
-  set LYR_WFLX2    =  '0,   0'
-  set LYR_PV       =  '0,   0'
-  set LYR_TKE      =  '0,   0'
-  set LYR_GLS_PSI  =  '0,   0'
-  set LYR_IDLAGE   =  '2,   0'
-  set LVL_DIFDIA   =  '0,   0'
-  set LVL_DIFINT   =  '0,   0'
-  set LVL_DIFISO   =  '0,   0'
-  set LVL_DZ       =  '0,   0'
-  set LVL_SALN     =  '0,   2'
-  set LVL_TEMP     =  '0,   2'
-  set LVL_UFLX     =  '0,   2'
-  set LVL_UTFLX    =  '0,   0'
-  set LVL_USFLX    =  '0,   0'
-  set LVL_UVEL     =  '0,   2'
-  set LVL_VFLX     =  '0,   2'
-  set LVL_VTFLX    =  '0,   0'
-  set LVL_VSFLX    =  '0,   0'
-  set LVL_VVEL     =  '0,   2'
-  set LVL_WFLX     =  '0,   2'
-  set LVL_WFLX2    =  '0,   0'
-  set LVL_PV       =  '0,   0'
-  set LVL_TKE      =  '0,   2'
-  set LVL_GLS_PSI  =  '0,   2'
-  set LVL_IDLAGE   =  '0,   2'
+  set CWMWTH = "      30.e3,      30.e3"
 else if ($OCN_GRID == tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
   set EGMXDF = 1000.e4
-  set GLB_FNAMETAG = "'hm','hy'"
-  set GLB_AVEPERIO = '30, 365'
-  set GLB_FILEFREQ = '30, 365'
-  set SRF_BRNFLX   =  '0,   0'
-  set SRF_BRNPD    =  '0,   0'
-  set SRF_FICE     =  '4,   0'
-  set SRF_FMLTFZ   =  '0,   0'
-  set SRF_HMLTFZ   =  '0,   0'
-  set SRF_MAXMLD   =  '4,   0'
-  set SRF_MLD      =  '4,   0'
-  set SRF_SEALV    =  '4,   4'
-  set SRF_SSS      =  '4,   0'
-  set SRF_SST      =  '4,   0'
-  set SRF_USTAR    =  '0,   0'
-  set LYR_DIFDIA   =  '0,   0'
-  set LYR_DIFINT   =  '0,   0'
-  set LYR_DIFISO   =  '0,   0'
-  set LYR_DP       =  '0,   0'
-  set LYR_DZ       =  '0,   0'
-  set LYR_SALN     =  '0,   0'
-  set LYR_TEMP     =  '0,   0'
-  set LYR_UVEL     =  '0,   0'
-  set LYR_VVEL     =  '0,   0'
-  set LYR_WFLX     =  '0,   0'
-  set LYR_WFLX2    =  '0,   0'
-  set LYR_PV       =  '0,   0'
-  set LVL_DIFDIA   =  '0,   0'
-  set LVL_DIFINT   =  '0,   0'
-  set LVL_DIFISO   =  '0,   0'
-  set LVL_DZ       =  '0,   0'
-  set LVL_SALN     =  '4,   0'
-  set LVL_TEMP     =  '4,   0'
-  set LVL_UFLX     =  '0,   0'
-  set LVL_UTFLX    =  '0,   0'
-  set LVL_USFLX    =  '0,   0'
-  set LVL_VFLX     =  '0,   0'
-  set LVL_VTFLX    =  '0,   0'
-  set LVL_VSFLX    =  '0,   0'
-  set LVL_WFLX     =  '0,   4'
-  set LVL_WFLX2    =  '0,   0'
-  set LVL_PV       =  '0,   0'
 else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   if ($OCN_NCPL == 24) then
     set BACLIN = 3600.
@@ -666,8 +589,8 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set CWMJ   = "        273,        273"
   set CWMWTH = "      30.e3,      30.e3"
 else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
-  set BACLIN = 800.
-  set BATROP = 16.
+  set BACLIN = 900.
+  set BATROP = 15.
   set MDV2HI = .15
   set MDV2LO = .15
   set VSC2HI = .15
@@ -675,14 +598,14 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set VSC4HI = 0.0625
   set VSC4LO = 0.0625
   set MDC2HI = 300.e4
-  set CWBDTS = 2.e-4
-  set CWBDLS = 50.
+  set CWBDTS = 0.75e-4
+  set CWBDLS = 25.
   set EDWMTH = "'step'"
-  set EGC    = 1.25
+  set EGC    = 0.85
   set EGMXDF = 1500.e4
-  set CE     = .12
-  set GLB_NCFORMAT =  '1,   1'
-  set BGC_NCFORMAT  = '1,   1'
+  set CE     = 1.0
+  set GLB_NCFORMAT =  '1,   1,   1'
+  set BGC_NCFORMAT  = '1,   1,   1'
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -920,6 +843,27 @@ EOF3
 
 cat >>! $RUNDIR/ocn_in << EOF4
 
+! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX REGIONS
+!
+! CONTENTS:
+!
+! MER_REGNAM : Array of region names for meridional overturning and flux
+!              diagnostics (a)
+! MER_REGFLG : Array of mask flags in ocean_regions.nc to be included
+!              for each region (i)
+! MER_MINLAT : Minimum latitude to be considered for each region (f)
+! MER_MAXLAT : Maximum latitude to be considered for each region (f)
+! 
+&MERREG
+  MER_REGNAM = 'atlantic_arctic_ocean', 'atlantic_arctic_extended_ocean', 'indian_pacific_ocean', 'global_ocean'
+  MER_REGFLG(1,:) = 2, 4
+  MER_REGFLG(2,:) = 2, 4, 6, 7, 8, 9
+  MER_REGFLG(3,:) = 3, 5 
+  MER_REGFLG(4,:) = 0
+  MER_MINLAT = -34., -34., -34., -90.
+  MER_MAXLAT =  90.,  90.,  90.,  90.
+/
+
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
 ! Description:
@@ -946,7 +890,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !
 ! Namelist acronyms:
 !   GLB_     - global parameters i.e. valid for entire output group
-!   SRF_     - surface variables (includes all 2d fields)
+!   H2D_     - 2d fields with the horizontal dimensions
 !   LYR_     - 3d fields with sigma layers as vertical coordinate
 !   LVL_     - 3d fields with levitus leves as vertical coordinate
 !   MSC_     - miscellanous, non-gridded fields
@@ -968,6 +912,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 ! Output variables:
 !   ABSWND   - absolute wind speed [m s-1]
 !   ALB      - surface albedo []
+!   BTMSTR   - Barotropic mass streamfunction [kg s-1]
 !   BRNFLX   - brine flux [kg m-2 s-1]
 !   BRNPD    - brine plume depth [m]
 !   DFL      - non-solar heat flux derivative [W m-2 K-1]
@@ -984,6 +929,10 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   MLD      - mixed layer depth [m]
 !   MLDU     - mixed layer depth at u-point [m]
 !   MLDV     - mixed layer depth at v-point [m]
+!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
 !   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
 !   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
 !   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
@@ -994,21 +943,29 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   MXLU     - mixed layer velocity x-component [m s-1]
 !   MXLV     - mixed layer velocity y-component [m s-1]
 !   NSF      - non-solar heat flux [W m-2]
+!   PBOT     - bottom pressure [Pa]
+!   PSRF     - surface pressure [Pa]
 !   RFIFLX   - frozen runoff [kg m-2 s-1]
 !   RNFFLX   - liquid runoff [kg m-2 s-1]
 !   SALFLX   - salt flux received by ocean [kg m-2 s-1]
 !   SALRLX   - restoring salt flux received by ocean [kg m-2 s-1]
+!   SBOT     - bottom salinity [g kg-1]
 !   SEALV    - sea level [m]
+!   SLVSQ    - sea level squared [m2]
 !   SFL      - salt flux [kg m-2 s-1]
 !   SOP      - solid precipitation [kg m-2 s-1]
 !   SIGMX    - mixed layer density [kg m-3]
 !   SSS      - ocean surface salinity [g kg-1]
+!   SSSSQ    - ocean surface salinity squared [g2 kg-2]
 !   SST      - ocean surface temperature [degC]
+!   SSTSQ    - ocean surface temperature squared [degC2]
 !   SURFLX   - heat flux received by ocean [W m-2]
 !   SURRLX   - restoring heat flux received by ocean [W m-2]
 !   SWA      - short-wave heat flux [W m-2]
+!   T20D     - 20C isoterm depth [m]
 !   TAUX     - momentum flux received by ocean x-component [N m-2]
 !   TAUY     - momentum flux received by ocean y-component [N m-2]
+!   TBOT     - bottom temperature [degC]
 !   TICE     - ice temperature [degC]
 !   TSRF     - surface temperature [degC]
 !   UB       - barotropic velocity x-component [m s-1]
@@ -1018,7 +975,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
-!   DIAFLX   - diapycnal volume flux [m s-1]
+!   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - diapycnal diffusivity [log10(m2 s-1)]
 !   DIFINT   - layer interface diffusivity [log10(m2 s-1)]
 !   DIFISO   - isopycnal diffusivity [log10(m2 s-1)]
@@ -1062,6 +1019,12 @@ cat >>! $RUNDIR/ocn_in << EOF4
 !   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
 !   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
 !   VOLTR    - section transports [kg s-1]
+!   MASSGS   - global sum of mass [kg]
+!   VOLGS    - global sum of volume [m3]
+!   SALNGA   - global average temperature [degC]
+!   TEMPGA   - global average temperature [degC]
+!   SSSGA    - global average sea surface salinity [g kg-1]
+!   SSTGA    - global average sea surface temperature [degC]
 !
 &DIAPHY
   GLB_FNAMETAG = ${GLB_FNAMETAG}, 
@@ -1069,59 +1032,72 @@ cat >>! $RUNDIR/ocn_in << EOF4
   GLB_FILEFREQ = ${GLB_FILEFREQ},
   GLB_COMPFLAG = ${GLB_COMPFLAG},
   GLB_NCFORMAT = ${GLB_NCFORMAT},
-  SRF_ABSWND   = ${SRF_ABSWND},
-  SRF_ALB      = ${SRF_ALB},
-  SRF_BRNFLX   = ${SRF_BRNFLX},
-  SRF_BRNPD    = ${SRF_BRNPD},
-  SRF_DFL      = ${SRF_DFL},
-  SRF_EVA      = ${SRF_EVA},
-  SRF_FICE     = ${SRF_FICE},
-  SRF_FMLTFZ   = ${SRF_FMLTFZ},
-  SRF_HICE     = ${SRF_HICE},
-  SRF_HMLTFZ   = ${SRF_HMLTFZ},
-  SRF_HSNW     = ${SRF_HSNW},
-  SRF_IAGE     = ${SRF_IAGE},
-  SRF_IDKEDT   = ${SRF_IDKEDT},
-  SRF_LIP      = ${SRF_LIP},
-  SRF_MAXMLD   = ${SRF_MAXMLD},
-  SRF_MLD      = ${SRF_MLD},
-  SRF_MLDU     = ${SRF_MLDU},
-  SRF_MLDV     = ${SRF_MLDV},
-  SRF_MTKEUS   = ${SRF_MTKEUS},
-  SRF_MTKENI   = ${SRF_MTKENI},
-  SRF_MTKEBF   = ${SRF_MTKEBF},
-  SRF_MTKERS   = ${SRF_MTKERS},
-  SRF_MTKEPE   = ${SRF_MTKEPE},
-  SRF_MTKEKE   = ${SRF_MTKEKE},
-  SRF_MTY      = ${SRF_MTY},
-  SRF_MXLU     = ${SRF_MXLU},
-  SRF_MXLV     = ${SRF_MXLV},
-  SRF_NSF      = ${SRF_NSF},
-  SRF_RFIFLX   = ${SRF_RFIFLX},
-  SRF_RNFFLX   = ${SRF_RNFFLX},
-  SRF_SALFLX   = ${SRF_SALFLX},
-  SRF_SALRLX   = ${SRF_SALRLX},
-  SRF_SEALV    = ${SRF_SEALV},
-  SRF_SFL      = ${SRF_SFL},
-  SRF_SOP      = ${SRF_SOP},
-  SRF_SIGMX    = ${SRF_SIGMX},
-  SRF_SSS      = ${SRF_SSS},
-  SRF_SST      = ${SRF_SST},
-  SRF_SURFLX   = ${SRF_SURFLX},
-  SRF_SURRLX   = ${SRF_SURRLX},
-  SRF_SWA      = ${SRF_SWA},
-  SRF_TAUX     = ${SRF_TAUX},
-  SRF_TAUY     = ${SRF_TAUY},
-  SRF_TICE     = ${SRF_TICE},
-  SRF_TSRF     = ${SRF_TSRF},
-  SRF_UB       = ${SRF_UB},
-  SRF_UICE     = ${SRF_UICE},
-  SRF_USTAR    = ${SRF_USTAR},
-  SRF_USTAR3   = ${SRF_USTAR3},
-  SRF_VB       = ${SRF_VB},
-  SRF_VICE     = ${SRF_VICE},
-  SRF_ZTX      = ${SRF_ZTX},
-  LYR_DIAFLX   = ${LYR_DIAFLX},
+  H2D_ABSWND   = ${H2D_ABSWND},
+  H2D_ALB      = ${H2D_ALB},
+  H2D_BTMSTR   = ${H2D_BTMSTR},
+  H2D_BRNFLX   = ${H2D_BRNFLX},
+  H2D_BRNPD    = ${H2D_BRNPD},
+  H2D_DFL      = ${H2D_DFL},
+  H2D_EVA      = ${H2D_EVA},
+  H2D_FICE     = ${H2D_FICE},
+  H2D_FMLTFZ   = ${H2D_FMLTFZ},
+  H2D_HICE     = ${H2D_HICE},
+  H2D_HMLTFZ   = ${H2D_HMLTFZ},
+  H2D_HSNW     = ${H2D_HSNW},
+  H2D_IAGE     = ${H2D_IAGE},
+  H2D_IDKEDT   = ${H2D_IDKEDT},
+  H2D_LIP      = ${H2D_LIP},
+  H2D_MAXMLD   = ${H2D_MAXMLD},
+  H2D_MLD      = ${H2D_MLD},
+  H2D_MLDU     = ${H2D_MLDU},
+  H2D_MLDV     = ${H2D_MLDV},
+  H2D_MLTS     = ${H2D_MLTS},
+  H2D_MLTSMN   = ${H2D_MLTSMN},
+  H2D_MLTSMX   = ${H2D_MLTSMX},
+  H2D_MLTSSQ   = ${H2D_MLTSSQ},
+  H2D_MTKEUS   = ${H2D_MTKEUS},
+  H2D_MTKENI   = ${H2D_MTKENI},
+  H2D_MTKEBF   = ${H2D_MTKEBF},
+  H2D_MTKERS   = ${H2D_MTKERS},
+  H2D_MTKEPE   = ${H2D_MTKEPE},
+  H2D_MTKEKE   = ${H2D_MTKEKE},
+  H2D_MTY      = ${H2D_MTY},
+  H2D_MXLU     = ${H2D_MXLU},
+  H2D_MXLV     = ${H2D_MXLV},
+  H2D_NSF      = ${H2D_NSF},
+  H2D_PBOT     = ${H2D_PBOT},
+  H2D_PSRF     = ${H2D_PSRF},
+  H2D_RFIFLX   = ${H2D_RFIFLX},
+  H2D_RNFFLX   = ${H2D_RNFFLX},
+  H2D_SALFLX   = ${H2D_SALFLX},
+  H2D_SALRLX   = ${H2D_SALRLX},
+  H2D_SBOT     = ${H2D_SBOT},
+  H2D_SEALV    = ${H2D_SEALV},
+  H2D_SLVSQ    = ${H2D_SLVSQ},
+  H2D_SFL      = ${H2D_SFL},
+  H2D_SOP      = ${H2D_SOP},
+  H2D_SIGMX    = ${H2D_SIGMX},
+  H2D_SSS      = ${H2D_SSS},
+  H2D_SSSSQ    = ${H2D_SSSSQ},
+  H2D_SST      = ${H2D_SST},
+  H2D_SSTSQ    = ${H2D_SSTSQ},
+  H2D_SURFLX   = ${H2D_SURFLX},
+  H2D_SURRLX   = ${H2D_SURRLX},
+  H2D_SWA      = ${H2D_SWA},
+  H2D_T20D     = ${H2D_T20D},
+  H2D_TAUX     = ${H2D_TAUX},
+  H2D_TAUY     = ${H2D_TAUY},
+  H2D_TBOT     = ${H2D_TBOT},
+  H2D_TICE     = ${H2D_TICE},
+  H2D_TSRF     = ${H2D_TSRF},
+  H2D_UB       = ${H2D_UB},
+  H2D_UICE     = ${H2D_UICE},
+  H2D_USTAR    = ${H2D_USTAR},
+  H2D_USTAR3   = ${H2D_USTAR3},
+  H2D_VB       = ${H2D_VB},
+  H2D_VICE     = ${H2D_VICE},
+  H2D_ZTX      = ${H2D_ZTX},
+  LYR_BFSQ     = ${LYR_BFSQ},
   LYR_DIFDIA   = ${LYR_DIFDIA},
   LYR_DIFINT   = ${LYR_DIFINT},
   LYR_DIFISO   = ${LYR_DIFISO},
@@ -1154,7 +1130,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
   LYR_TKE      = ${LYR_TKE},
   LYR_GLS_PSI  = ${LYR_GLS_PSI},
   LYR_IDLAGE   = ${LYR_IDLAGE},
-  LVL_DIAFLX   = ${LVL_DIAFLX},
+  LVL_BFSQ     = ${LVL_BFSQ},
   LVL_DIFDIA   = ${LVL_DIFDIA},
   LVL_DIFINT   = ${LVL_DIFINT},
   LVL_DIFISO   = ${LVL_DIFISO},
@@ -1196,7 +1172,13 @@ cat >>! $RUNDIR/ocn_in << EOF4
   MSC_MSFLX    = ${MSC_MSFLX},
   MSC_MSFTD    = ${MSC_MSFTD},
   MSC_MSFLD    = ${MSC_MSFLD},
-  MSC_VOLTR    = ${MSC_VOLTR}
+  MSC_VOLTR    = ${MSC_VOLTR},
+  MSC_MASSGS   = ${MSC_MASSGS},
+  MSC_VOLGS    = ${MSC_VOLGS},
+  MSC_SALNGA   = ${MSC_SALNGA},
+  MSC_TEMPGA   = ${MSC_TEMPGA},
+  MSC_SSSGA    = ${MSC_SSSGA},
+  MSC_SSTGA    = ${MSC_SSTGA}
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC HAMOCC OUTPUT

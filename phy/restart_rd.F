@@ -833,111 +833,139 @@ c --- read accumulated fields
           call xcbcst(nacc_phy(n))
           if (nacc_phy(n).gt.0) then
             if (ACC_UB(n).ne.0) call ncread('ub_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_UB(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_UB(n)),iuu,1,0.)
             if (ACC_VB(n).ne.0) call ncread('vb_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_VB(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_VB(n)),ivv,1,0.)
+            if (ACC_UBFLXS(n).ne.0) call ncread('ubflxs_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_UBFLXS(n)),iuu,1,0.)
+            if (ACC_VBFLXS(n).ne.0) call ncread('vbflxs_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_VBFLXS(n)),ivv,1,0.)
             if (ACC_ZTX(n).ne.0) call ncread('ztx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_ZTX(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_ZTX(n)),iuu,1,0.)
             if (ACC_MTY(n).ne.0) call ncread('mty_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTY(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTY(n)),ivv,1,0.)
             if (ACC_TAUX(n).ne.0) call ncread('taux_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
             if (ACC_TAUY(n).ne.0) call ncread('tauy_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
             if (ACC_MXLU(n).ne.0) call ncread('mxlu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
             if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
             if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
             if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
             if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
             if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_VICE(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_VICE(n)),ivv,1,0.)
             if (ACC_IVOLU(n).ne.0) call ncread('ivolu_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_IVOLU(n)),iuu,1,0.)
             if (ACC_IVOLV(n).ne.0) call ncread('ivolv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_IVOLV(n)),ivv,1,0.)
+            if (ACC_PSRF(n).ne.0) call ncread('psrf_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_PSRF(n)),ip,1,0.)
+            if (ACC_PBOT(n).ne.0) call ncread('pbot_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_PBOT(n)),ip,1,0.)
             if (ACC_SEALV(n).ne.0) call ncread('sealv_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SEALV(n)),ip,1,0.)
-            if (ACC_SST(n).ne.0) call ncread('sst_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SST(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SEALV(n)),ip,1,0.)
+            if (ACC_SLVSQ(n).ne.0) call ncread('slvsq_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SLVSQ(n)),ip,1,0.)
             if (ACC_SSS(n).ne.0) call ncread('sss_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SSS(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SSS(n)),ip,1,0.)
+            if (ACC_SSSSQ(n).ne.0) call ncread('ssssq_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SSSSQ(n)),ip,1,0.)
+            if (ACC_SBOT(n).ne.0) call ncread('sbot_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SBOT(n)),ip,1,0.)
+            if (ACC_SST(n).ne.0) call ncread('sst_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SST(n)),ip,1,0.)
+            if (ACC_SSTSQ(n).ne.0) call ncread('sstsq_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SSTSQ(n)),ip,1,0.)
+            if (ACC_TBOT(n).ne.0) call ncread('tbot_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_TBOT(n)),ip,1,0.)
             if (ACC_SIGMX(n).ne.0) call ncread('sigmx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SIGMX(n)),ip,1,0.)
             if (ACC_MLD(n).ne.0) call ncread('mld_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MLD(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLD(n)),ip,1,0.)
             if (ACC_MAXMLD(n).ne.0) call ncread('maxmld_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MAXMLD(n)),ip,1,0.)
+            if (ACC_MLTS(n).ne.0) call ncread('mlts_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLTS(n)),ip,1,0.)
+            if (ACC_MLTSMN(n).ne.0) call ncread('mltsmn_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLTSMN(n)),ip,1,0.)
+            if (ACC_MLTSMX(n).ne.0) call ncread('mltsmx_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLTSMX(n)),ip,1,0.)
+            if (ACC_MLTSSQ(n).ne.0) call ncread('mltssq_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MLTSSQ(n)),ip,1,0.)
+            if (ACC_T20D(n).ne.0) call ncread('t20d_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_T20D(n)),ip,1,0.)
             if (ACC_ALB(n).ne.0) call ncread('alb_phy'//c2, 
-     .        physrf(1-nbdy,1-nbdy,ACC_ALB(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_ALB(n)),ip,1,0.)
             if (ACC_SWA(n).ne.0) call ncread('swa_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SWA(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SWA(n)),ip,1,0.)
             if (ACC_NSF(n).ne.0) call ncread('nsf_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_NSF(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_NSF(n)),ip,1,0.)
             if (ACC_DFL(n).ne.0) call ncread('dfl_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_DFL(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_DFL(n)),ip,1,0.)
             if (ACC_LIP(n).ne.0) call ncread('lip_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_LIP(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_LIP(n)),ip,1,0.)
             if (ACC_SOP(n).ne.0) call ncread('sop_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SOP(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SOP(n)),ip,1,0.)
             if (ACC_EVA(n).ne.0) call ncread('eva_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_EVA(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_EVA(n)),ip,1,0.)
             if (ACC_RNFFLX(n).ne.0) call ncread('rnfflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip,1,0.)
             if (ACC_RFIFLX(n).ne.0) call ncread('rfiflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip,1,0.)
             if (ACC_SFL(n).ne.0) call ncread('sfl_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SFL(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SFL(n)),ip,1,0.)
             if (ACC_BRNFLX(n).ne.0) call ncread('brnflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_BRNFLX(n)),ip,1,0.)
             if (ACC_BRNPD(n).ne.0) call ncread('brnpd_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_BRNPD(n)),ip,1,0.)
             if (ACC_SURFLX(n).ne.0) call ncread('surflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SURFLX(n)),ip,1,0.)
             if (ACC_SURRLX(n).ne.0) call ncread('surrlx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SURRLX(n)),ip,1,0.)
             if (ACC_SALFLX(n).ne.0) call ncread('salflx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SALFLX(n)),ip,1,0.)
             if (ACC_SALRLX(n).ne.0) call ncread('salrlx_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_SALRLX(n)),ip,1,0.)
             if (ACC_ABSWND(n).ne.0) call ncread('abswnd_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_ABSWND(n)),ip,1,0.)
             if (ACC_USTAR(n).ne.0) call ncread('ustar_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_USTAR(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_USTAR(n)),ip,1,0.)
             if (ACC_USTAR3(n).ne.0) call ncread('ustar3_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_USTAR3(n)),ip,1,0.)
             if (ACC_IDKEDT(n).ne.0) call ncread('idkedt_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_IDKEDT(n)),ip,1,0.)
             if (ACC_MTKEUS(n).ne.0) call ncread('mtkeus_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKEUS(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEUS(n)),ip,1,0.)
             if (ACC_MTKENI(n).ne.0) call ncread('mtkeni_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKENI(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKENI(n)),ip,1,0.)
             if (ACC_MTKEBF(n).ne.0) call ncread('mtkebf_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKEBF(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEBF(n)),ip,1,0.)
             if (ACC_MTKERS(n).ne.0) call ncread('mtkers_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKERS(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKERS(n)),ip,1,0.)
             if (ACC_MTKEPE(n).ne.0) call ncread('mtkepe_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
             if (ACC_MTKEKE(n).ne.0) call ncread('mtkeke_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
             if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
             if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_HMLTFZ(n)),ip,1,0.)
             if (ACC_HICE(n).ne.0) call ncread('hice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HICE(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_HICE(n)),ip,1,0.)
             if (ACC_HSNW(n).ne.0) call ncread('hsnw_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_HSNW(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_HSNW(n)),ip,1,0.)
             if (ACC_FICE(n).ne.0) call ncread('fice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_FICE(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_FICE(n)),ip,1,0.)
             if (ACC_TSRF(n).ne.0) call ncread('tsrf_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TSRF(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_TSRF(n)),ip,1,0.)
             if (ACC_TICE(n).ne.0) call ncread('tice_phy'//c2,
-     .        physrf(1-nbdy,1-nbdy,ACC_TICE(n)),ip,1,0.)
+     .        phyh2d(1-nbdy,1-nbdy,ACC_TICE(n)),ip,1,0.)
             if (ACC_UVEL(n).ne.0) call ncread('uvel_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_UVEL(n)),iuu,1,0.)
             if (ACC_VVEL(n).ne.0) call ncread('vvel_phy'//c2,
@@ -986,8 +1014,8 @@ c --- read accumulated fields
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)),ip,1,0.)
             if (ACC_DZ(n).ne.0) call ncread('dz_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DZ(n)),ip,1,0.)
-            if (ACC_DIAFLX(n).ne.0) call ncread('diaflx_phy'//c2,
-     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIAFLX(n)),ip,1,0.)
+            if (ACC_BFSQ(n).ne.0) call ncread('bfsq_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_BFSQ(n)),ip,1,0.)
             if (ACC_DIFDIA(n).ne.0) call ncread('difdia_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),ip,1,0.)
             if (ACC_DIFINT(n).ne.0) call ncread('difint_phy'//c2,
@@ -1017,14 +1045,14 @@ c --- read accumulated fields
      .                    phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),
      .                    iuu,1,0.)
               call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(n)),
-     .                    1,ddm, 1,1, halo_us)
+     .                    1,ddm, 1,1, halo_uv)
             endif
             if (ACC_VFLXLVL(n).ne.0) then
               call ncread('vflxlvl_phy'//c2,
      .                    phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),
      .                    ivv,1,0.)
               call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_VFLXLVL(n)),
-     .                    1,ddm, 1,1, halo_vs)
+     .                    1,ddm, 1,1, halo_vv)
             endif
             if (ACC_UTFLXLVL(n).ne.0) call ncread('utflxlvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_UTFLXLVL(n)),iuu,1,0.)
@@ -1060,8 +1088,8 @@ c --- read accumulated fields
      .        phylvl(1-nbdy,1-nbdy,1,ACC_TEMPLVL(n)),ip,1,0.)
             if (ACC_DZLVL(n).ne.0) call ncread('dzlvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DZLVL(n)),ip,1,0.)
-            if (ACC_DIAFLXLVL(n).ne.0) call ncread('diaflxlvl_phy'//c2,
-     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIAFLXLVL(n)),ip,1,0.)
+            if (ACC_BFSQLVL(n).ne.0) call ncread('bfsqlvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_BFSQLVL(n)),ip,1,0.)
             if (ACC_DIFDIALVL(n).ne.0) call ncread('difdialvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFDIALVL(n)),ip,1,0.)
             if (ACC_DIFINTLVL(n).ne.0) call ncread('difintlvl_phy'//c2,

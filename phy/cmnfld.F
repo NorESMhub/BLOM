@@ -5,6 +5,7 @@ c --- Compute fields that are used by several subsequent routines
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_dia, only : nphy,ACC_BFSQ
 c
       implicit none
 c
@@ -26,7 +27,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          util1(i,j)=kfpla(i,j,n)
+          util1(i,j)=kfpla(i,j,m)
         enddo
         enddo
       enddo
@@ -36,7 +37,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=-1,jj+2
         do l=1,isp(j)
         do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
-          kfpla(i,j,n)=nint(util1(i,j))
+          kfpla(i,j,m)=nint(util1(i,j))
         enddo
         enddo
       enddo
@@ -46,7 +47,8 @@ c --- ------------------------------------------------------------------
 c --- Compute fields depending on selection of physics.
 c --- ------------------------------------------------------------------
 c
-      if (edritp.eq.'large scale'.or.eitmth.eq.'gm') then
+      if (edritp.eq.'large scale'.or.eitmth.eq.'gm'.or.
+     .    sum(ACC_BFSQ(1:nphy)).ne.0) then
 c
 c --- - Compute filtered buoyancy frequency squared.
         call cmnfld_bfsqf(m,n,mm,nn,k1m,k1n)
