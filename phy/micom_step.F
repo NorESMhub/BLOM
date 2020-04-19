@@ -27,7 +27,6 @@ c
       real step_time,
      .     auxil_time ,
      .     getfrc_time,
-     .     seaice_time,
      .     tmsmt1_time,
      .     advdif_time,
      .     sfcstr_time,
@@ -107,12 +106,6 @@ c
       call updswa
 c
       getfrc_time=gettime()
-c
-#ifdef ICEDYN
-cdiag write (lp,*) 'icedyn...'
-      call icedyn(m,n,mm,nn,k1m,k1n)
-#endif
-      seaice_time=gettime()
 c
 cdiag write (lp,*) 'tmsmt1...'
       call tmsmt1(m,n,mm,nn,k1m,k1n)
@@ -310,7 +303,6 @@ c
 c --- update total time spent by various tasks
       auxil_total_time=auxil_total_time+auxil_time
       getfrc_total_time=getfrc_total_time+getfrc_time
-      seaice_total_time=seaice_total_time+seaice_time
       tmsmt1_total_time=tmsmt1_total_time+tmsmt1_time
       advdif_total_time=advdif_total_time+advdif_time
       sfcstr_total_time=sfcstr_total_time+sfcstr_time
@@ -346,11 +338,10 @@ c --- - write timing diagnostics to standard out
 c --- ------------------------------------------------------------------
 c
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getfrc_time+seaice_time+tmsmt1_time
-     .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
-     .           +barotp_time+pbtcor_time+convec_time+diapfl_time
-     .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
-     .           +io_time
+        step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
+     .           +sfcstr_time+momtum_time+pgforc_time+barotp_time
+     .           +pbtcor_time+convec_time+diapfl_time+thermf_time
+     .           +mxlayr_time+tmsmt2_time+diaacc_time+io_time
         total_time=total_time+step_time
         total_xio_time=total_xio_time+step_time-io_time
 c
@@ -366,7 +357,6 @@ c
           q=100./total_time
           write (lp,'(f12.4,a,i8)') auxil_total_time*q ,'% auxil '
           write (lp,'(f12.4,a,i8)') getfrc_total_time*q,'% getfrc'
-          write (lp,'(f12.4,a,i8)') seaice_total_time*q,'% seaice'
           write (lp,'(f12.4,a,i8)') tmsmt1_total_time*q,'% tmsmt1'
           write (lp,'(f12.4,a,i8)') advdif_total_time*q,'% advdif'
           write (lp,'(f12.4,a,i8)') sfcstr_total_time*q,'% sfcstr'
@@ -391,11 +381,10 @@ c --- ------------------------------------------------------------------
 c
         io_time=gettime()
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getfrc_time+seaice_time+tmsmt1_time
-     .           +advdif_time+sfcstr_time+momtum_time+pgforc_time
-     .           +barotp_time+pbtcor_time+convec_time+diapfl_time
-     .           +thermf_time+mxlayr_time+tmsmt2_time+diaacc_time
-     .           +io_time
+        step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
+     .           +sfcstr_time+momtum_time+pgforc_time+barotp_time
+     .           +pbtcor_time+convec_time+diapfl_time+thermf_time
+     .           +mxlayr_time+tmsmt2_time+diaacc_time+io_time
         total_time=total_time+step_time
         total_xio_time=total_xio_time+step_time-io_time
 c

@@ -86,14 +86,6 @@ c --- ------------------------------------------------------------------
 c
       call iniphy
 c
-#ifdef ICEDYN
-c --- ------------------------------------------------------------------
-c --- Initialization of sea ice dynamics
-c --- ------------------------------------------------------------------
-c
-      call iniicedyn(scpx,scpy,corioq,expcnf)
-#endif
-c
 c --- ------------------------------------------------------------------
 c --- Initialize forcing
 c --- ------------------------------------------------------------------
@@ -146,9 +138,6 @@ c
         endif
 c
         call inicon
-#ifdef ICEDYN
-        call iniconicedyn
-#endif
 #ifdef TRC
         call initrc
 #endif

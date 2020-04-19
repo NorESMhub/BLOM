@@ -1133,10 +1133,6 @@ c --- ------------------------------------------------------------------
 c
       call settemmin
 c
-#ifdef ICEDYN
-      call restart_icerd(time,rstfnm)
-#endif
-c
 #ifdef TRC
       call restart_trcrd(rstfnm)
 #endif

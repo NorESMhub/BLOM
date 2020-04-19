@@ -16,7 +16,6 @@ c
       total_xio_time   =0.
       auxil_total_time =0.
       getfrc_total_time=0.
-      seaice_total_time=0.
       tmsmt1_total_time=0.
       advdif_total_time=0.
       sfcstr_total_time=0.

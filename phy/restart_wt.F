@@ -659,10 +659,6 @@ c --- write accumulated fields
 c
       call ncfcls
 c
-#ifdef ICEDYN
-      call restart_icewt(time,rstfnm)
-#endif
-c
 #ifdef TRC
       call restart_trcwt(rstfnm)
 #endif
