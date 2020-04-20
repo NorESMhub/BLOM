@@ -1,9 +1,23 @@
+! Copyright (C) 2002  S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       MODULE mo_control_bgc
-
-!$Source: /scratch/local1/m212047/patrick/SRC_MPI/src_hamocc/RCS/mo_control_bgc.f90,v $\\
-!$Revision: 1.1 $\\
-!$Date: 2005/01/28 08:37:45 $\\
-
 !***********************************************************************
 !
 !**** *MODULE mo_control_bgc* - control variables for bgc modules.

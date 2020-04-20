@@ -1,9 +1,23 @@
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
        MODULE mo_sedmnt
-
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/mo_sedmnt.f90,v $\\
-!$Revision: 1.2 $\\
-!$Date: 2004/11/12 15:37:21 $\\
-
 !***********************************************************************
 !
 !**** *MODULE mo_sedmnt* - Variables for sediment modules.

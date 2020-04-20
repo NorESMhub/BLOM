@@ -1,10 +1,28 @@
+! Copyright (C) 2002  Ernst Maier-Reimer, S. Legutke, P. Wetzel
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc, &
 #ifndef sedbypass
      &                    sedlay2,powtra2,burial2,              &
 #endif
      &                    kplyear,kplmon,kplday,kpldtoce,omask, &
      &                    rstfnm_ocn)
-
 !****************************************************************
 !
 !**** *AUFR_BGC* - reads marine bgc restart data.

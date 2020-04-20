@@ -1,6 +1,25 @@
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree, 
+!                     C. Heinze
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       SUBROUTINE CARCHM(kpie,kpje,kpke,pglat,pddpo,pdlxp,pdlyp,psao,    &
      &                  ppao,ptho,prho,psicomo,pfu10,ptiestu,omask)
-
 !**********************************************************************
 !
 !**** *CARCHM* - .
