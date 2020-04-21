@@ -1,6 +1,24 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2000 HYCOM Consortium and contributors
+! Copyright (C) 2001-2018 Mats Bentsen, Lars Inge Enstad, Mehmet Ilicak
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine momtum(m,n,mm,nn,k1m,k1n)
-c
-c --- version 2.8.1 -- cyclic and noncyclic b.c. combined
 c
       use mod_xc
 c
@@ -910,19 +928,3 @@ c
 c
       return
       end
-c
-c
-c> Revision history
-c>
-c> Mar. 1995 - changed min.depth in pot.vort. calculation from 1 mm to 1 m
-c>             (loops 812,802,803)
-c> July 1997 - transferred -visc- and -vort- from common to local
-c> July 1997 - eliminated 3-D arrays -uold,vold- (used in time smoothing)
-c> Aug. 1997 - added some loops that used to be in barotp.f
-c> Aug. 1997 - transferred -wgtia,wgtib,wgtja,wgtjb- from common to local
-c> Mar. 1998 - added -th3d-
-c> Sep. 1998 - switched to biharmonic friction
-c> Apr. 2000 - changed i/j loop nesting to j/i
-c> May  2000 - modified j-1,j+1 to accomodate both channel & closed basin b.c.
-c> Aug. 2000 - separated dpmx(i,j) and dpmx(i,jb) calculation in loop 807 
-c>             to avoid coincidental execution in multi-threaded runs
