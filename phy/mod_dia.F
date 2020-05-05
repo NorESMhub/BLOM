@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2019 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2020 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger
 !
 ! This file is part of BLOM.
@@ -44,7 +44,7 @@ c --- Restart parameters
       integer, save :: rstcmp,rstfmt,iotype
       logical, save :: rstmon,rstann
 c
-c --- Copies of MICOM variables that are used for HAMOCC diagnostics
+c --- Copies of BLOM variables that are used for HAMOCC diagnostics
       real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  pbath,ubath,vbath 
       integer, save :: nstepinday 
@@ -257,7 +257,7 @@ c ---   char runid     (in)    : acronym of simulation
 c ---   int  runid_len (in)    : actual length of runid 
 c ---   char expcnf    (in)    : experiment configuration
 c ---   char ctag      (in)    : string used in middle of file name 
-c ---   real time      (in)    : MICOM time step 
+c ---   real time      (in)    : BLOM time step 
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
@@ -312,15 +312,15 @@ c
           if (diagmon) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'.nc'
           elseif (diagann) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'.nc'
           else
             call pstdat(ny,nm,nd,nint(diagfq))
             write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'-',nd,
      .        '.nc'
           endif
         else
@@ -339,7 +339,7 @@ c
      .          *diagfq/nstep_in_day*86400)
         if (expcnf.eq.'cesm') then
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'-',
+     .      runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'-',nd,'-',
      .      ns,'.nc'
         else
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
@@ -874,7 +874,7 @@ c --- initialisation of h2h, lyr and lvl fields
       enddo
 c
 c --- Load bathymetry into module mod_dia (used for vertical 
-c --- interpolation in MICOM and HAMOCC)
+c --- interpolation in BLOM and HAMOCC)
       nstepinday=nstep_in_day
 c$OMP PARALLEL DO PRIVATE(l,i) 
       do j=1,jj+1

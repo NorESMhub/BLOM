@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2011-2018 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
+! Copyright (C) 2011-2020 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
 !                         Ingo Bethke
 !
 ! This file is part of BLOM.
@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module micom_cpl_indices
+module blom_cpl_indices
  
   use seq_flds_mod, only : seq_flds_x2o_fields, seq_flds_o2x_fields 
 !  use seq_flds_mod, only : seq_flds_i2o_per_cat, ice_ncat 
@@ -100,7 +100,7 @@ module micom_cpl_indices
 
 contains
 
-  subroutine micom_cpl_indices_set( )
+  subroutine blom_cpl_indices_set( )
 
     type(mct_aVect) :: o2x      ! temporary
     type(mct_aVect) :: x2o      ! temporary
@@ -204,6 +204,6 @@ contains
     call mct_aVect_clean(x2o)
     call mct_aVect_clean(o2x)
 
-  end subroutine micom_cpl_indices_set
+  end subroutine blom_cpl_indices_set
 
-end module micom_cpl_indices
+end module blom_cpl_indices

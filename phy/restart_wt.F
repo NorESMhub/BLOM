@@ -72,7 +72,7 @@ c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
+     .    runid(1:runid_len),'.blom.r.',nyear,'-',nmonth,'-',nday,
      .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
@@ -687,7 +687,7 @@ c
 c
 c --- - write diag. heat flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rtflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
         endif
@@ -724,7 +724,7 @@ c
 c
 c --- - write diag. salt flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rsflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
         endif

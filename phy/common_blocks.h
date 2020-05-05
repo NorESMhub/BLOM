@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2019 Mats Bentsen, Lars Inge Enstad, Ingo Bethke,
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad, Ingo Bethke,
 !                         Mehmet Ilicak, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
@@ -52,9 +52,9 @@ c
      .  betafp,        ! latitudinal variation of the coriolis param. at p-point
      .  potvor         ! potential vorticity
 c
-      common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
-     .                p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
-     .                corioq,coriop,betafp,potvor
+      common /blom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
+     .               p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
+     .               corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  uflx,vflx,     ! horizontal mass fluxes
@@ -93,13 +93,13 @@ c
      .  uflux2,vflux2, ! more mass fluxes
      .  uflux3,vflux3  ! more mass fluxes
 c
-      common /micom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,umfltd,vmfltd,
-     .                utfltd,vtfltd,utflld,vtflld,usfltd,vsfltd,usflld,
-     .                vsflld,ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,
-     .                ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,
-     .                pvtrop,pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,
-     .                vbcors_p,defor1,defor2,utotm,vtotm,utotn,vtotn,
-     .                uflux,vflux,uflux2,vflux2,uflux3,vflux3
+      common /blom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,umfltd,vmfltd,
+     .               utfltd,vtfltd,utflld,vtflld,usfltd,vsfltd,usflld,
+     .               vsflld,ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,
+     .               ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,
+     .               pvtrop,pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,
+     .               vbcors_p,defor1,defor2,utotm,vtotm,utotn,vtotn,
+     .               uflux,vflux,uflux2,vflux2,uflux3,vflux3
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  pgfx,pgfy      ! horizontal pressure gradient force
@@ -130,12 +130,12 @@ c
      .  umax,vmax,     ! maximum allowable velocities
      .  depths         ! water depth
 c
-      common /micom3/ pgfx,pgfy,pgfxo,pgfyo,pgfxm,pgfym,xixp,xixm,
-     .                xiyp,xiym,pgfxm_o,pgfym_o,xixp_o,xixm_o,
-     .                xiyp_o,xiym_o,util1,util2,util3,util4,scqx,scqy,
-     .                scpx,scpy,scux,scuy,scvx,scvy,scq2,scp2,scu2,scv2,
-     .                scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
-     .                depths
+      common /blom3/ pgfx,pgfy,pgfxo,pgfyo,pgfxm,pgfym,xixp,xixm,
+     .               xiyp,xiym,pgfxm_o,pgfym_o,xixp_o,xixm_o,
+     .               xiyp_o,xiym_o,util1,util2,util3,util4,scqx,scqy,
+     .               scpx,scpy,scux,scuy,scvx,scvy,scq2,scp2,scu2,scv2,
+     .               scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
+     .               depths
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  bfsqi,         ! interface buoyancy frequency squared
@@ -184,13 +184,13 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
-      common /micom4/ bfsqi,bfsql,bfsqf,nslpx,nslpy,nnslpx,nnslpy,
-     .                difint,difiso,difdia,uml,vml,umlres,vmlres,
-     .                uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
-     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,
-     .                taux,tauy,ustar,ustarb,idkedt,ustar3,buoyfl,
-     .                mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
-     .                twedon,pbrnda,kfpla
+      common /blom4/ bfsqi,bfsql,bfsqf,nslpx,nslpy,nnslpx,nnslpy,
+     .               difint,difiso,difdia,uml,vml,umlres,vmlres,
+     .               uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
+     .               surflx,surrlx,sswflx,salflx,brnflx,salrlx,
+     .               taux,tauy,ustar,ustarb,idkedt,ustar3,buoyfl,
+     .               mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
+     .               twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2016 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -25,7 +25,7 @@
       use mct_mod
       use shr_const_mod, only: SHR_CONST_TKFRZ
       use types, only : r8
-      use micom_cpl_indices
+      use blom_cpl_indices
       use mod_xc
 
       implicit none

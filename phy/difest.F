@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2018 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -1188,7 +1188,7 @@ c --- ------- Compute stability functions
               Sm=max(Sm,0.)
               Sh=max(Sh,0.)
 c
-c --- ------- Relate Canuto stability to MICOM notation
+c --- ------- Relate Canuto stability to BLOM notation
               Sm=Sm*cmu_fac3/gls_cmu0**3
               Sh=Sh*cmu_fac3/gls_cmu0**3
 c

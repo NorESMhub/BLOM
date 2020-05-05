@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2019 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2004-2020 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ c ----------------------------------------------------------------------
 c
 c Description:
 c    nctools.f is a boundle of fortran subroutines designed to write
-c    output from the mpi version of MICOM to NetCDF data-format. 
+c    output from the mpi version of BLOM to NetCDF data-format. 
 c
 c    Prerequisites are the linkage of the f90 netcdf library and the
 c    access to the module netcdf.mod.

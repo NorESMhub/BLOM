@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2019 Mats Bentsen, Mehmet Ilicak, Ingo Bethke
+! Copyright (C) 2008-2020 Mats Bentsen, Mehmet Ilicak, Ingo Bethke
 !
 ! This file is part of BLOM.
 !
@@ -74,7 +74,7 @@ c
 c
 c --- - print namelist on stdout 
         write (lp,*)
-        write (lp,*) 'rdlim: MICOM LIMITS NAMELIST GROUP:' 
+        write (lp,*) 'rdlim: BLOM LIMITS NAMELIST GROUP:' 
         write (lp,*) 'NDAY1',NDAY1
         write (lp,*) 'NDAY2',NDAY2
         write (lp,*) 'IDATE',IDATE
@@ -166,7 +166,7 @@ c
         enddo
 c
         write (lp,*)
-        write (lp,*) 'rdlim: MICOM MERREG NAMELIST GROUP:'
+        write (lp,*) 'rdlim: BLOM MERREG NAMELIST GROUP:'
         do m=1,mer_nreg
           write (lp,*)
           write (lp,*) 'MER_REGNAM ',trim(mer_regnam(m))
@@ -187,7 +187,7 @@ c --- - determine number of io groups and print namelist
           H2D_SALRLX(1:nphy)=0
         endif
         write (lp,*)
-        write (lp,*) 'rdlim: MICOM DIAPHY NAMELIST GROUP:' 
+        write (lp,*) 'rdlim: BLOM DIAPHY NAMELIST GROUP:' 
         write (lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
         write (lp,*) 'GLB_AVEPERIO',GLB_AVEPERIO(1:nphy)
         write (lp,*) 'GLB_FILEFREQ',GLB_FILEFREQ(1:nphy)

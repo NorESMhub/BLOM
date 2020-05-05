@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine micom_step
+      subroutine blom_step
 c
 c --- ------------------------------------------------------------------
 c --- integrate a model time step
@@ -88,7 +88,7 @@ c --- results after restart with arctic
 c --- ------------------------------------------------------------------
 c
       if (nreg.eq.2.and.mod(nstep,nstep_in_day).eq.1) then
-        if (mnproc.eq.1) write (lp,*) 'micom_step: update flux halos'
+        if (mnproc.eq.1) write (lp,*) 'blom_step: update flux halos'
         call xctilr(uflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
         call xctilr(utflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
         call xctilr(usflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
@@ -308,7 +308,7 @@ c
 c
 c
 c --- ------------------------------------------------------------------
-c --- - output of MICOM diagnostics
+c --- - output of BLOM diagnostics
 c --- ------------------------------------------------------------------
 c
       do i=1,nphy 

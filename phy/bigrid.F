@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2018 Mats Bentsen, Lars Inge Enstad
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad
 !
 ! This file is part of BLOM.
 !
@@ -174,7 +174,7 @@ c --- detect (and abort on) single-width inlets and 1-point seas.
       if (nfill.gt.0) then
         if (mnproc.eq.1) then
           write(lp,'(/a/)') 
-     &     'Must correct bathymetry before running MICOM'
+     &     'Must correct bathymetry before running BLOM'
           call flush(lp)
         endif
         call xcstop('(bigrid)')

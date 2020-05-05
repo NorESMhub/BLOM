@@ -1,4 +1,4 @@
-c Copyright (C) 2020  J. Schwinger
+c Copyright (C) 2020  J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -18,8 +18,8 @@ c along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 c--------------------------------------------------------------------
 c Arrays to keep a two time-level copy of sediment fields
-c These array are copied back and forth in micom2hamocc.F
-c and hamocc2micom.F in the same manner as the tracer field.
+c These array are copied back and forth in blom2hamocc.F
+c and hamocc2blom.F in the same manner as the tracer field.
 c Also, they written/read to and from restart files.
 c There are probably more efficient/elegant solutions.
 c 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -52,33 +52,38 @@ c --- Generate file name and check for file existence
 c --- ------------------------------------------------------------------
 c
 #ifdef CCSMCOUPLED
-        i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            if (mnproc.eq.1) 
-     .        write (lp,*)
-     .          'Could not generate ocean tracer restart file name!'
-            call xchalt('(restart_ocntrcrd)')
-            stop '(restart_ocntrcrd)'
-          endif
-        enddo
+      i=1
+      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.'.and.
+     .          rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        i=i+1
+        if (i+8.gt.len(rstfnm_ocn)) then
+          if (mnproc.eq.1) 
+     .      write (lp,*)
+     .        'Could not generate ocean tracer restart file name!'
+          call xchalt('(restart_ocntrcrd)')
+          stop '(restart_ocntrcrd)'
+        endif
+      enddo
+      if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+        rstfnm=rstfnm_ocn(1:i-1)//'.blom.rtrc.'//rstfnm_ocn(i+8:)
+      else
         rstfnm=rstfnm_ocn(1:i-1)//'.micom.rtrc.'//rstfnm_ocn(i+9:)
+      endif
 #else
-        i=1
-        do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            if (mnproc.eq.1) 
-     .        write (lp,*)
-     .          'Could not generate ocean tracer restart file name!'
-            call xchalt('(restart_ocntrcrd)')
-            stop '(restart_ocntrcrd)'
-          endif
-        enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
+      i=1
+      do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
+        i=i+1
+        if (i+8.gt.len(rstfnm_ocn)) then
+          if (mnproc.eq.1) 
+     .      write (lp,*)
+     .        'Could not generate ocean tracer restart file name!'
+          call xchalt('(restart_ocntrcrd)')
+          stop '(restart_ocntrcrd)'
+        endif
+      enddo
+      rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
 #endif
-        inquire(file=rstfnm,exist=fexist)
+      inquire(file=rstfnm,exist=fexist)
 c
       call xcbcst(fexist)
 c
@@ -97,12 +102,12 @@ c
           write (lp,'(2a)') ' reading ocean tracer restart file ',
      .                      trim(rstfnm)
         endif  
-          call ncfopn(rstfnm,'r',' ',1,iotype)
-          call ncgeti('nday0',ndayr)
-          call ncgeti('nmonth0',nmonthr)
-          call ncgeti('nyear0',nyearr)
-          call ncgetr('time0',time0r)
-          call ncgetr('time',timer)
+        call ncfopn(rstfnm,'r',' ',1,iotype)
+        call ncgeti('nday0',ndayr)
+        call ncgeti('nmonth0',nmonthr)
+        call ncgeti('nyear0',nyearr)
+        call ncgetr('time0',time0r)
+        call ncgetr('time',timer)
         if (mnproc.eq.1) then
           if (ndayr.ne.nday0.or.nmonthr.ne.nmonth0.or.
      .        nyearr.ne.nyear0.or.time0r.ne.time0.or.
@@ -134,7 +139,7 @@ c
           call ncread(trim(trcnm),trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
         enddo
 #endif
-          call ncfcls
+        call ncfcls
       endif
 c
       return

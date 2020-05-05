@@ -48,7 +48,7 @@ module mo_ndep
 !  the input file is not found, an error will be issued.  
 ! 
 !  The input data must be already pre-interpolated to the ocean grid and stored 
-!  in the same folder with MICOM's grid information.   
+!  in the same folder with BLOM's grid information.   
 !
 !
 !********************************************************************************

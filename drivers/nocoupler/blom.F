@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,13 +17,11 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program micom
+      program blom
 c
-c --- ---------------------------------------------
-c --- miami isopycnic coordinate ocean model
-c
-c --- NERSC version 2.0, based on MICOM version 2.8
-c --- ---------------------------------------------
+c --- ------------------------------------------------------------------
+c --- Bergen Layered Ocean Model (BLOM)
+c --- ------------------------------------------------------------------
 c
       use mod_xc
 c
@@ -32,13 +30,13 @@ c
 #include "common_blocks.h"
 c
 c --- initialize the model
-      call micom_init
+      call blom_init
 c
 c --- advance the model from time step nstep1 to nstep2
-      micom_loop: do
-        call micom_step
-        if (nstep.eq.nstep2) exit micom_loop
-      enddo micom_loop
+      blom_loop: do
+        call blom_step
+        if (nstep.eq.nstep2) exit blom_loop
+      enddo blom_loop
 c
 c --- write check sum of layer thickness
       call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')

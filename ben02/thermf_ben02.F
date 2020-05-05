@@ -399,10 +399,10 @@ c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=(dvi*fusi+dvs*fuss)/dt
 c
-c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
           surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
 c
-c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
+c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
 c

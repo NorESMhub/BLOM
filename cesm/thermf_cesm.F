@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2018 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -148,10 +148,10 @@ c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
 c
-c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
           surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
 c
-c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
+c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-swa(i,j)*1.e-4
 c

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2017 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -19,7 +19,7 @@
 
       module data_mct
 
-      ! Data set by mct to be used by micom
+      ! Data set by mct to be used by blom
 
       implicit none
 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2015 Mats Bentsen
+! Copyright (C) 2009-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -19,7 +19,7 @@
 
       module data_mct
 
-      ! Data set by mct to be used by micom
+      ! Data set by mct to be used by blom
 
       character (len=256), public :: runid_mct   ! case name
       character (len=256), public :: runtype_mct ! run type

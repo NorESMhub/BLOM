@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2019 Mats Bentsen
+! Copyright (C) 2009-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -188,7 +188,7 @@ c
             do while (.not.done)
               niter=niter+1
               if (niter.eq.100) then
-                write (lp,*) 'micom: convec: no convergence!',i+i0,j+j0
+                write (lp,*) 'blom: convec: no convergence!',i+i0,j+j0
                 exit
               endif
 c
