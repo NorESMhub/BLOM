@@ -1,4 +1,4 @@
-c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -39,12 +39,12 @@ c
 c
       character(len=1) :: cdummy
 c
-c initialise arrays for MICOM-HAMOCC interface
+c initialise arrays for BLOM-HAMOCC interface
       call inibgc
 c
 c initialise HAMOCC
 c
-      call micom2hamocc(2,1,kk,0)
+      call blom2hamocc(2,1,kk,0)
 c
       call INI_HAMOCC(0,bgcdt,kpndtrun,idm,jdm,kdm,nbdy
      .               ,bgc_dp,bgc_t,bgc_s,bgc_rho

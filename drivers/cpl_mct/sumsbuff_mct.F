@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2015 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2008-2020 Mats Bentsen, Jerry Tjiputra
 !
 ! This file is part of BLOM.
 !
@@ -22,7 +22,7 @@
       ! Uses modules
       
       use types, only : r8
-      use micom_cpl_indices
+      use blom_cpl_indices
       use mod_xc
 
       implicit none

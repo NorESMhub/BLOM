@@ -14,10 +14,10 @@ setenv RUN_TYPE `./xmlquery RUN_TYPE --value`
 setenv CASEBUILD `./xmlquery CASEBUILD --value`
 setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
 setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
-setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
+setenv BLOM_COUPLING `./xmlquery BLOM_COUPLING --value`
 setenv RUNDIR `./xmlquery  RUNDIR --value`
-setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
-setenv MICOM_TURBULENT_CLOSURE `./xmlquery MICOM_TURBULENT_CLOSURE --value`
+setenv BLOM_TRACER_MODULES `./xmlquery BLOM_TRACER_MODULES --value`
+setenv BLOM_TURBULENT_CLOSURE `./xmlquery BLOM_TURBULENT_CLOSURE --value`
 setenv HAMOCC_CFC `./xmlquery HAMOCC_CFC --value`
 setenv HAMOCC_NATTRC `./xmlquery HAMOCC_NATTRC --value`
 setenv HAMOCC_SEDBYPASS `./xmlquery HAMOCC_SEDBYPASS --value`
@@ -35,16 +35,16 @@ cd $OBJROOT/ocn/obj
 
 cat >! Filepath << EOF1
 $OBJROOT/ocn/obj/dimensions
-$CASEROOT/SourceMods/src.micom
-$SRCROOT/components/micom/ben02
-$SRCROOT/components/micom/cesm
-$SRCROOT/components/micom/drivers/cpl_share
-$SRCROOT/components/micom/drivers/cpl_mct
-$SRCROOT/components/micom/phy
+$CASEROOT/SourceMods/src.blom
+$SRCROOT/components/blom/ben02
+$SRCROOT/components/blom/cesm
+$SRCROOT/components/blom/drivers/cpl_share
+$SRCROOT/components/blom/drivers/cpl_mct
+$SRCROOT/components/blom/phy
 EOF1
 
-set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
-set tracers = (`echo $MICOM_TRACER_MODULES`)
+set turbclo = (`echo $BLOM_TURBULENT_CLOSURE`)
+set tracers = (`echo $BLOM_TRACER_MODULES`)
 set co2type = (`echo $OCN_CO2_TYPE`)
 
 set cpp_ocn = "-DMPI"
@@ -55,7 +55,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID
   set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
 endif
 if ($#turbclo != 0 || $#tracers != 0) then
-  echo $SRCROOT/components/micom/trc >> Filepath
+  echo $SRCROOT/components/blom/trc >> Filepath
   set cpp_ocn = "$cpp_ocn -DTRC"
 endif
 if ($#turbclo != 0) then
@@ -89,10 +89,10 @@ endif
 if ($#tracers != 0) then
   foreach module ($tracers)
     if      ($module == iage) then
-      echo $SRCROOT/components/micom/idlage >> Filepath
+      echo $SRCROOT/components/blom/idlage >> Filepath
       set cpp_ocn = "$cpp_ocn -DIDLAGE"
     else if ($module == ecosys) then
-      echo $SRCROOT/components/micom/hamocc >> Filepath
+      echo $SRCROOT/components/blom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC -DWLIN"
       if ($HAMOCC_CFC == TRUE) then
         set cpp_ocn = "$cpp_ocn -DCFC"
@@ -129,10 +129,10 @@ endif
 # Build the library
 #------------------------------------------------------------------------------
 
-gmake complib -j $GMAKE_J MODEL=micom COMPLIB=$LIBROOT/libocn.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$cpp_ocn" -f $CASETOOLS/Makefile || exit 2
+gmake complib -j $GMAKE_J MODEL=blom COMPLIB=$LIBROOT/libocn.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$cpp_ocn" -f $CASETOOLS/Makefile || exit 2
 
 if !(-f $LIBROOT/libocn.a) then
-  echo "ERROR: micom library not available"
+  echo "ERROR: blom library not available"
   exit -1
 endif
 

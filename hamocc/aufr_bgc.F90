@@ -1,5 +1,6 @@
 ! Copyright (C) 2002  Ernst Maier-Reimer, S. Legutke, P. Wetzel
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
+!                     M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -67,6 +68,9 @@
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
 !     - added reading of atmosphere field for BOXATM and DIFFAT
+!
+!     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+!     - changed ocean model from MICOM to BLOM
 !
 !     Purpose
 !     -------
@@ -162,7 +166,8 @@
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
         i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
@@ -171,7 +176,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        else
+          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        endif
 
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
@@ -204,7 +213,8 @@
 #ifdef PNETCDF
         testio=1
         i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
@@ -213,7 +223,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        else
+          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        endif
         write(stripestr,('(i3)')) 16
         write(stripestr2,('(i9)')) 1024*1024
         call mpi_info_create(info,ierr)
@@ -589,7 +603,7 @@
 
 ! return tracer fields to ocean model (both timelevels); No unit
 ! conversion here, since tracers in the restart file are in 
-! MICOM units (mol/kg) 
+! BLOM units (mol/kg) 
 !--------------------------------------------------------------------
 !
       trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)

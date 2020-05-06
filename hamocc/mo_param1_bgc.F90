@@ -42,7 +42,7 @@
                                               ! is defined as the lowermost layer thicker than dp_min_sink.
 
      INTEGER,  PARAMETER :: kmle   = 2        ! k-end index for layers that represent the mixed
-                                              ! layer in MICOM
+                                              ! layer in BLOM
 
      REAL, PARAMETER :: safediv = 1.0e-25     ! added to the denominator of isotopic ratios (avoid div. by zero)
 ! advected tracers

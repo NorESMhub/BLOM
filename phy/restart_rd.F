@@ -1161,7 +1161,7 @@ c
 c
 c --- - read diag. heat flux restart file if available
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rtflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_resttflx_'//rstfnm(runid_len+10:)
         endif
@@ -1196,7 +1196,7 @@ c
 c
 c --- - read diag. salt flux restart file if available
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rsflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_restsflx_'//rstfnm(runid_len+10:)
         endif

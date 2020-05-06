@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -753,12 +753,12 @@ c
             i=cwmi(l)-i0
             j=cwmj(l)-j0
             if (cwmedg(l).eq.'u') then
-              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+              write (lp,*) 'blom: geoenv_file: ',trim(cwmtag(l)),
      .                     i+i0,j+j0,'scuy:',scuy(i,j),'->',cwmwth(l)
               scu2(i,j) = scu2(i,j)*cwmwth(l)/scuy(i,j)
               scuy(i,j) = cwmwth(l)
             else
-              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+              write (lp,*) 'blom: geoenv_file: ',trim(cwmtag(l)),
      .                     i+i0,j+j0,'scvx:',scvx(i,j),'->',cwmwth(l)
               scv2(i,j) = scv2(i,j)*cwmwth(l)/scvx(i,j)
               scvx(i,j) = cwmwth(l)

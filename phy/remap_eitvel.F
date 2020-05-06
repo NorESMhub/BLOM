@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2015 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -33,8 +33,6 @@ c
       use mod_xc
 c
       implicit none
-c
-c --- Include MICOM dimensions, masks, and arrays for do-loop structure.
 c
 c --- Argument variables:
 c ---   scuy   - length of cell boundary with u-point as midpoint.

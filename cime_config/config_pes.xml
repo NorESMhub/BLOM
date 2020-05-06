@@ -115,7 +115,7 @@
   </grid>
   <grid name="a%T62.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_MICOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>
@@ -152,7 +152,7 @@
   </grid>
   <grid name="a%TL319.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_MICOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>192</ntasks_atm>
@@ -189,7 +189,7 @@
   </grid>
   <grid name="a%0.9x1.25.+oi%tnx1v4">
     <mach name="any">
-      <pes pesize="M" compset="_DATM%CPLHIST.*_MICOM">
+      <pes pesize="M" compset="_DATM%CPLHIST.*_BLOM">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>1</ntasks_atm>
@@ -338,7 +338,7 @@
 
   <grid name="a%T62.+oi%tnx0.25v4">
     <mach name="any">
-      <pes pesize="any" compset="_DATM.*_MICOM%ECO">
+      <pes pesize="any" compset="_DATM.*_BLOM%ECO">
         <comment>none</comment>
         <ntasks>
           <ntasks_atm>16</ntasks_atm>
@@ -414,7 +414,7 @@
 
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="S" compset="_DATM.*_MICOM%ECO">
+      <pes pesize="S" compset="_DATM.*_BLOM%ECO">
 	<comment>none</comment>
 	<ntasks>
 	  <ntasks_atm>1</ntasks_atm> 
@@ -451,7 +451,7 @@
   </grid>
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
-      <pes pesize="M" compset="_DATM.*_MICOM%ECO">
+      <pes pesize="M" compset="_DATM.*_BLOM%ECO">
 	<comment>none</comment>
 	<ntasks>
 	  <ntasks_atm>1</ntasks_atm> 

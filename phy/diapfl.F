@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2019 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -302,7 +302,7 @@ c --- ------- fluid domain.
                 enddo
                 if (niter.eq.100) then
                   write (lp,*)
-     .              'micom: diapfl: no convergence in flux limit!',
+     .              'blom: diapfl: no convergence in flux limit!',
      .              i+i0,j+j0
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
@@ -507,7 +507,7 @@ c --- --------- iteration.
                 if (maxdf.le.dflim) exit
                 if (niter.eq.100) then
                   write (lp,*)
-     .          'micom: diapfl: no convergence in implicit diffusion!',
+     .          'blom: diapfl: no convergence in implicit diffusion!',
      .          i+i0,j+j0,maxdf,dflim
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl

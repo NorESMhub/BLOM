@@ -1,4 +1,4 @@
-c Copyright (C) 2020  J. Schwinger
+c Copyright (C) 2020  J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -16,10 +16,10 @@ c You should have received a copy of the GNU Lesser General Public License
 c along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      subroutine hamocc2micom(m,n,mm,nn)
+      subroutine hamocc2blom(m,n,mm,nn)
 c***********************************************************************
 c
-c**** *SUBROUTINE hamocc2micom* - Interface between MICOM and HAMOCC.
+c**** *SUBROUTINE hamocc2blom* - Interface between BLOM and HAMOCC.
 c
 c     J. Schwinger      *GFI, UiB        2014-05-21 initial version
 c      - 
@@ -28,10 +28,13 @@ c     Modified
 c     --------
 c     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
 c     - added sediment bypass preprocessor option
+c
+c     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+c     - changed ocean model from MICOM to BLOM
 c  
 c     Purpose
 c     -------
-c      Pass flux and tracer fields back from HAMOCC to MICOM.
+c      Pass flux and tracer fields back from HAMOCC to BLOM.
 c      The local HAMOCC arrays are copied back in the appropriate
 c      time-level of the tracer field. Note that also sediment fields 
 c      are copied back, since a two time-level copy of sediment fields

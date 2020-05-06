@@ -17,12 +17,12 @@ setenv CONTINUE_RUN `./xmlquery CONTINUE_RUN --value`
 setenv CASEBUILD `./xmlquery CASEBUILD --value`
 setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
 setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
-setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
+setenv BLOM_COUPLING `./xmlquery BLOM_COUPLING --value`
 setenv RUNDIR `./xmlquery RUNDIR --value`
-setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
-setenv MICOM_RIVER_NUTRIENTS `./xmlquery MICOM_RIVER_NUTRIENTS --value`
-setenv MICOM_N_DEPOSITION `./xmlquery MICOM_N_DEPOSITION --value`
-setenv MICOM_N_DEP_FILE `./xmlquery MICOM_N_DEP_FILE --value`
+setenv BLOM_TRACER_MODULES `./xmlquery BLOM_TRACER_MODULES --value`
+setenv BLOM_RIVER_NUTRIENTS `./xmlquery BLOM_RIVER_NUTRIENTS --value`
+setenv BLOM_N_DEPOSITION `./xmlquery BLOM_N_DEPOSITION --value`
+setenv BLOM_N_DEP_FILE `./xmlquery BLOM_N_DEP_FILE --value`
 setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
 echo $CASE ${EXEROOT} $CASEBUILD
 cd $EXEROOT/ocn/obj
@@ -35,7 +35,7 @@ setenv CONFIG_OCN_DIR $CONFIG_OCN_DIR1/../
 set dimdir = $EXEROOT/ocn/obj/dimensions
 mkdir -p $dimdir
 set kdm = `cat $CONFIG_OCN_DIR/bld/$OCN_GRID/kdm`
-$CONFIG_OCN_DIR/bld/micom_dimensions -n $NTASKS_OCN -k $kdm -d $CONFIG_OCN_DIR/bld/$OCN_GRID || exit -1
+$CONFIG_OCN_DIR/bld/blom_dimensions -n $NTASKS_OCN -k $kdm -d $CONFIG_OCN_DIR/bld/$OCN_GRID || exit -1
 set recompile = FALSE
 cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
 echo $PWD
@@ -55,37 +55,37 @@ if ($CONTINUE_RUN == TRUE) then
 endif
 
 #------------------------------------------------------------------------------
-# Generate micom.input_data_list
+# Generate blom.input_data_list
 #------------------------------------------------------------------------------
 
 if      ($OCN_GRID == gx1v5) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20091216
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20091216
 else if ($OCN_GRID == gx1v6) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20101119
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20101119
 else if ($OCN_GRID == gx3v7) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20110921
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20110921
 else if ($OCN_GRID == tnx2v1) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130206
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20130206
 else if ($OCN_GRID == tnx1.5v1) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20131011
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20131011
 else if ($OCN_GRID == tnx1v1) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20120120
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20120120
 else if ($OCN_GRID == tnx1v3) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170612
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170612
 else if ($OCN_GRID == tnx1v4) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170601
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170601
 else if ($OCN_GRID == tnx0.25v1) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20130930
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20130930
 else if ($OCN_GRID == tnx0.25v3) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170623
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170623
 else if ($OCN_GRID == tnx0.25v4) then
-  setenv INPUTPATH $DIN_LOC_ROOT/ocn/micom/$OCN_GRID/20170619
+  setenv INPUTPATH $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170619
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
 echo $CASEBUILD
-cat > $CASEBUILD/micom.input_data_list << EOF1
+cat > $CASEBUILD/blom.input_data_list << EOF1
 grid_file = $INPUTPATH/grid.nc
 ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
 ncep_height_file = $INPUTPATH/hgt.sfc.nc
@@ -97,26 +97,26 @@ meridional_transport_basin_file = $INPUTPATH/mertraoceans.dat
 section_index_file = $INPUTPATH/secindex.dat
 EOF1
 if ($RUN_TYPE == startup)  then
-cat >> $CASEBUILD/micom.input_data_list << EOF1
+cat >> $CASEBUILD/blom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
 EOF1
 endif
-set tracers = (`echo $MICOM_TRACER_MODULES`)
-set rivnutr = (`echo $MICOM_RIVER_NUTRIENTS`)
-set ndep    = (`echo $MICOM_N_DEPOSITION`)
+set tracers = (`echo $BLOM_TRACER_MODULES`)
+set rivnutr = (`echo $BLOM_RIVER_NUTRIENTS`)
+set ndep    = (`echo $BLOM_N_DEPOSITION`)
 foreach module ($tracers)
   if ($module == ecosys) then
-cat >> $CASEBUILD/micom.input_data_list << EOF1
+cat >> $CASEBUILD/blom.input_data_list << EOF1
 dust_file = $INPUTPATH/INPDUST_mhw.nc
 EOF1
     if ($rivnutr == TRUE) then
-cat >> $CASEBUILD/micom.input_data_list << EOF1
+cat >> $CASEBUILD/blom.input_data_list << EOF1
 river_file = $INPUTPATH/river_nutrients_GNEWS2000.nc
 EOF1
     endif
     if ($ndep == TRUE) then
-cat >> $CASEBUILD/micom.input_data_list << EOF1
-n_deposition_file = $INPUTPATH/$MICOM_N_DEP_FILE
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+n_deposition_file = $INPUTPATH/$BLOM_N_DEP_FILE
 EOF1
     endif
   endif
@@ -199,7 +199,7 @@ else
 endif
 if ($ndep == TRUE) then
   set DO_NDEP   = .true.
-  set NDEPFNAME = $MICOM_N_DEP_FILE
+  set NDEPFNAME = $BLOM_N_DEP_FILE
 else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
@@ -544,7 +544,7 @@ set YEAR0   = `echo $RUN_STARTDATE | cut -c1-4 `
 set MONTH0  = `echo $RUN_STARTDATE | cut -c6-7 `
 set DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
 
-if ($MICOM_COUPLING  =~ *partial*) then
+if ($BLOM_COUPLING  =~ *partial*) then
   set SRXDAY = 6.
   set SPRFAC = .true.
   set SRXBAL = .true.
@@ -611,7 +611,7 @@ else
   exit -1
 endif
 echo $CASEROOT
-source $CASEROOT/user_nl_micom
+source $CASEROOT/user_nl_blom
 #------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------
@@ -867,7 +867,7 @@ cat >>! $RUNDIR/ocn_in << EOF4
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
 ! Description:
-!   Micom supports multiple output groups for its diagnostic output.
+!   BLOM supports multiple output groups for its diagnostic output.
 !   Each output group is represented by one column in the namlist and may
 !   have its own output format, averaging period, and file frequency.
 !   The maximum number of output groups is currently limited to 10 but

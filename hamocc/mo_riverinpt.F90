@@ -37,7 +37,7 @@ module mo_riverinpt
 !  -subroutine riverinpt
 !    apply riverine input to the ocean tracer fields
 !
-!  MICOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate 
+!  BLOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate 
 !  riverine nutrients.
 !
 ! 
@@ -47,7 +47,7 @@ module mo_riverinpt
 !
 !  The model attempts to read nutrient fluxes from the NetCDF file 
 !  river_nutrients_GNEWS2000.nc, which has to be located in the same directory  
-!  with MICOM's grid information. The nutrient fluxes in the file are 
+!  with BLOM's grid information. The nutrient fluxes in the file are 
 !  pre-interpolated to the ocean grid. 
 ! 
 !  The nutrient discharge is distributed on the ocean grid in manner that is 

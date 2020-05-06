@@ -1,4 +1,4 @@
-c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -16,10 +16,10 @@ c You should have received a copy of the GNU Lesser General Public License
 c along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      subroutine micom2hamocc(m,n,mm,nn)
+      subroutine blom2hamocc(m,n,mm,nn)
 c***********************************************************************
 c
-c**** *SUBROUTINE micom2hammoc* - Interface between MICOM and HAMOCC.
+c**** *SUBROUTINE blom2hammoc* - Interface between BLOM and HAMOCC.
 c
 c     K. Assmann        *GFI, UiB        initial version
 c     J. Schwinger      *GFI, UiB        2013-04-22
@@ -30,6 +30,9 @@ c     --------
 c     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
 c     - removed inverse of layer thickness
 c     - added sediment bypass preprocessor option
+c
+c     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+c     - changed ocean model from MICOM to BLOM
 c  
 c     Purpose
 c     -------

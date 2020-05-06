@@ -1,4 +1,4 @@
-c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -36,7 +36,7 @@ c
 c
       call trc_limitc(nn)
 c
-      call micom2hamocc(m,n,mm,nn)
+      call blom2hamocc(m,n,mm,nn)
 c
       do l=1,nbgc 
         bgcwrt(l)=0. 
@@ -53,7 +53,7 @@ c
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,nday_in_year,bgc_flxdms)
 c
-      call hamocc2micom(m,n,mm,nn)
+      call hamocc2blom(m,n,mm,nn)
 c
       return
       end

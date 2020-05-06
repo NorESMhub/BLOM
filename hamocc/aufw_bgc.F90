@@ -1,5 +1,6 @@
 ! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
+!                     M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -60,6 +61,9 @@
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
 !     - added writing of atmosphere field for BOXATM and DIFFAT
+!
+!     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+!     - changed ocean model from MICOM to BLOM
 !
 !     Purpose
 !     -------
@@ -165,16 +169,16 @@
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
       i=1
-      do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.')
         i=i+1
-        if (i+8.gt.len(rstfnm_ocn)) then
+        if (i+7.gt.len(rstfnm_ocn)) then
           write (io_stdo_bgc,*)                                      &
      &      'Could not generate restart file name!'
           call xchalt('(aufw_bgc)')
           stop '(aufw_bgc)'
         endif
       enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+      rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
@@ -186,16 +190,16 @@
 #ifdef PNETCDF
       testio=1
       i=1
-      do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.')
         i=i+1
-        if (i+8.gt.len(rstfnm_ocn)) then
+        if (i+7.gt.len(rstfnm_ocn)) then
           write (io_stdo_bgc,*)                                      &
      &      'Could not generate restart file name!'
           call xchalt('(aufw_bgc)')
           stop '(aufw_bgc)'
         endif
       enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+      rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       write(stripestr,('(i3)')) 16

@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine micom_init
+      subroutine blom_init
 c
 c --- ------------------------------------------------------------------
 c --- initialize the model
@@ -54,7 +54,7 @@ c
 c
 c --- print seconds elapsed since startup (should be almost zero)
       if (mnproc.eq.1) then
-        write (lp,'(f12.4,a,i8)') gettime(),' Time 0 MICOM starting up'
+        write (lp,'(f12.4,a,i8)') gettime(),' Time 0 BLOM starting up'
         call flush(lp)
       endif
 c
