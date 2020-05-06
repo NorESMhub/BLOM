@@ -213,7 +213,8 @@
 #ifdef PNETCDF
         testio=1
         i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.blom.r.')
+        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
@@ -222,7 +223,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+9:)
+        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        else
+          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        endif
         write(stripestr,('(i3)')) 16
         write(stripestr2,('(i9)')) 1024*1024
         call mpi_info_create(info,ierr)
