@@ -94,10 +94,10 @@
               tredsy(i,k,2) = bolven(i)*bolay(i,j)                   &
      &                        -tredsy(i,k,1)-tredsy(i,k,3)
           ELSE
-	      tredsy(i,k,1) = 0
+              tredsy(i,k,1) = 0
               tredsy(i,k,3) = 0
               tredsy(i,k,2) = 0
-	  ENDIF
+          ENDIF
 	  
 1421  CONTINUE
 

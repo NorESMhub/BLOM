@@ -103,21 +103,21 @@
 !$OMP&        disso,dissot,undsa,silsat,posol,                   &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                 &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                &
-!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                      &     
+!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                     &     
 !$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14)
       DO 8888 j=1,kpje
 
       DO 1189 k=1,ks
       DO 1189 i=1,kpie
          solrat(i,k) =0.
-	 powcar(i,k) =0.
-	 anaerob(i,k)=0.
-	 aerob(i,k)  =0.	 
+         powcar(i,k) =0.
+         anaerob(i,k)=0.
+         aerob(i,k)  =0.
 #ifdef cisonew
-	 anaerob13(i,k)=0.
-	 aerob13(i,k)  =0.	 
-	 anaerob14(i,k)=0.
-	 aerob14(i,k)  =0.	 
+         anaerob13(i,k)=0.
+         aerob13(i,k)  =0.	 
+         anaerob14(i,k)=0.
+         aerob14(i,k)  =0.	 
 #endif
 
 1189  CONTINUE

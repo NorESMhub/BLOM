@@ -546,8 +546,8 @@
             sterzo13=sterzo*rzoo13       
             sterzo14=sterzo*rzoo14
 #endif
-       	    ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-sterph
-       	    ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)-sterzo
+            ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-sterph
+            ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)-sterzo
 #ifdef cisonew
        	    ocetra(i,j,k,iphy13)=ocetra(i,j,k,iphy13)-sterph13
        	    ocetra(i,j,k,iphy14)=ocetra(i,j,k,iphy14)-sterph14
@@ -688,7 +688,7 @@
            remin=0.05*drempoc*MIN(ocetra(i,j,k,idet),                   &
      &                        0.5*ocetra(i,j,k,iano3)/rdnit1)
            remin2o=dremn2o*MIN(ocetra(i,j,k,idet),                      &
-     &	                 0.003*ocetra(i,j,k,ian2o)/rdn2o1)
+     &                   0.003*ocetra(i,j,k,ian2o)/rdn2o1)
 
 #ifdef cisonew
            rem13=(remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
@@ -1054,10 +1054,10 @@
             ENDIF
 
             ocetra(i,j,k,idet)  =(ocetra(i,j,k     ,idet)*pddpo(i,j,k)    &
-     &	                         +ocetra(i,j,kdonor,idet)*wpocd)/         &
+     &                           +ocetra(i,j,kdonor,idet)*wpocd)/         &
      &                           (pddpo(i,j,k)+wpoc)
             ocetra(i,j,k,icalc) =(ocetra(i,j,k     ,icalc)*pddpo(i,j,k)   &
-     &	                         +ocetra(i,j,kdonor,icalc)*wcald)/        &
+     &                           +ocetra(i,j,kdonor,icalc)*wcald)/        &
      &                           (pddpo(i,j,k)+wcal)
 #ifdef cisonew
             ocetra(i,j,k,idet13)  =(ocetra(i,j,k   ,idet13)*pddpo(i,j,k)  &
@@ -1079,10 +1079,10 @@
      &                           (pddpo(i,j,k)+wcal)
 #endif
             ocetra(i,j,k,iopal) =(ocetra(i,j,k     ,iopal)*pddpo(i,j,k)   &
-     &	                         +ocetra(i,j,kdonor,iopal)*wopald)/       &
+     &                           +ocetra(i,j,kdonor,iopal)*wopald)/       &
      &                           (pddpo(i,j,k)+wopal)        
             ocetra(i,j,k,ifdust)=(ocetra(i,j,k     ,ifdust)*pddpo(i,j,k)  &
-     &	                         +ocetra(i,j,kdonor,ifdust)*wdust)/       &
+     &                           +ocetra(i,j,kdonor,ifdust)*wdust)/       &
      &                           (pddpo(i,j,k)+wdust) - dagg        
 #ifdef AGG
             ocetra(i,j,k,iphy)  =(ocetra(i,j,k     ,iphy)*pddpo(i,j,k)    &

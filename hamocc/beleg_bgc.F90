@@ -171,8 +171,8 @@
 ! Biology
 !
 !ik note that the unit is kmol/m3!
-      phytomi=1.e-11		!i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
-      grami=1.e-10              !i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
+      phytomi=1.e-11        !i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
+      grami=1.e-10          !i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
 
 !ik addded parameter definition; taken from OCPROD.F
       remido=0.004*dtb      !1/d -remineralization rate (of DOM)
@@ -413,7 +413,7 @@
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dmspar(4)    = ',dmspar(4)
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dmspar(5)    = ',dmspar(5)	    
+     &'*                              dmspar(5)    = ',dmspar(5)
       ENDIF
 
 #ifndef AGG
@@ -426,13 +426,13 @@
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustd1       = ',dustd1	
+     &'*                              dustd1       = ',dustd1
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustd2       = ',dustd2	 
+     &'*                              dustd2       = ',dustd2
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustsink     = ',dustsink	
+     &'*                              dustsink     = ',dustsink
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              wdust        = ',wdust	              
+     &'*                              wdust        = ',wdust
       ENDIF
 #endif
 
@@ -608,7 +608,7 @@
          ocetra(i,j,k,idicsat)=1.e-8
          hi(i,j,k)            =1.e-8
          co3(i,j,k)           =0.
-         co2star(i,j,k)       =20.e-6	   
+         co2star(i,j,k)       =20.e-6
 #ifdef AGG
 ! calculate initial numbers from mass, to start with appropriate size distribution
          snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
@@ -725,7 +725,7 @@
       DO  l=1,nsedtra
       DO  j=1,kpje
       DO  i=1,kpie
- 	 burial(i,j,l)=0. 
+         burial(i,j,l)=0.
       ENDDO
       ENDDO
       ENDDO
