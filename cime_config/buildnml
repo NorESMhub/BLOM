@@ -24,9 +24,24 @@ setenv BLOM_RIVER_NUTRIENTS `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 setenv BLOM_N_DEPOSITION `./xmlquery BLOM_N_DEPOSITION --value`
 setenv BLOM_N_DEP_FILE `./xmlquery BLOM_N_DEP_FILE --value`
 setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
-echo $CASE ${EXEROOT} $CASEBUILD
+setenv PIO_TYPENAME_OCN `./xmlquery PIO_TYPENAME_OCN --value`
+setenv PIO_NETCDF_FORMAT_OCN `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
 cd $EXEROOT/ocn/obj
 setenv CONFIG_OCN_DIR $CONFIG_OCN_DIR1/../
+
+#------------------------------------------------------------------------------
+# Check if HAMOCC is requested
+#------------------------------------------------------------------------------
+
+set ecosys = FALSE
+set tracers = (`echo $BLOM_TRACER_MODULES`)
+if ($#tracers != 0) then
+  foreach module ($tracers)
+    if ($module == ecosys) then
+      set ecosys = TRUE
+    endif
+  end
+endif
 
 #------------------------------------------------------------------------------
 # Make dimensions.F
@@ -38,8 +53,6 @@ set kdm = `cat $CONFIG_OCN_DIR/bld/$OCN_GRID/kdm`
 $CONFIG_OCN_DIR/bld/blom_dimensions -n $NTASKS_OCN -k $kdm -d $CONFIG_OCN_DIR/bld/$OCN_GRID || exit -1
 set recompile = FALSE
 cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
-echo $PWD
-echo $recompile
 if ($recompile == 'TRUE') then
   mv dimensions.F $dimdir
 else
@@ -55,7 +68,7 @@ if ($CONTINUE_RUN == TRUE) then
 endif
 
 #------------------------------------------------------------------------------
-# Generate blom.input_data_list
+# Set path to input data
 #------------------------------------------------------------------------------
 
 if      ($OCN_GRID == gx1v5) then
@@ -84,43 +97,6 @@ else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
-echo $CASEBUILD
-cat > $CASEBUILD/blom.input_data_list << EOF1
-grid_file = $INPUTPATH/grid.nc
-ncep_landmask_file = $INPUTPATH/land.sfc.gauss.nc
-ncep_height_file = $INPUTPATH/hgt.sfc.nc
-ice_clim_file = $INPUTPATH/icec_1968-1996.uf
-sst_clim_file = $INPUTPATH/skt_1968-1996.uf
-tidal_dissipation_file = $INPUTPATH/tidal_dissipation.nc
-meridional_transport_index_file = $INPUTPATH/mertraindex.dat
-meridional_transport_basin_file = $INPUTPATH/mertraoceans.dat
-section_index_file = $INPUTPATH/secindex.dat
-EOF1
-if ($RUN_TYPE == startup)  then
-cat >> $CASEBUILD/blom.input_data_list << EOF1
-inicon_file = $INPUTPATH/inicon.nc
-EOF1
-endif
-set tracers = (`echo $BLOM_TRACER_MODULES`)
-set rivnutr = (`echo $BLOM_RIVER_NUTRIENTS`)
-set ndep    = (`echo $BLOM_N_DEPOSITION`)
-foreach module ($tracers)
-  if ($module == ecosys) then
-cat >> $CASEBUILD/blom.input_data_list << EOF1
-dust_file = $INPUTPATH/INPDUST_mhw.nc
-EOF1
-    if ($rivnutr == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF1
-river_file = $INPUTPATH/river_nutrients_GNEWS2000.nc
-EOF1
-    endif
-    if ($ndep == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF1
-n_deposition_file = $INPUTPATH/$BLOM_N_DEP_FILE
-EOF1
-    endif
-  endif
-end
 
 #------------------------------------------------------------------------------
 # Set namelist variables
@@ -187,17 +163,25 @@ set SRXSRC   = "'CORE'"
 set SMTFRC   = .true.
 set SPRFAC   = .false.
 set RSTFRQ   =  1
-set RSTFMT   =  1
+if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+  set RSTFMT   =  1
+else
+  set RSTFMT   =  0
+endif
 set RSTCMP   =  0 
-set IOTYPE   =  0 
+if ($PIO_TYPENAME_OCN == pnetcdf) then
+  set IOTYPE =  1 
+else
+  set IOTYPE =  0 
+endif
 # set BGCNML defaults
 set ATM_CO2  = $CCSM_CO2_PPMV
-if ($rivnutr == TRUE) then
+if ($BLOM_RIVER_NUTRIENTS == TRUE) then
   set DO_RIVINPT = .true.
 else
   set DO_RIVINPT   = .false.
 endif
-if ($ndep == TRUE) then
+if ($BLOM_N_DEPOSITION == TRUE) then
   set DO_NDEP   = .true.
   set NDEPFNAME = $BLOM_N_DEP_FILE
 else
@@ -209,7 +193,11 @@ set GLB_FNAMETAG = "'hd','hm','hy'"
 set GLB_AVEPERIO =  '1,  30, 365'
 set GLB_FILEFREQ = '30,  30, 365'
 set GLB_COMPFLAG =  '0,   0,   0'
-set GLB_NCFORMAT =  '0,   0,   0'
+if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+  set GLB_NCFORMAT =  '1,   1,   1'
+else
+  set GLB_NCFORMAT =  '0,   0,   0'
+endif
 set H2D_ABSWND   =  '0,   4,   0'
 set H2D_ALB      =  '0,   0,   0'
 set H2D_BTMSTR   =  '0,   4,   0'
@@ -362,7 +350,11 @@ set BGC_FNAMETAG  = "'hbgcd','hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '1,30,365'
 set BGC_FILEFREQ  = '30,30,365'
 set BGC_COMPFLAG  = '0, 0, 0'
-set BGC_NCFORMAT  = '0, 0, 0'
+if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+  set BGC_NCFORMAT  = '1, 1, 1'
+else
+  set BGC_NCFORMAT  = '0, 0, 0'
+endif
 set BGC_INVENTORY = '0, 1, 0'
 set SRF_PHOSPH    = '0, 2, 2'
 set SRF_OXYGEN    = '0, 2, 2'    
@@ -604,14 +596,12 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set EGC    = 0.85
   set EGMXDF = 1500.e4
   set CE     = 1.0
-  set GLB_NCFORMAT =  '1,   1,   1'
-  set BGC_NCFORMAT  = '1,   1,   1'
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
 endif
-echo $CASEROOT
 source $CASEROOT/user_nl_blom
+
 #------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------
@@ -1507,3 +1497,75 @@ cat >>! $RUNDIR/ocn_in << EOF4
   BUR_SSSTER         = ${BUR_SSSTER}
 /
 EOF4
+
+#------------------------------------------------------------------------------
+# Generate blom.input_data_list
+#------------------------------------------------------------------------------
+
+cat > $CASEBUILD/blom.input_data_list << EOF1
+grid_file = $INPUTPATH/grid.nc
+meridional_transport_index_file = $INPUTPATH/mertra_index.dat
+meridional_transport_basin_file = $INPUTPATH/ocean_regions.nc
+section_index_file = $INPUTPATH/section_index.dat
+tidal_dissipation_file = $INPUTPATH/tidal_dissipation.nc
+EOF1
+if ($SWAMTH == "'chlorophyll'") then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+chlorophyll_concentration_file = $INPUTPATH/chlorophyll_concentration.nc
+EOF1
+endif
+if ($SRXDAY != "0.") then
+  if ($SRXSRC == "'CORE'") then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+sss_climatology_file = $INPUTPATH/sss_clim_core.nc
+EOF1
+  else
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+sss_climatology_file = $INPUTPATH/sss_clim_phc3.0.nc
+EOF1
+  endif
+endif
+if ($ecosys == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+dust_file = $INPUTPATH/INPDUST_mhw.nc
+EOF1
+  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+river_file = $INPUTPATH/river_nutrients_GNEWS2000.nc
+EOF1
+  endif
+  if ($BLOM_N_DEPOSITION == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+n_deposition_file = $INPUTPATH/$BLOM_N_DEP_FILE
+EOF1
+  endif
+endif
+if ($RUN_TYPE == startup) then
+  if      ($ICFILE == "'inicon.nc'") then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inicon_file = $INPUTPATH/inicon.nc
+EOF1
+  else if ($ICFILE =~ *.blom.r.*) then
+    set icfile = `echo $ICFILE | rev | cut -c 2- | rev | cut -c 2-`
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inicon_file = $icfile
+EOF1
+    if ($ecosys == TRUE) then
+      set icbgcfile = `echo $ICFILE | sed "s/.blom.r./.blom.rbgc./"`
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inicon_bgc_file = $icbgcfile
+EOF1
+    endif
+  else if ($ICFILE =~ *.micom.r.*) then
+    set icfile = `echo $ICFILE | rev | cut -c 2- | rev | cut -c 2-`
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inicon_file = $icfile
+EOF1
+    if ($ecosys == TRUE) then
+      set icbgcfile = `echo $ICFILE | sed "s/.micom.r./.micom.rbgc./"`
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inicon_bgc_file = $icbgcfile
+EOF1
+    endif
+  endif
+endif
