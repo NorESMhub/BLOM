@@ -300,6 +300,13 @@ c
       m=3-n
       call cmnfld(m,n,(m-1)*kk,(n-1)*kk,1+(m-1)*kk,1+(n-1)*kk)
 c
+c --- ------------------------------------------------------------------
+c --- Extract reference potential density vector representative of the
+c --- dominating ocean domain
+c --- ------------------------------------------------------------------
+c
+      call diasg1
+c
 c --- print seconds elapsed since last call to system_clock (Time 0)
       if (mnproc.eq.1) then
         write (lp,'(f12.4,a,i8)')

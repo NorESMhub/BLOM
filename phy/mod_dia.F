@@ -362,10 +362,9 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 c
-      integer :: i,j,k,l,n,istat,istatsum,i1,j1,ncid,rhid
+      integer i,j,k,l,n,istat,istatsum,ncid,rhid
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
-      logical fexist,lsigmar1
-      real, dimension (itdm,jtdm) :: tmp2d
+      logical fexist
 c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
@@ -896,19 +895,36 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 c
-c --- Extract reference density and convert units g cm-3 -> kg m-3
-      sigmar1=-99.
+      end subroutine diaini
+
+
+      subroutine diasg1
+c
+c --- ------------------------------------------------------------------
+c --- Extract reference potential density vector representative of the
+c --- dominating ocean domain
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+#include "common_blocks.h"
+c
+      integer :: i,j,k,i1,j1
+      logical lsigmar1
+      real, dimension (itdm,jtdm) :: tmp2d
+c
+c$OMP PARALLEL DO PRIVATE(i)
+      do j=1,jj
+        do i=1,ii
+          util1(i,j)=real(ipwocn(i,j))
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+      call xcaget(tmp2d,util1,1)
       if (mnproc.eq.1) then
-        call ncerro(nf90_open(path(1:path_len)//'inicon.nc',
-     .    nf90_nowrite,ncid))
-        call ncerro(nf90_inq_varid(ncid,'sigma',rhid))
-c --- - Read surface density and find first ocean grid cell
-        call ncerro(nf90_get_var(ncid,rhid,tmp2d,start=(/1,1,1/),
-     .    count=(/itdm,jtdm,1/)))
-        lsigmar1=.false.
         do j=1,jtdm
           do i=1,itdm
-            if (tmp2d(i,j).gt.0) then
+            if (tmp2d(i,j).gt.0.) then
               i1=i
               j1=j 
               lsigmar1=.true.
@@ -917,14 +933,18 @@ c --- - Read surface density and find first ocean grid cell
           enddo
           if (lsigmar1) exit
         enddo
-c --- - Read density vector and close ini-file
-        call ncerro(nf90_get_var(ncid,rhid,sigmar1,start=(/i1,j1,1/),
-     .    count=(/1,1,kk/)))
-        call ncerro(nf90_close(ncid))
+      endif
+      call xcbcst(i1)
+      call xcbcst(j1)
+      do k=1,kk
+        call xceget(sigmar1(k),sigmar(1-nbdy,1-nbdy,k),i1,j1)
+        sigmar1(k)=sigmar1(k)*1.e3 ! Convert units from g cm-3 to kg m-3
+      enddo
+      if (mnproc.eq.1) then
         write(lp,*) 'sigma layers=',sigmar1 
       endif
 c
-      end subroutine diaini
+      end subroutine diasg1
 
 
 
@@ -3211,19 +3231,6 @@ c
       if (iniflg) then
 c
         if (mnproc.eq.1) then
-c
-c --- --- Read ocean masks from metraoceans.dat 
-          open(nfu,file=path(1:path_len)//'mertraoceans.dat',
-     .         status='old')
-          read(nfu,'(2i6)') i,j
-          if (i.ne.itdm.or.j.ne.jtdm) then
-            write(lp,*) 'wrong dimensions in mertraoceans.dat'
-            call xchalt('(diamer)')
-                   stop '(diamer)'
-          endif
-          write(c20,*) '(',jtdm,'i1)'
-          read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
-          close(nfu)
 c
 c --- --- Read ocean region flags from ocean_regions.nc
           call ncerro(nf90_open(path(1:path_len)//'ocean_regions.nc',
