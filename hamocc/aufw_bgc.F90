@@ -201,7 +201,7 @@
       enddo
       rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
 
-      write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
+      IF(mnproc==1) write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       write(stripestr,('(i3)')) 16
       write(stripestr2,('(i9)')) 1024*1024
       call mpi_info_create(info,ierr)
