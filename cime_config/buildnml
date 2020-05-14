@@ -23,6 +23,7 @@ setenv BLOM_TRACER_MODULES `./xmlquery BLOM_TRACER_MODULES --value`
 setenv BLOM_RIVER_NUTRIENTS `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 setenv BLOM_N_DEPOSITION `./xmlquery BLOM_N_DEPOSITION --value`
 setenv BLOM_N_DEP_FILE `./xmlquery BLOM_N_DEP_FILE --value`
+setenv HAMOCC_CISO `./xmlquery HAMOCC_CISO --value`
 setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
 setenv PIO_TYPENAME_OCN `./xmlquery PIO_TYPENAME_OCN --value`
 setenv PIO_NETCDF_FORMAT_OCN `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
@@ -1544,7 +1545,19 @@ if ($RUN_TYPE == startup) then
   if      ($ICFILE == "'inicon.nc'") then
 cat >> $CASEBUILD/blom.input_data_list << EOF1
 inicon_file = $INPUTPATH/inicon.nc
+inidic_file = $INPUTPATH/OMIPBGC_INI/glodapv2_Ct_preind_OMIPinit.nc
+inialk_file = $INPUTPATH/OMIPBGC_INI/glodapv2_At_OMIPinit.nc
+inipo4_file = $INPUTPATH/OMIPBGC_INI/woa13_phosphate_OMIPinit.nc
+inino3_file = $INPUTPATH/OMIPBGC_INI/woa13_nitrate_OMIPinit.nc
+inisil_file = $INPUTPATH/OMIPBGC_INI/woa13_silicate_OMIPinit.nc
+inioxy_file = $INPUTPATH/OMIPBGC_INI/woa13_oxygen_OMIPinit.nc
 EOF1
+    if ($HAMOCC_CISO == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF1
+inic13_file = $INPUTPATH/C_Isotopes/d13C_permil.nc
+inic14_file = $INPUTPATH/C_Isotopes/d14C_permil.nc
+EOF1
+    endif
   else if ($ICFILE =~ *.blom.r.*) then
     set icfile = `echo $ICFILE | rev | cut -c 2- | rev | cut -c 2-`
 cat >> $CASEBUILD/blom.input_data_list << EOF1
