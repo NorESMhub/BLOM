@@ -60,6 +60,7 @@
       USE mo_biomod
       use mo_param1_bgc 
       USE mo_control_bgc
+      use mo_vgrid, only: kbo,bolay
 
       implicit none
 

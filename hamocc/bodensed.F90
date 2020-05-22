@@ -182,10 +182,6 @@
          solfu = solfu + seddw(k)*porsol(k)
       ENDDO
 
-! ******************************************************************
-! find lowest mass containing layer and its thickness
-
-      CALL calc_bot(kpie,kpje,kpke,pddpo)
 
       RETURN
       END

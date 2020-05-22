@@ -18,9 +18,9 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE BELEG_BGC(kpaufr,kpie,kpje,kpke,pddpo,ptiestw,prho,  &
-     &                     omask,pglon,pglat,path)
-!****************************************************************
+      SUBROUTINE BELEG_BGC(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,       &
+     &                     pglon,pglat,path)
+!******************************************************************************
 !
 !**** *BELEG_BGC* - initialize bgc variables.
 !
@@ -71,7 +71,6 @@
 !     *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*      *pddpo*   - size of grid cell (3rd dimension) [m].
-!     *REAL*      *ptiestw* - depth of layer interfaces [m].
 !     *REAL*      *prho*    - density [g/cm^3].
 !     *REAL*      *omask*   - ocean mask.
 !     *REAL*      *pglon*   - longitude of grid cell [deg].
@@ -80,24 +79,23 @@
 !
 !
 !**********************************************************************
-
       USE mo_carbch
       USE mo_biomod
       USE mo_sedmnt
       USE mo_control_bgc
-      use mo_param1_bgc 
-      USE mod_xc, only: mnproc
+      use mo_param1_bgc
+      use mo_vgrid, only: kmle,kbo
+      USE mod_xc,   only: mnproc
 
       implicit none      
 
-      INTEGER :: kpaufr,kpie,kpje,kpke
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: ptiestw(kpie,kpje,kpke+1)
-      REAL :: prho (kpie,kpje,kpke)
-      REAL :: omask(kpie,kpje)
-      REAL :: pglon(kpie,kpje)
-      REAL :: pglat(kpie,kpje)
-      character(len=*) :: path
+      INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
+      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+      REAL,    intent(in) :: prho (kpie,kpje,kpke)
+      REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      character(len=*), intent(in) :: path
 
       ! local variables
       INTEGER :: i,j,k,l,ii,jj
@@ -550,7 +548,7 @@
 ! Initialise ocean tracers with WOA and GLODAP data. This is done even in case
 ! of a restart since some tracers (e.g. C-isotopes) might not be in the restart 
 ! file and aufr.f90 instead expects an initialised field.
-      call profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,TRIM(path))
+      call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask,TRIM(path))
 
 ! If this is a restart run initialisation is done in aufr.F90 
       IF(kpaufr.EQ.1) RETURN

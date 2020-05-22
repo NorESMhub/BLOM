@@ -50,9 +50,6 @@ c
 #include "param_trc.h"
 #include "common_trc.h"
 #include "common_blocks.h"
-#include "common_clndr.h"
-#include "common_forc.h"
-#include "common_seaice.h"
 #include "common_bgc.h"
 #ifndef sedbypass
 #include "common_bgcs.h"
@@ -64,8 +61,6 @@ c
       real          :: p1,p2,ldp,th,s,pa
       real          :: rho,p_alpha
       real          :: rp(idm,jdm,kdm+1)
-c
-      nns=(n-1)*ks
 c
 c$OMP PARALLEL DO PRIVATE(kn)
 c
@@ -102,31 +97,6 @@ c
 c$OMP END PARALLEL DO
 c
 c
-c$OMP PARALLEL DO
-      do j=1,jj
-      do l=1,isp(j)
-      do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c
-c --- - short wave radiation
-        bgc_swr (i,j)=swa(i,j)
-c --- - sea ice fraction
-        bgc_fice(i,j)=ficem(i,j)
-c --- - absolute wind speed
-        bgc_awnd(i,j)=abswnd(i,j)
-c --- - atmospheric co2 concentration
-        bgc_atmco2(i,j)=atmco2(i,j)
-c --- - sea level pressure
-        bgc_slp (i,j)=slp(i,j)
-c --- - set depth of surface interface to zero
-        bgc_pw(i,j,1)=0.
-c --- - depth of layer kk+1 centre
-        bgc_pu(i,j,kk+1)=9000.
-c
-      enddo
-      enddo
-      enddo
-c$OMP END PARALLEL DO
-c
 c --- ------------------------------------------------------------------
 c --- 3D fields
 c --- ------------------------------------------------------------------
@@ -154,22 +124,12 @@ c --- - integrated specific volume
           pa  = p_alpha(p1,p2,th,s)
         end if
 c
-c --- - temp and saln 
-        bgc_t(i,j,k)=th
-        bgc_s(i,j,k)=s
-c
 c --- - density in g/cm^3
         bgc_rho(i,j,k)=ldp/pa
 c
 c --- - layer thickness in meters 
         bgc_dp(i,j,k)=0.0
         if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k)=pa/onem
-c
-c --- - depth of layer interfaces
-        bgc_pw(i,j,k+1)=bgc_pw(i,j,k)+bgc_dp(i,j,k)
-c
-c --- - depth of layer centres
-        bgc_pu(i,j,k)=bgc_pw(i,j,k)+0.5*bgc_dp(i,j,k)
 c
       enddo
       enddo
@@ -238,14 +198,6 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 #endif
-c
-c --- ------------------------------------------------------------------
-c --- set control parameters
-c --- ------------------------------------------------------------------
-c
-      ldtday   = mod(nstep,nstep_in_day)
-      ldtmonth = (nday-1)*nstep_in_day + ldtday
-      kpndtrun = nstep2-nstep1
 c
       return
       end

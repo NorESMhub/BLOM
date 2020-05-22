@@ -22,8 +22,7 @@
 #ifndef sedbypass
      &                    sedlay2,powtra2,burial2,              &
 #endif
-     &                    kplyear,kplmon,kplday,kpldtoce,omask, &
-     &                    rstfnm_ocn)
+     &                    kplyear,kplmon,kplday,omask,rstfnm_ocn)
 !****************************************************************
 !
 !**** *AUFR_BGC* - reads marine bgc restart data.
@@ -104,7 +103,6 @@
 !     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmon*     - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
-!     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
 !
@@ -113,8 +111,9 @@
       USE mo_carbch
       USE mo_biomod
       USE mo_control_bgc
-      use mo_param1_bgc 
-      USE mo_sedmnt, only:sedhpl
+      use mo_param1_bgc
+      use mo_vgrid, only: kbo
+      USE mo_sedmnt, only: sedhpl
       use mod_xc
       use mod_dia, only : iotype
       use netcdf
@@ -131,7 +130,7 @@
       REAL             :: burial2(kpie,kpje,2,   nsedtra)
 #endif
       REAL             :: omask(kpie,kpje)    
-      INTEGER          :: kplyear,kplmon,kplday,kpldtoce
+      INTEGER          :: kplyear,kplmon,kplday
       character(len=*) :: rstfnm_ocn
 
       ! Local variables

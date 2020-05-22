@@ -66,22 +66,6 @@ c
 c
 c
 c --- ------------------------------------------------------------------
-c --- pass co2 and dms fluxes
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO 
-      do j=1,jj
-      do l=1,isp(j)
-      do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-        flxco2(i,j)=bgc_flxco2(i,j)
-        flxdms(i,j)=bgc_flxdms(i,j)
-      enddo
-      enddo
-      enddo
-cc$OMP END PARALLEL DO
-c
-c
-c --- ------------------------------------------------------------------
 c --- pass tracer fields to ocean model; convert kmol/m^3 -> mol/kg
 c --- ------------------------------------------------------------------
 c

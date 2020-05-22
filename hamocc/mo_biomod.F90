@@ -26,7 +26,6 @@
 !
 !     Modified
 !     --------
-!     note: kbo,bolay shall be moved to mo_control_bgc
 !     
 !     I. Kriest, GEOMAR, 11.08.2016
 !     - included T-dependence of cyanobacteria growth
@@ -40,17 +39,9 @@
 !     -------
 !     - declaration and memory allocation.
 !
-!     *kbo*         *INTEGER*  - number of wet cells in column.
-!     *bolay*          *REAL*  - height of bottom cell.
-!
 !**********************************************************************
       implicit none
 
-      INTEGER, DIMENSION (:,:), ALLOCATABLE :: kbo
-      INTEGER, DIMENSION (:,:), ALLOCATABLE :: kwrbioz
-      INTEGER, DIMENSION (:,:), ALLOCATABLE :: k0100,k0500,k1000,k2000,k4000
-
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: bolay
       REAL, DIMENSION (:,:),   ALLOCATABLE :: strahl
 #ifdef FB_BGC_OCE     
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
@@ -123,57 +114,6 @@
       INTEGER :: kpie,kpje,kpke
       INTEGER :: errstat
       
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (kbo(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory kbo'
-         kbo(:,:) = 0
-
-
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (kwrbioz(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory kwrbioz'
-         kwrbioz(:,:) = 0
-
-
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (k0100(kpie,kpje),stat=errstat)
-         ALLOCATE (k0500(kpie,kpje),stat=errstat)
-         ALLOCATE (k1000(kpie,kpje),stat=errstat)
-         ALLOCATE (k2000(kpie,kpje),stat=errstat)
-         ALLOCATE (k4000(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory k0100, k0500, k1000, k2000'
-         k0100(:,:) = 0
-         k0500(:,:) = 0
-         k1000(:,:) = 0
-         k2000(:,:) = 0
-         k4000(:,:) = 0
-
-
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
-         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
-
-         ALLOCATE (bolay(kpie,kpje),stat=errstat)
-         if(errstat.ne.0) stop 'not enough memory bolay'
-         bolay(:,:) = 0.0
-
 
          IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)'Memory allocation for variable strahl ...'

@@ -155,12 +155,13 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
 !
 !--------------------------------------------------------------------------------
 #ifdef natDIC
-use mo_param1_bgc,  only: kmle,iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali, &
+use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali,&
                           inatsco212,inatalkali
 #else
-use mo_param1_bgc,  only: kmle,iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali
+use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali
 #endif
 use mo_control_bgc, only: dtb,do_rivinpt
+use mo_vgrid,       only: kmle
 use mo_carbch,      only: ocetra
 
 implicit none

@@ -50,6 +50,7 @@
       USE mo_bgcmean
       USE mo_control_bgc
       use mo_param1_bgc 
+      use mo_vgrid, only: dp_min
       use mod_xc
 
       implicit none

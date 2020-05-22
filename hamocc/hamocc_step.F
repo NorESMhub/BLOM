@@ -30,13 +30,18 @@ c
 #include "common_bgc.h"
 #include "common_blocks.h"
 #include "common_clndr.h"
+#include "common_forc.h"
+#include "common_seaice.h"
+#include "common_geo.h"
 c
       integer :: m,n,mm,nn,k1m,k1n
-      integer :: l
+      integer :: l,ldtday
 c
       call trc_limitc(nn)
 c
       call blom2hamocc(m,n,mm,nn)
+c
+      ldtday = mod(nstep,nstep_in_day)
 c
       do l=1,nbgc 
         bgcwrt(l)=0. 
@@ -47,11 +52,11 @@ c
      .    bgcwrt(l)=1.
       enddo
 c
-      call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
-     .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
-     .            bgc_pu,bgc_pw,bgc_awnd,bgc_atmco2,bgc_flxco2,
-     .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
-     .            omask,nday_in_year,bgc_flxdms)
+      call hamocc4bcm(idm,jdm,kdm,nbdy,nyear,nmonth,nday,ldtday,
+     .            bgc_dx,bgc_dy,bgc_dp,bgc_rho,plat,omask,
+     .            swa,ficem,slp,abswnd,
+     .            temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),
+     .            atmco2,flxco2,flxdms)
 c
       call hamocc2blom(m,n,mm,nn)
 c

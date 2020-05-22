@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-       SUBROUTINE CYANO(kpie,kpje,kpke,ptho,pddpo,omask)
+       SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !**********************************************************************
 !
 !**** *CYANO* -  .
@@ -53,26 +53,27 @@
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *INTEGER* *kbnd*    - nb of halo grid points
 !     *REAL*    *ptho*    - potential temperature.
 !
 !     Externals
 !     ---------
 !     .
 !**********************************************************************
-
       USE mo_carbch
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 
-
+      use mo_vgrid, only: kmle
 
       implicit none
 
-      INTEGER :: kpie,kpje,kpke
-      REAL :: ptho(kpie,kpje,kpke)
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: omask(kpie,kpje)
+      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
+      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+      REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
+      ! Local variables
       INTEGER :: i,j,k
       REAL :: oldocetra,dano3
       REAL :: ttemp,nfixtfac
@@ -91,7 +92,7 @@
           IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
             oldocetra = ocetra(i,j,k,iano3)
-            ttemp = ptho(i,j,k)
+            ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
 ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
             nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff

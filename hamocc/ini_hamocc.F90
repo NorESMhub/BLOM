@@ -17,14 +17,14 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE INI_HAMOCC(kpaufr,pdt,kpndtrun,kpie,kpje,kpke,kpbe      &
-     &            ,pddpo,ptho,psao,prho,pdlxp,pdlyp,ptiestu,ptiestw      &
-     &            ,kplyear,kplmonth,kplday,kpldtoce                      &
-     &            ,pglon,pglat,omask,ntr,ntrbgc,itrbgc,trc               &
+      SUBROUTINE INI_HAMOCC(kpaufr,kpie,kpje,kpke,kbnd,                       &
+                            kplyear,kplmonth,kplday,                          &
+                            pdt,pdlxp,pdlyp,pddpo,prho,omask,pglon,pglat,     &
+                            ntr,ntrbgc,itrbgc,trc,                            &
 #ifndef sedbypass
-     &            ,sedlay2,powtra2,burial2                               &    
+                            sedlay2,powtra2,burial2,                          &    
 #endif
-     &            ,rstfnm_ocn,path)
+                            rstfnm_ocn,path)
 
 !****************************************************************
 !
@@ -58,26 +58,21 @@
 !     -----------------------------------------
 !
 !     *INTEGER* *kpaufr*     - 1/0 for read / do not read restart file
-!     *REAL*    *pdt*        - ocean model time step [sec].
-!     *INTEGER* *kpndtrun*   - total no. of time steps of run.
 !     *INTEGER* *kpie*       - zonal dimension of model grid.
 !     *INTEGER* *kpje*       - meridional dimension of model grid.
 !     *INTEGER* *kpke*       - vertical dimension of model grid.
-!     *REAL*    *pddpo*      - size of scalar grid cell (vertical dimension) [m].
-!     *REAL*    *ptho*       - potential temperature [deg C].
-!     *REAL*    *psao*       - salinity [psu].
-!     *REAL*    *prho*       - density [g/cm^3].
-!     *REAL*    *pdlxp*      - size of scalar grid cell (zonal) [m].
-!     *REAL*    *pdlyp*      - size of scalar grid cell (meridional) [m].
-!     *REAL*    *ptiestu*    - depth of level [m].
-!     *REAL*    *ptiestw*    - depth of level interface [m].
+!     *INTEGER* *kbnd*       - nb of halo grid points
 !     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmonth*   - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
-!     *INTEGER* *kpldtoce*   - step  in ocean restart date
+!     *REAL*    *pdt*        - ocean model time step [sec].
+!     *REAL*    *pdlxp*      - size of scalar grid cell (zonal) [m].
+!     *REAL*    *pdlyp*      - size of scalar grid cell (meridional) [m].
+!     *REAL*    *pddpo*      - size of scalar grid cell (vertical dimension) [m].
+!     *REAL*    *prho*       - density [g/cm^3].
+!     *REAL*    *omask*      - land/ocean mask
 !     *REAL*    *pglon*      - geographical longitude of grid points [degree E].
 !     *REAL*    *pglat*      - geographical latitude  of grid points [degree N].
-!     *REAL*    *omask*      - land/ocean mask
 !     *INTEGER* *ntr*        - number of tracers in tracer field
 !     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
 !     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
@@ -90,12 +85,12 @@
 !     *CHAR*    *path*       - path to data files
 !
 !**********************************************************************
-
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
       USE mo_control_bgc
-      use mo_param1_bgc 
+      use mo_param1_bgc
+      use mo_vgrid, only: alloc_mem_vgrid,set_vgrid
       use mod_xc, only: mnproc,lp,nfu
       use mo_bgcmean
       use mo_ndep, only: ini_ndep,ndepfname
@@ -103,27 +98,28 @@
 
  
       implicit none
-      INTEGER :: kpie,kpje,kpke,kpbe,ntr,ntrbgc,itrbgc
-      INTEGER :: kplyear,kplmonth,kplday,kpldtoce
-      INTEGER :: kpaufr,kpndtrun,k,l
-      INTEGER :: i,j
-      
-      REAL    :: pddpo(kpie,kpje,kpke)
-      REAL    :: ptho (kpie,kpje,kpke)
-      REAL    :: psao (kpie,kpje,kpke)
-      REAL    :: prho (kpie,kpje,kpke)
-      REAL    :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-      REAL    :: pglon(kpie,kpje),pglat(kpie,kpje)
-      REAL    :: ptiestu(kpie,kpje,kpke+1),ptiestw(kpie,kpje,kpke+1)
-      REAL    :: omask(kpie,kpje)
-      REAL    :: trc(1-kpbe:kpie+kpbe,1-kpbe:kpje+kpbe,2*kpke,ntr)
+
+      INTEGER, intent(in)  :: kpaufr
+      INTEGER, intent(in)  :: kpie,kpje,kpke,kbnd,ntr,ntrbgc,itrbgc
+      INTEGER, intent(in)  :: kplyear,kplmonth,kplday      
+      REAL,    intent(in)  :: pdt
+      REAL,    intent(in)  :: pdlxp(kpie,kpje)
+      REAL,    intent(in)  :: pdlyp(kpie,kpje)
+      REAL,    intent(in)  :: pddpo(kpie,kpje,kpke)
+      REAL,    intent(in)  :: prho (kpie,kpje,kpke)
+      REAL,    intent(in)  :: omask(kpie,kpje)
+      REAL,    intent(in)  :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: trc(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,2*kpke,ntr)
 #ifndef sedbypass
-      REAL    :: sedlay2(kpie,kpje,2*ks,nsedtra)
-      REAL    :: powtra2(kpie,kpje,2*ks,npowtra)
-      REAL    :: burial2(kpie,kpje,2,   nsedtra)
+      REAL,    intent(out) :: sedlay2(kpie,kpje,2*ks,nsedtra)
+      REAL,    intent(out) :: powtra2(kpie,kpje,2*ks,npowtra)
+      REAL,    intent(out) :: burial2(kpie,kpje,2,   nsedtra)
 #endif
-      REAL    :: pdt
-      character(len=*) :: rstfnm_ocn,path
+      character(len=*), intent(in) :: rstfnm_ocn,path
+
+      ! Local variables
+      INTEGER :: i,j,k,l
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,ndepfname
 
@@ -137,9 +133,9 @@
       if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'HAMOCC initialisation'
-      write(io_stdo_bgc,*) 'restart',kpaufr,kpndtrun
+      write(io_stdo_bgc,*) 'restart',kpaufr
       write(io_stdo_bgc,*) 'dims',kpie,kpje,kpke
-      write(io_stdo_bgc,*) 'time',kplyear,kplmonth,kplday,kpldtoce
+      write(io_stdo_bgc,*) 'time',kplyear,kplmonth,kplday
       write(io_stdo_bgc,*) 'time step',pdt
       endif
 
@@ -161,8 +157,6 @@
       dtbgc = pdt                   !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
-      
-      ndtrunbgc = kpndtrun
 
 !
 ! Initialize some namelist parameters
@@ -174,7 +168,15 @@
 !
       ldtrunbgc = 0
 
+!                        
+! Allocate memory : model output
+!
       CALL ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
+
+!                        
+! Allocate memory : vgrid
+!
+      CALL ALLOC_MEM_VGRID(kpie,kpje,kpke)
 
 !                        
 ! Allocate memory : biology
@@ -191,6 +193,11 @@
 !
       CALL ALLOC_MEM_CARBCH(kpie,kpje,kpke)
 
+!
+! Calculate variables related to the vertical grid
+!
+      call set_vgrid(kpie,kpje,kpke,pddpo)
+
 !                        
 ! Initialize sediment layering
 !
@@ -199,9 +206,9 @@
 !                        
 ! Initialize sediment and ocean tracer.
 ! 
-      CALL BELEG_BGC(kpaufr,kpie,kpje,kpke,pddpo,ptiestw,prho,           &
-     &               omask,pglon,pglat,path)
-     
+      CALL BELEG_BGC(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,        &
+                     pglon,pglat,path)
+
 !
 ! Initialise dust input, n-deposition and river input
 !
@@ -224,8 +231,7 @@
 #ifndef sedbypass
      &                 sedlay2,powtra2,burial2,                          &
 #endif
-     &                 kplyear,kplmonth,kplday,kpldtoce,omask,           &
-     &                 rstfnm_ocn)
+     &                 kplyear,kplmonth,kplday,omask,rstfnm_ocn)
       ELSE
          trc(1:kpie,1:kpje,1:kpke,       itrbgc:itrbgc+ntrbgc-1) =       &
      &     ocetra(:,:,:,:)

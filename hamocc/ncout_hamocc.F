@@ -23,14 +23,13 @@ c --- output routine for HAMOCC diagnostic fields
 c --- -------------------------------------------
 c
       use mod_xc
-      use mod_dia, only : diafnm,sigmar1,iotype
+      use mod_dia,        only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
-#ifdef cisonew
-      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000,c14fac
-#else
-      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
-#endif
+      use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
+#ifdef cisonew
+      use mo_biomod, only: c14fac
+#endif
 c      
       implicit none
 c      

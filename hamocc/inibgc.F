@@ -24,27 +24,21 @@ c
       implicit none
 c
 #include "param_trc.h"
-#include "common_bgc.h"
 #include "common_trc.h"
 #include "common_blocks.h"
-#include "common_geo.h"
+#include "common_bgc.h"
 #ifndef sedbypass
 #include "common_bgcs.h"
 #endif
 c
       integer i,j,k,l,nt
-c  set bgc timestep to nphys*dt   
-      bgcdt=nphys*baclin
 
 c initialise 2D arrays for HAMOCC interface
       do j=1,jj
       do i=1,ii
         bgc_dx(i,j)=0.0
         bgc_dy(i,j)=0.0
-        bgc_slp(i,j)=0.0
         omask (i,j)=0.0
-        pglon (i,j)=plon(i,j)
-        pglat (i,j)=plat(i,j)
       enddo
       enddo
 c
@@ -54,18 +48,7 @@ c initialise 3D arrays for HAMOCC interface
       do i=1,ii
         bgc_dp  (i,j,k)=0.0
         bgc_rho (i,j,k)=0.0
-        bgc_t   (i,j,k)=0.0
-        bgc_s   (i,j,k)=0.0
-        bgc_pu  (i,j,k)=0.0
-        bgc_pw  (i,j,k)=0.0
       enddo
-      enddo
-      enddo
-c
-      do j=1,jj
-      do i=1,ii
-        bgc_pu  (i,j,kk+1)=0.0
-        bgc_pw  (i,j,kk+1)=0.0
       enddo
       enddo
 c
@@ -106,7 +89,6 @@ c initialise HAMOCC land/ocean mask
       enddo
       enddo
       enddo
-c
 c
       return
       end
