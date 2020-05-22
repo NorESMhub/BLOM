@@ -184,7 +184,7 @@ else
 endif
 if ($BLOM_N_DEPOSITION == TRUE) then
   set DO_NDEP   = .true.
-  set NDEPFNAME = $BLOM_N_DEP_FILE
+  set NDEPFNAME = "'$BLOM_N_DEP_FILE'"
 else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
@@ -825,9 +825,9 @@ cat >>! $RUNDIR/ocn_in << EOF3
 ! DO_NDEP   : Logical switch to activate N-deposition
 ! NDEPFNAME : File name for atmopheric N-deposition data
 &BGCNML
-  ATM_CO2    = ${CCSM_CO2_PPMV}
-  DO_RIVINPT = ${DO_RIVINPT}
-  DO_NDEP    = ${DO_NDEP}
+  ATM_CO2    = ${CCSM_CO2_PPMV},
+  DO_RIVINPT = ${DO_RIVINPT},
+  DO_NDEP    = ${DO_NDEP},
   NDEPFNAME  = ${NDEPFNAME}
 /
 EOF3
