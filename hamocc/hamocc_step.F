@@ -24,10 +24,10 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mo_bgcmean
+      use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
 c
       implicit none
 c
-#include "common_bgc.h"
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
@@ -58,6 +58,10 @@ c
      .            temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),
      .            atmco2,flxco2,flxdms)
 c
+c --- accumulate fields and write output
+c
+      call accfields(idm,jdm,kdm,bgc_dx,bgc_dy,bgc_dp,omask)       
+
       call hamocc2blom(m,n,mm,nn)
 c
       return

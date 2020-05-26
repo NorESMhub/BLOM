@@ -34,7 +34,11 @@ module mo_vgrid
 !   time step when iHAMOCC is coupled to BLOM.
 !
 !   *kbo*         *INTEGER*  - number of wet cells in column.
-!   *bolay*          *REAL*  - height of bottom cell.
+!   *kwrbioz*     *INTEGER*  - last k-index of euphotic zone.
+!   *kxxxx*       *INTEGER*  - k-index of gridbox comprising xxxx m depth.
+!   *bolay*       *REAL*     - height of bottom cell.
+!   *ptiestu*     *REAL*     - depth of layer centres.
+!   *ptiestw*     *REAL*     - depth of layer interfaces.
 !
 !******************************************************************************
   implicit none
@@ -208,13 +212,23 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
 ! ALLOC_MEM_VGRID - Allocate variables in this module
 !
 !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
+!
 !******************************************************************************
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc
 
   INTEGER, intent(in) :: kpie,kpje,kpke
   INTEGER             :: errstat
+
       
+  IF (mnproc.eq.1) THEN
+    WRITE(io_stdo_bgc,*)' '
+    WRITE(io_stdo_bgc,*)'***************************************************'
+    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_vgrid:'
+    WRITE(io_stdo_bgc,*)' '
+  ENDIF
+
+
   IF (mnproc.eq.1) THEN
     WRITE(io_stdo_bgc,*)'Memory allocation for variable ptiestu ...'
     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie

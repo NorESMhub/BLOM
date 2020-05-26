@@ -51,9 +51,9 @@
 !     *INTEGER* *kplmon*     - current month
 !     *INTEGER* *kplday*     - current day
 !     *INTEGER* *kldtday*    - number of time step in current day.
-!     *REAL*    *pdlxp*      - size of scalar grid cell (longitudinal) [m].
-!     *REAL*    *pdlyp*      - size of scalar grid cell (latitudinal) [m].
-!     *REAL*    *pddpo*      - size of scalar grid cell (depth) [m].
+!     *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
+!     *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
+!     *REAL*    *pddpo*      - size of grid cell (depth) [m].
 !     *REAL*    *pglat*      - latitude of grid cells [deg north].
 !     *REAL*    *omask*      - land/ocean mask
 !     *REAL*    *pfswr*      - solar radiation [W/m**2].
@@ -82,8 +82,6 @@
       use mo_ndep, only: n_deposition
 #if defined(BOXATM)
       use mo_boxatm
-#elif defined(DIFFAT)
-      use mo_satm
 #endif
 
 
@@ -155,9 +153,7 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-      if (mnproc.eq.1) then 
-        write (io_stdo_bgc,*) 'jt: getting x2o co2'
-      endif
+      !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
 #endif
 
 
@@ -249,8 +245,6 @@
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
       CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)
-#elif defined(DIFFAT)     
-      CALL SATM_STEP(atmflx,atm)
 #endif	 
 
 #ifdef PBGC_CK_TIMESTEP 
@@ -302,12 +296,6 @@
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
-
-
-!--------------------------------------------------------------------
-! Accumulate fields and write output
-
-      CALL ACCFIELDS(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)       
 
 
 !--------------------------------------------------------------------

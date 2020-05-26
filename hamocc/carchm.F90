@@ -150,9 +150,6 @@
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
 #endif
-#ifdef ANTC14
-      REAL    :: fantc14d,fantc14u
-#endif
 
 
 ! set variables for diagnostic output to zero

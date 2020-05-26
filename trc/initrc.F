@@ -30,7 +30,7 @@ c
       call ocntrc_init
 c
 #ifdef HAMOCC
-      call hamocc_init
+      call hamocc_init(0,'c')
 #endif
 #ifdef IDLAGE
       call idlage_init

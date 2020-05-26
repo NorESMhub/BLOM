@@ -340,7 +340,7 @@
         sn2oflux=sn2oflux+bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
         ztotarea = ztotarea + dlxp(i,j)*dlyp(i,j)
         zatmco2 =zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
-#ifdef DIFFAT	
+#if defined(BOXATM)
         zatmo2= zatmo2  + atm(i,j,iatmo2) *dlxp(i,j)*dlyp(i,j)
         zatmn2= zatmn2  + atm(i,j,iatmn2) *dlxp(i,j)*dlyp(i,j)	
 #endif
@@ -401,7 +401,7 @@
 
       CALL xcsum(zatmco2,ztmp1,ips)
 
-#ifdef DIFFAT
+#if defined(BOXATM)
       ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
@@ -428,7 +428,7 @@
 !      WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
 !      WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
 !      WRITE(io_stdo_bgc,*) ' '
-#ifdef DIFFAT	      
+#if defined(BOXATM)	      
 !      WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',          &
 !     &                               zatmco2/ztotarea,zatmco2*ppm2con       
 !      WRITE(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',          &
@@ -437,7 +437,7 @@
 !     &                               zatmn2/ztotarea,zatmn2*ppm2con 
 !      ENDIF
      
-#endif /*DIFFAT*/
+#endif
 
 ! Complete sum of inventory in between bgc.f90
 
@@ -502,7 +502,7 @@
      &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                &
      &  +zocetrato(ian2o)*2                                           &
      &  +zprorca*rnit                                                 &
-#ifdef DIFFAT     
+#if defined(BOXATM)
     &  +zatmn2*ppm2con*2                        
 #else
      & +sn2flux*2+sn2oflux*2
@@ -530,7 +530,7 @@
      &  +zpowtrato(ipowno3)*1.5+zpowtrato(ipowaic)                    &
      &  +zpowtrato(ipowaox)+zpowtrato(ipowaph)*2                      &
      &  +zprorca*(-24.)+zprcaca                                       & 
-#ifdef DIFFAT     
+#if defined(BOXATM)
      &  +zatmo2*ppm2con+zatmco2*ppm2con
 #else
      & +so2flux+sn2oflux*0.5+co2flux

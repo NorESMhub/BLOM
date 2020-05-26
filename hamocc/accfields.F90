@@ -111,7 +111,7 @@
 
 ! Accumulate atmosphere fields and fluxes
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
       call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
 #endif

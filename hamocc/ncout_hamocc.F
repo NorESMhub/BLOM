@@ -414,7 +414,7 @@ c --- Store 2d fields
 
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call wrtsrf(jatmo2(iogrp),SRF_ATMO2(iogrp),rnacc,0.,cmpflg,       
      .  'atmo2','Atmospheric O2',' ','ppm')
       call wrtsrf(jatmn2(iogrp),SRF_ATMN2(iogrp),rnacc,0.,cmpflg,       
@@ -765,7 +765,7 @@ c --- Initialise fields
 #endif
 
       call inisrf(jatmco2(iogrp),0.)        
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
 #endif   
@@ -1056,7 +1056,7 @@ c
 
       call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
      .  'atmco2','Atmospheric CO2',' ','ppm',0)
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call ncdefvar3d(SRF_ATMO2(iogrp),cmpflg,'p',
      .  'atmo2','Atmospheric O2',' ','ppm',0)
       call ncdefvar3d(SRF_ATMN2(iogrp),cmpflg,'p',

@@ -45,9 +45,10 @@ c
 c***********************************************************************
 c
       use mod_xc
-      use mo_carbch,     only: ocetra,atm,atm2
+      use mo_carbch,     only: ocetra,atm
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+      use mo_intfcblom,  only: bgc_rho,sedlay2,powtra2,burial2,atm2
 c
       implicit none
 c
@@ -55,10 +56,6 @@ c
 #include "common_trc.h"
 #include "common_blocks.h"
 #include "common_forc.h"
-#include "common_bgc.h"
-#ifndef sedbypass
-#include "common_bgcs.h"
-#endif
 c
       integer       :: m,n,mm,nn
 c
@@ -133,7 +130,7 @@ c --- ------------------------------------------------------------------
 c --- apply time smoothing for atmosphere fields if required
 c --- ------------------------------------------------------------------
 c
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
 c$OMP PARALLEL DO
       do j=1,jj
       do i=1,ii                            ! time smoothing (analog to tmsmt2.F)
