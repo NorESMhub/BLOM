@@ -272,21 +272,18 @@
       enddo
 !$OMP END PARALLEL DO
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+        avphy,avgra,avsil,avanut,avanfe,pho,xa,xn,phosy
-!$OMP+       ,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor
-!$OMP+       ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod
-!$OMP+       ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz
+!$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
+!$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
+!$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
+!$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
 # ifdef cisonew
-!$OMP+       ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14
-!$OMP+       ,grazing13,grazing14,graton13,graton14
-!$OMP+       ,gratpoc13,gratpoc14,grawa13,grawa14
-!$OMP+       ,phosy13,phosy14,bacfra13,bacfra14
-!$OMP+       ,phymor13,phymor14,zoomor13,zoomor14
-!$OMP+       ,excdoc13,excdoc14,exud13,exud14,export13
-!$OMP+       ,export14,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14
+!$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
+!$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &  
+!$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
+!$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
+!$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
 # endif
-!$OMP+ )
+!$OMP  )
 
       DO 1 j=1,kpje
       DO 1 i=1,kpie
@@ -507,17 +504,14 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 
-
-
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+        phythresh,zoothresh,sterph,sterzo,remin,opalrem,aou
-!$OMP+       ,refra,dms_bac,pocrem,docrem,phyrem,dz
+!$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
+!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
 # ifdef cisonew
-!$OMP+       ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14
-!$OMP+       ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14
-!$OMP+       ,docrem13,docrem14,phyrem13,phyrem14
+!$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
+!$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
+!$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
 # endif
-!$OMP+  )
+!$OMP  )
   
       DO 201 j=1,kpje
       DO 201 i=1,kpie
@@ -667,13 +661,11 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+   remin,remin2o,dz
+!$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
 #ifdef cisonew 
-!$OMP+  ,rem13,rem14
+!$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP+   ) 
+!$OMP  ) 
        DO 30 j=1,kpje
        DO 30 i=1,kpie
          DO 30 k=kwrbioz(i,j)+1,kpke
@@ -751,12 +743,11 @@
 !                      minimum in the equatorial pacific/atlantic
 !                      does it make sense to check for oxygen and nitrate deficit?
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+   remin
+!$OMP PARALLEL DO PRIVATE(remin                                       &
 #ifdef cisonew
-!$OMP+  ,rem13,rem14
+!$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP+   ) 
+!$OMP  ) 
       DO 301 j=1,kpje
       DO 301 i=1,kpie
         DO 301 k=kwrbioz(i,j)+1,kpke
@@ -982,7 +973,11 @@
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg)
+!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
+#if defined(AGG)
+!$OMP ,wnos,wnosd,dagg                                                &
+#endif
+!$OMP )
       DO j=1,kpje
       DO i=1,kpie
 

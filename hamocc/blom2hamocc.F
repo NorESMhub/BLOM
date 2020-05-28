@@ -67,6 +67,8 @@ c
 c
       nns=(n-1)*ks
 c
+      rp(:,:,:) = 0.0
+c
 c$OMP PARALLEL DO PRIVATE(kn)
 c
 c --- calculate pressure at interfaces (necesarry since p has  
