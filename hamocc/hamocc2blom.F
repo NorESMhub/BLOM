@@ -45,9 +45,10 @@ c
 c***********************************************************************
 c
       use mod_xc
-      use mo_carbch,     only: ocetra,atm,atm2
+      use mo_carbch,     only: ocetra,atm
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+      use mo_intfcblom,  only: bgc_rho,sedlay2,powtra2,burial2,atm2
 c
       implicit none
 c
@@ -55,30 +56,10 @@ c
 #include "common_trc.h"
 #include "common_blocks.h"
 #include "common_forc.h"
-#include "common_bgc.h"
-#ifndef sedbypass
-#include "common_bgcs.h"
-#endif
 c
       integer       :: m,n,mm,nn
 c
       integer       :: i,j,k,l,nns,mms,kn,km
-c
-c
-c --- ------------------------------------------------------------------
-c --- pass co2 and dms fluxes
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO 
-      do j=1,jj
-      do l=1,isp(j)
-      do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-        flxco2(i,j)=bgc_flxco2(i,j)
-        flxdms(i,j)=bgc_flxdms(i,j)
-      enddo
-      enddo
-      enddo
-cc$OMP END PARALLEL DO
 c
 c
 c --- ------------------------------------------------------------------
@@ -149,7 +130,7 @@ c --- ------------------------------------------------------------------
 c --- apply time smoothing for atmosphere fields if required
 c --- ------------------------------------------------------------------
 c
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
 c$OMP PARALLEL DO
       do j=1,jj
       do i=1,ii                            ! time smoothing (analog to tmsmt2.F)

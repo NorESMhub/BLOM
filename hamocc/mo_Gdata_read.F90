@@ -319,7 +319,7 @@ end select
 var  = vname
 ddeg = inddeg
 
-if(mnproc == 1) write(io_stdo_bgc,*) 'HAMOCC: initialising ', trim(vname)
+if(mnproc == 1) write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
 
 call read_Gdata()
 

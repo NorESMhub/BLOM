@@ -32,7 +32,7 @@ c
       call restart_ocntrcrd(rstfnm_ocn)
 c
 #ifdef HAMOCC
-      call restart_hamoccrd(rstfnm_ocn)
+      call hamocc_init(1,rstfnm_ocn)
 #endif
 c
       return

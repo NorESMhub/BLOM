@@ -18,9 +18,10 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE CARCHM(kpie,kpje,kpke,pglat,pddpo,pdlxp,pdlyp,psao,    &
-     &                  ppao,ptho,prho,psicomo,pfu10,ptiestu,omask)
-!**********************************************************************
+      SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
+                        pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
+                        psicomo,ppao,pfu10,ptho,psao)
+!******************************************************************************
 !
 !**** *CARCHM* - .
 !
@@ -75,18 +76,18 @@
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *pglat*   - latitude of grid cells [deg north].
-!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *INTEGER* *kbnd*    - nb of halo grid points
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *psao*    - salinity [psu].
-!     *REAL*    *ppao*    - sea level presure [Pascal].
-!     *REAL*    *ptho*    - potential temperature.
+!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !     *REAL*    *prho*    - density [g/cm^3].
-!     *REAL*    *psicomo* - sea ice.
-!     *REAL*    *pfu10*   - forcing field wind speed.
-!     *REAL*    *ptiestu* - depth of layer centres [m].
+!     *REAL*    *pglat*   - latitude of grid cells [deg north].
 !     *REAL*    *omask*   - ocean mask.
+!     *REAL*    *psicomo* - sea ice.
+!     *REAL*    *ppao*    - sea level presure [Pascal].
+!     *REAL*    *pfu10*   - forcing field wind speed.
+!     *REAL*    *ptho*    - potential temperature.
+!     *REAL*    *psao*    - salinity [psu].
 !
 !     Externals
 !     ---------
@@ -99,22 +100,22 @@
       USE mo_sedmnt
       USE mo_control_bgc
       USE mo_param1_bgc 
+      use mo_vgrid, only: dp_min,kbo,ptiestu
 
       implicit none
 
-      INTEGER :: kpie,kpje,kpke      
-      REAL    :: pglat(kpie,kpje)
-      REAL    :: pddpo(kpie,kpje,kpke)
-      REAL    :: pdlxp(kpie,kpje)
-      REAL    :: pdlyp(kpie,kpje)
-      REAL    :: psao(kpie,kpje,kpke)
-      REAL    :: ppao(kpie,kpje)
-      REAL    :: ptho(kpie,kpje,kpke)
-      REAL    :: prho(kpie,kpje,kpke)
-      REAL    :: psicomo(kpie,kpje)
-      REAL    :: pfu10(kpie,kpje)
-      REAL    :: ptiestu(kpie,kpje,kpke)
-      REAL    :: omask(kpie,kpje)
+      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd     
+      REAL,    intent(in) :: pdlxp(kpie,kpje)
+      REAL,    intent(in) :: pdlyp(kpie,kpje)
+      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+      REAL,    intent(in) :: prho(kpie,kpje,kpke)
+      REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       ! Local variables
       INTEGER :: i,j,k,l,js
@@ -148,9 +149,6 @@
       REAL    :: flux14d,flux14u,flux13d,flux13u
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
-#endif
-#ifdef ANTC14
-      REAL    :: fantc14d,fantc14u
 #endif
 
 
@@ -204,13 +202,13 @@
 
 ! Carbon chemistry: Caculate equilibrium constants and solve for [H+] and
 ! carbonate alkalinity (ac)
-      t    = ptho(i,j,k)
-      t2   = ptho(i,j,k)**2
-      t3   = ptho(i,j,k)**3
-      t4   = ptho(i,j,k)**4
+      t    = min(40.,max(-3.,ptho(i,j,k)))
+      t2   = t**2
+      t3   = t**3
+      t4   = t**4
       tk   = t + tzero
       tk100= tk/100.0
-      s    = MAX(25.,psao(i,j,k))
+      s    = min(40.,max( 25.,psao(i,j,k)))
       rrho = prho(i,j,k)                   ! seawater density [g/cm3]
       prb  = ptiestu(i,j,k)*98060*1.027e-6 ! pressure in unit bars, 98060 = onem
 
@@ -368,8 +366,8 @@
 
 ! fractionation factors for 13C during air-sea gas exchange (Zhang et al. 1995, Orr et al. 2017)
        frac_k    = 0.99912                                 !Constant kinetic fractionation
-       frac_aqg  = (0.0049*ptho(i,j,1) - 1.31)/1000. + 1.  !Gas dissolution fractionation
-       frac_dicg = (0.0144*ptho(i,j,1)*(cc/(cc+cu+cb)) - 0.107*ptho(i,j,1) + 10.53)/1000. + 1. !DIC to CO2 frac
+       frac_aqg  = (0.0049*t - 1.31)/1000. + 1.  !Gas dissolution fractionation
+       frac_dicg = (0.0144*t*(cc/(cc+cu+cb)) - 0.107*t + 10.53)/1000. + 1. !DIC to CO2 frac
        flux13d=atco213*rpp0*kwco2*dtbgc*Kh*1.e-6*rrho*frac_aqg*frac_k         
        flux13u=pco213      *kwco2*dtbgc*Kh*1.e-6*rrho*frac_aqg*frac_k/frac_dicg   
        flux14d=atco214*rpp0*kwco2*dtbgc*Kh*1.e-6*rrho*(frac_aqg**2)*(frac_k**2)           

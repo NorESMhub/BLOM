@@ -18,14 +18,9 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,         &
-#ifndef sedbypass
-     &                    sedlay2,powtra2,burial2,                      &
-#endif
-     &                    kplyear,kplmon,kplday,kpldtoce,omask,         &
-     &                    rstfnm_ocn)
-
-!****************************************************************
+      SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,              &
+                          kplyear,kplmon,kplday,kpldtoce,omask,rstfnm_ocn)
+!******************************************************************************
 !
 !**** *AUFW_BGC* - write marine bgc restart data.
 !
@@ -60,7 +55,7 @@
 !     - added sediment bypass preprocessor option
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
-!     - added writing of atmosphere field for BOXATM and DIFFAT
+!     - added writing of atmosphere field for BOXATM
 !
 !     M. Bentsen,       *NORCE, Bergen*          2020-05-03
 !     - changed ocean model from MICOM to BLOM
@@ -106,39 +101,39 @@
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 
-      USE mo_sedmnt, only: sedhpl
-      use mod_xc,    only: nbdy,itdm,jtdm,mnproc,xchalt
+      USE mo_sedmnt,    only: sedhpl
+      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,xchalt
+      use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
       use mod_dia
+
       implicit none
-      INTEGER           :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
-      REAL              :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-#ifndef sedbypass
-      REAL              :: sedlay2(kpie,kpje,2*ks,nsedtra)
-      REAL              :: powtra2(kpie,kpje,2*ks,npowtra)
-      REAL              :: burial2(kpie,kpje,2,   nsedtra)
-#endif
-      REAL              :: omask(kpie,kpje)    
-      INTEGER           :: kplyear,kplmon,kplday,kpldtoce
-      character(len=*)  :: rstfnm_ocn
 
-      REAL              :: locetra(kpie,kpje,2*kpke,nocetra)
-      INTEGER           :: i,j
-      CHARACTER(LEN=256):: rstfnm
+      INTEGER,          intent(in) :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
+      REAL,             intent(in) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
+      REAL,             intent(in) :: omask(kpie,kpje)    
+      INTEGER,          intent(in) :: kplyear,kplmon,kplday,kpldtoce
+      character(len=*), intent(in) :: rstfnm_ocn
 
-      INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
-     &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,nctlvl2id  &
-     &       ,idate(5)
-      REAL rmissing
+      ! Local variables
+      INTEGER             :: i,j
+      REAL                :: locetra(kpie,kpje,2*kpke,nocetra)
+      CHARACTER(LEN=256)  :: rstfnm
+
+      ! Variables for netcdf
+      INTEGER             :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)
+      INTEGER             :: nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,nctlvl2id
+      INTEGER             :: idate(5),ierr,testio
+      REAL                :: rmissing
+      character(len=3)    :: stripestr
+      character(len=9)    :: stripestr2
+
 #ifdef PNETCDF
-      integer*4 ,save :: info=MPI_INFO_NULL
-      integer        mpicomm,mpierr,mpireq,mpistat
+      integer*4 ,save     :: info=MPI_INFO_NULL
+      integer             :: mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                          &
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
 #endif
-      character(len=3) :: stripestr
-      character(len=9) :: stripestr2
-      integer ierr,testio
 
 ! pass tracer fields in from ocean model, note that both timelevels 
 ! are passed into the local array locetra; No unit conversion here, 
@@ -553,12 +548,6 @@
       CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdimst,ncvarid,           &
      &    4,'g/kg',15,'Aggregated dust',                                &
      &    rmissing,45,io_stdo_bgc)
-#endif /*AGG*/   
-
-#ifdef ANTC14
-      CALL NETCDF_DEF_VARDB(ncid,6,'antc14',3,ncdimst,ncvarid,          &
-     &    6,'mol/kg',17,'anthropogenic C14',                            &
-     &    rmissing,46,io_stdo_bgc)
 #endif
 #ifdef CFC
       CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,           &
@@ -745,7 +734,7 @@
 ! Define variables: atmosphere
 ! ----------------------------------------------------------------------    
 !
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
     IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
       ncdimst(1) = nclonid
       ncdimst(2) = nclatid
@@ -854,9 +843,6 @@
       CALL write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
       CALL write_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0)
 #endif /*AGG*/
-#ifdef ANTC14
-      CALL write_netcdf_var(ncid,'antc14',locetra(1,1,1,iantc14),2*kpke,0)
-#endif
 #ifdef CFC
       CALL write_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0)
       CALL write_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
@@ -909,7 +895,7 @@
 !
 ! Write restart data: atmosphere.
 !
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       CALL write_netcdf_var(ncid,'atmco2',atm2(1,1,1,iatmco2),2,0)
       CALL write_netcdf_var(ncid,'atmo2',atm2(1,1,1,iatmo2),2,0)
       CALL write_netcdf_var(ncid,'atmn2',atm2(1,1,1,iatmn2),2,0)
