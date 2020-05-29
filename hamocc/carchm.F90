@@ -178,24 +178,24 @@
        natomegaC(:,:,:)=0.
 #endif
 
-
-!$OMP PARALLEL DO PRIVATE(                              
-!$OMP+  t,tk,tk100,s,rs,prb,Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa          
-!$OMP+ ,tc,ta,sit,pt,ah1,ac,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa 
-!$OMP+ ,kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat
-!$OMP+ ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol
+!$OMP PARALLEL DO PRIVATE(t,tk,tk100,s,rs,prb,Kh,Khd,K1,K2,Kb,K1p,K2p &
+!$OMP  ,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac,cu,cb,cc,pco2 &
+!$OMP  ,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,kwco2,kwdms,kwo2  &
+!$OMP  ,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat,niflux,n2oflux      &
+!$OMP  ,dmsflux,omega,supsat,undsa,dissol                             &
 #ifdef CFC
-!$OMP+ ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11,flx12
-!$OMP+ ,flxsf,atm_cfc11,atm_cfc12,atm_sf6
+!$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
+!$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6                       &
 #endif
 #ifdef natDIC
-!$OMP+ ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega,natsupsat,natundsa,natdissol
+!$OMP  ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega          &
+!$OMP  ,natsupsat,natundsa,natdissol                                  &
 #endif
 #ifdef cisonew
-!$OMP+ ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg,frac_dicg
-!$OMP+ ,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14
+!$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
+!$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 #endif
-!$OMP+ )
+!$OMP  )
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
