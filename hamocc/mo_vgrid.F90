@@ -29,7 +29,7 @@ module mo_vgrid
 !
 !  Purpose
 !  -------
-!  Declaration, memory allocation, and routines related to the
+!   Declaration, memory allocation, and routines related to the
 !   vertical grid structure. These have to be recalculated every
 !   time step when iHAMOCC is coupled to BLOM.
 !
@@ -224,7 +224,7 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
   IF (mnproc.eq.1) THEN
     WRITE(io_stdo_bgc,*)' '
     WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_vgrid:'
+    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_vgrid :'
     WRITE(io_stdo_bgc,*)' '
   ENDIF
 

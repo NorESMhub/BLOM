@@ -19,67 +19,75 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
+                            dust,rivin,ndep,                                  &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms)
 !******************************************************************************
 !
-!**** *BGC* - .
+! HAMOCC4BGC - main routine of iHAMOCC.
 !
-!     Modified
-!     --------
-!     J.Schwinger       *GFI, Bergen*    2013-10-21
-!     - added GNEWS2 option for riverine input of carbon and nutrients
-!     - code cleanup
+! Modified
+! --------
+!  J.Schwinger       *GFI, Bergen*    2013-10-21
+!  - added GNEWS2 option for riverine input of carbon and nutrients
+!  - code cleanup
 !
-!     J.Schwinger       *GFI, Bergen*    2014-05-21
-!     - moved copying of tracer field to ocetra to micom2hamocc 
-!       and hamocc2micom
+!  J.Schwinger       *GFI, Bergen*    2014-05-21
+!  - moved copying of tracer field to ocetra to micom2hamocc 
+!    and hamocc2micom
 !
-!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!     - moved accumulation of all output fields to seperate subroutine,
-!       related code-restructuring
-!     - added sediment bypass preprocessor option
+!  J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!  - moved accumulation of all output fields to seperate subroutine,
+!    related code-restructuring
+!  - added sediment bypass preprocessor option
 !
-!**   Interface to ocean model (parameter list):
-!     -----------------------------------------
+!  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-28
+!  - restructuring of iHAMOCC code, cleanup parameter list
+!  - boundary conditions (dust, riverinput, N-deposition) are now passed as 
+!    an argument
 !
-!     *INTEGER* *kpie*       - 1st dimension of model grid.
-!     *INTEGER* *kpje*       - 2nd dimension of model grid.
-!     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*       - nb of halo grid points
-!     *INTEGER* *kplyear*    - current year
-!     *INTEGER* *kplmon*     - current month
-!     *INTEGER* *kplday*     - current day
-!     *INTEGER* *kldtday*    - number of time step in current day.
-!     *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
-!     *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
-!     *REAL*    *pddpo*      - size of grid cell (depth) [m].
-!     *REAL*    *pglat*      - latitude of grid cells [deg north].
-!     *REAL*    *omask*      - land/ocean mask
-!     *REAL*    *pfswr*      - solar radiation [W/m**2].
-!     *REAL*    *psicomo*    - sea ice concentration
-!     *REAL*    *ptho*       - potential temperature [deg C].
-!     *REAL*    *psao*       - salinity [psu.].
-!     *REAL*    *ppao*       - sea level pressure [Pascal].
-!     *REAL*    *prho*       - density [kg/m^3].
-!     *REAL*    *pfu10*      - absolute wind speed at 10m height [m/s]
-!     *REAL*    *patmco2*    - atmospheric CO2 concentration [ppm] used in 
-!                              fully coupled mode (prognostic/diagnostic CO2)
-!     *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s]
-!     *REAL*    *pflxdms*    - DMS flux [kg/m^2/s]
+! Parameter list:
+! ---------------
+!
+!  *INTEGER* *kpie*       - 1st dimension of model grid.
+!  *INTEGER* *kpje*       - 2nd dimension of model grid.
+!  *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
+!  *INTEGER* *kbnd*       - nb of halo grid points.
+!  *INTEGER* *kplyear*    - current year.
+!  *INTEGER* *kplmon*     - current month.
+!  *INTEGER* *kplday*     - current day.
+!  *INTEGER* *kldtday*    - number of time step in current day.
+!  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
+!  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
+!  *REAL*    *pddpo*      - size of grid cell (depth) [m].
+!  *REAL*    *prho*       - density [kg/m^3].
+!  *REAL*    *pglat*      - latitude of grid cells [deg north].
+!  *REAL*    *omask*      - land/ocean mask.
+!  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
+!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-2].
+!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-2].
+!  *REAL*    *pfswr*      - solar radiation [W/m**2].
+!  *REAL*    *psicomo*    - sea ice concentration
+!  *REAL*    *ppao*       - sea level pressure [Pascal].
+!  *REAL*    *pfu10*      - absolute wind speed at 10m height [m/s]
+!  *REAL*    *ptho*       - potential temperature [deg C].
+!  *REAL*    *psao*       - salinity [psu.].
+!  *REAL*    *patmco2*    - atmospheric CO2 concentration [ppm] used in 
+!                           fully coupled mode (prognostic/diagnostic CO2).
+!  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
+!  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
 !
 !******************************************************************************
-
+      use mod_xc
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
       USE mo_bgcmean
       USE mo_control_bgc
       use mo_param1_bgc
-      use mo_vgrid, only: set_vgrid
-      use mod_xc
-      use mo_riverinpt, only: riverinpt
-      use mo_ndep, only: n_deposition
+      use mo_vgrid,     only: set_vgrid
+      use mo_riverinpt, only: riverinpt,nriv
+      use mo_ndep,      only: n_deposition
 #if defined(BOXATM)
       use mo_boxatm
 #endif
@@ -95,6 +103,9 @@
       REAL,    intent(in)  :: prho   (kpie,kpje,kpke)
       REAL,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: omask  (kpie,kpje)
+      REAL,    intent(in)  :: dust   (kpie,kpje,nriv)
+      REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
+      REAL,    intent(in)  :: ndep   (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -179,7 +190,7 @@
 !---------------------------------------------------------------------
 ! Biogeochemistry
 !
-      CALL OCPROD(kpie,kpje,kpke,kbnd,kplmon,pdlxp,pdlyp,pddpo,omask,ptho)
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -237,10 +248,10 @@
 
 
       ! Apply n-deposition
-      CALL n_deposition(kpie,kpje,kpke,kplyear,kplmon,pddpo,omask)
+      CALL n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 
       ! Apply riverine input of carbon and nutrients
-      call riverinpt(kpie,kpje,kpke,pddpo,pdlxp,pdlyp,omask)
+      call riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)

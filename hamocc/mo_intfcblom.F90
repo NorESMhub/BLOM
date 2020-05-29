@@ -97,7 +97,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   IF (mnproc.eq.1) THEN
     WRITE(io_stdo_bgc,*)' '
     WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_intfcblom:'
+    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_intfcblom :'
     WRITE(io_stdo_bgc,*)' '
   ENDIF
 

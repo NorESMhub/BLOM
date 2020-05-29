@@ -52,7 +52,7 @@
 
       implicit none
 
-      INTEGER, intent(in) :: kpie,kpje,kpke,i,j,k
+      INTEGER, intent(in) :: kpie,kpje,kpke
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
 
       INTEGER             :: i,j,k

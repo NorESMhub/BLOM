@@ -63,7 +63,6 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: dusty
 
       REAL, DIMENSION (:,:),     ALLOCATABLE :: pco2d
       REAL, DIMENSION (:,:),     ALLOCATABLE :: kwco2sol
@@ -302,18 +301,6 @@
       ALLOCATE (atmflx(kpie,kpje,natm),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory atmflx'
       atmflx(:,:,:) = 0.0
-
-
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable dusty ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',12
-      ENDIF
-
-      ALLOCATE (dusty(kpie,kpje,12),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory dusty'
-      dusty(:,:,:) = 0.0
 
 
       IF (mnproc.eq.1) THEN

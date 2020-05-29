@@ -25,6 +25,9 @@ c
       use mod_xc
       use mo_bgcmean
       use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
+      use mo_riverinpt, only: rivflx
+      use mo_fedep,     only: get_fedep
+      use mo_ndep,      only: get_ndep
 c
       implicit none
 c
@@ -34,8 +37,11 @@ c
 #include "common_seaice.h"
 #include "common_geo.h"
 c
-      integer :: m,n,mm,nn,k1m,k1n
+      integer, intent(in) :: m,n,mm,nn,k1m,k1n
+
       integer :: l,ldtday
+      real    :: ndep(idm,jdm)
+      real    :: dust(idm,jdm)
 c
       call trc_limitc(nn)
 c
@@ -52,8 +58,12 @@ c
      .    bgcwrt(l)=1.
       enddo
 c
+      call get_fedep(idm,jdm,nmonth,dust)
+      call get_ndep(idm,jdm,nyear,nmonth,omask,ndep)
+c
       call hamocc4bcm(idm,jdm,kdm,nbdy,nyear,nmonth,nday,ldtday,
      .            bgc_dx,bgc_dy,bgc_dp,bgc_rho,plat,omask,
+     .            dust,rivflx,ndep,
      .            swa,ficem,slp,abswnd,
      .            temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),
      .            atmco2,flxco2,flxdms)

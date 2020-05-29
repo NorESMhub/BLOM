@@ -18,11 +18,10 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE OCPROD(kpie,kpje,kpke,kbnd,kplmon,                           &
-                        pdlxp,pdlyp,pddpo,omask,ptho)
+      SUBROUTINE OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !******************************************************************************
 !
-!**** *OCPROD* - .
+!  OCPROD - biological production, remineralization and particle sinking.
 !
 !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
 !
@@ -57,6 +56,10 @@
 !       related code-restructuring
 !     - added sediment bypass preprocessor option and related code
 !
+!     J.Schwinger,      *NORCE Climate, Bergen*   2020-05-29
+!     - Cleaned up parameter list
+!     - Dust deposition field now passed as an argument
+! 
 !     Purpose
 !     -------
 !     compute biological production, settling of debris, and related 
@@ -64,18 +67,17 @@
 !
 !
 !
-!**** Parameter list:
+!     Parameter list:
 !     ---------------
-!
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *INTEGER* *kbnd*    - nb of halo grid points
-!     *INTEGER* *kplmon*  - number of current month
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *omask*   - land/ocean mask
+!     *REAL*    *omask*   - land/ocean mask (1=ocean)
+!     *REAL*    *dust*    - dust deposition flux [kg/m2/month].
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
@@ -88,10 +90,11 @@
 
       implicit none
 
-      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd,kplmon
+      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
       REAL,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
       REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: dust(kpie,kpje)
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       ! Local varaibles      
@@ -258,7 +261,7 @@
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
-          dustinp=dusty(i,j,kplmon)/30.*dtb/pddpo(i,j,1)
+          dustinp=dust(i,j)/30.*dtb/pddpo(i,j,1)
           ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
           ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
         endif      

@@ -45,6 +45,7 @@ c******************************************************************************
       USE mo_sedmnt,     only: alloc_mem_sedmnt,sedlay,powtra,burial
       use mo_vgrid,      only: alloc_mem_vgrid,set_vgrid
       use mo_bgcmean,    only: alloc_mem_bgcmean
+      use mo_fedep,      only: ini_fedep
       use mo_ndep,       only: ini_ndep,ndepfname
       use mo_riverinpt,  only: ini_riverinpt
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
@@ -79,7 +80,9 @@ c
 
       if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*) 'HAMOCC initialisation'
+      WRITE(io_stdo_bgc,*)'********************************************'
+      write(io_stdo_bgc,*) 'iHAMOCC: initialisation'
+      write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'restart',read_rest
       write(io_stdo_bgc,*) 'dims',idm,jdm,kdm
       write(io_stdo_bgc,*) 'time',nyear,nmonth,nday
@@ -93,7 +96,7 @@ c
       close (unit=io_nml)
       IF (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)
-        write(io_stdo_bgc,*) 'HAMOCC: reading namelist BGCNML'
+        write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
         write(io_stdo_bgc,nml=BGCNML)
       ENDIF
 c                        
@@ -148,11 +151,11 @@ c
 c
 c --- Initialise dust input, n-deposition and river input
 c
-      CALL GET_DUST(idm,jdm,kdm,omask,path)
+      CALL ini_fedep(idm,jdm,omask,path)
 
       CALL ini_ndep(idm,jdm,path)
 
-      CALL INI_RIVERINPT(path)
+      CALL INI_RIVERINPT(idm,jdm,omask,path)
 #ifdef DMSPH
       CALL GET_PI_PH(idm,jdm,kdm,omask,path)
 #endif
@@ -184,6 +187,13 @@ c
 #endif
       ENDIF
 c
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)
+      WRITE(io_stdo_bgc,*)'********************************************'
+      write(io_stdo_bgc,*) 'iHAMOCC: finished initialisation'
+      write(io_stdo_bgc,*)
+      endif
+
       return
 c******************************************************************************
       end subroutine hamocc_init
