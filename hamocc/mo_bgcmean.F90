@@ -457,10 +457,10 @@
 
       IMPLICIT NONE 
      
-      INTEGER :: kpie,kpje,kpke
+      INTEGER, intent(in) :: kpie,kpje,kpke
 
-      INTEGER :: m,n,errstat,iounit,checkdp(nbgcmax)
-      LOGICAL :: isopen,exists      
+      INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
+      LOGICAL             :: isopen,exists      
 
 !     Read namelist for diagnostic output 
       GLB_AVEPERIO=0 
@@ -653,7 +653,7 @@
       DO n=1,nbgc
         IF (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmco2(n)=i_atm_m2d*min(1,SRF_ATMCO2(n))
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
         IF (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
         IF (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
@@ -952,6 +952,14 @@
       nbgct_bur  = i_bsc_bur
 
 !     Allocate buffers 
+
+      IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)' '
+        WRITE(io_stdo_bgc,*)'***************************************************'
+        WRITE(io_stdo_bgc,*)'Memory allocation for averaging model output :'
+        WRITE(io_stdo_bgc,*)' '
+      ENDIF
+
 
       IF (mnproc.EQ.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'

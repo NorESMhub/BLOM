@@ -16,8 +16,8 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,path)
-!********************************************************************************
+subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask,path)
+!*******************************************************************************
 !     J.Schwinger,      *Gfi, Bergen*            2011-05-19
 !
 !     Modified
@@ -39,22 +39,22 @@ subroutine profile_gd(kpie,kpje,kpke,pglon,pglat,ptiestw,omask,path)
 !       adjustable parameter.
 !
 !
-!********************************************************************************
+!*******************************************************************************
    
 use mod_xc,         only: xchalt
 use mo_carbch,      only: ocetra
 use mo_Gdata_read,  only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
 use mo_control_bgc, only: io_stdo_bgc
+use mo_vgrid,       only: ptiestw
 use mo_param1_bgc
 
 
 implicit none
 
-integer,         intent(in) :: kpie,kpje,kpke
-real,            intent(in) :: ptiestw(kpie,kpje,kpke+1)
+integer,         intent(in) :: kpie,kpje,kpke,kbnd
 real,            intent(in) :: omask(kpie,kpje)
-real,            intent(in) :: pglon(kpie,kpje)
-real,            intent(in) :: pglat(kpie,kpje)
+real,            intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+real,            intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 character(len=*),intent(in) :: path
 
 ! Local variables
