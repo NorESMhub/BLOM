@@ -36,7 +36,7 @@ module mo_fedep
   implicit none
 
   private
-  public :: ini_fedep, get_fedep
+  public :: ini_fedep, get_fedep,fedepfname
 
   character(len=512), save :: fedepfname='INPDUST_mhw.nc'
   character(len=512), save :: fedepfile

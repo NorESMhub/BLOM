@@ -45,9 +45,9 @@ c******************************************************************************
       USE mo_sedmnt,     only: alloc_mem_sedmnt,sedlay,powtra,burial
       use mo_vgrid,      only: alloc_mem_vgrid,set_vgrid
       use mo_bgcmean,    only: alloc_mem_bgcmean
-      use mo_fedep,      only: ini_fedep
+      use mo_fedep,      only: ini_fedep,fedepfname
       use mo_ndep,       only: ini_ndep,ndepfname
-      use mo_riverinpt,  only: ini_riverinpt
+      use mo_riverinpt,  only: ini_riverinpt,riverfname
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2
@@ -65,7 +65,8 @@ c
 
       integer :: i,j,k,l,nt
 
-      namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,ndepfname
+      namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
+     .                  ndepfname,fedepfname,riverfname
 c
 c --- Set io units and some control parameters
 c

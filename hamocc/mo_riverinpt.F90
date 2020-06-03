@@ -66,7 +66,7 @@ use mod_xc ,        only: mnproc,nbdy
 implicit none
 
 private
-public :: ini_riverinpt, riverinpt, nriv, rivflx
+public :: ini_riverinpt,riverinpt,nriv,rivflx,riverfname
 public :: irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 integer,         parameter :: nriv     = 7    ! size of river input field
@@ -78,7 +78,7 @@ integer,         parameter :: irdin    = 1, & ! dissolved inorganic nitrogen
                               irdoc    = 6, & ! dissolved organic carbon
                               irdet    = 7    ! particulate carbon
 real,save,allocatable      :: rivflx(:,:,:)
-character(len=*),parameter :: infile = 'river_nutrients_GNEWS2000.nc'
+character(len=256),save    :: riverfname = 'river_nutrients_GNEWS2000.nc'
 
 ! arrays for reading riverine inputs on the model grid
 real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   &
@@ -152,9 +152,10 @@ subroutine ini_riverinpt(kpie,kpje,omask,path)
   ! read riverine nutrient fluxes from file
   if (mnproc.eq.1) then
     write(io_stdo_bgc,*) ''
-    write(io_stdo_bgc,*) 'ini_riverinpt: read riverine nutrients from ',trim(path)//trim(infile)
+    write(io_stdo_bgc,*) 'ini_riverinpt: read riverine nutrients from ',       & 
+                          trim(path)//trim(riverfname)
   endif
-  call ncfopn(trim(path)//trim(infile),'r',' ',1,iotype)
+  call ncfopn(trim(path)//trim(riverfname),'r',' ',1,iotype)
   call ncread('DIN',riv_DIN2d,dummymask,0,0.)
   call ncread('DIP',riv_DIP2d,dummymask,0,0.)
   call ncread('DSi',riv_DSI2d,dummymask,0,0.)
