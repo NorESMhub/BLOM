@@ -11,6 +11,10 @@ BLOM documetation is integrated in the general NorESM documentation on ReadTheDo
 - [BLOM model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
 - [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
 
+### Working with the BLOM git repository
+
+The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) includes instructions on how to contribute to the BLOM/iHAMOCC model system, and how to work with the BLOM git repository with your own fork on gitHub.
+
 ## License
 
 BLOM is licensed under the GNU Lesser General Public License - see the
