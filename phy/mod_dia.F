@@ -107,6 +107,7 @@ c --- Meridional overturning and flux diagnostics
       integer, parameter ::
      .  ldm=itdm+jtdm,sdm=ldm,odm=10,slenmax=50,rflgdm=20
       character(len=slenmax), save, dimension(odm) :: mer_regnam=''
+      character(len=256), save :: mer_orfile,mer_mifile
       integer, save, dimension(odm,rflgdm) :: mer_regflg=-1
       integer, save, dimension(odm) :: mer_nflg
       real, save, dimension(odm) :: mer_minlat=-90.,mer_maxlat=90.
@@ -119,6 +120,7 @@ c --- Meridional overturning and flux diagnostics
      .  mhflx,mhftd,mhfld,msflx,msftd,msfld
 c
 c --- Section transports 
+      character(len=256), save :: sec_sifile
       integer, save :: sec_num
       integer, parameter :: max_sec=400
       character(len=slenmax), save :: sec_name(max_sec)
@@ -203,8 +205,10 @@ c --- Namelist
      . ACC_UTILLVL  ,
      . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFTDD,ACC_MHFLX,ACC_MHFTD,
      . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR 
-      namelist /MERREG/
-     . MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
+      namelist /MERDIA/
+     . MER_ORFILE,MER_MIFILE,MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
+      namelist /SECDIA/
+     . SEC_SIFILE
       namelist /DIAPHY/
      . H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  ,
      . H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   ,
@@ -368,26 +372,25 @@ c
 c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
-      inquire(file=path(1:path_len)//'ocean_regions.nc',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'ocean_regions.nc','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
-      endif
-      inquire(file=path(1:path_len)//'mertra_index.dat',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'mertra_index.dat','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
-      endif
-      inquire(file=path(1:path_len)//'section_index.dat',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'section_index.dat','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
+      if (mnproc.eq.1) then
+        inquire(file=mer_orfile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(mer_orfile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
+        inquire(file=mer_mifile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(mer_mifile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
+        inquire(file=sec_sifile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(sec_sifile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
       endif
 c
       nphyh2d=0
@@ -3077,8 +3080,7 @@ c --- ------------------------------------------------------------------
       if (iniflg) then
         if (mnproc.eq.1) then
           equat_sec=-1
-          open(nfu,file=path(1:path_len)//'section_index.dat',
-     .         status='old')
+          open(nfu,file=sec_sifile,status='old')
           sec_num=0
           do
             read(nfu,'(a120)',iostat=iostatus) char120
@@ -3233,14 +3235,13 @@ c
         if (mnproc.eq.1) then
 c
 c --- --- Read ocean region flags from ocean_regions.nc
-          call ncerro(nf90_open(path(1:path_len)//'ocean_regions.nc',
-     .                          nf90_nowrite,ncid))
+          call ncerro(nf90_open(mer_orfile,nf90_nowrite,ncid))
           call ncerro(nf90_inq_dimid(ncid,'x',dimid))
           call ncerro(nf90_inquire_dimension(ncid,dimid,len=i))
           call ncerro(nf90_inq_dimid(ncid,'y',dimid))
           call ncerro(nf90_inquire_dimension(ncid,dimid,len=j))
           if (i.ne.itdm.or.j.ne.jtdm) then
-            write (lp,*) 'wrong dimensions in ocean_regions.nc'
+            write (lp,'(2a)') ' wrong dimensions in',trim(mer_orfile)
             call xchalt('(diamer)')
                    stop '(diamer)'
           endif
@@ -3251,8 +3252,7 @@ c --- --- Read ocean region flags from ocean_regions.nc
           call ncerro(nf90_close(ncid))
 c
 c --- --- Read section file metra_index.dat
-          open(nfu,file=path(1:path_len)//'mertra_index.dat',
-     .         status='old')
+          open(nfu,file=mer_mifile,status='old')
           lmax=0
           do l=1,ldm
             c20=' '
@@ -3263,7 +3263,7 @@ c --- --- Read section file metra_index.dat
               read(c20(9:15),'(f7.3)') mtlat(l)
               read(c20(16:20),'(i7)') nind1
             else
-              write(lp,*) 'problem in mertra_index.dat'
+              write(lp,'(2a)') ' problem in ',trim(mer_mifile)
               call xchalt('(diamer)')
                      stop '(diamer)'
             endif

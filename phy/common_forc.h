@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2015 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2002-2020 Mats Bentsen, Jerry Tjiputra
 !
 ! This file is part of BLOM.
 !
@@ -65,14 +65,14 @@ c
 c --- flag for sending precipitation/runoff factor to CESM coupler
       logical sprfac
 c
-c --- Source for monthly SSS climatological field
-      character*80 srxsrc
+c --- name of file containing monthly SSS climatology
+      character*256 scfile
 c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
      .              nflxdi,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
      .              xmi,l1mi,l2mi,l3mi,l4mi,l5mi,
      .              aptflx,apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,
-     .              srxsrc
+     .              scfile
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c
