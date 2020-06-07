@@ -623,7 +623,7 @@ if      ($OCN_GRID == gx1v5) then
 else if ($OCN_GRID == gx1v6) then
 else if ($OCN_GRID == gx3v7) then
 else if ($OCN_GRID == tnx2v1) then
-  set GRFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/grid_tnx2v1_20170807.ncc'"
+  set GRFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/grid_tnx2v1_20170807.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/inicon_tnx2v1_20130419.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/tidal_dissipation_tnx2v1_20130419.nc'"
   set MER_ORFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/ocean_regions_tnx2v1_20190826.nc'"
