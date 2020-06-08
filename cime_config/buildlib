@@ -1,31 +1,30 @@
 #! /bin/csh -f 
 cd $1
-setenv CASE `./xmlquery --file env_case.xml CASE --value`
-setenv CONFIG_OCN_FILE `./xmlquery CONFIG_OCN_FILE --value`
-setenv CASEROOT `./xmlquery CASEROOT --value`
-setenv SRCROOT `./xmlquery  SRCROOT --value`
-setenv EXEROOT `./xmlquery  EXEROOT --value`
-setenv OBJROOT `./xmlquery  OBJROOT --value`
-setenv OCN_GRID `./xmlquery OCN_GRID --value`
-setenv CONFIG_OCN_DIR `dirname $CONFIG_OCN_FILE`
-setenv NTASKS_OCN `./xmlquery NTASKS_OCN --value`
-setenv DIN_LOC_ROOT `./xmlquery DIN_LOC_ROOT --value`
-setenv RUN_TYPE `./xmlquery RUN_TYPE --value`
-setenv CASEBUILD `./xmlquery CASEBUILD --value`
-setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
-setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
-setenv BLOM_COUPLING `./xmlquery BLOM_COUPLING --value`
-setenv RUNDIR `./xmlquery  RUNDIR --value`
-setenv BLOM_TRACER_MODULES `./xmlquery BLOM_TRACER_MODULES --value`
-setenv BLOM_TURBULENT_CLOSURE `./xmlquery BLOM_TURBULENT_CLOSURE --value`
-setenv HAMOCC_CFC `./xmlquery HAMOCC_CFC --value`
-setenv HAMOCC_NATTRC `./xmlquery HAMOCC_NATTRC --value`
-setenv HAMOCC_SEDBYPASS `./xmlquery HAMOCC_SEDBYPASS --value`
-setenv HAMOCC_CISO `./xmlquery HAMOCC_CISO --value`
-setenv GMAKE `./xmlquery GMAKE --value`
-setenv GMAKE_J `./xmlquery  GMAKE_J --value`
-setenv OCN_CO2_TYPE `./xmlquery OCN_CO2_TYPE --value`
-setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
+set CONFIG_OCN_FILE = `./xmlquery CONFIG_OCN_FILE --value`
+set CASEROOT = `./xmlquery CASEROOT --value`
+set SRCROOT = `./xmlquery  SRCROOT --value`
+set EXEROOT = `./xmlquery  EXEROOT --value`
+set OBJROOT = `./xmlquery  OBJROOT --value`
+set OCN_GRID = `./xmlquery OCN_GRID --value`
+set CONFIG_OCN_DIR = `dirname $CONFIG_OCN_FILE`
+set NTASKS_OCN = `./xmlquery NTASKS_OCN --value`
+set DIN_LOC_ROOT = `./xmlquery DIN_LOC_ROOT --value`
+set RUN_TYPE = `./xmlquery RUN_TYPE --value`
+set CASEBUILD = `./xmlquery CASEBUILD --value`
+set CCSM_CO2_PPMV = `./xmlquery CCSM_CO2_PPMV --value`
+set OCN_NCPL = `./xmlquery OCN_NCPL --value`
+set BLOM_COUPLING = `./xmlquery BLOM_COUPLING --value`
+set RUNDIR = `./xmlquery  RUNDIR --value`
+set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
+set BLOM_TURBULENT_CLOSURE = `./xmlquery BLOM_TURBULENT_CLOSURE --value`
+set HAMOCC_CFC = `./xmlquery HAMOCC_CFC --value`
+set HAMOCC_NATTRC = `./xmlquery HAMOCC_NATTRC --value`
+set HAMOCC_SEDBYPASS = `./xmlquery HAMOCC_SEDBYPASS --value`
+set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
+set GMAKE = `./xmlquery GMAKE --value`
+set GMAKE_J = `./xmlquery  GMAKE_J --value`
+set OCN_CO2_TYPE = `./xmlquery OCN_CO2_TYPE --value`
+set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 
 cd $OBJROOT/ocn/obj
 

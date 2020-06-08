@@ -26,6 +26,7 @@ c
       use mod_xc
       use mod_swabs, only: iniswa
       use mod_dia
+      use netcdf
 c
       implicit none
 c
@@ -34,8 +35,9 @@ c
 #include "param_bud.h"
 #include "common_bud.h"
 c
-      integer i,j,k,l,m,n,mm,nn,km
+      integer istat,ncid,varid,i,j,k,l,m,n,mm,nn,km
       real q
+      logical icrest,fexist
 c
       real gettime
       external gettime
@@ -142,7 +144,24 @@ c --- ------------------------------------------------------------------
 c --- Set up initial conditions or start from restart file
 c --- ------------------------------------------------------------------
 c
-      if (nday1+nint(time0).eq.0.and.icfile.eq.'inicon.nc') then
+c --- check whether initial condition file given in namelist is a
+c --- restart file
+      icrest=.false.
+      if (mnproc.eq.1) then
+        inquire(file=icfile,exist=fexist)
+        if (fexist) then
+          istat=nf90_open(icfile,nf90_nowrite,ncid)
+          if (istat.eq.nf90_noerr) then
+            istat=nf90_inq_varid(ncid,'dp',varid)
+            if (istat.eq.nf90_noerr) then
+              icrest=.true.
+            endif
+          endif 
+        endif
+      endif
+      call xcbcst(icrest)
+c
+      if (nday1+nint(time0).eq.0.and..not.icrest) then
 c
 c --- ----------------------------------------------------------------
 c --- - start from initial conditions derived from climatology
@@ -163,7 +182,7 @@ c
 c
         delt1=baclin
 c
-      else !  nday1+nint(time0) > 0 .or. icfile .ne. 'inicon.nc'
+      else !  nday1+nint(time0) > 0 .or. icrest
 c
 c --- ------------------------------------------------------------------
 c --- - start from restart file
