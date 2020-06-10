@@ -21,7 +21,7 @@ set RUNDIR = `./xmlquery RUNDIR --value`
 set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
 set BLOM_RIVER_NUTRIENTS = `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
-set BLOM_N_DEP_FILE = `./xmlquery BLOM_N_DEP_FILE --value`
+set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
@@ -199,14 +199,31 @@ set ATM_CO2  = $CCSM_CO2_PPMV
 if ($BLOM_RIVER_NUTRIENTS == TRUE) then
   set DO_RIVINPT = .true.
 else
-  set DO_RIVINPT   = .false.
+  set DO_RIVINPT = .false.
 endif
 if ($BLOM_N_DEPOSITION == TRUE) then
   set DO_NDEP   = .true.
-  set NDEPFNAME = "'$BLOM_N_DEP_FILE'"
+  if(      $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx2v1) then
+    set NDEPFNAME = ndep_1850_CMIP6_tnx2v1_20180321.nc
+  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx1v4) then
+    set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
+  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
+    set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
+  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx2v1) then
+    set NDEPFNAME = ndep_185001-201412_tnx2v1_20190702.nc
+  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx1v4) then
+    set NDEPFNAME = ndep_185001-201412_tnx1v4_20180613.nc
+  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx0.25v4) then
+    set NDEPFNAME = ndep_185001-201412_tnx0.25v4_20190705.nc
+  else if( `echo $BLOM_NDEP_SCENARIO | cut -c1-3` == ssp && $OCN_GRID == tnx1v4) then
+    set NDEPFNAME = ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc
+  else if( $BLOM_NDEP_SCENARIO == UNSET ) then
+    set DO_NDEP   = .false.
+    set NDEPFNAME = ""
+  endif
 else
   set DO_NDEP   = .false.
-  set NDEPFNAME = "''"
+  set NDEPFNAME = ""
 endif
 
 # set DIAPHY defaults 
@@ -618,6 +635,21 @@ else
   exit -1
 endif
 
+# set grid independent input files (iHAMOCC initial conditions)
+set INIDIC = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/glodapv2_Ct_preind_OMIPinit_20171107.nc'"
+set INIALK = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/glodapv2_At_OMIPinit_20171107.nc'"
+set INIPO4 = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/woa13_phosphate_OMIPinit_20171107.nc'"
+set INIOXY = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/woa13_oxygen_OMIPinit_20171107.nc'"
+set ININO3 = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/woa13_nitrate_OMIPinit_20171107.nc'"
+set INISIL = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/woa13_silicate_OMIPinit_20171107.nc'"
+if ($HAMOCC_CISO == TRUE) then
+set INID13C = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/d13C_permil_20180609.nc'"
+set INID14C = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/d14C_permil_20180609.nc'"
+else
+set INID13C = "''"
+set INID14C = "''"
+endif
+
 # set grid dependent input files
 if      ($OCN_GRID == gx1v5) then
 else if ($OCN_GRID == gx1v6) then
@@ -630,6 +662,17 @@ else if ($OCN_GRID == tnx2v1) then
   set MER_MIFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/mertra_index_tnx2v1_20190826.dat'"
   set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/section_index_tnx2v1_20190826.dat'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/sss_clim_core_tnx2v1_20130927.nc'"
+  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc'"
+  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc'"
+  else
+    set RIVINFILE = "''"
+  endif
+  if ($BLOM_N_DEPOSITION == TRUE) then
+    set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/$NDEPFNAME'"
+  else
+    set NDEPFILE  = "''"
+  endif
 else if ($OCN_GRID == tnx1.5v1) then
 else if ($OCN_GRID == tnx1v1) then
 else if ($OCN_GRID == tnx1v3) then
@@ -642,6 +685,17 @@ else if ($OCN_GRID == tnx1v4) then
   set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/section_index_tnx1v4_20190611.dat'"
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
+  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
+  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc'"
+  else
+    set RIVINFILE = "''"
+  endif
+  if ($BLOM_N_DEPOSITION == TRUE) then
+    set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/$NDEPFNAME'"
+  else
+    set NDEPFILE  = "''"
+  endif
 else if ($OCN_GRID == tnx0.25v1) then
 else if ($OCN_GRID == tnx0.25v3) then
 else if ($OCN_GRID == tnx0.25v4) then
@@ -653,6 +707,17 @@ else if ($OCN_GRID == tnx0.25v4) then
   set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/section_index_tnx0.25v4_20190612.dat'"
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/sss_clim_core_tnx0.25v4_20170623.nc'"
+  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc'"
+  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc'"
+  else
+    set RIVINFILE = "''"
+  endif
+  if ($BLOM_N_DEPOSITION == TRUE) then
+    set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/$NDEPFNAME'"
+  else
+    set NDEPFILE  = "''"
+  endif
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -1245,22 +1310,36 @@ EOF
 if ($ecosys == TRUE) then
 cat >>! $RUNDIR/ocn_in << EOF
 
-! BGCNML NAMELIST
+! NAMELIST FOR iHAMOCC OPTIONS
 !
 ! CONTENTS:
 !
 ! ATM_CO2   : Atmospheric CO2 concentration [ppmv]
+! FEDEPFILE : File name (incl. full path) for iron (dust) deposition data
 ! DO_RIVINPT: Logical switch to activate riverine input
+! RIVINFILE : File name (incl. full path) for riverine input data
 ! DO_NDEP   : Logical switch to activate N-deposition
-! NDEPFNAME : File name for atmopheric N-deposition data
+! NDEPFILE  : File name (incl. full path) for atmopheric N-deposition data
+! INIXXX    : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
+!             OXY, NO3, SIL, D13C, and D14C
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
+  FEDEPFILE  = $FEDEPFILE
   DO_RIVINPT = $DO_RIVINPT
+  RIVINFILE  = $RIVINFILE 
   DO_NDEP    = $DO_NDEP
-  NDEPFNAME  = $NDEPFNAME
+  NDEPFILE   = $NDEPFILE
+  INIDIC     = $INIDIC
+  INIALK     = $INIALK
+  INIPO4     = $INIPO4
+  INIOXY     = $INIOXY
+  ININO3     = $ININO3
+  INISIL     = $INISIL
+  INID13C    = $INID13C
+  INID14C    = $INID14C
 /
 
-! IO-NAMELIST FOR DIAGNOSTIC HAMOCC OUTPUT
+! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
 !
 ! Namelist acronyms:
 !   GLB_     - global parameters i.e. valid for entire output group
@@ -1611,16 +1690,16 @@ EOF
 endif
 if ($ecosys == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-dust_file = $INPUTPATH/INPDUST_mhw.nc
+dust_file = `echo $FEDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-river_file = $INPUTPATH/river_nutrients_GNEWS2000.nc
+river_file = `echo $RIVINFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($BLOM_N_DEPOSITION == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-n_deposition_file = $INPUTPATH/$BLOM_N_DEP_FILE
+n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
@@ -1642,18 +1721,20 @@ EOF
     endif
   else
 cat >> $CASEBUILD/blom.input_data_list << EOF
-inidic_file = $INPUTPATH/OMIPBGC_INI/glodapv2_Ct_preind_OMIPinit.nc
-inialk_file = $INPUTPATH/OMIPBGC_INI/glodapv2_At_OMIPinit.nc
-inipo4_file = $INPUTPATH/OMIPBGC_INI/woa13_phosphate_OMIPinit.nc
-inino3_file = $INPUTPATH/OMIPBGC_INI/woa13_nitrate_OMIPinit.nc
-inisil_file = $INPUTPATH/OMIPBGC_INI/woa13_silicate_OMIPinit.nc
-inioxy_file = $INPUTPATH/OMIPBGC_INI/woa13_oxygen_OMIPinit.nc
+inidic_file = `echo $INIDIC | tr -d '"' | tr -d "'"`
+inialk_file = `echo $INIALK | tr -d '"' | tr -d "'"`
+inipo4_file = `echo $INIPO4 | tr -d '"' | tr -d "'"`
+inioxy_file = `echo $INIOXY | tr -d '"' | tr -d "'"`
+inino3_file = `echo $ININO3 | tr -d '"' | tr -d "'"`
+inisil_file = `echo $INISIL | tr -d '"' | tr -d "'"`
 EOF
     if ($HAMOCC_CISO == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-inic13_file = $INPUTPATH/C_Isotopes/d13C_permil.nc
-inic14_file = $INPUTPATH/C_Isotopes/d14C_permil.nc
+inic13_file = `echo $INIC13 | tr -d '"' | tr -d "'"`
+inic14_file = `echo $INIC14 | tr -d '"' | tr -d "'"`
 EOF
     endif
   endif
 endif
+
+

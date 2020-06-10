@@ -45,9 +45,11 @@ c******************************************************************************
       USE mo_sedmnt,     only: alloc_mem_sedmnt,sedlay,powtra,burial
       use mo_vgrid,      only: alloc_mem_vgrid,set_vgrid
       use mo_bgcmean,    only: alloc_mem_bgcmean
-      use mo_fedep,      only: ini_fedep,fedepfname
-      use mo_ndep,       only: ini_ndep,ndepfname
-      use mo_riverinpt,  only: ini_riverinpt,riverfname
+      use mo_fedep,      only: ini_fedep,fedepfile
+      use mo_ndep,       only: ini_ndep,ndepfile
+      use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,inisil,
+     .                         inid13c,inid14c
+      use mo_riverinpt,  only: ini_riverinpt,rivinfile
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2
@@ -66,7 +68,10 @@ c
       integer :: i,j,k,l,nt
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
-     .                  ndepfname,fedepfname,riverfname
+     .                  ndepfile,fedepfile,rivinfile,
+     .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
+     .                  inid13c,inid14c
+
 c
 c --- Set io units and some control parameters
 c
@@ -148,15 +153,15 @@ c --- Initialize parameters, sediment and ocean tracer.
 c 
       CALL BELEG_PARM(idm,jdm)
       CALL BELEG_VARS(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,
-     .                plon,plat,path)
+     .                plon,plat)
 c
 c --- Initialise dust input, n-deposition and river input
 c
-      CALL ini_fedep(idm,jdm,omask,path)
+      CALL ini_fedep(idm,jdm,omask)
 
-      CALL ini_ndep(idm,jdm,path)
+      CALL ini_ndep(idm,jdm)
 
-      CALL INI_RIVERINPT(idm,jdm,omask,path)
+      CALL INI_RIVERINPT(idm,jdm,omask)
 #ifdef DMSPH
       CALL GET_PI_PH(idm,jdm,kdm,omask,path)
 #endif

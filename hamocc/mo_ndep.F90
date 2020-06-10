@@ -48,7 +48,7 @@ module mo_ndep
 !
 !  N deposition is activated through a logical switch 'do_ndep' read from 
 !  HAMOCC's bgcnml namelist. If N deposition is acitvated, a valid filename
-!  needs to be provided via HAMOCC's bgcnml namelist (variable ndepfname). If 
+!  needs to be provided via HAMOCC's bgcnml namelist (variable ndepfile). If 
 !  the input file is not found, an error will be issued.  
 ! 
 !  The input data must be already pre-interpolated to the ocean grid and stored 
@@ -59,10 +59,9 @@ module mo_ndep
   implicit none
 
   private
-  public :: ini_ndep,get_ndep,n_deposition,ndepfname
+  public :: ini_ndep,get_ndep,n_deposition,ndepfile
 
-  character(len=512), save :: ndepfname=''
-  character(len=512), save :: ndepfile
+  character(len=512), save :: ndepfile=''
   real,  allocatable, save :: ndepread(:,:)
   integer,            save :: startyear,endyear  
   logical,            save :: lini = .false.
@@ -72,7 +71,7 @@ contains
 
 
 
-subroutine ini_ndep(kpie,kpje,path)
+subroutine ini_ndep(kpie,kpje)
 !******************************************************************************
 !
 !     S. Gao               *Gfi, Bergen*    19.08.2017 
@@ -86,7 +85,8 @@ subroutine ini_ndep(kpie,kpje,path)
 !
 ! Parameter list:
 ! ---------------
-!  *CHARACTER* *path*    - path to input file to read.
+!  *INTEGER* *kpie*       - 1st dimension of model grid.
+!  *INTEGER* *kpje*       - 2nd dimension of model grid.
 !
 !******************************************************************************
   use mod_xc,         only: mnproc,xchalt
@@ -96,8 +96,7 @@ subroutine ini_ndep(kpie,kpje,path)
 
   implicit none 
 
-  integer,          intent(in) :: kpie,kpje
-  character(len=*), intent(in) :: path
+  integer, intent(in) :: kpie,kpje
 
   integer :: errstat
   logical :: file_exists=.false.
@@ -116,7 +115,6 @@ subroutine ini_ndep(kpie,kpje,path)
   if (.not. lini) then 
 
     ! Check if nitrogen deposition file exists. If not, abort. 
-    ndepfile=trim(path)//trim(ndepfname)
     inquire(file=ndepfile,exist=file_exists)
     if (.not. file_exists .and. mnproc.eq.1) then 
       write(io_stdo_bgc,*) ''

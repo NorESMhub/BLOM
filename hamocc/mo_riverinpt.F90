@@ -66,7 +66,7 @@ use mod_xc ,        only: mnproc,nbdy
 implicit none
 
 private
-public :: ini_riverinpt,riverinpt,nriv,rivflx,riverfname
+public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile
 public :: irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 integer,         parameter :: nriv     = 7    ! size of river input field
@@ -78,7 +78,10 @@ integer,         parameter :: irdin    = 1, & ! dissolved inorganic nitrogen
                               irdoc    = 6, & ! dissolved organic carbon
                               irdet    = 7    ! particulate carbon
 real,save,allocatable      :: rivflx(:,:,:)
-character(len=256),save    :: riverfname = 'river_nutrients_GNEWS2000.nc'
+
+! File name (incl. full path) for input data, set through namelist 
+! in hamocc_init.F 
+character(len=256),save    :: rivinfile = ''
 
 ! arrays for reading riverine inputs on the model grid
 real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   &
@@ -91,7 +94,7 @@ contains
 
 
 
-subroutine ini_riverinpt(kpie,kpje,omask,path)
+subroutine ini_riverinpt(kpie,kpje,omask)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -104,7 +107,6 @@ subroutine ini_riverinpt(kpie,kpje,omask,path)
 !  *INTEGER*     *kpie*    - 1st dimension of model grid.
 !  *INTEGER*     *kpje*    - 2nd dimension of model grid.
 !  *REAL*        *omask*   - ocean mask
-!  *CHARACTER*   *rivin*   - path to input data file
 !
 !--------------------------------------------------------------------------------
   use mod_dia,        only: iotype
@@ -115,7 +117,6 @@ subroutine ini_riverinpt(kpie,kpje,omask,path)
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)
-  character(len=*), intent(in) :: path 
 
   ! local variables
   integer :: i,j,errstat,dummymask(2)
@@ -153,9 +154,9 @@ subroutine ini_riverinpt(kpie,kpje,omask,path)
   if (mnproc.eq.1) then
     write(io_stdo_bgc,*) ''
     write(io_stdo_bgc,*) 'ini_riverinpt: read riverine nutrients from ',       & 
-                          trim(path)//trim(riverfname)
+                          trim(rivinfile)
   endif
-  call ncfopn(trim(path)//trim(riverfname),'r',' ',1,iotype)
+  call ncfopn(trim(rivinfile),'r',' ',1,iotype)
   call ncread('DIN',riv_DIN2d,dummymask,0,0.)
   call ncread('DIP',riv_DIP2d,dummymask,0,0.)
   call ncread('DSi',riv_DSI2d,dummymask,0,0.)
