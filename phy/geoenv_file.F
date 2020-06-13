@@ -73,7 +73,7 @@ c --- - check dimensions
         status=nf90_inquire_dimension(ncid,dimid,len=i)
         if (status.ne.nf90_noerr) then
           write(lp,'(2a)') ' nf90_inquire_dimension: x: ',
-     .                      nf90_strerror(status)
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif

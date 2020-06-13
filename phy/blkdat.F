@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2018 Mats Bentsen
+! Copyright (C) 2001-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -63,12 +63,5 @@ c
 c ---  s w i t c h e s    (if set to .true., then...)
 c
       data csdiag/.false./,cnsvdi/.true./
-c
-c --- use 'huge' to initialize array portions that the code should never access
-      data huge/1.e33/
-c
-c --- i/o file names
-c
-      data path /'./ '/
 c
       end

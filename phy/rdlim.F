@@ -46,7 +46,7 @@ c
      .  eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,
      .  tdfile,tkepf,niwgf,niwbf,niwlf,swamth,jwtype,chlopt,ccfile,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
-     .  disflx,srxbal,scfile,smtfrc,sprfac,path,atm_path,rstfrq,rstfmt,
+     .  disflx,srxbal,scfile,smtfrc,sprfac,atm_path,rstfrq,rstfmt,
      .  rstcmp,iotype
 c
 c --- read namelists
@@ -145,7 +145,6 @@ c --- - print namelist on stdout
         write (lp,*) 'SCFILE ',trim(SCFILE)
         write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'SPRFAC',SPRFAC
-        write (lp,*) 'PATH ',trim(PATH)
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
@@ -422,7 +421,6 @@ c
       call xcbcst(scfile)
       call xcbcst(smtfrc)
       call xcbcst(sprfac)
-      call xcbcst(path)
       call xcbcst(atm_path)
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
@@ -601,12 +599,7 @@ c --- convert integer dates
       nmonth0=abs(idate0)/100-abs(nyear0)*100
       nday0=abs(idate0)-abs(nyear0)*10000-nmonth0*100
 c
-c --- set path lengths
-      path_len=1
-      do while (path_len.lt.80.and.path(path_len:path_len).ne.' ')
-        path_len=path_len+1
-      enddo
-      path_len=path_len-1
+c --- set atm_path length
       if (expcnf.eq.'ben02syn') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -35,8 +35,7 @@ c
 c
       if (aptflx) then
         if (mnproc.eq.1) then
-          open (unit=nfu,file=path(1:path_len)//'tflxdi.uf',
-     .          form='unformatted')
+          open (unit=nfu,file='tflxdi.uf',form='unformatted')
           read (nfu) i,j
           if (i.ne.itdm.or.j.ne.jtdm) then
             write (lp,*) 'wrong dimensions in tflxdi.uf'
@@ -57,8 +56,7 @@ c
       endif
       if (apsflx) then
         if (mnproc.eq.1) then
-          open (unit=nfu,file=path(1:path_len)//'sflxdi.uf',
-     .          form='unformatted')
+          open (unit=nfu,file='sflxdi.uf',form='unformatted')
           read (nfu) i,j
           if (i.ne.itdm.or.j.ne.jtdm) then
             write (lp,*) 'wrong dimensions in sflxdi.uf'

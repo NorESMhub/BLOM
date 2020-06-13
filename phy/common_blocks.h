@@ -305,10 +305,10 @@ c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
 c
       real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
-     .     epsil,huge,radian,pi
+     .     epsil,radian,pi
 c
       common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
-     .                alpha0,epsil,huge,radian,pi
+     .                alpha0,epsil,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c
@@ -316,8 +316,7 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path
       character*256 runid
-      integer path_len,runid_len
+      integer runid_len
 c
-      common /iovars/ path,runid,path_len,runid_len
+      common /iovars/ runid,runid_len

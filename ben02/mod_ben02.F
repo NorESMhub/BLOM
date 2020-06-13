@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2018 Mats Bentsen
+! Copyright (C) 2002-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -630,7 +630,7 @@ c
       if (mnproc.eq.1) then
 c
 c --- - Get dimensions of atmospheric grid
-        filename=path(1:path_len)//'land.sfc.gauss.nc'
+        filename=atm_path(1:atm_path_len)//'land.sfc.gauss.nc'
         call rdatm_dim(filename)
         if ((atm_idm.ne.atm_idm_ncep.or.atm_jdm.ne.atm_jdm_ncep).and.
      .      (atm_idm.ne.atm_idm_era .or.atm_jdm.ne.atm_jdm_era )) then
@@ -656,16 +656,16 @@ c --- - Allocate memory for the atmospheric interpolation.
      .           atm_jwgt(atm_nwgt,itdm,jtdm))
 c
 c --- - Read atmospheric lon/lat coordinates and land mask.
-        filename=path(1:path_len)//'land.sfc.gauss.nc'
+        filename=atm_path(1:atm_path_len)//'land.sfc.gauss.nc'
         call rdatm_llm(filename)
 c
 c --- - Read atmospheric model topography.
-        filename=path(1:path_len)//'hgt.sfc.nc'
+        filename=atm_path(1:atm_path_len)//'hgt.sfc.nc'
         call rdatm_topo(filename)
 c
 c --- - Read interpolation weights if they exist, otherwise compute them
         dimok=.false.
-        filename=path(1:path_len)//'atm_intwgt.uf'
+        filename='atm_intwgt.uf'
         inquire(file=filename,exist=exists)
         if (exists) then
           open (unit=nfu,file=filename,form='unformatted')
@@ -1231,7 +1231,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'ICECsfc/icec.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/ICECsfc/icec.sfc.gauss.'//cyear//'.nc'
         fieldname='icec'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1259,7 +1259,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'DSWRFsfc/dswrf.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/DSWRFsfc/dswrf.sfc.gauss.'//cyear//'.nc'
         fieldname='dswrf'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1287,7 +1287,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'NLWRSsfc/nlwrs.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/NLWRSsfc/nlwrs.sfc.gauss.'//cyear//'.nc'
         fieldname='nlwrs'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1304,7 +1304,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'TCDCeatm/tcdc.eatm.gauss.'//cyear//'.nc'
+     .           //'daily/TCDCeatm/tcdc.eatm.gauss.'//cyear//'.nc'
         fieldname='tcdc'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1332,7 +1332,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'PRATEsfc/prate.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/PRATEsfc/prate.sfc.gauss.'//cyear//'.nc'
         fieldname='prate'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1349,7 +1349,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'LHTFLsfc/lhtfl.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/LHTFLsfc/lhtfl.sfc.gauss.'//cyear//'.nc'
         fieldname='lhtfl'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1366,7 +1366,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'SHTFLsfc/shtfl.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/SHTFLsfc/shtfl.sfc.gauss.'//cyear//'.nc'
         fieldname='shtfl'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1383,7 +1383,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'SKTsfc/skt.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/SKTsfc/skt.sfc.gauss.'//cyear//'.nc'
         fieldname='skt'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_skt)
 c
@@ -1410,7 +1410,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'PRESsfc/pres.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/PRESsfc/pres.sfc.gauss.'//cyear//'.nc'
         fieldname='pres'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
 c
@@ -1437,7 +1437,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'UFLXsfc/uflx.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/UFLXsfc/uflx.sfc.gauss.'//cyear//'.nc'
         fieldname='uflx'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1454,7 +1454,7 @@ c$OMP END PARALLEL DO
      .                 tauxd(1-nbdy,1-nbdy,l5gi))
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'VFLXsfc/vflx.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/VFLXsfc/vflx.sfc.gauss.'//cyear//'.nc'
         fieldname='vflx'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
         call inta2o(atm_field,tmp2d)
@@ -1500,7 +1500,7 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         filename=atm_path(1:atm_path_len)
-     .           //'RUNOFsfc/runof.sfc.gauss.'//cyear//'.nc'
+     .           //'daily/RUNOFsfc/runof.sfc.gauss.'//cyear//'.nc'
         fieldname='runof'
         call rdatm_ts(filename,fieldname,nday_of_year1,atm_field)
 c
@@ -1934,7 +1934,8 @@ c
 c
       if (mnproc.eq.1) then
         write (lp,*) 'reading atm. climatological ice concentration...'
-        open (unit=nfu,file=path(1:path_len)//'icec_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/icec_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -1998,7 +1999,7 @@ c
 c
 c --- Compute smooting weight atm_ice_swgt. For stability
 c --- atm_ice_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
-      atm_ice_swgt=huge
+      atm_ice_swgt=spval
 c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2) REDUCTION(min:atm_ice_swgt)
       do j=1,jj
         do l=1,isp(j)
@@ -2031,7 +2032,8 @@ c --- extent of the smoothing independent of the grid resolution
       endif
 c
       if (mnproc.eq.1) then
-        open (unit=nfu,file=path(1:path_len)//'skt_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/skt_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2147,8 +2149,8 @@ c --- Allocate memory for temporary fields
 c
 c --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
 c --- stability atm_ice_swgt,atm_rnf_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
-      atm_ice_swgt=huge
-      atm_rnf_swgt=huge
+      atm_ice_swgt=spval
+      atm_rnf_swgt=spval
 c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2)
 c$OMP+REDUCTION(min:atm_ice_swgt,atm_rnf_swgt)
       do j=1,jj
@@ -2211,7 +2213,8 @@ c
       if (mnproc.eq.1) then
         write (lp,*)
      .    'reading atm. climatological short-wave radiation flux...'
-        open (unit=nfu,file=path(1:path_len)//'dswrf_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/dswrf_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2247,7 +2250,8 @@ c
       if (mnproc.eq.1) then
         write (lp,*)
      .    'reading atm. climatological long-wave radiation flux...'
-        open (unit=nfu,file=path(1:path_len)//'nlwrs_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/nlwrs_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2282,7 +2286,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological total cloud cover...'
-        open (unit=nfu,file=path(1:path_len)//'tcdc_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/tcdc_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2328,7 +2333,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological precipitation rate...'
-        open (unit=nfu,file=path(1:path_len)//'prate_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/prate_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2363,7 +2369,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological latent heat flux...'
-        open (unit=nfu,file=path(1:path_len)//'lhtfl_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/lhtfl_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2398,7 +2405,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological sensible heat flux...'
-        open (unit=nfu,file=path(1:path_len)//'shtfl_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/shtfl_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2435,7 +2443,8 @@ c
       if (mnproc.eq.1) then
         write (lp,*)
      .    'reading atm. climatological surface temperature...'
-        open (unit=nfu,file=path(1:path_len)//'skt_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/skt_1968-1996.uf',
      .        form='unformatted')
 c
         do k=1,12
@@ -2458,7 +2467,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological surface pressure...'
-        open (unit=nfu,file=path(1:path_len)//'pres_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/pres_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2493,7 +2503,8 @@ c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
         write(lp,*) 'reading atm. climatological momentum flux...'
-        open (unit=nfu,file=path(1:path_len)//'momfl_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/momfl_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2527,7 +2538,8 @@ c
       if (mnproc.eq.1) then
         write(lp,*)
      .    'reading atm. climatological u-component of momentum flux...'
-        open (unit=nfu,file=path(1:path_len)//'uflx_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/uflx_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2555,7 +2567,8 @@ c
       if (mnproc.eq.1) then
         write(lp,*)
      .    'reading atm. climatological v-component of momentum flux...'
-        open (unit=nfu,file=path(1:path_len)//'vflx_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/vflx_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2618,7 +2631,7 @@ c
      .           rnf_ocdpi(atm_abdm,atm_idm,atm_jdm),
      .           rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
 c
-        open (unit=nfu,file=path(1:path_len)//'runoffweights.uf',
+        open (unit=nfu,file='runoffweights.uf',
      .        form='unformatted',status='old',action='read')
         do j=1,atm_jdm
           do i=1,atm_idm
@@ -2643,7 +2656,8 @@ c
         enddo
         close (unit=nfu)
 c
-        open (unit=nfu,file=path(1:path_len)//'runof_1968-1996.uf',
+        open (unit=nfu,file=atm_path(1:atm_path_len)
+     .                      //'clim/runof_1968-1996.uf',
      .        form='unformatted')
       endif
 c
@@ -2974,8 +2988,8 @@ c --- Allocate memory for daily forcing fields.
 c
 c --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
 c --- stability atm_ice_swgt,atm_rnf_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
-      atm_ice_swgt=huge
-      atm_rnf_swgt=huge
+      atm_ice_swgt=spval
+      atm_rnf_swgt=spval
 c$OMP PARALLEL DO PRIVATE(l,i,dx2,dy2)
 c$OMP+REDUCTION(min:atm_ice_swgt,atm_rnf_swgt)
       do j=1,jj
@@ -3040,7 +3054,7 @@ c
      .           rnf_ocdpi(atm_abdm,atm_idm,atm_jdm),
      .           rnf_ocdpj(atm_abdm,atm_idm,atm_jdm))
 c
-        open (unit=nfu,file=path(1:path_len)//'runoffweights.uf',
+        open (unit=nfu,file='runoffweights.uf',
      .        form='unformatted',status='old',action='read')
         do j=1,atm_jdm
           do i=1,atm_idm

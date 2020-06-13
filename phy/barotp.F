@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2018 Mats Bentsen, Lars Inge Enstad
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad
 !
 ! This file is part of BLOM.
 !
@@ -28,11 +28,13 @@ c
 c
 #include "common_blocks.h"
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
-     .  pb_t,ubflx_t,vbflx_t
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
+     .  pb_t=spval,ubflx_t=spval,vbflx_t=spval
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t,umaxb,uminb,vmaxb,vminb,
-     .  uglue,vglue
+     .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  umaxb=spval,uminb=spval,vmaxb=spval,vminb=spval,
+     .  uglue=spval,vglue=spval
       real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy
       integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll,ns
 c

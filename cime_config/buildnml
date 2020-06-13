@@ -68,37 +68,6 @@ if ($CONTINUE_RUN == TRUE) then
 endif
 
 #------------------------------------------------------------------------------
-# Set path to input data
-#------------------------------------------------------------------------------
-
-if      ($OCN_GRID == gx1v5) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20091216
-else if ($OCN_GRID == gx1v6) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20101119
-else if ($OCN_GRID == gx3v7) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20110921
-else if ($OCN_GRID == tnx2v1) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20130206
-else if ($OCN_GRID == tnx1.5v1) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20131011
-else if ($OCN_GRID == tnx1v1) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20120120
-else if ($OCN_GRID == tnx1v3) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170612
-else if ($OCN_GRID == tnx1v4) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170601
-else if ($OCN_GRID == tnx0.25v1) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20130930
-else if ($OCN_GRID == tnx0.25v3) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170623
-else if ($OCN_GRID == tnx0.25v4) then
-  set INPUTPATH = $DIN_LOC_ROOT/ocn/blom/$OCN_GRID/20170619
-else
-  echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
-  exit -1
-endif
-
-#------------------------------------------------------------------------------
 # Get start date
 #------------------------------------------------------------------------------
 
@@ -180,7 +149,7 @@ set SRXBAL   = .false.
 set SCFILE   = "'unset'"
 set SMTFRC   = .true.
 set SPRFAC   = .false.
-set ATM_PATH = "'./'"
+set ATM_PATH = "'unset'"
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -651,10 +620,7 @@ set INID14C = "''"
 endif
 
 # set grid dependent input files
-if      ($OCN_GRID == gx1v5) then
-else if ($OCN_GRID == gx1v6) then
-else if ($OCN_GRID == gx3v7) then
-else if ($OCN_GRID == tnx2v1) then
+if      ($OCN_GRID == tnx2v1) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/grid_tnx2v1_20170807.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/inicon_tnx2v1_20130419.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/bndcon/tidal_dissipation_tnx2v1_20130419.nc'"
@@ -673,9 +639,6 @@ else if ($OCN_GRID == tnx2v1) then
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx1.5v1) then
-else if ($OCN_GRID == tnx1v1) then
-else if ($OCN_GRID == tnx1v3) then
 else if ($OCN_GRID == tnx1v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/grid_tnx1v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/inicon_tnx1v4_20170622.nc'"
@@ -696,8 +659,6 @@ else if ($OCN_GRID == tnx1v4) then
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx0.25v1) then
-else if ($OCN_GRID == tnx0.25v3) then
 else if ($OCN_GRID == tnx0.25v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/grid/grid_tnx0.25v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom_tmp/inicon/inicon_tnx0.25v4_20170623.nc'"
@@ -840,8 +801,8 @@ cat >! $RUNDIR/ocn_in << EOF
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
 ! SMTFRC   : Smooth CESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
-! PATH     : Path to input files (a)
-! ATM_PATH : Path to synoptic NCEP fields (a)
+! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
+!            'ben02syn' (a)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -917,7 +878,6 @@ cat >! $RUNDIR/ocn_in << EOF
   SCFILE   = $SCFILE
   SMTFRC   = $SMTFRC
   SPRFAC   = $SPRFAC
-  PATH     = '$INPUTPATH/'
   ATM_PATH = $ATM_PATH
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT

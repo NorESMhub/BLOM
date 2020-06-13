@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -357,8 +357,8 @@ c --- Set maximum velocities allowable ensuring stability of the upwind
 c --- scheme
 c --- ------------------------------------------------------------------
 c
-      umaxmin=huge
-      vmaxmin=huge
+      umaxmin=spval
+      vmaxmin=spval
       umaxmax=0.
       vmaxmax=0.
 c$OMP PARALLEL DO PRIVATE(l,i)

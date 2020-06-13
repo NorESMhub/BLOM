@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -29,8 +29,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-c
-c --- initialize forcing arrays with huge values?
 c
       if     (expcnf.eq.'cesm') then
         call inifrc_cesm

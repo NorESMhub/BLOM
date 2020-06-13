@@ -925,6 +925,7 @@ c$OMP PARALLEL DO PRIVATE(i)
 c$OMP END PARALLEL DO
       call xcaget(tmp2d,util1,1)
       if (mnproc.eq.1) then
+        lsigmar1=.false.
         do j=1,jtdm
           do i=1,itdm
             if (tmp2d(i,j).gt.0.) then
@@ -4921,10 +4922,10 @@ c
       call inih2d(ACC_TBOT(iogrp),'p',0.)
       call inih2d(ACC_SIGMX(iogrp),'p',0.)
       call inih2d(ACC_MLD(iogrp),'p',0.)
-      call inih2d(ACC_MAXMLD(iogrp),'p',-huge)
+      call inih2d(ACC_MAXMLD(iogrp),'p',-spval)
       call inih2d(ACC_MLTS(iogrp),'p',0.)
-      call inih2d(ACC_MLTSMN(iogrp),'p', huge)
-      call inih2d(ACC_MLTSMX(iogrp),'p',-huge)
+      call inih2d(ACC_MLTSMN(iogrp),'p', spval)
+      call inih2d(ACC_MLTSMX(iogrp),'p',-spval)
       call inih2d(ACC_MLTSSQ(iogrp),'p',0.)
       call inih2d(ACC_T20D(iogrp),'p',0.)
       call inih2d(ACC_ALB(iogrp),'p',0.)
