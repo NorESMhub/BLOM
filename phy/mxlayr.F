@@ -45,6 +45,7 @@ c
      .     ttmp,stmp,sigtmp,sigfsl,tmxl0,smxl0,dpe0,tdps,sdps,tmxl,smxl,
      .     dpe,dps,udpn,um,vm,dke,dke0,tkeu,tkel,uk,vk
       integer rtsflg,i,j,k,l,kn,kfpl,nitr,kmax,kfmax,ko
+      logical chngd
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -206,7 +207,7 @@ c$OMP+ rm3,rm4,tkew,pradd,kfpl,dpmxl,tkeo,nitr,dtke,dpfsl,dptopl,tfsl,
 c$OMP+ sfsl,dpt,kmax,kfmax,bpmldp,pup,drhup,plo,drhlo,pbrnd,bcwsum,
 c$OMP+ bdpsum,tup,sup,dup,dsgdt,dsgds,bc,bpc,pswbas,pswup,pswlo,ttmp,
 c$OMP+ stmp,sigtmp,sigfsl,dps,tdps,sdps,tmxl0,smxl0,um,vm,dpe0,dke0,
-c$OMP+ tkeu,uk,vk,dpe,dke,tkel
+c$OMP+ tkeu,uk,vk,dpe,dke,tkel,chngd
 #ifdef TRC
 c$OMP+ ,nt,ttrc,trfsl,trdps
 #endif
@@ -835,12 +836,16 @@ c
                       endif
                     else
                       dtke=(tkew-tkeo)/dpmxl
-                      if (nitr.eq.2.and.
-     .                    dtke.gt.-tkew/(pres(k+1)-pmxl)) then
-                        pmxl=pres(k+1)
-                        dpmxl=-min(tencm,.5*delp(k))
-                        tkew=tkel
-                      else
+                      chngd=.false.
+                      if (nitr.eq.2) then
+                        if (dtke.gt.-tkew/(pres(k+1)-pmxl)) then
+                          pmxl=pres(k+1)
+                          dpmxl=-min(tencm,.5*delp(k))
+                          tkew=tkel
+                          chngd=.true.
+                        endif
+                      endif
+                      if (.not.chngd) then
                         if (abs(dtke).lt.
      .                      (abs(tkew)+1.e-16)/delp(k)) then
                           if (tkew.lt.0.) then

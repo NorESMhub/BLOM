@@ -24,7 +24,7 @@ c --- Read limits file
 c --- ------------------------------------------------------------------
 c
       use mod_xc
-      use mod_swabs, only: swamth, jwtype, chlopt
+      use mod_swabs, only: swamth, jwtype, chlopt, ccfile
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
       use data_mct, only: runid_mct, ocn_cpl_dt_mct
@@ -35,18 +35,19 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 c
-      integer :: i,j,m,n,nd0rst,nm0rst,ny0rst
+      integer :: m,n,nd0rst,nm0rst,ny0rst
       character*256 :: runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
-     .  icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
-     .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,eitmth,
-     .  edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,eglsmn,
-     .  egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tkepf,
-     .  niwgf,niwbf,niwlf,swamth,jwtype,chlopt,trxday,srxday,trxdpt,
-     .  srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,disflx,srxbal,srxsrc,
-     .  smtfrc,sprfac,path,atm_path,rstfrq,rstfmt,rstcmp,iotype
+     .  grfile,icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,
+     .  mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,
+     .  eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,
+     .  eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,
+     .  tdfile,tkepf,niwgf,niwbf,niwlf,swamth,jwtype,chlopt,ccfile,
+     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
+     .  disflx,srxbal,scfile,smtfrc,sprfac,atm_path,rstfrq,rstfmt,
+     .  rstcmp,iotype
 c
 c --- read namelists
       if (mnproc.eq.1) then
@@ -68,7 +69,8 @@ c
           endif
         endif
         read (unit=nfu,nml=LIMITS)
-        read (unit=nfu,nml=MERREG)
+        read (unit=nfu,nml=MERDIA)
+        read (unit=nfu,nml=SECDIA)
         read (unit=nfu,nml=DIAPHY)
         close (unit=nfu)
 c
@@ -82,6 +84,7 @@ c --- - print namelist on stdout
         write (lp,*) 'RUNID ',trim(RUNID)
         write (lp,*) 'EXPCNF ',trim(EXPCNF)
         write (lp,*) 'RUNTYP ',trim(RUNTYP)
+        write (lp,*) 'GRFILE ',trim(GRFILE)
         write (lp,*) 'ICFILE ',trim(ICFILE)
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
@@ -119,6 +122,7 @@ c --- - print namelist on stdout
         write (lp,*) 'BDMTYP',BDMTYP
         write (lp,*) 'BDMC1',BDMC1
         write (lp,*) 'BDMC2',BDMC2
+        write (lp,*) 'TDFILE',trim(TDFILE)
         write (lp,*) 'TKEPF',TKEPF
         write (lp,*) 'NIWGF',NIWGF
         write (lp,*) 'NIWBF',NIWBF
@@ -126,6 +130,7 @@ c --- - print namelist on stdout
         write (lp,*) 'SWAMTH ',trim(SWAMTH)
         write (lp,*) 'JWTYPE',JWTYPE
         write (lp,*) 'CHLOPT ',trim(CHLOPT)
+        write (lp,*) 'CCFILE ',trim(CCFILE)
         write (lp,*) 'TRXDAY',TRXDAY
         write (lp,*) 'SRXDAY',SRXDAY
         write (lp,*) 'TRXDPT',TRXDPT
@@ -137,10 +142,9 @@ c --- - print namelist on stdout
         write (lp,*) 'DITFLX',DITFLX
         write (lp,*) 'DISFLX',DISFLX
         write (lp,*) 'SRXBAL',SRXBAL
-        write (lp,*) 'SRXSRC ',trim(SRXSRC)
+        write (lp,*) 'SCFILE ',trim(SCFILE)
         write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'SPRFAC',SPRFAC
-        write (lp,*) 'PATH ',trim(PATH)
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
@@ -166,7 +170,9 @@ c
         enddo
 c
         write (lp,*)
-        write (lp,*) 'rdlim: BLOM MERREG NAMELIST GROUP:'
+        write (lp,*) 'rdlim: BLOM MERDIA NAMELIST GROUP:'
+        write (lp,*) 'MER_ORFILE ',trim(mer_orfile)
+        write (lp,*) 'MER_MIFILE ',trim(mer_mifile)
         do m=1,mer_nreg
           write (lp,*)
           write (lp,*) 'MER_REGNAM ',trim(mer_regnam(m))
@@ -175,11 +181,15 @@ c
           write (lp,*) 'MER_REGFLG ',(mer_regflg(m,n),n=1,mer_nflg(m))
         enddo
 c
+        write (lp,*)
+        write (lp,*) 'rdlim: BLOM SECDIA NAMELIST GROUP:'
+        write (lp,*) 'SEC_SIFILE ',trim(sec_sifile)
+c
 c --- - determine number of io groups and print namelist
         nphy=0  
         do n=1,nphymax 
           if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
-        end do     
+        enddo
         if (trxday.eq.0.) then
           H2D_SURRLX(1:nphy)=0
         endif
@@ -349,6 +359,7 @@ c
       call xcbcst(runid)
       call xcbcst(expcnf)
       call xcbcst(runtyp)
+      call xcbcst(grfile)
       call xcbcst(icfile)
       call xcbcst(baclin)
       call xcbcst(batrop)
@@ -387,6 +398,7 @@ c
       call xcbcst(bdmtyp)
       call xcbcst(bdmc1)
       call xcbcst(bdmc2)
+      call xcbcst(tdfile)
       call xcbcst(tkepf)
       call xcbcst(niwgf)
       call xcbcst(niwbf)
@@ -394,6 +406,7 @@ c
       call xcbcst(swamth)
       call xcbcst(jwtype)
       call xcbcst(chlopt)
+      call xcbcst(ccfile)
       call xcbcst(trxday)
       call xcbcst(srxday)
       call xcbcst(trxdpt)
@@ -405,10 +418,9 @@ c
       call xcbcst(ditflx)
       call xcbcst(disflx)
       call xcbcst(srxbal)
-      call xcbcst(srxsrc)
+      call xcbcst(scfile)
       call xcbcst(smtfrc)
       call xcbcst(sprfac)
-      call xcbcst(path)
       call xcbcst(atm_path)
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
@@ -587,12 +599,7 @@ c --- convert integer dates
       nmonth0=abs(idate0)/100-abs(nyear0)*100
       nday0=abs(idate0)-abs(nyear0)*10000-nmonth0*100
 c
-c --- set path lengths
-      path_len=1
-      do while (path_len.lt.80.and.path(path_len:path_len).ne.' ')
-        path_len=path_len+1
-      enddo
-      path_len=path_len-1
+c --- set atm_path length
       if (expcnf.eq.'ben02syn') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.
@@ -834,15 +841,6 @@ c
         if (mnproc.eq.1) then
           write (lp,*)
      .      'rdlim: srxday=0. and disflx=.true.. Inconsistent!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-      if (srxsrc.ne.'PHC3.0'.and.srxsrc.ne.'CORE') then
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .      'rdlim: srxsrc must be either ''PHC3.0'' or ''CORE''!'
         endif
         call xcstop('(rdlim)')
                stop '(rdlim)'

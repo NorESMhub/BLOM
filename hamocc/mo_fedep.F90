@@ -36,10 +36,11 @@ module mo_fedep
   implicit none
 
   private
-  public :: ini_fedep, get_fedep
+  public :: ini_fedep, get_fedep,fedepfile
 
-  character(len=512), save :: fedepfname='INPDUST_mhw.nc'
-  character(len=512), save :: fedepfile
+  ! File name (incl. full path) for input data, set through namelist 
+  ! in hamocc_init.F
+  character(len=512), save :: fedepfile=''
   ! Array to store dust deposition flux after reading from file
   real, allocatable,  save :: dustflx(:,:,:)
 
@@ -49,7 +50,7 @@ contains
 
 
 
-subroutine ini_fedep(kpie,kpje,omask,path)
+subroutine ini_fedep(kpie,kpje,omask)
 !******************************************************************************
 !
 ! INI_FEDEP - initialise the iron deposition module.
@@ -66,7 +67,6 @@ subroutine ini_fedep(kpie,kpje,omask,path)
 !   *INTEGER*   *kpie*    - 1st dimension of model grid.
 !   *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !   *REAL*      *omask*   - land/ocean mask (1=ocean)
-!   *CHARACTER* *path*    - path to input file to read.
 !
 !******************************************************************************
   use netcdf
@@ -77,7 +77,6 @@ subroutine ini_fedep(kpie,kpje,omask,path)
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)
-  character(len=*), intent(in) :: path
 
   integer :: i,j,l
   integer :: ncid,ncstat,ncvarid,errstat
@@ -103,7 +102,6 @@ subroutine ini_fedep(kpie,kpje,omask,path)
   dustflx(:,:,:) = 0.0
 
   ! Open netCDF data file     
-  fedepfile=trim(path)//trim(fedepfname)
   IF(mnproc==1) THEN
     ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
     IF (ncstat.NE.NF90_NOERR ) THEN

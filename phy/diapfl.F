@@ -50,7 +50,8 @@ c ---            scale bottom boundary layer mixing [cm/s]
       parameter (dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,
      .           kappa=.4,ustmin=.01)
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fpug,fplg
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+     .  fpug=spval,fplg=spval
       real, dimension(kdm) ::
      .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
      .  dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc

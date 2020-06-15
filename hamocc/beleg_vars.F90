@@ -1,5 +1,5 @@
       SUBROUTINE BELEG_VARS(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,      &
-                            pglon,pglat,path)
+                            pglon,pglat)
 !******************************************************************************
 !
 ! BELEG_VARS - initialize bgc variables.
@@ -29,7 +29,6 @@
 !     *REAL*      *omask*   - ocean mask.
 !     *REAL*      *pglon*   - longitude of grid cell [deg].
 !     *REAL*      *pglat*   - latitude  of grid cell [deg].
-!     *CHARACTER* *path*    - path to input data files.
 !
 !
 !******************************************************************************
@@ -49,7 +48,6 @@
       REAL,    intent(in) :: omask(kpie,kpje)
       REAL,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      character(len=*), intent(in) :: path
 
       ! local variables
       INTEGER :: i,j,k,l
@@ -72,7 +70,7 @@
 ! Initialise ocean tracers with WOA and GLODAP data. This is done even in case
 ! of a restart since some tracers (e.g. C-isotopes) might not be in the restart 
 ! file and aufr.f90 instead expects an initialised field.
-      call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask,TRIM(path))
+      call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
 ! If this is a restart run initialisation is done in aufr.F90 
       IF(kpaufr.EQ.1) RETURN

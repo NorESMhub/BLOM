@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask,path)
+subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 !*******************************************************************************
 !     J.Schwinger,      *Gfi, Bergen*            2011-05-19
 !
@@ -51,29 +51,28 @@ use mo_param1_bgc
 
 implicit none
 
-integer,         intent(in) :: kpie,kpje,kpke,kbnd
-real,            intent(in) :: omask(kpie,kpje)
-real,            intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-real,            intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-character(len=*),intent(in) :: path
+integer, intent(in) :: kpie,kpje,kpke,kbnd
+real,    intent(in) :: omask(kpie,kpje)
+real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
 ! Local variables
-integer         :: i,j,k,l,ll,n
-integer         :: idx,izmax
-real            :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
+integer             :: i,j,k,l,ll,n
+integer             :: idx,izmax
+real                :: prf(nzmax),wgt(nzmax),zbnds(2,nzmax),clon,clat
 
 ! Extent of "smoothing region"
-real,             parameter :: dxy = 5.0
+real,     parameter :: dxy = 5.0
 
 ! Number of fields to read
-integer,          parameter :: nread_base = 6
-integer,          parameter :: nread_ndic = 2
-integer,          parameter :: nread_ciso = 2
-integer,          parameter :: maxflds    = nread_base+nread_ndic+nread_ciso
+integer,  parameter :: nread_base = 6
+integer,  parameter :: nread_ndic = 2
+integer,  parameter :: nread_ciso = 2
+integer,  parameter :: maxflds    = nread_base+nread_ndic+nread_ciso
 
-integer                     :: nflds, no
-integer                     :: ifld(maxflds) 
-character(len=3)            :: vname(maxflds)
+integer             :: nflds, no
+integer             :: ifld(maxflds) 
+character(len=3)    :: vname(maxflds)
 
 nflds = nread_base
 vname( 1:nflds) = (/ 'dic',  'alk',  'pho',  'nit','sil',  'oxy'  /)
@@ -96,7 +95,7 @@ vname(no:nflds) = (/'d13', 'd14'/)
 
 do n = 1, nflds  ! Loop over tracer
 
-   call set_Gdata(path,vname(n),dxy)
+   call set_Gdata(vname(n),dxy)
 
    do j=1,kpje
       do i=1,kpie

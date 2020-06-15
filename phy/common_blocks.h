@@ -271,7 +271,10 @@ c ---            to the horizontal grid spacing
 c --- 'mlrttp' = type of mixed layer restratification time scale
 c --- 'edsprs' = if set to .true,, apply eddy mixing suppression away
 c ---            from steering level
+c --- 'grfile' = name of file containing grid specification
 c --- 'icfile' = name of file containing initial conditions
+c --- 'tdfile' = name of file containing tidal wave energy dissipation
+c ---            divided by by bottom buoyancy frequency
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
@@ -282,7 +285,7 @@ c
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
-      character*256 icfile
+      character*256 grfile,icfile,tdfile
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
@@ -291,7 +294,7 @@ c
      .                egmxdf,egidfq,ri0,rm0,rm5,ce,bdmc1,bdmc2,tkepf,
      .                niwgf,niwbf,niwlf,bdmtyp,csdiag,cnsvdi,edsprs,
      .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
-     .                mlrttp,icfile
+     .                mlrttp,grfile,icfile,tdfile
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
@@ -302,10 +305,10 @@ c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
 c
       real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
-     .     epsil,huge,radian,pi
+     .     epsil,radian,pi
 c
       common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
-     .                alpha0,epsil,huge,radian,pi
+     .                alpha0,epsil,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c
@@ -313,8 +316,7 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path
       character*256 runid
-      integer path_len,runid_len
+      integer runid_len
 c
-      common /iovars/ path,runid,path_len,runid_len
+      common /iovars/ runid,runid_len

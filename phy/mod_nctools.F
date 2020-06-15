@@ -142,7 +142,7 @@ c
       integer :: irec
       character*(*), intent(in) :: fnm,faccess,frmt
 c
-      integer :: oldmode,cmode
+      integer :: oldmode
       integer, parameter :: nf90__64bit_offset=512
       integer, parameter :: nf90__hdf5=4096
 c
@@ -734,7 +734,7 @@ c ----------------------------------------------------------------------
 c
       implicit none
 c
-      integer :: dimid,bstrn,sstrn,strind(2,10),days,by,bm,bd,bh,
+      integer :: bstrn,sstrn,strind(2,10),days,by,bm,bd,bh,
      .   sy,sm,sd,sh
       character*(*) :: calendar,units,startdate
       real :: datenum,caloffset
@@ -848,7 +848,7 @@ c
       character*100 :: dimname 
       integer :: i,j,ij,k,kd,n,ndm
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer ndims,dimid,dimids(maxdm),dimlen,strn,strind(2,maxdm),
+      integer ndims,dimids(maxdm),dimlen,strind(2,maxdm),
      .  msk(*),mskflg
 #ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) tdimlen 
@@ -1632,7 +1632,7 @@ c
       integer :: i,j,ij,ijk,k,n,prec,kd
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer, dimension(maxdm) :: start,count
-      integer dimid,dimids(maxdm),dimlen(maxdm),strn,strind(2,maxdm),
+      integer dimid,dimids(maxdm),strn,strind(2,maxdm),
      .  msk(*)     
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: rfld,rmsk   
       real, dimension(itdm,jtdm) :: rfldt,rmskt
@@ -2156,7 +2156,7 @@ c --- - leave define mode
          if (mnproc.eq.1) start(2)=n
          call ncerro(nfmpi_put_vara_text_all(ncid,rhid,
      .                                       start,count,fld(n)//'X'))
-      end do
+      enddo
 #endif
       ELSEIF(IO_TYPE .EQ. 0) THEN
       if (mnproc.eq.1) then
@@ -2184,7 +2184,7 @@ c --- - write data
         do n=1,ns
           call ncerro(nf90_put_var(ncid,rhid,fld(n)(1:slenmax)//'X',
      .                             (/1,n/),(/slenmax,1/))) 
-        end do 
+        enddo 
       endif
       ENDIF
 c
@@ -2558,7 +2558,7 @@ c
       implicit none
 c
       character*(*) :: vnm,dims 
-      integer :: i,j,ij,k,n,kd
+      integer :: i,j,k,n,kd
       integer, parameter :: maxdm=5,ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
       integer :: dimid,dimids(maxdm),strn,strind(2,maxdm),msk(*),mskflg,
      .  fld(*)     
@@ -2770,7 +2770,7 @@ c
       character*(*) :: vnm,dims
 c
       integer, parameter :: maxdm=5
-      integer :: n,nmax,strind(2,maxdm),ndims
+      integer :: n,strind(2,maxdm),ndims
 #ifdef PNETCDF
       integer (kind=MPI_OFFSET_KIND), dimension(maxdm) :: 
      . dimlenp
@@ -3009,7 +3009,7 @@ c
       implicit none
 c
       character*(*) calendar
-      integer y,m,year,month,day,ndays,yr1,yr4,yr100,yr400
+      integer y,year,month,day,ndays,yr1,yr4,yr100,yr400
       integer acc_leap(12),acc_noleap(12),yoffset
       parameter(yoffset=1000000,yr1=365,yr4=1461,yr100=36524,
      .   yr400=146097)
@@ -3157,8 +3157,6 @@ c
       integer, parameter :: maxdm=5
       integer :: n,strind(2,maxdm),ndims,itype,iatt
       integer , dimension(maxdm) :: dimids
-c
-      real :: fill
 c
       if (rec.eq.1) then
       call ncsevl(dims,ndims,strind)

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -30,8 +30,6 @@ c
 c
 #include "common_blocks.h"
 #include "common_geo.h"
-c
-      integer i,j,k,l
 c
       depths=0.
       nwp=0

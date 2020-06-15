@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
-! Copyright (C) 2006-2015 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2006-2020 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -80,6 +80,9 @@ c --- timers on, usually and default .true.
 c
 c --- fill value for land, usually 0.0
       real,    public, save      :: vland
+c
+c --- large value for array initialization
+      real,    public, parameter :: spval=1.e33
 c
 c --- xctilr halo options
       integer, public, parameter :: halo_ps=1, halo_pv=11,

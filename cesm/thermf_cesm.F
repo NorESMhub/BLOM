@@ -39,7 +39,7 @@ c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
-     .     totsrn,q,qp,qn
+     .     totsrn,qp,qn
 c
 #ifdef TRC
 #  include "param_trc.h"
