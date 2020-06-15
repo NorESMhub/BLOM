@@ -36,7 +36,7 @@ c
      .  umaxb=spval,uminb=spval,vmaxb=spval,vminb=spval,
      .  uglue=spval,vglue=spval
       real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy
-      integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll,ns
+      integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll
 c
 c --- ------------------------------------------------------------------
 c --- initialize barotropic velocity sums, determine maximum allowable

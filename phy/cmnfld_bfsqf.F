@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2019 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -49,8 +49,8 @@ c
       parameter (sls0=10.*98060.,slsmfq=2.,slsels=2.,bfsqmn=1.e-7)
 c
       real, dimension(kdm) :: delp,bfsq,sls2,atd,btd,ctd,rtd,gam
-      real rho0,pml,q,pup,tup,sup,plo,tlo,slo,bei,pm,bfsqm
-      integer i,j,k,l,km,kfpl,kintr,kmax
+      real pml,q,pup,tup,sup,plo,tlo,slo,bei
+      integer i,j,k,l,km,kfpl
 c
       real rho
       external rho

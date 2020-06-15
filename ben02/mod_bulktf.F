@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2015 Mats Bentsen
+! Copyright (C) 2002-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -155,7 +155,7 @@ c ---   ch     - sensible heat transfer coefficient
 c ---   ce     - latent heat transfer coefficient
 c ---   wg2    - gustiness squared [m^2/s^2]
 c
-      real du,zu,ta,zt,qa,zq,ts,qs,icec,tol,cd,ch,ce,wg2
+      real du,zu,ta,zt,qa,zq,ts,qs,icec,cd,ch,ce,wg2
 c
 c --- parameters:
 c ---   eps    - molecular weight ratio of dry air and water vapour

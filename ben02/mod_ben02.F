@@ -821,7 +821,7 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jtdm
           do i=1,itdm
-            itp(i,j)=tmp2da(i,j)
+            itp(i,j)=nint(tmp2da(i,j))
           enddo
         enddo
 c$OMP END PARALLEL DO
@@ -867,7 +867,7 @@ c
       real, dimension(itdm,jtdm) :: odata
 c
       real w_sum,d_sum,w
-      integer it,jt,m,n,is,js
+      integer it,jt,n,is,js
 c
 c --- interpolate
 c$OMP PARALLEL DO PRIVATE(it,w_sum,d_sum,n,is,js,w)
@@ -2110,7 +2110,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
       real dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum,
      .     sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave,
-     .     lht_ave,sht_ave,crnf,cswa,q
+     .     lht_ave,sht_ave,crnf,cswa
       real*4 rw4
       integer i,j,k,l,il,jl
       integer*2 rn2,ri2,rj2

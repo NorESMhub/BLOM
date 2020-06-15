@@ -41,7 +41,7 @@ c
 #include "timing.h"
 c
       real q
-      integer i,j,k,l,m,n,mm,nn,k1m,k1n
+      integer i,j,l,m,n,mm,nn,k1m,k1n
 c
       real step_time,
      .     auxil_time ,

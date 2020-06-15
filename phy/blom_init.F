@@ -35,7 +35,7 @@ c
 #include "param_bud.h"
 #include "common_bud.h"
 c
-      integer istat,ncid,varid,i,j,k,l,m,n,mm,nn,km
+      integer istat,ncid,varid,i,j,k,l,m,n,mm,km
       real q
       logical icrest,fexist
 c
@@ -192,7 +192,7 @@ c
 c
         delt1=baclin+baclin
 c
-      end if
+      endif
 c
 c --- ------------------------------------------------------------------
 c --- Set layer thickness at u,v points

@@ -56,7 +56,8 @@ c --- 2d and 3d diagnostic variables
 c
 c --- Levitus levels 
 #ifndef LEVITUS2X 
-      integer, parameter :: ddm=35,k350=12,w350=1.  
+      integer, parameter :: ddm=35,k350=12
+      real, parameter :: w350=1.
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0010.0,0020.0,0030.0,0050.0,0075.0,0100.0,0125.0,0150.0, 
      .  0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0, 
@@ -73,7 +74,8 @@ c --- Levitus levels
      .  2750.0,3250.0,3250.0,3750.0,3750.0,4250.0,4250.0,4750.0,4750.0,
      .  5250.0,5250.0,5750.0,5750.0,6250.0,6250.0,8000.0/),(/2,ddm/))
 #else 
-      integer, parameter :: ddm=70,k350=25,w350=0.5
+      integer, parameter :: ddm=70,k350=25
+      real, parameter :: w350=0.5
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0005.0,0010.0,0015.0,0020.0,0025.0,0030.0,0040.0,0050.0, 
      .  0062.5,0075.0,0087.5,0100.0,0112.5,0125.0,0137.5,0150.0,0175.0, 
@@ -366,7 +368,7 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 c
-      integer i,j,k,l,n,istat,istatsum,ncid,rhid
+      integer i,j,l,n,istat,istatsum
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
       logical fexist
 c
@@ -972,7 +974,7 @@ c
 #  include "common_trc.h"
 #endif
 c
-      integer d,i,j,k,l,km,kup,iogrp
+      integer i,j,k,l,km,kup,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
      .  ipsw,ipse,ipnw,ipne
 c     
@@ -3933,7 +3935,7 @@ c
 c
 #include "common_blocks.h"
 c
-      integer :: d,i,j,k,mm,nn,l,kl,m,km,kn,kml,k1m
+      integer :: d,i,j,k,mm,nn,l,kl,km,kn,kml,k1m
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)  :: ind1,ind2
 c 
       real :: r,dzeps,dpeps,flxeps
@@ -4206,13 +4208,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,l
+      integer :: i,j
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*iu(i,j)
@@ -4220,7 +4222,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*iv(i,j)
@@ -4228,7 +4230,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*ip(i,j)
@@ -4266,13 +4268,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4282,7 +4284,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4292,7 +4294,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4334,13 +4336,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -4350,7 +4352,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -4360,7 +4362,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -5219,7 +5221,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5307,7 +5309,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5395,7 +5397,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5708,7 +5710,7 @@ c
       integer :: pos
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
       logical :: iniflg=.true.
       integer, dimension(idm,jdm) :: kmaxu,kmaxv,kmaxp
       real, parameter :: mskval=nf90_fill_double

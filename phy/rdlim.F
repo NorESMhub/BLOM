@@ -35,7 +35,7 @@ c
 #include "common_clndr.h"
 #include "common_forc.h"
 c
-      integer :: i,j,m,n,nd0rst,nm0rst,ny0rst
+      integer :: m,n,nd0rst,nm0rst,ny0rst
       character*256 :: runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
@@ -189,7 +189,7 @@ c --- - determine number of io groups and print namelist
         nphy=0  
         do n=1,nphymax 
           if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
-        end do     
+        enddo
         if (trxday.eq.0.) then
           H2D_SURRLX(1:nphy)=0
         endif

@@ -36,10 +36,8 @@ c
       parameter (nchar=120)
       logical   lperiodi,lperiodj,larctic
 c
-      integer   i,j,nfill,nzero,isec,ifrst,ilast
-      real      aline(nchar)
+      integer   i,j,nfill,nzero
       real      depmax
-      character char3*3
 c
       character fmt*13
       data fmt/'(i4,1x,120i1)'/
@@ -165,11 +163,10 @@ c --- detect (and abort on) single-width inlets and 1-point seas.
      &          'error - dh(',i0+i,',',j0+j,') has ',
      &          nzero,' land nieghbours'
               nfill=nfill+1
-            end if
-          end if
+            endif
+          endif
         enddo
       enddo
- 15   continue
       call xcmax(nfill)
       if (nfill.gt.0) then
         if (mnproc.eq.1) then
@@ -238,9 +235,9 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(i)
       do j= 1-nbdy,jj+nbdy
         do i= 1-nbdy,ii+nbdy
-          iu(i,j)=util1(i,j)
-          iv(i,j)=util2(i,j)
-          iq(i,j)=util3(i,j)
+          iu(i,j)=nint(util1(i,j))
+          iv(i,j)=nint(util2(i,j))
+          iq(i,j)=nint(util3(i,j))
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -331,7 +328,7 @@ c
         do k=1,ms
           if(j,k) = 0
           il(j,k) = 0
-        end do
+        enddo
 c
         k=1
         last = ipt(1-nbdy,j)
@@ -389,7 +386,7 @@ c
         do k=1,ms
           jf(i,k) = 0
           jl(i,k) = 0
-        end do
+        enddo
 c
         k=1
         last = jpt(i,1-nbdy)
