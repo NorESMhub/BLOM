@@ -39,41 +39,54 @@
   <compset>
     <alias>NOINY</alias>   
     <lname>2000_DATM%NYF_SLND_CICE_BLOM_DROF%NYF_SGLC_SWAV</lname>
+    <science_support grid="T62_tn14"/>
+    <science_support grid="T62_tn21"/>
   </compset>
 
   <compset>
     <alias>NOINYOC</alias>
     <lname>1850_DATM%NYF_SLND_CICE_BLOM%ECO_DROF%NYF_SGLC_SWAV</lname>
+    <science_support grid="T62_tn14"/>
+    <science_support grid="T62_tn21"/>
   </compset>
 
   <compset>
     <alias>NOIIA</alias>
     <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM_DROF%IAF_SGLC_SWAV</lname>
+    <science_support grid="T62_tn14"/>
+    <science_support grid="T62_tn21"/>
   </compset>
 
   <compset>
     <alias>NOIIAOC</alias>
     <lname>2000_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+    <science_support grid="T62_tn14"/>
+    <science_support grid="T62_tn21"/>
   </compset>
 
   <compset>
     <alias>NOIIAOC20TR</alias>
     <lname>20TR_DATM%IAF_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%IAF_SGLC_SWAV</lname>
+    <science_support grid="T62_tn14"/>
+    <science_support grid="T62_tn21"/>
   </compset>
 
   <compset>
     <alias>NOIIAJRA</alias>
     <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM_DROF%JRA_SGLC_SWAV</lname>
+    <science_support grid="TL319_tn14"/>
   </compset>
 
   <compset>
     <alias>NOIIAJRAOC</alias>
     <lname>2000_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <science_support grid="TL319_tn14"/>
   </compset>
 
   <compset>
     <alias>NOIIAJRAOC20TR</alias>
     <lname>20TR_DATM%JRA_SLND_CICE%NORESM-CMIP6_BLOM%ECO_DROF%JRA_SGLC_SWAV</lname>
+    <science_support grid="TL319_tn14"/>
   </compset>
 
   <compset>
