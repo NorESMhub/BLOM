@@ -91,6 +91,8 @@
       <value compset="SSP126_CAM60%NORESM.*_BLOM%ECO"  >ssp126</value>
       <value compset="SSP245_CAM60%NORESM.*_BLOM%ECO"  >ssp245</value>
       <value compset="SSP370_CAM60%NORESM.*_BLOM%ECO"  >ssp370</value>
+      <value compset="SSP370LOWNTCF_CAM60%NORESM.*_BLOM%ECO"      >ssp370</value>
+      <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
       <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
       <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
       <value compset="SSP534OS_CAM60%NORESM.*_BLOM%ECO">ssp534os</value>
