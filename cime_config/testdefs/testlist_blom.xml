@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<testlist version="2.0">
+  <test name="ERB" grid="T62_tn14" compset="NOIIA" testmods="blom/default">
+    <machines>
+      <machine name="fram" compiler="intel" category="blom"/>
+    </machines>
+  </test>
+</testlist>
