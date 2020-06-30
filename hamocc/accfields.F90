@@ -1,3 +1,21 @@
+! Copyright (C) 2020  J. Schwinger, A. Moree
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       SUBROUTINE ACCFIELDS(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)       
 !**********************************************************************
 !
@@ -32,6 +50,7 @@
       USE mo_bgcmean
       USE mo_control_bgc
       use mo_param1_bgc 
+      use mo_vgrid, only: dp_min
       use mod_xc
 
       implicit none
@@ -92,7 +111,7 @@
 
 ! Accumulate atmosphere fields and fluxes
       call accsrf(jatmco2,atm(1,1,iatmco2),omask,0)
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
       call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
 #endif

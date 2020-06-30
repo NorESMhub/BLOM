@@ -1,6 +1,24 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2000 HYCOM Consortium and contributors
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine barotp(m,n,mm,nn,k1m,k1n)
-c
-c --- version 2.8 -- cyclic and noncyclic b.c. combined
 c
       use mod_xc
 c
@@ -10,13 +28,15 @@ c
 c
 #include "common_blocks.h"
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
-     .  pb_t,ubflx_t,vbflx_t
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
+     .  pb_t=spval,ubflx_t=spval,vbflx_t=spval
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t,umaxb,uminb,vmaxb,vminb,
-     .  uglue,vglue
+     .  ubflxs_t,vbflxs_t,ubcors_t,vbcors_t
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  umaxb=spval,uminb=spval,vmaxb=spval,vminb=spval,
+     .  uglue=spval,vglue=spval
       real q,woa,wob,wna,wnb,wo,wm,wn,utndcy,vtndcy
-      integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll,ns
+      integer i,j,k,l,kn,nb,lll0,lll,ml,nl,ll
 c
 c --- ------------------------------------------------------------------
 c --- initialize barotropic velocity sums, determine maximum allowable
@@ -855,13 +875,3 @@ c
 c
       return
       end
-c
-c
-c> Revision history:
-c>
-c> Mar. 1995 - changed vertical velocity averaging interval from 10 cm to 1 m
-c>             (loops 33,35)
-c> Mar. 1995 - changed order of loop nesting in loop 842
-c> July 1997 - eliminated 3-D arrays -uold,vold- (used in time smoothing)
-c> Aug. 1997 - transferred loops preceding loop 840 to momeq2.f
-c> May  2000 - modified j-1,j+1 to accomodate both channel & closed basin b.c.

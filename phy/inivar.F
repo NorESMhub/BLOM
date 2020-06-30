@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2015-2020 Mats Bentsen, Jerry Tjiputra
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine inivar
 c
 c --- ------------------------------------------------------------------
@@ -31,170 +50,170 @@ c$OMP+ ,nt
 c$OMP+ )
       do j=1-nbdy,jj+nbdy
         do i=1-nbdy,ii+nbdy
-          p(i,j,1)=huge
-          pu(i,j,1)=huge
-          pv(i,j,1)=huge
-          phi(i,j,1)=huge
+          p(i,j,1)=spval
+          pu(i,j,1)=spval
+          pv(i,j,1)=spval
+          phi(i,j,1)=spval
           do k=1,3
-            ubflxs(i,j,k)=huge
-            vbflxs(i,j,k)=huge
+            ubflxs(i,j,k)=spval
+            vbflxs(i,j,k)=spval
           enddo
           do k=1,2
-            pb(i,j,k)=huge
-            ubflx(i,j,k)=huge
-            vbflx(i,j,k)=huge
-            pb_mn(i,j,k)=huge
-            ubflx_mn(i,j,k)=huge
-            vbflx_mn(i,j,k)=huge
-            ub(i,j,k)=huge
-            vb(i,j,k)=huge
-            ubflxs_p(i,j,k)=huge
-            vbflxs_p(i,j,k)=huge
-            pbu(i,j,k)=huge
-            pbv(i,j,k)=huge
-            pvtrop(i,j,k)=huge
+            pb(i,j,k)=spval
+            ubflx(i,j,k)=spval
+            vbflx(i,j,k)=spval
+            pb_mn(i,j,k)=spval
+            ubflx_mn(i,j,k)=spval
+            vbflx_mn(i,j,k)=spval
+            ub(i,j,k)=spval
+            vb(i,j,k)=spval
+            ubflxs_p(i,j,k)=spval
+            vbflxs_p(i,j,k)=spval
+            pbu(i,j,k)=spval
+            pbv(i,j,k)=spval
+            pvtrop(i,j,k)=spval
           enddo
-          pb_p(i,j)=huge
-          pbu_p(i,j)=huge
-          pbv_p(i,j)=huge
-          ubcors_p(i,j)=huge
-          vbcors_p(i,j)=huge
-          defor1(i,j)=huge
-          defor2(i,j)=huge
-          pvtrop_o(i,j)=huge
-          utotm(i,j)=huge
-          vtotm(i,j)=huge
-          utotn(i,j)=huge
-          vtotn(i,j)=huge
-          uflux (i,j)=huge
-          vflux (i,j)=huge
-          uflux2(i,j)=huge
-          vflux2(i,j)=huge
-          uflux3(i,j)=huge
-          vflux3(i,j)=huge
-          uja(i,j)=huge
-          ujb(i,j)=huge
-          via(i,j)=huge
-          vib(i,j)=huge
-          pgfxm(i,j,1)=huge
-          pgfxm(i,j,2)=huge
-          pgfxm_o(i,j)=huge
-          xixp(i,j,1)=huge
-          xixp(i,j,2)=huge
-          xixp_o(i,j)=huge
-          xixm(i,j,1)=huge
-          xixm(i,j,2)=huge
-          xixm_o(i,j)=huge
-          pgfym(i,j,1)=huge
-          pgfym(i,j,2)=huge
-          pgfym_o(i,j)=huge
-          xiyp(i,j,1)=huge
-          xiyp(i,j,2)=huge
-          xiyp_o(i,j)=huge
-          xiym(i,j,1)=huge
-          xiym(i,j,2)=huge
-          xiym_o(i,j)=huge
-          difwgt(i,j)=huge
-          sealv(i,j)=huge
-          twedon(i,j)=huge
-          taux(i,j)=huge
-          tauy(i,j)=huge
-          swa(i,j)=huge
-          nsf(i,j)=huge
-          hmltfz(i,j)=huge
-          hmlt(i,j)=huge
-          dfl(i,j)=huge
-          lip(i,j)=huge
-          sop(i,j)=huge
-          eva(i,j)=huge
-          rnf(i,j)=huge
-          rfi(i,j)=huge
-          fmltfz(i,j)=huge
-          sfl(i,j)=huge
-          ztx(i,j)=huge
-          mty(i,j)=huge
-          ustarw(i,j)=huge
-          slp(i,j)=huge
-          abswnd(i,j)=huge
-          albw(i,j)=huge
-          frzpot(i,j)=huge
-          mltpot(i,j)=huge
-          atmco2(i,j)=huge
-          flxco2(i,j)=huge
-          flxdms(i,j)=huge
-          alb(i,j)=huge
-          rnfres(i,j)=huge
-          rnfflx(i,j)=huge
-          rfiflx(i,j)=huge
-          eiacc(i,j)=huge
-          pracc(i,j)=huge
-          ficem(i,j)=huge
-          hicem(i,j)=huge
-          hsnwm(i,j)=huge
-          ustari(i,j)=huge
-          tauxice(i,j)=huge
-          tauyice(i,j)=huge
-          uicem(i,j)=huge
-          vicem(i,j)=huge
-          iagem(i,j)=huge
+          pb_p(i,j)=spval
+          pbu_p(i,j)=spval
+          pbv_p(i,j)=spval
+          ubcors_p(i,j)=spval
+          vbcors_p(i,j)=spval
+          defor1(i,j)=spval
+          defor2(i,j)=spval
+          pvtrop_o(i,j)=spval
+          utotm(i,j)=spval
+          vtotm(i,j)=spval
+          utotn(i,j)=spval
+          vtotn(i,j)=spval
+          uflux (i,j)=spval
+          vflux (i,j)=spval
+          uflux2(i,j)=spval
+          vflux2(i,j)=spval
+          uflux3(i,j)=spval
+          vflux3(i,j)=spval
+          uja(i,j)=spval
+          ujb(i,j)=spval
+          via(i,j)=spval
+          vib(i,j)=spval
+          pgfxm(i,j,1)=spval
+          pgfxm(i,j,2)=spval
+          pgfxm_o(i,j)=spval
+          xixp(i,j,1)=spval
+          xixp(i,j,2)=spval
+          xixp_o(i,j)=spval
+          xixm(i,j,1)=spval
+          xixm(i,j,2)=spval
+          xixm_o(i,j)=spval
+          pgfym(i,j,1)=spval
+          pgfym(i,j,2)=spval
+          pgfym_o(i,j)=spval
+          xiyp(i,j,1)=spval
+          xiyp(i,j,2)=spval
+          xiyp_o(i,j)=spval
+          xiym(i,j,1)=spval
+          xiym(i,j,2)=spval
+          xiym_o(i,j)=spval
+          difwgt(i,j)=spval
+          sealv(i,j)=spval
+          twedon(i,j)=spval
+          taux(i,j)=spval
+          tauy(i,j)=spval
+          swa(i,j)=spval
+          nsf(i,j)=spval
+          hmltfz(i,j)=spval
+          hmlt(i,j)=spval
+          dfl(i,j)=spval
+          lip(i,j)=spval
+          sop(i,j)=spval
+          eva(i,j)=spval
+          rnf(i,j)=spval
+          rfi(i,j)=spval
+          fmltfz(i,j)=spval
+          sfl(i,j)=spval
+          ztx(i,j)=spval
+          mty(i,j)=spval
+          ustarw(i,j)=spval
+          slp(i,j)=spval
+          abswnd(i,j)=spval
+          albw(i,j)=spval
+          frzpot(i,j)=spval
+          mltpot(i,j)=spval
+          atmco2(i,j)=spval
+          flxco2(i,j)=spval
+          flxdms(i,j)=spval
+          alb(i,j)=spval
+          rnfres(i,j)=spval
+          rnfflx(i,j)=spval
+          rfiflx(i,j)=spval
+          eiacc(i,j)=spval
+          pracc(i,j)=spval
+          ficem(i,j)=spval
+          hicem(i,j)=spval
+          hsnwm(i,j)=spval
+          ustari(i,j)=spval
+          tauxice(i,j)=spval
+          tauyice(i,j)=spval
+          uicem(i,j)=spval
+          vicem(i,j)=spval
+          iagem(i,j)=spval
           do k=1,kk
-            u  (i,j,k   )=huge
-            u  (i,j,k+kk)=huge
-            v  (i,j,k   )=huge
-            v  (i,j,k+kk)=huge
-            uflx(i,j,k   )=huge
-            uflx(i,j,k+kk)=huge
-            utflx(i,j,k   )=huge
-            utflx(i,j,k+kk)=huge
-            usflx(i,j,k   )=huge
-            usflx(i,j,k+kk)=huge
-            vflx(i,j,k   )=huge
-            vflx(i,j,k+kk)=huge
-            vtflx(i,j,k   )=huge
-            vtflx(i,j,k+kk)=huge
-            vsflx(i,j,k   )=huge
-            vsflx(i,j,k+kk)=huge
-            umfltd(i,j,k   )=huge
-            umfltd(i,j,k+kk)=huge
-            vmfltd(i,j,k   )=huge
-            vmfltd(i,j,k+kk)=huge
-            dp (i,j,k   )=huge
-            dp (i,j,k+kk)=huge
-            dpu(i,j,k   )=huge
-            dpu(i,j,k+kk)=huge
-            dpuold(i,j,k)=huge
-            dpv(i,j,k   )=huge
-            dpv(i,j,k+kk)=huge
-            dpvold(i,j,k)=huge
-            p (i,j,k+1)=huge
-            pu(i,j,k+1)=huge
-            pv(i,j,k+1)=huge
-            phi(i,j,k+1)=huge
+            u  (i,j,k   )=spval
+            u  (i,j,k+kk)=spval
+            v  (i,j,k   )=spval
+            v  (i,j,k+kk)=spval
+            uflx(i,j,k   )=spval
+            uflx(i,j,k+kk)=spval
+            utflx(i,j,k   )=spval
+            utflx(i,j,k+kk)=spval
+            usflx(i,j,k   )=spval
+            usflx(i,j,k+kk)=spval
+            vflx(i,j,k   )=spval
+            vflx(i,j,k+kk)=spval
+            vtflx(i,j,k   )=spval
+            vtflx(i,j,k+kk)=spval
+            vsflx(i,j,k   )=spval
+            vsflx(i,j,k+kk)=spval
+            umfltd(i,j,k   )=spval
+            umfltd(i,j,k+kk)=spval
+            vmfltd(i,j,k   )=spval
+            vmfltd(i,j,k+kk)=spval
+            dp (i,j,k   )=spval
+            dp (i,j,k+kk)=spval
+            dpu(i,j,k   )=spval
+            dpu(i,j,k+kk)=spval
+            dpuold(i,j,k)=spval
+            dpv(i,j,k   )=spval
+            dpv(i,j,k+kk)=spval
+            dpvold(i,j,k)=spval
+            p (i,j,k+1)=spval
+            pu(i,j,k+1)=spval
+            pv(i,j,k+1)=spval
+            phi(i,j,k+1)=spval
 c
-            temp(i,j,k)=huge
-            saln(i,j,k)=huge
-            sigma(i,j,k   )=huge
-            sigma(i,j,k+kk)=huge
-            pgfx(i,j,k   )=huge
-            pgfx(i,j,k+kk)=huge
-            pgfy(i,j,k   )=huge
-            pgfy(i,j,k+kk)=huge
-            pgfxo(i,j,k)=huge
-            pgfyo(i,j,k)=huge
+            temp(i,j,k)=spval
+            saln(i,j,k)=spval
+            sigma(i,j,k   )=spval
+            sigma(i,j,k+kk)=spval
+            pgfx(i,j,k   )=spval
+            pgfx(i,j,k+kk)=spval
+            pgfy(i,j,k   )=spval
+            pgfy(i,j,k+kk)=spval
+            pgfxo(i,j,k)=spval
+            pgfyo(i,j,k)=spval
 #ifdef TRC
             do nt=1,ntr
-              trc(i,j,k   ,nt)=huge
-              trc(i,j,k+kk,nt)=huge
+              trc(i,j,k   ,nt)=spval
+              trc(i,j,k+kk,nt)=spval
             enddo
 #endif
           enddo
           do k=1,4
-            uml(i,j,k)=huge
-            vml(i,j,k)=huge
+            uml(i,j,k)=spval
+            vml(i,j,k)=spval
           enddo
           do k=1,2
-            umlres(i,j,k)=huge
-            vmlres(i,j,k)=huge
+            umlres(i,j,k)=spval
+            vmlres(i,j,k)=spval
           enddo
         enddo
       enddo

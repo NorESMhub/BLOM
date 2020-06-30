@@ -1,3 +1,23 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2000 HYCOM Consortium and contributors
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine bigrid(depth)
       use mod_xc  ! HYCOM communication interface
       implicit none
@@ -16,10 +36,8 @@ c
       parameter (nchar=120)
       logical   lperiodi,lperiodj,larctic
 c
-      integer   i,j,nfill,nzero,isec,ifrst,ilast
-      real      aline(nchar)
+      integer   i,j,nfill,nzero
       real      depmax
-      character char3*3
 c
       character fmt*13
       data fmt/'(i4,1x,120i1)'/
@@ -145,16 +163,15 @@ c --- detect (and abort on) single-width inlets and 1-point seas.
      &          'error - dh(',i0+i,',',j0+j,') has ',
      &          nzero,' land nieghbours'
               nfill=nfill+1
-            end if
-          end if
+            endif
+          endif
         enddo
       enddo
- 15   continue
       call xcmax(nfill)
       if (nfill.gt.0) then
         if (mnproc.eq.1) then
           write(lp,'(/a/)') 
-     &     'Must correct bathymetry before running MICOM'
+     &     'Must correct bathymetry before running BLOM'
           call flush(lp)
         endif
         call xcstop('(bigrid)')
@@ -218,9 +235,9 @@ c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(i)
       do j= 1-nbdy,jj+nbdy
         do i= 1-nbdy,ii+nbdy
-          iu(i,j)=util1(i,j)
-          iv(i,j)=util2(i,j)
-          iq(i,j)=util3(i,j)
+          iu(i,j)=nint(util1(i,j))
+          iv(i,j)=nint(util2(i,j))
+          iq(i,j)=nint(util3(i,j))
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -311,7 +328,7 @@ c
         do k=1,ms
           if(j,k) = 0
           il(j,k) = 0
-        end do
+        enddo
 c
         k=1
         last = ipt(1-nbdy,j)
@@ -369,7 +386,7 @@ c
         do k=1,ms
           jf(i,k) = 0
           jl(i,k) = 0
-        end do
+        enddo
 c
         k=1
         last = jpt(i,1-nbdy)
@@ -402,7 +419,3 @@ c
       call xcsync(no_flush)
       return
       end
-c>
-c> Revision history
-c>
-c> Nov  2000 - error stop on single-width inlets and 1-point seas

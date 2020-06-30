@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2015-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine read_twedon
 c
 c --- ------------------------------------------------------------------
@@ -17,14 +36,13 @@ c
 c
       if (mnproc.eq.1) then
         write (lp,'(2a)') ' reading tidal dissipation data from ',
-     .                    path(1:path_len)//'tidal_dissipation.nc'
+     .                    trim(tdfile)
         call flush(lp)
 c
 c --- - open netcdf file
-        status=nf90_open(path(1:path_len)//'tidal_dissipation.nc',
-     .                   nf90_nowrite,ncid)
+        status=nf90_open(tdfile,nf90_nowrite,ncid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_open: tidal_dissipation.nc: ',
+          write(lp,'(4a)') ' nf90_open: ',trim(tdfile),': ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
@@ -33,32 +51,32 @@ c
 c --- - check dimensions
         status=nf90_inq_dimid(ncid,'x',dimid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_dimid: x: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_dimid: x: ',nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
         status=nf90_inquire_dimension(ncid,dimid,len=i)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inquire_dimension: x: ',
+          write(lp,'(2a)') ' nf90_inquire_dimension: x: ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
         status=nf90_inq_dimid(ncid,'y',dimid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_dimid: y: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_dimid: y: ',nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
         status=nf90_inquire_dimension(ncid,dimid,len=j)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inquire_dimension: y: ',
+          write(lp,'(2a)') ' nf90_inquire_dimension: y: ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
         if (i.ne.itdm.or.j.ne.jtdm) then
-          write (lp,*) 'wrong dimensions in tidal_dissipation.nc'
+          write (lp,'(2a)') ' wrong dimensions in ',trim(tdfile)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
@@ -66,14 +84,14 @@ c
 c --- - read tidal dissipation data
         status=nf90_inq_varid(ncid,'twedon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: twedon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: twedon: ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: twedon: ',
+          write(lp,'(2a)') ' nf90_get_var: twedon: ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'
@@ -81,7 +99,7 @@ c --- - read tidal dissipation data
 c
         status=nf90_close(ncid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_close: tidal_dissipation.nc: ',
+          write(lp,'(4a)') ' nf90_close: ',trim(tdfile),': ',
      .                     nf90_strerror(status)
           call xchalt('(read_twedon)')
                  stop '(read_twedon)'

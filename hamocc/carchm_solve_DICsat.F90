@@ -1,3 +1,21 @@
+! Copyright (C) 2020  J. Tjiputra, J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
 SUBROUTINE carchm_solve_DICsat(saln,pco2,ta,sit,pt,                   &
                         Kh,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,        &
                         tc_sat,niter)

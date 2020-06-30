@@ -1,3 +1,22 @@
+! Copyright (C) 2002  P. Wetzel
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,WETO     &
      &                        ,volchck)
 !*******************************************************************
@@ -39,6 +58,7 @@
       USE mo_control_bgc
       USE mo_bgcmean
       USE mo_param1_bgc 
+      use mo_vgrid, only: dp_min
       USE mod_xc
       
       implicit none
@@ -320,7 +340,7 @@
         sn2oflux=sn2oflux+bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
         ztotarea = ztotarea + dlxp(i,j)*dlyp(i,j)
         zatmco2 =zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
-#ifdef DIFFAT	
+#if defined(BOXATM)
         zatmo2= zatmo2  + atm(i,j,iatmo2) *dlxp(i,j)*dlyp(i,j)
         zatmn2= zatmn2  + atm(i,j,iatmn2) *dlxp(i,j)*dlyp(i,j)	
 #endif
@@ -381,7 +401,7 @@
 
       CALL xcsum(zatmco2,ztmp1,ips)
 
-#ifdef DIFFAT
+#if defined(BOXATM)
       ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
@@ -408,7 +428,7 @@
 !      WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
 !      WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
 !      WRITE(io_stdo_bgc,*) ' '
-#ifdef DIFFAT	      
+#if defined(BOXATM)	      
 !      WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',          &
 !     &                               zatmco2/ztotarea,zatmco2*ppm2con       
 !      WRITE(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',          &
@@ -417,7 +437,7 @@
 !     &                               zatmn2/ztotarea,zatmn2*ppm2con 
 !      ENDIF
      
-#endif /*DIFFAT*/
+#endif
 
 ! Complete sum of inventory in between bgc.f90
 
@@ -482,7 +502,7 @@
      &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                &
      &  +zocetrato(ian2o)*2                                           &
      &  +zprorca*rnit                                                 &
-#ifdef DIFFAT     
+#if defined(BOXATM)
     &  +zatmn2*ppm2con*2                        
 #else
      & +sn2flux*2+sn2oflux*2
@@ -510,7 +530,7 @@
      &  +zpowtrato(ipowno3)*1.5+zpowtrato(ipowaic)                    &
      &  +zpowtrato(ipowaox)+zpowtrato(ipowaph)*2                      &
      &  +zprorca*(-24.)+zprcaca                                       & 
-#ifdef DIFFAT     
+#if defined(BOXATM)
      &  +zatmo2*ppm2con+zatmco2*ppm2con
 #else
      & +so2flux+sn2oflux*0.5+co2flux

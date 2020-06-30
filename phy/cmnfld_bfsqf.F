@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2015-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine cmnfld_bfsqf(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
@@ -30,8 +49,8 @@ c
       parameter (sls0=10.*98060.,slsmfq=2.,slsels=2.,bfsqmn=1.e-7)
 c
       real, dimension(kdm) :: delp,bfsq,sls2,atd,btd,ctd,rtd,gam
-      real rho0,pml,q,pup,tup,sup,plo,tlo,slo,bei,pm,bfsqm
-      integer i,j,k,l,km,kfpl,kintr,kmax
+      real pml,q,pup,tup,sup,plo,tlo,slo,bei
+      integer i,j,k,l,km,kfpl
 c
       real rho
       external rho

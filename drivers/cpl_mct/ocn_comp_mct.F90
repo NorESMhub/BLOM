@@ -1,7 +1,26 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
 module ocn_comp_mct
 
    ! -------------------------------------------------------------------
-   ! MICOM interface module for the cesm cpl7 mct system
+   ! BLOM interface module for the cesm cpl7 mct system
    ! -------------------------------------------------------------------
 
    ! CESM  modules
@@ -26,7 +45,7 @@ module ocn_comp_mct
    use perf_mod, only : t_startf, t_stopf
 
    use types, only : r8
-   use micom_cpl_indices
+   use blom_cpl_indices
    use data_mct, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
 
@@ -84,7 +103,7 @@ module ocn_comp_mct
                              gsMap = gsMap_ocn, dom = dom_ocn, &
                              infodata = infodata)
 
-      ! Set communicator to be used by micom
+      ! Set communicator to be used by blom
       mpicom_external = mpicom_ocn
 
       ! Get file unit
@@ -94,7 +113,7 @@ module ocn_comp_mct
       ! Initialize the model run
       ! ----------------------------------------------------------------
 
-      call micom_cpl_indices_set()
+      call blom_cpl_indices_set()
 
       call seq_infodata_GetData( infodata, case_name = runid_mct )
    
@@ -119,12 +138,12 @@ module ocn_comp_mct
       call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt_mct)
 
       ! ----------------------------------------------------------------
-      ! Initialize micom
+      ! Initialize blom
       ! ----------------------------------------------------------------
 
-      call t_startf('micom_init')
-      call micom_init
-      call t_stopf('micom_init')
+      call t_startf('blom_init')
+      call blom_init
+      call t_stopf('blom_init')
 
       ! ----------------------------------------------------------------
       ! Reset shr logging to my log file
@@ -137,7 +156,7 @@ module ocn_comp_mct
       call shr_sys_flush(lp)
 
       ! ----------------------------------------------------------------
-      ! Check for consistency of MICOM calender information and EClock
+      ! Check for consistency of BLOM calender information and EClock
       ! ----------------------------------------------------------------
 
       ! This must be completed!
@@ -159,7 +178,7 @@ module ocn_comp_mct
       ! Initialize MCT attribute vectors and indices
       ! ----------------------------------------------------------------
 
-      call t_startf ('micom_mct_init')
+      call t_startf ('blom_mct_init')
 
       ! Initialize ocn gsMap
 
@@ -168,7 +187,7 @@ module ocn_comp_mct
       ! Initialize mct ocn domain (needs ocn initialization info)
 
       if (mnproc == 1) then
-         write (lp, *) 'micom: ocn_init_mct: lsize', lsize
+         write (lp, *) 'blom: ocn_init_mct: lsize', lsize
       endif
    
       call domain_mct(gsMap_ocn, dom_ocn, lsize, perm, jjcpl)
@@ -206,11 +225,11 @@ module ocn_comp_mct
                                    ocn_nx = itdm , ocn_ny = jtdm)
       endif
 
-      call t_stopf('micom_mct_init')
+      call t_stopf('blom_mct_init')
 
 
       if (mnproc == 1) then
-        write (lp, *) 'micom: completed initialization!'
+        write (lp, *) 'blom: completed initialization!'
       endif
 
       !-----------------------------------------------------------------
@@ -252,7 +271,7 @@ module ocn_comp_mct
       ! Advance the model in time over a coupling interval
       !-----------------------------------------------------------------
 
-      micom_loop: do
+      blom_loop: do
 
          if (nint(tlast_coupled) == 0) then
             ! Obtain import state from driver
@@ -260,7 +279,7 @@ module ocn_comp_mct
          endif
       
          ! Advance the model a time step
-         call micom_step
+         call blom_step
 
          ! Add fields to send buffer sums
          call sumsbuff_mct(nsend, sbuff, tlast_coupled)
@@ -269,14 +288,14 @@ module ocn_comp_mct
             ! Return export state to driver and exit integration loop
             call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, &
                             tlast_coupled)
-            exit micom_loop
+            exit blom_loop
          endif
 
          if (mnproc == 1) then
             call shr_sys_flush(lp)
          endif
 
-      enddo micom_loop
+      enddo blom_loop
 
       call getprecipfact_mct(lsend_precip_fact, precip_fact)
       if ( lsend_precip_fact ) then
@@ -300,10 +319,10 @@ module ocn_comp_mct
          if (.not. seq_timemgr_EClockDateInSync(EClock, ymd, tod )) then
             call seq_timemgr_EClockGetData(EClock, curr_ymd=ymd_sync, &
                curr_tod=tod_sync )
-            write(lp,*)' micom ymd=',ymd     ,'  micom tod= ',tod
-            write(lp,*)' sync  ymd=',ymd_sync,'  sync  tod= ',tod_sync
+            write(lp,*)' blom ymd=',ymd     ,'  blom tod= ',tod
+            write(lp,*)' sync ymd=',ymd_sync,'  sync tod= ',tod_sync
             call shr_sys_abort( 'ocn_run_mct'// &
-               ":: Internal micom clock not in sync with Sync Clock")
+               ":: Internal blom clock not in sync with Sync Clock")
          endif
       endif
 
@@ -344,7 +363,7 @@ module ocn_comp_mct
       integer :: i, j, n, gsize
 
       ! ----------------------------------------------------------------
-      ! Build the MICOM grid numbering for MCT
+      ! Build the BLOM grid numbering for MCT
       ! NOTE:  Numbering scheme is: West to East and South to North
       ! starting at south pole.  Should be the same as what's used
       ! in SCRIP

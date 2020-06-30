@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2002-2018 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine thermf_ben02(m,n,mm,nn,k1m,k1n)
 c
 c --- NERSC version of thermf. 
@@ -380,10 +399,10 @@ c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=(dvi*fusi+dvs*fuss)/dt
 c
-c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
           surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
 c
-c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
+c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
 c

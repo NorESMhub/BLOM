@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2008-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine thermf_cesm(m,n,mm,nn,k1m,k1n)
 c
 c --- NERSC version of thermf. To be used when coupled to CESM
@@ -20,7 +39,7 @@ c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
-     .     totsrn,q,qp,qn
+     .     totsrn,qp,qn
 c
 #ifdef TRC
 #  include "param_trc.h"
@@ -129,10 +148,10 @@ c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
 c
-c --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
+c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
           surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
 c
-c --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
+c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
           sswflx(i,j)=-swa(i,j)*1.e-4
 c

@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2017-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       module mod_swabs
 c
 c --- ------------------------------------------------------------------
@@ -51,7 +70,10 @@ c ---  chlopt: Chlorophyll concentration option. Valid options:
 c ---          'climatology': Monthly chlorophyll concentration
 c ---                         climatology obtained from SeaWiFS
 c ---                         observations during 1997-2010.
+c ---  ccfile: Name of file containing chlorophyll concentration
+c ---          climatology.
       character (len=80) :: swamth,chlopt
+      character (len=256) :: ccfile
       integer :: jwtype
 c
 c --- Parameter arrays related to shortwave radiation absorption
@@ -97,7 +119,8 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  swbgal,swbgfc,chl10
 c
-      public :: swamth,jwtype,chlopt,iniswa,updswa,swbgal,swbgfc,swamxd
+      public :: swamth,jwtype,chlopt,ccfile,iniswa,updswa,swbgal,swbgfc,
+     .          swamxd
 c
       contains
 c
@@ -166,18 +189,15 @@ c
 c --- --- Read monthly chlorophyll concentration climatology.
           if (mnproc.eq.1) then
             write (lp,'(2a)')
-     .        ' reading chlorophyll concentration data from ',
-     .        path(1:path_len)//'chlorophyll_concentration.nc'
+     .        ' reading chlorophyll concentration climatology from ',
+     .        trim(ccfile)
             call flush(lp)
 c
 c --- ----- Open netCDF file.
-            istat=nf90_open(path(1:path_len)//
-     .                      'chlorophyll_concentration.nc',
-     .                      nf90_nowrite,ncid)
+            istat=nf90_open(ccfile,nf90_nowrite,ncid)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)')
-     .          'nf90_open: chlorophyll_concentration.nc: ',
-     .          nf90_strerror(istat)
+              write(lp,'(4a)') ' nf90_open: ',trim(ccfile),': ',
+     .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
@@ -185,49 +205,49 @@ c
 c --- ----- Check dimensions.
             istat=nf90_inq_dimid(ncid,'x',dimid)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inq_dimid: x: ',
+              write(lp,'(2a)') ' nf90_inq_dimid: x: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             istat=nf90_inquire_dimension(ncid,dimid,len=i)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inquire_dimension: x: ',
+              write(lp,'(2a)') ' nf90_inquire_dimension: x: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             istat=nf90_inq_dimid(ncid,'y',dimid)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inq_dimid: y: ',
+              write(lp,'(2a)') ' nf90_inq_dimid: y: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             istat=nf90_inquire_dimension(ncid,dimid,len=j)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inquire_dimension: y: ',
+              write(lp,'(2a)') ' nf90_inquire_dimension: y: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             istat=nf90_inq_dimid(ncid,'time',dimid)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inq_dimid: time: ',
+              write(lp,'(2a)') ' nf90_inq_dimid: time: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             istat=nf90_inquire_dimension(ncid,dimid,len=k)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inquire_dimension: time: ',
+              write(lp,'(2a)') ' nf90_inquire_dimension: time: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
             if (i.ne.itdm.or.j.ne.jtdm.or.k.ne.12) then
-              write (lp,*)
-     .          'wrong dimensions in chlorophyll_concentration.nc'
+              write (lp,'(2a)')
+     .          ' wrong dimensions in ',trim(ccfile)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif
@@ -235,7 +255,7 @@ c
 c --- ----- Get variable ID.
             istat=nf90_inq_varid(ncid,'chlor_a',varid)
             if (istat.ne.nf90_noerr) then
-              write(lp,'(2a)') 'nf90_inq_varid: chlor_a: ',
+              write(lp,'(2a)') ' nf90_inq_varid: chlor_a: ',
      .                         nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
@@ -257,7 +277,7 @@ c --- --- Read data on master process and distribute to all processes.
               istart(3)=k
               istat=nf90_get_var(ncid,varid,tmp2d,istart,icount)
               if (istat.ne.nf90_noerr) then
-                write(lp,'(2a)') 'nf90_get_var: chlor_a: ',
+                write(lp,'(2a)') ' nf90_get_var: chlor_a: ',
      .                           nf90_strerror(istat)
                 call xchalt('(iniswa)')
                        stop '(iniswa)'
@@ -271,8 +291,7 @@ c --- --- Close file.
             istat=nf90_close(ncid)
             if (istat.ne.nf90_noerr) then
               write(lp,'(4a)')
-     .          'nf90_close: chlorophyll_concentration.nc: ',
-     .          nf90_strerror(istat)
+     .          ' nf90_close: ',trim(ccfile),': ',nf90_strerror(istat)
               call xchalt('(iniswa)')
                      stop '(iniswa)'
             endif

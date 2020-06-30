@@ -1,31 +1,30 @@
 #! /bin/csh -f 
 cd $1
-setenv CASE `./xmlquery --file env_case.xml CASE --value`
-setenv CONFIG_OCN_FILE `./xmlquery CONFIG_OCN_FILE --value`
-setenv CASEROOT `./xmlquery CASEROOT --value`
-setenv SRCROOT `./xmlquery  SRCROOT --value`
-setenv EXEROOT `./xmlquery  EXEROOT --value`
-setenv OBJROOT `./xmlquery  OBJROOT --value`
-setenv OCN_GRID `./xmlquery OCN_GRID --value`
-setenv CONFIG_OCN_DIR `dirname $CONFIG_OCN_FILE`
-setenv NTASKS_OCN `./xmlquery NTASKS_OCN --value`
-setenv DIN_LOC_ROOT `./xmlquery DIN_LOC_ROOT --value`
-setenv RUN_TYPE `./xmlquery RUN_TYPE --value`
-setenv CASEBUILD `./xmlquery CASEBUILD --value`
-setenv CCSM_CO2_PPMV `./xmlquery CCSM_CO2_PPMV --value`
-setenv OCN_NCPL `./xmlquery OCN_NCPL --value`
-setenv MICOM_COUPLING `./xmlquery MICOM_COUPLING --value`
-setenv RUNDIR `./xmlquery  RUNDIR --value`
-setenv MICOM_TRACER_MODULES `./xmlquery MICOM_TRACER_MODULES --value`
-setenv MICOM_TURBULENT_CLOSURE `./xmlquery MICOM_TURBULENT_CLOSURE --value`
-setenv HAMOCC_CFC `./xmlquery HAMOCC_CFC --value`
-setenv HAMOCC_NATTRC `./xmlquery HAMOCC_NATTRC --value`
-setenv HAMOCC_SEDBYPASS `./xmlquery HAMOCC_SEDBYPASS --value`
-setenv HAMOCC_CISO `./xmlquery HAMOCC_CISO --value`
-setenv GMAKE `./xmlquery GMAKE --value`
-setenv GMAKE_J `./xmlquery  GMAKE_J --value`
-setenv OCN_CO2_TYPE `./xmlquery OCN_CO2_TYPE --value`
-setenv RUN_STARTDATE `./xmlquery RUN_STARTDATE --value`
+set CONFIG_OCN_FILE = `./xmlquery CONFIG_OCN_FILE --value`
+set CASEROOT = `./xmlquery CASEROOT --value`
+set SRCROOT = `./xmlquery  SRCROOT --value`
+set EXEROOT = `./xmlquery  EXEROOT --value`
+set OBJROOT = `./xmlquery  OBJROOT --value`
+set OCN_GRID = `./xmlquery OCN_GRID --value`
+set CONFIG_OCN_DIR = `dirname $CONFIG_OCN_FILE`
+set NTASKS_OCN = `./xmlquery NTASKS_OCN --value`
+set DIN_LOC_ROOT = `./xmlquery DIN_LOC_ROOT --value`
+set RUN_TYPE = `./xmlquery RUN_TYPE --value`
+set CASEBUILD = `./xmlquery CASEBUILD --value`
+set CCSM_CO2_PPMV = `./xmlquery CCSM_CO2_PPMV --value`
+set OCN_NCPL = `./xmlquery OCN_NCPL --value`
+set BLOM_COUPLING = `./xmlquery BLOM_COUPLING --value`
+set RUNDIR = `./xmlquery  RUNDIR --value`
+set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
+set BLOM_TURBULENT_CLOSURE = `./xmlquery BLOM_TURBULENT_CLOSURE --value`
+set HAMOCC_CFC = `./xmlquery HAMOCC_CFC --value`
+set HAMOCC_NATTRC = `./xmlquery HAMOCC_NATTRC --value`
+set HAMOCC_SEDBYPASS = `./xmlquery HAMOCC_SEDBYPASS --value`
+set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
+set GMAKE = `./xmlquery GMAKE --value`
+set GMAKE_J = `./xmlquery  GMAKE_J --value`
+set OCN_CO2_TYPE = `./xmlquery OCN_CO2_TYPE --value`
+set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 
 cd $OBJROOT/ocn/obj
 
@@ -35,16 +34,16 @@ cd $OBJROOT/ocn/obj
 
 cat >! Filepath << EOF1
 $OBJROOT/ocn/obj/dimensions
-$CASEROOT/SourceMods/src.micom
-$SRCROOT/components/micom/ben02
-$SRCROOT/components/micom/cesm
-$SRCROOT/components/micom/drivers/cpl_share
-$SRCROOT/components/micom/drivers/cpl_mct
-$SRCROOT/components/micom/phy
+$CASEROOT/SourceMods/src.blom
+$SRCROOT/components/blom/ben02
+$SRCROOT/components/blom/cesm
+$SRCROOT/components/blom/drivers/cpl_share
+$SRCROOT/components/blom/drivers/cpl_mct
+$SRCROOT/components/blom/phy
 EOF1
 
-set turbclo = (`echo $MICOM_TURBULENT_CLOSURE`)
-set tracers = (`echo $MICOM_TRACER_MODULES`)
+set turbclo = (`echo $BLOM_TURBULENT_CLOSURE`)
+set tracers = (`echo $BLOM_TRACER_MODULES`)
 set co2type = (`echo $OCN_CO2_TYPE`)
 
 set cpp_ocn = "-DMPI"
@@ -55,7 +54,7 @@ if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID
   set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
 endif
 if ($#turbclo != 0 || $#tracers != 0) then
-  echo $SRCROOT/components/micom/trc >> Filepath
+  echo $SRCROOT/components/blom/trc >> Filepath
   set cpp_ocn = "$cpp_ocn -DTRC"
 endif
 if ($#turbclo != 0) then
@@ -89,10 +88,10 @@ endif
 if ($#tracers != 0) then
   foreach module ($tracers)
     if      ($module == iage) then
-      echo $SRCROOT/components/micom/idlage >> Filepath
+      echo $SRCROOT/components/blom/idlage >> Filepath
       set cpp_ocn = "$cpp_ocn -DIDLAGE"
     else if ($module == ecosys) then
-      echo $SRCROOT/components/micom/hamocc >> Filepath
+      echo $SRCROOT/components/blom/hamocc >> Filepath
       set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC -DWLIN"
       if ($HAMOCC_CFC == TRUE) then
         set cpp_ocn = "$cpp_ocn -DCFC"
@@ -129,10 +128,10 @@ endif
 # Build the library
 #------------------------------------------------------------------------------
 
-gmake complib -j $GMAKE_J MODEL=micom COMPLIB=$LIBROOT/libocn.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$cpp_ocn" -f $CASETOOLS/Makefile || exit 2
+gmake complib -j $GMAKE_J MODEL=blom COMPLIB=$LIBROOT/libocn.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$cpp_ocn" -f $CASETOOLS/Makefile || exit 2
 
 if !(-f $LIBROOT/libocn.a) then
-  echo "ERROR: micom library not available"
+  echo "ERROR: blom library not available"
   exit -1
 endif
 

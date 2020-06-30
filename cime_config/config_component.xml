@@ -6,8 +6,8 @@
 
   <entry id="COMP_OCN">
     <type>char</type>
-    <valid_values>micom</valid_values>
-    <default_value>micom</default_value>
+    <valid_values>blom</valid_values>
+    <default_value>blom</default_value>
     <group>case_comp</group>
     <file>env_case.xml</file>
     <desc>Name of ocean component</desc>
@@ -18,40 +18,40 @@
     <valid_values>constant,prognostic,diagnostic</valid_values>
     <default_value>constant</default_value>
     <values>
-      <value compset="_MICOM%ECO"           >constant</value>
-      <value compset="_MICOM%ECO.*_BGC%BPRP">prognostic</value>
-      <value compset="_MICOM%ECO.*_BGC%BDRD">diagnostic</value>
-      <value compset="_DATM%CPLHIST.*_MICOM%ECO">diagnostic</value>
-      <value compset="20TR_DATM%IAF.*_MICOM%ECO">diagnostic</value>
+      <value compset="_BLOM%ECO"           >constant</value>
+      <value compset="_BLOM%ECO.*_BGC%BPRP">prognostic</value>
+      <value compset="_BLOM%ECO.*_BGC%BDRD">diagnostic</value>
+      <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
+      <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
     </values>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Determines provenance of atmospheric CO2 for gas flux computation.
-      This option is used in the MICOM ecosystem model.
+      This option is used in the BLOM ecosystem model.
       The default is constant.</desc>
   </entry>
 
-  <entry id="MICOM_TRACER_MODULES">
+  <entry id="BLOM_TRACER_MODULES">
     <type>char</type>
     <valid_values>iage,iage ecosys</valid_values>
     <default_value>iage</default_value>
     <values>
-      <value compset="_MICOM%ECO">iage ecosys</value>
+      <value compset="_BLOM%ECO">iage ecosys</value>
     </values>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional ocean tracers.  Valid values are Any combination of: iage ecosys</desc>
   </entry>
 
-  <entry id="MICOM_COUPLING">
+  <entry id="BLOM_COUPLING">
     <type>char</type>
     <valid_values>full,partial</valid_values>
     <default_value>full</default_value>
     <values>
-      <value compset="_DATM.*_MICOM">partial</value>
-      <value compset="_DATM%CPLHIST.*_MICOM">full</value>
+      <value compset="_DATM.*_BLOM">partial</value>
+      <value compset="_DATM%CPLHIST.*_BLOM">full</value>
     </values>
-    <group>run_component_micom</group>
+    <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Determine surface freshwater and heat forcing settings.
       The full option yields settings that are appropriate for coupling to an
@@ -62,46 +62,45 @@
       Users should NOT EDIT this setting.</desc>
   </entry>
 
-  <entry id="MICOM_RIVER_NUTRIENTS">
+  <entry id="BLOM_RIVER_NUTRIENTS">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>TRUE</default_value>
-    <group>run_component_micom</group>
+    <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Optional input of riverine nutrients. Requires module ecosys</desc>
   </entry>
 
-  <entry id="MICOM_N_DEPOSITION">
+  <entry id="BLOM_N_DEPOSITION">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>TRUE</default_value>
-    <group>run_component_micom</group>
+    <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Optional nitrogen deposition. Requires module ecosys</desc>
   </entry>
 
-  <entry id="MICOM_N_DEP_FILE">
+  <entry id="BLOM_NDEP_SCENARIO">
     <type>char</type>
-    <valid_values>ndep_CMIP6_1850.nc,ndep_tnx2v1_185001-201412.nc,ndep_tnx1v4_185001-201412.nc,ndep_tnx0.25v4_185001-201412.nc,ndep_tnx1v4_201501-210012-ssp119.nc,ndep_tnx1v4_201501-210012-ssp126.nc,ndep_tnx1v4_201501-210012-ssp245.nc,ndep_tnx1v4_201501-210012-ssp370.nc,ndep_tnx1v4_201501-210012-ssp434.nc,ndep_tnx1v4_201501-210012-ssp460.nc,ndep_tnx1v4_201501-210012-ssp534os.nc,ndep_tnx1v4_201501-210012-ssp585.nc,UNSET</valid_values>
-    <default_value>ndep_CMIP6_1850.nc</default_value>
+    <valid_values>UNSET,1850,hist,ssp119,ssp126,ssp245,ssp370,ssp434,ssp460,ssp534os,ssp585</valid_values>
+    <default_value>1850</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO"     grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO"     grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
-      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx2v1">ndep_tnx2v1_185001-201412.nc</value>
-      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx1v4">ndep_tnx1v4_185001-201412.nc</value>
-      <value compset="20TR_DATM.*_MICOM%ECO"             grid="tnx0.25v4">ndep_tnx0.25v4_185001-201412.nc</value>
-      <value compset="SSP119_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp119.nc</value>
-      <value compset="SSP126_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp126.nc</value>
-      <value compset="SSP245_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp245.nc</value>
-      <value compset="SSP370_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp370.nc</value>
-      <value compset="SSP434_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp434.nc</value>
-      <value compset="SSP460_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp460.nc</value>
-      <value compset="SSP534OS_CAM60%NORESM.*_MICOM%ECO" grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp534os.nc</value>
-      <value compset="SSP585_CAM60%NORESM.*_MICOM%ECO"   grid="tnx1v4">ndep_tnx1v4_201501-210012-ssp585.nc</value>
+      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO"    >hist</value>
+      <value compset="20TR_DATM.*_BLOM%ECO"            >hist</value>
+      <value compset="SSP119_CAM60%NORESM.*_BLOM%ECO"  >ssp119</value>
+      <value compset="SSP126_CAM60%NORESM.*_BLOM%ECO"  >ssp126</value>
+      <value compset="SSP245_CAM60%NORESM.*_BLOM%ECO"  >ssp245</value>
+      <value compset="SSP370_CAM60%NORESM.*_BLOM%ECO"  >ssp370</value>
+      <value compset="SSP370LOWNTCF_CAM60%NORESM.*_BLOM%ECO"      >ssp370</value>
+      <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
+      <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
+      <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
+      <value compset="SSP534OS_CAM60%NORESM.*_BLOM%ECO">ssp534os</value>
+      <value compset="SSP585_CAM60%NORESM.*_BLOM%ECO"  >ssp585</value>
      </values>
-    <group>run_component_micom</group>
+    <group>run_component_blom</group>
     <file>env_run.xml</file>
-    <desc>File name for nitrogen deposition data. Requires module ecosys</desc>
+    <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
   </entry>
 
   <entry id="HAMOCC_CFC">
@@ -109,10 +108,10 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_MICOM%ECO">TRUE</value>
+      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
+      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
     </values>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate CFC code. Requires module ecosys</desc>
   </entry>
@@ -122,10 +121,10 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-      <value compset="HIST_CAM60%NORESM.*_MICOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_MICOM%ECO">TRUE</value>
+      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
+      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
     </values>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate natural tracer code. Requires module ecosys</desc>
   </entry>
@@ -134,7 +133,7 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
   </entry>
@@ -143,28 +142,28 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
 
-  <entry id="MICOM_TURBULENT_CLOSURE">
+  <entry id="BLOM_TURBULENT_CLOSURE">
     <type>char</type>
     <valid_values></valid_values>
     <default_value>oneeq advection</default_value>
-    <group>build_component_micom</group>
+    <group>build_component_blom</group>
     <file>env_build.xml</file>
     <desc>Optional turbulent closure.  Valid values one of: twoeq oneeq. Additional values: advection isodif</desc>
   </entry>
 
   <description>
-    <desc compset="_MICOM"    >MICOM default:</desc>
-    <desc compset="_MICOM%ECO">MICOM/Ecosystem:</desc>
+    <desc compset="_BLOM"    >BLOM default:</desc>
+    <desc compset="_BLOM%ECO">BLOM/Ecosystem:</desc>
   </description>
 
   <help>
     =========================================
-    MICOM naming conventions
+    BLOM naming conventions
     =========================================
   </help>
 

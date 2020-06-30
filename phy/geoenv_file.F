@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2015-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine geoenv_file
 c
 c --- ------------------------------------------------------------------
@@ -28,19 +47,17 @@ c
       namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth
 c
 c --- ------------------------------------------------------------------
-c --- read grid information from grid.nc
+c --- read grid information from grid file
 c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
-        write (lp,'(2a)') ' reading grid information from ',
-     .                    path(1:path_len)//'grid.nc'
+        write (lp,'(2a)') ' reading grid information from ',trim(grfile)
         call flush(lp)
 c
 c --- - open netcdf file
-        status=nf90_open(path(1:path_len)//'grid.nc',nf90_nowrite,
-     .                   ncid)
+        status=nf90_open(grfile,nf90_nowrite,ncid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_open: grid.nc: ',
+          write(lp,'(4a)') ' nf90_open: ',trim(grfile),': ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -49,32 +66,32 @@ c
 c --- - check dimensions
         status=nf90_inq_dimid(ncid,'x',dimid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_dimid: x: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_dimid: x: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_inquire_dimension(ncid,dimid,len=i)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inquire_dimension: x: ',
-     .                      nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inquire_dimension: x: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_inq_dimid(ncid,'y',dimid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_dimid: y: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_dimid: y: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_inquire_dimension(ncid,dimid,len=j)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inquire_dimension: y: ',
+          write(lp,'(2a)') ' nf90_inquire_dimension: y: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         if (i.ne.itdm.or.j.ne.jtdm) then
-          write (lp,*) 'wrong dimensions in grid.nc'
+          write (lp,'(2a)') ' wrong dimensions in ',trim(grfile)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -82,14 +99,14 @@ c
 c --- - read bathymetry
         status=nf90_inq_varid(ncid,'pdepth',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: pdepth: ',
+          write(lp,'(2a)') ' nf90_inq_varid: pdepth: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: pdepth: ',
+          write(lp,'(2a)') ' nf90_get_var: pdepth: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -111,14 +128,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qlon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qlon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: qlon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: qlon: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: qlon: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -128,14 +145,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qlat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qlat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: qlat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: qlat: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: qlat: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -145,14 +162,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'plon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: plon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: plon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: plon: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: plon: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -162,14 +179,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'plat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: plat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: plat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: plat: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: plat: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -179,14 +196,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'ulon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: ulon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: ulon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: ulon: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: ulon: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -196,14 +213,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'ulat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: ulat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: ulat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: ulat: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: ulat: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -213,14 +230,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vlon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vlon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: vlon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: vlon: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: vlon: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -230,14 +247,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vlat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vlat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: vlat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: vlat: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: vlat: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -253,7 +270,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qclon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qclon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: qclon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -264,7 +281,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: qclon: ',
+            write(lp,'(2a)') ' nf90_get_var: qclon: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -276,7 +293,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qclat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qclat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: qclat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -287,7 +304,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: qclat: ',
+            write(lp,'(2a)') ' nf90_get_var: qclat: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -299,7 +316,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'pclon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: pclon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: pclon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -310,7 +327,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: pclon: ',
+            write(lp,'(2a)') ' nf90_get_var: pclon: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -322,7 +339,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'pclat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: pclat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: pclat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -333,7 +350,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: pclat: ',
+            write(lp,'(2a)') ' nf90_get_var: pclat: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -345,7 +362,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'uclon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: uclon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: uclon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -356,7 +373,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: uclon: ',
+            write(lp,'(2a)') ' nf90_get_var: uclon: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -368,7 +385,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'uclat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: uclat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: uclat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -379,7 +396,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: uclat: ',
+            write(lp,'(2a)') ' nf90_get_var: uclat: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -391,7 +408,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vclon',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vclon: ',
+          write(lp,'(2a)') ' nf90_inq_varid: vclon: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -402,7 +419,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: vclon: ',
+            write(lp,'(2a)') ' nf90_get_var: vclon: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -414,7 +431,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vclat',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vclat: ',
+          write(lp,'(2a)') ' nf90_inq_varid: vclat: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -425,7 +442,7 @@ c
           start(3)=k
           status=nf90_get_var(ncid,varid,tmpg,start,count)
           if (status.ne.nf90_noerr) then
-            write(lp,'(2a)') 'nf90_get_var: vclat: ',
+            write(lp,'(2a)') ' nf90_get_var: vclat: ',
      .                       nf90_strerror(status)
             call xchalt('(geoenv_file)')
                    stop '(geoenv_file)'
@@ -439,13 +456,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qdx',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: qdx: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: qdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: qdx: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -455,13 +473,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qdy',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: qdy: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: qdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: qdy: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -471,13 +490,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'pdx',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: pdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: pdx: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: pdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: pdx: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -487,13 +507,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'pdy',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: pdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: pdy: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: pdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: pdy: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -503,13 +524,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'udx',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: udx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: udx: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: udx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: udx: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -519,13 +541,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'udy',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: udy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: udy: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: udy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: udy: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -535,13 +558,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vdx',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: vdx: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: vdx: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: vdx: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -551,13 +575,14 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'vdy',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: vdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_inq_varid: vdy: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: vdy: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: vdy: ',nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -567,14 +592,15 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'qarea',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: qarea: ',
+          write(lp,'(2a)') ' nf90_inq_varid: qarea: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: qarea: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: qarea: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -584,14 +610,15 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'parea',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: parea: ',
+          write(lp,'(2a)') ' nf90_inq_varid: parea: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: parea: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: parea: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -601,14 +628,15 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'uarea',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: uarea: ',
+          write(lp,'(2a)') ' nf90_inq_varid: uarea: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: uarea: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: uarea: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -618,14 +646,15 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'varea',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: varea: ',
+          write(lp,'(2a)') ' nf90_inq_varid: varea: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: varea: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: varea: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -635,7 +664,7 @@ c
       if (mnproc.eq.1) then
         status=nf90_inq_varid(ncid,'angle',varid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_inq_varid: angle: ',
+          write(lp,'(2a)') ' nf90_inq_varid: angle: ',
      .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
@@ -644,7 +673,8 @@ c
       if (mnproc.eq.1) then
         status=nf90_get_var(ncid,varid,tmpg)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_get_var: angle: ',nf90_strerror(status)
+          write(lp,'(2a)') ' nf90_get_var: angle: ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -656,7 +686,8 @@ c
       if (mnproc.eq.1) then
         status=nf90_close(ncid)
         if (status.ne.nf90_noerr) then
-          write(lp,'(2a)') 'nf90_close: grid.nc: ',nf90_strerror(status)
+          write(lp,'(4a)') ' nf90_close: ',trim(grfile),': ',
+     .                     nf90_strerror(status)
           call xchalt('(geoenv_file)')
                  stop '(geoenv_file)'
         endif
@@ -734,12 +765,12 @@ c
             i=cwmi(l)-i0
             j=cwmj(l)-j0
             if (cwmedg(l).eq.'u') then
-              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+              write (lp,*) 'blom: geoenv_file: ',trim(cwmtag(l)),
      .                     i+i0,j+j0,'scuy:',scuy(i,j),'->',cwmwth(l)
               scu2(i,j) = scu2(i,j)*cwmwth(l)/scuy(i,j)
               scuy(i,j) = cwmwth(l)
             else
-              write (lp,*) 'micom: geoenv_file: ',trim(cwmtag(l)),
+              write (lp,*) 'blom: geoenv_file: ',trim(cwmtag(l)),
      .                     i+i0,j+j0,'scvx:',scvx(i,j),'->',cwmwth(l)
               scv2(i,j) = scv2(i,j)*cwmwth(l)/scvx(i,j)
               scvx(i,j) = cwmwth(l)

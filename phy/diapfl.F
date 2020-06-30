@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2009-2020 Mats Bentsen, Mehmet Ilicak
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine diapfl(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
@@ -31,7 +50,8 @@ c ---            scale bottom boundary layer mixing [cm/s]
       parameter (dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,
      .           kappa=.4,ustmin=.01)
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fpug,fplg
+      real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
+     .  fpug=spval,fplg=spval
       real, dimension(kdm) ::
      .  ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,dsgl,dsghm,dsg,
      .  dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc
@@ -283,7 +303,7 @@ c --- ------- fluid domain.
                 enddo
                 if (niter.eq.100) then
                   write (lp,*)
-     .              'micom: diapfl: no convergence in flux limit!',
+     .              'blom: diapfl: no convergence in flux limit!',
      .              i+i0,j+j0
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
@@ -488,7 +508,7 @@ c --- --------- iteration.
                 if (maxdf.le.dflim) exit
                 if (niter.eq.100) then
                   write (lp,*)
-     .          'micom: diapfl: no convergence in implicit diffusion!',
+     .          'blom: diapfl: no convergence in implicit diffusion!',
      .          i+i0,j+j0,maxdf,dflim
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl

@@ -1,10 +1,23 @@
-      SUBROUTINE DIPOWA(kpie,kpje,kpke,omask)
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-!
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/dipowa.f90,v $\\
-!$Revision: 1.2.20.1.2.1 $\\
-!$Date: 2006/04/03 11:27:49 $\\
-!
+
+      SUBROUTINE DIPOWA(kpie,kpje,kpke,omask)
 !****************************************************************
 !
 !**** *DIPOWA* - 'diffusion of pore water'
@@ -47,6 +60,7 @@
       USE mo_biomod
       use mo_param1_bgc 
       USE mo_control_bgc
+      use mo_vgrid, only: kbo,bolay
 
       implicit none
 

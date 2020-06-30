@@ -1,3 +1,24 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2000 HYCOM Consortium and contributors
+! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad, Ingo Bethke,
+!                         Mehmet Ilicak, Alok Kumar Gupta
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
 c --- ------------------------------------------------------------------
 c --- common blocks related to the dynamic/thermodynamic core
 c --- ------------------------------------------------------------------
@@ -31,9 +52,9 @@ c
      .  betafp,        ! latitudinal variation of the coriolis param. at p-point
      .  potvor         ! potential vorticity
 c
-      common /micom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
-     .                p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
-     .                corioq,coriop,betafp,potvor
+      common /blom1/ u,v,dp,dpold,dpu,dpv,temp,saln,sigma,absvor,dpvor,
+     .               p,pu,pv,phi,sigmar,temmin,dpuold,dpvold,told,sold,
+     .               corioq,coriop,betafp,potvor
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  uflx,vflx,     ! horizontal mass fluxes
@@ -72,13 +93,13 @@ c
      .  uflux2,vflux2, ! more mass fluxes
      .  uflux3,vflux3  ! more mass fluxes
 c
-      common /micom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,umfltd,vmfltd,
-     .                utfltd,vtfltd,utflld,vtflld,usfltd,vsfltd,usflld,
-     .                vsflld,ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,
-     .                ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,
-     .                pvtrop,pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,
-     .                vbcors_p,defor1,defor2,utotm,vtotm,utotn,vtotn,
-     .                uflux,vflux,uflux2,vflux2,uflux3,vflux3
+      common /blom2/ uflx,vflx,utflx,vtflx,usflx,vsflx,umfltd,vmfltd,
+     .               utfltd,vtfltd,utflld,vtflld,usfltd,vsfltd,usflld,
+     .               vsflld,ubflxs,vbflxs,pb,ubflx,vbflx,pb_mn,
+     .               ubflx_mn,vbflx_mn,pbu,pbv,ub,vb,ubflxs_p,vbflxs_p,
+     .               pvtrop,pb_p,pbu_p,pbv_p,pvtrop_o,ubcors_p,
+     .               vbcors_p,defor1,defor2,utotm,vtotm,utotn,vtotn,
+     .               uflux,vflux,uflux2,vflux2,uflux3,vflux3
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm) ::
      .  pgfx,pgfy      ! horizontal pressure gradient force
@@ -109,12 +130,12 @@ c
      .  umax,vmax,     ! maximum allowable velocities
      .  depths         ! water depth
 c
-      common /micom3/ pgfx,pgfy,pgfxo,pgfyo,pgfxm,pgfym,xixp,xixm,
-     .                xiyp,xiym,pgfxm_o,pgfym_o,xixp_o,xixm_o,
-     .                xiyp_o,xiym_o,util1,util2,util3,util4,scqx,scqy,
-     .                scpx,scpy,scux,scuy,scvx,scvy,scq2,scp2,scu2,scv2,
-     .                scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
-     .                depths
+      common /blom3/ pgfx,pgfy,pgfxo,pgfyo,pgfxm,pgfym,xixp,xixm,
+     .               xiyp,xiym,pgfxm_o,pgfym_o,xixp_o,xixm_o,
+     .               xiyp_o,xiym_o,util1,util2,util3,util4,scqx,scqy,
+     .               scpx,scpy,scux,scuy,scvx,scvy,scq2,scp2,scu2,scv2,
+     .               scq2i,scp2i,scuxi,scvyi,scuyi,scvxi,umax,vmax,
+     .               depths
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  bfsqi,         ! interface buoyancy frequency squared
@@ -163,13 +184,13 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) ::
      .  kfpla          ! index of first physical layer
 c
-      common /micom4/ bfsqi,bfsql,bfsqf,nslpx,nslpy,nnslpx,nnslpy,
-     .                difint,difiso,difdia,uml,vml,umlres,vmlres,
-     .                uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
-     .                surflx,surrlx,sswflx,salflx,brnflx,salrlx,
-     .                taux,tauy,ustar,ustarb,idkedt,ustar3,buoyfl,
-     .                mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
-     .                twedon,pbrnda,kfpla
+      common /blom4/ bfsqi,bfsql,bfsqf,nslpx,nslpy,nnslpx,nnslpy,
+     .               difint,difiso,difdia,uml,vml,umlres,vmlres,
+     .               uja,ujb,via,vib,difmxp,difmxq,difwgt,sealv,
+     .               surflx,surrlx,sswflx,salflx,brnflx,salrlx,
+     .               taux,tauy,ustar,ustarb,idkedt,ustar3,buoyfl,
+     .               mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
+     .               twedon,pbrnda,kfpla
 c
       real time,delt1,dlt,area,avgbot
       integer nstep,nstep0,nstep1,nstep2,lstep
@@ -250,7 +271,10 @@ c ---            to the horizontal grid spacing
 c --- 'mlrttp' = type of mixed layer restratification time scale
 c --- 'edsprs' = if set to .true,, apply eddy mixing suppression away
 c ---            from steering level
+c --- 'grfile' = name of file containing grid specification
 c --- 'icfile' = name of file containing initial conditions
+c --- 'tdfile' = name of file containing tidal wave energy dissipation
+c ---            divided by by bottom buoyancy frequency
 c
       real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
@@ -261,7 +285,7 @@ c
       logical csdiag,cnsvdi,edsprs
       character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
-      character*256 icfile
+      character*256 grfile,icfile,tdfile
 c
       common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
@@ -270,7 +294,7 @@ c
      .                egmxdf,egidfq,ri0,rm0,rm5,ce,bdmc1,bdmc2,tkepf,
      .                niwgf,niwbf,niwlf,bdmtyp,csdiag,cnsvdi,edsprs,
      .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
-     .                mlrttp,icfile
+     .                mlrttp,grfile,icfile,tdfile
 c
 c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
 c --- 'g'      = gravity acceleration
@@ -281,10 +305,10 @@ c --- 'alpha0' = reference value of specific volume (cm**3/g)
 c --- 'epsil'  = small nonzero number used to prevent division by zero
 c
       real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
-     .     epsil,huge,radian,pi
+     .     epsil,radian,pi
 c
       common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
-     .                alpha0,epsil,huge,radian,pi
+     .                alpha0,epsil,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c
@@ -292,14 +316,7 @@ c
 c
       common /testpt/ itest,jtest,ptest
 c
-      character*80 path
       character*256 runid
-      integer path_len,runid_len
+      integer runid_len
 c
-      common /iovars/ path,runid,path_len,runid_len
-c
-c
-c> Revision history:
-c>
-c-----------------------------------------------------------------------------
-c
+      common /iovars/ runid,runid_len

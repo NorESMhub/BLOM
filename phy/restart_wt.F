@@ -1,3 +1,23 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+!                         Ingo Bethke, Jerry Tjiputra
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       subroutine restart_wt
 c
 c --- ------------------------------------------------------------------
@@ -52,7 +72,7 @@ c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.micom.r.',nyear,'-',nmonth,'-',nday,
+     .    runid(1:runid_len),'.blom.r.',nyear,'-',nmonth,'-',nday,
      .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
@@ -659,10 +679,6 @@ c --- write accumulated fields
 c
       call ncfcls
 c
-#ifdef ICEDYN
-      call restart_icewt(time,rstfnm)
-#endif
-c
 #ifdef TRC
       call restart_trcwt(rstfnm)
 #endif
@@ -671,7 +687,7 @@ c
 c
 c --- - write diag. heat flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rtflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rtflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
         endif
@@ -708,7 +724,7 @@ c
 c
 c --- - write diag. salt flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.micom.rsflx.'//rstfnm(runid_len+10:)
+          fnm=runid(1:runid_len)//'.blom.rsflx.'//rstfnm(runid_len+10:)
         else
           fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
         endif

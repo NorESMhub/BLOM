@@ -1,0 +1,266 @@
+#!/bin/bash
+#
+# ------------------------------------------------------------------------------
+# Copyright (C) 2009-2020 Mats Bentsen
+#
+# This file is part of BLOM.
+#
+# BLOM is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------------
+#
+# The purpose of this script is to generate a BLOM module file,
+# dimensions.F, containing all dimension parameters and grid
+# partitioning information. The necessary information is taken from
+# patch.input files for the appropriate processor count.
+#
+set -e
+
+sn=`basename $0`
+usage="Usage: $sn -n pes [-k kdm] [-d directory] [-s]\nPurpose: write dimensions.F containing all dimension parameters and grid\npartitioning information for BLOM.\nOptions:\n -n pes\t\tnumber of processing elements.\n -k kdm\t\tvertical dimension (default kdm=1).\n -d directory\tdirectory to search for patch.input files (default\n\t\tcurrent working directory).\n -s\t\tdo not write dimensions.F."
+
+#
+# Get options
+#
+kdm=1
+patchdir=$PWD
+nowrite=0
+error=0
+while getopts ":n:k:d:s" opt; do
+  case $opt in
+    n) npes=$OPTARG;;
+    k) kdm=$OPTARG;;
+    d) patchdir=$OPTARG;;
+    s) nowrite=1;;
+    \?) echo "$sn: Invalid option: -$OPTARG" >&2
+        error=1;;
+    :) echo "$sn: Option -$OPTARG requires an argument." >&2
+       error=1;;
+  esac
+done
+if [[ -z $npes || $error -eq 1 ]]; then
+  echo -e "$usage" >&2
+  exit 1
+fi
+
+#
+# Check for availability of suitable patch.input file
+#
+if [ ! -d $patchdir ];  then
+  echo "$sn: Directory $patchdir for patch.input files does not exist!" >&2
+  exit 1
+fi
+if [ ! -e $patchdir/patch.input.$npes ];  then
+  echo "$sn: Cannot find patch.input file for $npes processors!" >&2
+  pil=($patchdir/patch.input.*)
+  if [ "${pil[0]##*.}" == "*" ]; then
+    echo "$sn: no patch.input files are available!" >&2
+  else
+    for ((i=0; i < "${#pil[@]}"; i++)); do
+      pil[i]=`tail -c11 <<< "000000000${pil[i]##*.}"`
+    done
+    pil=(`for ((i=0; i < "${#pil[@]}"; i++)); do echo ${pil[i]}; done | sort`)
+    echo "$sn: Available processor counts: ${pil[@]##*00000}" >&2
+  fi
+  exit 1
+fi
+
+#
+# Read all lines in the patch input file
+#
+l=0
+while read line[l]; do
+  l=$((l+1))
+done < $patchdir/patch.input.$npes
+
+#
+# Get various parameters
+#
+read npesfile npe mpe idm jdm ibig jbig nreg minsea maxsea avesea <<< ${line[1]}
+
+#
+# Check consistency of processor count in argument and patch.input file
+#
+if [[ npes -ne npesfile ]]; then
+  echo "$sn: Inconsistent processor count in argument ($npes) and patch.input file ($npesfile)." >&2
+  exit 1
+fi
+
+if [[ nowrite -eq 1 ]]; then
+  exit 0
+fi
+
+#
+# Get 1st dimension tile offsets and extents
+#
+l=3
+m=0
+i=0
+j=0
+while [ $m -lt $mpe ]; do
+  n=0
+  while [ $n -lt $npe ]; do
+    while read -d " " i0_pe[i]; do
+      i0_pe[i]=$((${i0_pe[i]}-1))
+      i=$((i+1))
+      n=$((n+1))
+    done <<< ${line[l]#*=}" "
+    l=$((l+1))
+  done
+  n=0
+  while [ $n -lt $npe ]; do
+    while read -d " " ii_pe[j]; do
+      j=$((j+1))
+      n=$((n+1))
+    done <<< ${line[l]#*=}" "
+    l=$((l+1))
+  done
+  m=$((m+1))
+done
+
+#
+# Get 2st dimension tile offsets and extents
+#
+l=$((l+1))
+m=0
+while [ $m -lt $mpe ]; do
+  while read -d " " j0_pe[m]; do
+    j0_pe[m]=$((${j0_pe[m]}-1))
+    m=$((m+1))
+  done <<< ${line[l]#*=}" "
+  l=$((l+1))
+done
+m=0
+while [ $m -lt $mpe ]; do
+  while read -d " " jj_pe[m]; do
+    m=$((m+1))
+  done <<< ${line[l]#*=}" "
+  l=$((l+1))
+done
+
+#
+# Create dimensions.F
+#
+cat <<EOF >dimensions.F
+      module dimensions
+c
+c --- itdm  = total grid dimension in i direction
+c --- jtdm  = total grid dimension in j direction
+c --- kdm   =       grid dimension in k direction
+      integer    itdm,jtdm,kdm
+      parameter (itdm=$idm,jtdm=$jdm,kdm=$kdm)
+c
+c --- ijqr  = total number of active tiles
+c --- iqr   = maximum number of tiles in i direction
+c --- jqr   = maximum number of tiles in j direction
+c --- idm   = maximum single tile grid dimension in i direction
+c --- jdm   = maximum single tile grid dimension in j direction
+      integer    ijqr,iqr,jqr,idm,jdm
+      parameter (ijqr=$npes,iqr=$npe,jqr=$mpe,idm=$ibig,jdm=$jbig)
+c
+c --- region type (nreg=-1: unknown,
+c ---              nreg= 0:   closed/closed,
+c ---              nreg= 1: periodic/closed,
+c ---              nreg= 2: periodic/arctic,
+c ---              nreg= 3: periodic/periodic
+c ---              nreg= 4:   closed/periodic)
+      integer    nreg
+      data nreg/$nreg/
+c
+c --- i0_pe = 1st dimension tile offsets
+c --- ii_pe = 1st dimension tile extents
+c --- j0_pe = 2nd dimension tile offsets
+c --- jj_pe = 2nd dimension tile extents
+      integer, dimension(iqr,jqr) :: i0_pe,ii_pe,j0_pe,jj_pe
+EOF
+
+echo -n "      data i0_pe/" >> dimensions.F
+P=72
+i=0
+while [ $i -lt $((npe*mpe)) ]; do
+  if [ $((P+${#i0_pe[i]}+1)) -gt 72 ]; then
+    echo -ne "\n     .  " >> dimensions.F
+    P=8
+  fi
+  echo -n "${i0_pe[i]}" >> dimensions.F
+  if [ $i -lt $((npe*mpe-1)) ]; then
+    echo -n "," >> dimensions.F
+  else
+    echo "/" >> dimensions.F
+  fi
+  P=$((P+${#i0_pe[i]}+1))
+  i=$((i+1))
+done
+
+echo -n "      data ii_pe/" >> dimensions.F
+P=72
+i=0
+while [ $i -lt $((npe*mpe)) ]; do
+  if [ $((P+${#ii_pe[i]}+1)) -gt 72 ]; then
+    echo -ne "\n     .  " >> dimensions.F
+    P=8
+  fi
+  echo -n "${ii_pe[i]}" >> dimensions.F
+  if [ $i -lt $((npe*mpe-1)) ]; then
+    echo -n "," >> dimensions.F
+  else
+    echo "/" >> dimensions.F
+  fi
+  P=$((P+${#ii_pe[i]}+1))
+  i=$((i+1))
+done
+
+echo -n "      data j0_pe/" >> dimensions.F
+P=72
+i=0
+while [ $i -lt $((npe*mpe)) ]; do
+  n=$((i/npe))
+  if [ $((P+${#j0_pe[n]}+1)) -gt 72 ]; then
+    echo -ne "\n     .  " >> dimensions.F
+    P=8
+  fi
+  echo -n "${j0_pe[n]}" >> dimensions.F
+  if [ $i -lt $((npe*mpe-1)) ]; then
+    echo -n "," >> dimensions.F
+  else
+    echo "/" >> dimensions.F
+  fi
+  P=$((P+${#j0_pe[n]}+1))
+  i=$((i+1))
+done
+
+echo -n "      data jj_pe/" >> dimensions.F
+P=72
+i=0
+while [ $i -lt $((npe*mpe)) ]; do
+  n=$((i/npe))
+  if [ $((P+${#jj_pe[n]}+1)) -gt 72 ]; then
+    echo -ne "\n     .  " >> dimensions.F
+    P=8
+  fi
+  echo -n "${jj_pe[n]}" >> dimensions.F
+  if [ $i -lt $((npe*mpe-1)) ]; then
+    echo -n "," >> dimensions.F
+  else
+    echo "/" >> dimensions.F
+  fi
+  P=$((P+${#jj_pe[n]}+1))
+  i=$((i+1))
+done
+
+cat <<EOF >>dimensions.F
+c
+      end module dimensions
+EOF
+
+exit 0

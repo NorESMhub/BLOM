@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2002-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       module mod_bulktf
 c
 c --- ------------------------------------------------------------------
@@ -136,7 +155,7 @@ c ---   ch     - sensible heat transfer coefficient
 c ---   ce     - latent heat transfer coefficient
 c ---   wg2    - gustiness squared [m^2/s^2]
 c
-      real du,zu,ta,zt,qa,zq,ts,qs,icec,tol,cd,ch,ce,wg2
+      real du,zu,ta,zt,qa,zq,ts,qs,icec,cd,ch,ce,wg2
 c
 c --- parameters:
 c ---   eps    - molecular weight ratio of dry air and water vapour

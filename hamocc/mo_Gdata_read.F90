@@ -1,3 +1,21 @@
+! Copyright (C) 2020  J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
 module mo_Gdata_read
 
 !********************************************************************************
@@ -54,13 +72,14 @@ module mo_Gdata_read
 
 use netcdf
 use mod_xc,         only: mnproc,xchalt
-use mo_control_bgc, only: io_stdo_bgc
+use mo_control_bgc, only: io_stdo_bgc,io_nml
 
 implicit none
 
 private
 
-public:: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds,fillval
+public :: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds,fillval
+public :: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
 
 ! Number of latitudes, longitudes, and z-levels in the WOA and GLODAP data
 integer, parameter          :: nlon   = 360
@@ -81,15 +100,27 @@ integer, parameter          :: dnmax = 100.0
 ! replaced by this fill value during read
 real,             parameter :: fillval = -1.e+32
 
+! Input file names (incl. full path) set through namelist
+character(len=256), save                    :: inidic  = ''
+character(len=256), save                    :: inialk  = ''
+character(len=256), save                    :: inipo4  = ''
+character(len=256), save                    :: inioxy  = ''
+character(len=256), save                    :: inino3  = ''
+character(len=256), save                    :: inisil  = ''
+character(len=256), save                    :: inid13c = ''
+character(len=256), save                    :: inid14c = ''
+character(len=256), save                    :: inic13 = ''   ! currently not used
+character(len=256), save                    :: inic14 = ''   ! currently not used
+
 ! Variables set by call to Gdata_set
-character(len=16)                     :: var,ncname
-character(len=3)                      :: dsrc
-character(len=256)                    :: file
-real                                  :: cfac, ddeg
-real, dimension(:),       allocatable :: lon,lat,zlev
-real, dimension(:,:),     allocatable :: zlev_bnds
-real, dimension(:, :, :), allocatable :: rvar,gdata
-integer                               :: nz
+integer, save                               :: nz
+real, save                                  :: cfac, ddeg
+real, save, dimension(:),       allocatable :: lon,lat,zlev
+real, save, dimension(:,:),     allocatable :: zlev_bnds
+real, save, dimension(:, :, :), allocatable :: rvar,gdata
+character(len=16),  save                    :: var,ncname
+character(len=3) ,  save                    :: dsrc
+character(len=256), save                    :: infile
 
 logical, save :: lset  = .false.
 
@@ -185,7 +216,7 @@ data  rg(10)%global            / .false.      /
 contains
 
 
-subroutine set_Gdata(path,vname,inddeg)
+subroutine set_Gdata(vname,inddeg)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -199,9 +230,6 @@ subroutine set_Gdata(path,vname,inddeg)
 !
 ! Arguments:
 ! ----------
-!  path:         path to the data directory; it is assumed that WOA and GLODAP
-!                data reside in subdirectories WOA_dir and GLP_dir (as
-!                defined in the header of this module) 
 !  vname:        data set name to read in; valid names are
 !                'pho' - WOA phosphate
 !                'nit' - WOA nitrate
@@ -216,7 +244,7 @@ subroutine set_Gdata(path,vname,inddeg)
 !  inddeg:       extent (in degrees) of region used for averaging
 !
 !--------------------------------------------------------------------------------
-character(len=*), intent(in) :: path,vname
+character(len=*), intent(in) :: vname
 real,             intent(in) :: inddeg
 
 ! Local variables
@@ -234,61 +262,61 @@ if( allocated(gdata)     ) deallocate( gdata )
 select case (vname)
 
 case ('pho') ! phosphate
-   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_phosphate_OMIPinit.nc'
+   infile = inipo4
    ncname = 'po4'
    dsrc   = 'WOA'
    cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('nit') ! nitrate
-   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_nitrate_OMIPinit.nc'
+   infile = inino3
    ncname = 'no3'
    dsrc   = 'WOA'
    cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('sil') ! silicate
-   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_silicate_OMIPinit.nc'
+   infile = inisil
    ncname = 'si'
    dsrc   = 'WOA'
    cfac   = 1.0e-6  ! data in mumol/L -> kmol/m3
 
 case ('oxy') ! oxygen
-   file   = trim(path)//'/OMIPBGC_INI/'//'woa13_oxygen_OMIPinit.nc'
+   infile = inioxy
    ncname = 'o2'
    dsrc   = 'WOA'
    cfac   = 44.661*1.0e-6  ! conversion ml/L -> mumol/L -> kmol/m3
 
 case ('alk') ! alkalinity
-   file   = trim(path)//'/OMIPBGC_INI/'//'glodapv2_At_OMIPinit.nc'
+   infile = inialk
    ncname = 'At'
    dsrc   = 'GLO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case ('dic') ! DIC
-   file   = trim(path)//'/OMIPBGC_INI/'//'glodapv2_Ct_preind_OMIPinit.nc'
+   infile   = inidic
    ncname = 'Ct_preind'
    dsrc   = 'GLO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case ('C13') ! natural 13C [micromoles/kg]
-   file   = trim(path)//'/C_Isotopes/'//'C13_micromol_per_kg.nc'
+   infile = inic13
    ncname = 'C13'
    dsrc   = 'ISO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case ('d13') ! natural delta13C [permil]
-   file   = trim(path)//'/C_Isotopes/'//'d13C_permil.nc'
+   infile = inid13c
    ncname = 'd13C'
    dsrc   = 'ISO'
    cfac   = 1.0
 
 case ('C14') ! natural 14C [micromoles/kg]
-   file   = trim(path)//'/C_Isotopes/'//'C14_micromol_per_kg.nc'
+   infile = inic14
    ncname = 'C14'
    dsrc   = 'ISO'
    cfac   = 1.0e-6  ! data in mumol/kg -> mol/kg
 
 case ('d14') ! natural delta14C [permil]
-   file   = trim(path)//'/C_Isotopes/'//'d14C_permil.nc'
+   infile = inid14c
    ncname = 'd14C'
    dsrc   = 'ISO'
    cfac   = 1.0
@@ -301,7 +329,7 @@ end select
 var  = vname
 ddeg = inddeg
 
-if(mnproc == 1) write(io_stdo_bgc,*) 'HAMOCC: initialising ', trim(vname)
+if(mnproc == 1) write(io_stdo_bgc,*) 'iHAMOCC: initialising ', trim(vname)
 
 call read_Gdata()
 
@@ -537,8 +565,8 @@ end select
 
 
 ! Open file
-if(mnproc == 1) write(io_stdo_bgc,*) 'Reading ', trim(file)
-status = nf90_open(file,nf90_nowrite,ncid); call ncerr(status)
+if(mnproc == 1) write(io_stdo_bgc,*) 'Reading ', trim(infile)
+status = nf90_open(infile,nf90_nowrite,ncid); call ncerr(status)
 
 
 ! Get dimensions
@@ -775,7 +803,7 @@ if( allocated(zlev_bnds)  ) deallocate( zlev_bnds  )
 if( allocated(rvar)       ) deallocate( rvar  ) 
 if( allocated(gdata)      ) deallocate( gdata ) 
 
-file   = ''
+infile = ''
 ncname = ''
 var    = ''
 dsrc   = ''

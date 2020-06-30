@@ -1,11 +1,26 @@
-      SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc, &
-#ifndef sedbypass
-     &                    sedlay2,powtra2,burial2,              &
-#endif
-     &                    kplyear,kplmon,kplday,kpldtoce,omask, &
-     &                    rstfnm_ocn)
+! Copyright (C) 2002  Ernst Maier-Reimer, S. Legutke, P. Wetzel
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
+!                     M. Bentsen
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-!****************************************************************
+
+      SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,               &
+                          kplyear,kplmon,kplday,omask,rstfnm_ocn)
+!******************************************************************************
 !
 !**** *AUFR_BGC* - reads marine bgc restart data.
 !
@@ -48,7 +63,10 @@
 !     - added sediment bypass preprocessor option
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-08-23
-!     - added reading of atmosphere field for BOXATM and DIFFAT
+!     - added reading of atmosphere field for BOXATM
+!
+!     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+!     - changed ocean model from MICOM to BLOM
 !
 !     Purpose
 !     -------
@@ -75,27 +93,24 @@
 !     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
 !     *REAL*    *trc*        - initial/restart tracer field to be passed to the 
 !                              ocean model [mol/kg]
-!     *REAL*    *sedlay2*    - initial/restart sediment (two time levels) field
-!     *REAL*    *powtra2*    - initial/restart pore water tracer (two time levels) field
-!     *REAL*    *sedhpl2*    - initial/restart pore water ph (two time levels) field
-!     *REAL*    *burial2*    - initial/restart sediment burial (two time levels) field
 !     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmon*     - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
-!     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
 !     *CHAR*    *rstfnm_ocn* - restart file name-informations
 !
 !
 !**************************************************************************
+      use mod_xc
+      use netcdf
       USE mo_carbch
       USE mo_biomod
       USE mo_control_bgc
-      use mo_param1_bgc 
-      USE mo_sedmnt, only:sedhpl
-      use mod_xc
-      use mod_dia, only : iotype
-      use netcdf
+      use mo_param1_bgc
+      use mo_vgrid,     only: kbo
+      USE mo_sedmnt,    only: sedhpl
+      use mod_dia,      only : iotype
+      use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
@@ -103,13 +118,8 @@
 #include <mpif.h>      
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-#ifndef sedbypass
-      REAL             :: sedlay2(kpie,kpje,2*ks,nsedtra)
-      REAL             :: powtra2(kpie,kpje,2*ks,npowtra)
-      REAL             :: burial2(kpie,kpje,2,   nsedtra)
-#endif
       REAL             :: omask(kpie,kpje)    
-      INTEGER          :: kplyear,kplmon,kplday,kpldtoce
+      INTEGER          :: kplyear,kplmon,kplday
       character(len=*) :: rstfnm_ocn
 
       ! Local variables
@@ -144,7 +154,8 @@
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
         i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
@@ -153,7 +164,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        else
+          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        endif
 
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
@@ -186,7 +201,8 @@
 #ifdef PNETCDF
         testio=1
         i=1
-        do while (rstfnm_ocn(i:i+8).ne.'.micom.r.')
+        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
             write (io_stdo_bgc,*)                                    &
@@ -195,7 +211,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        else
+          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
+        endif
         write(stripestr,('(i3)')) 16
         write(stripestr2,('(i9)')) 1024*1024
         call mpi_info_create(info,ierr)
@@ -327,7 +347,7 @@
 #endif
 
 ! Find out whether to restart atmosphere
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       lread_atm=.true.
       IF(IOTYPE==0) THEN
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'atmco2',ncvarid)
@@ -392,9 +412,6 @@
       CALL read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0,iotype)
 #endif /*AGG*/
-#ifdef ANTC14
-      CALL read_netcdf_var(ncid,'antc14',locetra(1,1,1,iantc14),2*kpke,0,iotype)
-#endif
 #ifdef CFC
       IF(lread_cfc) THEN
       CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
@@ -459,7 +476,7 @@
 !
 ! Read restart data: atmosphere
 !
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       IF(lread_atm) THEN
       CALL read_netcdf_var(ncid,'atmco2',atm2(1,1,1,iatmco2),2,0,iotype)
       CALL read_netcdf_var(ncid,'atmo2',atm2(1,1,1,iatmo2),2,0,iotype)
@@ -571,7 +588,7 @@
 
 ! return tracer fields to ocean model (both timelevels); No unit
 ! conversion here, since tracers in the restart file are in 
-! MICOM units (mol/kg) 
+! BLOM units (mol/kg) 
 !--------------------------------------------------------------------
 !
       trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)

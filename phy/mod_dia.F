@@ -1,3 +1,23 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2010-2020 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+!                         Alok Kumar Gupta, Jörg Schwinger
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       module mod_dia 
 c
       use mod_xc 
@@ -24,7 +44,7 @@ c --- Restart parameters
       integer, save :: rstcmp,rstfmt,iotype
       logical, save :: rstmon,rstann
 c
-c --- Copies of MICOM variables that are used for HAMOCC diagnostics
+c --- Copies of BLOM variables that are used for HAMOCC diagnostics
       real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  pbath,ubath,vbath 
       integer, save :: nstepinday 
@@ -36,7 +56,8 @@ c --- 2d and 3d diagnostic variables
 c
 c --- Levitus levels 
 #ifndef LEVITUS2X 
-      integer, parameter :: ddm=35,k350=12,w350=1.  
+      integer, parameter :: ddm=35,k350=12
+      real, parameter :: w350=1.
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0010.0,0020.0,0030.0,0050.0,0075.0,0100.0,0125.0,0150.0, 
      .  0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0, 
@@ -53,7 +74,8 @@ c --- Levitus levels
      .  2750.0,3250.0,3250.0,3750.0,3750.0,4250.0,4250.0,4750.0,4750.0,
      .  5250.0,5250.0,5750.0,5750.0,6250.0,6250.0,8000.0/),(/2,ddm/))
 #else 
-      integer, parameter :: ddm=70,k350=25,w350=0.5
+      integer, parameter :: ddm=70,k350=25
+      real, parameter :: w350=0.5
       real,  parameter, dimension(ddm) :: depthslev=(/
      .  0000.0,0005.0,0010.0,0015.0,0020.0,0025.0,0030.0,0040.0,0050.0, 
      .  0062.5,0075.0,0087.5,0100.0,0112.5,0125.0,0137.5,0150.0,0175.0, 
@@ -87,6 +109,7 @@ c --- Meridional overturning and flux diagnostics
       integer, parameter ::
      .  ldm=itdm+jtdm,sdm=ldm,odm=10,slenmax=50,rflgdm=20
       character(len=slenmax), save, dimension(odm) :: mer_regnam=''
+      character(len=256), save :: mer_orfile,mer_mifile
       integer, save, dimension(odm,rflgdm) :: mer_regflg=-1
       integer, save, dimension(odm) :: mer_nflg
       real, save, dimension(odm) :: mer_minlat=-90.,mer_maxlat=90.
@@ -99,6 +122,7 @@ c --- Meridional overturning and flux diagnostics
      .  mhflx,mhftd,mhfld,msflx,msftd,msfld
 c
 c --- Section transports 
+      character(len=256), save :: sec_sifile
       integer, save :: sec_num
       integer, parameter :: max_sec=400
       character(len=slenmax), save :: sec_name(max_sec)
@@ -183,8 +207,10 @@ c --- Namelist
      . ACC_UTILLVL  ,
      . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFTDD,ACC_MHFLX,ACC_MHFTD,
      . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR 
-      namelist /MERREG/
-     . MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
+      namelist /MERDIA/
+     . MER_ORFILE,MER_MIFILE,MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
+      namelist /SECDIA/
+     . SEC_SIFILE
       namelist /DIAPHY/
      . H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  ,
      . H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   ,
@@ -237,7 +263,7 @@ c ---   char runid     (in)    : acronym of simulation
 c ---   int  runid_len (in)    : actual length of runid 
 c ---   char expcnf    (in)    : experiment configuration
 c ---   char ctag      (in)    : string used in middle of file name 
-c ---   real time      (in)    : MICOM time step 
+c ---   real time      (in)    : BLOM time step 
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
@@ -292,15 +318,15 @@ c
           if (diagmon) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'.nc'
           elseif (diagann) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'.nc'
           else
             call pstdat(ny,nm,nd,nint(diagfq))
             write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
+     .        runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'-',nd,
      .        '.nc'
           endif
         else
@@ -319,7 +345,7 @@ c
      .          *diagfq/nstep_in_day*86400)
         if (expcnf.eq.'cesm') then
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'-',
+     .      runid(1:runid_len),'.blom.',ctag,'.',ny,'-',nm,'-',nd,'-',
      .      ns,'.nc'
         else
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
@@ -342,33 +368,31 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 c
-      integer :: i,j,k,l,n,istat,istatsum,i1,j1,ncid,rhid
+      integer i,j,l,n,istat,istatsum
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
-      logical fexist,lsigmar1
-      real, dimension (itdm,jtdm) :: tmp2d
+      logical fexist
 c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
-      inquire(file=path(1:path_len)//'ocean_regions.nc',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'ocean_regions.nc','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
-      endif
-      inquire(file=path(1:path_len)//'mertra_index.dat',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'mertra_index.dat','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
-      endif
-      inquire(file=path(1:path_len)//'section_index.dat',exist=fexist)
-      if (.not.fexist) then
-        write (lp,*) 'Could not find file ',
-     .                path(1:path_len)//'section_index.dat','!'
-        call xchalt('(diaini)')
-               stop '(diaini)'
+      if (mnproc.eq.1) then
+        inquire(file=mer_orfile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(mer_orfile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
+        inquire(file=mer_mifile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(mer_mifile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
+        inquire(file=sec_sifile,exist=fexist)
+        if (.not.fexist) then
+          write (lp,'(3a)') ' Could not find file ',trim(sec_sifile),'!'
+          call xchalt('(diaini)')
+                 stop '(diaini)'
+        endif
       endif
 c
       nphyh2d=0
@@ -854,7 +878,7 @@ c --- initialisation of h2h, lyr and lvl fields
       enddo
 c
 c --- Load bathymetry into module mod_dia (used for vertical 
-c --- interpolation in MICOM and HAMOCC)
+c --- interpolation in BLOM and HAMOCC)
       nstepinday=nstep_in_day
 c$OMP PARALLEL DO PRIVATE(l,i) 
       do j=1,jj+1
@@ -876,19 +900,37 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 c
-c --- Extract reference density and convert units g cm-3 -> kg m-3
-      sigmar1=-99.
+      end subroutine diaini
+
+
+      subroutine diasg1
+c
+c --- ------------------------------------------------------------------
+c --- Extract reference potential density vector representative of the
+c --- dominating ocean domain
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+#include "common_blocks.h"
+c
+      integer :: i,j,k,i1,j1
+      logical lsigmar1
+      real, dimension (itdm,jtdm) :: tmp2d
+c
+c$OMP PARALLEL DO PRIVATE(i)
+      do j=1,jj
+        do i=1,ii
+          util1(i,j)=real(ipwocn(i,j))
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+      call xcaget(tmp2d,util1,1)
       if (mnproc.eq.1) then
-        call ncerro(nf90_open(path(1:path_len)//'inicon.nc',
-     .    nf90_nowrite,ncid))
-        call ncerro(nf90_inq_varid(ncid,'sigma',rhid))
-c --- - Read surface density and find first ocean grid cell
-        call ncerro(nf90_get_var(ncid,rhid,tmp2d,start=(/1,1,1/),
-     .    count=(/itdm,jtdm,1/)))
         lsigmar1=.false.
         do j=1,jtdm
           do i=1,itdm
-            if (tmp2d(i,j).gt.0) then
+            if (tmp2d(i,j).gt.0.) then
               i1=i
               j1=j 
               lsigmar1=.true.
@@ -897,14 +939,18 @@ c --- - Read surface density and find first ocean grid cell
           enddo
           if (lsigmar1) exit
         enddo
-c --- - Read density vector and close ini-file
-        call ncerro(nf90_get_var(ncid,rhid,sigmar1,start=(/i1,j1,1/),
-     .    count=(/1,1,kk/)))
-        call ncerro(nf90_close(ncid))
+      endif
+      call xcbcst(i1)
+      call xcbcst(j1)
+      do k=1,kk
+        call xceget(sigmar1(k),sigmar(1-nbdy,1-nbdy,k),i1,j1)
+        sigmar1(k)=sigmar1(k)*1.e3 ! Convert units from g cm-3 to kg m-3
+      enddo
+      if (mnproc.eq.1) then
         write(lp,*) 'sigma layers=',sigmar1 
       endif
 c
-      end subroutine diaini
+      end subroutine diasg1
 
 
 
@@ -928,7 +974,7 @@ c
 #  include "common_trc.h"
 #endif
 c
-      integer d,i,j,k,l,km,kup,iogrp
+      integer i,j,k,l,km,kup,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
      .  ipsw,ipse,ipnw,ipne
 c     
@@ -3037,8 +3083,7 @@ c --- ------------------------------------------------------------------
       if (iniflg) then
         if (mnproc.eq.1) then
           equat_sec=-1
-          open(nfu,file=path(1:path_len)//'section_index.dat',
-     .         status='old')
+          open(nfu,file=sec_sifile,status='old')
           sec_num=0
           do
             read(nfu,'(a120)',iostat=iostatus) char120
@@ -3192,28 +3237,14 @@ c
 c
         if (mnproc.eq.1) then
 c
-c --- --- Read ocean masks from metraoceans.dat 
-          open(nfu,file=path(1:path_len)//'mertraoceans.dat',
-     .         status='old')
-          read(nfu,'(2i6)') i,j
-          if (i.ne.itdm.or.j.ne.jtdm) then
-            write(lp,*) 'wrong dimensions in mertraoceans.dat'
-            call xchalt('(diamer)')
-                   stop '(diamer)'
-          endif
-          write(c20,*) '(',jtdm,'i1)'
-          read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
-          close(nfu)
-c
 c --- --- Read ocean region flags from ocean_regions.nc
-          call ncerro(nf90_open(path(1:path_len)//'ocean_regions.nc',
-     .                          nf90_nowrite,ncid))
+          call ncerro(nf90_open(mer_orfile,nf90_nowrite,ncid))
           call ncerro(nf90_inq_dimid(ncid,'x',dimid))
           call ncerro(nf90_inquire_dimension(ncid,dimid,len=i))
           call ncerro(nf90_inq_dimid(ncid,'y',dimid))
           call ncerro(nf90_inquire_dimension(ncid,dimid,len=j))
           if (i.ne.itdm.or.j.ne.jtdm) then
-            write (lp,*) 'wrong dimensions in ocean_regions.nc'
+            write (lp,'(2a)') ' wrong dimensions in',trim(mer_orfile)
             call xchalt('(diamer)')
                    stop '(diamer)'
           endif
@@ -3224,8 +3255,7 @@ c --- --- Read ocean region flags from ocean_regions.nc
           call ncerro(nf90_close(ncid))
 c
 c --- --- Read section file metra_index.dat
-          open(nfu,file=path(1:path_len)//'mertra_index.dat',
-     .         status='old')
+          open(nfu,file=mer_mifile,status='old')
           lmax=0
           do l=1,ldm
             c20=' '
@@ -3236,7 +3266,7 @@ c --- --- Read section file metra_index.dat
               read(c20(9:15),'(f7.3)') mtlat(l)
               read(c20(16:20),'(i7)') nind1
             else
-              write(lp,*) 'problem in mertra_index.dat'
+              write(lp,'(2a)') ' problem in ',trim(mer_mifile)
               call xchalt('(diamer)')
                      stop '(diamer)'
             endif
@@ -3905,7 +3935,7 @@ c
 c
 #include "common_blocks.h"
 c
-      integer :: d,i,j,k,mm,nn,l,kl,m,km,kn,kml,k1m
+      integer :: d,i,j,k,mm,nn,l,kl,km,kn,kml,k1m
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)  :: ind1,ind2
 c 
       real :: r,dzeps,dpeps,flxeps
@@ -4178,13 +4208,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,l
+      integer :: i,j
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*iu(i,j)
@@ -4192,7 +4222,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*iv(i,j)
@@ -4200,7 +4230,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(i)
         do j=1-nbdy,jj+nbdy
           do i=1-nbdy,ii+nbdy
             phyh2d(i,j,pos)=inival*ip(i,j)
@@ -4238,13 +4268,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4254,7 +4284,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4264,7 +4294,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,kk 
             do i=1-nbdy,ii+nbdy
@@ -4306,13 +4336,13 @@ c
       real :: inival
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
 c
 c --- Check whether field should be initialised
       if (pos.eq.0) return
 c
       if (gridid(1:1).eq.'u') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -4322,7 +4352,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -4332,7 +4362,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
           do k=1,ddm
             do i=1-nbdy,ii+nbdy
@@ -4894,10 +4924,10 @@ c
       call inih2d(ACC_TBOT(iogrp),'p',0.)
       call inih2d(ACC_SIGMX(iogrp),'p',0.)
       call inih2d(ACC_MLD(iogrp),'p',0.)
-      call inih2d(ACC_MAXMLD(iogrp),'p',-huge)
+      call inih2d(ACC_MAXMLD(iogrp),'p',-spval)
       call inih2d(ACC_MLTS(iogrp),'p',0.)
-      call inih2d(ACC_MLTSMN(iogrp),'p', huge)
-      call inih2d(ACC_MLTSMX(iogrp),'p',-huge)
+      call inih2d(ACC_MLTSMN(iogrp),'p', spval)
+      call inih2d(ACC_MLTSMX(iogrp),'p',-spval)
       call inih2d(ACC_MLTSSQ(iogrp),'p',0.)
       call inih2d(ACC_T20D(iogrp),'p',0.)
       call inih2d(ACC_ALB(iogrp),'p',0.)
@@ -5191,7 +5221,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5279,7 +5309,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5367,7 +5397,7 @@ c
       implicit none
 c 
       real :: sfac,offs
-      integer :: frmt,cmpflg,pos,n
+      integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
       integer, dimension(*) :: msk
 c
@@ -5680,7 +5710,7 @@ c
       integer :: pos
       character :: gridid
 c 
-      integer :: i,j,k,l
+      integer :: i,j,k
       logical :: iniflg=.true.
       integer, dimension(idm,jdm) :: kmaxu,kmaxv,kmaxp
       real, parameter :: mskval=nf90_fill_double

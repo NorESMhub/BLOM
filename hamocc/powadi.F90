@@ -1,11 +1,23 @@
-      SUBROUTINE POWADI(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-!
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powadi.f90,v $\\
-!$Revision: 1.2 $\\
-!$Date: 2004/11/12 15:37:21 $\\
-!$Name:  $\\
-!
+
+      SUBROUTINE POWADI(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 !**********************************************************************
 !
 !**** *POWADI* - vertical diffusion with simultaneous dissolution.
@@ -48,8 +60,8 @@
       USE mo_sedmnt
       USE mo_biomod
       use mo_param1_bgc 
-
       USE mo_control_bgc
+      use mo_vgrid, only: bolay
 
       implicit none
 
@@ -82,10 +94,10 @@
               tredsy(i,k,2) = bolven(i)*bolay(i,j)                   &
      &                        -tredsy(i,k,1)-tredsy(i,k,3)
           ELSE
-	      tredsy(i,k,1) = 0
+              tredsy(i,k,1) = 0
               tredsy(i,k,3) = 0
               tredsy(i,k,2) = 0
-	  ENDIF
+          ENDIF
 	  
 1421  CONTINUE
 

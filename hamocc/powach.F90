@@ -1,11 +1,24 @@
-      SUBROUTINE POWACH(kpie,kpje,kpke,psao,prho,omask)
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
 !
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powach.f90,v $\\
-!$Revision: 1.2 $\\
-!$Date: 2004/11/12 15:37:21 $\\
-!$Name:  $\\
+! This file is part of BLOM/iHAMOCC.
 !
-!**********************************************************************
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
+      SUBROUTINE POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao)
+!******************************************************************************
 !
 !**** *POWACH* - .
 !
@@ -36,30 +49,33 @@
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *psao*    - salinity [psu].
+!     *INTEGER* *kbnd*    - nb of halo grid points
 !     *REAL*    *prho*    - seawater density [g/cm^3].
+!     *REAL*    *psao*    - salinity [psu].
+!     *REAL*    *omask*   - land/ocean mask
 !
 !     Externals
 !     ---------
 !     none.
 !
-!**********************************************************************
-
+!******************************************************************************
       USE mo_carbch
       USE mo_chemcon, only: calcon
       USE mo_sedmnt
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 
+      use mo_vgrid, only: kbo,bolay
 
       implicit none
 
-      INTEGER :: i,j,k,l
-      INTEGER :: kpie,kpje,kpke
-      REAL :: psao(kpie,kpje,kpke)
-      REAL :: prho(kpie,kpje,kpke)
-      REAL :: omask(kpie,kpje)
+      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
+      REAL,    intent(in) :: prho(kpie,kpje,kpke)
+      REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
+      ! Local variables
+      INTEGER :: i,j,k,l
       REAL :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
       REAL :: solrat(kpie,ks),powcar(kpie,ks)
       REAL :: aerob(kpie,ks),anaerob(kpie,ks)
@@ -72,7 +88,7 @@
       REAL :: K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
       REAL :: ah1,ac,cu,cb,cc,satlev
       REAL :: ratc13,ratc14,rato13,rato14,poso13,poso14
-! number of iterations for carchm_solve
+      ! number of iterations for carchm_solve
       INTEGER,PARAMETER :: niter=5
 ! *****************************************************************
 ! accelerated sediment
@@ -90,21 +106,21 @@
 !$OMP&        disso,dissot,undsa,silsat,posol,                   &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                 &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                &
-!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                      &     
+!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                     &     
 !$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14)
       DO 8888 j=1,kpje
 
       DO 1189 k=1,ks
       DO 1189 i=1,kpie
          solrat(i,k) =0.
-	 powcar(i,k) =0.
-	 anaerob(i,k)=0.
-	 aerob(i,k)  =0.	 
+         powcar(i,k) =0.
+         anaerob(i,k)=0.
+         aerob(i,k)  =0.
 #ifdef cisonew
-	 anaerob13(i,k)=0.
-	 aerob13(i,k)  =0.	 
-	 anaerob14(i,k)=0.
-	 aerob14(i,k)  =0.	 
+         anaerob13(i,k)=0.
+         aerob13(i,k)  =0.	 
+         anaerob14(i,k)=0.
+         aerob14(i,k)  =0.	 
 #endif
 
 1189  CONTINUE
@@ -391,7 +407,7 @@
       DO 1 i=1,kpie
 !ka         IF(bolay(i,j).GT.0.) THEN
          IF(omask(i,j).GT.0.5) THEN
-            saln= psao(i,j,kbo(i,j))
+            saln= min(40.,max( 0.,psao(i,j,kbo(i,j))))
             rrho= prho(i,j,kbo(i,j))
             alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.)  / rrho
             c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.) / rrho

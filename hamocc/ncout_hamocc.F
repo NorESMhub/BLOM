@@ -1,3 +1,21 @@
+! Copyright (C) 2020  I Bethke, J. Tjiputra, J. Schwinger, A. Moree, 
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
       subroutine ncwrt_bgc(iogrp)
 c
 c --- -------------------------------------------
@@ -5,14 +23,13 @@ c --- output routine for HAMOCC diagnostic fields
 c --- -------------------------------------------
 c
       use mod_xc
-      use mod_dia, only : diafnm,sigmar1,iotype
+      use mod_dia,        only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
-#ifdef cisonew
-      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000,c14fac
-#else
-      use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
-#endif
+      use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
+#ifdef cisonew
+      use mo_biomod, only: c14fac
+#endif
 c      
       implicit none
 c      
@@ -397,7 +414,7 @@ c --- Store 2d fields
 
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call wrtsrf(jatmo2(iogrp),SRF_ATMO2(iogrp),rnacc,0.,cmpflg,       
      .  'atmo2','Atmospheric O2',' ','ppm')
       call wrtsrf(jatmn2(iogrp),SRF_ATMN2(iogrp),rnacc,0.,cmpflg,       
@@ -748,7 +765,7 @@ c --- Initialise fields
 #endif
 
       call inisrf(jatmco2(iogrp),0.)        
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call inisrf(jatmo2(iogrp),0.)       
       call inisrf(jatmn2(iogrp),0.)    
 #endif   
@@ -1039,7 +1056,7 @@ c
 
       call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
      .  'atmco2','Atmospheric CO2',' ','ppm',0)
-#if defined(BOXATM) || defined(DIFFAT)
+#if defined(BOXATM)
       call ncdefvar3d(SRF_ATMO2(iogrp),cmpflg,'p',
      .  'atmo2','Atmospheric O2',' ','ppm',0)
       call ncdefvar3d(SRF_ATMN2(iogrp),cmpflg,'p',

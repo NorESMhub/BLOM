@@ -1,11 +1,23 @@
-      SUBROUTINE BODENSED(kpie,kpje,kpke,pddpo)
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  J. Schwinger
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-!
-!$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/bodensed.f90,v $\\
-!$Revision: 1.2 $\\
-!$Date: 2004/11/12 15:37:21 $\\
-!$Name:  $\\
-!
+
+      SUBROUTINE BODENSED(kpie,kpje,kpke,pddpo)
 !**********************************************************************
 !
 !**** *BODENSED* - .
@@ -20,16 +32,6 @@
 !     -------
 !     set up of sediment layer.
 !
-!     Method:
-!     ------
-!     -
-!
-!     *CALL*       *BODENSED
-!
-!     *PARAMETER*  *PARAM1.h*     - grid size parameters for ocean model.
-!     *COMMON*     *PARAM1_BGC.h* - declaration of ocean/sediment tracer.
-!     *COMMON*     *COMMO1_BGC.h* - ocean/sediment tracer arrays.
-!     *COMMON*     *UNITS_BGC.h*  - std I/O logical units.
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
@@ -38,15 +40,8 @@
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *dtbgc*     - ocean model time step [sec].
 !
-!     Externals
-!     ---------
-!     none.
 !**********************************************************************
-! evaluates the min depth of all layers, to be checked vs. sinking rate
-!   in routine BELEG_BGC, to assure that flux rate is < 1 per time step
-
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
@@ -57,9 +52,11 @@
 
       implicit none
 
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: sumsed
-      INTEGER :: kpie,kpje,kpke,i,j,k
+      INTEGER, intent(in) :: kpie,kpje,kpke
+      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+
+      INTEGER             :: i,j,k
+      REAL                :: sumsed
 
       dzs(1) = 0.001
       dzs(2) = 0.003
@@ -170,10 +167,6 @@
          solfu = solfu + seddw(k)*porsol(k)
       ENDDO
 
-! ******************************************************************
-! find lowest mass containing layer and its thickness
-
-      CALL calc_bot(kpie,kpje,kpke,pddpo)
 
       RETURN
       END

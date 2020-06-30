@@ -1,3 +1,22 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2002-2020 Mats Bentsen, Jerry Tjiputra
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
 c --- ------------------------------------------------------------------
 c --- common blocks related to the application forcing fields that is
 c --- shared among the various sources of forcing
@@ -46,14 +65,14 @@ c
 c --- flag for sending precipitation/runoff factor to CESM coupler
       logical sprfac
 c
-c --- Source for monthly SSS climatological field
-      character*80 srxsrc
+c --- name of file containing monthly SSS climatology
+      character*256 scfile
 c
       common /frc1/ tflxap,sflxap,tflxdi,sflxdi,sstclm,ricclm,sssclm,
      .              nflxdi,trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
      .              xmi,l1mi,l2mi,l3mi,l4mi,l5mi,
      .              aptflx,apsflx,ditflx,disflx,srxbal,smtfrc,sprfac,
-     .              srxsrc
+     .              scfile
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
 c

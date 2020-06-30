@@ -1,8 +1,27 @@
-      SUBROUTINE OCPROD(kpie,kpje,kpke,ptho,pddpo,                     &
-     &                  pdlxp,pdlyp,ptiestu,ptiestw,kplmon,omask)
-!**********************************************************************
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, I. Kriest,
+!                     A. Moree, C. Heinze
 !
-!**** *OCPROD* - .
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
+
+      SUBROUTINE OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+!******************************************************************************
+!
+!  OCPROD - biological production, remineralization and particle sinking.
 !
 !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
 !
@@ -37,6 +56,10 @@
 !       related code-restructuring
 !     - added sediment bypass preprocessor option and related code
 !
+!     J.Schwinger,      *NORCE Climate, Bergen*   2020-05-29
+!     - Cleaned up parameter list
+!     - Dust deposition field now passed as an argument
+! 
 !     Purpose
 !     -------
 !     compute biological production, settling of debris, and related 
@@ -44,43 +67,41 @@
 !
 !
 !
-!**** Parameter list:
+!     Parameter list:
 !     ---------------
-!
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *ptho*    - potential temperature [deg C].
-!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *INTEGER* *kbnd*    - nb of halo grid points
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *ptiestu* - depth of layer centres
-!     *REAL*    *ptiestw* - depth of layer interfaces (upper boundary)
-!     *INTEGER* *kplmon*  - number of current month
-!     *REAL*    *omask*   - land/ocean mask
+!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *REAL*    *omask*   - land/ocean mask (1=ocean)
+!     *REAL*    *dust*    - dust deposition flux [kg/m2/month].
+!     *REAL*    *ptho*    - potential temperature [deg C].
 !
-!**********************************************************************
-
+!******************************************************************************
       USE mo_carbch
       USE mo_sedmnt
       USE mo_biomod
       use mo_param1_bgc 
       USE mo_control_bgc
+      use mo_vgrid
 
       implicit none
 
-      INTEGER :: kplmon,kpie,kpje,kpke
-      REAL :: ptho (kpie,kpje,kpke)
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-      REAL :: ptiestu(kpie,kpje,kpke+1)
-      REAL :: ptiestw(kpie,kpje,kpke+1)
-      REAL :: abs_bgc(kpie,kpje,kpke)
-      REAL :: omask(kpie,kpje)
-      
+      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
+      REAL,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+      REAL,    intent(in) :: omask(kpie,kpje)
+      REAL,    intent(in) :: dust(kpie,kpje)
+      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+
+      ! Local varaibles      
       INTEGER :: i,j,k,l
       INTEGER :: is,kdonor
       INTEGER, PARAMETER :: nsinkmax=12
+      REAL :: abs_bgc(kpie,kpje,kpke)
       REAL :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
       REAL :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
       REAL :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,          &
@@ -90,7 +111,7 @@
      &        docrem, opalrem, remin2o, aou,refra,pocrem,phyrem
       
       REAL :: zoothresh,phythresh
-      REAL :: temfa,phofa                  ! temperature and irradiation factor for photosynthesis
+      REAL :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
       REAL :: dustinp
       REAL :: absorption
       REAL :: dmsprod,dms_bac,dms_uv 
@@ -185,10 +206,6 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif   
 
-! Calculate bottommost layer in the euphotic zone (kwrbioz)
-
-      call calc_idepth(kpie,kpje,kpke,pddpo,ptiestw)
-
 
 ! Calculate swr absorption by water and phytoplankton
 
@@ -244,7 +261,7 @@
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
-          dustinp=dusty(i,j,kplmon)/30.*dtb/pddpo(i,j,1)
+          dustinp=dust(i,j)/30.*dtb/pddpo(i,j,1)
           ocetra(i,j,1,ifdust)=ocetra(i,j,1,ifdust)+dustinp 
           ocetra(i,j,1,iiron)=ocetra(i,j,1,iiron)+dustinp*perc_diron 
         endif      
@@ -252,21 +269,18 @@
       enddo
 !$OMP END PARALLEL DO
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+        avphy,avgra,avsil,avanut,avanfe,pho,xa,xn,phosy
-!$OMP+       ,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor
-!$OMP+       ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod
-!$OMP+       ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz
+!$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
+!$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
+!$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
+!$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
 # ifdef cisonew
-!$OMP+       ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14
-!$OMP+       ,grazing13,grazing14,graton13,graton14
-!$OMP+       ,gratpoc13,gratpoc14,grawa13,grawa14
-!$OMP+       ,phosy13,phosy14,bacfra13,bacfra14
-!$OMP+       ,phymor13,phymor14,zoomor13,zoomor14
-!$OMP+       ,excdoc13,excdoc14,exud13,exud14,export13
-!$OMP+       ,export14,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14
+!$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
+!$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &  
+!$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
+!$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
+!$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
 # endif
-!$OMP+ )
+!$OMP  )
 
       DO 1 j=1,kpje
       DO 1 i=1,kpie
@@ -280,8 +294,9 @@
         avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/
 
-        phofa=pi_alpha*strahl(i,j)*abs_bgc(i,j,k) 
-        temfa= 0.6* 1.066**ptho(i,j,k)                 
+        temp=min(40.,max(-3.,ptho(i,j,k)))
+        phofa=pi_alpha*strahl(i,j)*abs_bgc(i,j,k)
+        temfa= 0.6* 1.066**temp
 !taylor:     temfa= 0.6*(1. + 0.0639*ptho(i,j,k) *               &
 !    &              (1. + 0.0639*ptho(i,j,k)/2. * (1. + 0.0639*ptho(i,j,k)/3.)))
         pho= dtb* phofa*temfa/sqrt(phofa**2 + temfa**2)     
@@ -384,8 +399,8 @@
 !        dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
         dms_ph  = 1. 
         dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
-     &           *(1.+1./(ptho(i,j,k)+dmsp1)**2)*dms_ph        
-        dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)      &
+     &           *(1.+1./(temp+dmsp1)**2)*dms_ph        
+        dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)      &
      &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
         dms_uv  = dmsp2*dtb*phofa/pi_alpha*ocetra(i,j,k,idms)
 
@@ -487,17 +502,14 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif 
 
-
-
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+        phythresh,zoothresh,sterph,sterzo,remin,opalrem,aou
-!$OMP+       ,refra,dms_bac,pocrem,docrem,phyrem,dz
+!$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
+!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
 # ifdef cisonew
-!$OMP+       ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14
-!$OMP+       ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14
-!$OMP+       ,docrem13,docrem14,phyrem13,phyrem14
+!$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
+!$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
+!$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
 # endif
-!$OMP+  )
+!$OMP  )
   
       DO 201 j=1,kpje
       DO 201 i=1,kpie
@@ -507,6 +519,7 @@
 #ifdef AGG
             avmass=ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
 #endif /*AGG*/	    
+            temp=min(40.,max(-3.,ptho(i,j,k)))
             phythresh=MAX(0.,(ocetra(i,j,k,iphy)-2.*phytomi))
             zoothresh=MAX(0.,(ocetra(i,j,k,izoo)-2.*grami))             
             sterph=0.5*dyphy*phythresh                                ! phytoplankton to detritus
@@ -526,8 +539,8 @@
             sterzo13=sterzo*rzoo13       
             sterzo14=sterzo*rzoo14
 #endif
-       	    ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-sterph
-       	    ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)-sterzo
+            ocetra(i,j,k,iphy)=ocetra(i,j,k,iphy)-sterph
+            ocetra(i,j,k,izoo)=ocetra(i,j,k,izoo)-sterzo
 #ifdef cisonew
        	    ocetra(i,j,k,iphy13)=ocetra(i,j,k,iphy13)-sterph13
        	    ocetra(i,j,k,iphy14)=ocetra(i,j,k,iphy14)-sterph14
@@ -595,7 +608,7 @@
 ! so the expression dremopal*(Si(OH)4sat-Si(OH)4) would change the 
 ! rate only from 0 to 100%     
 !***********************************************************************
-            opalrem=dremopal*0.1*(ptho(i,j,k)+3.)*ocetra(i,j,k,iopal)
+            opalrem=dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
             ocetra(i,j,k,iopal)=ocetra(i,j,k,iopal)-opalrem
             ocetra(i,j,k,isilica)=ocetra(i,j,k,isilica)+opalrem
 
@@ -605,7 +618,7 @@
 !***********************************************************************
             aou=satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
             refra=1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-            dms_bac = dmsp3*dtb*abs(ptho(i,j,k)+3.)*ocetra(i,j,k,idms)   &
+            dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)   &
      &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))     
             ocetra(i,j,k,ian2o)=ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
             ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
@@ -647,13 +660,11 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+   remin,remin2o,dz
+!$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
 #ifdef cisonew 
-!$OMP+  ,rem13,rem14
+!$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP+   ) 
+!$OMP  ) 
        DO 30 j=1,kpje
        DO 30 i=1,kpie
          DO 30 k=kwrbioz(i,j)+1,kpke
@@ -668,7 +679,7 @@
            remin=0.05*drempoc*MIN(ocetra(i,j,k,idet),                   &
      &                        0.5*ocetra(i,j,k,iano3)/rdnit1)
            remin2o=dremn2o*MIN(ocetra(i,j,k,idet),                      &
-     &	                 0.003*ocetra(i,j,k,ian2o)/rdn2o1)
+     &                   0.003*ocetra(i,j,k,ian2o)/rdn2o1)
 
 #ifdef cisonew
            rem13=(remin+remin2o)*ocetra(i,j,k,idet13)/(ocetra(i,j,k,idet)+safediv)
@@ -731,12 +742,11 @@
 !                      minimum in the equatorial pacific/atlantic
 !                      does it make sense to check for oxygen and nitrate deficit?
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+   remin
+!$OMP PARALLEL DO PRIVATE(remin                                       &
 #ifdef cisonew
-!$OMP+  ,rem13,rem14
+!$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP+   ) 
+!$OMP  ) 
       DO 301 j=1,kpje
       DO 301 i=1,kpie
         DO 301 k=kwrbioz(i,j)+1,kpke
@@ -962,7 +972,11 @@
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wnos,wnosd,dagg)
+!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
+#if defined(AGG)
+!$OMP ,wnos,wnosd,dagg                                                &
+#endif
+!$OMP )
       DO j=1,kpje
       DO i=1,kpie
 
@@ -1034,10 +1048,10 @@
             ENDIF
 
             ocetra(i,j,k,idet)  =(ocetra(i,j,k     ,idet)*pddpo(i,j,k)    &
-     &	                         +ocetra(i,j,kdonor,idet)*wpocd)/         &
+     &                           +ocetra(i,j,kdonor,idet)*wpocd)/         &
      &                           (pddpo(i,j,k)+wpoc)
             ocetra(i,j,k,icalc) =(ocetra(i,j,k     ,icalc)*pddpo(i,j,k)   &
-     &	                         +ocetra(i,j,kdonor,icalc)*wcald)/        &
+     &                           +ocetra(i,j,kdonor,icalc)*wcald)/        &
      &                           (pddpo(i,j,k)+wcal)
 #ifdef cisonew
             ocetra(i,j,k,idet13)  =(ocetra(i,j,k   ,idet13)*pddpo(i,j,k)  &
@@ -1059,10 +1073,10 @@
      &                           (pddpo(i,j,k)+wcal)
 #endif
             ocetra(i,j,k,iopal) =(ocetra(i,j,k     ,iopal)*pddpo(i,j,k)   &
-     &	                         +ocetra(i,j,kdonor,iopal)*wopald)/       &
+     &                           +ocetra(i,j,kdonor,iopal)*wopald)/       &
      &                           (pddpo(i,j,k)+wopal)        
             ocetra(i,j,k,ifdust)=(ocetra(i,j,k     ,ifdust)*pddpo(i,j,k)  &
-     &	                         +ocetra(i,j,kdonor,ifdust)*wdust)/       &
+     &                           +ocetra(i,j,kdonor,ifdust)*wdust)/       &
      &                           (pddpo(i,j,k)+wdust) - dagg        
 #ifdef AGG
             ocetra(i,j,k,iphy)  =(ocetra(i,j,k     ,iphy)*pddpo(i,j,k)    &

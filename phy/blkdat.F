@@ -1,6 +1,24 @@
+! ------------------------------------------------------------------------------
+! Copyright (C) 2000 HYCOM Consortium and contributors
+! Copyright (C) 2001-2020 Mats Bentsen
+!
+! This file is part of BLOM.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details.
+!
+! You should have received a copy of the GNU Lesser General Public License
+! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
+! ------------------------------------------------------------------------------
+
       block data blkdat
-c
-c --- NERSC version
 c
       use mod_xc
 c
@@ -46,17 +64,4 @@ c ---  s w i t c h e s    (if set to .true., then...)
 c
       data csdiag/.false./,cnsvdi/.true./
 c
-c --- use 'huge' to initialize array portions that the code should never access
-      data huge/1.e33/
-c
-c --- i/o file names
-c
-      data path /'./ '/
-c
       end
-c
-c
-c> Revision history:
-c>
-c> Mar. 1999 - made eqn-of-state coefficients conform to Brydon & Sun
-c> Oct. 2000 - changed units of -thkbot- from pressure units to meters
