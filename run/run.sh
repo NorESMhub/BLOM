@@ -1,43 +1,53 @@
-#!/bin/ksh
+#!/bin/bash
 set -ex
 
-EXPID=C05
-RUNDIR=/work/users/matsbn/MNP4/run/$EXPID
-CONFDIR=/home/nersc/matsbn/MNP4/Datain_sigma_2
-ATMDIR=/work/shared/nersc/gcr/NCEP
-CLIMDIR=$ATMDIR/clim
-EXEDIR=/home/nersc/matsbn/MNP4/Micom/$EXPID/build
-PARTDIR=/home/nersc/matsbn/MNP4/Partit
-SUBDIR=/home/nersc/matsbn/MNP4/Micom/$EXPID/run
-NPROC=231
+EXPID=BLOM_channel_10
+RUNDIR=/cluster/work/users/$USER/BLOM/run/$EXPID
+CONFDIR=$HOME/BLOM/BLOM_fork/BLOM/regions_and_indices
+#CONFDIR=/nird/home/$USER/MNP2/Datain_sigma_2_era
+#ATMDIR=/cluster/shared/noresm/micom/NCEP
+#ATMDIR=/cluster/shared/noresm/micom/ERA40
+#CLIMDIR=$ATMDIR/clim
+EXEDIR=$HOME/BLOM/BLOM_fork/BLOM/build
+SUBDIR=$HOME/BLOM/BLOM_fork/BLOM/run
+NTASKS=32
+NTHREADS=1
 
 #rm -rf $RUNDIR
 mkdir -p $RUNDIR
-lfs setstripe $RUNDIR 0 -1 -1
 cd $RUNDIR
-cp -u $CONFDIR/* .
-cp -u $ATMDIR/*.nc .
-cp -u $CLIMDIR/* .
+cp $CONFDIR/*.nc .
+cp $CONFDIR/*.dat .
+#cp $ATMDIR/*.nc .
+#cp $CLIMDIR/* .
 cp -u $SUBDIR/limits .
-cp $PARTDIR/patch.input.$NPROC patch.input
-cp -u $EXEDIR/micom .
+cp -u $EXEDIR/blom .
 
-  cat <<EOF >qsub.sh
-#!/bin/ksh 
+  cat <<EOF >batchscript.sh
+#!/bin/bash 
 #
 #  This script will launch micom
 #
-#PBS -A nn2345k
-#PBS -N micom.$EXPID
-#PBS -l mppwidth=$NPROC
-#PBS -l mppnppn=4
-#PBS -l walltime=06:00:00
-#PBS -j oe
+#SBATCH --account=nn1002k
+#SBATCH --job-name=BLOM.$EXPID
+#SBATCH --time=48:00:00
+#SBATCH --nodes=16
+#SBATCH --ntasks-per-node=$NTASKS
+#SBATCH --cpus-per-task=$NTHREADS
+
+export OMP_NUM_THREADS=$NTHREADS
+
+module purge --force
+module load StdEnv
+module load intel/2018a
+module load netCDF-Fortran/4.4.4-intel-2018a-HDF5-1.8.19
+module load PnetCDF/1.8.1-intel-2018a
+module list
 
 cd $RUNDIR
-aprun -n $NPROC -N 4 ./micom
+mpirun ./blom
 
 EOF
 
-chmod 755 qsub.sh
-qsub qsub.sh
+chmod 755 batchscript.sh
+sbatch batchscript.sh
