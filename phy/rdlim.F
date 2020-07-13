@@ -28,6 +28,7 @@ c
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
       use data_mct, only: runid_mct, ocn_cpl_dt_mct
+      use blom_instance, only: inst_suffix
 c
       implicit none
 c
@@ -53,9 +54,9 @@ c --- read namelists
       if (mnproc.eq.1) then
 c
         GLB_AVEPERIO=-999
-        inquire(file='ocn_in',exist=fexist)
+        inquire(file='ocn_in'// trim(inst_suffix) ,exist=fexist)
         if (fexist) then
-          open (unit=nfu,file='ocn_in',status='old',action='read',
+          open (unit=nfu,file='ocn_in'// trim(inst_suffix) ,status='old',action='read',
      .          recl=80)
         else
           inquire(file='limits',exist=fexist)
@@ -678,7 +679,7 @@ c --- --- 'rpointer.ocn' file containing the path to a valid restart
 c --- --- file is expected and integration time is retrieved from
 c --- --- restart file
 c
-          if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
+          if (mnproc.eq.1) inquire(file='rpointer.ocn'// trim(inst_suffix),exist=fexist)
           call xcbcst(fexist)
           if (.not.fexist) then
             if (mnproc.eq.1) then
@@ -688,7 +689,7 @@ c
                    stop '(rdlim)'
           endif
           if (mnproc.eq.1) then
-            open (unit=nfu,file='rpointer.ocn')
+            open (unit=nfu,file='rpointer.ocn'// trim(inst_suffix))
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
             inquire(file=rstfnm,exist=fexist)

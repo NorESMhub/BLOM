@@ -48,6 +48,7 @@ module ocn_comp_mct
    use blom_cpl_indices
    use data_mct, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
+   use blom_instance, only: blom_instance_init
 
    implicit none
 
@@ -108,6 +109,9 @@ module ocn_comp_mct
 
       ! Get file unit
       nfu = shr_file_getUnit()
+
+      ! multiple instance
+      call blom_instance_init(OCNID)
 
       ! ----------------------------------------------------------------
       ! Initialize the model run

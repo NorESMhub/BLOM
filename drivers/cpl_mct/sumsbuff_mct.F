@@ -84,6 +84,8 @@
             sbuff(i,j,index_o2x_So_dhdx) =
      .         sbuff(i,j,index_o2x_So_dhdx)
      .       + (sealv(i,j)-sealv(i-1,j))*scuxi(i,j)*baclin
+!         write(*,*)'sealv(i,j)',sealv(i,j),scuxi(i,j),u(i,j,k1n)
+!         write(*,*)'sealv(i,j)1',ubflxs(i,j,m),pbu(i,j,n),scuy(i,j)
          enddo
          enddo
       enddo

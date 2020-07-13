@@ -26,6 +26,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use netcdf
+      use blom_instance, only: inst_suffix
 c
       implicit none
 c
@@ -698,9 +699,9 @@ c --- Apply channel width modifications if specified in namelist
 c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
-        inquire(file='ocn_in',exist=fexist)
+        inquire(file='ocn_in'// trim(inst_suffix) ,exist=fexist)
         if (fexist) then
-          open (unit=nfu,file='ocn_in',status='old',action='read')
+          open (unit=nfu,file='ocn_in'// trim(inst_suffix) ,status='old',action='read')
         else
           inquire(file='limits',exist=fexist)
           if (fexist) then

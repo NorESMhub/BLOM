@@ -23,6 +23,7 @@
 
       use mod_xc
       use shr_file_mod, only: shr_file_getUnit, shr_file_setIO
+      use blom_instance, only: inst_suffix
 
       implicit none
 
@@ -32,10 +33,10 @@
       ! Redirect standard out to a log file if requested
       ! ----------------------------------------------------------------
       if (mnproc.eq.1) then
-         inquire(file = 'ocn_modelio.nml', exist = exists)
+         inquire(file = 'ocn_modelio.nml'// trim(inst_suffix), exist = exists)
          if (exists) then
             lp = shr_file_getUnit()
-            call shr_file_setIO('ocn_modelio.nml', lp)
+            call shr_file_setIO('ocn_modelio.nml'// trim(inst_suffix), lp)
          endif
       endif
 
