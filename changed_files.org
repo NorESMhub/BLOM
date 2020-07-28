@@ -1,0 +1,62 @@
+# List of files that have been changed in the sedimet code
+
+# Changed from BLOM/phy/ 
+| Legacy name       | New name        |
+|-------------------+-----------------|
+| clndr.F           |                 |
+| common_blocks.h90 | common_blocks.h |
+| common_clndr.h90  | common_clndr.h  |
+| micom_step.F      | blom_step.F     |
+| mod_dia.F         |                 |
+| rdlim.F           |                 |
+
+
+# Changed from BLOM/hamocc/
+| Legacy name          | New name         | Comment            |
+|----------------------+------------------+--------------------|
+| aufr_bgc.F90         |                  |                    |
+| aufw_bgc.F90         |                  |                    |
+| bodensed.F90         |                  |                    |
+| carchm.F90           |                  |                    |
+| common_bgcs.h90      | mo_intfcblom.F90 | replaced (a9d414b) |
+| cyano.F90            |                  |                    |
+| dipowa.F90           |                  |                    |
+| hamocc2micom.F       | hamocc2blom.F    |                    |
+| hamocc4bcm.F90       |                  |                    |
+| hamocc_init.F        |                  |                    |
+| hamocc_step.F        |                  |                    |
+| inibgc.F             | hamocc_ini.F     | merged (a9d414b)   |
+| ini_hamocc.F90       | hamocc_ini.F     | merged (a9d414b)   |
+| micom2hamocc.F       | blom2hamocc.F    |                    |
+| mo_Gdata_read.F90    |                  |                    |
+| mo_bgcmean.F90       |                  |                    |
+| mo_biomod.F90        |                  |                    |
+| mo_carbch.F90        |                  |                    |
+| mo_common_bgc.F90    | mo_intfcblom.F90 | replaced (a9d414b) |
+| mo_control_bgc.F90   |                  |                    |
+| mo_riverinpt.F90     |                  |                    |
+| mo_sedmnt.F90        |                  |                    |
+| ncout_hamocc.F       |                  |                    |
+| ocprod.F90           |                  |                    |
+| powach.F90           |                  |                    |
+| powadi.F90           |                  |                    |
+| profile_gd.F90       |                  |                    |
+| read_netcdf_var.F90  |                  |                    |
+| restart_hamoccrd.F   | hamocc_ini.F     | merged (a9d414b)   |
+| restart_hamoccwt.F   |                  |                    |
+| trc_limitc.F         |                  |                    |
+| write_netcdf_var.F90 |                  |                    |
+
+
+# Only in legacy
+| Legacy name           |
+|-----------------------|
+| aufr_bgc_onlysed.F90  |
+| aufw_bgc_onlysed.F90  |
+| mo_sedmnt_offline.F90 |
+| sediment_step.F90     |
+
+
+beleg_bgc.F90
+lmedsea.F90
+thermf_cesm.F
