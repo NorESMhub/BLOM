@@ -41,9 +41,13 @@ c --- daily average forcing fields
      .  atmco2_da,     ! atmospheric co2 concentration
      .  ficem_da       ! ice concentration
 c
+c --- number of baroclinic time steps in a coupling interval
+      integer nstep_in_cpl
+c
 c --- time level indices for CESM fields
       integer l1ci,l2ci
 c
       common /cesm/ swa_da,nsf_da,hmlt_da,lip_da,sop_da,eva_da,rnf_da,
      .              rfi_da,fmltfz_da,sfl_da,ztx_da,mty_da,ustarw_da,
-     .              slp_da,abswnd_da,atmco2_da,ficem_da,l1ci,l2ci
+     .              slp_da,abswnd_da,atmco2_da,ficem_da,nstep_in_cpl,
+     .              l1ci,l2ci
