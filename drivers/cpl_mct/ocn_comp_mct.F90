@@ -48,7 +48,7 @@ module ocn_comp_mct
    use blom_cpl_indices
    use data_mct, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
-   use blom_instance, only: blom_instance_init
+   use mod_instance, only: blom_instance_init
 
    implicit none
 

@@ -26,7 +26,6 @@ set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
-## for multiple instance
 set NINST_OCN = `./xmlquery NINST_OCN --value`
 cd $EXEROOT/ocn/obj
 set CONFIG_OCN_DIR = $CONFIG_OCN_DIR1/../
@@ -690,22 +689,21 @@ endif
 #------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------
-## multiple instance
 foreach mem ("`seq $NINST_OCN`")
-    if ( ${NINST_OCN} == '1' ) then
-        set inststr = ''
-    else
-        set inststr = ("`printf '_%4.4d' $mem`")
-    endif
+  if ( ${NINST_OCN} == '1' ) then
+    set inststr = ''
+  else
+    set inststr = ("`printf '_%4.4d' $mem`")
+  endif
 
-    # modify namelist variables as specified in user_nl_blom
-    foreach line ("`grep = $CASEROOT/user_nl_blom$inststr`")
-      if (`echo "$line" | tr -d ' ' | cut -c -1` != '#') then
-        set var = `echo "$line" | sed 's/=.*//' | tr '[a-z]' '[A-Z]'`
-        set val = `echo "$line" | sed 's/.*=//'`
-        eval 'set $var = "$val"'
-      endif
-    end
+  # modify namelist variables as specified in user_nl_blom
+  foreach line ("`grep = $CASEROOT/user_nl_blom$inststr`")
+    if (`echo "$line" | tr -d ' ' | cut -c -1` != '#') then
+    set var = `echo "$line" | sed 's/=.*//' | tr '[a-z]' '[A-Z]'`
+    set val = `echo "$line" | sed 's/.*=//'`
+    eval 'set $var = "$val"'
+    endif
+  end
 
 cat >! $RUNDIR/ocn_in$inststr << EOF
 ! LIMITS NAMELIST

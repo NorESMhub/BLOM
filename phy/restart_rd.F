@@ -30,7 +30,7 @@ c
      .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
      .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
       use mod_thdysi, only: tsrfm,ticem
-      use blom_instance, only: inst_suffix
+      use mod_instance, only: inst_suffix
 
 c
       implicit none
@@ -87,18 +87,18 @@ c
       elseif (expcnf.eq.'cesm') then
 c
 c --- - get restart file name from rpointer.ocn
-        if (mnproc.eq.1) inquire(file='rpointer.ocn'// trim(inst_suffix),exist=fexist)
+        if (mnproc.eq.1) inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
           if (mnproc.eq.1) then
-            open (unit=nfu,file='rpointer.ocn'// trim(inst_suffix))
+            open (unit=nfu,file='rpointer.ocn'//trim(inst_suffix))
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
           endif
           call xcbcst(rstfnm)
         else
           if (mnproc.eq.1) then
-            write (lp,*) 'restart_rd: could not find file rpointer.ocn'// trim(inst_suffix)//'!'
+            write (lp,*) 'restart_rd: could not find file rpointer.ocn'//trim(inst_suffix)//'!'
           endif
           call xcstop('(restart_rd)')
                  stop '(restart_rd)'

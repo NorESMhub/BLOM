@@ -25,7 +25,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use data_mct
-      use blom_instance, only: inst_suffix
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
@@ -41,7 +41,7 @@ c
       mpicom_external=mpi_comm_world
 #endif
 c
-      open (unit=nfu,file='ocn_in'// trim(inst_suffix),status='old',action='read')
+      open (unit=nfu,file='ocn_in'//trim(inst_suffix),status='old',action='read')
       read (nfu,'(i6)') i
       read (nfu,*)
       read (nfu,*)

@@ -23,7 +23,7 @@ c
       use mod_xc 
       use mod_nctools
       use netcdf, only : nf90_fill_double
-      use blom_instance, only: inst_suffix
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c

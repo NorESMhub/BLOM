@@ -53,7 +53,7 @@ c******************************************************************************
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2
-      use blom_instance, only: inst_suffix
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
@@ -98,7 +98,7 @@ c
 c
 c --- Read the HAMOCC BGCNML namelist.
 c
-      open (unit=io_nml,file='ocn_in'// trim(inst_suffix),status='old',action='read')
+      open (unit=io_nml,file='ocn_in'//trim(inst_suffix),status='old',action='read')
       read (unit=io_nml,nml=BGCNML)
       close (unit=io_nml)
       IF (mnproc.eq.1) THEN
