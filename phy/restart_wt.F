@@ -30,6 +30,7 @@ c
      .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
      .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
       use mod_thdysi, only: tsrfm,ticem
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
@@ -71,8 +72,8 @@ c
 c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.blom.r.',nyear,'-',nmonth,'-',nday,
+        write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    runid(1:runid_len),'.blom',trim(inst_suffix),'.r.',nyear,'-',nmonth,'-',nday,
      .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
@@ -761,7 +762,7 @@ c
 c
 c --- - write restart filename to rpointer.ocn
         if (mnproc.eq.1) then
-          open (unit=nfu,file='rpointer.ocn')
+          open (unit=nfu,file='rpointer.ocn'//trim(inst_suffix))
           write (nfu,'(a)') rstfnm
           close (unit=nfu)
         endif
