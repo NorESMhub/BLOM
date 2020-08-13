@@ -42,7 +42,7 @@ c
       real w1,w2
 c
       if (smtfrc) then
-        w1=.5*(1.+cos((mod(nstep-1,nstep_in_day)+1)*pi/nstep_in_day))
+        w1=.5*(1.+cos((mod(nstep-1,nstep_in_cpl)+1)*pi/nstep_in_cpl))
       else
         w1=0.
       endif

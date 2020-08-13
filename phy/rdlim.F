@@ -35,11 +35,12 @@ c
 #include "common_blocks.h"
 #include "common_clndr.h"
 #include "common_forc.h"
+#include "common_cesm.h"
 c
       integer :: m,n,nd0rst,nm0rst,ny0rst
       character*256 :: runtyp,rstfnm
       logical :: fexist
-      integer :: idate,idate0,nstep_in_cpl
+      integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
      .  grfile,icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,
      .  mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,
@@ -641,7 +642,7 @@ c --- - interval
         if (mod(ocn_cpl_dt_mct+epsil,baclin).gt.2.*epsil) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: must have an integer number of '//
-     .                   'baroclinic time steps pr. coupling'
+     .                   'baroclinic time steps in a coupling'
             write (lp,*) '       interval!'
           endif
           call xcstop('(rdlim)')
@@ -652,7 +653,7 @@ c --- - get time step and correct model date after first coupling
 c --- - interval
         nstep_in_cpl=nint(ocn_cpl_dt_mct/baclin)
         if (mnproc.eq.1) then
-          write (lp,*) 'rdlim: number of baroclinic time steps per '//
+          write (lp,*) 'rdlim: number of baroclinic time steps in a '//
      .                 'coupling interval:',nstep_in_cpl
         endif
         nstep0=0
