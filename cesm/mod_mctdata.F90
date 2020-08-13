@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2020 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,11 +17,19 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      module data_mct
+module mod_mctdata
+! ------------------------------------------------------------------------------
+! Data set by MCT to be used by BLOM.
+! ------------------------------------------------------------------------------
 
-      ! Data set by mct to be used by blom
+   implicit none
 
-      character (len=256), public :: runid_mct   ! case name
-      character (len=256), public :: runtype_mct ! run type
+   private
 
-      end module data_mct
+   character(len = 256) :: runid_mct   ! Case name.
+   character(len = 256) :: runtyp_mct  ! Run type.
+   integer :: ocn_cpl_dt_mct           ! Coupling frequency
+
+   public :: runid_mct, runtyp_mct, ocn_cpl_dt_mct
+
+end module mod_mctdata

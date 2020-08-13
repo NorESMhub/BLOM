@@ -1,6 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2020 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
-!                         Alok Kumar Gupta, Jörg Schwinger
+! Copyright (C) 2020 Ping-Gin Chiu and Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -20,32 +19,14 @@
 
 module mod_instance
 
-use seq_comm_mct, only: seq_comm_suffix, seq_comm_inst, seq_comm_name
+   implicit none
 
-implicit none
-private
-save
+   private
 
-public :: blom_instance_init
+   integer             :: inst_index  = 0
+   character(len = 16) :: inst_name   = ''
+   character(len = 16) :: inst_suffix = ''
 
-integer,           public :: ocn_id
-integer,           public :: inst_index
-character(len=16), public :: inst_name
-character(len=16), public :: inst_suffix
-
-!===============================================================================
-CONTAINS
-!===============================================================================
-
-subroutine blom_instance_init(in_ocn_id)
-
-   integer, intent(in) :: in_ocn_id
-
-   ocn_id      = in_ocn_id
-   inst_name   = seq_comm_name(ocn_id)
-   inst_index  = seq_comm_inst(ocn_id)
-   inst_suffix = seq_comm_suffix(ocn_id)
-
-end subroutine blom_instance_init
+   public :: inst_index, inst_name, inst_suffix
 
 end module mod_instance

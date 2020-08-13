@@ -87,7 +87,8 @@ c
       elseif (expcnf.eq.'cesm') then
 c
 c --- - get restart file name from rpointer.ocn
-        if (mnproc.eq.1) inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
+        if (mnproc.eq.1)
+     .    inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
           if (mnproc.eq.1) then
@@ -98,7 +99,9 @@ c --- - get restart file name from rpointer.ocn
           call xcbcst(rstfnm)
         else
           if (mnproc.eq.1) then
-            write (lp,*) 'restart_rd: could not find file rpointer.ocn'//trim(inst_suffix)//'!'
+            write (lp,*)
+     .'restart_rd: could not find file rpointer.ocn'//trim(inst_suffix)
+     .//'!'
           endif
           call xcstop('(restart_rd)')
                  stop '(restart_rd)'

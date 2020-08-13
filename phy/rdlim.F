@@ -27,7 +27,7 @@ c
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
-      use data_mct, only: runid_mct, ocn_cpl_dt_mct
+      use mod_mctdata, only: runid_mct, ocn_cpl_dt_mct
       use mod_instance, only: inst_suffix
 c
       implicit none
@@ -37,7 +37,7 @@ c
 #include "common_forc.h"
 c
       integer :: m,n,nd0rst,nm0rst,ny0rst
-      character*256 :: runtyp,rstfnm
+      character*256 :: nlfnm,runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0,nstep_in_cpl
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
@@ -54,14 +54,15 @@ c --- read namelists
       if (mnproc.eq.1) then
 c
         GLB_AVEPERIO=-999
-        inquire(file='ocn_in'//trim(inst_suffix) ,exist=fexist)
+        nlfnm='ocn_in'//trim(inst_suffix)
+        inquire(file=nlfnm,exist=fexist)
         if (fexist) then
-          open (unit=nfu,file='ocn_in'//trim(inst_suffix) ,status='old',action='read',
-     .          recl=80)
+          open (unit=nfu,file=nlfnm,status='old',action='read',recl=80)
         else
-          inquire(file='limits',exist=fexist)
+          nlfnm='limits'//trim(inst_suffix)
+          inquire(file=nlfnm,exist=fexist)
           if (fexist) then
-            open (unit=nfu,file='limits',status='old',action='read',
+            open (unit=nfu,file=nlfnm,status='old',action='read',
      .            recl=80)
           else
             write (lp,*) 'rdlim: could not find namelist file!'
@@ -679,7 +680,8 @@ c --- --- 'rpointer.ocn' file containing the path to a valid restart
 c --- --- file is expected and integration time is retrieved from
 c --- --- restart file
 c
-          if (mnproc.eq.1) inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
+          if (mnproc.eq.1)
+     .      inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
           call xcbcst(fexist)
           if (.not.fexist) then
             if (mnproc.eq.1) then
