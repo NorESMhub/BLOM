@@ -41,7 +41,7 @@ c
 #include "common_seaice.h"
 c
       integer i,j,n
-      character(len=80), dimension(4) :: rstdate_str
+      character(len=256), dimension(4) :: rstdate_str
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
@@ -73,8 +73,8 @@ c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
         write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.blom',trim(inst_suffix),'.r.',nyear,'-',nmonth,'-',nday,
-     .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
+     .    runid(1:runid_len),'.blom',trim(inst_suffix),'.r.',nyear,'-',
+     .    nmonth,'-',nday,'-',mod(nstep,nstep_in_day)*86400,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')

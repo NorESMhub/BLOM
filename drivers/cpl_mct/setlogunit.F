@@ -27,16 +27,18 @@
 
       implicit none
 
+      character(len = 256) :: nlfnm
       logical exists
 
       ! ----------------------------------------------------------------
       ! Redirect standard out to a log file if requested
       ! ----------------------------------------------------------------
       if (mnproc.eq.1) then
-         inquire(file = 'ocn_modelio.nml'//trim(inst_suffix), exist = exists)
+         nlfnm = 'ocn_modelio.nml'//trim(inst_suffix)
+         inquire(file = nlfnm, exist = exists)
          if (exists) then
             lp = shr_file_getUnit()
-            call shr_file_setIO('ocn_modelio.nml'//trim(inst_suffix), lp)
+            call shr_file_setIO(nlfnm, lp)
          endif
       endif
 

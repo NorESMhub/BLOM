@@ -35,6 +35,7 @@ module ocn_comp_mct
    use seq_timemgr_mod, only : &
       seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
       seq_timemgr_EClockDateInSync
+   use seq_comm_mct, only: seq_comm_suffix, seq_comm_inst, seq_comm_name
    use shr_file_mod, only : &
       shr_file_getUnit, shr_file_setIO, &
       shr_file_getLogUnit, shr_file_getLogLevel, &
@@ -46,9 +47,9 @@ module ocn_comp_mct
 
    use types, only : r8
    use blom_cpl_indices
-   use data_mct, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
+   use mod_mctdata, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
-   use mod_instance, only: blom_instance_init
+   use mod_instance, only : inst_index, inst_name, inst_suffix
 
    implicit none
 
@@ -110,8 +111,10 @@ module ocn_comp_mct
       ! Get file unit
       nfu = shr_file_getUnit()
 
-      ! multiple instance
-      call blom_instance_init(OCNID)
+      ! Get multiple instance data
+      inst_name   = seq_comm_name(OCNID)
+      inst_index  = seq_comm_inst(OCNID)
+      inst_suffix = seq_comm_suffix(OCNID)
 
       ! ----------------------------------------------------------------
       ! Initialize the model run

@@ -319,15 +319,18 @@ c
           if (diagmon) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(6a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,'.',ny,'-',nm,'.nc'
+     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
+     .        '.',ny,'-',nm,'.nc'
           elseif (diagann) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(6a,i4.4,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,'.',ny,'.nc'
+     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
+     .        '.',ny,'.nc'
           else
             call pstdat(ny,nm,nd,nint(diagfq))
             write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,'.',ny,'-',nm,'-',nd,
+     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
+     .        '.',ny,'-',nm,'-',nd,
      .        '.nc'
           endif
         else
@@ -346,8 +349,8 @@ c
      .          *diagfq/nstep_in_day*86400)
         if (expcnf.eq.'cesm') then
           write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,'.',ny,'-',nm,'-',nd,'-',
-     .      ns,'.nc'
+     .      runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
+     .      '.',ny,'-',nm,'-',nd,'-',ns,'.nc'
         else
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.',ns,
