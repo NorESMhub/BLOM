@@ -1648,6 +1648,8 @@ cat >> $CASEBUILD/blom.input_data_list << EOF
 sss_climatology_file = `echo $SCFILE | tr -d '"' | tr -d "'"`
 EOF
 endif
+
+# iHAMOCC boundary conditions
 if ($ecosys == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 dust_file = `echo $FEDEPFILE | tr -d '"' | tr -d "'"`
@@ -1663,23 +1665,15 @@ n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
+
+# BLOM initial conditions
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inicon_file = `echo $ICFILE | tr -d '"' | tr -d "'"`
 EOF
-if ($RUN_TYPE == startup) then
-  if      ($ICFILE =~ *.blom.r.*) then
-    if ($ecosys == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF
-inicon_bgc_file = `echo $ICFILE | sed 's/.blom.r./.blom.rbgc./' | tr -d '"' | tr -d "'"`
-EOF
-    endif
-  else if ($ICFILE =~ *.micom.r.*) then
-    if ($ecosys == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF
-inicon_bgc_file = `echo $ICFILE | sed 's/.micom.r./.micom.rbgc./' | tr -d '"' | tr -d "'"`
-EOF
-    endif
-  else
+
+
+# iHAMOCC initial conditions
+if ($ecosys == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inidic_file = `echo $INIDIC | tr -d '"' | tr -d "'"`
 inialk_file = `echo $INIALK | tr -d '"' | tr -d "'"`
@@ -1688,10 +1682,20 @@ inioxy_file = `echo $INIOXY | tr -d '"' | tr -d "'"`
 inino3_file = `echo $ININO3 | tr -d '"' | tr -d "'"`
 inisil_file = `echo $INISIL | tr -d '"' | tr -d "'"`
 EOF
-    if ($HAMOCC_CISO == TRUE) then
+  if ($HAMOCC_CISO == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inic13_file = `echo $INIC13 | tr -d '"' | tr -d "'"`
 inic14_file = `echo $INIC14 | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($RUN_TYPE == startup) then
+    if ($ICFILE =~ *.blom.r.*) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+inicon_bgc_file = `echo $ICFILE | sed 's/.blom.r./.blom.rbgc./' | tr -d '"' | tr -d "'"`
+EOF
+    else if ($ICFILE =~ *.micom.r.*) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+inicon_bgc_file = `echo $ICFILE | sed 's/.micom.r./.micom.rbgc./' | tr -d '"' | tr -d "'"`
 EOF
     endif
   endif
