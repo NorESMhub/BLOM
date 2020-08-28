@@ -179,6 +179,12 @@ if ($BLOM_N_DEPOSITION == TRUE) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
   else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx1v4_20200826.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx0.25v4) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx0.25v4_20200826.nc
   else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx2v1) then
     set NDEPFNAME = ndep_185001-201412_tnx2v1_20190702.nc
   else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx1v4) then
