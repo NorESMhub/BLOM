@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,8 @@ c --- Estimate eddy-induced transport following the Gent-McWilliams
 c --- parameterization.
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: g, alpha0, epsil, onemm
+      use mod_time, only: delt1
       use mod_xc
 c
       implicit none

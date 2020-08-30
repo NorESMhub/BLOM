@@ -81,9 +81,6 @@ c
 c --- fill value for land, usually 0.0
       real,    public, save      :: vland
 c
-c --- large value for array initialization
-      real,    public, parameter :: spval=1.e33
-c
 c --- xctilr halo options
       integer, public, parameter :: halo_ps=1, halo_pv=11,
      &                              halo_qs=2, halo_qv=12,

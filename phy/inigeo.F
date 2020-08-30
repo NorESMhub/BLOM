@@ -23,6 +23,9 @@ c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf
+      use mod_constants, only: g, spval
+      use mod_time, only: baclin, batrop
       use mod_xc
       use mod_nctools
       use mod_dia, only : iotype

@@ -23,16 +23,15 @@ c --- ------------------------------------------------------------------
 c --- update ideal age tracer
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: nday_in_year, delt1
       use mod_xc
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
 #include "param_trc.h"
 #include "common_trc.h"
-#include "common_clndr.h"
 c
       integer i,j,k,l,kn
       real q

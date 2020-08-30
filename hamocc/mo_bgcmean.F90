@@ -1,5 +1,6 @@
 ! Copyright (C) 2002  P. Wetzel
-! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree
+! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree,
+!                     P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !

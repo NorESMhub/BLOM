@@ -23,16 +23,15 @@ c --- ------------------------------------------------------------------
 c --- Write ocean tracer state to restart file
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: date0, time0, time
       use mod_xc
-      use mod_dia, only :iotype,rstfmt,rstcmp
+      use mod_dia, only: iotype, rstfmt, rstcmp
       use mod_nctools
 c
       implicit none
 c
       character rstfnm_ocn*(*)
 c
-#include "common_blocks.h"
-#include "common_clndr.h"
 #include "param_trc.h"
 #include "common_trc.h"
 c
@@ -92,9 +91,9 @@ c --- ------------------------------------------------------------------
 c --- Create attributes and dimensions
 c --- ------------------------------------------------------------------
 c
-      call ncputi('nday0',nday0)
-      call ncputi('nmonth0',nmonth0)
-      call ncputi('nyear0',nyear0)
+      call ncputi('nday0',date0%day)
+      call ncputi('nmonth0',date0%month)
+      call ncputi('nyear0',date0%year)
       call ncputr('time0',time0)
       call ncputr('time',time)
       if (rstcmp.eq.1) then 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2018 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2005-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- compute the pressure gradient force
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: g, epsil
       use mod_xc
 c
       implicit none

@@ -23,14 +23,16 @@ c --- ------------------------------------------------------------------
 c --- integrate a model time step
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf
+      use mod_time, only: date, nday_in_year, nday_of_year, nstep1,
+     .                    nstep, nstep_in_day, delt1, step_time
+      use mod_xc, only: lp, mnproc, xctilr, xcsum
       use mod_swabs, only: updswa
       use mod_dia
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 #ifdef TRC
 #  include "param_trc.h"
@@ -43,7 +45,7 @@ c
       real q
       integer i,j,l,m,n,mm,nn,k1m,k1n
 c
-      real step_time,
+      real total_step_time,
      .     auxil_time ,
      .     getfrc_time,
      .     tmsmt1_time,
@@ -74,13 +76,9 @@ c
       k1m=1+mm
       k1n=1+nn
 c
-      nstep=nstep+1
-      time=time0+nstep*baclin/86400.
-c
       if (cnsvdi) call stdbud(1,n,nn)
 c
-c --- Update calender
-      call updcln(nstep)
+      call step_time
 c
 c --- ------------------------------------------------------------------
 c --- Update some flux halos the first time step of a day to reproduce
@@ -313,9 +311,9 @@ c --- ------------------------------------------------------------------
 c
       do i=1,nphy 
         if (((diagann_phy(i).and.nday_of_year.eq.1.or.diagmon_phy(i)
-     .    .and.nday.eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.
-     .    (diagann_phy(i).or.diagmon_phy(i)).and.
-     .    mod(nstep+.5,diagfq_phy(i)).lt.1.) 
+     .        .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.
+     .      .not.(diagann_phy(i).or.diagmon_phy(i)).and.
+     .      mod(nstep+.5,diagfq_phy(i)).lt.1.) 
      .    call diaout(i,m,n,mm,nn,k1m,k1n)
       enddo
 c
@@ -336,9 +334,9 @@ c --- update total time spent by various tasks
       tmsmt2_total_time=tmsmt2_total_time+tmsmt2_time
       diaacc_total_time=diaacc_total_time+diaacc_time
 c
-      if (((rstann.and.nday_of_year.eq.1.or.rstmon.and.nday
-     .  .eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.(rstann
-     .  .or.rstmon).and.mod(nstep+.5,rstfrq).lt.1.) then
+      if (((rstann.and.nday_of_year.eq.1.or.rstmon.and.date%day.eq.1)
+     .     .and.mod(nstep,nstep_in_day).eq.0).or.
+     .    .not.(rstann.or.rstmon).and.mod(nstep+.5,rstfrq).lt.1.) then
 c
         if (expcnf.ne.'cesm') then
 c
@@ -357,16 +355,16 @@ c --- - write timing diagnostics to standard out
 c --- ------------------------------------------------------------------
 c
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
-     .           +sfcstr_time+momtum_time+pgforc_time+barotp_time
-     .           +pbtcor_time+convec_time+diapfl_time+thermf_time
-     .           +mxlayr_time+tmsmt2_time+diaacc_time+io_time
-        total_time=total_time+step_time
-        total_xio_time=total_xio_time+step_time-io_time
+        total_step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
+     .                 +sfcstr_time+momtum_time+pgforc_time+barotp_time
+     .                 +pbtcor_time+convec_time+diapfl_time+thermf_time
+     .                 +mxlayr_time+tmsmt2_time+diaacc_time+io_time
+        total_time=total_time+total_step_time
+        total_xio_time=total_xio_time+total_step_time-io_time
 c
         if (mnproc.eq.1) then
           write (lp,'(f12.4,a,i8)')
-     .      step_time, '  sec for step ', nstep
+     .      total_step_time, '  sec for step ', nstep
           write (lp,'(f12.4,a,i8)')
      .      total_time/(nstep-nstep1),' Avg Time'
           write (lp,'(f12.4,a,i8)')
@@ -400,15 +398,16 @@ c --- ------------------------------------------------------------------
 c
         io_time=gettime()
         io_total_time=io_total_time+io_time
-        step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
-     .           +sfcstr_time+momtum_time+pgforc_time+barotp_time
-     .           +pbtcor_time+convec_time+diapfl_time+thermf_time
-     .           +mxlayr_time+tmsmt2_time+diaacc_time+io_time
-        total_time=total_time+step_time
-        total_xio_time=total_xio_time+step_time-io_time
+        total_step_time=auxil_time +getfrc_time+tmsmt1_time+advdif_time
+     .                 +sfcstr_time+momtum_time+pgforc_time+barotp_time
+     .                 +pbtcor_time+convec_time+diapfl_time+thermf_time
+     .                 +mxlayr_time+tmsmt2_time+diaacc_time+io_time
+        total_time=total_time+total_step_time
+        total_xio_time=total_xio_time+total_step_time-io_time
 c
         if (mnproc.eq.1) then
-          write (lp,'(f12.4,a,i8)') step_time, '  sec for step ', nstep
+          write (lp,'(f12.4,a,i8)') total_step_time, '  sec for step ',
+     .                              nstep
         endif
 c
       endif

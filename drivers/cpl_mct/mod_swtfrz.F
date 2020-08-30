@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2018 Mats Bentsen
+! Copyright (C) 2018-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ c --- This module contains routines for computing the freezing point of
 c --- sea water.
 c --- ------------------------------------------------------------------
 c
-      use types, only : r8
+      use mod_types, only: r8
       use shr_frz_mod, only: shr_frz_freezetemp
 c
       implicit none
@@ -51,9 +51,9 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-      real (r8), intent(in) :: p      ! Pressure [g cm-1 s-2]
-      real (r8), intent(in) :: s      ! Salinity [g kg-1]
-      real (r8) :: swtfrz
+      real(r8), intent(in) :: p      ! Pressure [g cm-1 s-2]
+      real(r8), intent(in) :: s      ! Salinity [g kg-1]
+      real(r8) :: swtfrz
 c
       swtfrz=shr_frz_freezetemp(s)
 c
@@ -69,9 +69,9 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-      real (r8), intent(in) :: p(:)   ! Pressure [g cm-1 s-2]
-      real (r8), intent(in) :: s(:)   ! Salinity [g kg-1]
-      real (r8) :: swtfrz(size(s))
+      real(r8), intent(in) :: p(:)   ! Pressure [g cm-1 s-2]
+      real(r8), intent(in) :: s(:)   ! Salinity [g kg-1]
+      real(r8) :: swtfrz(size(s))
 c
       swtfrz(:)=shr_frz_freezetemp(s(:))
 c
@@ -87,9 +87,9 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-      real (r8), intent(in) :: p(:,:) ! Pressure [g cm-1 s-2]
-      real (r8), intent(in) :: s(:,:) ! Salinity [g kg-1]
-      real (r8) :: swtfrz(size(s,1),size(s,2))
+      real(r8), intent(in) :: p(:,:) ! Pressure [g cm-1 s-2]
+      real(r8), intent(in) :: s(:,:) ! Salinity [g kg-1]
+      real(r8) :: swtfrz(size(s,1),size(s,2))
 c
       swtfrz(:,:)=shr_frz_freezetemp(s(:,:))
 c

@@ -21,6 +21,9 @@
 c
 c --- NERSC version of thermf. To be used when coupled to CESM
 c
+      use mod_constants, only: g, spcifh, t0deg, epsil, onem
+      use mod_time, only: nstep, nstep_in_day, nday_in_year,
+     .                    nday_of_year, baclin
       use mod_xc
       use mod_swtfrz, only: swtfrz
 c
@@ -31,7 +34,6 @@ c
 #include "common_blocks.h"
 #include "common_forc.h"
 #include "common_geo.h"
-#include "common_clndr.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  tfrz,tfrzm,vrtsfl

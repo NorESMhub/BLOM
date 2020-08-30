@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2008-2020 Mats Bentsen, Alok Kumar Gupta, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -25,31 +25,32 @@ module ocn_comp_mct
 
    ! CESM  modules
    use mct_mod
-   use esmf, only : ESMF_Clock
-   use seq_cdata_mod, only : seq_cdata, seq_cdata_setptrs
-   use seq_infodata_mod, only : &
+   use esmf, only: ESMF_Clock
+   use seq_cdata_mod, only: seq_cdata, seq_cdata_setptrs
+   use seq_infodata_mod, only: &
       seq_infodata_type, seq_infodata_getdata, &
       seq_infodata_putdata, seq_infodata_start_type_cont, &
       seq_infodata_start_type_brnch, seq_infodata_start_type_start
    use seq_flds_mod
-   use seq_timemgr_mod, only : &
+   use seq_timemgr_mod, only: &
       seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
       seq_timemgr_EClockDateInSync
    use seq_comm_mct, only: seq_comm_suffix, seq_comm_inst, seq_comm_name
-   use shr_file_mod, only : &
+   use shr_file_mod, only: &
       shr_file_getUnit, shr_file_setIO, &
       shr_file_getLogUnit, shr_file_getLogLevel, &
       shr_file_setLogUnit, shr_file_setLogLevel, &
       shr_file_freeUnit
-   use shr_cal_mod, only : shr_cal_date2ymd
-   use shr_sys_mod, only : shr_sys_abort, shr_sys_flush
-   use perf_mod, only : t_startf, t_stopf
+   use shr_cal_mod, only: shr_cal_date2ymd
+   use shr_sys_mod, only: shr_sys_abort, shr_sys_flush
+   use perf_mod, only: t_startf, t_stopf
 
-   use types, only : r8
+   use mod_types, only: r8
    use blom_cpl_indices
-   use mod_mctdata, only : runid_mct, runtyp_mct, ocn_cpl_dt_mct
+   use mod_time, only: blom_time
+   use mod_mctdata, only: runid_mct, runtyp_mct, ocn_cpl_dt_mct
    use mod_xc
-   use mod_instance, only : inst_index, inst_name, inst_suffix
+   use mod_instance, only: inst_index, inst_name, inst_suffix
 
    implicit none
 
@@ -61,7 +62,7 @@ module ocn_comp_mct
    integer, dimension(:), allocatable ::  &
       perm              ! Permutation array to reorder points
 
-   real (r8), dimension(:,:,:), allocatable :: &
+   real(r8), dimension(:,:,:), allocatable :: &
       sbuff             ! Accumulated sum of send buffer quantities for
                         ! averaging before being sent
 
@@ -72,7 +73,7 @@ module ocn_comp_mct
       nsend, &          ! Number of fields to be sent to coupler
       nrecv             ! Number of fields to be received from coupler
 
-   real (r8) :: &
+   real(r8) :: &
       tlast_coupled, &  ! Time since last coupling
       precip_fact       ! Correction factor for precipitation and runoff
 
@@ -86,19 +87,19 @@ module ocn_comp_mct
 
       ! Input/output arguments
 
-      type (ESMF_Clock)            , intent(inout)    :: EClock
-      type (seq_cdata)             , intent(inout) :: cdata_o
-      type (mct_aVect)             , intent(inout) :: x2o_o, o2x_o
-      character (len=*), optional  , intent(in)    :: NLFilename ! Namelist filename
+      type(ESMF_Clock)            , intent(inout)    :: EClock
+      type(seq_cdata)             , intent(inout) :: cdata_o
+      type(mct_aVect)             , intent(inout) :: x2o_o, o2x_o
+      character (len=*), optional , intent(in)    :: NLFilename ! Namelist filename
       ! Local variables
 
-      type (mct_gsMap), pointer :: gsMap_ocn
-      type (mct_gGrid), pointer :: dom_ocn
-      type (seq_infodata_type), pointer :: infodata   ! Input init object
+      type(mct_gsMap), pointer :: gsMap_ocn
+      type(mct_gGrid), pointer :: dom_ocn
+      type(seq_infodata_type), pointer :: infodata   ! Input init object
       integer :: OCNID, mpicom_ocn, shrlogunit, shrloglev, &
                  start_ymd, start_tod, start_year, start_day, start_month
       logical :: exists
-      character (len=32) :: starttype
+      character(len=32) :: starttype
 
       ! Set cdata pointers
       call seq_cdata_setptrs(cdata_o, ID = OCNID, mpicom = mpicom_ocn, &
@@ -126,7 +127,7 @@ module ocn_comp_mct
    
       call seq_infodata_GetData( infodata, start_type = starttype)
 
-      if (    trim(starttype) == trim(seq_infodata_start_type_start)) then
+      if     (trim(starttype) == trim(seq_infodata_start_type_start)) then
          runtyp_mct = "initial"
       elseif (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
          runtyp_mct = "continue"
@@ -255,10 +256,10 @@ module ocn_comp_mct
 
       ! Input/output arguments
 
-      type (ESMF_Clock), intent(inout)    :: EClock
-      type (seq_cdata) , intent(inout) :: cdata_o
-      type (mct_aVect) , intent(inout) :: x2o_o
-      type (mct_aVect) , intent(inout) :: o2x_o
+      type(ESMF_Clock), intent(inout)    :: EClock
+      type(seq_cdata) , intent(inout) :: cdata_o
+      type(mct_aVect) , intent(inout) :: x2o_o
+      type(mct_aVect) , intent(inout) :: o2x_o
 
       ! Local variables
       type(seq_infodata_type), pointer :: infodata   ! Input init object
@@ -322,7 +323,7 @@ module ocn_comp_mct
       !-----------------------------------------------------------------
 
       if (mnproc == 1) then
-         call modeltime(ymd, tod)
+         call blom_time(ymd, tod)
          if (.not. seq_timemgr_EClockDateInSync(EClock, ymd, tod )) then
             call seq_timemgr_EClockGetData(EClock, curr_ymd=ymd_sync, &
                curr_tod=tod_sync )
@@ -360,9 +361,9 @@ module ocn_comp_mct
 
       ! Input/output arguments
 
-      integer         , intent(in)    :: mpicom_ocn
-      integer         , intent(in)    :: OCNID
-      type (mct_gsMap), intent(inout) :: gsMap_ocn
+      integer        , intent(in)    :: mpicom_ocn
+      integer        , intent(in)    :: OCNID
+      type(mct_gsMap), intent(inout) :: gsMap_ocn
 
       ! Local variables
 

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2018 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -25,6 +25,8 @@ c --- ------------------------------------------------------------------
 #define DIAG
 #undef DIAG
 c
+      use mod_constants, only: pi
+      use mod_time, only: nstep
       use mod_xc
 #ifdef DIAG
       use mod_nctools
@@ -36,7 +38,6 @@ c
 #include "common_forc.h"
 #include "common_seaice.h"
 #include "common_cesm.h"
-#include "common_clndr.h"
 c
       integer i,j,l
       real w1,w2

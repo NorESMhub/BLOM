@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2018 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2007-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -19,6 +19,8 @@
 
       subroutine advect(m,n,mm,nn,k1m,k1n)
 c
+      use mod_constants, only: onemm
+      use mod_time, only: delt1, dlt
       use mod_xc
 c
       implicit none

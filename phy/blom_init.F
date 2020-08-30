@@ -23,6 +23,9 @@ c --- ------------------------------------------------------------------
 c --- initialize the model
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf
+      use mod_time, only: date, nday1, nday2, nstep1, nstep2, nstep,
+     .                    delt1
       use mod_xc
       use mod_swabs, only: iniswa
       use mod_dia
@@ -31,7 +34,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "param_bud.h"
 #include "common_bud.h"
 c
@@ -167,7 +169,7 @@ c --- ----------------------------------------------------------------
 c --- - start from initial conditions derived from climatology
 c --- ----------------------------------------------------------------
 c
-        if (nmonth.ne.1.or.nday.ne.1) then
+        if (date%month.ne.1.or.date%day.ne.1) then
           if (mnproc.eq.1) then
             write (lp,*)
      .'Warning! date is inconsistent with ini. cond. (Jan 1st)!'

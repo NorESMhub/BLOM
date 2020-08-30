@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2019 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,9 @@ c --- Modify mixed layer depth by enforcing a turbulent kinetic energy
 c --- balance and apply surface forcing.
 c --- -----------------------------------------------------------------
 c
+      use mod_constants, only: g, spcifh, alpha0, epsil, onem, tencm,
+     .                         onecm, onemm
+      use mod_time, only: delt1
       use mod_xc
       use mod_swabs, only: swbgal,swbgfc,swamxd
 c

@@ -1,4 +1,4 @@
-! Copyright (C) 2020  I. Bethke
+! Copyright (C) 2020  I. Bethke, M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -29,8 +29,8 @@
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
-#endif
 #include <mpif.h>
+#endif
       integer ncid, klev, time, ndims
       character (len=*) desc
       real arr(idm,jdm,klev),arr_g(itdm,jtdm)
@@ -39,7 +39,9 @@
 
       integer ncstat,ncvarid,i,j,k,typeio
       integer :: start(4),count(4)
+#ifdef PNETCDF
       integer (kind=MPI_OFFSET_KIND) :: istart(4),icount(4)
+#endif
 
 ! Read NETCDF data
 

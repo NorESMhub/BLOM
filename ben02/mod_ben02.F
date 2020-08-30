@@ -24,9 +24,18 @@ c --- This module contains routines for generating surface fluxes
 c --- from NCEP or ERA40 reanalysis following Bentsen and Drange (2002).
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf
+      use mod_constants, only: t0deg, spval
+      use mod_calendar, only: date_offset, calendar_noerr,
+     .                        calendar_errstr
+      use mod_time, only: date,calendar, nday_in_year, nday_of_year,
+     .                    nstep, nstep_in_day, set_day_of_year
       use mod_xc
+      use mod_thdysi, only: albs_f
+      use mod_swtfrz, only: swtfrz
       use mod_ben02func
       use mod_bulktf
+      use netcdf
 c
       implicit none
 c
@@ -201,8 +210,6 @@ c --- ------------------------------------------------------------------
 c --- Read dimensions of atmospheric grid
 c --- ------------------------------------------------------------------
 c
-      use netcdf
-c
       implicit none
 c
       character filename*(*)
@@ -266,8 +273,6 @@ c --- ------------------------------------------------------------------
 c --- Read atmospheric lon/lat coordinates and land mask from netcdf
 c --- file
 c --- ------------------------------------------------------------------
-c
-      use netcdf
 c
       implicit none
 c
@@ -358,8 +363,6 @@ c --- Read atmospheric lon/lat coordinates and land mask from netcdf
 c --- file
 c --- ------------------------------------------------------------------
 c
-      use netcdf
-c
       implicit none
 c
       character filename*(*)
@@ -418,8 +421,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Read field at selected time step from NetCDF file
 c --- ------------------------------------------------------------------
-c
-      use netcdf
 c
       implicit none
 c
@@ -1176,7 +1177,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_geo.h"
 c
       real, dimension(atm_idm,atm_jdm) :: atm_field,atm_skt,atm_tau
@@ -1189,9 +1189,9 @@ c --- The actual fields to be read are 2 days ahead
       nday_of_year1=nday_of_year+2
       if (nday_of_year1.gt.nday_in_year) then
         nday_of_year1=nday_of_year1-nday_in_year
-        nyear1=nyear+1
+        nyear1=date%year+1
       else
-        nyear1=nyear
+        nyear1=date%year
       endif
 c
 c --- Do not go beyond the start of the atm. time series
@@ -1598,14 +1598,11 @@ c --- Compute air-sea fluxes. Same routine is used both for
 c --- climatological and synoptic forcing
 c --- ------------------------------------------------------------------
 c
-      use mod_swtfrz, only: swtfrz
-c
       implicit none
 c
 #include "common_blocks.h"
 #include "common_forc.h"
 #include "common_geo.h"
-#include "common_clndr.h"
 c
 c --- Parameters:
 c ---   dtmax - maximum near surface temperature gradient [K]
@@ -2094,8 +2091,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Initialize monthly climatological forcing fields
 c --- ------------------------------------------------------------------
-c
-      use mod_thdysi, only: albs_f
 c
       implicit none
 c
@@ -2948,11 +2943,10 @@ c
 c
 #include "common_blocks.h"
 #include "common_forc.h"
-#include "common_clndr.h"
 c
       real dx2,dy2
       real*4 rw4
-      integer i,j,k,l
+      integer errstat,i,j,k,l
       integer*2 rn2,ri2,rj2
 c
 c --- Prepare interpolation of surface fields.
@@ -3131,11 +3125,28 @@ c --- Initial indexes of the 5 time levels
       l5gi=5
 c
 c --- Go back 4 days so that all necessary fields are read
-      call pstdat(nyear,nmonth,nday,4)
-      call inicln
+      errstat=date_offset(calendar,date,-4)
+      if (errstat.ne.calendar_noerr) then
+        if (mnproc.eq.1) then
+          write (lp, '(2a)') ' inifrc_ben02syn: date_offset error: ',
+     .                trim(calendar_errstr(errstat))
+        endif
+        call xcstop('(inifrc_ben02syn)')
+               stop '(inifrc_ben02syn)'
+      endif
+      call set_day_of_year
       do i=1,4
         call rdatm_syn
-        call updcln(0)
+        errstat=date_offset(calendar,date,1)
+        if (errstat.ne.calendar_noerr) then
+          if (mnproc.eq.1) then
+            write (lp, '(2a)') ' inifrc_ben02syn: date_offset error: ',
+     .                  trim(calendar_errstr(errstat))
+          endif
+          call xcstop('(inifrc_ben02syn)')
+                 stop '(inifrc_ben02syn)'
+        endif
+        call set_day_of_year
       enddo
 c
       return
@@ -3179,9 +3190,6 @@ c --- Get synoptic forcing
 c --- ------------------------------------------------------------------
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_clndr.h"
 c
 c --- Set interpolation parameter
       xgi=real(mod(nstep-1,nstep_in_day)+1)/nstep_in_day

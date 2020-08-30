@@ -20,6 +20,7 @@ c along with BLOM. If not, see https://www.gnu.org/licenses/.
 c
 c write restart for HAMOCC
 c
+      use mod_time,      only: date,nstep
       use mod_xc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       use mo_intfcblom,  only: omask
@@ -28,13 +29,11 @@ c
 c
 #include "param_trc.h"
 #include "common_trc.h"
-#include "common_blocks.h"
-#include "common_clndr.h"
 c
       character(len=*) :: rstfnm_ocn
 
       CALL AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc
-     .             ,nyear,nmonth,nday,nstep,omask,rstfnm_ocn)
+     .             ,date%year,date%month,date%day,nstep,omask,rstfnm_ocn)
 c
       return
       end

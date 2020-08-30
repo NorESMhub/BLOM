@@ -20,6 +20,8 @@
 
       subroutine barotp(m,n,mm,nn,k1m,k1n)
 c
+      use mod_constants, only: spval, onem
+      use mod_time, only: lstep, dlt
       use mod_xc
 c
       implicit none

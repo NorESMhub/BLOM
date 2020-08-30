@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Initialize various arrays
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: spval
       use mod_xc
 c
       implicit none

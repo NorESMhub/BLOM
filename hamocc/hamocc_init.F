@@ -1,4 +1,5 @@
-c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
+c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen,
+c                     P.-G. Chiu
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -36,8 +37,10 @@ c  *INTEGER*   *read_rest*  - flag indicating whether to read restart files.
 c  *INTEGER*   *rstfnm_ocn* - restart filename.
 c
 c******************************************************************************
+      use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
      .                         mnproc,lp,nfu
+      use mod_instance,  only: inst_suffix
       USE mo_control_bgc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       USE mo_carbch,     only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -53,14 +56,11 @@ c******************************************************************************
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2
-      use mod_instance, only: inst_suffix
 c
       implicit none
 c
 #include "param_trc.h"
 #include "common_trc.h"
-#include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_geo.h"
 c
       integer,          intent(in) :: read_rest
@@ -92,7 +92,7 @@ c
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'restart',read_rest
       write(io_stdo_bgc,*) 'dims',idm,jdm,kdm
-      write(io_stdo_bgc,*) 'time',nyear,nmonth,nday
+      write(io_stdo_bgc,*) 'date',date
       write(io_stdo_bgc,*) 'time step',dtbgc
       endif
 c
@@ -174,7 +174,7 @@ c     two-time-level counterpart
 c
       IF(read_rest.eq.1) THEN
          CALL AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,
-     .                 nyear,nmonth,nday,omask,rstfnm_ocn)
+     .                 date%year,date%month,date%day,omask,rstfnm_ocn)
       ELSE
          trc(1:idm,1:jdm,1:kdm,      itrbgc:itrbgc+ntrbgc-1) =
      .     ocetra(:,:,:,:)

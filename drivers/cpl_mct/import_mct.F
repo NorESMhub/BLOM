@@ -23,15 +23,15 @@
       
       use mct_mod
       use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE
-      use types, only : r8
-      use blom_cpl_indices
+      use mod_types, only: r8
       use mod_xc
+      use blom_cpl_indices
 
       implicit none
 
       ! Input/output arguments
 
-      type (mct_aVect)         , intent(inout) :: x2o_o
+      type(mct_aVect)          , intent(inout) :: x2o_o
       integer                  , intent(in)    :: lsize
       integer, dimension(lsize), intent(in)    :: perm
       integer                  , intent(in)    :: jjcpl
@@ -44,14 +44,14 @@
 
       ! Local parameters
 
-      real (r8), parameter ::
+      real(r8), parameter ::
      .   mval = -1.e12_r8,
      .   fval = -1.e13_r8
 
       ! Local variables
 
       integer i, j, l, n
-      real (r8) :: utmp, vtmp
+      real(r8) :: utmp, vtmp
 
       !-----------------------------------------------------------------
       ! unpermute in-place before unpacking
