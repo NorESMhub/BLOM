@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
-!                         Jerry Tjiputra
+!                         Jerry Tjiputra, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -24,29 +24,29 @@ c --- ------------------------------------------------------------------
 c --- Read initial conditions from restart file
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf, runid
+      use mod_calendar, only: date_type, daynum_diff, operator(/=)
+      use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
       use mod_dia
-      use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
-     .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
-     .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
-      use mod_thdysi, only: tsrfm,ticem
+      use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
+     .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
+     .                     alb_tda, fice_tda, ntda
+      use mod_thdysi, only: tsrfm, ticem
       use mod_instance, only: inst_suffix
 
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 #include "common_cesm.h"
 #include "common_seaice.h"
 c
-      integer i,j,k,n,ndayr,nmonthr,nyearr,l
+      type(date_type) :: date_rest
+      integer errstat,dndiff,i,j,k,n,l
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
-c
-      integer daydif
-      external daydif
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv,iqq
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2) :: rkfpla
@@ -124,30 +124,28 @@ c
 c --- - first try file name:
 c --- -  <experiment name>_restphy_<year>.<month>.<day>_<integration day>.nc
         write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .    runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
+     .    trim(runid),'_restphy_',
+     .    date%year,'.',date%month,'.',date%day,
      .    '_',nday1,'.nc'
 c
         if (mnproc.eq.1) inquire(file=rstfnm,exist=fexist)
         call xcbcst(fexist)
         if (fexist) then
           call ncfopn(rstfnm,'r',' ',1,iotype)
-          call ncgeti('nday0',ndayr)
-          call ncgeti('nmonth0',nmonthr)
-          call ncgeti('nyear0',nyearr)
+          call ncgeti('nday0',date_rest%day)
+          call ncgeti('nmonth0',date_rest%month)
+          call ncgeti('nyear0',date_rest%year)
           call ncgetr('time0',time0)
           call ncgetr('time',time)
-          if (nyearr.ne.nyear0.or.nmonthr.ne.nmonth0.or.
-     .        ndayr.ne.nday0) then
+          if (date_rest /= date0) then
             if (mnproc.eq.1) then
               write (lp,'(2a)')
      .' restart_rd: expected identical initial experiment date in',
      .' namelist and restart but found:'
-              write (lp,'(a,i4.4,a,i2.2,a,i2.2)')
-     .          ' restart_rd: initial date namelist: ',
-     .          nyear0,'.',nmonth0,'.',nday0
-              write (lp,'(a,i4.4,a,i2.2,a,i2.2)')
-     .          ' restart_rd: initial date restart: ',
-     .          nyearr,'.',nmonthr,'.',ndayr
+              write (lp,'(a,i4.4,2(i2.2))')
+     .          ' restart_rd: initial date namelist: ',date0
+              write (lp,'(a,i4.4,2(i2.2))')
+     .          ' restart_rd: initial date restart:  ',date_rest
             endif
             call xcstop('(restart_rd)')
                    stop '(restart_rd)'
@@ -162,18 +160,26 @@ c --- ---   <experiment name>_restphy_2.nc
 c --- ---   <experiment name>_restphy_3.nc
           do i=1,4
             write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',i,'.nc'
+     .        trim(runid),'_restphy_',i,'.nc'
             inquire(file=rstfnm,exist=fexist)
             if (fexist) then
               call ncfopn(rstfnm,'r',' ',1,iotype)
-              call ncgeti('nday0',ndayr)
-              call ncgeti('nmonth0',nmonthr)
-              call ncgeti('nyear0',nyearr)
+              call ncgeti('nday0',date_rest%day)
+              call ncgeti('nmonth0',date_rest%month)
+              call ncgeti('nyear0',date_rest%year)
               call ncgetr('time0',time0)
               call ncgetr('time',time)
+              errstat=daynum_diff(calendar,date_rest,date,dndiff)
+              if (errstat.ne.calendar_noerr) then
+                if (mnproc.eq.1) then
+                  write (lp, '(2a)') ' restart_rd: daynum_diff error: ',
+     .                        trim(calendar_errstr(errstat))
+                endif
+                call xcstop('(restart_rd)')
+                       stop '(restart_rd)'
+              endif
               if (nint(time).eq.nday1.and.
-     .          daydif(nyearr,nmonthr,ndayr,nyear,nmonth,nday).eq.
-     .          nint(time-time0)) exit 
+     .            dndiff.eq.nint(time-time0)) exit
             endif 
           enddo 
           if (i.gt.3) then
@@ -1166,9 +1172,9 @@ c
 c
 c --- - read diag. heat flux restart file if available
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.blom.rtflx.'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'.blom.rtflx.'//rstfnm(len_trim(runid)+10:)
         else
-          fnm=runid(1:runid_len)//'_resttflx_'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'_resttflx_'//rstfnm(len_trim(runid)+10:)
         endif
         if(mnproc .eq.1) inquire(file=fnm,exist=fexist)
         call xcbcst(fexist)
@@ -1201,9 +1207,9 @@ c
 c
 c --- - read diag. salt flux restart file if available
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.blom.rsflx.'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'.blom.rsflx.'//rstfnm(len_trim(runid)+10:)
         else
-          fnm=runid(1:runid_len)//'_restsflx_'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'_restsflx_'//rstfnm(len_trim(runid)+10:)
         endif
         if (mnproc.eq.1) inquire(file=fnm,exist=fexist)
         call xcbcst(fexist)

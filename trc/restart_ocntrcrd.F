@@ -23,6 +23,8 @@ c --- ------------------------------------------------------------------
 c --- Read ocean tracer state from restart file
 c --- ------------------------------------------------------------------
 c
+      use mod_calendar, only: date_type, operator(/=)
+      use mod_time, only: date0, time0, time
       use mod_xc
       use mod_dia, only : iotype
       use mod_nctools
@@ -31,12 +33,11 @@ c
 c
       character rstfnm_ocn*(*)
 c
-#include "common_blocks.h"
-#include "common_clndr.h"
 #include "param_trc.h"
 #include "common_trc.h"
 c
-      integer i,ndayr,nmonthr,nyearr,nt,nat
+      type(date_type) :: date_rest
+      integer i,nt,nat
       real time0r,timer
       logical fexist
       character(len=256) :: rstfnm,trcnm
@@ -103,24 +104,24 @@ c
      .                      trim(rstfnm)
         endif  
         call ncfopn(rstfnm,'r',' ',1,iotype)
-        call ncgeti('nday0',ndayr)
-        call ncgeti('nmonth0',nmonthr)
-        call ncgeti('nyear0',nyearr)
+        call ncgeti('nday0',date_rest%day)
+        call ncgeti('nmonth0',date_rest%month)
+        call ncgeti('nyear0',date_rest%year)
         call ncgetr('time0',time0r)
         call ncgetr('time',timer)
         if (mnproc.eq.1) then
-          if (ndayr.ne.nday0.or.nmonthr.ne.nmonth0.or.
-     .        nyearr.ne.nyear0.or.time0r.ne.time0.or.
-     .        timer.ne.time) then
+          if (date_rest /= date0 .or. 
+     .        time0r .ne. time0 .or. timer.ne.time) then
             write (lp,'(2a)')
      .        ' Warning! The time information of the model and',
      .        ' restart file is inconsistent'
-            write (lp,'(a)') '                  model          file'
-            write (lp,'(a,2i14)')   ' nday0:  ',nday0,ndayr
-            write (lp,'(a,2i14)')   ' nmonth0:',nmonth0,nmonthr
-            write (lp,'(a,2i14)')   ' nyear0: ',nyear0,nyearr
-            write (lp,'(a,2f14.4)') ' time0:  ',time0,time0r
-            write (lp,'(a,2f14.4)') ' time:   ',time,timer
+            write (lp,'(a)') '                 model          file'
+            write (lp,'(a,i4.4,2(i2.2),a,i4.4,2(i2.2))')
+     .                       ' date0:      ',date0, '      ',date_rest
+            write (lp,'(a,2f14.4)')
+     .                       ' time0: ',time0,time0r
+            write (lp,'(a,2f14.4)')
+     .                       ' time:  ',time,timer
           endif
         endif
 #ifdef ATRC

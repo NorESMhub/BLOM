@@ -1,5 +1,5 @@
 ! Copyright (C) 2001  S. Legutke
-! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -73,8 +73,8 @@
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
-#endif
 #include <mpif.h>      
+#endif
        
       INTEGER ncstat
 
@@ -86,7 +86,9 @@
       CHARACTER*(*) yshort, yunit, ylong
 
       CHARACTER*24 ystring
+#ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) clen
+#endif
       ystring(1:21)='NETCDF stop at label '
 
 

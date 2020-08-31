@@ -20,6 +20,8 @@
 
       subroutine momtum(m,n,mm,nn,k1m,k1n)
 c
+      use mod_constants, only: g, alpha0, epsil, onem, onemm
+      use mod_time, only: delt1, dlt
       use mod_xc
 c
       implicit none

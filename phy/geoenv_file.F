@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ c --- Get bathymetry and grid specification from file and compute
 c --- Coriolis parameter
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: rearth, pi, radian
       use mod_xc
       use netcdf
       use mod_instance, only: inst_suffix

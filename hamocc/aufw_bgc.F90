@@ -1,6 +1,6 @@
 ! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
-!                     M. Bentsen
+!                     M. Bentsen, P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !

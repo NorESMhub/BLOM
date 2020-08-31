@@ -25,6 +25,7 @@ c --- salinity and geopotential at layer interfaces.
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_constants, only: g
       use netcdf
 c
       implicit none

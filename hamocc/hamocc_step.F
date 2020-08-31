@@ -22,6 +22,7 @@ c --- ------------------------------------------------------------------
 c --- perform one HAMOCC step     
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: date,nday_of_year,nstep,nstep_in_day
       use mod_xc
       use mo_bgcmean
       use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
@@ -32,7 +33,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 #include "common_seaice.h"
 #include "common_geo.h"
@@ -52,16 +52,17 @@ c
       do l=1,nbgc 
         bgcwrt(l)=0. 
         if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)
-     .    .and.nday.eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.
-     .    (diagann_bgc(l).or.diagmon_bgc(l)).and.
-     .    mod(nstep+.5,diagfq_bgc(l)).lt.1.) 
+     .       .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.
+     .      .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.
+     .      mod(nstep+.5,diagfq_bgc(l)).lt.1.) 
      .    bgcwrt(l)=1.
       enddo
 c
-      call get_fedep(idm,jdm,nmonth,dust)
-      call get_ndep(idm,jdm,nyear,nmonth,omask,ndep)
+      call get_fedep(idm,jdm,date%month,dust)
+      call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
 c
-      call hamocc4bcm(idm,jdm,kdm,nbdy,nyear,nmonth,nday,ldtday,
+      call hamocc4bcm(idm,jdm,kdm,nbdy,
+     .            date%year,date%month,date%day,ldtday,
      .            bgc_dx,bgc_dy,bgc_dp,bgc_rho,plat,omask,
      .            dust,rivflx,ndep,
      .            swa,ficem,slp,abswnd,

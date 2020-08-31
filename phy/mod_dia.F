@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2010-2020 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
-!                         Alok Kumar Gupta, Jörg Schwinger
+!                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -20,6 +20,12 @@
 
       module mod_dia 
 c
+      use mod_configuration, only: expcnf, runid
+      use mod_calendar, only: date_type, date_offset, calendar_noerr
+      use mod_time, only: date0, date, calendar, nstep, nstep_in_day,
+     .                    nday_of_year, time, time0, baclin, dlt
+      use mod_constants, only: g, spcifh, t0deg, alpha0, epsil, spval,
+     .                         onem, onecm, onemm
       use mod_xc 
       use mod_nctools
       use netcdf, only : nf90_fill_double
@@ -253,18 +259,13 @@ c --- Namelist
 
 
 
-      subroutine diafnm(runid,runid_len,expcnf,ctag,nstep,diagfq,diagmon
-     .  ,diagann,fname)
+      subroutine diafnm(ctag,diagfq,diagmon,diagann,fname)
 c
 c --- ------------------------------------------------------------------
 c --- Description: creates file name for the diagnostic output
 c ---  
 c --- Arguments: 
-c ---   char runid     (in)    : acronym of simulation 
-c ---   int  runid_len (in)    : actual length of runid 
-c ---   char expcnf    (in)    : experiment configuration
 c ---   char ctag      (in)    : string used in middle of file name 
-c ---   real time      (in)    : BLOM time step 
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
@@ -273,64 +274,125 @@ c --- ------------------------------------------
 c
       implicit none
 c
-#include "common_clndr.h"
+      character(len=*), intent(in) :: ctag
+      real, intent(in) :: diagfq
+      logical, intent(in) :: diagmon,diagann
+      character(len=*), intent(out) :: fname
 c
-      character runid*(*),expcnf*(*),ctag*(*),fname*(*)
-      integer runid_len,nstep
-      real diagfq
-      logical diagmon,diagann
-c
-      real epsil
-      parameter (epsil=1.e-11)
-c
-      integer ny,nm,nd,ns
+      type(date_type) :: date_tmp
+      integer errstat,ns
 c
       if (diagfq+epsil.gt.1.) then
-        ny=nyear
-        nm=nmonth
-        nd=nday
+        date_tmp=date
         if   (expcnf.eq.'ben02clim') then
-          call pstdat(ny,nm,nd,nint(diagfq))
+          errstat=date_offset(calendar,date_tmp,-nint(diagfq))
+          if (errstat.ne.calendar_noerr) then
+            if (mnproc.eq.1) then
+              write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                    trim(calendar_errstr(errstat))
+            endif
+            call xcstop('(diafnm)')
+                   stop '(diafnm)'
+          endif
           if     (mod(nint(diagfq),360).eq.0) then
             write(fname,'(4a,i4.4,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,'.nc'
           elseif (mod(nint(diagfq),30).eq.0) then
             write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,'.',date_tmp%month,'.nc'
           else
             write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.nc'
           endif
         elseif (expcnf.eq.'ben02syn') then
           if (diagmon) then
-            call pstdat(ny,nm,nd,1)
+            errstat=date_offset(calendar,date_tmp,-1)
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,'.',date_tmp%month,
+     .        '.nc'
           elseif (diagann) then
-            call pstdat(ny,nm,nd,1)
+            errstat=date_offset(calendar,date_tmp,-1)
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(4a,i4.4,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,
+     .        '.nc'
           else
-            call pstdat(ny,nm,nd,nint(diagfq))
+            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
+     .        trim(runid),'_',trim(ctag),'_',
+     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,
+     .        '.nc'
           endif
         elseif (expcnf.eq.'cesm') then
           if (diagmon) then
-            call pstdat(ny,nm,nd,1)
+            errstat=date_offset(calendar,date_tmp,-1)
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(6a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
-     .        '.',ny,'-',nm,'.nc'
+     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
+     .        date_tmp%year,'-',date_tmp%month,
+     .        '.nc'
           elseif (diagann) then
-            call pstdat(ny,nm,nd,1)
+            errstat=date_offset(calendar,date_tmp,-1)
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(6a,i4.4,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
-     .        '.',ny,'.nc'
+     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
+     .        date_tmp%year,
+     .        '.nc'
           else
-            call pstdat(ny,nm,nd,nint(diagfq))
+            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
+            if (errstat.ne.calendar_noerr) then
+              if (mnproc.eq.1) then
+                write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                      trim(calendar_errstr(errstat))
+              endif
+              call xcstop('(diafnm)')
+                     stop '(diafnm)'
+            endif
             write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
-     .        '.',ny,'-',nm,'-',nd,
+     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
+     .        date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,
      .        '.nc'
           endif
         else
@@ -341,22 +403,33 @@ c
                  stop '(inifrc)'
         endif
       else
-        ny=nyear
-        nm=nmonth
-        nd=nday
-        if (mod(nstep,nstep_in_day).eq.0) call pstdat(ny,nm,nd,1)
+        date_tmp=date
+        if (mod(nstep,nstep_in_day).eq.0) then
+          errstat=date_offset(calendar,date_tmp,-1)
+          if (errstat.ne.calendar_noerr) then
+            if (mnproc.eq.1) then
+              write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                    trim(calendar_errstr(errstat))
+            endif
+            call xcstop('(diafnm)')
+                   stop '(diafnm)'
+          endif
+        endif
         ns=nint(nint(mod(nstep+.5-diagfq,real(nstep_in_day))/diagfq)
      .          *diagfq/nstep_in_day*86400)
         if (expcnf.eq.'cesm') then
           write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'.blom',trim(inst_suffix),'.',ctag,
-     .      '.',ny,'-',nm,'-',nd,'-',ns,'.nc'
+     .      trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
+     .      date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,'-',ns,
+     .      '.nc'
         else
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.',ns,
+     .      trim(runid),'_',trim(ctag),'_',
+     .      date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.',ns,
      .      '.nc'
         endif
       endif
+
       end subroutine diafnm
 
 
@@ -370,7 +443,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 c
       integer i,j,l,n,istat,istatsum
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
@@ -1777,7 +1849,6 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 #include "common_seaice.h"
 c
@@ -2127,25 +2198,26 @@ c --- set time information
       timeunits=' '
       startdate=' '
       write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')
-     . 'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
+     . 'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00'
       write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')
-     .  nyear0,'-',nmonth0,'-',nday0,' 00:00'
+     .  date0%year,'-',date0%month,'-',date0%day,' 00:00'
       datenum=time-time0-0.5*diagfq_phy(iogrp)/nstep_in_day
 c
 c --- create file name 
       if (.not.append2file(iogrp)) then
-        call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(IOGRP)),
-     .  nstep,filefq_phy(iogrp)/real(nstep_in_day),filemon_phy(iogrp),
-     .  fileann_phy(iogrp),fname(iogrp))
+        call diafnm(GLB_FNAMETAG(IOGRP),
+     .              filefq_phy(iogrp)/real(nstep_in_day),
+     .              filemon_phy(iogrp),fileann_phy(iogrp),fname(iogrp))
         append2file(iogrp)=.true.
         irec(iogrp)=1
       else
         irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_phy(iogrp).and.nday_of_year.eq.1.or.
-     .  filemon_phy(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .eq.0).or..not.(fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
-     .  mod(nstep+.5,filefq_phy(iogrp)).lt.1.) then
+     .      filemon_phy(iogrp).and.date%day.eq.1).and.
+     .     mod(nstep,nstep_in_day).eq.0).or.
+     .    .not.(fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
+     .    mod(nstep+.5,filefq_phy(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
       endif
 c

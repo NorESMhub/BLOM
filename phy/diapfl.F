@@ -23,6 +23,8 @@ c --- ------------------------------------------------------------------
 c --- Diapycnal mixing
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: g, alpha0, spval, epsil, onem
+      use mod_time, only: delt1
       use mod_xc
 c
       implicit none

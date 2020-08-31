@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2015 Mats Bentsen
+! Copyright (C) 2004-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,13 +23,12 @@ c --- ------------------------------------------------------------------
 c --- Get surface stress
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf
+      use mod_xc, only: lp, mnproc, xcstop
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
 c
       if     (expcnf.eq.'cesm') then
         call sfcstr_cesm(m,n,mm,nn,k1m,k1n)

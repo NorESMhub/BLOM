@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2012-2018 Mats Bentsen
+! Copyright (C) 2012-2020 Mats Bentsen
 
 ! This file is part of BLOM.
 !
@@ -25,6 +25,7 @@ c --- to be applied to precipitation and runoff. The correction factor
 c --- is based on the fresh water budget for the previous year.
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: nday_of_year, nstep, nstep_in_day, baclin
       use mod_xc
 c
       implicit none
@@ -32,7 +33,6 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 c
       real totei,totpr

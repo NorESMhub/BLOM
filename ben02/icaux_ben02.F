@@ -24,6 +24,7 @@ c --- Define initial conditions specifically when using the Bentsen and
 c --- Drange (2002) forcing and thermodynamic sea ice
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: t0deg
       use mod_xc
       use mod_ben02, only: tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
       use mod_thdysi, only: tsrfm,ticem,albs_f,fice_max

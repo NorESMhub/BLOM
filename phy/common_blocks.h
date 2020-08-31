@@ -192,14 +192,10 @@ c
      .               mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,
      .               twedon,pbrnda,kfpla
 c
-      real time,delt1,dlt,area,avgbot
-      integer nstep,nstep0,nstep1,nstep2,lstep
+      real area,avgbot
 c
-      common /varbls/ time,delt1,dlt,area,avgbot,
-     .                nstep,nstep0,nstep1,nstep2,lstep
+      common /varbls/ area,avgbot
 c
-c --- 'baclin' = baroclinic time step
-c --- 'batrop' = barotropic time step
 c --- 'mdv2hi' = Laplacian diffusion velocity (cm/s) for momentum dissipation
 c --- 'mdv2lo' = same as mdv2hi but used when Rossby radius is resolved
 c --- 'mdv4hi' = Biharmonic diffusion velocity (cm/s) for momentum dissipation
@@ -276,47 +272,28 @@ c --- 'icfile' = name of file containing initial conditions
 c --- 'tdfile' = name of file containing tidal wave energy dissipation
 c ---            divided by by bottom buoyancy frequency
 c
-      real baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
+      real mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .     vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,cbar,cb,cwbdts,cwbdls,
      .     wuv1,wuv2,wts1,wts2,wbaro,wpgf,mltmin,thktop,thkbot,egc,
      .     eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,
      .     bdmc1,bdmc2,tkepf,niwgf,niwbf,niwlf
       integer bdmtyp
       logical csdiag,cnsvdi,edsprs
-      character*80 expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
+      character*80 mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .             mlrttp
       character*256 grfile,icfile,tdfile
 c
-      common /parms1/ baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,
+      common /parms1/ mdv2hi,mdv2lo,mdv4hi,mdv4lo,
      .                mdc2hi,mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,slip,
      .                cbar,cb,cwbdts,cwbdls,wuv1,wuv2,wts1,wts2,wbaro,
      .                wpgf,mltmin,thktop,thkbot,egc,eggam,eglsmn,egmndf,
      .                egmxdf,egidfq,ri0,rm0,rm5,ce,bdmc1,bdmc2,tkepf,
      .                niwgf,niwbf,niwlf,bdmtyp,csdiag,cnsvdi,edsprs,
-     .                expcnf,mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
+     .                mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,
      .                mlrttp,grfile,icfile,tdfile
-c
-c --- 'tenm,onem,...' = pressure thickness values corresponding to 10m,1m,...
-c --- 'g'      = gravity acceleration
-c --- 'rearth' = radius of the earth
-c --- 'spcifh' = specific heat of sea water (j/g/deg)
-c --- 't0deg'  = zero degree celsius in kelvin (K)
-c --- 'alpha0' = reference value of specific volume (cm**3/g)
-c --- 'epsil'  = small nonzero number used to prevent division by zero
-c
-      real tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,alpha0,
-     .     epsil,radian,pi
-c
-      common /consts/ tenm,onem,tencm,onecm,onemm,g,rearth,spcifh,t0deg,
-     .                alpha0,epsil,radian,pi
 c
 c --- grid point where detailed diagnostics are desired:
 c
       integer itest,jtest,ptest
 c
       common /testpt/ itest,jtest,ptest
-c
-      character*256 runid
-      integer runid_len
-c
-      common /iovars/ runid,runid_len

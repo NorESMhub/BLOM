@@ -24,6 +24,7 @@ c --- Remove static instabilitites between the mixed layer and interior
 c --- layers
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: epsil
       use mod_xc
 c
       implicit none

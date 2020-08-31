@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2019 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ c --- Estimate slope of local neutral surface.
 c --- ------------------------------------------------------------------
 c
 c
+      use mod_constants, only: g, alpha0, epsil
       use mod_xc
 c
       implicit none

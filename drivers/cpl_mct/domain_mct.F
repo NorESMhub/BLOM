@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2012 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,15 +24,15 @@
       use mct_mod
       use seq_flds_mod
       use shr_const_mod, only: SHR_CONST_REARTH
-      use types, only : r8
+      use mod_types, only: r8
       use mod_xc
 
       implicit none
 
       ! Input/output arguments
 
-      type (mct_gsMap)         , intent(in)    :: gsMap_ocn
-      type (mct_ggrid)         , intent(inout) :: dom_ocn
+      type(mct_gsMap)          , intent(in)    :: gsMap_ocn
+      type(mct_ggrid)          , intent(inout) :: dom_ocn
       integer                  , intent(in)    :: lsize
       integer, dimension(lsize), intent(in)    :: perm
       integer                  , intent(in)    :: jjcpl
@@ -45,9 +45,9 @@
       ! Local variables
 
       integer, pointer :: idata(:)
-      real (r8), pointer :: rdata(:)
+      real(r8), pointer :: rdata(:)
       integer i, j, n
-      real (r8) :: radius
+      real(r8) :: radius
 
       ! ----------------------------------------------------------------
       ! Initialize mct domain type

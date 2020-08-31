@@ -1,6 +1,6 @@
 ! Copyright (C) 2002  Ernst Maier-Reimer, S. Legutke, P. Wetzel
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
-!                     M. Bentsen
+!                     M. Bentsen, P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -115,8 +115,8 @@
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
-#endif
 #include <mpif.h>      
+#endif
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
       REAL             :: omask(kpie,kpje)    

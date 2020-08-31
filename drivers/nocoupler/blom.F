@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Bergen Layered Ocean Model (BLOM)
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: nstep2, nstep
       use mod_xc
 c
       implicit none

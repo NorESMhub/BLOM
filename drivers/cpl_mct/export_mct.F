@@ -24,7 +24,7 @@
       
       use mct_mod
       use shr_const_mod, only: SHR_CONST_TKFRZ
-      use types, only : r8
+      use mod_types, only: r8
       use blom_cpl_indices
       use mod_xc
 
@@ -32,14 +32,14 @@
 
       ! Input/output arguments
 
-      type (mct_aVect)         , intent(inout) :: o2x_o
+      type(mct_aVect)          , intent(inout) :: o2x_o
       integer                  , intent(in)    :: lsize
       integer, dimension(lsize), intent(in)    :: perm
       integer                  , intent(in)    :: jjcpl
       integer                  , intent(in)    :: nsend
-      real (r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
      .   intent(inout) :: sbuff
-      real (r8)                , intent(inout) :: tlast_coupled
+      real(r8)                 , intent(inout) :: tlast_coupled
 
       ! Include files
 
@@ -49,7 +49,7 @@
       ! Local variables
 
       integer i, j, n
-      real (r8) :: tfac, utmp, vtmp
+      real(r8) :: tfac, utmp, vtmp
 
       tfac = 1._r8/tlast_coupled
 

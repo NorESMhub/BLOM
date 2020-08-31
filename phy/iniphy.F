@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,11 +23,10 @@ c --- ------------------------------------------------------------------
 c --- Initialize physical parameterizations
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf
+      use mod_xc, only: lp, mnproc, xcstop
 c
       implicit none
-c
-#include "common_blocks.h"
 c
       if     (expcnf.eq.'cesm'.or.
      .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then

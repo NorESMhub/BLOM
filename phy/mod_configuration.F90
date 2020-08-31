@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2017 Mats Bentsen
+! Copyright (C) 2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,16 +17,19 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-c --- ------------------------------------------------------------------
-c --- common block related to model calendar and time management
-c --- ------------------------------------------------------------------
-c
-      real time0
-      integer, dimension(12) :: nd_in_m
-      integer nday1,nday2,nday,nmonth,nyear,nday0,nmonth0,nyear0,
-     .        nday_in_year,nday_of_year,nstep_in_day
-      character*19 calendar
-c
-      common /clndr/ time0,nd_in_m,nday1,nday2,nday,nmonth,nyear,nday0,
-     .               nmonth0,nyear0,nday_in_year,nday_of_year,
-     .               nstep_in_day,calendar
+module mod_configuration
+! ------------------------------------------------------------------------------
+! This module contains configuration variables.
+! ------------------------------------------------------------------------------
+
+   implicit none
+
+   private
+
+   character(len = 256) :: &
+      expcnf, & ! Experiment configuration.
+      runid     ! Experiment name.
+
+   public ::  expcnf, runid
+
+end module mod_configuration

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,30 +17,26 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine modeltime(ymd, tod)
+module mod_types
+! ------------------------------------------------------------------------------
+! This module defines numeric data types.
+! ------------------------------------------------------------------------------
 
-      ! Uses modules
+   use, intrinsic :: iso_fortran_env, only: &
+      int8, int16, int32, int64, real32, real64
 
-      use mod_xc
-      
-      implicit none
+   implicit none
 
-      ! Input/output arguments
+   private
 
-      integer, intent(out)    :: ymd, tod
+   integer, parameter :: &
+      i1 = int8, &
+      i2 = int16, &
+      i4 = int32, &
+      i8 = int64, &
+      r4 = real32, &
+      r8 = real64
 
-      ! Include files
+   public :: i1, i2, i4, i8, r4, r8
 
-#include "common_blocks.h"
-#include "common_clndr.h"
-
-      ! Local variables
-
-
-      ! External functions
-
-
-      ymd = nyear*10000 + nmonth*100 + nday
-      tod = nint(mod(nstep,nstep_in_day)*baclin)
-
-      end subroutine modeltime
+end module mod_types

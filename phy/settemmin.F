@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2018 Mats Bentsen
+! Copyright (C) 2006-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Set minimum physical temperature values in isopycnic layers
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf
       use mod_xc
 c
       implicit none

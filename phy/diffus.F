@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2018 Mats Bentsen
+! Copyright (C) 2006-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- diffusion of tracers
 c --- ------------------------------------------------------------------
 c
+      use mod_time, only: delt1
       use mod_xc
 c
       implicit none

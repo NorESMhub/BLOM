@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2018 Mats Bentsen
+! Copyright (C) 2007-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,11 +23,11 @@ c --- ------------------------------------------------------------------
 c --- Initialize coefficients related to the equation of state
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf
+      use mod_xc, only: lp, mnproc, xcstop
 c
       implicit none
 c
-#include "common_blocks.h"
 #include "common_eos.h"
 c
 c --- In situ density [kg/m^3] as a function of pressure, potential

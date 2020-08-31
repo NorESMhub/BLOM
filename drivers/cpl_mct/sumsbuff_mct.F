@@ -21,18 +21,19 @@
 
       ! Uses modules
       
-      use types, only : r8
-      use blom_cpl_indices
+      use mod_types, only: r8
+      use mod_time, only: nstep, baclin, delt1, dlt
       use mod_xc
+      use blom_cpl_indices
 
       implicit none
 
       ! Input/output arguments
 
-      integer                  , intent(in)    :: nsend
-      real (r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
+      integer, intent(in) :: nsend
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
      .   intent(inout) :: sbuff
-      real (r8), intent(inout) :: tlast_coupled
+      real(r8), intent(inout) :: tlast_coupled
 
       ! Include files
 

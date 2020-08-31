@@ -1,4 +1,5 @@
-! Copyright (C) 2020  I Bethke, J. Tjiputra, J. Schwinger, A. Moree, 
+! Copyright (C) 2020  I Bethke, J. Tjiputra, J. Schwinger, A. Moree, M.
+!                     Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -22,9 +23,11 @@ c --- -------------------------------------------
 c --- output routine for HAMOCC diagnostic fields
 c --- -------------------------------------------
 c
+      use mod_time,       only: date0,date,calendar,nstep,nstep_in_day,
+     .                          nday_of_year,time0,time
       use mod_xc
-      use mod_dia,        only : diafnm,sigmar1,iotype
-      use mo_control_bgc, only : dtbgc
+      use mod_dia,        only: diafnm,sigmar1,iotype
+      use mo_control_bgc, only: dtbgc
       use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 #ifdef cisonew
@@ -32,14 +35,13 @@ c
 #endif
 c      
       implicit none
-c      
-#include "common_blocks.h"
-#include "common_clndr.h"
 c
+#include "common_blocks.h"
+c      
       integer iogrp
 c
       integer i,j,k,l,nt
-      integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
+      integer ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
       character*256 fname(nbgcmax)
       character startdate*20,timeunits*30
       real datenum,rnacc
@@ -51,25 +53,26 @@ c --- set time information
       timeunits=' '
       startdate=' '
       write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')
-     . 'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
+     . 'days since ',min(1800,date0%year),'-',1,'-',1,' 00:00'
       write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')
-     .  nyear0,'-',nmonth0,'-',nday0,' 00:00'
+     .  date0%year,'-',date0%month,'-',date0%day,' 00:00'
       datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 c
 c --- get file name
       if (.not.append2file(iogrp)) then
-        call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),
-     .  nstep,filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
-     .  fileann_bgc(iogrp),fname(iogrp))
+        call diafnm(GLB_FNAMETAG(iogrp),
+     .              filefq_bgc(iogrp)/real(nstep_in_day),
+     .              filemon_bgc(iogrp),fileann_bgc(iogrp),fname(iogrp))
         append2file(iogrp)=.true.
         irec(iogrp)=1
       else
         irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
-     .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .eq.0).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
-     .  mod(nstep+.5,filefq_bgc(iogrp)).lt.1.) then
+     .      filemon_bgc(iogrp).and.date%day.eq.1).and.
+     .     mod(nstep,nstep_in_day).eq.0).or.
+     .    .not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
+     .    mod(nstep+.5,filefq_bgc(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
       endif
 c
