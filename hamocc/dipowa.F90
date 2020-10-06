@@ -222,5 +222,4 @@ subroutine dipowa(kpie,kpje,kpke,omask)
 
   enddo j_loop
 
-  return
 end subroutine dipowa

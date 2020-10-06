@@ -1426,5 +1426,4 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
 
-  return
 end subroutine ocprod

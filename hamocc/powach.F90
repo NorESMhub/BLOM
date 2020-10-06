@@ -588,5 +588,4 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
   enddo
 !$OMP END PARALLEL DO
 
-  return
 end subroutine powach
