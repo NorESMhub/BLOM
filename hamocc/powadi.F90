@@ -137,5 +137,4 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
      enddo
   enddo
 
-  return
 end subroutine powadi
