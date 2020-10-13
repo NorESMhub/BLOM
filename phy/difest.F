@@ -1228,7 +1228,8 @@ c --- ------- Tidally driven diapycnal mixing
               endif
 c
 c --- ------- Diapycnal mixing when local stability is weak
-              if (drho(i,k).lt.drho0) then
+              if ((drho(i,k).lt.drho0).and.(drho(i,k).lt.
+     .        (0.1*(sigmar(i,j,kn)-sigmar(i,j,k))))) then
                 q=drho(i,k)/drho0
                 q=max(0.,1.-q*q)
                 nuls=nuls0*q*q*q

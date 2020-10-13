@@ -1,0 +1,45 @@
+#!/bin/bash
+set -ex
+
+EXPID=BLOM_channel_new01
+REXPID=BLOM_channel_new01
+RUNDIR=/cluster/work/users/$USER/BLOM/run/$REXPID
+CONFDIR=/cluster/work/users/agu002/archive/alok/BLOMALEX/BLOM/regions_and_indices
+EXEDIR=/cluster/work/users/agu002/archive/alok/BLOMALEX/BLOM/build
+SUBDIR=/cluster/work/users/agu002/archive/alok/BLOMALEX/BLOM/$EXPID
+NTASKS=16
+NTHREADS=1
+
+#rm -rf $RUNDIR
+mkdir -p $RUNDIR
+cd $RUNDIR
+cp $CONFDIR/*.nc .
+cp $CONFDIR/*.dat .
+cp -u $SUBDIR/limits_$EXPID ./limits
+cp -u $EXEDIR/blom .
+
+  cat <<EOF >batchscript.sh
+#!/bin/bash 
+#
+#  This script will launch blom
+#
+#SBATCH --account=nn9560k
+#SBATCH --job-name=BLOM.$EXPID
+#SBATCH --time=03:59:00
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=$NTASKS
+#SBATCH --cpus-per-task=$NTHREADS
+
+export OMP_NUM_THREADS=$NTHREADS
+
+module purge --force
+module load StdEnv
+module load intel/2019a PnetCDF/1.11.0-intel-2019a netCDF-Fortran/4.4.5-iimpi-2019a 
+
+cd $RUNDIR
+mpirun -np 64 ./blom
+
+EOF
+
+chmod 755 batchscript.sh
+sbatch batchscript.sh

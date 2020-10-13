@@ -1,0 +1,44 @@
+#!/bin/bash
+set -ex
+
+EXPID=BLOM_channel_new01
+RUNDIR=/cluster/work/users/$USER/BLOM/run/$EXPID
+CONFDIR=$HOME/BLOM/BLOM_fork/BLOM/regions_and_indices
+EXEDIR=$HOME/BLOM/BLOM_fork/BLOM/build
+SUBDIR=$HOME/BLOM/BLOM_fork/cases/$EXPID
+NTASKS=128
+NTHREADS=1
+
+#rm -rf $RUNDIR
+mkdir -p $RUNDIR
+cd $RUNDIR
+cp -u $SUBDIR/limits_restart_$EXPID ./limits
+
+  cat <<EOF >batchscript.sh
+#!/bin/bash 
+#
+#  This script will launch blom
+#
+#SBATCH --account=nn9560k
+#SBATCH --job-name=BLOM.$EXPID
+#SBATCH --time=24:00:00
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=$NTASKS
+#SBATCH --cpus-per-task=$NTHREADS
+
+export OMP_NUM_THREADS=$NTHREADS
+
+module purge --force
+module load StdEnv
+module load iomkl/2020a
+module load netCDF-Fortran/4.5.2-iompi-2020a
+module load PnetCDF/1.12.1-iompi-2020a
+module list
+
+cd $RUNDIR
+mpirun -bind-to core ./blom
+
+EOF
+
+chmod 755 batchscript.sh
+sbatch batchscript.sh

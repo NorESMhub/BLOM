@@ -84,6 +84,10 @@ c --- Coefficients for freezing temperature
         atf=-5.7846e-2
         btf= 1.0307e-1
         ctf=-7.7961e-9
+      elseif (expcnf.eq.'channel') then
+        atf=-0.0547
+        btf=0.
+        ctf=0.
       else
         if (mnproc.eq.1) then
           write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'

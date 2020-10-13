@@ -288,7 +288,7 @@ c
         ny=nyear
         nm=nmonth
         nd=nday
-        if   (expcnf.eq.'ben02clim') then
+        if   (expcnf.eq.'ben02clim'.or.expcnf.eq.'channel') then
           call pstdat(ny,nm,nd,nint(diagfq))
           if     (mod(nint(diagfq),360).eq.0) then
             write(fname,'(4a,i4.4,a)')
@@ -393,6 +393,10 @@ c --- diagnostics
           call xchalt('(diaini)')
                  stop '(diaini)'
         endif
+      endif
+c
+      if (mnproc.eq.1) then
+          write (lp,*) 'Found regions and sections files'
       endif
 c
       nphyh2d=0

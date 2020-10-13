@@ -50,6 +50,8 @@ c
       elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
      .        expcnf.eq.'isomip1'.or.expcnf.eq.'isomip2') then
         call geoenv_file
+      elseif (expcnf.eq.'channel') then
+        call geoenv_channel
       elseif (expcnf.eq.'test') then
         call geoenv_test
       else

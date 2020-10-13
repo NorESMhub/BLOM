@@ -35,6 +35,8 @@ c
         call thermf_cesm(m,n,mm,nn,k1m,k1n)
       elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call thermf_ben02(m,n,mm,nn,k1m,k1n)
+      elseif (expcnf.eq.'channel') then
+        call thermf_channel(m,n,mm,nn,k1m,k1n)
       elseif (expcnf.eq.'isomip1') then
 c       call thermf_isomip1(m,n,mm,nn,k1m,k1n)
       elseif (expcnf.eq.'isomip2') then

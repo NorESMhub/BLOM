@@ -116,7 +116,14 @@ c --- ------------------------------------------------------------------
 c --- Get forcing
 c --- ------------------------------------------------------------------
 c
-      call getfrc
+c --- channel configuration has constant forcing so only call once
+      if (expcnf.eq.'channel') then
+        if (nstep.eq.(nstep1+1)) then
+            call getfrc
+        endif
+      else
+        call getfrc
+      endif
 c
 c --- ------------------------------------------------------------------
 c --- Update arrays related to shortwave radiation absorption.
