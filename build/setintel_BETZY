@@ -1,0 +1,5 @@
+module --force purge
+module load StdEnv
+module load iomkl/2020a
+module load netCDF-Fortran/4.5.2-iompi-2020a
+module load PnetCDF/1.12.1-iompi-2020a

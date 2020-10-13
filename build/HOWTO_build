@@ -1,0 +1,14 @@
+# set the environment and update Makefile
+source setintel_FRAM
+make depend
+# and then manually, in the Makefile, for blom.f you need to change the FFLAG to
+#-real-size 64 -mkl=cluster -fp-model source -qno-opt-dynamic-align -convert big_endian -assume byterecl -ftz -O3
+# this is because the main program cannot be compiled with other than -O3 option
+make clean
+make
+
+Now execute model and it is for 1 month:
+
+cd ../BLOM_channel_new01/
+./run.sh_normal_betzy #it runs model for 1 months on 64 processors; we set 4 nodes as short queue time limit was bit lower 
+#it would also be nice to go through makefiles and run.sh_normal_betzy

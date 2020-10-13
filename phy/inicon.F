@@ -46,6 +46,8 @@ c --- ------------------------------------------------------------------
       if     (expcnf.eq.'cesm'.or.
      .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call ictsz_file
+      elseif (expcnf.eq.'channel') then
+        call ictsz_channel
       elseif (expcnf.eq.'isomip1') then
 c       call ictsz_isomip1
       elseif (expcnf.eq.'isomip2') then
@@ -72,6 +74,8 @@ c
         call icaux_cesm
       elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call icaux_ben02
+      elseif (expcnf.eq.'channel') then
+        call icaux_channel
       else
         if (mnproc.eq.1) then
           write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'

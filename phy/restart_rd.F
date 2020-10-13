@@ -82,7 +82,7 @@ c --- - time corresponding to start date
                  stop '(restart_rd)'
         endif
 c
-      elseif (expcnf.eq.'cesm') then
+      elseif (expcnf.eq.'cesm'.or.expcnf.eq.'channel') then
 c
 c --- - get restart file name from rpointer.ocn
         if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
@@ -629,6 +629,12 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
         endif
       endif
+c
+      if (expcnf.eq.'channel') then
+        call ncgeti('ntda',ntda)
+        call xcbcst(ntda)
+        call ncread('rnfres',rnfres,ip,1,0.)
+      endif 
 c
       if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call ncread('cd_d',cd_d,ip,1,0.)

@@ -40,7 +40,7 @@ c
 #include "common_seaice.h"
 c
       integer i,j,n
-      character(len=80), dimension(4) :: rstdate_str
+      character(len=256), dimension(4) :: rstdate_str
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
@@ -185,7 +185,8 @@ c --- output model fields to restart file
       if (sprfac) then
         call ncputr('prfac',prfac)
       endif
-      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
+     .    expcnf.eq.'channel') then
         call ncputi('ntda',ntda)
       endif
       do n=1,nphy 
@@ -277,6 +278,10 @@ c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
         call wrtrst('pracc',trim(c5p)//' time',pracc,ip)
+      endif
+c
+      if (expcnf.eq.'channel') then
+          call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
       endif
 c
       if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
@@ -757,7 +762,7 @@ c
         call ncfcls
       endif
 c
-      if (expcnf.eq.'cesm') then
+      if (expcnf.eq.'cesm'.or.expcnf.eq.'channel') then
 c
 c --- - write restart filename to rpointer.ocn
         if (mnproc.eq.1) then
@@ -873,6 +878,10 @@ c
       if (sprfac) then
         call defvarrst('eiacc',trim(c5p)//' time')
         call defvarrst('pracc',trim(c5p)//' time')
+      endif
+c
+      if (expcnf.eq.'channel') then
+        call defvarrst('rnfres',trim(c5p)//' time')
       endif
 c
       if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then

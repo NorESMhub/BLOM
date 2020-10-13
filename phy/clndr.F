@@ -35,7 +35,7 @@ c
 c --- Set calendar type to be used
       if     (expcnf.eq.'cesm') then
         calendar='noleap'
-      elseif (expcnf.eq.'ben02clim') then
+      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'channel') then
         calendar='360_day'
       elseif (expcnf.eq.'ben02syn') then
         calendar='standard'
