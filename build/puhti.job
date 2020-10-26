@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --account=project_2003520
+#SBATCH --ntasks=1
+#SBATCH --time=00:15:00
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+#SBATCH --reservation=gpuhackathon
+#SBATCH --mem-per-cpu 32GB
+
+module load pgi cuda
+
+srun ./blom
+
+# Submit to the batch job queue with the command:
+#  sbatch job.sh
+
+# or alternatively, run directly from the command line:
+#  srun --account=project_2003520 --ntasks=1 --time=00:15:00 --gres=gpu:v100:1 \
+#       --partition=gputest ./blom
