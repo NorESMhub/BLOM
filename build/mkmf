@@ -58,7 +58,7 @@ my( $file, $include, $line, $module, $name, $object, $path, $source, $suffix, $t
 my @list;
 #some constants
 my $endline = $/;
-my @src_suffixes = ( q/\.F/, q/\.F90/, q/\.c/, q/\.f/, q/\.f90/ );
+my @src_suffixes = ( q/\.F/, q/\.F90/, q/\.CUF/, q/\.c/, q/\.f/, q/\.f90/ );
 my @inc_suffixes = ( q/\.H/, q/\.fh/, q/\.h/, q/\.inc/, q/\.h90/ );
 # push @inc_suffixes, @src_suffixes; # sourcefiles can be includefiles too: DISALLOW, 6 May 2004
 # suffixes for the target (mkmf -p): if isn't on the list below it's a program
@@ -67,6 +67,7 @@ my @tgt_suffixes = ( q/\.a/ );
 my %compile_cmd = (			# command to create .o file from a given source file suffix
       q/.F/   => q/$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c/,
       q/.F90/ => q/$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SF90FLAGS) $(OTHERFLAGS) -c/,
+      q/.CUF/ => q/$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SF90FLAGS) $(OTHERFLAGS) -c/,
       q/.c/   => q/$(CC) $(CPPDEFS) $(CPPFLAGS) $(CFLAGS) $(OTHERFLAGS) -c/,
       q/.f/   => q/$(FC) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c/,
       q/.f90/ => q/$(FC) $(FFLAGS) $(SF90FLAGS) $(OTHERFLAGS) -c/              );
@@ -108,6 +109,7 @@ if ( $opt_c ) {
       &print_formatted_list("CPPDEFS_XLF = $cppdefs_xlf");
       $compile_cmd{'.F'}   = q/$(FC) $(CPPDEFS_XLF) $(FFLAGS) $(SFFLAGS) -c/;
       $compile_cmd{'.F90'} = q/$(FC) $(CPPDEFS_XLF) $(FFLAGS) $(SF90FLAGS) -c/;
+      $compile_cmd{'.CUF'} = q/$(FC) $(CPPDEFS_XLF) $(FFLAGS) $(SF90FLAGS) -c/;
    }
    &print_formatted_list("CPPDEFS = $opt_c") if $opt_c;
 }

@@ -9,11 +9,14 @@
 
 module load pgi cuda
 
-srun ./blom
+# profiling
+#LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/netCDF/lib srun nvprof --cpu-profiling on ./blom
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/netCDF/lib srun ./blom
 
 # Submit to the batch job queue with the command:
 #  sbatch job.sh
 
 # or alternatively, run directly from the command line:
 #  srun --account=project_2003520 --ntasks=1 --time=00:15:00 --gres=gpu:v100:1 \
-#       --partition=gputest ./blom
+#       --partition=gpu ./blom
