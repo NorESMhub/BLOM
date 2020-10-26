@@ -814,6 +814,7 @@ c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
         time0=0.
         nstep1=nday1*nstep_in_day
         nstep2=nday2*nstep_in_day
+        nstep2=10
 c
         if (csdiag) then
           nstep2=nstep1+2
