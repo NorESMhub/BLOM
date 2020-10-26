@@ -1,4 +1,4 @@
-# PGI compiler definitions (NOTE: Experimental!)
+# Intel compiler definitions
 
 # Fortran compiler
 FC=pgfortran
@@ -11,17 +11,17 @@ AR=ar
 # Include directory for modules
 MODINC=
 # Linker flags
-LIBS=$(shell nf-config --fflags --flibs)
+LIBS=-L$HOME/netCDF/lib/ -lnetcdf -lnetcdff 
 # External names
 EXTNAME=
 
 # Compiler flags
 # Optimization level
-OPT=-O2
+OPT=-fast
 OPENMP=
-DEBUG=-pg
-FFLAGS=$(LIBS) $(OPT) $(OPENMP) $(DEBUG)
-CFLAGS=$(OPT) $(OPENMP) $(DEBUG)
+DEBUG=
+FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I$HOME/netCDF/include/
+CFLAGS=-Kieee $(OPENMP) -mcmodel=medium
 
 # Linker flags
 LDFLAGS=$(LIBS) $(OPENMP) $(DEBUG)
@@ -29,5 +29,5 @@ LDFLAGS=$(LIBS) $(OPENMP) $(DEBUG)
 # Archiver flags
 ARFLAGS=-r
 
+#DIRECTIVE_FLAGS="-DMPI -DLEVITUS2X -DTRC -DTKE -DTKEADV -DIDLAGE -DPNETCDF"
 DIRECTIVE_FLAGS="-DLEVITUS2X -DTRC -DTKE -DTKEADV -DIDLAGE"
-
