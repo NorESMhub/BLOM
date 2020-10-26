@@ -5,10 +5,16 @@
 #SBATCH --gres=gpu:v100:1
 #SBATCH --partition=gpu
 #SBATCH --reservation=gpuhackathon
-#SBATCH --mem-per-cpu 32GB
+#SBATCH --mem-per-cpu=32GB
 
 module load pgi cuda
-
+if [ ! -d run ] ; then
+mkdir run
+fi
+cp ./blom run/
+cp /scratch/project_2003520/data/* run/
+cd run
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch/project_2003520/netCDF/lib/
 srun ./blom
 
 # Submit to the batch job queue with the command:

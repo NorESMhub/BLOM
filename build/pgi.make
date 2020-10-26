@@ -21,7 +21,7 @@ OPT=-fast
 OPENMP=
 DEBUG=
 #FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I$HOME/netCDF/include/
-FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I/scratch/project_2003520/netCDF/include
+FFLAGS=-r8 -Kieee -byteswapio -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I/scratch/project_2003520/netCDF/include
 CFLAGS=-Kieee $(OPENMP) -mcmodel=medium
 
 # Linker flags
