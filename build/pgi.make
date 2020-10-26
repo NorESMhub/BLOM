@@ -11,7 +11,7 @@ AR=ar
 # Include directory for modules
 MODINC=
 # Linker flags
-LIBS=-L$HOME/netCDF/lib/ -lnetcdf -lnetcdff 
+LIBS=-L/scratch/project_2003520/netCDF/lib -lnetcdf -lnetcdff 
 # External names
 EXTNAME=
 
@@ -20,7 +20,8 @@ EXTNAME=
 OPT=-fast
 OPENMP=
 DEBUG=
-FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I$HOME/netCDF/include/
+#FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I$HOME/netCDF/include/
+FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I/scratch/project_2003520/netCDF/include
 CFLAGS=-Kieee $(OPENMP) -mcmodel=medium
 
 # Linker flags
