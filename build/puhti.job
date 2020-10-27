@@ -9,10 +9,14 @@
 
 module load pgi cuda
 
-# profiling
-#LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/netCDF/lib srun nvprof --cpu-profiling on ./blom
-
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/netCDF/lib srun ./blom
+if [ ! -d run ] ; then
+mkdir run
+fi
+cp ./blom run/
+cp /scratch/project_2003520/data/* run/
+cd run
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch/project_2003520/netCDF/lib/
+srun ./blom
 
 # Submit to the batch job queue with the command:
 #  sbatch job.sh
