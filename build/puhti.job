@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:v100:1
 #SBATCH --partition=gpu
 #SBATCH --reservation=gpuhackathon
-#SBATCH --mem-per-cpu 32GB
+#SBATCH --mem-per-cpu=32GB
 
 module load pgi cuda
 
