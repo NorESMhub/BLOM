@@ -17,7 +17,7 @@ EXTNAME=
 
 # Compiler flags
 # Optimization level
-OPT=-fast
+OPT=-fast -Mcuda
 OPENMP=
 DEBUG=
 #FFLAGS=-r8 -Kieee -byteswapio -Mrecursive -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG) -I$HOME/netCDF/include/
@@ -25,7 +25,7 @@ FFLAGS=-r8 -Kieee -byteswapio -mcmodel=medium -Mflushz $(OPT) $(OPENMP) $(DEBUG)
 CFLAGS=-Kieee $(OPENMP) -mcmodel=medium
 
 # Linker flags
-LDFLAGS=$(LIBS) $(OPENMP) $(DEBUG)
+LDFLAGS=-Mcuda $(LIBS) $(OPENMP) $(DEBUG)
 
 # Archiver flags
 ARFLAGS=-r

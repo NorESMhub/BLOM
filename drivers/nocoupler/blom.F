@@ -24,10 +24,34 @@ c --- Bergen Layered Ocean Model (BLOM)
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use cudafor
+      use mytests
 c
       implicit none
 c
 #include "common_blocks.h"
+
+c --- testing CUDA Fortran
+c --- sample code from https://docs.nvidia.com/hpc-sdk/compilers/
+c ---     cuda-fortran-prog-guide/index.html#cfpg-cuda-fort-host-dev-code
+      integer, parameter :: n = 100
+      integer, allocatable, device :: iarr(:)
+      integer h(n)
+      integer istat
+      integer i
+
+      if (0) then
+        istat = cudaSetDevice(0)
+        allocate(iarr(n))
+        h = 0; iarr = h
+        call test1<<<1,n>>> (iarr)
+        h = iarr
+        print *, "Errors: ", count(h.ne.(/ (i,i=1,n) /))
+        deallocate(iarr)
+
+        stop '(normal)'
+      endif
+
 c
 c --- initialize the model
       call blom_init
