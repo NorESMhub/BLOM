@@ -84,14 +84,9 @@ c
 #endif
 !$acc data create(ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,
 !$acc& dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc,dsgl,dsghm,dsg
-!$acc&  ,pres,kming,rstdns,ttem0,ssal0,delp0,dens0,sigr0,nu0,c,
-!$acc& delpu,delpl,nubbl,dsgdt,dsgds,fcmx,dsgc,q,dflim,ctd,bitd,r,
-!$acc& s,t,dfdg,atd,maxdf,dtd,pold,pnew,fpum,fpup,fplm,fplp,niter,
-!$acc& done,dwnwrd,remfmx)
-!$acc& copy(ilp,fpug,ifp,fplg,dp,sigmar,trc,ustarb,coriop,sigma,saln
-!$acc&  ,difdia,p,temmin,temp,isp,kfpla,isv,ilv,dpv,ifv,isu,dpu,ilu,
-!$acc&  ifu,pv,pu,u,v,util1,
-!$acc&  m,n,mm,nn,k1m,k1n)
+!$acc&  ,pres,kming,rstdns,ttem0,ssal0,delp0,dens0,sigr0,nu0,c
+!$acc& )
+!$acc& copy(fpug,fplg, m,n,mm,nn,k1m,k1n)
 
 c
 c --- Constant in the diffusion equation
@@ -109,14 +104,15 @@ c$OMP+ remfmx,r,t,s,dfdg,atd,maxdf,dtd
 c$OMP+ ,nt,ttrc
 #endif
 c$OMP+ )
-!$acc parallel loop private(
-!$acc& l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0,
-!$acc& dens0,sigr0,nu0,kfpl,kmin,kmax,pres,fpu,fpl,delpu,delpl,nubbl,
-!$acc& dsgli,fcl,dsgdt,dsgds,dsgu,dsgl,dsghm,dsg,dsgui,fcmx,dsgc,q,fcu,
-!$acc& fmax,done,niter,kfmaxu,f0,f,gtd,dflim,fold,h,dwnwrd,ctd,bitd,
-!$acc& remfmx,r,t,s,dfdg,atd,maxdf,dtd
-!$acc& ,nt,ttrc,j
-!$acc& )
+!!!!$acc parallel loop private(
+!!!!$acc& l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0,
+!!!!$acc& dens0,sigr0,nu0,kfpl,kmin,kmax,pres,fpu,fpl,delpu,delpl,nubbl,
+!!!!$acc& dsgli,fcl,dsgdt,dsgds,dsgu,dsgl,dsghm,dsg,dsgui,fcmx,dsgc,q,fcu,
+!!!!$acc& fmax,done,niter,kfmaxu,f0,f,gtd,dflim,fold,h,dwnwrd,ctd,bitd,
+!!!!$acc& remfmx,r,t,s,dfdg,atd,maxdf,dtd
+!!!!$acc& ,nt,ttrc,j
+!!!!$acc& )
+!$acc parallel num_gangs(1) vector_length(1)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -717,15 +713,17 @@ c
         enddo
       enddo
 c$OMP END PARALLEL DO
-!$acc end parallel loop
+!$acc end parallel
 c
 c --- ------------------------------------------------------------------
 c --- Diapycnal mixing of momentum.
 c --- ------------------------------------------------------------------
 c
-c      call xctilr(p, 1,kk+1, 1,1, halo_ps)
-c      call xctilr(fpug, 1,kk, 1,1, halo_ps)
-c      call xctilr(fplg, 1,kk, 1,1, halo_ps)
+!$acc update self(p,fpug,fplg)
+      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+      call xctilr(fpug, 1,kk, 1,1, halo_ps)
+      call xctilr(fplg, 1,kk, 1,1, halo_ps)
+
 !$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
@@ -737,7 +735,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 !$acc end parallel loop
-c      call xctilr(util1, 1,1, 1,1, halo_ps)
+!$acc update self(util1)
+      call xctilr(util1, 1,1, 1,1, halo_ps)
+!$acc update device(p,fpug,fplg,util1)
 !$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
@@ -1049,6 +1049,8 @@ c       enddo
 c       enddo
 c     enddo
 c
+!$acc update self(dp)     
+      call chksummsk(dp,ip,2*kk,'dp')
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'diapfl:'

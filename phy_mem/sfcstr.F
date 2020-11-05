@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2004-2015 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,37 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      subroutine sfcstr(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- Get surface stress
 c --- ------------------------------------------------------------------
 c
       use mod_xc
 c
       implicit none
 c
+      integer m,n,mm,nn,k1m,k1n
+c
 #include "common_blocks.h"
 c
-c --- initialize the model
-      call blom_init
-c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
-c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
+      if     (expcnf.eq.'cesm') then
+        call sfcstr_cesm(m,n,mm,nn,k1m,k1n)
+      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+        call sfcstr_ben02(m,n,mm,nn,k1m,k1n)
+      elseif (expcnf.eq.'channel') then
+        call sfcstr_channel(m,n,mm,nn,k1m,k1n)
+      elseif (expcnf.eq.'isomip1') then
+c       call sfcstr_isomip1(m,n,mm,nn,k1m,k1n)
+      elseif (expcnf.eq.'isomip2') then
+c       call sfcstr_isomip2(m,n,mm,nn,k1m,k1n)
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(sfcstr)')
+               stop '(sfcstr)'
       endif
-      call xcstop('(normal)')
-             stop '(normal)'
 c
+      return
       end

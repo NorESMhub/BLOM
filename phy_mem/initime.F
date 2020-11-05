@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2006-2020 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,38 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      subroutine initime
 c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- Initializes variables used for timing. Must be called before use
+c --- of 'gettime'
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
-c
+      use mod_xc, only: mnproc
       implicit none
 c
-#include "common_blocks.h"
+#include "timing.h"
 c
-c --- initialize the model
-      call blom_init
+      if (mnproc.eq.1) wtimeold=wtime()
 c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
+      total_time       =0.
+      total_xio_time   =0.
+      auxil_total_time =0.
+      getfrc_total_time=0.
+      tmsmt1_total_time=0.
+      advdif_total_time=0.
+      sfcstr_total_time=0.
+      momtum_total_time=0.
+      pgforc_total_time=0.
+      barotp_total_time=0.
+      pbtcor_total_time=0.
+      convec_total_time=0.
+      diapfl_total_time=0.
+      thermf_total_time=0.
+      mxlayr_total_time=0.
+      tmsmt2_total_time=0.
+      diaacc_total_time=0.
+      io_total_time    =0.
 c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
-c
+      return
       end

@@ -57,14 +57,11 @@ c
       integer niter
 c
         print*, 'I enter in CONVEC',JJ
-
-!$acc data copy(isp,ifp,ilp,isu,ifu,ilu,isv,ifv,ilv)
-!$acc& copy(kfpla,temp,p,sigmar)
-!$acc& copy(saln,sigma,dp,pv,u)
-!$acc& copy(v,pu)
-!$acc& copy(dpv,dpu,trc) create(ttrc,trdps)
+!$acc update self(dp)
+        call chksummsk(dp,ip,2*kk,'dp')
+!$acc data create(ttrc,trdps)
 !$acc& create(ttem,ssal,delp,dens,densr,uo,un,po,pn)
-      print*, 'I enter in CONVEC1',JJ
+!$acc& copy(m,n,mm,nn,k1m,k1n)
 !$acc parallel loop private(l,i,k,kn,ttem,ssal,delp,dens,densr,dps
 !$acc& ,kfpl,kfplo,tdps,sdps,q,ttmp,stmp,dtmp,done,niter,kmix,
 !$acc& nt,ttrc,trdps)
@@ -316,7 +313,9 @@ c --- ------------------------------------------------------------------
 c --- Redistribute momentum
 c --- ------------------------------------------------------------------
 c
-c      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+!$acc update self(p)
+      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+!$acc update device(p)
 c
 !$acc loop private(l,i,k,kn,uo,po,pn,ko,un,udpn)
 c$OMP PARALLEL DO PRIVATE(l,i,k,kn,uo,po,pn,ko,un,udpn)
@@ -452,6 +451,8 @@ c       enddo
 c     enddo
 c
        print*, 'I leave in CONVEC'
+!$acc update self(dp)       
+       call chksummsk(dp,ip,2*kk,'dp')
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'convec:'

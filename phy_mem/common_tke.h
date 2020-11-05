@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2013-2015 Mehmet Ilicak, Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,24 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
-c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- common blocks related to second order turbulence closure
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: 
+     .  Prod,          ! shear production
+     .  Buoy,          ! buoyancy production
+     .  Shear2,        ! square of the shear frequency
+     .  L_scale        ! dissipative length scale
 c
-      implicit none
+      common /tke1/ Prod,Buoy,Shear2,L_scale
 c
-#include "common_blocks.h"
+c --- various coefficients
+      real gls_s0,gls_s1,gls_s2,gls_s3,gls_s4,gls_s5,gls_s6,
+     .     gls_b0,gls_b1,gls_b2,gls_b3,gls_b4,gls_b5,
+     .     sqrt2,cmu_fac1,cmu_fac2,cmu_fac3,tke_exp1,gls_exp1,gls_fac6
 c
-c --- initialize the model
-      call blom_init
-c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
-c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
-c
-      end
+      common /tke2/ gls_s0,gls_s1,gls_s2,gls_s3,gls_s4,gls_s5,gls_s6, 
+     .              gls_b0,gls_b1,gls_b2,gls_b3,gls_b4,gls_b5,
+     .              sqrt2,cmu_fac1,cmu_fac2,cmu_fac3,tke_exp1,
+     .              gls_exp1,gls_fac6

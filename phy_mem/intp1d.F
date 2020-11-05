@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2002-2015 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,27 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      real function intp1d(d1,d2,d3,d4,d5,x)
 c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- Interpolate data in one dimension.
 c --- ------------------------------------------------------------------
-c
-      use mod_xc
 c
       implicit none
 c
-#include "common_blocks.h"
+      real d1,d2,d3,d4,d5,x
 c
-c --- initialize the model
-      call blom_init
+      real a1,a2,a3,b1,b2,b3,b4,b5,c1,c2
+      parameter(a1=-3./7.,a2=-15./7.,a3= 3./2.,
+     .          b1= 4./7.,b2=-16./7.,b3=15./7.,b4=-5./7.,b5=2./7.,
+     .          c1=-1./7.,c2=  9./14)
+      real a,b,c
 c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
+      a=a1*(d1+d5)+a2*d3+a3*(d2+d4)
+      b=b1*d1+b2*d2+b3*d3+b4*d4+b5*d5
+      c=c1*(d1+d4)+c2*(d2+d3)
 c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
+      intp1d=(a*x+b)*x+c
 c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
-c
-      end
+      return
+      end function intp1d

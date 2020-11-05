@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2008 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,34 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      real function getlpi(temp,saln,phiu,phil,pu)
 c
-c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
-c --- ------------------------------------------------------------------
-c
-      use mod_xc
+c --- get lower pressure interface of a layer knowing the temperature,
+c --- salinity of the layer and the geopotential at upper and lower
+c --- interface
 c
       implicit none
 c
-#include "common_blocks.h"
+      real temp,saln,phiu,phil,pu
 c
-c --- initialize the model
-      call blom_init
+      real pl,q,dphi,alpu,alpl
 c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
+      real rho
+      external rho
 c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
+c --- first guess on pressure interface
+      pl=pu-rho(pu,temp,saln)*(phil-phiu)
 c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
+c --- improve the accuracy of the pressure interface by an
+c --- iterative procedure
+      q=1.
+      do while (abs(q).gt.1.e-4)
+        call delphi(pu,pl,temp,saln,dphi,alpu,alpl)
+        q=(phil-phiu-dphi)/alpl
+        pl=pl-q
+      enddo
 c
+      getlpi=pl
+c
+      return
       end

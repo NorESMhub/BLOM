@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2015 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,12 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
-c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- common blocks for sea ice variables
 c --- ------------------------------------------------------------------
-c
-      use mod_xc
-c
-      implicit none
-c
-#include "common_blocks.h"
-c
-c --- initialize the model
-      call blom_init
-c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
-c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
-c
-      end
+c   
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  ficem,hicem,hsnwm,ustari,tauxice,tauyice,uicem,vicem,iagem
+c 
+      common /sivar/ ficem,hicem,hsnwm,ustari,tauxice,tauyice,uicem,
+     .               vicem,iagem

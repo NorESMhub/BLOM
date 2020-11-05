@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002 Mats Bentsen
+! Copyright (C) 2008 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -16,14 +16,21 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
-      real function hfharm(a,b)
-!$acc routine
-c
-c --- harmonic average divided by 2
-c
-      implicit none
-      real a,b
-c
-      hfharm=a*b/(a+b)
-      return
-      end
+
+module types
+
+   ! -------------------------------------------------------------------
+   ! This module defines numerical data types
+   ! -------------------------------------------------------------------
+
+   implicit none
+
+   integer, parameter, public :: &
+      i1 = selected_int_kind(2), &
+      i2 = selected_int_kind(4), &
+      i4 = selected_int_kind(9), &
+      i8 = selected_int_kind(18), &
+      r4 = selected_real_kind(6,37), &
+      r8 = selected_real_kind(13,307)
+
+end module types

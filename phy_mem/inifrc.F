@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,39 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      subroutine inifrc
 c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- Initialize forcing
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_ben02, only: inifrc_ben02clim, inifrc_ben02syn
+      use mod_channel, only: getfrc_channel
 c
       implicit none
 c
 #include "common_blocks.h"
 c
-c --- initialize the model
-      call blom_init
-c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
-c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
+      if     (expcnf.eq.'cesm') then
+        call inifrc_cesm
+      elseif (expcnf.eq.'ben02clim') then
+        call inifrc_ben02clim
+      elseif (expcnf.eq.'ben02syn') then
+        call inifrc_ben02syn
+      elseif (expcnf.eq.'channel') then
+        call getfrc_channel
+      elseif (expcnf.eq.'isomip1') then
+c       call inifrc_isomip1
+      elseif (expcnf.eq.'isomip2') then
+c       call inifrc_isomip2
+      else
+        if (mnproc.eq.1) then
+          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
+        endif
+        call xcstop('(inifrc)')
+               stop '(inifrc)'
       endif
-      call xcstop('(normal)')
-             stop '(normal)'
 c
+      return
       end

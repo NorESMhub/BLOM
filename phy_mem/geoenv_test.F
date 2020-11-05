@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,10 +17,11 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      subroutine geoenv_test
 c
 c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
+c --- Define bathymetry, grid specification and Coriolis parameter for
+c --- test case
 c --- ------------------------------------------------------------------
 c
       use mod_xc
@@ -28,25 +29,44 @@ c
       implicit none
 c
 #include "common_blocks.h"
+#include "common_geo.h"
 c
-c --- initialize the model
-      call blom_init
+      depths=0.
+      nwp=0
+      qlon=0.
+      qlat=0.
+      plon=0.
+      plat=0.
+      ulon=0.
+      ulat=0.
+      vlon=0.
+      vlat=0.
+      qclon=0.
+      qclat=0.
+      pclon=0.
+      pclat=0.
+      uclon=0.
+      uclat=0.
+      vclon=0.
+      vclat=0.
+      scqx=0.
+      scqy=0.
+      scpx=0.
+      scpy=0.
+      scux=0.
+      scuy=0.
+      scvx=0.
+      scvy=0.
+      scq2=0.
+      scp2=0.
+      scu2=0.
+      scv2=0.
+      angle=0.
+      corioq=0.
+      coriop=0.
+      betafp=0.
+      cosang=0.
+      sinang=0.
 c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
-c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
-c
-      if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
-      endif
-      call xcstop('(normal)')
-             stop '(normal)'
-c
+      return
       end

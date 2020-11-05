@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002 Mats Bentsen
+! Copyright (C) 2007-2015 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -16,14 +16,37 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
-      real function hfharm(a,b)
-!$acc routine
+
 c
-c --- harmonic average divided by 2
+c --- common blocks related to budget computations
 c
-      implicit none
-      real a,b
+      c o m m o n  /bud1/
+     . sdp(ncalls,2),tdp(ncalls,2)
+#ifdef TKE
+     .,tkedp(ncalls,2)
+#  ifdef GLS
+     .,glsdp(ncalls,2)
+#  endif
+#endif
+#ifdef TRC
+     .,trdp(ncalls,2)
+#endif
+     .,mass0,sf,tf
+#ifdef TRC
+     .,trf
+#endif
 c
-      hfharm=a*b/(a+b)
-      return
-      end
+      real sdp,tdp
+#ifdef TKE
+     .    ,tkedp
+#  ifdef GLS
+     .    ,glsdp
+#  endif
+#endif
+#ifdef TRC
+     .    ,trdp
+#endif
+     .    ,mass0,sf,tf
+#ifdef TRC
+     .    ,trf
+#endif

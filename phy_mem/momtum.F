@@ -21,6 +21,7 @@
       subroutine momtum(m,n,mm,nn,k1m,k1n)
 c
       use mod_xc
+c      use mod_eos
 #ifdef _OPENACC
       use openacc
 #endif
@@ -48,20 +49,11 @@ c
 !$acc routine (hfharm)
       external hfharm
 c
-!$acc data create(pbotl,ptopl,ubot,vbot,ubbl,q,dl2u,dl2v)
-!$acc& copy(isu,isv,ubcors_p,vbcors_p,isp,ifp,ilp,tsfac,dpu,dpv,ilv)
-!$acc& create(drag,ubrhs,vbrhs,stress,dpmx,vsc2,vsc4,vort,wgtia,wgtib)
-!$acc& create(wgtja,wgtjb,dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,ke)
-!$acc& create( uh_min,uh_max,vh_min,vh_max,cau,cav,uflux1,vflux1)
-!$acc& copy(ifv,ifu,ilu,scuy,scvx,pbv,pbu,dp,uja,ujb,corioq,scq2i)
-!$acc& copy(vflux,uflux,ubflxs_p,vbflxs_p,via,vib,scp2i,utotn,vtotn)
-!$acc& copy(pv,pu,scp2,scv2,dpuold,dpvold,u,v,uflux2,vflux2,ub,vb)
-!$acc& copy(umax,vmax,pbv_p,pbu_p,potvor,iu,difmxq,ifq,vtotm,scqy)
-!$acc& copy(scpx,defor2,isq,scpy,tauy,taux,pgfy,pgfxo,scvy,utotm)
-!$acc& copy(ilq,difmxp,dpvor,jlv,jfv,iv,defor1,jsv,scux,vflux3)
-!$acc& copy(uflux3,pgfx,scuxi,p,jlu,jfu,difwgt,scqx,pgfyo,jsu)
-!$acc& copy(ustarb,scvyi,scu2,absvor,util1,util2)
-!$acc& create(cutoff,thkbop,tsfac,dt1inv)
+!$acc data create( drag,ubrhs,vbrhs,stress,dpmx,vsc2,vsc4,vort,wgtia,
+!$acc&  wgtja,wgtjb,dl2u,dl2uja,dl2ujb,dl2v,dl2via,dl2vib,ke,
+!$acc& uh_min,uh_max,vh_min,vh_max,cau,cav,uflux1,vflux1,
+!$acc& cutoff,thkbop,tsfac,dt1inv,wgtib)
+!$acc& copy(m,n,mm,nn,k1m,k1n)
       cutoff=onem
       thkbop=thkbot*onem
       tsfac=dlt/delt1
@@ -186,7 +178,8 @@ c$OMP END PARALLEL DO
 !$acc end parallel loop
       enddo
 c
-c      call xctilr(difwgt,  1,1, 2,2, halo_ps)
+      call xctilr(difwgt,  1,1, 2,2, halo_ps)
+!$acc update device(difwgt)
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ km,kn,j,i,l,dpmx,wgtja,wgtjb,wgtia,wgtib,vort,potvor,defor1,
@@ -1068,7 +1061,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
 !$acc end parallel loop
 c
-!$acc parallel loop private(i,j,l)
+!$acc parallel loop private(i,j,l) firstprivate(k,km,kn)
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isv(j)

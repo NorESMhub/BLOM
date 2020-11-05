@@ -35,7 +35,7 @@ cmnfld_bfsqf.o: ../phy/cmnfld_bfsqf.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/cmnfld_bfsqf.F
 cmnfld_nslope.o: ../phy/cmnfld_nslope.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/cmnfld_nslope.F
-convec.o: ../phy/convec.F ../phy/common_blocks.h ../trc/param_trc.h ../trc/common_trc.h mod_xc.o
+convec.o: ../phy/convec.F ../phy/common_blocks.h ../trc/param_trc.h ../trc/common_trc.h mod_xc.o eosfun.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy -I../trc	../phy/convec.F
 crc.o: ../phy/crc.c ../phy/crc.h
 	$(CC) $(CPPDEFS) $(CPPFLAGS) $(CFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/crc.c
@@ -55,9 +55,7 @@ eddtra_gm.o: ../phy/eddtra_gm.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/eddtra_gm.F
 eddtra_intdif.o: ../phy/eddtra_intdif.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/eddtra_intdif.F
-eosdat.o: ../phy/eosdat.F ../phy/common_eos.h
-	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/eosdat.F
-eosfun.o: ../phy/eosfun.F ../phy/common_blocks.h ../phy/common_eos.h mod_xc.o
+eosfun.o: ../phy/eosfun.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/eosfun.F
 external_abort.o: ../drivers/nocoupler/external_abort.F
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c	../drivers/nocoupler/external_abort.F
@@ -141,7 +139,7 @@ mod_nctools.o: ../phy/mod_nctools.F mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c	../phy/mod_nctools.F
 mod_swabs.o: ../phy/mod_swabs.F ../phy/common_blocks.h ../phy/common_forc.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/mod_swabs.F
-mod_swtfrz.o: ../drivers/nocoupler/mod_swtfrz.F ../phy/common_eos.h
+mod_swtfrz.o: ../drivers/nocoupler/mod_swtfrz.F eosfun.o 
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../drivers/nocoupler/mod_swtfrz.F
 mod_thdysi.o: ../ben02/mod_thdysi.F mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c	../ben02/mod_thdysi.F
@@ -149,7 +147,7 @@ mod_xc.o: ../phy/mod_xc.F ../phy/mod_xc_mp.inc ../phy/mod_xc_sm.inc dimensions.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/mod_xc.F
 momtum.o: ../phy/momtum.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/momtum.F
-mxlayr.o: ../phy/mxlayr.F ../phy/common_blocks.h ../phy/common_eos.h ../trc/param_trc.h ../trc/common_trc.h ../phy/param_tke.h mod_xc.o mod_swabs.o mod_nctools.o
+mxlayr.o: ../phy/mxlayr.F ../phy/common_blocks.h  ../trc/param_trc.h ../trc/common_trc.h ../phy/param_tke.h mod_xc.o mod_swabs.o mod_nctools.o eosfun.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy -I../trc	../phy/mxlayr.F
 ocntrc_init.o: ../trc/ocntrc_init.F ../trc/param_trc.h ../trc/common_trc.h ../phy/common_geo.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../trc -I../phy	../trc/ocntrc_init.F
@@ -184,7 +182,7 @@ mod_nctools.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy -I../cesm -I../trc	../phy/restart_wt.F
 setlogunit.o: ../drivers/nocoupler/setlogunit.F
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c	../drivers/nocoupler/setlogunit.F
-settemmin.o: ../phy/settemmin.F ../phy/common_blocks.h ../phy/common_eos.h mod_xc.o
+settemmin.o: ../phy/settemmin.F ../phy/common_blocks.h mod_xc.o eosfun.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/settemmin.F
 sfcstr.o: ../phy/sfcstr.F ../phy/common_blocks.h mod_xc.o
 	$(FC) $(CPPDEFS) $(CPPFLAGS) $(FFLAGS) $(SFFLAGS) $(OTHERFLAGS) -c -I../phy	../phy/sfcstr.F
@@ -297,10 +295,10 @@ wtime.o: ../phy/wtime.F
 	cp ../phy/rdlim.F .
 ./rdcsss.F: ../phy/rdcsss.F
 	cp ../phy/rdcsss.F .
-./eosdat.F: ../phy/eosdat.F
-	cp ../phy/eosdat.F .
 ./diffus.F: ../phy/diffus.F
 	cp ../phy/diffus.F .
+./eosfun.F: ../phy/eosfun.F
+	cp ../phy/eosfun.F .
 ./gettime.F: ../phy/gettime.F
 	cp ../phy/gettime.F .
 ./cmnfld_bfsqf.F: ../phy/cmnfld_bfsqf.F
@@ -357,8 +355,6 @@ wtime.o: ../phy/wtime.F
 	cp ../phy/sfcstr.F .
 ./common_blocks.h: ../phy/common_blocks.h
 	cp ../phy/common_blocks.h .
-./common_eos.h: ../phy/common_eos.h
-	cp ../phy/common_eos.h .
 ./blkdat.F: ../phy/blkdat.F
 	cp ../phy/blkdat.F .
 ./settemmin.F: ../phy/settemmin.F
@@ -397,8 +393,6 @@ wtime.o: ../phy/wtime.F
 	cp ../phy/common_bud.h .
 ./idlage_init.F: ../idlage/idlage_init.F
 	cp ../idlage/idlage_init.F .
-./eosfun.F: ../phy/eosfun.F
-	cp ../phy/eosfun.F .
 ./mod_thdysi.F: ../ben02/mod_thdysi.F
 	cp ../ben02/mod_thdysi.F .
 ./geoenv_channel.F: ../phy/geoenv_channel.F
@@ -465,31 +459,31 @@ wtime.o: ../phy/wtime.F
 	cp ../cesm/sfcstr_cesm.F .
 SRC = ../ben02/mod_bulktf.F ../phy/fwbbal.F ../cesm/sfcstr_cesm.F ../ben02/mod_thdysi.F ../phy/inicon.F ../phy/tmsmt1.F ../ben02/icaux_ben02.F ../drivers/nocoupler/setlogunit.F ../idlage/idlage_init.F ../phy/dimensions.F ../phy/penint.F                   \
 ../phy/mod_swabs.F ../phy/hfharm.F ../drivers/nocoupler/external_abort.F ../phy/wtime.F ../phy/momtum.F ../phy/intp1d.F ../phy/initime.F ../ben02/sfcstr_ben02.F ../phy/geoenv_channel.F ../phy/mod_channel.F ../phy/blom_init.F ../trc/restart_ocntrcwt.F     \
-../phy/chksummsk.F ../phy/sfcstr.F ../phy/remap_eitflx.F ../cesm/geoenv_cesmextra.F ../phy/iniphy.F ../phy/mod_xc.F ../phy/gettime.F ../phy/thermf_channel.F ../phy/eddtra.F ../phy/bigrid.F ../phy/triint.F ../phy/eosdat.F ../trc/restart_trcwt.F            \
+../phy/chksummsk.F ../phy/sfcstr.F ../phy/remap_eitflx.F ../cesm/geoenv_cesmextra.F ../phy/iniphy.F ../phy/mod_xc.F ../phy/gettime.F ../phy/thermf_channel.F ../phy/eddtra.F ../phy/bigrid.F ../phy/triint.F ../trc/restart_trcwt.F            \
 ../phy/initke.F ../phy/tmsmt2.F ../phy/isnan.F ../phy/getlpi.F ../phy/rdlim.F ../phy/rdcsss.F ../phy/mod_dia.F ../phy/remap_eitvel.F ../phy/ictsz_channel.F ../phy/diapfl.F ../phy/mxlayr.F ../phy/blkdat.F ../phy/stdbud.F ../phy/geoenv_file.F               \
 ../phy/clndr.F ../trc/restart_trcrd.F ../phy/getfrc.F ../phy/eddtra_intdif.F ../phy/barotp.F ../phy/cmnfld_nslope.F ../phy/frcdat.F ../phy/forfun_channel.F ../phy/eosfun.F ../phy/mod_nctools.F ../phy/icaux_channel.F ../phy/sfcstr_channel.F                \
 ../phy/convec.F ../phy/ictsz_file.F ../drivers/nocoupler/blom.F ../ben02/mod_ben02func.F ../phy/inigeo.F ../phy/pgforc.F ../cesm/getfrc_cesm.F ../drivers/nocoupler/mod_swtfrz.F ../cesm/data_mct.F ../cesm/inifrc_cesm.F ../phy/chkvar.F ../phy/pbtcor.F      \
 ../phy/fill_global.F ../phy/thermf.F ../phy/cmnfld_bfsqf.F ../phy/diffus.F ../trc/ocntrc_init.F ../phy/inivar.F ../phy/cmnfld.F ../trc/initrc.F ../phy/restart_wt.F ../phy/eddtra_gm.F ../phy/blom_step.F ../phy/read_twedon.F ../ben02/thermf_ben02.F         \
 ../trc/restart_ocntrcrd.F ../idlage/idlage_step.F ../phy/geoenv_test.F ../phy/idarlx.F ../phy/difest.F ../phy/settemmin.F ../phy/restart_rd.F ../phy/isinf.F ../cesm/thermf_cesm.F ../phy/crc.c ../trc/updtrc.F ../phy/wdiflx.F ../phy/advect.F                \
 ../phy/types.F90 ../phy/inifrc.F ../phy/chksum.F ../cesm/icaux_cesm.F ../ben02/mod_ben02.F ../phy/common_seaice.h ../phy/mod_xc_mp.inc ../phy/common_tke.h ../phy/common_clndr.h ../phy/common_bud.h ../phy/common_geo.h ../phy/timing.h                       \
-../phy/common_blocks.h ../phy/common_eos.h ../phy/param_tke.h ../phy/mod_xc_sm.inc ../trc/common_trc.h ../phy/crc.h ../phy/param_bud.h ../cesm/common_cesm.h ../trc/param_trc.h ../phy/common_forc.h
+../phy/common_blocks.h ../phy/param_tke.h ../phy/mod_xc_sm.inc ../trc/common_trc.h ../phy/crc.h ../phy/param_bud.h ../cesm/common_cesm.h ../trc/param_trc.h ../phy/common_forc.h
 OBJ = mod_bulktf.o fwbbal.o sfcstr_cesm.o mod_thdysi.o inicon.o tmsmt1.o icaux_ben02.o setlogunit.o idlage_init.o dimensions.o penint.o mod_swabs.o hfharm.o external_abort.o wtime.o momtum.o intp1d.o initime.o sfcstr_ben02.o geoenv_channel.o              \
-mod_channel.o blom_init.o restart_ocntrcwt.o chksummsk.o sfcstr.o remap_eitflx.o geoenv_cesmextra.o iniphy.o mod_xc.o gettime.o thermf_channel.o eddtra.o bigrid.o triint.o eosdat.o restart_trcwt.o initke.o tmsmt2.o isnan.o getlpi.o rdlim.o rdcsss.o       \
-mod_dia.o remap_eitvel.o ictsz_channel.o diapfl.o mxlayr.o blkdat.o stdbud.o geoenv_file.o clndr.o restart_trcrd.o getfrc.o eddtra_intdif.o barotp.o cmnfld_nslope.o frcdat.o forfun_channel.o eosfun.o mod_nctools.o icaux_channel.o sfcstr_channel.o         \
-convec.o ictsz_file.o blom.o mod_ben02func.o inigeo.o pgforc.o getfrc_cesm.o mod_swtfrz.o data_mct.o inifrc_cesm.o chkvar.o pbtcor.o fill_global.o thermf.o cmnfld_bfsqf.o diffus.o ocntrc_init.o inivar.o cmnfld.o initrc.o restart_wt.o eddtra_gm.o          \
+mod_channel.o blom_init.o restart_ocntrcwt.o chksummsk.o sfcstr.o remap_eitflx.o geoenv_cesmextra.o iniphy.o mod_xc.o gettime.o thermf_channel.o eddtra.o bigrid.o triint.o restart_trcwt.o initke.o tmsmt2.o isnan.o getlpi.o rdlim.o rdcsss.o       \
+mod_dia.o remap_eitvel.o ictsz_channel.o diapfl.o mxlayr.o convec.o blkdat.o stdbud.o geoenv_file.o clndr.o restart_trcrd.o getfrc.o eddtra_intdif.o barotp.o cmnfld_nslope.o frcdat.o forfun_channel.o eosfun.o mod_nctools.o icaux_channel.o sfcstr_channel.o         \
+ictsz_file.o blom.o mod_ben02func.o inigeo.o pgforc.o getfrc_cesm.o mod_swtfrz.o data_mct.o inifrc_cesm.o chkvar.o pbtcor.o fill_global.o thermf.o cmnfld_bfsqf.o diffus.o ocntrc_init.o inivar.o cmnfld.o initrc.o restart_wt.o eddtra_gm.o          \
 blom_step.o read_twedon.o thermf_ben02.o restart_ocntrcrd.o idlage_step.o geoenv_test.o idarlx.o difest.o settemmin.o restart_rd.o isinf.o thermf_cesm.o crc.o updtrc.o wdiflx.o advect.o types.o inifrc.o chksum.o icaux_cesm.o mod_ben02.o
 OFF = ../phy/param_tke.h ../phy/mod_channel.F ../trc/common_trc.h ../drivers/nocoupler/external_abort.F ../phy/mod_dia.F ../phy/difest.F ../phy/isinf.F ../idlage/idlage_step.F ../phy/advect.F ../phy/common_forc.h ../phy/blom_step.F ../phy/geoenv_test.F   \
 ../phy/getfrc.F ../cesm/geoenv_cesmextra.F ../phy/eddtra_gm.F ../phy/mod_swabs.F ../phy/chksum.F ../trc/restart_ocntrcrd.F ../cesm/thermf_cesm.F ../cesm/getfrc_cesm.F ../trc/updtrc.F ../phy/crc.c ../phy/common_geo.h ../phy/forfun_channel.F                \
 ../phy/inifrc.F ../phy/diapfl.F ../phy/clndr.F ../trc/ocntrc_init.F ../phy/bigrid.F ../cesm/icaux_cesm.F ../phy/wtime.F ../ben02/icaux_ben02.F ../phy/restart_rd.F ../phy/inicon.F ../phy/initime.F ../phy/isnan.F ../phy/ictsz_file.F ../phy/rdlim.F          \
-../phy/rdcsss.F ../phy/eosdat.F ../phy/diffus.F ../phy/gettime.F ../phy/cmnfld_bfsqf.F ../phy/tmsmt2.F ../phy/read_twedon.F ../phy/mod_xc_sm.inc ../phy/frcdat.F ../drivers/nocoupler/blom.F ../phy/fill_global.F ../phy/blom_init.F ../cesm/inifrc_cesm.F     \
+../phy/rdcsss.F ../phy/diffus.F ../phy/gettime.F ../phy/cmnfld_bfsqf.F ../phy/tmsmt2.F ../phy/read_twedon.F ../phy/mod_xc_sm.inc ../phy/frcdat.F ../drivers/nocoupler/blom.F ../phy/fill_global.F ../phy/blom_init.F ../cesm/inifrc_cesm.F     \
 ../phy/cmnfld_nslope.F ../phy/inivar.F ../phy/common_seaice.h ../ben02/thermf_ben02.F ../phy/pgforc.F ../phy/sfcstr_channel.F ../phy/eddtra_intdif.F ../drivers/nocoupler/mod_swtfrz.F ../phy/chkvar.F ../phy/eddtra.F ../ben02/mod_ben02.F ../phy/types.F90   \
-../phy/mxlayr.F ../phy/wdiflx.F ../phy/triint.F ../phy/getlpi.F ../phy/sfcstr.F ../phy/common_blocks.h ../phy/common_eos.h ../phy/blkdat.F ../phy/settemmin.F ../phy/icaux_channel.F ../phy/mod_nctools.F ../trc/param_trc.h ../phy/restart_wt.F               \
+../phy/mxlayr.F ../phy/wdiflx.F ../phy/triint.F ../phy/getlpi.F ../phy/sfcstr.F ../phy/common_blocks.h ../phy/blkdat.F ../phy/settemmin.F ../phy/icaux_channel.F ../phy/mod_nctools.F ../trc/param_trc.h ../phy/restart_wt.F               \
 ../phy/mod_xc_mp.inc ../phy/thermf_channel.F ../phy/iniphy.F ../phy/penint.F ../phy/tmsmt1.F ../phy/thermf.F ../phy/convec.F ../phy/initke.F ../phy/crc.h ../phy/param_bud.h ../phy/common_tke.h ../phy/common_bud.h ../idlage/idlage_init.F ../phy/eosfun.F   \
 ../ben02/mod_thdysi.F ../phy/geoenv_channel.F ../phy/timing.h ../phy/remap_eitvel.F ../phy/stdbud.F ../phy/intp1d.F ../phy/momtum.F ../cesm/data_mct.F ../phy/geoenv_file.F ../phy/pbtcor.F ../ben02/mod_bulktf.F ../phy/cmnfld.F ../phy/ictsz_channel.F       \
 ../drivers/nocoupler/setlogunit.F ../trc/restart_trcwt.F ../trc/initrc.F ../phy/mod_xc.F ../phy/inigeo.F ../phy/remap_eitflx.F ../phy/fwbbal.F ../phy/hfharm.F ../trc/restart_trcrd.F ../phy/barotp.F ../ben02/sfcstr_ben02.F ../phy/chksummsk.F               \
 ../phy/dimensions.F ../phy/idarlx.F ../cesm/common_cesm.h ../trc/restart_ocntrcwt.F ../phy/common_clndr.h ../ben02/mod_ben02func.F ../cesm/sfcstr_cesm.F
 clean: neat
-	-rm -f .cppdefs $(OBJ) blom
+	-rm -f .cppdefs $(OBJ) blom *.mod
 neat:
 	-rm -f $(TMPFILES)
 localize: $(OFF)

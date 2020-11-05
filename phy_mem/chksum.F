@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen
+! Copyright (C) 2006-2008 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,36 +17,32 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      program blom
+      subroutine chksum(a,kcsd,text)
 c
-c --- ------------------------------------------------------------------
-c --- Bergen Layered Ocean Model (BLOM)
-c --- ------------------------------------------------------------------
+c --- compute checksum of model field
 c
       use mod_xc
 c
       implicit none
 c
-#include "common_blocks.h"
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kcsd) :: a
+      integer kcsd
+      character text*(*)
 c
-c --- initialize the model
-      call blom_init
+      real, dimension(itdm,jtdm,kcsd) :: aa
+      integer kcs
 c
-c --- advance the model from time step nstep1 to nstep2
-      blom_loop: do
-        call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
-      enddo blom_loop
+      integer crcfast
+      external crcfast
 c
-c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
+      do kcs=1,kcsd
+        call xcaget(aa(1,1,kcs),a(1-nbdy,1-nbdy,kcs),1)
+      enddo
 c
       if (mnproc.eq.1) then
-        open (unit=nfu,file='run.status',status='unknown')
-        write (nfu,*) 'success'
-        close (unit=nfu)
+        write (lp,'(3a,z8.8)') ' chksum: ',text,': 0x',
+     .    crcfast(aa,itdm*jtdm*kcsd*8)
       endif
-      call xcstop('(normal)')
-             stop '(normal)'
 c
+      return
       end
