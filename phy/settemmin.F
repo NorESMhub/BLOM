@@ -24,11 +24,12 @@ c --- Set minimum physical temperature values in isopycnic layers
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_eos
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_eos.h"
+cinclude "common_eos.h"
 c
       integer i,j,k,l
       real salfrz,a,b,c

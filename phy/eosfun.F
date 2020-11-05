@@ -17,6 +17,56 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
+
+      module mod_eos
+c
+c --- coefficients for the functional fit of in situ density
+c
+      real ::  
+     . a11= 9.9985372432159340e-01,
+     . a12= 1.0380621928183473e-02,
+     . a13= 1.7073577195684715e-03,
+     . a14=-3.6570490496333680e-05,
+     . a15=-7.3677944503527477e-06,
+     . a16=-3.5529175999643348e-06,
+     . b11= 1.7083494994335439e-10,
+     . b12= 7.1567921402953455e-13,
+     . b13= 1.2821026080049485e-13,
+     . a21= 1.0                   ,
+     . a22= 1.0316374535350838e-02,
+     . a23= 8.9521792365142522e-04,
+     . a24=-2.8438341552142710e-05,
+     . a25=-1.1887778959461776e-05,
+     . a26=-4.0163964812921489e-06,
+     . b21= 1.1995545126831476e-10,
+     . b22= 5.5234008384648383e-13,
+     . b23= 8.4310335919950873e-14,
+c
+c --- reference pressure (dyn/cm^2)
+c
+     . pref=2000.e5,
+
+     . ap11,ap12,ap13,ap14,ap15,ap16,
+     . ap21,ap22,ap23,ap24,ap25,ap26,
+     . ap110,ap120,ap130,ap140,ap150,ap160,
+     . ap210,ap220,ap230,ap240,ap250,ap260,
+     . atf,btf,ctf    
+
+      
+c$acc declare create(a11,a12,a13,a14,a15,a16,b11,b12,b13
+c$acc.    ,a21,a22,a23,a24,a25,a26,b21,b22,b23
+c$acc.    ,pref
+c$acc.    ,ap11,ap12,ap13,ap14,ap15,ap16
+c$acc.    ,ap21,ap22,ap23,ap24,ap25,ap26
+c$acc.    ,ap110,ap120,ap130,ap140,ap150,ap160
+c$acc.    ,ap210,ap220,ap230,ap240,ap250,ap260
+c$acc.    ,atf,btf,ctf)      
+      
+      end module
+
+
+
+      
       subroutine inieos
 c
 c --- ------------------------------------------------------------------
@@ -24,11 +74,11 @@ c --- Initialize coefficients related to the equation of state
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_eos
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_eos.h"
 c
 c --- In situ density [kg/m^3] as a function of pressure, potential
 c --- temperature and salinity is approximated by the functional form
@@ -103,11 +153,10 @@ c --- ------------------------------------------------------------------
 c
       real function rho(p,th,s)
 c
+      use mod_eos
       implicit none
 c
       real p,th,s
-c
-#include "common_eos.h"
 c
       rho=(a11+(a12+a14*th+a15*s)*th+(a13+a16*s)*s+(b11+b12*th+b13*s)*p)
      .   /(a21+(a22+a24*th+a25*s)*th+(a23+a26*s)*s+(b21+b22*th+b23*s)*p)
@@ -118,12 +167,10 @@ c
 c --- ------------------------------------------------------------------
 c
       real function alp(p,th,s)
-c
+      use mod_eos
       implicit none
 c
       real p,th,s
-c
-#include "common_eos.h"
 c
       alp=(a21+(a22+a24*th+a25*s)*th+(a23+a26*s)*s+(b21+b22*th+b23*s)*p)
      .   /(a11+(a12+a14*th+a15*s)*th+(a13+a16*s)*s+(b11+b12*th+b13*s)*p)
@@ -134,15 +181,15 @@ c
 c --- ------------------------------------------------------------------
 c
       real function sig(th,s)
-c
+c$acc routine(sig) seq
+
 c --- potential density [g/cm^3] in sigma units as a function of
 c --- potential temperature and salinity
 c
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
 c
       sig=(ap11+(ap12+ap14*th+ap15*s)*th+(ap13+ap16*s)*s)
      .   /(ap21+(ap22+ap24*th+ap25*s)*th+(ap23+ap26*s)*s)
@@ -157,11 +204,10 @@ c
 c --- potential density [g/cm^3] with reference pressure at the surface
 c --- in sigma units as a function of potential temperature and salinity
 c
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
 c
       sig0=(ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s)
      .    /(ap210+(ap220+ap240*th+ap250*s)*th+(ap230+ap260*s)*s)
@@ -172,13 +218,12 @@ c
 c --- ------------------------------------------------------------------
 c
       real function dsigdt(th,s)
+c$acc routine(dsigdt) seq
 c
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
-c
       real r1,r2i
 c
       r1=ap11+(ap12+ap14*th+ap15*s)*th+(ap13+ap16*s)*s
@@ -194,12 +239,10 @@ c --- ------------------------------------------------------------------
 c
       real function dsigdt0(th,s)
 c
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
-c
       real r1,r2i
 c
       r1=ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s
@@ -214,13 +257,11 @@ c
 c --- ------------------------------------------------------------------
 c
       real function dsigds(th,s)
-c
+c$acc routine(dsigds) seq
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
-c
       real r1,r2i
 c
       r1=ap11+(ap12+ap14*th+ap15*s)*th+(ap13+ap16*s)*s
@@ -236,12 +277,10 @@ c --- ------------------------------------------------------------------
 c
       real function dsigds0(th,s)
 c
+      use mod_eos
       implicit none
 c
       real th,s
-c
-#include "common_eos.h"
-c
       real r1,r2i
 c
       r1=ap110+(ap120+ap140*th+ap150*s)*th+(ap130+ap160*s)*s
@@ -256,13 +295,10 @@ c
 c --- ------------------------------------------------------------------
 c
       real function tofsig(sg,s)
-c
+      use mod_eos
       implicit none
 c
       real sg,s
-c
-#include "common_eos.h"
-c
       real a,b,c
 c
       a=ap14-ap24*sg
@@ -277,13 +313,12 @@ c
 c --- ------------------------------------------------------------------
 c
       real function sofsig(sg,th)
+c$acc routine seq      
 c
+      use mod_eos
       implicit none
 c
       real sg,th
-c
-#include "common_eos.h"
-c
       real a,b,c
 c
       a=ap16-ap26*sg
@@ -301,12 +336,10 @@ c
 c
 c --- integrate specific volume with respect to pressure
 c
+      use mod_eos
       implicit none
 c
       real p1,p2,th,s
-c
-#include "common_eos.h"
-c
       real r1_3,r1_5,r1_7,r1_9
       parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.)
 c
@@ -341,12 +374,10 @@ c
 c
 c --- double integration of specific volume with respect to pressure
 c
+      use mod_eos
       implicit none
 c
       real p1,p2,th,s
-c
-#include "common_eos.h"
-c
       real r1_3,r1_5,r1_7,r1_9,r1_10
       parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.,
      .           r1_10=1./10.)
@@ -388,12 +419,10 @@ c
 c --- integrate specific volume with respect to pressure to find the
 c --- difference in geopotential between two pressure levels
 c
+      use mod_eos
       implicit none
 c
       real p1,p2,th,s,dphi,alp1,alp2
-c
-#include "common_eos.h"
-c
       real r1_3,r1_5,r1_7,r1_9
       parameter (r1_3=1./3.,r1_5=1./5.,r1_7=1./7.,r1_9=1./9.)
 c

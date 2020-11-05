@@ -24,6 +24,9 @@ c --- Diapycnal mixing
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+#ifdef _OPENACC
+      use openacc
+#endif
 c
       implicit none
 c
@@ -63,6 +66,7 @@ c
       logical, dimension(kdm) :: rstdns
       logical done,dwnwrd,remfmx
 c
+!$acc routine (sofsig,sig,dsigdt,dsigds)
       real dsigdt,dsigds,sig,sofsig
       external dsigdt,dsigds,sig,sofsig
 c
@@ -78,9 +82,17 @@ c
 #    include "param_tke.h"
 #  endif
 #endif
+!$acc data create(ttem,ssal,delp,dens,sigr,nu,fpu,fpl,fcu,fcl,dsgu,
+!$acc& dsgui,dsgli,fmax,f,f0,fold,h,gtd,uc,dsgl,dsghm,dsg
+!$acc&  ,pres,kming,rstdns,ttem0,ssal0,delp0,dens0,sigr0,nu0,c
+!$acc& )
+!$acc& copy(fpug,fplg, m,n,mm,nn,k1m,k1n)
+
 c
 c --- Constant in the diffusion equation
       c=g*g*delt1/(alpha0*alpha0)
+      print*, 'c=',c
+!$acc update device(c) 
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0,
@@ -92,6 +104,15 @@ c$OMP+ remfmx,r,t,s,dfdg,atd,maxdf,dtd
 c$OMP+ ,nt,ttrc
 #endif
 c$OMP+ )
+!!!!$acc parallel loop private(
+!!!!$acc& l,i,k,kn,ttem,ssal,delp,dens,sigr,nu,rstdns,ttem0,ssal0,delp0,
+!!!!$acc& dens0,sigr0,nu0,kfpl,kmin,kmax,pres,fpu,fpl,delpu,delpl,nubbl,
+!!!!$acc& dsgli,fcl,dsgdt,dsgds,dsgu,dsgl,dsghm,dsg,dsgui,fcmx,dsgc,q,fcu,
+!!!!$acc& fmax,done,niter,kfmaxu,f0,f,gtd,dflim,fold,h,dwnwrd,ctd,bitd,
+!!!!$acc& remfmx,r,t,s,dfdg,atd,maxdf,dtd
+!!!!$acc& ,nt,ttrc,j
+!!!!$acc& )
+!$acc parallel num_gangs(1) vector_length(1)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -510,12 +531,12 @@ c --- --------- iteration.
                   write (lp,*)
      .          'blom: diapfl: no convergence in implicit diffusion!',
      .          i+i0,j+j0,maxdf,dflim
-                  open (10,file='diapfl.uf',form='unformatted')
-                  write (10) kk,kfpl
-                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
-                  write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
-                  close (10)
-                  call xchalt('(diapfl)')
+!                  open (10,file='diapfl.uf',form='unformatted')
+!                  write (10) kk,kfpl
+!                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
+!                  write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
+!                  close (10)
+!                  call xchalt('(diapfl)')
                      stop '(diapfl)'
                   exit
                 endif
@@ -692,14 +713,18 @@ c
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel
 c
 c --- ------------------------------------------------------------------
 c --- Diapycnal mixing of momentum.
 c --- ------------------------------------------------------------------
 c
+!$acc update host(p,fpug,fplg)
       call xctilr(p, 1,kk+1, 1,1, halo_ps)
       call xctilr(fpug, 1,kk, 1,1, halo_ps)
       call xctilr(fplg, 1,kk, 1,1, halo_ps)
+
+!$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
@@ -709,7 +734,11 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel loop
+!$acc update host(util1)
       call xctilr(util1, 1,1, 1,1, halo_ps)
+!$acc update device(p,fpug,fplg,util1)
+!$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1
         do l=1,isp(j)
@@ -719,7 +748,11 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel loop
 c
+!$acc parallel loop private(
+!$acc& l,i,kmin,kmax,k,uc,delp,kn,fpu,pold,pnew,fpum,fplm,fpup,fplp,fpl,
+!$acc& ctd,bitd,gtd,q,atd,dtd,j)
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ l,i,kmin,kmax,k,uc,delp,kn,fpu,pold,pnew,fpum,fplm,fpup,fplp,fpl,
 c$OMP+ ctd,bitd,gtd,q,atd,dtd)
@@ -952,7 +985,9 @@ c
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel loop
 c
+!$acc parallel loop private(j,k,kn,l,i,q)
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj
         do k=1,kk
@@ -968,6 +1003,8 @@ c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel loop
+!$acc parallel loop private(j,k,kn,l,i,q)
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
       do j=1,jj+1
         do k=1,kk
@@ -983,6 +1020,8 @@ c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
         enddo
       enddo
 c$OMP END PARALLEL DO
+!$acc end parallel loop
+!$acc end data
 c     do j=1,jj
 c       do l=1,isu(j)
 c       do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
@@ -1010,6 +1049,7 @@ c       enddo
 c       enddo
 c     enddo
 c
+      call chksummsk(dp,ip,2*kk,'dp')
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'diapfl:'

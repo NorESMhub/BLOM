@@ -28,13 +28,14 @@ c
       use mod_swabs, only: swbgal,swbgfc,swamxd
 c
       use mod_nctools
+      use mod_eos
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
 c
 #include "common_blocks.h"
-#include "common_eos.h"
+cinclude "common_eos.h"
 c
       real, dimension(kdm+1) :: pres,po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,bc,uo,un

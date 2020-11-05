@@ -16,8 +16,8 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
-
       real function hfharm(a,b)
+!$acc routine
 c
 c --- harmonic average divided by 2
 c
