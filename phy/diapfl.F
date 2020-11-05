@@ -723,9 +723,10 @@ c --- ------------------------------------------------------------------
 c --- Diapycnal mixing of momentum.
 c --- ------------------------------------------------------------------
 c
-c      call xctilr(p, 1,kk+1, 1,1, halo_ps)
-c      call xctilr(fpug, 1,kk, 1,1, halo_ps)
-c      call xctilr(fplg, 1,kk, 1,1, halo_ps)
+!$acc update self (p,fpug,fplg)
+      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+      call xctilr(fpug, 1,kk, 1,1, halo_ps)
+      call xctilr(fplg, 1,kk, 1,1, halo_ps)
 !$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
@@ -737,7 +738,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 !$acc end parallel loop
-c      call xctilr(util1, 1,1, 1,1, halo_ps)
+!$acc update self (util1)
+      call xctilr(util1, 1,1, 1,1, halo_ps)
+!$acc update device (util1,p,fpug,fplg)
 !$acc parallel loop private(l,i,j)
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=0,jj+1

@@ -185,9 +185,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
 !$acc end parallel loop
       enddo
-c
-c      call xctilr(difwgt,  1,1, 2,2, halo_ps)
-c
+
+      call xctilr(difwgt,  1,1, 2,2, halo_ps)
+!$acc update device (difwgt)
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ km,kn,j,i,l,dpmx,wgtja,wgtjb,wgtia,wgtib,vort,potvor,defor1,
 c$OMP+ dl2uja,dl2ujb,dl2via,dl2vib,ke,up,um,vp,vm,up2,um2,vp2,vm2,uhc,

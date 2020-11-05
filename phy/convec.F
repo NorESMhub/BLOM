@@ -308,15 +308,14 @@ c
       enddo
 c$OMP END PARALLEL DO
 !$acc end parallel loop
-cccccc!$acc exit data delete(ttem,ssal,delp,dens,densr,uo,un,po,pn) 
-!!!!!!$acc end data
        print*, 'I leave in CONVEC first loop block'
 c
 c --- ------------------------------------------------------------------
 c --- Redistribute momentum
 c --- ------------------------------------------------------------------
-c
-c      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+!$acc update self (p)
+      call xctilr(p, 1,kk+1, 1,1, halo_ps)
+!$acc update device (p)
 c
 !$acc loop private(l,i,k,kn,uo,po,pn,ko,un,udpn)
 c$OMP PARALLEL DO PRIVATE(l,i,k,kn,uo,po,pn,ko,un,udpn)
