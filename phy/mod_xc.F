@@ -57,6 +57,8 @@ c
 c --- information in /gindex/ keeps do loops from running into land
       integer, save, dimension (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      &         ip,iu,iv,iq,ips,ipwocn,cplmsk
+c$acc declare create(iu,iv,ip)
+      
       integer, save, dimension (1-nbdy:jdm+nbdy,ms) :: 
      &         ifp,ilp,ifq,ilq,ifu,ilu,ifv,ilv
       integer, save, dimension (1-nbdy:idm+nbdy,ms) :: 

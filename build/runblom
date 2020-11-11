@@ -1,0 +1,36 @@
+
+cat << EOF > job.slurm
+#!/bin/bash
+#SBATCH --account=project_2003520
+#SBATCH --ntasks=1
+#SBATCH --time=00:15:00
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpu
+#SBATCH --reservation=gpuhackathon
+#SBATCH --mem-per-cpu=32GB
+
+#module load pgi cuda
+
+# nvfortran (pgi + nvidia stuff)
+module use /appl/opt/nvidia-hpc/20.9/modulefiles/
+module load nvhpc-nompi/20.9
+
+if [ ! -d channel ] ; then
+   mkdir channel
+   cp /scratch/project_2003520/data/* channel/
+fi
+
+cd channel
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/scratch/project_2003520/netCDF/lib/
+srun ../blom
+
+# Submit to the batch job queue with the command:
+#  sbatch runblom
+
+# or alternatively, run directly from the command line:
+#  srun --account=project_2003520 --ntasks=1 --time=00:15:00 --gres=gpu:v100:1 \
+#       --partition=gputest ./blom
+
+EOF
+
+sbatch job.slurm

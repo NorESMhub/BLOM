@@ -26,6 +26,9 @@ c
       use mod_xc
       use mod_swabs, only: updswa
       use mod_dia
+#ifdef _OPENACC
+      use openacc
+#endif
 c
       implicit none
 c
@@ -42,6 +45,7 @@ c
 c
       real q
       integer i,j,l,m,n,mm,nn,k1m,k1n
+      integer(kind=8) t1_int,t2_int, system_clock_rate
 c
       real step_time,
      .     auxil_time ,
@@ -141,7 +145,18 @@ cdiag write (lp,*) 'advdif...'
       call difest(m,n,mm,nn,k1m,k1n)
       call eddtra(m,n,mm,nn,k1m,k1n)
       call advect(m,n,mm,nn,k1m,k1n)
+
+      
+      call update_mod_diffus()
+      
+      call system_clock(t1_int, system_clock_rate)
+      
       call diffus(m,n,mm,nn,k1m,k1n)
+      
+      call system_clock(t2_int, system_clock_rate)
+      write(*,'(a,f0.7)') "diffus:", (t2_int - t1_int)*1.0/system_clock_rate
+
+      
       advdif_time=gettime()
 c
       if (cnsvdi) call stdbud(2,n,nn)
@@ -156,19 +171,31 @@ cdiag write (lp,*) 'pgforc...'
       pgforc_time=gettime()
 c
 cdiag write (lp,*) 'momtum...'
+!$acc data copy(isu,isv,ubcors_p,vbcors_p,isp,ifp,ilp,dpu,dpv,ilv
+!$acc& ,ifv,ifu,ilu,scuy,scvx,pbv,pbu,dp,uja,ujb,corioq,scq2i
+!$acc& ,vflux,uflux,ubflxs_p,vbflxs_p,via,vib,scp2i,utotn,vtotn
+!$acc& ,pv,pu,scp2,scv2,dpuold,dpvold,u,v,uflux2,vflux2,ub,vb
+!$acc& ,umax,vmax,pbv_p,pbu_p,potvor,iu,difmxq,ifq,vtotm,scqy
+!$acc& ,scpx,defor2,isq,scpy,tauy,taux,pgfy,pgfxo,scvy,utotm
+!$acc& ,ilq,difmxp,dpvor,jlv,jfv,iv,defor1,jsv,scux,vflux3
+!$acc& ,uflux3,pgfx,scuxi,p,jlu,jfu,difwgt,scqx,pgfyo,jsu
+!$acc& ,ustarb,scvyi,scu2,absvor,kfpla,temp,p,sigmar
+!$acc& ,saln,sigma,trc,util1,util2,coriop,difdia,temmin)
       call momtum(m,n,mm,nn,k1m,k1n)
       momtum_time=gettime()
 c
 cdiag write (lp,*) 'convec...'
       call convec(m,n,mm,nn,k1m,k1n)
       convec_time=gettime()
+!!!!!!!!!!!!!!!$acc end data
 c
-      if (cnsvdi) call stdbud(3,n,nn)
-      auxil_time=auxil_time+gettime()
+c      if (cnsvdi) call stdbud(3,n,nn)
+c      auxil_time=auxil_time+gettime()
 c
 cdiag write (lp,*) 'diapfl...'
       call diapfl(m,n,mm,nn,k1m,k1n)
       diapfl_time=gettime()
+!$acc end data
 c
       if (cnsvdi) call stdbud(4,n,nn)
       auxil_time=auxil_time+gettime()

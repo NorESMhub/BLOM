@@ -300,6 +300,9 @@ c --- determine loop indices for mass and velocity points
       call indxi(iv,ifv,ilv,isv)
       call indxj(iv,jfv,jlv,jsv)
 c
+
+c$acc update device(iu,iv,ip)
+      
       return
       end
 c
