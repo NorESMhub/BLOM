@@ -458,7 +458,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
 ! Approximation for new solid sediment, as from sedimentation flux: solrat(i,1)
 
 ! CO3 saturation concentration is aksp/calcon as in CARCHM
-! (calcon defined in BELEG_BGC with 1.03e-2; 1/calcon =~ 97.)
+! (calcon defined in MO_CHEMCON with 1.028e-2; 1/calcon =~ 97.)
 
   do i = 1, kpie
 !ka         if(bolay(i,j) > 0.) then
