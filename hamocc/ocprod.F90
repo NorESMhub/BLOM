@@ -188,7 +188,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   asize3d(:,:,:)  = 0.
 #endif
 
-! parameter for DMS scheme (dmspar defined in BELEG_BGC.F)
+! parameter for DMS scheme (dmspar defined in BELEG_PARM)
   dmsp6 = dmspar(6)
   dmsp5 = dmspar(5)
   dmsp4 = dmspar(4)
@@ -856,9 +856,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !  is supposed to happen only due to numerical errors such as truncation or
 !  overshoots during advection)
 ! (1) avnos<<avmass, such that eps = FractDim + 1: increase numbers
-!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in BELEG_BGC)
+!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in BELEG_PARM)
 ! (2) avnos>>avmass, such that  Nbar (=Mass/Nos/cellmass) <=1: decrease numbers
-!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in BELEG_BGC)
+!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in BELEG_PARM)
 !************************************************************************
         avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
         snow  = avmass*1.e+6
