@@ -26,6 +26,7 @@ set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
+set NINST_OCN = `./xmlquery NINST_OCN --value`
 cd $EXEROOT/ocn/obj
 set CONFIG_OCN_DIR = $CONFIG_OCN_DIR1/../
 
@@ -178,6 +179,12 @@ if ($BLOM_N_DEPOSITION == TRUE) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
   else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx1v4_20200826.nc
+  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx0.25v4) then
+    set NDEPFNAME = ndep_2000_CMIP6_tnx0.25v4_20200826.nc
   else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx2v1) then
     set NDEPFNAME = ndep_185001-201412_tnx2v1_20190702.nc
   else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx1v4) then
@@ -684,20 +691,27 @@ else
   exit -1
 endif
 
-# modify namelist variables as specified in user_nl_blom
-foreach line ("`grep = $CASEROOT/user_nl_blom`")
-  if (`echo "$line" | tr -d ' ' | cut -c -1` != '#') then
-    set var = `echo "$line" | sed 's/=.*//' | tr '[a-z]' '[A-Z]'`
-    set val = `echo "$line" | sed 's/.*=//'`
-    eval 'set $var = "$val"'
-  endif
-end
 
 #------------------------------------------------------------------------------
 # Create resolved namelist
 #------------------------------------------------------------------------------
+foreach mem ("`seq $NINST_OCN`")
+  if ( ${NINST_OCN} == '1' ) then
+    set inststr = ''
+  else
+    set inststr = ("`printf '_%4.4d' $mem`")
+  endif
 
-cat >! $RUNDIR/ocn_in << EOF
+  # modify namelist variables as specified in user_nl_blom
+  foreach line ("`grep = $CASEROOT/user_nl_blom$inststr`")
+    if (`echo "$line" | tr -d ' ' | cut -c -1` != '#') then
+    set var = `echo "$line" | sed 's/=.*//' | tr '[a-z]' '[A-Z]'`
+    set val = `echo "$line" | sed 's/.*=//'`
+    eval 'set $var = "$val"'
+    endif
+  end
+
+cat >! $RUNDIR/ocn_in$inststr << EOF
 ! LIMITS NAMELIST
 !
 ! CONTENTS:
@@ -887,7 +901,7 @@ cat >! $RUNDIR/ocn_in << EOF
 EOF
 
 if ($?CWMTAG) then
-cat >>! $RUNDIR/ocn_in << EOF
+cat >>! $RUNDIR/ocn_in$inststr << EOF
  
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
 !
@@ -910,7 +924,7 @@ cat >>! $RUNDIR/ocn_in << EOF
 EOF
 endif
 
-cat >>! $RUNDIR/ocn_in << EOF
+cat >>! $RUNDIR/ocn_in$inststr << EOF
 
 ! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX DIAGNOSTICS
 !
@@ -1268,7 +1282,7 @@ cat >>! $RUNDIR/ocn_in << EOF
 EOF
 
 if ($ecosys == TRUE) then
-cat >>! $RUNDIR/ocn_in << EOF
+cat >>! $RUNDIR/ocn_in$inststr << EOF
 
 ! NAMELIST FOR iHAMOCC OPTIONS
 !
@@ -1627,6 +1641,8 @@ cat >>! $RUNDIR/ocn_in << EOF
 EOF
 endif
 
+end ## foreach mem ("`seq $NINST_OCN`")
+
 #------------------------------------------------------------------------------
 # Generate blom.input_data_list
 #------------------------------------------------------------------------------
@@ -1648,6 +1664,8 @@ cat >> $CASEBUILD/blom.input_data_list << EOF
 sss_climatology_file = `echo $SCFILE | tr -d '"' | tr -d "'"`
 EOF
 endif
+
+# iHAMOCC boundary conditions
 if ($ecosys == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 dust_file = `echo $FEDEPFILE | tr -d '"' | tr -d "'"`
@@ -1663,23 +1681,15 @@ n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
+
+# BLOM initial conditions
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inicon_file = `echo $ICFILE | tr -d '"' | tr -d "'"`
 EOF
-if ($RUN_TYPE == startup) then
-  if      ($ICFILE =~ *.blom.r.*) then
-    if ($ecosys == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF
-inicon_bgc_file = `echo $ICFILE | sed 's/.blom.r./.blom.rbgc./' | tr -d '"' | tr -d "'"`
-EOF
-    endif
-  else if ($ICFILE =~ *.micom.r.*) then
-    if ($ecosys == TRUE) then
-cat >> $CASEBUILD/blom.input_data_list << EOF
-inicon_bgc_file = `echo $ICFILE | sed 's/.micom.r./.micom.rbgc./' | tr -d '"' | tr -d "'"`
-EOF
-    endif
-  else
+
+
+# iHAMOCC initial conditions
+if ($ecosys == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inidic_file = `echo $INIDIC | tr -d '"' | tr -d "'"`
 inialk_file = `echo $INIALK | tr -d '"' | tr -d "'"`
@@ -1688,10 +1698,20 @@ inioxy_file = `echo $INIOXY | tr -d '"' | tr -d "'"`
 inino3_file = `echo $ININO3 | tr -d '"' | tr -d "'"`
 inisil_file = `echo $INISIL | tr -d '"' | tr -d "'"`
 EOF
-    if ($HAMOCC_CISO == TRUE) then
+  if ($HAMOCC_CISO == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 inic13_file = `echo $INIC13 | tr -d '"' | tr -d "'"`
 inic14_file = `echo $INIC14 | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($RUN_TYPE == startup) then
+    if ($ICFILE =~ *.blom.r.*) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+inicon_bgc_file = `echo $ICFILE | sed 's/.blom.r./.blom.rbgc./' | tr -d '"' | tr -d "'"`
+EOF
+    else if ($ICFILE =~ *.micom.r.*) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+inicon_bgc_file = `echo $ICFILE | sed 's/.micom.r./.micom.rbgc./' | tr -d '"' | tr -d "'"`
 EOF
     endif
   endif

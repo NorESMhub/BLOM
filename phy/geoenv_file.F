@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -24,8 +24,10 @@ c --- Get bathymetry and grid specification from file and compute
 c --- Coriolis parameter
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: rearth, pi, radian
       use mod_xc
       use netcdf
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
@@ -35,6 +37,7 @@ c
       integer cwmlen
       parameter (cwmlen=100)
 c
+      character (len = 256) :: nlfnm
       character (len=80), dimension(cwmlen) :: cwmtag
       character (len=1), dimension(cwmlen) :: cwmedg
       real, dimension(itdm,jtdm) :: tmpg
@@ -698,13 +701,15 @@ c --- Apply channel width modifications if specified in namelist
 c --- ------------------------------------------------------------------
 c
       if (mnproc.eq.1) then
-        inquire(file='ocn_in',exist=fexist)
+        nlfnm='ocn_in'//trim(inst_suffix)
+        inquire(file=nlfnm,exist=fexist)
         if (fexist) then
-          open (unit=nfu,file='ocn_in',status='old',action='read')
+          open (unit=nfu,file=nlfnm,status='old',action='read')
         else
-          inquire(file='limits',exist=fexist)
+          nlfnm='limits'//trim(inst_suffix)
+          inquire(file=nlfnm,exist=fexist)
           if (fexist) then
-            open (unit=nfu,file='limits',status='old',action='read')
+            open (unit=nfu,file=nlfnm,status='old',action='read')
           else
             write (lp,*) 'geoenv_file: could not find namelist file!'
             call xchalt('(geoenv_file)')

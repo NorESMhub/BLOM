@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
-!                         Ingo Bethke, Jerry Tjiputra
+!                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -24,23 +24,25 @@ c --- ------------------------------------------------------------------
 c --- Write model state to restart files
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf, runid
+      use mod_time, only: date0, date, nstep, nstep_in_day, nday_of_year
       use mod_xc
       use mod_dia
-      use mod_ben02, only: cd_d,ch_d,ce_d,wg2_d,
-     .                     cd_m,ch_m,ce_m,wg2_m,rhoa,
-     .                     tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,ntda
-      use mod_thdysi, only: tsrfm,ticem
+      use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
+     .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
+     .                     alb_tda, fice_tda, ntda
+      use mod_thdysi, only: tsrfm, ticem
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 #include "common_cesm.h"
 #include "common_seaice.h"
 c
       integer i,j,n
-      character(len=80), dimension(4) :: rstdate_str
+      character(len=256), dimension(4) :: rstdate_str
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
@@ -51,9 +53,6 @@ c
       data first /.true./
       save first,iuu,ivv,iqq
 c
-      character startdate*20,timeunits*30
-      real datenum
-c
 #if defined(TRC) && (defined(TKE) || defined(IDLAGE))
 #  include "param_trc.h"
 #  include "common_trc.h"
@@ -62,30 +61,27 @@ c
 #  endif
 #endif
 c
-c --- set time information
-      timeunits='hours since 0001-01-01 00:00'
-      write(startdate,'(i4,a1,i2,a1,i2,a6)')
-     .  nyear0,'-',nmonth0,'-',nday0,' 00:00'
-      datenum=(time-.5*rstfrq/nstep_in_day-time0)*24.
-c
 c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
-        write (rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    runid(1:runid_len),'.blom.r.',nyear,'-',nmonth,'-',nday,
-     .    '-',mod(nstep,nstep_in_day)*86400,'.nc'
+        write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    trim(runid),'.blom',trim(inst_suffix),'.r.',
+     .    date%year,'-',date%month,'-',date%day,'-',
+     .    mod(nstep,nstep_in_day)*86400,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
-     .      runid(1:runid_len),'_restphy_',nyear,'.',nmonth,'.',nday,
+     .      trim(runid),'_restphy_',
+     .      date%year,'.',date%month,'.',date%day,
      .      '_',nint(time),'.nc'
         else
           if (rstmon) then
             write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',mod(nmonth+10,3)+1,'.nc'
+     .        trim(runid),'_restphy_',
+     .        mod(date%month+10,3)+1,'.nc'
           else
             write (rstfnm,'(2a,i1,a)')
-     .        runid(1:runid_len),'_restphy_',
+     .        trim(runid),'_restphy_',
      .        mod(nint(min(nstep/rstfrq,time))-1,3)+1,'.nc'
           endif
           open (unit=nfu,file='rstdate.txt')
@@ -95,18 +91,19 @@ c
           goto 300
  301      close (unit=nfu)
           write(rstdate_str(i),'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6)')
-     .      rstfnm(1:runid_len+13),': date ',nyear,'.',nmonth,'.',
-     .      nday,', integration day ',nint(time)
+     .      rstfnm(1:len_trim(runid)+13),
+     .      ': date ',date%year,'.',date%month,'.',date%day,
+     .      ', integration day ',nint(time)
           if (mnproc.eq.1) then
             if (i.eq.1) then
               open (unit=nfu,file='rstdate.txt')
-              write (nfu,'(a)') rstdate_str(1)(1:runid_len+54)
+              write (nfu,'(a)') rstdate_str(1)(1:len_trim(runid)+54)
               close (unit=nfu)
             elseif (rstdate_str(max(1,i-2)).ne.rstdate_str(i).and.
      .              rstdate_str(i-1       ).ne.rstdate_str(i)) then
               open (unit=nfu,file='rstdate.txt')
               do j=max(1,i-2),i
-                write (nfu,'(a)') rstdate_str(j)(1:runid_len+54)
+                write (nfu,'(a)') rstdate_str(j)(1:len_trim(runid)+54)
               enddo
               close (unit=nfu)
             endif
@@ -124,9 +121,9 @@ c
       else
         call ncfopn(rstfnm,'w','c',1,iotype)
       endif
-      call ncputi('nday0',nday0)
-      call ncputi('nmonth0',nmonth0)
-      call ncputi('nyear0',nyear0)
+      call ncputi('nday0',date0%day)
+      call ncputi('nmonth0',date0%month)
+      call ncputi('nyear0',date0%year)
       call ncputr('time0',time0)
       call ncputr('time',time)
 c
@@ -687,9 +684,9 @@ c
 c
 c --- - write diag. heat flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.blom.rtflx.'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'.blom.rtflx.'//rstfnm(len_trim(runid)+10:)
         else
-          fnm=runid(1:runid_len)//'_tflx_'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'_tflx_'//rstfnm(len_trim(runid)+10:)
         endif
         if (mnproc.eq.1)
      .    write (lp,'(a,a)') ' saving diag. heat flux restart file ',
@@ -724,9 +721,9 @@ c
 c
 c --- - write diag. salt flux restart file
         if (expcnf.eq.'cesm') then
-          fnm=runid(1:runid_len)//'.blom.rsflx.'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'.blom.rsflx.'//rstfnm(len_trim(runid)+10:)
         else
-          fnm=runid(1:runid_len)//'_sflx_'//rstfnm(runid_len+10:)
+          fnm=trim(runid)//'_sflx_'//rstfnm(len_trim(runid)+10:)
         endif
         if (mnproc.eq.1)
      .    write (lp,'(a,a)') ' saving diag. salt flux restart file ',
@@ -761,7 +758,7 @@ c
 c
 c --- - write restart filename to rpointer.ocn
         if (mnproc.eq.1) then
-          open (unit=nfu,file='rpointer.ocn')
+          open (unit=nfu,file='rpointer.ocn'//trim(inst_suffix))
           write (nfu,'(a)') rstfnm
           close (unit=nfu)
         endif

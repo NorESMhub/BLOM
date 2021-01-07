@@ -44,19 +44,6 @@ ccc      data wts1,wts2/.96875,.015625/
 ccc      data wbaro/.0625/
       data wpgf/.25/
 c
-c --- layer thicknesses in units of pressure (g/cm/sec^2):
-      data tenm,onem,tencm,onecm,onemm/980600.,98060.,9806.,980.6,98.06/
-      data radian/57.295779513/,pi/3.1415926536/
-c
-c --- 'g'      = gravitational acceleration
-c --- 'rearth' = radius of the earth (cm)
-c --- 'spcifh' = specific heat of sea water (j/g/deg)
-c --- 't0deg'  = zero deg celcius in K (K)
-c --- 'alpha0' = reference value of specific volume (cm**3/g)
-c --- 'epsil'  = small nonzero number used to prevent division by zero
-      data g/980.6/,rearth/6.37122e8/,spcifh/3.99/,t0deg/273.15/,
-     .     alpha0/1./,epsil/1.e-11/
-c
 c --- 'itest,jtest' = grid point where detailed diagnostics are desired
       data itest,jtest/60,60/
 c

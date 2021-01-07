@@ -25,6 +25,8 @@ c --- ------------------------------------------------------------------
 #define DIAG
 #undef DIAG
 c
+      use mod_constants, only: g, alpha0, pi, epsil, onem, onecm
+      use mod_time, only: delt1, dlt
       use mod_xc
 #ifdef DIAG
       use mod_nctools

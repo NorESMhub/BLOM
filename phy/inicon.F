@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2018 Mats Bentsen
+! Copyright (C) 2008-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,6 +23,9 @@ c --- ------------------------------------------------------------------
 c --- Define initial conditions
 c --- ------------------------------------------------------------------
 c
+      use mod_configuration, only: expcnf
+      use mod_constants, only: epsil, onem
+      use mod_time, only: nstep
       use mod_xc
       use mod_swtfrz, only: swtfrz
 c

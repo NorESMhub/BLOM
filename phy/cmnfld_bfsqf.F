@@ -25,6 +25,7 @@ c --- representative of the layer itself. Also compute a filtered BFSQ
 c --- on interfaces.
 c --- ------------------------------------------------------------------
 c
+      use mod_constants, only: g, epsil, onem, onemm
       use mod_xc
 c
       implicit none

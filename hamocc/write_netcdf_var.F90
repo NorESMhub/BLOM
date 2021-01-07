@@ -1,4 +1,4 @@
-! Copyright (C) 2020  I. Bethke
+! Copyright (C) 2020  I. Bethke, M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -30,8 +30,8 @@
       implicit none
 #ifdef PNETCDF
 #  include <pnetcdf.inc>
-#endif
 #  include <mpif.h>
+#endif
       integer ncid, klev, time, ndims
       character (len=*) desc
       real arr(idm,jdm,klev)
@@ -40,7 +40,9 @@
       real , allocatable :: arr_g1(:,:,:),arr_l(:,:,:)
       integer ncstat,ncvarid,k,i,j
       integer, allocatable :: start(:),count(:) 
+#ifdef PNETCDF
       integer (kind=MPI_OFFSET_KIND), allocatable :: istart(:),icount(:)
+#endif
 ! Write NETCDF data
        
       if (klev.eq.1.and.time.eq.0) then

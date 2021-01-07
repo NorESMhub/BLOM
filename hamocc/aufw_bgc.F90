@@ -1,6 +1,6 @@
 ! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
-!                     M. Bentsen
+!                     M. Bentsen, P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -105,6 +105,7 @@
       use mod_xc,       only: nbdy,itdm,jtdm,mnproc,xchalt
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
       use mod_dia
+      use mod_instance, only: inst_suffix
 
       implicit none
 
@@ -118,6 +119,7 @@
       INTEGER             :: i,j
       REAL                :: locetra(kpie,kpje,2*kpke,nocetra)
       CHARACTER(LEN=256)  :: rstfnm
+      INTEGER             :: leninrstfn
 
       ! Variables for netcdf
       INTEGER             :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)
@@ -161,19 +163,20 @@
 !
 ! Open netCDF data file
 !
+      leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
       i=1
-      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.')
+      do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.')
         i=i+1
-        if (i+7.gt.len(rstfnm_ocn)) then
+        if (i+leninrstfn.gt.len(rstfnm_ocn)) then
           write (io_stdo_bgc,*)                                      &
      &      'Could not generate restart file name!'
           call xchalt('(aufw_bgc)')
           stop '(aufw_bgc)'
         endif
       enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+      rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
 
       write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
@@ -185,16 +188,16 @@
 #ifdef PNETCDF
       testio=1
       i=1
-      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.')
+      do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.')
         i=i+1
-        if (i+7.gt.len(rstfnm_ocn)) then
+        if (i+leninrstfn.gt.len(rstfnm_ocn)) then
           write (io_stdo_bgc,*)                                      &
      &      'Could not generate restart file name!'
           call xchalt('(aufw_bgc)')
           stop '(aufw_bgc)'
         endif
       enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+      rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
 
       IF(mnproc==1) write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
       write(stripestr,('(i3)')) 16

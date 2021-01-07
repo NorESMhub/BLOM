@@ -17,18 +17,19 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      module data_mct
+module mod_mctdata
+! ------------------------------------------------------------------------------
+! Data set by MCT to be used by BLOM.
+! ------------------------------------------------------------------------------
 
-      ! Data set by mct to be used by blom
+   implicit none
 
-      implicit none
+   private
 
-      private
+   character(len = 256) :: runid_mct   ! Case name.
+   character(len = 256) :: runtyp_mct  ! Run type.
+   integer :: ocn_cpl_dt_mct           ! Coupling frequency
 
-      character (len=256) :: runid_mct  ! case name
-      character (len=256) :: runtyp_mct ! run type
-      integer :: ocn_cpl_dt_mct         ! Coupling frequency
+   public :: runid_mct, runtyp_mct, ocn_cpl_dt_mct
 
-      public :: runid_mct, runtyp_mct, ocn_cpl_dt_mct
-
-      end module data_mct
+end module mod_mctdata

@@ -23,12 +23,11 @@ c --- ------------------------------------------------------------------
 c --- Initialize forcing
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf
+      use mod_xc, only: lp, mnproc, xcstop
       use mod_ben02, only: inifrc_ben02clim, inifrc_ben02syn
 c
       implicit none
-c
-#include "common_blocks.h"
 c
       if     (expcnf.eq.'cesm') then
         call inifrc_cesm

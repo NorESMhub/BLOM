@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Mehmet Ilicak, Ingo Bethke
+! Copyright (C) 2008-2020 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+!                         Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -23,22 +24,32 @@ c --- ------------------------------------------------------------------
 c --- Read limits file
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_configuration, only: expcnf, runid
+      use mod_calendar, only: date_type, daynum_diff, calendar_errstr,
+     .                        calendar_noerr, operator(==), operator(<),
+     .                        operator(/=)
+      use mod_time, only: date0, date, nday1, nday2, nstep0, nstep1,
+     .                    nstep2, nstep, lstep, nstep_in_day, time0,
+     .                    time, baclin, batrop, init_timevars,
+     .                    set_day_of_year, step_time
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
+      use mod_xc
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
-      use data_mct, only: runid_mct, ocn_cpl_dt_mct
+      use mod_mctdata, only: runid_mct, ocn_cpl_dt_mct
+      use mod_instance, only: inst_suffix
 c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
+#include "common_cesm.h"
 c
-      integer :: m,n,nd0rst,nm0rst,ny0rst
-      character*256 :: runtyp,rstfnm
+      type(date_type) :: date0_rest
+      integer :: m,n
+      character*256 :: nlfnm,runtyp,rstfnm
       logical :: fexist
-      integer :: idate,idate0,nstep_in_cpl
+      integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
      .  grfile,icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,
      .  mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,
@@ -53,14 +64,15 @@ c --- read namelists
       if (mnproc.eq.1) then
 c
         GLB_AVEPERIO=-999
-        inquire(file='ocn_in',exist=fexist)
+        nlfnm='ocn_in'//trim(inst_suffix)
+        inquire(file=nlfnm,exist=fexist)
         if (fexist) then
-          open (unit=nfu,file='ocn_in',status='old',action='read',
-     .          recl=80)
+          open (unit=nfu,file=nlfnm,status='old',action='read',recl=80)
         else
-          inquire(file='limits',exist=fexist)
+          nlfnm='limits'//trim(inst_suffix)
+          inquire(file=nlfnm,exist=fexist)
           if (fexist) then
-            open (unit=nfu,file='limits',status='old',action='read',
+            open (unit=nfu,file=nlfnm,status='old',action='read',
      .            recl=80)
           else
             write (lp,*) 'rdlim: could not find namelist file!'
@@ -592,12 +604,12 @@ c
       call xcbcst(nphy)
 c
 c --- convert integer dates 
-      nyear=sign(abs(idate)/10000,idate)
-      nmonth=abs(idate)/100-abs(nyear)*100
-      nday=abs(idate)-abs(nyear)*10000-nmonth*100
-      nyear0=sign(abs(idate0)/10000,idate0)
-      nmonth0=abs(idate0)/100-abs(nyear0)*100
-      nday0=abs(idate0)-abs(nyear0)*10000-nmonth0*100
+      date%year=sign(abs(idate)/10000,idate)
+      date%month=abs(idate)/100-abs(date%year)*100
+      date%day=abs(idate)-abs(date%year)*10000-date%month*100
+      date0%year=sign(abs(idate0)/10000,idate0)
+      date0%month=abs(idate0)/100-abs(date0%year)*100
+      date0%day=abs(idate0)-abs(date0%year)*10000-date0%month*100
 c
 c --- set atm_path length
       if (expcnf.eq.'ben02syn') then
@@ -609,25 +621,8 @@ c --- set atm_path length
         atm_path_len=atm_path_len-1
       endif
 c
-c --- verify integer number of baroclinic time steps per day
-      if (mod(86400.+epsil,baclin).gt.2.*epsil) then
-        if (mnproc.eq.1) then
-          write (lp,*) 'rdlim: must have an integer number of '//
-     .                 'baroclinic time steps pr. day!'
-        endif
-        call xcstop('(rdlim)')
-               stop '(rdlim)'
-      endif
-c
-c --- get baroclinic time steps in a day
-      nstep_in_day=nint(86400./baclin)
-      if (mnproc.eq.1) then
-        write (lp,*) 'rdlim: number of baroclinic time steps per '//
-     .               'day:              ',nstep_in_day
-      endif
-c
-c --- Initialize the calendar
-      call inicln
+c --- initialize time variables
+      call init_timevars
 c
       if (expcnf.eq.'cesm') then
 c
@@ -640,7 +635,7 @@ c --- - interval
         if (mod(ocn_cpl_dt_mct+epsil,baclin).gt.2.*epsil) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: must have an integer number of '//
-     .                   'baroclinic time steps pr. coupling'
+     .                   'baroclinic time steps in a coupling'
             write (lp,*) '       interval!'
           endif
           call xcstop('(rdlim)')
@@ -651,15 +646,15 @@ c --- - get time step and correct model date after first coupling
 c --- - interval
         nstep_in_cpl=nint(ocn_cpl_dt_mct/baclin)
         if (mnproc.eq.1) then
-          write (lp,*) 'rdlim: number of baroclinic time steps per '//
+          write (lp,*) 'rdlim: number of baroclinic time steps in a '//
      .                 'coupling interval:',nstep_in_cpl
         endif
-        nstep0=0
+        nstep=0
         do
-          nstep0=nstep0+1
-          call updcln(nstep0)
-          if (nstep0.eq.nstep_in_cpl) exit
+          call step_time
+          if (nstep.eq.nstep_in_cpl) exit
         enddo
+        nstep0=nstep_in_cpl
 c
         if (runtyp.eq.'startup') then
 c
@@ -669,7 +664,6 @@ c
           time0=0.
           nday1=0
           nstep1=nstep0
-          nstep2=nstep1
 c
         else
 c
@@ -678,7 +672,8 @@ c --- --- 'rpointer.ocn' file containing the path to a valid restart
 c --- --- file is expected and integration time is retrieved from
 c --- --- restart file
 c
-          if (mnproc.eq.1) inquire(file='rpointer.ocn',exist=fexist)
+          if (mnproc.eq.1)
+     .      inquire(file='rpointer.ocn'//trim(inst_suffix),exist=fexist)
           call xcbcst(fexist)
           if (.not.fexist) then
             if (mnproc.eq.1) then
@@ -688,7 +683,7 @@ c
                    stop '(rdlim)'
           endif
           if (mnproc.eq.1) then
-            open (unit=nfu,file='rpointer.ocn')
+            open (unit=nfu,file='rpointer.ocn'//trim(inst_suffix))
             read (nfu,'(a)') rstfnm
             close (unit=nfu)
             inquire(file=rstfnm,exist=fexist)
@@ -703,9 +698,9 @@ c
           endif
           call xcbcst(rstfnm)
           call ncfopn(rstfnm,'r',' ',1,iotype)
-          call ncgeti('nday0',nd0rst)
-          call ncgeti('nmonth0',nm0rst)
-          call ncgeti('nyear0',ny0rst)
+          call ncgeti('nday0',date0_rest%day)
+          call ncgeti('nmonth0',date0_rest%month)
+          call ncgeti('nyear0',date0_rest%year)
           call ncgetr('time0',time0)
           call ncgetr('time',time)
           nday1=nint(time-time0)
@@ -719,31 +714,22 @@ c --- ----- after first coupling interval.
               n=n+1
             enddo
             n=n-1
-            read (rstfnm(n-18:n-15),'(i4)') nyear
-            read (rstfnm(n-13:n-12),'(i2)') nmonth
-            read (rstfnm(n-10:n-9 ),'(i2)') nday
-            if (nyear.eq.nyear0.and.
-     .          nmonth.eq.nmonth0.and.
-     .          nday.eq.nday0) then
-              nday0=nd0rst
-              nmonth0=nm0rst
-              nyear0=ny0rst
+            read (rstfnm(n-18:n-15),'(i4)') date%year
+            read (rstfnm(n-13:n-12),'(i2)') date%month
+            read (rstfnm(n-10:n-9 ),'(i2)') date%day
+            if (date == date0) then
+              date0=date0_rest
               nstep1=nday1*nstep_in_day+nstep0
             else
               time0=time
               nday1=0
               nstep1=nstep0
-              nstep2=nstep1
-              nyear=nyear0
-              nmonth=nmonth0
-              nday=nday0
+              date=date0
             endif
 c
           else
 c
-            nday0=nd0rst
-            nmonth0=nm0rst
-            nyear0=ny0rst
+            date0=date0_rest
             nstep1=nday1*nstep_in_day
 c
 c --- ----- For runtypes 'branch' or 'continue' override namelist date
@@ -754,18 +740,20 @@ c
               n=n+1
             enddo
             n=n-1
-            read (rstfnm(n-18:n-15),'(i4)') nyear
-            read (rstfnm(n-13:n-12),'(i2)') nmonth
-            read (rstfnm(n-10:n-9 ),'(i2)') nday
-            call inicln
+            read (rstfnm(n-18:n-15),'(i4)') date%year
+            read (rstfnm(n-13:n-12),'(i2)') date%month
+            read (rstfnm(n-10:n-9 ),'(i2)') date%day
+            call set_day_of_year
 c
           endif
 c
           call ncfcls
 c
-          nstep2=nstep1
-c
         endif
+c
+c --- - Last time step number of current integration, 'nstep2' is not
+c --- - used when coupled to CESM.
+        nstep2=nstep1
 c
       else
 c
@@ -786,9 +774,7 @@ c
                  stop '(rdlim)'
         endif
 c
-        if (nday1.eq.0.and.
-     .      (nyear.ne.nyear0.or.nmonth.ne.nmonth0.or.
-     .       nday.ne.nday0)) then
+        if (nday1 == 0 .and. date /= date0) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: when first integration day is zero, '//
      .                   'model date and initial '
@@ -798,10 +784,7 @@ c
                  stop '(rdlim)'
         endif
 c
-        if (nyear.lt.nyear0.or.
-     .      (nyear.eq.nyear0.and.nmonth.lt.nmonth0).or.
-     .      (nyear.eq.nyear0.and.nmonth.eq.nmonth0.and.
-     .       nday.lt.nday0)) then
+        if (date < date0) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: model date must be greater or equal '//
      .                   'to initial experiment date!'
@@ -812,6 +795,7 @@ c
 c
 c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
         time0=0.
+        nstep0=0
         nstep1=nday1*nstep_in_day
         nstep2=nday2*nstep_in_day
 c
@@ -820,13 +804,6 @@ c
         endif
 c
       endif
-c
-c --- set experiment id length
-      runid_len=1
-      do while (runid_len.lt.256.and.runid(runid_len:runid_len).ne.' ')
-        runid_len=runid_len+1
-      enddo
-      runid_len=runid_len-1
 c
       if (trxday.eq.0.and.ditflx) then
         if (mnproc.eq.1) then
@@ -887,12 +864,6 @@ c
         endif
       enddo
 c
-c
-c --- 'lstep' = number of barotropic time steps per baroclinic time step.
-c --- lstep   m u s t   be even.
-      lstep=2*ceiling(.5*baclin/batrop)
-      dlt=baclin/lstep
-c
       if (mnproc.eq.1) then
         write (lp,*)
         write (lp,*) 'rdlim: resolved parameters:'
@@ -900,11 +871,11 @@ c
         write (lp,'(a,i10)') ' nday2:                          ',nday2
         write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i5.5)')
      .    ' nyear ,nmonth ,nday ,nsec :     ',
-     .     nyear ,' ,',nmonth ,' ,',nday ,' ,',
+     .     date%year ,' ,',date%month ,' ,',date%day ,' ,',
      .     nint(mod(nstep1,nstep_in_day)*baclin)
         write (lp,'(a,i4.4,a,i2.2,a,i2.2,a,i5.5)')
      .    ' nyear0,nmonth0,nday0,nsec0:     ',
-     .     nyear0,' ,',nmonth0,' ,',nday0,' ,',0
+     .     date0%year,' ,',date0%month,' ,',date0%day,' ,',0
         write (lp,'(a,i10)') ' barotr. steps per barocl. step: ',lstep
         write (lp,'(2a)') ' runid:                          ',
      .    trim(runid)

@@ -67,7 +67,6 @@ c                    as int2 with scale factor and offset
 c
 c    ncerro        - displays error massage
 c    ncsevl        - evaluates strings with deliminators ' ',':' and '-'
-c    ncdnum        - computes a reference number for a given date
 c    ncinqv        - inquires if variable exits 
 c
 c Revision history:
@@ -84,6 +83,8 @@ c
 c ----------------------------------------------------------------------
 c
       use mod_xc
+      use mod_calendar, only: date_type, daynum_diff, calendar_noerr,
+     .                        calendar_errstr
       use netcdf
       implicit none
 #ifdef PNETCDF
@@ -719,11 +720,11 @@ c       'all_leap' = '366_day', 'julian', 'proleptic_gregorian' and
 c       'standard' = 'mixed' = 'gregorian'.
 c
 c --- Arguments:
-c       real    datenum    (in) -  time value
-c       char(*) calendar   (in) -  calendar choice
-c       char(*) units      (in) -  time units, 
-c                                  e.g. 'hours since 0001-01-01'
-c       char(*) startdatde (in) -  start date, e.g. '1997-01-01'
+c       real    datenum   (in) -  time value
+c       char(*) calendar  (in) -  calendar choice
+c       char(*) units     (in) -  time units, 
+c                                 e.g. 'hours since 0001-01-01'
+c       char(*) startdate (in) -  start date, e.g. '1997-01-01'
 c
 c --- Comment:
 c       The script assumes that the precision of startdate is not
@@ -734,91 +735,110 @@ c ----------------------------------------------------------------------
 c
       implicit none
 c
-      integer :: bstrn,sstrn,strind(2,10),days,by,bm,bd,bh,
-     .   sy,sm,sd,sh
+      real :: datenum
       character*(*) :: calendar,units,startdate
-      real :: datenum,caloffset
+c
+      integer :: bstrn,sstrn,strind(2,10),by,bm,bd,bh,sy,sm,sd,sh,dndiff
+      real :: caloffset
       data by/1/,bm/1/,bd/1/,bh/0/,sy/1/,sm/1/,sd/1/,sh/0/
+c
+      integer :: errstat
 c
 
       if (io_type .eq. 1) then
 #ifdef PNETCDF
-c --- define time dimension
-      istart(1)=1
-      icount(1)=0
+c --- - define time dimension
+        istart(1)=1
+        icount(1)=0
 c
-c --- define time coordinate variable
-         call ncerro(nfmpi_inq_varid(ncid,'time',rhid))
+c --- - define time coordinate variable
+        call ncerro(nfmpi_inq_varid(ncid,'time',rhid))
 c
-      if (mnproc.eq.1) then
-c --- - analyse units string
-        call ncsevl(units,bstrn,strind)
-        read(units(strind(1,3):strind(2,3)),*) by
-        if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
-        if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
-        if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
+        if (mnproc.eq.1) then
+c --- --- analyse units string
+          call ncsevl(units,bstrn,strind)
+          read(units(strind(1,3):strind(2,3)),*) by
+          if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
+          if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
+          if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
 c
-c --- - analyse startdate string
-        call ncsevl(startdate,sstrn,strind)
-        read(startdate(strind(1,1):strind(2,1)),*) sy
-        if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
-        if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
-        if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
+c --- --- analyse startdate string
+          call ncsevl(startdate,sstrn,strind)
+          read(startdate(strind(1,1):strind(2,1)),*) sy
+          if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
+          if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
+          if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
 c
-c --- - calculate calendar offset
-        if     (units(1:1).eq.'y') then
-          caloffset=real(sy-by)
-        elseif (units(1:1).eq.'m') then
-          caloffset=real(sy-by)*12.+real(sm-bm)
-        elseif (units(1:1).eq.'d') then
-          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-          caloffset=real(days)
-        elseif (units(1:1).eq.'h') then
-          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-          caloffset=real(days)*24.+real(sh-bh)
+c --- --- calculate calendar offset
+          if     (units(1:1).eq.'y') then
+            caloffset=real(sy-by)
+          elseif (units(1:1).eq.'m') then
+            caloffset=real(sy-by)*12.+real(sm-bm)
+          else
+            errstat=daynum_diff(calendar,date_type(by,bm,bd),
+     .                                   date_type(sy,sm,sd),dndiff)
+            if (errstat.ne.calendar_noerr) then
+              write (lp, '(2a)') ' nctime: daynum_diff error: ',
+     .                    trim(calendar_errstr(errstat))
+              call xchalt('(nctime)')
+                     stop '(nctime)'
+            endif
+            if     (units(1:1).eq.'d') then
+              caloffset=real(dndiff)
+            elseif (units(1:1).eq.'h') then
+              caloffset=real(dndiff)*24.+real(sh-bh)
+            endif
+          endif
+          datenum=datenum+caloffset
+          istart(1)=rec
+          icount(1)=1
         endif
-        datenum=datenum+caloffset
-        istart(1)=rec
-        icount(1)=1
-      endif
 c
-c --- Change to data mode and write time
-      call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,
-     .            datenum))
+c --- - Change to data mode and write time
+        call ncerro(nfmpi_put_vara_double_all(ncid,rhid,istart,icount,
+     .              datenum))
 #endif
       elseif (io_type .eq. 0) then
-      if (mnproc.eq.1) then 
+        if (mnproc.eq.1) then 
           call ncerro(nf90_inq_varid(ncid,'time',rhid))
 c
-c --- - analyse units string
-        call ncsevl(units,bstrn,strind)
-        read(units(strind(1,3):strind(2,3)),*) by
-        if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
-        if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
-        if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
+c --- --- analyse units string
+          call ncsevl(units,bstrn,strind)
+          read(units(strind(1,3):strind(2,3)),*) by
+          if (bstrn.ge.4) read(units(strind(1,4):strind(2,4)),*) bm
+          if (bstrn.ge.5) read(units(strind(1,5):strind(2,5)),*) bd
+          if (bstrn.ge.6) read(units(strind(1,6):strind(2,6)),*) bh
 c
-c --- - analyse startdate string
-        call ncsevl(startdate,sstrn,strind)
-        read(startdate(strind(1,1):strind(2,1)),*) sy
-        if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
-        if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
-        if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
+c --- --- analyse startdate string
+          call ncsevl(startdate,sstrn,strind)
+          read(startdate(strind(1,1):strind(2,1)),*) sy
+          if (sstrn.ge.2) read(startdate(strind(1,2):strind(2,2)),*) sm
+          if (sstrn.ge.3) read(startdate(strind(1,3):strind(2,3)),*) sd
+          if (sstrn.ge.4) read(startdate(strind(1,4):strind(2,4)),*) sh
 c
-c --- - calculate calendar offset
-        if     (units(1:1).eq.'y') then
-          caloffset=real(sy-by)
-        elseif (units(1:1).eq.'m') then
-          caloffset=real(sy-by)*12.+real(sm-bm)
-        elseif (units(1:1).eq.'d') then
-          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-          caloffset=real(days)
-        elseif (units(1:1).eq.'h') then
-          call nccaln(days,calendar,by,bm,bd,sy,sm,sd)
-          caloffset=real(days)*24.+real(sh-bh)
+c --- --- calculate calendar offset
+          if     (units(1:1).eq.'y') then
+            caloffset=real(sy-by)
+          elseif (units(1:1).eq.'m') then
+            caloffset=real(sy-by)*12.+real(sm-bm)
+          else
+            errstat=daynum_diff(calendar,date_type(by,bm,bd),
+     .                                   date_type(sy,sm,sd),dndiff)
+            if (errstat.ne.calendar_noerr) then
+              write (lp, '(2a)') ' nctime: daynum_diff error: ',
+     .                    trim(calendar_errstr(errstat))
+              call xchalt('(nctime)')
+                     stop '(nctime)'
+            endif
+            if     (units(1:1).eq.'d') then
+              caloffset=real(dndiff)
+            elseif (units(1:1).eq.'h') then
+              caloffset=real(dndiff)*24.+real(sh-bh)
+            endif
+          endif
+          datenum=datenum+caloffset
+          call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
         endif
-        datenum=datenum+caloffset
-        call ncerro(nf90_put_var(ncid,rhid,datenum,(/rec/)))
-      endif
       endif 
 c
       end subroutine nctime
@@ -2939,112 +2959,6 @@ c
 c
       end subroutine ncsevl
 
-
-      subroutine nccaln(days,calendar,y1,m1,d1,y2,m2,d2)
-c
-c ----------------------------------------------------------------------
-c --- Description:
-c       nccaln calculates the number of days between two
-c       dates. Valid calendars are '360_day', 'noleap' = '365_day',
-c       'all_leap' = '366_day', 'julian', 'proleptic_gregorian' and
-c       'standard' = 'mixed' = 'gregorian'.
-c
-c --- Arguments:
-c       int days         (out) -  number of days
-c       char(*) calendar (in)  -  choice of calendar
-c       int y1           (in)  -  start year
-c       int m1           (in)  -  start month
-c       int d1           (in)  -  start day
-c       int y2           (in)  -  last year
-c       int m2           (in)  -  last month
-c       int d2           (in)  -  last day
-c ----------------------------------------------------------------------
-c
-      implicit none
-c
-      character*(*) calendar
-      integer n1,y1,m1,d1,n2,y2,m2,d2,days,nd1,nd2,nd3
-c
-      if (calendar(1:3).eq.'sta'.or.calendar(1:3).eq.'mix'.or.
-     .    calendar(1:3).eq.'gre') then
-        if (y1.lt.1582.or.(y1.eq.1582.and.m1.lt.10).or.
-     .      (y1.eq.1582.and.m1.eq.10.and.d1.le.15)) then
-          call ncdnum('julian',y1,m1,d1,n1)
-        else
-          call ncdnum('julian',1582,10,15,nd1)
-          call ncdnum('proleptic',1582,10,15,nd2)
-          call ncdnum('proleptic',y1,m1,d1,nd3)
-          n1=nd1-nd2+nd3-10
-        endif
-        if (y2.lt.1582.or.(y2.eq.1582.and.m2.lt.10).or.
-     .      (y2.eq.1582.and.m2.eq.10.and.d2.le.15)) then
-          call ncdnum('julian',y2,m2,d2,n2)
-        else
-          call ncdnum('julian',1582,10,15,nd1)
-          call ncdnum('proleptic',1582,10,15,nd2)
-          call ncdnum('proleptic',y2,m2,d2,nd3)
-          n2=nd1-nd2+nd3-10
-        endif
-      else
-        call ncdnum(calendar,y1,m1,d1,n1)
-        call ncdnum(calendar,y2,m2,d2,n2)
-      endif
-      days=n2-n1
-c
-      end subroutine nccaln
-
-
-
-      subroutine ncdnum(calendar,year,month,day,ndays)
-c
-c ----------------------------------------------------------------------
-c --- Description:
-c       Auxilary subroutine for nccaln which calculates the number
-c       of days between a given date and a reference date. Thereby the
-c       reference date varies from calendar to calendar and is not
-c       standerized. The purpose is more of differential nature rather
-c       than to create an absolute time axis.
-c ----------------------------------------------------------------------
-c
-      implicit none
-c
-      character*(*) calendar
-      integer y,year,month,day,ndays,yr1,yr4,yr100,yr400
-      integer acc_leap(12),acc_noleap(12),yoffset
-      parameter(yoffset=1000000,yr1=365,yr4=1461,yr100=36524,
-     .   yr400=146097)
-      data acc_leap   /0,31,60,91,121,152,182,213,244,274,305,335/
-      data acc_noleap /0,31,59,90,120,151,181,212,243,273,304,334/
-c
-      y=year+yoffset
-      if (calendar(1:3).eq.'pro') then
-        ndays=int((y-1)/400.)*yr400
-     .       +int(mod((y-1),400)/100.)*yr100
-     .       +int(mod(mod((y-1),400),100)/4.)*yr4
-     .       +mod(mod(mod((y-1),400),100),4)*yr1
-        if (month.gt.2.and.((mod(y,4).eq.0.and.mod(y,100).ne.0).or.
-     .     mod(y,400).eq.0)) then
-          ndays=ndays+acc_leap(month)+day
-        else
-          ndays=ndays+acc_noleap(month)+day
-        endif
-      elseif (calendar(1:3).eq.'jul') then
-        ndays=int((y-1)/4.)*yr4+mod(y,4)*yr1
-        if (month.gt.2.and.mod(y,4).eq.0) then
-          ndays=ndays+acc_leap(month)+day
-        else
-          ndays=ndays+acc_noleap(month)+day
-        endif
-      elseif (calendar(1:3).eq.'360') then
-        ndays=(y-1)*360+30*(month-1)+day
-      elseif (calendar(1:3).eq.'nol'.or.calendar(1:3).eq.'365') then
-        ndays=(y-1)*365+acc_noleap(month)+day
-      elseif (calendar(1:3).eq.'all'.or.calendar(1:3).eq.'366') then
-        ndays=(y-1)*366+acc_leap(month)+day
-      endif
-c
-      end subroutine ncdnum
-   
 
       logical function ncinqa(nm)
 c

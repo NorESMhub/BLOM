@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2019 Mats Bentsen
+! Copyright (C) 2005-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -21,6 +21,7 @@
 c
 c --- time smoothing of layer thickness, temperature and salinity
 c
+      use mod_constants, only: epsil
       use mod_xc
 c
       implicit none

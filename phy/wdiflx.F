@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2018 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2005-2020 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -21,6 +21,8 @@
 c
 c --- Write accumulated diagnosed heat and salt fluxes
 c
+      use mod_configuration, only: runid
+      use mod_time, only: date,time
       use mod_xc
       use mod_nctools
       use mod_dia, only : iotype
@@ -28,7 +30,6 @@ c
       implicit none
 c
 #include "common_blocks.h"
-#include "common_clndr.h"
 #include "common_forc.h"
 c
       character fname*256
@@ -37,7 +38,7 @@ c
       if (ditflx) then
 c
         write (fname,'(2a,i4.4,a)')
-     .    runid(1:runid_len),'_tflxdi_',nyear-1,'.nc'
+     .    trim(runid),'_tflxdi_',date%year-1,'.nc'
         if (mnproc.eq.1) then
           write (lp,'(2a)')
      .      'Writing diagnostic heat flux to ',trim(fname)
@@ -83,7 +84,7 @@ c
       if (disflx) then
 c
         write (fname,'(2a,i4.4,a)')
-     .    runid(1:runid_len),'_sflxdi_',nyear-1,'.nc'
+     .    trim(runid),'_sflxdi_',date%year-1,'.nc'
         if (mnproc.eq.1) then
           write (lp,'(2a)')
      .      'Writing diagnostic salt flux to ',trim(fname)

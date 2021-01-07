@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
 !
@@ -23,19 +23,22 @@
 
       use mod_xc
       use shr_file_mod, only: shr_file_getUnit, shr_file_setIO
+      use mod_instance, only: inst_suffix
 
       implicit none
 
+      character(len = 256) :: nlfnm
       logical exists
 
       ! ----------------------------------------------------------------
       ! Redirect standard out to a log file if requested
       ! ----------------------------------------------------------------
       if (mnproc.eq.1) then
-         inquire(file = 'ocn_modelio.nml', exist = exists)
+         nlfnm = 'ocn_modelio.nml'//trim(inst_suffix)
+         inquire(file = nlfnm, exist = exists)
          if (exists) then
             lp = shr_file_getUnit()
-            call shr_file_setIO('ocn_modelio.nml', lp)
+            call shr_file_setIO(nlfnm, lp)
          endif
       endif
 

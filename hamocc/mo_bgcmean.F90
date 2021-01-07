@@ -1,5 +1,6 @@
 ! Copyright (C) 2002  P. Wetzel
-! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree
+! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree,
+!                     P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -56,6 +57,7 @@
       USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
       USE mod_nctools
       USE mo_param1_bgc, only: ks 
+      use mod_instance, only: inst_suffix
 
       IMPLICIT NONE
 
@@ -468,9 +470,9 @@
         INQUIRE(unit=iounit,opened=isopen)
         IF (.NOT.isopen) EXIT
       ENDDO
-      INQUIRE(file='ocn_in',exist=exists)
+      INQUIRE(file='ocn_in'//trim(inst_suffix),exist=exists)
       IF (exists) THEN
-        OPEN (iounit,file='ocn_in',status='old',action='read',recl=80)
+        OPEN (iounit,file='ocn_in'//trim(inst_suffix),status='old',action='read',recl=80)
       ELSE   
         INQUIRE(file='limits',exist=exists)
         IF (exists) THEN

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008 Mats Bentsen
+! Copyright (C) 2020 Ping-Gin Chiu and Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,30 +17,16 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine modeltime(ymd, tod)
+module mod_instance
 
-      ! Uses modules
+   implicit none
 
-      use mod_xc
-      
-      implicit none
+   private
 
-      ! Input/output arguments
+   integer             :: inst_index  = 0
+   character(len = 16) :: inst_name   = ''
+   character(len = 16) :: inst_suffix = ''
 
-      integer, intent(out)    :: ymd, tod
+   public :: inst_index, inst_name, inst_suffix
 
-      ! Include files
-
-#include "common_blocks.h"
-#include "common_clndr.h"
-
-      ! Local variables
-
-
-      ! External functions
-
-
-      ymd = nyear*10000 + nmonth*100 + nday
-      tod = nint(mod(nstep,nstep_in_day)*baclin)
-
-      end subroutine modeltime
+end module mod_instance

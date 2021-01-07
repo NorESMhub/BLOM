@@ -40,6 +40,7 @@ c     -
 c
 c**********************************************************************
 c
+      use mod_constants, only: onem
       use mod_xc
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_carbch,     only: ocetra,atm

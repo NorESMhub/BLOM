@@ -1,6 +1,6 @@
 ! Copyright (C) 2002  Ernst Maier-Reimer, S. Legutke, P. Wetzel
 ! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, A. Moree
-!                     M. Bentsen
+!                     M. Bentsen, P.-G. Chiu
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -111,11 +111,12 @@
       USE mo_sedmnt,    only: sedhpl
       use mod_dia,      only : iotype
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
+      use mod_instance, only: inst_suffix
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
-#endif
 #include <mpif.h>      
+#endif
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
       REAL             :: omask(kpie,kpje)    
@@ -145,16 +146,18 @@
       character(len=3) :: stripestr
       character(len=9) :: stripestr2
       integer :: ierr,testio
+      INTEGER :: leninrstfn
 
       locetra(:,:,:,:) = 0.0
 !
 ! Open netCDF data file
 !
       testio=0
+      leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
       IF(mnproc==1 .AND. IOTYPE==0) THEN
 
         i=1
-        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
      &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
@@ -164,12 +167,11 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)  //'.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
         else
           rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
         endif
-
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
              CALL xchalt('(AUFR: Problem with netCDF1)')
@@ -201,7 +203,7 @@
 #ifdef PNETCDF
         testio=1
         i=1
-        do while (rstfnm_ocn(i:i+7).ne.'.blom.r.' .AND.              &
+        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
      &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
           i=i+1
           if (i+8.gt.len(rstfnm_ocn)) then
@@ -211,8 +213,8 @@
             stop '(aufr_bgc)'
           endif
         enddo
-        if (rstfnm_ocn(i:i+7).eq.'.blom.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom.rbgc.'//rstfnm_ocn(i+8:)
+        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)//   '.r.') then
+          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
         else
           rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
         endif

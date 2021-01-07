@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2012 Mats Bentsen
+! Copyright (C) 2012-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -21,7 +21,7 @@
 
       ! Uses modules
       
-      use types, only : r8
+      use mod_types, only: r8
       use mod_xc
 
       implicit none
