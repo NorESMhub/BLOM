@@ -25,11 +25,11 @@ c --- CESM
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_grid, only: grfile
+      use mod_utility, only: util1
       use netcdf
 c
       implicit none
-c
-#include "common_blocks.h"
 c
       real, dimension(itdm,jtdm) :: tmpg
       integer i,j,status,ncid,dimid,varid

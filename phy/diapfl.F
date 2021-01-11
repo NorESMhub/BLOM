@@ -26,12 +26,25 @@ c
       use mod_constants, only: g, alpha0, spval, epsil, onem
       use mod_time, only: delt1
       use mod_xc
+      use mod_grid, only: sigmar, coriop
+      use mod_eos, only: sig, dsigdt, dsigds, sofsig
+      use mod_temmin, only: temmin
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
+     .                     p, pu, pv, kfpla
+      use mod_diffusion, only: difdia
+      use mod_forcing, only: ustarb
+      use mod_utility, only: util1
+      use mod_checksum, only: csdiag, chksummsk
+#ifdef TRC
+      use mod_tracers, only: ntr, itrtke, itrgls, trc
+#  ifdef TKE
+      use mod_tke, only: tke_min, gls_psi_min
+#  endif
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
 c
 c --- Parameters:
 c ---   dsgmnr - minimum ratio of linearized density jump to target
@@ -65,20 +78,11 @@ c
       logical, dimension(kdm) :: rstdns
       logical done,dwnwrd,remfmx
 c
-      real dsigdt,dsigds,sig,sofsig
-      external dsigdt,dsigds,sig,sofsig
-c
       real, dimension(kdm) :: ttem0,ssal0,delp0,dens0,sigr0,nu0
       integer niter
-c
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       real, dimension(ntr,kdm) :: ttrc
       integer nt
-#  ifdef TKE
-#    include "param_tke.h"
-#  endif
 #endif
 c
 c --- Constant in the diffusion equation

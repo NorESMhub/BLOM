@@ -23,7 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Get surface forcing functions
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf
+      use mod_config, only: expcnf
       use mod_xc, only: lp, mnproc, xcstop
 c
       implicit none

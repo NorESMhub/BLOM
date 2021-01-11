@@ -24,17 +24,26 @@ c --- This module contains routines for generating surface fluxes
 c --- from NCEP or ERA40 reanalysis following Bentsen and Drange (2002).
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf
+      use mod_types, only: i2, r4
+      use mod_config, only: expcnf
       use mod_constants, only: t0deg, spval
       use mod_calendar, only: date_offset, calendar_noerr,
      .                        calendar_errstr
-      use mod_time, only: date,calendar, nday_in_year, nday_of_year,
-     .                    nstep, nstep_in_day, set_day_of_year
+      use mod_time, only: date, calendar, nday_in_year, nday_of_year,
+     .                    nstep, nstep_in_day, set_day_of_year,
+     .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
       use mod_xc
+      use mod_grid, only: scpx, scpy, scuy, scvx, scp2, scp2i, scuxi,
+     .                    scvyi, plon, plat, area
+      use mod_forcing, only: sprfac, srxday, sstclm, ricclm, prfac, swa,
+     .                       nsf, lip, sop, eva, rfi, ztx, mty, ustarw,
+     .                       slp, abswnd
+      use mod_utility, only: util1, util2, util3, util4
       use mod_thdysi, only: albs_f
       use mod_swtfrz, only: swtfrz
       use mod_ben02func
       use mod_bulktf
+      use mod_checksum, only: csdiag, chksummsk
       use netcdf
 c
       implicit none
@@ -49,11 +58,11 @@ c
       integer, allocatable, dimension(:,:) ::
      .  atm_mask       ! mask
 c
-      real*4, allocatable, dimension(:,:,:) ::
+      real(r4), allocatable, dimension(:,:,:) ::
      .  atm_wgt,       ! interpolation weights
      .  rnf_wgt        ! interpolation weights
 c
-      integer*2, allocatable, dimension(:,:,:) ::
+      integer(i2), allocatable, dimension(:,:,:) ::
      .  atm_iwgt,      ! interpolation adresses
      .  atm_jwgt,      ! interpolation adresses
      .  rnf_ocdpi,     ! interpolation adresses
@@ -98,6 +107,20 @@ c
 c
       integer ::
      .  ntda           ! accumulation number
+c
+      real, allocatable, dimension(:,:) ::
+     .  dfl,           ! derivative of non-solar heat flux by surface
+                       ! temperature
+     .  albw,          ! daily mean open water albedo.
+     .  alb,           ! total surface albedo.
+     .  rnfins,        ! instantaneous runoff flux
+     .  rnfres         ! runoff reservoar
+c
+      integer ::
+     .  nrfets         ! e-folding time scale for detrainment of runoff
+                       ! reservoar [days]
+c
+      data nrfets /7/
 c
       integer, dimension(itdm,jtdm) ::
      .  itp            ! mask for the full domain
@@ -166,19 +189,22 @@ c
      .     atm_crnf_era,atm_cswa_era /0.7234,0.9721/
 c
       real ::
-     . zu,                 ! measurement height of wind [m]
-     . zt,                 ! measurement height of temperature [m]
-     . zq,                 ! measurement height of specific humidity [m]
-     . emiss,              ! emissivity of water []
-     . cpair,              ! specific heat of dry air [J K-1 kg-1]
-     . stefanb,            ! stefan-boltzman constant [W m-2 K-4]
-     . cd_r,               ! reference transfer coefficient of momentum
-     . ch_r,               ! reference transfer coefficient of sensible
+     .  zu,                ! measurement height of wind [m]
+     .  zt,                ! measurement height of temperature [m]
+     .  zq,                ! measurement height of specific humidity [m]
+     .  emiss,             ! emissivity of water []
+     .  cpair,             ! specific heat of dry air [J K-1 kg-1]
+     .  stefanb,           ! stefan-boltzman constant [W m-2 K-4]
+     .  cd_r,              ! reference transfer coefficient of momentum
+     .  ch_r,              ! reference transfer coefficient of sensible
                            ! heat
-     . ce_r,               ! reference transfer coefficient of latent
+     .  ce_r,              ! reference transfer coefficient of latent
                            ! heat
-     . rhoa_r,             ! reference air density [g cm-3]
-     . wg2_r               ! reference gustiness squared [cm2 s-2]
+     .  rhoa_r,            ! reference air density [g cm-3]
+     .  wg2_r,             ! reference gustiness squared [cm2 s-2]
+     .  albdif,            ! diffusive light albedo over water []
+     .  rhowat             ! approximare density of sea-surface water
+                           ! [kg m-3].
 c
       data zu,zt,zq /10.,10.,10./,
      .     emiss    /.97/,
@@ -188,17 +214,21 @@ c
      .     ch_r     /1.1e-3/,
      .     ce_r     /1.3e-3/,
      .     wg2_r    /1.e3/,
-     .     rhoa_r   /1.225e-3/
+     .     rhoa_r   /1.225e-3/,
+     .     albdif   /.065/,
+     .     rhowat   /1024./
 c
       integer ::
-     . tciter              ! iterations in the computation of transfer
+     .  tciter             ! iterations in the computation of transfer
                            ! coefficients
 c
       public :: initai,fnlzai,rdcsic,rdctsf,inifrc_ben02clim,
-     .          inifrc_ben02syn,
-     .          getfrc_ben02clim,getfrc_ben02syn,atm_path,atm_path_len,
+     .          inifrc_ben02syn,getfrc_ben02clim,getfrc_ben02syn,
+     .          atm_path,atm_path_len,
      .          cd_d,ch_d,ce_d,wg2_d,cd_m,ch_m,ce_m,wg2_m,rhoa,
-     .          tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,ntda
+     .          tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,ntda,
+     .          dfl,albw,alb,rnfins,rnfres,nrfets,
+     .          cd_r,ch_r,ce_r,wg2_r,rhoa_r,albdif,rhowat
 c
       contains
 c
@@ -209,8 +239,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Read dimensions of atmospheric grid
 c --- ------------------------------------------------------------------
-c
-      implicit none
 c
       character filename*(*)
 c
@@ -274,8 +302,6 @@ c --- Read atmospheric lon/lat coordinates and land mask from netcdf
 c --- file
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
       character filename*(*)
 c
       integer status,ncid,varid,i,j
@@ -338,8 +364,8 @@ c --- Close netcdf file.
       if (status.ne.nf90_noerr) then
         write(lp,'(4a)') 'nf90_close: ',trim(filename),': ',
      .                   nf90_strerror(status)
-        call xchalt('(rdatm_dim)')
-               stop '(rdatm_dim)'
+        call xchalt('(rdatm_llm)')
+               stop '(rdatm_llm)'
       endif
 c
 c$OMP PARALLEL DO PRIVATE(i)
@@ -362,8 +388,6 @@ c --- ------------------------------------------------------------------
 c --- Read atmospheric lon/lat coordinates and land mask from netcdf
 c --- file
 c --- ------------------------------------------------------------------
-c
-      implicit none
 c
       character filename*(*)
 c
@@ -421,8 +445,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Read field at selected time step from NetCDF file
 c --- ------------------------------------------------------------------
-c
-      implicit none
 c
       character filename*(*),fieldname*(*)
       integer time_step
@@ -610,11 +632,6 @@ c --- ------------------------------------------------------------------
 c --- Prepare interpolation of atmospheric surface fields
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_geo.h"
-c
       real, dimension(itdm,jtdm) :: tmp2da,tmp2db
       real, dimension(0:atm_nwgt) :: r_wgt
       real piloc,min_d,d,r,l2
@@ -756,8 +773,8 @@ c
                       atm_jwgt(n+1,it,jt)=atm_jwgt(n,it,jt)
                     enddo
                     r_wgt(m)=r
-                    atm_iwgt(m,it,jt)=i
-                    atm_jwgt(m,it,jt)=j
+                    atm_iwgt(m,it,jt)=int(i,i2)
+                    atm_jwgt(m,it,jt)=int(j,i2)
                   endif
                 enddo
               enddo
@@ -783,8 +800,8 @@ c
      .  /piloc
 c
               do m=1,atm_nwgt
-                atm_wgt(m,it,jt)=max(exp(-.5*r_wgt(m)*r_wgt(m)/l2),
-     .                              1.e-9)
+                atm_wgt(m,it,jt)=
+     .            real(max(exp(-.5*r_wgt(m)*r_wgt(m)/l2),1.e-9),r4)
               enddo
 c
             enddo
@@ -862,8 +879,6 @@ c --- Gaussian interpolation of 2D fields from atmospheric grid to ocean
 c --- grid using precomputed weights.
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
       real, dimension(atm_idm,atm_jdm) :: adata
       real, dimension(itdm,jtdm) :: odata
 c
@@ -912,10 +927,6 @@ c --- manner. The smoothing will be iterated nsmt times with a smoothing
 c --- weight swgt and the smoothing is applied where the mask, msk, is
 c --- equal one.
 c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-#include "common_blocks.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: msk
@@ -977,10 +988,6 @@ c --- ------------------------------------------------------------------
 c --- Rotate zonal/meridional vector components at C-grid scalar points
 c --- to model grid components at C-grid velocity points
 c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-#include "common_geo.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: u,v
 c
@@ -1067,8 +1074,6 @@ c
 c --- ------------------------------------------------------------------
 c --- compute 24 hrs mean albedo at the marine surface layer
 c --- ------------------------------------------------------------------
-c
-      implicit none
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: lat,cc,albw
       real dangle,albw_d
@@ -1173,11 +1178,6 @@ c --- Read and interpolate daily atmospheric forcing fields. The
 c --- interpolated fields of heat fluxes, cloud cover, precipitation,
 c --- and surface temperature are smoothed over ice covered regions.
 c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_geo.h"
 c
       real, dimension(atm_idm,atm_jdm) :: atm_field,atm_skt,atm_tau
       real, dimension(itdm,jtdm) :: tmp2d
@@ -1598,12 +1598,6 @@ c --- Compute air-sea fluxes. Same routine is used both for
 c --- climatological and synoptic forcing
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_geo.h"
-c
 c --- Parameters:
 c ---   dtmax - maximum near surface temperature gradient [K]
 c ---   dqmax - maximum near surface specific humidity gradient [kg/kg]
@@ -1672,9 +1666,9 @@ c
      .                    ricec (i,j,l3gi),ricec (i,j,l4gi),
      .                    ricec (i,j,l5gi),xgi)
           endif
-          rnf(i,j)=intp1d(runoff(i,j,l1gi),runoff(i,j,l2gi),
-     .                    runoff(i,j,l3gi),runoff(i,j,l4gi),
-     .                    runoff(i,j,l5gi),xgi)
+          rnfins(i,j)=intp1d(runoff(i,j,l1gi),runoff(i,j,l2gi),
+     .                       runoff(i,j,l3gi),runoff(i,j,l4gi),
+     .                       runoff(i,j,l5gi),xgi)
 c
           prcp =max(0.,prcp)
           dswrf=max(0.,dswrf)
@@ -1830,7 +1824,7 @@ c
           if (sprfac) then
             lip(i,j)=lip(i,j)*prfac
             sop(i,j)=sop(i,j)*prfac
-            rnf(i,j)=rnf(i,j)*prfac
+            rnfins(i,j)=rnfins(i,j)*prfac
             rfi(i,j)=rfi(i,j)*prfac
           endif
 c
@@ -1886,7 +1880,7 @@ c$OMP END PARALLEL DO
 c
 c --- Obtain albedo for open water
       dangle=8.*atan(1.)*real(nday_of_year-1)/real(nday_in_year)
-      call albw_eval(dangle,plat,cc,albw_d,albw)
+      call albw_eval(dangle,plat,cc,albdif,albw)
 c
       if (csdiag) then
         if (mnproc.eq.1) then
@@ -1900,7 +1894,7 @@ c
         call chksummsk(eva,ip,1,'eva')
         call chksummsk(ztx,iu,1,'ztx')
         call chksummsk(mty,iv,1,'mty')
-        call chksummsk(rnf,ip,1,'rnf')
+        call chksummsk(rnfins,ip,1,'rnfins')
         call chksummsk(ustarw,ip,1,'ustarw')
         call chksummsk(tsi,ip,1,'tsi')
         call chksummsk(slp,ip,1,'slp')
@@ -1918,11 +1912,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Read and interpolate climatological sea-ice concentration
 c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       real, dimension(atm_idm,atm_jdm) :: atm_field
       real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
@@ -1976,11 +1965,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Read and interpolate climatological surface temperature
 c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       real, dimension(atm_idm,atm_jdm) :: atm_field
       real*4, dimension(atm_idm,atm_jdm) :: atm_field_r4
@@ -2092,12 +2076,6 @@ c --- ------------------------------------------------------------------
 c --- Initialize monthly climatological forcing fields
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_geo.h"
-c
       real, allocatable, dimension(:,:,:) :: atm_sktclm
       real, allocatable, dimension(:,:) :: atm_field
       real*4, allocatable, dimension(:,:) :: atm_field_r4
@@ -2109,18 +2087,6 @@ c
       real*4 rw4
       integer i,j,k,l,il,jl
       integer*2 rn2,ri2,rj2
-c
-c --- Prepare interpolation of surface fields.
-      call initai
-c
-c --- Read climatological sea-ice concentration.
-      call rdcsic
-c
-c --- Read climatological surface temperature.
-      call rdctsf
-c
-c --- Initialize diagnosing/application of relaxation fluxes
-      call idarlx
 c
 c --- Allocate memory for additional monthly forcing fields.
       allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12),
@@ -2134,6 +2100,50 @@ c --- Allocate memory for additional monthly forcing fields.
      .         clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12),
      .         slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12),
      .         runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12))
+c
+c --- Allocate memory for transfer coefficients, gustiness squared, and
+c --- air density
+      allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Allocate memory for accumulation variables
+      allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Allocate memory for derivative of non-solar heat flux by surface
+c --- temperature, albedos and instantaneous runoff flux and runoff
+c --- reservoar
+      allocate(dfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Number of iteration in the computation of transfer coefficients.
+      tciter=5
+c
+c --- Prepare interpolation of surface fields.
+      call initai
+c
+c --- Read climatological sea-ice concentration.
+      call rdcsic
+c
+c --- Read climatological surface temperature.
+      call rdctsf
+c
+c --- Initialize diagnosing/application of relaxation fluxes
+      call idarlx
 c
 c --- Allocate memory for temporary fields
       if (mnproc.eq.1) then
@@ -2791,8 +2801,8 @@ c$OMP END PARALLEL DO
 c
 c --- - compute albedo
         dangle=8.*atan(1.)*real(30*k-15)/360.
-        call albw_eval(dangle,plat,clouds(1-nbdy,1-nbdy,k),albw_d,albw)
-c$OMP PARALLEL DO PRIVATE(l,i,area,albedo)
+        call albw_eval(dangle,plat,clouds(1-nbdy,1-nbdy,k),albdif,albw)
+c$OMP PARALLEL DO PRIVATE(l,i,garea,albedo)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2863,56 +2873,6 @@ c$OMP END PARALLEL DO
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'chwbud:'
-        endif
-        call chksummsk(runoff,ip,12,'runoff')
-        call chksummsk(dswrfl,ip,12,'dswrfl')
-      endif
-c
-c --- Allocate memory for transfer coefficients, gustiness squared, and
-c --- air density
-      allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-c
-c --- Initialize transfer coefficients, gustiness squared, and air density
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          cd_d(i,j)=cd_r
-          ch_d(i,j)=ch_r
-          ce_d(i,j)=ce_r
-          wg2_d(i,j)=wg2_r*1.e-4
-          cd_m(i,j)=cd_r
-          ch_m(i,j)=ch_r
-          ce_m(i,j)=ce_r
-          wg2_m(i,j)=wg2_r*1.e-4
-          rhoa(i,j)=rhoa_r*1.e3
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- Number of iteration in the computation of transfer coefficients.
-      tciter=5
-c
-c --- Allocate memory for accumulation variables
-      allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-c
-      if (csdiag) then
-        if (mnproc.eq.1) then
           write (lp,*) 'inifrc_ben02clim:'
         endif
         call chksummsk(dswrfl,ip,12,'dswrfl')
@@ -2939,15 +2899,57 @@ c --- ------------------------------------------------------------------
 c --- Prepare utilization of daily atmospheric forcing
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-c
       real dx2,dy2
       real*4 rw4
       integer errstat,i,j,k,l
       integer*2 rn2,ri2,rj2
+c
+c --- Allocate memory for daily forcing fields.
+      allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         tmpsfc(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
+     .         ricec (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5))
+c
+c --- Allocate memory for transfer coefficients, gustiness squared, and
+c --- air density
+      allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Allocate memory for accumulation variables
+      allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Allocate memory for derivative of non-solar heat flux by surface
+c --- temperature, albedos and instantaneous runoff flux and runoff
+c --- reservoar
+      allocate(dfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         albw(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         alb(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rnfins(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
+     .         rnfres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
+c
+c --- Number of iteration in the computation of transfer coefficients.
+      tciter=1
 c
 c --- Prepare interpolation of surface fields.
       call initai
@@ -2964,21 +2966,6 @@ c --- salinity.
 c
 c --- Initialize diagnosing/application of relaxation fluxes
       call idarlx
-c
-c --- Allocate memory for daily forcing fields.
-      allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         tauxd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         tauyd (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         dswrfl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         nlwrfs(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         shtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         lhtflx(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         precip(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         clouds(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         slpres(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         runoff(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         tmpsfc(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5),
-     .         ricec (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,5))
 c
 c --- Compute smoothing weights atm_ice_swgt and atm_rnf_swgt. For
 c --- stability atm_ice_swgt,atm_rnf_swgt < .5*dx^2*dy^2/(dx^2+dy^2).
@@ -3075,48 +3062,6 @@ c
 c
       endif
 c
-c --- Allocate memory for transfer coefficients, gustiness squared, and
-c --- air density
-      allocate(cd_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ch_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ce_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         wg2_d(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         cd_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ch_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         ce_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         wg2_m(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         rhoa(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-c
-c --- Initialize transfer coefficients, gustiness squared, and air density
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          cd_d(i,j)=cd_r
-          ch_d(i,j)=ch_r
-          ce_d(i,j)=ce_r
-          wg2_d(i,j)=wg2_r*1.e-4
-          cd_m(i,j)=cd_r
-          ch_m(i,j)=ch_r
-          ce_m(i,j)=ce_r
-          wg2_m(i,j)=wg2_r*1.e-4
-          rhoa(i,j)=rhoa_r*1.e3
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- Number of iteration in the computation of transfer coefficients.
-      tciter=1
-c
-c --- Allocate memory for accumulation variables
-      allocate(tsi_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         tml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         sml_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         alb_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         fice_tda(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy),
-     .         tsi(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy))
-c
 c --- Initial indexes of the 5 time levels
       l1gi=1
       l2gi=2
@@ -3160,10 +3105,6 @@ c --- ------------------------------------------------------------------
 c --- Get climatological forcing
 c --- ------------------------------------------------------------------
 c
-      implicit none
-c
-#include "common_forc.h"
-c
 c --- Set interpolation parameters
       xgi=xmi
       l1gi=l1mi
@@ -3188,8 +3129,6 @@ c
 c --- ------------------------------------------------------------------
 c --- Get synoptic forcing
 c --- ------------------------------------------------------------------
-c
-      implicit none
 c
 c --- Set interpolation parameter
       xgi=real(mod(nstep-1,nstep_in_day)+1)/nstep_in_day

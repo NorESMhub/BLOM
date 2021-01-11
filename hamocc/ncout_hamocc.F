@@ -36,8 +36,6 @@ c
 c      
       implicit none
 c
-#include "common_blocks.h"
-c      
       integer iogrp
 c
       integer i,j,k,l,nt

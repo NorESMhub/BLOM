@@ -109,9 +109,9 @@
       use mo_param1_bgc
       use mo_vgrid,     only: kbo
       USE mo_sedmnt,    only: sedhpl
-      use mod_dia,      only : iotype
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      use mod_instance, only: inst_suffix
+      USE mod_config,   only: inst_suffix
+      use mod_dia,      only: iotype
       implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>

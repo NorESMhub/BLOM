@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2015 Mats Bentsen
+! Copyright (C) 2009-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,13 +24,11 @@ c --- Compute the surface stress. To be used when coupled to CESM
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_forcing, only: taux, tauy
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       integer i,j,l
 c

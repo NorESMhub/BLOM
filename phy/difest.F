@@ -26,8 +26,35 @@ c --- ------------------------------------------------------------------
 #undef DIAG
 c
       use mod_constants, only: g, alpha0, pi, epsil, onem, onecm
-      use mod_time, only: delt1, dlt
+      use mod_time, only: delt1
       use mod_xc
+      use mod_grid, only: sigmar, scpx, scpy, scp2, plat,
+     .                    coriop, betafp, cosang, sinang
+      use mod_eos, only: rho
+      use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
+     .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
+      use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
+     .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
+     .                         edsprs, edritp, edwmth,
+     .                         difint, difiso, difdia, difmxp, difwgt
+      use mod_cmnfld, only: nnslpx, nnslpy
+      use mod_forcing, only: ustar, ustarb, ustar3, buoyfl
+      use mod_tidaldissip, only: twedon
+      use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
+      use mod_seaice, only: ficem
+      use mod_utility, only: util1
+      use mod_checksum, only: csdiag, chksummsk
+#if defined(TRC) && defined(TKE)
+      use mod_tracers, only: itrtke, itrgls, trc
+      use mod_tke, only: gls_cmu0, Pr_t, tke_min, gls_psi_min, gls_p,
+     .                   gls_m, gls_n, gls_c1, gls_c2, gls_c3plus,
+     .                   gls_c3minus, gls_Gh0, gls_Ghmin, gls_Ghcri,
+     .                   Ls_unlmt_min, Prod, Buoy, Shear2, L_scale, 
+     .                   gls_s0, gls_s1, gls_s2, gls_s4, gls_s5, gls_s6,
+     .                   gls_b0, gls_b1, gls_b2, gls_b3, gls_b4, gls_b5,
+     .                   sqrt2, cmu_fac1, cmu_fac2, cmu_fac3, tke_exp1,
+     .                   gls_exp1, gls_fac6
+#endif
 #ifdef DIAG
       use mod_nctools
       use mod_dia, only : iotype
@@ -36,11 +63,6 @@ c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
-#include "common_seaice.h"
-#include "common_forc.h"
-#include "common_geo.h"
 c
 c --- parameters:
 c ---   iidtyp - type of interface and isopycnal diffusivities. If
@@ -53,8 +75,6 @@ c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
 c ---   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
 c ---            due to internal wave damping under sea-ice.
-c ---   ipfac  - inertial period factor for the velocity averaging time
-c ---            scale [].
 c ---   dpbmin - smallest layer thickness allowed in evaluating
 c ---            local gradient richardson number [g/cm/s**2].
 c ---   drhomn - minimum density difference in evaluations the
@@ -86,7 +106,6 @@ c ---   tkepls - length scale of surface TKE penetration beneath the
 c ---            mixed layer [g/cm/s**2]
 c ---   niwls  - near-inertial waves driven mixing length scale
 c ---            beneath the mixed layer [g/cm/s**2].
-c ---   cori10 - coriolis parameter at 10N [1/s].
 c ---   cori30 - coriolis parameter at 30N [1/s].
 c ---   bvf0   - reference stratification in the parameterization of
 c ---            latitude dependent background diapycnal mixing [1/s].
@@ -106,21 +125,21 @@ c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
       integer iidtyp,bdmldp,tdmflg,iwdflg
-      real ipfac,dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,
-     .     nuls0,iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,
-     .     niwls,cori10,cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,
-     .     dpnbav,ustmin,kappa,bfeps,sleps,zetas,as,cs
-      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,ipfac=2.,
-     .           dptmin=98060.,dpbmin=980.6,drhomn=6.e-6,
-     .           thkdff=.5,temdff=.35,nu0=.1,nus0=50.,nug0=2500.,
-     .           drho0=6.e-6,nuls0=500.,iwdfac=.06,dmxeff=.2,tdmq=1./3.,
-     .           tdmls0=500.*98060.,tdmls1=100.*98060.,tdclat=74.5,
-     .           tddlat=3.,tkepls=20.*98060.,niwls=300.*98060.,
-     .           cori10=2.5256e-5,cori30=7.2722e-5,bvf0=5.24e-3,
-     .           nubmin=.01,dpgc=300.*98060.,dpgrav=100.*98060.,
-     .           dpdiav=100.*98060.,dpddav=10.*98060.,
-     .           dpnbav=250.*98060.,ustmin=.1,kappa=.4,bfeps=1.e-12,
-     .           sleps=.1,zetas=-1.,as=-28.86,cs=98.96)
+      real dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,nuls0,
+     .     iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,niwls,
+     .     cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,dpnbav,ustmin,
+     .     kappa,bfeps,sleps,zetas,as,cs
+      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=98060.,
+     .           dpbmin=980.6,drhomn=6.e-6,thkdff=.5,temdff=.35,nu0=.1,
+     .           nus0=50.,nug0=2500.,drho0=6.e-6,nuls0=500.,iwdfac=.06,
+     .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
+     .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
+     .           tkepls=20.*98060.,niwls=300.*98060.,cori30=7.2722e-5,
+     .           bvf0=5.24e-3,nubmin=.01,dpgc=300.*98060.,
+     .           dpgrav=100.*98060.,dpdiav=100.*98060.,
+     .           dpddav=10.*98060.,dpnbav=250.*98060.,ustmin=.1,
+     .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
+     .           cs=98.96)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
@@ -137,21 +156,16 @@ c
      .  msku
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
-      integer i,j,k,l,kn,mmm
-      real ubt,uml1t,uml2t,q,uml1a,uml2a,vbt,vml1t,vml2t,vml1a,vml2a,
-     .     plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
+      integer i,j,k,l,kn
+      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
      .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
 c
-      real rho,sig
-      external rho,sig
-c
 #if defined(TRC) && defined(TKE)
-#  include "param_trc.h"
-#  include "common_trc.h"
-#  include "param_tke.h"
-#  include "common_tke.h"
-      real gls_c3,tke_prod,tke_buoy,tke_epsilon,gls_prod,gls_buoy,
-     .     gls_diss,Ls_unlmt,Ls_lmt,tke_Q,gls_Q,Gm,Gh,Sm,Sh,cff,ql
+      real gls_c3,tke_prod,tke_buoy,tke_epsilon,Ls_unlmt,Ls_lmt,tke_Q,
+     .     Gm,Gh,Sm,Sh,cff,ql
+# ifdef GLS
+      real gls_prod,gls_buoy,gls_diss,gls_Q
+# endif
 #endif
 #ifdef DIAG
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
@@ -202,88 +216,10 @@ c
       call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
 c --- ------------------------------------------------------------------
-c --- Estimate energy input by near-inertial motions by considering the
-c --- mixed layer kinetic energy change over a model time step of
-c --- velocity deviations from time averaged velocities. The velocity
-c --- averaging time scale is the inertial period times -ipfac- with
-c --- the inertial period limited to the one at 10N/S.
+c --- Estimate energy input by near-inertial waves.
 c --- ------------------------------------------------------------------
 c
-      mmm=(m-1)*2
-c
-c$OMP PARALLEL DO PRIVATE(l,i,ubt,uml1t,uml2t,q,uml1a,uml2a)
-      do j=1,jj
-        do l=1,isu(j)
-        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-c
-          ubt=ubflxs_p(i,j,m)*dlt/(delt1*scuy(i,j)*pbu(i,j,m))
-          uml1t=u(i,j,1+mm)+ubt
-          uml2t=u(i,j,2+mm)+ubt
-c
-          q=delt1*max(cori10,abs(.5*(coriop(i-1,j)+coriop(i,j))))
-     .      /(ipfac*2.*pi)
-          umlres(i,j,1)=umlres(i,j,1)+uml1t
-          uml1a=umlres(i,j,1)*q
-          umlres(i,j,1)=umlres(i,j,1)*(1.-q)
-          umlres(i,j,2)=umlres(i,j,2)+uml2t
-          uml2a=umlres(i,j,2)*q
-          umlres(i,j,2)=umlres(i,j,2)*(1.-q)
-c
-          util1(i,j)=((uml1t-uml1a)**2-(uml(i,j,1+mmm)-uml1a)**2)
-     .               *dpu(i,j,1+mm)
-     .              +((uml2t-uml2a)**2-(uml(i,j,2+mmm)-uml2a)**2)
-     .               *dpu(i,j,2+mm)
-
-          uml(i,j,1+mmm)=uml1t
-          uml(i,j,2+mmm)=uml2t
-c
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(l,i,vbt,vml1t,vml2t,q,vml1a,vml2a)
-      do j=1,jj+1
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-c
-          vbt=vbflxs_p(i,j,m)*dlt/(delt1*scvx(i,j)*pbv(i,j,m))
-          vml1t=v(i,j,1+mm)+vbt
-          vml2t=v(i,j,2+mm)+vbt
-c
-          q=delt1*max(cori10,abs(.5*(coriop(i,j-1)+coriop(i,j))))
-     .      /(ipfac*2.*pi)
-          vmlres(i,j,1)=vmlres(i,j,1)+vml1t
-          vml1a=vmlres(i,j,1)*q
-          vmlres(i,j,1)=vmlres(i,j,1)*(1.-q)
-          vmlres(i,j,2)=vmlres(i,j,2)+vml2t
-          vml2a=vmlres(i,j,2)*q
-          vmlres(i,j,2)=vmlres(i,j,2)*(1.-q)
-c
-          util2(i,j)=((vml1t-vml1a)**2-(vml(i,j,1+mmm)-vml1a)**2)
-     .               *dpv(i,j,1+mm)
-     .              +((vml2t-vml2a)**2-(vml(i,j,2+mmm)-vml2a)**2)
-     .               *dpv(i,j,2+mm)
-
-          vml(i,j,1+mmm)=vml1t
-          vml(i,j,2+mmm)=vml2t
-c
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          idkedt(i,j)=abs((util1(i,j)*iu(i,j)+util1(i+1,j)*iu(i+1,j))
-     .                    /max(1,iu(i,j)+iu(i+1,j))
-     .                   +(util2(i,j)*iv(i,j)+util2(i,j+1)*iv(i,j+1))
-     .                    /max(1,iv(i,j)+iv(i,j+1)))
-     .                *alpha0/(2.*g*delt1)
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
+      call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
 c --- Estimate friction velocity cubed.

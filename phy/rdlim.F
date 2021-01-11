@@ -24,7 +24,7 @@ c --- ------------------------------------------------------------------
 c --- Read limits file
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf, runid
+      use mod_config, only: expcnf, runid, inst_suffix
       use mod_calendar, only: date_type, daynum_diff, calendar_errstr,
      .                        calendar_noerr, operator(==), operator(<),
      .                        operator(/=)
@@ -32,22 +32,36 @@ c
      .                    nstep2, nstep, lstep, nstep_in_day, time0,
      .                    time, baclin, batrop, init_timevars,
      .                    set_day_of_year, step_time
-      use mod_swabs, only: swamth, jwtype, chlopt, ccfile
       use mod_xc
+      use mod_grid, only: grfile
+      use mod_inicon, only: icfile
+      use mod_advect, only: rmpmth
+      use mod_pbcor, only: bmcmth
+      use mod_momtum, only: mdv2hi, mdv2lo, mdv4hi, mdv4lo, mdc2hi,
+     .                      mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo,
+     .                      cbar, cb, mommth
+      use mod_barotp, only: cwbdts, cwbdls
+      use mod_forcing, only: aptflx, apsflx, ditflx, disflx, scfile,
+     .                       trxday, srxday, trxdpt, srxdpt, trxlim,
+     .                       srxlim, srxbal, sprfac
+      use mod_swabs, only: swamth, jwtype, chlopt, ccfile
+      use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
+     .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
+     .                         edsprs, eitmth, edritp, edwmth
+      use mod_mxlayr, only: rm0, rm5, ce, mlrttp
+      use mod_niw, only: niwgf, niwbf, niwlf
+      use mod_tidaldissip, only: tdfile
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
-      use mod_mctdata, only: runid_mct, ocn_cpl_dt_mct
-      use mod_instance, only: inst_suffix
+      use mod_cesm, only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl,
+     .                    smtfrc
+      use mod_checksum, only: csdiag
 c
       implicit none
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_cesm.h"
-c
       type(date_type) :: date0_rest
       integer :: m,n
-      character*256 :: nlfnm,runtyp,rstfnm
+      character(len = 256) :: nlfnm,runtyp,rstfnm
       logical :: fexist
       integer :: idate,idate0
       namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
@@ -612,7 +626,7 @@ c --- convert integer dates
       date0%day=abs(idate0)-abs(date0%year)*10000-date0%month*100
 c
 c --- set atm_path length
-      if (expcnf.eq.'ben02syn') then
+      if (expcnf.eq.'ben02syn'.or.expcnf.eq.'ben02clim') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.
      .            atm_path(atm_path_len:atm_path_len).ne.' ')
@@ -628,11 +642,11 @@ c
 c
 c --- - override namelist experiment id with the one received from
 c --- - coupler
-        runid=runid_mct
+        runid=runid_cesm
 c
 c --- - verify integer number of baroclinic time steps per coupling
 c --- - interval
-        if (mod(ocn_cpl_dt_mct+epsil,baclin).gt.2.*epsil) then
+        if (mod(ocn_cpl_dt_cesm+epsil,baclin).gt.2.*epsil) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: must have an integer number of '//
      .                   'baroclinic time steps in a coupling'
@@ -644,7 +658,7 @@ c --- - interval
 c
 c --- - get time step and correct model date after first coupling
 c --- - interval
-        nstep_in_cpl=nint(ocn_cpl_dt_mct/baclin)
+        nstep_in_cpl=nint(ocn_cpl_dt_cesm/baclin)
         if (mnproc.eq.1) then
           write (lp,*) 'rdlim: number of baroclinic time steps in a '//
      .                 'coupling interval:',nstep_in_cpl

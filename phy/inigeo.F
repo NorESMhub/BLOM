@@ -23,25 +23,34 @@ c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf
-      use mod_constants, only: g, spval
-      use mod_time, only: baclin, batrop
+      use mod_config, only: expcnf
       use mod_xc
+      use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat,
+     .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
+     .                    scuy, scvx, scvy, scq2, scp2, scu2, scv2,
+     .                    scq2i, scp2i, scq2i, scuxi, scuyi, scvxi,
+     .                    scvyi, qlon, qlat, plon, plat, ulon, ulat,
+     .                    vlon, vlat, depths, corioq, coriop, betafp,
+     .                    area, nwp, inivar_grid
+      use mod_utility, only: util1, util2
       use mod_nctools
       use mod_dia, only : iotype
+      use mod_checksum, only: csdiag, chksummsk
 c
       implicit none
 c
-#include "common_blocks.h"
-#include "common_geo.h"
-c
-      real mval,fval
+      real avgbot,mval,fval
       parameter (mval=-1.e12,fval=-1.e13)
 c
       real, dimension(itdm,jtdm) :: tmpg
-      real rnwp,rmxnbp,rtnbp,rnbp,dx2,dy2,btdtmx,
-     .     umaxmin,vmaxmin,umaxmax,vmaxmax
+      real rnwp,rmxnbp,rtnbp,rnbp
       integer i,j,k,l,kmax
+c
+c --- ------------------------------------------------------------------
+c --- Initialize grid variables.
+c --- ------------------------------------------------------------------
+c
+      call inivar_grid
 c
 c --- ------------------------------------------------------------------
 c --- Define bathymetry, grid specification and Coriolis parameter
@@ -312,94 +321,6 @@ c
       call ncwrti('ipwocn','x y',ipwocn,ip,1)
       call ncfcls
 c
-c --- ------------------------------------------------------------------
-c --- Determine upper bound of lateral diffusivity based on numerical
-c --- stability concerns
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(i,dx2,dy2)
-      do j=1-nbdy,jj+nbdy
-        do i=1-nbdy,ii+nbdy
-          dx2=scpx(i,j)*scpx(i,j)
-          dy2=scpy(i,j)*scpy(i,j)
-          difmxp(i,j)=.9*.5*dx2*dy2/max(1.,(dx2+dy2)*(baclin+baclin))
-          dx2=scqx(i,j)*scqx(i,j)
-          dy2=scqy(i,j)*scqy(i,j)
-          difmxq(i,j)=.9*.5*dx2*dy2/max(1.,(dx2+dy2)*(baclin+baclin))
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- ------------------------------------------------------------------
-c --- Estimate maximum barotropic time step
-c --- ------------------------------------------------------------------
-c
-      btdtmx=86400.
-c$OMP PARALLEL DO PRIVATE(l,i)
-c$OMP+REDUCTION(min:btdtmx)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          btdtmx=min(btdtmx,
-     .               scpx(i,j)*scpy(i,j)
-     .               /sqrt(g*depths(i,j)*100.*(scpx(i,j)*scpx(i,j)
-     .                                        +scpy(i,j)*scpy(i,j))))
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-      call xcmin(btdtmx)
-      if (mnproc.eq.1) then
-        write (lp,*) 'estimated max. barotropic time step:',
-     .               btdtmx/sqrt(2.)
-        call flush(lp)
-      endif
-c
-c --- ------------------------------------------------------------------
-c --- Set maximum velocities allowable ensuring stability of the upwind
-c --- scheme
-c --- ------------------------------------------------------------------
-c
-      umaxmin=spval
-      vmaxmin=spval
-      umaxmax=0.
-      vmaxmax=0.
-c$OMP PARALLEL DO PRIVATE(l,i)
-c$OMP+REDUCTION(min:umaxmin,vmaxmin) REDUCTION(max:umaxmax,vmaxmax)
-      do j=1,jj
-        do l=1,isu(j)
-        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-          umax(i,j)=.9*.125*min(scp2(i-1,j),scp2(i,j))
-     .              /(scuy(i,j)*baclin)
-          umaxmin=min(umaxmin,umax(i,j))
-          umaxmax=max(umaxmax,umax(i,j))
-        enddo
-        enddo
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          vmax(i,j)=.9*.125*min(scp2(i,j-1 ),scp2(i,j))
-     .              /(scvx(i,j)*baclin)
-          vmaxmin=min(vmaxmin,vmax(i,j))
-          vmaxmax=max(vmaxmax,vmax(i,j))
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-      call xctilr(umax, 1,1, nbdy,nbdy, halo_us)
-      call xctilr(vmax, 1,1, nbdy,nbdy, halo_vs)
-c
-      call xcmin(umaxmin)
-      call xcmax(umaxmax)
-      call xcmin(vmaxmin)
-      call xcmax(vmaxmax)
-c
-      if (mnproc.eq.1) then
-        write (lp,*) 'min/max umax:',umaxmin,umaxmax
-        write (lp,*) 'min/max vmax:',vmaxmin,vmaxmax
-        call flush(lp)
-      endif
-c
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'inigeo:'
@@ -430,10 +351,6 @@ c
         call chksummsk(scvyi,iv,1,'scvyi')
         call chksummsk(scuyi,iu,1,'scuyi')
         call chksummsk(scvxi,iv,1,'scvxi')
-        call chksummsk(difmxp,ip,1,'difmxp')
-        call chksummsk(difmxq,iq,1,'difmxq')
-        call chksummsk(umax,iu,1,'umax')
-        call chksummsk(vmax,iv,1,'vmax')
       endif
 c
       return

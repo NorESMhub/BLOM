@@ -1,4 +1,4 @@
-c Copyright (C) 2020  J. Schwinger
+c Copyright (C) 2020  J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -44,12 +44,11 @@ c
 c***********************************************************************
 c
       use mod_xc
+      use mod_grid, only: scp2
+      use mod_state, only: dp
+      use mod_tracers, only: ntrbgc, itrbgc, trc
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
-#include "common_blocks.h"
 c
       integer       :: nn
       integer       :: i,j,l,nt,kn

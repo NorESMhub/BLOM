@@ -21,9 +21,9 @@
 
       ! Uses modules
 
+      use mod_config, only: inst_suffix
       use mod_xc
       use shr_file_mod, only: shr_file_getUnit, shr_file_setIO
-      use mod_instance, only: inst_suffix
 
       implicit none
 

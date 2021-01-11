@@ -102,10 +102,10 @@
       USE mo_control_bgc
       use mo_param1_bgc 
       USE mo_sedmnt,    only: sedhpl
-      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,xchalt
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
+      USE mod_config,   only: inst_suffix
+      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,xchalt
       use mod_dia
-      use mod_instance, only: inst_suffix
 
       implicit none
 

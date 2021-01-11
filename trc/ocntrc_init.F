@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,18 +23,14 @@ c --- ------------------------------------------------------------------
 c --- initialization of ocean tracers
 c --- ------------------------------------------------------------------
 c
+      use mod_types, only: r8
       use mod_xc
+      use mod_grid, only: plon, plat
+      use mod_tracers, only: ntrocn, natr, ntr, trc
 c
       implicit none
 c
-#include "param_trc.h"
-#include "common_trc.h"
-#include "common_geo.h"
-c
-      integer i,j,k,l,nt
-#ifdef ATRC
-      integer nat
-#endif
+      integer i,j,k,l,nt,nat
 c
 c --- ------------------------------------------------------------------
 c --- if no ocean tracers are defined, return
@@ -42,15 +38,30 @@ c --- ------------------------------------------------------------------
 c
       if (ntrocn.eq.0) return
 c
-#ifdef ATRC
+c --- ------------------------------------------------------------------
+c --- if number of age tracers is greater than zero, CPP flag ATRC must
+c --- be defined
+c --- ------------------------------------------------------------------
+#ifndef ATRC
+      if (natr.gt.0) then
+        if (mnproc.eq.1) then
+          write (lp,'(2a)') ' Since number of age tracers is greater ',
+     .      'than zero, ATRC must be defined!'
+        endif
+        call xcstop('(ocntrc_init)')
+               stop '(ocntrc_init)'
+      endif
+#endif
+c
 c --- ------------------------------------------------------------------
 c --- check number of age tracers
 c --- ------------------------------------------------------------------
 c
-      if (2*natr.gt.ntrocn) then
+      if (natr.lt.0.or.2*natr.gt.ntrocn) then
         if (mnproc.eq.1) then
-          write (lp,'(2a)') ' Number of age tracers must be less or ',
-     .      'equal half the total number of ocean tracers!'
+          write (lp,'(3a)') ' Number of age tracers must be greater ',
+     .      'than zero and less or equal half the total number of ',
+     .      'ocean tracers!'
         endif
         call xcstop('(ocntrc_init)')
                stop '(ocntrc_init)'
@@ -66,7 +77,8 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
           do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)+nt
+              trc(i,j,k,nt)=
+     .          (mod(k,5)+1)*(plat(i,j)+90._r8)/(5._r8*180._r8)+nt
               trc(i,j,k+kk,nt)=trc(i,j,k,nt)
             enddo
             enddo
@@ -86,8 +98,9 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
           do k=1,kk
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,k,nat)=(mod(k,5)*(plon(i,j)+180.)/(4.*360.)+nat)
-     .                       *trc(i,j,k,nt)
+              trc(i,j,k,nat)=
+     .          (mod(k,5)*(plon(i,j)+180._r8)/(4._r8*360._r8)+nat)
+     .          *trc(i,j,k,nt)
               trc(i,j,k+kk,nat)=trc(i,j,k,nat)
             enddo
             enddo
@@ -96,26 +109,4 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
 c$OMP END PARALLEL DO
       enddo
 c
-#else
-c --- ------------------------------------------------------------------
-c --- initialization of tracers
-c --- ------------------------------------------------------------------
-c
-      do nt=1,ntrocn
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,k,nt)=(mod(k,5)+1)*(plat(i,j)+90.)/(5.*180.)+nt
-              trc(i,j,k+kk,nt)=trc(i,j,k,nt)
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-      enddo
-#endif
-c
-      return
       end

@@ -28,13 +28,11 @@ c
       use mod_xc
       use mod_dia, only : iotype
       use mod_nctools
+      use mod_tracers, only:  ntrocn, natr, ntr, trc
 c
       implicit none
 c
       character rstfnm_ocn*(*)
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       type(date_type) :: date_rest
       integer i,nt,nat
@@ -124,7 +122,6 @@ c
      .                       ' time:  ',time,timer
           endif
         endif
-#ifdef ATRC
         do nt=1,ntrocn-natr
           write (trcnm,'(a,i3.3)') 'trc',nt
           call ncread(trim(trcnm),trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
@@ -134,12 +131,6 @@ c
           write (trcnm,'(a,i3.3)') 'atrc',nt
           call ncread(trim(trcnm),trc(1-nbdy,1-nbdy,1,nat),ip,1,0.)
         enddo
-#else
-        do nt=1,ntrocn
-          write (trcnm,'(a,i3.3)') 'trc',nt
-          call ncread(trim(trcnm),trc(1-nbdy,1-nbdy,1,nt),ip,1,0.)
-        enddo
-#endif
         call ncfcls
       endif
 c

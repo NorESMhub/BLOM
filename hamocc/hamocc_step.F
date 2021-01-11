@@ -24,6 +24,10 @@ c --- ------------------------------------------------------------------
 c
       use mod_time, only: date,nday_of_year,nstep,nstep_in_day
       use mod_xc
+      use mod_grid, only: plat
+      use mod_state, only: temp,saln
+      use mod_forcing, only: swa,slp,abswnd,atmco2,flxco2,flxdms
+      use mod_seaice, only: ficem
       use mo_bgcmean
       use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
       use mo_riverinpt, only: rivflx
@@ -31,11 +35,6 @@ c
       use mo_ndep,      only: get_ndep
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_seaice.h"
-#include "common_geo.h"
 c
       integer, intent(in) :: m,n,mm,nn,k1m,k1n
 

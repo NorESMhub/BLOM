@@ -25,7 +25,13 @@
       use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE
       use mod_types, only: r8
       use mod_xc
+      use mod_grid, only: cosang, sinang
+      use mod_cesm, only: swa_da, nsf_da, hmlt_da, lip_da, sop_da,
+     .                    eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da,
+     .                    ztx_da, mty_da, ustarw_da, slp_da, abswnd_da,
+     .                    atmco2_da, ficem_da, l1ci, l2ci
       use blom_cpl_indices
+      use mod_checksum, only: csdiag, chksummsk
 
       implicit none
 
@@ -35,12 +41,6 @@
       integer                  , intent(in)    :: lsize
       integer, dimension(lsize), intent(in)    :: perm
       integer                  , intent(in)    :: jjcpl
-
-      ! Include files
-
-#include "common_blocks.h"
-#include "common_geo.h"
-#include "common_cesm.h"
 
       ! Local parameters
 
@@ -89,7 +89,7 @@
                util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
                util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
 
-               ! Friction velocity (m/s)
+               ! Friction velocity [m/s]
                ustarw_da(i,j,l2ci) = sqrt(sqrt(utmp*utmp+vtmp*vtmp)
      .                              /SHR_CONST_RHOSW)
             endif
@@ -107,13 +107,13 @@
       do j=1,jj
          do l=1,isu(j)
          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-            ! x-component of momentum flux (kg/m/s^2)
+            ! x-component of momentum flux [kg/m/s^2]
             ztx_da(i,j,l2ci) = .5_r8*(util1(i-1,j) + util1(i,j))
          enddo
          enddo
          do l=1,isv(j)
          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            ! y-component of momentum flux (kg/m/s^2)
+            ! y-component of momentum flux [kg/m/s^2]
             mty_da(i,j,l2ci) = .5_r8*(util2(i,j-1) + util2(i,j))
          enddo
          enddo

@@ -37,10 +37,12 @@ c  *INTEGER*   *read_rest*  - flag indicating whether to read restart files.
 c  *INTEGER*   *rstfnm_ocn* - restart filename.
 c
 c******************************************************************************
+      USE mod_config,    only: inst_suffix
       use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
      .                         mnproc,lp,nfu
-      use mod_instance,  only: inst_suffix
+      use mod_grid,      only: plon,plat
+      use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
       USE mo_control_bgc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       USE mo_carbch,     only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -58,10 +60,6 @@ c******************************************************************************
      .                         omask,sedlay2,powtra2,burial2
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
-#include "common_geo.h"
 c
       integer,          intent(in) :: read_rest
       character(len=*), intent(in) :: rstfnm_ocn

@@ -42,6 +42,8 @@ c**********************************************************************
 c
       use mod_constants, only: onem
       use mod_xc
+      use mod_state,     only: dp
+      use mod_tracers,   only: ntrbgc,itrbgc,trc
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_carbch,     only: ocetra,atm
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
@@ -49,10 +51,6 @@ c
      .                         sedlay2,powtra2,burial2,atm2
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
-#include "common_blocks.h"
 c
       integer, intent(in) :: m,n,mm,nn
 
