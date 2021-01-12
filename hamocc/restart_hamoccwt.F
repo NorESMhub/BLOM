@@ -28,9 +28,6 @@ c
 c
       implicit none
 c
-#include "param_trc.h"
-#include "common_trc.h"
-c
       character(len=*) :: rstfnm_ocn
 
       CALL AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc

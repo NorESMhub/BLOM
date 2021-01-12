@@ -26,6 +26,7 @@ c
       use mod_time,       only: date0,date,calendar,nstep,nstep_in_day,
      .                          nday_of_year,time0,time
       use mod_xc
+      use mod_grid,       only: depths
       use mod_dia,        only: diafnm,sigmar1,iotype
       use mo_control_bgc, only: dtbgc
       use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000

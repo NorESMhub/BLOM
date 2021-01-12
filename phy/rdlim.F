@@ -664,6 +664,7 @@ c --- - interval
      .                 'coupling interval:',nstep_in_cpl
         endif
         nstep=0
+        time0=0.
         do
           call step_time
           if (nstep.eq.nstep_in_cpl) exit
@@ -675,7 +676,6 @@ c
 c --- --- when runtyp equal 'startup' the ocean integration start after
 c --- --- first coupling interval
 c
-          time0=0.
           nday1=0
           nstep1=nstep0
 c

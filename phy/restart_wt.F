@@ -438,9 +438,9 @@ c --- write accumulated fields
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_SOP(n)),ip)
           if (ACC_EVA(n)   .ne.0) call wrtrst('eva_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_EVA(n)),ip)
-          if (ACC_RNFFLX(n).ne.0) call wrtrst('rnf_phy'//c2,
+          if (ACC_RNFFLX(n).ne.0) call wrtrst('rnfflx_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip)
-          if (ACC_RFIFLX(n).ne.0) call wrtrst('rfi_phy'//c2,
+          if (ACC_RFIFLX(n).ne.0) call wrtrst('rfiflx_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip)
           if (ACC_SFL(n)   .ne.0) call wrtrst('sfl_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_SFL(n)),ip)
@@ -1029,9 +1029,9 @@ c --- write accumulated fields
      .      trim(c5p)//' time')
           if (ACC_EVA(n)   .ne.0) call defvarrst('eva_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_RNFFLX(n).ne.0) call defvarrst('rnf_phy'//c2,
+          if (ACC_RNFFLX(n).ne.0) call defvarrst('rnfflx_phy'//c2,
      .      trim(c5p)//' time')
-          if (ACC_RFIFLX(n).ne.0) call defvarrst('rfi_phy'//c2,
+          if (ACC_RFIFLX(n).ne.0) call defvarrst('rfiflx_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_SFL(n)   .ne.0) call defvarrst('sfl_phy'//c2,
      .      trim(c5p)//' time')

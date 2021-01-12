@@ -60,7 +60,7 @@ c
                        ! [deg C].
      .  sold           ! Salinity at old time level [g kg-1].
 c
-      public :: wuv1, wuv2, wbaro, dpold, dpuold, dpvold,
+      public :: wuv1, wuv2, wts1, wts2, wbaro, dpold, dpuold, dpvold,
      .          inivar_tmsmt, tmsmt1, tmsmt2
 c
       contains

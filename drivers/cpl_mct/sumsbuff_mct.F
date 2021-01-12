@@ -24,6 +24,7 @@
       use mod_types, only: r8
       use mod_time, only: nstep, baclin, delt1, dlt
       use mod_xc
+      use mod_grid, only: scuy, scvx, scuxi, scvyi
       use mod_state, only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs,
      .                     sealv
       use mod_forcing, only: flxco2, flxdms

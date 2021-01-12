@@ -93,13 +93,11 @@ contains
 
       integer :: i, j, l
 
-   !$omp parallel do private(l, i)
+   !$omp parallel do private(i)
       do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+         do i = 1, ii
             frzpot(i, j) = 0._r8
             mltpot(i, j) = 0._r8
-         enddo
          enddo
       enddo
    !$omp end parallel do

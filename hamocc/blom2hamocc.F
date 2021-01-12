@@ -42,7 +42,9 @@ c**********************************************************************
 c
       use mod_constants, only: onem
       use mod_xc
-      use mod_state,     only: dp
+      use mod_grid,      only: scpx,scpy
+      use mod_state,     only: dp,temp,saln
+      use mod_eos,       only: rho,p_alpha
       use mod_tracers,   only: ntrbgc,itrbgc,trc
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_carbch,     only: ocetra,atm
@@ -56,7 +58,6 @@ c
 
       integer             :: i,j,k,l,nns,kn
       real                :: p1,p2,ldp,th,s,pa
-      real                :: rho,p_alpha
       real                :: rp(idm,jdm,kdm+1)
 c
       nns=(n-1)*ks

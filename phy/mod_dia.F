@@ -1442,7 +1442,7 @@ c --- heat flux due to melting/freezing [W/m^2]
       call acch2d(ACC_HMLTFZ,hmltfz,dummy,0,'p')
 c
 c --- derivative of non-solar heat flux by surface temperature [W/m^2/K]
-      call acch2d(ACC_DFL,dfl,dummy,0,'p')
+      if (allocated(dfl)) call acch2d(ACC_DFL,dfl,dummy,0,'p')
 c
 c --- liquid precipitation [mm/day]
       call acch2d(ACC_LIP,lip,dummy,0,'p')
@@ -1460,7 +1460,7 @@ c --- salt flux [kg/m^2/s]
       call acch2d(ACC_SFL,sfl,dummy,0,'p')
 c
 c --- albedo
-      call acch2d(ACC_ALB,alb,dummy,0,'p')
+      if (allocated(alb)) call acch2d(ACC_ALB,alb,dummy,0,'p')
 c
 c --- liquid runoff [kg m-2 s-1]
       call acch2d(ACC_RNFFLX,rnf,dummy,0,'p')

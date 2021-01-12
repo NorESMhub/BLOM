@@ -47,6 +47,7 @@ c
       use mod_grid, only: scp2
       use mod_state, only: dp
       use mod_tracers, only: ntrbgc, itrbgc, trc
+      use mod_utility, only: util1
 c
       implicit none
 c

@@ -712,9 +712,9 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_SOP(n)),ip,1,0.)
             if (ACC_EVA(n).ne.0) call ncread('eva_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_EVA(n)),ip,1,0.)
-            if (ACC_RNFFLX(n).ne.0) call ncread('rnf_phy'//c2,
+            if (ACC_RNFFLX(n).ne.0) call ncread('rnfflx_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_RNFFLX(n)),ip,1,0.)
-            if (ACC_RFIFLX(n).ne.0) call ncread('rfi_phy'//c2,
+            if (ACC_RFIFLX(n).ne.0) call ncread('rfiflx_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_RFIFLX(n)),ip,1,0.)
             if (ACC_SFL(n).ne.0) call ncread('sfl_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_SFL(n)),ip,1,0.)
