@@ -1,5 +1,5 @@
 project('BLOM', ['fortran', 'c'],
-  version: '0.1.0',
+  version: '1.0.0',
   license: 'LGPL',
   meson_version: '>= 0.54.0',
   default_options: ['warning_level=2'])
@@ -16,42 +16,27 @@ else
   warning('Unknown Fortran compiler ("' + fcc.get_id() + '"), no default flags specified')
 endif
 
-# Generate 'dimensions.F' based on desired patch set
-blom_dims = find_program('bld/blom_dimensions')
-dim_path = '..' / get_option('patch')
-kdm_path = get_option('patch') / 'kdm'
-if host_machine.system() in ['linux']
-  dim_kdm = run_command('cat', kdm_path)
-elif host_machine.system() == 'windows'
-  dim_kdm = run_command('type', kdm_path)
-else
-  error('Could not read "kdm" content due to unknown OS (' + host_machine.system() + ')')
-endif
-if dim_kdm.returncode() != 0
-  error('No "kdm" file found for patch set "' + get_option('patch') + '"')
-endif
-dim_src = configure_file(
-  output: 'dimensions.F',
-  command: [blom_dims,
-    '-n', get_option('processors').to_string(),
-    '-k', dim_kdm.stdout().strip(),
-    '-d', dim_path])
-
-# Define global dependencies that multiple subdirectories will utilize
+# Define global dependencies
 netcdf = dependency('netcdf', language: 'fortran', version: '>=4.4.5')
 omp = dependency('openmp', required: get_option('openmp'))
 quadmath = fcc.find_library('quadmath')
 
-# List of dependencies (used so that options can add dependencies)
-deps = [netcdf, omp, quadmath]
-
-# Directories with header files
+# Directories with header files that is needed when building
 cesm_inc = include_directories('cesm')
 phy_inc = include_directories('phy')
 trc_inc = include_directories('trc')
 
+# Handle building of 'dimensions.F' in the 'bld' directory
+subdir('bld')
+
+# List of dependencies (created so that options can add dependencies)
+deps = [netcdf, omp, quadmath]
+
 # List of directories to include
 includes = [cesm_inc, phy_inc, trc_inc]
+
+# List of all sources in the project (should be added to in subfolders)
+sources = [dimensions]
 
 # Handle options and add necessary flags
 if get_option('levitus2x')
@@ -83,11 +68,8 @@ if get_option('parallel_netcdf')
   endif
 endif
 
-# List of all sources in the project (should be added to in subfolders)
-sources = [dim_src]
-
 # Process the following subdirectories which contain other 'meson.build' files
-# that will fill out 'sources'
+# that will add files to build into 'sources'
 subdir('ben02')
 subdir('cesm')
 subdir('drivers')
