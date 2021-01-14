@@ -1,0 +1,20 @@
+# Options controlling dimensions
+option('processors', type: 'integer', min: 1, max: 50000, value: 64)
+option('patch', type: 'combo', choices: ['bld/gx1v5', 'bld/gx1v6',
+'bld/gx3v7', 'bld/tnx0.25v1', 'bld/tnx0.25v3', 'bld/tnx0.25v4', 'bld/tnx1.5v1',
+'bld/tnx1v1', 'bld/tnx1v3', 'bld/tnx1v4', 'bld/tnx2v1'])
+# Which executable driver should be built
+option('driver', type: 'combo', choices: ['nocoupler', 'noforc'], value: 'nocoupler')
+# List of BLOM options
+option('idlage', type: 'boolean', value: true)
+option('levitus2x', type: 'boolean', value: true)
+option('tke', type: 'boolean', value: true)
+option('tkeadv', type: 'boolean', value: true)
+option('trc', type: 'boolean', value: true)
+# Build configuration
+option('openmp', type: 'feature', value: 'auto',
+  description: 'Enable OpenMP')
+option('mpi', type: 'boolean', value: false,
+  description: 'Enable MPI work sharing')
+option('parallel_netcdf', type: 'boolean', value: false,
+  description: 'Enable parallel version of NetCDF')
