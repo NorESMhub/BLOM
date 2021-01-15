@@ -104,7 +104,7 @@
       USE mo_sedmnt,    only: sedhpl
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
       USE mod_config,   only: inst_suffix
-      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,xchalt
+      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
       use mod_dia,      only: iotype
 
       implicit none
@@ -130,8 +130,11 @@
       character(len=9)    :: stripestr2
 
 #ifdef PNETCDF
-      integer*4 ,save     :: info=MPI_INFO_NULL
-      integer             :: mpicomm,mpierr,mpireq,mpistat
+#     include <pnetcdf.inc>
+#     include <mpif.h>
+      integer(kind=MPI_OFFSET_KIND) :: clen
+      integer*4 ,save               :: info=MPI_INFO_NULL
+      integer                       :: mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                          &
      &               mpistat(mpi_status_size,4*max(iqr,jqr))
       save  /xcmpii/
