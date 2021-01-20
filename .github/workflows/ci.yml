@@ -1,38 +1,28 @@
 name: Continuous Integration testing
-on: push
+on: ["push", "pull-request"]
 jobs:
-  container-build:
-    name: Build BLOM using Docker containers
-    # The 'runs-on' variable must be present, but should be overridden by our
-    # use of containers below
-    runs-on: ubuntu-latest
+  build:
+    name: Build BLOM on Github provided OS
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # List of containers to test with 
-        image:
-          - 'intel/oneapi-hpckit:devel-centos8'
-          - 'intel/oneapi-hpckit:devel-ubuntu18.04'
-    container: ${{ matrix.image }}
+        os: [ubuntu-latest, macos-latest]
     steps:
-      - name: Install packages for OneAPI HPC Kit on Centos 8
-        if: ${{ matrix.image == 'intel/oneapi-hpckit:devel-centos8' }}
-        run: sudo dnf install -y meson netcdf-fortran-devel
+      - name: Install dependencies - Ubuntu
+        run: sudo apt install -y meson libnetcdff-dev gfortran
+        if: ${{ matrix.os == 'ubuntu-latest'}
 
-      - name: Install packages for OneAPI HPC Kit on Ubuntu 18.04
-        if: ${{ matrix.image == 'intel/oneapi-hpckit:devel-ubuntu18.04' }}
-        run: sudo apt install meson libnetcdff-dev
+      - name: Install dependencies - MacOS
+        run: brew install meson gcc netcdf
+        if: ${{ matrix.os == 'mac-latest'}
 
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           ref: meson
 
-      - name: Setup build directory with Intel compilers
-        if: ${{ matrix.image == 'intel/oneapi-hpckit:devel-ubuntu18.04' || matrix.image == 'intel/oneapi-hpckit:devel-centos8' }}
+      - name: Setup build directory
         run: meson setup builddir
-        env:
-          CC: icc
-          FC: ifort
 
       - name: Compile source code
         run: meson compile -C builddir
