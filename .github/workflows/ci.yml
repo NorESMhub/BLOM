@@ -8,12 +8,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-10.15]
-        cc: [gcc]
-        fc: [gfortran]
-        include:
-          - os: macos-10.15
-            cc: [gcc-9, gcc-10]
-            fc: [gfortran-9, gfortran-10]
 
     steps:
       - name: Checkout code
@@ -39,11 +33,16 @@ jobs:
         run: python -m pip install meson==0.55.1
         if: ${{ runner.os == 'Linux' }}
 
-      - name: Setup build directory
+      - name: Setup build directory - Ubuntu
         run: meson setup builddir
+        if: ${{ runner.os == 'Linux' }}
+
+      - name: Setup build directory - macOS
+        run: meson setup builddir
+        if: ${{ runner.os == 'macOS' }}
         env:
-          CC: ${{ matrix.cc }}
-          FC: ${{ matrix.fc }}
+          CC: gcc-10
+          FC: gfortran-10
 
       - name: Compile source code
         run: meson compile -C builddir
