@@ -17,7 +17,7 @@ else
 endif
 
 # Define global dependencies
-netcdf = dependency('netcdf', language: 'fortran', version: '>=4.4.5')
+netcdf = dependency('netcdf', language: 'fortran', version: '>=4.4.4')
 omp = dependency('openmp', required: get_option('openmp'))
 quadmath = fcc.find_library('quadmath')
 
