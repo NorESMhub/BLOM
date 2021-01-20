@@ -1,5 +1,5 @@
 name: Continuous Integration testing
-on: ["push", "pull-request"]
+on: ["push", "pull_request"]
 jobs:
   build:
     name: Build BLOM on Github provided OS
