@@ -1,6 +1,6 @@
 ! Copyright (C) 2002  P. Wetzel
 ! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree,
-!                     P.-G. Chiu
+!                     P.-G. Chiu, M. Bentsen
 !
 ! This file is part of BLOM/iHAMOCC.
 !
@@ -53,11 +53,11 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
+      USE mod_config, only: inst_suffix
       USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
       USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
       USE mod_nctools
       USE mo_param1_bgc, only: ks 
-      use mod_instance, only: inst_suffix
 
       IMPLICIT NONE
 

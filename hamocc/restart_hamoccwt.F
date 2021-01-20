@@ -1,4 +1,4 @@
-c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger
+c Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, M. Bentsen
 c
 c This file is part of BLOM/iHAMOCC.
 c
@@ -22,13 +22,11 @@ c write restart for HAMOCC
 c
       use mod_time,      only: date,nstep
       use mod_xc
+      use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       use mo_intfcblom,  only: omask
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       character(len=*) :: rstfnm_ocn
 

@@ -26,29 +26,29 @@ c --- ------------------------------------------------------------------
 c
       use mod_constants, only: epsil
       use mod_xc
+      use mod_grid, only: sigmar
+      use mod_eos, only: rho, sig, sofsig
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
+     .                     p, pu, pv, kfpla 
+      use mod_checksum, only: csdiag, chksummsk
+#ifdef TRC
+      use mod_tracers, only: ntr, trc
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
 c
       real, dimension(kdm+1) :: po,pn
       real, dimension(kdm) :: ttem,ssal,delp,dens,densr,uo,un
       real tdps,sdps,dps,ttmp,stmp,dtmp,q,udpn
       integer i,j,k,l,kn,kfpl,kfplo,kmix,ko
       logical done
-c
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       real, dimension(ntr,kdm) :: ttrc
       real, dimension(ntr) :: trdps
       integer nt
 #endif
-c
-      real sofsig,sig,rho
-      external sofsig,sig,rho
 c
       integer niter
 c

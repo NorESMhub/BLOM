@@ -24,12 +24,11 @@ c --- Read monthly climatological sea surface salinity
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_forcing, only: sssclm, scfile
+      use mod_checksum, only: csdiag, chksummsk
       use netcdf
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       real, dimension(itdm,jtdm) :: tmp2d
       integer, dimension(3) :: start,count

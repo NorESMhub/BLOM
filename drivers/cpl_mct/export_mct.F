@@ -27,6 +27,8 @@
       use mod_types, only: r8
       use blom_cpl_indices
       use mod_xc
+      use mod_grid, only: cosang, sinang
+      use mod_cesm, only: mltpot
 
       implicit none
 
@@ -40,11 +42,6 @@
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
      .   intent(inout) :: sbuff
       real(r8)                 , intent(inout) :: tlast_coupled
-
-      ! Include files
-
-#include "common_geo.h"
-#include "common_forc.h"
 
       ! Local variables
 

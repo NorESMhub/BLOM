@@ -101,7 +101,6 @@
 !
 !
 !**************************************************************************
-      use mod_xc
       use netcdf
       USE mo_carbch
       USE mo_biomod
@@ -109,14 +108,13 @@
       use mo_param1_bgc
       use mo_vgrid,     only: kbo
       USE mo_sedmnt,    only: sedhpl
-      use mod_dia,      only : iotype
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      use mod_instance, only: inst_suffix
+      USE mod_config,   only: inst_suffix
+      use mod_xc,       only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
+      use mod_dia,      only: iotype
+
       implicit none
-#ifdef PNETCDF
-#include <pnetcdf.inc>
-#include <mpif.h>      
-#endif
+
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
       REAL             :: omask(kpie,kpje)    
@@ -136,7 +134,10 @@
       REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
       INTEGER ncid,ncstat,ncvarid
+
 #ifdef PNETCDF
+#     include <pnetcdf.inc>
+#     include <mpif.h>
       integer*4 ,save :: info=MPI_INFO_NULL
       integer         :: mpicomm,mpierr,mpireq,mpistat
       common/xcmpii/ mpicomm,mpierr,mpireq(4),                      &

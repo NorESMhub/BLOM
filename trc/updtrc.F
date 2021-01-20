@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2015 Mats Bentsen
+! Copyright (C) 2007-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -26,9 +26,6 @@ c
       use mod_xc
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       integer m,n,mm,nn,k1m,k1n
 c

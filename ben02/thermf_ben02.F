@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2018 Mats Bentsen
+! Copyright (C) 2002-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,25 +23,44 @@ c --- NERSC version of thermf.
 c
       use mod_constants, only: spcifh, t0deg, epsil, onem
       use mod_time, only: nday_in_year, nday_of_year, nstep,
-     .                    nstep_in_day, baclin
+     .                    nstep_in_day, baclin,
+     .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
       use mod_xc
+      use mod_grid, only: scp2, plat, area
+      use mod_state, only: dp, temp, saln, p
       use mod_swtfrz, only: swtfrz
-      use mod_swabs, only: swbgal,swbgfc
-      use mod_ben02, only: tsi_tda,tml_tda,sml_tda,alb_tda,fice_tda,tsi,
-     .                     ntda
-      use mod_thdysi, only: tsrfm,ticem,albi_f,albi_m,albs_f,albs_m,
-     .                      rhoice,rhosnw,rkice,rksnw,fusi,fuss,
-     .                      fice_max,tice_m,tsnw_m,hice_nhmn,hice_shmn,
-     .                      sagets,sice,cwi,cuc
+      use mod_forcing, only: sref, tflxap, sflxap, tflxdi, sflxdi,
+     .                       nflxdi, aptflx, apsflx, ditflx, disflx,
+     .                       sstclm, ricclm, sssclm, trxday, srxday,
+     .                       trxdpt, srxdpt, trxlim, srxlim, srxbal,
+     .                       swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
+     .                       fmltfz, sfl, ustarw, surflx, surrlx,
+     .                       sswflx, salflx, brnflx, salrlx, ustar
+      use mod_swabs, only: swbgal, swbgfc
+      use mod_ben02, only: tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda,
+     .                     tsi, ntda, dfl, albw, alb,
+     .                     rnfins, rnfres, nrfets, rhowat
+      use mod_thdysi, only: tsrfm, ticem, albi_f, albi_m, albs_f,
+     .                      albs_m, rhoice, rhosnw, rkice, rksnw, fusi,
+     .                      fuss, fice_max, tice_m, tsnw_m, hice_nhmn,
+     .                      hice_shmn, sagets, sice, cwi, cuc
+      use mod_seaice, only: ficem, hicem, hsnwm, ustari, iagem
+      use mod_utility, only: util1, util2, util3, util4
+      use mod_checksum, only: csdiag, chksummsk
+#ifdef TRC
+#  ifdef TKE
+      use mod_tracers, only: ntr, itrtke, itrgls, trc, trflx
+#    ifdef GLS
+      use mod_tke, only: gls_cmu0, zos, gls_p, gls_m, gls_n, vonKar
+#    endif
+#  else
+      use mod_tracers, only: ntr, trc, trflx
+#  endif
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
-#include "common_seaice.h"
-#include "common_forc.h"
-#include "common_geo.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
 c
@@ -52,17 +71,12 @@ c
      .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
      .     totsfl,totwfl,sflxc,totsrp,totsrn
-c
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ttrsf,ttrav
-      real tottrsf,tottrav,trflxc
-#  ifdef TKE
-#    include "param_tke.h"
-#  endif
+c     real tottrsf,tottrav,trflxc
+      real trflxc
 #endif
 c
       real intp1d
@@ -371,18 +385,16 @@ c
 c --- --- Accumulate the runoff in a reservoar to delay the discharge
 c --- --- into the ocean (by nrfets days approximately 1/e of runoff
 c --- --- added will by discharged).
-          rnfres(i,j)=rnfres(i,j)+rnf(i,j)
-          rnfflx(i,j)=rnfres(i,j)*rnf_fac
+          rnfres(i,j)=rnfres(i,j)+rnfins(i,j)
+          rnf(i,j)=rnfres(i,j)*rnf_fac
           rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
-          rfiflx(i,j)=rfi(i,j)
 c
 c --- --- Fresh water flux due to melting/freezing [kg m-2 s-1]
 c --- --- (positive downwards)
           fmltfz(i,j)=-(dvi*rhoice+dvs*rhosnw)/dt
 c
 c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
-          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j)+rfiflx(i,j)
-     .         +fmltfz(i,j)
+          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 c
 c --- --- Salt flux [kg m-2 s-1] (positive downwards)
           sfl(i,j)=-sice*dvi*rhoice/dt*1.e-3
@@ -425,7 +437,7 @@ c
             if (nt.eq.itrgls) then
               trflx(nt,i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)
      .                       *(trc(i,j,k1n,itrtke)**gls_m)
-     .                       *(vonKar**gls_n)*Zos**(gls_n-1.)
+     .                       *(vonKar**gls_n)*zos**(gls_n-1.)
               ttrsf(nt,i,j)=0.
               ttrav(nt,i,j)=0.
               cycle
