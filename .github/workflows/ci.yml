@@ -7,30 +7,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-10.15]
+        os: [ubuntu-20.04, macos-10.15]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           ref: github_action
 
-      - name: Setup Python for newer version of Meson
-        uses: actions/setup-python@v2
-        if: ${{ matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04' }}
-
       - name: Install dependencies - Ubuntu
-        run: sudo apt-get install -y ninja-build libnetcdff-dev gfortran
-        if: ${{ matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04' }}
+        run: sudo apt-get install -y meson libnetcdff-dev gfortran
+        if: ${{ runner.os == 'Linux' }}
 
       - name: Install dependencies - macOS
         run: brew install meson netcdf
         if: ${{ runner.os == 'macOS' }}
-
-      - name: Install Meson - Ubuntu
-        # This version of Meson should be available as an EasyBuild on Fram and
-        # Betzy
-        run: python -m pip install meson==0.55.1
-        if: ${{ matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04' }}
 
       - name: Setup build directory - Ubuntu
         run: meson setup builddir
