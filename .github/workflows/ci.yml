@@ -5,21 +5,28 @@ jobs:
     name: Build BLOM on Github provided OS
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - name: Install dependencies - Ubuntu
-        run: sudo apt-get install -y meson libnetcdff-dev gfortran
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-
-      - name: Install dependencies - MacOS
-        run: brew install meson gcc netcdf
-        if: ${{ matrix.os == 'macos-latest' }}
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           ref: meson
+
+      - name: Setup Python for newer version of Meson
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies - Ubuntu
+        run: sudo apt-get install -y ninja-build libnetcdff-dev gfortran
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Install dependencies - MacOS
+        run: brew install ninja gcc netcdf
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      - name: Install Meson
+        run: python -m pip install --user meson==0.54.3
 
       - name: Setup build directory
         run: meson setup builddir
