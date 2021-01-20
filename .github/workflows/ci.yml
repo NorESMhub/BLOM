@@ -10,11 +10,11 @@ jobs:
     steps:
       - name: Install dependencies - Ubuntu
         run: sudo apt install -y meson libnetcdff-dev gfortran
-        if: ${{ matrix.os == 'ubuntu-latest'}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: Install dependencies - MacOS
         run: brew install meson gcc netcdf
-        if: ${{ matrix.os == 'mac-latest'}
+        if: ${{ matrix.os == 'mac-latest' }}
 
       - name: Checkout code
         uses: actions/checkout@v2
