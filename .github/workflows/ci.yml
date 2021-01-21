@@ -67,12 +67,6 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
 
-      - name: Compiler versions
-        run: |
-          source /opt/intel/oneapi/setvars.sh
-          ${{ env.CC }} --version
-          ${{ env.FC }} --version
-
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
 
@@ -90,4 +84,6 @@ jobs:
           meson setup builddir
 
       - name: Compile source code
-        run: meson compile -C builddir
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          meson compile -C builddir
