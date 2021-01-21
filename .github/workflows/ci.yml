@@ -54,15 +54,22 @@ jobs:
     # Do not run this job unless normal build has succeeded, since the image is
     # so large, waiting for this job to fail is not necessary
     needs: build
-    runs-on: ubuntu-latest
-    container: intel/oneapi:os-tools-ubuntu18.04
+    runs-on: ubuntu-20.04
     # Tell Meson to use Intel compilers
     env:
       CC: icc
       FC: ifort
     steps:
+      - name: Setup Intel repository
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-cache search intel | grep classic
+
       - name: Install dependencies
-        run: apt-get update -y && apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-dpcpp-cpp-classic-fortran-shared-runtime
+        run: sudo apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
@@ -76,7 +83,9 @@ jobs:
           ref: github_action
 
       - name: Setup build directory
-        run: meson setup builddir
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          meson setup builddir
 
       - name: Compile source code
         run: meson compile -C builddir
