@@ -5,7 +5,6 @@ jobs:
     name: Build BLOM on Github provided OS
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-10.15]
 
@@ -45,6 +44,38 @@ jobs:
         env:
           CC: gcc-10
           FC: gfortran-10
+
+      - name: Compile source code
+        run: meson compile -C builddir
+  # Since the Intel docker images are so large we run this as a separate job
+  intel:
+    name: Build BLOM using Intel compilers
+    runs-on: ubuntu-latest
+    # Use a container that is as close to Sigma2 resources as possible
+    container: intel/oneapi-hpckit:devel-centos8
+    # Tell Meson to use Intel compilers
+    env:
+      CC: icc
+      FC: ifort
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: github_action
+
+      - name: Setup Python for newer version of Meson
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: sudo dnf install -y ninja-build netcdf-fortran-devel
+
+      - name: Install Meson
+        # This version of Meson should be available as an EasyBuild on Fram and
+        # Betzy
+        run: python -m pip install meson==0.55.1
+
+      - name: Setup build directory
+        run: meson setup builddir
 
       - name: Compile source code
         run: meson compile -C builddir
