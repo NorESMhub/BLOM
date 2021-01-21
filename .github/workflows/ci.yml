@@ -77,14 +77,13 @@ jobs:
       - name: Compile and install custom netCDF
         run: |
           source /opt/intel/oneapi/setvars.sh
-          pwd
+          cd netcdf-fortran
           ./configure --prefix="$NFDIR"
           make check
           make install
           sudo make install
         env:
           NFDIR: /usr/local
-        working-directory: netcdf-fortran
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
