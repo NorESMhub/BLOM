@@ -111,6 +111,9 @@ while [ $m -lt $mpe ]; do
   n=0
   while [ $n -lt $npe ]; do
     while read -d " " i0_pe[i]; do
+      if [[ ${i0_pe[i]} -eq " " ]]; then
+        continue
+      fi
       i0_pe[i]=$((${i0_pe[i]}-1))
       i=$((i+1))
       n=$((n+1))
@@ -120,6 +123,9 @@ while [ $m -lt $mpe ]; do
   n=0
   while [ $n -lt $npe ]; do
     while read -d " " ii_pe[j]; do
+      if [[ ${ii_pe[j]} -eq " " ]]; then
+        continue
+      fi
       j=$((j+1))
       n=$((n+1))
     done <<< ${line[l]#*=}" "
@@ -135,6 +141,9 @@ l=$((l+1))
 m=0
 while [ $m -lt $mpe ]; do
   while read -d " " j0_pe[m]; do
+    if [[ ${j0_pe[m]} -eq " " ]]; then
+      continue
+    fi
     j0_pe[m]=$((${j0_pe[m]}-1))
     m=$((m+1))
   done <<< ${line[l]#*=}" "
@@ -143,6 +152,9 @@ done
 m=0
 while [ $m -lt $mpe ]; do
   while read -d " " jj_pe[m]; do
+    if [[ ${jj_pe[m]} -eq " " ]]; then
+      continue
+    fi
     m=$((m+1))
   done <<< ${line[l]#*=}" "
   l=$((l+1))
