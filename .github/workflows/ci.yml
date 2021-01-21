@@ -52,7 +52,7 @@ jobs:
       - name: Upload Meson log
         uses: actions/upload-artifact@v2
         with:
-          name: meson-log-${{ runner.os }}
+          name: meson-log-${{ matrix.os }}
           path: builddir/meson-logs/meson-log.txt
   # Since the Intel docker images are so large we run this as a separate job
   intel:
