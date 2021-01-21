@@ -1,5 +1,8 @@
 name: Continuous Integration testing
 on: ["push", "pull_request"]
+env:
+  # This version of Meson should be available as an EasyBuild on Fram and Betzy
+  MESON_VERSION: '0.55.1'
 jobs:
   build:
     name: Build BLOM on Github provided OS
@@ -16,37 +19,41 @@ jobs:
 
       - name: Setup Python for newer version of Meson - Ubuntu
         uses: actions/setup-python@v2
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
 
       - name: Install dependencies - Ubuntu
         run: sudo apt-get install -y ninja-build libnetcdff-dev gfortran
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
         run: brew install meson netcdf
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
-        if: ${{ runner.os == 'macOS' }}
+        if: runner.os == 'macOS'
 
       - name: Install Meson - Ubuntu
-        # This version of Meson should be available as an EasyBuild on Fram and
-        # Betzy
-        run: python -m pip install meson==0.55.1
-        if: ${{ runner.os == 'Linux' }}
+        run: python -m pip install meson==${{ env.MESON_VERSION }}
+        if: runner.os == 'Linux'
 
       - name: Setup build directory - Ubuntu
         run: meson setup builddir
-        if: ${{ runner.os == 'Linux' }}
+        if: runner.os == 'Linux'
 
       - name: Setup build directory - macOS
         run: meson setup builddir
-        if: ${{ runner.os == 'macOS' }}
+        if: runner.os == 'macOS'
         env:
           CC: gcc-10
           FC: gfortran-10
 
       - name: Compile source code
         run: meson compile -C builddir
+
+      - name: Upload Meson log
+        uses: actions/upload-artifact@v2
+        with:
+          name: meson-log-${{ runner.os }}
+          path: builddir/meson-logs/meson-log.txt
   # Since the Intel docker images are so large we run this as a separate job
   intel:
     name: Build BLOM using Intel compilers
@@ -62,12 +69,10 @@ jobs:
       FC: ifort
     steps:
       - name: Install dependencies
-        run: sudo dnf install -y ninja-build netcdf-fortran-devel intel-oneapi-runtime-fortran intel-oneapi-compiler-fortran
+        run: dnf install -y ninja-build netcdf-fortran-devel intel-oneapi-runtime-fortran intel-oneapi-compiler-fortran
 
       - name: Install Meson
-        # This version of Meson should be available as an EasyBuild on Fram and
-        # Betzy
-        run: python -m pip install meson==0.55.1
+        run: python -m pip install meson==${{ env.MESON_VERSION }}
 
       - name: Checkout code
         uses: actions/checkout@v2
