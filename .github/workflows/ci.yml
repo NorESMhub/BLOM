@@ -77,7 +77,8 @@ jobs:
       - name: Compile and install custom netCDF
         run: |
           source /opt/intel/oneapi/setvars.sh
-          ./configure --prefix=${NFDIR}
+          pwd
+          ./configure --prefix="$NFDIR"
           make check
           make install
           sudo make install
