@@ -77,7 +77,6 @@ jobs:
       - name: Compile and install custom netCDF
         run: |
           source /opt/intel/oneapi/setvars.sh
-          cd netcdf-fortran
           ./configure --prefix="$NFDIR"
           make check
           make install
