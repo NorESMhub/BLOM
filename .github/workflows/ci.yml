@@ -63,9 +63,10 @@ jobs:
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
           sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update
+          sudo apt-cache search netcdf
 
       - name: Install dependencies
-        run: sudo apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
+        run: sudo apt-get install -y ninja-build intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
