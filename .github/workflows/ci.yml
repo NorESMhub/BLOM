@@ -66,7 +66,7 @@ jobs:
           sudo apt-cache search netcdf
 
       - name: Install dependencies
-        run: sudo apt-get install -y ninja-build intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
+        run: sudo apt-get install -y ninja-build libnetcdf-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
 
       - name: Checkout netCDF for compiling with Intel
         uses: actions/checkout@v2
