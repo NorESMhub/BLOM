@@ -7,10 +7,10 @@ project('BLOM', ['fortran', 'c'],
 # Setup additional flags for compilation
 fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
-  add_global_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
+  add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
     language: 'fortran')
 elif fcc.get_id() == 'intel'
-  add_global_arguments(['-r8', '-convert big_endian', '-assume byterecl'],
+  add_project_arguments(['-r8', '-convert', 'big_endian', '-assume', 'byterecl'],
     language: 'fortran')
 else
   warning('Unknown Fortran compiler ("' + fcc.get_id() + '"), no default flags specified')
@@ -40,28 +40,28 @@ sources = [dimensions]
 
 # Handle options and add necessary flags
 if get_option('levitus2x')
-  add_global_arguments('-DLEVITUS2X', language: 'fortran')
+  add_project_arguments('-DLEVITUS2X', language: 'fortran')
 endif
 
 if get_option('tke')
-  add_global_arguments('-DTKE', language: 'fortran')
+  add_project_arguments('-DTKE', language: 'fortran')
 endif
 
 if get_option('tkeadv')
-  add_global_arguments('-DTKEADV', language: 'fortran')
+  add_project_arguments('-DTKEADV', language: 'fortran')
 endif
 
 if get_option('idlage')
-  add_global_arguments('-DIDLAGE', language: 'fortran')
+  add_project_arguments('-DIDLAGE', language: 'fortran')
 endif
 
 if get_option('mpi')
-  add_global_arguments('-DMPI', language: 'fortran')
+  add_project_arguments('-DMPI', language: 'fortran')
   deps += dependency('mpi', language: 'fortran')
 endif
 
 if get_option('parallel_netcdf')
-  add_global_arguments('-DPNETCDF', language: 'fortran')
+  add_project_arguments('-DPNETCDF', language: 'fortran')
   deps += dependency('pnetcdf', version: '>=1.11.0')
   if not get_option('mpi')
     warning('MPI must be enabled for parallel NetCDF to work')
