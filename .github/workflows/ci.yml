@@ -71,7 +71,7 @@ jobs:
       - name: Checkout netCDF for compiling with Intel
         uses: actions/checkout@v2
         with:
-          repository: 'https://github.com/Unidata/netcdf-fortran.git'
+          repository: 'Unidata/netcdf-fortran'
           ref: 'v4.5.3'
 
       - name: Compile and install custom netCDF
