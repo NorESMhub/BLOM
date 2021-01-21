@@ -24,11 +24,10 @@ c --- Initialize diagnosing/application of relaxation fluxes
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_forcing, only: tflxap, sflxap, tflxdi, sflxdi, nflxdi,
+     .                       aptflx, apsflx, ditflx, disflx
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       real, dimension(itdm,jtdm) :: tmp2d
       integer i,j,k

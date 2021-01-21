@@ -21,16 +21,14 @@
 c
 c --- Write accumulated diagnosed heat and salt fluxes
 c
-      use mod_configuration, only: runid
+      use mod_config, only: runid
       use mod_time, only: date,time
       use mod_xc
+      use mod_forcing, only: tflxdi, sflxdi, nflxdi, ditflx, disflx
       use mod_nctools
       use mod_dia, only : iotype
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       character fname*256
       integer i,j,k

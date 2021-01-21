@@ -23,17 +23,36 @@ c --- NERSC version of thermf. To be used when coupled to CESM
 c
       use mod_constants, only: g, spcifh, t0deg, epsil, onem
       use mod_time, only: nstep, nstep_in_day, nday_in_year,
-     .                    nday_of_year, baclin
+     .                    nday_of_year, baclin,
+     .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
       use mod_xc
+      use mod_grid, only: scp2, area
+      use mod_state, only: dp, temp, saln, p
       use mod_swtfrz, only: swtfrz
+      use mod_forcing, only: sref, tflxap, sflxap, tflxdi, sflxdi,
+     .                       nflxdi, aptflx, apsflx, ditflx, disflx,
+     .                       sstclm, ricclm, sssclm, trxday, srxday,
+     .                       trxdpt, srxdpt, trxlim, srxlim, srxbal,
+     .                       swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
+     .                       fmltfz, sfl, ustarw, surflx, surrlx,
+     .                       sswflx, salflx, brnflx, salrlx, ustar
+      use mod_cesm, only: hmlt, frzpot, mltpot
+      use mod_utility, only: util1, util2, util3, util4
+      use mod_checksum, only: csdiag, chksummsk
+#ifdef TRC
+#  ifdef TKE
+      use mod_tracers, only: ntr, itrtke, itrgls, trc, trflx
+#    ifdef GLS
+      use mod_tke, only: gls_cmu0, zos, gls_p, gls_m, gls_n, vonKar
+#    endif
+#  else
+      use mod_tracers, only: ntr, trc, trflx
+#  endif
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_geo.h"
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  tfrz,tfrzm,vrtsfl
@@ -42,17 +61,11 @@ c
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
      .     totsrn,qp,qn
-c
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ttrsf,ttrav
       real tottrsf,tottrav,trflxc
-#  ifdef TKE
-#    include "param_tke.h"
-#  endif
 #endif
 c
       real intp1d
@@ -113,14 +126,8 @@ c --- ------------------------------------------------------------------
 c --- --- Fresh water and salt fluxes
 c --- ------------------------------------------------------------------
 c
-c --- --- Copy runoff flux to rnfflx for consistency with uncoupled
-c --- --- configuration
-          rnfflx(i,j)=rnf(i,j)
-          rfiflx(i,j)=rfi(i,j)
-c
 c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
-          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j)+rfiflx(i,j)
-     .         +fmltfz(i,j)
+          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 c
 c --- --- Salt flux due to brine rejection of freezing sea
 c --- --- ice [kg m-2 m-1] (positive downwards)
@@ -370,8 +377,6 @@ c
         call chksummsk(brnflx,ip,1,'brnflx')
         call chksummsk(surrlx,ip,1,'surrlx')
         call chksummsk(salrlx,ip,1,'salrlx')
-        call chksummsk(rnfflx,ip,1,'rnfflx')
-        call chksummsk(rfiflx,ip,1,'rfiflx')
         call chksummsk(hmltfz,ip,1,'hmltfz')
         call chksummsk(ustar,ip,1,'ustar')
         call chksummsk(frzpot,ip,1,'frzpot')

@@ -24,15 +24,18 @@ c --- Get bathymetry and grid specification from file and compute
 c --- Coriolis parameter
 c --- ------------------------------------------------------------------
 c
+      use mod_config, only: inst_suffix
       use mod_constants, only: rearth, pi, radian
       use mod_xc
+      use mod_grid, only: grfile, qclon, qclat, pclon, pclat, uclon,
+     .                    uclat, vclon, vclat, scqx, scqy, scpx, scpy,
+     .                    scux, scuy, scvx, scvy, scq2, scp2, scu2,
+     .                    scv2, qlon, qlat, plon, plat, ulon, ulat,
+     .                    vlon, vlat, depths, corioq, coriop, betafp,
+     .                    angle, cosang, sinang, nwp
       use netcdf
-      use mod_instance, only: inst_suffix
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_geo.h"
 c
       integer cwmlen
       parameter (cwmlen=100)

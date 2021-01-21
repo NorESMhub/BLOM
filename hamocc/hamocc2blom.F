@@ -45,17 +45,14 @@ c
 c***********************************************************************
 c
       use mod_xc
+      use mod_tracers,   only: ntrbgc,itrbgc,trc
+      use mod_tmsmt,     only: wts1, wts2
       use mo_carbch,     only: ocetra,atm
       use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
       use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
       use mo_intfcblom,  only: bgc_rho,sedlay2,powtra2,burial2,atm2
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       integer       :: m,n,mm,nn
 c

@@ -46,11 +46,11 @@ module ocn_comp_mct
    use perf_mod, only: t_startf, t_stopf
 
    use mod_types, only: r8
-   use blom_cpl_indices
+   use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
-   use mod_mctdata, only: runid_mct, runtyp_mct, ocn_cpl_dt_mct
+   use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_xc
-   use mod_instance, only: inst_index, inst_name, inst_suffix
+   use blom_cpl_indices
 
    implicit none
 
@@ -123,16 +123,16 @@ module ocn_comp_mct
 
       call blom_cpl_indices_set()
 
-      call seq_infodata_GetData( infodata, case_name = runid_mct )
+      call seq_infodata_GetData( infodata, case_name = runid_cesm )
    
       call seq_infodata_GetData( infodata, start_type = starttype)
 
       if     (trim(starttype) == trim(seq_infodata_start_type_start)) then
-         runtyp_mct = "initial"
+         runtyp_cesm = "initial"
       elseif (trim(starttype) == trim(seq_infodata_start_type_cont) ) then
-         runtyp_mct = "continue"
+         runtyp_cesm = "continue"
       elseif (trim(starttype) == trim(seq_infodata_start_type_brnch)) then
-         runtyp_mct = "branch"
+         runtyp_cesm = "branch"
       else
          write (lp,*) 'ocn_comp_mct ERROR: unknown starttype'
          call shr_sys_flush(lp)
@@ -140,10 +140,10 @@ module ocn_comp_mct
       endif
 
       !-----------------------------------------------------------------
-      ! Get coupling frequency
+      ! Get coupling time interval
       !-----------------------------------------------------------------
 
-      call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt_mct)
+      call seq_timemgr_EClockGetData(EClock, dtime = ocn_cpl_dt_cesm)
 
       ! ----------------------------------------------------------------
       ! Initialize blom
@@ -169,7 +169,7 @@ module ocn_comp_mct
 
       ! This must be completed!
 
-      if (runtyp_mct == 'initial') then
+      if (runtyp_cesm == 'initial') then
          call seq_timemgr_EClockGetData(EClock, &
                                         start_ymd = start_ymd, &
                                         start_tod = start_tod)
@@ -292,7 +292,7 @@ module ocn_comp_mct
          ! Add fields to send buffer sums
          call sumsbuff_mct(nsend, sbuff, tlast_coupled)
 
-         if (nint(ocn_cpl_dt_mct-tlast_coupled) == 0) then
+         if (nint(ocn_cpl_dt_cesm-tlast_coupled) == 0) then
             ! Return export state to driver and exit integration loop
             call export_mct(o2x_o, lsize, perm, jjcpl, nsend, sbuff, &
                             tlast_coupled)

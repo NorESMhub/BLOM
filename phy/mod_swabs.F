@@ -49,6 +49,8 @@ c ---     Transport. J. Phys. Oceanogr., 35, 1103-1118.
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_time, only: xmi, l1mi, l2mi, l3mi, l4mi, l5mi
+      use mod_checksum, only: csdiag, chksummsk
 c
       implicit none
 c
@@ -135,8 +137,6 @@ c
       use netcdf
 c
       implicit none
-c
-#include "common_blocks.h"
 c
       real, dimension(itdm,jtdm) :: tmp2d
       integer, dimension(3) :: istart,icount
@@ -340,9 +340,6 @@ c --- Update arrays related to shortwave radiation absorption.
 c --- ------------------------------------------------------------------
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       integer :: i,j,l
       real :: q

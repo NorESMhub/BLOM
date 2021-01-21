@@ -22,9 +22,7 @@ omp = dependency('openmp', required: get_option('openmp'))
 quadmath = fcc.find_library('quadmath')
 
 # Directories with header files that is needed when building
-cesm_inc = include_directories('cesm')
 phy_inc = include_directories('phy')
-trc_inc = include_directories('trc')
 
 # Handle building of 'dimensions.F' in the 'bld' directory
 subdir('bld')
@@ -32,8 +30,8 @@ subdir('bld')
 # List of dependencies (created so that options can add dependencies)
 deps = [netcdf, omp, quadmath]
 
-# List of directories to include
-includes = [cesm_inc, phy_inc, trc_inc]
+# List of directories to include, usually with C headers
+includes = [phy_inc]
 
 # List of all sources in the project (should be added to in subfolders)
 sources = [dimensions]
@@ -53,6 +51,7 @@ endif
 
 if get_option('idlage')
   add_project_arguments('-DIDLAGE', language: 'fortran')
+  subdir('idlage')
 endif
 
 if get_option('mpi')
@@ -74,7 +73,6 @@ subdir('ben02')
 subdir('cesm')
 subdir('drivers')
 #subdir('hamocc')
-subdir('idlage')
 subdir('phy')
 subdir('trc')
 

@@ -25,24 +25,25 @@ c --- ------------------------------------------------------------------
 c
       use mod_time, only: delt1
       use mod_xc
+      use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi
+      use mod_eos, only: sig
+      use mod_state, only:  dp, temp, saln, sigma,
+     .                      utflx, vtflx, usflx, vsflx
+      use mod_diffusion, only: difiso, utflld, vtflld, usflld, vsflld
+      use mod_checksum, only: csdiag, chksummsk
+#ifdef TRC
+      use mod_tracers, only: ntr, itrtke, itrgls, trc, uflxtr, vflxtr
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
-c
       integer i,j,k,l,kn,km
       real q
-c
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer nt
 #endif
-c
-      real sig
-      external sig
 c
       real dpeps
       parameter (dpeps=1.e-4)

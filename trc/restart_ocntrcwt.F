@@ -27,13 +27,11 @@ c
       use mod_xc
       use mod_dia, only: iotype, rstfmt, rstcmp
       use mod_nctools
+      use mod_tracers, only:  ntrocn, natr, ntr, trc
 c
       implicit none
 c
       character rstfnm_ocn*(*)
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       integer i,nt,nat
       character(len=256) :: rstfnm,trcnm
@@ -109,7 +107,6 @@ c --- ------------------------------------------------------------------
 c --- Write tracer data to file
 c --- ------------------------------------------------------------------
 c
-#ifdef ATRC
       do nt=1,ntrocn-natr
         write (trcnm,'(a,i3.3)') 'trc',nt
         if (rstcmp.eq.1) then
@@ -131,21 +128,9 @@ c
      .                ndouble,8)
         endif
       enddo
-      
-#else
-      do nt=1,ntrocn
-        write (trcnm,'(a,i3.3)') 'trc',nt
-        if (rstcmp.eq.1) then
-          call ncdefvar(trim(trcnm),'pcomp kk2 time',
-     .                ndouble,8)
-        else
-          call ncdefvar(trim(trcnm),'x y kk2 time',
-     .                ndouble,8)
-        endif
-      enddo
-#endif
-          call ncedef
-#ifdef ATRC
+c
+      call ncedef
+c
       do nt=1,ntrocn-natr
         write (trcnm,'(a,i3.3)') 'trc',nt
         if (rstcmp.eq.1) then
@@ -167,19 +152,6 @@ c
      .                trc(1-nbdy,1-nbdy,1,nat),ip,1,1.,0.,8)
         endif
       enddo
-#else
-      do nt=1,ntrocn
-        call flush(lp)
-        write (trcnm,'(a,i3.3)') 'trc',nt
-        if (rstcmp.eq.1) then
-          call nccomp(trim(trcnm),'pcomp kk2 time',
-     .                trc(1-nbdy,1-nbdy,1,nt),ip,1.,0.,8)
-        else
-          call ncwrtr(trim(trcnm),'x y kk2 time',
-     .                trc(1-nbdy,1-nbdy,1,nt),ip,1,1.,0.,8)
-        endif
-      enddo
-#endif
 c
       call ncfcls
 c
