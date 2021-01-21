@@ -62,10 +62,7 @@ jobs:
       FC: ifort
     steps:
       - name: Install dependencies
-        run: apt-get update -y && apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-fortran
-
-      - name: List Intel packages
-        run: apt-cache pkgnames intel
+        run: apt-get update -y && apt-get install -y ninja-build libnetcdff-dev intel-oneapi-compiler-dpcpp-cpp-classic-fortran-shared-runtime
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
