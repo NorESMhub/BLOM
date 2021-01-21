@@ -78,7 +78,7 @@ jobs:
         run: |
           source /opt/intel/oneapi/setvars.sh
           ./configure --prefix="$NFDIR"
-          make check
+          make
           sudo make install
         env:
           NFDIR: /usr/local
