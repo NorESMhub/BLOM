@@ -68,6 +68,23 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y ninja-build intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
 
+      - name: Checkout netCDF for compiling with Intel
+        uses: actions/checkout@v2
+        with:
+          repository: 'https://github.com/Unidata/netcdf-fortran.git'
+          ref: 'v4.5.3'
+
+      - name: Compile and install custom netCDF
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          ./configure --prefix=${NFDIR}
+          make check
+          make install
+          sudo make install
+        env:
+          NFDIR: /usr/local
+        working-directory: netcdf-fortran
+
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
 
