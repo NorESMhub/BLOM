@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, macos-10.15]
+        mpi: [true, false]
 
     steps:
       - name: Checkout code
@@ -22,7 +23,7 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Install dependencies - Ubuntu
-        run: sudo apt-get install -y ninja-build libnetcdff-dev gfortran
+        run: sudo apt-get install -y ninja-build libnetcdff-dev mpi-default-dev
         if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
@@ -46,12 +47,18 @@ jobs:
           CC: gcc-10
           FC: gfortran-10
 
+      - name: Configure build
+        run: meson configure builddir -Dmpi=${{ env.mpi }}
+
       - name: Compile source code
         run: meson compile -C builddir
 
   intel:
     name: Build BLOM using Intel compilers
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        mpi: [true, false]
     # Tell Meson to use Intel compilers
     env:
       CC: icc
@@ -96,7 +103,7 @@ jobs:
       - name: Setup build directory
         run: |
           source /opt/intel/oneapi/setvars.sh
-          meson setup builddir
+          meson setup builddir -Dmpi=${{ env.mpi }}
 
       - name: Compile source code
         run: |
