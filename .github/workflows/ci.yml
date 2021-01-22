@@ -27,7 +27,7 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
-        run: brew install meson netcdf
+        run: brew install meson netcdf open-mpi
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
         if: runner.os == 'macOS'
@@ -70,9 +70,10 @@ jobs:
           sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
           sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update
+          sudo apt-cache search intel-oneapi | grep mpi
 
       - name: Install dependencies
-        run: sudo apt-get install -y ninja-build libnetcdf-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran
+        run: sudo apt-get install -y ninja-build libnetcdf-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran intel-oneapi-impi-dev
 
       - name: Checkout netCDF for compiling with Intel
         uses: actions/checkout@v2
