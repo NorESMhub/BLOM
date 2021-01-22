@@ -105,30 +105,21 @@ fi
 #
 l=3
 m=0
-i=0
-j=0
+ispt=()
+iipe=()
 while [ $m -lt $mpe ]; do
   n=0
   while [ $n -lt $npe ]; do
-    while read -d " " i0_pe[i]; do
-      if [[ ${i0_pe[i]} -eq " " ]]; then
-        continue
-      fi
-      i0_pe[i]=$((${i0_pe[i]}-1))
-      i=$((i+1))
-      n=$((n+1))
-    done <<< ${line[l]#*=}" "
+    read -a tmp <<< ${line[l]#*=}
+    ispt+=(${tmp[@]})
+    n=$((n+${#tmp[@]}))
     l=$((l+1))
   done
   n=0
   while [ $n -lt $npe ]; do
-    while read -d " " ii_pe[j]; do
-      if [[ ${ii_pe[j]} -eq " " ]]; then
-        continue
-      fi
-      j=$((j+1))
-      n=$((n+1))
-    done <<< ${line[l]#*=}" "
+    read -a tmp <<< ${line[l]#*=}
+    iipe+=(${tmp[@]})
+    n=$((n+${#tmp[@]}))
     l=$((l+1))
   done
   m=$((m+1))
@@ -139,24 +130,19 @@ done
 #
 l=$((l+1))
 m=0
+jspt=()
 while [ $m -lt $mpe ]; do
-  while read -d " " j0_pe[m]; do
-    if [[ ${j0_pe[m]} -eq " " ]]; then
-      continue
-    fi
-    j0_pe[m]=$((${j0_pe[m]}-1))
-    m=$((m+1))
-  done <<< ${line[l]#*=}" "
+  read -a tmp <<< ${line[l]#*=}
+  jspt+=(${tmp[@]})
+  m=$((m+${#tmp[@]}))
   l=$((l+1))
 done
 m=0
+jjpe=()
 while [ $m -lt $mpe ]; do
-  while read -d " " jj_pe[m]; do
-    if [[ ${jj_pe[m]} -eq " " ]]; then
-      continue
-    fi
-    m=$((m+1))
-  done <<< ${line[l]#*=}" "
+  read -a tmp <<< ${line[l]#*=}
+  jjpe+=(${tmp[@]})
+  m=$((m+${#tmp[@]}))
   l=$((l+1))
 done
 
@@ -200,36 +186,38 @@ echo -n "      data i0_pe/" >> dimensions.F
 P=72
 i=0
 while [ $i -lt $((npe*mpe)) ]; do
-  if [ $((P+${#i0_pe[i]}+1)) -gt 72 ]; then
+  i0_pe=$((${ispt[i]}-1))
+  P=$((P+${#i0_pe}+1))
+  if [ $P -gt 72 ]; then
     echo -ne "\n     .  " >> dimensions.F
-    P=8
+    P=$((8+${#i0_pe}+1))
   fi
-  echo -n "${i0_pe[i]}" >> dimensions.F
-  if [ $i -lt $((npe*mpe-1)) ]; then
+  echo -n "$i0_pe" >> dimensions.F
+  i=$((i+1))
+  if [ $i -lt $((npe*mpe)) ]; then
     echo -n "," >> dimensions.F
   else
     echo "/" >> dimensions.F
   fi
-  P=$((P+${#i0_pe[i]}+1))
-  i=$((i+1))
 done
 
 echo -n "      data ii_pe/" >> dimensions.F
 P=72
 i=0
 while [ $i -lt $((npe*mpe)) ]; do
-  if [ $((P+${#ii_pe[i]}+1)) -gt 72 ]; then
+  ii_pe=${iipe[i]}
+  P=$((P+${#ii_pe}+1))
+  if [ $P -gt 72 ]; then
     echo -ne "\n     .  " >> dimensions.F
-    P=8
+    P=$((8+${#ii_pe}+1))
   fi
-  echo -n "${ii_pe[i]}" >> dimensions.F
-  if [ $i -lt $((npe*mpe-1)) ]; then
+  echo -n "$ii_pe" >> dimensions.F
+  i=$((i+1))
+  if [ $i -lt $((npe*mpe)) ]; then
     echo -n "," >> dimensions.F
   else
     echo "/" >> dimensions.F
   fi
-  P=$((P+${#ii_pe[i]}+1))
-  i=$((i+1))
 done
 
 echo -n "      data j0_pe/" >> dimensions.F
@@ -237,18 +225,19 @@ P=72
 i=0
 while [ $i -lt $((npe*mpe)) ]; do
   n=$((i/npe))
-  if [ $((P+${#j0_pe[n]}+1)) -gt 72 ]; then
+  j0_pe=$((${jspt[n]}-1))
+  P=$((P+${#j0_pe}+1))
+  if [ $P -gt 72 ]; then
     echo -ne "\n     .  " >> dimensions.F
-    P=8
+    P=$((8+${#j0_pe}+1))
   fi
-  echo -n "${j0_pe[n]}" >> dimensions.F
-  if [ $i -lt $((npe*mpe-1)) ]; then
+  echo -n "$j0_pe" >> dimensions.F
+  i=$((i+1))
+  if [ $i -lt $((npe*mpe)) ]; then
     echo -n "," >> dimensions.F
   else
     echo "/" >> dimensions.F
   fi
-  P=$((P+${#j0_pe[n]}+1))
-  i=$((i+1))
 done
 
 echo -n "      data jj_pe/" >> dimensions.F
@@ -256,18 +245,19 @@ P=72
 i=0
 while [ $i -lt $((npe*mpe)) ]; do
   n=$((i/npe))
-  if [ $((P+${#jj_pe[n]}+1)) -gt 72 ]; then
+  jj_pe=${jjpe[n]}
+  P=$((P+${#jj_pe}+1))
+  if [ $P -gt 72 ]; then
     echo -ne "\n     .  " >> dimensions.F
-    P=8
+    P=$((8+${#jj_pe}+1))
   fi
-  echo -n "${jj_pe[n]}" >> dimensions.F
-  if [ $i -lt $((npe*mpe-1)) ]; then
+  echo -n "$jj_pe" >> dimensions.F
+  i=$((i+1))
+  if [ $i -lt $((npe*mpe)) ]; then
     echo -n "," >> dimensions.F
   else
     echo "/" >> dimensions.F
   fi
-  P=$((P+${#jj_pe[n]}+1))
-  i=$((i+1))
 done
 
 cat <<EOF >>dimensions.F
