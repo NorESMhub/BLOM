@@ -1,5 +1,11 @@
 name: Continuous Integration testing
-on: ["push", "pull_request"]
+on:
+  push:
+    branches:
+      - meson
+  pull_request:
+    branches:
+      - meson
 env:
   # This version of Meson should be available as an EasyBuild on Fram and Betzy
   MESON_VERSION: '0.55.1'
@@ -16,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: github_action
+          ref: meson
 
       - name: Setup Python for newer version of Meson - Ubuntu
         uses: actions/setup-python@v2
@@ -98,7 +104,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: github_action
+          ref: meson
 
       - name: Setup build directory
         run: |
