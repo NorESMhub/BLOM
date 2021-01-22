@@ -9,9 +9,9 @@ fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
   add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
     language: 'fortran')
-  # If MPI is enabled we need to allow for argument mismatch with gFortran to
+  # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
-  if get_option('mpi')
+  if get_option('mpi') and fcc.has_argument('-fallow-argument-mismatch')
     add_project_arguments('-fallow-argument-mismatch', language: 'fortran')
   endif
 elif fcc.get_id() == 'intel'
