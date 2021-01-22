@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, macos-10.15]
-        mpi: ['true', 'false']
+        mpi: [true, false]
 
     steps:
       - name: Checkout code
@@ -48,7 +48,7 @@ jobs:
           FC: gfortran-10
 
       - name: Configure build
-        run: meson configure builddir -Dmpi=${{ env.mpi }}
+        run: meson configure builddir -Dmpi=${{ matrix.mpi }}
 
       - name: Compile source code
         run: meson compile -C builddir
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        mpi: ['true', 'false']
+        mpi: [true, false]
     # Tell Meson to use Intel compilers
     env:
       CC: icc
@@ -103,7 +103,7 @@ jobs:
       - name: Setup build directory
         run: |
           source /opt/intel/oneapi/setvars.sh
-          meson setup builddir -Dmpi=${{ env.mpi }}
+          meson setup builddir -Dmpi=${{ matrix.mpi }}
 
       - name: Compile source code
         run: |
