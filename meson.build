@@ -9,15 +9,20 @@ fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
   add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
     language: 'fortran')
+  # If MPI is enabled we need to allow for argument mismatch with gfortran to
+  # make it able to compile
+  if get_option('mpi') and fcc.has_argument('-fallow-argument-mismatch')
+    add_project_arguments('-fallow-argument-mismatch', language: 'fortran')
+  endif
 elif fcc.get_id() == 'intel'
-  add_project_arguments(['-r8', '-convert big_endian', '-assume byterecl'],
+  add_project_arguments(['-r8', '-convert', 'big_endian', '-assume', 'byterecl'],
     language: 'fortran')
 else
   warning('Unknown Fortran compiler ("' + fcc.get_id() + '"), no default flags specified')
 endif
 
 # Define global dependencies
-netcdf = dependency('netcdf', language: 'fortran', version: '>=4.4.5')
+netcdf = dependency('netcdf', language: 'fortran', version: '>=4.4.4')
 omp = dependency('openmp', required: get_option('openmp'))
 quadmath = fcc.find_library('quadmath')
 

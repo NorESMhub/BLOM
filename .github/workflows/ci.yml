@@ -1,0 +1,117 @@
+name: Continuous Integration testing
+on:
+  push:
+    branches:
+      - meson
+  pull_request:
+    branches:
+      - meson
+env:
+  # This version of Meson should be available as an EasyBuild on Fram and Betzy
+  MESON_VERSION: '0.55.1'
+jobs:
+  build:
+    name: Build BLOM on Github provided OS
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, macos-10.15]
+        mpi: [true, false]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: meson
+
+      - name: Setup Python for newer version of Meson - Ubuntu
+        uses: actions/setup-python@v2
+        if: runner.os == 'Linux'
+
+      - name: Install dependencies - Ubuntu
+        run: sudo apt-get install -y ninja-build libnetcdff-dev mpi-default-dev
+        if: runner.os == 'Linux'
+
+      - name: Install dependencies - macOS
+        run: brew install meson netcdf open-mpi
+        env:
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        if: runner.os == 'macOS'
+
+      - name: Install Meson - Ubuntu
+        run: python -m pip install meson==${{ env.MESON_VERSION }}
+        if: runner.os == 'Linux'
+
+      - name: Setup build directory - Ubuntu
+        run: meson setup builddir
+        if: runner.os == 'Linux'
+
+      - name: Setup build directory - macOS
+        run: meson setup builddir
+        if: runner.os == 'macOS'
+        env:
+          CC: gcc-10
+          FC: gfortran-10
+
+      - name: Configure build
+        run: meson configure builddir -Dmpi=${{ matrix.mpi }}
+
+      - name: Compile source code
+        run: meson compile -C builddir
+
+  intel:
+    name: Build BLOM using Intel compilers
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        mpi: [true, false]
+    # Tell Meson to use Intel compilers
+    env:
+      CC: icc
+      FC: ifort
+    steps:
+      - name: Setup Intel repository
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+
+      - name: Install dependencies
+        run: sudo apt-get install -y ninja-build libnetcdf-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran intel-oneapi-mpi-devel
+
+      - name: Checkout netCDF for compiling with Intel
+        uses: actions/checkout@v2
+        with:
+          repository: 'Unidata/netcdf-fortran'
+          ref: 'v4.5.2'
+
+      - name: Compile and install custom netCDF
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          ./configure --prefix="$NFDIR"
+          make
+          sudo make install
+        env:
+          NFDIR: /usr/local
+
+      - name: Setup Python for newer version of Meson
+        uses: actions/setup-python@v2
+
+      - name: Install Meson
+        run: python -m pip install meson==${{ env.MESON_VERSION }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: meson
+
+      - name: Setup build directory
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          meson setup builddir -Dmpi=${{ matrix.mpi }}
+
+      - name: Compile source code
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          meson compile -C builddir
