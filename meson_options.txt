@@ -11,6 +11,7 @@ option('levitus2x', type: 'boolean', value: true)
 option('tke', type: 'boolean', value: true)
 option('tkeadv', type: 'boolean', value: true)
 option('trc', type: 'boolean', value: true)
+option('hamocc', type: 'boolean', value: true)
 # Build configuration
 option('openmp', type: 'feature', value: 'auto',
   description: 'Enable OpenMP')

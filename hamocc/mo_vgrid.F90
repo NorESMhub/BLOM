@@ -98,7 +98,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   ! --- depth of layer kpke+1 centre
   ptiestu(:,:,kpke+1)=9000.
 
-!$OMP PARALLEL DO PRIVATE
+!$OMP PARALLEL DO
   do k=1,kpke
     do j=1,kpje
     do i=1,kpie

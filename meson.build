@@ -7,7 +7,8 @@ project('BLOM', ['fortran', 'c'],
 # Setup additional flags for compilation
 fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
-  add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
+  add_project_arguments(['-fdefault-real-8', '-ffixed-line-length-none',
+    '-fconvert=big-endian'],
     language: 'fortran')
   # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
@@ -59,6 +60,10 @@ if get_option('idlage')
   subdir('idlage')
 endif
 
+if get_option('hamocc')
+  subdir('hamocc')
+endif
+
 if get_option('mpi')
   add_project_arguments('-DMPI', language: 'fortran')
   deps += dependency('mpi', language: 'fortran')
@@ -77,7 +82,6 @@ endif
 subdir('ben02')
 subdir('cesm')
 subdir('drivers')
-#subdir('hamocc')
 subdir('phy')
 subdir('trc')
 
