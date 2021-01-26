@@ -31,7 +31,8 @@ c
       character(len=*) :: rstfnm_ocn
 
       CALL AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc
-     .             ,date%year,date%month,date%day,nstep,omask,rstfnm_ocn)
+     .             ,date%year,date%month,date%day,nstep,omask
+     .             ,rstfnm_ocn)
 c
       return
       end

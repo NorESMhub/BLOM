@@ -69,7 +69,8 @@ c$OMP PARALLEL DO PRIVATE(kn)
       kn=k+nn
       do l=1,isp(j)
       do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-        trc(i,j,kn,itrbgc:itrbgc+ntrbgc-1)=ocetra(i,j,k,:)/bgc_rho(i,j,k)
+        trc(i,j,kn,itrbgc:itrbgc+ntrbgc-1)=ocetra(i,j,k,:)
+     .                                    /bgc_rho(i,j,k)
       enddo
       enddo
       enddo
