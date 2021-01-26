@@ -7,8 +7,7 @@ project('BLOM', ['fortran', 'c'],
 # Setup additional flags for compilation
 fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
-  add_project_arguments(['-fdefault-real-8', '-ffixed-line-length-none',
-    '-fconvert=big-endian'],
+  add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
     language: 'fortran')
   # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
