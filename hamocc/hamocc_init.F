@@ -52,8 +52,8 @@ c******************************************************************************
       use mo_bgcmean,    only: alloc_mem_bgcmean
       use mo_fedep,      only: ini_fedep,fedepfile
       use mo_ndep,       only: ini_ndep,ndepfile
-      use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,inisil,
-     .                         inid13c,inid14c
+      use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,
+     .                         inisil,inid13c,inid14c
       use mo_riverinpt,  only: ini_riverinpt,rivinfile
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
@@ -96,7 +96,8 @@ c
 c
 c --- Read the HAMOCC BGCNML namelist.
 c
-      open (unit=io_nml,file='ocn_in'//trim(inst_suffix),status='old',action='read')
+      open (unit=io_nml,file='ocn_in'//trim(inst_suffix),status='old'
+     .                 ,action='read')
       read (unit=io_nml,nml=BGCNML)
       close (unit=io_nml)
       IF (mnproc.eq.1) THEN

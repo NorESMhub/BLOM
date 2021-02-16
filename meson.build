@@ -59,6 +59,10 @@ if get_option('idlage')
   subdir('idlage')
 endif
 
+if get_option('hamocc')
+  subdir('hamocc')
+endif
+
 if get_option('mpi')
   add_project_arguments('-DMPI', language: 'fortran')
   deps += dependency('mpi', language: 'fortran')
@@ -77,7 +81,6 @@ endif
 subdir('ben02')
 subdir('cesm')
 subdir('drivers')
-#subdir('hamocc')
 subdir('phy')
 subdir('trc')
 
