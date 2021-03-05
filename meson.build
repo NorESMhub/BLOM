@@ -9,6 +9,10 @@ fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
   add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
     language: 'fortran')
+  if get_option('buildtype').startswith('debug')
+    add_project_arguments(['-fbacktrace', '-fcheck=all', '-finit-real=snan', '-ffpe-trap=invalid,zero,overflow'],
+      language : 'fortran')
+  endif
   # If MPI is enabled we need to allow for argument mismatch with gfortran to
   # make it able to compile
   if get_option('mpi') and fcc.has_argument('-fallow-argument-mismatch')
@@ -17,6 +21,10 @@ if fcc.get_id() == 'gcc'
 elif fcc.get_id() == 'intel'
   add_project_arguments(['-r8', '-convert', 'big_endian', '-assume', 'byterecl'],
     language: 'fortran')
+  if get_option('buildtype').startswith('debug')
+    add_project_arguments(['-traceback', '-check all', '-init=snan,arrays', '-fpe0','-ftrapuv'],
+      language : 'fortran')
+  endif
 else
   warning('Unknown Fortran compiler ("' + fcc.get_id() + '"), no default flags specified')
 endif
