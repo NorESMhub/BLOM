@@ -43,6 +43,7 @@ c
 #  ifdef TKE
       use mod_tracers, only: ntr, itrtke, itrgls, trc, trflx
 #    ifdef GLS
+      use mod_diffusion, only: difdia
       use mod_tke, only: gls_cmu0, zos, gls_p, gls_m, gls_n, vonKar
 #    endif
 #  else
