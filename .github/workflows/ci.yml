@@ -2,10 +2,10 @@ name: Continuous Integration testing
 on:
   push:
     branches:
-      - meson
+      - master
   pull_request:
     branches:
-      - meson
+      - master
 env:
   # This version of Meson should be available as an EasyBuild on Fram and Betzy
   MESON_VERSION: '0.55.1'
