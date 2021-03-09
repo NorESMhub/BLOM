@@ -89,7 +89,7 @@ c --- Diagnostic variables:
                         ! energy change [cm3 s-3].
      .  pbrnda          ! Brine plume pressure depth [g cm-1 s-2].
 c
-      public :: rm0,rm5,ce,mlrttp,
+      public :: rm0,rm5,ce,mlrttp,mltmin,
      .          mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,pbrnda,
      .          inivar_mxlayr,mxlayr
 c

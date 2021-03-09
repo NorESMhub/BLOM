@@ -26,6 +26,7 @@ subroutine inifrc
    use mod_xc, only: lp, mnproc, xcstop
    use mod_cesm, only: inifrc_cesm
    use mod_ben02, only: inifrc_ben02clim, inifrc_ben02syn
+   use mod_fuk95, only: inifrc_fuk95
 
    implicit none
 
@@ -36,6 +37,8 @@ subroutine inifrc
          call inifrc_ben02clim
       case ('ben02syn')
          call inifrc_ben02syn
+      case ('fuk95')
+         call inifrc_fuk95
       case ('isomip1')
 !        call inifrc_isomip1
       case ('isomip2')

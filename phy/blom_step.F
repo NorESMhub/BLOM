@@ -54,6 +54,7 @@ c
       use mod_chkvar, only: chkvar
       use mod_dia
 c
+      use mod_state, only: temp, saln, dp
       implicit none
 c
       real q

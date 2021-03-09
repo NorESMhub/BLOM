@@ -80,7 +80,7 @@ c
         write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .    trim(runid),'.blom',trim(inst_suffix),'.r.',
      .    date%year,'-',date%month,'-',date%day,'-',
-     .    mod(nstep,nstep_in_day)*86400,'.nc'
+     .    86400*mod(nstep,nstep_in_day)/nstep_in_day,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')

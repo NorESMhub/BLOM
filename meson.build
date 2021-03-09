@@ -58,6 +58,7 @@ subdir('phy')
 subdir('drivers')
 subdir('ben02')
 subdir('cesm')
+subdir('fuk95')
 
 # Handle options and add necessary flags and subfolders with source files
 

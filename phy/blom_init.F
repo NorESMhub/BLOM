@@ -76,17 +76,17 @@ c
       call crcinit
 c
 c --- ------------------------------------------------------------------
+c --- Read limits file
+c --- ------------------------------------------------------------------
+c
+      call rdlim
+c
+c --- ------------------------------------------------------------------
 c --- Identify processor and horizontal indexes where detailed
 c --- diagnostics are desired
 c --- ------------------------------------------------------------------
 c
       call init_ptest
-c
-c --- ------------------------------------------------------------------
-c --- Read limits file
-c --- ------------------------------------------------------------------
-c
-      call rdlim
 c
 c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
@@ -180,12 +180,12 @@ c
           endif
         endif
 c
+        delt1=baclin
+c
         call inicon
 #ifdef TRC
         call initrc
 #endif
-c
-        delt1=baclin
 c
       else !  nday1+nint(time0) > 0 .or. icrest
 c
@@ -193,9 +193,9 @@ c --- ------------------------------------------------------------------
 c --- - start from restart file
 c --- ------------------------------------------------------------------
 c
-        call restart_rd
-c
         delt1=baclin+baclin
+c
+        call restart_rd
 c
       endif
 c
