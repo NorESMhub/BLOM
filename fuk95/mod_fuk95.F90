@@ -46,24 +46,18 @@ module mod_fuk95
    private
 
    real(r8), parameter :: &
-      u0    = 30._r8, &    ! Maximum jet velocity [cm s-1].
-      h1    = 1.e4_r8, &   ! Depth of active layer [cm].
-      h0    = 2.e4_r8, &   ! Depth of water column [cm].
-      l0    = 2.e6_r8, &  ! Half-width of the jet [cm].
-      drho  = 0.19e-3_r8, &   ! Density difference over the active layer [g cm-3].
-      rho1  = 1.0259_r8, & ! Density at the center of active layer [g cm-3].
-      rho0  = 1.0270_r8, & ! Density of water beneath active layer [g cm-3].
-      f     = 1.e-4_r8, &  ! Coriolis parameter [1 s-1].
-      lat0  = 45._r8, &    ! Center latitude of grid domain [deg].
-      gs    = .65e5_r8, &  ! Grid space [cm].
-      mindz = 1.e2_r8, &     ! Minimum interior layer thickness [cm].
-      saln0 = 35._r8       ! Constant salinity value [g kg-1].
-   real(r8), parameter, dimension(kk) :: &
-      sigref = [.02535_r8, .02545_r8, .02555_r8, .02565_r8, &
-                .02575_r8, .02585_r8, .02595_r8, .02605_r8, &
-                .02615_r8, .02625_r8, .02635_r8, .02700_r8]
-                           ! Reference layer potential densities in sigma units
-                           ! [g kg-3].
+      u0     = 30._r8, &     ! Maximum jet velocity [cm s-1].
+      h1     = 1.e4_r8, &    ! Depth of active layer [cm].
+      h0     = 2.e4_r8, &    ! Depth of water column [cm].
+      l0     = 2.e6_r8, &    ! Half-width of the jet [cm].
+      drho   = 0.19e-3_r8, & ! Active layer density difference [g cm-3].
+      rho1   = 1.0259_r8, &  ! Density at the center of active layer [g cm-3].
+      rho0   = 1.0270_r8, &  ! Density of water beneath active layer [g cm-3].
+      f      = 1.e-4_r8, &   ! Coriolis parameter [1 s-1].
+      lat0   = 45._r8, &     ! Center latitude of grid domain [deg].
+      lambda = 20.8e5, &     ! Channel length [cm].
+      mindz  = 1.e2_r8, &    ! Minimum interior layer thickness [cm].
+      saln0  = 35._r8        ! Constant salinity value [g kg-1].
 
    public :: geoenv_fuk95, inifrc_fuk95, ictsz_fuk95
 
@@ -81,7 +75,7 @@ contains
       real(r8), intent(in) :: ri, rj
 
       x_nudge = ( ri + i0 - itdm/2 - .5_r8 &
-                + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*gs
+                + .1_r8*sin(2._r8*(rj + j0 - 1)*pi/jtdm))*lambda/jtdm
 
    end function x_nudge
 
@@ -128,7 +122,7 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(itdm,jtdm) :: tmpg
-      real(r8) :: dlat, dlon
+      real(r8) :: gs, dlat, dlon
       integer i, j
 
       ! Set water depth.
@@ -147,6 +141,9 @@ contains
 
       ! Number of wet points.
       nwp = (itdm - 2)*jtdm
+
+      ! Grid spacing.
+      gs = lambda/jtdm
 
       ! Set grid coordinates, Coriolis parameter and local grid angle.
 
@@ -267,11 +264,20 @@ contains
 
       real(r8), dimension(1 - nbdy:idm + nbdy, &
                           1 - nbdy:jdm + nbdy, kdm + 1) :: z
-      real(r8) :: x, sigm, sigi, zm
+      real(r8), dimension(kdm) :: sigref
+      real(r8) :: drhojet, dsig, x, sigm, sigi, zm
       integer :: i, j, k, l
+
 
       ! Set reference potential density and initial salinity and temperature in
       ! the layers.
+      drhojet = rho1*f*u0*l0/(g*h1)
+      dsig = (drho + drhojet)/(kk - 4)
+      sigref(kk) = rho0 - 1._r8
+      sigref(kk - 1) = rho1 + .5_r8*(drho + drhojet) - 1._r8
+      do k = kk - 2, 1, -1
+         sigref(k) = sigref(k + 1) - dsig
+      enddo
    !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, kk
