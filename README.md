@@ -11,7 +11,9 @@ BLOM documetation is integrated in the general NorESM documentation on ReadTheDo
 - [BLOM model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
 - [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
 
-### Building the code
+### Building the code with meson
+When compiling BLOM with NorESM, the NorESM build system should be used. A stand-alone
+BLOM executable can be built by using the meson build system.
 To build the code ensure that [`Meson`](https://mesonbuild.com/) is available.
 The following will build the default version of BLOM _without_ `MPI`.
 
