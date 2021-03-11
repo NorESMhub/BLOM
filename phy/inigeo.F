@@ -24,6 +24,7 @@ c --- Initialize the geographic environment
 c --- ------------------------------------------------------------------
 c
       use mod_config, only: expcnf
+      use mod_fuk95, only: geoenv_fuk95
       use mod_xc
       use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat,
      .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
@@ -56,21 +57,24 @@ c --- ------------------------------------------------------------------
 c --- Define bathymetry, grid specification and Coriolis parameter
 c --- ------------------------------------------------------------------
 c
-      if     (expcnf.eq.'cesm') then
-        call geoenv_file
-        call geoenv_cesmextra
-      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
-     .        expcnf.eq.'isomip1'.or.expcnf.eq.'isomip2') then
-        call geoenv_file
-      elseif (expcnf.eq.'test') then
-        call geoenv_test
-      else
-        if (mnproc.eq.1) then
-          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-        endif
-        call xcstop('(inigeo)')
-               stop '(inigeo)'
-      endif
+      select case (trim(expcnf))
+        case ('cesm')
+          call geoenv_file
+          call geoenv_cesmextra
+        case ('ben02clim', 'ben02syn', 'isomip1', 'isomip2')
+          call geoenv_file
+        case ('fuk95')
+          call geoenv_fuk95
+        case ('test')
+          call geoenv_test
+        case default
+          if (mnproc.eq.1) then
+             write (lp,'(3a)') ' inigeo: expcnf = ', trim(expcnf),
+     .                         ' is unsupported!'
+          endif
+          call xcstop('(inigeo)')
+                 stop '(inigeo)'
+      end select
 c
 c --- ------------------------------------------------------------------
 c --- Compute auxilary grid parameters

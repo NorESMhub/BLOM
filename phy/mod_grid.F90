@@ -74,7 +74,7 @@ module mod_grid
       ulat, &    ! Latitude of u-point [degrees].
       vlon, &    ! Longitude of v-point [degrees].
       vlat, &    ! Latitude of v-point [degrees].
-      depths, &  ! Water depth [cm].
+      depths, &  ! Water depth [m].
       corioq, &  ! Coriolis parameter at q-point [s-1].
       coriop, &  ! Coriolis parameter at p-point [s-1].
       betafp, &  ! Derivative of Coriolis parameter with respect to meridional

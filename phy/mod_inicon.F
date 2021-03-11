@@ -28,17 +28,22 @@ c
       use mod_types, only: r8
       use mod_config, only: expcnf
       use mod_constants, only: g, epsil, onem
-      use mod_time, only: nstep
+      use mod_time, only: nstep, delt1, dlt
       use mod_xc
-      use mod_grid, only: sigmar, depths, corioq
-      use mod_state, only: dp, dpu, dpv, temp, saln, sigma,
-     . p, pu, pv, pb, phi, pbu, pbv, pb_p, pbu_p, pbv_p, kfpla
+      use mod_grid, only: sigmar, scuy, scvx, scuyi, scvxi, depths,
+     .                    corioq
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu,
+     .                     pv, phi, ubflxs, vbflxs, ub, vb, pb, pbu,
+     .                     pbv, ubflxs_p, vbflxs_p, pb_p, pbu_p, pbv_p,
+     .                     ubcors_p, vbcors_p, kfpla
       use mod_pgforc, only: pgfx, pgfy, pgfxm, pgfym,
      .                      xixp, xixm, xiyp, xiym, pgforc
-      use mod_barotp, only: pb_mn, pvtrop
+      use mod_barotp, only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn,
+     .                      pvtrop
       use mod_tmsmt, only: dpold
       use mod_temmin, only: settemmin
       use mod_cesm, only: inicon_cesm
+      use mod_fuk95, only: ictsz_fuk95
       use mod_eos, only: rho, sig, sofsig, delphi
       use mod_swtfrz, only: swtfrz
       use mod_pointtest, only: itest, jtest, ptest
@@ -341,25 +346,29 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tfrz
 c
       integer i,j,k,l
-      real q,dps
+      real q,tsfac,dps
 c
 c --- ------------------------------------------------------------------
 c --- Define layer interface heights and layer temperature and salinity
 c --- ------------------------------------------------------------------
-      if     (expcnf.eq.'cesm'.or.
-     .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
-        call ictsz_file
-      elseif (expcnf.eq.'isomip1') then
-c       call ictsz_isomip1
-      elseif (expcnf.eq.'isomip2') then
-c       call ictsz_isomip2
-      else
-        if (mnproc.eq.1) then
-          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-        endif
-        call xcstop('(inicon)')
-               stop '(inicon)'
-      endif
+c
+      select case (trim(expcnf))
+        case ('cesm', 'ben02clim', 'ben02syn')
+          call ictsz_file
+        case ('fuk95')
+          call ictsz_fuk95
+        case ('isomip1')
+c         call ictsz_isomip1
+        case ('isomip2')
+c         call ictsz_isomip2
+        case default
+          if (mnproc.eq.1) then
+             write (lp,'(3a)') ' inicon: expcnf = ', trim(expcnf),
+     .                         ' is unsupported!'
+          endif
+          call xcstop('(inicon)')
+                 stop '(inicon)'
+      end select
 c
 c --- ------------------------------------------------------------------
 c --- Set minimum physical temperature for each isopycnic layer
@@ -371,17 +380,12 @@ c --- ------------------------------------------------------------------
 c --- Initialize configuration specific variables
 c --- ------------------------------------------------------------------
 c
-      if     (expcnf.eq.'cesm') then
-        call inicon_cesm
-      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
-        call inicon_ben02
-      else
-        if (mnproc.eq.1) then
-          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-        endif
-        call xcstop('(inicon)')
-               stop '(inicon)'
-      endif
+      select case (trim(expcnf))
+        case ('cesm')
+          call inicon_cesm
+        case ('ben02clim', 'ben02syn')
+          call inicon_ben02
+      end select
 c
 c --- ------------------------------------------------------------------
 c --- Make sure layer temperature is greater than the lower physical
@@ -597,6 +601,120 @@ c$OMP PARALLEL DO PRIVATE(l,i)
           pvtrop(i,j,1)=corioq(i,j)*4./(pb_p(i,j  )+pb_p(i-1,j  )
      .                                 +pb_p(i,j-1)+pb_p(i-1,j-1))
           pvtrop(i,j,2)=pvtrop(i,j,1)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- Separate baroclinic and barotropic velocity components
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(l,i,k)
+      do j=1,jj
+c
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          ub(i,j,1)=0.
+        enddo
+        do k=1,kk
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            ub(i,j,1)=ub(i,j,1)+u(i,j,k)*dpu(i,j,k)
+          enddo
+        enddo
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          ub(i,j,1)=ub(i,j,1)/pbu_p(i,j)
+          ub(i,j,2)=ub(i,j,1)
+        enddo
+        enddo
+c
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          vb(i,j,1)=0.
+        enddo
+        do k=1,kk
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            vb(i,j,1)=vb(i,j,1)+v(i,j,k)*dpv(i,j,k)
+          enddo
+        enddo
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          vb(i,j,1)=vb(i,j,1)/pbv_p(i,j)
+          vb(i,j,2)=vb(i,j,1)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+      do k=1,kk
+c$OMP PARALLEL DO PRIVATE(l,i)
+        do j=1,jj
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            u(i,j,k)=u(i,j,k)-ub(i,j,1)
+            u(i,j,k+kk)=u(i,j,k)
+          enddo
+          enddo
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            v(i,j,k)=v(i,j,k)-vb(i,j,1)
+            v(i,j,k+kk)=v(i,j,k)
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      enddo
+c
+      tsfac=delt1/dlt
+c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          ubflx_mn(i,j,1)=ub(i,j,1)*pbu_p(i,j)*scuy(i,j)
+          ubflx_mn(i,j,2)=ubflx_mn(i,j,1)
+          ubflx(i,j,1)=ubflx_mn(i,j,1)
+          ubflx(i,j,2)=ubflx_mn(i,j,1)
+          ubflxs(i,j,1)=ubflx_mn(i,j,1)*tsfac
+          ubflxs(i,j,2)=ubflxs(i,j,1)
+          ubflxs(i,j,3)=ubflxs(i,j,1)
+          ubflxs_p(i,j,1)=ubflxs(i,j,1)
+          ubflxs_p(i,j,2)=ubflxs(i,j,1)
+        enddo
+        enddo
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          vbflx_mn(i,j,1)=vb(i,j,1)*pbv_p(i,j)*scvx(i,j)
+          vbflx_mn(i,j,2)=vbflx_mn(i,j,1)
+          vbflx_mn(i,j,2)=vbflx_mn(i,j,1)
+          vbflx(i,j,1)=vbflx_mn(i,j,1)
+          vbflx(i,j,2)=vbflx_mn(i,j,1)
+          vbflxs(i,j,1)=vbflx_mn(i,j,1)*tsfac
+          vbflxs(i,j,2)=vbflxs(i,j,1)
+          vbflxs(i,j,3)=vbflxs(i,j,1)
+          vbflxs_p(i,j,1)=vbflxs(i,j,1)
+          vbflxs_p(i,j,2)=vbflxs(i,j,1)
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+          ubcors_p(i,j)= (vbflx_mn(i  ,j  ,1)*scvxi(i  ,j  )
+     .                   +vbflx_mn(i  ,j+1,1)*scvxi(i  ,j+1)
+     .                   +vbflx_mn(i-1,j  ,1)*scvxi(i-1,j  )
+     .                   +vbflx_mn(i-1,j+1,1)*scvxi(i-1,j+1))
+     .                   *(pvtrop(i,j,1)+pvtrop(i,j+1,1))*.125*tsfac
+        enddo
+        enddo
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          ubcors_p(i,j)=-(ubflx_mn(i  ,j  ,1)*scuyi(i  ,j  )
+     .                   +ubflx_mn(i+1,j  ,1)*scuyi(i+1,j  )
+     .                   +ubflx_mn(i  ,j-1,1)*scuyi(i  ,j-1)
+     .                   +ubflx_mn(i+1,j-1,1)*scuyi(i+1,j-1))
+     .                   *(pvtrop(i,j,1)+pvtrop(i+1,j,1))*.125*tsfac
         enddo
         enddo
       enddo

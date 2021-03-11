@@ -90,6 +90,7 @@ set EXPCNF   = "'cesm'"
 set RUNTYP   = "'$RUN_TYPE'"
 set GRFILE   = "'unset'"
 set ICFILE   = "'unset'"
+set PREF     = 2000.e5
 set BACLIN   = 1800.
 set BATROP   = 36.
 set MDV2HI   = 2.
@@ -151,6 +152,8 @@ set SCFILE   = "'unset'"
 set SMTFRC   = .true.
 set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
+set ITEST    = 60
+set JTEST    = 60
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -727,6 +730,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 ! ICFILE   : Name of file containing initial conditions, that is either
 !            a valid restart file or 'inicon.nc' if climatological based
 !            initial conditions are desired (a)
+! PREF     : Reference pressure for potential density (g/cm/s2) (f)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -817,6 +821,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
 !            'ben02syn' (a)
+! ITEST    : Global i-index of point diagnostics (i)
+! JTEST    : Global j-index of point diagnostics (i)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -832,6 +838,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   RUNTYP   = $RUNTYP
   GRFILE   = $GRFILE
   ICFILE   = $ICFILE
+  PREF     = $PREF
   BACLIN   = $BACLIN
   BATROP   = $BATROP
   MDV2HI   = $MDV2HI
@@ -893,6 +900,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   SMTFRC   = $SMTFRC
   SPRFAC   = $SPRFAC
   ATM_PATH = $ATM_PATH
+  ITEST    = $ITEST
+  JTEST    = $JTEST
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT
   RSTCMP   = $RSTCMP

@@ -98,6 +98,8 @@ contains
             calendar = '360_day'
          case ('ben02syn')           
             calendar = 'standard'
+         case ('fuk95')           
+            calendar = '360_day'
          case ('isomip1', 'isomip2') 
             calendar = '360_day'
          case default

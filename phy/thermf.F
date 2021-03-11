@@ -30,21 +30,24 @@ c
 c
       integer m,n,mm,nn,k1m,k1n
 c
-      if     (expcnf.eq.'cesm') then
-        call thermf_cesm(m,n,mm,nn,k1m,k1n)
-      elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
-        call thermf_ben02(m,n,mm,nn,k1m,k1n)
-      elseif (expcnf.eq.'isomip1') then
-c       call thermf_isomip1(m,n,mm,nn,k1m,k1n)
-      elseif (expcnf.eq.'isomip2') then
-c       call thermf_isomip2(m,n,mm,nn,k1m,k1n)
-      else
-        if (mnproc.eq.1) then
-          write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-        endif
-        call xcstop('(thermf)')
-               stop '(thermf)'
-      endif
+      select case (trim(expcnf))
+        case ('cesm')
+          call thermf_cesm(m,n,mm,nn,k1m,k1n)
+        case ('ben02clim', 'ben02syn')
+          call thermf_ben02(m,n,mm,nn,k1m,k1n)
+        case ('fuk95')
+        case ('isomip1')
+c         call thermf_isomip1(m,n,mm,nn,k1m,k1n)
+        case ('isomip2')
+c         call thermf_isomip2(m,n,mm,nn,k1m,k1n)
+        case default
+          if (mnproc.eq.1) then
+             write (lp,'(3a)') ' thermf: expcnf = ', trim(expcnf),
+     .                         ' is unsupported!'
+          endif
+          call xcstop('(thermf)')
+                 stop '(thermf)'
+      end select
 c
       return
       end
