@@ -59,6 +59,7 @@ subdir('drivers')
 subdir('ben02')
 subdir('cesm')
 subdir('fuk95')
+subdir('single_column')
 
 # Handle options and add necessary flags and subfolders with source files
 
