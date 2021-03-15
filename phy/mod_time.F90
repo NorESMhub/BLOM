@@ -23,7 +23,7 @@ module mod_time
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_configuration, only: expcnf
+   use mod_config, only: expcnf
    use mod_constants, only: epsil
    use mod_calendar, only: date_type, daynum_diff, date_offset, &
                            calendar_noerr, calendar_errstr
@@ -73,10 +73,14 @@ module mod_time
                       ! (leap-frog).
       dlt             ! Resolved barotropic time step.
 
+   ! Interpolation parameters for monthly climatological fields.
+   real(r8) :: xmi
+   integer :: l1mi, l2mi, l3mi, l4mi, l5mi
+
    public :: date0, date, calendar, nday1, nday2, nday_in_year, nday_of_year, &
              nstep0, nstep1, nstep2, nstep, lstep, nstep_in_day, time0, time, &
-             baclin, batrop, delt1, dlt, init_timevars, set_day_of_year, &
-             step_time, blom_time
+             baclin, batrop, delt1, dlt, xmi, l1mi, l2mi, l3mi, l4mi, l5mi, &
+             init_timevars, set_day_of_year, step_time, blom_time
 
 contains
 
@@ -86,8 +90,6 @@ contains
    ! already defined.
    ! ---------------------------------------------------------------------------
 
-      integer :: errstat
-
       ! Set calendar type to be used.
       select case (trim(expcnf))
          case ('cesm')               
@@ -96,6 +98,8 @@ contains
             calendar = '360_day'
          case ('ben02syn')           
             calendar = 'standard'
+         case ('fuk95')           
+            calendar = '360_day'
          case ('isomip1', 'isomip2') 
             calendar = '360_day'
          case default
@@ -195,6 +199,17 @@ contains
          call set_day_of_year
 
       endif
+
+      ! Set parameters for time interpolation of climatological fields.
+      xmi = ( nday_of_year - 1 &
+            + mod(nstep, nstep_in_day)/real(nstep_in_day, r8)) &
+            *12._r8/real(nday_in_year, r8)
+      l3mi = int(xmi) + 1
+      xmi = xmi - real(l3mi-1, r8)
+      l1mi = mod(l3mi +  9,12) + 1
+      l2mi = mod(l3mi + 10,12) + 1
+      l4mi = mod(l3mi     ,12) + 1
+      l5mi = mod(l3mi +  1,12) + 1
 
    end subroutine step_time
 

@@ -23,26 +23,33 @@ c --- ------------------------------------------------------------------
 c --- initialize the model
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf
+      use mod_config, only: expcnf
       use mod_time, only: date, nday1, nday2, nstep1, nstep2, nstep,
      .                    delt1
+      use mod_timing, only: init_timing, get_time
       use mod_xc
+      use mod_pointtest, only: init_ptest
+      use mod_inicon, only: icfile
+      use mod_state, only: dp, dpu, dpv, uflx, vflx, p, phi
+      use mod_barotp, only: pvtrop
+      use mod_pgforc, only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
+      use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_eos, only: inieos
       use mod_swabs, only: iniswa
       use mod_dia
+      use mod_inicon, only: inicon
+      use mod_budget, only: budget_init
+      use mod_cmnfld, only: cmnfld
       use netcdf
+#if defined(TRC) && defined(TKE)
+      use mod_tke, only: initke
+#endif
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "param_bud.h"
-#include "common_bud.h"
 c
       integer istat,ncid,varid,i,j,k,l,m,n,mm,km
       real q
       logical icrest,fexist
-c
-      real gettime
-      external gettime
 c
 c --- ------------------------------------------------------------------
 c --- Initialize SPMD processing
@@ -54,11 +61,11 @@ c --- ------------------------------------------------------------------
 c --- Initialize timing
 c --- ------------------------------------------------------------------
 c
-      call initime
+      call init_timing
 c
 c --- print seconds elapsed since startup (should be almost zero)
       if (mnproc.eq.1) then
-        write (lp,'(f12.4,a,i8)') gettime(),' Time 0 BLOM starting up'
+        write (lp,'(f12.4,a,i8)') get_time(),' Time 0 BLOM starting up'
         call flush(lp)
       endif
 c
@@ -69,27 +76,17 @@ c
       call crcinit
 c
 c --- ------------------------------------------------------------------
-c --- Identify processor and horizontal indexes where detailed
-c --- diagnostics are desired
-c --- ------------------------------------------------------------------
-c
-      ptest=0
-      if (itest.gt.i0.and.itest.le.i0+ii.and.
-     .    jtest.gt.j0.and.jtest.le.j0+jj) then
-        write (lp,'(a,i4,a,i4,a,i5)')
-     .    ' itest =',itest,', jtest =',jtest,
-     .    ' found on processor ',mnproc
-        call flush(lp)
-        ptest=mnproc
-        itest=itest-i0
-        jtest=jtest-j0
-      endif
-c
-c --- ------------------------------------------------------------------
 c --- Read limits file
 c --- ------------------------------------------------------------------
 c
       call rdlim
+c
+c --- ------------------------------------------------------------------
+c --- Identify processor and horizontal indexes where detailed
+c --- diagnostics are desired
+c --- ------------------------------------------------------------------
+c
+      call init_ptest
 c
 c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
@@ -102,6 +99,12 @@ c --- Initialize various arrays
 c --- ------------------------------------------------------------------
 c
       call inivar
+c
+c --- ------------------------------------------------------------------
+c --- Set various numerical bounds
+c --- ------------------------------------------------------------------
+c
+      call numerical_bounds
 c
 c --- ------------------------------------------------------------------
 c --- Initialize physical parameterizations
@@ -177,12 +180,12 @@ c
           endif
         endif
 c
+        delt1=baclin
+c
         call inicon
 #ifdef TRC
         call initrc
 #endif
-c
-        delt1=baclin
 c
       else !  nday1+nint(time0) > 0 .or. icrest
 c
@@ -190,9 +193,9 @@ c --- ------------------------------------------------------------------
 c --- - start from restart file
 c --- ------------------------------------------------------------------
 c
-        call restart_rd
-c
         delt1=baclin+baclin
+c
+        call restart_rd
 c
       endif
 c
@@ -253,18 +256,11 @@ c
           call flush(lp)
       endif
 c
-      if (cnsvdi) then
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            util1(i,j)=pb(i,j,1)*scp2(i,j)
-          enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-        call xcsum(mass0,util1,ips)
-      endif
+c --- ------------------------------------------------------------------
+c --- initialize budget calculations
+c --- ------------------------------------------------------------------
+c
+      call budget_init
 c
 c --- ------------------------------------------------------------------
 c --- update some halos
@@ -331,7 +327,7 @@ c
 c --- print seconds elapsed since last call to system_clock (Time 0)
       if (mnproc.eq.1) then
         write (lp,'(f12.4,a,i8)')
-     .    gettime(),' Time 1 Just before main loop'
+     .    get_time(),' Time 1 Just before main loop'
         call flush(lp)
       endif
 c

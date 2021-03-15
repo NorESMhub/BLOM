@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2015 Mats Bentsen
+! Copyright (C) 2004-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,14 +24,13 @@ c --- compute the surface stress
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_forcing, only: ztx, mty, taux, tauy
+      use mod_seaice, only: ficem, hicem, tauxice, tauyice
+      use mod_checksum, only: csdiag, chksummsk
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_seaice.h"
 c
       integer i,j,l
       real facice

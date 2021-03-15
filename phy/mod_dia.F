@@ -20,7 +20,8 @@
 
       module mod_dia 
 c
-      use mod_configuration, only: expcnf, runid
+      use mod_types, only: i2
+      use mod_config, only: expcnf, runid, inst_suffix
       use mod_calendar, only: date_type, date_offset, calendar_noerr
       use mod_time, only: date0, date, calendar, nstep, nstep_in_day,
      .                    nday_of_year, time, time0, baclin, dlt
@@ -29,7 +30,31 @@ c
       use mod_xc 
       use mod_nctools
       use netcdf, only : nf90_fill_double
-      use mod_instance, only: inst_suffix
+      use mod_grid, only: sigmar, scp2, depths, area
+      use mod_eos, only: rho, p_alpha
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
+     .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
+     .                     p, phi, ubflxs, vbflxs, ub, vb, sealv
+      use mod_momtum, only: absvor, dpvor
+      use mod_tmsmt, only: dpold
+      use mod_mxlayr, only: mtkeus, mtkeni, mtkebf, mtkers, mtkepe,
+     .                      mtkeke, pbrnda
+      use mod_diffusion, only: difint, difiso, difdia,
+     .                         umfltd, vmfltd, utfltd, vtfltd, utflld,
+     .                         vtflld, usfltd, vsfltd, usflld, vsflld
+      use mod_cmnfld, only: bfsql
+      use mod_seaice, only: ficem, hicem, hsnwm, uicem, vicem, iagem
+      use mod_forcing, only: swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
+     .                       fmltfz, sfl, ztx, mty, abswnd, surflx,
+     .                       surrlx, salflx, brnflx, salrlx, taux, tauy,
+     .                       ustar, ustar3
+      use mod_niw, only: idkedt
+      use mod_utility, only: util1, util2, util3, util4
+      use mod_ben02, only: dfl, alb
+#ifdef TRC
+      use mod_tracers, only: ntrocn, ntr, natr,
+     .                       itriag, itrtke, itrgls, trc
+#endif
 c
       implicit none
 c
@@ -279,131 +304,47 @@ c
       logical, intent(in) :: diagmon,diagann
       character(len=*), intent(out) :: fname
 c
+      character(len=256) :: prefix
+      character(len=1) :: sep1,sep2
       type(date_type) :: date_tmp
       integer errstat,ns
 c
-      if (diagfq+epsil.gt.1.) then
-        date_tmp=date
-        if   (expcnf.eq.'ben02clim') then
-          errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-          if (errstat.ne.calendar_noerr) then
-            if (mnproc.eq.1) then
-              write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                    trim(calendar_errstr(errstat))
-            endif
-            call xcstop('(diafnm)')
-                   stop '(diafnm)'
-          endif
-          if     (mod(nint(diagfq),360).eq.0) then
-            write(fname,'(4a,i4.4,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.nc'
-          elseif (mod(nint(diagfq),30).eq.0) then
-            write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.nc'
-          else
-            write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.nc'
-          endif
-        elseif (expcnf.eq.'ben02syn') then
-          if (diagmon) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,
-     .        '.nc'
-          elseif (diagann) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,
-     .        '.nc'
-          else
-            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,
-     .        '.nc'
-          endif
-        elseif (expcnf.eq.'cesm') then
-          if (diagmon) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a,i2.2,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,'-',date_tmp%month,
-     .        '.nc'
-          elseif (diagann) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,
-     .        '.nc'
-          else
-            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,
-     .        '.nc'
-          endif
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-          endif
-          call xcstop('(inifrc)')
-                 stop '(inifrc)'
-        endif
+      if (expcnf.eq.'cesm') then
+        prefix=trim(runid)//'.blom'//trim(inst_suffix)
+        sep1='.'
+        sep2='-'
       else
-        date_tmp=date
+        prefix=trim(runid)
+        sep1='_'
+        sep2='.'
+      endif
+c
+      date_tmp=date
+c
+      if (diagfq+epsil.gt.1.) then
+        errstat=date_offset(calendar,date_tmp,-1)
+        if (errstat.ne.calendar_noerr) then
+          if (mnproc.eq.1) then
+            write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                  trim(calendar_errstr(errstat))
+          endif
+          call xcstop('(diafnm)')
+                 stop '(diafnm)'
+        endif
+        if     (diagann) then
+          write(fname,'(4a,i4.4,a)')
+     .      trim(prefix),sep1,trim(ctag),sep1,
+     .      date_tmp%year,'.nc'
+        elseif (diagmon) then
+          write(fname,'(4a,i4.4,a,i2.2,a)')
+     .      trim(prefix),sep1,trim(ctag),sep1,
+     .      date_tmp%year,sep2,date_tmp%month,'.nc'
+        else
+          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
+     .      trim(runid),sep1,trim(ctag),sep1,
+     .      date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,'.nc'
+          endif
+      else
         if (mod(nstep,nstep_in_day).eq.0) then
           errstat=date_offset(calendar,date_tmp,-1)
           if (errstat.ne.calendar_noerr) then
@@ -415,21 +356,13 @@ c
                    stop '(diafnm)'
           endif
         endif
-        ns=nint(nint(mod(nstep+.5-diagfq,real(nstep_in_day))/diagfq)
-     .          *diagfq/nstep_in_day*86400)
-        if (expcnf.eq.'cesm') then
-          write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .      date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,'-',ns,
-     .      '.nc'
-        else
-          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      trim(runid),'_',trim(ctag),'_',
-     .      date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.',ns,
-     .      '.nc'
-        endif
+        ns=86400*(mod(nstep-1,nstep_in_day)+1)/nstep_in_day
+        write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    trim(runid),sep1,trim(ctag),sep1,
+     .    date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,sep2,ns,
+     .    '.nc'
       endif
-
+c
       end subroutine diafnm
 
 
@@ -442,8 +375,6 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-#include "common_blocks.h"
-c
       integer i,j,l,n,istat,istatsum
       integer, parameter :: imn=1-nbdy,imx=idm+nbdy,jmn=imn,jmx=jdm+nbdy
       logical fexist
@@ -451,23 +382,33 @@ c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
       if (mnproc.eq.1) then
-        inquire(file=mer_orfile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(mer_orfile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
+        if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
+     .         +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
+     .         +MSC_MHFLD(1:nphy)+MSC_MSFLX(1:nphy)+MSC_MSFTD(1:nphy)
+     .         +MSC_MSFLD(1:nphy)).ne.0) then
+          inquire(file=mer_orfile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(mer_orfile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
+          inquire(file=mer_mifile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(mer_mifile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
         endif
-        inquire(file=mer_mifile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(mer_mifile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
-        endif
-        inquire(file=sec_sifile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(sec_sifile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
+        if (sum(MSC_VOLTR(1:nphy)).ne.0) then
+          inquire(file=sec_sifile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(sec_sifile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
         endif
       endif
 c
@@ -988,8 +929,6 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-#include "common_blocks.h"
-c
       integer :: i,j,k,i1,j1
       logical lsigmar1
       real, dimension (itdm,jtdm) :: tmp2d
@@ -1042,14 +981,6 @@ c
 c
       integer m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_seaice.h"
-#if defined(TRC) && defined(TKE)
-#  include "param_trc.h"
-#  include "common_trc.h"
-#endif
-c
       integer i,j,k,l,km,kup,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
      .  ipsw,ipse,ipnw,ipne
@@ -1062,9 +993,6 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: 
      .  dpml,sbot,tbot,dps,mlts,t20d
       real dsig,q,zup,zlo,plo,dbup,dblo,tup,tlo
-c
-      real p_alpha,rho
-      external p_alpha,rho
 c
 c --- Increase counter 
       do iogrp=1,nphy
@@ -1432,7 +1360,7 @@ c --- heat flux due to melting/freezing [W/m^2]
       call acch2d(ACC_HMLTFZ,hmltfz,dummy,0,'p')
 c
 c --- derivative of non-solar heat flux by surface temperature [W/m^2/K]
-      call acch2d(ACC_DFL,dfl,dummy,0,'p')
+      if (allocated(dfl)) call acch2d(ACC_DFL,dfl,dummy,0,'p')
 c
 c --- liquid precipitation [mm/day]
       call acch2d(ACC_LIP,lip,dummy,0,'p')
@@ -1450,13 +1378,13 @@ c --- salt flux [kg/m^2/s]
       call acch2d(ACC_SFL,sfl,dummy,0,'p')
 c
 c --- albedo
-      call acch2d(ACC_ALB,alb,dummy,0,'p')
+      if (allocated(alb)) call acch2d(ACC_ALB,alb,dummy,0,'p')
 c
 c --- liquid runoff [kg m-2 s-1]
-      call acch2d(ACC_RNFFLX,rnfflx,dummy,0,'p')
+      call acch2d(ACC_RNFFLX,rnf,dummy,0,'p')
 c
 c --- frozen runoff [kg m-2 s-1]
-      call acch2d(ACC_RFIFLX,rfiflx,dummy,0,'p')
+      call acch2d(ACC_RFIFLX,rfi,dummy,0,'p')
 c
 c --- friction velocity [cm s-1]
       call acch2d(ACC_USTAR,ustar,dummy,0,'p')
@@ -1848,10 +1776,6 @@ c
 c
       integer m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_seaice.h"
-c
       integer iogrp
 c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: iuu,ivv
@@ -1867,8 +1791,6 @@ c
       real, dimension(itdm,jtdm) :: bflxg,strg
 c
 #if defined(TRC)
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts,
      .   wghtsflx
@@ -1891,8 +1813,7 @@ c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
      .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
      .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0)
-     .  call diamer(iogrp)
+     .   +ACC_MSFLD(iogrp).ne.0) call diamer(iogrp)
       if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp)
 c
 c --- compute barotropic mass streamfunction
@@ -2265,10 +2186,31 @@ c --- define output dimensions
       endif
       call ncdims('sigma',kdm)
       call ncdims('depth',ddm)
-      call ncdims('region',mer_nreg)
       call ncdims('bounds',2) 
-      call ncdims('slenmax',slenmax)
       call ncdims('time',0)
+c
+      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
+     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
+     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
+     .   +ACC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
+        call ncdims('slenmax',slenmax)
+      endif
+c
+      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
+     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
+     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
+     .   +ACC_MSFLD(iogrp).ne.0) then
+        if ((lmax.gt.0.and.lmax.le.ldm)) then
+          call ncdims('lat',lmax)
+          call ncdims('region',mer_nreg)
+        else
+          write (lp,*)
+     .      'Illegal dimension of meridional diagnostics: lmax=',lmax,
+     .      ' ldm=',ldm
+          call xchalt('(diaout)')
+                 stop '(diaout)'
+        endif
+      endif
 c
       if (ACC_VOLTR(iogrp).ne.0) then
         if ((sec_num.gt.0.and.sec_num.le.max_sec)) then
@@ -2281,24 +2223,9 @@ c
         endif
       endif
 c
-      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
-     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
-     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0) then
-        if ((lmax.gt.0.and.lmax.le.ldm)) then
-          call ncdims('lat',lmax)
-        else
-          write (lp,*)
-     .      'Illegal dimension of meridional diagnostics: lmax=',lmax,
-     .      ' ldm=',ldm
-          call xchalt('(diaout)')
-                 stop '(diaout)'
-        endif
-      endif
-c
-       call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
+      call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
-       call nctime(datenum,calendar,timeunits,startdate)
+      call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
       if (irec(iogrp).eq.1) then
@@ -2318,20 +2245,15 @@ c --- zlevel
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then 
+     .     +MSC_MSFLD(iogrp).ne.0) then 
           call ncwrt1('lat','lat',mtlat)  
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
           call ncattr('units','degree_north')
-        endif 
-        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp).ne.0) then
           call ncwrtc('region','slenmax region',mer_regnam)  
           call ncattr('long_name','Region name') 
         endif
-        if (MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)+MSC_MHFLD(iogrp)
-     .     +MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)+MSC_MSFLD(iogrp).ne.0)
-     .  then 
+        if (MSC_VOLTR(iogrp).ne.0) then 
           call ncwrtc('section','slenmax section',sec_name)
           call ncattr('long_name','Section name') 
         endif 
@@ -2537,15 +2459,15 @@ c
 c
       call wrth2d(ACC_MLTSMN(iogrp),H2D_MLTSMN(iogrp),1e-2,
      .  0.,cmpflg,ip,'p','mltsmn',
-     . 'Minimum mixed layer thickness defined by sigma t',' ','m')
+     .  'Minimum mixed layer thickness defined by sigma t',' ','m')
 c
       call wrth2d(ACC_MLTSMX(iogrp),H2D_MLTSMX(iogrp),1e-2,
      .  0.,cmpflg,ip,'p','mltsmx',
-     . 'Maximum mixed layer thickness defined by sigma t',' ','m')
+     .  'Maximum mixed layer thickness defined by sigma t',' ','m')
 c
       call wrth2d(ACC_MLTSSQ(iogrp),H2D_MLTSSQ(iogrp),rnacc*1e-4,
      .  0.,cmpflg,ip,'p','mltssq',
-     . 'Mixed layer thickness squared defined by sigma t',' ','m')
+     .  'Mixed layer thickness squared defined by sigma t',' ','m')
 c
       call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc*1e-2,
      .  0.,cmpflg,ip,'p','t20d','20C isoterm depth',' ','m')
@@ -2582,8 +2504,8 @@ c
      .  'm s-1')
 c
 c --- write 3d layer fields
-      call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*.1,0.
-     .  ,cmpflg,ip,'p','dp','Layer pressure thickness',' ','Pa')
+      call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*.1,0.,
+     .  cmpflg,ip,'p','dp','Layer pressure thickness',' ','Pa')
 c
       call wrtlyr(ACC_DZ(iogrp),LYR_DZ(iogrp),
      .  rnacc*1e-2,0.,cmpflg,ip,'p','dz','Layer thickness',' ','m')
@@ -3012,8 +2934,8 @@ c --- ideal age tracer
         enddo
         call msklvl(ACC_UTILLVL(1),'p')
         call wrtlvl(ACC_UTILLVL(1),LVL_IDLAGE(iogrp),
-     .  1.,0.,cmpflg,ip,'p','idlagelvl','Ideal age',
-     .   'sea_water_age_since_surface_contact','year')
+     .    1.,0.,cmpflg,ip,'p','idlagelvl','Ideal age',
+     .    'sea_water_age_since_surface_contact','year')
       endif
 #  endif
 c
@@ -3073,7 +2995,7 @@ c$OMP END PARALLEL DO
           write (trcnm,'(a,i3.3)') 'trclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
           call wrtlvl(ACC_UTILLVL(1),LVL_TRC(iogrp),
-     .    1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
+     .      1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
         enddo
         do nt=1,natr
           nat=ntr-natr+nt
@@ -3098,7 +3020,7 @@ c$OMP END PARALLEL DO
           write (trcnm,'(a,i3.3)') 'atrclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
           call wrtlvl(ACC_UTILLVL(1),LVL_TRC(iogrp),
-     .    1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
+     .      1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
         enddo
 #  else
         do nt=1,ntrocn
@@ -3112,7 +3034,7 @@ c$OMP END PARALLEL DO
           write (trcnm,'(a,i3.3)') 'trclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
           call wrtlvl(ACC_UTILLVL(1),LVL_TRC(iogrp),
-     .    1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
+     .      1.,0.,cmpflg,ip,'p',trim(trcnm),trim(trcnml),' ',' ')
         enddo
 #  endif
       endif
@@ -3135,8 +3057,6 @@ c
 c
       implicit none
 c
-#include "common_blocks.h"
-
       integer :: iogrp
 c
       integer :: n,i,j,k,s,l
@@ -3285,16 +3205,13 @@ c
 c
       implicit none
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-c
       integer :: iogrp
 c 
       integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,iostatus,
      .  istat,iind1,jind1,uflg1,vflg1,nind1,
      .  nfld,ACC_UIND,ACC_VIND,nind(ldm),iind(sdm,ldm),jind(sdm,ldm),
      .  kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
-      integer(kind=2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
+      integer(i2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ucum,vcum
       real, dimension(itdm,jtdm) :: depthst,ucumg,vcumg
@@ -3359,8 +3276,8 @@ c --- --- Read section file metra_index.dat
                 nind(l)=nind(l)+1
                 iind(nind(l),l)=iind1
                 jind(nind(l),l)=jind1
-                uflg(nind(l),l)=uflg1
-                vflg(nind(l),l)=vflg1
+                uflg(nind(l),l)=int(uflg1,i2)
+                vflg(nind(l),l)=int(vflg1,i2)
                 if (iind(nind(l),l).lt.1.or.
      .              iind(nind(l),l).gt.itdm.or.
      .              jind(nind(l),l).lt.1.or.
@@ -3905,8 +3822,6 @@ c
 c
       integer iogrp,m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
-c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: wflx,ucum,vcum
       integer :: i,j,k,km,kn,l
       real :: q
@@ -4008,8 +3923,6 @@ c
 c-----------------------------------------------------------------------
 c
       implicit none
-c
-#include "common_blocks.h"
 c
       integer :: d,i,j,k,mm,nn,l,kl,km,kn,kml,k1m
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)  :: ind1,ind2
@@ -4965,8 +4878,6 @@ c
 c
       implicit none
 c
-#include "common_blocks.h"
-
       integer :: iogrp
 c
 c --- initialisation of 2d fields
@@ -5781,8 +5692,6 @@ c --- ------------------------------------------------------------------
 c
       implicit none
 c
-#include "common_blocks.h"
-c 
       integer :: pos
       character :: gridid
 c 
@@ -5858,115 +5767,114 @@ c$OMP END PARALLEL DO
 c
       end subroutine msklvl
 
-!define output variables subroutine definevar
+
       subroutine definevar(irec,iogrp,cmpflg,timeunits,calendar)
+c
+c --- ------------------------------------------------------------------
+c --- Define output variables subroutine definevar
+c --- ------------------------------------------------------------------
+c
       integer irec,iogrp,cmpflg
       character timeunits*30,calendar*19
 #if defined(TRC)
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer nt,nat,km
       character trcnm*80,trcnml*80
 #endif
+c
       call ncdefvar('time','time',ndouble,0)
       call ncattr('long_name','time')
       call ncattr('units',timeunits)
       call ncattr('calendar',calendar)
       if (irec.eq.1) then
-c --- define sigma levels
-       call ncdefvar('sigma','sigma',ndouble,8)
-       call ncattr('long_name','Potential density')
-       call ncattr('standard_name','sea_water_sigma_theta')
-       call ncattr('units','kg m-3')
-       call ncattr('positive','down')
-c --- define zlevel
-       call ncdefvar('depth','depth',ndouble,8)
-       call ncattr('long_name','z level')
-       call ncattr('units','m')
-       call ncattr('positive','down')
-       call ncattr('bounds','depth_bnds')
-       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+c --- - define sigma levels
+        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncattr('long_name','Potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
+c --- - define zlevel
+        call ncdefvar('depth','depth',ndouble,8)
+        call ncattr('long_name','z level')
+        call ncattr('units','m')
+        call ncattr('positive','down')
+        call ncattr('bounds','depth_bnds')
+        call ncdefvar('depth_bnds','bounds depth',ndouble,8)
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
-        call ncdefvar('lat','lat',ndouble,8)
-        call ncattr('long_name','Latitude')
-        call ncattr('standard_name','latitude')
-        call ncattr('units','degree_north')
+     .     +MSC_MSFLD(iogrp).ne.0) then
+          call ncdefvar('lat','lat',ndouble,8)
+          call ncattr('long_name','Latitude')
+          call ncattr('standard_name','latitude')
+          call ncattr('units','degree_north')
+          call ncdefvar('region','slenmax region',nchar,0)
+          call ncattr('long_name','Region name')
         endif
-        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp).ne.0) then
-        call ncdefvar('region','slenmax region',nchar,0)
-        call ncattr('long_name','Region name')
+        if (MSC_VOLTR(iogrp).ne.0) then
+          call ncdefvar('section','slenmax section',nchar,0)
+          call ncattr('long_name','Section name')
         endif
-        if (MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)+MSC_MHFLD(iogrp)
-     .     +MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)+MSC_MSFLD(iogrp).ne.0)
-     .  then
-        call ncdefvar('section','slenmax section',nchar,0)
-        call ncattr('long_name','Section name')
-        endif
-       endif
+      endif
 c --- define 2d fields
       call ncdefvar3d(H2D_SIGMX(iogrp),cmpflg,'p','sigmx',
-     . 'Mixed layer density',' ','kg m-3',0)
+     .  'Mixed layer density',' ','kg m-3',0)
 c
       call ncdefvar3d(H2D_UB(iogrp),cmpflg,'u','ubaro',
-     . 'Barotropic velocity x-component',' ','m s-1',0)
+     .  'Barotropic velocity x-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_VB(iogrp),cmpflg,'v','vbaro',
-     . 'Barotropic velocity y-component',' ','m s-1',0)
+     .  'Barotropic velocity y-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_PSRF(iogrp),cmpflg,'p','psrf',
-     . 'Surface pressure',' ','Pa',0)
+     .  'Surface pressure',' ','Pa',0)
 c
       call ncdefvar3d(H2D_PBOT(iogrp),cmpflg,'p','pbot',
-     . 'Bottom pressure',' ','Pa',0)
+     .  'Bottom pressure',' ','Pa',0)
 c
       call ncdefvar3d(H2D_SEALV(iogrp),cmpflg,'p','sealv',
-     . 'Sea level',' ','m',0)
+     .  'Sea level',' ','m',0)
 c
       call ncdefvar3d(H2D_SLVSQ(iogrp),cmpflg,'p','slvsq',
-     . 'Sea level squared',' ','m2',0)
+     .  'Sea level squared',' ','m2',0)
 c
       call ncdefvar3d(H2D_BTMSTR(iogrp),cmpflg,'p','btmstr',
-     . 'Barotropic mass streamfunction',' ','kg s-1',0)
+     .  'Barotropic mass streamfunction',' ','kg s-1',0)
 c
       call ncdefvar3d(H2D_HICE(iogrp),cmpflg,'p','hice',
-     . 'Ice thickness',' ','m',0)
+     .  'Ice thickness',' ','m',0)
 c
       call ncdefvar3d(H2D_TICE(iogrp),cmpflg,'p','tice',
-     . 'Ice temperature',' ','degC',0)
+     .  'Ice temperature',' ','degC',0)
 c
       call ncdefvar3d(H2D_HSNW(iogrp),cmpflg,'p','hsnw',
-     . 'Snow depth',' ','m',0)
+     .  'Snow depth',' ','m',0)
 c
       call ncdefvar3d(H2D_FICE(iogrp),cmpflg,'p','fice',
-     . 'Ice concentration',' ','%',0)
+     .  'Ice concentration',' ','%',0)
 c
       call ncdefvar3d(H2D_TSRF(iogrp),cmpflg,'p','tsrf',
-     . 'Surface temperature',' ','degC',0)
+     .  'Surface temperature',' ','degC',0)
 c
       call ncdefvar3d(H2D_IAGE(iogrp),cmpflg,'p','iage',
-     . 'Ice age',' ','day',0)
+     .  'Ice age',' ','day',0)
 c
       call ncdefvar3d(H2D_UICE(iogrp),cmpflg,'u','uice',
-     . 'Ice velocity x-component',' ','m s-1',0)
+     .  'Ice velocity x-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_VICE(iogrp),cmpflg,'v','vice',
-     . 'Ice velocity y-component',' ','m s-1',0)
+     .  'Ice velocity y-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_SWA(iogrp),cmpflg,'p','swa',
-     . 'Short-wave heat flux',' ','W m-2',0)
+     .  'Short-wave heat flux',' ','W m-2',0)
 c
       call ncdefvar3d(H2D_NSF(iogrp),cmpflg,'p','nsf',
-     . 'Non-solar heat flux',' ','W m-2',0)
+     .  'Non-solar heat flux',' ','W m-2',0)
 c
       call ncdefvar3d(H2D_HMLTFZ(iogrp),cmpflg,'p','hmltfz',
      .  'Heat flux due to melting/freezing',' ','W m-2',0)
 c
       call ncdefvar3d(H2D_DFL(iogrp),cmpflg,'p','dfl',
-     . 'Non-solar heat flux derivative',' ','W m-2 K-1',0)
+     .  'Non-solar heat flux derivative',' ','W m-2 K-1',0)
 c
       call ncdefvar3d(H2D_SURFLX(iogrp),cmpflg,'p','hflx',
      .  'Heat flux received by ocean',' ','W m-2',0)
@@ -5975,22 +5883,22 @@ c
      .  'Restoring heat flux received by ocean',' ','W m-2',0)
 c
       call ncdefvar3d(H2D_LIP(iogrp),cmpflg,'p','lip',
-     . 'Liquid precipitation',' ','kg m-2 s-1',0)
+     .  'Liquid precipitation',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_SOP(iogrp),cmpflg,'p','sop',
-     . 'Solid precipitation',' ','kg m-2 s-1',0)
+     .  'Solid precipitation',' ','kg m-2 s-1',0)
 
       call ncdefvar3d(H2D_EVA(iogrp),cmpflg,'p','eva',
-     . 'Evaporation',' ','kg m-2 s-1',0)
+     .  'Evaporation',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_FMLTFZ(iogrp),cmpflg,'p','fmltfz',
      .  'Fresh water flux due to melting/freezing',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_RNFFLX(iogrp),cmpflg,'p','rnf',
-     . 'Liquid runoff',' ','kg m-2 s-1',0)
+     .  'Liquid runoff',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_RFIFLX(iogrp),cmpflg,'p','rfi',
-     . 'Frozen runoff',' ','kg m-2 s-1',0)
+     .  'Frozen runoff',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_SALFLX(iogrp),cmpflg,'p','sflx',
      .  'Salt flux received by ocean',' ','kg m-2 s-1',0)
@@ -5999,13 +5907,13 @@ c
      .  'Restoring salt flux received by ocean',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_BRNFLX(iogrp),cmpflg,'p','bflx',
-     . 'Brine flux',' ','kg m-2 s-1',0)
+     .  'Brine flux',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_ZTX(iogrp),cmpflg,'u','ztx',
-     . 'Wind stress x-component',' ','N m-2',0)
+     .  'Wind stress x-component',' ','N m-2',0)
 c
       call ncdefvar3d(H2D_MTY(iogrp),cmpflg,'v','mty',
-     . 'Wind stress y-component',' ','N m-2',0)
+     .  'Wind stress y-component',' ','N m-2',0)
 c
       call ncdefvar3d(H2D_TAUX(iogrp),cmpflg,'u','taux',
      .  'Momentum flux received by ocean x-component',' ','N m-2',0)
@@ -6018,13 +5926,13 @@ c
      .  ' ','kg s-3',0)
 c
       call ncdefvar3d(H2D_USTAR(iogrp),cmpflg,'p','ustar',
-     . 'Friction velocity',' ','m s-1',0)
+     .  'Friction velocity',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_USTAR3(iogrp),cmpflg,'p','ustar3',
      .  'Friction velocity cubed',' ','m3 s-3',0)
 c
       call ncdefvar3d(H2D_ABSWND(iogrp),cmpflg,'p','abswnd',
-     . 'Absolute wind speed',' ','m s-1',0)
+     .  'Absolute wind speed',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_MTKEUS(iogrp),cmpflg,'p','mtkeus',
      .  'Mixed layer turbulent kinetic energy tendency '//
@@ -6057,13 +5965,13 @@ c
      .  ' ','kg s-3',0)
 c
       call ncdefvar3d(H2D_SFL(iogrp),cmpflg,'p','sfl',
-     . 'Salt flux',' ','kg m-2 s-1',0)
+     .  'Salt flux',' ','kg m-2 s-1',0)
 c
       call ncdefvar3d(H2D_ALB(iogrp),cmpflg,'p','alb',
-     . 'Surface albedo',' ','1',0)
+     .  'Surface albedo',' ','1',0)
 c
       call ncdefvar3d(H2D_MLD(iogrp),cmpflg,'p','mld',
-     . 'Mixed layer depth',' ','m',0)
+     .  'Mixed layer depth',' ','m',0)
 c
       call ncdefvar3d(H2D_MLDU(iogrp),cmpflg,'u','mldu',
      .  'Mixed layer depth at u-point',' ','m',0)
@@ -6072,69 +5980,69 @@ c
      .  'Mixed layer depth at v-point',' ','m',0)
 c
       call ncdefvar3d(H2D_MAXMLD(iogrp),cmpflg,'p','maxmld',
-     . 'Maximum mixed layer depth',' ','m',0)
+     .  'Maximum mixed layer depth',' ','m',0)
 c
       call ncdefvar3d(H2D_MLTS(iogrp),cmpflg,'p','mlts',
-     . 'Mixed layer thickness defined by sigma t',' ','m',0)
+     .  'Mixed layer thickness defined by sigma t',' ','m',0)
 c
       call ncdefvar3d(H2D_MLTSMN(iogrp),cmpflg,'p','mltsmn',
-     . 'Minimum mixed layer thickness defined by sigma t',' ','m',0)
+     .  'Minimum mixed layer thickness defined by sigma t',' ','m',0)
 c
       call ncdefvar3d(H2D_MLTSMX(iogrp),cmpflg,'p','mltsmx',
-     . 'Maximum mixed layer thickness defined by sigma t',' ','m',0)
+     .  'Maximum mixed layer thickness defined by sigma t',' ','m',0)
 c
       call ncdefvar3d(H2D_MLTSSQ(iogrp),cmpflg,'p','mltssq',
-     . 'Maximum mixed layer thickness squared defined by sigma t',' ',
-     . 'm2',0)
+     .  'Maximum mixed layer thickness squared defined by sigma t',' ',
+     .  'm2',0)
 c
       call ncdefvar3d(H2D_T20D(iogrp),cmpflg,'p','t20d',
-     . '20C isoterm depth',' ','m',0)
+     .  '20C isoterm depth',' ','m',0)
 c
       call ncdefvar3d(H2D_BRNPD(iogrp),cmpflg,'p','brnpd',
-     . 'Brine plume depth',' ','m',0)
+     .  'Brine plume depth',' ','m',0)
 c
       call ncdefvar3d(H2D_SSS(iogrp),cmpflg,'p','sss',
-     . 'Ocean surface salinity',' ','g kg-1',0)
+     .  'Ocean surface salinity',' ','g kg-1',0)
 c
       call ncdefvar3d(H2D_SSSSQ(iogrp),cmpflg,'p','ssssq',
-     . 'Ocean surface salinity squared',' ','g2 kg-2',0)
+     .  'Ocean surface salinity squared',' ','g2 kg-2',0)
 c
       call ncdefvar3d(H2D_SBOT(iogrp),cmpflg,'p','sbot',
-     . 'Bottom salinity',' ','g kg-1',0)
+     .  'Bottom salinity',' ','g kg-1',0)
 c
       call ncdefvar3d(H2D_SST(iogrp),cmpflg,'p','sst',
-     . 'Ocean surface temperature',' ','degC',0)
+     .  'Ocean surface temperature',' ','degC',0)
 c
       call ncdefvar3d(H2D_SSTSQ(iogrp),cmpflg,'p','sstsq',
-     . 'Ocean surface temperature squared',' ','degC2',0)
+     .  'Ocean surface temperature squared',' ','degC2',0)
 c
       call ncdefvar3d(H2D_TBOT(iogrp),cmpflg,'p','tbot',
-     . 'Bottom temperature',' ','degC',0)
+     .  'Bottom temperature',' ','degC',0)
 c
       call ncdefvar3d(H2D_MXLU(iogrp),cmpflg,'u','mxlu',
-     . 'Mixed layer velocity x-component',' ','m s-1',0)
+     .  'Mixed layer velocity x-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_MXLV(iogrp),cmpflg,'v','mxlv',
-     . 'Mixed layer velocity y-component',' ','m s-1',0)
+     .  'Mixed layer velocity y-component',' ','m s-1',0)
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p','dp',
-     . 'Layer pressure thickness',' ','Pa',1)
+     .  'Layer pressure thickness',' ','Pa',1)
 c
       call ncdefvar3d(LYR_DZ(iogrp),cmpflg,'p','dz',
-     . 'Layer thickness',' ','m',1)
+     .  'Layer thickness',' ','m',1)
 c
       call ncdefvar3d(LYR_TEMP(iogrp),cmpflg,'p','temp',
-     . 'Temperature','Ocean temperature','degC',1)
+     .  'Temperature','Ocean temperature','degC',1)
 c
       call ncdefvar3d(LYR_SALN(iogrp),cmpflg,'p','saln',
-     . 'Salinity','Ocean salinity','g kg-1',1)
+     .  'Salinity','Ocean salinity','g kg-1',1)
 c
       call ncdefvar3d(LYR_UVEL(iogrp),cmpflg,'u','uvel',
-     . 'Velocity x-component',' ','m s-1',1)
+     .  'Velocity x-component',' ','m s-1',1)
 c
       call ncdefvar3d(LYR_VVEL(iogrp),cmpflg,'v','vvel',
-     . 'Velocity y-component',' ','m s-1',1)
+     .  'Velocity y-component',' ','m s-1',1)
 c
       call ncdefvar3d(LYR_UFLX(iogrp),cmpflg,'u','uflx',
      .  'Mass flux in x-direction',' ','kg s-1',1)
@@ -6208,46 +6116,46 @@ c
 c
       if (LYR_DIFINT(iogrp).eq.2) then
         call ncdefvar3d(LYR_DIFINT(iogrp),cmpflg,'p','difint',
-     . 'Layer interface diffusivity',' ','log10(m2 s-1)',1)
+     .    'Layer interface diffusivity',' ','log10(m2 s-1)',1)
       else
         call ncdefvar3d(LYR_DIFINT(iogrp),cmpflg,'p','difint',
-     . 'Layer interface diffusivity',' ','m2 s-1',1)
+     .    'Layer interface diffusivity',' ','m2 s-1',1)
       endif
 c
       if (LYR_DIFISO(iogrp).eq.2) then
         call ncdefvar3d(LYR_DIFISO(iogrp),cmpflg,'p','difiso',
-     . 'Isopycnal diffusivity',' ','log10(m2 s-1)',1)
+     .    'Isopycnal diffusivity',' ','log10(m2 s-1)',1)
       else
         call ncdefvar3d(LYR_DIFISO(iogrp),cmpflg,'p','difiso',
-     . 'Isopycnal diffusivity',' ','m2 s-1',1)
+     .    'Isopycnal diffusivity',' ','m2 s-1',1)
       endif
 c
       if (LYR_DIFDIA(iogrp).eq.2) then
         call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
-     . 'Diapycnal diffusivity',' ','log10(m2 s-1)',1)
+     .    'Diapycnal diffusivity',' ','log10(m2 s-1)',1)
       else
         call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
-     . 'Diapycnal diffusivity',' ','m2 s-1',1)
+     .    'Diapycnal diffusivity',' ','m2 s-1',1)
       endif
 c
 #if defined TKE 
 
       call ncdefvar3d(LYR_TKE(iogrp),cmpflg,'p','tke',
-     . 'TKE','Turbulent kinetic energy','m2 s-2',1)
+     .  'TKE','Turbulent kinetic energy','m2 s-2',1)
 c
       call ncdefvar3d(LYR_GLS_PSI(iogrp),cmpflg,'p','gls_psi',
-     . 'GLS_PSI','Generic length scale','m2 s-3',1)
+     .  'GLS_PSI','Generic length scale','m2 s-3',1)
 c
 #endif
 c --- define 3d depth fields
       call ncdefvar3d(LVL_DZ(iogrp),cmpflg,'p','dzlvl',
-     . 'Layer thickness',' ','m',2)
+     .  'Layer thickness',' ','m',2)
 c
       call ncdefvar3d(LVL_TEMP(iogrp),cmpflg,'p','templvl',
-     . 'Temperature','Ocean temperature','degC',2)
+     .  'Temperature','Ocean temperature','degC',2)
 c
       call ncdefvar3d(LVL_SALN(iogrp),cmpflg,'p','salnlvl',
-     . 'Salinity','Ocean salinity','g kg-1',2)
+     .  'Salinity','Ocean salinity','g kg-1',2)
 c
       call ncdefvar3d(LVL_UVEL(iogrp),cmpflg,'u','uvellvl',
      .  'Velocity x-component',' ','m s-1',2)
@@ -6327,34 +6235,34 @@ c
 c
       if (LVL_DIFINT(iogrp).eq.2) then
         call ncdefvar3d(LVL_DIFINT(iogrp),cmpflg,'p','difintlvl',
-     . 'Layer interface diffusivity',' ','log10(m2 s-1)',2)
+     .    'Layer interface diffusivity',' ','log10(m2 s-1)',2)
       else
         call ncdefvar3d(LVL_DIFINT(iogrp),cmpflg,'p','difintlvl',
-     . 'Layer interface diffusivity',' ','m2 s-1',2)
+     .    'Layer interface diffusivity',' ','m2 s-1',2)
       endif
 c
       if (LVL_DIFISO(iogrp).eq.2) then
         call ncdefvar3d(LVL_DIFISO(iogrp),cmpflg,'p','difisolvl',
-     . 'Isopycnal diffusivity',' ','log10(m2 s-1)',2)
+     .    'Isopycnal diffusivity',' ','log10(m2 s-1)',2)
       else
         call ncdefvar3d(LVL_DIFISO(iogrp),cmpflg,'p','difisolvl',
-     . 'Isopycnal diffusivity',' ','m2 s-1',2)
+     .    'Isopycnal diffusivity',' ','m2 s-1',2)
       endif
 c
       if (LVL_DIFDIA(iogrp).eq.2) then
         call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
-     . 'Diapycnal diffusivity',' ','log10(m2 s-1)',2)
+     .    'Diapycnal diffusivity',' ','log10(m2 s-1)',2)
       else
         call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
-     . 'Diapycnal diffusivity',' ','m2 s-1',2)
+     .    'Diapycnal diffusivity',' ','m2 s-1',2)
       endif
 c
 #if defined(TRC) && defined(TKE)
       call ncdefvar3d(LVL_TKE(iogrp),cmpflg,'p','tkelvl',
-     . 'Turbulent Kinetic Energy',' ','m2 s-2',2)
+     .  'Turbulent Kinetic Energy',' ','m2 s-2',2)
 c
       call ncdefvar3d(LVL_GLS_PSI(iogrp),cmpflg,'p','gls_psilvl',
-     . 'Generic length scale',' ','m2 s-3',2)
+     .  'Generic length scale',' ','m2 s-3',2)
 c
 #endif
 c
@@ -6463,41 +6371,41 @@ c
 #ifdef TRC
       if (LYR_IDLAGE(iogrp).ne.0.or.LYR_TRC(iogrp).ne.0) then
         call ncdefvar3d(max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),cmpflg,
-     . 'p','dp_trc','Layer pressure thickness',' ','Pa',1)
+     .    'p','dp_trc','Layer pressure thickness',' ','Pa',1)
       endif
 c --- ideal age tracer 
 #if IDLAGE
       call ncdefvar3d(LYR_IDLAGE(iogrp),cmpflg,'p','idlage',
-     . 'Ideal age','sea_water_age_since_surface_contact','year',1)
+     .  'Ideal age','sea_water_age_since_surface_contact','year',1)
 
       if (LVL_IDLAGE(iogrp).ne.0) then
         call ncdefvar3d(LVL_IDLAGE(iogrp),cmpflg,'p','idlagelvl',
-     . 'Ideal age','sea_water_age_since_surface_contact','year',2)
+     .    'Ideal age','sea_water_age_since_surface_contact','year',2)
       endif
 #endif
 c
 c --- ocean tracers
       if (LYR_TRC(iogrp).gt.0.and.ntrocn.gt.0) then
 #  ifdef ATRC
-      do nt=1,ntrocn-natr
-      write (trcnm,'(a,i3.3)') 'trc',nt
-      write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
-      call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .     trim(trcnml),' ',' ',1)
-      enddo
-      do nt=1,natr
-          nat=ntr-natr+nt
-      write (trcnm,'(a,i3.3)') 'atrc',nt
-          write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
-          call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .     trim(trcnml),' ',' ',1)
-        enddo
-#  else
-      do nt=1,ntrocn
-      write (trcnm,'(a,i3.3)') 'trc',nt
+        do nt=1,ntrocn-natr
+          write (trcnm,'(a,i3.3)') 'trc',nt
           write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
           call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .         trim(trcnml),' ',' ',1)
+     .                    trim(trcnml),' ',' ',1)
+        enddo
+        do nt=1,natr
+          nat=ntr-natr+nt
+          write (trcnm,'(a,i3.3)') 'atrc',nt
+          write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
+          call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .                    trim(trcnml),' ',' ',1)
+        enddo
+#  else
+        do nt=1,ntrocn
+          write (trcnm,'(a,i3.3)') 'trc',nt
+          write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
+          call ncdefvar3d(LYR_TRC(iogrp),cmpflg,'p',trim(trcnm),
+     .                    trim(trcnml),' ',' ',1)
         enddo
 #  endif
       endif
@@ -6507,25 +6415,28 @@ c --- ocean tracers
           write (trcnm,'(a,i3.3)') 'trclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
           call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .         trim(trcnml),' ',' ',2)
+     .                    trim(trcnml),' ',' ',2)
         enddo
         do nt=1,natr
           nat=ntr-natr+nt
           write (trcnm,'(a,i3.3)') 'atrclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean age tracer ',nt
           call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .      trim(trcnml),' ',' ',2)
+     .                    trim(trcnml),' ',' ',2)
         enddo
 #  else
         do nt=1,ntrocn
           write (trcnm,'(a,i3.3)') 'trclvl',nt
           write (trcnml,'(a,i3.3)') 'Ocean tracer ',nt
           call ncdefvar3d(LVL_TRC(iogrp),cmpflg,'p',trim(trcnm),
-     .        trim(trcnml),' ',' ',2)
+     .                    trim(trcnml),' ',' ',2)
         enddo
 #  endif
       endif
 #endif
+c
       call ncedef
+c
       end subroutine definevar
+c
       end module mod_dia

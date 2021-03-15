@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2015 Mats Bentsen
+! Copyright (C) 2009-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -22,18 +22,19 @@ c
 c --- NERSC version of thermf. To be used when coupled to CESM
 c
       use mod_xc
+      use mod_forcing, only: hmltfz, surflx, surrlx, sswflx, salflx,
+     .                       brnflx, salrlx, ustar
+      use mod_cesm, only: frzpot, mltpot
+#ifdef TRC
+      use mod_tracers, only: ntrc, trflx
+#endif
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-c
-      integer i,j,k,l
+      integer i,j,k,l,nt
 #ifdef TRC
-#  include "param_trc.h"
-#  include "common_trc.h"
       integer nt
 #endif
 c
@@ -46,23 +47,21 @@ c$OMP+ )
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-          rnfflx(i,j)=0.
-          rfiflx(i,j)=0.
-          brnflx(i,j)=0.
-          frzpot(i,j)=0.
-          mltpot(i,j)=0.
-          hmltfz(i,j)=0.
           surflx(i,j)=0.
           sswflx(i,j)=0.
+          salflx(i,j)=0.
+          brnflx(i,j)=0.
           surrlx(i,j)=0.
           salrlx(i,j)=0.
-          salflx(i,j)=0.
+          hmltfz(i,j)=0.
+          ustar(i,j)=0.
+          frzpot(i,j)=0.
+          mltpot(i,j)=0.
 #ifdef TRC
           do nt=1,ntrc
             trflx(nt,i,j)=0.
           enddo
 #endif
-          ustar(i,j)=0.
         enddo
         enddo
       enddo

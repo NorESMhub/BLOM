@@ -25,10 +25,10 @@ c --- ------------------------------------------------------------------
 c
       use mod_time, only: nstep2, nstep
       use mod_xc
+      use mod_state, only: dp
+      use mod_checksum, only: chksummsk
 c
       implicit none
-c
-#include "common_blocks.h"
 c
 c --- initialize the model
       call blom_init

@@ -24,22 +24,43 @@ c --- ------------------------------------------------------------------
 c --- Write model state to restart files
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf, runid
+      use mod_config, only: expcnf, runid, inst_suffix
       use mod_time, only: date0, date, nstep, nstep_in_day, nday_of_year
       use mod_xc
+      use mod_state, only: u, v, dp, temp, saln, sigma,
+     .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
+     .                     phi, ubflxs, vbflxs,
+     .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
+     .                     pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p,
+     .                     sealv, kfpla
+      use mod_pgforc, only: pgfx, pgfy, pgfxm, pgfym,
+     .                      xixp, xixm, xiyp, xiym
+      use mod_barotp, only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn,
+     .                      pvtrop
       use mod_dia
+      use mod_forcing, only: ditflx, disflx, sprfac,
+     .                       tflxdi, sflxdi, nflxdi,
+     .                       prfac, eiacc, pracc,
+     .                       flxco2, flxdms, ustarb, buoyfl
+      use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
+     .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
+     .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
+     .                    slp_da, abswnd_da, atmco2_da, ficem_da,
+     .                    l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
-     .                     alb_tda, fice_tda, ntda
+     .                     alb_tda, fice_tda, ntda, rnfres
       use mod_thdysi, only: tsrfm, ticem
-      use mod_instance, only: inst_suffix
+      use mod_seaice, only: ficem, hicem, hsnwm, iagem
+#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
+      use mod_tracers, only: itrtke, itrgls, itriag, trc
+#  ifdef TKE
+      use mod_tke, only: L_scale
+#  endif
+#endif
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_cesm.h"
-#include "common_seaice.h"
 c
       integer i,j,n
       character(len=256), dimension(4) :: rstdate_str
@@ -53,21 +74,13 @@ c
       data first /.true./
       save first,iuu,ivv,iqq
 c
-#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
-#  include "param_trc.h"
-#  include "common_trc.h"
-#  ifdef TKE
-#    include "common_tke.h"
-#  endif
-#endif
-c
 c --- formulate restart name and open restart file
 c
       if (expcnf.eq.'cesm') then
         write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .    trim(runid),'.blom',trim(inst_suffix),'.r.',
      .    date%year,'-',date%month,'-',date%day,'-',
-     .    mod(nstep,nstep_in_day)*86400,'.nc'
+     .    86400*mod(nstep,nstep_in_day)/nstep_in_day,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
@@ -794,11 +807,9 @@ c
 c
 c --- ------------------------------------------------------------------
       use mod_dia
+      use mod_forcing, only: sprfac
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_forc.h"
 c
       integer n
       character(len=2) :: c2

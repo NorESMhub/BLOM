@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2018 Mats Bentsen
+! Copyright (C) 2010-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -25,13 +25,11 @@ c --- ------------------------------------------------------------------
 c
       use mod_time, only: nday_in_year, delt1
       use mod_xc
+      use mod_tracers, only: itriag, trc
 c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       integer i,j,k,l,kn
       real q

@@ -24,12 +24,14 @@ c --- Define bathymetry, grid specification and Coriolis parameter for
 c --- test case
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat,
+     .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
+     .                    scuy, scvx, scvy, scq2, scp2, scu2, scv2,
+     .                    qlon, qlat, plon, plat, ulon, ulat, vlon,
+     .                    vlat, depths, corioq, coriop, betafp, angle,
+     .                    cosang, sinang, nwp
 c
       implicit none
-c
-#include "common_blocks.h"
-#include "common_geo.h"
 c
       depths=0.
       nwp=0

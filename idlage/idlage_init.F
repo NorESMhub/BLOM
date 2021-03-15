@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2018 Mats Bentsen
+! Copyright (C) 2010-2020 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,11 +24,9 @@ c --- initialization of ideal age tracer
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_tracers, only: itriag, trc
 c
       implicit none
-c
-#include "param_trc.h"
-#include "common_trc.h"
 c
       integer i,j,k,l
 c

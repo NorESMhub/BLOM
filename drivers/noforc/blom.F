@@ -25,11 +25,12 @@ c --- ------------------------------------------------------------------
 c
       use mod_time, only: nstep1, nstep2, nstep
       use mod_xc
-      use mod_mctdata
+      use mod_state, only: dp
+      use mod_cesm
+      use mod_checksum, only: chksummsk
 c
       implicit none
 c
-#include "common_blocks.h"
 #ifdef MPI
 #  include "mpif.h"
 #endif
@@ -46,12 +47,12 @@ c
       read (nfu,*)
       read (nfu,*)
       read (nfu,*)
-      read (nfu,'(a)') runid_mct    ! Experiment name
+      read (nfu,'(a)') runid_cesm   ! Experiment name
       close (unit=nfu)
       if (i.eq.0) then
-        runtype_mct='initial'
+        runtyp_cesm='initial'
       else
-        runtype_mct='continue'
+        runtyp_cesm='continue'
       endif
 c
 c --- initialize the model

@@ -24,6 +24,11 @@
       use mod_types, only: r8
       use mod_time, only: nstep, baclin, delt1, dlt
       use mod_xc
+      use mod_grid, only: scuy, scvx, scuxi, scvyi
+      use mod_state, only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs,
+     .                     sealv
+      use mod_forcing, only: flxco2, flxdms
+      use mod_cesm, only: frzpot
       use blom_cpl_indices
 
       implicit none
@@ -34,11 +39,6 @@
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,nsend),
      .   intent(inout) :: sbuff
       real(r8), intent(inout) :: tlast_coupled
-
-      ! Include files
-
-#include "common_blocks.h"
-#include "common_forc.h"
 
       ! Local variables
 

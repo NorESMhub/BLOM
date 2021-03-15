@@ -1,0 +1,36 @@
+# Options controlling dimensions
+option('processors', type: 'integer', min: 1, max: 50000,
+       description: 'Number of processors', value: 1)
+option('grid', type: 'combo',
+       choices: ['gx1v5', 'gx1v6', 'gx3v7', 'tnx0.25v1', 'tnx0.25v3',
+                 'tnx0.25v4', 'tnx1.5v1', 'tnx1v1', 'tnx1v3', 'tnx1v4',
+                 'tnx2v1', 'MNP2', 'fuk95'],
+       description: 'Grid name', value: 'fuk95')
+# Which executable driver should be built
+option('driver', type: 'combo',
+       choices: ['nocoupler', 'noforc'], value: 'nocoupler')
+# List of BLOM options
+option('turbclo', type: 'array',
+       choices: ['oneeq', 'twoeq', 'advection', 'isodif'],
+       description: 'Turbulent closure options', value: ['oneeq', 'advection'])
+option('iage', type: 'boolean',
+       description: 'Enable ideal age tracer', value: true)
+option('ecosys', type: 'boolean',
+       description: 'Enable HAMOCC as ecosystem module', value: false)
+option('hamocc_cfc', type: 'boolean',
+       description: 'Enable CFCs in HAMOCC', value: false)
+option('hamocc_nattrc', type: 'boolean',
+       description: 'Enable natural tracers in HAMOCC', value: false)
+option('hamocc_sedbypass', type: 'boolean',
+       description: 'Bypass sediment code in HAMOCC', value: true)
+option('hamocc_ciso', type: 'boolean',
+       description: 'Enable carbon isotopes in HAMOCC', value: false)
+option('levitus2x', type: 'boolean',
+       description: 'Enable level diagnostics at double resolution of standard Levitus depths', value: true)
+# Build configuration
+option('openmp', type: 'feature',
+       description: 'Enable OpenMP', value: 'auto')
+option('mpi', type: 'boolean',
+       description: 'Enable MPI work sharing', value: false)
+option('parallel_netcdf', type: 'boolean',
+       description: 'Enable parallel version of NetCDF', value: false)

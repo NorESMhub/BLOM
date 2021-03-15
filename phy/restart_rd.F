@@ -24,27 +24,49 @@ c --- ------------------------------------------------------------------
 c --- Read initial conditions from restart file
 c --- ------------------------------------------------------------------
 c
-      use mod_configuration, only: expcnf, runid
+      use mod_config, only: expcnf, runid, inst_suffix
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
+      use mod_inicon, only: icfile
+      use mod_state, only: u, v, dp, temp, saln, sigma,
+     .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
+     .                     phi, ubflxs, vbflxs,
+     .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
+     .                     pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p,
+     .                     sealv, kfpla
+      use mod_pgforc, only: pgfx, pgfy, pgfxm, pgfym,
+     .                      xixp, xixm, xiyp, xiym
+      use mod_barotp, only: ubflx, vbflx, pb_mn, ubflx_mn, vbflx_mn,
+     .                      pvtrop
       use mod_dia
+      use mod_forcing, only: ditflx, disflx, sprfac,
+     .                       tflxdi, sflxdi, nflxdi,
+     .                       prfac, eiacc, pracc,
+     .                       flxco2, flxdms, ustarb, buoyfl
+      use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
+     .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
+     .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
+     .                    slp_da, abswnd_da, atmco2_da, ficem_da,
+     .                    l1ci, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
-     .                     alb_tda, fice_tda, ntda
+     .                     alb_tda, fice_tda, ntda, rnfres
       use mod_thdysi, only: tsrfm, ticem
-      use mod_instance, only: inst_suffix
-
+      use mod_seaice, only: ficem, hicem, hsnwm, iagem
+      use mod_temmin, only: settemmin
+#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
+      use mod_tracers, only: itrtke, itrgls, itriag, trc
+#  ifdef TKE
+      use mod_tke, only: L_scale
+#  endif
+#endif
 c
       implicit none
 c
-#include "common_blocks.h"
-#include "common_forc.h"
-#include "common_cesm.h"
-#include "common_seaice.h"
-c
       type(date_type) :: date_rest
-      integer errstat,dndiff,i,j,k,n,l
+      integer errstat,dndiff,i,j,n
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
 c
@@ -53,14 +75,6 @@ c
       logical first,fexist,vexist
       data first /.true./
       save first,iuu,ivv,iqq
-c
-#if defined(TRC) && (defined(TKE) || defined(IDLAGE))
-#  include "param_trc.h"
-#  include "common_trc.h"
-#  ifdef TKE
-#    include "common_tke.h"
-#  endif
-#endif
 c
 c --- open restart file and adjust time information if needed
 c
@@ -252,120 +266,55 @@ c
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('umfltd',umfltd,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''umfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (iuu(i,j).eq.1) then
-                umfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''umfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('utfltd')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('utfltd',utfltd,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''utfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (iuu(i,j).eq.1) then
-                utfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''utfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('utflld')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('utflld',utflld,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''utflld'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (iuu(i,j).eq.1) then
-                utflld(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''utflld'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('usfltd')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('usfltd',usfltd,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''usfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (iuu(i,j).eq.1) then
-                usfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''usfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('usflld')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('usflld',usflld,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''usflld'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (iuu(i,j).eq.1) then
-                usflld(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''usflld'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       call ncread('vflx',vflx,ivv,1,0.)
@@ -376,120 +325,55 @@ c
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vmfltd',vmfltd,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vmfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (ivv(i,j).eq.1) then
-                vmfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vmfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vtfltd')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vtfltd',vtfltd,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vtfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (ivv(i,j).eq.1) then
-                vtfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vtfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vtflld')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vtflld',vtflld,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vtflld'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (ivv(i,j).eq.1) then
-                vtflld(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vtflld'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vsfltd')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vsfltd',vsfltd,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vsfltd'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (ivv(i,j).eq.1) then
-                vsfltd(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vsfltd'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vsflld')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vsflld',vsflld,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vsflld'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,i)
-        do j=1,jj
-          do k=1,2*kk
-            do i=1,ii
-              if (ivv(i,j).eq.1) then
-                vsflld(i,j,k)=0.
-              endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vsflld'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       call ncread('ubflx',ubflx,iuu,1,0.)
@@ -520,96 +404,44 @@ c
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('uml',uml,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''uml'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj
-          do k=1,4
-            do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-              uml(i,j,k)=0.
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''uml'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vml')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vml',vml,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vml'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj+1
-          do k=1,4
-            do l=1,isv(j)
-            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vml(i,j,k)=0.
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vml'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('umlres')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('umlres',umlres,iuu,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''umlres'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj
-          do k=1,2
-            do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-              umlres(i,j,k)=0.
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''umlres'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('vmlres')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('vmlres',vmlres,ivv,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: field ''vmlres'' is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj+1
-          do k=1,2
-            do l=1,isv(j)
-            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vmlres(i,j,k)=0.
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: field ''vmlres'' is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       if (sprfac) then
@@ -620,24 +452,11 @@ c
           call xcbcst(prfac)
           call ncread('eiacc',eiacc,ip,1,0.)
           call ncread('pracc',pracc,ip,1,0.)
-        else
-          if (mnproc.eq.1) then
-            write (lp,*)
-     .        'Warning: fields needed for balancing fresh water '//
-     .        'budget are not read'
-            write (lp,*) 'from restart file and will be initialized.'
-          endif
-          prfac=1.
-c$OMP PARALLEL DO PRIVATE(l,i)
-          do j=1,jj
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              eiacc(i,j)=0.
-              pracc(i,j)=0.
-            enddo
-            enddo
-          enddo
-c$OMP END PARALLEL DO
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .      'Warning: fields needed for balancing fresh water '//
+     .      'budget are not read'
+          write (lp,*) 'from restart file and will be initialized.'
         endif
       endif
 c
@@ -708,43 +527,21 @@ c
 !        call xcbcst(vexist)
         if (vexist) then
           call ncread('flxco2',flxco2,ip,1,0.)
-        else
-          if (mnproc.eq.1) then
-            write (lp,*)
-     .'Warning: Air-sea CO2 flux is not read from restart file and'
-            write (lp,*)
-     .       'will be initialized to zero.'
-          endif
-c$OMP PARALLEL DO PRIVATE(l,i)
-          do j=1,jj
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              flxco2(i,j)=0.
-            enddo
-            enddo
-          enddo
-c$OMP END PARALLEL DO
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: Air-sea CO2 flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
         endif
         vexist=ncinqv('flxdms')
 !        call xcbcst(vexist)
         if (vexist) then
           call ncread('flxdms',flxdms,ip,1,0.)
-        else
-          if (mnproc.eq.1) then
-            write (lp,*)
-     .'Warning: DMS flux is not read from restart file and'
-            write (lp,*)
-     .       'will be initialized to zero.'
-          endif
-c$OMP PARALLEL DO PRIVATE(l,i)
-          do j=1,jj
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              flxdms(i,j)=0.
-            enddo
-            enddo
-          enddo
-c$OMP END PARALLEL DO
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: DMS flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
         endif
       endif
 c
@@ -754,85 +551,55 @@ c
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('tke',trc(1-nbdy,1-nbdy,1,itrtke),ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: TKE is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to tke_min.'
-        endif
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: TKE is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to tke_min.'
       endif
 c
       vexist=ncinqv('gls_psi')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('gls_psi',trc(1-nbdy,1-nbdy,1,itrgls),ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: gls_psi is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to gls_psi_min.'
-        endif
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: gls_psi is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to gls_psi_min.'
       endif
 c
       vexist=ncinqv('L_scale')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('L_scale',L_scale,ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: L_scale is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to Ls_unlmt_min.'
-        endif
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: L_scale is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to Ls_unlmt_min.'
       endif
 c
       vexist=ncinqv('difdia')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('difdia',difdia,ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: difdia is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-        do j=1,jj
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              difdia(i,j,k)=0.
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: difdia is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 c
       vexist=ncinqv('ustarb')
 !      call xcbcst(vexist)
       if (vexist) then
         call ncread('ustarb',ustarb,ip,1,0.)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*)
-     .     'Warning: ustarb is not read from restart file and'
-          write (lp,*)
-     .     'will be initialized to zero.'
-        endif
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            ustarb(i,j)=0.
-          enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
+      elseif (mnproc.eq.1) then
+        write (lp,*)
+     .   'Warning: ustarb is not read from restart file and'
+        write (lp,*)
+     .   'will be initialized to zero.'
       endif
 #  endif
 #  ifdef IDLAGE

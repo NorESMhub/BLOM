@@ -33,7 +33,7 @@ module mod_constants
       rearth = 6.37122e8_r8, &    ! Radius of the Earth [cm].
       spcifh = 3.99_r8, &         ! Specific heat capacity of sea water
                                   ! [J g-1 K-1].
-      t0deg  = 273.15, &          ! Zero degrees Celsius in Kelvin [K].
+      t0deg  = 273.15_r8, &       ! Zero degrees Celsius in Kelvin [K].
       alpha0 = 1._r8, &           ! Reference value of specific volume
                                   ! [cm3 g-1].
       pi     = 3.1415926536_r8, & ! pi [].
