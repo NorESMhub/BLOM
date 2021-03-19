@@ -26,7 +26,7 @@ c
       use mod_xc
       use mod_grid, only: plat
       use mod_state, only: temp,saln
-      use mod_forcing, only: swa,slp,abswnd,atmco2,flxco2,flxdms
+      use mod_forcing, only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbromo,flxbromo
       use mod_seaice, only: ficem
       use mo_bgcmean
       use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
@@ -66,7 +66,12 @@ c
      .            dust,rivflx,ndep,
      .            swa,ficem,slp,abswnd,
      .            temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),
+#ifdef BROMO
+     .            atmco2,flxco2,flxdms,atmbromo,flxbromo)
+#else
      .            atmco2,flxco2,flxdms)
+#endif
+
 c
 c --- accumulate fields and write output
 c

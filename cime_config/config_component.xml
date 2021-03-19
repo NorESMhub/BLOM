@@ -147,6 +147,18 @@
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
+ 
+  <entry id="HAMOCC_VSLS">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="%VSLSC">TRUE</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the VSLS-Bromoform tracer code. Requires module ecosys</desc>
+  </entry>
 
   <entry id="BLOM_TURBULENT_CLOSURE">
     <type>char</type>

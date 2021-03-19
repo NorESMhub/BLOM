@@ -45,7 +45,11 @@
       USE mo_biomod
       USE mo_sedmnt,      only: claydens,o2ut,rno3
       USE mo_control_bgc, only: dtb,io_stdo_bgc
+#ifdef BROMO
+      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmbromo
+#else
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2
+#endif
       USE mod_xc,         only: mnproc
 
       implicit none      
@@ -72,6 +76,11 @@
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
 #endif
+#ifdef BROMO
+!For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+!BE UPDATED WITH Ziska et al. (2013) climatology database
+      atm_bromo = 3.4
+#endif
 
 #ifdef cisonew
 ! set standard carbon isotope ratios
@@ -92,6 +101,7 @@
       c14fac   = atm_c14/atm_co2
 #endif
 
+
 ! Initialise atmosphere fields. We use a 2D representation of atmospheric
 ! fields for simplicity, even for cases where actually only a scalar value 
 ! is used. The overhead of this is small. If an atm-field is present in
@@ -107,6 +117,9 @@
 #ifdef cisonew
         atm(i,j,iatmc13)  = atm_c13
         atm(i,j,iatmc14)  = atm_c14/c14fac
+#endif
+#ifdef BROMO
+        atm(i,j,iatmbromo)= atm_bromo
 #endif
       ENDDO
       ENDDO
@@ -205,6 +218,12 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
+#ifdef BROMO
+!Bromoform to phosphate ratio (Hense and Quack, 2009)
+      rbro=6.72e-7*rnit
+      fbro1=1.0
+      fbro2=1.0
+#endif
 
 #ifdef AGG
       rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio

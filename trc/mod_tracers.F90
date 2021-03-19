@@ -72,7 +72,12 @@ module mod_tracers
 #  else
    integer, parameter :: i_nat_dic = 0
 #  endif
-   integer, parameter :: ntrbgc = i_base + i_iso + i_cfc + i_agg + i_nat_dic
+#  ifdef BROMO
+   integer, parameter :: i_bromo = 1
+#  else
+   integer, parameter :: i_bromo = 0
+#  endif
+   integer, parameter :: ntrbgc = i_base + i_iso + i_cfc + i_agg + i_nat_dic + i_bromo
 #else
    integer, parameter :: ntrbgc = 0
 #endif

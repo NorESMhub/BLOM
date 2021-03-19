@@ -21,7 +21,11 @@
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
                             dust,rivin,ndep,                                  &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
+#ifdef BROMO
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+#else
                             patmco2,pflxco2,pflxdms)
+#endif
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -76,6 +80,9 @@
 !                           fully coupled mode (prognostic/diagnostic CO2).
 !  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
 !  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
+!  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
 !
 !******************************************************************************
       use mod_xc
@@ -115,7 +122,10 @@
       REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-
+#ifdef BROMO
+      REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+#endif
       INTEGER :: i,j,k,l
 
       IF (mnproc.eq.1) THEN
@@ -167,6 +177,18 @@
       !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
 #endif
 
+#ifdef BROMO
+!$OMP PARALLEL DO
+      DO  j=1,kpje
+      DO  i=1,kpie
+        IF (patmbromo(i,j).gt.0.) THEN
+         atm(i,j,iatmbromo)=patmbromo(i,j)
+        ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
+#endif
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -332,6 +354,18 @@
       ENDDO
 !$OMP END PARALLEL DO
 
+#ifdef BROMO
+!--------------------------------------------------------------------
+! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
+! Negative values to the atmosphere
+!$OMP PARALLEL DO
+      DO  j=1,kpje
+      DO  i=1,kpie
+       if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+#endif
 !--------------------------------------------------------------------
       RETURN
       END

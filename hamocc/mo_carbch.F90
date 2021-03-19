@@ -94,6 +94,9 @@
       REAL :: atm_cfc12_nh,atm_cfc12_sh
       REAL :: atm_sf6_nh,atm_sf6_sh
 #endif
+#ifdef BROMO
+      REAL :: atm_bromo, fbro1, fbro2
+#endif
 
       CONTAINS
 
