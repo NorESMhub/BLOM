@@ -28,7 +28,8 @@ module mod_cesm
    use mod_time, only: nstep
    use mod_xc
    use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
-                          fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, atmco2
+                          fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, atmco2,&
+                          atmbromo
    use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
@@ -70,6 +71,7 @@ module mod_cesm
       slp_da, &          ! Sea-level pressure [kg m-1 s-2].
       abswnd_da, &       ! Wind speed at measurement height (zu) [m s-1].
       atmco2_da, &       ! Atmospheric CO2 concentration [ppm].
+      atmvsls_da, &      ! Atmospheric bromoform concentration [ppt].
       ficem_da           ! Ice concentration [].
 
    logical :: &
@@ -81,7 +83,7 @@ module mod_cesm
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
-             slp_da, abswnd_da, atmco2_da, ficem_da, smtfrc, l1ci, l2ci, &
+             slp_da, abswnd_da, atmco2_da, atmvsls_da, ficem_da, smtfrc, l1ci, l2ci, &
              inicon_cesm, inifrc_cesm, getfrc_cesm
 
 contains
@@ -176,6 +178,7 @@ contains
            ficem(i, j)  = w1*ficem_da(i, j, l1ci)  + w2*ficem_da(i, j, l2ci)
            abswnd(i, j) = w1*abswnd_da(i, j, l1ci) + w2*abswnd_da(i, j, l2ci)
            atmco2(i, j) = w1*atmco2_da(i, j, l1ci) + w2*atmco2_da(i, j, l2ci)
+           atmbromo(i,j)= w1*atmvsls_da(i, j, l1ci)+ w2*atmvsls_da(i, j, l2ci)
         enddo
         enddo
         do l = 1, isu(j)
@@ -210,6 +213,7 @@ contains
       call ncdefvar('ficem_da', 'x y', ndouble, 8)
       call ncdefvar('abswnd_da', 'x y', ndouble, 8)
       call ncdefvar('atmco2_da', 'x y', ndouble, 8)
+      call ncdefvar('atmvsls_da','x y',ndouble,8)
       call ncdefvar('ztx_da', 'x y', ndouble, 8)
       call ncdefvar('mty_da', 'x y', ndouble, 8)
       call ncedef
@@ -244,6 +248,8 @@ contains
                   ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('atmco2_da', 'x y', atmco2_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('atmvsls_da','x y', atmvsls_da(1 - nbdy, 1 - nbdy, l2ci), &
+     .            ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('ztx_da', 'x y', ztx_da(1 - nbdy, 1 - nbdy, l2ci), &
                   iu, 1, 1._r8, 0._r8, 8)
       call ncwrtr('mty_da', 'x y', mty_da(1 - nbdy, 1 - nbdy, l2ci), &
@@ -274,6 +280,7 @@ contains
          call chksummsk(ficem, ip, 1, 'ficem')
          call chksummsk(abswnd, ip, 1, 'abswnd')
          call chksummsk(atmco2, ip, 1, 'atmco2')
+         call chksummsk(atmbromo, ip, 1, 'atmbromo')
       endif
 
    end subroutine getfrc_cesm

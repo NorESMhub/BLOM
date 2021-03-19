@@ -43,7 +43,7 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, ustarb, buoyfl
+     .                       flxco2, flxdms, flxbromo, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
@@ -540,6 +540,16 @@ c
         elseif (mnproc.eq.1) then
           write (lp,*)
      .     'Warning: DMS flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        vexist=ncinqv('flxbromo')
+!        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxbromo',flxbromo,ip,1,0.)
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: bromoform flux is not read from restart file and'
           write (lp,*)
      .     'will be initialized to zero.'
         endif

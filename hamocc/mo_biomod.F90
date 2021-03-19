@@ -103,6 +103,10 @@
 #elif defined(WLIN)
       REAL :: wmin,wmax,wlin
 #endif
+#ifdef BROMO
+      REAL :: rbro
+#endif
+
       CONTAINS
 
 

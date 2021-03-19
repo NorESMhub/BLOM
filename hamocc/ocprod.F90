@@ -156,6 +156,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
   real :: wnos,wnosd
 #endif
+#ifdef BROMO
+  real :: bro_beta,bro_uv
+  real :: abs_uv(kpie,kpje,kpke)
+#endif
+
 
 
 ! set variables for diagnostic output to zero
@@ -210,6 +215,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! Calculate swr absorption by water and phytoplankton
 
   abs_bgc(:,:,:) = 0.
+#ifdef BROMO
+  abs_uv(:,:,:) = 0.
+#endif
 #ifdef FB_BGC_OCE
   abs_oce(:,:,:) = 0.
   abs_oce(:,:,1) = 1.
@@ -242,7 +250,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
               ! Radiation intensity I_0 at the top of next layer
               absorption = absorption * exp(-atten*dz)
-
+#ifdef BROMO
+              abs_uv(i,j,k) = exp(-0.33*dz/2)
+#endif
            endif
         enddo vloop
 
@@ -279,6 +289,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
 !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
 !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
+# endif
+# ifdef BROMO
+!$OMP  ,bro_beta,bro_uv                                               &
 # endif
 !$OMP  )
 
@@ -442,7 +455,16 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
-
+#ifdef BROMO
+!Bromo source from phytoplankton production and sink to photolysis
+!Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
+        bro_beta = rbro*(fbro1*avsil/(avsil+bkopal)+fbro2*bkopal/(avsil+bkopal))
+        bro_uv = 0.0333*dtb*strahl(i,j)/75.0*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
+        ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
+!sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
+!2009) is omitted because the magnitude is more than 2 order smaller
+!than sink through halide substitution & hydrolysis (Fig. 3)
+#endif
 
 #ifdef AGG
 !***********************************************************************

@@ -21,6 +21,7 @@ set HAMOCC_CFC = `./xmlquery HAMOCC_CFC --value`
 set HAMOCC_NATTRC = `./xmlquery HAMOCC_NATTRC --value`
 set HAMOCC_SEDBYPASS = `./xmlquery HAMOCC_SEDBYPASS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
+set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set GMAKE = `./xmlquery GMAKE --value`
 set GMAKE_J = `./xmlquery  GMAKE_J --value`
 set OCN_CO2_TYPE = `./xmlquery OCN_CO2_TYPE --value`
@@ -108,6 +109,9 @@ if ($#tracers != 0) then
           exit -1
         endif
         set cpp_ocn = "$cpp_ocn -Dcisonew"
+      endif       
+      if ($HAMOCC_VSLS == TRUE) then
+        set cpp_ocn = "$cpp_ocn -DBROMO"
       endif       
       if ($co2type == prognostic) then
         set cpp_ocn = "$cpp_ocn -DPROGCO2"
