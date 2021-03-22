@@ -423,9 +423,9 @@ c --- Store 2d fields
 #endif
 #ifdef BROMO
       call wrtsrf(jbromofx(iogrp),SRF_BROMOFX(iogrp),rnacc*1e3/dtbgc,0.,
-     .  cmpflg,'srfbromofx','Bromoform flux',' ','mol CHBr3 m-2 s-1')
+     .  cmpflg,'bromofx','Bromoform flux',' ','mol CHBr3 m-2 s-1')
       call wrtsrf(jsrfbromo(iogrp),SRF_BROMO(iogrp),rnacc*1e3,0.,
-     .  cmpflg,'srfbromo','Syrface bromoform',' ','mol CHBr3 m-3')
+     .  cmpflg,'srfbromo','Surface bromoform',' ','mol CHBr3 m-3')
       call wrtsrf(jatmbromo(iogrp),SRF_ATMBROMO(iogrp),rnacc,0.,cmpflg,     
      .  'atmbromo','Atmospheric bromoform',' ','ppt')
 #endif

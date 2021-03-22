@@ -21,11 +21,7 @@
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
                             dust,rivin,ndep,                                  &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-#ifdef BROMO
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
-#else
-                            patmco2,pflxco2,pflxdms)
-#endif
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -122,10 +118,9 @@
       REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-#ifdef BROMO
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-#endif
+
       INTEGER :: i,j,k,l
 
       IF (mnproc.eq.1) THEN

@@ -109,8 +109,8 @@ module mod_forcing
       atmco2, &       ! Atmospheric CO2 concentration [ppm].
       flxco2, &       ! Air-sea CO2 flux [kg m-2 s-1].
       flxdms, &       ! Sea-air DMS flux [kg m-2 s-1].
-      flxbromo, &     ! sea-air bromoform flux
-      atmbromo       ! atmospheric bromoform concentration
+      flxbrf, &       ! sea-air bromoform flux
+      atmbrf          ! atmospheric bromoform concentration
 
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
@@ -132,7 +132,7 @@ module mod_forcing
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
-             ustarw, slp, abswnd, atmco2, flxco2, flxdms, flxbromo, atmbromo, &
+             ustarw, slp, abswnd, atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, &
              inivar_forcing, fwbbal
@@ -169,8 +169,8 @@ contains
             atmco2(i, j) = spval
             flxco2(i, j) = spval
             flxdms(i, j) = spval
-            atmbromo(i, j) = spval
-            flxbromo(i, j) = spval
+            atmbrf(i, j) = spval
+            flxbrf(i, j) = spval
             surflx(i, j) = spval
             surrlx(i, j) = spval
             sswflx(i, j) = spval
@@ -197,7 +197,7 @@ contains
             ustarb(i, j) = 0._r8
             buoyfl(i, j) = 0._r8
 #ifdef BROMO
-            flxbromo(i, j) = 0._r8
+            flxbrf(i, j) = 0._r8
 #endif
          enddo
          enddo

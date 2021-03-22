@@ -113,7 +113,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real :: zoothresh,phythresh
   real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
   real :: dustinp
-  real :: absorption
+  real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
   real :: wpocd,wcald,wopald,dagg
@@ -223,13 +223,14 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   abs_oce(:,:,1) = 1.
 #endif
 
-!$OMP PARALLEL DO PRIVATE(absorption,atten,dz)
+!$OMP PARALLEL DO PRIVATE(absorption,absorption_uv,atten,dz)
   do j = 1,kpje
   do i = 1,kpie
 
      if(omask(i,j) > 0.5) then
 
-        absorption = 1.
+        absorption    = 1.
+        absorption_uv = 1.
 
         vloop: do k = 1,kwrbioz(i,j)
 
@@ -239,8 +240,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
               ! Average light intensity in layer k
               atten = atten_w + atten_c * max(0.,ocetra(i,j,k,iphy))
-              abs_bgc(i,j,k) = ((absorption/atten) * (1.-exp(-atten*dz)))/dz
-
+              abs_bgc(i,j,k) = ((absorption/atten)*      (1.-exp(-atten*dz)))/dz
+#ifdef BROMO
+              abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
+#endif
 #ifdef FB_BGC_OCE
               abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
               if (k == 2) then
@@ -249,10 +252,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
               ! Radiation intensity I_0 at the top of next layer
-              absorption = absorption * exp(-atten*dz)
-#ifdef BROMO
-              abs_uv(i,j,k) = exp(-0.33*dz/2)
-#endif
+              absorption    = absorption    * exp(-atten*dz)
+              absorption_uv = absorption_uv * exp(-atten_uv*dz)
+
            endif
         enddo vloop
 
@@ -456,14 +458,14 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
 #ifdef BROMO
-!Bromo source from phytoplankton production and sink to photolysis
-!Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
+! Bromo source from phytoplankton production and sink to photolysis
+! Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
+! sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
+! 2009) is omitted because the magnitude is more than 2 order smaller
+! than sink through halide substitution & hydrolysis (Fig. 3)
         bro_beta = rbro*(fbro1*avsil/(avsil+bkopal)+fbro2*bkopal/(avsil+bkopal))
         bro_uv = 0.0333*dtb*strahl(i,j)/75.0*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
         ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
-!sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
-!2009) is omitted because the magnitude is more than 2 order smaller
-!than sink through halide substitution & hydrolysis (Fig. 3)
 #endif
 
 #ifdef AGG

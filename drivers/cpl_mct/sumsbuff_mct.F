@@ -27,7 +27,7 @@
       use mod_grid, only: scuy, scvx, scuxi, scvyi
       use mod_state, only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs,
      .                     sealv
-      use mod_forcing, only: flxco2, flxdms, flxbromo
+      use mod_forcing, only: flxco2, flxdms, flxbrf
       use mod_cesm, only: frzpot
       use blom_cpl_indices
 
@@ -147,7 +147,7 @@
             do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
                sbuff(i,j,index_o2x_Faoo_fvsls_ocn) =
      .            sbuff(i,j,index_o2x_Faoo_fvsls_ocn)
-     .          + flxbromo(i,j)*baclin
+     .          + flxbrf(i,j)*baclin
             enddo
             enddo
          enddo
