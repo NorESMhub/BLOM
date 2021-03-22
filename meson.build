@@ -24,8 +24,8 @@ elif fcc.get_id() == 'intel'
   add_project_arguments(['-r8', '-convert', 'big_endian', '-assume',
                          'byterecl'], language: 'fortran')
   if get_option('buildtype').startswith('debug')
-    add_project_arguments(['-traceback', '-check all', '-init=snan,arrays',
-                           '-fpe0','-ftrapuv'],
+    add_project_arguments(['-traceback', '-check all'.split(),
+                           '-init=snan,arrays', '-fpe0','-ftrapuv'],
                           language: 'fortran')
   endif
 else

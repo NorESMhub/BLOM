@@ -140,6 +140,9 @@ contains
          do i = 1 - nbdy, ii + nbdy
             uflux(i, j) = spval
             vflux(i, j) = spval
+            do nt = 1, ntr
+               trflx(nt, i, j) = spval
+            enddo
             do k = 1, kk
                do nt = 1, ntr
                   trc(i ,j ,k     , nt) = spval
@@ -190,6 +193,19 @@ contains
             do nt = 1, ntr
                vflxtr(nt, i, j) = vflux(i, j)
             enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+      ! Initialize surface flux of tracer.
+   !$omp parallel do private(l, i, nt)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            do nt = 1, ntr
+               trflx(nt, i, j) = 0._r8
+            enddo
+         enddo
          enddo
       enddo
    !$omp end parallel do
