@@ -1099,7 +1099,7 @@ c
 #ifdef BROMO
       call ncdefvar3d(SRF_BROMO(iogrp),cmpflg,'p','srfbromo',
      .   'Surface bromoform',' ','mol CHBr3 m-3',0)
-      call ncdefvar3d(SRF_BROMOfx(iogrp),cmpflg,'p','srfbromofx',
+      call ncdefvar3d(SRF_BROMOfx(iogrp),cmpflg,'p','bromofx',
      .   'Surface bromoform flux',' ','mol CHBr3 m-2 s-1',0)
       call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',
      .  'atmbromo','Atmospheric bromoform',' ','ppt',0)
