@@ -27,6 +27,7 @@ subroutine inifrc
    use mod_cesm, only: inifrc_cesm
    use mod_ben02, only: inifrc_ben02clim, inifrc_ben02syn
    use mod_fuk95, only: inifrc_fuk95
+   use mod_channel, only: inifrc_channel
 
    implicit none
 
@@ -39,6 +40,8 @@ subroutine inifrc
          call inifrc_ben02syn
       case ('fuk95')
          call inifrc_fuk95
+      case ('channel')
+         call inifrc_channel
       case ('isomip1')
 !        call inifrc_isomip1
       case ('isomip2')

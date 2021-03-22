@@ -36,6 +36,7 @@ subroutine getfrc
          call getfrc_ben02clim
       case ('ben02syn')
          call getfrc_ben02syn
+      case ('channel')
       case ('fuk95')
       case ('isomip1')
 !        call getfrc_isomip1

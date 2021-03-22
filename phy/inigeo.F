@@ -25,6 +25,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_config, only: expcnf
       use mod_fuk95, only: geoenv_fuk95
+      use mod_channel, only: geoenv_channel
       use mod_xc
       use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat,
      .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
@@ -65,6 +66,8 @@ c
           call geoenv_file
         case ('fuk95')
           call geoenv_fuk95
+        case ('channel')
+          call geoenv_channel
         case ('test')
           call geoenv_test
         case default

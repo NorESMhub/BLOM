@@ -1,0 +1,1 @@
+sources += files('mod_channel.F90','thermf_channel.F')
