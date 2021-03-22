@@ -196,9 +196,7 @@ contains
             ustar (i, j) = 0._r8
             ustarb(i, j) = 0._r8
             buoyfl(i, j) = 0._r8
-#ifdef BROMO
             flxbrf(i, j) = 0._r8
-#endif
          enddo
          enddo
       enddo
