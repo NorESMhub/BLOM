@@ -309,7 +309,7 @@
      .   write (lp,*) 'import_mct: atmospheric co2 not read'
 #endif      
 
-      if (index_x2o_Sa_vslsprog > 0) then
+      if (index_x2o_Sa_brfprog > 0) then
          n = 0
          do j = 1, jjcpl
             do i = 1, ii
@@ -321,7 +321,7 @@
                else
                   ! Atmospheric bromoform concentration [ppt]
                   atmbrf_da(i,j,l2ci) =
-     .               x2o_o%rAttr(index_x2o_Sa_vslsprog,n)
+     .               x2o_o%rAttr(index_x2o_Sa_brfprog,n)
                endif
             enddo
          enddo
