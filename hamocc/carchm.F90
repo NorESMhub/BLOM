@@ -151,7 +151,7 @@
       REAL    :: frac_k,frac_aqg,frac_dicg
 #endif
 #ifdef BROMO
-      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atm_brom,Kb1,lsub
+      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
 #endif
 
 ! set variables for diagnostic output to zero
@@ -196,7 +196,7 @@
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 #endif
 #ifdef BROMO
-!$OMP+ ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atm_brom,Kb1,lsub       &
+!$OMP+ ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub       &
 #endif
 !$OMP  )
       DO k=1,kpke
@@ -353,7 +353,7 @@
        atco214 = atm(i,j,iatmc14)
 #endif
 #ifdef BROMO
-       atm_brom = atm(i,j,iatmbromo)
+       atbrf = atm(i,j,iatmbromo)
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
@@ -458,7 +458,7 @@
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
 #ifdef BROMO
       flx_bromo=kw_bromo*dtbgc*                                         &
-     & (a_bromo*atm_brom*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,ibromo))
+     & (a_bromo*atbrf*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,ibromo))
       ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
 #endif
 

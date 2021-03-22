@@ -45,11 +45,7 @@
       USE mo_biomod
       USE mo_sedmnt,      only: claydens,o2ut,rno3
       USE mo_control_bgc, only: dtb,io_stdo_bgc
-#ifdef BROMO
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmbromo
-#else
-      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2
-#endif
       USE mod_xc,         only: mnproc
 
       implicit none      
@@ -244,6 +240,7 @@
       ctochl  = 60.        ! C to Chlorophyl ratio
       atten_w = 0.04       ! yellow substances attenuation in 1/m
       atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m 
+      atten_uv= 0.33       ! 
       atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer 
                            ! (only if FB_BGC_OCE) [feedback bgc-ocean]
       	

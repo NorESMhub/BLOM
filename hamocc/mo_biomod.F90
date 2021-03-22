@@ -89,7 +89,7 @@
       REAL :: wpoc,wcal,wopal
       REAL :: drempoc,dremopal,dremn2o,dremsul
       REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
-      REAL :: ctochl, atten_w, atten_c, atten_f
+      REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
 #ifdef cisonew
       REAL :: c14fac
       REAL :: re1312,re14to,prei13,prei14

@@ -29,7 +29,7 @@
       use mod_cesm, only: swa_da, nsf_da, hmlt_da, lip_da, sop_da,
      .                    eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da,
      .                    ztx_da, mty_da, ustarw_da, slp_da, abswnd_da,
-     .                    atmco2_da, atmvsls_da, ficem_da, l1ci, l2ci
+     .                    atmco2_da, atmbrf_da, ficem_da, l1ci, l2ci
       use mod_utility, only: util1, util2
       use mod_checksum, only: csdiag, chksummsk
       use blom_cpl_indices
@@ -315,27 +315,27 @@
             do i = 1, ii
                n = n + 1
                if     (ip(i,j) == 0) then
-                  atmvsls_da(i,j,l2ci) = mval
+                  atmbrf_da(i,j,l2ci) = mval
                elseif (cplmsk(i,j) == 0) then
-                  atmvsls_da(i,j,l2ci) = fval
+                  atmbrf_da(i,j,l2ci) = fval
                else
                   ! Atmospheric bromoform concentration [ppt]
-                  atmvsls_da(i,j,l2ci) =
+                  atmbrf_da(i,j,l2ci) =
      .               x2o_o%rAttr(index_x2o_Sa_vslsprog,n)
                endif
             enddo
          enddo
          call fill_global(mval, fval, halo_ps,
-     .                    atmvsls_da(1-nbdy,1-nbdy,l2ci))
+     .                    atmbrf_da(1-nbdy,1-nbdy,l2ci))
          if (mnproc.eq.1)
      .      write (lp,*) 'import_mct: prog. atmospheric bromoform read'
       else
          do j = 1, jj
             do i = 1, ii
                if (ip(i,j) == 0) then
-                  atmvsls_da(i,j,l2ci) = mval
+                  atmbrf_da(i,j,l2ci) = mval
                else
-                  atmvsls_da(i,j,l2ci) = -1
+                  atmbrf_da(i,j,l2ci) = -1
                endif
             enddo
          enddo
@@ -364,7 +364,7 @@
          call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
-         call chksummsk(atmvsls_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmvsls')
+         call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
       endif
 
       end subroutine import_mct
