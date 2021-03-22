@@ -141,12 +141,12 @@
          enddo
       endif
 
-      if (index_o2x_Faoo_fvsls_ocn > 0) then
+      if (index_o2x_Faoo_fbrf_ocn > 0) then
          do j = 1, jj
             do l = 1, isp(j)
             do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
-               sbuff(i,j,index_o2x_Faoo_fvsls_ocn) =
-     .            sbuff(i,j,index_o2x_Faoo_fvsls_ocn)
+               sbuff(i,j,index_o2x_Faoo_fbrf_ocn) =
+     .            sbuff(i,j,index_o2x_Faoo_fbrf_ocn)
      .          + flxbrf(i,j)*baclin
             enddo
             enddo
