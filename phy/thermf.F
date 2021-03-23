@@ -33,7 +33,7 @@ c
       select case (trim(expcnf))
         case ('cesm')
           call thermf_cesm(m,n,mm,nn,k1m,k1n)
-        case ('ben02clim', 'ben02syn')
+        case ('ben02clim', 'ben02syn', 'single_column')
           call thermf_ben02(m,n,mm,nn,k1m,k1n)
         case ('fuk95')
         case ('isomip1')
