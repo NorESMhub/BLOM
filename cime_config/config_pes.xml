@@ -412,10 +412,13 @@
     </mach>
   </grid>
 
+
+  <!-- Configurations for the two degree tripolar (tnx2) grid for compsets including iHAMOCC  !-->
+  
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
       <pes pesize="XS" compset="_DATM.*_BLOM%ECO">
-	<comment>none</comment>
+	<comment>Very small and efficent pe-layout on 128 pes in total</comment>
 	<ntasks>
 	  <ntasks_atm>1</ntasks_atm> 
 	  <ntasks_rof>1</ntasks_rof> 
@@ -452,7 +455,7 @@
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
       <pes pesize="S" compset="_DATM.*_BLOM%ECO">
-	<comment>none</comment>
+	<comment>Small pe-layout with 219 pe in total</comment>
 	<ntasks>
 	  <ntasks_atm>1</ntasks_atm> 
 	  <ntasks_rof>1</ntasks_rof> 
@@ -489,7 +492,7 @@
   <grid name="a%T62.+oi%tnx2v1">
     <mach name="any">
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
-	<comment>none</comment>
+	<comment>Medium sized pe-layout with 352 pes in total</comment>
 	<ntasks>
 	  <ntasks_atm>1</ntasks_atm> 
 	  <ntasks_rof>1</ntasks_rof> 
@@ -516,6 +519,43 @@
 	  <rootpe_rof>2</rootpe_rof> 
 	  <rootpe_ice>4</rootpe_ice>    
 	  <rootpe_ocn>80</rootpe_ocn>   
+	  <rootpe_glc>3</rootpe_glc> 
+	  <rootpe_wav>3</rootpe_wav> 
+	  <rootpe_cpl>0</rootpe_cpl>                         
+	</rootpe>
+      </pes>
+    </mach>
+  </grid>
+  <grid name="a%T62.+oi%tnx2v1">
+    <mach name="any">
+      <pes pesize="L" compset="_DATM.*_BLOM%ECO">
+	<comment>Large pe-layout with 512 pes in total</comment>
+	<ntasks>
+	  <ntasks_atm>1</ntasks_atm> 
+	  <ntasks_rof>1</ntasks_rof> 
+	  <ntasks_ice>102</ntasks_ice> 
+	  <ntasks_ocn>406</ntasks_ocn> 
+	  <ntasks_cpl>106</ntasks_cpl> 
+	  <ntasks_lnd>1</ntasks_lnd>
+	  <ntasks_glc>1</ntasks_glc> 
+	  <ntasks_wav>1</ntasks_wav> 
+	</ntasks>
+	<nthrds>
+	  <nthrds_atm>1</nthrds_atm>                   
+	  <nthrds_lnd>1</nthrds_lnd> 
+	  <nthrds_rof>1</nthrds_rof> 
+	  <nthrds_ice>1</nthrds_ice> 
+	  <nthrds_ocn>1</nthrds_ocn> 
+	  <nthrds_glc>1</nthrds_glc> 
+	  <nthrds_wav>1</nthrds_wav> 
+	  <nthrds_cpl>1</nthrds_cpl> 
+	</nthrds>
+	<rootpe>
+	  <rootpe_atm>0</rootpe_atm> 
+	  <rootpe_lnd>1</rootpe_lnd> 
+	  <rootpe_rof>2</rootpe_rof> 
+	  <rootpe_ice>4</rootpe_ice>    
+	  <rootpe_ocn>106</rootpe_ocn>   
 	  <rootpe_glc>3</rootpe_glc> 
 	  <rootpe_wav>3</rootpe_wav> 
 	  <rootpe_cpl>0</rootpe_cpl>                         
