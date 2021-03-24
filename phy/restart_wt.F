@@ -195,8 +195,8 @@ c --- output model fields to restart file
       if (sprfac) then
         call ncputr('prfac',prfac)
       endif
-      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or. &
-          expcnf.eq.'channel') then
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
+     .   expcnf.eq.'channel') then
         call ncputi('ntda',ntda)
       endif
       do n=1,nphy 

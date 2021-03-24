@@ -22,15 +22,17 @@
       ! thermf for the channel config
       !
       use mod_xc
+      use mod_types, only: r8
       use mod_ben02, only: ntda
       use mod_constants, only: spcifh, t0deg, epsil, onem
       use mod_time, only: nday_in_year, nday_of_year, nstep,
      .                    nstep_in_day, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
       use mod_xc
-      use mod_grid, only: scp2, plat, area
+      use mod_grid, only: scp2, area
       use mod_state, only: dp, temp, saln, p
       use mod_swtfrz, only: swtfrz
+      use mod_ben02, only: nrfets
       use mod_forcing, only: sref, tflxap, sflxap, tflxdi, sflxdi,
      .                       nflxdi, aptflx, apsflx, ditflx, disflx,
      .                       sstclm, ricclm, sssclm, trxday, srxday,
@@ -38,15 +40,6 @@
      .                       swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
      .                       fmltfz, sfl, ustarw, surflx, surrlx,
      .                       sswflx, salflx, brnflx, salrlx, ustar
-      use mod_swabs, only: swbgal, swbgfc
-      use mod_ben02, only: tsi_tda, tml_tda, sml_tda, alb_tda, fice_tda,
-     .                     tsi, ntda, dfl, albw, alb,
-     .                     rnfins, rnfres, nrfets, rhowat
-      use mod_thdysi, only: tsrfm, ticem, albi_f, albi_m, albs_f,
-     .                      albs_m, rhoice, rhosnw, rkice, rksnw, fusi,
-     .                      fuss, fice_max, tice_m, tsnw_m, hice_nhmn,
-     .                      hice_shmn, sagets, sice, cwi, cuc
-      use mod_seaice, only: ficem, hicem, hsnwm, ustari, iagem
       use mod_utility, only: util1, util2, util3, util4
       use mod_checksum, only: csdiag, chksummsk
 #ifdef TRC
@@ -61,16 +54,25 @@
 #  endif
 #endif
 
-      
+      ! use mod_swabs, only: swbgal, swbgfc
+      ! use mod_ben02, only: tsi_tda, tml_tda, sml_tda, alb_tda, 
+      !.                     fice_tda,
+      !.                     tsi, ntda, dfl, albw, alb,
+      !.                     rnfins, rnfres, nrfets, rhowat
+      ! use mod_thdysi, only: tsrfm, ticem, albi_f, albi_m, albs_f,
+      !.                      albs_m, rhoice, rhosnw, rkice, rksnw, fusi,
+      !.                      fuss, fice_max, tice_m, tsnw_m, hice_nhmn,
+      !.                      hice_shmn, sagets, sice, cwi, cuc
+      ! use mod_seaice, only: ficem, hicem, hsnwm, iagem 
       !
       implicit none
       !
       integer m,n,mm,nn,k1m,k1n
       !
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
       !
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real dt,cpsw,rnf_fac,sag_fac,y,
+      real(r8) dt,cpsw,rnf_fac,sag_fac,y,
      .     dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
      .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
      .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
@@ -79,17 +81,17 @@
      !
 #ifdef TRC
       integer nt
-      real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+      real(r8), dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  ttrsf,ttrav
-      real trflxc
+      real(r8) trflxc
 #endif
       !
-      real intp1d
+      real(r8) intp1d
       external intp1d
       !
       ! Set various constants
       dt=baclin                         ! Time step
-      cpsw=spcifh*1.e3                  ! Specific heat of seawater
+      cpsw=spcifh*1.e3_r8               ! Specific heat of seawater
       rnf_fac=baclin/real(nrfets*86400) ! Runoff reservoar detrainment rate
       !
       ! Set parameters for time interpolation when applying diagnosed heat
@@ -139,17 +141,17 @@
 ! --- --- Accumulate the runoff in a reservoar to delay the discharge
 ! --- --- into the ocean (by nrfets days approximately 1/e of runoff
 ! --- --- added will by discharged).
-          rnfres(i,j)=rnfres(i,j)+rnf(i,j)
-          rnfflx(i,j)=rnfres(i,j)*rnf_fac
-          rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
-          rfiflx(i,j)=rfi(i,j)
+!          rnfres(i,j)=rnfres(i,j)+rnf(i,j)
+!          rnfflx(i,j)=rnfres(i,j)*rnf_fac
+!          rnfres(i,j)=rnfres(i,j)*(1.-rnf_fac)
+!          rfiflx(i,j)=rfi(i,j)
 !
 ! --- --- Fresh water flux due to melting/freezing [kg m-2 s-1]
 ! --- --- (positive downwards)
           fmltfz(i,j)=0._r8 !-(dvi*rhoice+dvs*rhosnw)/dt
 !
 ! --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
-          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnfflx(i,j)+rfiflx(i,j)
+          fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)
      .         +fmltfz(i,j)
 !
 ! --- --- Salt flux [kg m-2 s-1] (positive downwards)
@@ -170,7 +172,7 @@
           hmltfz(i,j)=0._r8 !(dvi*fusi+dvs*fuss)/dt
 !
 ! --- --- Total heat flux in MICOM units [W cm-2] (positive upwards)
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4_r8
 !
 ! --- --- Short-wave heat flux in MICOM units [W cm-2] (positive
 ! --- --- upwards)
@@ -184,9 +186,9 @@
           do nt=1,ntr
 #  ifdef TKE
             if (nt.eq.itrtke) then
-              trflx(nt,i,j)=0.
-              ttrsf(nt,i,j)=0.
-              ttrav(nt,i,j)=0.
+              trflx(nt,i,j)=0._r8
+              ttrsf(nt,i,j)=0._r8
+              ttrav(nt,i,j)=0._r8
               cycle
             endif
 #    ifdef GLS
@@ -194,15 +196,15 @@
               trflx(nt,i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)
      .                       *(trc(i,j,k1n,itrtke)**gls_m)
      .                       *(vonKar**gls_n)*Zos**(gls_n-1.)
-              ttrsf(nt,i,j)=0.
-              ttrav(nt,i,j)=0.
+              ttrsf(nt,i,j)=0._r8
+              ttrav(nt,i,j)=0._r8
               cycle
             endif
 #    else
             if (nt.eq.itrgls) then
-              trflx(nt,i,j)=0.
-              ttrsf(nt,i,j)=0.
-              ttrav(nt,i,j)=0.
+              trflx(nt,i,j)=0._r8
+              ttrsf(nt,i,j)=0._r8
+              ttrav(nt,i,j)=0._r8
               cycle
             endif
 #    endif
@@ -217,7 +219,7 @@
 ! --- --- Relaxation fluxes
 ! --- ------------------------------------------------------------------
 !
-          surrlx(i,j)=0.
+          surrlx(i,j)=0._r8
 !
 ! --- --- If  trxday>0 , apply relaxation towards observed sst
           if (trxday.gt.epsil) then
@@ -227,8 +229,8 @@
             rice=intp1d(ricclm(i,j,l1mi),ricclm(i,j,l2mi),
      .                  ricclm(i,j,l3mi),ricclm(i,j,l4mi),
      .                  ricclm(i,j,l5mi),xmi)
-            sstc=(1.-rice)*sstc !max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*min(hmxl,trxdpt)/(trxday*86400.)
+            sstc=(1._r8-rice)*sstc !max(sstc,tice_f)+rice*tice_f
+            trxflx=spcifh*100._r8*min(hmxl,trxdpt)/(trxday*86400.)
      .                        *min(trxlim,max(-trxlim,sstc-tmxl))
             surrlx(i,j)=-trxflx
           else
@@ -255,11 +257,11 @@
             sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
-            srxflx=100.*min(hmxl,srxdpt)/(srxday*86400.)
+            srxflx=100._r8*min(hmxl,srxdpt)/(srxday*86400.)
      .                 *min(srxlim,max(-srxlim,sssc-smxl))
             salrlx(i,j)=-srxflx
-            util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
-            util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
+            util3(i,j)=max(0._r8,salrlx(i,j))*scp2(i,j)
+            util4(i,j)=min(0._r8,salrlx(i,j))*scp2(i,j)
           else
             srxflx=0.
           endif
@@ -281,7 +283,7 @@
 ! --- --- Compute friction velocity (cm/s)
 ! --- -------------------------------------------------------------------
 !
-          ustar(i,j)=ustarw(i,j)*1.e2
+          ustar(i,j)=ustarw(i,j)*1.e2_r8
 !          ustar(i,j)=(min(ustari(i,j),.8e-2)*fice0
 !     .               +ustarw(i,j)*(1.-fice0))*1.e2
 !
@@ -301,7 +303,7 @@
       call xcsum(totwfl,util2,ips)
 !
 ! --- Correction for the virtual salt flux [kg m-2 s-1]
-      sflxc=(-sref*totwfl*1.e-3-totsfl)/area
+      sflxc=(-sref*totwfl*1.e-3_r8-totsfl)/area
       if (mnproc.eq.1) then
         write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
       endif
@@ -312,8 +314,8 @@
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2
-          brnflx(i,j)=-brnflx(i,j)*1.e2
+          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2_r8
+          brnflx(i,j)=-brnflx(i,j)*1.e2_r8
         enddo
         enddo
       enddo
@@ -331,7 +333,7 @@
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (salrlx(i,j).gt.0..and.ipwocn(i,j).eq.1) then
+              if (salrlx(i,j).gt.0._r8.and.ipwocn(i,j).eq.1) then
                 salrlx(i,j)=q*salrlx(i,j)
               endif
             enddo
@@ -344,7 +346,7 @@
           do j=1,jj
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (salrlx(i,j).lt.0..and.ipwocn(i,j).eq.1) then
+              if (salrlx(i,j).lt.0._r8.and.ipwocn(i,j).eq.1) then
                 salrlx(i,j)=q*salrlx(i,j)
               endif
             enddo
@@ -385,7 +387,7 @@
         if (mnproc.eq.1) then
           write (lp,*) 'thermf_channel:'
         endif
-        call chksummsk(rnfres,ip,1,'rnfres')
+!        call chksummsk(rnfres,ip,1,'rnfres')
         call chksummsk(surflx,ip,1,'surflx')
         call chksummsk(sswflx,ip,1,'sswflx')
         call chksummsk(salflx,ip,1,'salflx')

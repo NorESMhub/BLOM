@@ -37,9 +37,11 @@ module mod_channel
                        nwp
 
    use mod_eos, only: tofsig
-   use mod_ben02, only: ntda
+   use mod_ben02, only: ntda, alb, albw, dfl
    use mod_forcing, only: surflx, surrlx, sswflx, salflx, brnflx, salrlx, &
-                          taux, tauy
+                          taux, tauy, ustarw, slp, swa, atmco2, nsf, mty, &
+                          ztx, hmltfz, eva, lip, sop, rnf, rfi, & 
+                          fmltfz, sfl, abswnd, flxco2, flxdms, sstclm, sssclm
    use mod_mxlayr, only: mltmin
    use mod_state, only:  v, temp, saln, sigma, phi
    use mod_checksum, only: csdiag, chksummsk
@@ -61,13 +63,17 @@ contains
    ! Define bathymetry, grid specification and Coriolis parameter for the
    ! channel configuration
    ! ---------------------------------------------------------------------------
-      intrinsic random_seed, random_number,tanh,sin
+      intrinsic random_seed, random_number, tanh, sin
       
-      real, dimension(ncorru) :: acorru=0._r8,wlcorru=0._r8
+      integer, parameter :: ncorru=10
+      real(r8), dimension(ncorru) :: acorru, wlcorru
       real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy,corio0,beta0, &
-                  d_corru
+                  d_corru, r
       integer :: i,j,l,ios
+      logical :: fexist
       
+      acorru(:)=0._r8
+      wlcorru(:)=0._r8
       ! Read parameters from the namelist
       namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru,cwidth, &
                         swidth,scxy,corio0,beta0
@@ -111,14 +117,14 @@ contains
                ulat(i,j)=0._r8
                vlon(i,j)=0._r8
                vlat(i,j)=0._r8
-               qclon(i,j)=0._r8
-               qclat(i,j)=0._r8
-               pclon(i,j)=0._r8
-               pclat(i,j)=0._r8
-               uclon(i,j)=0._r8
-               uclat(i,j)=0._r8
-               vclon(i,j)=0._r8
-               vclat(i,j)=0._r8
+               qclon(i,j,:)=0._r8
+               qclat(i,j,:)=0._r8
+               pclon(i,j,:)=0._r8
+               pclat(i,j,:)=0._r8
+               uclon(i,j,:)=0._r8
+               uclat(i,j,:)=0._r8
+               vclon(i,j,:)=0._r8
+               vclat(i,j,:)=0._r8
                ! Grid dimensions (in cm!)
                scqx(i,j)=scxy
                scqy(i,j)=scxy
@@ -187,7 +193,7 @@ contains
          enddo
       !$omp end parallel do
       
-      end subroutine geoenv_fuk95
+      end subroutine geoenv_channel
       
       subroutine ictsz_channel
       ! define layer temperature and salinity, and geopotential at layer interfaces.
@@ -196,8 +202,7 @@ contains
          real(r8), dimension(1 - nbdy:idm + nbdy, &
                              1 - nbdy:jdm + nbdy, kdm) :: dz
          real(r8), dimension(kdm) :: sigmr0, dz0
-         real(r8) :: S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl, &
-                     tofsig         
+         real(r8) :: S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
          integer i,j,k,l,ios
          logical :: fexist
          
@@ -275,8 +280,9 @@ contains
             do k=2,kk
                do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                     if (z(i,j,kk+1)-z(i,j,k).lt.1.e-4)
+                     if ((z(i,j,kk+1)-z(i,j,k)).lt.1.e-4) then
                         z(i,j,k)=depths(i,j)*1.e2
+                     endif
                   enddo
                enddo
             enddo
@@ -349,7 +355,7 @@ contains
                   swa(i,j)=0._r8    ! shortwave
                   nsf(i,j)=0._r8    ! non-solar
                   hmltfz(i,j)=0._r8 ! heat flux due to melting/freezing
-                  hmlt(i,j)=0._r8   ! heat flux due to melting
+                  !hmlt(i,j)=0._r8   ! heat flux due to melting
                   dfl(i,j)=0._r8    ! derivate of non-solar in respect to T
                   !
                   alb(i,j)=0._r8 ! albedo
@@ -363,8 +369,8 @@ contains
                   sfl(i,j)=0._r8       ! salt flux
                   abswnd(i,j)=0._r8    ! wind speed at measurement height -zu-
                   albw(i,j)=0._r8      ! daily mean open water albedo
-                  frzpot(i,j)=0._r8    ! freezing potential
-                  mltpot(i,j)=0._r8    ! melting potential
+                  !frzpot(i,j)=0._r8    ! freezing potential
+                  !mltpot(i,j)=0._r8    ! melting potential
                   flxco2(i,j)=0._r8    ! air-sea co2 flux
                   flxdms(i,j)=0._r8    ! sea-air dms flux
                   !
