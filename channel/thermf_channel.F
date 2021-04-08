@@ -234,7 +234,7 @@
      .                        *min(trxlim,max(-trxlim,sstc-tmxl))
             surrlx(i,j)=-trxflx
           else
-            trxflx=0.
+            trxflx=0._r8
           endif
 !
 ! --- --- If aptflx=.true., apply diagnosed relaxation flux
@@ -250,7 +250,7 @@
             tflxdi(i,j,k)=tflxdi(i,j,k)+trxflx
           endif
 !
-          salrlx(i,j)=0.
+          salrlx(i,j)=0._r8
 !
 ! --- --- if  srxday>0 , apply relaxation towards observed sss
           if (srxday.gt.epsil) then

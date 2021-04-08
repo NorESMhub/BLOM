@@ -490,7 +490,7 @@ c
       if (expcnf.eq.'channel') then
         call ncgeti('ntda',ntda)
         call xcbcst(ntda)
-        call ncread('rnfres',rnfres,ip,1,0.)
+c        call ncread('rnfres',rnfres,ip,1,0.)
       endif 
 c
       if (expcnf.eq.'cesm') then

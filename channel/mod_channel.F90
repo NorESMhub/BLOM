@@ -42,8 +42,8 @@ module mod_channel
                           taux, tauy, ustarw, slp, swa, atmco2, nsf, mty, &
                           ztx, hmltfz, eva, lip, sop, rnf, rfi, & 
                           fmltfz, sfl, abswnd, flxco2, flxdms, sstclm, sssclm
-   use mod_mxlayr, only: mltmin
-   use mod_state, only:  v, temp, saln, sigma, phi
+   !use mod_mxlayr, only: mltmin
+   use mod_state, only:  temp, saln, sigma, phi
    use mod_checksum, only: csdiag, chksummsk
    
    implicit none
@@ -64,20 +64,25 @@ contains
    ! channel configuration
    ! ---------------------------------------------------------------------------
       intrinsic random_seed, random_number, tanh, sin
-      
+ 
       integer, parameter :: ncorru=10
       real(r8), dimension(ncorru) :: acorru, wlcorru
-      real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy,corio0,beta0, &
-                  d_corru, r
+      real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: r0
+      real(r8), dimension(itdm,jtdm) :: rtmp
+      real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy, &
+                  corio0, beta0, d_corru, r
       integer :: i,j,l,ios
+      integer, dimension(1) :: seed
       logical :: fexist
       
+      !acorru(:)=0._r8
+      !wlcorru(:)=0._r8
+      ! Read parameters from the namelist
+      namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru, &
+                        cwidth,swidth,scxy,corio0,beta0
       acorru(:)=0._r8
       wlcorru(:)=0._r8
-      ! Read parameters from the namelist
-      namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru,cwidth, &
-                        swidth,scxy,corio0,beta0
-      inquire(file='limits',exist=fexist)
+      inquire(file='limits', exist=fexist)
       if (fexist) then
          open (unit=nfu,file='limits',status='old',action='read')
       else
@@ -104,6 +109,13 @@ contains
       !
       ! Number of wet points (southern and northern most rows are land)
       nwp=jtdm*itdm-2*itdm
+      !
+      if (mnproc == 1) then
+        seed = 1144153914 !hard-coded seed
+        call random_seed (PUT = seed)
+        call random_number(rtmp)
+      endif
+      call xcaput(rtmp, r0, 1)
       !$omp parallel do private(i)
          do j = 1, jj
             do i = 1, ii
@@ -147,20 +159,21 @@ contains
                angle=0._r8
                cosang=1._r8
                sinang=0._r8
-               
+               ! initialize depth to 0
+               depths(i,j)=0._r8               
             enddo
          enddo
       !$omp end parallel do
       
       ! Set the bottom topography to be a tanh function.
-      ! The resulting slope will have the same shape ndependent of the 
+      ! The resulting slope will have the same shape independent of the 
       ! grid size (no interpolation done though).
       !$omp parallel do private(i,r)
          do j=1,jj
             if (j0+j.gt.1) then
             if (j0+j.lt.jtdm) then
                do i=1,ii
-                  call random_number(r)
+                  !r=r0(i,j)-0.5_r8
                   if ((scpy(i,j)*(j0+j)).lt.(swidth+cwidth)) then
                      l=1
                      d_corru=0._r8
@@ -169,7 +182,7 @@ contains
                         +acorru(l)*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru(l))
                         l=l+1
                      enddo
-                     depths(i,j) = sfdepth+rdepth*r+.5_r8*sldepth* &
+                     depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
                                   (1._r8+tanh(pi*(scpy(i,j)*(j0+j)- &
                                   swidth-d_corru)/cwidth))
                   elseif ((jtdm-(j0+j))*scpy(i,j).lt.(swidth+cwidth)) then
@@ -181,11 +194,11 @@ contains
                                 wlcorru(l))
                         l=l+1
                      enddo
-                     depths(i,j) = sfdepth+rdepth*r+.5_r8*sldepth* &
+                     depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
                                    (1._r8+tanh(pi*(scpy(i,j)*(jtdm-(j0+j)) &
                                    -swidth-d_corru)/cwidth))
                   else
-                     depths(i,j)=sfdepth+rdepth*r+sldepth
+                     depths(i,j)=sfdepth+rdepth*r0(i,j)+sldepth
                   endif
                enddo
             endif
@@ -245,7 +258,7 @@ contains
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                      dz(i,j,k) = dz0(k)
                      saln(i,j,k) = S0
-                     sigmar(i,j,k) = sigmr0(k)*1.e-3 !convert units to g/cm^3
+                     sigmar(i,j,k) = sigmr0(k)*1.e-3_r8 !convert units to g/cm^3
                      temp(i,j,k) = tofsig(sigmar(i,j,k),saln(i,j,k))
                   enddo
                enddo
@@ -262,33 +275,33 @@ contains
             enddo
          enddo
       !$omp end parallel do
-         !
-         do k=1,kk
+      !
       !$omp parallel do private(k, l, i)
          do j=1,jj
+            do k=1,kk
             do l=1,isp(j)
                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                  z(i,j,k+1)=min(depths(i,j)*1.e2,z(i,j,k)+dz(i,j,k)*1.e2)
+                  z(i,j,k+1)=min(depths(i,j)*1.e2_r8,z(i,j,k)+dz(i,j,k)*1.e2_r8)
                enddo
+            enddo
             enddo
          enddo
       !$omp end parallel do
-         enddo
-         !
+      !
       !$omp parallel do private(k, l, i)
          do j=1,jj
             do k=2,kk
                do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                     if ((z(i,j,kk+1)-z(i,j,k)).lt.1.e-4) then
-                        z(i,j,k)=depths(i,j)*1.e2
+                     if ((z(i,j,kk+1)-z(i,j,k)).lt.1.e-4_r8) then
+                        z(i,j,k)=depths(i,j)*1.e2_r8
                      endif
                   enddo
                enddo
             enddo
             do l=1,isp(j)
                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                  z(i,j,kk+1)=depths(i,j)*1.e2
+                  z(i,j,kk+1)=depths(i,j)*1.e2_r8
                enddo
             enddo
          enddo
@@ -344,60 +357,55 @@ contains
          !
          ! Most variables will be set to 0, but it is useful to keep them here
          ! to facilitate future studies with more complex forcing.
-         !
-         !$omp parallel do private(l,i)
-         do j=1,jj
-            do l=1,isp(j)
-               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                  ustarw(i,j)=0.005_r8 ! friction velocity for open water
-                  slp(i,j)=1000._r8    ! sea level pressure
-                  atmco2(i,j)=400._r8  ! atmospheric co2 concentration
-                  swa(i,j)=0._r8    ! shortwave
-                  nsf(i,j)=0._r8    ! non-solar
-                  hmltfz(i,j)=0._r8 ! heat flux due to melting/freezing
-                  !hmlt(i,j)=0._r8   ! heat flux due to melting
-                  dfl(i,j)=0._r8    ! derivate of non-solar in respect to T
-                  !
-                  alb(i,j)=0._r8 ! albedo
-                  eva(i,j)=0._r8 ! evaporation
-                  lip(i,j)=0._r8 ! liquid precip
-                  sop(i,j)=0._r8 ! solid precip 
-                  !
-                  rnf(i,j)=0._r8       ! runoff
-                  rfi(i,j)=0._r8       ! runoff ice
-                  fmltfz(i,j)=0._r8    ! fresh water flux due to melting/freezing
-                  sfl(i,j)=0._r8       ! salt flux
-                  abswnd(i,j)=0._r8    ! wind speed at measurement height -zu-
-                  albw(i,j)=0._r8      ! daily mean open water albedo
-                  !frzpot(i,j)=0._r8    ! freezing potential
-                  !mltpot(i,j)=0._r8    ! melting potential
-                  flxco2(i,j)=0._r8    ! air-sea co2 flux
-                  flxdms(i,j)=0._r8    ! sea-air dms flux
-                  !
-                  ! -------------------------------------------------
-                  ! SST and SSS climatologies are set here (to values
-                  ! defined in the namelist), but their usage is controlled 
-                  ! by namelist timescales that are 0. by default. 
-                  ! -------------------------------------------------
-                  !
-                  do k=1,12
-                     sstclm(i,j,k)=sst0
-                     sssclm(i,j,k)=sss0
-                  enddo
-               enddo
+         ! try removing the omp loop, this is done once anyway
+      !$omp parallel do private(l,i,k, alb, albw, dfl)
+            do j = 1, jj
+              do l = 1, isp(j)
+              do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                 ustarw(i,j) = 0.005_r8 ! friction velocity for open water
+                 slp(i,j)    = 1000._r8 ! sea level pressure
+                 atmco2(i,j) = 400._r8  ! atmospheric co2 concentration
+                 swa(i,j)    = 0._r8    ! shortwave
+                 nsf(i,j)    = 0._r8    ! non-solar
+                 hmltfz(i,j) = 0._r8    ! heat flux due to melting/freezing
+                 !dfl(i,j)    = 0._r8    ! derivate of non-solar in respect to T
+                 !alb(i,j)    = 0._r8    ! albedo
+                 eva(i,j)    = 0._r8    ! evaporation
+                 lip(i,j)    = 0._r8    ! liquid precip
+                 sop(i,j)    = 0._r8    ! solid precip 
+                 rnf(i,j)    = 0._r8    ! runoff
+                 rfi(i,j)    = 0._r8    ! runoff ice
+                 fmltfz(i,j) = 0._r8    ! fresh water flux due to melting/freezing
+                 sfl(i,j)    = 0._r8    ! salt flux
+                 abswnd(i,j) = 0._r8    ! wind speed at measurement height -zu-
+                 !albw(i,j)   = 0._r8    ! daily mean open water albedo
+                 flxco2(i,j) = 0._r8    ! air-sea co2 flux
+                 flxdms(i,j) = 0._r8    ! sea-air dms flux
+                 !
+                 ! -------------------------------------------------
+                 ! SST and SSS climatologies are set here (to values
+                 ! defined in the namelist), but their usage is controlled 
+                 ! by namelist timescales that are 0. by default. 
+                 ! -------------------------------------------------
+                 !
+                 do k=1,12
+                    sstclm(i,j,k) = sst0
+                    sssclm(i,j,k) = sss0
+                 enddo
+              enddo
+              enddo
+              do l = 1, isu(j)
+              do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
+                 taux(i,j) = ztx0*10._r8
+              enddo
+              enddo
+              do l = 1, isv(j)
+              do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
+                 tauy(i,j) = mty0*10._r8
+              enddo
+              enddo
             enddo
-            do l=1,isu(j)
-               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                  taux(i,j)=ztx0*10._r8
-               enddo
-            enddo
-            do l=1,isv(j)
-               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                  tauy(i,j)=mty0*10._r8
-               enddo
-            enddo
-         enddo
-         !$omp end parallel do
+      !$omp end parallel do
       
       
       end subroutine inifrc_channel

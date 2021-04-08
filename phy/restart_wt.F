@@ -313,9 +313,9 @@ c
         call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
       endif
 c      
-      if (expcnf.eq.'channel') then
-        call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
-      endif
+c      if (expcnf.eq.'channel') then
+c        call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
@@ -911,9 +911,9 @@ c
         call defvarrst('rnfres',trim(c5p)//' time')
       endif
 c
-      if (expcnf.eq.'channel') then
-        call defvarrst('rnfres',trim(c5p)//' time')
-      endif
+c      if (expcnf.eq.'channel') then
+c        call defvarrst('rnfres',trim(c5p)//' time')
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call defvarrst('ustarw_da',trim(c5p)//' k2 time')
