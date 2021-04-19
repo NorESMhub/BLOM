@@ -25,6 +25,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_config, only: expcnf
       use mod_fuk95, only: geoenv_fuk95
+      use mod_single_column, only: geoenv_single_column
       use mod_xc
       use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat,
      .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
@@ -65,6 +66,8 @@ c
           call geoenv_file
         case ('fuk95')
           call geoenv_fuk95
+        case ('single_column')
+          call geoenv_single_column
         case ('test')
           call geoenv_test
         case default

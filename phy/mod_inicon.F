@@ -353,7 +353,7 @@ c --- Define layer interface heights and layer temperature and salinity
 c --- ------------------------------------------------------------------
 c
       select case (trim(expcnf))
-        case ('cesm', 'ben02clim', 'ben02syn')
+        case ('cesm', 'ben02clim', 'ben02syn', 'single_column')
           call ictsz_file
         case ('fuk95')
           call ictsz_fuk95
@@ -383,7 +383,7 @@ c
       select case (trim(expcnf))
         case ('cesm')
           call inicon_cesm
-        case ('ben02clim', 'ben02syn')
+        case ('ben02clim', 'ben02syn', 'single_column')
           call inicon_ben02
       end select
 c
