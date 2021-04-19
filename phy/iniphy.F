@@ -34,6 +34,7 @@ c
         call read_tidaldissip
       elseif (expcnf.eq.'channel') then
       elseif (expcnf.eq.'fuk95') then
+      elseif (expcnf.eq.'single_column') then
       elseif (expcnf.eq.'isomip1') then
       elseif (expcnf.eq.'isomip2') then
       else

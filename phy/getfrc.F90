@@ -42,6 +42,8 @@ subroutine getfrc
 !        call getfrc_isomip1
       case ('isomip2')
 !        call getfrc_isomip2
+      case ('single_column')
+         call getfrc_ben02clim  
       case default
          if (mnproc == 1) then
             write (lp,'(3a)') ' getfrc: expcnf = ', trim(expcnf), &

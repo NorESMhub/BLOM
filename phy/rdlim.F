@@ -677,7 +677,8 @@ c --- convert integer dates
       date0%day=abs(idate0)-abs(date0%year)*10000-date0%month*100
 c
 c --- set atm_path length
-      if (expcnf.eq.'ben02syn'.or.expcnf.eq.'ben02clim') then
+      if (expcnf.eq.'ben02syn'.or.expcnf.eq.'ben02clim'.or.
+     .    expcnf.eq.'single_column') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.
      .            atm_path(atm_path_len:atm_path_len).ne.' ')

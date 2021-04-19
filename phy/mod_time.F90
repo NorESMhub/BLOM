@@ -102,6 +102,8 @@ contains
             calendar = '360_day'
          case ('channel')
             calendar = '360_day'
+         case ('single_column')           
+            calendar = '360_day'
          case ('isomip1', 'isomip2') 
             calendar = '360_day'
          case default

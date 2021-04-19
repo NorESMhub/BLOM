@@ -46,6 +46,8 @@ subroutine inifrc
 !        call inifrc_isomip1
       case ('isomip2')
 !        call inifrc_isomip2
+      case ('single_column')
+         call inifrc_ben02clim
       case default
          if (mnproc == 1) then
             write (lp,'(3a)') ' inifrc: expcnf = ', trim(expcnf), &
