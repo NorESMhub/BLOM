@@ -67,13 +67,10 @@ c
           call geoenv_file
         case ('fuk95')
           call geoenv_fuk95
-<<<<<<< HEAD
         case ('channel')
           call geoenv_channel
-=======
         case ('single_column')
           call geoenv_single_column
->>>>>>> master
         case ('test')
           call geoenv_test
         case default
