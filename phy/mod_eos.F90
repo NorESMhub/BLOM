@@ -131,7 +131,7 @@ contains
             atf =  0._r8
             btf = -1.8_r8
             ctf =  0._r8
-         case ('ben02clim', 'ben02syn', 'fuk95', 'single_column')
+         case ('ben02clim', 'ben02syn', 'fuk95', 'single_column','channel')
             atf = -0.0547_r8
             btf =  0._r8
             ctf =  0._r8

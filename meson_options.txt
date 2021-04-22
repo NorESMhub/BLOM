@@ -4,7 +4,7 @@ option('processors', type: 'integer', min: 1, max: 50000,
 option('grid', type: 'combo',
        choices: ['gx1v5', 'gx1v6', 'gx3v7', 'tnx0.25v1', 'tnx0.25v3',
                  'tnx0.25v4', 'tnx1.5v1', 'tnx1v1', 'tnx1v3', 'tnx1v4',
-                 'tnx2v1', 'MNP2', 'fuk95', 'single_column'],
+                 'tnx2v1', 'MNP2', 'fuk95', 'single_column','channel'],
        description: 'Grid name', value: 'fuk95')
 # Which executable driver should be built
 option('driver', type: 'combo',

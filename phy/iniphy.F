@@ -32,6 +32,7 @@ c
       if     (expcnf.eq.'cesm'.or.
      .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call read_tidaldissip
+      elseif (expcnf.eq.'channel') then
       elseif (expcnf.eq.'fuk95') then
       elseif (expcnf.eq.'single_column') then
       elseif (expcnf.eq.'isomip1') then

@@ -44,6 +44,7 @@ c
       use mod_temmin, only: settemmin
       use mod_cesm, only: inicon_cesm
       use mod_fuk95, only: ictsz_fuk95
+      use mod_channel, only: ictsz_channel
       use mod_eos, only: rho, sig, sofsig, delphi
       use mod_swtfrz, only: swtfrz
       use mod_pointtest, only: itest, jtest, ptest
@@ -357,6 +358,8 @@ c
           call ictsz_file
         case ('fuk95')
           call ictsz_fuk95
+        case ('channel')
+          call ictsz_channel
         case ('isomip1')
 c         call ictsz_isomip1
         case ('isomip2')

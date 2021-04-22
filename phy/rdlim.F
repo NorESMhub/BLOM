@@ -946,8 +946,8 @@ c
         write (lp,'(a,i10)') ' barotr. steps per barocl. step: ',lstep
         write (lp,'(2a)') ' runid:                          ',
      .    trim(runid)
-        write (lp,'(a,f10.4)') ' rstfrq:                         ',
-     .    rstfrq
+        write (lp,'(a,i10)') ' rstfrq:                         ',
+     .    nint(rstfrq/nstep_in_day)
         write (lp,'(a,l10)') ' rstmon:                         ',rstmon
         write (lp,'(a,l10)') ' rstann:                         ',rstann
         write (lp,*)

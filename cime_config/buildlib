@@ -38,6 +38,7 @@ $CASEROOT/SourceMods/src.blom
 $SRCROOT/components/blom/ben02
 $SRCROOT/components/blom/cesm
 $SRCROOT/components/blom/fuk95
+$SRCROOT/components/blom/channel
 $SRCROOT/components/blom/single_column
 $SRCROOT/components/blom/drivers/cpl_share
 $SRCROOT/components/blom/drivers/cpl_mct

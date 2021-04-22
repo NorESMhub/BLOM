@@ -195,7 +195,8 @@ c --- output model fields to restart file
       if (sprfac) then
         call ncputr('prfac',prfac)
       endif
-      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
+     .   expcnf.eq.'channel') then
         call ncputi('ntda',ntda)
       endif
       do n=1,nphy 
@@ -311,6 +312,10 @@ c
         call wrtrst('iagem',trim(c5p)//' time',iagem,ip)
         call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
       endif
+c      
+c      if (expcnf.eq.'channel') then
+c        call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
@@ -767,7 +772,7 @@ c
         call ncfcls
       endif
 c
-      if (expcnf.eq.'cesm') then
+      if (expcnf.eq.'cesm'.or.expcnf.eq.'channel') then
 c
 c --- - write restart filename to rpointer.ocn
         if (mnproc.eq.1) then
@@ -905,6 +910,10 @@ c
         call defvarrst('iagem',trim(c5p)//' time')
         call defvarrst('rnfres',trim(c5p)//' time')
       endif
+c
+c      if (expcnf.eq.'channel') then
+c        call defvarrst('rnfres',trim(c5p)//' time')
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call defvarrst('ustarw_da',trim(c5p)//' k2 time')

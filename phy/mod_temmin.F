@@ -72,7 +72,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
 c$OMP END PARALLEL DO
 c
       elseif (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
-     .        expcnf.eq.'fuk95') then
+     .        expcnf.eq.'fuk95'.or.expcnf.eq.'channel') then
 c
 c --- - Let temmin be the freezing temperature of a given potential
 c --- - density. This can be achieved by using potential density given
