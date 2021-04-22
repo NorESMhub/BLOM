@@ -13,16 +13,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-10.15]
         mpi: [true, false]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: meson
-
-      - name: Setup Python for newer version of Meson
-        uses: actions/setup-python@v2
-
       - name: Install dependencies - Ubuntu
         run: |
           sudo apt update
@@ -34,6 +25,12 @@ jobs:
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
         if: runner.os == 'macOS'
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python for newer version of Meson
+        uses: actions/setup-python@v2
 
       - name: Run Meson build step
         uses: BSFishy/meson-build@v1.0.2
@@ -56,31 +53,57 @@ jobs:
     env:
       CC: icc
       FC: ifort
+      NFDIR: '/opt/netcdf'
     steps:
-      - name: Setup Intel repository
-        run: |
-          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
-          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
-          sudo echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-          sudo apt update
-
       - name: Install dependencies
-        run: sudo apt install -y ninja-build libnetcdf-dev intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran intel-oneapi-mpi-devel
+        run: |
+          sudo apt update
+          sudo apt install -y ninja-build libnetcdf-dev
+
+      - name: Cache Intel setup
+        id: cache-intel
+        uses: actions/cache@v2
+        with:
+          path: /opt/intel/
+          key: intel-${{ runner.os }}-compiler
+
+      - name: Setup Intel compiler
+        if: steps.cache-intel.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+          sudo apt update
+          sudo apt install -y\
+            intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic\
+            intel-oneapi-compiler-fortran intel-oneapi-mpi-devel
+
+      - name: Cache netCDF install
+        id: cache-netcdf
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.NFDIR }}
+          key: netcdf-4.5.2-${{ runner.os }}-intel
 
       - name: Checkout netCDF for compiling with Intel
+        if: steps.cache-netcdf.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
         with:
           repository: 'Unidata/netcdf-fortran'
           ref: 'v4.5.2'
 
       - name: Compile and install custom netCDF
+        if: steps.cache-netcdf.outputs.cache-hit != 'true'
         run: |
           source /opt/intel/oneapi/setvars.sh
           ./configure --prefix="$NFDIR"
           make
           sudo make install
-        env:
-          NFDIR: /usr/local
+
+      - name: Setup netCDF environment
+        run: |
+          echo "${NFDIR}/bin" >> $GITHUB_PATH
+          echo "PKG_CONFIG_PATH=${NFDIR}/lib/pkgconfig" >> $GITHUB_ENV
 
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
@@ -90,15 +113,9 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: meson
 
-      - name: Setup build directory
+      - name: Build with Intel compilers
         run: |
           source /opt/intel/oneapi/setvars.sh
           meson setup builddir -Dmpi=${{ matrix.mpi }}
-
-      - name: Compile source code
-        run: |
-          source /opt/intel/oneapi/setvars.sh
           meson compile -C builddir
