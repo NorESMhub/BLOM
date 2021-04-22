@@ -72,11 +72,9 @@ contains
       real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy, &
                   corio0, beta0, d_corru, r
       integer :: i,j,l,ios
-      integer, dimension(1) :: seed
+      integer, dimension(:), allocatable :: seed
       logical :: fexist
       
-      !acorru(:)=0._r8
-      !wlcorru(:)=0._r8
       ! Read parameters from the namelist
       namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru, &
                         cwidth,swidth,scxy,corio0,beta0
@@ -111,8 +109,10 @@ contains
       nwp=jtdm*itdm-2*itdm
       !
       if (mnproc == 1) then
+        call random_seed(size = i)
+        allocate(seed(i))
         seed = 1144153914 !hard-coded seed
-        call random_seed (PUT = seed)
+        call random_seed(put = seed)
         call random_number(rtmp)
       endif
       call xcaput(rtmp, r0, 1)
@@ -168,7 +168,7 @@ contains
       ! Set the bottom topography to be a tanh function.
       ! The resulting slope will have the same shape independent of the 
       ! grid size (no interpolation done though).
-      !$omp parallel do private(i,r)
+      !$omp parallel do private(i,r,l,d_corru)
          do j=1,jj
             if (j0+j.gt.1) then
             if (j0+j.lt.jtdm) then
@@ -179,7 +179,7 @@ contains
                      d_corru=0._r8
                      do while (acorru(l).gt.0._r8)
                         d_corru=d_corru &
-                        +acorru(l)*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru(l))
+                        +acorru(l)*sin(2._r8*pi*scpx(i,j)*(i0+i)/wlcorru(l))
                         l=l+1
                      enddo
                      depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
@@ -266,7 +266,7 @@ contains
          enddo
       !$omp end parallel do
       !
-      !$omp parallel do private(k, l, i)
+      !$omp parallel do private(l, i)
          do j=1,jj
             do l=1,isp(j)
                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -358,7 +358,7 @@ contains
          ! Most variables will be set to 0, but it is useful to keep them here
          ! to facilitate future studies with more complex forcing.
          ! try removing the omp loop, this is done once anyway
-      !$omp parallel do private(l,i,k, alb, albw, dfl)
+      !$omp parallel do private(l, i, k)
             do j = 1, jj
               do l = 1, isp(j)
               do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -434,12 +434,12 @@ contains
       do j=1,jj
          do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-               taux(i,j)=10.*ztx(i,j)
+               taux(i,j)=10._r8*ztx(i,j)
             enddo
          enddo
          do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-               tauy(i,j)=10.*mty(i,j)
+               tauy(i,j)=10._r8*mty(i,j)
             enddo
          enddo
       enddo

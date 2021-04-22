@@ -30,7 +30,7 @@
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
       use mod_xc
       use mod_grid, only: scp2, area
-      use mod_state, only: dp, temp, saln, p
+      use mod_state, only: dp, temp, saln
       use mod_swtfrz, only: swtfrz
       use mod_ben02, only: nrfets
       use mod_forcing, only: sref, tflxap, sflxap, tflxdi, sflxdi,
@@ -72,12 +72,9 @@
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
       !
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real(r8) dt,cpsw,rnf_fac,sag_fac,y,
-     .     dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
-     .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
-     .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
-     .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totwfl,sflxc,totsrp,totsrn
+      real(r8) dt,cpsw,rnf_fac,y,dpotl,hotl,totl,sotl,
+     .         dpmxl,hmxl,tmxl,smxl,q,fwflx,sstc,rice,
+     .         trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,totsrn
      !
 #ifdef TRC
       integer nt
@@ -111,10 +108,8 @@
       if (ditflx.or.disflx) nflxdi(k)=nflxdi(k)+1
 !
 !$OMP PARALLEL DO PRIVATE(
-!$OMP+ l,i,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
-!$OMP+ fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,tsmlt,
-!$OMP+ albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,dtml,q,
-!$OMP+ volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx
+!$OMP+ l,i,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,fwflx,sstc,rice,
+!$OMP+ trxflx,sssc,srxflx
 #ifdef TRC
 !$OMP+ ,nt
 #endif
