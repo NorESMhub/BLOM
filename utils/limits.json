@@ -1,0 +1,543 @@
+{"LIMITS": { 
+    "NDAY1": {
+        "definition": "First day of integration (i)", "value": [0]},
+    "NDAY2": {
+        "definition": "Last day of integration (i)", "value": [5400]},
+    "IDATE": {
+        "definition": "Model date in YYYYMMDD (i)", "value": [20200101]},
+    "IDATE0": {
+	"definition": "Initial experiment date in YYYYMMDD (i)", "value": [20200101]},
+    "RUNID": {
+        "definition": "Experiment name (a)", "value": ["'BLOM_channel'"]},
+    "EXPCNF": {
+        "definition": "Experiment configuration (a)", "value": ["'channel'"]},
+    "RUNTYP": {
+        "definition": "CESM run type (a)", "value": ["'unset'"]},
+    "GRFILE": {
+	"definition": "Name of file containing grid specification (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/grid/grid_tnx1v4_20170622.nc'"]},
+    "ICFILE": {
+	"definition": "Name of file containing initial conditions, that is either a valid restart file or 'inicon.nc' if climatological based initial conditions are desired", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/inicon/inicon_tnx1v4_20170622.nc'"]},
+    "PREF"  : {
+        "definition": "Reference pressure for potential density (g/cm/s2) (f)", "value": [2000.0E5]
+},
+    "BACLIN": {
+	"definition": "Baroclinic time step (sec) (f)", "value": [120.0]},
+    "BATROP": {
+	"definition": "Barotropic time step (sec) (f)", "value": [6.0]},
+    "MDV2HI": {
+	"definition": "Laplacian diffusion velocity for momentum dissipation (cm/s) (f)", "value": [0.025]},
+    "MDV2LO": {
+	"definition": "Laplacian diffusion velocity for momentum dissipation (cm/s) (f)", "value": [0.01]},
+    "MDV4HI": {
+        "definition": "Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)", "value": [0.0]},
+    "MDV4LO": {
+        "definition": "Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)", "value": [0.0]},
+    "MDC2HI": {
+        "definition": "Laplacian diffusivity for momentum dissipation (cm**2/s) (f)", "value": [12.5E4]},
+    "MDC2LO": {
+        "definition": "Laplacian diffusivity for momentum dissipation (cm**2/s) (f)", "value": [0.75E4]},
+    "VSC2HI": {
+        "definition": "Parameter in deformation-dependent Laplacian viscosity (f)", "value": [0.125]},
+    "VSC2LO": {
+        "definition": "Parameter in deformation-dependent Laplacian viscosity (f)", "value": [0.125]},
+    "VSC4HI": {
+	"definition": "Parameter in deformation-dependent Biharmonic viscosity (f)", "value": [0.0]},
+    "VSC4LO": {
+	"definition": "Parameter in deformation-dependent Biharmonic viscosity (f)", "value": [0.0]},
+    "CBAR": { 
+        "definition": "rms flow speed for linear bottom friction law (cm/s) (f)", "value": [5.0]},
+    "CB": {
+        "definition": "Nondiemnsional coefficient of quadratic bottom friction (f)", "value": [0.002]},
+    "CWBDTS": {
+        "definition": "Coastal wave breaking damping resiprocal time scale (1/s) (f)", "value": [1.0E-6]},
+    "CWBDLS": {
+        "definition": "Coastal wave breaking damping length scale (m) (f)", "value": [1.0]},
+    "MOMMTH": {
+        "definition": "Momentum equation discretization method. Valid methods: 'enscon' (Sadourny (1975) enstrophy conserving), 'enecon' (Sadourny (1975) energy conserving), 'enedis' (Sadourny (1975) energy conserving with some dissipation) (a)", "value": ["'enscon'"]},
+    "EITMTH": {
+        "definition": "Eddy-induced transport parameterization method. Valid methods: 'intdif', 'gm' (a)", "value": ["'gm'"]},
+    "EDRITP": {
+        "definition": "Type of Richardson number used in eddy diffusivity computation. Valid types: 'shear', 'large scale' (a)", "value": ["'large scale'"]},
+    "BMCMTH": {
+        "definition": "Baroclinic mass flux correction method. Valid methods: 'uc' (upstream column), 'dluc' (depth limited upstream column) (a)", "value": ["'uc'"]},
+    "RMPMTH": {
+        "definition": "Method of applying eddy-induced transport in the remap transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)", "value": ["'eitvel'"]},
+    "EDWMTH": {
+        "definition": "Method to estimate eddy diffusivity weight as a function of the ration of Rossby radius of deformation to the horizontal grid spacing. Valid methods: 'smooth', 'step' (a)", "value": ["'smooth'"]},
+    "MLRTTP": {   
+        "definition": "Type of mixed layer restratification time scale. Valid types: 'variable', 'constant', 'limited' (a)", "value": ["'constant'"]},
+    "EDSPRS": {
+        "definition": "Apply eddy mixing suppression away from steering level (l)", "value": [true]},
+    "EGC": {
+        "definition": "Parameter c in Eden and Greatbatch (2008) parameterization (f)", "value": [0.85]},
+    "EGGAM": {
+        "definition": "Parameter gamma in E. & G. (2008) param. (f)", "value": [200.0]},
+    "EGLSMN": {
+        "definition": "Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)", "value": [100.0E2]},
+    "EGMNDF": {
+        "definition": "Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)", "value": [0.0]},
+    "EGMXDF": {
+        "definition": "Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)", "value": [0.0]},
+    "EGIDFQ": {
+        "definition": "Factor relating the isopycnal diffusivity to the layer interface diffusivity in the Eden and Greatbatch (2008) parameterization. egidfq=difint/difiso () (f)", "value": [1.0]},
+    "RI0": {
+        "definition": "Critical gradient richardson number for shear driven vertical mixing () (f)", "value": [1.2]},
+    "RM0": {
+        "definition": "Efficiency factor of wind TKE generation in the Oberhuber (1993) TKE closure () (f)", "value": [1.2]},
+    "RM5": {
+        "definition": "Efficiency factor of TKE generation by momentum entrainment in the Oberhuber (1993) TKE closure () (f)", "value": [0.0]},
+    "CE": {
+        "definition": "Efficiency factor for the restratification by mixed layer eddies (Fox-Kemper et al., 2008) () (f)", "value": [1.0]},
+    "BDMTYP": {
+        "definition": "Type of background diapycnal mixing. If bdmtyp=1 the background diffusivity is a constant divided by the Brunt-Vaisala frequency, if bdmtyp=2 the background diffusivity is constant () (i)", "value": [2]},
+    "BDMC1": {
+        "definition": "Background diapycnal diffusivity times buoyancy frequency frequency (cm**2/s**2) (f)", "value": [5.0E-4]},
+    "BDMC2": {
+        "definition": "Background diapycnal diffusivity (cm**2/s) (f)", "value": [0.1]},
+    "TDFILE": {
+        "definition": "Name of file containing tidal wave energy dissipation divided by by bottom buoyancy frequency (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc'"]},
+    "TKEPF": {
+        "definition": "Fraction of surface TKE that penetrates beneath mixed layer () (f)", "value": [0.0]},
+    "NIWGF": {
+        "definition": "Global factor applied to the energy input by near-intertial motions () (f)", "value": [0.0]},
+    "NIWBF": {
+        "definition": "Fraction of near-inertial energy dissipated in the boundary layer () (f)", "value": [0.0]},
+    "NIWLF": {
+        "definition": "Fraction of near-inertial energy dissipated locally beneath the boundary layer () (f)", "value": [0.0]},
+    "SWAMTH": {
+        "definition": "Shortwave radiation absorption method. Valid methods: 'top-layer', 'jerlov', 'chlorophyll' (a)", "value": ["'top-layer'"]},
+    "JWTYPE": {
+        "definition": "Number indicating the Jerlov (1968) water type (i)", "value": [3]},
+    "CHLOPT": {
+        "definition": "Chlorophyll concentration option. Valid options: 'climatology' (a)", "value": ["'climatology'"]},
+    "CCFILE": {
+        "definition": "Name of file containing chlorophyll concentration climatology (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"]},
+    "TRXDAY": {
+        "definition": "e-folding time scale (days) for SST relax., if 0 no relax. (f)", "value": [0.0]},
+    "SRXDAY": {
+        "definition": "e-folding time scale (days) for SSS relax., if 0 no relax. (f)", "value": [0.0]},
+    "TRXDPT": {
+        "definition": "Maximum mixed layer depth for e-folding SST relaxation (m) (f)", "value": [1.0]},
+    "SRXDPT": {
+        "definition": "Maximum mixed layer depth for e-folding SSS relaxation (m) (f)", "value": [1.0]},
+    "TRXLIM": {
+        "definition": "Max. absolute value of SST difference in relaxation (degC) (f)", "value": [5.0]},
+    "SRXLIM": {
+        "definition": "Max. absolute value of SSS difference in relaxation (psu) (f)", "value": [0.5]},
+    "APTFLX": {
+        "definition": "Apply diagnosed heat flux flag (l)", "value": [false]},
+    "APSFLX": {
+        "definition": "Apply diagnosed freshwater flux flag (l)", "value": [false]},
+    "DITFLX": {
+        "definition": "Diagnose heat flux flag (l)", "value": [false]},
+    "DISFLX": {
+        "definition": "Diagnose freshwater flux flag (l)", "value": [false]},
+    "SRXBAL": {
+        "definition": "Balance the SSS relaxation (l)", "value": [false]},
+    "SCFILE": {
+        "definition": "Name of file containing SSS climatology used for relaxation (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"]},
+    "SMTFRC": {
+        "definition": "Smooth CESM forcing (l)", "value": [false]},
+    "SPRFAC": {
+        "definition": "Send precipitation/runoff factor to CESM coupler (l)", "value": [true]},
+    "ATM_PATH": {
+        "definition": "Path to forcing fields in case of EXPCNF 'ben02clim' or 'ben02syn' (a)", "value": ["'unset'"]},
+    "RSTFRQ": {
+        "definition": "Restart frequency in days (30=1month,365=1year) (i)", "value": [360]},
+    "RSTFMT": {
+        "definition": "Format of restart file (valid arguments are 0 for classic, 1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)", "value": [1]},
+    "RSTCMP": {
+        "definition": "Compression flag for restart file (i)", "value": [1]},
+    "IOTYPE": {
+        "definition": "0 = netcdf, 1 = pnetcdf", "value": [1]}
+    },
+
+"CWMOD": {
+    "CWMTAG": {
+        "definition": "Array of geographical names of channels to be modified (a)", "value": ["'Gibraltar'","'Gibraltar'"]},
+    "CWMEDG": {
+        "definition": "Array of C grid cell edges to be modified. Valid options: 'u' or 'v' (a)", "value": ["'u'","'u'"]},
+    "CWMI": {
+        "definition": "Array of grid cell i-indices (i)", "value": [105, 106]},
+    "CWMJ": {
+        "definition": "Array of grid cell j-indices (i)", "value": [273, 273]},
+    "CWMWTH": {
+        "definition": "Array of modified grid cell widths (m) (f)", "value": [30.0E3, 30.0E3]}
+    },
+
+"MERDIA": {
+    "MER_ORFILE": {
+        "definition": "Name of file containing ocean region specification (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc'"]},
+    "MER_MIFILE": {
+        "definition": "Name of file containing zonal section specification for meridional transport computation (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat'"]},
+    "MER_REGNAM": {
+        "definition": "Array of region names for meridional overturning and flux diagnostics (a)", "value": ["'atlantic_arctic_ocean'", "'atlantic_arctic_extended_ocean'", "'indian_pacific_ocean'","'global_ocean'"]},
+    "MER_REGFLG": {
+        "definition": "Array of mask flags in ocean regions file to be included for each region (i)", "value": [[2,4],[2, 4, 6, 7, 8, 9],[3,5],[0]]},
+    "MER_MINLAT": {
+        "definition": "Minimum latitude to be considered for each region (f)", "value": [-34.0,-34.0,-34.0,-34.0]},
+    "MER_MAXLAT": {
+        "definition": "Maximum latitude to be considered for each region (f)", "value": [90.0, 90.0, 90.0, 90.0]}
+    },
+
+"SECDIA": {
+    "SEC_SIFILE": {
+        "definition": "Name of file containing section specification for section transport computation (a)", "value": ["'/cluster/shared/noresm/inputdata/ocn/blom/grid/section_index_tnx1v4_20190611.dat/cluster/shared/noresm/inputdata/ocn/blom/grid/section_index_tnx1v4_20190611.dat'"]}
+    },
+
+"IDLINI": {
+    "S0": {
+        "definition": "sea surface salinity [g/kg] (f)", "value":[35.0]},
+    "SIG0": {
+        "definition": "sigma_2 at the sea surface [kg m-3] (f)", "value":[33.2133]},
+    "SIG0DZ": {
+        "definition": "minimum sigma_2 increment in depth [kg m-3] (f)", "value":[5.0E-4]},
+    "SIGDZ": {
+        "definition": "sigma_2 increments in depth that scale the tanh profile [kg m-3] (f)", "value":[0.2]},
+    "SIGSCL": {
+        "definition": "sigma_2 scaling factor, larger number will make the stratification more surface intensified (f)", "value":[1.5]},
+    "DZTOP": {
+        "definition":"top layer thickness in [m] (f)", "value":[10.0]},
+    "DZMAX": {
+        "definition": "max layer thickness in [m] (f)", "value":[50.0]},
+    "DZSCL": {
+        "definition": "Layer thickness scaling factor in [m] (f)", "value":[1.5]}
+    },
+
+"IDLGEO": {
+    "SLDEPTH": {
+        "definition": "slope mean depth in [m] (f)", "value":[2.0E3]},
+    "SFDEPTH": {
+        "definition": "shelf mean depth in [m] (f)", "value":[250.0]},
+    "RDEPTH": {
+        "definition": "amplitude of the random noice added to the bottom depth [m] (f)", "value":[10.0]},
+    "ACORRU": {
+        "definition": "amplitude of corrugations on the slopes given as displacement of the slope midpoint - set to 0 for no corrugations [cm] (f)", "value":[0.0]},
+    "WLCORRU": {
+        "definition": "Along channel wave-length of corrugations on the slopes [cm] (f)", "value":[208.0E5]},
+    "CWIDTH": {
+        "definition": "width of the slope region in [cm] (f)", "value":[75.0E5]},
+    "SWIDTH": {
+        "definition": "slope mid-point distance from the domain N/S edge in [cm] (f)", "value":[150.0E5]},
+    "SCXY": {
+        "definition": "grid cell (will be rectangular) dimensions in [cm] (f)", "value":[2.0E5]},
+    "CORIO0": {
+        "definition": "coriolis parameter in [1/s] (f)", "value":[1.0E-4]},
+    "BETA0": {
+        "definition": "beta (d(CORIO)/dy) [1/scm] (f)", "value":[0.0]}
+    },
+
+"IDLFOR": {
+    "ZTX0": {
+        "definition": "Accross channel (y) wind stress (f)", "value":[-5.0E-2]},
+    "MTY0": {
+        "definition": "Along channel (x) wind stress (f)", "value":[0.0]}
+    },
+
+"DIAPHY": { 
+    "GLB_FNAMETAG": {
+       "definition": "Name tag for the averaging period", "value": ["'hd'", "'hm'", "'hy'"]},
+    "GLB_AVEPERIO": {
+        "definition": "Averaging period corresponding to the tags in days", "value": [1, 30, 360]},
+    "GLB_FILEFREQ": {
+        "definition": "how often to start a new file in days (i)","value": [30, 30, 360]},
+    "GLB_COMPFLAG": {
+        "definition": "switch for compressed/uncompressed output (i)","value": [0,   0,   0]},
+    "GLB_NCFORMAT": {
+        "definition": "netcdf format (valid arguments are 0 for classic, 1 for 64-bit offset and 2 for netcdf4/hdf5 format)","value": [1,   1,   1]},
+    "H2D_ABSWND": {
+        "definition": "absolute wind speed [m s-1]", "value": [0,   0,   0]},
+    "H2D_ALB": {
+        "definition": "surface albedo []", "value": [0,   0,   0]},
+    "H2D_BTMSTR": {
+        "definition": "Barotropic mass streamfunction [kg s-1]", "value": [4,   0,   4]},
+    "H2D_BRNFLX": {
+        "definition": "Brine flux [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_BRNPD": {
+        "definition": "Brine plume depth [m]", "value": [0, 0, 0]},
+    "H2D_DFL": {
+        "definition": "non-solar heat flux derivative [W m-2 K-1]", "value": [0, 0, 0]},
+    "H2D_EVA": {
+        "definition": "Evaporation [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_FICE": {
+        "definition": "ice concentration [%]", "value": [0, 0, 0]},
+    "H2D_FMLTFZ": {
+        "definition": "fresh water flux due to melting/freezing [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_HICE": {
+        "definition": "ice thickness [m]", "value": [0, 0, 0]},
+    "H2D_HMLTFZ": {
+        "definition": "heat flux due to melting/freezing [W m-2]", "value": [0, 0, 0]},
+    "H2D_HSNW": {
+        "definition": "snow depth [m]", "value": [0, 0, 0]},
+    "H2D_IAGE": {
+        "definition": "ice age [d]", "value": [0, 0, 0]},
+    "H2D_IDKEDT": {
+        "definition": "mixed layer inertial kinetic energy tendency [kg s-3]", "value": [0, 0, 0]},
+    "H2D_LIP": {
+        "definition": "liquid precipitation [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_MAXMLD": {
+        "definition": "maximum mixed layer depth [m]", "value": [0, 0, 0]},
+    "H2D_MLD": {
+        "definition": "mixed layer depth [m]", "value": [0, 0, 0]},
+    "H2D_MLDU": {
+        "definition": "mixed layer depth at u-point [m]", "value": [0, 0, 0]},
+    "H2D_MLDV": {
+        "definition": "mixed layer depth at v-point [m]", "value": [0, 0, 0]},
+    "H2D_MLTS": {
+        "definition": "mixed layer thickness using 'sigma-t' criterion [m]", "value": [0, 0, 0]},
+    "H2D_MLTSMN": {
+        "definition": "minimum mixed layer thickness using 'sigma-t' criterion [m]", "value": [0, 0, 0]},
+    "H2D_MLTSMX": {
+        "definition": "maximum mixed layer thickness using 'sigma-t' criterion [m]", "value": [0, 0, 0]},
+    "H2D_MLTSSQ": {
+        "definition": "mixed layer thickness squared using 'sigma-t' criterion [m2]", "value": [0, 0, 0]},
+    "H2D_MTKEUS": {
+        "definition": "mixed layer TKE tendency related to friction velocity [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTKENI": {
+        "definition": "mixed layer TKE tendency related to near inertial mot. [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTKEBF": {
+        "definition": "mixed layer TKE tendency related to buoyancy forcing [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTKERS": {
+        "definition": "mixed layer TKE tendency related to eddy restrat. [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTKEPE": {
+        "definition": "mixed layer TKE tendency related to pot. energy change [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTKEKE": {
+        "definition": "mixed layer TKE tendency related to kin. energy change [kg s-3]", "value": [0, 0, 4]},
+    "H2D_MTY": {
+        "definition": "wind stress y-component [N m-2]", "value": [0, 0, 0]},
+    "H2D_MXLU": {
+        "definition": "mixed layer velocity x-component [m s-1]", "value": [4, 0, 4]},
+    "H2D_MXLV": {
+        "definition": "mixed layer velocity y-component [m s-1]", "value": [4, 0, 4]},
+    "H2D_NSF": {
+        "definition": "non-solar heat flux [W m-2]", "value": [0, 0, 0]},
+    "H2D_PBOT": {
+        "definition": "bottom pressure [Pa]", "value": [0, 0, 0]},
+    "H2D_PSRF": {
+        "definition": "surface pressure [Pa]", "value": [0, 0, 0]},
+    "H2D_RFIFLX": {
+        "definition": "frozen runoff [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_RNFFLX": {
+        "definition": "liquid runoff [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_SALFLX": {
+        "definition": "salt flux received by ocean [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_SALRLX": {
+        "definition": "restoring salt flux received by ocean [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_SBOT": {
+        "definition": "bottom salinity [g kg-1]", "value": [0, 0, 0]},
+    "H2D_SEALV": {
+        "definition": "sea level [m]", "value": [4, 0, 4]},
+    "H2D_SLVSQ": {
+        "definition": "sea level squared [m2]", "value": [0, 0, 0]},
+    "H2D_SFL": {
+        "definition": "salt flux [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_SOP": {
+        "definition": "solid precipitation [kg m-2 s-1]", "value": [0, 0, 0]},
+    "H2D_SIGMX": {
+        "definition": "mixed layer density [kg m-3]", "value": [0, 0, 0]},
+    "H2D_SSS": {
+        "definition": "ocean surface salinity [g kg-1]", "value": [0, 0, 0]},
+    "H2D_SSSSQ": {
+        "definition": "ocean surface salinity squared [g2 kg-2]", "value": [0, 0, 0]},
+   "H2D_SST": {
+        "definition": "ocean surface temperature [degC]", "value": [4, 0, 4]},
+   "H2D_SSTSQ": {
+        "definition": "ocean surface temperature squared [degC2]", "value": [0, 0, 0]},
+   "H2D_SURFLX": {
+        "definition": "heat flux received by ocean [W m-2]", "value": [0, 0, 0]},
+   "H2D_SURRLX": {
+        "definition": "restoring heat flux received by ocean [W m-2]", "value": [0, 0, 0]},
+   "H2D_SWA": {
+        "definition": "short-wave heat flux [W m-2]", "value": [0, 0, 0]},
+   "H2D_T20D": {
+        "definition": "20C isoterm depth [m]", "value": [0, 0, 0]},
+   "H2D_TAUX": {
+        "definition": "momentum flux received by ocean x-component [N m-2]", "value": [0, 0, 0]},
+   "H2D_TAUY": {
+        "definition": "momentum flux received by ocean y-component [N m-2]", "value": [0, 0, 0]},
+   "H2D_TBOT": {
+        "definition": "bottom temperature [degC]", "value": [0, 0, 0]},
+   "H2D_TICE": {
+        "definition": "ice temperature [degC]", "value": [0, 0, 0]},
+   "H2D_TSRF": {
+        "definition": "surface temperature [degC]", "value": [0, 0, 0]},
+   "H2D_UB": {
+        "definition": "barotropic velocity x-component [m s-1]", "value": [4, 0, 4]},
+   "H2D_UICE": {
+        "definition": "ice velocity x-component [m s-1]", "value": [0, 0, 0]},
+   "H2D_USTAR": {
+        "definition": "friction velocity [m s-1]", "value": [0, 0, 0]},
+   "H2D_USTAR3": {
+        "definition": "friction velocity cubed [m3 s-3]", "value": [0, 0, 0]},
+   "H2D_VB": {
+        "definition": "barotropic velocity y-component [m s-1]", "value": [4, 0, 4]},
+   "H2D_VICE": {
+        "definition": "ice velocity y-component [m s-1]", "value": [0, 0, 0]},
+   "H2D_ZTX": {
+        "definition": "wind stress x-component [N m-2]", "value": [0, 0, 0]},
+   "LYR_BFSQ": {
+        "definition": "buoyancy frequency squared [s-1]", "value": [4, 0, 4]},
+   "LYR_DIFDIA": {
+        "definition": "diapycnal diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LYR_DIFINT": {
+        "definition": "layer interface diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LYR_DIFISO": {
+        "definition": "isopycnal diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LYR_DP": {
+        "definition": "layer pressure thickness [Pa]", "value": [4, 0, 4]},
+   "LYR_DZ": {
+        "definition": "layer thickness [m]", "value": [4, 0, 4]},
+   "LYR_SALN": {
+        "definition": "salinity [g kg-1]", "value": [0, 0, 0]},
+   "LYR_TEMP": {
+        "definition": "temperature [degC]", "value": [4, 0, 4]},
+   "LYR_TRC": {
+        "definition": "tracer []", "value": [0, 0, 0]},
+   "LYR_UFLX": {
+        "definition": "mass flux in x-direction [kg s-1]", "value": [4, 0, 4]},
+   "LYR_UTFLX": {
+        "definition": "heat flux in x-direction [W]", "value": [4, 0, 4]},
+   "LYR_USFLX": {
+        "definition": "salt flux in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_UMFLTD": {
+        "definition": "mass flux due to thickness diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_UTFLTD": {
+        "definition": "heat flux due to thickness diffusion in x-direction [W]", "value": [0, 0, 0]},
+   "LYR_UTFLLD": {
+        "definition": "heat flux due to lateral diffusion in x-direction [W]", "value": [0, 0, 0]},
+   "LYR_USFLTD": {
+        "definition": "salt flux due to thickness diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_USFLLD": {
+        "definition": "salt flux due to lateral diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_UVEL": {
+        "definition": "velocity x-component [m s-1]", "value": [4, 0, 4]},
+   "LYR_VFLX": {
+        "definition": "mass flux in y-direction [kg s-1]", "value": [4, 0, 4]},
+   "LYR_VTFLX": {
+        "definition": "heat flux in y-direction [W]", "value": [4, 0, 4]},
+   "LYR_VSFLX": {
+        "definition": "salt flux in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_VMFLTD": {
+        "definition": "mass flux due to thickness diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_VTFLTD": {
+        "definition": "heat flux due to thickness diffusion in y-direction [W]", "value": [0, 0, 0]},
+   "LYR_VTFLLD": {
+        "definition": "heat flux due to lateral diffusion in y-direction [W]", "value": [0, 0, 0]},
+   "LYR_VSFLTD": {
+        "definition": "salt flux due to thickness diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_VSFLLD": {
+        "definition": "salt flux due to lateral diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LYR_VVEL": {
+        "definition": "velocity x-component [m s-1]", "value": [4, 0, 4]},
+   "LYR_WFLX": {
+        "definition": "vertical mass flux [kg s-1]", "value": [4, 0, 4]},
+   "LYR_WFLX2": {
+        "definition": "vertical mass flux squared [kg2 s-2]", "value": [0, 0, 0]},
+   "LYR_PV": {
+        "definition": "potential vorticity [m-1 s-1]", "value": [4, 0, 4]},
+   "LYR_TKE": {
+        "definition": "turbulent kinetic energy [m2 s-2]", "value": [0, 0, 0]},
+   "LYR_GLS_PSI": {
+        "definition": "generic length scale [m2 s-3]", "value": [0, 0, 0]},
+   "LYR_IDLAGE": {
+        "definition": "ideal age [year]", "value": [0, 0, 0]},
+   "LVL_BFSQ": {
+        "definition": "buoyancy frequency squared [s-1]", "value": [4, 0, 4]},
+   "LVL_DIFDIA": {
+        "definition": "diapycnal diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LVL_DIFINT": {
+        "definition": "layer interface diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LVL_DIFISO": {
+        "definition": "isopycnal diffusivity [log10(m2 s-1)]", "value": [0, 0, 4]},
+   "LVL_DZ": {
+        "definition": "layer thickness [m]", "value": [4, 0, 4]},
+   "LVL_SALN": {
+        "definition": "salinity [g kg-1]", "value": [0, 0, 0]},
+   "LVL_TEMP": {
+        "definition": "temperature [degC]", "value": [4, 0, 4]},
+   "LVL_TRC": {
+        "definition": "tracer []", "value": [0, 0, 0]},
+   "LVL_UFLX": {
+        "definition": "mass flux in x-direction [kg s-1]", "value": [4, 0, 4]},
+   "LVL_UTFLX": {
+        "definition": "heat flux in x-direction [W]", "value": [4, 0, 4]},
+   "LVL_USFLX": {
+        "definition": "salt flux in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_UMFLTD": {
+        "definition": "mass flux due to thickness diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_UTFLTD": {
+        "definition": "heat flux due to thickness diffusion in x-direction [W]", "value": [0, 0, 0]},
+   "LVL_UTFLLD": {
+        "definition": "heat flux due to lateral diffusion in x-direction [W]", "value": [0, 0, 0]},
+   "LVL_USFLTD": {
+        "definition": "salt flux due to thickness diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_USFLLD": {
+        "definition": "salt flux due to lateral diffusion in x-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_UVEL": {
+        "definition": "velocity x-component [m s-1]", "value": [4, 0, 4]},
+   "LVL_VFLX": {
+        "definition": "mass flux in y-direction [kg s-1]", "value": [4, 0, 4]},
+   "LVL_VTFLX": {
+        "definition": "heat flux in y-direction [W]", "value": [4, 0, 4]},
+   "LVL_VSFLX": {
+        "definition": "salt flux in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_VMFLTD": {
+        "definition": "mass flux due to thickness diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_VTFLTD": {
+        "definition": "heat flux due to thickness diffusion in y-direction [W]", "value": [0, 0, 0]},
+   "LVL_VTFLLD": {
+        "definition": "heat flux due to lateral diffusion in y-direction [W]", "value": [0, 0, 0]},
+   "LVL_VSFLTD": {
+        "definition": "salt flux due to thickness diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_VSFLLD": {
+        "definition": "salt flux due to lateral diffusion in y-direction [kg s-1]", "value": [0, 0, 0]},
+   "LVL_VVEL": {
+        "definition": "velocity x-component [m s-1]", "value": [4, 0, 4]},
+   "LVL_WFLX": {
+        "definition": "vertical mass flux [kg s-1]", "value": [4, 0, 4]},
+   "LVL_WFLX2": {
+        "definition": "vertical mass flux squared [kg2 s-2]", "value": [0, 0, 0]},
+   "LVL_PV": {
+        "definition": "potential vorticity [m-1 s-1]", "value": [4, 0, 4]},
+   "LVL_TKE": {
+        "definition": "turbulent kinetic energy [m2 s-2]", "value": [0, 0, 0]},
+   "LVL_GLS_PSI": {
+        "definition": "generic length scale [m2 s-3]", "value": [0, 0, 0]},
+   "LVL_IDLAGE": {
+        "definition": "ideal age [year]", "value": [0, 0, 0]},
+   "MSC_MMFLXL": {
+        "definition": "meridional overturning circ. (MOC) on isopycnic layers [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MMFLXD": {
+        "definition": "MOC on z-levels [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MMFTDL": {
+        "definition": "MOC due to thickness diffusion on isopycnic layers [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MMFTDD": {
+        "definition": "MOC due to thickness diffusion on z-levels [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MHFLX": {
+        "definition": "meridional heat flux [W]", "value": [0, 0, 0]},
+   "MSC_MHFTD": {
+        "definition": "meridional heat flux due to thickness diffusion [W]", "value": [0, 0, 0]},
+   "MSC_MHFLD": {
+        "definition": "meridional heat flux due to lateral diffusion [W]", "value": [0, 0, 0]},
+   "MSC_MSFLX": {
+        "definition": "meridional salt flux [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MSFTD": {
+        "definition": "meridional salt flux due to thickness diffusion [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MSFLD": {
+        "definition": "meridional salt flux due to lateral diffusion [kg s-1]", "value": [0, 0, 0]},
+   "MSC_VOLTR": {
+        "definition": "section transports [kg s-1]", "value": [0, 0, 0]},
+   "MSC_MASSGS": {
+        "definition": "global sum of mass [kg]", "value": [0, 0, 0]},
+   "MSC_VOLGS": {
+        "definition": "global sum of volume [m3]", "value": [0, 0, 0]},
+   "MSC_SALNGA": {
+        "definition": "global average temperature [degC]", "value": [0, 0, 0]},
+   "MSC_TEMPGA": {
+        "definition": "global average temperature [degC]", "value": [0, 0, 0]},
+   "MSC_SSSGA": {
+        "definition": "global average sea surface salinity [g kg-1]", "value": [0, 0, 0]},
+   "MSC_SSTGA": {
+        "definition": "global average sea surface temperature [degC]", "value": [0, 0, 0]}
+   }
+}

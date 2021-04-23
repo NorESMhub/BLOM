@@ -1,0 +1,15 @@
+#----------------------------------------------------------------------------------
+# Users should add all user specific namelist changes below in the form of 
+#   namelist_var = new_namelist_value 
+# Note - that it does not matter what namelist group the namelist_var belongs to
+#----------------------------------------------------------------------------------
+NDAY1        = 0
+NDAY2        = 360
+RUNID        = 'BLOM_channel'
+RSTCMP       = 0
+BACLIN       = 120.0
+EDWMTH       = 'step'
+RSTFMT       = 1
+RSTFRQ       = 360
+SRXBAL       = .false.
+MSC_SALNGA   = 0,   0,   0
