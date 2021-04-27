@@ -210,7 +210,7 @@ c
         write(lp,*) '**************************************************'
         call flush(lp)
       endif
-      stop '(xchalt)'
+      error stop '(xchalt)'
       end subroutine xchalt
 
       subroutine xclget(aline,nl, a, i1,j1,iinc,jinc, mnflg)

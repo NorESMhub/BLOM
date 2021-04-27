@@ -53,7 +53,7 @@ deps = [netcdf, omp, quadmath]
 includes = [phy_inc]
 
 # List of all sources in the project (should be added to in subfolders)
-sources = [dimensions]
+sources = []
 
 # Process the following subdirectories which contain other 'meson.build' files
 # that will add files to build into 'sources'
@@ -135,8 +135,11 @@ if get_option('parallel_netcdf')
   endif
 endif
 
+# Handle Unit Testing
+subdir('tests')
+
 # Create BLOM executable
-executable('blom', sources,
+executable('blom', sources, dimensions,
            include_directories: includes,
            dependencies: deps,
            link_language: 'fortran')
