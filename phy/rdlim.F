@@ -866,7 +866,7 @@ c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
         nstep2=nday2*nstep_in_day
 c
         if (csdiag) then
-          nstep2=nstep1+2
+          nstep2=nstep1+5
         endif
 c
       endif
@@ -905,7 +905,6 @@ c --- represent time between diagnostics in time steps
 c
         if (GLB_AVEPERIO(n).lt.0) then
           diagfq_phy(n)=-real(nstep_in_day)/GLB_AVEPERIO(n)
-          write (*,*) 'diagfq',diagfq_phy(n)
         else
           diagfq_phy(n)=nstep_in_day*max(1,GLB_AVEPERIO(n))
         endif
