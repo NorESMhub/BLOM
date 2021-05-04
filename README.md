@@ -56,6 +56,25 @@ $ meson compiler -C builddir
 After the first line all subsequent compiles (and changes with `meson
 configure`) will utilize the Intel compiler to build and link BLOM.
 
+### Running tests
+After successfully building the code it can be a good idea to test that the code
+behaves as expected and changes to the code does not affect the output.
+
+Tests can be run with the following:
+
+```bash
+$ meson test -C builddir
+```
+
+The previous command will run all the test suites defined for BLOM. To run tests
+quicker one can select a few tests to run or just a single test suite. To list
+the available tests run `meson test -C builddir --list`. One can then run a
+single test with:
+
+```bash
+$ meson test -C builddir "run single_column"
+```
+
 ### Working with the BLOM git repository
 
 The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) includes instructions on how to contribute to the BLOM/iHAMOCC model system, and how to work with the BLOM git repository with your own fork on gitHub.
