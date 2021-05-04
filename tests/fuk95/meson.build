@@ -11,5 +11,11 @@ fuk95 = executable('fuk95_blom',
                    dependencies: deps,
                    build_by_default: false,
                    link_language: 'fortran')
-test('run fuk95', fuk95)
+
+test('run fuk95', fuk95,
+     is_parallel: false,
+     should_fail: false,
+     workdir: meson.current_source_dir(),
+     suite: 'fuk95',
+     timeout: 900)
 

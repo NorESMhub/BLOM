@@ -11,4 +11,9 @@ single_column = executable('single_column_blom',
                            dependencies: deps,
                            build_by_default: false,
                            link_language: 'fortran')
-test('run single_column', single_column)
+
+test('run single_column', single_column,
+     is_parallel: false,
+     should_fail: true,
+     workdir: meson.current_source_dir(),
+     suite: 'single_column')
