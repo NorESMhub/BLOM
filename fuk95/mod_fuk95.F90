@@ -328,7 +328,7 @@ contains
 
       ! Set layer velocity.
       call xctilr(z, 1, kk + 1, 1, 1, halo_ps)
-   !$omp parallel do private(k, l, i, zm)
+   !$omp parallel do private(k, l, i, x, zm)
       do j = 1, jj
          do k = 1, kk - 1
             do l = 1, isv(j)
