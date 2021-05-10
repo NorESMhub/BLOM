@@ -45,7 +45,7 @@
       USE mo_biomod
       USE mo_sedmnt,      only: claydens,o2ut,rno3
       USE mo_control_bgc, only: dtb,io_stdo_bgc
-      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2
+      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14
       USE mod_xc,         only: mnproc
 
       implicit none      
