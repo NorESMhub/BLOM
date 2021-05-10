@@ -15,5 +15,5 @@ single_column = executable('single_column_blom',
 test('run single_column', single_column,
      is_parallel: false,
      should_fail: true,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: 'single_column')
