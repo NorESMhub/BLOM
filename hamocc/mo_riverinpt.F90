@@ -230,7 +230,7 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 
   if (.not. do_rivinpt) return
 
-!$OMP PARALLEL DO PRIVATE(fdt,volij)
+!$OMP PARALLEL DO PRIVATE(i,k,fdt,volij)
   DO j=1,kpje
   DO i=1,kpie
     IF(omask(i,j).GT.0.5) THEN

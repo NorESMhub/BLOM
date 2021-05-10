@@ -144,7 +144,7 @@
 !--------------------------------------------------------------------
 ! Pass net solar radiation 
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         strahl(i,j)=pfswr(i,j)
@@ -157,7 +157,7 @@
 ! Pass atmospheric co2 if coupled to an active atmosphere model
 !
 #if defined(PROGCO2) || defined(DIAGCO2)
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         atm(i,j,iatmco2)=patmco2(i,j)
@@ -203,7 +203,7 @@
  
       do l=1,nocetra
       do K=1,kpke
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       do J=1,kpje
       do I=1,kpie
         if (OMASK(I,J) .gt. 0.5 ) then
@@ -312,7 +312,7 @@
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
@@ -324,7 +324,7 @@
 !--------------------------------------------------------------------
 ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc

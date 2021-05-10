@@ -98,7 +98,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   ! --- depth of layer kpke+1 centre
   ptiestu(:,:,kpke+1)=9000.
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(j,i)
   do k=1,kpke
     do j=1,kpje
     do i=1,kpie
@@ -117,7 +117,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   kbo(:,:)  =1
   bolay(:,:)=0.0
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,k)
   DO j=1,kpje
   DO i=1,kpie
 
@@ -134,7 +134,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
 !$OMP END PARALLEL DO
 
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,k)
   DO j=1,kpje
   DO i=1,kpie
 
@@ -156,7 +156,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   k2000(:,:)=0
   k4000(:,:)=0
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,k)
   DO j=1,kpje
   DO i=1,kpie
 

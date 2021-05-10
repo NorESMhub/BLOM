@@ -85,7 +85,7 @@
 ! it is assumed here that this process is limited to the mixed layer
 !
       DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(oldocetra,dano3) 
+!$OMP PARALLEL DO PRIVATE(i,oldocetra,dano3,ttemp,nfixtfac) 
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN

@@ -63,7 +63,7 @@ c --- ------------------------------------------------------------------
 c --- pass tracer fields to ocean model; convert kmol/m^3 -> mol/kg
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
       do k=1,kk
       kn=k+nn
@@ -86,7 +86,7 @@ c
       nns=(n-1)*ks
       mms=(m-1)*ks
 
-c$OMP PARALLEL DO PRIVATE(km,kn)
+c$OMP PARALLEL DO PRIVATE(k,km,kn,l,i)
       do j=1,jj
       do k=1,ks
       km=k+mms
@@ -107,8 +107,8 @@ c$OMP PARALLEL DO PRIVATE(km,kn)
       enddo
       enddo
 c$OMP END PARALLEL DO
-c    
-c$OMP PARALLEL DO PRIVATE(kn)
+c
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
       do k=1,ks
       kn=k+nns
@@ -129,7 +129,7 @@ c --- apply time smoothing for atmosphere fields if required
 c --- ------------------------------------------------------------------
 c
 #if defined(BOXATM)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
       do i=1,ii                            ! time smoothing (analog to tmsmt2.F)
         atm2(i,j,m,:) = wts1*atm2(i,j,m,:) ! mid timelevel
@@ -139,7 +139,7 @@ c$OMP PARALLEL DO
       enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
       do i=1,ii
         atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
