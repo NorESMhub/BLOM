@@ -55,7 +55,7 @@
       ! local variables
       INTEGER :: i,j
 #ifdef cisonew
-      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+      REAL :: alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
 #ifdef AGG
       REAL :: shear,snow
