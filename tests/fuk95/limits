@@ -1,0 +1,562 @@
+! LIMITS NAMELIST
+!
+! CONTENTS:
+!
+! NDAY1    : First day of integration (i)
+! NDAY2    : Last day of integration (i)
+! IDATE    : Model date in YYYYMMDD (i)
+! IDATE0   : Initial experiment date in YYYYMMDD (i)
+! RUNID    : Experiment name (a)
+! EXPCNF   : Experiment configuration (a)
+! RUNTYP   : CESM run type (a)
+! GRFILE   : Name of file containing grid specification (a)
+! ICFILE   : Name of file containing initial conditions, that is either
+!            a valid restart file or 'inicon.nc' if climatological based
+!            initial conditions are desired (a)
+! PREF     : Reference pressure for potential density (g/cm/s2) (f)
+! BACLIN   : Baroclinic time step (sec) (f)
+! BATROP   : Barotropic time step (sec) (f)
+! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
+! MDV2LO   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
+! MDV4HI   : Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)
+! MDV4LO   : Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)
+! MDC2HI   : Laplacian diffusivity for momentum dissipation (cm**2/s) (f)
+! MDC2LO   : Laplacian diffusivity for momentum dissipation (cm**2/s) (f)
+! VSC2HI   : Parameter in deformation-dependent Laplacian viscosity (f)
+! VSC2LO   : Parameter in deformation-dependent Laplacian viscosity (f)
+! VSC4HI   : Parameter in deformation-dependent Biharmonic viscosity (f)
+! VSC4LO   : Parameter in deformation-dependent Biharmonic viscosity (f)
+! CBAR     : rms flow speed for linear bottom friction law (cm/s) (f)
+! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
+! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
+! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
+! MOMMTH   : Momentum equation discretization method. Valid methods:
+!            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
+!            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
+!            (1975) energy conserving with some dissipation) (a)
+! EITMTH   : Eddy-induced transport parameterization method. Valid
+!            methods: 'intdif', 'gm' (a)
+! EDRITP   : Type of Richardson number used in eddy diffusivity
+!            computation. Valid types: 'shear', 'large scale' (a)
+! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
+!            'uc' (upstream column), 'dluc' (depth limited upstream
+!            column) (a)
+! RMPMTH   : Method of applying eddy-induced transport in the remap
+!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
+! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
+!            the ration of Rossby radius of deformation to the
+!            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
+! MLRTTP   : Type of mixed layer restratification time scale. Valid
+!            types: 'variable', 'constant', 'limited' (a)
+! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
+! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
+! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
+! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
+! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
+!            interface diffusivity in the Eden and Greatbatch (2008)
+!            parameterization. egidfq=difint/difiso () (f)
+! RI0      : Critical gradient richardson number for shear driven
+!            vertical mixing () (f)
+! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
+!            (1993) TKE closure () (f)
+! RM5      : Efficiency factor of TKE generation by momentum
+!            entrainment in the Oberhuber (1993) TKE closure () (f)
+! CE       : Efficiency factor for the restratification by mixed layer
+!            eddies (Fox-Kemper et al., 2008) () (f)
+! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
+!            background diffusivity is a constant divided by the
+!            Brunt-Vaisala frequency, if bdmtyp=2 the background
+!            diffusivity is constant () (i)
+! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
+!            frequency (cm**2/s**2) (f)
+! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
+! TDFILE   : Name of file containing tidal wave energy dissipation
+!            divided by by bottom buoyancy frequency (a)
+! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
+!            () (f)
+! NIWGF    : Global factor applied to the energy input by near-intertial
+!            motions () (f)
+! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
+!            layer () (f)
+! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
+!            the boundary layer () (f)
+! SWAMTH   : Shortwave radiation absorption method. Valid methods:
+!            'top-layer', 'jerlov', 'chlorophyll' (a)
+! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
+! CHLOPT   : Chlorophyll concentration option. Valid options:
+!            'climatology' (a)
+! CCFILE   : Name of file containing chlorophyll concentration climatology (a)
+! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
+! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
+! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
+! SRXDPT   : Maximum mixed layer depth for e-folding SSS relaxation (m) (f)
+! TRXLIM   : Max. absolute value of SST difference in relaxation (degC) (f)
+! SRXLIM   : Max. absolute value of SSS difference in relaxation (psu) (f)
+! APTFLX   : Apply diagnosed heat flux flag (l)
+! APSFLX   : Apply diagnosed freshwater flux flag (l)
+! DITFLX   : Diagnose heat flux flag (l)
+! DISFLX   : Diagnose freshwater flux flag (l)
+! SRXBAL   : Balance the SSS relaxation (l)
+! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
+! SMTFRC   : Smooth CESM forcing (l)
+! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
+! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
+!            'ben02syn' (a)
+! ITEST    : Global i-index of point diagnostics (i)
+! JTEST    : Global j-index of point diagnostics (i)
+! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
+! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
+!            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
+! RSTCMP   : Compression flag for restart file (i)
+! IOTYPE   : 0 = netcdf, 1 = pnetcdf
+&LIMITS
+  NDAY1    = 0
+  NDAY2    = 1
+  IDATE    = 20000101
+  IDATE0   = 20000101
+  RUNID    = 'BLOM_fuk95'
+  EXPCNF   = 'fuk95'
+  RUNTYP   = 'unset'
+  GRFILE   = 'unset'
+  ICFILE   = 'unset'
+  PREF     = 0.
+  BACLIN   = 180.
+  BATROP   = 6.
+  MDV2HI   = 0.
+  MDV2LO   = 0.
+  MDV4HI   = 0.
+  MDV4LO   = 0.
+  MDC2HI   = 0.
+  MDC2LO   = 0.
+  VSC2HI   = .2
+  VSC2LO   = .2
+  VSC4HI   = 0.
+  VSC4LO   = 0.
+  CBAR     = 5.
+  CB       = .002
+  CWBDTS   = 0.
+  CWBDLS   = 25.
+  MOMMTH   = 'enscon'
+  EITMTH   = 'gm'
+  EDRITP   = 'large scale'
+  BMCMTH   = 'uc'
+  RMPMTH   = 'eitvel'
+  EDWMTH   = 'smooth'
+  MLRTTP   = 'constant'
+  EDSPRS   = .true.
+  EGC      = 0.
+  EGGAM    = 200.
+  EGLSMN   = 4000.e2
+  EGMNDF   = 0.
+  EGMXDF   = 1500.e4
+  EGIDFQ   = 1.
+  RI0      = 1.2
+  RM0      = 1.2
+  RM5      = 0.
+  CE       = 0.
+  BDMTYP   = 2
+  BDMC1    = 5.e-4
+  BDMC2    = .15
+  TDFILE   = 'unset'
+  TKEPF    = 0.
+  NIWGF    = 0.
+  NIWBF    = .35
+  NIWLF    = .5
+  SWAMTH   = 'jerlov'
+  JWTYPE   = 3
+  CHLOPT   = 'climatology'
+  CCFILE   = 'unset'
+  TRXDAY   = 0.
+  SRXDAY   = 0.
+  TRXDPT   = 1.
+  SRXDPT   = 1.
+  TRXLIM   = 1.5
+  SRXLIM   = .5
+  APTFLX   = .false.
+  APSFLX   = .false.
+  DITFLX   = .false.
+  DISFLX   = .false.
+  SRXBAL   = .false.
+  SCFILE   = 'unset'
+  SMTFRC   = .false.
+  SPRFAC   = .false.
+  ATM_PATH = 'unset'
+  ITEST    = 78
+  JTEST    = 16
+  RSTFRQ   = 1
+  RSTFMT   = 1
+  RSTCMP   = 1
+  IOTYPE   = 0
+/
+ 
+! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
+!
+! CONTENTS:
+!
+! CWMTAG   : Array of geographical names of channels to be modified (a)
+! CWMEDG   : Array of C grid cell edges to be modified. Valid options:
+!            'u' or 'v' (a)
+! CWMI     : Array of grid cell i-indices (i)
+! CWMJ     : Array of grid cell j-indices (i)
+! CWMWTH   : Array of modified grid cell widths (m) (f)
+! 
+!&CWMOD
+!  CWMTAG = 
+!  CWMEDG = 
+!  CWMI   = 
+!  CWMJ   = 
+!  CWMWTH = 
+!/
+
+! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX DIAGNOSTICS
+!
+! CONTENTS:
+!
+! MER_ORFILE : Name of file containing ocean region specification (a)
+! MER_MIFILE : Name of file containing zonal section specification for
+!              meridional transport computation (a)
+! MER_REGNAM : Array of region names for meridional overturning and flux
+!              diagnostics (a)
+! MER_REGFLG : Array of mask flags in ocean regions file to be included
+!              for each region (i)
+! MER_MINLAT : Minimum latitude to be considered for each region (f)
+! MER_MAXLAT : Maximum latitude to be considered for each region (f)
+! 
+!&MERDIA
+!  MER_ORFILE = 
+!  MER_MIFILE = 
+!  MER_REGNAM = 
+!  MER_REGFLG(1,:) = 
+!  MER_MINLAT = 
+!  MER_MAXLAT = 
+!/
+
+! NAMELIST FOR SECTION TRANSPORT DIAGNOSTICS
+!
+! CONTENTS:
+!
+! SEC_SIFILE : Name of file containing section specification for section
+!              transport computation (a)
+! 
+!&SECDIA
+!  SEC_SIFILE = 
+!/
+
+! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
+!
+! Description:
+!   BLOM supports multiple output groups for its diagnostic output.
+!   Each output group is represented by one column in the namlist and may
+!   have its own output format, averaging period, and file frequency.
+!   The maximum number of output groups is currently limited to 10 but
+!   can be changed easily in mod_dia.F.
+!
+!   The output precision can be choosen on a per-variable basis.
+!
+!   Multiple time-slices can be written to the same output file
+!   provided that no variable is written in packed data format
+!   (i.e. as int2 with scale factor and offset).
+!
+!   Compression of the output (i.e. storage of only wet points)
+!   and the file format can be choosen on a per-file basis.
+!
+!   All time periods are specified in number of days for positive
+!   integer values and fraction of day for negative integer values.
+!   The length of the actual calendar month is used if 30 is written.
+!   The length of the actual calendar year is used if 365 is written.
+!   A variable is not written when 0 is specified.
+!
+! Namelist acronyms:
+!   GLB_     - global parameters i.e. valid for entire output group
+!   H2D_     - 2d fields with the horizontal dimensions
+!   LYR_     - 3d fields with sigma layers as vertical coordinate
+!   LVL_     - 3d fields with levitus leves as vertical coordinate
+!   MSC_     - miscellanous, non-gridded fields
+!
+! Global parameters:
+!   FNAMETAG - tag used in file name (c10) 
+!   AVEPERIO - average period in days (i) 
+!   FILEFREQ - how often to start a new file in days (i) 
+!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
+!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
+!
+! Arguments for diagnostic variables:
+!   0        - variable is not written
+!   2        - variable is written as int2 with scale factor and offset
+!   4        - variable is written as real4
+!   8        - variable is written as real8
+!
+! Output variables:
+!   ABSWND   - absolute wind speed [m s-1]
+!   ALB      - surface albedo []
+!   BTMSTR   - Barotropic mass streamfunction [kg s-1]
+!   BRNFLX   - brine flux [kg m-2 s-1]
+!   BRNPD    - brine plume depth [m]
+!   DFL      - non-solar heat flux derivative [W m-2 K-1]
+!   EVA      - evaporation [kg m-2 s-1]
+!   FICE     - ice concentration [%]
+!   FMLTFZ   - fresh water flux due to melting/freezing [kg m-2 s-1]
+!   HICE     - ice thickness [m]
+!   HMLTFZ   - heat flux due to melting/freezing [W m-2]
+!   HSNW     - snow depth [m]
+!   IAGE     - ice age [d]
+!   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
+!   LIP      - liquid precipitation [kg m-2 s-1]
+!   MAXMLD   - maximum mixed layer depth [m]
+!   MLD      - mixed layer depth [m]
+!   MLDU     - mixed layer depth at u-point [m]
+!   MLDV     - mixed layer depth at v-point [m]
+!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
+!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
+!   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
+!   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
+!   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
+!   MTKERS   - mixed layer TKE tendency related to eddy restrat. [kg s-3]
+!   MTKEPE   - mixed layer TKE tendency related to pot. energy change [kg s-3]
+!   MTKEKE   - mixed layer TKE tendency related to kin. energy change [kg s-3]
+!   MTY      - wind stress y-component [N m-2]
+!   MXLU     - mixed layer velocity x-component [m s-1]
+!   MXLV     - mixed layer velocity y-component [m s-1]
+!   NSF      - non-solar heat flux [W m-2]
+!   PBOT     - bottom pressure [Pa]
+!   PSRF     - surface pressure [Pa]
+!   RFIFLX   - frozen runoff [kg m-2 s-1]
+!   RNFFLX   - liquid runoff [kg m-2 s-1]
+!   SALFLX   - salt flux received by ocean [kg m-2 s-1]
+!   SALRLX   - restoring salt flux received by ocean [kg m-2 s-1]
+!   SBOT     - bottom salinity [g kg-1]
+!   SEALV    - sea level [m]
+!   SLVSQ    - sea level squared [m2]
+!   SFL      - salt flux [kg m-2 s-1]
+!   SOP      - solid precipitation [kg m-2 s-1]
+!   SIGMX    - mixed layer density [kg m-3]
+!   SSS      - ocean surface salinity [g kg-1]
+!   SSSSQ    - ocean surface salinity squared [g2 kg-2]
+!   SST      - ocean surface temperature [degC]
+!   SSTSQ    - ocean surface temperature squared [degC2]
+!   SURFLX   - heat flux received by ocean [W m-2]
+!   SURRLX   - restoring heat flux received by ocean [W m-2]
+!   SWA      - short-wave heat flux [W m-2]
+!   T20D     - 20C isoterm depth [m]
+!   TAUX     - momentum flux received by ocean x-component [N m-2]
+!   TAUY     - momentum flux received by ocean y-component [N m-2]
+!   TBOT     - bottom temperature [degC]
+!   TICE     - ice temperature [degC]
+!   TSRF     - surface temperature [degC]
+!   UB       - barotropic velocity x-component [m s-1]
+!   UICE     - ice velocity x-component [m s-1]
+!   USTAR    - friction velocity [m s-1]
+!   USTAR3   - friction velocity cubed [m3 s-3]
+!   VB       - barotropic velocity y-component [m s-1]
+!   VICE     - ice velocity y-component [m s-1]
+!   ZTX      - wind stress x-component [N m-2]
+!   BFSQ     - buoyancy frequency squared [s-1]
+!   DIFDIA   - diapycnal diffusivity [log10(m2 s-1)]
+!   DIFINT   - layer interface diffusivity [log10(m2 s-1)]
+!   DIFISO   - isopycnal diffusivity [log10(m2 s-1)]
+!   DP       - layer pressure thickness [Pa]
+!   DZ       - layer thickness [m]
+!   SALN     - salinity [g kg-1]
+!   TEMP     - temperature [degC]
+!   TRC      - tracer []
+!   UFLX     - mass flux in x-direction [kg s-1]
+!   UTFLX    - heat flux in x-direction [W]
+!   USFLX    - salt flux in x-direction [kg s-1]
+!   UMFLTD   - mass flux due to thickness diffusion in x-direction [kg s-1]
+!   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
+!   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
+!   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
+!   USFLLD   - salt flux due to lateral diffusion in x-direction [kg s-1]
+!   UVEL     - velocity x-component [m s-1]
+!   VFLX     - mass flux in y-direction [kg s-1]
+!   VTFLX    - heat flux in y-direction [W]
+!   VSFLX    - salt flux in y-direction [kg s-1]
+!   VMFLTD   - mass flux due to thickness diffusion in y-direction [kg s-1]
+!   VTFLTD   - heat flux due to thickness diffusion in y-direction [W]
+!   VTFLLD   - heat flux due to lateral diffusion in y-direction [W]
+!   VSFLTD   - salt flux due to thickness diffusion in y-direction [kg s-1]
+!   VSFLLD   - salt flux due to lateral diffusion in y-direction [kg s-1]
+!   VVEL     - velocity x-component [m s-1]
+!   WFLX     - vertical mass flux [kg s-1]
+!   WFLX2    - vertical mass flux squared [kg2 s-2]
+!   PV       - potential vorticity [m-1 s-1]
+!   TKE      - turbulent kinetic energy [m2 s-2]
+!   GLS_PSI  - generic length scale [m2 s-3]
+!   IDLAGE   - ideal age [year]
+!   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
+!   MMFLXD   - MOC on z-levels [kg s-1]
+!   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
+!   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
+!   MHFLX    - meridional heat flux [W]
+!   MHFTD    - meridional heat flux due to thickness diffusion [W]
+!   MHFLD    - meridional heat flux due to lateral diffusion [W]
+!   MSFLX    - meridional salt flux [kg s-1]
+!   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
+!   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
+!   VOLTR    - section transports [kg s-1]
+!   MASSGS   - global sum of mass [kg]
+!   VOLGS    - global sum of volume [m3]
+!   SALNGA   - global average temperature [degC]
+!   TEMPGA   - global average temperature [degC]
+!   SSSGA    - global average sea surface salinity [g kg-1]
+!   SSTGA    - global average sea surface temperature [degC]
+!
+&DIAPHY
+  GLB_FNAMETAG = 'hd','hm'
+  GLB_AVEPERIO =-8,  -8
+  GLB_FILEFREQ =-8,  -8
+  GLB_COMPFLAG = 0,   0
+  GLB_NCFORMAT = 0,   0
+  H2D_ABSWND   = 0,   0
+  H2D_ALB      = 0,   0
+  H2D_BTMSTR   = 0,   4
+  H2D_BRNFLX   = 0,   0
+  H2D_BRNPD    = 0,   0
+  H2D_DFL      = 0,   0
+  H2D_EVA      = 0,   0
+  H2D_FICE     = 0,   0
+  H2D_FMLTFZ   = 0,   0
+  H2D_HICE     = 0,   0
+  H2D_HMLTFZ   = 0,   0
+  H2D_HSNW     = 0,   0
+  H2D_IAGE     = 0,   0
+  H2D_IDKEDT   = 0,   4
+  H2D_LIP      = 0,   0
+  H2D_MAXMLD   = 4,   4
+  H2D_MLD      = 0,   4
+  H2D_MLDU     = 0,   0
+  H2D_MLDV     = 0,   0
+  H2D_MLTS     = 0,   4
+  H2D_MLTSMN   = 0,   4
+  H2D_MLTSMX   = 0,   4
+  H2D_MLTSSQ   = 0,   4
+  H2D_MTKEUS   = 0,   0
+  H2D_MTKENI   = 0,   0
+  H2D_MTKEBF   = 0,   0
+  H2D_MTKERS   = 0,   0
+  H2D_MTKEPE   = 0,   4
+  H2D_MTKEKE   = 0,   4
+  H2D_MTY      = 0,   0
+  H2D_MXLU     = 4,   4
+  H2D_MXLV     = 4,   4
+  H2D_NSF      = 0,   0
+  H2D_PBOT     = 0,   4
+  H2D_PSRF     = 0,   0
+  H2D_RFIFLX   = 0,   0
+  H2D_RNFFLX   = 0,   0
+  H2D_SALFLX   = 0,   0
+  H2D_SALRLX   = 0,   0
+  H2D_SBOT     = 0,   4
+  H2D_SEALV    = 4,   4
+  H2D_SLVSQ    = 0,   4
+  H2D_SFL      = 0,   4
+  H2D_SOP      = 0,   4
+  H2D_SIGMX    = 0,   4
+  H2D_SSS      = 0,   4
+  H2D_SSSSQ    = 0,   4
+  H2D_SST      = 4,   4
+  H2D_SSTSQ    = 4,   4
+  H2D_SURFLX   = 0,   0
+  H2D_SURRLX   = 0,   0
+  H2D_SWA      = 0,   0
+  H2D_T20D     = 0,   0
+  H2D_TAUX     = 0,   0
+  H2D_TAUY     = 0,   0
+  H2D_TBOT     = 0,   4
+  H2D_TICE     = 0,   0
+  H2D_TSRF     = 0,   0
+  H2D_UB       = 4,   4
+  H2D_UICE     = 0,   0
+  H2D_USTAR    = 0,   0
+  H2D_USTAR3   = 0,   0
+  H2D_VB       = 4,   4
+  H2D_VICE     = 0,   0
+  H2D_ZTX      = 0,   0
+  LYR_BFSQ     = 0,   4
+  LYR_DIFDIA   = 0,   4
+  LYR_DIFINT   = 0,   0
+  LYR_DIFISO   = 0,   0
+  LYR_DP       = 0,   4
+  LYR_DZ       = 0,   4
+  LYR_SALN     = 0,   4
+  LYR_TEMP     = 0,   4
+  LYR_TRC      = 0,   4
+  LYR_UFLX     = 0,   4
+  LYR_UTFLX    = 0,   4
+  LYR_USFLX    = 0,   4
+  LYR_UMFLTD   = 0,   0
+  LYR_UTFLTD   = 0,   0
+  LYR_UTFLLD   = 0,   0
+  LYR_USFLTD   = 0,   0
+  LYR_USFLLD   = 0,   0
+  LYR_UVEL     = 0,   4
+  LYR_VFLX     = 0,   4
+  LYR_VTFLX    = 0,   4
+  LYR_VSFLX    = 0,   4
+  LYR_VMFLTD   = 0,   0
+  LYR_VTFLTD   = 0,   0
+  LYR_VTFLLD   = 0,   0
+  LYR_VSFLTD   = 0,   0
+  LYR_VSFLLD   = 0,   0
+  LYR_VVEL     = 0,   4
+  LYR_WFLX     = 0,   4
+  LYR_WFLX2    = 0,   4
+  LYR_PV       = 0,   4
+  LYR_TKE      = 0,   0
+  LYR_GLS_PSI  = 0,   0
+  LYR_IDLAGE   = 0,   4
+  LVL_BFSQ     = 0,   4
+  LVL_DIFDIA   = 0,   4
+  LVL_DIFINT   = 0,   0
+  LVL_DIFISO   = 0,   0
+  LVL_DZ       = 0,   4
+  LVL_SALN     = 0,   4
+  LVL_TEMP     = 0,   4
+  LVL_TRC      = 0,   4
+  LVL_UFLX     = 0,   4
+  LVL_UTFLX    = 0,   4
+  LVL_USFLX    = 0,   4
+  LVL_UMFLTD   = 0,   0
+  LVL_UTFLTD   = 0,   0
+  LVL_UTFLLD   = 0,   0
+  LVL_USFLTD   = 0,   0
+  LVL_USFLLD   = 0,   0
+  LVL_UVEL     = 0,   4
+  LVL_VFLX     = 0,   4
+  LVL_VTFLX    = 0,   4
+  LVL_VSFLX    = 0,   4
+  LVL_VMFLTD   = 0,   0
+  LVL_VTFLTD   = 0,   0
+  LVL_VTFLLD   = 0,   0
+  LVL_VSFLTD   = 0,   0
+  LVL_VSFLLD   = 0,   0
+  LVL_VVEL     = 0,   4
+  LVL_WFLX     = 0,   4
+  LVL_WFLX2    = 0,   4
+  LVL_PV       = 0,   4
+  LVL_TKE      = 0,   0
+  LVL_GLS_PSI  = 0,   0
+  LVL_IDLAGE   = 0,   4
+  MSC_MMFLXL   = 0,   0
+  MSC_MMFLXD   = 0,   0
+  MSC_MMFTDL   = 0,   0
+  MSC_MMFTDD   = 0,   0
+  MSC_MHFLX    = 0,   0
+  MSC_MHFTD    = 0,   0
+  MSC_MHFLD    = 0,   0
+  MSC_MSFLX    = 0,   0
+  MSC_MSFTD    = 0,   0
+  MSC_MSFLD    = 0,   0
+  MSC_VOLTR    = 0,   0
+  MSC_MASSGS   = 4,   0
+  MSC_VOLGS    = 4,   0
+  MSC_SALNGA   = 4,   0
+  MSC_TEMPGA   = 4,   0
+  MSC_SSSGA    = 4,   0
+  MSC_SSTGA    = 4,   0
+/

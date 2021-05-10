@@ -11,44 +11,64 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15]
+        os: [ubuntu-latest, macos-latest]
         mpi: [true, false]
+        openmp: ['enabled', 'disabled']
+        exclude:
+          # Do not build on macOS with MPI as that is having some dependency issues
+          - os: macos-latest
+            mpi: true
     steps:
       - name: Install dependencies - Ubuntu
         run: |
           sudo apt update
-          sudo apt install -y libnetcdff-dev mpi-default-dev
+          sudo apt install -y libnetcdff-dev mpi-default-dev ninja-build
         if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
-        run: brew install netcdf open-mpi
+        run: brew install netcdf open-mpi ninja
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
         if: runner.os == 'macOS'
 
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Setup Python for newer version of Meson
         uses: actions/setup-python@v2
 
-      - name: Run Meson build step
-        uses: BSFishy/meson-build@v1.0.2
+      - name: Install Meson
+        run: python -m pip install meson==${{ env.MESON_VERSION }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
         env:
           CC: gcc-10
           FC: gfortran-10
+        run: |
+          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
+          meson compile -C builddir
+
+      - name: Test code
+        if: ${{ matrix.mpi == false }}
+        run: |
+          ulimit -s 65532
+          meson test -C builddir
+
+      - name: Upload test log
+        if: ${{ matrix.mpi == false }}
+        uses: actions/upload-artifact@v2
         with:
-          action: build
-          directory: builddir
-          setup-options: -Dmpi=${{ matrix.mpi }}
-          meson-version: ${{ env.MESON_VERSION }}
+          name: testlog-${{ runner.os }}-gcc
+          path: builddir/meson-logs/testlog.txt
 
   intel:
     name: Build BLOM using Intel compilers
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         mpi: [true, false]
+        openmp: ['enabled', 'disabled']
     # Tell Meson to use Intel compilers
     env:
       CC: icc
@@ -59,7 +79,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ninja-build libnetcdf-dev
-
       - name: Cache Intel setup
         id: cache-intel
         uses: actions/cache@v2
@@ -117,5 +136,18 @@ jobs:
       - name: Build with Intel compilers
         run: |
           source /opt/intel/oneapi/setvars.sh
-          meson setup builddir -Dmpi=${{ matrix.mpi }}
+          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
           meson compile -C builddir
+
+      - name: Test code
+        if: ${{ matrix.mpi == false }}
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          meson test -C builddir
+
+      - name: Upload test log
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.mpi == false }}
+        with:
+          name: testlog-${{ runner.os }}-intel
+          path: builddir/meson-logs/testlog.txt

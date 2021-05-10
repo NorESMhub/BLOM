@@ -1,0 +1,9 @@
+# Ignore test output files
+*.nc
+rstdate.txt
+run.status
+salbud
+tembud
+tkebud
+trcbud
+trcbudtot
