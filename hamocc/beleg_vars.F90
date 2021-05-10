@@ -40,7 +40,7 @@
       use mo_vgrid, only: kmle,kbo
       USE mod_xc,   only: mnproc
 
-      implicit none      
+      implicit none
 
       INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
@@ -51,6 +51,9 @@
 
       ! local variables
       INTEGER :: i,j,k,l
+#ifdef cisonew
+      REAL :: rco213,rco214,beta13,beta14
+#endif
 
 
 #ifdef FB_BGC_OCE
