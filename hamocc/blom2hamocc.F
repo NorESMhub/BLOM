@@ -67,7 +67,7 @@ c
 c --- calculate pressure at interfaces (necesarry since p has  
 c --- not been calculated at restart)
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
       do k=1,kk
       kn=k+nn
@@ -85,7 +85,7 @@ c --- ------------------------------------------------------------------
 c --- 2D fields
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
       do i=1,ii
 c
@@ -102,7 +102,7 @@ c --- ------------------------------------------------------------------
 c --- 3D fields
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn,th,s,p1,p2,ldp,pa)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i,th,s,p1,p2,ldp,pa)
       do j=1,jj
       do k=1,kk
       kn=k+nn
@@ -147,7 +147,7 @@ c --- ------------------------------------------------------------------
 c --- pass tracer fields from ocean model; convert mol/kg -> kmol/m^3
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
       do j=1,jj
       do k=1,kk
       kn=k+nn
@@ -169,7 +169,7 @@ c
 #ifndef sedbypass
       nns=(n-1)*ks
 c
-c$OMP PARALLEL DO PRIVATE(kn)
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
 c
       do j=1,jj
       do k=1,ks
@@ -192,7 +192,7 @@ c --- atmosphere fields is kept outside HAMOCC)
 c --- ------------------------------------------------------------------
 c
 #if defined(BOXATM)
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
       do i=1,ii
         atm(i,j,:) = atm2(i,j,n,:)

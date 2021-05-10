@@ -193,7 +193,7 @@
 !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 #endif
-!$OMP  )
+!$OMP  ,j,i)
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
@@ -557,7 +557,7 @@
 #ifdef cisonew
 #ifndef sedbypass
         do k=1,ks
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(i)
         do j=1,kpje
         do i=1,kpie
         if(omask(i,j).gt.0.5) then

@@ -55,7 +55,7 @@
       INTEGER :: i,j,k
 
       do k=1,kmle
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       do j=1,kpje
       do i=1,kpie
         if (omask(i,j) .gt. 0.5 ) then

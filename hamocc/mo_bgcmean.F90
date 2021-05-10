@@ -1064,7 +1064,7 @@
 ! --- Check whether field should be initialised
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1099,7 +1099,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,kdm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1135,7 +1135,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ddm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1171,7 +1171,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ks
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1206,7 +1206,7 @@
 ! --- Check whether field should be initialised
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1243,7 +1243,7 @@
         IF (pos(o).EQ.0) cycle
 !
           IF (wghtsflg.eq.0) then 
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
             DO j=1,jj
               DO l=1,isp(j)
                 DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1253,7 +1253,7 @@
             ENDDO
 !$OMP END PARALLEL DO
           ELSE
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
             DO j=1,jj
               DO l=1,isp(j)
                 DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1295,7 +1295,7 @@
 !
           IF (wghtsflg.eq.0) then 
             DO k=1,kk
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
               DO j=1,jj
                 DO l=1,isp(j)
                   DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1308,7 +1308,7 @@
             ENDDO
           ELSE
             DO k=1,kk
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
               DO j=1,jj
                 DO l=1,isp(j)
                   DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1353,7 +1353,7 @@
       DO o=1,nbgc
         IF (pos(o).EQ.0) cycle
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i,d)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1393,7 +1393,7 @@
         IF (pos(o).EQ.0) cycle
 !
         DO k=1,ks
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1430,7 +1430,7 @@
       DO o=1,nbgc
         IF (pos(o).EQ.0) cycle
 !
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1465,7 +1465,7 @@
 ! --- Check whether field should be initialised
       IF (posacc.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1501,7 +1501,7 @@
       IF (posacc.EQ.0) RETURN
 !
       DO k=1,kk
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1953,7 +1953,7 @@
 ! --- Check whether field should be processed
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1994,7 +1994,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,kdm
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2036,7 +2036,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ddm
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2079,7 +2079,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ks
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2119,7 +2119,7 @@
 ! --- Check whether field should be initia
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2160,7 +2160,7 @@
 ! --- Prepare index fields for masking
 
       IF (iniflg) THEN
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
         DO j=1,jj
           DO i=1,ii
             kmax(i,j)=0
@@ -2168,7 +2168,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=1,ddm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
           DO j=1,jj
             DO i=1,ii
               IF (depths(i,j).GT.depthslev_bnds(1,k)) kmax(i,j)=k
@@ -2179,7 +2179,7 @@
         iniflg=.false.
       ENDIF
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,k)
       DO j=1,jj
         DO i=1,ii
           DO k=kmax(i,j)+1,ddm
@@ -2214,7 +2214,7 @@
 ! --- Adjust bounds of levitus levels according to model bathymetry
       IF (iniflg) THEN
         DO d=1,ddm
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2230,7 +2230,7 @@
 !
 ! --- Compute top and bottom depths of density layers 
       IF (kin.EQ.1) THEN       
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2240,7 +2240,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=2,kk
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2250,7 +2250,7 @@
           ENDDO
 !$OMP END PARALLEL DO
         ENDDO
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2262,7 +2262,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=2,kk
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2276,7 +2276,7 @@
       ENDIF
 !
 ! --- Compute interpolation weights 
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i,d)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))

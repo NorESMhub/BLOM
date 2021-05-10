@@ -65,7 +65,7 @@ c
 c
         util1(:,:)=0.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -85,7 +85,7 @@ c --- ------------------------------------------------------------------
 c --- - remove negative tracer values in the surface layer
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(j,l,i)
       do nt=itrbgc,itrbgc+ntrbgc-1
         do j=1,jj
           do l=1,isp(j)
@@ -106,7 +106,7 @@ c
 c
         util1(:,:)=0.
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -120,7 +120,7 @@ c
         call xcsum(trbudn,util1,ips)
         q=trbudo(nt)/max(1.e-14,trbudn)
 c
-c$OMP PARALLEL DO
+c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
