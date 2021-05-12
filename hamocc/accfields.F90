@@ -174,6 +174,8 @@
 #endif
 #ifdef BROMO
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
+      call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
+      call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
 #endif
 
 ! Accumulate the diagnostic mass sinking field 

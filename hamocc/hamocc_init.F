@@ -51,6 +51,7 @@ c******************************************************************************
       use mo_vgrid,      only: alloc_mem_vgrid,set_vgrid
       use mo_bgcmean,    only: alloc_mem_bgcmean
       use mo_fedep,      only: ini_fedep,fedepfile
+      use mo_clim_swa,   only: ini_swa_clim,swaclimfile
       use mo_ndep,       only: ini_ndep,ndepfile
       use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,
      .                         inisil,inid13c,inid14c
@@ -69,7 +70,7 @@ c
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
-     .                  inid13c,inid14c
+     .                  inid13c,inid14c,swaclimfile
 
 c
 c --- Set io units and some control parameters
@@ -160,6 +161,10 @@ c
       CALL ini_fedep(idm,jdm,omask)
 
       CALL ini_ndep(idm,jdm)
+
+#ifdef BROMO
+      CALL ini_swa_clim(idm,jdm,omask)
+#endif
 
       CALL INI_RIVERINPT(idm,jdm,omask)
 #ifdef DMSPH

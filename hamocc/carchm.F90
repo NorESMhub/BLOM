@@ -328,7 +328,7 @@
 #endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
-       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted to ms-1/(ms-1)^2 
+       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
        kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
        kwo2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sco2)**0.5 
        kwn2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scn2)**0.5 
@@ -341,7 +341,8 @@
 #endif
 #ifdef BROMO
 ! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
-       kw_bromo=(1.-psicomo(i,j)) * Xconvxa *                           &
+!  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
+       kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
      &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
 #endif
 
@@ -439,6 +440,7 @@
        atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
       ENDIF
 
+! Use conversion of 9.86923e-6 [std atm / Pascal]
 ! Surface flux of cfc11
       flx11=kw_11*dtbgc*                                               &
      & (a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))

@@ -89,6 +89,7 @@
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
      & SRF_NATCO2FX  =0    ,                                            &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
+     & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
@@ -159,6 +160,7 @@
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
      & SRF_NATCO2FX      ,                                              &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
+     & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
@@ -290,7 +292,9 @@
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jbromofx   = 0 ,                                        &
-     &          jsrfbromo  = 0                                         
+     &          jsrfbromo  = 0 ,                                        &
+     &          jbromo_prod= 0 ,                                        &
+     &          jbromo_uv  = 0
 
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -660,6 +664,10 @@
         jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
         IF (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jbromofx(n)=i_bsc_m2d*min(1,SRF_BROMOFX(n))
+        IF (INT_BROMOPRO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
+        IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
 #endif
       ENDDO 
 

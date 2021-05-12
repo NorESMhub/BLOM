@@ -22,6 +22,7 @@ set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
 set BLOM_RIVER_NUTRIENTS = `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
 set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
+set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
@@ -410,6 +411,8 @@ set SRF_CFC12     = '0, 2, 2'
 set SRF_SF6       = '0, 2, 2' 
 set SRF_BROMO     = '0, 2, 2'
 set SRF_BROMOFX   = '0, 2, 2'
+set INT_BROMOPRO  = '0, 2, 2'
+set INT_BROMOUV   = '0, 2, 2'
 set INT_PHOSY     = '4, 2, 2' 
 set INT_NFIX      = '0, 2, 2' 
 set INT_DNIT      = '0, 2, 2' 
@@ -660,6 +663,11 @@ else if ($OCN_GRID == tnx1v4) then
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
+  if ($HAMOCC_VSLS == TRUE) then
+    set SWACLIMFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc'"
+  else
+    set SWACLIMFILE = "''"
+  endif
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc'"
   else
@@ -1294,6 +1302,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! ATM_CO2   : Atmospheric CO2 concentration [ppmv]
 ! FEDEPFILE : File name (incl. full path) for iron (dust) deposition data
+! SWACLIMFILE: File name (incl. full path) for swa climatology field 
 ! DO_RIVINPT: Logical switch to activate riverine input
 ! RIVINFILE : File name (incl. full path) for riverine input data
 ! DO_NDEP   : Logical switch to activate N-deposition
@@ -1303,6 +1312,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
   FEDEPFILE  = $FEDEPFILE
+  SWACLIMFILE= $SWACLIMFILE
   DO_RIVINPT = $DO_RIVINPT
   RIVINFILE  = $RIVINFILE 
   DO_NDEP    = $DO_NDEP
@@ -1508,6 +1518,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_SF6       = $SRF_SF6
   SRF_BROMO     = $SRF_BROMO
   SRF_BROMOFX   = $SRF_BROMOFX
+  INT_BROMOPRO  = $INT_BROMOPRO
+  INT_BROMOUV   = $INT_BROMOUV
   INT_PHOSY     = $INT_PHOSY
   INT_NFIX      = $INT_NFIX
   INT_DNIT      = $INT_DNIT
@@ -1686,6 +1698,11 @@ EOF
   if ($BLOM_N_DEPOSITION == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($HAMOCC_VSLS == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+swa_clim_file = `echo $SWACLIMFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
