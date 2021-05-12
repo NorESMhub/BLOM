@@ -426,6 +426,12 @@ c --- Store 2d fields
      .  cmpflg,'bromofx','Bromoform flux',' ','mol CHBr3 m-2 s-1')
       call wrtsrf(jsrfbromo(iogrp),SRF_BROMO(iogrp),rnacc*1e3,0.,
      .  cmpflg,'srfbromo','Surface bromoform',' ','mol CHBr3 m-3')
+      call wrtsrf(jbromo_prod(iogrp),INT_BROMOPRO(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'intbromoprod',
+     .  'Integrated bromoform production',' ','mol CHBr3 m-2 s-1')
+      call wrtsrf(jbromo_uv(iogrp),INT_BROMOUV(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'intbromouv',
+     .  'Integrated bromoform loss to photolysis',' ','mol CHBr3 m-2 s-1')
       call wrtsrf(jatmbromo(iogrp),SRF_ATMBROMO(iogrp),rnacc,0.,cmpflg,     
      .  'atmbromo','Atmospheric bromoform',' ','ppt')
 #endif
@@ -795,6 +801,8 @@ c --- Initialise fields
 #ifdef BROMO
       call inisrf(jsrfbromo(iogrp),0.)       
       call inisrf(jbromofx(iogrp),0.)       
+      call inisrf(jbromo_prod(iogrp),0.)        
+      call inisrf(jbromo_uv(iogrp),0.)        
       call inisrf(jatmbromo(iogrp),0.)        
 #endif
 
@@ -1101,6 +1109,11 @@ c
      .   'Surface bromoform',' ','mol CHBr3 m-3',0)
       call ncdefvar3d(SRF_BROMOfx(iogrp),cmpflg,'p','bromofx',
      .   'Surface bromoform flux',' ','mol CHBr3 m-2 s-1',0)
+      call ncdefvar3d(INT_BROMOPRO(iogrp),cmpflg,'p','intbromoprod',
+     .   'Integrated bromoform production',' ','mol CHBr3 m-2 s-1',0)
+      call ncdefvar3d(INT_BROMOUV(iogrp),cmpflg,'p','intbromouv',
+     .   'Integrated bromoform loss to photolysis',' ',
+     .   'mol CHBr3 m-2 s-1',0)
       call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',
      .  'atmbromo','Atmospheric bromoform',' ','ppt',0)
 #endif

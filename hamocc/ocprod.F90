@@ -87,6 +87,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   use mo_param1_bgc
   use mo_control_bgc
   use mo_vgrid
+  use mo_clim_swa
 
   implicit none
 
@@ -188,6 +189,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   intdms_bac(:,:) = 0.
   intdms_uv (:,:) = 0.
   phosy3d (:,:,:) = 0.
+#ifdef BROMO
+  int_chbr3_uv (:,:) = 0.
+  int_chbr3_prod (:,:) = 0.
+#endif
 #ifdef AGG
   eps3d(:,:,:)    = 0.
   asize3d(:,:,:)  = 0.
@@ -463,8 +468,14 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
 ! 2009) is omitted because the magnitude is more than 2 order smaller
 ! than sink through halide substitution & hydrolysis (Fig. 3)
+! Assume that only 30% of incoming radiation are UV (i.e. 50% of non-PAR
+! radiation; PAR radiationis assume to be 40% of incoming radiation)
         bro_beta = rbro*(fbro1*avsil/(avsil+bkopal)+fbro2*bkopal/(avsil+bkopal))
-        bro_uv = 0.0333*dtb*strahl(i,j)/75.0*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
+        if (swa_clim(i,j,1) > 0.) then
+         bro_uv = 0.0333*dtb*0.3*(strahl(i,j)/swa_clim(i,j,1))*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
+        else
+         bro_uv = 0.0
+        endif
         ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
 #endif
 
@@ -508,6 +519,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
         intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
         intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
+#ifdef BROMO
+        int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
+        int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
+#endif
         intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
         phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
