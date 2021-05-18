@@ -1749,8 +1749,8 @@ inisil_file = `echo $INISIL | tr -d '"' | tr -d "'"`
 EOF
   if ($HAMOCC_CISO == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-inic13_file = `echo $INIC13 | tr -d '"' | tr -d "'"`
-inic14_file = `echo $INIC14 | tr -d '"' | tr -d "'"`
+inic13_file = `echo $INID13C | tr -d '"' | tr -d "'"`
+inic14_file = `echo $INID14C | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($RUN_TYPE == startup) then
