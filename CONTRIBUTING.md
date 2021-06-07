@@ -18,6 +18,9 @@ Please consider providing additional information with your bug report, e.g.
 - Error messages, log output
 
 ## Suggesting new features or feature enhancements
+An issue can also be raised to make suggestions for new features or feature enhancements, or to get in touch with members of the core BLOM/iHAMOCC development team regarding more general questions about the model system. If a suggestion is approved by the development team, we might also provide suggestions or limited assistance for the implementation of new solutions.
+
+The basic steps for adding code to the BLOM/iHAMOCC model is as follows:
 1. Create an issue to describe the feature enhancement or new feature that you wish to implement.
 2. Fork the repository if you wish to contribute code.
 3. Submit changes for review through pull requests.
