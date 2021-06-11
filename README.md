@@ -49,7 +49,7 @@ $ meson test -C builddir "run single_column"
 ## Contribute to BLOM/iHAMOCC development
 
 The [CONTRIBUTING.md](CONTRIBUTING.md) file includes instructions on how to contribute
-to the BLOM/iHAMOCC model system. The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki), 
+to the BLOM/iHAMOCC model system. The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) 
 includes more detailed instructions on how to work with the BLOM git repository with your
 own fork on gitHub.
 
