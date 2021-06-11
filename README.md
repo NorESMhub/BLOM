@@ -24,7 +24,7 @@ $ meson compile -C builddir
 
 The executable `blom` file will then be stored in the `./builddir` directory.
 
-See the [BLOM/iHAMOCC stand-alone](https://github.com/NorESMhub/BLOM/wiki/Run-BLOM-iHAMOCC-stand-alone#building-the-code-with-meson)
+See the [BLOM/iHAMOCC stand-alone](https://github.com/NorESMhub/BLOM/wiki/Run-BLOM-iHAMOCC-stand-alone)
 wiki page for further instructions on how to configure the meson build system.
 
 ### Running tests
