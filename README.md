@@ -6,10 +6,10 @@ Model (<https://github.com/NorESMhub/NorESM>).
 
 ## BLOM documentation
 
-BLOM documetation is integrated in the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/noresm2/>).
-- [Running OMIP-type experiments](https://noresm-docs.readthedocs.io/en/noresm2/configurations/omips.html#blom)
-- [BLOM model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
-- [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
+BLOM documetation is integrated in the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/latest/>).
+- [Running OMIP-type experiments](https://noresm-docs.readthedocs.io/en/latest/configurations/omips.html#blom)
+- [BLOM model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
+- [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
 
 ### Building the code with meson
 When compiling BLOM with NorESM, the NorESM build system should be used. A stand-alone
@@ -75,9 +75,12 @@ single test with:
 $ meson test -C builddir "run single_column"
 ```
 
-### Working with the BLOM git repository
+## Contribute to BLOM/iHAMOCC development
 
-The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) includes instructions on how to contribute to the BLOM/iHAMOCC model system, and how to work with the BLOM git repository with your own fork on gitHub.
+The [CONTRIBUTING.md](CONTRIBUTING.md) file includes instructions on how to contribute
+to the BLOM/iHAMOCC model system. The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki), 
+includes more detailed instructions on how to work with the BLOM git repository with your
+own fork on gitHub.
 
 ## License
 
