@@ -26,7 +26,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_constants, only: epsil
       use mod_xc
-      use mod_grid, only: sigmar
+      use mod_vcoord, only: sigmar
       use mod_eos, only: rho, sig, sofsig
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     p, pu, pv, kfpla 

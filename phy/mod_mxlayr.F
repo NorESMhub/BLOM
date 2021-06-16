@@ -29,7 +29,8 @@ c
      .                         tencm, onecm, onemm
       use mod_time, only: delt1
       use mod_xc
-      use mod_grid, only: sigmar, scp2, scuxi, scvyi, coriop
+      use mod_vcoord, only: sigmar
+      use mod_grid, only: scp2, scuxi, scvyi, coriop
       use mod_eos, only: rho, sig, sig0, dsigdt, dsigdt0,
      .                   dsigds, dsigds0, p_alpha,p_p_alpha
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,

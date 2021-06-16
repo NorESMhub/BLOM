@@ -27,7 +27,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_config, only: expcnf
-      use mod_grid, only: sigmar
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, sigmar
       use mod_xc
       use mod_eos, only: ap11, ap12, ap13, ap14, ap15, ap16,
      .                   ap21, ap22, ap23, ap24, ap25, ap26, atf
@@ -56,7 +56,8 @@ c
       integer i,j,k,l
       real salfrz,a,b,c
 c
-      if     (expcnf.eq.'cesm' .or. expcnf.eq.'single_column') then
+      if     (vcoord_type_tag.ne.isopyc_bulkml .or. 
+     .        expcnf.eq.'cesm' .or. expcnf.eq.'single_column') then
 c
 c --- - Set temmin to a constant freezing temperature for all layers
 c$OMP PARALLEL DO PRIVATE(k,l,i)

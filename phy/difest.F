@@ -28,8 +28,9 @@ c
       use mod_constants, only: g, alpha0, pi, epsil, onem, onecm
       use mod_time, only: delt1
       use mod_xc
-      use mod_grid, only: sigmar, scpx, scpy, scp2, plat,
-     .                    coriop, betafp, cosang, sinang
+      use mod_vcoord, only: sigmar
+      use mod_grid, only: scpx, scpy, scp2,
+     .                    plat, coriop, betafp, cosang, sinang
       use mod_eos, only: rho
       use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla

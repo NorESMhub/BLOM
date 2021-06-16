@@ -24,6 +24,7 @@ subroutine inivar
 
    use mod_constants, only: spval
    use mod_xc
+   use mod_vcoord, only: inivar_vcoord
    use mod_state, only: inivar_state
    use mod_pgforc, only: inivar_pgforc
    use mod_momtum, only: inivar_momtum
@@ -46,6 +47,7 @@ subroutine inivar
    ! ---------------------------------------------------------------------------
    ! Call initialization routines for various modules.
    ! ---------------------------------------------------------------------------
+   call inivar_vcoord
    call inivar_state
    call inivar_pgforc
    call inivar_momtum

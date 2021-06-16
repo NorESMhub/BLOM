@@ -54,6 +54,7 @@ c
       use mod_tidaldissip, only: tdfile
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
+      use mod_vcoord, only: readnml_vcoord
       use mod_cesm, only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl,
      .                    smtfrc
       use mod_pointtest, only: itest, jtest
@@ -686,6 +687,9 @@ c --- set atm_path length
         enddo
         atm_path_len=atm_path_len-1
       endif
+c
+c --- read vertical coordinate namelist variables
+      call readnml_vcoord
 c
 c --- initialize time variables
       call init_timevars

@@ -37,6 +37,10 @@ c
      .                      diaacc_total_time, io_total_time,
      .                      get_time
       use mod_xc, only: lp, mnproc, xctilr, xcsum
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid, cntiso_hybrid_regrid_remap, 
+     .                      remap_velocity 
+      use mod_vdiff, only: cntiso_hybrid_vdiff
       use mod_swabs, only: updswa
       use mod_tmsmt, only: tmsmt1, tmsmt2
       use mod_eddtra, only: eddtra
@@ -150,32 +154,57 @@ cdiag write (lp,*) 'momtum...'
       call momtum(m,n,mm,nn,k1m,k1n)
       momtum_time=get_time()
 c
-cdiag write (lp,*) 'convec...'
-      call convec(m,n,mm,nn,k1m,k1n)
-      convec_time=get_time()
+      if (vcoord_type_tag == isopyc_bulkml) then
 c
-      call budget_sums(3,n,nn)
-      auxil_time=auxil_time+get_time()
+cdiag   write (lp,*) 'convec...'
+        call convec(m,n,mm,nn,k1m,k1n)
+        convec_time=get_time()
 c
-cdiag write (lp,*) 'diapfl...'
-      call diapfl(m,n,mm,nn,k1m,k1n)
-      diapfl_time=get_time()
+        call budget_sums(3,n,nn)
+        auxil_time=auxil_time+get_time()
 c
-      call budget_sums(4,n,nn)
-      auxil_time=auxil_time+get_time()
+cdiag   write (lp,*) 'diapfl...'
+        call diapfl(m,n,mm,nn,k1m,k1n)
+        diapfl_time=get_time()
+c
+        call budget_sums(4,n,nn)
+        auxil_time=auxil_time+get_time()
+c
+      else
+c
+        convec_time=get_time()
+        call budget_sums(3,n,nn)
+        auxil_time=auxil_time+get_time()
+c
+c       call cntiso_hybrid_vdiff(m,n,mm,nn,k1m,k1n)
+        diapfl_time=get_time()
+c
+        call budget_sums(4,n,nn)
+        auxil_time=auxil_time+get_time()
+c
+      endif
 c
 cdiag write (lp,*) 'thermf...'
       call thermf(m,n,mm,nn,k1m,k1n)
       thermf_time=get_time()
 c
-cdiag write (lp,*) 'mxlayr...'
-      call mxlayr(m,n,mm,nn,k1m,k1n)
-      mxlayr_time=get_time()
+      if (vcoord_type_tag == isopyc_bulkml) then
+cdiag   write (lp,*) 'mxlayr...'
+        call mxlayr(m,n,mm,nn,k1m,k1n)
+        mxlayr_time=get_time()
+      endif
 c
 #ifdef TRC
 c --- update tracer due to non-passive processes
       call updtrc(m,n,mm,nn,k1m,k1n)
 #endif
+c
+      if (vcoord_type_tag == cntiso_hybrid) then
+        call cntiso_hybrid_regrid_remap(m,n,mm,nn,k1m,k1n)
+        diapfl_time=get_time()
+        call remap_velocity(m,n,mm,nn,k1m,k1n)
+        mxlayr_time=get_time()
+      endif
 c
       call budget_sums(5,n,nn)
       auxil_time=auxil_time+get_time()
@@ -225,7 +254,6 @@ c
         call wdiflx
 c
       endif
-c
 c
 c --- ------------------------------------------------------------------
 c --- - output of BLOM diagnostics

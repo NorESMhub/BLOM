@@ -34,9 +34,6 @@ module mod_grid
    character(len = 256) :: &
       grfile     ! Name of file containing grid specification.
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
-      sigmar     ! Reference potential density [g cm-3].
-
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 4) :: &
       qclon, &   ! Longitude of q-cell corners [degrees].
       qclat, &   ! Latitude of q-cell corners [degrees].
@@ -92,7 +89,7 @@ module mod_grid
    integer :: &
       nwp        ! Number of wet grid cells.
 
-   public :: grfile, sigmar, &
+   public :: grfile, &
              qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
              scqx, scqy, scpx, scpy, scux, scuy, scvx, scvy, &
              scq2, scp2, scu2, scv2, scq2i, scp2i, &
@@ -113,11 +110,6 @@ contains
 
    !$omp parallel do private(i, k)
       do j = 1 - nbdy, jj + nbdy
-         do k = 1, kk
-            do i = 1 - nbdy, ii + nbdy
-               sigmar(i, j, k) = spval
-            enddo
-         enddo
          do k = 1, 4
             do i = 1 - nbdy, ii + nbdy
                qclon(i, j, k) = spval

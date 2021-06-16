@@ -26,7 +26,8 @@ c
       use mod_constants, only: g, alpha0, spval, epsil, onem
       use mod_time, only: delt1
       use mod_xc
-      use mod_grid, only: sigmar, coriop
+      use mod_vcoord, only: sigmar
+      use mod_grid, only: coriop
       use mod_eos, only: sig, dsigdt, dsigds, sofsig
       use mod_temmin, only: temmin
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,

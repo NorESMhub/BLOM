@@ -30,7 +30,8 @@ c
       use mod_xc 
       use mod_nctools
       use netcdf, only : nf90_fill_double
-      use mod_grid, only: sigmar, scp2, depths, area
+      use mod_vcoord, only: sigmar
+      use mod_grid, only: scp2, depths, area
       use mod_eos, only: rho, p_alpha
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,

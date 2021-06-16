@@ -30,7 +30,10 @@ c
       use mod_constants, only: g, epsil, onem
       use mod_time, only: nstep, delt1, dlt
       use mod_xc
-      use mod_grid, only: sigmar, scuy, scvx, scuyi, scvxi, depths,
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
+     .                      cntiso_hybrid, sigmar,
+     .                      cntiso_hybrid_regrid_remap, remap_velocity
+      use mod_grid, only: scuy, scvx, scuyi, scvxi, depths,
      .                    corioq
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu,
      .                     pv, phi, ubflxs, vbflxs, ub, vb, pb, pbu,
@@ -396,39 +399,63 @@ c --- bound and make temperature, salinity, and potential density
 c --- variables consistent.
 c --- ------------------------------------------------------------------
 c
-      do k=1,2
-        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+      select case (vcoord_type_tag)
+
+        case (isopyc_bulkml)
+
+          do k=1,2
+            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
-          enddo
-        enddo
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
 c$OMP END PARALLEL DO
-      enddo
-      do k=3,kk
-        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+          enddo
+          do k=3,kk
+            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
-            saln(i,j,k)=sofsig(sigmar(i,j,k),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
-          enddo
-        enddo
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                saln(i,j,k)=sofsig(sigmar(i,j,k),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
 c$OMP END PARALLEL DO
-      enddo
+          enddo
+
+        case (cntiso_hybrid)
+
+          do k=1,kk
+            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+c$OMP PARALLEL DO PRIVATE(l,i)
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          enddo
+
+        case default
+
+          if (mnproc.eq.1) then
+             write (lp,*) 'inicon: unsupported vertical coordinate!'
+          endif
+          call xcstop('(inicon)')
+                 stop '(inicon)'
+
+      end select
 c
       if (mnproc.eq.ptest) then
         write (lp,'('' sigmar(k)    :'',7f9.5/(15x,7f9.5))')
@@ -459,8 +486,6 @@ c$OMP END PARALLEL DO
 c
       call xctilr(p, 1,kk+1, 2,2, halo_ps)
       call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
-      call xctilr(temp, 1,kk, 1,1, halo_ps)
-      call xctilr(saln, 1,kk, 1,1, halo_ps)
 c
 c --- ------------------------------------------------------------------
 c --- Set layer thickness and bottom pressure
@@ -472,7 +497,6 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
             dp(i,j,k)=p(i,j,k+1)-p(i,j,k)
-            dp(i,j,k+kk)=dp(i,j,k)
           enddo
           enddo
         enddo
@@ -533,6 +557,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,q)
             dpu(i,j,k)=
      .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
      .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+            pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,k)
           enddo
           enddo
           do l=1,isv(j)
@@ -541,25 +566,39 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,q)
             dpv(i,j,k)=
      .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
      .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+            pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,k)
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call cntiso_hybrid_regrid_remap(2,1,kk,0,kk+1,1)
+        call remap_velocity(2,1,kk,0,kk+1,1)
+      endif
+      call xctilr(temp, 1,kk, 1,1, halo_ps)
+      call xctilr(saln, 1,kk, 1,1, halo_ps)
+c
 c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k+kk)=sigma(i,j,k)
+            dp(i,j,k+kk)=dp(i,j,k)
+          enddo
+          enddo
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             dpu(i,j,k+kk)=dpu(i,j,k)
-            pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,k)
           enddo
           enddo
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             dpv(i,j,k+kk)=dpv(i,j,k)
-            pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,k)
           enddo
           enddo
         enddo
