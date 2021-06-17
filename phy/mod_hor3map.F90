@@ -93,7 +93,7 @@ module mod_hor3map
       c0   = 0._r8, &
       c1   = 1._r8, &
       c2   = 2._r8, &
-      r3   = 3._r8, &
+      c3   = 3._r8, &
       c4   = 4._r8, &
       c1_2 = 1._r8/2._r8, &
       c1_3 = 1._r8/3._r8, &
@@ -240,7 +240,7 @@ contains
       r = h0*h0*q3*q4*q4
       s = c2*h1
       beta = h01*h012*q2*q4
-      a = ((h01 + r3*h012 + s)*h0 + s*h12)*q1*q3
+      a = ((h01 + c3*h012 + s)*h0 + s*h12)*q1*q3
       b = (h01 + h12)*(s*h012 + h2*h02)*q1*q2*r
       c = - h01*r
 
@@ -420,9 +420,9 @@ contains
             q = d*(c2*rcs%u_src(j) - rcs%uel(j) - rcs%uer(j))
             r = c1_3*d*d
             if     (  q > r) then
-               rcs%uel(j) = r3*rcs%u_src(j) - c2*rcs%uer(j)
+               rcs%uel(j) = c3*rcs%u_src(j) - c2*rcs%uer(j)
             elseif (- r > q) then
-               rcs%uer(j) = r3*rcs%u_src(j) - c2*rcs%uel(j)
+               rcs%uer(j) = c3*rcs%u_src(j) - c2*rcs%uel(j)
             endif
 
          else
@@ -481,9 +481,9 @@ contains
                q = d*(c2*rcs%u_src(j) - rcs%uel(j) - rcs%uer(j))
                r = c1_3*d*d
                if     (  q > r) then
-                  rcs%uel(j) = r3*rcs%u_src(j) - c2*rcs%uer(j)
+                  rcs%uel(j) = c3*rcs%u_src(j) - c2*rcs%uer(j)
                elseif (- r > q) then
-                  rcs%uer(j) = r3*rcs%u_src(j) - c2*rcs%uel(j)
+                  rcs%uer(j) = c3*rcs%u_src(j) - c2*rcs%uel(j)
                endif
 
             else
@@ -532,20 +532,20 @@ contains
                  - (rcs%u_src(2) - rcs%u_src(1)) &
                   *(rcs%h_src(2) + rcs%h_src(3))) &
                  *(rcs%uel(1) - c2*rcs%u_src(1) + rcs%uer(1)) < c0) then
-            rcs%uel(1) = c1_2*(r3*rcs%u_src(1) - rcs%uer(1))
+            rcs%uel(1) = c1_2*(c3*rcs%u_src(1) - rcs%uer(1))
          else
             dl = rcs%u_src(1) - rcs%uel(1)
             dr = rcs%uer(1) - rcs%u_src(1)
             if (dl*dr < c0) then
-               rcs%uel(1) = c1_2*(r3*rcs%u_src(1) - rcs%uer(1))
+               rcs%uel(1) = c1_2*(c3*rcs%u_src(1) - rcs%uer(1))
             else
                d = dl + dr
                q = d*(dl - dr)
                r = c1_3*d*d
                if     (  q > r) then
-                  rcs%uel(1) = r3*rcs%u_src(1) - c2*rcs%uer(1)
+                  rcs%uel(1) = c3*rcs%u_src(1) - c2*rcs%uer(1)
                elseif (- r > q) then
-                  rcs%uer(1) = r3*rcs%u_src(1) - c2*rcs%uel(1)
+                  rcs%uer(1) = c3*rcs%u_src(1) - c2*rcs%uel(1)
                endif
             endif
          endif
@@ -559,20 +559,20 @@ contains
                  - (rcs%u_src(ns - 1) - rcs%u_src(ns - 2)) &
                   *(rcs%h_src(ns - 1) + rcs%h_src(ns    ))) &
                  *(rcs%uel(ns) - c2*rcs%u_src(ns) + rcs%uer(ns)) < c0) then
-            rcs%uer(ns) = c1_2*(r3*rcs%u_src(ns) - rcs%uel(ns))
+            rcs%uer(ns) = c1_2*(c3*rcs%u_src(ns) - rcs%uel(ns))
          else
             dl = rcs%u_src(ns) - rcs%uel(ns)
             dr = rcs%uer(ns) - rcs%u_src(ns)
             if (dl*dr < c0) then
-               rcs%uer(ns) = c1_2*(r3*rcs%u_src(ns) - rcs%uel(ns))
+               rcs%uer(ns) = c1_2*(c3*rcs%u_src(ns) - rcs%uel(ns))
             else
                d = dl + dr
                q = d*(dl - dr)
                r = c1_3*d*d
                if     (  q > r) then
-                  rcs%uel(ns) = r3*rcs%u_src(ns) - c2*rcs%uer(ns)
+                  rcs%uel(ns) = c3*rcs%u_src(ns) - c2*rcs%uer(ns)
                elseif (- r > q) then
-                  rcs%uer(ns) = r3*rcs%u_src(ns) - c2*rcs%uel(ns)
+                  rcs%uer(ns) = c3*rcs%u_src(ns) - c2*rcs%uel(ns)
                endif
             endif
          endif
@@ -595,12 +595,12 @@ contains
          min_u_0 = min(rcs%u_src(j), c0)
          rcs%uel(j) = max(rcs%uel(j), min_u_0)
          rcs%uer(j) = max(rcs%uer(j), min_u_0)
-         sl = c2*(r3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
-         a2 = r3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
+         sl = c2*(c3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
+         a2 = c3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
          sr = sl + c2*a2
          if (sl < c0 .and. sr > c0) then
             if (a2*rcs%uel(j) - c1_4*sl*sl < a2*min_u_0) then
-               q = r3*rcs%u_src(j)/(r3*sl*sr + c4*a2*a2)
+               q = c3*rcs%u_src(j)/(c3*sl*sr + c4*a2*a2)
                rcs%uel(j) = sl*sl*q
                rcs%uer(j) = sr*sr*q
             endif
@@ -621,8 +621,8 @@ contains
 
       do j = 1, rcs%n_src
          rcs%polycoeff(1, j) = rcs%uel(j)
-         rcs%polycoeff(2, j) = c2*(r3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
-         rcs%polycoeff(3, j) = r3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
+         rcs%polycoeff(2, j) = c2*(c3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
+         rcs%polycoeff(3, j) = c3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
       enddo
 
    end subroutine reconstruct_ppm_polycoeff
@@ -1125,7 +1125,7 @@ contains
             uelr = rcs%uel(js)
             pcr(1) = min(max(pcr(1), min(uerl, uelr)), max(uerl, uelr))
             pcr(3) = c4*(umr - pcr(1))
-            pcl(1) = c4*uml - r3*pcr(1)
+            pcl(1) = c4*uml - c3*pcr(1)
             pcl(2) = c2*(pcr(1) - pcl(1))
             pcl(3) = - c1_2*pcl(2)
          else
