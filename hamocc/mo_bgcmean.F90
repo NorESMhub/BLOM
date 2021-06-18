@@ -67,10 +67,10 @@
 ! --- Averaging and writing frequencies for diagnostic output     
       INTEGER, SAVE :: nbgc
       INTEGER, PARAMETER :: nbgcmax=10
-      REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc,bgcwrt
+      REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc
       INTEGER, DIMENSION(nbgcmax), SAVE :: nacc_bgc
       LOGICAL, DIMENSION(nbgcmax), SAVE :: diagmon_bgc,diagann_bgc,     &
-     &  filemon_bgc,fileann_bgc
+     &  filemon_bgc,fileann_bgc,bgcwrt
  
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
