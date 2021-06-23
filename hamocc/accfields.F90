@@ -350,13 +350,14 @@
 
 
 ! Write output if requested
-      DO l=1,nbgc 
+      DO l=1,nbgc
         nacc_bgc(l)=nacc_bgc(l)+1
-        if (bgcwrt(l).gt.0.5) then
-          if (GLB_INVENTORY(l).ne.0)                                    & 
-     &      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+        if (bgcwrt(l)) then
+          if (GLB_INVENTORY(l).ne.0) then
+            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+          endif
           call ncwrt_bgc(l)
-          nacc_bgc(l)=0 
+          nacc_bgc(l)=0
         endif
       ENDDO
 
