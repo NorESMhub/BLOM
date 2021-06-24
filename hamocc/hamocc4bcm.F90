@@ -124,13 +124,13 @@
 
 
 !--------------------------------------------------------------------
-! Increment bgc time step counter of run (initialized in INI_BGC).
+! Increment bgc time step counter of run (initialized in HAMOCC_INIT).
 !
       ldtrunbgc = ldtrunbgc + 1
 
 
 !--------------------------------------------------------------------
-! Increment bgc time step counter of experiment (initialized if IAUFR=0).
+! Increment bgc time step counter of experiment.
 !
       ldtbgc = ldtbgc + 1
 
@@ -142,7 +142,7 @@
 
 
 !--------------------------------------------------------------------
-! Pass net solar radiation 
+! Pass net solar radiation
 !
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
