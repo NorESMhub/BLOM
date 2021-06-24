@@ -130,9 +130,7 @@
 
 
 !--------------------------------------------------------------------
-! Increment bgc time step counter of experiment (initialized if IAUFR=0).
-! 2021-06-18 : IAUFR does not seem to be defined. ldtbgc is defined in
-!              mo_control_bgc and initialized in hamocc_init.
+! Increment bgc time step counter of experiment.
 !
       ldtbgc = ldtbgc + 1
 
