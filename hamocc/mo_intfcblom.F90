@@ -31,6 +31,13 @@ module mo_intfcblom
 !   Declaration and memory allocation related to the BLOM-iHAMOCC interface.
 !   This includes 2-time-level copies of sediment and amospheric fields.
 !
+!  Description:
+!  ------------
+!  Public routines and variable of this module:
+!
+!  -subroutine alloc_mem_intfcblom
+!     Allocate memory for BLOM interface variables
+!
 !  To do
 !  -----
 !   Once BLOM has transitioned to free source format, the interface routines

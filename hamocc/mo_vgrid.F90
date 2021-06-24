@@ -33,6 +33,16 @@ module mo_vgrid
 !   vertical grid structure. These have to be recalculated every
 !   time step when iHAMOCC is coupled to BLOM.
 !
+!  Description:
+!  ------------
+!  Public routines and variables of this module:
+!
+!  -subroutine set_vgrid
+!     Calculate variables related to the vertical grid structure.
+!
+!  -subroutine alloc_mem_vgrid
+!     Allocate memory for vertical grid variables
+!
 !   *kbo*         *INTEGER*  - number of wet cells in column.
 !   *kwrbioz*     *INTEGER*  - last k-index of euphotic zone.
 !   *kxxxx*       *INTEGER*  - k-index of gridbox comprising xxxx m depth.

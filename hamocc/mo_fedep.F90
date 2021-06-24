@@ -31,6 +31,16 @@ module mo_fedep
 !  -------
 !   Declaration, memory allocation, and routines related to iron deposition
 !
+!  Description:
+!  ------------
+!  Public routines and variable of this module:
+!
+!  -subroutine ini_fedep
+!     Initialise the iron deposition module.
+!
+!  -subroutine get_fedep
+!     Get the iron (dust) deposition for a given month
+!
 !
 !******************************************************************************
   implicit none
