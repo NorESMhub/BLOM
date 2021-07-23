@@ -73,7 +73,8 @@ c
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
-     .                  inid13c,inid14c,swaclimfile,with_fb_bgc_oce
+     .                  inid13c,inid14c,swaclimfile,
+     .                  with_cfc,with_fb_bgc_oce
 
 c
 c --- Set io units and some control parameters

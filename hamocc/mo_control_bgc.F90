@@ -59,14 +59,13 @@
       REAL    :: rmasks = 0.0       !  value at wet cells in sediment.
       REAL    :: rmasko = 99999.00  !  value at wet cells in ocean.
 
-! Logical switches
-      LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
-      LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
-
-      logical, save :: with_fb_bgc_oce = .false.  ! Feedback BGC -> OCE
-      !logical, save :: with_ciso = .false.
-      !logical, save :: with_cfc = .false.
-      !logical, save :: with_natDIC = .false.
+! Logical switches  (set via namelist)
+      LOGICAL, SAVE :: do_ndep=.true.             ! apply n-deposition
+      LOGICAL, SAVE :: do_rivinpt=.true.          ! apply riverine input
+      !logical, save :: with_ciso = .false.        ! apply carbon isotop tracers
+      logical, save :: with_cfc = .false.         ! apply CFC tracers
+      logical, save :: with_fb_bgc_oce = .false.  ! feedback BGC -> OCE
+      !logical, save :: with_natDIC = .false.      ! apply natural DIC tracers
 
     contains
 
