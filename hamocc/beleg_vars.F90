@@ -74,17 +74,6 @@
       REAL :: rco213,rco214,beta13,beta14
 #endif
 
-
-#ifdef FB_BGC_OCE
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-        abs_oce(i,j,k)=1.
-      ENDDO
-      ENDDO
-      ENDDO
-#endif
-
 !
 ! Initialisation of ocean tracers and sediment
 !
@@ -110,7 +99,7 @@
           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)  /prho(i,j,k)
           ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)/prho(i,j,k)
 #ifdef cisonew
-          ! d13C based on Eide data is read in above (profile_gd)                        
+          ! d13C based on Eide data is read in above (profile_gd)
           ! Convert to 13C using model initial (ie GLODAP) total C
           ! If restarting, this is redone with model total C from restart in aufr_bgc.F90 
           beta13=ocetra(i,j,k,isco213)/1000.+1.
