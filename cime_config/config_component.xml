@@ -164,9 +164,10 @@
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate feedback from BGC to OCE component. Requires module ecosys</desc>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set namelist variable to activate feedback from BGC to OCE component.
+      Requires module ecosys</desc>
   </entry>
 
   <entry id="BLOM_TURBULENT_CLOSURE">
