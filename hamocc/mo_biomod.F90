@@ -125,7 +125,7 @@
 ! ALLOC_MEM_BIOMOD - Allocate variables in this module
 !******************************************************************************
       use mod_xc,         only: mnproc
-      use mo_control_bgc, only: io_stdo_bgc, with_fg_bgc_oce
+      use mo_control_bgc, only: io_stdo_bgc, with_fb_bgc_oce
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
