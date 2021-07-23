@@ -160,7 +160,7 @@
     <desc>Set preprocessor option to activate the VSLS-Bromoform tracer code. Requires module ecosys</desc>
   </entry>
 
-  <entry id="HAMOCC_FB_BGC_OCE">
+  <entry id="HAMOCC_WITH_FB_BGC_OCE">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>

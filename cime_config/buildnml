@@ -20,7 +20,7 @@ set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
 set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
 set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
-set HAMOCC_FB_BGC_OCE = `./xmlquery HAMOCC_FB_BGC_OCE --value`
+set HAMOCC_WITH_FB_BGC_OCE = `./xmlquery HAMOCC_WITH_FB_BGC_OCE --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
@@ -193,7 +193,7 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   exit -1
 endif
 
-if ($HAMOCC_FB_BGC_OCE == TRUE) then
+if ($HAMOCC_WITH_FB_BGC_OCE == TRUE) then
   set WITH_FB_BGC_OCE = .true.
 else
   set WITH_FB_BGC_OCE = .false.
