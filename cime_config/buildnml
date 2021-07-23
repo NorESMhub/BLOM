@@ -197,7 +197,7 @@ if ($HAMOCC_FB_BGC_OCE == TRUE) then
   set WITH_FB_BGC_OCE = .true.
 else
   set WITH_FB_BGC_OCE = .false.
-end
+endif
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
