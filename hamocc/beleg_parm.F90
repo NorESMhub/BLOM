@@ -246,8 +246,7 @@
       atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m 
       atten_uv= 0.33       ! 
       atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer 
-                           ! (only if FB_BGC_OCE) [feedback bgc-ocean]
-      	
+                           ! (only if WITH_FB_BGC_OCE is .true.) [feedback bgc-ocean]
 !ik for interaction with sediment module
       o2ut=172.
       rno3=16.

@@ -20,6 +20,7 @@ set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
 set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
 set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
+set HAMOCC_FB_BGC_OCE = `./xmlquery HAMOCC_FB_BGC_OCE --value`
 set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
@@ -191,6 +192,12 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
+
+if ($HAMOCC_FB_BGC_OCEAN == TRUE) then
+  set WITH_FB_BGC_OCE = .true.
+else
+  set WITH_FB_BGC_OCE = .false.
+end
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1346,12 +1353,14 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
 ! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
 !               OXY, NO3, SIL, D13C, and D14C
+! WITH_FB_BGC_OCE : Logical switch to activate feedback from ocean BGC
+!                   component to ocean physics
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
   FEDEPFILE  = $FEDEPFILE
   SWACLIMFILE= $SWACLIMFILE
   DO_RIVINPT = $DO_RIVINPT
-  RIVINFILE  = $RIVINFILE 
+  RIVINFILE  = $RIVINFILE
   DO_NDEP    = $DO_NDEP
   NDEPFILE   = $NDEPFILE
   INIDIC     = $INIDIC
@@ -1362,6 +1371,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INISIL     = $INISIL
   INID13C    = $INID13C
   INID14C    = $INID14C
+  WITH_FB_BGC_OCE = $WITH_FB_BGC_OCE
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT

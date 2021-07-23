@@ -51,9 +51,6 @@
       implicit none
 
       REAL, DIMENSION (:,:),   ALLOCATABLE :: strahl
-#ifdef FB_BGC_OCE     
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
-#endif 
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoor
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoca
       REAL, DIMENSION (:,:),   ALLOCATABLE :: exposi
@@ -81,6 +78,7 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx2000
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx4000
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx_bot
+      REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: phosy3d
 #ifdef AGG
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wmass
@@ -127,7 +125,7 @@
 ! ALLOC_MEM_BIOMOD - Allocate variables in this module
 !******************************************************************************
       use mod_xc,         only: mnproc
-      use mo_control_bgc, only: io_stdo_bgc
+      use mo_control_bgc, only: io_stdo_bgc, with_fg_bgc_oce
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
@@ -152,18 +150,18 @@
       strahl(:,:) = 0.0
 
 
-#ifdef FB_BGC_OCE 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable abs_oce'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
+      if (with_fb_bgc_oce) then
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable abs_oce'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
-      ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory abs_oce'
-      abs_oce(:,:,:) = 0.0
-#endif 
+         ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory abs_oce'
+         abs_oce(:,:,:) = 0.0
+      endif
 
 
       IF (mnproc.eq.1) THEN

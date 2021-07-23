@@ -223,10 +223,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #ifdef BROMO
   abs_uv(:,:,:) = 0.
 #endif
-#ifdef FB_BGC_OCE
-  abs_oce(:,:,:) = 0.
-  abs_oce(:,:,1) = 1.
-#endif
+
+  if (with_fb_bgc_oce) then
+     abs_oce(:,:,:) = 0.
+     abs_oce(:,:,1) = 1.
+  endif
 
 !$OMP PARALLEL DO PRIVATE(i,k,absorption,absorption_uv,atten,dz)
   do j = 1,kpje
@@ -245,16 +246,17 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
               ! Average light intensity in layer k
               atten = atten_w + atten_c * max(0.,ocetra(i,j,k,iphy))
-              abs_bgc(i,j,k) = ((absorption/atten)*      (1.-exp(-atten*dz)))/dz
+              abs_bgc(i,j,k) = ((absorption/atten) * (1.-exp(-atten*dz)))/dz
 #ifdef BROMO
               abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
 #endif
-#ifdef FB_BGC_OCE
-              abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
-              if (k == 2) then
-                 abs_oce(i,j,2) = atten_f * absorption
+
+              if (with_fb_bgc_oce) then
+                 abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
+                 if (k == 2) then
+                    abs_oce(i,j,2) = atten_f * absorption
+                 endif
               endif
-#endif
 
               ! Radiation intensity I_0 at the top of next layer
               absorption    = absorption    * exp(-atten*dz)

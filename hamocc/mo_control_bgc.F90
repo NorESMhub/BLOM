@@ -63,6 +63,11 @@
       LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
       LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
 
+      logical, save :: with_fb_bgc_oce = .false.  ! Feedback BGC -> OCE
+      !logical, save :: with_ciso = .false.
+      !logical, save :: with_cfc = .false.
+      !logical, save :: with_natDIC = .false.
+
     contains
 
       subroutine get_bgc_namelist
@@ -95,4 +100,4 @@
         endif
       end subroutine get_bgc_namelist
 
-      END MODULE mo_control_bgc
+    END MODULE mo_control_bgc
