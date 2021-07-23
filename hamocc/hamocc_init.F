@@ -39,7 +39,7 @@ c
 c******************************************************************************
       use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
-     .                         mnproc,lp,nfu
+     .                         mnproc,lp
       use mod_grid,      only: plon,plat
       use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
       USE mo_control_bgc
@@ -67,6 +67,8 @@ c
 
       integer :: i,j,k,l,nt
       integer :: iounit
+
+      logical :: exists
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
@@ -108,7 +110,7 @@ c
         write(io_stdo_bgc,nml=BGCNML)
       ENDIF
 c
-c --- Memory allocation 
+c --- Memory allocation
 c
       CALL ALLOC_MEM_INTFCBLOM(idm,jdm,kdm)
       CALL ALLOC_MEM_BGCMEAN(idm,jdm,kdm)

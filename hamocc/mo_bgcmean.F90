@@ -389,7 +389,7 @@
      &          jlvldoc13  = 0 ,                                        &
      &          jlvlcalc13 = 0 ,                                        &
      &          jlvlphyto13 = 0,                                        &
-     &          jlvlgrazer13= 0                                                                                        
+     &          jlvlgrazer13= 0
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jnos       = 0 ,                                        &
