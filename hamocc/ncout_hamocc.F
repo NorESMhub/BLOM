@@ -28,7 +28,7 @@ c
       use mod_xc
       use mod_grid,       only: depths
       use mod_dia,        only: diafnm,sigmar1,iotype
-      use mo_control_bgc, only: dtbgc
+      use mo_control_bgc, only: dtbgc,with_cfc
       use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 #ifdef cisonew
@@ -158,11 +158,11 @@ c --- finalize accumulation
       call finlyr(jeps(iogrp),jdp(iogrp))
       call finlyr(jasize(iogrp),jdp(iogrp))
 #endif  
-#ifdef CFC
-      call finlyr(jcfc11(iogrp),jdp(iogrp))
-      call finlyr(jcfc12(iogrp),jdp(iogrp))
-      call finlyr(jsf6(iogrp),jdp(iogrp))
-#endif
+      if (with_cfc) then
+         call finlyr(jcfc11(iogrp),jdp(iogrp))
+         call finlyr(jcfc12(iogrp),jdp(iogrp))
+         call finlyr(jsf6(iogrp),jdp(iogrp))
+      endif
 #ifdef natDIC
       call finlyr(jnatalkali(iogrp),jdp(iogrp))
       call finlyr(jnatdic(iogrp),jdp(iogrp))
@@ -239,11 +239,11 @@ c --- Mask sea floor in level data
       call msklvl(jlvleps(iogrp),depths)
       call msklvl(jlvlasize(iogrp),depths)
 #endif  
-#ifdef CFC
-      call msklvl(jlvlcfc11(iogrp),depths)
-      call msklvl(jlvlcfc12(iogrp),depths)
-      call msklvl(jlvlsf6(iogrp),depths)
-#endif
+      if (with_cfc) then
+         call msklvl(jlvlcfc11(iogrp),depths)
+         call msklvl(jlvlcfc12(iogrp),depths)
+         call msklvl(jlvlsf6(iogrp),depths)
+      endif
 #ifdef natDIC
       call msklvl(jlvlnatalkali(iogrp),depths)
       call msklvl(jlvlnatdic(iogrp),depths)
@@ -400,14 +400,14 @@ c --- Store 2d fields
      .  rnacc*12.*c14fac/dtbgc,0.,cmpflg,'co214fxu',
      .  'Upward 14CO2 flux',' ','kg C m-2 s-1')
 #endif
-#ifdef CFC
-      call wrtsrf(jcfc11fx(iogrp),SRF_CFC11(iogrp),rnacc*1e3/dtbgc,0.,
-     .  cmpflg,'cfc11flux','CFC-11 flux',' ','mol CFC12 m-2 s-1')
-      call wrtsrf(jcfc12fx(iogrp),SRF_CFC12(iogrp),rnacc*1e3/dtbgc,0.,
-     .  cmpflg,'cfc12flux','CFC-12 flux',' ','mol CFC12 m-2 s-1')
-      call wrtsrf(jsf6fx(iogrp),SRF_SF6(iogrp),rnacc*1e3/dtbgc,0.,
-     .  cmpflg,'sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1')
-#endif
+      if (with_cfc) then
+         call wrtsrf(jcfc11fx(iogrp),SRF_CFC11(iogrp),rnacc*1e3/dtbgc,0.,
+     .     cmpflg,'cfc11flux','CFC-11 flux',' ','mol CFC12 m-2 s-1')
+         call wrtsrf(jcfc12fx(iogrp),SRF_CFC12(iogrp),rnacc*1e3/dtbgc,0.,
+     .     cmpflg,'cfc12flux','CFC-12 flux',' ','mol CFC12 m-2 s-1')
+         call wrtsrf(jsf6fx(iogrp),SRF_SF6(iogrp),rnacc*1e3/dtbgc,0.,
+     .     cmpflg,'sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1')
+      endif
 #ifdef natDIC
       call wrtsrf(jsrfnatdic(iogrp),SRF_NATDIC(iogrp),
      .  rnacc*1e3,0.,cmpflg,'srfnatdissic',
@@ -540,14 +540,14 @@ c --- Store 3d layer fields
       call wrtlyr(jasize(iogrp),LYR_ASIZE(iogrp),1.,0.,cmpflg,              
      .  'asize','Av. size of marine snow aggregates',' ','nb. of cells')
 #endif
-#ifdef CFC
-      call wrtlyr(jcfc11(iogrp),LYR_CFC11(iogrp),1e3,0.,cmpflg,            
-     .  'cfc11','CFC-11',' ','mol cfc11 m-3')
-      call wrtlyr(jcfc12(iogrp),LYR_CFC12(iogrp),1e3,0.,cmpflg,            
-     .  'cfc12','CFC-12',' ','mol cfc12 m-3')
-      call wrtlyr(jsf6(iogrp),LYR_SF6(iogrp),1e3,0.,cmpflg,            
-     .  'sf6','SF-6',' ','mol sf6 m-3')
-#endif
+      if (with_cfc) then
+         call wrtlyr(jcfc11(iogrp),LYR_CFC11(iogrp),1e3,0.,cmpflg,
+     .     'cfc11','CFC-11',' ','mol cfc11 m-3')
+         call wrtlyr(jcfc12(iogrp),LYR_CFC12(iogrp),1e3,0.,cmpflg,
+     .     'cfc12','CFC-12',' ','mol cfc12 m-3')
+         call wrtlyr(jsf6(iogrp),LYR_SF6(iogrp),1e3,0.,cmpflg,
+     .     'sf6','SF-6',' ','mol sf6 m-3')
+      endif
 #ifdef natDIC
       call wrtlyr(jnatco3(iogrp),LYR_NATCO3(iogrp),1e3,0.,cmpflg,        
      .  'natco3','Natural Carbonate ions',' ','mol C m-3')
@@ -662,14 +662,14 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'asizelvl',      
      .  'Av. size of marine snow aggregates',' ','nb. of cells')
 #endif
-#ifdef CFC
-      call wrtlvl(jlvlcfc11(iogrp),LVL_CFC11(iogrp),rnacc*1e3,0.,cmpflg,  
-     .  'cfc11lvl','CFC-11',' ','mol cfc11 m-3')
-      call wrtlvl(jlvlcfc12(iogrp),LVL_CFC12(iogrp),rnacc*1e3,0.,cmpflg,  
-     .  'cfc12lvl','CFC-12',' ','mol cfc12 m-3')
-      call wrtlvl(jlvlsf6(iogrp),LVL_SF6(iogrp),rnacc*1e3,0.,cmpflg,  
-     .  'sf6lvl','SF-6',' ','mol sf6 m-3')
-#endif
+      if (with_cfc) then
+         call wrtlvl(jlvlcfc11(iogrp),LVL_CFC11(iogrp),rnacc*1e3,0.,
+     .      mpflg, 'cfc11lvl','CFC-11',' ','mol cfc11 m-3')
+         call wrtlvl(jlvlcfc12(iogrp),LVL_CFC12(iogrp),rnacc*1e3,0.,
+     .      cmpflg, 'cfc12lvl','CFC-12',' ','mol cfc12 m-3')
+         call wrtlvl(jlvlsf6(iogrp),LVL_SF6(iogrp),rnacc*1e3,0.,
+     .      cmpflg, 'sf6lvl','SF-6',' ','mol sf6 m-3')
+      endif
 #ifdef natDIC
       call wrtlvl(jlvlnatco3(iogrp),LVL_NATCO3(iogrp),
      .  rnacc*1e3,0.,cmpflg,'natco3lvl',
@@ -788,11 +788,11 @@ c --- Initialise fields
       call inisrf(jco214fxd(iogrp),0.)       
       call inisrf(jco214fxu(iogrp),0.)       
 #endif     
-#ifdef CFC
-      call inisrf(jcfc11fx(iogrp),0.)       
-      call inisrf(jcfc12fx(iogrp),0.)       
-      call inisrf(jsf6fx(iogrp),0.)       
-#endif
+      if (with_cfc) then
+         call inisrf(jcfc11fx(iogrp),0.)
+         call inisrf(jcfc12fx(iogrp),0.)
+         call inisrf(jsf6fx(iogrp),0.)
+      endif
 #ifdef natDIC
       call inisrf(jsrfnatdic(iogrp),0.)       
       call inisrf(jsrfnatalk(iogrp),0.)       
@@ -863,11 +863,11 @@ c
       call inilyr(jeps(iogrp),0.)
       call inilyr(jasize(iogrp),0.)
 #endif  
-#ifdef CFC
-      call inilyr(jcfc11(iogrp),0.)       
-      call inilyr(jcfc12(iogrp),0.)       
-      call inilyr(jsf6(iogrp),0.)       
-#endif
+      if (with_cfc) then
+         call inilyr(jcfc11(iogrp),0.)
+         call inilyr(jcfc12(iogrp),0.)
+         call inilyr(jsf6(iogrp),0.)
+      endif
 #ifdef natDIC
       call inilyr(jnatco3(iogrp),0.)       
       call inilyr(jnatalkali(iogrp),0.)       
@@ -926,11 +926,11 @@ c
       call inilvl(jlvleps(iogrp),0.)
       call inilvl(jlvlasize(iogrp),0.)
 #endif  
-#ifdef CFC
-      call inilvl(jlvlcfc11(iogrp),0.)       
-      call inilvl(jlvlcfc12(iogrp),0.)       
-      call inilvl(jlvlsf6(iogrp),0.)       
-#endif
+      if (with_cfc) then
+         call inilvl(jlvlcfc11(iogrp),0.)
+         call inilvl(jlvlcfc12(iogrp),0.)
+         call inilvl(jlvlsf6(iogrp),0.)
+      endif
 #ifdef natDIC
       call inilvl(jlvlnatco3(iogrp),0.)
       call inilvl(jlvlnatalkali(iogrp),0.)       
@@ -1087,14 +1087,14 @@ c
       call ncdefvar3d(SRF_CO214FXU(iogrp),cmpflg,'p','co214fxu',
      .  'Upward 14CO2 flux',' ','kg C m-2 s-1',0)
 #endif
-#ifdef CFC
-      call ncdefvar3d(SRF_CFC11(iogrp),cmpflg,'p','cfc11flux',
-     .   'CFC-11 flux',' ','mol CFC12 m-2 s-1',0)
-      call ncdefvar3d(SRF_CFC12(iogrp),
-     .  cmpflg,'p','cfc12flux','CFC-12 flux',' ','mol CFC12 m-2 s-1',0)
-      call ncdefvar3d(SRF_SF6(iogrp),
-     .  cmpflg,'p','sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1',0)
-#endif
+      if (with_cfc) then
+         call ncdefvar3d(SRF_CFC11(iogrp),cmpflg,'p','cfc11flux',
+     .        'CFC-11 flux',' ','mol CFC12 m-2 s-1',0)
+         call ncdefvar3d(SRF_CFC12(iogrp),cmpflg,'p','cfc12flux',
+     .        'CFC-12 flux',' ','mol CFC12 m-2 s-1',0)
+         call ncdefvar3d(SRF_SF6(iogrp),
+     .        cmpflg,'p','sf6flux','SF-6 flux',' ','mol SF6 m-2 s-1',0)
+      endif
 #ifdef natDIC
       call ncdefvar3d(SRF_NATDIC(iogrp),cmpflg,'p','srfnatdissic',
      .  'Surface natural dissolved inorganic carbon',' ','mol C m-3',0)
@@ -1221,14 +1221,14 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_ASIZE(iogrp),cmpflg,'p',              
      .'asize','Av. size of marine snow aggregates',' ','nb. of cells',1)
 #endif
-#ifdef CFC
-      call ncdefvar3d(LYR_CFC11(iogrp),cmpflg,'p',            
-     .  'cfc11','CFC-11',' ','mol cfc11 m-3',1)
-      call ncdefvar3d(LYR_CFC12(iogrp),cmpflg,'p',            
-     .  'cfc12','CFC-12',' ','mol cfc12 m-3',1)
-      call ncdefvar3d(LYR_SF6(iogrp),cmpflg,'p',
-     .  'sf6','SF-6',' ','mol sf6 m-3',1)
-#endif
+      if (with_cfc) then
+         call ncdefvar3d(LYR_CFC11(iogrp),cmpflg,'p',
+     .        'cfc11','CFC-11',' ','mol cfc11 m-3',1)
+         call ncdefvar3d(LYR_CFC12(iogrp),cmpflg,'p',
+     .        'cfc12','CFC-12',' ','mol cfc12 m-3',1)
+         call ncdefvar3d(LYR_SF6(iogrp),cmpflg,'p',
+     .        'sf6','SF-6',' ','mol sf6 m-3',1)
+      endif
 #ifdef natDIC
       call ncdefvar3d(LYR_NATCO3(iogrp),cmpflg,'p',   
      .  'natco3','Natural Carbonate ions',' ','mol C m-3',1)
@@ -1336,14 +1336,14 @@ c --- define 3d level fields
       call ncdefvar3d(LVL_ASIZE(iogrp),cmpflg,'p','asizelvl',
      .  'Av. size of marine snow aggregates',' ','nb. of cells',2)
 #endif
-#ifdef CFC
-      call ncdefvar3d(LVL_CFC11(iogrp),cmpflg,'p',  
-     .  'cfc11lvl','CFC-11',' ','mol cfc11 m-3',2)
-      call ncdefvar3d(LVL_CFC12(iogrp),cmpflg,'p',  
-     .  'cfc12lvl','CFC-12',' ','mol cfc12 m-3',2)
-      call ncdefvar3d(LVL_SF6(iogrp),cmpflg,'p',
-     .  'sf6lvl','SF-6',' ','mol sf6 m-3',2)
-#endif
+      if (with_cfc) then
+         call ncdefvar3d(LVL_CFC11(iogrp),cmpflg,'p',
+     .        'cfc11lvl','CFC-11',' ','mol cfc11 m-3',2)
+         call ncdefvar3d(LVL_CFC12(iogrp),cmpflg,'p',
+     .        'cfc12lvl','CFC-12',' ','mol cfc12 m-3',2)
+         call ncdefvar3d(LVL_SF6(iogrp),cmpflg,'p',
+     .        'sf6lvl','SF-6',' ','mol sf6 m-3',2)
+      endif
 #ifdef natDIC
       call ncdefvar3d(LVL_NATCO3(iogrp),cmpflg,'p',        
      .  'natco3lvl','Natural Carbonate ions',' ','mol C m-3',2)

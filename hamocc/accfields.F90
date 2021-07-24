@@ -119,11 +119,11 @@
       call accsrf(jniflux,atmflx(1,1,iatmn2),omask,0)
       call accsrf(jn2ofx,atmflx(1,1,iatmn2o),omask,0)
       call accsrf(jdmsflux,atmflx(1,1,iatmdms),omask,0)
-#ifdef CFC
-      call accsrf(jcfc11fx,atmflx(1,1,iatmf11),omask,0)
-      call accsrf(jcfc12fx,atmflx(1,1,iatmf12),omask,0)
-      call accsrf(jsf6fx,atmflx(1,1,iatmsf6),omask,0)
-#endif
+      if (with_cfc) then
+         call accsrf(jcfc11fx,atmflx(1,1,iatmf11),omask,0)
+         call accsrf(jcfc12fx,atmflx(1,1,iatmf12),omask,0)
+         call accsrf(jsf6fx,atmflx(1,1,iatmsf6),omask,0)
+      endif
 #ifdef natDIC
       call accsrf(jnatco2fx,atmflx(1,1,iatmnco2),omask,0)
 #endif
@@ -255,11 +255,11 @@
       call acclyr(jeps,  eps3d,    pddpo,1)
       call acclyr(jasize,asize3d,  pddpo,1)
 #endif     
-#ifdef CFC
-      call acclyr(jcfc11,ocetra(1,1,1,icfc11),pddpo,1)
-      call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
-      call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
-#endif
+      if (with_cfc) then
+         call acclyr(jcfc11,ocetra(1,1,1,icfc11),pddpo,1)
+         call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
+         call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
+      endif
 #ifdef BROMO
       call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
 #endif
@@ -329,12 +329,12 @@
           call acclvl(jlvlwnos, wnumb/dtb,k,ind1,ind2,wghts)
           call acclvl(jlvleps,  eps3d,    k,ind1,ind2,wghts)
           call acclvl(jlvlasize,asize3d,  k,ind1,ind2,wghts)
-#endif     
-#ifdef CFC
-          call acclvl(jlvlcfc11,ocetra(1,1,1,icfc11),k,ind1,ind2,wghts)
-          call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
-          call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
 #endif
+          if (with_cfc) then
+             call acclvl(jlvlcfc11,ocetra(1,1,1,icfc11),k,ind1,ind2,wghts)
+             call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
+             call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
+          endif
 #ifdef BROMO
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
 #endif

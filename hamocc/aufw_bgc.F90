@@ -526,19 +526,21 @@
      &    4,'g/kg',15,'Aggregated dust',                                &
      &    rmissing,45,io_stdo_bgc)
 #endif
-#ifdef CFC
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,           &
-     &    6,'mol/kg',5,'CFC11',                                         &
-     &    rmissing,47,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdimst,ncvarid,           &
-     &    6,'mol/kg',5,'CFC12',                                         &
-     &    rmissing,48,io_stdo_bgc)     
+      if (with_cfc) then
+         CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,        &
+     &          6,'mol/kg',5,'CFC11',                                   &
+     &          rmissing,47,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,             &
-     &    6,'mol/kg',4,'SF-6',                                          &
-     &    rmissing,49,io_stdo_bgc)     
-#endif
+         CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdimst,ncvarid,        &
+     &          6,'mol/kg',5,'CFC12',                                   &
+     &          rmissing,48,io_stdo_bgc)
+
+         CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,          &
+     &          6,'mol/kg',4,'SF-6',                                    &
+     &          rmissing,49,io_stdo_bgc)
+      endif
+
 #ifdef natDIC
       CALL NETCDF_DEF_VARDB(ncid,9,'natsco212',3,ncdimst,ncvarid,       &
      &   6,'mol/kg',21, 'Natural dissolved CO2',rmissing,50,io_stdo_bgc)
@@ -824,11 +826,11 @@
       CALL write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
       CALL write_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0)
 #endif /*AGG*/
-#ifdef CFC
-      CALL write_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0)
-      CALL write_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
-      CALL write_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0)
-#endif
+      if (with_cfc) then
+         CALL write_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0)
+         CALL write_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
+         CALL write_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0)
+      endif
 #ifdef natDIC
       CALL write_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0)
       CALL write_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0)

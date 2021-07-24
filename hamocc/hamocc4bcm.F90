@@ -188,10 +188,10 @@
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
 !
-#ifdef CFC
-      call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
+      if (with_cfc) then
+         call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,     &
                            atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
-#endif
+      endif
 
 
 

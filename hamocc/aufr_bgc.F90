@@ -253,24 +253,27 @@
       ENDIF 
 
 ! Find out whether to restart CFCs
-#ifdef CFC
-      lread_cfc=.true.
-      IF(IOTYPE==0) THEN
-        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
-        call xcbcst(ncstat)
-        if(ncstat.ne.nf90_noerr) lread_cfc=.false.
-      ELSE IF(IOTYPE==1) THEN
+      if (with_cfc) then
+         lread_cfc=.true.
+         IF(IOTYPE==0) THEN
+            if(mnproc==1) ncstat=nf90_inq_varid(ncid,'cfc11',ncvarid)
+            call xcbcst(ncstat)
+            if(ncstat.ne.nf90_noerr) lread_cfc=.false.
+         ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
-        ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
-        if(ncstat.ne.nf_noerr) lread_cfc=.false.
+            ncstat=nfmpi_inq_varid(ncid,'cfc11',ncvarid)
+            if(ncstat.ne.nf_noerr) lread_cfc=.false.
 #endif
-      ENDIF
-      IF(mnproc==1 .and. .not. lread_cfc) THEN
-        WRITE(io_stdo_bgc,*) ' '
-        WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
-        WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
-      ENDIF
-#endif
+         ENDIF
+         IF(mnproc==1 .and. .not. lread_cfc) THEN
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*)                                     &
+     &      'AUFR_BGC info: CFC tracers not in restart file, '
+            WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
+         ENDIF
+      else
+         lread_cfc = .false.
+      endif
 
 ! Find out whether to restart natural tracers
 #ifdef natDIC
@@ -399,13 +402,13 @@
       CALL read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0,iotype)
 #endif /*AGG*/
-#ifdef CFC
+
       IF(lread_cfc) THEN
       CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
       ENDIF
-#endif
+
 #ifdef natDIC
       IF(lread_nat) THEN
       CALL read_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
