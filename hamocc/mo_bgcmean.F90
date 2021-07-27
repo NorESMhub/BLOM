@@ -53,7 +53,6 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
-      USE mod_config, only: inst_suffix
       USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
       USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
       USE mod_nctools
@@ -462,26 +461,13 @@
       INTEGER, intent(in) :: kpie,kpje,kpke
 
       INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
-      LOGICAL             :: isopen,exists      
+      CHARACTER(LEN=256)  :: bgc_namelist_file
 
-!     Read namelist for diagnostic output 
-      GLB_AVEPERIO=0 
-      DO iounit=10,99
-        INQUIRE(unit=iounit,opened=isopen)
-        IF (.NOT.isopen) EXIT
-      ENDDO
-      INQUIRE(file='ocn_in'//trim(inst_suffix),exist=exists)
-      IF (exists) THEN
-        OPEN (iounit,file='ocn_in'//trim(inst_suffix),status='old',action='read',recl=80)
-      ELSE   
-        INQUIRE(file='limits',exist=exists)
-        IF (exists) THEN
-          OPEN (iounit,file='limits',status='old',action='read',      &
-     &      recl=80)
-        ELSE
-          STOP 'cannot find limits file' 
-        ENDIF 
-      ENDIF  
+!     Read namelist for diagnostic output
+      GLB_AVEPERIO=0
+      call get_bgc_namelist(bgc_namelist_file)
+      OPEN (newunit=iounit, file=trim(bgc_namelist_file),               &
+           status='old', action='read', recl=80)
       READ (iounit,nml=diabgc)
       CLOSE (iounit)
 

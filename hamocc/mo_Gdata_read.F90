@@ -72,7 +72,7 @@ module mo_Gdata_read
 
 use netcdf
 use mod_xc,         only: mnproc,xchalt
-use mo_control_bgc, only: io_stdo_bgc,io_nml
+use mo_control_bgc, only: io_stdo_bgc
 
 implicit none
 

@@ -65,6 +65,9 @@ c
       character(len=*), intent(in) :: rstfnm_ocn
 
       integer :: i,j,k,l,nt
+      integer :: iounit
+
+      character(len=256) :: bgc_nemalist_file
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
@@ -75,7 +78,6 @@ c
 c --- Set io units and some control parameters
 c
       io_stdo_bgc = lp              !  standard out.
-      io_nml = nfu                  !  namelist
       dtbgc = nphys*baclin          !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
@@ -96,16 +98,17 @@ c
 c
 c --- Read the HAMOCC BGCNML namelist.
 c
-      open (unit=io_nml,file='ocn_in'//trim(inst_suffix),status='old'
+      call get_bgc_namelist(bgc_namelist_file)
+      open (newunit=iounit, file=trim(bgc_namelist_file), status='old'
      .                 ,action='read')
-      read (unit=io_nml,nml=BGCNML)
-      close (unit=io_nml)
+      read (unit=iounit, nml=BGCNML)
+      close (unit=iounit)
       IF (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
         write(io_stdo_bgc,nml=BGCNML)
       ENDIF
-c                        
+c
 c --- Memory allocation 
 c
       CALL ALLOC_MEM_INTFCBLOM(idm,jdm,kdm)
