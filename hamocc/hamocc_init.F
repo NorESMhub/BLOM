@@ -37,7 +37,6 @@ c  *INTEGER*   *read_rest*  - flag indicating whether to read restart files.
 c  *INTEGER*   *rstfnm_ocn* - restart filename.
 c
 c******************************************************************************
-      USE mod_config,    only: inst_suffix
       use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
      .                         mnproc,lp,nfu
@@ -67,7 +66,7 @@ c
       integer :: i,j,k,l,nt
       integer :: iounit
 
-      character(len=256) :: bgc_nemalist_file
+      character(len=256) :: bgc_namelist_file
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
