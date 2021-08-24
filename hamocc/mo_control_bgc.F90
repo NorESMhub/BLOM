@@ -65,7 +65,7 @@
 
     contains
 
-      subroutine get_bgc_namelist(fname)
+      subroutine get_bgc_namelist
       !-------------------------------------------------------------------------
       ! Get filename for namelist file
       !-------------------------------------------------------------------------
@@ -74,7 +74,6 @@
 
         implicit none
 
-        character(len=*), intent(out) :: fname
         logical :: exists
 
         if (.not. allocated(bgc_namelist)) then
@@ -94,8 +93,6 @@
               endif
            endif
         endif
-
-        fname = bgc_namelist
       end subroutine get_bgc_namelist
 
       END MODULE mo_control_bgc

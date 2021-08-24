@@ -461,12 +461,11 @@
       INTEGER, intent(in) :: kpie,kpje,kpke
 
       INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
-      CHARACTER(LEN=256)  :: bgc_namelist_file
 
 !     Read namelist for diagnostic output
       GLB_AVEPERIO=0
-      call get_bgc_namelist(bgc_namelist_file)
-      OPEN (newunit=iounit, file=trim(bgc_namelist_file),               &
+      if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+      OPEN (newunit=iounit, file=bgc_namelist,                          &
            status='old', action='read', recl=80)
       READ (iounit,nml=diabgc)
       CLOSE (iounit)

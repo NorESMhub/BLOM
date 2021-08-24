@@ -66,8 +66,6 @@ c
       integer :: i,j,k,l,nt
       integer :: iounit
 
-      character(len=256) :: bgc_namelist_file
-
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
@@ -97,8 +95,8 @@ c
 c
 c --- Read the HAMOCC BGCNML namelist.
 c
-      call get_bgc_namelist(bgc_namelist_file)
-      open (newunit=iounit, file=trim(bgc_namelist_file), status='old'
+      if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+      open (newunit=iounit, file=bgc_namelist, status='old'
      .                 ,action='read')
       read (unit=iounit, nml=BGCNML)
       close (unit=iounit)
