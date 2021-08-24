@@ -49,11 +49,11 @@ subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
    pradd = swamxd*onem
 
 !$omp parallel do private(l, i, lei, pres, pswbas, pswup, kfmax, k, kn, pswlo, &
-!$omp                     q, &
+!$omp                     q  &
 #ifdef TRC
 !$omp                   , nt &
 #endif
-!$omp)
+!$omp )
    do j = 1, jj
       do l = 1, isp(j)
       do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
