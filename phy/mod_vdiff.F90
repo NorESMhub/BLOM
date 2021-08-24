@@ -19,8 +19,7 @@
 
 module mod_vdiff
 ! ------------------------------------------------------------------------------
-! This module contains parameter, variables and procedures related to the
-! vertical coordinate.
+! This module contains procedures for solving vertical diffusion equations.
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
@@ -250,7 +249,7 @@ contains
                fpbase(k) = c/max(dpmin_vdiff, .5_r8*(dp_1d(k - 1) + dp_1d(k)))
             enddo
 
-            ! Diffusion of u-component of baroclinic velocity.
+            ! Diffusion of v-component of baroclinic velocity.
             do k = 2, kk
                fp(k) = nuv_1d(k)*fpbase(k)
             enddo
