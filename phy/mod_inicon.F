@@ -117,8 +117,9 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: dz
       real, dimension(itdm,jtdm) :: tmp2d
+      real dsig,a0,a1,a2
       integer, dimension(3) :: start,count
-      integer i,j,k,l,status,ncid,dimid,varid
+      integer i,j,kdmic,k,l,status,ncid,dimid,varid,kb
 c
       if (mnproc.eq.1) then
         write (lp,'(2a)') ' reading initial condition from ',
@@ -161,13 +162,30 @@ c --- - Check dimensions
           call xchalt('(ictsz_file)')
                  stop '(ictsz_file)'
         endif
-        if (i.ne.itdm.or.j.ne.jtdm) then
+        status=nf90_inq_dimid(ncid,'z',dimid)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') ' nf90_inq_dimid: z: ',nf90_strerror(status)
+          call xchalt('(ictsz_file)')
+                 stop '(ictsz_file)'
+        endif
+        status=nf90_inquire_dimension(ncid,dimid,len=kdmic)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') ' nf90_inquire_dimension: z: ',
+     .                     nf90_strerror(status)
+          call xchalt('(ictsz_file)')
+                 stop '(ictsz_file)'
+        endif
+        if (i.ne.itdm.or.j.ne.jtdm.or.
+     .      (kdmic.ne.kdm.and.vcoord_type_tag.ne.cntiso_hybrid).or.
+     .      (kdmic.gt.kdm.and.vcoord_type_tag.eq.cntiso_hybrid)) then
           write (lp,*) 'wrong dimensions in '//trim(icfile)
           call xchalt('(ictsz_file)')
                  stop '(ictsz_file)'
         endif
 c
       endif
+c
+      call xcbcst(kdmic)
 c
       start(1)=1
       start(2)=1
@@ -185,7 +203,7 @@ c --- Read reference potential density
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -209,7 +227,7 @@ c --- Read potential temperature
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -233,7 +251,7 @@ c --- Read salinity
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -256,7 +274,7 @@ c --- Read layer thickness
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -279,6 +297,45 @@ c
         endif
       endif
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+c$OMP PARALLEL DO PRIVATE(l,i,k,kb,dsig,a0,a1,a2)
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+              write(lp,*)
+     .'Layer reference potential densities from initial condition:'
+              do k=1,kdmic
+                write(lp,*) k,sigmar(i,j,k)
+              enddo
+            endif
+            do k=kdmic,2,-1
+              sigmar(i,j,k+kk-kdmic)=.5_r8*(sigmar(i,j,k-1)
+     .                                     +sigmar(i,j,k  ))
+            enddo
+            kb=kk-kdmic+2
+            dsig=sigmar(i,j,kb+1)-sigmar(i,j,kb)
+            a0=1./(kb-1)**2
+            a1=(dsig+(2.*sigmar(i,j,kb)-dsig*kb)*kb)*a0
+            a2=(dsig*(kb-1)-sigmar(i,j,kb))*a0
+            a0=-a1-a2
+            do k=1,kb-1
+              sigmar(i,j,k)=a0+(a1+a2*k)*k
+            enddo
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+              write(lp,*)
+     .'Generated interface reference potential densities:'
+              do k=1,kk
+                write(lp,*) k,sigmar(i,j,k)
+              enddo
+            endif
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+        
+      endif
+c
 c --- Construct interface depths [cm] from layer thicknesses [m] and
 c --- convert unit of reference potential density from [kg/m^3] to
 c --- [g/cm^3]
@@ -292,20 +349,22 @@ c         z(i,j,1)=z(i,j,1)*1.e2
         enddo
       enddo
 c$OMP END PARALLEL DO
-      do k=1,kk
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+      do j=1,jj
+        do k=1,kdmic
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             z(i,j,k+1)=min(depths(i,j)*1.e2,z(i,j,k)+dz(i,j,k)*1.e2)
-            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
           enddo
           enddo
         enddo
-c$OMP END PARALLEL DO
-      enddo
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-      do j=1,jj
+        do k=kdmic+1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            z(i,j,k+1)=z(i,j,kdmic+1)
+          enddo
+          enddo
+        enddo
         do k=2,kk
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -318,6 +377,13 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           z(i,j,kk+1)=depths(i,j)*1.e2
         enddo
+        enddo
+        do k=1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
+          enddo
+          enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -404,7 +470,7 @@ c
         case (isopyc_bulkml)
 
           do k=1,2
-            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
@@ -417,7 +483,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
           enddo
           do k=3,kk
-            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
@@ -434,7 +500,7 @@ c$OMP END PARALLEL DO
         case (cntiso_hybrid)
 
           do k=1,kk
-            tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)

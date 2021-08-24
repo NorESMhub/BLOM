@@ -31,7 +31,13 @@ module mod_hor3map
 ! desired grid cell edge data values.
 ! ------------------------------------------------------------------------------
 
+#undef DEBUG
+#define DEBUG
+
    use, intrinsic :: iso_fortran_env, only: real64
+#ifdef DEBUG
+   use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_signaling_nan
+#endif
 
    implicit none
 
@@ -42,6 +48,7 @@ module mod_hor3map
       hor3map_pcm                    = 100, & ! Reconstruction methods
       hor3map_plm                    = 101, &
       hor3map_ppm                    = 102, &
+      hor3map_pqm                    = 103, &
       hor3map_no_limiting            = 200, & ! Limiting methods
       hor3map_monotonic              = 201, &
       hor3map_non_oscillatory        = 203, &
@@ -61,11 +68,12 @@ module mod_hor3map
       hor3map_src_size_mismatch       =  9, &
       hor3map_invalid_plm_limiting    = 10, &
       hor3map_invalid_ppm_limiting    = 11, &
-      hor3map_recon_not_available     = 12, &
-      hor3map_grd_size_mismatch       = 13, &
-      hor3map_remap_not_prepared      = 14, &
-      hor3map_dst_size_mismatch       = 15, &
-      hor3map_errmsg_num = 15
+      hor3map_invalid_pqm_limiting    = 12, &
+      hor3map_recon_not_available     = 13, &
+      hor3map_grd_size_mismatch       = 14, &
+      hor3map_remap_not_prepared      = 15, &
+      hor3map_dst_size_mismatch       = 16, &
+      hor3map_errmsg_num = 16
    character(len = 80), dimension(hor3map_errmsg_num), parameter :: errmsg = &
       ["Invalid reconstruction method!                                   ", &
        "Source grid edges do not monotonically increase or decrease!     ", &
@@ -78,6 +86,7 @@ module mod_hor3map
        "Size mismatch between source grid edges and data array!          ", &
        "Invalid limiting method for PLM!                                 ", &
        "Invalid limiting method for PPM!                                 ", &
+       "Invalid limiting method for PQM!                                 ", &
        "Call 'reconstruct' first!                                        ", &
        "Size mismatch between grid edge values and locations!            ", &
        "Call 'prepare_remapping' first!                                  ", &
@@ -87,39 +96,61 @@ module mod_hor3map
    integer, parameter :: &
       r8 = real64
 
+   ! Maximum order of accuracy in edge estimation.
+   integer, parameter :: maxord = 6
+
+   ! Small non-dimensional value.
+   real(r8), parameter :: eps = 1.e-14_r8
+
+   ! Lower bounds of prod(h(i))/max(h(i))^n, where h(i) are cell widths
+   ! belonging to a stencil of n grid cells. Respecting these bounds will ensure
+   ! condition numbers below 10^8 of matrices involved in various linear
+   ! equation systems.
+   real(r8), parameter :: &
+      hplim_ih4 = 5.e-7_r8, &
+      hplim_ih6 = 5.e-5_r8, &
+      hplim_eh4 = 3.e-10_r8, &
+      hplim_eh6 = 3.e-7_r8
+
    ! Numeric constants.
    real(r8), parameter :: &
-      eps  = 1.e-14_r8, &    ! Small non-dimensional value.
-      c0   = 0._r8, &
-      c1   = 1._r8, &
-      c2   = 2._r8, &
-      c3   = 3._r8, &
-      c4   = 4._r8, &
-      c1_2 = 1._r8/2._r8, &
-      c1_3 = 1._r8/3._r8, &
-      c1_4 = 1._r8/4._r8
+      c0 = 0._r8, c1 = 1._r8, c2 = 2._r8, c3 = 3._r8, c4 = 4._r8, c5 = 5._r8, &
+      c6 = 6._r8, c12 = 12._r8, c15 = 15._r8, c18 = 18._r8, c28 = 28._r8, &
+      c30 = 30._r8, c32 = 32._r8, c60 = 60._r8, &
+      c1_2 = 1._r8/2._r8, c1_3 = 1._r8/3._r8, c1_4 = 1._r8/4._r8, &
+      c1_5 = 1._r8/5._r8, c1_6 = 1._r8/6._r8, c1_12 = 1._r8/12._r8, &
+      c1_24 = 1._r8/24._r8, c1_80 = 1._r8/80._r8, c1_120 = 1._r8/120._r8, &
+      c3_4 = 3._r8/4._r8, c3_2 = 3._r8/2._r8, c5_2 = 5._r8/2._r8, &
+      c9_2 = 9._r8/2._r8
 
    type reconstruction_struct
-      real(r8), allocatable, dimension(:, :) :: polycoeff
+      real(r8), allocatable, dimension(:, :) :: &
+         tdecoeff, tdscoeff, lblu, rblu, polycoeff
       real(r8), allocatable, dimension(:) :: &
-         x_edge_src, h_src, hi_src, hci_src, alpha, beta, b, c, u_src, uel, uer
-      real(r8) :: x_eps, al, bl, cl, ar, br, cr
-      integer, allocatable, dimension(:) :: src_index_map
+         x_edge_src, h_src, hi_src, hci_src, src_dst_weight, &
+         u_src, uel, uer, usl, usr
+      real(r8) :: x_eps
+      integer, allocatable, dimension(:) :: src_dst_index
       integer :: n_src_all, n_src, method, limiting
-      logical :: prepared = .false., reconstructed = .false.
+      logical :: &
+         alloced       = .false., &
+         prepared      = .false., &
+         reconstructed = .false.
    end type reconstruction_struct
 
    type remap_struct
       real(r8), allocatable, dimension(:) :: h_dst, hi_dst, seg_int_lim
       integer, allocatable, dimension(:) :: n_src_seg, seg_dst_index
       integer :: n_dst
-      logical :: prepared = .false.
+      logical :: &
+         alloced  = .false., &
+         prepared = .false.
    end type remap_struct
 
    public :: reconstruction_struct, remap_struct, &
              prepare_reconstruction, prepare_remapping, &
              reconstruct, regrid, remap, free_rcs, free_rms, &
-             hor3map_pcm, hor3map_plm, hor3map_ppm, &
+             hor3map_pcm, hor3map_plm, hor3map_ppm, hor3map_pqm, &
              hor3map_no_limiting, hor3map_monotonic, hor3map_non_oscillatory, &
              hor3map_non_oscillatory_posdef, &
              hor3map_noerr, hor3map_errstr
@@ -141,12 +172,17 @@ contains
 
       integer :: allocstat
 
-      allocate(rcs%x_edge_src(rcs%n_src + 1), rcs%h_src(rcs%n_src), &
-               rcs%hi_src(rcs%n_src), rcs%hci_src(2:rcs%n_src - 1), &
-               rcs%alpha(2:rcs%n_src + 1), rcs%beta(rcs%n_src), &
-               rcs%b(rcs%n_src), rcs%c(rcs%n_src), rcs%u_src(rcs%n_src), &
-               rcs%uel(rcs%n_src + 1), rcs%uer(rcs%n_src), &
-               rcs%src_index_map(rcs%n_src), rcs%polycoeff(3, rcs%n_src), &
+      allocate(rcs%x_edge_src(rcs%n_src_all + 1), rcs%h_src(rcs%n_src_all), &
+               rcs%hi_src(rcs%n_src_all), rcs%hci_src(2:rcs%n_src_all - 1), &
+               rcs%src_dst_weight(rcs%n_src_all), &
+               rcs%tdecoeff(maxord, rcs%n_src_all), &
+               rcs%tdscoeff(maxord, rcs%n_src_all), &
+               rcs%lblu(maxord, maxord), rcs%rblu(maxord, maxord), &
+               rcs%u_src(rcs%n_src_all), &
+               rcs%uel(rcs%n_src_all), rcs%uer(rcs%n_src_all), &
+               rcs%usl(rcs%n_src_all), rcs%usr(rcs%n_src_all), &
+               rcs%src_dst_index(rcs%n_src_all), &
+               rcs%polycoeff(maxord - 1, rcs%n_src_all), &
                stat = allocstat)
 
       if (allocstat == 0) then
@@ -155,6 +191,8 @@ contains
          errstat = hor3map_failed_to_allocate_rcs
          return
       endif
+
+      rcs%alloced = .true.
 
    end function allocate_rcs
 
@@ -171,9 +209,9 @@ contains
       integer :: allocstat
 
       allocate(rms%h_dst(rms%n_dst), rms%hi_dst(rms%n_dst), &
-               rms%seg_int_lim(rcs%n_src + rms%n_dst), &
-               rms%n_src_seg(rcs%n_src), &
-               rms%seg_dst_index(rcs%n_src + rms%n_dst), &
+               rms%seg_int_lim(rcs%n_src_all + rms%n_dst), &
+               rms%n_src_seg(rcs%n_src_all), &
+               rms%seg_dst_index(rcs%n_src_all + rms%n_dst), &
                stat = allocstat)
 
       if (allocstat == 0) then
@@ -183,93 +221,1164 @@ contains
          return
       endif
 
+      rms%alloced = .true.
+
    end function allocate_rms
 
-   subroutine edge_coeff_ih4(rcs)
+   subroutine lu_decompose(n, a)
    ! ---------------------------------------------------------------------------
-   ! Compute coefficients for implicit 4th order accurate edge estimation.
+   ! Replace the n x n input matrix A with its LU decomposition.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      integer, intent(in) :: n
+      real(r8), dimension(:, :), intent(inout) :: a
 
-      integer :: ns, j
+      integer :: i, j, k
 
-      ns = rcs%n_src
-
-      ! Compute matrix entries and right-hand side coefficients for the left
-      ! boundary with an asymmetric stencil.
-      call edge_coeff_ih4_asym(rcs%h_src(1), rcs%h_src(2), rcs%h_src(3), &
-                               rcs%beta(1), rcs%al, rcs%bl, rcs%cl)
-
-      ! Compute matrix entries and right-hand side coefficients where a
-      ! symmetric stencil is applicable.
-      do j = 2, ns
-         call edge_coeff_ih4_sym(rcs%h_src(j - 1), rcs%h_src(j), &
-                                 rcs%alpha(j), rcs%beta(j), rcs%b(j), rcs%c(j))
+      do k = 1, n - 1
+         do i = k + 1, n
+            a(i, k) = a(i, k)/a(k, k)
+            do j = k + 1, n
+               a(i, j) = a(i, j) - a(i, k)*a(k, j)
+            enddo
+         enddo
       enddo
 
-      ! Compute matrix entries and right-hand side coefficients for the right
-      ! boundary with an asymmetric stencil.
-      call edge_coeff_ih4_asym(rcs%h_src(ns), rcs%h_src(ns - 1), &
-                               rcs%h_src(ns - 2), &
-                               rcs%alpha(ns + 1), rcs%ar, rcs%br, rcs%cr)
+   end subroutine lu_decompose
 
-   end subroutine edge_coeff_ih4
-
-   subroutine edge_coeff_ih4_asym(h0, h1, h2, beta, a, b, c)
+   subroutine lu_solve(n, lu, x)
    ! ---------------------------------------------------------------------------
-   ! Compute coefficients for implicit 4th order accurate edge estimation where
-   ! edges are asymmetrically related to cell means by:
-   ! 
-   !    u(j-1/2) + beta*u(j+1/2) = a*u(j) + b*u(j+1) + c*u(j+2)
+   ! Solve the linear system of equations A*x = b using the LU decomposition of
+   ! the n x n matrix A. The argument x has b as input and is replaced with the
+   ! solution upon return.
    ! ---------------------------------------------------------------------------
 
-      real(r8), intent(in) :: h0, h1, h2
-      real(r8), intent(out) :: beta, a, b, c
+      integer, intent(in) :: n
+      real(r8), dimension(:, :), intent(in) :: lu
+      real(r8), dimension(:), intent(inout) :: x
 
-      real(r8) :: h01, h012, h02, h12, q1, q2, q3, q4, r, s
+      integer :: i, j
 
-      h01 = h0 + h1
-      h012 = h0 + h1 + h2
-      h02 = h0 + h2
-      h12 = h1 + h2
-      q1 = c1/h01
-      q2 = c1/h1
-      q3 = c1/h012
-      q4 = c1/h12
-      r = h0*h0*q3*q4*q4
-      s = c2*h1
-      beta = h01*h012*q2*q4
-      a = ((h01 + c3*h012 + s)*h0 + s*h12)*q1*q3
-      b = (h01 + h12)*(s*h012 + h2*h02)*q1*q2*r
-      c = - h01*r
+      ! Forward substitution.
+      do i = 2, n
+         do j = 1, i - 1
+            x(i) = x(i) - lu(i, j)*x(j)
+         enddo
+      enddo
 
-   end subroutine edge_coeff_ih4_asym
+      ! Back substitution.
+      x(n) = x(n)/lu(n, n)
+      do i = n - 1, 1, -1
+         do j = i + 1, n
+            x(i) = x(i) - lu(i, j)*x(j)
+         enddo
+         x(i) = x(i)/lu(i, i)
+      enddo
 
-   subroutine edge_coeff_ih4_sym(h0, h1, alpha, beta, b, c)
+   end subroutine lu_solve
+
+   subroutine edge_ih4_coeff(h, tdecoeff)
    ! ---------------------------------------------------------------------------
-   ! Compute coefficients for implicit 4th order accurate edge estimation where
-   ! edges are symmetrically related to cell means by:
-   ! 
-   !    alpha*u(j-3/2) + u(j-1/2) + beta*u(j+1/2) = b*u(j-1) + c*u(j)
+   ! Compute row coefficients for the tridiagonal system of equations to be
+   ! solved for 4th order accurate edge estimates.
    ! ---------------------------------------------------------------------------
 
-      real(r8), intent(in) :: h0, h1
-      real(r8), intent(out) :: alpha, beta, b, c
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:), intent(inout) :: tdecoeff
 
       real(r8) :: q
 
-      q = c1/(h0 + h1)
-      alpha = h1*h1*q*q
-      beta  = h0*h0*q*q
-      b = c2*alpha*(h1 + c2*h0)*q
-      c = c2*beta *(h0 + c2*h1)*q
+      q = c1/(h(1) + h(2))
+      tdecoeff(1) = h(2)*h(2)*q*q
+      tdecoeff(2) = h(1)*h(1)*q*q
+      tdecoeff(3) = c2*tdecoeff(1)*(h(2) + c2*h(1))*q
+      tdecoeff(4) = c2*tdecoeff(2)*(h(1) + c2*h(2))*q
 
-   end subroutine edge_coeff_ih4_sym
+   end subroutine edge_ih4_coeff
+
+   subroutine edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
+   ! ---------------------------------------------------------------------------
+   ! Common procedure for the various stencils for the computation of row
+   ! coefficients for the tridiagonal system of equations to be solved for 6th
+   ! and 5th order accurate edge and slope estimates, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
+
+      real(r8), dimension(6, 6) :: b
+
+      ! Define matrix for linear system to be solved for slope coefficients.
+
+      b(1:5, 3:6) = a(2:6, 3:6)
+
+      b(1, 1) = c1
+      b(2, 1) = c2*a(2, 1)
+      b(3, 1) = c3*a(3, 1)
+      b(4, 1) = c4*a(4, 1)
+      b(5, 1) = c5*a(5, 1)
+      b(6, 1) = c0
+
+      b(1, 2) = c1
+      b(2, 2) = c2*a(2, 2)
+      b(3, 2) = c3*a(3, 2)
+      b(4, 2) = c4*a(4, 2)
+      b(5, 2) = c5*a(5, 2)
+      b(6, 2) = c0
+
+      b(6, 3:6) = c1
+
+      ! Solve linear system for edge coefficients.
+      tdecoeff(:) = [ - c1, c0, c0, c0, c0, c0]
+      call lu_decompose(6, a)
+      call lu_solve(6, a, tdecoeff)
+
+      ! Solve linear system for slope coefficients.
+      tdscoeff(:) = [ - c1, c0, c0, c0, c0, c0]
+      call lu_decompose(6, b)
+      call lu_solve(6, b, tdscoeff)
+
+   end subroutine edge_ih6_slope_ih5_coeff_common
+
+   subroutine edge_ih6_slope_ih5_coeff_asymleft(h, tdecoeff, tdscoeff)
+   ! ---------------------------------------------------------------------------
+   ! With an asymmetrical stencil, where edge values are shifted left compared
+   ! to cell mean values, compute row coefficients for the tridiagonal system of
+   ! equations to be solved for 6th and 5th order accurate edge and slope
+   ! estimates, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
+
+      real(r8), dimension(6, 6) :: a
+      real(r8) :: a25sq, a26sq, h3sq, h4sq
+
+      ! Define matrix for linear system to be solved for edge coefficients.
+
+      a(1, 1) = c1
+      a(2, 1) = - h(1)
+      a(3, 1) = - a(2, 1)*h(1)
+      a(4, 1) = - a(3, 1)*h(1)
+      a(5, 1) = - a(4, 1)*h(1)
+      a(6, 1) = - a(5, 1)*h(1)
+
+      a(1, 2) = c1
+      a(2, 2) = h(2)
+      a(3, 2) = a(2, 2)*h(2)
+      a(4, 2) = a(3, 2)*h(2)
+      a(5, 2) = a(4, 2)*h(2)
+      a(6, 2) = a(5, 2)*h(2)
+
+      a(1, 3) = - c1
+      a(2, 3) = - c1_2*a(2, 1)
+      a(3, 3) = - c1_3*a(3, 1)
+      a(4, 3) = - c1_4*a(4, 1)
+      a(5, 3) = - c1_5*a(5, 1)
+      a(6, 3) = - c1_6*a(6, 1)
+
+      a(1, 4) = - c1
+      a(2, 4) = - c1_2*a(2, 2)
+      a(3, 4) = - c1_3*a(3, 2)
+      a(4, 4) = - c1_4*a(4, 2)
+      a(5, 4) = - c1_5*a(5, 2)
+      a(6, 4) = - c1_6*a(6, 2)
+
+      a(1, 5) = - c1
+      a(2, 5) = - h(2) - c1_2*h(3)
+      a25sq = a(2, 5)*a(2, 5)
+      h3sq = h(3)*h(3)
+      a(3, 5) = - a25sq - c1_12*h3sq
+      a(4, 5) = a(2, 5)*(a25sq + c1_4*h3sq)
+      a(5, 5) = - a25sq*(a25sq + c1_2*h3sq) - c1_80*h3sq*h3sq
+      a(6, 5) = a(2, 5)*(a25sq + c3_4*h3sq)*(a25sq + c1_12*h3sq)
+
+      a(1, 6) = - c1
+      a(2, 6) = - h(2) - h(3) - c1_2*h(4)
+      a26sq = a(2, 6)*a(2, 6)
+      h4sq = h(4)*h(4)
+      a(3, 6) = - a26sq - c1_12*h4sq
+      a(4, 6) = a(2, 6)*(a26sq + c1_4*h4sq)
+      a(5, 6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
+      a(6, 6) = a(2, 6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
+
+      call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
+
+   end subroutine edge_ih6_slope_ih5_coeff_asymleft
+
+   subroutine edge_ih6_slope_ih5_coeff_sym(h, tdecoeff, tdscoeff)
+   ! ---------------------------------------------------------------------------
+   ! With a symmetrical stencil, compute row coefficients for the tridiagonal
+   ! system of equations to be solved for 6th and 5th order accurate edge and
+   ! slope estimates, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
+
+      real(r8), dimension(6, 6) :: a
+      real(r8) :: a23sq, a26sq, h1sq, h4sq
+
+      ! Define matrix for linear system to be solved for edge coefficients.
+
+      a(1, 1) = c1
+      a(2, 1) = - h(2)
+      a(3, 1) = - a(2, 1)*h(2)
+      a(4, 1) = - a(3, 1)*h(2)
+      a(5, 1) = - a(4, 1)*h(2)
+      a(6, 1) = - a(5, 1)*h(2)
+
+      a(1, 2) = c1
+      a(2, 2) = h(3)
+      a(3, 2) = a(2, 2)*h(3)
+      a(4, 2) = a(3, 2)*h(3)
+      a(5, 2) = a(4, 2)*h(3)
+      a(6, 2) = a(5, 2)*h(3)
+
+      a(1, 3) = - c1
+      a(2, 3) = c1_2*h(1) + h(2)
+      a23sq = a(2, 3)*a(2, 3)
+      h1sq = h(1)*h(1)
+      a(3, 3) = - a23sq - c1_12*h1sq
+      a(4, 3) = a(2, 3)*(a23sq + c1_4*h1sq)
+      a(5, 3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
+      a(6, 3) = a(2, 3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
+
+      a(1, 4) = - c1
+      a(2, 4) = - c1_2*a(2, 1)
+      a(3, 4) = - c1_3*a(3, 1)
+      a(4, 4) = - c1_4*a(4, 1)
+      a(5, 4) = - c1_5*a(5, 1)
+      a(6, 4) = - c1_6*a(6, 1)
+
+      a(1, 5) = - c1
+      a(2, 5) = - c1_2*a(2, 2)
+      a(3, 5) = - c1_3*a(3, 2)
+      a(4, 5) = - c1_4*a(4, 2)
+      a(5, 5) = - c1_5*a(5, 2)
+      a(6, 5) = - c1_6*a(6, 2)
+
+      a(1, 6) = - c1
+      a(2, 6) = - h(3) - c1_2*h(4)
+      a26sq = a(2, 6)*a(2, 6)
+      h4sq = h(4)*h(4)
+      a(3, 6) = - a26sq - c1_12*h4sq
+      a(4, 6) = a(2, 6)*(a26sq + c1_4*h4sq)
+      a(5, 6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
+      a(6, 6) = a(2, 6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
+
+      call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
+
+   end subroutine edge_ih6_slope_ih5_coeff_sym
+
+   subroutine edge_ih6_slope_ih5_coeff_asymright(h, tdecoeff, tdscoeff)
+   ! ---------------------------------------------------------------------------
+   ! With an asymmetrical stencil, where edge values are shifted left compared
+   ! to cell mean values, compute row coefficients for the tridiagonal system of
+   ! equations to be solved for 6th and 5th order accurate edge and slope
+   ! estimates, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
+
+      real(r8), dimension(6, 6) :: a
+      real(r8) :: a23sq, a24sq, h1sq, h2sq
+
+      ! Define matrix for linear system to be solved for edge coefficients.
+
+      a(1, 1) = c1
+      a(2, 1) = - h(3)
+      a(3, 1) = - a(2, 1)*h(3)
+      a(4, 1) = - a(3, 1)*h(3)
+      a(5, 1) = - a(4, 1)*h(3)
+      a(6, 1) = - a(5, 1)*h(3)
+
+      a(1, 2) = c1
+      a(2, 2) = h(4)
+      a(3, 2) = a(2, 2)*h(4)
+      a(4, 2) = a(3, 2)*h(4)
+      a(5, 2) = a(4, 2)*h(4)
+      a(6, 2) = a(5, 2)*h(4)
+
+      a(1, 3) = - c1
+      a(2, 3) = c1_2*h(1) + h(2) + h(3)
+      a23sq = a(2, 3)*a(2, 3)
+      h1sq = h(1)*h(1)
+      a(3, 3) = - a23sq - c1_12*h1sq
+      a(4, 3) = a(2, 3)*(a23sq + c1_4*h1sq)
+      a(5, 3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
+      a(6, 3) = a(2, 3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
+
+      a(1, 4) = - c1
+      a(2, 4) = c1_2*h(2) + h(3)
+      a24sq = a(2, 4)*a(2, 4)
+      h2sq = h(2)*h(2)
+      a(3, 4) = - a24sq - c1_12*h2sq
+      a(4, 4) = a(2, 4)*(a24sq + c1_4*h2sq)
+      a(5, 4) = - a24sq*(a24sq + c1_2*h2sq) - c1_80*h2sq*h2sq
+      a(6, 4) = a(2, 4)*(a24sq + c3_4*h2sq)*(a24sq + c1_12*h2sq)
+
+      a(1, 5) = - c1
+      a(2, 5) = - c1_2*a(2, 1)
+      a(3, 5) = - c1_3*a(3, 1)
+      a(4, 5) = - c1_4*a(4, 1)
+      a(5, 5) = - c1_5*a(5, 1)
+      a(6, 5) = - c1_6*a(6, 1)
+
+      a(1, 6) = - c1
+      a(2, 6) = - c1_2*a(2, 2)
+      a(3, 6) = - c1_3*a(3, 2)
+      a(4, 6) = - c1_4*a(4, 2)
+      a(5, 6) = - c1_5*a(5, 2)
+      a(6, 6) = - c1_6*a(6, 2)
+
+      call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
+
+   end subroutine edge_ih6_slope_ih5_coeff_asymright
+
+   subroutine edge_eh4_lblu(h, a)
+   ! ---------------------------------------------------------------------------
+   ! Compute LU matrix for explicitly estimating 4th order accurate left
+   ! boundary edge value.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:, :), intent(inout) :: a
+
+      real(r8) :: a22sq, a32sq, a42sq, h2sq, h3sq, h4sq
+
+      ! Define matrix for linear system to be solved for edge value.
+
+      a(1:4, 1) = c1
+
+      a(1, 2) = c1_2*h(1)
+      a(2, 2) = a(1, 2) + c1_2*(h(1) + h(2))
+      a(3, 2) = a(2, 2) + c1_2*(h(2) + h(3))
+      a(4, 2) = a(3, 2) + c1_2*(h(3) + h(4))
+
+      a22sq = a(2, 2)*a(2, 2)
+      a32sq = a(3, 2)*a(3, 2)
+      a42sq = a(4, 2)*a(4, 2)
+      h2sq = h(2)*h(2)
+      h3sq = h(3)*h(3)
+      h4sq = h(4)*h(4)
+
+      a(1, 3) = c1_3*a(1, 2)*h(1)
+      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
+
+      a(1, 4) = c1_4*a(1, 3)*h(1)
+      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
+      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
+      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
+
+      ! LU decomposition.
+      call lu_decompose(4, a)
+
+   end subroutine edge_eh4_lblu
+
+   subroutine edge_eh4_rblu(h, a)
+   ! ---------------------------------------------------------------------------
+   ! Compute LU matrix for explicitly estimating 4th order accurate right
+   ! boundary edge value.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:, :), intent(inout) :: a
+
+      real(r8) :: a12sq, a22sq, a32sq, h1sq, h2sq, h3sq
+
+      ! Define matrix for linear system to be solved for edge value.
+
+      a(1:4, 1) = c1
+
+      a(4, 2) = - c1_2*h(4)
+      a(3, 2) = a(4, 2) - c1_2*(h(4) + h(3))
+      a(2, 2) = a(3, 2) - c1_2*(h(3) + h(2))
+      a(1, 2) = a(2, 2) - c1_2*(h(2) + h(1))
+
+      a12sq = a(1, 2)*a(1, 2)
+      a22sq = a(2, 2)*a(2, 2)
+      a32sq = a(3, 2)*a(3, 2)
+      h1sq = h(1)*h(1)
+      h2sq = h(2)*h(2)
+      h3sq = h(3)*h(3)
+
+      a(1, 3) = c1_2*(a12sq + c1_12*h1sq)
+      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4, 3) = - c1_3*a(4, 2)*h(4)
+
+      a(1, 4) = c1_6*a(1, 2)*(a12sq + c1_4*h1sq)
+      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
+      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
+      a(4, 4) = - c1_4*a(4, 3)*h(4)
+
+      ! LU decomposition.
+      call lu_decompose(4, a)
+
+   end subroutine edge_eh4_rblu
+
+   subroutine edge_eh6_slope_eh5_lblu(h, a)
+   ! ---------------------------------------------------------------------------
+   ! Compute LU matrix for explicitly estimating 6th and 5th order accurate left
+   ! edge and slope values, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:, :), intent(inout) :: a
+
+      real(r8) :: a22sq, a32sq, a42sq, a52sq, a62sq, &
+                  h2sq, h3sq, h4sq, h5sq, h6sq
+
+      ! Define matrix for linear system to be solved for edge and slope values.
+
+      a(1:6, 1) = c1
+
+      a(1, 2) = c1_2*h(1)
+      a(2, 2) = a(1, 2) + c1_2*(h(1) + h(2))
+      a(3, 2) = a(2, 2) + c1_2*(h(2) + h(3))
+      a(4, 2) = a(3, 2) + c1_2*(h(3) + h(4))
+      a(5, 2) = a(4, 2) + c1_2*(h(4) + h(5))
+      a(6, 2) = a(5, 2) + c1_2*(h(5) + h(6))
+
+      a22sq = a(2, 2)*a(2, 2)
+      a32sq = a(3, 2)*a(3, 2)
+      a42sq = a(4, 2)*a(4, 2)
+      a52sq = a(5, 2)*a(5, 2)
+      a62sq = a(6, 2)*a(6, 2)
+      h2sq = h(2)*h(2)
+      h3sq = h(3)*h(3)
+      h4sq = h(4)*h(4)
+      h5sq = h(5)*h(5)
+      h6sq = h(6)*h(6)
+
+      a(1, 3) = c1_3*a(1, 2)*h(1)
+      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
+      a(5, 3) = c1_2*(a52sq + c1_12*h5sq)
+      a(6, 3) = c1_2*(a62sq + c1_12*h6sq)
+
+      a(1, 4) = c1_4*a(1, 3)*h(1)
+      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
+      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
+      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
+      a(5, 4) = c1_6*a(5, 2)*(a52sq + c1_4*h5sq)
+      a(6, 4) = c1_6*a(6, 2)*(a62sq + c1_4*h6sq)
+
+      a(1, 5) = c1_5*a(1, 4)*h(1)
+      a(2, 5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
+      a(3, 5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
+      a(4, 5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
+      a(5, 5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
+      a(6, 5) = c1_24*(a62sq*(a62sq + c1_2*h6sq) + c1_80*h6sq*h6sq)
+
+      a(1, 6) = c1_6*a(1, 5)*h(1)
+      a(2, 6) = c1_120*a(2, 2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
+      a(3, 6) = c1_120*a(3, 2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
+      a(4, 6) = c1_120*a(4, 2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
+      a(5, 6) = c1_120*a(5, 2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
+      a(6, 6) = c1_120*a(6, 2)*(a62sq + c3_4*h6sq)*(a62sq + c1_12*h6sq)
+
+      ! LU decomposition.
+      call lu_decompose(6, a)
+
+   end subroutine edge_eh6_slope_eh5_lblu
+
+   subroutine edge_eh6_slope_eh5_rblu(h, a)
+   ! ---------------------------------------------------------------------------
+   ! Compute LU matrix for explicitly estimating 6th and 5th order accurate
+   ! right edge and slope values, respectively.
+   ! ---------------------------------------------------------------------------
+
+      real(r8), dimension(:), intent(in) :: h
+      real(r8), dimension(:, :), intent(inout) :: a
+
+      real(r8) :: a12sq, a22sq, a32sq, a42sq, a52sq, &
+                  h1sq, h2sq, h3sq, h4sq, h5sq
+
+      ! Define matrix for linear system to be solved for edge and slope values.
+
+      a(1:6, 1) = c1
+
+      a(6, 2) = - c1_2*h(6)
+      a(5, 2) = a(6, 2) - c1_2*(h(6) + h(5))
+      a(4, 2) = a(5, 2) - c1_2*(h(5) + h(4))
+      a(3, 2) = a(4, 2) - c1_2*(h(4) + h(3))
+      a(2, 2) = a(3, 2) - c1_2*(h(3) + h(2))
+      a(1, 2) = a(2, 2) - c1_2*(h(2) + h(1))
+
+      a12sq = a(1, 2)*a(1, 2)
+      a22sq = a(2, 2)*a(2, 2)
+      a32sq = a(3, 2)*a(3, 2)
+      a42sq = a(4, 2)*a(4, 2)
+      a52sq = a(5, 2)*a(5, 2)
+      h1sq = h(1)*h(1)
+      h2sq = h(2)*h(2)
+      h3sq = h(3)*h(3)
+      h4sq = h(4)*h(4)
+      h5sq = h(5)*h(5)
+
+      a(1, 3) = c1_2*(a12sq + c1_12*h1sq)
+      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
+      a(5, 3) = c1_2*(a52sq + c1_12*h5sq)
+      a(6, 3) = - c1_3*a(6, 2)*h(6)
+
+      a(1, 4) = c1_6*a(1, 2)*(a12sq + c1_4*h1sq)
+      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
+      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
+      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
+      a(5, 4) = c1_6*a(5, 2)*(a52sq + c1_4*h5sq)
+      a(6, 4) = - c1_4*a(6, 3)*h(6)
+
+      a(1, 5) = c1_24*(a12sq*(a12sq + c1_2*h1sq) + c1_80*h1sq*h1sq)
+      a(2, 5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
+      a(3, 5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
+      a(4, 5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
+      a(5, 5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
+      a(6, 5) = - c1_5*a(6, 4)*h(6)
+
+      a(1, 6) = c1_120*a(1, 2)*(a12sq + c3_4*h1sq)*(a12sq + c1_12*h1sq)
+      a(2, 6) = c1_120*a(2, 2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
+      a(3, 6) = c1_120*a(3, 2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
+      a(4, 6) = c1_120*a(4, 2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
+      a(5, 6) = c1_120*a(5, 2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
+      a(6, 6) = - c1_6*a(6, 5)*h(6)
+
+      ! LU decomposition.
+      call lu_decompose(6, a)
+
+   end subroutine edge_eh6_slope_eh5_rblu
+
+   subroutine prepare_pqm(rcs, x_edge_src)
+   ! ---------------------------------------------------------------------------
+   ! Prepare reconstruction with piecewise quartics using implicit 6th order
+   ! accurate edge and 5th order accurate slope estimation.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+      real(r8), dimension(:), intent(in) :: x_edge_src
+
+      integer, dimension(rcs%n_src_all) :: prev_index, next_index
+      real(r8) :: hp, h_max, h_min
+      integer :: jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      integer :: first_index = 0 ! Initialized to avoid compiler warning.
+
+      ! Exclude near-empty grid cells and establish a doubly linked list that
+      ! connects the remaining grid cells.
+      rcs%n_src = 0
+      jp = 0
+      do j = 1, rcs%n_src_all
+         rcs%h_src(j) = abs(x_edge_src(j + 1) - x_edge_src(j))
+         if (rcs%h_src(j) > c2*rcs%x_eps) then
+            rcs%n_src = rcs%n_src + 1
+            rcs%src_dst_index(j) = 1
+            prev_index(j) = jp
+            if (jp == 0) then
+               first_index = j
+            else
+               next_index(jp) = j
+            endif
+            jp = j
+         else
+            rcs%src_dst_index(j) = 0
+         endif
+      enddo
+      last_index = jp
+      next_index(jp) = 0
+      if (rcs%n_src < 6) return
+
+      ! Exclude grid cells that may lead to large condition numbers for the
+      ! linear systems to be solved in edge_ih6_slope_ih5_coeff_asymleft,
+      ! edge_ih6_slope_ih5_coeff_sym and edge_ih6_slope_ih5_coeff_asymright.
+      ! Excluded grid cells are merged with the non-excluded neighbour grid cell
+      ! having the smallest grid cell width.
+      jf = first_index
+      outer: do
+         j = jf
+         hp = rcs%h_src(j)
+         h_max = rcs%h_src(j)
+         do n = 1, 3
+            j = next_index(j)
+            if (j == 0) exit outer
+            hp = hp*rcs%h_src(j)
+            h_max = max(h_max, rcs%h_src(j))
+         enddo
+         if (hp > hplim_ih6*h_max**4) then
+            jf = next_index(jf)
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 6) return
+            j = jf
+            h_min = rcs%h_src(j)
+            j_min = j
+            do n = 1, 3
+               j = next_index(j)
+               if (rcs%h_src(j) < h_min) then
+                  h_min = rcs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if     (jp == 0) then
+               rcs%src_dst_index(j_min) = - jn
+               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               first_index = jn
+               prev_index(jn) = 0
+               jf = jn
+            elseif (jn == 0) then
+               rcs%src_dst_index(j_min) = - jp
+               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               next_index(jp) = 0
+               last_index = jp
+               exit
+            else
+               if (rcs%h_src(jn) < rcs%h_src(jp)) then
+                  rcs%src_dst_index(j_min) = - jn
+                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               else
+                  rcs%src_dst_index(j_min) = - jp
+                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+               jf = jp
+               if (jf /= first_index) then
+                  jf = prev_index(jf)
+                  if (jf /= first_index) jf = prev_index(jf)
+               endif
+            endif
+         endif
+      enddo outer
+
+      ! Exclude grid cells that may lead to a large condition number for the
+      ! linear system to be solved in edge_eh6_slope_eh5_lblu. Excluded grid
+      ! cells are merged with the non-excluded neighbour grid cell having the
+      ! smallest grid cell width.
+      jf = first_index
+      do
+         j = jf
+         hp = rcs%h_src(j)
+         h_max = rcs%h_src(j)
+         do n = 1, 5
+            j = next_index(j)
+            hp = hp*rcs%h_src(j)
+            h_max = max(h_max, rcs%h_src(j))
+         enddo
+         if (hp > hplim_eh6*h_max**6) then
+            exit
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 6) return
+            j = jf
+            h_min = rcs%h_src(j)
+            j_min = j
+            do n = 1, 5
+               j = next_index(j)
+               if (rcs%h_src(j) < h_min) then
+                  h_min = rcs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if (jp == 0) then
+               rcs%src_dst_index(j_min) = - jn
+               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               first_index = jn
+               prev_index(jn) = 0
+               jf = jn
+            else
+               if (rcs%h_src(jn) < rcs%h_src(jp)) then
+                  rcs%src_dst_index(j_min) = - jn
+                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               else
+                  rcs%src_dst_index(j_min) = - jp
+                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+         endif
+      enddo
+
+      ! Exclude grid cells that may lead to a large condition number for the
+      ! linear system to be solved in edge_eh6_slope_eh5_rblu. Excluded grid
+      ! cells are merged with the non-excluded neighbour grid cell having the
+      ! smallest grid cell width.
+      jl = last_index
+      do
+         j = jl
+         hp = rcs%h_src(j)
+         h_max = rcs%h_src(j)
+         do n = 1, 5
+            j = prev_index(j)
+            hp = hp*rcs%h_src(j)
+            h_max = max(h_max, rcs%h_src(j))
+         enddo
+         if (hp > hplim_eh6*h_max**6) then
+            exit
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 6) return
+            j = jl
+            h_min = rcs%h_src(j)
+            j_min = j
+            do n = 1, 5
+               j = prev_index(j)
+               if (rcs%h_src(j) < h_min) then
+                  h_min = rcs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if (jn == 0) then
+               rcs%src_dst_index(j_min) = - jp
+               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               next_index(jp) = 0
+               jl = jp
+            else
+               if (rcs%h_src(jn) < rcs%h_src(jp)) then
+                  rcs%src_dst_index(j_min) = - jn
+                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               else
+                  rcs%src_dst_index(j_min) = - jp
+                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+         endif
+      enddo
+
+      ! For the non-excluded grid cells, assign the destination index in the
+      ! continuous array of grid cells to be used in the reconstruction. Also
+      ! set the grid cell widths of the continuous array.
+      jd = 0
+      do js = 1, rcs%n_src_all
+         if (rcs%src_dst_index(js) > 0) then
+            jd = jd + 1
+            rcs%src_dst_index(js) = jd
+            rcs%h_src(jd) = rcs%h_src(js)
+            rcs%hi_src(jd) = c1/rcs%h_src(jd)
+         endif
+      enddo
+
+      ! Find the destination index of excluded grid cells to be merged and
+      ! compute the mapping weights.
+      do js = 1, rcs%n_src_all
+         jd = rcs%src_dst_index(js)
+         do while (jd < 0)
+            jd = rcs%src_dst_index(- jd)
+         enddo
+         rcs%src_dst_index(js) = jd
+         if (jd > 0) &
+            rcs%src_dst_weight(js) = ( x_edge_src(js + 1) &
+                                     - x_edge_src(js    ))*rcs%hi_src(jd)
+      enddo
+
+      ! Set source edge values in the continuous reconstruction array.
+      rcs%x_edge_src(1) = x_edge_src(1)
+      js = 1
+      do j = 1, rcs%n_src - 1
+         do
+           js = js + 1
+           if (rcs%src_dst_index(js) /= j .and. rcs%src_dst_index(js) /= 0) exit
+         enddo
+         rcs%x_edge_src(j + 1) = x_edge_src(js)
+      enddo
+      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+
+      ! Compute the multiplicative inverse of cell width used for estimating
+      ! centered linear slope.
+      do j = 2, rcs%n_src - 1
+         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
+                             + rcs%h_src(j + 1))
+      enddo
+
+
+      ! Compute coefficients for the tridiagonal system of equations for the
+      ! estimation of interior edge and slope values.
+      call edge_ih6_slope_ih5_coeff_asymleft( &
+              rcs%h_src(1:4), &
+              rcs%tdecoeff(:, 2), rcs%tdscoeff(:, 2))
+      do j = 3, rcs%n_src - 1
+         call edge_ih6_slope_ih5_coeff_sym( &
+                 rcs%h_src((j - 2):(j + 1)), &
+                 rcs%tdecoeff(:, j), rcs%tdscoeff(:, j))
+      enddo
+      call edge_ih6_slope_ih5_coeff_asymright( &
+              rcs%h_src((rcs%n_src - 3):rcs%n_src), &
+              rcs%tdecoeff(:, rcs%n_src), rcs%tdscoeff(:, rcs%n_src))
+
+      ! Compute LU matrices for the explicit estimation of boundary edge and
+      ! slope values.
+      call edge_eh6_slope_eh5_lblu(rcs%h_src(1:6), &
+                                   rcs%lblu)
+      call edge_eh6_slope_eh5_rblu(rcs%h_src((rcs%n_src - 5):rcs%n_src), &
+                                   rcs%rblu)
+
+   end subroutine prepare_pqm
+
+   subroutine prepare_ppm(rcs, x_edge_src)
+   ! ---------------------------------------------------------------------------
+   ! Prepare reconstruction with piecewise parabolas using implicit 4th order
+   ! accurate edge estimation.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+      real(r8), dimension(:), intent(in) :: x_edge_src
+
+      integer, dimension(rcs%n_src_all) :: prev_index, next_index
+      real(r8) :: hp, h_max, h_min
+      integer :: jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      integer :: first_index = 0 ! Initialized to avoid compiler warning.
+
+      ! Exclude near-empty grid cells and establish a doubly linked list that
+      ! connects the remaining grid cells.
+      rcs%n_src = 0
+      jp = 0
+      do j = 1, rcs%n_src_all
+         rcs%h_src(j) = abs(x_edge_src(j + 1) - x_edge_src(j))
+         if (rcs%h_src(j) > c2*rcs%x_eps) then
+            rcs%n_src = rcs%n_src + 1
+            rcs%src_dst_index(j) = 1
+            prev_index(j) = jp
+            if (jp == 0) then
+               first_index = j
+            else
+               next_index(jp) = j
+            endif
+            jp = j
+         else
+            rcs%src_dst_index(j) = 0
+         endif
+      enddo
+      last_index = jp
+      next_index(jp) = 0
+      if (rcs%n_src < 4) return
+
+      ! Exclude grid cells that may lead to large condition numbers for the
+      ! linear systems to be solved in edge_ih4_coeff. Excluded grid cells are
+      ! merged with the non-excluded neighbour grid cell having the smallest
+      ! grid cell width.
+      jf = first_index
+      jl = next_index(jf)
+      do
+         if (rcs%h_src(jf)*rcs%h_src(jl) > &
+             hplim_ih4*max(rcs%h_src(jf), rcs%h_src(jl))**2) then
+            jf = jl
+            jl = next_index(jf)
+            if (jl == 0) exit
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 4) return
+            if (rcs%h_src(jf) < rcs%h_src(jl)) then
+               j = jf
+               jf = prev_index(jf)
+               prev_index(jl) = jf
+               if (jf == 0) then
+                  rcs%src_dst_index(j) = - jl
+                  rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+                  first_index = jl
+                  jf = jl
+                  jl = next_index(jf)
+                  if (jl == 0) exit
+               else
+                  if (rcs%h_src(jf) < rcs%h_src(jl)) then
+                     rcs%src_dst_index(j) = - jf
+                     rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+                  else
+                     rcs%src_dst_index(j) = - jl
+                     rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+                  endif
+                  next_index(jf) = jl
+               endif
+            else
+               j = jl
+               jl = next_index(jl)
+               next_index(jf) = jl
+               if (jl == 0) then
+                  rcs%src_dst_index(j) = - jf
+                  rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+                  last_index = jf
+                  exit
+               endif
+               if (rcs%h_src(jf) < rcs%h_src(jl)) then
+                  rcs%src_dst_index(j) = - jf
+                  rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+               else
+                  rcs%src_dst_index(j) = - jl
+                  rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+               endif
+               prev_index(jl) = jf
+            endif
+         endif
+      enddo
+
+      ! Exclude grid cells that may lead to a large condition number for the
+      ! linear system to be solved in edge_eh4_lblu. Excluded grid cells are
+      ! merged with the non-excluded neighbour grid cell having the smallest
+      ! grid cell width.
+      jf = first_index
+      do
+         j = jf
+         hp = rcs%h_src(j)
+         h_max = rcs%h_src(j)
+         do n = 1, 3
+            j = next_index(j)
+            hp = hp*rcs%h_src(j)
+            h_max = max(h_max, rcs%h_src(j))
+         enddo
+         if (hp > hplim_eh4*h_max**4) then
+            exit
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 4) return
+            j = jf
+            h_min = rcs%h_src(j)
+            j_min = j
+            do n = 1, 3
+               j = next_index(j)
+               if (rcs%h_src(j) < h_min) then
+                  h_min = rcs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if (jp == 0) then
+               rcs%src_dst_index(j_min) = - jn
+               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               first_index = jn
+               prev_index(jn) = 0
+               jf = jn
+            else
+               if (rcs%h_src(jn) < rcs%h_src(jp)) then
+                  rcs%src_dst_index(j_min) = - jn
+                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               else
+                  rcs%src_dst_index(j_min) = - jp
+                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+         endif
+      enddo
+
+      ! Exclude grid cells that may lead to a large condition number for the
+      ! linear system to be solved in edge_eh4_rblu. Excluded grid cells are
+      ! merged with the non-excluded neighbour grid cell having the smallest
+      ! grid cell width.
+      jl = last_index
+      do
+         j = jl
+         hp = rcs%h_src(j)
+         h_max = rcs%h_src(j)
+         do n = 1, 3
+            j = prev_index(j)
+            hp = hp*rcs%h_src(j)
+            h_max = max(h_max, rcs%h_src(j))
+         enddo
+         if (hp > hplim_eh4*h_max**4) then
+            exit
+         else
+            rcs%n_src = rcs%n_src - 1
+            if (rcs%n_src < 4) return
+            j = jl
+            h_min = rcs%h_src(j)
+            j_min = j
+            do n = 1, 3
+               j = prev_index(j)
+               if (rcs%h_src(j) < h_min) then
+                  h_min = rcs%h_src(j)
+                  j_min = j
+               endif
+            enddo
+            jp = prev_index(j_min)
+            jn = next_index(j_min)
+            if (jn == 0) then
+               rcs%src_dst_index(j_min) = - jp
+               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               next_index(jp) = 0
+               jl = jp
+            else
+               if (rcs%h_src(jn) < rcs%h_src(jp)) then
+                  rcs%src_dst_index(j_min) = - jn
+                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               else
+                  rcs%src_dst_index(j_min) = - jp
+                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               endif
+               next_index(jp) = jn
+               prev_index(jn) = jp
+            endif
+         endif
+      enddo
+
+      ! For the non-excluded grid cells, assign the destination index in the
+      ! continuous array of grid cells to be used in the reconstruction. Also
+      ! set the grid cell widths of the continuous array.
+      jd = 0
+      do js = 1, rcs%n_src_all
+         if (rcs%src_dst_index(js) > 0) then
+            jd = jd + 1
+            rcs%src_dst_index(js) = jd
+            rcs%h_src(jd) = rcs%h_src(js)
+            rcs%hi_src(jd) = c1/rcs%h_src(jd)
+         endif
+      enddo
+
+      ! Find the destination index of excluded grid cells to be merged and
+      ! compute the mapping weights.
+      do js = 1, rcs%n_src_all
+         jd = rcs%src_dst_index(js)
+         do while (jd < 0)
+            jd = rcs%src_dst_index(- jd)
+         enddo
+         rcs%src_dst_index(js) = jd
+         if (jd > 0) &
+            rcs%src_dst_weight(js) = ( x_edge_src(js + 1) &
+                                     - x_edge_src(js    ))*rcs%hi_src(jd)
+      enddo
+
+      ! Set source edge values in the continuous reconstruction array.
+      rcs%x_edge_src(1) = x_edge_src(1)
+      js = 1
+      do j = 1, rcs%n_src - 1
+         do
+           js = js + 1
+           if (rcs%src_dst_index(js) /= j .and. rcs%src_dst_index(js) /= 0) exit
+         enddo
+         rcs%x_edge_src(j + 1) = x_edge_src(js)
+      enddo
+      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+
+      ! Compute the multiplicative inverse of cell width used for estimating
+      ! centered linear slope.
+      do j = 2, rcs%n_src - 1
+         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
+                             + rcs%h_src(j + 1))
+      enddo
+
+      ! Compute coefficients for the tridiagonal system of equations for the
+      ! estimation of interior edge values.
+      do j = 2, rcs%n_src
+         call edge_ih4_coeff(rcs%h_src((j - 1):j), rcs%tdecoeff(:, j))
+      enddo
+
+      ! Compute LU matrices for the explicit estimation of boundary edge values.
+      call edge_eh4_lblu(rcs%h_src(1:4), rcs%lblu)
+      call edge_eh4_rblu(rcs%h_src((rcs%n_src - 3):rcs%n_src), rcs%rblu)
+
+   end subroutine prepare_ppm
+
+   subroutine prepare_plm(rcs, x_edge_src)
+   ! ---------------------------------------------------------------------------
+   ! Prepare reconstruction with piecewise lines.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+      real(r8), dimension(:), intent(in) :: x_edge_src
+
+      integer :: j, js
+
+      ! Exclude near-empty grid cells and assign the destination index in the
+      ! continuous array of grid cells to be used in the reconstruction.
+      rcs%n_src = 0
+      do j = 1, rcs%n_src_all
+         if (abs(x_edge_src(j + 1) - x_edge_src(j)) > c2*rcs%x_eps) then
+            rcs%n_src = rcs%n_src + 1
+            rcs%src_dst_index(j) = rcs%n_src
+         else
+            rcs%src_dst_index(j) = 0
+         endif
+      enddo
+      if (rcs%n_src < 2) return
+
+      ! Set source edge values in the continuous reconstruction array.
+      rcs%x_edge_src(1) = x_edge_src(1)
+      js = 1
+      do j = 1, rcs%n_src - 1
+         do
+            js = js + 1
+            if (rcs%src_dst_index(js) /= 0) exit
+         enddo
+         rcs%x_edge_src(j + 1) = x_edge_src(js)
+      enddo
+      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+
+      ! From edge locations, obtain source grid cell widths and their
+      ! multiplicative inverse.
+      do j = 1, rcs%n_src
+         rcs%h_src(j) = abs(rcs%x_edge_src(j + 1) - rcs%x_edge_src(j))
+         rcs%hi_src(j) = c1/rcs%h_src(j)
+      enddo
+
+      ! Compute the multiplicative inverse of cell width used for estimating
+      ! centered linear slope.
+      do j = 2, rcs%n_src - 1
+         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
+                             + rcs%h_src(j + 1))
+      enddo
+
+   end subroutine prepare_plm
+
+   subroutine prepare_pcm(rcs, x_edge_src)
+   ! ---------------------------------------------------------------------------
+   ! Prepare piecewise constant reconstruction.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+      real(r8), dimension(:), intent(in) :: x_edge_src
+
+      integer :: j, js
+
+      ! Exclude near-empty grid cells and assign the destination index in the
+      ! continuous array of grid cells to be used in the reconstruction.
+      rcs%n_src = 0
+      do j = 1, rcs%n_src_all
+         if (abs(x_edge_src(j + 1) - x_edge_src(j)) > c2*rcs%x_eps) then
+            rcs%n_src = rcs%n_src + 1
+            rcs%src_dst_index(j) = rcs%n_src
+         else
+            rcs%src_dst_index(j) = 0
+         endif
+      enddo
+      if (rcs%n_src == 0) return
+
+      ! Set source edge values in the continuous reconstruction array.
+      rcs%x_edge_src(1) = x_edge_src(1)
+      js = 1
+      do j = 1, rcs%n_src - 1
+         do
+            js = js + 1
+            if (rcs%src_dst_index(js) /= 0) exit
+         enddo
+         rcs%x_edge_src(j + 1) = x_edge_src(js)
+      enddo
+      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+
+      ! From edge locations, obtain source grid cell widths and their
+      ! multiplicative inverse.
+      do j = 1, rcs%n_src
+         rcs%h_src(j) = abs(rcs%x_edge_src(j + 1) - rcs%x_edge_src(j))
+         rcs%hi_src(j) = c1/rcs%h_src(j)
+      enddo
+
+   end subroutine prepare_pcm
 
    subroutine reconstruct_plm_no_limiting(rcs)
    ! ---------------------------------------------------------------------------
-   ! Carry out a reconstruction with piecewise lines
+   ! Carry out a reconstruction with piecewise lines.
    ! ---------------------------------------------------------------------------
 
       type(reconstruction_struct), intent(inout) :: rcs
@@ -283,15 +1392,22 @@ contains
              /(rcs%h_src(2) + rcs%h_src(1))
       rcs%polycoeff(2, 1) = sc*rcs%h_src(1)
       rcs%polycoeff(1, 1) = rcs%u_src(1) - c1_2*rcs%polycoeff(2, 1)
+      rcs%uel(1) = rcs%polycoeff(1, 1)
+      rcs%uer(1) = rcs%polycoeff(1, 1) + rcs%polycoeff(2, 1)
       do j = 2, ns - 1
          sc = (rcs%u_src(j + 1) - rcs%u_src(j - 1))*rcs%hci_src(j)
          rcs%polycoeff(2, j) = sc*rcs%h_src(j)
          rcs%polycoeff(1, j) = rcs%u_src(j) - c1_2*rcs%polycoeff(2, j)
+         rcs%uel(j) = rcs%polycoeff(1, j)
+         rcs%uer(j) = rcs%polycoeff(1, j) + rcs%polycoeff(2, j)
       enddo
       sc = c2*(rcs%u_src(ns) - rcs%u_src(ns - 1)) &
              /(rcs%h_src(ns) + rcs%h_src(ns - 1))
       rcs%polycoeff(2, ns) = sc*rcs%h_src(ns)
       rcs%polycoeff(1, ns) = rcs%u_src(ns) - c1_2*rcs%polycoeff(2, ns)
+      rcs%uel(ns) = rcs%polycoeff(1, ns)
+      rcs%uer(ns) = rcs%polycoeff(1, ns) + rcs%polycoeff(2, ns)
+
       rcs%polycoeff(3, :) = c0
 
    end subroutine reconstruct_plm_no_limiting
@@ -323,24 +1439,35 @@ contains
          endif
          rcs%polycoeff(2, j) = sc*rcs%h_src(j)
          rcs%polycoeff(1, j) = rcs%u_src(j) - c1_2*rcs%polycoeff(2, j)
+         rcs%uel(j) = rcs%polycoeff(1, j)
+         rcs%uer(j) = rcs%polycoeff(1, j) + rcs%polycoeff(2, j)
       enddo
 
       if (pc_boundary_cells) then
          rcs%polycoeff(1, 1) = rcs%u_src(1)
          rcs%polycoeff(2, 1) = c0
+         rcs%uel(1) = rcs%u_src(1)
+         rcs%uer(1) = rcs%u_src(1)
          rcs%polycoeff(1, ns) = rcs%u_src(ns)
          rcs%polycoeff(2, ns) = c0
+         rcs%uel(ns) = rcs%u_src(ns)
+         rcs%uer(ns) = rcs%u_src(ns)
       else
          sc = c2*(rcs%u_src(2) - rcs%u_src(1)) &
                 /(rcs%h_src(2) + rcs%h_src(1))
          rcs%polycoeff(2, 1) = sc*rcs%h_src(1)
          rcs%polycoeff(1, 1) = rcs%u_src(1) - c1_2*rcs%polycoeff(2, 1)
+         rcs%uel(1) = rcs%polycoeff(1, 1)
+         rcs%uer(1) = rcs%polycoeff(1, 1) + rcs%polycoeff(2, 1)
          sc = c2*(rcs%u_src(ns) - rcs%u_src(ns - 1)) &
                 /(rcs%h_src(ns) + rcs%h_src(ns - 1))
          rcs%polycoeff(2, ns) = sc*rcs%h_src(ns)
          rcs%polycoeff(1, ns) = rcs%u_src(ns) &
                               - c1_2*rcs%polycoeff(2, ns)
+         rcs%uel(ns) = rcs%polycoeff(1, ns)
+         rcs%uer(ns) = rcs%polycoeff(1, ns) + rcs%polycoeff(2, ns)
       endif
+
       rcs%polycoeff(3, :) = c0
 
    end subroutine reconstruct_plm_monotonic
@@ -352,40 +1479,143 @@ contains
 
       type(reconstruction_struct), intent(inout) :: rcs
 
-      real(r8), dimension(rcs%n_src + 1) :: rhs, gam
+      real(r8), dimension(4) :: x
+      real(r8), dimension(rcs%n_src + 1) :: uedge
+      real(r8), dimension(rcs%n_src) :: rhs, gam
       real(r8) :: bei
       integer :: ns, j
 
       ns = rcs%n_src
 
-      ! Obtain right hand side of tridiagonal system of equations.
-      rhs(1) = rcs%al*rcs%u_src(1) &
-             + rcs%bl*rcs%u_src(2) &
-             + rcs%cl*rcs%u_src(3)
-      do j = 2, ns
-         rhs(j) = rcs%b(j)*rcs%u_src(j - 1) + rcs%c(j)*rcs%u_src(j)
-      enddo
-      rhs(ns + 1) = rcs%ar*rcs%u_src(ns) &
-                  + rcs%br*rcs%u_src(ns - 1) &
-                  + rcs%cr*rcs%u_src(ns - 2)
+      ! Obtain the left boundary edge value.
+      x(:) = rcs%u_src(1:4)
+      call lu_solve(4, rcs%lblu, x)
+      uedge(1) = x(1)
 
-      ! Solve tridiagonal system of equations to obtain edge values of
-      ! source data.
-      bei = c1
-      rcs%uel(1) = rhs(1)
-      do j = 2, ns + 1
-         gam(j) = rcs%beta(j - 1)*bei
-         bei = c1/(c1 - rcs%alpha(j)*gam(j))
-         rcs%uel(j) = (rhs(j) - rcs%alpha(j)*rcs%uel(j - 1))*bei
+      ! Obtain the right boundary edge value.
+      x(:) = rcs%u_src((ns - 3):ns)
+      call lu_solve(4, rcs%rblu, x)
+      uedge(ns + 1) = x(1)
+
+      ! Obtain right hand side of tridiagonal system of equations.
+      do j = 2, ns
+         rhs(j) = rcs%tdecoeff(3, j)*rcs%u_src(j - 1) &
+                + rcs%tdecoeff(4, j)*rcs%u_src(j)
       enddo
-      do j = ns, 1, - 1
-         rcs%uel(j) = rcs%uel(j) - gam(j + 1)*rcs%uel(j + 1)
-         rcs%uer(j) = rcs%uel(j + 1)
+
+      ! Solve tridiagonal system of equations to obtain interior edge values.
+      gam(1) = c0
+      do j = 2, ns
+         bei = c1/(c1 - rcs%tdecoeff(1, j)*gam(j - 1))
+         uedge(j) = (rhs(j) - rcs%tdecoeff(1, j)*uedge(j - 1))*bei
+         gam(j) = rcs%tdecoeff(2, j)*bei
       enddo
+      do j = ns, 2, - 1
+         uedge(j) = uedge(j) - gam(j)*uedge(j + 1)
+      enddo
+
+      ! Set left and right edge values for each grid cell.
+      rcs%uel(1:ns) = uedge(1:ns)
+      rcs%uer(1:ns) = uedge(2:(ns + 1))
 
    end subroutine reconstruct_ppm_edge_values
 
-   subroutine reconstruct_ppm_interior_monotonic(rcs)
+   subroutine reconstruct_pqm_edge_slope_values(rcs)
+   ! ---------------------------------------------------------------------------
+   ! Reconstruct edge and slope values using implicit 6th and 5th order schemes,
+   ! respectively.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+
+      real(r8), dimension(6) :: x
+      real(r8), dimension(rcs%n_src + 1) :: uedge, uslope
+      real(r8), dimension(rcs%n_src) :: rhs, gam
+      real(r8) :: bei
+      integer :: ns, j
+
+      ns = rcs%n_src
+
+      ! Obtain the left boundary edge and slope values.
+      x(:) = rcs%u_src(1:6)
+      call lu_solve(6, rcs%lblu, x)
+      uedge(1) = x(1)
+      uslope(1) = x(2)
+
+      ! Obtain the right boundary edge and slope values.
+      x(:) = rcs%u_src((ns - 5):ns)
+      call lu_solve(6, rcs%rblu, x)
+      uedge(ns + 1) = x(1)
+      uslope(ns + 1) = x(2)
+
+      ! Obtain right hand side of tridiagonal system of equations for edge
+      ! values.
+      rhs(2) = rcs%tdecoeff(3, 2)*rcs%u_src(1) &
+             + rcs%tdecoeff(4, 2)*rcs%u_src(2) &
+             + rcs%tdecoeff(5, 2)*rcs%u_src(3) &
+             + rcs%tdecoeff(6, 2)*rcs%u_src(4)
+      do j = 3, ns - 1
+         rhs(j) = rcs%tdecoeff(3, j)*rcs%u_src(j - 2) &
+                + rcs%tdecoeff(4, j)*rcs%u_src(j - 1) &
+                + rcs%tdecoeff(5, j)*rcs%u_src(j) &
+                + rcs%tdecoeff(6, j)*rcs%u_src(j + 1)
+      enddo
+      rhs(ns) = rcs%tdecoeff(3, ns)*rcs%u_src(ns - 3) &
+              + rcs%tdecoeff(4, ns)*rcs%u_src(ns - 2) &
+              + rcs%tdecoeff(5, ns)*rcs%u_src(ns - 1) &
+              + rcs%tdecoeff(6, ns)*rcs%u_src(ns)
+
+      ! Solve tridiagonal system of equations to obtain interior edge values.
+      gam(1) = c0
+      do j = 2, ns
+         bei = c1/(c1 - rcs%tdecoeff(1, j)*gam(j - 1))
+         uedge(j) = (rhs(j) - rcs%tdecoeff(1, j)*uedge(j - 1))*bei
+         gam(j) = rcs%tdecoeff(2, j)*bei
+      enddo
+      do j = ns, 2, - 1
+         uedge(j) = uedge(j) - gam(j)*uedge(j + 1)
+      enddo
+
+      ! Obtain right hand side of tridiagonal system of equations for slope
+      ! values.
+      rhs(2) = rcs%tdscoeff(3, 2)*rcs%u_src(1) &
+             + rcs%tdscoeff(4, 2)*rcs%u_src(2) &
+             + rcs%tdscoeff(5, 2)*rcs%u_src(3) &
+             + rcs%tdscoeff(6, 2)*rcs%u_src(4)
+      do j = 3, ns - 1
+         rhs(j) = rcs%tdscoeff(3, j)*rcs%u_src(j - 2) &
+                + rcs%tdscoeff(4, j)*rcs%u_src(j - 1) &
+                + rcs%tdscoeff(5, j)*rcs%u_src(j) &
+                + rcs%tdscoeff(6, j)*rcs%u_src(j + 1)
+      enddo
+      rhs(ns) = rcs%tdscoeff(3, ns)*rcs%u_src(ns - 3) &
+              + rcs%tdscoeff(4, ns)*rcs%u_src(ns - 2) &
+              + rcs%tdscoeff(5, ns)*rcs%u_src(ns - 1) &
+              + rcs%tdscoeff(6, ns)*rcs%u_src(ns)
+
+      ! Solve tridiagonal system of equations to obtain interior slope values.
+      gam(1) = c0
+      do j = 2, ns
+         bei = c1/(c1 - rcs%tdscoeff(1, j)*gam(j - 1))
+         uslope(j) = (rhs(j) - rcs%tdscoeff(1, j)*uslope(j - 1))*bei
+         gam(j) = rcs%tdscoeff(2, j)*bei
+      enddo
+      do j = ns, 2, - 1
+         uslope(j) = uslope(j) - gam(j)*uslope(j + 1)
+      enddo
+
+      ! Set left and right edge values for each grid cell.
+      rcs%uel(1:ns) = uedge(1:ns)
+      rcs%uer(1:ns) = uedge(2:(ns + 1))
+
+      ! Set left and right slope values for each grid cell and scale the slope
+      ! values with the grid cell widths.
+      rcs%usl(1:ns) = uslope(1:ns)*rcs%h_src(1:ns)
+      rcs%usr(1:ns) = uslope(2:(ns + 1))*rcs%h_src(1:ns)
+
+   end subroutine reconstruct_pqm_edge_slope_values
+
+   subroutine limit_ppm_interior_monotonic(rcs)
    ! ---------------------------------------------------------------------------
    ! Apply limiting to ensure a monotonic reconstruction of piecewise parabolas
    ! for interior grid cells.
@@ -432,9 +1662,9 @@ contains
 
       enddo
 
-   end subroutine reconstruct_ppm_interior_monotonic
+   end subroutine limit_ppm_interior_monotonic
 
-   subroutine reconstruct_ppm_interior_non_oscillatory(rcs)
+   subroutine limit_ppm_interior_non_oscillatory(rcs)
    ! ---------------------------------------------------------------------------
    ! Apply limiting to prevent a oscillatory reconstruction of piecewise
    ! parabolas for interior grid cells.
@@ -495,9 +1725,9 @@ contains
 
       enddo
 
-   end subroutine reconstruct_ppm_interior_non_oscillatory
+   end subroutine limit_ppm_interior_non_oscillatory
 
-   subroutine reconstruct_ppm_boundary_limited(rcs, pc_boundary_cells)
+   subroutine limit_ppm_boundary(rcs, pc_boundary_cells)
    ! ---------------------------------------------------------------------------
    ! Handle piecewise parabola limiting of boundary cells.
    ! ---------------------------------------------------------------------------
@@ -579,9 +1809,9 @@ contains
 
       endif
 
-   end subroutine reconstruct_ppm_boundary_limited
+   end subroutine limit_ppm_boundary
 
-   subroutine reconstruct_ppm_posdef(rcs)
+   subroutine limit_ppm_posdef(rcs)
    ! ---------------------------------------------------------------------------
    ! Modify piecewise parabolas so they are never negative within the grid cell.
    ! ---------------------------------------------------------------------------
@@ -607,9 +1837,9 @@ contains
          endif
       enddo
 
-   end subroutine reconstruct_ppm_posdef
+   end subroutine limit_ppm_posdef
 
-   subroutine reconstruct_ppm_polycoeff(rcs)
+   subroutine polycoeff_ppm(rcs)
    ! ---------------------------------------------------------------------------
    ! Obtain coefficients for piecewise parabolas from grid cell means and left
    ! and right edge values.
@@ -621,15 +1851,41 @@ contains
 
       do j = 1, rcs%n_src
          rcs%polycoeff(1, j) = rcs%uel(j)
-         rcs%polycoeff(2, j) = c2*(c3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
+         rcs%polycoeff(2, j) = c6*rcs%u_src(j) - c4*rcs%uel(j) - c2*rcs%uer(j)
          rcs%polycoeff(3, j) = c3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
       enddo
 
-   end subroutine reconstruct_ppm_polycoeff
+   end subroutine polycoeff_ppm
+
+   subroutine polycoeff_pqm(rcs)
+   ! ---------------------------------------------------------------------------
+   ! Obtain coefficients for piecewise quartics from grid cell means and left
+   ! and right edge and slope values.
+   ! ---------------------------------------------------------------------------
+
+      type(reconstruction_struct), intent(inout) :: rcs
+
+      integer :: j
+
+      do j = 1, rcs%n_src
+         rcs%polycoeff(1, j) = rcs%uel(j)
+         rcs%polycoeff(2, j) = rcs%usl(j)
+         rcs%polycoeff(3, j) = &
+              c30*rcs%u_src(j) - c18*rcs%uel(j) - c12*rcs%uer(j) &
+            - c9_2*rcs%usl(j) + c3_2*rcs%usr(j) 
+         rcs%polycoeff(4, j) = &
+            - c60*rcs%u_src(j) + c32*rcs%uel(j) + c28*rcs%uer(j) &
+            + c6*rcs%usl(j) - c4*rcs%usr(j)
+         rcs%polycoeff(5, j) = &
+              c30*rcs%u_src(j) - c15*(rcs%uel(j) + rcs%uer(j)) &
+            - c5_2*(rcs%usl(j) - rcs%usr(j))
+      enddo
+
+   end subroutine polycoeff_pqm
 
    pure function parabola_intersection(pc, u, u_eps, xil, xir) result(xi)
 
-      real(r8), dimension(3), intent(in) :: pc
+      real(r8), dimension(:), intent(in) :: pc
       real(r8), intent(in) :: u, u_eps, xil, xir
 
       real(r8) :: xi
@@ -676,30 +1932,31 @@ contains
 
       integer :: errstat
 
-      integer :: n_src, i, j
+      integer :: n_src_all, j
 
+      rcs%prepared = .false.
       errstat = hor3map_noerr
 
       ! Check reconstruction method.
       if (method /= hor3map_pcm .and. method /= hor3map_plm .and. &
-          method /= hor3map_ppm) then
+          method /= hor3map_ppm .and. method /= hor3map_pqm) then
          errstat = hor3map_invalid_method
          return
       endif
 
       ! Number of source grid cells.
-      rcs%n_src_all = size(x_edge_src) - 1
+      n_src_all = size(x_edge_src) - 1
 
       ! Check that source grid edges are monotonically increasing or decreasing.
-      if (x_edge_src(rcs%n_src_all + 1) - x_edge_src(1) > c0) then
-         do j = 1, rcs%n_src_all
+      if (x_edge_src(n_src_all + 1) - x_edge_src(1) > c0) then
+         do j = 1, n_src_all
             if (x_edge_src(j + 1) < x_edge_src(j)) then
                errstat = hor3map_nonmonotonic_src_edges
                return
             endif
          enddo
       else
-         do j = 1, rcs%n_src_all
+         do j = 1, n_src_all
             if (x_edge_src(j + 1) > x_edge_src(j)) then
                errstat = hor3map_nonmonotonic_src_edges
                return
@@ -708,74 +1965,83 @@ contains
       endif
 
       ! Set small value with same dimensions as edge locations.
-      rcs%x_eps = max(abs( x_edge_src(rcs%n_src_all + 1) &
+      rcs%x_eps = max(abs( x_edge_src(n_src_all + 1) &
                          - x_edge_src(1)), eps)*eps
 
-      ! Number of source grid cells excluding empty grid cells.
-      n_src = 0
-      do j = 1, rcs%n_src_all
-         if (abs(x_edge_src(j + 1) - x_edge_src(j)) > rcs%x_eps) &
-            n_src = n_src + 1
-      enddo
-
-      ! If no non-empty grid cells are present, return with error code.
-      if (n_src == 0) then
-         errstat = hor3map_src_extent_too_small
-         return
-      endif
-
-      ! Select actual reconstruction method to be used, considering requested
-      ! method and availability of non-empty grid cells.
-      if     (method == hor3map_pcm .or. n_src == 1) then
-         rcs%method = hor3map_pcm
-      elseif (method == hor3map_plm .or. n_src < 4) then
-         rcs%method = hor3map_plm
-      else
-         rcs%method = method
-      endif
-
       ! If needed, allocate arrays in reconstruction data structure.
-      if (.not. rcs%prepared) then
-         rcs%n_src = n_src
+      if (.not. rcs%alloced) then
+         rcs%n_src_all = n_src_all
          errstat = allocate_rcs(rcs)
          if (errstat /= hor3map_noerr) return
-      elseif (rcs%n_src /= n_src) then
+      elseif (rcs%n_src_all /= n_src_all) then
          call free_rcs(rcs)
-         rcs%n_src = n_src
+         rcs%n_src_all = n_src_all
          errstat = allocate_rcs(rcs)
          if (errstat /= hor3map_noerr) return
       endif
+#ifdef DEBUG
+      rcs%x_edge_src(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%h_src(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%hi_src(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%hci_src(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%src_dst_weight(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%tdecoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%tdscoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%lblu(:, :) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%rblu(:, :) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%u_src(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%uel(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%uer(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcs%src_dst_index = -9999
+      rcs%polycoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
+#endif
 
-      ! Set index map from an array with only non-empty source grid cells to a
-      ! full source array.
-      j = 0
-      do i = 1, rcs%n_src_all
-         if (abs(x_edge_src(i + 1) - x_edge_src(i)) > rcs%x_eps) then
-            j = j + 1
-            rcs%src_index_map(j) = i
+      ! Based on the requested reconstruction method, prepare the data structure
+      ! for the various methods. Arrays with indices and weights are
+      ! constructed that will map the source data to a continuous array of
+      ! grid cells that are non-empty and with widths that will ensure
+      ! condition numbers below a specified threshold of matrices in linear
+      ! equation systems to be solved. If insufficient grid cells are available
+      ! for the requested method, lower order methods are tried.
+
+      rcs%method = method
+
+      if (rcs%method == hor3map_pqm) then
+         call prepare_pqm(rcs, x_edge_src)
+         if (rcs%n_src < 6) then
+            rcs%method = hor3map_ppm
+         else
+            rcs%method = hor3map_pqm
          endif
-      enddo
-      ! Store source edge locations in reconstruction data structure.
-      rcs%x_edge_src(1) = x_edge_src(1)
-      do j = 1, rcs%n_src
-         rcs%x_edge_src(j + 1) = x_edge_src(rcs%src_index_map(j) + 1)
-      enddo
+      endif
 
-      ! From edge locations, obtain source grid cell widths and their
-      ! multiplicative inverse.
-      do j = 1, rcs%n_src
-         rcs%h_src(j) = abs(rcs%x_edge_src(j + 1) - rcs%x_edge_src(j))
-         rcs%hi_src(j) = c1/rcs%h_src(j)
-      enddo
-      
-      ! Store the multiplicative inverse of cell width used for estimating
-      ! centered linear slope.
-      do j = 2, rcs%n_src - 1
-         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
-                             + rcs%h_src(j + 1))
-      enddo
+      if (rcs%method == hor3map_ppm) then
+         call prepare_ppm(rcs, x_edge_src)
+         if (rcs%n_src < 4) then
+            rcs%method = hor3map_plm
+         else
+            rcs%method = hor3map_ppm
+         endif
+      endif
 
-      if (rcs%method == hor3map_ppm) call edge_coeff_ih4(rcs)
+      if (rcs%method == hor3map_plm) then
+         call prepare_plm(rcs, x_edge_src)
+         if (rcs%n_src < 2) then
+            rcs%method = hor3map_pcm
+         else
+            rcs%method = hor3map_plm
+         endif
+      endif
+
+      if (rcs%method == hor3map_pcm) then
+         call prepare_pcm(rcs, x_edge_src)
+         if (rcs%n_src == 0) then
+            errstat = hor3map_src_extent_too_small
+            return
+         else
+            rcs%method = hor3map_pcm
+         endif
+      endif
 
       rcs%prepared = .true.
 
@@ -797,6 +2063,7 @@ contains
       real(r8) :: xil
       integer :: n_dst, j, js, jd, iseg
 
+      rms%prepared = .false.
       errstat = hor3map_noerr
 
       ! Check that the reconstruction has been prepared.
@@ -835,7 +2102,7 @@ contains
       endif
 
       ! If needed, allocate arrays in remap data structure.
-      if (.not. rms%prepared) then
+      if (.not. rms%alloced) then
          rms%n_dst = n_dst
          errstat = allocate_rms(rcs, rms)
          if (errstat /= hor3map_noerr) return
@@ -845,6 +2112,13 @@ contains
          errstat = allocate_rms(rcs, rms)
          if (errstat /= hor3map_noerr) return
       endif
+#ifdef DEBUG
+      rms%h_dst(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%hi_dst(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%seg_int_lim(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%n_src_seg(:) = -9999
+      rms%seg_dst_index(:) = -9999
+#endif
 
       ! From edge locations, obtain destination grid cell widths and their
       ! multiplicative inverse.
@@ -956,7 +2230,7 @@ contains
 
       integer :: errstat
 
-      integer :: j
+      integer :: js, jd
 
       errstat = hor3map_noerr
 
@@ -973,10 +2247,21 @@ contains
 
       rcs%limiting = limiting
 
-      ! Copy source data array to array that excludes empty grid cells.
-      do j = 1, rcs%n_src
-        rcs%u_src(j) = u_src(rcs%src_index_map(j))
-      enddo
+      ! Copy source data array to continuous array of grid cells to be used in
+      ! the reconstruction.
+      if (rcs%method == hor3map_pcm .or. rcs%method == hor3map_plm) then
+         do js = 1, rcs%n_src_all
+            jd = rcs%src_dst_index(js)
+            if (jd /= 0) rcs%u_src(jd) = u_src(js)
+         enddo
+      else
+         rcs%u_src(1:rcs%n_src) = c0
+         do js = 1, rcs%n_src_all
+            jd = rcs%src_dst_index(js)
+            if (jd /= 0) rcs%u_src(jd) = rcs%u_src(jd) &
+                                       + rcs%src_dst_weight(js)*u_src(js)
+         enddo
+      endif
 
       select case (rcs%method)
          case (hor3map_plm)
@@ -994,20 +2279,29 @@ contains
             select case (limiting)
                case (hor3map_no_limiting)
                case (hor3map_monotonic)
-                  call reconstruct_ppm_interior_monotonic(rcs)
-                  call reconstruct_ppm_boundary_limited(rcs, pc_boundary_cells)
+                  call limit_ppm_interior_monotonic(rcs)
+                  call limit_ppm_boundary(rcs, pc_boundary_cells)
                case (hor3map_non_oscillatory)
-                  call reconstruct_ppm_interior_non_oscillatory(rcs)
-                  call reconstruct_ppm_boundary_limited(rcs, pc_boundary_cells)
+                  call limit_ppm_interior_non_oscillatory(rcs)
+                  call limit_ppm_boundary(rcs, pc_boundary_cells)
                case (hor3map_non_oscillatory_posdef)
-                  call reconstruct_ppm_interior_non_oscillatory(rcs)
-                  call reconstruct_ppm_boundary_limited(rcs, pc_boundary_cells)
-                  call reconstruct_ppm_posdef(rcs)
+                  call limit_ppm_interior_non_oscillatory(rcs)
+                  call limit_ppm_boundary(rcs, pc_boundary_cells)
+                  call limit_ppm_posdef(rcs)
                case default
                   errstat = hor3map_invalid_ppm_limiting
                   return
             end select
-            call reconstruct_ppm_polycoeff(rcs)
+            call polycoeff_ppm(rcs)
+         case (hor3map_pqm)
+            call reconstruct_pqm_edge_slope_values(rcs)
+            select case (limiting)
+               case (hor3map_no_limiting)
+               case default
+                  errstat = hor3map_invalid_pqm_limiting
+                  return
+            end select
+            call polycoeff_pqm(rcs)
       end select
 
       rcs%reconstructed = .true.
@@ -1056,8 +2350,8 @@ contains
       if (rcs%method == hor3map_pcm) return
 
       ! Set small value with same dimensions as source data.
-      u_min = minval(rcs%u_src(:))
-      u_max = maxval(rcs%u_src(:))
+      u_min = minval(rcs%u_src(1:rcs%n_src))
+      u_max = maxval(rcs%u_src(1:rcs%n_src))
       if (abs(u_max - u_min) < eps) then
          return
       endif
@@ -1313,6 +2607,47 @@ contains
                endif
             enddo
 
+         case (hor3map_pqm)
+
+            do js = 1, rcs%n_src
+               if (rms%n_src_seg(js) == 1) then
+                  ! No integration needed
+                  iseg = iseg + 1
+                  jd = rms%seg_dst_index(iseg)
+                  u_dst(jd) = u_dst(jd) &
+                            + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
+               else
+                  ! Integrate the required segments of each source grid cell in
+                  ! succession, adding the integrals to the appropriate
+                  ! destination grid cells.
+                  xil = c0
+                  adl = c0
+                  do i_src_seg = 1, rms%n_src_seg(js)
+                     iseg = iseg + 1
+                     xir = rms%seg_int_lim(iseg)
+                     jd = rms%seg_dst_index(iseg)
+                     if (xil == xir) then
+                        u_dst(jd) =       rcs%polycoeff(1, js) &
+                                  + (     rcs%polycoeff(2, js) &
+                                    + (   rcs%polycoeff(3, js) &
+                                      + ( rcs%polycoeff(4, js) &
+                                        + rcs%polycoeff(5, js) &
+                                    *xir)*xir)*xir)*xir
+                     else
+                        adr = (            rcs%polycoeff(1, js) &
+                              + (     c1_2*rcs%polycoeff(2, js) &
+                                + (   c1_3*rcs%polycoeff(3, js) &
+                                  + ( c1_4*rcs%polycoeff(4, js) &
+                                    + c1_5*rcs%polycoeff(5, js) &
+                              *xir)*xir)*xir)*xir)*xir
+                        u_dst(jd) = u_dst(jd) &
+                                  + (adr - adl)*rcs%h_src(js)*rms%hi_dst(jd)
+                        xil = xir
+                        adl = adr
+                     endif
+                  enddo
+               endif
+            enddo
       end select
 
    end function remap
@@ -1325,10 +2660,11 @@ contains
       type(reconstruction_struct), intent(inout) :: rcs
 
       deallocate(rcs%x_edge_src, rcs%h_src, rcs%hi_src, rcs%hci_src, &
-                 rcs%alpha, rcs%beta, rcs%b, rcs%c, rcs%u_src, rcs%uel, &
-                 rcs%uer, rcs%src_index_map, rcs%polycoeff)
+                 rcs%src_dst_weight, rcs%tdecoeff, rcs%tdscoeff, rcs%lblu, &
+                 rcs%rblu, rcs%u_src, rcs%uel, rcs%uer, rcs%usl, rcs%usr, &
+                 rcs%src_dst_index, rcs%polycoeff)
 
-      rcs%prepared = .false.
+      rcs%alloced = .false.
       rcs%reconstructed = .false.
 
    end subroutine free_rcs
@@ -1343,7 +2679,7 @@ contains
       deallocate(rms%h_dst, rms%hi_dst, rms%seg_int_lim, rms%n_src_seg, &
                  rms%seg_dst_index)
 
-      rms%prepared = .false.
+      rms%alloced = .false.
 
    end subroutine free_rms
 

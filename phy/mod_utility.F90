@@ -79,6 +79,10 @@ contains
             vflux3(i, j) = spval
             umax  (i, j) = spval
             vmax  (i, j) = spval
+            util1 (i, j) = spval
+            util2 (i, j) = spval
+            util3 (i, j) = spval
+            util4 (i, j) = spval
          enddo
       enddo
    !$omp end parallel do

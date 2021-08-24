@@ -44,10 +44,12 @@ module mod_constants
       onem   = 98060._r8, &       ! 1 m in units of pressure [g cm-1 s-2].
       tencm  = 9806._r8, &        ! 10 cm in units of pressure [g cm-1 s-2].
       onecm  = 980.6_r8, &        ! 1 cm in units of pressure [g cm-1 s-2].
-      onemm  = 98.06_r8           ! 1 mm in units of pressure [g cm-1 s-2].
+      onemm  = 98.06_r8, &        ! 1 mm in units of pressure [g cm-1 s-2].
+      onemu  = .09806_r8          ! 1 micrometer in units of pressure
+                                  ! [g cm-1 s-2].
 
 
    public :: g, rearth, spcifh, t0deg, alpha0, pi, radian, epsil, spval, &
-             tenm, onem, tencm, onecm, onemm
+             tenm, onem, tencm, onecm, onemm, onemu
 
 end module mod_constants

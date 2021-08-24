@@ -25,7 +25,7 @@ module mod_vcoord
 
    use mod_types, only: r8
    use mod_config, only: inst_suffix
-   use mod_constants, only: spval, onem
+   use mod_constants, only: g, epsil, spval, onem
    use mod_xc
    use mod_eos, only: sig
    use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv
@@ -70,13 +70,16 @@ module mod_vcoord
 
    ! Parameters:
    integer, parameter :: &
-      isopyc_bulkml = 1, &    ! Vertical coordinate type: bulk surface mixed
-                              ! layer with isopycnic layers below.
-      cntiso_hybrid = 2       ! Vertical coordinate type: Hybrid coordinate with
-                              ! pressure coordinates towards the surface and
-                              ! continuous isopycnal below.
+      isopyc_bulkml = 1, &        ! Vertical coordinate type: bulk surface mixed
+                                  ! layer with isopycnic layers below.
+      cntiso_hybrid = 2           ! Vertical coordinate type: Hybrid coordinate
+                                  ! with pressure coordinates towards the
+                                  ! surface and continuous isopycnal below.
    real(r8), parameter :: &
-      regrid_mval    = -1.e33_r8 ! Missing value for regridding.
+      bfsq_min      = 1.e-7_r8, & ! Minimum buoyancy frequency squared in
+                                  ! monotonized potential density to be used in
+                                  ! regridding [s-2].
+      regrid_mval   = - 1.e33_r8  ! Missing value for regridding.
 
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
@@ -142,21 +145,21 @@ contains
         call xcbcst(dpmin_interior)
       endif
       if (mnproc == 1) then
-        write (lp,*) 'readnml_vcoord: vertical coordinate variables:'
-        write (lp,*) '  vcoord_type =           ', &
-                     trim(vcoord_type)
-        write (lp,*) '  reconstruction_method = ', &
-                     trim(reconstruction_method)
-        write (lp,*) '  density_limiting =      ', &
-                     trim(density_limiting)
-        write (lp,*) '  tracer_limiting =       ', &
-                     trim(tracer_limiting)
-        write (lp,*) '  velocity_limiting =     ', &
-                     trim(velocity_limiting)
-        write (lp,*) '  density_pc_boundary =          ', density_pc_boundary
-        write (lp,*) '  tracer_pc_boundary =           ', tracer_pc_boundary
-        write (lp,*) '  dpmin_surface =                ', dpmin_surface
-        write (lp,*) '  dpmin_interior =               ', dpmin_interior
+         write (lp,*) 'readnml_vcoord: vertical coordinate variables:'
+         write (lp,*) '  vcoord_type =           ', &
+                      trim(vcoord_type)
+         write (lp,*) '  reconstruction_method = ', &
+                      trim(reconstruction_method)
+         write (lp,*) '  density_limiting =      ', &
+                      trim(density_limiting)
+         write (lp,*) '  tracer_limiting =       ', &
+                      trim(tracer_limiting)
+         write (lp,*) '  velocity_limiting =     ', &
+                      trim(velocity_limiting)
+         write (lp,*) '  density_pc_boundary =          ', density_pc_boundary
+         write (lp,*) '  tracer_pc_boundary =           ', tracer_pc_boundary
+         write (lp,*) '  dpmin_surface =                ', dpmin_surface
+         write (lp,*) '  dpmin_interior =               ', dpmin_interior
       endif
 
       ! Resolve options.
@@ -260,12 +263,17 @@ contains
 
       real(r8), dimension(kdm + 1) :: p_1d, prgrd_1d, sigmar_1d
       real(r8), dimension(kdm) :: temp_1d, saln_1d, sigma_1d
-      real(r8) :: dpmin_max, dpmin, pkup, pkup_test, pmin, dpt, ptup, ptlo, x
-      integer :: i, j, k, l, kn, nt, ks, ke, klo, kup, errstat
-      logical :: layer_added
+      real(r8) :: beta, sdpsum, smean, dpmin_max, dpmin, pku, pku_test, &
+                  pmin, dpt, ptup, ptlo, x
+      integer :: i, j, k, l, kn, nt, ks, ke, kl, ku, errstat
+      logical :: thin_layers, layer_added
 #ifdef TRC
       real(r8), dimension(kdm, ntr) :: trc_1d
 #endif
+
+      ! Minimum potential density difference with respect to pressure for
+      ! potential density to be used in regridding.
+      beta = bfsq_min/(g*g)
 
       do j = 1, jj
          do l = 1, isp(j)
@@ -287,6 +295,73 @@ contains
 #endif
             enddo
             sigmar_1d(kk + 1) = sigmar_1d(kk)
+
+            ! Make sure potential density to be used in regridding is
+            ! monotonically increasing with depth.
+            kl = kk
+            ku = kl - 1
+            do while (ku > 0)
+               thin_layers = p_1d(kl + 1) - p_1d(ku) < epsil
+               if (thin_layers .or. &
+                   sigma_1d(kl) - sigma_1d(ku) &
+                   < .5_r8*beta*(p_1d(kl + 1) - p_1d(ku))) then
+                  sdpsum = sigma_1d(ku)*(p_1d(ku + 1) - p_1d(ku)) &
+                         + sigma_1d(kl)*(p_1d(kl + 1) - p_1d(kl))
+                  if (.not. thin_layers) &
+                     smean = sdpsum/(p_1d(kl + 1) - p_1d(ku))
+                  do
+                     layer_added = .false.
+                     if (ku > 1) then
+                        if (thin_layers) then
+                           ku = ku - 1
+                           sdpsum = sdpsum &
+                                  + sigma_1d(ku)*(p_1d(ku + 1) - p_1d(ku))
+                           thin_layers = p_1d(kl + 1) - p_1d(ku) < epsil
+                           if (.not. thin_layers) &
+                              smean = sdpsum/(p_1d(kl + 1) - p_1d(ku))
+                           layer_added = .true.
+                        else
+                           if (smean - sigma_1d(ku - 1) &
+                               < .5_r8*beta*(p_1d(kl + 1) - p_1d(ku - 1))) then
+                              ku = ku - 1
+                              sdpsum = sdpsum &
+                                     + sigma_1d(ku)*(p_1d(ku + 1) - p_1d(ku))
+                              smean = sdpsum/(p_1d(kl + 1) - p_1d(ku))
+                              layer_added = .true.
+                           endif
+                        endif
+                     endif
+                     if (kl < kk) then
+                        if (thin_layers) then
+                           kl = kl + 1
+                           sdpsum = sdpsum &
+                                  + sigma_1d(kl)*(p_1d(kl + 1) - p_1d(kl))
+                           thin_layers = p_1d(kl + 1) - p_1d(ku) < epsil
+                           if (.not. thin_layers) &
+                              smean = sdpsum/(p_1d(kl + 1) - p_1d(ku))
+                           layer_added = .true.
+                        else
+                           if (sigma_1d(kl + 1) - smean &
+                               < .5_r8*beta*(p_1d(kl + 2) - p_1d(ku))) then
+                              kl = kl + 1
+                              sdpsum = sdpsum &
+                                     + sigma_1d(kl)*(p_1d(kl + 1) - p_1d(kl))
+                              smean = sdpsum/(p_1d(kl + 1) - p_1d(ku))
+                              layer_added = .true.
+                           endif
+                        endif
+                     endif
+                     if (.not. layer_added) exit
+                  enddo
+                  do k = ku, kl
+                     sigma_1d(k) = smean &
+                                 + .5_r8*beta*( p_1d(k ) + p_1d(k  + 1) &
+                                              - p_1d(ku) - p_1d(kl + 1))
+                  enddo
+               endif
+               kl = ku
+               ku = kl - 1
+            enddo
 
             ! Prepare reconstruction with current interface pressures.
             errstat = prepare_reconstruction(p_1d, reconstruction_method_tag, &
@@ -337,9 +412,30 @@ contains
             prgrd_1d(1) = p_1d(1)
             prgrd_1d(kk + 1) = p_1d(kk + 1)
 
+            ! If no regrid interface is found in the water column, try to place
+            ! all water in the layer with potential density bounds that include
+            ! the column mean potential density.
+            if (ks == ke) then
+               sdpsum = 0._r8
+               do k = 1, kk
+                  sdpsum = sdpsum + sigma_1d(k)*(p_1d(k + 1) - p_1d(k))
+               enddo
+               smean = sdpsum/(p_1d(kk + 1) - p_1d(1))
+               ks = 2
+               do while (ks <= kk)
+                  if (smean < sigmar_1d(ks)) exit
+                  ks = ks + 1
+               enddo
+               do k = ks, kk
+                  prgrd_1d(k) = p_1d(kk + 1)
+               enddo
+               ke = ks - 1
+            endif
+
             ! Modify interface pressures so that layer thicknesses are
             ! above a specified threshold.
             dpmin_max = (p_1d(kk + 1) - p_1d(1))/kk
+            dpmin_max = dpmin_surface
             dpmin = min(dpmin_max, dpmin_surface, dpmin_interior)
             ks = max(2, ks)
             ke = min(kk, ke)
@@ -347,58 +443,56 @@ contains
             do while (k <= ke)
                if (prgrd_1d(k + 1) - prgrd_1d(k) < dpmin) then
                   if (k == ke) then
-                     prgrd_1d(k) = prgrd_1d(kk + 1)
+                     prgrd_1d(k) = prgrd_1d(ke + 1)
                   else
-                     kup = k
-                     klo = k + 1
-                     pkup = .5_r8*(prgrd_1d(klo) + prgrd_1d(kup) - dpmin)
+                     ku = k
+                     kl = k + 1
+                     pku = .5_r8*(prgrd_1d(kl) + prgrd_1d(ku) - dpmin)
                      do
                         layer_added = .false.
-                        klo = klo + 1
-                        pkup_test = &
-                           ((pkup - dpmin)*(klo - kup) + prgrd_1d(klo)) &
-                           /(klo - kup + 1)
-                        if (pkup_test + (klo - kup)*dpmin > prgrd_1d(klo)) then
-                           if (klo == ke + 1) exit
-                           pkup = pkup_test
+                        kl = kl + 1
+                        pku_test = ((pku - dpmin)*(kl - ku) + prgrd_1d(kl)) &
+                                   /(kl - ku + 1)
+                        if (pku_test + (kl - ku)*dpmin > prgrd_1d(kl)) then
+                           if (kl == ke + 1) exit
+                           pku = pku_test
                            layer_added = .true.
                         else
-                           klo = klo - 1
+                           kl = kl - 1
                         endif
-                        kup = kup - 1
-                        pkup_test = &
-                           ((pkup - dpmin)*(klo - kup) + prgrd_1d(kup)) &
-                           /(klo - kup + 1)
-                        if (pkup_test < prgrd_1d(kup)) then
-                           if (kup == 1) exit
-                           pkup = pkup_test
+                        ku = ku - 1
+                        pku_test = ((pku - dpmin)*(kl - ku) + prgrd_1d(ku)) &
+                                   /(kl - ku + 1)
+                        if (pku_test < prgrd_1d(ku)) then
+                           if (ku == 1) exit
+                           pku = pku_test
                            layer_added = .true.
                         else
-                           kup = kup + 1
+                           ku = ku + 1
                         endif
                         if (.not. layer_added) exit
                      enddo
-                     if     (kup == 1) then
-                        do k = 2, klo
-                           prgrd_1d(k) = min(prgrd_1d(kk + 1), &
+                     if     (ku == 1) then
+                        do k = 2, kl
+                           prgrd_1d(k) = min(prgrd_1d(ke + 1), &
                                              prgrd_1d(k - 1) + dpmin)
                         enddo
-                        do k = klo + 1, kk
+                        do k = kl + 1, ke
                            prgrd_1d(k) = &
-                              min(prgrd_1d(kk + 1), &
+                              min(prgrd_1d(ke + 1), &
                                   max(prgrd_1d(k), prgrd_1d(1) + dpmin*(k - 1)))
                         enddo
-                     elseif (klo == kk + 1) then
-                        do k = kup, klo
-                           prgrd_1d(k) = prgrd_1d(kk + 1)
+                     elseif (kl == ke + 1) then
+                        do k = ku, kl
+                           prgrd_1d(k) = prgrd_1d(ke + 1)
                         enddo
                      else
-                        prgrd_1d(kup) = pkup
-                        do k = kup + 1, klo
+                        prgrd_1d(ku) = pku
+                        do k = ku + 1, kl
                            prgrd_1d(k) = prgrd_1d(k - 1) + dpmin
                         enddo
                      endif
-                     k = klo
+                     k = kl
                   endif
                endif
                k = k + 1
@@ -408,17 +502,17 @@ contains
             ! layer thickness towards the surface is maintained. A smooth
             ! transition between modified and unmodified interfaces is sought.
             dpmin = min(dpmin_max, dpmin_surface)
-            do k = 2, kk
+            do k = 2, ke
                pmin = p_1d(1) + dpmin*(k - 1)
                dpt = max(prgrd_1d(k + 1) - prgrd_1d(k), 3._r8*dpmin)
                ptup = max(p_1d(1), pmin + dpmin - dpt)
-               ptlo = min(p_1d(kk + 1), 2._r8*pmin - ptup)
+               ptlo = min(p_1d(ke + 1), 2._r8*pmin - ptup)
                ptup = 2._r8*pmin - ptlo
                if (prgrd_1d(k) > ptup .and. prgrd_1d(k) < ptlo) then
                   x = (prgrd_1d(k) - ptup)/(ptlo - ptup)
                   pmin = pmin + .5_r8*(ptlo - ptup)*x*x
                endif
-               prgrd_1d(k) = min(p_1d(kk + 1), max(prgrd_1d(k), pmin))
+               prgrd_1d(k) = min(p_1d(ke + 1), max(prgrd_1d(k), pmin))
             enddo
 
             ! Prepare remapping to layer structure with regridded interface
@@ -501,13 +595,14 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'cntiso_hybrid_regrid_remap:'
          endif
-         call chksummsk(dp, ip, 2*kk, 'dp')
-         call chksummsk(temp, ip, 2*kk, 'temp')
-         call chksummsk(saln, ip, 2*kk, 'saln')
-         call chksummsk(sigma, ip, 2*kk, 'sigma')
+         call chksummsk(dp(1 - nbdy, 1 - nbdy, k1n), ip, kk, 'dp')
+         call chksummsk(temp(1 - nbdy, 1 - nbdy, k1n), ip, kk, 'temp')
+         call chksummsk(saln(1 - nbdy, 1 - nbdy, k1n), ip, kk, 'saln')
+         call chksummsk(sigma(1 - nbdy, 1 - nbdy, k1n), ip,  kk, 'sigma')
+         call chksummsk(sigmar, ip,  kk, 'sigmar')
 #ifdef TRC
          do nt = 1, ntr
-            call chksummsk(trc(1-nbdy, 1-nbdy, 1, nt), ip, 2*kk, 'trc')
+            call chksummsk(trc(1-nbdy, 1-nbdy, k1n, nt), ip, kk, 'trc')
          enddo
 #endif
       endif
@@ -686,10 +781,10 @@ contains
          if (mnproc == 1) then
             write (lp,*) 'remap_velocity:'
          endif
-         call chksummsk(dpu, iu, 2*kk, 'dpv')
-         call chksummsk(dpv, iv, 2*kk, 'dpv')
-         call chksummsk(u, iu, 2*kk, 'u')
-         call chksummsk(v, iv, 2*kk, 'v')
+         call chksummsk(dpu(1 - nbdy, 1 - nbdy, k1n), iu, kk, 'dpv')
+         call chksummsk(dpv(1 - nbdy, 1 - nbdy, k1n), iv, kk, 'dpv')
+         call chksummsk(u(1 - nbdy, 1 - nbdy, k1n), iu, kk, 'u')
+         call chksummsk(v(1 - nbdy, 1 - nbdy, k1n), iv, kk, 'v')
       endif
 
    end subroutine remap_velocity
