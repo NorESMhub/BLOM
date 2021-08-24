@@ -40,7 +40,9 @@
 ! Logical unit number for I/O.
 
       INTEGER :: io_stdo_bgc           !  standard out.
-      INTEGER :: io_nml                !  namelist
+
+! File containing namelists
+      CHARACTER(LEN=:), ALLOCATABLE, PROTECTED :: bgc_namelist
 
 ! Control variables
 
@@ -60,5 +62,37 @@
 ! Logical switches
       LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
       LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
-      
+
+    contains
+
+      subroutine get_bgc_namelist
+      !-------------------------------------------------------------------------
+      ! Get filename for namelist file
+      !-------------------------------------------------------------------------
+        use mod_config, only: inst_suffix
+        use mod_xc, only: xchalt
+
+        implicit none
+
+        logical :: exists
+
+        if (.not. allocated(bgc_namelist)) then
+           inquire (file='ocn_in'//trim(inst_suffix), exist=exists)
+           if (exists) then
+              allocate(character(len=len('ocn_in'//trim(inst_suffix))) ::       &
+                   bgc_namelist)
+              bgc_namelist = 'ocn_in'//trim(inst_suffix)
+           else
+              inquire (file='limits', exist=exists)
+              if (exists) then
+                 allocate(character(len=len('limits')) :: bgc_namelist)
+                 bgc_namelist = 'limits'
+              else
+                 call xchalt('cannot find limits file')
+                 stop 'cannot find limits file'
+              endif
+           endif
+        endif
+      end subroutine get_bgc_namelist
+
       END MODULE mo_control_bgc
