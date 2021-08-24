@@ -176,7 +176,7 @@ c
         call budget_sums(3,n,nn)
         auxil_time=auxil_time+get_time()
 c
-c       call cntiso_hybrid_vdiff(m,n,mm,nn,k1m,k1n)
+        call cntiso_hybrid_vdiff(m,n,mm,nn,k1m,k1n)
         diapfl_time=get_time()
 c
         call budget_sums(4,n,nn)
@@ -191,6 +191,9 @@ c
       if (vcoord_type_tag == isopyc_bulkml) then
 cdiag   write (lp,*) 'mxlayr...'
         call mxlayr(m,n,mm,nn,k1m,k1n)
+        mxlayr_time=get_time()
+      else
+        call cntiso_hybrid_forcing(m,n,mm,nn,k1m,k1n)
         mxlayr_time=get_time()
       endif
 c
