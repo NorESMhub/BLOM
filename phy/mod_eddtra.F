@@ -20,9 +20,8 @@
       module mod_eddtra
 c
 c --- ------------------------------------------------------------------
-c --- This module contains variables and procedures related to advection
-c --- of layer pressure thickness and tracers by calling incremental
-c --- remapping routines.
+c --- This module contains procedures related to the computation of
+c --- eddy-induced transport.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
