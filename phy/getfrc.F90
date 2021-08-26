@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen
+! Copyright (C) 2015-2021 Mats Bentsen, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !

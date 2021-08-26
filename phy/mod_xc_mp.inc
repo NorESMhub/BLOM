@@ -1,6 +1,7 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2005 HYCOM Consortium and contributors
-! Copyright (C) 2006-2015 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2006-2021 Lars Inge Enstad, Mats Bentsen, Alok Kumar Gupta,
+!                         Jørgen Nordmoen
 !
 ! This file is part of BLOM.
 !

@@ -1,6 +1,7 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
-!                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu
+! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+!                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
+!                         Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !

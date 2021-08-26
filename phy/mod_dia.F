@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2020 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2021 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
