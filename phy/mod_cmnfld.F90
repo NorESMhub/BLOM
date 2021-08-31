@@ -26,6 +26,7 @@ module mod_cmnfld
    use mod_types, only: r8
    use mod_constants, only: g, alpha0, epsil, spval, onem, onemm
    use mod_xc
+   use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_grid, only: scuxi, scvyi
    use mod_eos, only: rho, p_alpha
    use mod_state, only: dp, temp, saln, p, phi, kfpla
@@ -41,33 +42,29 @@ module mod_cmnfld
    ! Parameters:
    real(r8) :: &
       sls0 = 10._r8*98060._r8, & ! Minimum smoothing length scale in the
-                               ! computation of filtered BFSQ
-                               ! [g cm-1 s-2].
+                                 ! computation of filtered BFSQ [g cm-1 s-2].
       slsmfq = 2._r8, &          ! Factor to be multiplied with the mixed
-                               ! layer depth to find the smoothing
-                               ! length scale at the base of the mixed
-                               ! layer in the computation of filtered
-                               ! BFSQ [].
+                                 ! layer depth to find the smoothing length
+                                 ! scale at the base of the mixed layer in the
+                                 ! computation of filtered BFSQ [].
       slsels = 2._r8, &          ! Factor to be multiplied with the mixed
-                               ! layer depth to find the e-folding
-                               ! length scale of the smoothing length
-                               ! scale in the computation of filtered
-                               ! BFSQ [].
+                                 ! layer depth to find the e-folding length
+                                 ! scale of the smoothing length scale in the
+                                 ! computation of filtered BFSQ [].
       bfsqmn = 1.e-7_r8          ! Minimum value of BFSQ used in the
-                               ! computation of neutral slope [s-2].
+                                 ! computation of neutral slope [s-2].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
-      bfsqi, &               ! Interface buoyancy frequency squared
-                             ! [s-2].
-      bfsql, &               ! Layer buoyancy frequency squared [s-2].
-      bfsqf, &               ! Filtered interface buoyancy frequency
-                             ! squared [s-2].
-      nslpx, &               ! x-component of local neutral slope [].
-      nslpy, &               ! y-component of local neutral slope [].
-      nnslpx, &              ! x-component of local neutral slope
-                             ! times buoyancy frequency [s-1].
-      nnslpy                 ! y-component of local neutral slope
-                             ! times buoyancy frequency [s-1].
+      bfsqi, &                   ! Interface buoyancy frequency squared [s-2].
+      bfsql, &                   ! Layer buoyancy frequency squared [s-2].
+      bfsqf, &                   ! Filtered interface buoyancy frequency
+                                 ! squared [s-2].
+      nslpx, &                   ! x-component of local neutral slope [].
+      nslpy, &                   ! y-component of local neutral slope [].
+      nnslpx, &                  ! x-component of local neutral slope times
+                                 ! buoyancy frequency [s-1].
+      nnslpy                     ! y-component of local neutral slope times
+                                 ! buoyancy frequency [s-1].
 
    public :: bfsql, nslpx, nslpy, nnslpx, nnslpy, inivar_cmnfld, cmnfld
 
@@ -77,7 +74,7 @@ module mod_cmnfld
    ! Private procedures.
    ! ---------------------------------------------------------------------------
 
-   subroutine cmnfld_bfsqf(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqf_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Compute buoyancy frequency squared (BFSQ) on layer interfaces and
    ! representative of the layer itself. Also compute a filtered BFSQ on
@@ -238,16 +235,137 @@ module mod_cmnfld
 
       if (csdiag) then
          if (mnproc == 1) then
-            write(lp,*) 'cmnfld_bfsqf:'
+            write(lp,*) 'cmnfld_bfsqf_isopyc_bulkml:'
          endif
          call chksummsk(bfsqi, ip, kk, 'bfsqi')
          call chksummsk(bfsql, ip, kk, 'bfsql')
          call chksummsk(bfsqf, ip, kk, 'bfsqf')
       endif
 
-   end subroutine cmnfld_bfsqf
+   end subroutine cmnfld_bfsqf_isopyc_bulkml
 
-   subroutine cmnfld_nslope(m, n, mm, nn, k1m, k1n)
+   subroutine cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Compute buoyancy frequency squared (BFSQ) on layer interfaces and
+   ! representative of the layer itself. Also compute a filtered BFSQ on
+   ! interfaces.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      real(r8), dimension(kdm) :: delp, bfsq, sls2, atd, btd, ctd, rtd, gam
+      real(r8) :: q, pup, tup, sup, plo, tlo, slo, bei
+      integer :: i, j, k, l, km
+
+      ! ------------------------------------------------------------------------
+      ! The BFSQ is estimated locally at layer interfaces. The filtered BFSQ is
+      ! smoothed in the vertical direction by solving a diffusion equation. 
+      ! ------------------------------------------------------------------------
+
+   !$omp parallel do private(l, i, k, delp, bfsq, q, sls2, pup, tup, sup, km, &
+   !$omp                     plo, tlo, slo, ctd, btd, rtd, atd, bei, gam)
+      do j = - 1, jj + 2
+         do l = 1, isp(j)
+         do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
+
+            ! At layer interfaces, compute BFSQ and length scale for the
+            ! subsequent smoothing.
+            bfsqi(i, j, 1) = bfsqmn
+            pup = .5_r8*(p(i, j, 1) + p(i, j, 2))
+            tup = temp(i, j, 1 + mm)
+            sup = saln(i, j, 1 + mm)
+            do k = 2, kk
+               km = k + mm
+               if (p(i, j, kk + 1) - p(i, j, k) < epsil) then
+                  delp(k) = onemm
+                  bfsqi(i, j, k) = bfsqi(i, j, k - 1)
+                  bfsq(k) = bfsqmn
+                  sls2(k) = sls0*sls0
+               else
+                  if (p(i, j, kk + 1) - p(i, j, k + 1) < epsil) then
+                     plo = p(i, j, kk + 1)
+                  else
+                     plo = .5_r8*(p(i, j, k) + p(i, j, k + 1))
+                  endif
+                  tlo = temp(i, j, km)
+                  slo = saln(i, j, km)
+                  delp(k) = max(onemm, plo - pup)
+                  bfsqi(i, j, k) = g*g*( rho(p(i, j, k), tlo, slo) &
+                                       - rho(p(i, j, k), tup, sup))/delp(k)
+                  bfsq(k) = max(bfsqmn, bfsqi(i, j, k))
+                  bfsqi(i, j, k) = bfsqi(i, j, k)*delp(k)/max(onem, delp(k))
+                  if (p(i, j, kk + 1) - p(i, j, k) < onem) then
+                     bfsqi(i, j, k) = bfsqi(i, j, k - 1)
+                  endif
+                  sls2(k) = sls0*sls0
+                  pup = plo
+                  tup = tlo
+                  sup = slo
+               endif
+            enddo
+            delp(1) = dp(i, j, 1 + mm)
+            bfsqi(i, j, 1) = bfsqi(i, j, 2)
+            bfsq(1) = max(bfsqmn, bfsqi(i, j, 1))
+            sls2(1) = sls0*sls0
+
+            ! Compute the layer BFSQ as the arithmetic mean of the layer
+            ! interface BFSQ.
+            do k = 1, kk - 1
+               bfsql(i, j, k) = .5_r8*(bfsqi(i, j, k) + bfsqi(i, j, k + 1))
+            enddo
+            bfsql(i, j, kk) = bfsqi(i, j, kk)
+
+            ! For the filtered BFSQ, compute the coefficients for the
+            ! tridiagonal set of equations arising from the implicit backward
+            ! discretization.
+            k = 1
+            ctd(k) = - 2._r8*sls2(k    ) &
+                       /(delp(k)*(delp(k    ) + delp(k + 1)))
+            btd(k) = 1._r8 - ctd(k)
+            rtd(k) = bfsq(k)
+            do k = 2, kk - 1
+               atd(k) = - 2._r8*sls2(k - 1) &
+                          /(delp(k)*(delp(k - 1) + delp(k    )))
+               ctd(k) = - 2._r8*sls2(k    ) &
+                          /(delp(k)*(delp(k    ) + delp(k + 1)))
+               btd(k) = 1._r8 - atd(k) - ctd(k)
+               rtd(k) = bfsq(k)
+            enddo
+            k = kk
+            atd(k) = - 2._r8*sls2(k - 1) &
+                       /(delp(k)*(delp(k - 1) + delp(k    )))
+            btd(k) = 1._r8 - atd(k)
+            rtd(k) = bfsq(k)
+
+            ! Solve the tridiagonal set of equations.
+            bei = 1._r8/btd(1)
+            bfsqf(i, j, 1) = rtd(1)*bei
+            do k = 2, kk
+               gam(k) = ctd(k - 1)*bei
+               bei = 1._r8/(btd(k) - atd(k)*gam(k))
+               bfsqf(i, j, k) = (rtd(k) - atd(k)*bfsqf(i, j, k - 1))*bei
+            enddo
+            do k = kk - 1, 1, - 1
+               bfsqf(i, j, k) = bfsqf(i, j, k) - gam(k + 1)*bfsqf(i, j, k + 1)
+            enddo
+
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+      if (csdiag) then
+         if (mnproc == 1) then
+            write(lp,*) 'cmnfld_bfsqf_cntiso_hybrid:'
+         endif
+         call chksummsk(bfsqi, ip, kk, 'bfsqi')
+         call chksummsk(bfsql, ip, kk, 'bfsql')
+         call chksummsk(bfsqf, ip, kk, 'bfsqf')
+      endif
+
+   end subroutine cmnfld_bfsqf_cntiso_hybrid
+
+   subroutine cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate slope of local neutral surface.
    ! ---------------------------------------------------------------------------
@@ -470,7 +588,7 @@ module mod_cmnfld
 
       if (csdiag) then
          if (mnproc == 1) then
-           write (lp,*) 'cmnfld_nslope:'
+           write (lp,*) 'cmnfld_nslope_isopyc_bulkml:'
          endif
          call chksummsk(nslpx, iu, kk, 'nslpx')
          call chksummsk(nslpy, iv, kk, 'nslpy')
@@ -478,7 +596,168 @@ module mod_cmnfld
          call chksummsk(nnslpy, iv, kk, 'nnslpy')
       endif
 
-   end subroutine cmnfld_nslope
+   end subroutine cmnfld_nslope_isopyc_bulkml
+
+   subroutine cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Estimate slope of local neutral surface.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      real(r8) :: rho0, pm, rho_x, phi_x, bfsqm, rho_y, phi_y
+      integer :: i, j, k, l, km, kmax, knnsl
+
+      ! ------------------------------------------------------------------------
+      ! Compute geopotential at layer interfaces.
+      ! ------------------------------------------------------------------------
+
+   !$omp parallel do private(k, km, l, i)
+      do j = - 1, jj + 2
+         do k = kk, 1, - 1
+            km = k + mm
+            do l = 1, isp(j)
+            do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
+               if (dp(i, j, km) < epsil) then
+                  phi(i, j, k) = phi(i, j, k + 1)
+               else
+                  phi(i, j, k) = phi(i, j, k + 1) &
+                               - p_alpha(p(i, j, k + 1), p(i, j, k), &
+                                         temp(i, j, km), saln(i, j, km))
+               endif
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+      ! ------------------------------------------------------------------------
+      ! Compute slope vector of local neutral surfaces and also slope vector
+      ! times Brunt-Vaisala frequency (optionally used in the computation of
+      ! eddy growth rate). The latter is not computed when the gradient of the
+      ! geopotential is expected to be influenced by the gradient of the
+      ! bathymetry and in this case values are extrapolated from above.
+      ! ------------------------------------------------------------------------
+
+      rho0 = 1._r8/alpha0
+
+   !$omp parallel do private(l, i, k, kmax, km, knnsl, pm, rho_x, phi_x, bfsqm)
+      do j = - 1, jj + 2
+         do l = 1, isu(j)
+         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
+
+            ! Set the x-component of the slope vector to zero initially.
+            do k = 1, kk
+               nslpx(i, j, k) = 0._r8
+               nnslpx(i, j, k) = 0._r8
+            enddo
+
+            ! Index of last layer containing mass at either of the scalar
+            ! points adjacent to the velocity point.
+            kmax = 1
+            do k = 2, kk
+               km = k + mm
+               if (dp(i - 1, j, km) > epsil .or. dp(i, j, km) > epsil) kmax = k
+            enddo
+
+            ! Index of last interface where slope vector times Brunt-Vaisala
+            ! frequency is computed.
+            knnsl = 2
+
+            ! Compute the x-component of the slope vector at interfaces.
+            do k = 2, kmax
+               km = k + mm
+               pm = .5_r8*(p(i - 1, j, k) + p(i, j, k))
+               rho_x = .5_r8*( rho(pm, temp(i    , j, km - 1), &
+                                       saln(i    , j, km - 1)) &
+                             - rho(pm, temp(i - 1, j, km - 1), &
+                                       saln(i - 1, j, km - 1)) &
+                             + rho(pm, temp(i    , j, km    ), &
+                                       saln(i    , j, km    )) &
+                             - rho(pm, temp(i - 1, j, km    ), &
+                                       saln(i - 1, j, km    )))
+               phi_x = phi(i, j, k) - phi(i - 1, j, k)
+               bfsqm = .5_r8*(bfsqf(i - 1, j, k) + bfsqf(i, j, k))
+               nslpx(i, j, k) = (g*rho_x/(rho0*bfsqm) + phi_x/g)*scuxi(i, j)
+               if (phi(i    , j, k) > phi(i - 1, j, kk + 1) .and. &
+                   phi(i - 1, j, k) > phi(i    , j, kk + 1)) then
+                  nnslpx(i, j, k) = sqrt(bfsqm)*nslpx(i, j, k)
+                  knnsl = k
+               endif
+            enddo
+            do k = knnsl + 1, kmax
+               nnslpx(i, j, k) = nnslpx(i, j, knnsl)
+            enddo
+
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+   !$omp parallel do private(l, i, k, kmax, km, knnsl, pm, rho_y, phi_y, bfsqm)
+      do j = 0, jj + 2
+         do l = 1, isv(j)
+         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
+
+            ! Set the y-component of the slope vector to zero initially.
+            do k = 1, kk
+               nslpy(i, j, k) = 0._r8
+               nnslpy(i, j, k) = 0._r8
+            enddo
+
+            ! Index of last layer containing mass at either of the scalar
+            ! points adjacent to the velocity point.
+            kmax = 1
+            do k = 2, kk
+               km = k + mm
+               if (dp(i, j - 1, km) > epsil .or. dp(i, j, km) > epsil) kmax = k
+            enddo
+
+            ! Index of last interface where slope vector times Brunt-Vaisala
+            ! frequency is computed.
+            knnsl = 2
+
+            ! Compute the y-component of the slope vector at interfaces.
+            do k = 2, kmax
+               km = k + mm
+               pm = .5_r8*(p(i, j - 1, k) + p(i, j, k))
+               rho_y = .5_r8*( rho(pm, temp(i, j    , km - 1), &
+                                       saln(i, j    , km - 1)) &
+                             - rho(pm, temp(i, j - 1, km - 1), &
+                                       saln(i, j - 1, km - 1)) &
+                             + rho(pm, temp(i, j    , km    ), &
+                                       saln(i, j    , km    )) &
+                             - rho(pm, temp(i, j - 1, km    ), &
+                                       saln(i, j - 1, km    )))
+               phi_y = phi(i, j, k) - phi(i, j - 1, k)
+               bfsqm = .5_r8*(bfsqf(i, j - 1, k) + bfsqf(i, j, k))
+               nslpy(i, j, k) = (g*rho_y/(rho0*bfsqm) + phi_y/g)*scvyi(i, j)
+               if (phi(i, j    , k) > phi(i, j - 1, kk + 1) .and. &
+                   phi(i, j - 1, k) > phi(i, j    , kk + 1)) then
+                  nnslpy(i, j, k) = sqrt(bfsqm)*nslpy(i, j, k)
+                  knnsl = k
+               endif
+            enddo
+            do k = knnsl + 1, kmax
+               nnslpy(i, j, k) = nnslpy(i, j, knnsl)
+            enddo
+
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+      if (csdiag) then
+         if (mnproc == 1) then
+           write (lp,*) 'cmnfld_nslope_cntiso_hybrid:'
+         endif
+         call chksummsk(nslpx, iu, kk, 'nslpx')
+         call chksummsk(nslpy, iv, kk, 'nslpy')
+         call chksummsk(nnslpx, iu, kk, 'nnslpx')
+         call chksummsk(nnslpy, iv, kk, 'nnslpy')
+      endif
+
+   end subroutine cmnfld_nslope_cntiso_hybrid
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
@@ -558,7 +837,11 @@ module mod_cmnfld
          ! Compute filtered buoyancy frequency squared.
          ! ---------------------------------------------------------------------
 
-         call cmnfld_bfsqf(m, n, mm, nn, k1m, k1n)
+         if (vcoord_type_tag == isopyc_bulkml) then
+            call cmnfld_bfsqf_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
+         else
+            call cmnfld_bfsqf_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+         endif
 
       endif
 
@@ -568,7 +851,11 @@ module mod_cmnfld
          ! Estimate slope of local neutral surface.
          ! ---------------------------------------------------------------------
 
-         call cmnfld_nslope(m, n, mm, nn, k1m, k1n)
+         if (vcoord_type_tag == isopyc_bulkml) then
+            call cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
+         else
+            call cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+         endif
 
       endif
 
