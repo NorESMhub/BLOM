@@ -56,7 +56,8 @@ c******************************************************************************
       use mo_riverinpt,  only: ini_riverinpt,rivinfile
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
-     .                         omask,sedlay2,powtra2,burial2
+     .                         omask,sedlay2,powtra2,burial2,
+     .                         blom2hamocc
 c
       implicit none
 c

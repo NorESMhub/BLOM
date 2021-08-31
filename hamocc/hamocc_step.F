@@ -29,7 +29,8 @@ c
       use mod_forcing, only: swa,slp,abswnd,atmco2,flxco2,flxdms
       use mod_seaice, only: ficem
       use mo_bgcmean
-      use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
+      use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,
+     .     blom2hamocc,hamocc2blom
       use mo_riverinpt, only: rivflx
       use mo_fedep,     only: get_fedep
       use mo_ndep,      only: get_ndep

@@ -38,10 +38,11 @@ module mo_intfcblom
 !  -subroutine alloc_mem_intfcblom
 !     Allocate memory for BLOM interface variables
 !
-!  To do
-!  -----
-!   Once BLOM has transitioned to free source format, the interface routines
-!   blom2hamocc and hamocc2blom can be incorporated into this module
+!  -subroutine blom2hamocc
+!     Transfer fields from BLOM to HAMOCC
+!
+!  -subroutine hamocc2blom
+!     Transfer fields from HAMOCC to BLOM
 !
 !
 !   *nphys*      *INTEGER*  - number of bgc timesteps per ocean timestep.
@@ -76,9 +77,9 @@ module mo_intfcblom
   real, allocatable, save :: powtra2(:,:,:,:)
   real, allocatable, save :: burial2(:,:,:,:)
 
-  ! Two time level copy of prognostic atmosphere field 
+  ! Two time level copy of prognostic atmosphere field
   ! used if BOXATM is activated
-  real, allocatable, save :: atm2(:,:,:,:)      
+  real, allocatable, save :: atm2(:,:,:,:)
 
 contains
 !******************************************************************************
@@ -99,7 +100,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
 
   INTEGER, intent(in) :: kpie,kpje,kpke
   INTEGER             :: errstat
-      
+
 
   IF (mnproc.eq.1) THEN
     WRITE(io_stdo_bgc,*)' '
@@ -155,7 +156,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   ALLOCATE(omask(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory omask'
   omask(:,:) = 0.0
-  
+
 #ifndef sedbypass
   IF(mnproc.eq.1) THEN
     WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
@@ -210,9 +211,327 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   atm2(:,:,:,:) = 0.0
 #endif
 
-!******************************************************************************
 end subroutine alloc_mem_intfcblom
-
-
 !******************************************************************************
+
+
+
+subroutine blom2hamocc(m,n,mm,nn)
+!******************************************************************************
+!
+!**** *SUBROUTINE blom2hammoc* - Interface between BLOM and HAMOCC.
+!
+!     K. Assmann        *GFI, UiB        initial version
+!     J. Schwinger      *GFI, UiB        2013-04-22
+!      -
+!
+!     Modified
+!     --------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - removed inverse of layer thickness
+!     - added sediment bypass preprocessor option
+!
+!     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+!     - changed ocean model from MICOM to BLOM
+!
+!     T. Torsvik,       *University of Bergen*   2021-08-26
+!     - integrate subroutine into module mo_intfcblom
+!
+!     Purpose
+!     -------
+!     - 
+!
+!******************************************************************************
+!
+  use mod_constants, only: onem
+  use mod_xc
+  use mod_grid,      only: scpx,scpy
+  use mod_state,     only: dp,temp,saln
+  use mod_eos,       only: rho,p_alpha
+  use mod_tracers,   only: ntrbgc,itrbgc,trc
+  use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
+  use mo_carbch,     only: ocetra,atm
+  use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+
+  implicit none
+
+  integer, intent(in) :: m,n,mm,nn
+
+  integer             :: i,j,k,l,nns,kn
+  real                :: p1,p2,ldp,th,s,pa
+  real                :: rp(idm,jdm,kdm+1)
+
+  nns=(n-1)*ks
+
+  rp(:,:,:) = 0.0
+
+! --- calculate pressure at interfaces (necesarry since p has
+! --- not been calculated at restart)
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+  do k=1,kk
+     kn=k+nn
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        rp(i,j,k+1) = rp(i,j,k) + dp(i,j,kn)
+     enddo
+     enddo
+  enddo
+  enddo
+!$OMP END PARALLEL DO
+
+! --- ------------------------------------------------------------------
+! --- 2D fields
+! --- ------------------------------------------------------------------
+
+!$OMP PARALLEL DO PRIVATE(i)
+  do j=1,jj
+  do i=1,ii
+!
+! --- - dimension of grid box in meters
+     bgc_dx(i,j) = scpx(i,j)/1.e2
+     bgc_dy(i,j) = scpy(i,j)/1.e2
+  enddo
+  enddo
+!$OMP END PARALLEL DO
+
+! --- ------------------------------------------------------------------
+! --- 3D fields
+! --- ------------------------------------------------------------------
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i,th,s,p1,p2,ldp,pa)
+  do k=1,kk
+     kn=k+nn
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+!
+! --- - integrated specific volume
+        th = temp(i,j,kn)
+        s  = saln(i,j,kn)
+        p1 = rp(i,j,k)
+        if(dp(i,j,kn) == 0.0) then
+           ldp = 1.0
+           pa  = ldp/rho(p1,th,s)
+        else if(dp(i,j,kn) <  1.0e-2) then
+           ldp = dp(i,j,kn)
+           pa  = ldp/rho(p1,th,s)
+        else
+           ldp = dp(i,j,kn)
+           p2  = p1+ldp
+           pa  = p_alpha(p1,p2,th,s)
+        end if
+!
+! --- - density in g/cm^3
+        bgc_rho(i,j,k)=ldp/pa
+!
+! --- - layer thickness in meters
+        bgc_dp(i,j,k) = 0.0
+        if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = pa / onem
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+
+! --- ------------------------------------------------------------------
+! --- - return if restart (HAMOCC fields are not allocated yet)
+! --- ------------------------------------------------------------------
+  if( .not. allocated(ocetra) ) return
+
+! --- ------------------------------------------------------------------
+! --- pass tracer fields from ocean model; convert mol/kg -> kmol/m^3
+! --- ------------------------------------------------------------------
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+  do k=1,kk
+     kn=k+nn
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        ocetra(i,j,k,:) = trc(i,j,kn,itrbgc:itrbgc+ntrbgc-1) * bgc_rho(i,j,k)
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+
+! --- ------------------------------------------------------------------
+! --- pass sediments fields (a two time-level copy of sediment fields
+! --- is kept outside HAMOCC)
+! --- ------------------------------------------------------------------
+
+#ifndef sedbypass
+  nns=(n-1)*ks
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+  do k=1,ks
+     kn=k+nns
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
+        powtra(i,j,k,:) = powtra2(i,j,kn,:)
+        burial(i,j,:)   = burial2(i,j,n,:)
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+#endif
+
+! --- ------------------------------------------------------------------
+! --- pass atmosphere fields if required (a two time-level copy of
+! --- atmosphere fields is kept outside HAMOCC)
+! --- ------------------------------------------------------------------
+
+#if defined(BOXATM)
+!$OMP PARALLEL DO PRIVATE(i)
+  do j=1,jj
+  do i=1,ii
+     atm(i,j,:) = atm2(i,j,n,:)
+  enddo
+  enddo
+!$OMP END PARALLEL DO
+#endif
+
+end subroutine blom2hamocc
+!******************************************************************************
+
+
+
+subroutine hamocc2blom(m,n,mm,nn)
+!******************************************************************************
+!
+!**** *SUBROUTINE hamocc2blom* - Interface between BLOM and HAMOCC.
+!
+!     J. Schwinger      *GFI, UiB        2014-05-21 initial version
+!      -
+!
+!     Modified
+!     --------
+!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+!     - added sediment bypass preprocessor option
+!
+!     M. Bentsen,       *NORCE, Bergen*          2020-05-03
+!     - changed ocean model from MICOM to BLOM
+!
+!     T. Torsvik,       *University of Bergen*   2021-08-26
+!     - integrate subroutine into module mo_intfcblom
+!
+!     Purpose
+!     -------
+!      Pass flux and tracer fields back from HAMOCC to BLOM.
+!      The local HAMOCC arrays are copied back in the appropriate
+!      time-level of the tracer field. Note that also sediment fields
+!      are copied back, since a two time-level copy of sediment fields
+!      is kept outside HAMOCC. For the sediment fields the same time-
+!      smothing as for the tracer field (i.e. analog to tmsmt2.F) is
+!      performed to avoid a seperation of the two time levels.
+!
+!******************************************************************************
+!
+  use mod_xc
+  use mod_tracers,   only: ntrbgc,itrbgc,trc
+  use mod_tmsmt,     only: wts1, wts2
+  use mo_carbch,     only: ocetra,atm
+  use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
+  use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+
+  implicit none
+
+  integer, intent(in) :: m,n,mm,nn
+  integer             :: i,j,k,l,nns,mms,kn,km
+
+! --- ------------------------------------------------------------------
+! --- pass tracer fields to ocean model; convert kmol/m^3 -> mol/kg
+! --- ------------------------------------------------------------------
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+  do k=1,kk
+     kn=k+nn
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        trc(i,j,kn,itrbgc:itrbgc+ntrbgc-1) = ocetra(i,j,k,:)/bgc_rho(i,j,k)
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+
+! --- ------------------------------------------------------------------
+! --- apply time smoothing for sediment fields and pass them back
+! --- ------------------------------------------------------------------
+
+#ifndef sedbypass
+  nns=(n-1)*ks
+  mms=(m-1)*ks
+
+!$OMP PARALLEL DO PRIVATE(k,km,kn,l,i)
+  do k=1,ks
+     km=k+mms
+     kn=k+nns
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+        sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
+             + wts2*sedlay2(i,j,kn,:)                &  ! old timelevel
+             + wts2*sedlay(i,j,k,:)                     ! new timelevel
+        powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
+             + wts2*powtra2(i,j,kn,:)                &
+             + wts2*powtra(i,j,k,:)
+        burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
+             + wts2*burial2(i,j,n,:)                 &
+             + wts2*burial(i,j,:)
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+
+!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+  do k=1,ks
+     kn=k+nns
+     do j=1,jj
+     do l=1,isp(j)
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
+        powtra2(i,j,kn,:) = powtra(i,j,k,:)
+        burial2(i,j,n,:)  = burial(i,j,:)
+     enddo
+     enddo
+     enddo
+  enddo
+!$OMP END PARALLEL DO
+#endif
+
+! --- ------------------------------------------------------------------
+! --- apply time smoothing for atmosphere fields if required
+! --- ------------------------------------------------------------------
+
+#if defined(BOXATM)
+!$OMP PARALLEL DO PRIVATE(i)
+  do j=1,jj
+  do i=1,ii                                   ! time smoothing (analog to tmsmt2.F)
+     atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
+          + wts2*atm2(i,j,n,:)            &   ! old timelevel
+          + wts2*atm(i,j,:)                   ! new timelevel
+  enddo
+  enddo
+!$OMP END PARALLEL DO
+
+!$OMP PARALLEL DO PRIVATE(i)
+  do j=1,jj
+  do i=1,ii
+     atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
+  enddo
+  enddo
+!$OMP END PARALLEL DO
+#endif
+
+end subroutine hamocc2blom
+!******************************************************************************
+
 end module mo_intfcblom
