@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2020 Mats Bentsen
+! Copyright (C) 2021 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
