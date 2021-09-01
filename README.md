@@ -13,7 +13,7 @@ into the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readt
 - [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
 
 The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) contains information about
-BLOM-specific topics that is not considered relevant for the general user documentation:
+BLOM-specific topics that is not considered relevant for the general NorESM documentation:
 - working with the BLOM git repository on gitHub
 - running BLOM/iHAMOCC stand-alone test cases
 - details about model structure
