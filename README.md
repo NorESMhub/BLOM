@@ -6,10 +6,17 @@ Model (<https://github.com/NorESMhub/NorESM>).
 
 ## BLOM documentation
 
-BLOM documetation is integrated in the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/latest/>).
+Since BLOM is mainly used in connection with the NorESM system, the BLOM user documetation has been integrated
+into the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/latest/>).
 - [Running OMIP-type experiments](https://noresm-docs.readthedocs.io/en/latest/configurations/omips.html#blom)
 - [BLOM model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
 - [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
+
+The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) contains information about
+BLOM-specific topics that is not considered relevant for the general NorESM documentation:
+- working with the BLOM git repository on gitHub
+- running BLOM/iHAMOCC stand-alone test cases
+- details about model structure
 
 ### Building a stand-alone BLOM executable with meson
 When compiling BLOM with NorESM, the NorESM build system should be used. A stand-alone
