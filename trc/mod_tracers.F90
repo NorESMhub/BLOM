@@ -26,6 +26,9 @@ module mod_tracers
    use mod_types, only: r8
    use mod_constants, only: spval
    use mod_xc
+#ifdef HAMOCC
+   use mo_param1_bgc, only: nocetra
+#endif
 
    implicit none
 
@@ -51,28 +54,7 @@ module mod_tracers
 
    ! Number of HAMOCC tracers.
 #ifdef HAMOCC
-   integer, parameter :: i_base = 22 ! Advected HAMOCC tracers.
-#  ifdef cisonew
-   integer, parameter :: i_iso = 12
-#  else 
-   integer, parameter :: i_iso = 0
-#  endif
-#  ifdef CFC  
-   integer, parameter :: i_cfc = 3
-#  else 
-   integer, parameter :: i_cfc = 0
-#  endif
-#  ifdef AGG
-   integer, parameter :: i_agg = 2
-#  else 
-   integer, parameter :: i_agg = 0
-#  endif
-#  ifdef natDIC
-   integer, parameter :: i_nat_dic = 3
-#  else
-   integer, parameter :: i_nat_dic = 0
-#  endif
-   integer, parameter :: ntrbgc = i_base + i_iso + i_cfc + i_agg + i_nat_dic
+   integer, parameter :: ntrbgc = nocetra
 #else
    integer, parameter :: ntrbgc = 0
 #endif
