@@ -2144,6 +2144,9 @@ contains
 
       js = 1
       jd = 1
+      do while (rms%hi_dst(jd) == c0)
+         jd = jd + 1
+      enddo
       iseg = 0
       rms%n_src_seg(js) = 0
       xil = c0
@@ -2529,17 +2532,16 @@ contains
 
          case (hor3map_pcm)
 
+            ! Integrate the required segments of each source grid cell in
+            ! succession, adding the integrals to the appropriate destination
+            ! grid cells.
             do js = 1, rcs%n_src
                if (rms%n_src_seg(js) == 1) then
-                  ! No integration needed
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
                             + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
                else
-                  ! Integrate the required segments of each source grid cell in
-                  ! succession, adding the integrals to the appropriate
-                  ! destination grid cells.
                   xil = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
                      iseg = iseg + 1
@@ -2557,19 +2559,27 @@ contains
                endif
             enddo
 
+            ! Set values for any near-empty destination grid cells at the start
+            ! and the end of the array.
+            do jd = 1, rms%seg_dst_index(1) - 1
+               u_dst(jd) = rcs%u_src(1)
+            enddo
+            do jd = rms%seg_dst_index(iseg) + 1, rms%n_dst
+               u_dst(jd) = rcs%u_src(rcs%n_src)
+            enddo
+
          case (hor3map_plm)
 
+            ! Integrate the required segments of each source grid cell in
+            ! succession, adding the integrals to the appropriate destination
+            ! grid cells.
             do js = 1, rcs%n_src
                if (rms%n_src_seg(js) == 1) then
-                  ! No integration needed
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
                             + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
                else
-                  ! Integrate the required segments of each source grid cell in
-                  ! succession, adding the integrals to the appropriate
-                  ! destination grid cells.
                   xil = c0
                   adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
@@ -2591,19 +2601,32 @@ contains
                endif
             enddo
 
+            ! Set values for any near-empty destination grid cells at the start
+            ! and the end of the array.
+            do jd = 1, rms%seg_dst_index(1) - 1
+               u_dst(jd) = rcs%polycoeff(1, 1)
+            enddo
+            if (rms%seg_dst_index(iseg) < rms%n_dst) then
+               jd = rms%seg_dst_index(iseg) + 1
+               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
+                         + rcs%polycoeff(2, rcs%n_src)
+               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               enddo
+            endif
+
          case (hor3map_ppm)
 
+            ! Integrate the required segments of each source grid cell in
+            ! succession, adding the integrals to the appropriate destination
+            ! grid cells.
             do js = 1, rcs%n_src
                if (rms%n_src_seg(js) == 1) then
-                  ! No integration needed
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
                             + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
                else
-                  ! Integrate the required segments of each source grid cell in
-                  ! succession, adding the integrals to the appropriate
-                  ! destination grid cells.
                   xil = c0
                   adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
@@ -2627,19 +2650,33 @@ contains
                endif
             enddo
 
+            ! Set values for any near-empty destination grid cells at the start
+            ! and the end of the array.
+            do jd = 1, rms%seg_dst_index(1) - 1
+               u_dst(jd) = rcs%polycoeff(1, 1)
+            enddo
+            if (rms%seg_dst_index(iseg) < rms%n_dst) then
+               jd = rms%seg_dst_index(iseg) + 1
+               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
+                         + rcs%polycoeff(2, rcs%n_src) &
+                         + rcs%polycoeff(3, rcs%n_src)
+               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               enddo
+            endif
+
          case (hor3map_pqm)
 
+            ! Integrate the required segments of each source grid cell in
+            ! succession, adding the integrals to the appropriate destination
+            ! grid cells.
             do js = 1, rcs%n_src
                if (rms%n_src_seg(js) == 1) then
-                  ! No integration needed
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
                             + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
                else
-                  ! Integrate the required segments of each source grid cell in
-                  ! succession, adding the integrals to the appropriate
-                  ! destination grid cells.
                   xil = c0
                   adl = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
@@ -2668,6 +2705,24 @@ contains
                   enddo
                endif
             enddo
+
+            ! Set values for any near-empty destination grid cells at the start
+            ! and the end of the array.
+            do jd = 1, rms%seg_dst_index(1) - 1
+               u_dst(jd) = rcs%polycoeff(1, 1)
+            enddo
+            if (rms%seg_dst_index(iseg) < rms%n_dst) then
+               jd = rms%seg_dst_index(iseg) + 1
+               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
+                         + rcs%polycoeff(2, rcs%n_src) &
+                         + rcs%polycoeff(3, rcs%n_src) &
+                         + rcs%polycoeff(4, rcs%n_src) &
+                         + rcs%polycoeff(5, rcs%n_src)
+               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               enddo
+            endif
+
       end select
 
    end function remap
