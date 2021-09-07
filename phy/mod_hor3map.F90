@@ -131,7 +131,7 @@ module mod_hor3map
          u_src, uel, uer, usl, usr
       real(r8) :: x_eps
       integer, allocatable, dimension(:) :: src_dst_index
-      integer :: n_src_all, n_src, method, limiting
+      integer :: n_src_all, n_src, method
       logical :: &
          alloced       = .false., &
          prepared      = .false., &
@@ -1412,22 +1412,21 @@ contains
 
    end subroutine reconstruct_plm_no_limiting
 
-   subroutine reconstruct_plm_monotonic(rcs, pc_boundary_cells)
+   subroutine reconstruct_plm_monotonic(rcs, pclb, pcrb)
    ! ---------------------------------------------------------------------------
    ! Carry out a reconstruction with piecewise lines and apply limiting to
    ! ensure a monotonic reconstruction.
    ! ---------------------------------------------------------------------------
 
       type(reconstruction_struct), intent(inout) :: rcs
-      logical, intent(in) :: pc_boundary_cells
+      logical, intent(in) :: pclb, pcrb
 
       real(r8) :: sl, sr, sc
       integer :: ns, j
 
       ns = rcs%n_src
 
-      ! Use monotonized central-difference limiter.
-
+      ! Use monotonized central-difference limiter for interior grid cells.
       do j = 2, ns - 1
          sl = c2*(rcs%u_src(j) - rcs%u_src(j - 1))*rcs%hi_src(j)
          sr = c2*(rcs%u_src(j + 1) - rcs%u_src(j))*rcs%hi_src(j)
@@ -1443,22 +1442,30 @@ contains
          rcs%uer(j) = rcs%polycoeff(1, j) + rcs%polycoeff(2, j)
       enddo
 
-      if (pc_boundary_cells) then
+      if (pclb) then
+         ! Piecewise constant reconstruction of left boundary cell.
          rcs%polycoeff(1, 1) = rcs%u_src(1)
          rcs%polycoeff(2, 1) = c0
          rcs%uel(1) = rcs%u_src(1)
          rcs%uer(1) = rcs%u_src(1)
-         rcs%polycoeff(1, ns) = rcs%u_src(ns)
-         rcs%polycoeff(2, ns) = c0
-         rcs%uel(ns) = rcs%u_src(ns)
-         rcs%uer(ns) = rcs%u_src(ns)
       else
+         ! Piecewise linear reconstruction of left boundary cell.
          sc = c2*(rcs%u_src(2) - rcs%u_src(1)) &
                 /(rcs%h_src(2) + rcs%h_src(1))
          rcs%polycoeff(2, 1) = sc*rcs%h_src(1)
          rcs%polycoeff(1, 1) = rcs%u_src(1) - c1_2*rcs%polycoeff(2, 1)
          rcs%uel(1) = rcs%polycoeff(1, 1)
          rcs%uer(1) = rcs%polycoeff(1, 1) + rcs%polycoeff(2, 1)
+      endif
+
+      if (pcrb) then
+         ! Piecewise constant reconstruction of right boundary cell.
+         rcs%polycoeff(1, ns) = rcs%u_src(ns)
+         rcs%polycoeff(2, ns) = c0
+         rcs%uel(ns) = rcs%u_src(ns)
+         rcs%uer(ns) = rcs%u_src(ns)
+      else
+         ! Piecewise linear reconstruction of right boundary cell.
          sc = c2*(rcs%u_src(ns) - rcs%u_src(ns - 1)) &
                 /(rcs%h_src(ns) + rcs%h_src(ns - 1))
          rcs%polycoeff(2, ns) = sc*rcs%h_src(ns)
@@ -1727,33 +1734,26 @@ contains
 
    end subroutine limit_ppm_interior_non_oscillatory
 
-   subroutine limit_ppm_boundary(rcs, pc_boundary_cells)
+   subroutine limit_ppm_boundary(rcs, pclb, pcrb)
    ! ---------------------------------------------------------------------------
    ! Handle piecewise parabola limiting of boundary cells.
    ! ---------------------------------------------------------------------------
 
       type(reconstruction_struct), intent(inout) :: rcs
-      logical, intent(in) :: pc_boundary_cells
+      logical, intent(in) :: pclb, pcrb
 
       real(r8) :: dl, dr, d, q, r
       integer :: ns
 
       ns = rcs%n_src
 
-      if (pc_boundary_cells) then
-
-         ! Piecewise constant reconstruction of boundary cells.
+      if (pclb) then
+         ! Piecewise constant reconstruction of the left boundary cell.
          rcs%uel(1) = rcs%u_src(1)
          rcs%uer(1) = rcs%u_src(1)
-         rcs%uel(ns) = rcs%u_src(ns)
-         rcs%uer(ns) = rcs%u_src(ns)
-
       else
-
-         ! Do not treat boundary cells as local extrema, but ensure
-         ! that the piecewise parabolas are monotonic within the
-         ! boundary cells.
-
+         ! Do not treat the left boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
          if ((rcs%u_src(2) - rcs%uer(1))*(rcs%u_src(1) - rcs%uer(1)) > c0) then
             rcs%uel(1) = rcs%u_src(1)
             rcs%uer(1) = rcs%u_src(1)
@@ -1779,7 +1779,15 @@ contains
                endif
             endif
          endif
+      endif
 
+      if (pcrb) then
+         ! Piecewise constant reconstruction of the right boundary cell.
+         rcs%uel(ns) = rcs%u_src(ns)
+         rcs%uer(ns) = rcs%u_src(ns)
+      else
+         ! Do not treat the right boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
          if ( (rcs%u_src(ns    ) - rcs%uel(ns)) &
              *(rcs%u_src(ns - 1) - rcs%uel(ns)) > c0) then
             rcs%uel(ns) = rcs%u_src(ns)
@@ -1806,7 +1814,6 @@ contains
                endif
             endif
          endif
-
       endif
 
    end subroutine limit_ppm_boundary
@@ -2217,7 +2224,8 @@ contains
 
    end function prepare_remapping
 
-   function reconstruct(rcs, u_src, limiting, pc_boundary_cells) result(errstat)
+   function reconstruct(rcs, u_src, limiting, pc_left_bndr, pc_right_bndr) &
+      result(errstat)
    ! ---------------------------------------------------------------------------
    ! Carry out the piecewise polynomial reconstruction of the source data with
    ! desired limiting method and handling of boundaries.
@@ -2226,13 +2234,27 @@ contains
       type(reconstruction_struct), intent(inout) :: rcs
       real(r8), dimension(:), intent(in) :: u_src
       integer, intent(in) :: limiting
-      logical, intent(in) :: pc_boundary_cells
+      logical, optional, intent(in) :: pc_left_bndr, pc_right_bndr
 
       integer :: errstat
 
       integer :: js, jd
+      logical :: pclb, pcrb
 
       errstat = hor3map_noerr
+
+      ! Check optional arguments that controls whether left and right boundary
+      ! cells are reconstructed as piecewise constants or not.
+      if (present(pc_left_bndr) .and. present(pc_right_bndr)) then
+         pclb = pc_left_bndr
+         pcrb = pc_right_bndr
+      elseif (present(pc_left_bndr)) then
+         pclb = pc_left_bndr
+         pcrb = pclb
+      else
+         pclb = .true.
+         pcrb = .true.
+      endif
 
       ! Check that the reconstruction has been prepared.
       if (.not. rcs%prepared) then
@@ -2244,8 +2266,6 @@ contains
          errstat = hor3map_src_size_mismatch
          return
       endif
-
-      rcs%limiting = limiting
 
       ! Copy source data array to continuous array of grid cells to be used in
       ! the reconstruction.
@@ -2269,7 +2289,7 @@ contains
                case (hor3map_no_limiting)
                   call reconstruct_plm_no_limiting(rcs)
                case (hor3map_monotonic)
-                  call reconstruct_plm_monotonic(rcs, pc_boundary_cells)
+                  call reconstruct_plm_monotonic(rcs, pclb, pcrb)
                case default
                   errstat = hor3map_invalid_plm_limiting
                   return
@@ -2280,13 +2300,13 @@ contains
                case (hor3map_no_limiting)
                case (hor3map_monotonic)
                   call limit_ppm_interior_monotonic(rcs)
-                  call limit_ppm_boundary(rcs, pc_boundary_cells)
+                  call limit_ppm_boundary(rcs, pclb, pcrb)
                case (hor3map_non_oscillatory)
                   call limit_ppm_interior_non_oscillatory(rcs)
-                  call limit_ppm_boundary(rcs, pc_boundary_cells)
+                  call limit_ppm_boundary(rcs, pclb, pcrb)
                case (hor3map_non_oscillatory_posdef)
                   call limit_ppm_interior_non_oscillatory(rcs)
-                  call limit_ppm_boundary(rcs, pc_boundary_cells)
+                  call limit_ppm_boundary(rcs, pclb, pcrb)
                   call limit_ppm_posdef(rcs)
                case default
                   errstat = hor3map_invalid_ppm_limiting

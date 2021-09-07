@@ -53,9 +53,12 @@ module mod_vcoord
       tracer_limiting = 'monotonic', &
       velocity_limiting = 'monotonic'
    logical :: &
-      density_pc_boundary = .false., &
-      tracer_pc_boundary = .false., &
-      velocity_pc_boundary = .false.
+      density_pc_upper_bndr = .false., &
+      density_pc_lower_bndr = .false., &
+      tracer_pc_upper_bndr = .true., &
+      tracer_pc_lower_bndr = .false., &
+      velocity_pc_upper_bndr = .true., &
+      velocity_pc_lower_bndr = .false.
    real(r8) :: &
       dpmin_surface  = 1.5_r8, &
       dpmin_interior = .1_r8
@@ -103,7 +106,9 @@ contains
       namelist /vcoord/ &
          vcoord_type, reconstruction_method, &
          density_limiting, tracer_limiting, velocity_limiting, &
-         density_pc_boundary, tracer_pc_boundary, velocity_pc_boundary, &
+         density_pc_upper_bndr, density_pc_lower_bndr, &
+         tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
+         velocity_pc_upper_bndr, velocity_pc_lower_bndr, &
          dpmin_surface, dpmin_interior
 
       ! Read variables in the namelist group 'vcoord'.
@@ -138,28 +143,35 @@ contains
         call xcbcst(density_limiting)
         call xcbcst(tracer_limiting)
         call xcbcst(velocity_limiting)
-        call xcbcst(density_pc_boundary)
-        call xcbcst(tracer_pc_boundary)
-        call xcbcst(velocity_pc_boundary)
+        call xcbcst(density_pc_upper_bndr)
+        call xcbcst(density_pc_lower_bndr)
+        call xcbcst(tracer_pc_upper_bndr)
+        call xcbcst(tracer_pc_lower_bndr)
+        call xcbcst(velocity_pc_upper_bndr)
+        call xcbcst(velocity_pc_lower_bndr)
         call xcbcst(dpmin_surface)
         call xcbcst(dpmin_interior)
       endif
       if (mnproc == 1) then
          write (lp,*) 'readnml_vcoord: vertical coordinate variables:'
-         write (lp,*) '  vcoord_type =           ', &
+         write (lp,*) '  vcoord_type =            ', &
                       trim(vcoord_type)
-         write (lp,*) '  reconstruction_method = ', &
+         write (lp,*) '  reconstruction_method =  ', &
                       trim(reconstruction_method)
-         write (lp,*) '  density_limiting =      ', &
+         write (lp,*) '  density_limiting =       ', &
                       trim(density_limiting)
-         write (lp,*) '  tracer_limiting =       ', &
+         write (lp,*) '  tracer_limiting =        ', &
                       trim(tracer_limiting)
-         write (lp,*) '  velocity_limiting =     ', &
+         write (lp,*) '  velocity_limiting =      ', &
                       trim(velocity_limiting)
-         write (lp,*) '  density_pc_boundary =          ', density_pc_boundary
-         write (lp,*) '  tracer_pc_boundary =           ', tracer_pc_boundary
-         write (lp,*) '  dpmin_surface =                ', dpmin_surface
-         write (lp,*) '  dpmin_interior =               ', dpmin_interior
+         write (lp,*) '  density_pc_upper_bndr =  ', density_pc_upper_bndr
+         write (lp,*) '  density_pc_lower_bndr =  ', density_pc_lower_bndr
+         write (lp,*) '  tracer_pc_upper_bndr =   ', tracer_pc_upper_bndr
+         write (lp,*) '  tracer_pc_lower_bndr =   ', tracer_pc_lower_bndr
+         write (lp,*) '  velocity_pc_upper_bndr = ', velocity_pc_upper_bndr
+         write (lp,*) '  velocity_pc_lower_bndr = ', velocity_pc_lower_bndr
+         write (lp,*) '  dpmin_surface =          ', dpmin_surface
+         write (lp,*) '  dpmin_interior =         ', dpmin_interior
       endif
 
       ! Resolve options.
@@ -374,7 +386,7 @@ contains
 
             ! Monotonically reconstruct potential density.
             errstat = reconstruct(rcs, sigma_1d, density_limiting_tag, &
-                                  density_pc_boundary)
+                                  density_pc_upper_bndr, density_pc_lower_bndr)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
                call xchalt('(cntiso_hybrid_regrid_remap)')
@@ -526,7 +538,7 @@ contains
 
             ! Reconstruct and remap potential temperature.
             errstat = reconstruct(rcs, temp_1d, tracer_limiting_tag, &
-                                  tracer_pc_boundary)
+                                  tracer_pc_upper_bndr, tracer_pc_lower_bndr)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
                call xchalt('(cntiso_hybrid_regrid_remap)')
@@ -541,7 +553,7 @@ contains
 
             ! Reconstruct and remap salinity.
             errstat = reconstruct(rcs, saln_1d, tracer_limiting_tag, &
-                                  tracer_pc_boundary)
+                                  tracer_pc_upper_bndr, tracer_pc_lower_bndr)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
                call xchalt('(cntiso_hybrid_regrid_remap)')
@@ -558,7 +570,7 @@ contains
             ! Reconstruct and remap tracers.
             do nt = 1, ntr
                errstat = reconstruct(rcs, trc_1d(:, nt), tracer_limiting_tag, &
-                                     tracer_pc_boundary)
+                                     tracer_pc_upper_bndr, tracer_pc_lower_bndr)
                if (errstat /= hor3map_noerr) then
                   write(lp,*) trim(hor3map_errstr(errstat))
                   call xchalt('(cntiso_hybrid_regrid_remap)')
@@ -698,7 +710,8 @@ contains
 
             ! Reconstruct and remap u-component of velocity.
             errstat = reconstruct(rcs, u_1d, velocity_limiting_tag, &
-                                  velocity_pc_boundary)
+                                  velocity_pc_upper_bndr, &
+                                  velocity_pc_lower_bndr)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
                call xchalt('(remap_velocity)')
@@ -753,7 +766,8 @@ contains
 
             ! Reconstruct and remap v-component of velocity.
             errstat = reconstruct(rcs, v_1d, velocity_limiting_tag, &
-                                  velocity_pc_boundary)
+                                  velocity_pc_upper_bndr, &
+                                  velocity_pc_lower_bndr)
             if (errstat /= hor3map_noerr) then
                write(lp,*) trim(hor3map_errstr(errstat))
                call xchalt('(remap_velocity)')
