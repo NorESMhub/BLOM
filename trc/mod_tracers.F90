@@ -88,8 +88,7 @@ contains
    ! Set total number of tracers : ntr
    ! Allocate tracer arrays.
    ! ---------------------------------------------------------------------------
-     use dimensions, only: idm, jdm, kdm
-     use mod_xc,     only: mnproc, nbdy, lp, xchalt, xcbcst
+
 #ifdef HAMOCC
      use mo_param1_bgc, only: nocetra
 #endif
