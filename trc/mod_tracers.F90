@@ -78,7 +78,7 @@ module mod_tracers
    public :: ntrocn, ntrtke, ntrgls, ntriag, ntrbgc, ntr, natr,                 &
              itrtke, itrgls, itriag, itrbgc,                                    &
              trc, trcold, uflxtr, vflxtr, trflx,                                &
-             allocate_tracers, inivar_tracers
+             inivar_tracers
 
 contains
 
