@@ -23,7 +23,7 @@ module mod_diffusion
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: spval
+   use mod_constants, only: spval, epsil
    use mod_xc
 
    implicit none
@@ -74,6 +74,13 @@ module mod_diffusion
       difiso, & ! Isopycnal diffusivity [cm2 s-1].
       difdia    ! Diapycnal diffusivity [cm2 s-1].
 
+#if defined(CVMIX)
+   real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm+1) :: &
+      Kvisc_m, & ! momentum eddy viscosity [cm2 s-1].
+      Kdiff_t, & ! temperature eddy diffusivity [cm2 s-1].
+      Kdiff_s    ! salinity eddy  diffusivity [cm2 s-1].
+#endif
+
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
       difmxq, & ! Maximum lateral diffusivity at q-points [cm2 s-1].
@@ -108,6 +115,10 @@ module mod_diffusion
              umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
              usfltd, vsfltd, usflld, vsflld, &
              inivar_diffusion
+
+#if defined(CVMIX)
+   public :: Kvisc_m, Kdiff_t, Kdiff_s
+#endif
 
 contains
 
@@ -147,6 +158,17 @@ contains
             enddo
          enddo
       enddo
+#if defined(CVMIX)
+      do j = 1 - nbdy, jj + nbdy
+         do k = 1, kk+1
+            do i = 1 - nbdy, ii + nbdy
+               Kvisc_m(i, j, k) = epsil
+               Kdiff_t(i, j, k) = epsil
+               Kdiff_s(i, j, k) = epsil
+            enddo
+         enddo
+      enddo
+#endif
    !$omp end parallel do
 
    ! Initialize diffusive fluxes at points located upstream and downstream (in

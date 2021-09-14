@@ -67,6 +67,7 @@ subdir('cesm')
 subdir('fuk95')
 subdir('channel')
 subdir('single_column')
+subdir('pkgs/')
 
 # Handle options and add necessary flags and subfolders with source files
 
@@ -90,6 +91,9 @@ if get_option('turbclo').length() > 0
   endif
   if get_option('turbclo').contains('advection')
     add_project_arguments('-DTKEADV', language: 'fortran')
+  endif
+  if get_option('turbclo').contains('cvmix')
+    add_project_arguments('-DCVMIX', language: 'fortran')
   endif
   if get_option('turbclo').contains('isodif')
     add_project_arguments('-DTKEIDF', language: 'fortran')

@@ -31,6 +31,7 @@ subroutine inivar
    use mod_barotp, only: inivar_barotp
    use mod_tmsmt, only: inivar_tmsmt
    use mod_diffusion, only: inivar_diffusion
+   use mod_difest, only: ini_difest
    use mod_utility, only: inivar_utility
    use mod_mxlayr, only: inivar_mxlayr
    use mod_seaice, only: inivar_seaice
@@ -54,6 +55,7 @@ subroutine inivar
    call inivar_barotp
    call inivar_tmsmt
    call inivar_diffusion
+   call ini_difest
    call inivar_utility
    call inivar_mxlayr
    call inivar_seaice

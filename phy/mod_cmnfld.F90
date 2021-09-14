@@ -54,11 +54,12 @@ module mod_cmnfld
       bfsqmn = 1.e-7_r8          ! Minimum value of BFSQ used in the
                                  ! computation of neutral slope [s-2].
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm + 1) :: &
       bfsqi, &                   ! Interface buoyancy frequency squared [s-2].
-      bfsql, &                   ! Layer buoyancy frequency squared [s-2].
-      bfsqf, &                   ! Filtered interface buoyancy frequency
+      bfsqf                      ! Filtered interface buoyancy frequency
                                  ! squared [s-2].
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
+      bfsql, &                   ! Layer buoyancy frequency squared [s-2].
       nslpx, &                   ! x-component of local neutral slope [].
       nslpy, &                   ! y-component of local neutral slope [].
       nnslpx, &                  ! x-component of local neutral slope times
@@ -67,6 +68,7 @@ module mod_cmnfld
                                  ! buoyancy frequency [s-1].
 
    public :: bfsql, nslpx, nslpy, nnslpx, nnslpy, inivar_cmnfld, cmnfld
+   public :: bfsqi
 
    contains
 
@@ -125,7 +127,8 @@ module mod_cmnfld
                   bfsqi(i, j, k) = bfsqi(i, j, 1)
                   bfsql(i, j, k) = bfsqi(i, j, 1)
                enddo
-               do k = 1, kk
+               bfsqi(i, j, kk + 1) = bfsqi(i, j, 1)
+               do k = 1, kk + 1
                   bfsqf(i, j, k) = bfsqmn
                enddo
 
@@ -226,6 +229,10 @@ module mod_cmnfld
                   bfsqf(i, j, k) = bfsqf(i, j, kfpl - 1)
                enddo
 
+               ! Extrapolate to the bottom interface.
+               bfsqi(i, j, kk + 1) = bfsqi(i, j, kk)
+               bfsqf(i, j, kk + 1) = bfsqf(i, j, kk)
+
             endif
 
          enddo
@@ -262,6 +269,8 @@ module mod_cmnfld
       ! smoothed in the vertical direction by solving a diffusion equation. 
       ! ------------------------------------------------------------------------
 
+      bfsqi = 0.0_r8
+      bfsql = 0.0_r8
    !$omp parallel do private(l, i, k, delp, bfsq, q, sls2, pup, tup, sup, km, &
    !$omp                     plo, tlo, slo, ctd, btd, rtd, atd, bei, gam)
       do j = - 1, jj + 2
@@ -348,6 +357,10 @@ module mod_cmnfld
             do k = kk - 1, 1, - 1
                bfsqf(i, j, k) = bfsqf(i, j, k) - gam(k + 1)*bfsqf(i, j, k + 1)
             enddo
+
+            ! Extrapolate to the bottom interface.
+            bfsqi(i, j, kk + 1) = bfsqi(i, j, kk)
+            bfsqf(i, j, kk + 1) = bfsqf(i, j, kk)
 
          enddo
          enddo

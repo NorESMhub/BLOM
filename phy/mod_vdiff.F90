@@ -29,6 +29,7 @@ module mod_vdiff
    use mod_eos, only: sig
    use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma
    use mod_checksum, only: csdiag, chksummsk
+   use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
 #ifdef TRC
    use mod_tracers, only: ntr, trc
 #endif
@@ -63,13 +64,13 @@ contains
                dp_1d(k) = dp(i, j, kn)
                temp_1d(k) = temp(i, j, kn)
                saln_1d(k) = saln(i, j, kn)
-               nut_1d(k) = .1_r8
-               nus_1d(k) = .1_r8
+               nut_1d(k) = Kdiff_t(i, j, k)
+               nus_1d(k) = Kdiff_s(i, j, k)
 #ifdef TRC
                do nt = 1, ntr
                  trc_1d(k, nt) = trc(i, j, kn, nt)
                enddo
-               nutrc_1d(k) = .1_r8
+               nutrc_1d(k) = Kdiff_t(i, j, k)
 #endif
             enddo
 
