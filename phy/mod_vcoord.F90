@@ -60,8 +60,9 @@ module mod_vcoord
       velocity_pc_upper_bndr = .true., &
       velocity_pc_lower_bndr = .false.
    real(r8) :: &
-      dpmin_surface  = 1.5_r8, &
-      dpmin_interior = .1_r8
+      dpmin_surface          = 1.5_r8, &
+      dpmin_inflation_factor = 1._r8, &
+      dpmin_interior         = .1_r8
 
    ! Options derived from string options.
    integer :: &
@@ -109,7 +110,7 @@ contains
          density_pc_upper_bndr, density_pc_lower_bndr, &
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
          velocity_pc_upper_bndr, velocity_pc_lower_bndr, &
-         dpmin_surface, dpmin_interior
+         dpmin_surface, dpmin_inflation_factor, dpmin_interior
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -150,6 +151,7 @@ contains
         call xcbcst(velocity_pc_upper_bndr)
         call xcbcst(velocity_pc_lower_bndr)
         call xcbcst(dpmin_surface)
+        call xcbcst(dpmin_inflation_factor)
         call xcbcst(dpmin_interior)
       endif
       if (mnproc == 1) then
@@ -171,6 +173,7 @@ contains
          write (lp,*) '  velocity_pc_upper_bndr = ', velocity_pc_upper_bndr
          write (lp,*) '  velocity_pc_lower_bndr = ', velocity_pc_lower_bndr
          write (lp,*) '  dpmin_surface =          ', dpmin_surface
+         write (lp,*) '  dpmin_inflation_factor = ', dpmin_inflation_factor
          write (lp,*) '  dpmin_interior =         ', dpmin_interior
       endif
 
@@ -514,10 +517,11 @@ contains
             ! layer thickness towards the surface is maintained. A smooth
             ! transition between modified and unmodified interfaces is sought.
             dpmin = min(dpmin_max, dpmin_surface)
+            pmin = p_1d(1) + dpmin
             dpt = dpmin
             do k = 2, ke
-               pmin = p_1d(1) + dpmin*(k - 1)
-               dpt = max(prgrd_1d(k + 1) - prgrd_1d(k), dpt)
+               dpmin = dpmin*dpmin_inflation_factor
+               dpt = max(prgrd_1d(k + 1) - prgrd_1d(k), dpt, dpmin)
                pt = max(prgrd_1d(k), pmin)
                ptu1 = pmin - dpt
                ptl1 = pmin + dpt
@@ -533,6 +537,7 @@ contains
                   pt = w1*pt + (1._r8 - w1)*(pmin + dpt*x*x)
                endif
                prgrd_1d(k) = min(p_1d(ke + 1), pt)
+               pmin = pmin + dpmin
             enddo
             
             ! Prepare remapping to layer structure with regridded interface
