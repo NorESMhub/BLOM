@@ -276,7 +276,7 @@ contains
       real(r8), dimension(kdm + 1) :: p_1d, prgrd_1d, sigmar_1d
       real(r8), dimension(kdm) :: temp_1d, saln_1d, sigma_1d
       real(r8) :: beta, sdpsum, smean, dpmin_max, dpmin, pku, pku_test, &
-                  pmin, dpt, ptup, ptlo, x
+                  pmin, dpt, pt, ptu1, ptl1, ptu2, ptl2, w1, x
       integer :: i, j, k, l, kn, nt, ks, ke, kl, ku, errstat
       logical :: thin_layers, layer_added
 #ifdef TRC
@@ -514,19 +514,27 @@ contains
             ! layer thickness towards the surface is maintained. A smooth
             ! transition between modified and unmodified interfaces is sought.
             dpmin = min(dpmin_max, dpmin_surface)
+            dpt = dpmin
             do k = 2, ke
                pmin = p_1d(1) + dpmin*(k - 1)
-               dpt = max(prgrd_1d(k + 1) - prgrd_1d(k), 3._r8*dpmin)
-               ptup = max(p_1d(1), pmin + dpmin - dpt)
-               ptlo = min(p_1d(ke + 1), 2._r8*pmin - ptup)
-               ptup = 2._r8*pmin - ptlo
-               if (prgrd_1d(k) > ptup .and. prgrd_1d(k) < ptlo) then
-                  x = (prgrd_1d(k) - ptup)/(ptlo - ptup)
-                  pmin = pmin + .5_r8*(ptlo - ptup)*x*x
+               dpt = max(prgrd_1d(k + 1) - prgrd_1d(k), dpt)
+               pt = max(prgrd_1d(k), pmin)
+               ptu1 = pmin - dpt
+               ptl1 = pmin + dpt
+               ptu2 = pmin
+               ptl2 = pmin + 2._r8*dpt
+               w1 = min(1._r8,(prgrd_1d(k) - p_1d(1))/(pmin - p_1d(1)))
+               if (prgrd_1d(k) > ptu1 .and. prgrd_1d(k) < ptl1) then
+                  x = .5_r8*(prgrd_1d(k) - ptu1)/dpt
+                  pt = pmin + dpt*x*x
                endif
-               prgrd_1d(k) = min(p_1d(ke + 1), max(prgrd_1d(k), pmin))
+               if (prgrd_1d(k + 1) > ptu2 .and. prgrd_1d(k + 1) < ptl2) then
+                  x = .5_r8*(prgrd_1d(k + 1) - ptu2)/dpt
+                  pt = w1*pt + (1._r8 - w1)*(pmin + dpt*x*x)
+               endif
+               prgrd_1d(k) = min(p_1d(ke + 1), pt)
             enddo
-
+            
             ! Prepare remapping to layer structure with regridded interface
             ! pressures.
             errstat = prepare_remapping(rcs, prgrd_1d, rms)
