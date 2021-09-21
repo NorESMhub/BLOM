@@ -97,7 +97,6 @@ contains
 
      integer :: errstat
      integer :: num_bgc_tracers = 0
-     integer :: num_tracers = 0
 
      ! Number of HAMOCC tracers.
 #ifdef HAMOCC
@@ -110,17 +109,16 @@ contains
 
      ! Total number of tracers.
      if (mnproc.eq.1) then
-        num_tracers = ntrocn + ntrtke + ntrgls + ntriag + ntrbgc
+        ntr = ntrocn + ntrtke + ntrgls + ntriag + ntrbgc
 
-        write(lp,'(A,1X,I8)') 'Total tracer count: ', num_tracers
-        if (num_tracers < 0) then
+        write(lp,'(A,1X,I8)') 'Total tracer count: ', ntr
+        if (ntr < 0) then
            write(lp,'(a)') 'Number of tracers must be non-negative.'
            call xchalt('(allocate_tracers)')
            stop '(allocate_tracers)'
         endif
      endif
-     call xcbcst(num_tracers)
-     ntr = num_tracers   ! set protected variable
+     call xcbcst(ntr)
 
      ! Tracer array.
      allocate (trc(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2*kdm, ntr),       &
