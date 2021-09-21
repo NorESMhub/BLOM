@@ -292,7 +292,8 @@ c
       real, dimension(kdm+1) :: iFaceHeight    ! Height of interfaces [m]      
       real, dimension(kdm+1) :: bvfsq_i, bvf_i ! N2, N at interfaces       
       real, dimension(kdm) :: cellHeight       ! Height of cell centers [m]      
-      real, dimension(kdm) :: rho_1d, rho_lwr  ! dummy vars for convection 
+      real, dimension(kdm) :: rho_zeros, rho_lwr  ! dummy vars for convection 
+      real, dimension(kdm) :: rho_1d           ! 1D density at the layer center
       real, dimension(kdm) :: Ws_1d            ! Profile of vertical velocity scale for scalars [m s-1]
       real, dimension(kdm) :: surfBuoyFlux2 
       real, dimension(kdm) :: BulkRi_1d        ! Bulk Richardson number for each layer 
@@ -342,6 +343,7 @@ c      Ws_1d = 0.0
       cellHeight = 0.
       bvfsq_i   = 0.
       rho_lwr(:)= drho0
+      rho_zeros(:)= 0.
       rho_1d    = 0.
       nonLocalTrans(:,:) = 0.0 
       rig = 1.e8 !Initialize w/ large Richardson value 
@@ -618,7 +620,7 @@ c --- ------ convection routine based on N2 not rho
 c --- ------ make sure it is in metrics if stability depends on rho
              call CVMix_coeffs_conv(Mdiff_out=Kv_conv,                
      .                        Tdiff_out=Kd_conv, Nsqr = bvfsq_i,
-     .                        dens=drho(i,:),dens_lwr=rho_lwr,
+     .                        dens=rho_zeros,dens_lwr=rho_lwr,
      .                        nlev=kk, max_nlev=kk,
      .                        OBL_ind=kOBL) 
 
