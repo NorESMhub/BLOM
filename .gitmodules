@@ -1,0 +1,3 @@
+[submodule "pkgs/CVMix-src"]
+	path = pkgs/CVMix-src
+	url = https://github.com/CVMix/CVMix-src.git

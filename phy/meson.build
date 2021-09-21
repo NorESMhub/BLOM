@@ -1,5 +1,5 @@
 sources += files('cntiso_hybrid_forcing.F90', 'bigrid.F', 'blom_init.F',
-'blom_step.F', 'convec.F', 'crc.c', 'diapfl.F', 'difest.F', 'diffus.F',
+'blom_step.F', 'convec.F', 'crc.c', 'diapfl.F', 'mod_difest.F', 'diffus.F',
 'fill_global.F', 'geoenv_file.F', 'geoenv_test.F', 'getfrc.F90', 'idarlx.F',
 'inifrc.F90', 'inigeo.F', 'iniphy.F', 'inivar.F90', 'intp1d.F', 'mod_advect.F',
 'mod_barotp.F', 'mod_budget.F90', 'mod_calendar.F90', 'mod_checksum.F90',
