@@ -11,8 +11,9 @@ option('driver', type: 'combo',
        choices: ['nocoupler', 'noforc'], value: 'nocoupler')
 # List of BLOM options
 option('turbclo', type: 'array',
-       choices: ['oneeq', 'twoeq', 'advection', 'isodif'],
-       description: 'Turbulent closure options', value: ['oneeq', 'advection'])
+       choices: ['oneeq', 'twoeq', 'advection', 'isodif', 'cvmix'],
+       description: 'Turbulent closure options', value: ['oneeq',
+	            'advection', 'cvmix'])
 option('iage', type: 'boolean',
        description: 'Enable ideal age tracer', value: true)
 option('ecosys', type: 'boolean',
