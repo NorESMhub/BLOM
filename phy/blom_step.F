@@ -55,6 +55,7 @@ c
       use mod_budget, only: budget_sums, budget_output
       use mod_eddtra, only: eddtra
       use mod_momtum, only: momtum
+      use mod_difest, only: difest
       use mod_chkvar, only: chkvar
       use mod_dia
 c
