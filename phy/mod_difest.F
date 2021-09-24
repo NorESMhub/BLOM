@@ -311,7 +311,7 @@ c
       real :: surfTemp, surfSalt, surfRho
       real :: surfHtemp, surfHsalt
       real :: SLdepth_0d, hTot
-      real :: Simmons_coeff
+      real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
       integer ki, kki, ksfc, ktmp, kOBL, kn1 
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
@@ -323,48 +323,6 @@ c
 # ifdef GLS
       real gls_prod,gls_buoy,gls_diss,gls_Q
 # endif
-#endif
-#ifdef CVMIX
-      surf_layer_ext = 0.1
-      surfBuoyFlux2 = 0.0
-      surfBuoyFlux = 0.0
-c      Ws_1d = 0.0
-      depth_int = 0.     
-      Kv_col    = 0.
-      Kd_col    = 0.
-      vert_dep  = 0. 
-      Kv_tidal  = 0. 
-      Kd_tidal  = 0.
-      Kv_conv   = 0.
-      Kd_conv   = 0.
-      Kv_shr    = 0.
-      Kd_shr    = 0.
-      iFaceHeight = 0. 
-      cellHeight = 0.
-      bvfsq_i   = 0.
-      rho_lwr(:)= drho0
-      rho_zeros(:)= 0.
-      rho_1d    = 0.
-      nonLocalTrans(:,:) = 0.0 
-      rig = 1.e8 !Initialize w/ large Richardson value 
-      bl1 = 8e-5
-      bl2 = 1.05e-4
-      bl3 = 4.5e-3
-      bl4 = 2500.0
-      Kv_kpp = 0.0
-      Kt_kpp = 0.0
-      Ks_kpp = 0.0
-      do j=1,jj
-        do k=1,kk+1
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            Kv_kpp(k) = Kvisc_m(i,j,k)*1e-4 
-            Kt_kpp(k) = Kdiff_t(i,j,k)*1e-4
-            Ks_kpp(k) = Kdiff_s(i,j,k)*1e-4
-          enddo
-          enddo
-        enddo
-      enddo
 #endif
 c
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
@@ -417,8 +375,42 @@ c single column diffusivity
 c
 c -- ------- CVMix variables computed below
 c
-             depth_int(1) = 0.0                                                         
-             iFaceHeight(1) = 0.0
+             surf_layer_ext = 0.1
+             surfBuoyFlux2 = 0.0
+             surfBuoyFlux = 0.0
+c             Ws_1d = 0.0
+             depth_int = 0.     
+             Kv_col    = 0.
+             Kd_col    = 0.
+             vert_dep  = 0. 
+             Kv_tidal  = 0. 
+             Kd_tidal  = 0.
+             Kv_conv   = 0.
+             Kd_conv   = 0.
+             Kv_shr    = 0.
+             Kd_shr    = 0.
+             iFaceHeight = 0. 
+             cellHeight = 0.
+             bvfsq_i   = 0.
+             rho_lwr(:)= drho0
+             rho_zeros(:)= 0.
+             rho_1d    = 0.
+             nonLocalTrans(:,:) = 0.0 
+             rig = 1.e8 !Initialize w/ large Richardson value 
+             bl1 = 8e-5
+             bl2 = 1.05e-4
+             bl3 = 4.5e-3
+             bl4 = 2500.0
+             Kv_kpp = 0.0
+             Kt_kpp = 0.0
+             Ks_kpp = 0.0
+             do k=1,kk+1
+                 Kv_kpp(k) = Kvisc_m(i,j,k)*1e-4 
+                 Kt_kpp(k) = Kdiff_t(i,j,k)*1e-4
+                 Ks_kpp(k) = Kdiff_s(i,j,k)*1e-4
+             enddo
+             depth_int(1) = p(i,j,1)/onem
+             iFaceHeight(1) = -depth_int(1)
              ! convert cm/s to m/s
              surfFricVel = ustar(i,j) * 1e-2
              ! convert cm2/s3 to m2/s3
@@ -583,6 +575,18 @@ c --- ------ centers.
      .              surf_buoy=surfBuoyFlux, ! (in) Buoyancy flux at surface [m2 s-3]
      .              Coriolis=coriop(i,j),   ! (in) Coriolis parameter [s-1] 
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters    
+
+             ! Avoid KPP reaching bottom
+             zBottomMinusOffset = iFaceHeight(kk+1) 
+     .                          + min(1.0,-0.1*iFaceHeight(kk+1))
+             OBLdepth(i,j) = min(OBLdepth(i,j), -zBottomMinusOffset)
+             ! no shallower than top layer
+             OBLdepth(i,j) = max(OBLdepth(i,j), -iFaceHeight(2)) 
+             ! no deeper than bottom
+             OBLdepth(i,j) = min(OBLdepth(i,j), -iFaceHeight(kk+1)) 
+             ! gets index of the level and interface above hbl                    
+             hOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
+     .                               cellHeight,OBLdepth(i,j))
 
              ! Compute KPP using CVMix
              call CVMix_coeffs_kpp(Kv_kpp(:),          ! (inout) Total viscosity [m2 s-1]
