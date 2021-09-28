@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      module mod_dia 
+      module mod_dia
 c
       use mod_types, only: i2
       use mod_config, only: expcnf, runid, inst_suffix
@@ -27,7 +27,7 @@ c
      .                    nday_of_year, time, time0, baclin, dlt
       use mod_constants, only: g, spcifh, t0deg, alpha0, epsil, spval,
      .                         onem, onecm, onemm
-      use mod_xc 
+      use mod_xc
       use mod_nctools
       use netcdf, only : nf90_fill_double
       use mod_vcoord, only: sigmar
@@ -41,6 +41,7 @@ c
       use mod_mxlayr, only: mtkeus, mtkeni, mtkebf, mtkers, mtkepe,
      .                      mtkeke, pbrnda
       use mod_diffusion, only: difint, difiso, difdia,
+     .                         Kvisc_m, Kdiff_t, Kdiff_s,
      .                         umfltd, vmfltd, utfltd, vtfltd, utflld,
      .                         vtflld, usfltd, vsfltd, usflld, vsflld
       use mod_cmnfld, only: bfsql
@@ -79,24 +80,24 @@ c --- Restart parameters
 c
 c --- Copies of BLOM variables that are used for HAMOCC diagnostics
       real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  pbath,ubath,vbath 
-      integer, save :: nstepinday 
- 
-c --- 2d and 3d diagnostic variables     
-      integer, save :: nphyh2d,nphylyr,nphylvl 
-      real, save, allocatable, dimension(:,:,:) :: phyh2d
-      real, save, allocatable, dimension(:,:,:,:) :: phylyr,phylvl 
+     .  pbath,ubath,vbath
+      integer, save :: nstepinday
 c
-c --- Levitus levels 
-#ifndef LEVITUS2X 
+c --- 2d and 3d diagnostic variables
+      integer, save :: nphyh2d,nphylyr,nphylvl
+      real, save, allocatable, dimension(:,:,:) :: phyh2d
+      real, save, allocatable, dimension(:,:,:,:) :: phylyr,phylvl
+c
+c --- Levitus levels
+#ifndef LEVITUS2X
       integer, parameter :: ddm=35,k350=12
       real, parameter :: w350=1.
       real,  parameter, dimension(ddm) :: depthslev=(/
-     .  0000.0,0010.0,0020.0,0030.0,0050.0,0075.0,0100.0,0125.0,0150.0, 
-     .  0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0, 
-     .  1000.0,1100.0,1200.0,1300.0,1400.0,1500.0,1750.0,2000.0,2500.0, 
+     .  0000.0,0010.0,0020.0,0030.0,0050.0,0075.0,0100.0,0125.0,0150.0,
+     .  0200.0,0250.0,0300.0,0400.0,0500.0,0600.0,0700.0,0800.0,0900.0,
+     .  1000.0,1100.0,1200.0,1300.0,1400.0,1500.0,1750.0,2000.0,2500.0,
      .  3000.0,3500.0,4000.0,4500.0,5000.0,5500.0,6000.0,6500.0/)
-      real,  parameter, dimension(2,ddm) :: 
+      real,  parameter, dimension(2,ddm) ::
      .  depthslev_bnds=reshape((/
      .  0000.0,0005.0,0005.0,0015.0,0015.0,0025.0,0025.0,0040.0,0040.0,
      .  0062.5,0062.5,0087.5,0087.5,0112.5,0112.5,0137.5,0137.5,0175.0,
@@ -106,39 +107,39 @@ c --- Levitus levels
      .  1450.0,1450.0,1625.0,1625.0,1875.0,1875.0,2250.0,2250.0,2750.0,
      .  2750.0,3250.0,3250.0,3750.0,3750.0,4250.0,4250.0,4750.0,4750.0,
      .  5250.0,5250.0,5750.0,5750.0,6250.0,6250.0,8000.0/),(/2,ddm/))
-#else 
+#else
       integer, parameter :: ddm=70,k350=25
       real, parameter :: w350=0.5
       real,  parameter, dimension(ddm) :: depthslev=(/
-     .  0000.0,0005.0,0010.0,0015.0,0020.0,0025.0,0030.0,0040.0,0050.0, 
-     .  0062.5,0075.0,0087.5,0100.0,0112.5,0125.0,0137.5,0150.0,0175.0, 
-     .  0200.0,0225.0,0250.0,0275.0,0300.0,0350.0,0400.0,0450.0,0500.0, 
-     .  0550.0,0600.0,0650.0,0700.0,0750.0,0800.0,0850.0,0900.0,0950.0, 
-     .  1000.0,1050.0,1100.0,1150.0,1200.0,1250.0,1300.0,1350.0,1400.0, 
-     .  1450.0,1500.0,1625.0,1750.0,1875.0,2000.0,2250.0,2500.0,2750.0, 
-     .  3000.0,3250.0,3500.0,3750.0,4000.0,4250.0,4500.0,4750.0,5000.0, 
+     .  0000.0,0005.0,0010.0,0015.0,0020.0,0025.0,0030.0,0040.0,0050.0,
+     .  0062.5,0075.0,0087.5,0100.0,0112.5,0125.0,0137.5,0150.0,0175.0,
+     .  0200.0,0225.0,0250.0,0275.0,0300.0,0350.0,0400.0,0450.0,0500.0,
+     .  0550.0,0600.0,0650.0,0700.0,0750.0,0800.0,0850.0,0900.0,0950.0,
+     .  1000.0,1050.0,1100.0,1150.0,1200.0,1250.0,1300.0,1350.0,1400.0,
+     .  1450.0,1500.0,1625.0,1750.0,1875.0,2000.0,2250.0,2500.0,2750.0,
+     .  3000.0,3250.0,3500.0,3750.0,4000.0,4250.0,4500.0,4750.0,5000.0,
      .  5250.0,5500.0,5750.0,6000.0,6250.0,6500.0,6750.0/)
-      real,  parameter, dimension(2,ddm) :: 
+      real,  parameter, dimension(2,ddm) ::
      .  depthslev_bnds=reshape((/
-     .  0000.0,0002.5,0002.5,0007.5,0007.5,0012.5,0012.5,0017.5,0017.5, 
-     .  0022.5,0022.5,0027.5,0027.5,0035.0,0035.0,0045.0,0045.0,0056.2, 
-     .  0056.2,0068.8,0068.8,0081.2,0081.2,0093.8,0093.8,0106.2,0106.2, 
-     .  0118.8,0118.8,0131.2,0131.2,0143.8,0143.8,0162.5,0162.5,0187.5, 
-     .  0187.5,0212.5,0212.5,0237.5,0237.5,0262.5,0262.5,0287.5,0287.5, 
-     .  0325.0,0325.0,0375.0,0375.0,0425.0,0425.0,0475.0,0475.0,0525.0, 
-     .  0525.0,0575.0,0575.0,0625.0,0625.0,0675.0,0675.0,0725.0,0725.0, 
-     .  0775.0,0775.0,0825.0,0825.0,0875.0,0875.0,0925.0,0925.0,0975.0, 
-     .  0975.0,1025.0,1025.0,1075.0,1075.0,1125.0,1125.0,1175.0,1175.0, 
-     .  1225.0,1225.0,1275.0,1275.0,1325.0,1325.0,1375.0,1375.0,1425.0, 
-     .  1425.0,1475.0,1475.0,1562.5,1562.5,1687.5,1687.5,1812.5,1812.5, 
-     .  1937.5,1937.5,2125.0,2125.0,2375.0,2375.0,2625.0,2625.0,2875.0, 
-     .  2875.0,3125.0,3125.0,3375.0,3375.0,3625.0,3625.0,3875.0,3875.0, 
-     .  4125.0,4125.0,4375.0,4375.0,4625.0,4625.0,4875.0,4875.0,5125.0, 
-     .  5125.0,5375.0,5375.0,5625.0,5625.0,5875.0,5875.0,6125.0,6125.0, 
+     .  0000.0,0002.5,0002.5,0007.5,0007.5,0012.5,0012.5,0017.5,0017.5,
+     .  0022.5,0022.5,0027.5,0027.5,0035.0,0035.0,0045.0,0045.0,0056.2,
+     .  0056.2,0068.8,0068.8,0081.2,0081.2,0093.8,0093.8,0106.2,0106.2,
+     .  0118.8,0118.8,0131.2,0131.2,0143.8,0143.8,0162.5,0162.5,0187.5,
+     .  0187.5,0212.5,0212.5,0237.5,0237.5,0262.5,0262.5,0287.5,0287.5,
+     .  0325.0,0325.0,0375.0,0375.0,0425.0,0425.0,0475.0,0475.0,0525.0,
+     .  0525.0,0575.0,0575.0,0625.0,0625.0,0675.0,0675.0,0725.0,0725.0,
+     .  0775.0,0775.0,0825.0,0825.0,0875.0,0875.0,0925.0,0925.0,0975.0,
+     .  0975.0,1025.0,1025.0,1075.0,1075.0,1125.0,1125.0,1175.0,1175.0,
+     .  1225.0,1225.0,1275.0,1275.0,1325.0,1325.0,1375.0,1375.0,1425.0,
+     .  1425.0,1475.0,1475.0,1562.5,1562.5,1687.5,1687.5,1812.5,1812.5,
+     .  1937.5,1937.5,2125.0,2125.0,2375.0,2375.0,2625.0,2625.0,2875.0,
+     .  2875.0,3125.0,3125.0,3375.0,3375.0,3625.0,3625.0,3875.0,3875.0,
+     .  4125.0,4125.0,4375.0,4375.0,4625.0,4625.0,4875.0,4875.0,5125.0,
+     .  5125.0,5375.0,5375.0,5625.0,5625.0,5875.0,5875.0,6125.0,6125.0,
      .  6375.0,6375.0,6625.0,6625.0,8000.0/),(/2,ddm/))
-#endif 
+#endif
 c
-c --- Meridional overturning and flux diagnostics 
+c --- Meridional overturning and flux diagnostics
       integer, parameter ::
      .  ldm=itdm+jtdm,sdm=ldm,odm=10,slenmax=50,rflgdm=20
       character(len=slenmax), save, dimension(odm) :: mer_regnam=''
@@ -146,15 +147,15 @@ c --- Meridional overturning and flux diagnostics
       integer, save, dimension(odm,rflgdm) :: mer_regflg=-1
       integer, save, dimension(odm) :: mer_nflg
       real, save, dimension(odm) :: mer_minlat=-90.,mer_maxlat=90.
-      integer, save :: mer_nreg,lmax 
+      integer, save :: mer_nreg,lmax
       real, save, dimension(ldm) :: mtlat
-      real, save, dimension(kdm) :: sigmar1 
+      real, save, dimension(kdm) :: sigmar1
       real, save, allocatable, dimension(:,:,:) ::
      .  mmflxl,mmftdl,mmflxd,mmftdd
       real, save, allocatable, dimension(:,:) ::
      .  mhflx,mhftd,mhfld,msflx,msftd,msfld
 c
-c --- Section transports 
+c --- Section transports
       character(len=256), save :: sec_sifile
       integer, save :: sec_num
       integer, parameter :: max_sec=400
@@ -172,7 +173,7 @@ c --- Critical buoyancy difference [cm s-2] used in the mixed layer
 c --- thickness estimation (Levitus, 1982)
       real, parameter :: dbcrit=.03
 c
-c --- Namelist 
+c --- Namelist
       integer, dimension(nphymax), save ::
      . H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  ,
      . H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   ,
@@ -187,20 +188,21 @@ c --- Namelist
      . H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,
      . H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,
      . H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
-     . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
-     . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
-     . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
-     . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
-     . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
-     . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
-     . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
-     . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
-     . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
-     . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
-     . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,
-     . LVL_GLS_PSI,LVL_IDLAGE ,
+     . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
+     . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
+     . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
+     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UTFLTD ,LYR_UTFLLD ,
+     . LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,
+     . LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,LYR_VTFLLD ,LYR_VSFLTD ,
+     . LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,LYR_PV     ,
+     . LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO ,
+     . LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   ,
+     . LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD ,
+     . LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,LVL_USFLLD ,LVL_UVEL   ,
+     . LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,LVL_VMFLTD ,LVL_VTFLTD ,
+     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,LVL_VVEL   ,LVL_WFLX   ,
+     . LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  ,MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,
@@ -222,24 +224,25 @@ c --- Namelist
      . ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,
      . ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,
      . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
-     . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,
-     . ACC_DPU    ,ACC_DPV    ,ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,
-     . ACC_UFLX   ,ACC_UTFLX  ,ACC_USFLX  ,ACC_UMFLTD ,ACC_UTFLTD ,
-     . ACC_UTFLLD ,ACC_USFLTD ,ACC_USFLLD ,ACC_UVEL   ,ACC_VFLX   ,
-     . ACC_VTFLX  ,ACC_VSFLX  ,ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,
-     . ACC_VSFLTD ,ACC_VSFLLD ,ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,
-     . ACC_AVDSG  ,ACC_DPVOR  ,ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR,
-     . ACC_BFSQLVL  ,ACC_DIFDIALVL ,ACC_DIFINTLVL,ACC_DIFISOLVL,
-     . ACC_DZLVL    ,ACC_SALNLVL   ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,
-     . ACC_UTFLXLVL ,ACC_USFLXLVL  ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,
-     . ACC_UTFLLDLVL,ACC_USFLTDLVL ,ACC_USFLLDLVL,ACC_UVELLVL  ,
-     . ACC_VFLXLVL  ,ACC_VTFLXLVL  ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,
-     . ACC_VTFLTDLVL,ACC_VTFLLDLVL ,ACC_VSFLTDLVL,ACC_VSFLLDLVL,
-     . ACC_VVELLVL  ,ACC_WFLXLVL   ,ACC_WFLX2LVL ,ACC_PVLVL    ,
-     . ACC_TKELVL   ,ACC_GLS_PSILVL,ACC_UFLXOLD  ,ACC_VFLXOLD  ,
-     . ACC_UTILLVL  ,
+     . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFVMO ,ACC_DIFVHO ,ACC_DIFVSO ,
+     . ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,ACC_DPU    ,ACC_DPV    ,
+     . ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,ACC_UFLX   ,ACC_UTFLX  ,
+     . ACC_USFLX  ,ACC_UMFLTD ,ACC_UTFLTD ,ACC_UTFLLD ,ACC_USFLTD ,
+     . ACC_USFLLD ,ACC_UVEL   ,ACC_VFLX   ,ACC_VTFLX  ,ACC_VSFLX  ,
+     . ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,ACC_VSFLTD ,ACC_VSFLLD ,
+     . ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,ACC_AVDSG  ,ACC_DPVOR  ,
+     . ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR,
+     . ACC_BFSQLVL  ,ACC_DIFDIALVL ,ACC_DIFVMOLVL,ACC_DIFVHOLVL,
+     . ACC_DIFVSOLVL ,ACC_DIFINTLVL,ACC_DIFISOLVL,ACC_DZLVL    ,
+     . ACC_SALNLVL   ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,ACC_UTFLXLVL ,
+     . ACC_USFLXLVL  ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,ACC_UTFLLDLVL,
+     . ACC_USFLTDLVL ,ACC_USFLLDLVL,ACC_UVELLVL  ,ACC_VFLXLVL  ,
+     . ACC_VTFLXLVL  ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,ACC_VTFLTDLVL,
+     . ACC_VTFLLDLVL ,ACC_VSFLTDLVL,ACC_VSFLLDLVL,ACC_VVELLVL  ,
+     . ACC_WFLXLVL   ,ACC_WFLX2LVL ,ACC_PVLVL    ,ACC_TKELVL   ,
+     . ACC_GLS_PSILVL,ACC_UFLXOLD  ,ACC_VFLXOLD  ,ACC_UTILLVL  ,
      . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFTDD,ACC_MHFLX,ACC_MHFTD,
-     . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR 
+     . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR
       namelist /MERDIA/
      . MER_ORFILE,MER_MIFILE,MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
       namelist /SECDIA/
@@ -258,30 +261,31 @@ c --- Namelist
      . H2D_SURRLX ,H2D_SWA    ,H2d_T20D   ,H2D_TAUX   ,H2D_TAUY   ,
      . H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,
      . H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
-     . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,
-     . LYR_DPU    ,LYR_DPV    ,LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,
-     . LYR_TRC    ,LYR_UFLX   ,LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,
-     . LYR_UTFLTD ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,
-     . LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,
-     . LYR_VTFLLD ,LYR_VSFLTD ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,
-     . LYR_WFLX2  ,LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
-     . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,
-     . LVL_SALN   ,LVL_TEMP   ,LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,
-     . LVL_USFLX  ,LVL_UMFLTD ,LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,
-     . LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,
-     . LVL_VMFLTD ,LVL_VTFLTD ,LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,
-     . LVL_VVEL   ,LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,
-     . LVL_GLS_PSI,LVL_IDLAGE ,
+     . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
+     . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
+     . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
+     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UTFLTD ,LYR_UTFLLD ,
+     . LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,
+     . LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,LYR_VTFLLD ,LYR_VSFLTD ,
+     . LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,LYR_PV     ,
+     . LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO ,
+     . LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   ,
+     . LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD ,
+     . LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,LVL_USFLLD ,LVL_UVEL   ,
+     . LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,LVL_VMFLTD ,LVL_VTFLTD ,
+     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,LVL_VVEL   ,LVL_WFLX   ,
+     . LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,LVL_IDLAGE ,
      . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
      . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
      . MSC_VOLTR  ,MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,
      . MSC_SSSGA  ,MSC_SSTGA  ,
-     . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT, 
+     . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT,
      . GLB_FNAMETAG
 
 
 
-      contains 
+      contains
 
 
 
@@ -289,13 +293,13 @@ c --- Namelist
 c
 c --- ------------------------------------------------------------------
 c --- Description: creates file name for the diagnostic output
-c ---  
-c --- Arguments: 
-c ---   char ctag      (in)    : string used in middle of file name 
-c ---   real diagfq    (in)    : diagnostic frequency     
-c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
-c ---   logi diagann   (in)    : switch to show whether diagfq=year 
-c ---   char fname     (out)   : file name 
+c ---
+c --- Arguments:
+c ---   char ctag      (in)    : string used in middle of file name
+c ---   real diagfq    (in)    : diagnostic frequency
+c ---   logi diagmon   (in)    : switch to show whether diagfq=month
+c ---   logi diagann   (in)    : switch to show whether diagfq=year
+c ---   char fname     (out)   : file name
 c --- ------------------------------------------
 c
       implicit none
@@ -381,7 +385,7 @@ c
       logical fexist
 c
 c --- Check existence of data files for meridional and section transport
-c --- diagnostics 
+c --- diagnostics
       if (mnproc.eq.1) then
         if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
      .         +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
@@ -421,7 +425,7 @@ c --- Loop over io groups
       do n=1,nphy
         nacc_phy(n)=0
 c
-c --- - Solve dependencies for diagnostic variables (0=skipped) 
+c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_ABSWND(n)   = H2D_ABSWND(n)
         ACC_ALB(n)      = H2D_ALB(n)
         ACC_BRNFLX(n)   = H2D_BRNFLX(n)
@@ -429,8 +433,8 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_DFL(n)      = H2D_DFL(n)
         ACC_EVA(n)      = H2D_EVA(n)
         ACC_FMLTFZ(n)   = H2D_FMLTFZ(n)
-        ACC_FICE(n)     = H2D_FICE(n)   + H2D_HICE(n)   + H2D_UICE(n)  +
-     .                    H2D_VICE(n)   + H2D_HSNW(n)
+        ACC_FICE(n)     = H2D_FICE(n)   + H2D_HICE(n)   + H2D_UICE(n)
+     .                  + H2D_VICE(n)   + H2D_HSNW(n)
         ACC_HICE(n)     = H2D_HICE(n)   + H2D_UICE(n)   + H2D_VICE(n)
         ACC_HMLTFZ(n)   = H2D_HMLTFZ(n)
         ACC_HSNW(n)     = H2D_HSNW(n)
@@ -495,18 +499,25 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_BFSQLVL(n)  = LVL_BFSQ(n)
         ACC_DIFDIA(n)   = LYR_DIFDIA(n)
         ACC_DIFDIALVL(n)= LVL_DIFDIA(n)
+        ACC_DIFVMO(n)   = LYR_DIFVMO(n)
+        ACC_DIFVMOLVL(n)= LVL_DIFVMO(n)
+        ACC_DIFVHO(n)   = LYR_DIFVHO(n)
+        ACC_DIFVHOLVL(n)= LVL_DIFVHO(n)
+        ACC_DIFVSO(n)   = LYR_DIFVSO(n)
+        ACC_DIFVSOLVL(n)= LVL_DIFVSO(n)
         ACC_DIFINT(n)   = LYR_DIFINT(n)
         ACC_DIFINTLVL(n)= LVL_DIFINT(n)
         ACC_DIFISO(n)   = LYR_DIFISO(n)
         ACC_DIFISOLVL(n)= LVL_DIFISO(n)
-        ACC_DP(n)       = LYR_DP(n)     + LYR_BFSQ(n)   +
-     .                    LYR_SALN(n)   + LYR_TEMP(n)   +
-     .                    LYR_DIFDIA(n) + LYR_DIFINT(n) + LYR_DIFISO(n)+
-     .                    LYR_TKE(n)    + LYR_GLS_PSI(n)+
-     .                    LVL_BFSQ(n)   + LVL_SALN(n)   + LVL_TEMP(n)  +
-     .                    LVL_DIFDIA(n) + LVL_DIFINT(n) + LVL_DIFISO(n)+
-     .                    LVL_TKE(n)    + LVL_GLS_PSI(n)+
-     .                    MSC_MASSGS(n) + MSC_SALNGA(n) + MSC_TEMPGA(n)
+        ACC_DP(n)       = LYR_DP(n)     + LYR_BFSQ(n)   + LYR_SALN(n)
+     .                  + LYR_TEMP(n)   + LYR_DIFDIA(n) + LYR_DIFVMO(n)
+     .                  + LYR_DIFVHO(n) + LYR_DIFVSO(n) + LYR_DIFINT(n)
+     .                  + LYR_DIFISO(n) + LYR_TKE(n)    + LYR_GLS_PSI(n)
+     .                  + LVL_BFSQ(n)   + LVL_SALN(n)   + LVL_TEMP(n)
+     .                  + LVL_DIFDIA(n) + LVL_DIFVMO(n) + LVL_DIFVHO(n)
+     .                  + LVL_DIFVSO(n) + LVL_DIFINT(n) + LVL_DIFISO(n)
+     .                  + LVL_TKE(n)    + LVL_GLS_PSI(n)
+     .                  + MSC_MASSGS(n) + MSC_SALNGA(n) + MSC_TEMPGA(n)
         ACC_DPU(n)      = LYR_DPU(n)    + LYR_UVEL(n)
         ACC_DPV(n)      = LYR_DPV(n)    + LYR_VVEL(n)
         ACC_DZ(n)       = LYR_DZ(n)     + MSC_VOLGS(n)
@@ -515,10 +526,10 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_SALNLVL(n)  = LVL_SALN(n)
         ACC_TEMP(n)     = LYR_TEMP(n)   + MSC_TEMPGA(n)
         ACC_TEMPLVL(n)  = LVL_TEMP(n)
-        ACC_UFLX(n)     = LYR_UFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
-        ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
-     .                    LVL_WFLX(n)   + LVL_WFLX2(n)
+        ACC_UFLX(n)     = LYR_UFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n)
+     .                  + LYR_WFLX2(n)
+        ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n)
+     .                  + LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_UTFLX(n)    = LYR_UTFLX(n)  + MSC_MHFLX(n)
         ACC_UTFLXLVL(n) = LVL_UTFLX(n)
@@ -536,10 +547,10 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_USFLLDLVL(n)= LVL_USFLLD(n)
         ACC_UVEL(n)     = LYR_UVEL(n)
         ACC_UVELLVL(n)  = LVL_UVEL(n)
-        ACC_VFLX(n)     = LYR_VFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
-        ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) +
-     .                    LVL_WFLX(n)   + LVL_WFLX2(n)
+        ACC_VFLX(n)     = LYR_VFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n)
+     .                  + LYR_WFLX2(n)
+        ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n)
+     .                  + LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
         ACC_VTFLX(n)    = LYR_VTFLX(n)  + MSC_MHFLX(n)
         ACC_VTFLXLVL(n) = LVL_VTFLX(n)
@@ -557,14 +568,14 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_VSFLLDLVL(n)= LVL_VSFLLD(n)
         ACC_VVEL(n)     = LYR_VVEL(n)
         ACC_VVELLVL(n)  = LVL_VVEL(n)
-        ACC_WFLX(n)     = LYR_WFLX(n)   + LYR_WFLX2(n)  + LVL_WFLX(n)  +
-     .                    LVL_WFLX2(n)
-        ACC_WFLXLVL(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
-        ACC_WFLX2(n)    = LYR_WFLX2(n)  + LYR_WFLX(n)   + LVL_WFLX(n)  +
-     .                    LVL_WFLX2(n)
-        ACC_WFLX2LVL(n) = LVL_WFLX2(n)  + LVL_WFLX(n)   + LYR_WFLX(n)  +
-     .                    LYR_WFLX2(n)
+        ACC_WFLX(n)     = LYR_WFLX(n)   + LYR_WFLX2(n)  + LVL_WFLX(n)
+     .                  + LVL_WFLX2(n)
+        ACC_WFLXLVL(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n)
+     .                  + LYR_WFLX2(n)
+        ACC_WFLX2(n)    = LYR_WFLX2(n)  + LYR_WFLX(n)   + LVL_WFLX(n)
+     .                  + LVL_WFLX2(n)
+        ACC_WFLX2LVL(n) = LVL_WFLX2(n)  + LVL_WFLX(n)   + LYR_WFLX(n)
+     .                  + LYR_WFLX2(n)
         ACC_AVDSG(n)    = LYR_PV(n)
         ACC_DPVOR(n)    = LYR_PV(n)
         ACC_PVLVL(n)    = LVL_PV(n)
@@ -572,10 +583,10 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_TKELVL(n)   = LVL_TKE(n)
         ACC_GLS_PSI(n)  = LYR_GLS_PSI(n)
         ACC_GLS_PSILVL(n) = LVL_GLS_PSI(n)
-        ACC_MMFLXL(n)   = MSC_MMFLXL(n) 
+        ACC_MMFLXL(n)   = MSC_MMFLXL(n)
         ACC_MMFLXD(n)   = MSC_MMFLXD(n)
-        ACC_MMFTDL(n)   = MSC_MMFTDL(n) 
-        ACC_MMFTDD(n)   = MSC_MMFTDD(n) 
+        ACC_MMFTDL(n)   = MSC_MMFTDL(n)
+        ACC_MMFTDD(n)   = MSC_MMFTDD(n)
         ACC_MHFLX(n)    = MSC_MHFLX(n)
         ACC_MHFTD(n)    = MSC_MHFTD(n)
         ACC_MHFLD(n)    = MSC_MHFLD(n)
@@ -584,45 +595,45 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_MSFLD(n)    = MSC_MSFLD(n)
         ACC_VOLTR(n)    = MSC_VOLTR(n)
 c
-c --- - Determine position in buffer 
-        if (ACC_ABSWND(n).ne.0) nphyh2d=nphyh2d+1 
+c --- - Determine position in buffer
+        if (ACC_ABSWND(n).ne.0) nphyh2d=nphyh2d+1
          ACC_ABSWND(n)=nphyh2d*min(1,ACC_ABSWND(n))
         if (ACC_ALB(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_ALB(n)=nphyh2d*min(1,ACC_ALB(n)) 
-        if (ACC_BRNFLX(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_ALB(n)=nphyh2d*min(1,ACC_ALB(n))
+        if (ACC_BRNFLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_BRNFLX(n)=nphyh2d*min(1,ACC_BRNFLX(n))
         if (ACC_BRNPD(n).ne.0) nphyh2d=nphyh2d+1
          ACC_BRNPD(n)=nphyh2d*min(1,ACC_BRNPD(n))
         if (ACC_DFL(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_DFL(n)=nphyh2d*min(1,ACC_DFL(n)) 
+         ACC_DFL(n)=nphyh2d*min(1,ACC_DFL(n))
         if (ACC_EVA(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_EVA(n)=nphyh2d*min(1,ACC_EVA(n)) 
-        if (ACC_FMLTFZ(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_EVA(n)=nphyh2d*min(1,ACC_EVA(n))
+        if (ACC_FMLTFZ(n).ne.0) nphyh2d=nphyh2d+1
          ACC_FMLTFZ(n)=nphyh2d*min(1,ACC_FMLTFZ(n))
         if (ACC_FICE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_FICE(n)=nphyh2d*min(1,ACC_FICE(n)) 
+         ACC_FICE(n)=nphyh2d*min(1,ACC_FICE(n))
         if (ACC_HICE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_HICE(n)=nphyh2d*min(1,ACC_HICE(n)) 
-        if (ACC_HMLTFZ(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_HICE(n)=nphyh2d*min(1,ACC_HICE(n))
+        if (ACC_HMLTFZ(n).ne.0) nphyh2d=nphyh2d+1
          ACC_HMLTFZ(n)=nphyh2d*min(1,ACC_HMLTFZ(n))
         if (ACC_HSNW(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_HSNW(n)=nphyh2d*min(1,ACC_HSNW(n)) 
+         ACC_HSNW(n)=nphyh2d*min(1,ACC_HSNW(n))
         if (ACC_IAGE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_IAGE(n)=nphyh2d*min(1,ACC_IAGE(n)) 
-        if (ACC_IDKEDT(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_IAGE(n)=nphyh2d*min(1,ACC_IAGE(n))
+        if (ACC_IDKEDT(n).ne.0) nphyh2d=nphyh2d+1
          ACC_IDKEDT(n)=nphyh2d*min(1,ACC_IDKEDT(n))
-        if (ACC_IVOLU(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_IVOLU(n).ne.0) nphyh2d=nphyh2d+1
          ACC_IVOLU(n)=nphyh2d*min(1,ACC_IVOLU(n))
-        if (ACC_IVOLV(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_IVOLV(n).ne.0) nphyh2d=nphyh2d+1
          ACC_IVOLV(n)=nphyh2d*min(1,ACC_IVOLV(n))
         if (ACC_LIP(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_LIP(n)=nphyh2d*min(1,ACC_LIP(n)) 
-        if (ACC_MAXMLD(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_LIP(n)=nphyh2d*min(1,ACC_LIP(n))
+        if (ACC_MAXMLD(n).ne.0) nphyh2d=nphyh2d+1
          ACC_MAXMLD(n)=nphyh2d*min(1,ACC_MAXMLD(n))
         if (ACC_MLD(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MLD(n)=nphyh2d*min(1,ACC_MLD(n)) 
+         ACC_MLD(n)=nphyh2d*min(1,ACC_MLD(n))
         if (ACC_MLDU(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MLDU(n)=nphyh2d*min(1,ACC_MLDU(n)) 
+         ACC_MLDU(n)=nphyh2d*min(1,ACC_MLDU(n))
         if (ACC_MLDV(n).ne.0) nphyh2d=nphyh2d+1
          ACC_MLDV(n)=nphyh2d*min(1,ACC_MLDV(n))
         if (ACC_MLTS(n).ne.0) nphyh2d=nphyh2d+1
@@ -634,89 +645,89 @@ c --- - Determine position in buffer
         if (ACC_MLTSSQ(n).ne.0) nphyh2d=nphyh2d+1
          ACC_MLTSSQ(n)=nphyh2d*min(1,ACC_MLTSSQ(n))
         if (ACC_MTKEUS(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKEUS(n)=nphyh2d*min(1,ACC_MTKEUS(n)) 
+         ACC_MTKEUS(n)=nphyh2d*min(1,ACC_MTKEUS(n))
         if (ACC_MTKENI(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKENI(n)=nphyh2d*min(1,ACC_MTKENI(n)) 
+         ACC_MTKENI(n)=nphyh2d*min(1,ACC_MTKENI(n))
         if (ACC_MTKEBF(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKEBF(n)=nphyh2d*min(1,ACC_MTKEBF(n)) 
+         ACC_MTKEBF(n)=nphyh2d*min(1,ACC_MTKEBF(n))
         if (ACC_MTKERS(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKERS(n)=nphyh2d*min(1,ACC_MTKERS(n)) 
+         ACC_MTKERS(n)=nphyh2d*min(1,ACC_MTKERS(n))
         if (ACC_MTKEPE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKEPE(n)=nphyh2d*min(1,ACC_MTKEPE(n)) 
+         ACC_MTKEPE(n)=nphyh2d*min(1,ACC_MTKEPE(n))
         if (ACC_MTKEKE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTKEKE(n)=nphyh2d*min(1,ACC_MTKEKE(n)) 
+         ACC_MTKEKE(n)=nphyh2d*min(1,ACC_MTKEKE(n))
         if (ACC_MTY(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MTY(n)=nphyh2d*min(1,ACC_MTY(n)) 
+         ACC_MTY(n)=nphyh2d*min(1,ACC_MTY(n))
         if (ACC_MXLU(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MXLU(n)=nphyh2d*min(1,ACC_MXLU(n)) 
+         ACC_MXLU(n)=nphyh2d*min(1,ACC_MXLU(n))
         if (ACC_MXLV(n).ne.0) nphyh2d=nphyh2d+1
          ACC_MXLV(n)=nphyh2d*min(1,ACC_MXLV(n))
         if (ACC_NSF(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_NSF(n)=nphyh2d*min(1,ACC_NSF(n)) 
+         ACC_NSF(n)=nphyh2d*min(1,ACC_NSF(n))
         if (ACC_PBOT(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_PBOT(n)=nphyh2d*min(1,ACC_PBOT(n)) 
+         ACC_PBOT(n)=nphyh2d*min(1,ACC_PBOT(n))
         if (ACC_PSRF(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_PSRF(n)=nphyh2d*min(1,ACC_PSRF(n)) 
-        if (ACC_RFIFLX(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_PSRF(n)=nphyh2d*min(1,ACC_PSRF(n))
+        if (ACC_RFIFLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_RFIFLX(n)=nphyh2d*min(1,ACC_RFIFLX(n))
-        if (ACC_RNFFLX(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_RNFFLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_RNFFLX(n)=nphyh2d*min(1,ACC_RNFFLX(n))
-        if (ACC_SURFLX(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SURFLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SURFLX(n)=nphyh2d*min(1,ACC_SURFLX(n))
-        if (ACC_SURRLX(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SURRLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SURRLX(n)=nphyh2d*min(1,ACC_SURRLX(n))
-        if (ACC_SALFLX(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SALFLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SALFLX(n)=nphyh2d*min(1,ACC_SALFLX(n))
-        if (ACC_SALRLX(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SALRLX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SALRLX(n)=nphyh2d*min(1,ACC_SALRLX(n))
-        if (ACC_SBOT(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SBOT(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SBOT(n)=nphyh2d*min(1,ACC_SBOT(n))
-        if (ACC_SEALV(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SEALV(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SEALV(n)=nphyh2d*min(1,ACC_SEALV(n))
-        if (ACC_SLVSQ(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_SLVSQ(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SLVSQ(n)=nphyh2d*min(1,ACC_SLVSQ(n))
         if (ACC_SFL(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SFL(n)=nphyh2d*min(1,ACC_SFL(n)) 
-        if (ACC_SIGMX(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_SFL(n)=nphyh2d*min(1,ACC_SFL(n))
+        if (ACC_SIGMX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_SIGMX(n)=nphyh2d*min(1,ACC_SIGMX(n))
         if (ACC_SOP(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SOP(n)=nphyh2d*min(1,ACC_SOP(n)) 
+         ACC_SOP(n)=nphyh2d*min(1,ACC_SOP(n))
         if (ACC_SSS(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SSS(n)=nphyh2d*min(1,ACC_SSS(n)) 
+         ACC_SSS(n)=nphyh2d*min(1,ACC_SSS(n))
         if (ACC_SSSSQ(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SSSSQ(n)=nphyh2d*min(1,ACC_SSSSQ(n)) 
+         ACC_SSSSQ(n)=nphyh2d*min(1,ACC_SSSSQ(n))
         if (ACC_SST(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SST(n)=nphyh2d*min(1,ACC_SST(n)) 
+         ACC_SST(n)=nphyh2d*min(1,ACC_SST(n))
         if (ACC_SSTSQ(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SSTSQ(n)=nphyh2d*min(1,ACC_SSTSQ(n)) 
+         ACC_SSTSQ(n)=nphyh2d*min(1,ACC_SSTSQ(n))
         if (ACC_SWA(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_SWA(n)=nphyh2d*min(1,ACC_SWA(n)) 
+         ACC_SWA(n)=nphyh2d*min(1,ACC_SWA(n))
         if (ACC_T20D(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_T20D(n)=nphyh2d*min(1,ACC_T20D(n)) 
+         ACC_T20D(n)=nphyh2d*min(1,ACC_T20D(n))
         if (ACC_TAUX(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_TAUX(n)=nphyh2d*min(1,ACC_TAUX(n)) 
+         ACC_TAUX(n)=nphyh2d*min(1,ACC_TAUX(n))
         if (ACC_TAUY(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_TAUY(n)=nphyh2d*min(1,ACC_TAUY(n)) 
-        if (ACC_TBOT(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_TAUY(n)=nphyh2d*min(1,ACC_TAUY(n))
+        if (ACC_TBOT(n).ne.0) nphyh2d=nphyh2d+1
          ACC_TBOT(n)=nphyh2d*min(1,ACC_TBOT(n))
         if (ACC_TICE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_TICE(n)=nphyh2d*min(1,ACC_TICE(n)) 
+         ACC_TICE(n)=nphyh2d*min(1,ACC_TICE(n))
         if (ACC_TSRF(n).ne.0) nphyh2d=nphyh2d+1
          ACC_TSRF(n)=nphyh2d*min(1,ACC_TSRF(n))
         if (ACC_UB(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_UB(n)=nphyh2d*min(1,ACC_UB(n)) 
+         ACC_UB(n)=nphyh2d*min(1,ACC_UB(n))
         if (ACC_UBFLXS(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_UBFLXS(n)=nphyh2d*min(1,ACC_UBFLXS(n)) 
+         ACC_UBFLXS(n)=nphyh2d*min(1,ACC_UBFLXS(n))
         if (ACC_UICE(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_UICE(n)=nphyh2d*min(1,ACC_UICE(n)) 
-        if (ACC_USTAR(n).ne.0) nphyh2d=nphyh2d+1 
+         ACC_UICE(n)=nphyh2d*min(1,ACC_UICE(n))
+        if (ACC_USTAR(n).ne.0) nphyh2d=nphyh2d+1
          ACC_USTAR(n)=nphyh2d*min(1,ACC_USTAR(n))
-        if (ACC_USTAR3(n).ne.0) nphyh2d=nphyh2d+1 
+        if (ACC_USTAR3(n).ne.0) nphyh2d=nphyh2d+1
          ACC_USTAR3(n)=nphyh2d*min(1,ACC_USTAR3(n))
         if (ACC_VB(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_VB(n)=nphyh2d*min(1,ACC_VB(n)) 
+         ACC_VB(n)=nphyh2d*min(1,ACC_VB(n))
         if (ACC_VBFLXS(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_VBFLXS(n)=nphyh2d*min(1,ACC_VBFLXS(n)) 
+         ACC_VBFLXS(n)=nphyh2d*min(1,ACC_VBFLXS(n))
         if (ACC_VICE(n).ne.0) nphyh2d=nphyh2d+1
          ACC_VICE(n)=nphyh2d*min(1,ACC_VICE(n))
         if (ACC_ZTX(n).ne.0) nphyh2d=nphyh2d+1
@@ -726,6 +737,12 @@ c
          ACC_BFSQ(n)=nphylyr*min(1,ACC_BFSQ(n))
         if (ACC_DIFDIA(n).ne.0) nphylyr=nphylyr+1
          ACC_DIFDIA(n)=nphylyr*min(1,ACC_DIFDIA(n))
+        if (ACC_DIFVMO(n).ne.0) nphylyr=nphylyr+1
+         ACC_DIFVMO(n)=nphylyr*min(1,ACC_DIFVMO(n))
+        if (ACC_DIFVHO(n).ne.0) nphylyr=nphylyr+1
+         ACC_DIFVHO(n)=nphylyr*min(1,ACC_DIFVHO(n))
+        if (ACC_DIFVSO(n).ne.0) nphylyr=nphylyr+1
+         ACC_DIFVSO(n)=nphylyr*min(1,ACC_DIFVSO(n))
         if (ACC_DIFINT(n).ne.0) nphylyr=nphylyr+1
          ACC_DIFINT(n)=nphylyr*min(1,ACC_DIFINT(n))
         if (ACC_DIFISO(n).ne.0) nphylyr=nphylyr+1
@@ -795,6 +812,12 @@ c
          ACC_BFSQLVL(n)=nphylvl*min(1,ACC_BFSQLVL(n))
         if (ACC_DIFDIALVL(n).ne.0) nphylvl=nphylvl+1
          ACC_DIFDIALVL(n)=nphylvl*min(1,ACC_DIFDIALVL(n))
+        if (ACC_DIFVMOLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_DIFVMOLVL(n)=nphylvl*min(1,ACC_DIFVMOLVL(n))
+        if (ACC_DIFVHOLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_DIFVHOLVL(n)=nphylvl*min(1,ACC_DIFVHOLVL(n))
+        if (ACC_DIFVSOLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_DIFVSOLVL(n)=nphylvl*min(1,ACC_DIFVSOLVL(n))
         if (ACC_DIFINTLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_DIFINTLVL(n)=nphylvl*min(1,ACC_DIFINTLVL(n))
         if (ACC_DIFISOLVL(n).ne.0) nphylvl=nphylvl+1
@@ -858,20 +881,20 @@ c
 c
 c --- End loop over io groups
       enddo
-c 
+c
 c --- Assign buffer positions for utility fields
-      ACC_UTILH2D=0 
+      ACC_UTILH2D=0
       nphyh2d=nphyh2d+1
-      ACC_UTILH2D(1)=nphyh2d 
+      ACC_UTILH2D(1)=nphyh2d
 c
-      ACC_UTILLYR=0 
+      ACC_UTILLYR=0
       nphylyr=nphylyr+1
-      ACC_UTILLYR(1)=nphylyr 
+      ACC_UTILLYR(1)=nphylyr
 c
-      ACC_UTILLVL=0 
+      ACC_UTILLVL=0
       nphylvl=nphylvl+1
-      ACC_UTILLVL(1)=nphylvl 
-c 
+      ACC_UTILLVL(1)=nphylvl
+c
 c --- Allocate buffers
       istatsum=0
       istat=0
@@ -895,10 +918,10 @@ c --- initialisation of h2h, lyr and lvl fields
         call inifld(n)
       enddo
 c
-c --- Load bathymetry into module mod_dia (used for vertical 
+c --- Load bathymetry into module mod_dia (used for vertical
 c --- interpolation in BLOM and HAMOCC)
       nstepinday=nstep_in_day
-c$OMP PARALLEL DO PRIVATE(l,i) 
+c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj+1
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -948,7 +971,7 @@ c$OMP END PARALLEL DO
           do i=1,itdm
             if (tmp2d(i,j).gt.0.) then
               i1=i
-              j1=j 
+              j1=j
               lsigmar1=.true.
               exit
             endif
@@ -963,7 +986,7 @@ c$OMP END PARALLEL DO
         sigmar1(k)=sigmar1(k)*1.e3 ! Convert units from g cm-3 to kg m-3
       enddo
       if (mnproc.eq.1) then
-        write(lp,*) 'sigma layers=',sigmar1 
+        write(lp,*) 'sigma layers=',sigmar1
       endif
 c
       end subroutine diasg1
@@ -985,22 +1008,22 @@ c
       integer i,j,k,l,km,kup,iogrp
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2,
      .  ipsw,ipse,ipnw,ipne
-c     
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts,
      .  wghtsflx
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
      .  dz,avdsg_p,dpvor_p,pv_p,dummy
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: 
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  dpml,sbot,tbot,dps,mlts,t20d
       real dsig,q,zup,zlo,plo,dbup,dblo,tup,tlo
 c
-c --- Increase counter 
+c --- Increase counter
       do iogrp=1,nphy
         nacc_phy(iogrp)=nacc_phy(iogrp)+1
       enddo
 c
-c --- Define auxillary variables 
+c --- Define auxillary variables
 c
       if (sum(ACC_UICE(1:nphy)+ACC_VICE(1:nphy)).ne.0) then
         call xctilr(hicem, 1,1, 1,1, halo_ps)
@@ -1243,7 +1266,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,k,km,kup,zup,zlo,tup,tlo)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               k=1
               km=k+mm
-              do 
+              do
                 if (dp(i,j,km).gt.onecm) then
                   if (temp(i,j,km).gt.20.) then
                     kup=k
@@ -1338,11 +1361,11 @@ c --- weighted snow thickness [m]
 c
 c --- fractional ice cover
       call acch2d(ACC_FICE,ficem,dummy,0,'p')
-c 
-c --- ice volume in u-points[m] 
+c
+c --- ice volume in u-points[m]
       call acch2d(ACC_IVOLU,util1,dummy,0,'u')
-c 
-c --- ice volume in v-points[m] 
+c
+c --- ice volume in v-points[m]
       call acch2d(ACC_IVOLV,util3,dummy,0,'v')
 c
 c --- surface temperature [K]
@@ -1572,8 +1595,17 @@ c
 c --- isopycnal diffusivity [cm^2/s]
       call acclyr(ACC_DIFISO,difiso,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
-c --- diapycnal diffusivity [cm^2/s]
+c --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
       call acclyr(ACC_DIFDIA,difdia,dp(1-nbdy,1-nbdy,k1m),1,'p')
+c
+c --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+      call accily(ACC_DIFVMO,Kvisc_m,dp(1-nbdy,1-nbdy,k1m),1,'p')
+c
+c --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+      call accily(ACC_DIFVHO,Kdiff_t,dp(1-nbdy,1-nbdy,k1m),1,'p')
+c
+c --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+      call accily(ACC_DIFVSO,Kdiff_s,dp(1-nbdy,1-nbdy,k1m),1,'p')
 c
 c --- absolute vorticity multiplied with potential density difference
 c --- over layer [g/cm^3/s]
@@ -1593,28 +1625,28 @@ c --- weighted gls_psi [cm2/s3*g/cm/s^2]
 c
 #endif
 c --- ------------------------------------------------------------------
-c --- accumulate 3d diagnostic variables on Levitus levels 
+c --- accumulate 3d diagnostic variables on Levitus levels
 c --- ------------------------------------------------------------------
 c
-      do iogrp=1,nphy 
+      do iogrp=1,nphy
         if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
 c$OMP PARALLEL DO PRIVATE(k,l,i)
           do j=1,jj+1
             do k=1,ddm
               do l=1,isu(j)
-                do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
+                do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                   phylvl(i,j,k,ACC_UFLXOLD(iogrp))=
      .              phylvl(i,j,k,ACC_UFLXLVL(iogrp))
                 enddo
               enddo
               do l=1,isv(j)
-                do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
+                do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                   phylvl(i,j,k,ACC_VFLXOLD(iogrp))=
      .              phylvl(i,j,k,ACC_VFLXLVL(iogrp))
                 enddo
               enddo
-            enddo  
-          enddo 
+            enddo
+          enddo
 c$OMP END PARALLEL DO
         endif
       enddo
@@ -1709,11 +1741,13 @@ c --- --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
         enddo
       endif
 c
-      if (sum(ACC_SALNLVL(1:nphy)+ACC_TEMPLVL(1:nphy)+
-     .  ACC_BFSQLVL(1:nphy)+ACC_DIFDIALVL(1:nphy)+
-     .  ACC_DIFINTLVL(1:nphy)+ACC_DIFISOLVL(1:nphy)+
-     .  ACC_TKELVL(1:nphy)+ACC_GLS_PSILVL(1:nphy)+
-     .  ACC_PVLVL(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
+      if (sum(ACC_SALNLVL(1:nphy)   +ACC_TEMPLVL(1:nphy)
+     .       +ACC_BFSQLVL(1:nphy)   +ACC_DIFDIALVL(1:nphy)
+     .       +ACC_DIFVMOLVL(1:nphy) +ACC_DIFVHOLVL(1:nphy)
+     .       +ACC_DIFVSOLVL(1:nphy) +ACC_DIFINTLVL(1:nphy)
+     .       +ACC_DIFISOLVL(1:nphy) +ACC_TKELVL(1:nphy)
+     .       +ACC_GLS_PSILVL(1:nphy)+ACC_PVLVL(1:nphy)
+     .       +ACC_DZLVL(1:nphy)     ).ne.0) then
         do k=1,kk
           call diazlv('p',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
@@ -1734,8 +1768,18 @@ c
 c --- --- isopycnal diffusivity [cm^2/s]
           call acclvl(ACC_DIFISOLVL,difiso,'p',k,ind1,ind2,wghts)
 c
-c --- --- diapycnal diffusivity [cm^2/s]
+c --- --- vertical diffusivity (vcoord_type_tag == isopyc_bulkml) [cm^2/s]
           call acclvl(ACC_DIFDIALVL,difdia,'p',k,ind1,ind2,wghts)
+c
+c --- --- vertical momentum diffusivity (vcoord_type_tag == cntiso_hybrid)
+c --- --- [cm^2/s]
+          call accilv(ACC_DIFVMOLVL,Kvisc_m,'p',k,ind1,ind2,wghts)
+c
+c --- --- vertical heat diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+          call accilv(ACC_DIFVHOLVL,Kdiff_t,'p',k,ind1,ind2,wghts)
+c
+c --- --- vertical salt diffusivity (vcoord_type_tag == cntiso_hybrid) [cm^2/s]
+          call accilv(ACC_DIFVSOLVL,Kdiff_s,'p',k,ind1,ind2,wghts)
 c
 c --- --- potential vorticity [s m-2]
           call acclvl(ACC_PVLVL,pv_p,'p',k,ind1,ind2,wghts)
@@ -1809,7 +1853,7 @@ c --- prepare output fields
 c
       rnacc=1./real(nacc_phy(iogrp))
       cmpflg=GLB_COMPFLAG(iogrp)
-c 
+c
 c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
      .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
@@ -2046,6 +2090,9 @@ c --- finalize accumulation of layer fields
       call finlyr(ACC_TEMP(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_BFSQ(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFDIA(iogrp),ACC_DP(iogrp),'p')
+      call finlyr(ACC_DIFVMO(iogrp),ACC_DP(iogrp),'p')
+      call finlyr(ACC_DIFVHO(iogrp),ACC_DP(iogrp),'p')
+      call finlyr(ACC_DIFVSO(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFINT(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_DIFISO(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_AVDSG(iogrp),ACC_DPVOR(iogrp),'p')
@@ -2053,10 +2100,16 @@ c --- finalize accumulation of layer fields
       call finlyr(ACC_TKE(iogrp),ACC_DP(iogrp),'p')
       call finlyr(ACC_GLS_PSI(iogrp),ACC_DP(iogrp),'p')
 #endif
-c 
+c
 c --- compute log10 of diffusivities
       if (LYR_DIFDIA(iogrp).eq.2)
      .  call loglyr(ACC_DIFDIA(iogrp),'p',1e-4,0.)
+      if (LYR_DIFVMO(iogrp).eq.2)
+     .  call loglyr(ACC_DIFVMO(iogrp),'p',1e-4,0.)
+      if (LYR_DIFVHO(iogrp).eq.2)
+     .  call loglyr(ACC_DIFVHO(iogrp),'p',1e-4,0.)
+      if (LYR_DIFVSO(iogrp).eq.2)
+     .  call loglyr(ACC_DIFVSO(iogrp),'p',1e-4,0.)
       if (LYR_DIFINT(iogrp).eq.2)
      .  call loglyr(ACC_DIFINT(iogrp),'p',1e-4,0.)
       if (LYR_DIFISO(iogrp).eq.2)
@@ -2064,6 +2117,12 @@ c --- compute log10 of diffusivities
 c
       if (LVL_DIFDIA(iogrp).eq.2)
      .  call loglvl(ACC_DIFDIALVL(iogrp),'p',1e-4*rnacc,0.)
+      if (LVL_DIFVMO(iogrp).eq.2)
+     .  call loglvl(ACC_DIFVMOLVL(iogrp),'p',1e-4*rnacc,0.)
+      if (LVL_DIFVHO(iogrp).eq.2)
+     .  call loglvl(ACC_DIFVHOLVL(iogrp),'p',1e-4*rnacc,0.)
+      if (LVL_DIFVSO(iogrp).eq.2)
+     .  call loglvl(ACC_DIFVSOLVL(iogrp),'p',1e-4*rnacc,0.)
       if (LVL_DIFINT(iogrp).eq.2)
      .  call loglvl(ACC_DIFINTLVL(iogrp),'p',1e-4*rnacc,0.)
       if (LVL_DIFISO(iogrp).eq.2)
@@ -2072,6 +2131,9 @@ c
 c --- mask sea floor of level fields
       call msklvl(ACC_BFSQLVL(iogrp),'p')
       call msklvl(ACC_DIFDIALVL(iogrp),'p')
+      call msklvl(ACC_DIFVMOLVL(iogrp),'p')
+      call msklvl(ACC_DIFVHOLVL(iogrp),'p')
+      call msklvl(ACC_DIFVSOLVL(iogrp),'p')
       call msklvl(ACC_DIFINTLVL(iogrp),'p')
       call msklvl(ACC_DIFISOLVL(iogrp),'p')
       call msklvl(ACC_DZLVL(iogrp),'p')
@@ -2102,8 +2164,8 @@ c --- mask sea floor of level fields
       call msklvl(ACC_TKELVL(iogrp),'p')
       call msklvl(ACC_GLS_PSILVL(iogrp),'p')
 #endif
-c 
-c --- get instantaneous values for ice age 
+c
+c --- get instantaneous values for ice age
       if (ACC_IAGE(iogrp).ne.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
@@ -2125,7 +2187,7 @@ c --- set time information
      .  date0%year,'-',date0%month,'-',date0%day,' 00:00'
       datenum=time-time0-0.5*diagfq_phy(iogrp)/nstep_in_day
 c
-c --- create file name 
+c --- create file name
       if (.not.append2file(iogrp)) then
         call diafnm(GLB_FNAMETAG(IOGRP),
      .              filefq_phy(iogrp)/real(nstep_in_day),
@@ -2155,7 +2217,7 @@ c --- open output file
         call ncfopn(fname(iogrp),'w','c',irec(iogrp),iotype)
       endif
 c
-c --- compute extended ocean masks 
+c --- compute extended ocean masks
       if (iniflg) then
          iniflg=.false.
 c$OMP PARALLEL DO PRIVATE(i)
@@ -2176,7 +2238,7 @@ c$OMP PARALLEL DO PRIVATE(i)
 c$OMP END PARALLEL DO
       endif
 c
-c --- define output dimensions  
+c --- define output dimensions
       if (cmpflg.ne.0) then
         call ncdimc('pcomp',ip,0)
         call ncdimc('ucomp',iuu,0)
@@ -2187,7 +2249,7 @@ c --- define output dimensions
       endif
       call ncdims('sigma',kdm)
       call ncdims('depth',ddm)
-      call ncdims('bounds',2) 
+      call ncdims('bounds',2)
       call ncdims('time',0)
 c
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
@@ -2228,7 +2290,7 @@ c
 
       call nctime(datenum,calendar,timeunits,startdate)
 c
-c --- write auxillary dimension information 
+c --- write auxillary dimension information
       if (irec(iogrp).eq.1) then
 c --- sigma levels
         call ncwrt1('sigma','sigma',sigmar1)
@@ -2246,18 +2308,18 @@ c --- zlevel
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp).ne.0) then 
-          call ncwrt1('lat','lat',mtlat)  
+     .     +MSC_MSFLD(iogrp).ne.0) then
+          call ncwrt1('lat','lat',mtlat)
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
           call ncattr('units','degree_north')
-          call ncwrtc('region','slenmax region',mer_regnam)  
-          call ncattr('long_name','Region name') 
+          call ncwrtc('region','slenmax region',mer_regnam)
+          call ncattr('long_name','Region name')
         endif
-        if (MSC_VOLTR(iogrp).ne.0) then 
+        if (MSC_VOLTR(iogrp).ne.0) then
           call ncwrtc('section','slenmax section',sec_name)
-          call ncattr('long_name','Section name') 
-        endif 
+          call ncattr('long_name','Section name')
+        endif
       endif
 c
 c --- write 2d fields
@@ -2377,7 +2439,7 @@ c
      .  'Momentum flux received by ocean x-component',' ','N m-2')
 c
       call wrth2d(ACC_TAUY(iogrp),H2D_TAUY(iogrp),rnacc*.1,
-     .  0.,cmpflg,ivv,'v','tauy', 
+     .  0.,cmpflg,ivv,'v','tauy',
      .  'Momentum flux received by ocean y-component',' ','N m-2')
 c
       call wrth2d(ACC_IDKEDT(iogrp),H2D_IDKEDT(iogrp),
@@ -2636,11 +2698,41 @@ c
 c
       if (LYR_DIFDIA(iogrp).eq.2) then
         call wrtlyr(ACC_DIFDIA(iogrp),LYR_DIFDIA(iogrp),1.,
-     .    0.,cmpflg,ip,'p','difdia','Diapycnal diffusivity',' ',
+     .    0.,cmpflg,ip,'p','difdia','Vertical diffusivity',' ',
      .    'log10(m2 s-1)')
       else
         call wrtlyr(ACC_DIFDIA(iogrp),LYR_DIFDIA(iogrp),1e-4,
-     .    0.,cmpflg,ip,'p','difdia','Diapycnal diffusivity',' ',
+     .    0.,cmpflg,ip,'p','difdia','Vertical diffusivity',' ',
+     .    'm2 s-1')
+      endif
+c
+      if (LYR_DIFVMO(iogrp).eq.2) then
+        call wrtlyr(ACC_DIFVMO(iogrp),LYR_DIFVMO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvmo','Vertical momentum diffusivity',' ',
+     .    'log10(m2 s-1)')
+      else
+        call wrtlyr(ACC_DIFVMO(iogrp),LYR_DIFVMO(iogrp),1e-4,
+     .    0.,cmpflg,ip,'p','difvmo','Vertical momentum diffusivity',' ',
+     .    'm2 s-1')
+      endif
+c
+      if (LYR_DIFVHO(iogrp).eq.2) then
+        call wrtlyr(ACC_DIFVHO(iogrp),LYR_DIFVHO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvho','Vertical heat diffusivity',' ',
+     .    'log10(m2 s-1)')
+      else
+        call wrtlyr(ACC_DIFVHO(iogrp),LYR_DIFVHO(iogrp),1e-4,
+     .    0.,cmpflg,ip,'p','difvho','Vertical heat diffusivity',' ',
+     .    'm2 s-1')
+      endif
+c
+      if (LYR_DIFVSO(iogrp).eq.2) then
+        call wrtlyr(ACC_DIFVSO(iogrp),LYR_DIFVSO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvso','Vertical salt diffusivity',' ',
+     .    'log10(m2 s-1)')
+      else
+        call wrtlyr(ACC_DIFVSO(iogrp),LYR_DIFVSO(iogrp),1e-4,
+     .    0.,cmpflg,ip,'p','difvso','Vertical salt diffusivity',' ',
      .    'm2 s-1')
       endif
 c
@@ -2673,7 +2765,7 @@ c
       call wrtlvl(ACC_VVELLVL(iogrp),LVL_VVEL(iogrp),
      .  rnacc*1e-2,0.,cmpflg,ivv,'v','vvellvl',
      .  'Velocity y-component',' ','m s-1')
-c 
+c
       call wrtlvl(ACC_UFLXLVL(iogrp),LVL_UFLX(iogrp),
      .  rnacc*0.5e-3/(g*baclin),0.,cmpflg,iuu,'u','uflxlvl',
      .  'Mass flux in x-direction',' ','kg s-1')
@@ -2786,12 +2878,42 @@ c
 c
       if (LVL_DIFDIA(iogrp).eq.2) then
         call wrtlvl(ACC_DIFDIALVL(iogrp),LVL_DIFDIA(iogrp),1.,
-     .    0.,cmpflg,ip,'p','difdialvl','Diapycnal diffusivity',' ',
+     .    0.,cmpflg,ip,'p','difdialvl','Vertical diffusivity',' ',
      .    'log10(m2 s-1)')
       else
         call wrtlvl(ACC_DIFDIALVL(iogrp),LVL_DIFDIA(iogrp),1e-4*rnacc,
-     .    0.,cmpflg,ip,'p','difdialvl','Diapycnal diffusivity',' ',
+     .    0.,cmpflg,ip,'p','difdialvl','Vertical diffusivity',' ',
      .    'm2 s-1')
+      endif
+c
+      if (LVL_DIFVMO(iogrp).eq.2) then
+        call wrtlvl(ACC_DIFVMOLVL(iogrp),LVL_DIFVMO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvmolvl','Vertical momentum diffusivity',
+     .    ' ','log10(m2 s-1)')
+      else
+        call wrtlvl(ACC_DIFVMOLVL(iogrp),LVL_DIFVMO(iogrp),1e-4*rnacc,
+     .    0.,cmpflg,ip,'p','difvmolvl','Vertical momentum diffusivity',
+     .    ' ','m2 s-1')
+      endif
+c
+      if (LVL_DIFVHO(iogrp).eq.2) then
+        call wrtlvl(ACC_DIFVHOLVL(iogrp),LVL_DIFVHO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvholvl','Vertical heat diffusivity',
+     .    ' ','log10(m2 s-1)')
+      else
+        call wrtlvl(ACC_DIFVHOLVL(iogrp),LVL_DIFVHO(iogrp),1e-4*rnacc,
+     .    0.,cmpflg,ip,'p','difvholvl','Vertical heat diffusivity',
+     .    ' ','m2 s-1')
+      endif
+c
+      if (LVL_DIFVSO(iogrp).eq.2) then
+        call wrtlvl(ACC_DIFVSOLVL(iogrp),LVL_DIFVSO(iogrp),1.,
+     .    0.,cmpflg,ip,'p','difvsolvl','Vertical salt diffusivity',
+     .    ' ','log10(m2 s-1)')
+      else
+        call wrtlvl(ACC_DIFVSOLVL(iogrp),LVL_DIFVSO(iogrp),1e-4*rnacc,
+     .    0.,cmpflg,ip,'p','difvsolvl','Vertical salt diffusivity',
+     .    ' ','m2 s-1')
       endif
 c
 #if defined(TRC) && defined(TKE)
@@ -2805,70 +2927,70 @@ c
 c
 #endif
 c
-c --- store meridional transports 
-      if (MSC_MMFLXL(iogrp).ne.0) then 
+c --- store meridional transports
+      if (MSC_MMFLXL(iogrp).ne.0) then
         call ncwrt1('mmflxl','lat sigma region time',mmflxl)
         call ncattr('long_name',
-     .    'Overturning stream-function on isopycnic layers') 
-        call ncattr('units','kg s-1')  
+     .    'Overturning stream-function on isopycnic layers')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MMFLXD(iogrp).ne.0) then 
+      if (MSC_MMFLXD(iogrp).ne.0) then
         call ncwrt1('mmflxd','lat depth region time',mmflxd)
         call ncattr('long_name',
-     .    'Overturning stream-function on z-levels') 
-        call ncattr('units','kg s-1')  
+     .    'Overturning stream-function on z-levels')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MMFTDL(iogrp).ne.0) then 
+      if (MSC_MMFTDL(iogrp).ne.0) then
         call ncwrt1('mmftdl','lat sigma region time',mmftdl)
         call ncattr('long_name',
      .    'Overturning stream-function due to thickness diffusion '//
-     .    'on isopycnic layers') 
-        call ncattr('units','kg s-1')  
+     .    'on isopycnic layers')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MMFTDD(iogrp).ne.0) then 
+      if (MSC_MMFTDD(iogrp).ne.0) then
         call ncwrt1('mmftdd','lat depth region time',mmftdd)
         call ncattr('long_name',
      .    'Overturning stream-function due to thickness diffusion '//
-     .    'on z-levels') 
-        call ncattr('units','kg s-1')  
+     .    'on z-levels')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MHFLX(iogrp).ne.0) then 
+      if (MSC_MHFLX(iogrp).ne.0) then
         call ncwrt1('mhflx','lat region time',mhflx)
-        call ncattr('long_name','Meridional heat flux') 
-        call ncattr('units','W') 
+        call ncattr('long_name','Meridional heat flux')
+        call ncattr('units','W')
       endif
-      if (MSC_MHFTD(iogrp).ne.0) then 
+      if (MSC_MHFTD(iogrp).ne.0) then
         call ncwrt1('mhftd','lat region time',mhftd)
         call ncattr('long_name',
-     .    'Meridional heat flux due to thickness diffusion') 
-        call ncattr('units','W') 
+     .    'Meridional heat flux due to thickness diffusion')
+        call ncattr('units','W')
       endif
-      if (MSC_MHFLD(iogrp).ne.0) then 
+      if (MSC_MHFLD(iogrp).ne.0) then
         call ncwrt1('mhfld','lat region time',mhfld)
         call ncattr('long_name',
-     .    'Meridional heat flux due to lateral diffusion') 
-        call ncattr('units','W') 
+     .    'Meridional heat flux due to lateral diffusion')
+        call ncattr('units','W')
       endif
-      if (MSC_MSFLX(iogrp).ne.0) then 
+      if (MSC_MSFLX(iogrp).ne.0) then
         call ncwrt1('msflx','lat region time',msflx)
-        call ncattr('long_name','Meridional salt flux') 
-        call ncattr('units','kg s-1') 
+        call ncattr('long_name','Meridional salt flux')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MSFTD(iogrp).ne.0) then 
+      if (MSC_MSFTD(iogrp).ne.0) then
         call ncwrt1('msftd','lat region time',msftd)
         call ncattr('long_name',
-     .    'Meridional salt flux due to thickness diffusion') 
-        call ncattr('units','kg s-1') 
+     .    'Meridional salt flux due to thickness diffusion')
+        call ncattr('units','kg s-1')
       endif
-      if (MSC_MSFLD(iogrp).ne.0) then 
+      if (MSC_MSFLD(iogrp).ne.0) then
         call ncwrt1('msfld','lat region time',msfld)
         call ncattr('long_name',
-     .    'Meridional salt flux due to lateral diffusion') 
-        call ncattr('units','kg s-1') 
+     .    'Meridional salt flux due to lateral diffusion')
+        call ncattr('units','kg s-1')
       endif
 c
-c --- store section transports 
-      if (MSC_VOLTR(iogrp).ne.0) then       
+c --- store section transports
+      if (MSC_VOLTR(iogrp).ne.0) then
         call ncwrt1('voltr','section time',voltr)
         call ncattr('long_name','Section transports')
         call ncattr('units','kg s-1')
@@ -2917,7 +3039,7 @@ c
       endif
 #  ifdef IDLAGE
 c
-c --- ideal age tracer 
+c --- ideal age tracer
       if (LYR_IDLAGE(iogrp).ne.0) then
         call inilyr(ACC_UTILLYR(1),'p',0.)
         call acclyr(ACC_UTILLYR,trc(1-nbdy,1-nbdy,k1m,itriag),tmp3d,0,
@@ -3047,7 +3169,7 @@ c
 c --- initialisation of fields
       call inifld(iogrp)
 c
-c --- reset accumulation counter 
+c --- reset accumulation counter
       nacc_phy(iogrp)=0
 c
       end subroutine diaout
@@ -3106,8 +3228,8 @@ c --- ------------------------------------------------------------------
         call xcbcst(sec_num)
         iniflg=.false.
       endif
-c      
-c --- Prepare 2d field   
+c
+c --- Prepare 2d field
 c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
@@ -3150,7 +3272,7 @@ c --- -- the upper 350 m  for equatorial_undercurrent
                 vflx_cum350(i,j)=vflx_cum(i,j)
               enddo
             enddo
-          elseif (k.eq.k350) then 
+          elseif (k.eq.k350) then
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 uflx_cum350(i,j)=uflx_cum350(i,j)+
@@ -3207,7 +3329,7 @@ c
       implicit none
 c
       integer :: iogrp
-c 
+c
       integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,iostatus,
      .  istat,iind1,jind1,uflg1,vflg1,nind1,
      .  nfld,ACC_UIND,ACC_VIND,nind(ldm),iind(sdm,ldm),jind(sdm,ldm),
@@ -3331,7 +3453,7 @@ c --- - Allocate arrays for meridional fluxes
 c
       endif
 c
-c --- Compute vertical integrated heat and salt transports 
+c --- Compute vertical integrated heat and salt transports
 c
 c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
@@ -3414,8 +3536,8 @@ c ---- ---- Accumulate meridional fluxes in seperate ocean regions
             do o=1,ocn_nreg
               mflx_or(l,o)=0.
               mcnt_or(l,o)=0
-            enddo 
-            do s=1,nind(l) 
+            enddo
+            do s=1,nind(l)
               i=iind(s,l)
               j=jind(s,l)
               o=oflg(i,j)
@@ -3605,10 +3727,10 @@ c$OMP END PARALLEL DO
           if (mnproc.eq.1) then
             do l=1,lmax
 c ---- ------ Accumulate meridional fluxes in seperate ocean regions
-              do o=1,ocn_nreg 
+              do o=1,ocn_nreg
                 mflx_or(l,o)=0.
-              enddo 
-              do s=1,nind(l) 
+              enddo
+              do s=1,nind(l)
                 i=iind(s,l)
                 j=jind(s,l)
                 o=oflg(i,j)
@@ -3669,7 +3791,7 @@ c
       enddo
 c
 c --- Compute overturning stream function at levitus level interfaces
-c --- Prepare depth mask 
+c --- Prepare depth mask
 c
       if (iniflg) call xcaget(depthst,depths,1)
       if (iniflg.and.mnproc.eq.1) then
@@ -3677,7 +3799,7 @@ c
           do m=1,mer_nreg
             kmax(l,m)=0
           enddo
-        enddo 
+        enddo
         do k=1,ddm
           do l=1,lmax
             do s=1,nind(l)
@@ -3694,7 +3816,7 @@ c
                   endif
                 enddo
               endif
-            enddo 
+            enddo
           enddo
         enddo
       endif
@@ -3751,10 +3873,10 @@ c$OMP END PARALLEL DO
           if (mnproc.eq.1) then
             do l=1,lmax
 c ---- ------ Accumulate meridional fluxes in seperate ocean regions
-              do o=1,ocn_nreg 
+              do o=1,ocn_nreg
                 mflx_or(l,o)=0.
-              enddo 
-              do s=1,nind(l) 
+              enddo
+              do s=1,nind(l)
                 i=iind(s,l)
                 j=jind(s,l)
                 o=oflg(i,j)
@@ -3816,7 +3938,7 @@ c
       subroutine diavfl(iogrp,m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- computation of vertical mass flux at isopycnic layer interfaces  
+c --- computation of vertical mass flux at isopycnic layer interfaces
 c --- ------------------------------------------------------------------
 c
       implicit none
@@ -3828,7 +3950,7 @@ c
       real :: q
 c
 c ---
-c --- Compute vertical mass flux at isopycnic layer interfaces 
+c --- Compute vertical mass flux at isopycnic layer interfaces
 c ---
       if (ACC_WFLX(iogrp)+ACC_WFLX2(IOGRP).ne.0) then
 c
@@ -3837,15 +3959,15 @@ c$OMP PARALLEL DO PRIVATE(i)
           do i=1,ii
             wflx(i,j)=0.
           enddo
-        enddo  
+        enddo
 c$OMP END PARALLEL DO
         do k=kk,1,-1
           km=k+mm
           kn=k+nn
 c$OMP PARALLEL DO PRIVATE(l,i)
-          do j=1,jj  
+          do j=1,jj
             do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 wflx(i,j)=wflx(i,j)
      .                   -(uflx(i+1,j,kn)-uflx(i,j,kn)
      .                    +vflx(i,j+1,kn)-vflx(i,j,kn))
@@ -3860,8 +3982,8 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
         enddo
       endif
-c 
-c --- Computation of vertical mass flux at levitus layer interfaces 
+c
+c --- Computation of vertical mass flux at levitus layer interfaces
       if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp).ne.0) then
 c
         call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(iogrp)),
@@ -3874,35 +3996,35 @@ c$OMP PARALLEL DO PRIVATE(i)
             ucum(i,j)=0.
             vcum(i,j)=0.
           enddo
-        enddo  
+        enddo
 c$OMP END PARALLEL DO
         do k=ddm,1,-1
 c$OMP PARALLEL DO PRIVATE(l,i)
           do j=1,jj
             do l=1,isu(j)
-              do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l)) 
+              do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 ucum(i,j)=ucum(i,j)
      .                   +phylvl(i,j,k,ACC_UFLXLVL(iogrp))
      .                   -phylvl(i,j,k,ACC_UFLXOLD(iogrp))
               enddo
             enddo
-          enddo  
+          enddo
 c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(l,i)
-          do j=1,jj+1 
+          do j=1,jj+1
             do l=1,isv(j)
-              do i=max(1,ifv(j,l)),min(ii,ilv(j,l)) 
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 vcum(i,j)=vcum(i,j)
      .                   +phylvl(i,j,k,ACC_VFLXLVL(iogrp))
      .                   -phylvl(i,j,k,ACC_VFLXOLD(iogrp))
               enddo
             enddo
-          enddo  
+          enddo
 c$OMP END PARALLEL DO
 c$OMP PARALLEL DO PRIVATE(l,i,q)
-          do j=1,jj  
+          do j=1,jj
             do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l)) 
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 q=-(ucum(i+1,j)-ucum(i,j)
      .             +vcum(i,j+1)-vcum(i,j))
                 phylvl(i,j,k,ACC_WFLXLVL(iogrp))=
@@ -3927,7 +4049,7 @@ c
 c
       integer :: d,i,j,k,mm,nn,l,kl,km,kn,kml,k1m
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)  :: ind1,ind2
-c 
+c
       real :: r,dzeps,dpeps,flxeps
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kk)  :: ztop,zbot
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: weights,
@@ -3939,12 +4061,12 @@ c
 c
       save ztop,zbot,dlevp,dlevu,dlevv,iniflg
 c
-c --- Define thresholds 
+c --- Define thresholds
       dzeps=1e1*epsil
       dpeps=1e5*epsil
       flxeps=1e5*epsil
 c
-c --- Sort out stuff related to time stepping 
+c --- Sort out stuff related to time stepping
       km=k+mm
       kn=k+nn
       k1m=1+mm
@@ -3979,7 +4101,7 @@ c$OMP END PARALLEL DO
       endif
 c
 c
-c --- Compute top and bottom depths of density layers 
+c --- Compute top and bottom depths of density layers
       if (k.eq.1) then
         if (gridid.eq.'p') then
 c$OMP PARALLEL DO PRIVATE(l,i,kl,kml)
@@ -4088,7 +4210,7 @@ c$OMP END PARALLEL DO
         endif
       endif
 c
-c --- Compute interpolation weights 
+c --- Compute interpolation weights
       if (gridid.eq.'p') then
 c$OMP PARALLEL DO PRIVATE(l,i,d)
         do j=1,jj
@@ -4115,7 +4237,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,d)
 c$OMP END PARALLEL DO
 c
       elseif (gridid.eq.'u') then
-c$OMP PARALLEL DO PRIVATE(l,i,d,r) 
+c$OMP PARALLEL DO PRIVATE(l,i,d,r)
         do j=1,jj
           do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
@@ -4185,19 +4307,19 @@ c --- ------------------------------------------------------------------
 c
 c --- ------------------------------------------------------------------
 c --- Description: initialise 2d diagnostic field
-c ---   
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : position in common buffer  
+c ---   int  pos      (in)     : position in common buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c ---   real inival   (in)     : value used for initalisation
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos
       real :: inival
       character :: gridid
-c 
+c
       integer :: i,j
 c
 c --- Check whether field should be initialised
@@ -4245,19 +4367,19 @@ c
 c
 c --- ------------------------------------------------------------------
 c --- Description: initialise layer diagnostic field
-c ---   
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : position in common buffer  
+c ---   int  pos      (in)     : position in common buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c ---   real inival   (in)     : value used for initalisation
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos
       real :: inival
       character :: gridid
-c 
+c
       integer :: i,j,k
 c
 c --- Check whether field should be initialised
@@ -4266,7 +4388,7 @@ c
       if (gridid(1:1).eq.'u') then
 c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
-          do k=1,kk 
+          do k=1,kk
             do i=1-nbdy,ii+nbdy
               phylyr(i,j,k,pos)=inival*iu(i,j)
             enddo
@@ -4276,7 +4398,7 @@ c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'v') then
 c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
-          do k=1,kk 
+          do k=1,kk
             do i=1-nbdy,ii+nbdy
               phylyr(i,j,k,pos)=inival*iv(i,j)
             enddo
@@ -4286,7 +4408,7 @@ c$OMP END PARALLEL DO
       elseif (gridid(1:1).eq.'p') then
 c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
-          do k=1,kk 
+          do k=1,kk
             do i=1-nbdy,ii+nbdy
               phylyr(i,j,k,pos)=inival*ip(i,j)
             enddo
@@ -4296,7 +4418,7 @@ c$OMP END PARALLEL DO
       else
 c$OMP PARALLEL DO PRIVATE(k,i)
         do j=1-nbdy,jj+nbdy
-          do k=1,kk 
+          do k=1,kk
             do i=1-nbdy,ii+nbdy
               phylyr(i,j,k,pos)=inival
             enddo
@@ -4313,19 +4435,19 @@ c
 c
 c --- ------------------------------------------------------------------
 c --- Description: initialise level diagnostic field
-c ---   
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : position in common buffer  
+c ---   int  pos      (in)     : position in common buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c ---   real inival   (in)     : value used for initalisation
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos
       real :: inival
       character :: gridid
-c 
+c
       integer :: i,j,k
 c
 c --- Check whether field should be initialised
@@ -4380,22 +4502,22 @@ c
       subroutine acch2d(pos,fld,wghts,wghtsflg,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: accumulate 2d fields 
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in 2d buffer  
+c --- Description: accumulate 2d fields
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 2d buffer
 c ---   real fld      (in)     : input data used for accumulation
 c ---   real wghts    (in)     : weights used for accumulation
-c ---   int  wghtsflg (in)     : weights flag (0=no weighting)  
+c ---   int  wghtsflg (in)     : weights flag (0=no weighting)
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax),wghtsflg
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld,wghts
       character :: gridid
-c 
+c
       integer :: i,j,l,o
 c
 c --- Check whether field should be accumulated
@@ -4403,7 +4525,7 @@ c --- Check whether field should be accumulated
         if (pos(o).eq.0) cycle
 c
         if (gridid.eq.'u') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isu(j)
@@ -4424,9 +4546,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         elseif (gridid.eq.'v') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isv(j)
@@ -4447,9 +4569,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         elseif (gridid.eq.'p') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
             do j=1,jj
               do l=1,isp(j)
@@ -4470,7 +4592,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         else
           write (lp,*) 'cannot identify grid '//gridid//'!'
           call xchalt('(acch2d)')
@@ -4478,7 +4600,7 @@ c$OMP END PARALLEL DO
         endif
 c
       enddo
-c   
+c
       end subroutine acch2d
 
 
@@ -4486,20 +4608,20 @@ c
       subroutine maxh2d(pos,fld,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: store maximum of 2d fields 
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in 2d buffer  
+c --- Description: store maximum of 2d fields
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 2d buffer
 c ---   real fld      (in)     : input data used for finding maximum
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax)
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
       character :: gridid
-c 
+c
       integer :: i,j,l,o
 c
 c --- Check whether maximum of field should be stored
@@ -4543,7 +4665,7 @@ c$OMP END PARALLEL DO
         endif
 c
       enddo
-c   
+c
       end subroutine maxh2d
 
 
@@ -4551,20 +4673,20 @@ c
       subroutine minh2d(pos,fld,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: store minimum of 2d fields 
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in 2d buffer  
+c --- Description: store minimum of 2d fields
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 2d buffer
 c ---   real fld      (in)     : input data used for finding minimum
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax)
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
       character :: gridid
-c 
+c
       integer :: i,j,l,o
 c
 c --- Check whether minimum of field should be stored
@@ -4608,7 +4730,7 @@ c$OMP END PARALLEL DO
         endif
 c
       enddo
-c   
+c
       end subroutine minh2d
 
 
@@ -4616,20 +4738,20 @@ c
       subroutine sqh2d(pos,fld,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: accumulate square of 2d fields 
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in 2d buffer  
+c --- Description: accumulate square of 2d fields
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 2d buffer
 c ---   real fld      (in)     : input data used for accumulation
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax)
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: fld
       character :: gridid
-c 
+c
       integer :: i,j,l,o
 c
 c --- Check whether field should be accumulated
@@ -4673,7 +4795,7 @@ c$OMP END PARALLEL DO
         endif
 c
       enddo
-c   
+c
       end subroutine sqh2d
 
 
@@ -4681,22 +4803,22 @@ c
       subroutine acclyr(pos,fld,wghts,wghtsflg,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: accumulate layer fields 
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in 3d layer buffer  
+c --- Description: accumulate layer fields
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 3d layer buffer
 c ---   real fld      (in)     : input data used for accumulation
 c ---   real wghts    (in)     : weights used for accumulation
-c ---   int  wghtsflg (in)     : weights flag (0=no weighting)  
+c ---   int  wghtsflg (in)     : weights flag (0=no weighting)
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax),wghtsflg
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fld,wghts
       character :: gridid
-c 
+c
       integer :: i,j,k,l,o
 c
 c --- Check whether field should be accumulated
@@ -4704,7 +4826,7 @@ c --- Check whether field should be accumulated
         if (pos(o).eq.0) cycle
 c
         if (gridid.eq.'u') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kk
@@ -4722,16 +4844,16 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do k=1,kk
                 do l=1,isu(j)
                   do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-     .                *wghts(i,j,k)
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +fld(i,j,k)*wghts(i,j,k)
                   enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         elseif (gridid.eq.'v') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kk
@@ -4749,16 +4871,16 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do k=1,kk
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-     .                *wghts(i,j,k)
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +fld(i,j,k)*wghts(i,j,k)
                   enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         elseif (gridid.eq.'p') then
-          if (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then
 c$OMP PARALLEL DO PRIVATE(k,l,i)
             do j=1,jj
               do k=1,kk
@@ -4776,14 +4898,14 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do k=1,kk
                 do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-     .                *wghts(i,j,k)
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +fld(i,j,k)*wghts(i,j,k)
                   enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
-          endif 
+          endif
         else
           write (lp,*) 'cannot identify grid '//gridid//'!'
           call xchalt('(acclyr)')
@@ -4791,38 +4913,164 @@ c$OMP END PARALLEL DO
         endif
 c
       enddo
-c   
+c
       end subroutine acclyr
+
+
+
+      subroutine accily(pos,fld,wghts,wghtsflg,gridid)
+c
+c --- ------------------------------------------------------------------
+c --- Description: accumulate interface fields after interpolation to
+c ---              layers
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in 3d layer buffer
+c ---   real fld      (in)     : input data used for accumulation
+c ---   real wghts    (in)     : weights used for accumulation
+c ---   int  wghtsflg (in)     : weights flag (0=no weighting)
+c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+      integer :: pos(nphymax),wghtsflg
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: fld
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: wghts
+      character :: gridid
+c
+      integer :: i,j,k,l,o
+c
+c --- Check whether field should be accumulated
+      do o=1,nphy
+        if (pos(o).eq.0) cycle
+c
+        if (gridid.eq.'u') then
+          if (wghtsflg.eq.0) then
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isu(j)
+                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          else
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isu(j)
+                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                     *wghts(i,j,k)
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          endif
+        elseif (gridid.eq.'v') then
+          if (wghtsflg.eq.0) then
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isv(j)
+                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          else
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isv(j)
+                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                     *wghts(i,j,k)
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          endif
+        elseif (gridid.eq.'p') then
+          if (wghtsflg.eq.0) then
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isp(j)
+                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          else
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+            do j=1,jj
+              do k=1,kk
+                do l=1,isp(j)
+                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                     *wghts(i,j,k)
+                  enddo
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          endif
+        else
+          write (lp,*) 'cannot identify grid '//gridid//'!'
+          call xchalt('(accily)')
+                 stop '(accily)'
+        endif
+c
+      enddo
+c
+      end subroutine accily
 
 
 
       subroutine acclvl(pos,fld,gridid,k,ind1,ind2,wghts)
 c
 c --- ------------------------------------------------------------------
-c --- Description: accumulate 3d level fields
-c ---  
-c --- Arguments: 
-c ---   int  pos      (in)     : position in buffer  
+c --- Description: accumulate layer fields mapped to levels
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in buffer
 c ---   real fld      (in)     : input data used for accumulation
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   int  k        (in)     : layer index of fld  
-c ---   int  ind1     (in)     : index field for first accumulated level 
-c ---   int  ind2     (in)     : index field for last accumulated level 
+c ---   int  k        (in)     : layer index of fld
+c ---   int  ind1     (in)     : index field for first accumulated level
+c ---   int  ind2     (in)     : index field for last accumulated level
 c ---   real wghts    (in)     : weights used for accumulation
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: pos(nphymax),k
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: fld
       character :: gridid
-c 
+c
       integer :: d,i,j,l,o
 c
 c --- Check whether field should be accumulated
-      do o=1,nphy     
+      do o=1,nphy
         if (pos(o).eq.0) cycle
 c
         if (gridid.eq.'u') then
@@ -4831,8 +5079,8 @@ c$OMP PARALLEL DO PRIVATE(l,i,d)
             do l=1,isu(j)
               do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
                 do d=ind1(i,j),ind2(i,j)
-                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))+
-     .              fld(i,j,k)*wghts(i,j,d)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +fld(i,j,k)*wghts(i,j,d)
                 enddo
               enddo
             enddo
@@ -4844,8 +5092,8 @@ c$OMP PARALLEL DO PRIVATE(l,i,d)
             do l=1,isv(j)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 do d=ind1(i,j),ind2(i,j)
-                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))+
-     .              fld(i,j,k)*wghts(i,j,d)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +fld(i,j,k)*wghts(i,j,d)
                 enddo
               enddo
             enddo
@@ -4857,8 +5105,8 @@ c$OMP PARALLEL DO PRIVATE(l,i,d)
             do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 do d=ind1(i,j),ind2(i,j)
-                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))+
-     .              fld(i,j,k)*wghts(i,j,d)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +fld(i,j,k)*wghts(i,j,d)
                 enddo
               enddo
             enddo
@@ -4870,8 +5118,90 @@ c$OMP END PARALLEL DO
                  stop '(acclvl)'
         endif
       enddo
-c     
+c
       end subroutine acclvl
+
+
+
+      subroutine accilv(pos,fld,gridid,k,ind1,ind2,wghts)
+c
+c --- ------------------------------------------------------------------
+c --- Description: accumulate interface fields mapped to levels
+c ---
+c --- Arguments:
+c ---   int  pos      (in)     : position in buffer
+c ---   real fld      (in)     : input data used for accumulation
+c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
+c ---   int  k        (in)     : layer index of fld
+c ---   int  ind1     (in)     : index field for first accumulated level
+c ---   int  ind2     (in)     : index field for last accumulated level
+c ---   real wghts    (in)     : weights used for accumulation
+c --- ------------------------------------------------------------------
+c
+      implicit none
+c
+      integer :: pos(nphymax),k
+      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ind1,ind2
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: fld
+      character :: gridid
+c
+      integer :: d,i,j,l,o
+c
+c --- Check whether field should be accumulated
+      do o=1,nphy
+        if (pos(o).eq.0) cycle
+c
+        if (gridid.eq.'u') then
+c$OMP PARALLEL DO PRIVATE(l,i,d)
+          do j=1,jj
+            do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+                do d=ind1(i,j),ind2(i,j)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +.5*(fld(i,j,k)+fld(i,j,k+1))
+     .                                   *wghts(i,j,d)
+                enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        elseif (gridid.eq.'v') then
+c$OMP PARALLEL DO PRIVATE(l,i,d)
+          do j=1,jj+1
+            do l=1,isv(j)
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                do d=ind1(i,j),ind2(i,j)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +.5*(fld(i,j,k)+fld(i,j,k+1))
+     .                                   *wghts(i,j,d)
+                enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        elseif (gridid(1:1).eq.'p') then
+c$OMP PARALLEL DO PRIVATE(l,i,d)
+          do j=1,jj
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                do d=ind1(i,j),ind2(i,j)
+                  phylvl(i,j,d,pos(o))=phylvl(i,j,d,pos(o))
+     .                                +.5*(fld(i,j,k)+fld(i,j,k+1))
+     .                                   *wghts(i,j,d)
+                enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+        else
+          write (lp,*) 'cannot identify grid '//gridid//'!'
+          call xchalt('(accilv)')
+                 stop '(accilv)'
+        endif
+      enddo
+c
+      end subroutine accilv
 
 
 
@@ -4951,7 +5281,7 @@ c
       call inih2d(ACC_FICE(iogrp),'p',0.)
       call inih2d(ACC_TSRF(iogrp),'p',0.)
       call inih2d(ACC_TICE(iogrp),'p',0.)
-c 
+c
 c --- initialisation of 3d layer fields
       call inilyr(ACC_UVEL(iogrp),'u',0.)
       call inilyr(ACC_DPU(iogrp),'u',0.)
@@ -4981,6 +5311,9 @@ c
       call inilyr(ACC_DZ(iogrp),'p',0.)
       call inilyr(ACC_BFSQ(iogrp),'p',0.)
       call inilyr(ACC_DIFDIA(iogrp),'p',0.)
+      call inilyr(ACC_DIFVMO(iogrp),'p',0.)
+      call inilyr(ACC_DIFVHO(iogrp),'p',0.)
+      call inilyr(ACC_DIFVSO(iogrp),'p',0.)
       call inilyr(ACC_DIFINT(iogrp),'p',0.)
       call inilyr(ACC_DIFISO(iogrp),'p',0.)
       call inilyr(ACC_WFLX(iogrp),'p',0.)
@@ -5015,6 +5348,9 @@ c
 c
       call inilvl(ACC_BFSQLVL(iogrp),'p',0.)
       call inilvl(ACC_DIFDIALVL(iogrp),'p',0.)
+      call inilvl(ACC_DIFVMOLVL(iogrp),'p',0.)
+      call inilvl(ACC_DIFVHOLVL(iogrp),'p',0.)
+      call inilvl(ACC_DIFVSOLVL(iogrp),'p',0.)
       call inilvl(ACC_DIFINTLVL(iogrp),'p',0.)
       call inilvl(ACC_DIFISOLVL(iogrp),'p',0.)
       call inilvl(ACC_DZLVL(iogrp),'p',0.)
@@ -5029,25 +5365,25 @@ c
 #endif
 c
       end subroutine inifld
-      
+
 
 
       subroutine finh2d(posacc,poswgt,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: finalise accumulation of weighted 2d fields 
-c ---   
+c --- Description: finalise accumulation of weighted 2d fields
+c ---
 c --- Arguments:
 c ---   real posacc   (in)     : position of accumulated field in buffer
-c ---   real poswgt   (in)     : position of accumulated weights 
+c ---   real poswgt   (in)     : position of accumulated weights
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: posacc,poswgt
       character :: gridid
-c 
+c
       integer :: i,j,l
       real, parameter :: epsil=1e-11
 c
@@ -5092,27 +5428,27 @@ c$OMP END PARALLEL DO
         call xchalt('(finh2d)')
                stop '(finh2d)'
       endif
-c     
+c
       end subroutine finh2d
-     
+
 
 
       subroutine finlyr(posacc,poswgt,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: finalise accumulation of weighted 3d layer fields 
-c ---   
+c --- Description: finalise accumulation of weighted 3d layer fields
+c ---
 c --- Arguments:
 c ---   real posacc   (in)     : position of accumulated field in buffer
-c ---   real poswgt   (in)     : position of accumulated weights 
+c ---   real poswgt   (in)     : position of accumulated weights
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       integer :: posacc,poswgt
       character :: gridid
-c 
+c
       integer :: i,j,k,l
       real, parameter :: epsil=1e-11
 c
@@ -5127,8 +5463,8 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
                   phylyr(i,j,k,posacc)=phylyr(i,j,k,posacc)/
-     .              phylyr(i,j,k,poswgt) 
-                else 
+     .              phylyr(i,j,k,poswgt)
+                else
                   phylyr(i,j,k,posacc)=nf90_fill_double
                 endif
               enddo
@@ -5144,8 +5480,8 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
                   phylyr(i,j,k,posacc)=phylyr(i,j,k,posacc)/
-     .              phylyr(i,j,k,poswgt) 
-                else 
+     .              phylyr(i,j,k,poswgt)
+                else
                   phylyr(i,j,k,posacc)=nf90_fill_double
                 endif
               enddo
@@ -5161,8 +5497,8 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (phylyr(i,j,k,poswgt).gt.epsil) then
                   phylyr(i,j,k,posacc)=phylyr(i,j,k,posacc)/
-     .              phylyr(i,j,k,poswgt) 
-                else 
+     .              phylyr(i,j,k,poswgt)
+                else
                   phylyr(i,j,k,posacc)=nf90_fill_double
                 endif
               enddo
@@ -5175,7 +5511,7 @@ c$OMP END PARALLEL DO
         call xchalt('(finlyr)')
                stop '(finlyr)'
       endif
-c     
+c
       end subroutine finlyr
 
 
@@ -5184,30 +5520,30 @@ c
      .  vnm,vlngnm,vstdnm,vunits)
 c
 c --- ------------------------------------------------------------------
-c --- Description: writes diagnostic 2d field to file  
-c ---   
+c --- Description: writes diagnostic 2d field to file
+c ---
 c --- Arguments:
 c ---   int  pos      (in)     : variable position in common buffer
-c ---   int  frmt     (in)     : format/precision of output 
-c ---                            0=field is not written  
-c ---                            2=field is written as int2 with scale 
-c ---                              factor and offset 
+c ---   int  frmt     (in)     : format/precision of output
+c ---                            0=field is not written
+c ---                            2=field is written as int2 with scale
+c ---                              factor and offset
 c ---                            4=field is written as real4
 c ---                            8=field is written as real8
-c ---   real sfac     (in)     : user defined scale factor to be applied   
-c ---   real offs     (in)     : user defined offset to be added 
-c ---   int  cmpflg   (in)     : compression flag; only wet points are 
-c ---                            written if flag is set to 1 
-c ---   int  msk      (in)       ocean mask 
+c ---   real sfac     (in)     : user defined scale factor to be applied
+c ---   real offs     (in)     : user defined offset to be added
+c ---   int  cmpflg   (in)     : compression flag; only wet points are
+c ---                            written if flag is set to 1
+c ---   int  msk      (in)       ocean mask
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   char vnm      (in)     : variable name used in nc-file 
-c ---   char vlngnm   (in)     : variable long name (skipped if ' ') 
-c ---   char vstdnm   (in)     : variable standard name (skipped if ' ') 
-c ---   char vunits   (in)     : variable units (skipped if ' ') 
+c ---   char vnm      (in)     : variable name used in nc-file
+c ---   char vlngnm   (in)     : variable long name (skipped if ' ')
+c ---   char vstdnm   (in)     : variable standard name (skipped if ' ')
+c ---   char vunits   (in)     : variable units (skipped if ' ')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
@@ -5218,7 +5554,7 @@ c
 c --- Check whether field should be written
       if (frmt.eq.0) return
 c
-c --- Create dimension string 
+c --- Create dimension string
       if (cmpflg.eq.1) then
         dims=gridid(1:1)//'comp time'
       else
@@ -5272,30 +5608,30 @@ c
      .  vnm,vlngnm,vstdnm,vunits)
 c
 c --- ------------------------------------------------------------------
-c --- Description: writes diagnostic layer field to file  
-c ---   
+c --- Description: writes diagnostic layer field to file
+c ---
 c --- Arguments:
 c ---   int  pos      (in)     : variable position in common buffer
-c ---   int  frmt     (in)     : format/precision of output 
-c ---                            0=field is not written  
-c ---                            2=field is written as int2 with scale 
-c ---                              factor and offset 
+c ---   int  frmt     (in)     : format/precision of output
+c ---                            0=field is not written
+c ---                            2=field is written as int2 with scale
+c ---                              factor and offset
 c ---                            4=field is written as real4
 c ---                            8=field is written as real8
-c ---   real sfac     (in)     : user defined scale factor to be applied   
-c ---   real offs     (in)     : user defined offset to be added 
-c ---   int  cmpflg   (in)     : compression flag; only wet points are 
-c ---                            written if flag is set to 1 
-c ---   int  msk      (in)       ocean mask 
+c ---   real sfac     (in)     : user defined scale factor to be applied
+c ---   real offs     (in)     : user defined offset to be added
+c ---   int  cmpflg   (in)     : compression flag; only wet points are
+c ---                            written if flag is set to 1
+c ---   int  msk      (in)       ocean mask
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   char vnm      (in)     : variable name used in nc-file 
-c ---   char vlngnm   (in)     : variable long name (skipped if ' ') 
-c ---   char vstdnm   (in)     : variable standard name (skipped if ' ') 
-c ---   char vunits   (in)     : variable units (skipped if ' ') 
+c ---   char vnm      (in)     : variable name used in nc-file
+c ---   char vlngnm   (in)     : variable long name (skipped if ' ')
+c ---   char vstdnm   (in)     : variable standard name (skipped if ' ')
+c ---   char vunits   (in)     : variable units (skipped if ' ')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
@@ -5306,7 +5642,7 @@ c
 c --- Check whether field should be written
       if (frmt.eq.0) return
 c
-c --- Create dimension string 
+c --- Create dimension string
       if (cmpflg.eq.1) then
         dims=gridid(1:1)//'comp sigma time'
       else
@@ -5360,30 +5696,30 @@ c
      .  vnm,vlngnm,vstdnm,vunits)
 c
 c --- ------------------------------------------------------------------
-c --- Description: writes diagnostic level field to file  
-c ---   
+c --- Description: writes diagnostic level field to file
+c ---
 c --- Arguments:
 c ---   int  pos      (in)     : variable position in common buffer
-c ---   int  frmt     (in)     : format/precision of output 
-c ---                            0=field is not written  
-c ---                            2=field is written as int2 with scale 
-c ---                              factor and offset 
+c ---   int  frmt     (in)     : format/precision of output
+c ---                            0=field is not written
+c ---                            2=field is written as int2 with scale
+c ---                              factor and offset
 c ---                            4=field is written as real4
 c ---                            8=field is written as real8
-c ---   real sfac     (in)     : user defined scale factor to be applied   
-c ---   real offs     (in)     : user defined offset to be added 
-c ---   int  cmpflg   (in)     : compression flag; only wet points are 
-c ---                            written if flag is set to 1 
-c ---   int  msk      (in)       ocean mask 
+c ---   real sfac     (in)     : user defined scale factor to be applied
+c ---   real offs     (in)     : user defined offset to be added
+c ---   int  cmpflg   (in)     : compression flag; only wet points are
+c ---                            written if flag is set to 1
+c ---   int  msk      (in)       ocean mask
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   char vnm      (in)     : variable name used in nc-file 
-c ---   char vlngnm   (in)     : variable long name (skipped if ' ') 
-c ---   char vstdnm   (in)     : variable standard name (skipped if ' ') 
-c ---   char vunits   (in)     : variable units (skipped if ' ') 
+c ---   char vnm      (in)     : variable name used in nc-file
+c ---   char vlngnm   (in)     : variable long name (skipped if ' ')
+c ---   char vstdnm   (in)     : variable standard name (skipped if ' ')
+c ---   char vunits   (in)     : variable units (skipped if ' ')
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: frmt,cmpflg,pos
       character(len=*) :: gridid,vnm,vlngnm,vstdnm,vunits
@@ -5394,7 +5730,7 @@ c
 c --- Check whether field should be written
       if (frmt.eq.0) return
 c
-c --- Create dimension string 
+c --- Create dimension string
       if (cmpflg.eq.1) then
         dims=gridid//'comp depth time'
       else
@@ -5447,21 +5783,21 @@ c
       subroutine logh2d(pos,gridid,sfac,offs)
 c
 c --- ------------------------------------------------------------------
-c --- Description: replace 2d field with log10(field) 
-c ---   
+c --- Description: replace 2d field with log10(field)
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : field position in layer buffer 
+c ---   int  pos      (in)     : field position in layer buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   real sfac     (in)     : scale factor to be applied before log10   
-c ---   real offs     (in)     : offset to be added before log10   
+c ---   real sfac     (in)     : scale factor to be applied before log10
+c ---   real offs     (in)     : offset to be added before log10
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: pos
       character :: gridid
-c 
+c
       integer :: i,j,l
       real :: epsil=1e-11
 c
@@ -5522,21 +5858,21 @@ c
       subroutine loglyr(pos,gridid,sfac,offs)
 c
 c --- ------------------------------------------------------------------
-c --- Description: replace 3d layer field with log10(field) 
-c ---   
+c --- Description: replace 3d layer field with log10(field)
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : field position in layer buffer 
+c ---   int  pos      (in)     : field position in layer buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   real sfac     (in)     : scale factor to be applied before log10   
-c ---   real offs     (in)     : offset to be added before log10   
+c ---   real sfac     (in)     : scale factor to be applied before log10
+c ---   real offs     (in)     : offset to be added before log10
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: pos
       character :: gridid
-c 
+c
       integer :: i,j,k,l
       real :: epsil=1e-11
 c
@@ -5603,21 +5939,21 @@ c
       subroutine loglvl(pos,gridid,sfac,offs)
 c
 c --- ------------------------------------------------------------------
-c --- Description: replace 3d level field with log10(field) 
-c ---   
+c --- Description: replace 3d level field with log10(field)
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : field position in layer buffer 
+c ---   int  pos      (in)     : field position in layer buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
-c ---   real sfac     (in)     : scale factor to be applied before log10   
-c ---   real offs     (in)     : offset to be added before log10   
+c ---   real sfac     (in)     : scale factor to be applied before log10
+c ---   real offs     (in)     : offset to be added before log10
 c --- ------------------------------------------------------------------
 c
       implicit none
-c 
+c
       real :: sfac,offs
       integer :: pos
       character :: gridid
-c 
+c
       integer :: i,j,k,l
       real :: epsil=1e-11
 c
@@ -5684,10 +6020,10 @@ c
       subroutine msklvl(pos,gridid)
 c
 c --- ------------------------------------------------------------------
-c --- Description: set sea floor points to NaN in level fields 
-c ---   
+c --- Description: set sea floor points to NaN in level fields
+c ---
 c --- Arguments:
-c ---   int  pos      (in)     : field position in level buffer 
+c ---   int  pos      (in)     : field position in level buffer
 c ---   char gridid   (in)     : grid identifier ('p','u' or 'v')
 c --- ------------------------------------------------------------------
 c
@@ -5695,14 +6031,14 @@ c
 c
       integer :: pos
       character :: gridid
-c 
+c
       integer :: i,j,k
       logical :: iniflg=.true.
       integer, dimension(idm,jdm) :: kmaxu,kmaxv,kmaxp
       real, parameter :: mskval=nf90_fill_double
 c
       save iniflg,kmaxu,kmaxv,kmaxp
-c     
+c
 c --- Check whether field should be processed
       if (pos.eq.0) return
 c
@@ -6133,13 +6469,37 @@ c
 c
       if (LYR_DIFDIA(iogrp).eq.2) then
         call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
-     .    'Diapycnal diffusivity',' ','log10(m2 s-1)',1)
+     .    'Vertical diffusivity',' ','log10(m2 s-1)',1)
       else
         call ncdefvar3d(LYR_DIFDIA(iogrp),cmpflg,'p','difdia',
-     .    'Diapycnal diffusivity',' ','m2 s-1',1)
+     .    'Vertical diffusivity',' ','m2 s-1',1)
       endif
 c
-#if defined TKE 
+      if (LYR_DIFVMO(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFVMO(iogrp),cmpflg,'p','difvmo',
+     .    'Vertical momentum diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFVMO(iogrp),cmpflg,'p','difvmo',
+     .    'Vertical momentum diffusivity',' ','m2 s-1',1)
+      endif
+c
+      if (LYR_DIFVHO(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFVHO(iogrp),cmpflg,'p','difvho',
+     .    'Vertical heat diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFVHO(iogrp),cmpflg,'p','difvho',
+     .    'Vertical heat diffusivity',' ','m2 s-1',1)
+      endif
+c
+      if (LYR_DIFVSO(iogrp).eq.2) then
+        call ncdefvar3d(LYR_DIFVSO(iogrp),cmpflg,'p','difvso',
+     .    'Vertical salt diffusivity',' ','log10(m2 s-1)',1)
+      else
+        call ncdefvar3d(LYR_DIFVSO(iogrp),cmpflg,'p','difvso',
+     .    'Vertical salt diffusivity',' ','m2 s-1',1)
+      endif
+c
+#if defined TKE
 
       call ncdefvar3d(LYR_TKE(iogrp),cmpflg,'p','tke',
      .  'TKE','Turbulent kinetic energy','m2 s-2',1)
@@ -6163,7 +6523,7 @@ c
 c
       call ncdefvar3d(LVL_VVEL(iogrp),cmpflg,'v','vvellvl',
      .  'Velocity y-component',' ','m s-1',2)
-c 
+c
       call ncdefvar3d(LVL_UFLX(iogrp),cmpflg,'u','uflxlvl',
      .  'Mass flux in x-direction',' ','kg s-1',2)
 c
@@ -6252,10 +6612,34 @@ c
 c
       if (LVL_DIFDIA(iogrp).eq.2) then
         call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
-     .    'Diapycnal diffusivity',' ','log10(m2 s-1)',2)
+     .    'Vertical diffusivity',' ','log10(m2 s-1)',2)
       else
         call ncdefvar3d(LVL_DIFDIA(iogrp),cmpflg,'p','difdialvl',
-     .    'Diapycnal diffusivity',' ','m2 s-1',2)
+     .    'Vertical diffusivity',' ','m2 s-1',2)
+      endif
+c
+      if (LVL_DIFVMO(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFVMO(iogrp),cmpflg,'p','difvmolvl',
+     .    'Vertical momentum diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFVMO(iogrp),cmpflg,'p','difvmolvl',
+     .    'Vertical momentum diffusivity',' ','m2 s-1',2)
+      endif
+c
+      if (LVL_DIFVHO(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFVHO(iogrp),cmpflg,'p','difvholvl',
+     .    'Vertical heat diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFVHO(iogrp),cmpflg,'p','difvholvl',
+     .    'Vertical heat diffusivity',' ','m2 s-1',2)
+      endif
+c
+      if (LVL_DIFVSO(iogrp).eq.2) then
+        call ncdefvar3d(LVL_DIFVSO(iogrp),cmpflg,'p','difvsolvl',
+     .    'Vertical salt diffusivity',' ','log10(m2 s-1)',2)
+      else
+        call ncdefvar3d(LVL_DIFVSO(iogrp),cmpflg,'p','difvsolvl',
+     .    'Vertical salt diffusivity',' ','m2 s-1',2)
       endif
 c
 #if defined(TRC) && defined(TKE)
@@ -6267,7 +6651,7 @@ c
 c
 #endif
 c
-c --- define meridional transports 
+c --- define meridional transports
       if (MSC_MMFLXL(iogrp).ne.0) then
         call ncdefvar('mmflxl','lat sigma region time',ndouble,8)
         call ncattr('long_name',
@@ -6329,7 +6713,7 @@ c --- define meridional transports
         call ncattr('units','kg s-1')
       endif
 c
-c --- store section transports 
+c --- store section transports
       if (MSC_VOLTR(iogrp).ne.0) then
         call ncdefvar('voltr','section time',ndouble,8)
         call ncattr('long_name','Section transports')
@@ -6374,7 +6758,7 @@ c
         call ncdefvar3d(max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),cmpflg,
      .    'p','dp_trc','Layer pressure thickness',' ','Pa',1)
       endif
-c --- ideal age tracer 
+c --- ideal age tracer
 #if IDLAGE
       call ncdefvar3d(LYR_IDLAGE(iogrp),cmpflg,'p','idlage',
      .  'Ideal age','sea_water_age_since_surface_contact','year',1)
