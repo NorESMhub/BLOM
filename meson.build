@@ -92,9 +92,6 @@ if get_option('turbclo').length() > 0
   if get_option('turbclo').contains('advection')
     add_project_arguments('-DTKEADV', language: 'fortran')
   endif
-  if get_option('turbclo').contains('cvmix')
-    add_project_arguments('-DCVMIX', language: 'fortran')
-  endif
   if get_option('turbclo').contains('isodif')
     add_project_arguments('-DTKEIDF', language: 'fortran')
   endif
