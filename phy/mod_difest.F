@@ -42,7 +42,6 @@ c
       use mod_seaice, only: ficem
       use mod_utility, only: util1
       use mod_checksum, only: csdiag, chksummsk
-#if defined(CVMIX)
       use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
       use CVMix_kpp, only : CVMix_coeffs_kpp               
       use CVMix_kpp, only : CVMix_kpp_compute_turbulent_scales 
@@ -60,9 +59,8 @@ c
       use CVMix_kpp,  only : CVMix_kpp_params_type
       use CVMix_kpp,  only : CVMix_put_kpp
       use CVMix_kpp,  only : CVMix_init_kpp
-      use CVMix_put_get,          only : CVMix_put
+      use CVMix_put_get,  only : CVMix_put
       use mod_cmnfld, only: bfsqi
-#endif
 #if defined(TRC) && defined(TKE)
       use mod_tracers, only: itrtke, itrgls, trc
       use mod_tke, only: gls_cmu0, Pr_t, tke_min, gls_psi_min, gls_p,
@@ -77,13 +75,11 @@ c
 c
       implicit none
 c
-#ifdef CVMIX
       type(CVMix_tidal_params_type)   :: CVMix_tidal_params
       type(CVMix_global_params_type)  :: CVMix_glb_params   !<CVMix-specific for Prandtl number only
       type(CVMix_kpp_params_type)     :: KPP_params
 c      type(CVMix_kpp_params_type), pointer :: CVmix_kpp_params_in
 c      type(CVMix_kpp_params_type) ::  CVmix_kpp_params_in
-#endif
 c
       public  ::  ini_difest, difest
       private ::  difest_lateral_iso, difest_vertical_iso,
@@ -173,7 +169,6 @@ c --- ------------------------------------------------------------------
 c --- Initialize CVmix variables.
 c --- ------------------------------------------------------------------
 c          
-#ifdef CVMIX
 c -- ------- Background diapycnal mixing.
 c         The Bryan-Lewis parameterization is based on the following:
 c         \begin{eqnarray*}
@@ -214,8 +209,6 @@ c --- ------ convert nuls0 to m2/s
      .          lnoDGat1=.true.                 ,
      .          CVMix_kpp_params_user=KPP_params )
 c
-
-#endif
 c
       end subroutine ini_difest
 c
@@ -266,7 +259,7 @@ c
      .  du2,drho,bvfsq,bvf,egr
       real, dimension(kdm+1) :: rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,egrs,egrup,dfints,urmse,
+     .  tup,pup,sup,cr,bcrrd,afeql,egrs,egrup,dfints,urmse,
      .  cpse,dfddsu,dfddsl
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv
@@ -280,7 +273,6 @@ c
       real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,
      .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
 c
-#ifdef CVMIX
       type(CVMix_tidal_params_type)   :: CVMix_tidal_params
       real, dimension(kdm+1) :: depth_int      
       real, dimension(kdm+1) :: Kv_col, Kd_col ! background visc/diff
@@ -304,7 +296,8 @@ c
       real :: DU, DV, DZ, S2 
       real :: surf_layer_ext, surfFricVel
       real :: surfBuoyFlux
-      real :: delH
+      real :: delH, bvfbot, dps
+      real :: dh, hcorr
       real :: Uk, Vk
       real :: surfU, surfV
       real :: surfHu, surfHv
@@ -316,7 +309,6 @@ c
       integer ki, kki, ksfc, ktmp, kOBL, kn1 
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: OBLdepth
-#endif
 #if defined(TRC) && defined(TKE)
       real gls_c3,tke_prod,tke_buoy,tke_epsilon,Ls_unlmt,Ls_lmt,tke_Q,
      .     Gm,Gh,Sm,Sh,cff,ql
@@ -345,6 +337,12 @@ c
       call xctilr(pbu, 1,2, 2,2, halo_us)
       call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
+      surf_layer_ext = 0.1
+      bl1 = 8e-5
+      bl2 = 1.05e-4
+      bl3 = 4.5e-3
+      bl4 = 2500.0
+c
 c --- ------------------------------------------------------------------
 c --- Estimate energy input by near-inertial waves.
 c --- ------------------------------------------------------------------
@@ -371,15 +369,16 @@ c single column diffusivity
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-#  ifdef CVMIX
 c
 c -- ------- CVMix variables computed below
 c
-             surf_layer_ext = 0.1
              surfBuoyFlux2 = 0.0
              surfBuoyFlux = 0.0
 c             Ws_1d = 0.0
+             bvfbot    = 0.
+             dps       = 0.
              depth_int = 0.     
+             hcorr     = 0.
              Kv_col    = 0.
              Kd_col    = 0.
              vert_dep  = 0. 
@@ -397,10 +396,6 @@ c             Ws_1d = 0.0
              rho_1d    = 0.
              nonLocalTrans(:,:) = 0.0 
              rig = 1.e8 !Initialize w/ large Richardson value 
-             bl1 = 8e-5
-             bl2 = 1.05e-4
-             bl3 = 4.5e-3
-             bl4 = 2500.0
              Kv_kpp = 0.0
              Kt_kpp = 0.0
              Ks_kpp = 0.0
@@ -419,10 +414,19 @@ c             Ws_1d = 0.0
              do k=1,kk          
                 kn = k + nn
                 kn1 = max(nn+1,kn-1)
-                depth_int(k+1) = p(i,j,k+1)/onem                       
-                iFaceHeight(k+1) = -depth_int(k+1)
-                cellHeight(k) = 0.5*(iFaceHeight(k+1) +
-     .                                  iFaceHeight(k))
+                ! Old method to compute interface location, thicknesses
+c                depth_int(k+1) = p(i,j,k+1)/onem                       
+c                iFaceHeight(k+1) = -depth_int(k+1)
+c                cellHeight(k) = 0.5*(iFaceHeight(k+1) +
+c     .                                  iFaceHeight(k))
+                ! New method to compute interface location, thicknesses
+                dh = dp(i,j,kn)/onem
+                dh = dh + hcorr ! Take away the accumulated error (could temporarily make dh<0)
+                hcorr = min(dh - 1e-10, 0.) ! If inflating then hcorr<0  
+                dh = max(dh, 1e-10) ! Limit increment  dh>=min_thicknes 
+                cellHeight(k) = iFaceHeight(k) - 0.5 * dh
+                iFaceHeight(k+1) = iFaceHeight(k) - dh
+                depth_int(k+1) = -iFaceHeight(k+1)
 
                 ! compute rho_1d at the interfaces
                 rho_1d(k)=rho(p(i,j,k),temp(i,j,kn),saln(i,j,kn))
@@ -479,6 +483,13 @@ c             Ws_1d = 0.0
                 ! temporary variable 
                 bvfsq_i(k) = bfsqi(i,j,k)
                 bvf_i(k) = sqrt( max( bvfsq_i(k), 0.) ) 
+c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
+c --- ------- bottom
+                q=max(0.,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
+                if (q.gt.0.) then
+                   bvfbot=bvfbot+bvf_i(k)*q
+                   dps=dps+q
+                endif
 
 c --- ------- Local gradient Richardson number
 c                DU = (u_p(i,j,k) - u_p(i,j,km1))                 
@@ -491,8 +502,7 @@ c                    rig(k) = rig(k-1)
 c                else
 
              enddo  ! k             
-             ! Mehmet bvfbot has to be defined again
-             bvfbot(i) = 1.0
+             if(dps.gt.0.) bvfbot=bvfbot/dps
              ! convert cm2/s2 to m2/s2
              deltaU2 = deltaU2*1e-4 
 
@@ -518,7 +528,7 @@ c
      .                efficiency=dmxeff, local_mixing_frac=tdmq)  
 
                call CVMix_compute_Simmons_invariant(nlev=kk, 
-     .                energy_flux=twedon(i,j)*bvfbot(i)*1e-3, 
+     .                energy_flux=twedon(i,j)*bvfbot*1e-3, 
      .                rho=CVMix_glb_params%FreshWaterDensity, 
      .                SimmonsCoeff = Simmons_coeff, VertDep = vert_dep,
      .                zw = iFaceHeight, zt = cellHeight, 
@@ -658,7 +668,6 @@ c ---- ccc -------
      .                      + Kd_tidal(:) + Kt_kpp(:)
              Kdiff_s(i,j,:) = Kd_col(:) + Kd_conv(:) + Kd_shr(:)
      .                      + Kd_tidal(:) + Ks_kpp(:)
-#  endif  
         enddo
         enddo
 c end of single column
