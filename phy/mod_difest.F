@@ -422,6 +422,7 @@ c     .                                  iFaceHeight(k))
                 ! New method to compute interface location, thicknesses
                 dh = dp(i,j,kn)/onem
                 dh = dh + hcorr ! Take away the accumulated error (could temporarily make dh<0)
+                hcorr = min(dh - 1e-10, 0.) ! If inflating then hcorr<0  
                 dh = max(dh, 1e-10) ! Limit increment  dh>=min_thicknes 
                 cellHeight(k) = iFaceHeight(k) - 0.5 * dh
                 iFaceHeight(k+1) = iFaceHeight(k) - dh
