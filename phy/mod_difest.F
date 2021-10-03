@@ -215,32 +215,83 @@ c
       subroutine difest(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
-c --- estimate layer interface, isopycnal, and diapycnal diffusivities
+c --- estimate diffusivities for eddy-induced transport, layer-wise
+c --- diffusion and vertical diffusion
 c --- ------------------------------------------------------------------
-c
 c
       integer m,n,mm,nn,k1m,k1n
 c
-c --- parameters:
-
+      integer i,j,k,l,kn
+c
+c --- update halos of various fields
+      call xctilr(u, 1,2*kk, 2,2, halo_uv)
+      call xctilr(v, 1,2*kk, 2,2, halo_vv)
+      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
+      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
+      call xctilr(pbu, 1,2, 2,2, halo_us)
+      call xctilr(pbv, 1,2, 2,2, halo_vs)
+c
+c --- ------------------------------------------------------------------
+c --- Update layer interface pressure.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+      do j=-2,jj+3
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- Estimate friction velocity cubed.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          ustar3(i,j)=ustar(i,j)**3
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
       if (vcoord_type_tag == isopyc_bulkml) then
-          call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
+        call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
       elseif (vcoord_type_tag == cntiso_hybrid) then
-          call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
+        call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
       else
-          print*,'this vcoord_type_tag option has not been implemented'
-          stop
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest: unsupported vertical coordinate!'
+        endif
+        call xcstop('(difest)')
+               stop '(difest)'
       endif
-
+c
       if (vcoord_type_tag == isopyc_bulkml) then
-          call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
+        call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
       elseif (vcoord_type_tag == cntiso_hybrid) then
-          call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
+        call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
       else
-          print*,'this vcoord_type_tag option has not been implemented'
-          stop
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest: unsupported vertical coordinate!'
+        endif
+        call xcstop('(difest)')
+               stop '(difest)'
       endif
-
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest:'
+        endif
+        call chksummsk(ustar3,ip,1,'ustar3')
+      endif
 c
       end subroutine difest
 c
@@ -253,25 +304,9 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c          
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  dv2
-      real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,drho,bvfsq,bvf,egr
       real, dimension(kdm+1) :: rig
-      real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,egrs,egrup,dfints,urmse,
-     .  cpse,dfddsu,dfddsl
-      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  mskv
-      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  kfil,kmax
-      integer, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  msku
-      integer, dimension(1-nbdy:idm+nbdy) ::
-     .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,
-     .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
+      real q
 c
       type(CVMix_tidal_params_type)   :: CVMix_tidal_params
       real, dimension(kdm+1) :: depth_int      
@@ -309,33 +344,6 @@ c
       integer ki, kki, ksfc, ktmp, kOBL, kn1 
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: OBLdepth
-#if defined(TRC) && defined(TKE)
-      real gls_c3,tke_prod,tke_buoy,tke_epsilon,Ls_unlmt,Ls_lmt,tke_Q,
-     .     Gm,Gh,Sm,Sh,cff,ql
-# ifdef GLS
-      real gls_prod,gls_buoy,gls_diss,gls_Q
-# endif
-#endif
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-      call xctilr(u, 1,2*kk, 2,2, halo_uv)
-      call xctilr(v, 1,2*kk, 2,2, halo_vv)
-      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
       surf_layer_ext = 0.1
       bl1 = 8e-5
@@ -348,22 +356,6 @@ c --- Estimate energy input by near-inertial waves.
 c --- ------------------------------------------------------------------
 c
       call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
-c
-c
-c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,bvfbot,dps,drho,bvfsq,bvf,rig,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,nub,nus,ust,vsf,
-c$OMP+ nusm,mols,h,sg,zeta,phis,ws
-#if defined(TRC) && defined(TKE)
-c$OMP+ ,gls_c3,tke_epsilon,tke_prod,tke_buoy,tke_Q,Ls_unlmt,Ls_lmt,Gh,
-c$OMP+ Gm,cff,Sm,Sh,ql
-# ifdef GLS
-c$OMP+ ,gls_prod,gls_buoy,gls_diss,gls_Q
-# endif
-#endif
-c$OMP+ )
-c
 c
 c single column diffusivity
       do j=1,jj
@@ -673,8 +665,6 @@ c ---- ccc -------
 c end of single column
 c
       enddo ! j-index
-c$OMP END PARALLEL DO
-c
 c
       end subroutine difest_vertical_hyb
 c
@@ -691,10 +681,9 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,drho,bvfsq,bvf,rig,egr
+     .  du2,drho,rig,egr
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,egrs,egrup,dfints,urmse,
-     .  cpse,dfddsu,dfddsl
+     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,urmse,cpse
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -704,47 +693,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
-     .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-      call xctilr(u, 1,2*kk, 2,2, halo_uv)
-      call xctilr(v, 1,2*kk, 2,2, halo_vv)
-      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
-c
-c --- ------------------------------------------------------------------
-c --- Estimate energy input by near-inertial waves.
-c --- ------------------------------------------------------------------
-c
-c
-c --- ------------------------------------------------------------------
-c --- Estimate friction velocity cubed.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ustar3(i,j)=ustar(i,j)**3
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
+      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
@@ -853,10 +802,8 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,bvfbot,dps,drho,bvfsq,bvf,rig,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,nub,nus,ust,vsf,
-c$OMP+ nut,nuls,nusm,mols,h,sg,zeta,phis,ws
-c$OMP+ )
+c$OMP+ afeql,dps,drho,rig,egrs,egr,egrup,egrlo,dfints,
+c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac)
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component
@@ -958,14 +905,7 @@ c ----- !!! Could include top layer in computation !!!
         enddo
         enddo
 c
-c ----- Compute local gradient richardson number and Brunt-Vaisala
-c ----- frequency.
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          bvfbot(i)=0.
-          dps(i)=0.
-        enddo
-        enddo
+c ----- Compute local gradient richardson number.
         do k=4,kk
           kn=k+nn
           do l=1,isp(j)
@@ -986,13 +926,6 @@ c ----- frequency.
                 drho(i,k)=tup(i)
               endif
 c
-c --- ------- Brunt-Vaisala frequency squared
-              bvfsq(i,k)=g*g*max(drhomn,drho(i,k))
-     .                   /max(epsil,dp(i,j,kn))
-c
-c --- ------- Brunt-Vaisala frequency
-              bvf(i,k)=sqrt(bvfsq(i,k))
-c
               q=(msku(i,k)*du2(i,k)+msku(i+1,k)*du2(i+1,k))
      .          /max(1,msku(i,k)+msku(i+1,k))
      .         +(mskv(i,j,k)*dv2(i,j,k)+mskv(i,j+1,k)*dv2(i,j+1,k))
@@ -1002,23 +935,9 @@ c --- ------- Local gradient Richardson number
               rig(i,k)=alpha0*alpha0*max(drhomn,drho(i,k))*dp(i,j,kn)
      .                 /max(1.e-9,q)
 c
-c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
-c --- ------- bottom
-              q=max(0.,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
-              if (q.gt.0.) then
-                bvfbot(i)=bvfbot(i)+bvf(i,k)*q
-                dps(i)=dps(i)+q
-              endif
             endif
           enddo
           enddo
-        enddo
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (dps(i).gt.0.) then
-            bvfbot(i)=bvfbot(i)/dps(i)
-          endif
-        enddo
         enddo
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
@@ -1368,12 +1287,10 @@ c
       enddo ! j=1,jj at line 360
 c$OMP END PARALLEL DO
 c
-c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'difest:'
+          write (lp,*) 'difest_lateral_hyb:'
         endif
-        call chksummsk(ustar3,ip,1,'ustar3')
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
       endif
@@ -1392,10 +1309,9 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,drho,bvfsq,bvf,rig,egr
+     .  du2,drho,rig,egr
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,egrs,egrup,dfints,urmse,
-     .  cpse,dfddsu,dfddsl
+     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,urmse,cpse
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -1405,47 +1321,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
-     .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-      call xctilr(u, 1,2*kk, 2,2, halo_uv)
-      call xctilr(v, 1,2*kk, 2,2, halo_vv)
-      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
-c
-c --- ------------------------------------------------------------------
-c --- Estimate energy input by near-inertial waves.
-c --- ------------------------------------------------------------------
-c
-c
-c --- ------------------------------------------------------------------
-c --- Estimate friction velocity cubed.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ustar3(i,j)=ustar(i,j)**3
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
+      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
@@ -1554,10 +1430,8 @@ c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
 c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,bvfbot,dps,drho,bvfsq,bvf,rig,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,nub,nus,ust,vsf,
-c$OMP+ nut,nuls,nusm,mols,h,sg,zeta,phis,ws
-c$OMP+ )
+c$OMP+ afeql,dps,drho,rig,egrs,egr,egrup,egrlo,dfints,
+c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac)
       do j=1,jj
 c
 c ----- Compute squared vertical velocity gradients of u-component
@@ -1659,14 +1533,7 @@ c ----- !!! Could include top layer in computation !!!
         enddo
         enddo
 c
-c ----- Compute local gradient richardson number and Brunt-Vaisala
-c ----- frequency.
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          bvfbot(i)=0.
-          dps(i)=0.
-        enddo
-        enddo
+c ----- Compute local gradient richardson number.
         do k=4,kk
           kn=k+nn
           do l=1,isp(j)
@@ -1687,13 +1554,6 @@ c ----- frequency.
                 drho(i,k)=tup(i)
               endif
 c
-c --- ------- Brunt-Vaisala frequency squared
-              bvfsq(i,k)=g*g*max(drhomn,drho(i,k))
-     .                   /max(epsil,dp(i,j,kn))
-c
-c --- ------- Brunt-Vaisala frequency
-              bvf(i,k)=sqrt(bvfsq(i,k))
-c
               q=(msku(i,k)*du2(i,k)+msku(i+1,k)*du2(i+1,k))
      .          /max(1,msku(i,k)+msku(i+1,k))
      .         +(mskv(i,j,k)*dv2(i,j,k)+mskv(i,j+1,k)*dv2(i,j+1,k))
@@ -1703,23 +1563,9 @@ c --- ------- Local gradient Richardson number
               rig(i,k)=alpha0*alpha0*max(drhomn,drho(i,k))*dp(i,j,kn)
      .                 /max(1.e-9,q)
 c
-c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
-c --- ------- bottom
-              q=max(0.,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
-              if (q.gt.0.) then
-                bvfbot(i)=bvfbot(i)+bvf(i,k)*q
-                dps(i)=dps(i)+q
-              endif
             endif
           enddo
           enddo
-        enddo
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (dps(i).gt.0.) then
-            bvfbot(i)=bvfbot(i)/dps(i)
-          endif
-        enddo
         enddo
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
@@ -2072,13 +1918,11 @@ c
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'difest:'
+          write (lp,*) 'difest_lateral_iso:'
         endif
-        call chksummsk(ustar3,ip,1,'ustar3')
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
       endif
-c
 c
       end subroutine difest_lateral_iso
 c
@@ -2093,10 +1937,9 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
       real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,drho,bvfsq,bvf,rig,egr
+     .  du2,drho,bvfsq,bvf,rig
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,bvfbot,dps,egrs,egrup,dfints,urmse,
-     .  cpse,dfddsu,dfddsl
+     .  tup,bvfbot,dps,cpse,dfddsu,dfddsl
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -2106,8 +1949,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy) ::
      .  kfpl,klpl
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac,nus,nub,nut,nuls,
-     .     vsf,nusm,ust,mols,h,sg,zeta,phis,ws
+      real q,tlo,nus,nub,nut,nuls,vsf,nusm,ust,mols,h,sg,zeta,phis,ws
 c
 #if defined(TRC) && defined(TKE)
       real gls_c3,tke_prod,tke_buoy,tke_epsilon,Ls_unlmt,Ls_lmt,tke_Q,
@@ -2117,45 +1959,11 @@ c
 # endif
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-      call xctilr(u, 1,2*kk, 2,2, halo_uv)
-      call xctilr(v, 1,2*kk, 2,2, halo_vv)
-      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
-c
 c --- ------------------------------------------------------------------
 c --- Estimate energy input by near-inertial waves.
 c --- ------------------------------------------------------------------
 c
       call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
-c
-c --- ------------------------------------------------------------------
-c --- Estimate friction velocity cubed.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ustar3(i,j)=ustar(i,j)**3
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
@@ -2263,9 +2071,9 @@ c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,bvfbot,dps,drho,bvfsq,bvf,rig,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac,dfddsu,dfddsl,nub,nus,ust,vsf,
+c$OMP+ l,i,kfpl,klpl,k,kn,du2,msku,q,tup,tlo,
+c$OMP+ bvfbot,dps,drho,bvfsq,bvf,rig,
+c$OMP+ dfddsu,dfddsl,nub,nus,ust,vsf,
 c$OMP+ nut,nuls,nusm,mols,h,sg,zeta,phis,ws
 #if defined(TRC) && defined(TKE)
 c$OMP+ ,gls_c3,tke_epsilon,tke_prod,tke_buoy,tke_Q,Ls_unlmt,Ls_lmt,Gh,
@@ -2328,52 +2136,6 @@ c ----- Compute squared vertical velocity gradients of u-component
             endif
           enddo
           enddo
-        enddo
-c
-c ----- Compute the first baroclinic rossby radius of deformation using
-c ----- the WKB approximation by Chelton at al. (1998).
-c ----- !!! Could include top layer in computation !!!
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          pup(i)=.5*(3.*p(i,j,3)-p(i,j,min(kk,kfpla(i,j,n))+1))
-          kn=2+nn
-          tup(i)=temp(i,j,kn)
-          sup(i)=saln(i,j,kn)
-          cr(i)=0.
-        enddo
-        enddo
-        do k=3,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.ge.kfpla(i,j,n)) then
-              if (p(i,j,kk+1)-p(i,j,k+1).lt.epsil) then
-                plo=p(i,j,kk+1)
-              else
-                plo=.5*(p(i,j,k)+p(i,j,k+1))
-              endif
-              tlo=temp(i,j,kn)
-              slo=saln(i,j,kn)
-              cr(i)=cr(i)
-     .             +sqrt(max(0.,(rho(p(i,j,k),tlo,slo)
-     .                          -rho(p(i,j,k),tup(i),sup(i)))
-     .                          *(plo-pup(i))))
-              pup(i)=plo
-              tup(i)=tlo
-              sup(i)=slo
-            endif
-          enddo
-          enddo
-        enddo
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          cr(i)=alpha0*cr(i)/pi
-          bcrrd(i)=
-     .      sqrt(cr(i)*cr(i)
-     .           /max(coriop(i,j)*coriop(i,j)+2.*betafp(i,j)*cr(i),
-     .                1.e-24))
-          afeql(i)=max(abs(coriop(i,j)),sqrt(2.*betafp(i,j)*cr(i)))
-        enddo
         enddo
 c
 c ----- Compute local gradient richardson number and Brunt-Vaisala
@@ -2821,10 +2583,9 @@ c
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'difest:'
+          write (lp,*) 'difest_vertical_iso:'
         endif
         call chksummsk(idkedt,ip,1,'idkedt')
-        call chksummsk(ustar3,ip,1,'ustar3')
         call chksummsk(difdia,ip,kk,'difdia')
 #if defined(TRC) && defined(TKE)
         call chksummsk(trc(1-nbdy,1-nbdy,1,itrtke),ip,2*kk,'tke')
@@ -2834,9 +2595,6 @@ c
 #endif
       endif
 c
-
-c
       end subroutine difest_vertical_iso
-c
 c
       end module mod_difest
