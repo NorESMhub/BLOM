@@ -151,8 +151,6 @@ contains
                vsflld(i, j, k) = spval
             enddo
          enddo
-      enddo
-      do j = 1 - nbdy, jj + nbdy
          do k = 1, kk+1
             do i = 1 - nbdy, ii + nbdy
                Kvisc_m(i, j, k) = epsil
