@@ -297,6 +297,13 @@ c --- - variables set in namelists
             LVL_DIFVHO(1:nphy)=0
             LVL_DIFVSO(1:nphy)=0
           case (cntiso_hybrid)
+            H2D_IDKEDT(1:nphy)=0
+            H2D_MTKEUS(1:nphy)=0
+            H2D_MTKENI(1:nphy)=0
+            H2D_MTKEBF(1:nphy)=0
+            H2D_MTKERS(1:nphy)=0
+            H2D_MTKEPE(1:nphy)=0
+            H2D_MTKEKE(1:nphy)=0
             LYR_DIFDIA(1:nphy)=0
             LVL_DIFDIA(1:nphy)=0
           case default
