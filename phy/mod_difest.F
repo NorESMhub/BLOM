@@ -223,7 +223,10 @@ c
 c
       integer i,j,k,l,kn
 c
+c --- ------------------------------------------------------------------
 c --- update halos of various fields
+c --- ------------------------------------------------------------------
+c
       call xctilr(u, 1,2*kk, 2,2, halo_uv)
       call xctilr(v, 1,2*kk, 2,2, halo_vv)
       call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
@@ -263,20 +266,23 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
 c
       if (vcoord_type_tag == isopyc_bulkml) then
-        call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
-      elseif (vcoord_type_tag == cntiso_hybrid) then
-        call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
-      else
-        if (mnproc.eq.1) then
-          write (lp,*) 'difest: unsupported vertical coordinate!'
-        endif
-        call xcstop('(difest)')
-               stop '(difest)'
-      endif
 c
-      if (vcoord_type_tag == isopyc_bulkml) then
+c --- - Estimate energy input by near-inertial waves.
+        call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
+c
+c --- - Estimate diffusivities for eddy-induced transport and layer-wise
+c --- - diffusion.
+        call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
+c
+c --- - Estimate vertical diffusivity.
         call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
       elseif (vcoord_type_tag == cntiso_hybrid) then
+c
+c --- - Estimate diffusivities for eddy-induced transport and layer-wise
+c --- - diffusion.
+        call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
+c
+c --- - Estimate vertical diffusivities..
         call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
       else
         if (mnproc.eq.1) then
@@ -350,12 +356,6 @@ c
       bl2 = 1.05e-4
       bl3 = 4.5e-3
       bl4 = 2500.0
-c
-c --- ------------------------------------------------------------------
-c --- Estimate energy input by near-inertial waves.
-c --- ------------------------------------------------------------------
-c
-      call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
 c
 c single column diffusivity
       do j=1,jj
@@ -1958,12 +1958,6 @@ c
       real gls_prod,gls_buoy,gls_diss,gls_Q
 # endif
 #endif
-c
-c --- ------------------------------------------------------------------
-c --- Estimate energy input by near-inertial waves.
-c --- ------------------------------------------------------------------
-c
-      call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
