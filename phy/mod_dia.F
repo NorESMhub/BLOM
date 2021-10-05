@@ -30,7 +30,8 @@ c
       use mod_xc
       use mod_nctools
       use netcdf, only : nf90_fill_double
-      use mod_vcoord, only: sigmar
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid, sigmar
       use mod_grid, only: scp2, depths, area
       use mod_eos, only: rho, p_alpha
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
@@ -40,6 +41,7 @@ c
       use mod_tmsmt, only: dpold
       use mod_mxlayr, only: mtkeus, mtkeni, mtkebf, mtkers, mtkepe,
      .                      mtkeke, pbrnda
+      use mod_difest, only: OBLdepth
       use mod_diffusion, only: difint, difiso, difdia,
      .                         Kvisc_m, Kdiff_t, Kdiff_s,
      .                         umfltd, vmfltd, utfltd, vtfltd, utflld,
@@ -1058,15 +1060,32 @@ c$OMP END PARALLEL DO
       endif
 c
       if (sum(ACC_MLD(1:nphy)).ne.0) then
+        select case (vcoord_type_tag)
+          case (isopyc_bulkml)
 c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              dpml(i,j)=dp(i,j,1+mm)+dp(i,j,2+mm)
+            do j=1,jj
+              do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                  dpml(i,j)=dp(i,j,1+mm)+dp(i,j,2+mm)
+                enddo
+              enddo
             enddo
-          enddo
-        enddo
 c$OMP END PARALLEL DO
+          case (cntiso_hybrid)
+c$OMP PARALLEL DO PRIVATE(l,i)
+            do j=1,jj
+              do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                  dpml(i,j)=OBLdepth(i,j)*onem
+                enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          case default
+            write (lp,*) 'diaacc: unsupported vertical coordinate!'
+            call xcstop('(diaacc)')
+                   stop '(diaacc)'
+        end select
       endif
 c
       if (sum(ACC_UVEL(1:nphy)+ACC_UVELLVL(1:nphy)).ne.0) then

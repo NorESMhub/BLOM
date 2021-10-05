@@ -75,8 +75,12 @@ c
 c
       implicit none
 c
+      private
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  du2l,drhol,rigl
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  OBLdepth
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv,msku
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -88,9 +92,6 @@ c
 c      type(CVMix_kpp_params_type), pointer :: CVmix_kpp_params_in
 c      type(CVMix_kpp_params_type) ::  CVmix_kpp_params_in
 c
-      public  ::  ini_difest, difest
-      private ::  difest_lateral_iso, difest_vertical_iso,
-     .            difest_lateral_hyb, difest_vertical_hyb
 c --- parameters:
 c ---   iidtyp - type of interface and isopycnal diffusivities. If
 c ---            iidtyp=1 the diffusivities are diffusive velocities
@@ -167,6 +168,8 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           dpddav=10.*98060.,dpnbav=250.*98060.,ustmin=.1,
      .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
      .           cs=98.96,minOBLdepth=1.0)
+c
+      public :: ini_difest, difest, OBLdepth
 c
       contains
 c
@@ -596,7 +599,6 @@ c
       real :: bl1, bl2, bl3, bl4
       integer ki, kki, ksfc, ktmp, kOBL, kn1 
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: OBLdepth
 c
       surf_layer_ext = 0.1
       bl1 = 8e-5
