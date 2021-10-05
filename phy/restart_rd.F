@@ -656,10 +656,6 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
             if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
-            if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
-            if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
             if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
             if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,
