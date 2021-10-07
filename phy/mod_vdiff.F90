@@ -181,7 +181,7 @@ contains
                kn = k + nn
                dp_1d(k) = dpu(i, j, kn)
                u_1d(k) = u(i, j, kn)
-               nuv_1d(k) = 1._r8
+               nuv_1d(k) = Kvisc_m(i, j, k)
             enddo
 
             ! Vertical diffusion equations are solved by backward integration
@@ -233,7 +233,7 @@ contains
                kn = k + nn
                dp_1d(k) = dpv(i, j, kn)
                v_1d(k) = v(i, j, kn)
-               nuv_1d(k) = 1._r8
+               nuv_1d(k) = Kvisc_m(i, j, k)
             enddo
 
             ! Vertical diffusion equations are solved by backward integration
