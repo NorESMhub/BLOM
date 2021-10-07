@@ -182,14 +182,14 @@ c --- Namelist
      . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LIP    ,
      . H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,H2D_MLTSMN ,H2D_MLTSMX ,
      . H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,H2D_MTKEBF ,H2D_MTKERS ,
-     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_MXLU   ,H2D_MXLV   ,
-     . H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,
-     . H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,
-     . H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,
-     . H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,
-     . H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,
-     . H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,
-     . H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
+     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_NSF    ,H2D_PBOT   ,
+     . H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,
+     . H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,
+     . H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,
+     . H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,
+     . H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,
+     . H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,
+     . H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
@@ -217,15 +217,14 @@ c --- Namelist
      . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LIP    ,ACC_MAXMLD ,
      . ACC_MLD    ,ACC_MLTS   ,ACC_MLTSMN ,ACC_MLTSMX ,ACC_MLTSSQ ,
      . ACC_MTKEUS ,ACC_MTKENI ,ACC_MTKEBF ,ACC_MTKERS ,ACC_MTKEPE ,
-     . ACC_MTKEKE ,ACC_MTY    ,ACC_MXLU   ,ACC_MXLV   ,ACC_NSF    ,
-     . ACC_PBOT   ,ACC_PSRF   ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,
-     . ACC_SALRLX ,ACC_SBOT   ,ACC_SEALV  ,ACC_SLVSQ  ,ACC_SFL    ,
-     . ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SSSSQ  ,ACC_SST    ,
-     . ACC_SSTSQ  ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_T20D   ,
-     . ACC_TAUX   ,ACC_TAUY   ,ACC_TBOT   ,ACC_TICE   ,ACC_TSRF   ,
-     . ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,
-     . ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,ACC_ZTX    ,ACC_IVOLU  ,
-     . ACC_IVOLV  ,ACC_UTILH2D,
+     . ACC_MTKEKE ,ACC_MTY    ,ACC_NSF    ,ACC_PBOT   ,ACC_PSRF   ,
+     . ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,ACC_SBOT   ,
+     . ACC_SEALV  ,ACC_SLVSQ  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,
+     . ACC_SSS    ,ACC_SSSSQ  ,ACC_SST    ,ACC_SSTSQ  ,ACC_SURFLX ,
+     . ACC_SURRLX ,ACC_SWA    ,ACC_T20D   ,ACC_TAUX   ,ACC_TAUY   ,
+     . ACC_TBOT   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UBFLXS ,
+     . ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VBFLXS ,
+     . ACC_VICE   ,ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
      . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFVMO ,ACC_DIFVHO ,ACC_DIFVSO ,
      . ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,ACC_DPU    ,ACC_DPV    ,
      . ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,ACC_UFLX   ,ACC_UTFLX  ,
@@ -255,14 +254,14 @@ c --- Namelist
      . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LIP    ,
      . H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,H2D_MLTSMN ,H2D_MLTSMX ,
      . H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,H2D_MTKEBF ,H2D_MTKERS ,
-     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_MXLU   ,H2D_MXLV   ,
-     . H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,
-     . H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,
-     . H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,
-     . H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,
-     . H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,
-     . H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,
-     . H2D_VB     ,H2D_VICE   ,H2D_ZTX    ,
+     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_NSF    ,H2D_PBOT   ,
+     . H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,
+     . H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,
+     . H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,
+     . H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,
+     . H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,
+     . H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,
+     . H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
@@ -458,8 +457,6 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_MTKEPE(n)   = H2D_MTKEPE(n)
         ACC_MTKEKE(n)   = H2D_MTKEKE(n)
         ACC_MTY(n)      = H2D_MTY(n)
-        ACC_MXLU(n)     = H2D_MXLU(n)
-        ACC_MXLV(n)     = H2D_MXLV(n)
         ACC_NSF(n)      = H2D_NSF(n)
         ACC_PBOT(n)     = H2D_PBOT(n)
         ACC_PSRF(n)     = H2D_PSRF(n)
@@ -654,10 +651,6 @@ c --- - Determine position in buffer
          ACC_MTKEKE(n)=nphyh2d*min(1,ACC_MTKEKE(n))
         if (ACC_MTY(n).ne.0) nphyh2d=nphyh2d+1
          ACC_MTY(n)=nphyh2d*min(1,ACC_MTY(n))
-        if (ACC_MXLU(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MXLU(n)=nphyh2d*min(1,ACC_MXLU(n))
-        if (ACC_MXLV(n).ne.0) nphyh2d=nphyh2d+1
-         ACC_MXLV(n)=nphyh2d*min(1,ACC_MXLV(n))
         if (ACC_NSF(n).ne.0) nphyh2d=nphyh2d+1
          ACC_NSF(n)=nphyh2d*min(1,ACC_NSF(n))
         if (ACC_PBOT(n).ne.0) nphyh2d=nphyh2d+1
@@ -1042,23 +1035,6 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_MXLU(1:nphy)+ACC_MXLV(1:nphy)).ne.0) then
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-              util2(i,j)=(u(i,j,k1m)+ub(i,j,m))*dpu(i,j,k1m)
-            enddo
-          enddo
-          do l=1,isv(j)
-            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              util4(i,j)=(v(i,j,k1m)+vb(i,j,m))*dpv(i,j,k1m)
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-      endif
-c
       if (sum(ACC_MLD(1:nphy)).ne.0) then
         select case (vcoord_type_tag)
           case (isopyc_bulkml)
@@ -1327,9 +1303,6 @@ c
 c --- weighted u-component of ice velocity [m^2/s]
       call acch2d(ACC_UICE,uicem,util1,1,'u')
 c
-c --- weighted u-component of total velocity [g/s^3]
-      call acch2d(ACC_MXLU,util2,dummy,0,'u')
-c
 c --- v-component of barotropic velocity [cm/s]
       call acch2d(ACC_VB,vb(1-nbdy,1-nbdy,m),dummy,0,'v')
 c
@@ -1344,9 +1317,6 @@ c --- v-component of momentum flux received by the ocean [dyn/cm^2]
 c
 c --- weighted v-component of ice velocity [m^2/s]
       call acch2d(ACC_VICE,vicem,util3,1,'v')
-c
-c --- weighted v-component of total velocity [g/s^3]
-      call acch2d(ACC_MXLV,util4,dummy,0,'v')
 c
 c --- surface pressure [g/cm/s^2]
       call acch2d(ACC_PSRF,p(1-nbdy,1-nbdy,1),dummy,0,'p')
@@ -2554,14 +2524,6 @@ c
 c
       call wrth2d(ACC_TBOT(iogrp),H2D_TBOT(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','tbot','Bottom temperature',' ','degC')
-c
-      call wrth2d(ACC_MXLU(iogrp),H2D_MXLU(iogrp),1e-2,0.,
-     .  cmpflg,iuu,'u','mxlu','Mixed layer velocity x-component',' ',
-     .  'm s-1')
-c
-      call wrth2d(ACC_MXLV(iogrp),H2D_MXLV(iogrp),1e-2,0.,
-     .  cmpflg,ivv,'v','mxlv','Mixed layer velocity y-component',' ',
-     .  'm s-1')
 c
 c --- write 3d layer fields
       call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*.1,0.,
@@ -5213,7 +5175,6 @@ c --- initialisation of 2d fields
       call inih2d(ACC_UBFLXS(iogrp),'u',0.)
       call inih2d(ACC_ZTX(iogrp),'u',0.)
       call inih2d(ACC_TAUX(iogrp),'u',0.)
-      call inih2d(ACC_MXLU(iogrp),'u',0.)
       call inih2d(ACC_UICE(iogrp),'u',0.)
       call inih2d(ACC_IVOLU(iogrp),'u',0.)
 c
@@ -5221,7 +5182,6 @@ c
       call inih2d(ACC_VBFLXS(iogrp),'v',0.)
       call inih2d(ACC_MTY(iogrp),'v',0.)
       call inih2d(ACC_TAUY(iogrp),'v',0.)
-      call inih2d(ACC_MXLV(iogrp),'v',0.)
       call inih2d(ACC_VICE(iogrp),'v',0.)
       call inih2d(ACC_IVOLV(iogrp),'v',0.)
 c
@@ -6344,12 +6304,6 @@ c
 c
       call ncdefvar3d(H2D_TBOT(iogrp),cmpflg,'p','tbot',
      .  'Bottom temperature',' ','degC',0)
-c
-      call ncdefvar3d(H2D_MXLU(iogrp),cmpflg,'u','mxlu',
-     .  'Mixed layer velocity x-component',' ','m s-1',0)
-c
-      call ncdefvar3d(H2D_MXLV(iogrp),cmpflg,'v','mxlv',
-     .  'Mixed layer velocity y-component',' ','m s-1',0)
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p','dp',
