@@ -77,8 +77,10 @@ c
 c
       private
 c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
+     .  rig
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  du2l,drhol,rigl
+     .  du2l,drhol,up,vp
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  OBLdepth
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
@@ -434,9 +436,9 @@ c --- ------- Vertical squared velocity difference.
      .                    /max(1,mskv(i,j,k)+mskv(i,j+1,k))
 c
 c --- ------- Local gradient Richardson number.
-              rigl(i,j,k)=alpha0*alpha0
-     .                    *max(drhomn,drhol(i,j,k))*dp(i,j,kn)
-     .                    /max(1.e-9,du2l(i,j,k))
+              rig(i,j,k)=alpha0*alpha0
+     .                   *max(drhomn,drhol(i,j,k))*dp(i,j,kn)
+     .                   /max(1.e-9,du2l(i,j,k))
 c
             endif
           enddo
@@ -451,10 +453,152 @@ c
         endif
         call chksummsk(drhol,ip,kk,'drhol')
         call chksummsk(du2l,ip,kk,'du2l')
-        call chksummsk(rigl,ip,kk,'rigl')
+        call chksummsk(rig,ip,kk,'rig')
       endif
 c
       end subroutine difest_common_iso
+c
+      subroutine difest_common_hyb(m,n,mm,nn,k1m,k1n)
+c
+c --- ------------------------------------------------------------------
+c --- Obtain common fields for the estimation of lateral and vertical
+c --- diffusivities diapycnal diffusivities when vcoord_type_tag ==
+c --- isopyc_bulkml.
+c --- ------------------------------------------------------------------
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: dv2
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: du2
+      integer, dimension(1-nbdy:idm+nbdy) :: klpl
+      integer i,j,k,l,kn
+      real q,dz
+c
+c --- Compute squared vertical velocity difference of v-component
+c$OMP PARALLEL DO PRIVATE(l,i,klpl,k,kn,q)
+      do j=1,jj+1
+        do l=1,isv(j)
+        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          klpl(i)=1
+        enddo
+        enddo
+        do k=2,kk
+          kn=k+nn
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            if (dpv(i,j,kn).gt.dpbmin) klpl(i)=k
+          enddo
+          enddo
+        enddo
+        do k=2,kk
+          do i=1,ii
+            dv2(i,j,k)=0.
+            mskv(i,j,k)=0
+          enddo
+          kn=k+nn
+          do l=1,isv(j)
+          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+            if (klpl(i).ge.2.and.k.le.klpl(i)) then
+              q=v(i,j,kn)-v(i,j,kn-1)
+              dv2(i,j,k)=q*q
+              mskv(i,j,k)=1
+            endif
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(l,i,klpl,k,kn,du2,q,dz)
+      do j=1,jj
+c
+c ----- Compute squared vertical velocity difference of u-component
+        do l=1,isu(j)
+        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+          klpl(i)=1
+        enddo
+        enddo
+        do k=2,kk
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            if (dpu(i,j,kn).gt.dpbmin) klpl(i)=k
+          enddo
+          enddo
+        enddo
+        do k=2,kk
+          do i=1,ii
+            du2(i,k)=0.
+            msku(i,j,k)=0
+          enddo
+          kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+            if (klpl(i).ge.2.and.k.le.klpl(i)) then
+              q=u(i,j,kn)-u(i,j,kn-1)
+              du2(i,k)=q*q
+              msku(i,j,k)=1
+            endif
+          enddo
+          enddo
+        enddo
+c
+c --- - Compute local gradient Richardson number at interfaces.
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          rig(i,j,1)=0.
+        enddo
+        enddo
+        do k=2,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (msku(i,j,k)+msku(i+1,j,k)
+     .         +mskv(i,j,k)+mskv(i,j+1,k).gt.0) then
+              q=(msku(i,j,k)*du2(i,k)  +msku(i+1,j,k)*du2(i+1,k))
+     .          /max(1,msku(i,j,k)+msku(i+1,j,k))
+     .         +(mskv(i,j,k)*dv2(i,j,k)+mskv(i,j+1,k)*dv2(i,j+1,k))
+     .          /max(1,mskv(i,j,k)+mskv(i,j+1,k))
+              dz=.5*(dp(i,j,kn-1)+dp(i,j,kn))*alpha0/g
+              rig(i,j,k)=max(0.,bfsqi(i,j,k)*dz*dz)/max(1.e-9,q)
+            else
+              rig(i,j,k)=rig(i,j,k-1)
+            endif
+          enddo
+          enddo
+        enddo
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          rig(i,j,1)=rig(i,j,2)
+          rig(i,j,kk+1)=rig(i,j,kk)
+        enddo
+        enddo
+c
+c --- - Compute velocity components at p-points.
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            up(i,j,k)=(msku(i,j,k)*u(i,j,kn)+msku(i+1,j,k)*u(i+1,j,kn))
+     .                /max(1,msku(i,j,k)+msku(i+1,j,k))
+            vp(i,j,k)=(mskv(i,j,k)*v(i,j,kn)+mskv(i,j+1,k)*v(i,j+1,kn))
+     .                /max(1,mskv(i,j,k)+mskv(i,j+1,k))
+          enddo
+          enddo
+        enddo
+c
+      enddo
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest_common_hyb:'
+        endif
+        call chksummsk(rig,ip,kk+1,'rig')
+        call chksummsk(up,ip,kk,'up')
+        call chksummsk(vp,ip,kk,'vp')
+      endif
+c
+      end subroutine difest_common_hyb
 c
       subroutine difest(m,n,mm,nn,k1m,k1n)
 c
@@ -518,21 +662,25 @@ c --- - Obtain common fields for the estimation of lateral and vertical
 c --- - diffusivities diapycnal diffusivities.
         call difest_common_iso(m,n,mm,nn,k1m,k1n)
 c
+c --- - Estimate vertical diffusivity.
+        call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
+c
 c --- - Estimate diffusivities for eddy-induced transport and layer-wise
 c --- - diffusion.
         call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
 c
-c --- - Estimate vertical diffusivity.
-        call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
-c
       elseif (vcoord_type_tag == cntiso_hybrid) then
+c
+c --- - Obtain common fields for the estimation of lateral and vertical
+c --- - diffusivities diapycnal diffusivities.
+        call difest_common_hyb(m,n,mm,nn,k1m,k1n)
+c
+c --- - Estimate vertical diffusivities..
+        call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
 c
 c --- - Estimate diffusivities for eddy-induced transport and layer-wise
 c --- - diffusion.
         call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
-c
-c --- - Estimate vertical diffusivities..
-        call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
 c
       else
         if (mnproc.eq.1) then
@@ -560,7 +708,7 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c          
-      real, dimension(kdm+1) :: rig
+      real, dimension(kdm+1) :: rig_i
       integer i,j,k,l,kn
       real q
 c
@@ -584,7 +732,6 @@ c
       real, dimension(kdm) :: VT2              ! unresolved shear used for  Bulk Ri
       real, dimension(kdm) :: deltaRho         ! delta Rho [g/cm3] in numerator of Bulk Ri number
       real, dimension(kdm,2) :: nonLocalTrans  ! Non-local transport for heat/salt at interfaces [nondim]
-      real :: DU, DV, DZ, S2 
       real :: surf_layer_ext, surfFricVel
       real :: surfBuoyFlux
       real :: delH, bvfbot, dps
@@ -597,7 +744,7 @@ c
       real :: SLdepth_0d, hTot
       real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
-      integer ki, kki, ksfc, ktmp, kOBL, kn1 
+      integer ki, ksfc, ktmp, kOBL, kn1 
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
 c
       surf_layer_ext = 0.1
@@ -636,7 +783,7 @@ c             Ws_1d = 0.0
              rho_zeros(:)= 0.
              rho_1d    = 0.
              nonLocalTrans(:,:) = 0.0 
-             rig = 1.e8 !Initialize w/ large Richardson value 
+             rig_i = 1.e8 !Initialize w/ large Richardson value 
              Kv_kpp = 0.0
              Kt_kpp = 0.0
              Ks_kpp = 0.0
@@ -698,10 +845,8 @@ c     .                                  iFaceHeight(k))
                    ! surface averaged fields
                    surfHtemp = surfHtemp + temp(i,j,ktmp)*delH
                    surfHsalt = surfHsalt + saln(i,j,ktmp)*delH
-                   surfHu = surfHu
-     .                      +0.5*(u(i,j,ktmp)+u(i+1,j,ktmp))*delH
-                   surfHv = surfHv
-     .                      +0.5*(v(i,j,ktmp)+v(i,j+1,ktmp))*delH
+                   surfHu = surfHu+up(i,j,ki)*delH
+                   surfHv = surfHv+vp(i,j,ki)*delH
                 enddo
                 surfTemp = surfHtemp / hTot
                 surfSalt = surfHsalt / hTot
@@ -716,8 +861,8 @@ c     .                                  iFaceHeight(k))
                 ! vertical shear between present layer and    
                 ! surface layer averaged surfU,surfV.         
                 ! C-grid average to get Uk and Vk on T-points.
-                Uk = 0.5*(u(i,j,kn)+u(i+1,j,kn)) - surfU
-                Vk = 0.5*(v(i,j,kn)+v(i,j+1,kn)) - surfV
+                Uk = up(i,j,k) - surfU
+                Vk = vp(i,j,k) - surfV
                 deltaU2(k) = (Uk**2 + Vk**2)
 
                 ! XXX: Temporary de-scaling of N2_int(i,:) into a
@@ -733,22 +878,15 @@ c --- ------- bottom
                 endif
 
 c --- ------- Local gradient Richardson number
-c                DU = (u_p(i,j,k) - u_p(i,j,km1))                 
-c                DV = (v_p(i,j,k) - v_p(i,j,km1))                 
-c                DZ = ((0.5*(dp(i,j,kn1) + dp(i,j,kn))+epsil))
-c                S2 = (DU*DU+DV*DV)/(DZ*DZ)                                     
-c                rig(k) = max(0.,bvfsq_i(k))/max(S2,1.e-10)                         
-c                if (p(i,j,kk+1)-p(i,j,k) < epsil) then
-c                    rig(k) = rig(k-1)
-c                else
-
+                rig_i(k)=rig(i,j,k)
+c
              enddo  ! k             
              if(dps.gt.0.) bvfbot=bvfbot/dps
              ! convert cm2/s2 to m2/s2
              deltaU2 = deltaU2*1e-4 
 
              ! bottom values for the Ri, N2, and N
-             rig(kk+1) = rig(kk)
+             rig_i(kk+1) = rig_i(kk)
              bvfsq_i(kk+1) = bfsqi(i,j,kk+1)
              bvf_i(kk+1) = sqrt( max( bvfsq_i(kk+1), 0.) ) 
 
@@ -863,7 +1001,7 @@ c --- ------ centers.
 ! Call to CVMix wrapper for computing interior mixing coefficients. 
              call  CVMix_coeffs_shear(Mdiff_out=Kv_shr(:),                       
      .                                Tdiff_out=Kd_shr(:),                   
-     .                                RICH=rig(:),
+     .                                RICH=rig_i(:),
      .                                nlev=kk,
      .                                max_nlev=kk)                         
 
@@ -927,215 +1065,69 @@ c
       integer m,n,mm,nn,k1m,k1n
 c          
 c
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
-     .  dv2
-      real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  du2,egr
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,urmse,cpse
-      integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  kfil,kmax
-      integer, dimension(1-nbdy:idm+nbdy) ::
-     .  kfpl,klpl
+     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,udps,vdps,
+     .  umlzon,urmse,cpse
       integer i,j,k,l,kn
       real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
-      do j=0,jj+1
-        do i=0,ii+1
+      do j=1,jj
+        do i=1,ii
           kmax(i,j)=0
         enddo
         do l=1,isp(j)
-        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           kmax(i,j)=1
-          do k=3,kk
+          do k=2,kk
             kn=k+nn
             if (dp(i,j,kn).gt.dpbmin) kmax(i,j)=k
           enddo
-          if (kfpla(i,j,n).ge.kmax(i,j)) then
-            kfil(i,j)=kfpla(i,j,n)+1
-          else
-            if (sigma(i,j,kfpla(i,j,n)+nn).lt.
-     .          .5*(sigmar(i,j,kfpla(i,j,n)  )
-     .             +sigmar(i,j,kfpla(i,j,n)+1))) then
-              kfil(i,j)=kfpla(i,j,n)+1
-            else
-              kfil(i,j)=kfpla(i,j,n)+2
-            endif
-          endif
+          kfil(i,j)=kk+1
+          do k=kk,2,-1
+            if (p(i,j,k).gt.OBLdepth(i,j)*onem) kfil(i,j)=k
+          enddo
         enddo
         enddo
       enddo
-c
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          util1(i,j)=kfil(i,j)
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-      call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO PRIVATE(l,i)
-      do j=0,jj+1
-        do l=1,isp(j)
-        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-          kfil(i,j)=nint(util1(i,j))
-        enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- Compute squared vertical velocity gradients of v-component
-c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
-      do j=1,jj+1
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          kfpl(i)=kk+1
-          klpl(i)=1
-        enddo
-        enddo
-        do k=3,kk
-          kn=k+nn
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (dpv(i,j,kn).gt.dpbmin) klpl(i)=k
-          enddo
-          enddo
-        enddo
-        do k=kk,4,-1
-          kn=k+nn
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (k.ge.max(kfil(i,j-1),kfil(i,j)).and.
-     .          dpv(i,j,kn).gt.dptmin) kfpl(i)=k
-          enddo
-          enddo
-        enddo
-        do k=1,kk
-          kn=k+nn
-          do i=1,ii
-            dv2(i,j,k)=0.
-            mskv(i,j,k)=0
-          enddo
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-            if (k.ge.kfpl(i).and.k.le.klpl(i).and.
-     .          klpl(i)-kfpl(i).ge.1) then
-              if     (k.eq.kfpl(i)) then
-                q=v(i,j,kn+1)-v(i,j,kn)
-                q=q*q
-                dv2(i,j,k)=q
-                tup(i)=q
-              elseif (k.lt.klpl(i)) then
-                q=v(i,j,kn+1)-v(i,j,kn)
-                q=q*q
-                dv2(i,j,k)=.5*(tup(i)+q)
-                tup(i)=q
-              else
-                dv2(i,j,k)=tup(i)
-              endif
-              mskv(i,j,k)=1
-            endif
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,kfpl,klpl,k,kn,du2,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
+c$OMP+ l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
 c$OMP+ afeql,dps,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac)
+c$OMP+ rhisc,els,udps,vdps,umlzon,urmse,cpse,umnsc,esfac)
       do j=1,jj
-c
-c ----- Compute squared vertical velocity gradients of u-component
-        do l=1,isu(j)
-        do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-          kfpl(i)=kk+1
-          klpl(i)=1
-        enddo
-        enddo
-        do k=3,kk
-          kn=k+nn
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (dpu(i,j,kn).gt.dpbmin) klpl(i)=k
-          enddo
-          enddo
-        enddo
-        do k=kk,4,-1
-          kn=k+nn
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (k.ge.min(kfil(i-1,j),kfil(i,j)).and.
-     .          dpu(i,j,kn).gt.dptmin) kfpl(i)=k
-          enddo
-          enddo
-        enddo
-        do k=1,kk
-          kn=k+nn
-          do i=1,ii+1
-            du2(i,k)=0.
-            msku(i,j,k)=0
-          enddo
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            if (k.ge.kfpl(i).and.k.le.klpl(i).and.
-     .          klpl(i)-kfpl(i).ge.1) then
-              if     (k.eq.kfpl(i)) then
-                q=u(i,j,kn+1)-u(i,j,kn)
-                q=q*q
-                du2(i,k)=q
-                tup(i)=q
-              elseif (k.lt.klpl(i)) then
-                q=u(i,j,kn+1)-u(i,j,kn)
-                q=q*q
-                du2(i,k)=.5*(tup(i)+q)
-                tup(i)=q
-              else
-                du2(i,k)=tup(i)
-              endif
-              msku(i,j,k)=1
-            endif
-          enddo
-          enddo
-        enddo
 c
 c ----- Compute the first baroclinic rossby radius of deformation using
 c ----- the WKB approximation by Chelton at al. (1998).
-c ----- !!! Could include top layer in computation !!!
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          pup(i)=.5*(3.*p(i,j,3)-p(i,j,min(kk,kfpla(i,j,n))+1))
-          kn=2+nn
+          pup(i)=p(i,j,1)
+          kn=1+nn
           tup(i)=temp(i,j,kn)
           sup(i)=saln(i,j,kn)
           cr(i)=0.
         enddo
         enddo
-        do k=3,kk
+        do k=2,kk
           kn=k+nn
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.ge.kfpla(i,j,n)) then
-              if (p(i,j,kk+1)-p(i,j,k+1).lt.epsil) then
-                plo=p(i,j,kk+1)
-              else
-                plo=.5*(p(i,j,k)+p(i,j,k+1))
-              endif
-              tlo=temp(i,j,kn)
-              slo=saln(i,j,kn)
-              cr(i)=cr(i)
-     .             +sqrt(max(0.,(rho(p(i,j,k),tlo,slo)
-     .                          -rho(p(i,j,k),tup(i),sup(i)))
-     .                          *(plo-pup(i))))
-              pup(i)=plo
-              tup(i)=tlo
-              sup(i)=slo
+            if (p(i,j,kk+1)-p(i,j,k+1).lt.epsil) then
+              plo=p(i,j,kk+1)
+            else
+              plo=.5*(p(i,j,k)+p(i,j,k+1))
             endif
+            tlo=temp(i,j,kn)
+            slo=saln(i,j,kn)
+            cr(i)=cr(i)
+     .           +sqrt(max(0.,(rho(p(i,j,k),tlo,slo)
+     .                        -rho(p(i,j,k),tup(i),sup(i)))
+     .                        *(plo-pup(i))))
+            pup(i)=plo
+            tup(i)=tlo
+            sup(i)=slo
           enddo
           enddo
         enddo
@@ -1148,45 +1140,6 @@ c ----- !!! Could include top layer in computation !!!
      .                1.e-24))
           afeql(i)=max(abs(coriop(i,j)),sqrt(2.*betafp(i,j)*cr(i)))
         enddo
-        enddo
-c
-c ----- Compute local gradient richardson number.
-        do k=4,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
-     .          kmax(i,j)-kfil(i,j).ge.1) then
-              if     (k.eq.kfil(i,j)) then
-                q=max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1))
-     .                  -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
-                drhol(i,j,k)=q
-                tup(i)=q
-              elseif (k.lt.kmax(i,j)) then
-                q=max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1))
-     .                  -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
-                drhol(i,j,k)=2.*tup(i)*q/max(1.e-14,tup(i)+q)
-                tup(i)=q
-              else
-                drhol(i,j,k)=tup(i)
-              endif
-c
-c --- ------- Vertical squared velocity difference.
-              du2l(i,j,k)=(msku(i  ,j,k)*du2(i  ,k)
-     .                    +msku(i+1,j,k)*du2(i+1,k))
-     .                    /max(1,msku(i,j,k)+msku(i+1,j,k))
-     .                   +(mskv(i,j  ,k)*dv2(i,j  ,k)
-     .                    +mskv(i,j+1,k)*dv2(i,j+1,k))
-     .                    /max(1,mskv(i,j,k)+mskv(i,j+1,k))
-c
-c --- ------- Local gradient Richardson number.
-              rigl(i,j,k)=alpha0*alpha0
-     .                    *max(drhomn,drhol(i,j,k))*dp(i,j,kn)
-     .                    /max(1.e-9,du2l(i,j,k))
-c
-            endif
-          enddo
-          enddo
         enddo
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
@@ -1216,8 +1169,8 @@ c --- - Rossby radius is resolved by the grid.
             write (lp,'(3a)') ' edwmth=',trim(edwmth),
      .                        ' is unsupported!'
           endif
-          call xcstop('(difest)')
-                 stop '(difest)'
+          call xcstop('(difest_lateral_hyb)')
+                 stop '(difest_lateral_hyb)'
         endif
 c
 c --- ------------------------------------------------------------------
@@ -1264,7 +1217,8 @@ c --- --- Eady growth rate.
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .              kmax(i,j)-kfil(i,j).ge.1) then
-                  egr(i,k)=afeql(i)/sqrt(rigl(i,j,k)+eggam)
+                  egr(i,k)=afeql(i)
+     .                     /sqrt(.5*(rig(i,j,k)+rig(i,j,k+1))+eggam)
                   if (edsprs) then
                     q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
      .                           p(i,j,k+1))-p(i,j,k))
@@ -1399,6 +1353,33 @@ c --- --- steering levels if requested.
 c
 c --- --- Eddy diffusivity modification of surface non-isopycnic
 c --- --- layers.
+c
+          if (edsprs) then
+c
+c --- ----- Zonal mixed layer velocity.
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              udps(i)=0.
+              vdps(i)=0.
+            enddo
+            enddo
+            do k=1,kk
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                q=max(0.,min(p(i,j,k+1),OBLdepth(i,j)*onem)-p(i,j,k))
+                udps(i)=udps(i)+up(i,j,k)*q
+                vdps(i)=vdps(i)+vp(i,j,k)*q
+              enddo
+              enddo
+            enddo
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              umlzon(i)=(udps(i)*cosang(i,j)-vdps(i)*sinang(i,j))
+     .                  /(OBLdepth(i,j)*onem)
+            enddo
+            enddo
+          endif
+c
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
@@ -1425,44 +1406,7 @@ c --- --------- Zonal mixed layer velocity minus eddy phase speed. Note
 c --- --------- that only the baroclinic component is used since the
 c --- --------- barotropic velocity is subtracted from the estimate of
 c --- --------- eddy phase speed.
-                if     (ip(i-1,j)+ip(i+1,j).eq.2) then
-                  q=.5*((u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
-     .                  +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
-     .                  /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
-     .                 +(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
-     .                  +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
-     .                  /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn)))
-                elseif (ip(i-1,j).eq.1) then
-                  q=(u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
-     .              +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
-     .              /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
-                elseif (ip(i+1,j).eq.1) then
-                  q=(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
-     .              +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
-     .              /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn))
-                else
-                  q=0.
-                endif
-                umnsc=q*cosang(i,j)
-                if     (ip(i,j-1)+ip(i,j+1).eq.2) then
-                  q=.5*((v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
-     .                  +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
-     .                  /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
-     .                 +(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
-     .                  +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
-     .                  /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn)))
-                elseif (ip(i,j-1).eq.1) then
-                  q=(v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
-     .              +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
-     .              /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
-                elseif (ip(i,j+1).eq.1) then
-                  q=(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
-     .              +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
-     .              /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn))
-                else
-                  q=0.
-                endif
-                umnsc=umnsc-q*sinang(i,j)-cpse(i)
+                umnsc=umlzon(i)-cpse(i)
 c
 c --- --------- Eddy mixing suppresion factor where lower bounds of
 c --- --------- zonal velocity minus eddy phase speed and absolute value
@@ -1495,12 +1439,8 @@ c
                 if (edsprs) then
 c
 c --- ----------- Zonal velocity minus eddy phase speed.
-                  umnsc=
-     .              (msku(i,j,k)*u(i,j,kn)+msku(i+1,j,k)*u(i+1,j,kn))
-     .              /max(1,msku(i,j,k)+msku(i+1,j,k))*cosang(i,j)
-     .             -(mskv(i,j,k)*v(i,j,kn)+mskv(i,j+1,k)*v(i,j+1,kn))
-     .              /max(1,mskv(i,j,k)+mskv(i,j+1,k))*sinang(i,j)
-     .             -cpse(i)
+                  umnsc=up(i,j,k)*cosang(i,j)-vp(i,j,k)*sinang(i,j)
+     .                 -cpse(i)
 c
 c --- ----------- Eddy mixing suppresion factor.
                   esfac=1./(1.+4.*(umnsc/max(5.,abs(urmse(i))))**2)
@@ -1533,16 +1473,13 @@ c --- --- interface diffusivity by the factor EGIDFQ.
           enddo
 c
         endif
-      enddo ! j=1,jj at line 360
+      enddo
 c$OMP END PARALLEL DO
 c
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'difest_lateral_hyb:'
         endif
-        call chksummsk(drhol,ip,kk,'drhol')
-        call chksummsk(du2l,ip,kk,'du2l')
-        call chksummsk(rigl,ip,kk,'rigl')
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
       endif
@@ -1558,8 +1495,7 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c
-      real, dimension(1-nbdy:idm+nbdy,kdm) ::
-     .  egr
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr
       real, dimension(1-nbdy:idm+nbdy) ::
      .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,urmse,cpse
       integer i,j,k,l,kn
@@ -1692,7 +1628,7 @@ c --- --- Eady growth rate.
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .              kmax(i,j)-kfil(i,j).ge.1) then
-                  egr(i,k)=afeql(i)/sqrt(rigl(i,j,k)+eggam)
+                  egr(i,k)=afeql(i)/sqrt(rig(i,j,k)+eggam)
                   if (edsprs) then
                     q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
      .                           p(i,j,k+1))-p(i,j,k))
@@ -1961,7 +1897,7 @@ c --- --- interface diffusivity by the factor EGIDFQ.
           enddo
 c
         endif
-      enddo ! j=1,jj at line 360
+      enddo
 c$OMP END PARALLEL DO
 c
 c
@@ -1983,7 +1919,7 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c
-      real, dimension(1-nbdy:idm+nbdy,kdm) :: bvfsq,bvf,rig
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: bvfsq,bvf
       real, dimension(1-nbdy:idm+nbdy) :: bvfbot,dps,dfddsu,dfddsl
       integer i,j,k,l,kn
       real q,nus,nub,nut,nuls,vsf,nusm,ust,mols,h,sg,zeta,phis,ws
@@ -2110,7 +2046,7 @@ c
 c
 #if !defined(TRC) || !defined(TKE)
 c --- ------- Shear driven diapycnal mixing.
-              if (rigl(i,j,k).lt.ri0) then
+              if (rig(i,j,k).lt.ri0) then
 c
 c --- --------- Maximum diffusivity is increased near the bottom to
 c --- --------- provide additional mixing of gravity currents.
@@ -2122,7 +2058,7 @@ c --- --------- provide additional mixing of gravity currents.
 c
 c --- --------- Parameterization of diffusivity as a function of local
 c --- --------- gradient richardson number.
-                q=rigl(i,j,k)/ri0
+                q=rig(i,j,k)/ri0
                 q=max(0.,1.-q*q)
                 nus=nus*q*q*q
               else
