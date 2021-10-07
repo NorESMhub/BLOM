@@ -378,10 +378,6 @@ c --- write accumulated fields
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu)
           if (ACC_TAUY(n)  .ne.0) call wrtrst('tauy_phy'//c2,
      .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv)
-          if (ACC_MXLU(n)  .ne.0) call wrtrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu)
-          if (ACC_MXLV(n)  .ne.0) call wrtrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv)
           if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
           if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
@@ -968,10 +964,6 @@ c --- write accumulated fields
           if (ACC_TAUX(n)  .ne.0) call defvarrst('taux_phy'//c2,
      .      trim(c5u)//' time')
           if (ACC_TAUY(n)  .ne.0) call defvarrst('tauy_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MXLU(n)  .ne.0) call defvarrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MXLV(n)  .ne.0) call defvarrst('mxlv_phy'//c2,
      .      trim(c5v)//' time')
           if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
      .      trim(c5u)//' time')
