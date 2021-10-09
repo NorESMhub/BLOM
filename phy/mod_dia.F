@@ -1094,7 +1094,10 @@ c$OMP PARALLEL DO PRIVATE(k,km,l,i)
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
+      if (sum(ACC_MLTS(1:nphy)+ACC_MLTSMN(1:nphy)
+     .       +ACC_MLTSMX(1:nphy)+ACC_MLTSSQ(1:nphy)
+     .       +ACC_T20D(1:nphy)
+     .       +ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
