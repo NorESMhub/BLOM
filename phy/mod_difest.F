@@ -171,7 +171,7 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
      .           cs=98.96,minOBLdepth=1.0)
 c
-      public :: inivar_difest, ini_difest, difest, OBLdepth
+      public :: inivar_difest, init_difest, difest, OBLdepth
 c
       contains
 c
@@ -206,7 +206,7 @@ c$OMP END PARALLEL DO
 c
       end subroutine inivar_difest
 c
-      subroutine ini_difest
+      subroutine init_difest
 c
 c --- ------------------------------------------------------------------
 c --- Initialize CVmix variables.
@@ -253,7 +253,7 @@ c --- ------ convert nuls0 to m2/s
      .          CVMix_kpp_params_user=KPP_params )
 c
 c
-      end subroutine ini_difest
+      end subroutine init_difest
 c
       subroutine difest_common_iso(m,n,mm,nn,k1m,k1n)
 c
