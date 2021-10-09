@@ -28,7 +28,7 @@ module mod_checksum
 
    ! Constants.
    logical :: &
-      csdiag = .false. ! Flag that indicates whether checksums are written.
+      csdiag = .true. ! Flag that indicates whether checksums are written.
 
    integer :: crcfast
    external :: crcfast
@@ -47,16 +47,22 @@ contains
          intent(in) :: a
       character(len = *), intent(in) :: text
 
-      real(r8), dimension(itdm, jtdm, kcsd) :: aa
+      real(r8), dimension(itdm, jtdm) :: aa
+      integer, dimension(kcsd) :: cslist
       integer :: kcs
 
       do kcs = 1, kcsd
-        call xcaget(aa(1, 1, kcs), a(1 - nbdy, 1 - nbdy, kcs), 1)
+         call xcaget(aa, a(1 - nbdy, 1 - nbdy, kcs), 1)
+         cslist(kcs) = crcfast(aa, itdm*jtdm*8)
       enddo
 
       if (mnproc == 1) then
-         write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-            crcfast(aa, itdm*jtdm*kcsd*8)
+         if (kcsd == 1) then
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
+         else
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
+                                   crcfast(cslist, kcsd*4)
+         endif
       endif
 
    end subroutine chksum
@@ -73,34 +79,34 @@ contains
          intent(in) :: msk
       character(len = *), intent(in) :: text
 
-      real(r8), dimension(itdm, jtdm, kcsd) :: aa
-      real(r8), dimension(itdm, jtdm) :: rrmsk
-      real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: rmsk
+      real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: amsk
+      real(r8), dimension(itdm, jtdm) :: aa
+      integer, dimension(kcsd) :: cslist
       integer :: ics, jcs, kcs
 
-      do jcs = 1, jj
-         do ics = 1, ii
-            rmsk(ics, jcs) = msk(ics, jcs)
-         enddo
-      enddo
-
       do kcs = 1, kcsd
-         call xcaget(aa(1 , 1, kcs), a(1 - nbdy, 1 - nbdy, kcs), 1)
-      enddo
-      call xcaget(rrmsk, rmsk, 1)
-
-      if (mnproc == 1) then
-         do kcs = 1, kcsd
-            do jcs = 1, jtdm
-              do ics = 1, itdm
-                 if (rrmsk(ics, jcs) < .5_r8) then
-                    aa(ics, jcs, kcs) = 0._r8
-                 endif
-               enddo
+      !$omp parallel do private(ics)
+         do jcs = 1, jj
+            do ics = 1, ii
+               if (msk(ics, jcs) == 0) then
+                  amsk(ics, jcs) = 0._r8
+               else
+                  amsk(ics, jcs) = a(ics, jcs, kcs)
+               endif
             enddo
          enddo
-         write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-            crcfast(aa, itdm*jtdm*kcsd*8)
+      !$omp end parallel do
+         call xcaget(aa, amsk, 1)
+         cslist(kcs) = crcfast(aa, itdm*jtdm*8)
+      enddo
+
+      if (mnproc == 1) then
+         if (kcsd == 1) then
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
+         else
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
+                                   crcfast(cslist, kcsd*4)
+         endif
       endif
 
    end subroutine chksummsk
