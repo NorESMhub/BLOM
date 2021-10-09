@@ -20,7 +20,7 @@
       module mod_difest
 c
       use mod_types, only: r8
-      use mod_constants, only: g, alpha0, pi, epsil, onem, onecm
+      use mod_constants, only: g, alpha0, pi, epsil, spval, onem, onecm
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: sigmar
@@ -171,9 +171,40 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
      .           cs=98.96,minOBLdepth=1.0)
 c
-      public :: ini_difest, difest, OBLdepth
+      public :: inivar_difest, ini_difest, difest, OBLdepth
 c
       contains
+c
+      subroutine inivar_difest
+c
+c --- ------------------------------------------------------------------
+c --- Initialize arrays.
+c --- ------------------------------------------------------------------
+c
+      integer :: i,j,k
+c
+c$OMP PARALLEL DO PRIVATE(i,k)
+      do j=1-nbdy,jj+nbdy
+        do k=1,kk+1
+          do i=1-nbdy,ii+nbdy
+            rig(i,j,k)=spval
+          enddo
+        enddo
+        do k=1,kk
+          do i=1-nbdy,ii+nbdy
+            du2l(i,j,k)=spval
+            drhol(i,j,k)=spval
+            up(i,j,k)=spval
+            vp(i,j,k)=spval
+          enddo
+        enddo
+        do i=1-nbdy,ii+nbdy
+          OBLdepth(i,j)=spval
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+      end subroutine inivar_difest
 c
       subroutine ini_difest
 c
@@ -527,7 +558,7 @@ c ----- Compute squared vertical velocity difference of u-component
           enddo
         enddo
         do k=2,kk
-          do i=1,ii
+          do i=1,ii+1
             du2(i,k)=0.
             msku(i,j,k)=0
           enddo
@@ -1053,6 +1084,15 @@ c end of single column
 c
       enddo ! j-index
 c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest_vertical_hyb:'
+        endif
+        call chksummsk(Kvisc_m,ip,kk,'Kvisc_m')
+        call chksummsk(Kdiff_t,ip,kk,'Kdiff_t')
+        call chksummsk(Kdiff_s,ip,kk,'Kdiff_s')
+      endif
+c
       end subroutine difest_vertical_hyb
 c
       subroutine difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
@@ -1074,17 +1114,23 @@ c
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
-      do j=1,jj
-        do i=1,ii
+      do j=0,jj+1
+        do i=0,ii+1
           kmax(i,j)=0
         enddo
         do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
           kmax(i,j)=1
           do k=2,kk
             kn=k+nn
             if (dp(i,j,kn).gt.dpbmin) kmax(i,j)=k
           enddo
+        enddo
+        enddo
+      enddo
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           kfil(i,j)=kk+1
           do k=kk,2,-1
             if (p(i,j,k).gt.OBLdepth(i,j)*onem) kfil(i,j)=k
