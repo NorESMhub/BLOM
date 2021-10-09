@@ -30,12 +30,47 @@ module mod_checksum
    logical :: &
       csdiag = .true. ! Flag that indicates whether checksums are written.
 
-   integer :: crcfast
-   external :: crcfast
+   interface crc32
+      module procedure crc32_1d_integer, crc32_2d_r8
+   end interface crc32
 
    public :: csdiag, chksum, chksummsk
 
 contains
+
+   ! ---------------------------------------------------------------------------
+   ! Private procedures.
+   ! ---------------------------------------------------------------------------
+
+   function crc32_1d_integer(a)
+
+      integer, dimension(:), intent(in) :: a
+
+      integer :: crc32_1d_integer
+
+      integer :: crcfast
+      external :: crcfast
+
+      crc32_1d_integer = crcfast(a, size(a)*4)
+
+   end function crc32_1d_integer
+
+   function crc32_2d_r8(a)
+
+      real(r8), dimension(:,:), intent(in) :: a
+
+      integer :: crc32_2d_r8
+
+      integer :: crcfast
+      external :: crcfast
+
+      crc32_2d_r8 = crcfast(a, size(a)*8)
+
+   end function crc32_2d_r8
+
+   ! ---------------------------------------------------------------------------
+   ! Public procedures.
+   ! ---------------------------------------------------------------------------
 
    subroutine chksum(a, kcsd, text)
    ! ---------------------------------------------------------------------------
@@ -53,15 +88,14 @@ contains
 
       do kcs = 1, kcsd
          call xcaget(aa, a(1 - nbdy, 1 - nbdy, kcs), 1)
-         cslist(kcs) = crcfast(aa, itdm*jtdm*8)
+         cslist(kcs) = crc32(aa)
       enddo
 
       if (mnproc == 1) then
          if (kcsd == 1) then
             write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
          else
-            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-                                   crcfast(cslist, kcsd*4)
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', crc32(cslist)
          endif
       endif
 
@@ -97,15 +131,14 @@ contains
          enddo
       !$omp end parallel do
          call xcaget(aa, amsk, 1)
-         cslist(kcs) = crcfast(aa, itdm*jtdm*8)
+         cslist(kcs) = crc32(aa)
       enddo
 
       if (mnproc == 1) then
          if (kcsd == 1) then
             write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
          else
-            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-                                   crcfast(cslist, kcsd*4)
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', crc32(cslist)
          endif
       endif
 
