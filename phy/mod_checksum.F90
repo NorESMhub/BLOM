@@ -28,7 +28,7 @@ module mod_checksum
 
    ! Constants.
    logical :: &
-      csdiag = .true. ! Flag that indicates whether checksums are written.
+      csdiag = .false. ! Flag that indicates whether checksums are written.
 
    interface crc32
       module procedure crc32_1d_integer, crc32_2d_r8
