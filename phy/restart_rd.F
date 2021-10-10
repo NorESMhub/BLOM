@@ -28,6 +28,7 @@ c
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
       use mod_inicon, only: icfile
       use mod_state, only: u, v, dp, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
@@ -45,6 +46,7 @@ c
      .                       prfac, eiacc, pracc,
      .                       flxco2, flxdms, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -442,6 +444,12 @@ c
      .   'Warning: field ''vmlres'' is not read from restart file and'
         write (lp,*)
      .   'will be initialized to zero.'
+      endif
+c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call ncread('Kvisc_m',Kvisc_m,ip,1,0.)
+        call ncread('Kdiff_t',Kdiff_t,ip,1,0.)
+        call ncread('Kdiff_s',Kdiff_s,ip,1,0.)
       endif
 c
       if (sprfac) then
