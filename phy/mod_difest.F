@@ -1088,9 +1088,9 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'difest_vertical_hyb:'
         endif
-        call chksummsk(Kvisc_m,ip,kk,'Kvisc_m')
-        call chksummsk(Kdiff_t,ip,kk,'Kdiff_t')
-        call chksummsk(Kdiff_s,ip,kk,'Kdiff_s')
+        call chksummsk(Kvisc_m,ip,kk+1,'Kvisc_m')
+        call chksummsk(Kdiff_t,ip,kk+1,'Kdiff_t')
+        call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
       endif
 c
       end subroutine difest_vertical_hyb
