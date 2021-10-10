@@ -42,29 +42,33 @@ contains
    ! Private procedures.
    ! ---------------------------------------------------------------------------
 
-   function crc32_1d_integer(a)
+   function crc32_1d_integer(iarr)
 
-      integer, dimension(:), intent(in) :: a
+      integer, dimension(:), intent(in) :: iarr
 
       integer :: crc32_1d_integer
 
       integer :: crcfast
       external :: crcfast
 
-      crc32_1d_integer = crcfast(a, size(a)*4)
+      real(r8), dimension((size(iarr) + 1)/2) :: rarr
+
+      rarr = transfer(iarr, rarr)
+
+      crc32_1d_integer = crcfast(rarr, size(iarr)*4)
 
    end function crc32_1d_integer
 
-   function crc32_2d_r8(a)
+   function crc32_2d_r8(rarr)
 
-      real(r8), dimension(:,:), intent(in) :: a
+      real(r8), dimension(:,:), intent(in) :: rarr
 
       integer :: crc32_2d_r8
 
       integer :: crcfast
       external :: crcfast
 
-      crc32_2d_r8 = crcfast(a, size(a)*8)
+      crc32_2d_r8 = crcfast(rarr, size(rarr)*8)
 
    end function crc32_2d_r8
 
