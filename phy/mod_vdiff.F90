@@ -34,8 +34,14 @@ module mod_vdiff
    use mod_tracers, only: ntr, trc
 #endif
 
+   implicit none
+
+   private
+
    real(r8), parameter :: &
       dpmin_vdiff  = 0.1_r8*98060._r8
+
+   public :: cntiso_hybrid_vdiff
 
 contains
 
@@ -46,7 +52,7 @@ contains
       real(r8), dimension(kdm) :: dp_1d, temp_1d, saln_1d, u_1d, v_1d, &
                                   nut_1d, nus_1d, nutrc_1d, nuv_1d
       real(r8), dimension(2:kdm) :: fpbase, fp, gam
-      real(r8) :: c
+      real(r8) :: c, bei
       integer :: i, j, k, l, kn, nt
 #ifdef TRC
       real(r8), dimension(kdm, ntr) :: trc_1d
