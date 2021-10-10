@@ -233,7 +233,7 @@ c --- Namelist
      . ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,ACC_VSFLTD ,ACC_VSFLLD ,
      . ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,ACC_AVDSG  ,ACC_DPVOR  ,
      . ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR,
-     . ACC_BFSQLVL  ,ACC_DIFDIALVL ,ACC_DIFVMOLVL,ACC_DIFVHOLVL,
+     . ACC_BFSQLVL   ,ACC_DIFDIALVL,ACC_DIFVMOLVL,ACC_DIFVHOLVL,
      . ACC_DIFVSOLVL ,ACC_DIFINTLVL,ACC_DIFISOLVL,ACC_DZLVL    ,
      . ACC_SALNLVL   ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,ACC_UTFLXLVL ,
      . ACC_USFLXLVL  ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,ACC_UTFLLDLVL,
@@ -4915,7 +4915,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isu(j)
                   do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
                   enddo
                 enddo
               enddo
@@ -4928,7 +4928,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isu(j)
                   do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
      .                                     *wghts(i,j,k)
                   enddo
                 enddo
@@ -4944,7 +4944,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
                   enddo
                 enddo
               enddo
@@ -4957,7 +4957,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isv(j)
                   do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
      .                                     *wghts(i,j,k)
                   enddo
                 enddo
@@ -4973,7 +4973,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
                   enddo
                 enddo
               enddo
@@ -4986,7 +4986,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
                 do l=1,isp(j)
                   do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))
-     .                                  +.5*(fld(i,j,k)+fld(i,j,k))
+     .                                  +.5*(fld(i,j,k)+fld(i,j,k+1))
      .                                     *wghts(i,j,k)
                   enddo
                 enddo
