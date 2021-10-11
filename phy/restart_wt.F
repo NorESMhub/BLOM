@@ -28,6 +28,7 @@ c
       use mod_config, only: expcnf, runid, inst_suffix
       use mod_time, only: date0, date, nstep, nstep_in_day, nday_of_year
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
       use mod_state, only: u, v, dp, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     phi, ubflxs, vbflxs,
@@ -44,6 +45,7 @@ c
      .                       prfac, eiacc, pracc,
      .                       flxco2, flxdms, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -187,6 +189,7 @@ c$OMP END PARALLEL DO
       call ncdims('k3',3)
       call ncdims('k4',4)
       call ncdims('kk',kk)
+      call ncdims('kkp1',kk+1)
       call ncdims('kk2',2*kk)
       call ncdims('plev',ddm)
       call ncputr('plev',depthslev)
@@ -286,6 +289,12 @@ c
       call wrtrst('umlres',trim(c5u)//' k2 time',umlres,iuu)
       call wrtrst('vmlres',trim(c5v)//' k2 time',vmlres,ivv)
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call wrtrst('Kvisc_m',trim(c5p)//' kkp1 time',Kvisc_m,ip)
+        call wrtrst('Kdiff_t',trim(c5p)//' kkp1 time',Kdiff_t,ip)
+        call wrtrst('Kdiff_s',trim(c5p)//' kkp1 time',Kdiff_s,ip)
+      endif
+c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
         call wrtrst('pracc',trim(c5p)//' time',pracc,ip)
@@ -378,14 +387,6 @@ c --- write accumulated fields
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu)
           if (ACC_TAUY(n)  .ne.0) call wrtrst('tauy_phy'//c2,
      .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv)
-          if (ACC_MXLU(n)  .ne.0) call wrtrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu)
-          if (ACC_MXLV(n)  .ne.0) call wrtrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv)
-          if (ACC_MLDU(n)  .ne.0) call wrtrst('mldu_phy'//c2,
-     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu)
-          if (ACC_MLDV(n)  .ne.0) call wrtrst('mldv_phy'//c2,
-     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv)
           if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
           if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
@@ -884,6 +885,12 @@ c
       call defvarrst('umlres',trim(c5u)//' k2 time')
       call defvarrst('vmlres',trim(c5v)//' k2 time')
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call defvarrst('Kvisc_m',trim(c5p)//' kkp1 time')
+        call defvarrst('Kdiff_t',trim(c5p)//' kkp1 time')
+        call defvarrst('Kdiff_s',trim(c5p)//' kkp1 time')
+      endif
+c
       if (sprfac) then
         call defvarrst('eiacc',trim(c5p)//' time')
         call defvarrst('pracc',trim(c5p)//' time')
@@ -972,14 +979,6 @@ c --- write accumulated fields
           if (ACC_TAUX(n)  .ne.0) call defvarrst('taux_phy'//c2,
      .      trim(c5u)//' time')
           if (ACC_TAUY(n)  .ne.0) call defvarrst('tauy_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MXLU(n)  .ne.0) call defvarrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MXLV(n)  .ne.0) call defvarrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MLDU(n)  .ne.0) call defvarrst('mldu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MLDV(n)  .ne.0) call defvarrst('mldv_phy'//c2,
      .      trim(c5v)//' time')
           if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
      .      trim(c5u)//' time')

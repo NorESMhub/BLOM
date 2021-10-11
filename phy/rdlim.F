@@ -297,6 +297,13 @@ c --- - variables set in namelists
             LVL_DIFVHO(1:nphy)=0
             LVL_DIFVSO(1:nphy)=0
           case (cntiso_hybrid)
+            H2D_IDKEDT(1:nphy)=0
+            H2D_MTKEUS(1:nphy)=0
+            H2D_MTKENI(1:nphy)=0
+            H2D_MTKEBF(1:nphy)=0
+            H2D_MTKERS(1:nphy)=0
+            H2D_MTKEPE(1:nphy)=0
+            H2D_MTKEKE(1:nphy)=0
             LYR_DIFDIA(1:nphy)=0
             LVL_DIFDIA(1:nphy)=0
           case default
@@ -336,8 +343,6 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
         write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
         write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
-        write (lp,*) 'H2D_MLDU    ',H2D_MLDU(1:nphy)
-        write (lp,*) 'H2D_MLDV    ',H2D_MLDV(1:nphy)
         write (lp,*) 'H2D_MLTS    ',H2D_MLTS(1:nphy)
         write (lp,*) 'H2D_MLTSMN  ',H2D_MLTSMN(1:nphy)
         write (lp,*) 'H2D_MLTSMX  ',H2D_MLTSMX(1:nphy)
@@ -349,8 +354,6 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_MTKEPE  ',H2D_MTKEPE(1:nphy)
         write (lp,*) 'H2D_MTKEKE  ',H2D_MTKEKE(1:nphy)
         write (lp,*) 'H2D_MTY     ',H2D_MTY(1:nphy)
-        write (lp,*) 'H2D_MXLU    ',H2D_MXLU(1:nphy)
-        write (lp,*) 'H2D_MXLV    ',H2D_MXLV(1:nphy)
         write (lp,*) 'H2D_NSF     ',H2D_NSF(1:nphy)
         write (lp,*) 'H2D_PBOT    ',H2D_PBOT(1:nphy)
         write (lp,*) 'H2D_PSRF    ',H2D_PSRF(1:nphy)
@@ -386,9 +389,14 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
         write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
         write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
+        write (lp,*) 'LYR_DIFVMO  ',LYR_DIFVMO(1:nphy)
+        write (lp,*) 'LYR_DIFVHO  ',LYR_DIFVHO(1:nphy)
+        write (lp,*) 'LYR_DIFVSO  ',LYR_DIFVSO(1:nphy)
         write (lp,*) 'LYR_DIFINT  ',LYR_DIFINT(1:nphy)
         write (lp,*) 'LYR_DIFISO  ',LYR_DIFISO(1:nphy)
         write (lp,*) 'LYR_DP      ',LYR_DP(1:nphy)
+        write (lp,*) 'LYR_DPU     ',LYR_DPU(1:nphy)
+        write (lp,*) 'LYR_DPV     ',LYR_DPV(1:nphy)
         write (lp,*) 'LYR_DZ      ',LYR_DZ(1:nphy)
         write (lp,*) 'LYR_SALN    ',LYR_SALN(1:nphy)
         write (lp,*) 'LYR_TEMP    ',LYR_TEMP(1:nphy)
@@ -418,6 +426,14 @@ c --- - print diaphy namelist
         write (lp,*) 'LYR_GLS_PSI ',LYR_GLS_PSI(1:nphy)
         write (lp,*) 'LYR_IDLAGE  ',LYR_IDLAGE(1:nphy)
         write (lp,*) 'LVL_BFSQ    ',LVL_BFSQ(1:nphy)
+        write (lp,*) 'LVL_DIFDIA  ',LVL_DIFDIA(1:nphy)
+        write (lp,*) 'LVL_DIFVMO  ',LVL_DIFVMO(1:nphy)
+        write (lp,*) 'LVL_DIFVHO  ',LVL_DIFVHO(1:nphy)
+        write (lp,*) 'LVL_DIFVSO  ',LVL_DIFVSO(1:nphy)
+        write (lp,*) 'LVL_DIFINT  ',LVL_DIFINT(1:nphy)
+        write (lp,*) 'LVL_DIFISO  ',LVL_DIFISO(1:nphy)
+        write (lp,*) 'LVL_DIFISO  ',LVL_DIFISO(1:nphy)
+        write (lp,*) 'LVL_DZ      ',LVL_DZ(1:nphy)
         write (lp,*) 'LVL_SALN    ',LVL_SALN(1:nphy)
         write (lp,*) 'LVL_TEMP    ',LVL_TEMP(1:nphy)
         write (lp,*) 'LVL_TRC     ',LVL_TRC(1:nphy)
@@ -485,8 +501,6 @@ c
       call xcbcst(H2D_LIP)
       call xcbcst(H2D_MAXMLD)
       call xcbcst(H2D_MLD)
-      call xcbcst(H2D_MLDU)
-      call xcbcst(H2D_MLDV)
       call xcbcst(H2D_MLTS)
       call xcbcst(H2D_MLTSMN)
       call xcbcst(H2D_MLTSMX)
@@ -498,8 +512,6 @@ c
       call xcbcst(H2D_MTKEPE)
       call xcbcst(H2D_MTKEKE)
       call xcbcst(H2D_MTY)
-      call xcbcst(H2D_MXLU)
-      call xcbcst(H2D_MXLV)
       call xcbcst(H2D_NSF)
       call xcbcst(H2D_PBOT)
       call xcbcst(H2D_PSRF)
@@ -535,6 +547,9 @@ c
       call xcbcst(H2D_ZTX)
       call xcbcst(LYR_BFSQ)
       call xcbcst(LYR_DIFDIA)
+      call xcbcst(LYR_DIFVMO)
+      call xcbcst(LYR_DIFVHO)
+      call xcbcst(LYR_DIFVSO)
       call xcbcst(LYR_DIFINT)
       call xcbcst(LYR_DIFISO)
       call xcbcst(LYR_DP)
@@ -570,6 +585,9 @@ c
       call xcbcst(LYR_IDLAGE)
       call xcbcst(LVL_BFSQ)
       call xcbcst(LVL_DIFDIA)
+      call xcbcst(LVL_DIFVMO)
+      call xcbcst(LVL_DIFVHO)
+      call xcbcst(LVL_DIFVSO)
       call xcbcst(LVL_DIFINT)
       call xcbcst(LVL_DIFISO)
       call xcbcst(LVL_DZ)
