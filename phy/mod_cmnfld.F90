@@ -244,9 +244,9 @@ module mod_cmnfld
          if (mnproc == 1) then
             write(lp,*) 'cmnfld_bfsqf_isopyc_bulkml:'
          endif
-         call chksummsk(bfsqi, ip, kk, 'bfsqi')
+         call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
          call chksummsk(bfsql, ip, kk, 'bfsql')
-         call chksummsk(bfsqf, ip, kk, 'bfsqf')
+         call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
       endif
 
    end subroutine cmnfld_bfsqf_isopyc_bulkml
@@ -371,9 +371,9 @@ module mod_cmnfld
          if (mnproc == 1) then
             write(lp,*) 'cmnfld_bfsqf_cntiso_hybrid:'
          endif
-         call chksummsk(bfsqi, ip, kk, 'bfsqi')
+         call chksummsk(bfsqi, ip, kk + 1, 'bfsqi')
          call chksummsk(bfsql, ip, kk, 'bfsql')
-         call chksummsk(bfsqf, ip, kk, 'bfsqf')
+         call chksummsk(bfsqf, ip, kk + 1, 'bfsqf')
       endif
 
    end subroutine cmnfld_bfsqf_cntiso_hybrid

@@ -28,6 +28,7 @@ c
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
       use mod_inicon, only: icfile
       use mod_state, only: u, v, dp, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
@@ -45,6 +46,7 @@ c
      .                       prfac, eiacc, pracc,
      .                       flxco2, flxdms, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -444,6 +446,12 @@ c
      .   'will be initialized to zero.'
       endif
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call ncread('Kvisc_m',Kvisc_m,ip,1,0.)
+        call ncread('Kdiff_t',Kdiff_t,ip,1,0.)
+        call ncread('Kdiff_s',Kdiff_s,ip,1,0.)
+      endif
+c
       if (sprfac) then
         vexist=ncinqa('prfac')
 !        call xcbcst(vexist)
@@ -652,14 +660,6 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
             if (ACC_TAUY(n).ne.0) call ncread('tauy_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
-            if (ACC_MXLU(n).ne.0) call ncread('mxlu_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
-            if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
-            if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
-            if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
             if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
             if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,
