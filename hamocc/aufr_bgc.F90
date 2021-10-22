@@ -19,7 +19,7 @@
 
 
       SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,               &
-                          kplyear,kplmon,kplday,omask,rstfnm_ocn)
+                          kplyear,kplmon,kplday,omask,rstfnm)
 !******************************************************************************
 !
 !**** *AUFR_BGC* - reads marine bgc restart data.
@@ -97,7 +97,7 @@
 !     *INTEGER* *kplmon*     - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
-!     *CHAR*    *rstfnm_ocn* - restart file name-informations
+!     *CHAR*    *rstfnm*     - restart file name-informations
 !
 !
 !**************************************************************************
@@ -109,7 +109,6 @@
       use mo_vgrid,     only: kbo
       USE mo_sedmnt,    only: sedhpl
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      USE mod_config,   only: inst_suffix
       use mod_xc,       only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
       use mod_dia,      only: iotype
 
@@ -117,18 +116,17 @@
 
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-      REAL             :: omask(kpie,kpje)    
+      REAL             :: omask(kpie,kpje)
       INTEGER          :: kplyear,kplmon,kplday
-      character(len=*) :: rstfnm_ocn
+      character(len=*) :: rstfnm
 
       ! Local variables
-      REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading 
+      REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading
       INTEGER   :: restyear                          !  year of restart file
       INTEGER   :: restmonth                         !  month of restart file
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      character :: rstfnm*256
       logical   :: lread_cfc,lread_nat,lread_iso,lread_atm
 #ifdef cisonew
       REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
@@ -154,25 +152,7 @@
 ! Open netCDF data file
 !
       testio=0
-      leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
       IF(mnproc==1 .AND. IOTYPE==0) THEN
-
-        i=1
-        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
-     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            write (io_stdo_bgc,*)                                    &
-     &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
-          endif
-        enddo
-        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)  //'.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-        else
-          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
-        endif
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
              CALL xchalt('(AUFR: Problem with netCDF1)')
@@ -203,22 +183,6 @@
       ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
         testio=1
-        i=1
-        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
-     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            write (io_stdo_bgc,*)                                    &
-     &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
-          endif
-        enddo
-        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)//   '.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-        else
-          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
-        endif
         write(stripestr,('(i3)')) 16
         write(stripestr2,('(i9)')) 1024*1024
         call mpi_info_create(info,ierr)

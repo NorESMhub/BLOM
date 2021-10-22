@@ -19,7 +19,7 @@
 
 
       SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,              &
-                          kplyear,kplmon,kplday,kpldtoce,omask,rstfnm_ocn)
+                          kplyear,kplmon,kplday,kpldtoce,omask,rstfnm)
 !******************************************************************************
 !
 !**** *AUFW_BGC* - write marine bgc restart data.
@@ -93,17 +93,16 @@
 !     *INTEGER* *kplday*     - day   in ocean restart date
 !     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
-!     *CHAR*    *rstfnm_ocn* - restart file name-informations
+!     *CHAR*    *rstfnm*     - restart file name-informations
 !
 !**************************************************************************
       USE netcdf
       USE mo_carbch
       USE mo_biomod
       USE mo_control_bgc
-      use mo_param1_bgc 
+      use mo_param1_bgc
       USE mo_sedmnt,    only: sedhpl
       use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      USE mod_config,   only: inst_suffix
       use mod_xc,       only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
       use mod_dia,      only: iotype
 
@@ -111,15 +110,13 @@
 
       INTEGER,          intent(in) :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL,             intent(in) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-      REAL,             intent(in) :: omask(kpie,kpje)    
+      REAL,             intent(in) :: omask(kpie,kpje)
       INTEGER,          intent(in) :: kplyear,kplmon,kplday,kpldtoce
-      character(len=*), intent(in) :: rstfnm_ocn
+      character(len=*), intent(in) :: rstfnm
 
       ! Local variables
       INTEGER             :: i,j
       REAL                :: locetra(kpie,kpje,2*kpke,nocetra)
-      CHARACTER(LEN=256)  :: rstfnm
-      INTEGER             :: leninrstfn
 
       ! Variables for netcdf
       INTEGER             :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)
@@ -155,7 +152,7 @@
       idate(5) = ldtbgc
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) ' '
-      WRITE(io_stdo_bgc,*) 'Writing restart file at date :'              &
+      WRITE(io_stdo_bgc,*) 'Writing restart file at date :'             &
      &,'YY=',idate(1),' MM=',idate(2),' day=',idate(3)
       WRITE(io_stdo_bgc,*) 'Ocean model step number is ',idate(4)
       WRITE(io_stdo_bgc,*) 'Bgc   model step number is ',idate(5)
@@ -166,62 +163,36 @@
 !
 ! Open netCDF data file
 !
-      leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
       IF(mnproc==1 .AND. IOTYPE==0) THEN
-
-      i=1
-      do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.')
-        i=i+1
-        if (i+leninrstfn.gt.len(rstfnm_ocn)) then
-          write (io_stdo_bgc,*)                                      &
-     &      'Could not generate restart file name!'
-          call xchalt('(aufw_bgc)')
-          stop '(aufw_bgc)'
-        endif
-      enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-
-      write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-      ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF1)')
-               stop '(AUFW: Problem with netCDF1)'
-      ENDIF
+         write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
+         ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF1)')
+            stop '(AUFW: Problem with netCDF1)'
+         ENDIF
       ELSE IF (IOTYPE==1) THEN
 #ifdef PNETCDF
-      testio=1
-      i=1
-      do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.')
-        i=i+1
-        if (i+leninrstfn.gt.len(rstfnm_ocn)) then
-          write (io_stdo_bgc,*)                                      &
-     &      'Could not generate restart file name!'
-          call xchalt('(aufw_bgc)')
-          stop '(aufw_bgc)'
-        endif
-      enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-
-      IF(mnproc==1) write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
-      write(stripestr,('(i3)')) 16
-      write(stripestr2,('(i9)')) 1024*1024
-      call mpi_info_create(info,ierr)
-      call mpi_info_set(info,'romio_ds_read','disable',ierr)
-      call mpi_info_set(info,'romio_ds_write','disable',ierr)
-      call mpi_info_set(info,"striping_factor",stripestr,ierr)
-      call mpi_info_set(info,"striping_unit",stripestr2,ierr)
-      ncstat = NFMPI_CREATE(mpicomm,rstfnm,                         &
-     &       IOR(nf_clobber,nf_64bit_offset),info,ncid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF1)')
-               stop '(AUFW: Problem with netCDF1)'
-      ENDIF
+         testio=1
+         IF(mnproc==1) write(io_stdo_bgc,*) 'BGC RESTART   ',rstfnm
+         write(stripestr,('(i3)')) 16
+         write(stripestr2,('(i9)')) 1024*1024
+         call mpi_info_create(info,ierr)
+         call mpi_info_set(info,'romio_ds_read','disable',ierr)
+         call mpi_info_set(info,'romio_ds_write','disable',ierr)
+         call mpi_info_set(info,"striping_factor",stripestr,ierr)
+         call mpi_info_set(info,"striping_unit",stripestr2,ierr)
+         ncstat = NFMPI_CREATE(mpicomm,rstfnm,                          &
+              &       IOR(nf_clobber,nf_64bit_offset),info,ncid)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF1)')
+            stop '(AUFW: Problem with netCDF1)'
+         ENDIF
 #endif
 
-      if(testio .eq. 0) then
-      CALL xchalt('(AUFW: Problem with namelist iotype)')
-                    stop '(AUFW: Problem with namelist iotype)'
-      endif
+         if(testio .eq. 0) then
+            CALL xchalt('(AUFW: Problem with namelist iotype)')
+            stop '(AUFW: Problem with namelist iotype)'
+         endif
 
       ENDIF
 !
