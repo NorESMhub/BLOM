@@ -23,14 +23,13 @@ c --- ------------------------------------------------------------------
 c --- Write tracer state to restart files
 c --- ------------------------------------------------------------------
 c
-      use mod_config,   only: inst_suffix
+      use mod_config, only: expcnf, runid, inst_suffix
       use mod_xc
 c
       implicit none
 c
       character rstfnm_ocn*(*)
 c
-      integer            :: i, leninrstfn
       character(len=256) :: rstfnm_ocntrc
 #ifdef HAMOCC
       character(len=256) :: rstfnm_hamocc
@@ -40,43 +39,19 @@ c --- ------------------------------------------------------------------
 c --- Generate file name
 c --- ------------------------------------------------------------------
 c
-      if (mnproc.eq.1) then
-#ifdef CCSMCOUPLED
-         leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
-         i=1
-         do while (rstfnm_ocn(i:i+leninrstfn) .ne.
-     .        '.blom'//trim(inst_suffix)//'.r.')
-            i=i+1
-            if (i+leninrstfn .gt. len(rstfnm_ocn)) then
-               write (lp,*)
-     .              'Could not generate ocean tracer restart file name!'
-               call xchalt('(restart_trcwt)')
-               stop '(restart_trcwt)'
-            endif
-         enddo
-         rstfnm_ocntrc = rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//
-     .        '.rtrc.'//rstfnm_ocn(i+leninrstfn+1:)
+      if (expcnf.eq.'cesm') then
+         rstfnm_ocntrc = trim(runid)//
+     .        '.blom.rtrc.'//rstfnm_ocn(len_trim(runid)+10:)
 #ifdef HAMOCC
-         rstfnm_hamocc = rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//
-     .        '.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
+         rstfnm_hamocc = trim(runid)//
+     .        '.blom.rbgc.'//rstfnm_ocn(len_trim(runid)+10:)
 #endif
-#else
-         i=1
-         do while (rstfnm_ocn(i:i+8) .ne. '_restphy_')
-            i=i+1
-            if (i+8 .gt. len(rstfnm_ocn)) then
-               write (lp,*)
-     .              'Could not generate ocean tracer restart file name!'
-               call xchalt('(restart_trcwt)')
-               stop '(restart_trcwt)'
-            endif
-         enddo
-         rstfnm_ocntrc = rstfnm_ocn(1:i-1)//'_resttrc_'//
-     .        rstfnm_ocn(i+9:)
+      else
+         rstfnm_ocntrc = trim(runid)//
+     .        '_resttrc_'//rstfnm(len_trim(runid)+10:)
 #ifdef HAMOCC
-         rstfnm_hamocc = rstfnm_ocn(1:i-1)//'_restbgc_'//
-     .        rstfnm_ocn(i+9:)
-#endif
+         rstfnm_hamocc = trim(runid)//
+     .        '_restbgc_'//rstfnm(len_trim(runid)+10:)
 #endif
       endif
 c
@@ -84,11 +59,9 @@ c --- ------------------------------------------------------------------
 c --- Write restart files
 c --- ------------------------------------------------------------------
 c
-      call xcbcst(rstfnm_ocntrc)
       call restart_ocntrcwt(rstfnm_ocntrc)
 c
 #ifdef HAMOCC
-      call xcbcst(rstfnm_hamocc)
       call restart_hamoccwt(rstfnm_hamocc)
 #endif
 c
