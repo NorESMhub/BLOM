@@ -48,10 +48,10 @@ c
 #endif
       else
          rstfnm_ocntrc = trim(runid)//
-     .        '_resttrc_'//rstfnm(len_trim(runid)+10:)
+     .        '_resttrc_'//rstfnm_ocn(len_trim(runid)+10:)
 #ifdef HAMOCC
          rstfnm_hamocc = trim(runid)//
-     .        '_restbgc_'//rstfnm(len_trim(runid)+10:)
+     .        '_restbgc_'//rstfnm_ocn(len_trim(runid)+10:)
 #endif
       endif
 c
