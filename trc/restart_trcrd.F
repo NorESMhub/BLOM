@@ -40,12 +40,27 @@ c --- Generate file name
 c --- ------------------------------------------------------------------
 c
       if (expcnf.eq.'cesm') then
-         rstfnm_ocntrc = trim(runid)//
-     .        '.blom.rtrc.'//rstfnm_ocn(len_trim(runid)+10:)
+         if (index(rstfnm_ocn, 'blom') > 0) then
+            rstfnm_ocntrc = trim(runid)//
+     .           '.blom.rtrc.'//rstfnm_ocn(len_trim(runid)+10:)
 #ifdef HAMOCC
-         rstfnm_hamocc = trim(runid)//
-     .        '.blom.rbgc.'//rstfnm_ocn(len_trim(runid)+10:)
+            rstfnm_hamocc = trim(runid)//
+     .           '.blom.rbgc.'//rstfnm_ocn(len_trim(runid)+10:)
 #endif
+         elseif (index(rstfnm_ocn, 'micom') > 0) then
+            rstfnm_ocntrc = trim(runid)//
+     .           '.micom.rtrc.'//rstfnm_ocn(len_trim(runid)+10:)
+#ifdef HAMOCC
+            rstfnm_hamocc = trim(runid)//
+     .           '.micom.rbgc.'//rstfnm_ocn(len_trim(runid)+10:)
+#endif
+         else
+            if (mnproc.eq.1) then
+               write (lp,'(a)') 'Could not generate restart file name!'
+               call xchalt('(restart_trcrd)')
+               stop '(restart_trcrd)'
+            endif
+         endif
       else
          rstfnm_ocntrc = trim(runid)//
      .        '_resttrc_'//rstfnm_ocn(len_trim(runid)+10:)
