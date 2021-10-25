@@ -24,13 +24,14 @@ module mod_cmnfld
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsil, spval, onem, onemm
+   use mod_constants, only: g, alpha0, epsil, spval, onem, onecm, onemm
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_grid, only: scuxi, scvyi
    use mod_eos, only: rho, p_alpha
    use mod_state, only: dp, temp, saln, p, phi, kfpla
-!  use mod_dia, only : nphy, ACC_BFSQ
+!  use mod_dia, only : nphy, ACC_BFSQ, ACC_MLTS, ACC_MLTSMN, ACC_MLTSMX, &
+!                      ACC_MLTSSQ, ACC_T20D, ACC_DZ, ACC_DZLVL
    use mod_diffusion, only: eitmth, edritp 
    use mod_utility, only: util1
    use mod_checksum, only: csdiag, chksummsk
@@ -51,24 +52,32 @@ module mod_cmnfld
                                  ! layer depth to find the e-folding length
                                  ! scale of the smoothing length scale in the
                                  ! computation of filtered BFSQ [].
-      bfsqmn = 1.e-7_r8          ! Minimum value of BFSQ used in the
+      bfsqmn = 1.e-7_r8, &       ! Minimum value of BFSQ used in the
                                  ! computation of neutral slope [s-2].
+      dbcrit = .03_r8            ! Critical buoyancy difference used in the
+                                 ! mixed layer thickness estimation (Levitus,
+                                 ! 1982) [cm s-2].
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm + 1) :: &
       bfsqi, &                   ! Interface buoyancy frequency squared [s-2].
-      bfsqf                      ! Filtered interface buoyancy frequency
+      bfsqf, &                   ! Filtered interface buoyancy frequency
                                  ! squared [s-2].
+      z                          ! Interface depth [cm].
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
       bfsql, &                   ! Layer buoyancy frequency squared [s-2].
       nslpx, &                   ! x-component of local neutral slope [].
       nslpy, &                   ! y-component of local neutral slope [].
       nnslpx, &                  ! x-component of local neutral slope times
                                  ! buoyancy frequency [s-1].
-      nnslpy                     ! y-component of local neutral slope times
+      nnslpy, &                  ! y-component of local neutral slope times
                                  ! buoyancy frequency [s-1].
+      dz                         ! Layer thickness [cm].
+   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
+      mlts                       ! Mixed layer depth defined by density
+                                 ! criterion [cm].
 
-   public :: bfsql, nslpx, nslpy, nnslpx, nnslpy, inivar_cmnfld, cmnfld
-   public :: bfsqi
+   public :: bfsqi, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, dz, mlts, &
+             inivar_cmnfld, cmnfld
 
    contains
 
@@ -261,7 +270,7 @@ module mod_cmnfld
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
       real(r8), dimension(kdm) :: delp, bfsq, sls2, atd, btd, ctd, rtd, gam
-      real(r8) :: q, pup, tup, sup, plo, tlo, slo, bei
+      real(r8) :: pup, tup, sup, plo, tlo, slo, bei
       integer :: i, j, k, l, km
 
       ! ------------------------------------------------------------------------
@@ -271,7 +280,7 @@ module mod_cmnfld
 
       bfsqi = 0.0_r8
       bfsql = 0.0_r8
-   !$omp parallel do private(l, i, k, delp, bfsq, q, sls2, pup, tup, sup, km, &
+   !$omp parallel do private(l, i, k, delp, bfsq, sls2, pup, tup, sup, km, &
    !$omp                     plo, tlo, slo, ctd, btd, rtd, atd, bei, gam)
       do j = - 1, jj + 2
          do l = 1, isp(j)
@@ -772,6 +781,96 @@ module mod_cmnfld
 
    end subroutine cmnfld_nslope_cntiso_hybrid
 
+   subroutine cmnfld_z(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Estimate depth of layer interfaces and thickness of layers.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      integer :: i, j, k, l, km
+
+   !$omp parallel do private(l, i)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            z(i, j, kk + 1) = - phi(i, j, kk + 1)/g
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+   !$omp parallel do private(k, km, l, i)
+      do j = 1, jj
+         do k = kk, 1, - 1
+            km = k + mm
+            do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+               if (dp(i, j, km) < epsil) then
+                  z(i, j, k) = z(i, j, k + 1)
+               else
+                  z(i, j, k) = z(i, j, k + 1) &
+                             + p_alpha(p(i, j, k + 1), p(i, j, k), &
+                                       temp(i, j, km), saln(i, j, km))/g
+               endif
+               dz(i, j, k) = z(i, j, k + 1) - z(i, j, k)
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+   end subroutine cmnfld_z
+
+   subroutine cmnfld_mlts(m, n, mm, nn, k1m, k1n)
+   ! ---------------------------------------------------------------------------
+   ! Estimate mixed layer depth using density criterion.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+
+      real(r8) :: zup, dbup, plo, zlo, dblo
+      integer :: i, j, k, l, km
+
+   !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
+      do j = 1, jj
+         do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+              k = 2
+              km = k + mm
+              zup = z(i, j, 1) + .5_r8*dz(i, j, 1)
+              dbup = 0._r8
+              do
+                 if (dp(i, j, km) > onecm) then
+                    plo = p(i, j, k) + .5_r8*dp(i, j, km)
+                    zlo = z(i, j, k) + .5_r8*dz(i, j, k )
+                    dblo = &
+                       g*(1._r8 - rho(plo, temp(i, j, k1m), saln(i, j, k1m)) &
+                                 /rho(plo, temp(i, j, km ), saln(i, j, km )))
+                    if (dblo <= dbcrit) then
+                       zup = zlo
+                       dbup = dblo
+                    else
+                       dbup = min(dbup, dbcrit - epsil)
+                       mlts(i, j) = ( zup*(dblo - dbcrit) &
+                                    + zlo*(dbcrit - dbup))/(dblo - dbup) &
+                                  - z(i, j, 1)
+                      exit
+                    endif
+                 endif
+                 k = k + 1
+                 if (k > kk) then
+                    mlts(i, j) = z(i, j, kk + 1) - z(i, j, 1)
+                    exit
+                 endif
+                 km = k + mm
+               enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+   end subroutine cmnfld_mlts
+
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
@@ -785,16 +884,25 @@ module mod_cmnfld
 
    !$omp parallel do private(k, i)
       do j = 1 - nbdy, jj + nbdy
+         do k = 1, kk + 1
+            do i = 1 - nbdy, ii + nbdy
+               bfsqi(i, j, k) = spval
+               bfsqf(i, j, k) = spval
+               z    (i, j, k) = spval
+            enddo
+         enddo
          do k = 1, kk
             do i = 1 - nbdy, ii + nbdy
-               bfsqi (i, j, k) = spval
                bfsql (i, j, k) = spval
-               bfsqf (i, j, k) = spval
                nslpx (i, j, k) = spval
                nslpy (i, j, k) = spval
                nnslpx(i, j, k) = spval
                nnslpy(i, j, k) = spval
+               dz    (i, j, k) = spval
             enddo
+         enddo
+         do i = 1 - nbdy, ii + nbdy
+            mlts(i, j) = spval
          enddo
       enddo
    !$omp end parallel do
@@ -839,12 +947,14 @@ module mod_cmnfld
    !$omp end parallel do
 
       ! ------------------------------------------------------------------------
-      ! Compute fields depending on selection of physics.
+      ! Compute fields depending on selection of physics and diagnostics.
       ! ------------------------------------------------------------------------
 
-!     if (edritp == 'large scale' .or. eitmth == 'gm' .or.
-!    .    sum(ACC_BFSQ(1:nphy)).ne.0) then
-      if (edritp == 'large scale' .or. eitmth == 'gm') then
+!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!         edritp == 'large scale' .or. eitmth == 'gm' .or. &
+!         sum(ACC_BFSQ(1:nphy)) /= 0) then
+      if (vcoord_type_tag == cntiso_hybrid .or. &
+          edritp == 'large scale' .or. eitmth == 'gm') then
 
          ! ---------------------------------------------------------------------
          ! Compute filtered buoyancy frequency squared.
@@ -872,6 +982,32 @@ module mod_cmnfld
 
       endif
 
-      end subroutine cmnfld
+!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
+!            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy) &
+!            + ACC_T20D  (1:nphy) + &
+!            + ACC_DZ    (1:nphy) + ACC_DZLVL(1:nphy)) /= 0) then
+
+         ! ---------------------------------------------------------------------
+         ! Estimate depth of layer interfaces and thickness of layers.
+         ! ---------------------------------------------------------------------
+
+         call cmnfld_z(m, n, mm, nn, k1m, k1n)
+
+!     endif
+
+!     if (vcoord_type_tag == cntiso_hybrid .or. &
+!         sum( ACC_MLTS  (1:nphy) + ACC_MLTSMN(1:nphy) &
+!            + ACC_MLTSMX(1:nphy) + ACC_MLTSSQ(1:nphy)) /= 0) then
+
+         ! ---------------------------------------------------------------------
+         ! Estimate mixed layer depth using density criterion.
+         ! ---------------------------------------------------------------------
+
+         call cmnfld_mlts(m, n, mm, nn, k1m, k1n)
+
+!     endif
+
+   end subroutine cmnfld
 
 end module mod_cmnfld

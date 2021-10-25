@@ -46,7 +46,7 @@ c
      .                         Kvisc_m, Kdiff_t, Kdiff_s,
      .                         umfltd, vmfltd, utfltd, vtfltd, utflld,
      .                         vtflld, usfltd, vsfltd, usflld, vsflld
-      use mod_cmnfld, only: bfsql
+      use mod_cmnfld, only: z, bfsql, dz, mlts
       use mod_seaice, only: ficem, hicem, hsnwm, uicem, vicem, iagem
       use mod_forcing, only: swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
      .                       fmltfz, sfl, ztx, mty, abswnd, surflx,
@@ -170,10 +170,6 @@ c
 c --- Pressure thickness [g cm-1 s-2] of region for bottom salinity and
 c --- temperature diagnostics
       real, parameter :: dpbot=98060.
-c
-c --- Critical buoyancy difference [cm s-2] used in the mixed layer
-c --- thickness estimation (Levitus, 1982)
-      real, parameter :: dbcrit=.03
 c
 c --- Namelist
       integer, dimension(nphymax), save ::
@@ -1000,12 +996,11 @@ c
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghts,
      .  wghtsflx
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel,
-     .  dz,avdsg_p,dpvor_p,pv_p,dummy
+     .  avdsg_p,dpvor_p,pv_p,dummy
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  dpml,sbot,tbot,dps,mlts,t20d
-      real dsig,q,zup,zlo,plo,dbup,dblo,tup,tlo
+     .  dpml,sbot,tbot,dps,t20d
+      real dsig,q,zup,zlo,plo,tup,tlo
 c
 c --- Increase counter
       do iogrp=1,nphy
@@ -1094,39 +1089,6 @@ c$OMP PARALLEL DO PRIVATE(k,km,l,i)
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_MLTS(1:nphy)+ACC_MLTSMN(1:nphy)
-     .       +ACC_MLTSMX(1:nphy)+ACC_MLTSSQ(1:nphy)
-     .       +ACC_T20D(1:nphy)
-     .       +ACC_DZ(1:nphy)+ACC_DZLVL(1:nphy)).ne.0) then
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            z(i,j,kk+1)=-phi(i,j,kk+1)/g
-          enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(k,km,l,i)
-       do j=1,jj
-         do k=kk,1,-1
-           km=k+mm
-           do l=1,isp(j)
-           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-             if (dp(i,j,km).lt.epsil) then
-               z(i,j,k)=z(i,j,k+1)
-             else
-               z(i,j,k)=z(i,j,k+1)+p_alpha(p(i,j,k+1),p(i,j,k),
-     .                                     temp(i,j,km),saln(i,j,km))/g
-             endif
-             dz(i,j,k)=z(i,j,k+1)-z(i,j,k)
-           enddo
-           enddo
-         enddo
-       enddo
-c$OMP END PARALLEL DO
-      endif
-c
       if (sum(ACC_AVDSG(1:nphy)+ACC_PVLVL(1:nphy)).ne.0) then
 c$OMP PARALLEL DO PRIVATE(l,i,k,km,dsig)
         do j=1,jj
@@ -1206,45 +1168,6 @@ c$OMP PARALLEL DO PRIVATE(l,i,q)
                 sbot(i,j)=saln(i,j,1+mm)
                 tbot(i,j)=temp(i,j,1+mm)
               endif
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-      endif
-c
-      if (sum(ACC_MLTS(1:nphy)+ACC_MLTSMN(1:nphy)
-     .       +ACC_MLTSMX(1:nphy)+ACC_MLTSSQ(1:nphy)).ne.0) then
-c$OMP PARALLEL DO PRIVATE(l,i,k,km,zup,dbup,plo,zlo,dblo)
-        do j=1,jj
-          do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              k=2
-              km=k+mm
-              zup=z(i,j,1)+.5*dz(i,j,1) ! .5*(z(i,j,1)+z(i,j,2))
-              dbup=0.
-              do
-                if (dp(i,j,km).gt.onecm) then
-                  plo=p(i,j,k)+.5*dp(i,j,km) ! .5*(p(i,j,k)+p(i,j,k+1))
-                  zlo=z(i,j,k)+.5*dz(i,j,k ) ! .5*(z(i,j,k)+z(i,j,k+1))
-                  dblo=g*(1.-rho(plo,temp(i,j,k1m),saln(i,j,k1m))
-     .                      /rho(plo,temp(i,j,km ),saln(i,j,km )))
-                  if (dblo.le.dbcrit) then
-                    zup=zlo
-                    dbup=dblo
-                  else
-                    dbup=min(dbup,dbcrit-epsil)
-                    mlts(i,j)=(zup*(dblo-dbcrit)
-     .                        +zlo*(dbcrit-dbup))/(dblo-dbup)-z(i,j,1)
-                    exit
-                  endif
-                endif
-                k=k+1
-                if (k.gt.kk) then
-                  mlts(i,j)=z(i,j,kk+1)-z(i,j,1)
-                  exit
-                endif
-                km=k+mm
-              enddo
             enddo
           enddo
         enddo
