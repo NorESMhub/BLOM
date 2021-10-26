@@ -17,7 +17,7 @@ c You should have received a copy of the GNU Lesser General Public License
 c along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      subroutine hamocc_init(read_rest,rstfnm_ocn)
+      subroutine hamocc_init(read_rest,rstfnm_hamocc)
 c******************************************************************************
 c
 c  HAMOCC_INIT - initialize HAMOCC and its interface to BLOM.
@@ -33,8 +33,8 @@ c
 c
 c  Interface to ocean model (parameter list):
 c  -----------------------------------------
-c  *INTEGER*   *read_rest*  - flag indicating whether to read restart files.
-c  *INTEGER*   *rstfnm_ocn* - restart filename.
+c  *INTEGER*   *read_rest*     - flag indicating whether to read restart files.
+c  *INTEGER*   *rstfnm_hamocc* - restart filename.
 c
 c******************************************************************************
       use mod_time,      only: date,baclin
@@ -62,7 +62,7 @@ c
       implicit none
 c
       integer,          intent(in) :: read_rest
-      character(len=*), intent(in) :: rstfnm_ocn
+      character(len=*), intent(in) :: rstfnm_hamocc
 
       integer :: i,j,k,l,nt
       integer :: iounit
@@ -174,7 +174,7 @@ c     two-time-level counterpart
 c
       IF(read_rest.eq.1) THEN
          CALL AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,
-     .                 date%year,date%month,date%day,omask,rstfnm_ocn)
+     .        date%year,date%month,date%day,omask,rstfnm_hamocc)
       ELSE
          trc(1:idm,1:jdm,1:kdm,      itrbgc:itrbgc+ntrbgc-1) =
      .     ocetra(:,:,:,:)
