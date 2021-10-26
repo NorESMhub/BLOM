@@ -47,7 +47,7 @@ subroutine restart_getfile(rstfnm_in, rstlabel, rstfnm_out, rstfnm_err)
      str_time = rstfnm_in(i_time:(i_suffix-1))
      !-- File without original restart label
      i_restart = index(rstfnm_in(:(i_time-1)), '.', .true.)
-     str_restart = rstfnm(:i_restart)
+     str_restart = rstfnm_in(:i_restart)
 
      if (i_suffix == 0 .or. i_time == 0 .or. i_restart == 0) then
         rstfnm_err = .true.
@@ -62,7 +62,7 @@ subroutine restart_getfile(rstfnm_in, rstlabel, rstfnm_out, rstfnm_err)
      str_suffix = trim(rstfnm_in(i_suffix:))
      !-- File without original restart label
      i_restart = index(rstfnm_in(:(i_suffix-1)), '_', .true.)
-     str_restart = rstfnm(:i_restart)
+     str_restart = rstfnm_in(:i_restart)
 
      if (i_suffix == 0 .or. i_restart == 0) then
         rstfnm_err = .true.

@@ -82,9 +82,9 @@ c
          endif
       endif
 
-      call xcbcst(rstfn_ocntrc)
+      call xcbcst(rstfnm_ocntrc)
 #ifdef HAMOCC
-      call xcbcst(rstfn_hamocc)
+      call xcbcst(rstfnm_hamocc)
 #endif
 
 c
