@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2015 Mats Bentsen
+! Copyright (C) 2007-2021 Mats Bentsen, Tomas Torsvik
 !
 ! This file is part of BLOM.
 !
@@ -23,13 +23,14 @@ c --- ------------------------------------------------------------------
 c --- Write tracer state to restart files
 c --- ------------------------------------------------------------------
 c
-      use mod_config, only: expcnf, runid, inst_suffix
+      use mod_config, only: expcnf
       use mod_xc
 c
       implicit none
 c
       character rstfnm_ocn*(*)
 c
+      logical :: error
       character(len=256) :: rstfnm_ocntrc
 #ifdef HAMOCC
       character(len=256) :: rstfnm_hamocc
@@ -39,21 +40,53 @@ c --- ------------------------------------------------------------------
 c --- Generate file name
 c --- ------------------------------------------------------------------
 c
-      if (expcnf.eq.'cesm') then
-         rstfnm_ocntrc = trim(runid)//
-     .        '.blom.rtrc.'//rstfnm_ocn(len_trim(runid)+10:)
+      if (mnproc.eq.1) then
+         if (expcnf.eq.'cesm') then
+            call restart_getfile(
+     .           rstfnm_ocn, 'rtrc', rstfnm_ocntrc, error)
+            if (error) then
+               write(lp,*) 'restart_trcwt: '//
+     .              'could not generate rstfnm_ocntrc file!'
+               call xcstop('(restat_trcwt)')
+               stop '(restart_trcwt)'
+            endif
 #ifdef HAMOCC
-         rstfnm_hamocc = trim(runid)//
-     .        '.blom.rbgc.'//rstfnm_ocn(len_trim(runid)+10:)
+            call restart_getfile(
+     .           rstfnm_ocn, 'rbgc', rstfnm_hamocc, error)
+            if (error) then
+               write(lp,*) 'restart_trcwt: '//
+     .              'could not generate rstfnm_hamocc file!'
+               call xcstop('(restat_trcwt)')
+               stop '(restart_trcwt)'
+            endif
 #endif
-      else
-         rstfnm_ocntrc = trim(runid)//
-     .        '_resttrc_'//rstfnm_ocn(len_trim(runid)+10:)
+         else
+            call restart_getfile(
+     .           rstfnm_ocn, 'resttrc', rstfnm_ocntrc, error)
+            if (error) then
+               write(lp,*) 'restart_trcwt: '//
+     .              'could not generate rstfnm_ocntrc file!'
+               call xcstop('(restat_trcwt)')
+               stop '(restart_trcwt)'
+            endif
 #ifdef HAMOCC
-         rstfnm_hamocc = trim(runid)//
-     .        '_restbgc_'//rstfnm_ocn(len_trim(runid)+10:)
+            call restart_getfile(
+     .           rstfnm_ocn, 'restbgc', rstfnm_hamocc, error)
+            if (error) then
+               write(lp,*) 'restart_trcwt: '//
+     .              'could not generate rstfnm_hamocc file!'
+               call xcstop('(restat_trcwt)')
+               stop '(restart_trcwt)'
+            endif
 #endif
+         endif
       endif
+
+      call xcbcst(rstfn_ocntrc)
+#ifdef HAMOCC
+      call xcbcst(rstfn_hamocc)
+#endif
+
 c
 c --- ------------------------------------------------------------------
 c --- Write restart files
