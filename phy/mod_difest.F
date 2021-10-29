@@ -35,7 +35,7 @@ c
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
      .                         edsprs, edritp, edwmth,
      .                         difint, difiso, difdia, difmxp, difwgt
-      use mod_cmnfld, only: nnslpx, nnslpy
+      use mod_cmnfld, only: nnslpx, nnslpy, mlts
       use mod_forcing, only: ustar, ustarb, ustar3, buoyfl
       use mod_tidaldissip, only: twedon
       use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
@@ -1140,7 +1140,7 @@ c --- diffusivities.
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           kfil(i,j)=kk+1
           do k=kk,2,-1
-            if (p(i,j,k).gt.OBLdepth(i,j)*onem) kfil(i,j)=k
+            if (p(i,j,k).gt.mlts(i,j)*onecm) kfil(i,j)=k
           enddo
         enddo
         enddo

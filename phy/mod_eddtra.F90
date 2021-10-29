@@ -970,7 +970,7 @@ contains
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: mfl
       real(r8), dimension(kdm) :: dlm, dlp
-      real(r8) :: rho0, q, et2mf, kappa, fhi, flo
+      real(r8) :: rho0, q, et2mf, kappa
       integer :: i, j, k, l, km, kn, kmax, niter, kdir
       logical :: changed
 
@@ -1006,7 +1006,7 @@ contains
      ! -------------------------------------------------------------------------
 
    !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kappa, mfl, &
-   !$omp                     dlm, dlp, fhi, flo, changed, niter, kdir, q)
+   !$omp                     dlm, dlp, changed, niter, kdir, q)
       do j = - 1, jj + 2
          do l = 1, isu(j)
          do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
@@ -1183,7 +1183,7 @@ contains
      ! -------------------------------------------------------------------------
 
    !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kappa, mfl, &
-   !$omp                     dlm, dlp, fhi, flo, changed, niter, kdir, q)
+   !$omp                     dlm, dlp, changed, niter, kdir, q)
       do j = 0, jj + 2
          do l = 1, isv(j)
          do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
