@@ -40,13 +40,13 @@ subroutine restart_getfile(rstfnm_in, rstlabel, rstfnm_out, rstfnm_err)
      ! Assume file format: <str_restart.>'r'<.str_timestamp><.str_suffix>
      ! Search for '.' starting from end of "rstfnm_in" filename
      !-- File suffix
-     i_suffix = index(rstfnm_in, '.', .true.)
+     i_suffix = index(rstfnm_in, '.', back=.true.)
      str_suffix = trim(rstfnm_in(i_suffix:))
      !-- File timestamp
-     i_time = index(rstfnm_in(:(i_suffix-1)), '.', .true.)
+     i_time = index(rstfnm_in(:(i_suffix-1)), '.', back=.true.)
      str_time = rstfnm_in(i_time:(i_suffix-1))
      !-- File without original restart label
-     i_restart = index(rstfnm_in(:(i_time-1)), '.', .true.)
+     i_restart = index(rstfnm_in(:(i_time-1)), '.', back=.true.)
      str_restart = rstfnm_in(:i_restart)
 
      if (i_suffix == 0 .or. i_time == 0 .or. i_restart == 0) then
@@ -58,10 +58,10 @@ subroutine restart_getfile(rstfnm_in, rstlabel, rstfnm_out, rstfnm_err)
      ! Assume file format: <str_restart_>'restphy'<_str_suffix>
      ! Search for '_' starting from end of "rstfnm_in" filename
      !-- File suffix
-     i_suffix = index(rstfnm_in, '_', .true.)
+     i_suffix = index(rstfnm_in, '_', back=.true.)
      str_suffix = trim(rstfnm_in(i_suffix:))
      !-- File without original restart label
-     i_restart = index(rstfnm_in(:(i_suffix-1)), '_', .true.)
+     i_restart = index(rstfnm_in(:(i_suffix-1)), '_', back=.true.)
      str_restart = rstfnm_in(:i_restart)
 
      if (i_suffix == 0 .or. i_restart == 0) then
