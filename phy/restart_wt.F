@@ -46,8 +46,8 @@ c
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
-     .                    slp_da, abswnd_da, atmco2_da, atmbrf_da, ficem_da,
-     .                    l2ci
+     .                    slp_da, abswnd_da, atmco2_da, atmbrf_da,
+     .                    ficem_da, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
      .                     alb_tda, fice_tda, ntda, rnfres
