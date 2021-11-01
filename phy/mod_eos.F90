@@ -52,7 +52,8 @@ module mod_eos
       b22 =  5.5234008384648383e-13_r8, &
       b23 =  8.4310335919950873e-14_r8
 
-   real(r8) :: pref = 2000.e5_r8 ! Reference pressure [g cm-1 s-2].
+   ! Reference pressure [g cm-1 s-2].
+   real(r8) :: pref
 
    ! Coefficients for potential density in sigma units with reference pressure
    ! at pref.
@@ -67,7 +68,8 @@ module mod_eos
    ! Coefficients for freezing temperature
    real(r8) :: atf, btf, ctf
 
-   public :: ap11, ap12, ap13, ap14, ap15, ap16, &
+   public :: pref, &
+             ap11, ap12, ap13, ap14, ap15, ap16, &
              ap21, ap22, ap23, ap24, ap25, ap26, &
              atf, btf, ctf, &
              inieos, rho, alp, sig, sig0, dsigdt, dsigdt0, dsigds, dsigds0, &
@@ -129,7 +131,7 @@ contains
             atf =  0._r8
             btf = -1.8_r8
             ctf =  0._r8
-         case ('ben02clim', 'ben02syn')
+         case ('ben02clim', 'ben02syn', 'fuk95', 'single_column','channel')
             atf = -0.0547_r8
             btf =  0._r8
             ctf =  0._r8
@@ -310,7 +312,7 @@ contains
 
       tofsig = ( - b - sqrt(b*b - 4._r8*a*c))/(2._r8*a)
 
-      end function tofsig
+   end function tofsig
 
    pure real(r8) function sofsig(sg, th)
    ! ---------------------------------------------------------------------------

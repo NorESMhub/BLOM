@@ -1,3 +1,22 @@
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, I. Kriest,
+!                     A. Moree, C. Heinze
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
       SUBROUTINE BELEG_VARS(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,      &
                             pglon,pglat)
 !******************************************************************************
@@ -40,7 +59,7 @@
       use mo_vgrid, only: kmle,kbo
       USE mod_xc,   only: mnproc
 
-      implicit none      
+      implicit none
 
       INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
@@ -51,6 +70,9 @@
 
       ! local variables
       INTEGER :: i,j,k,l
+#ifdef cisonew
+      REAL :: rco213,rco214,beta13,beta14
+#endif
 
 
 #ifdef FB_BGC_OCE

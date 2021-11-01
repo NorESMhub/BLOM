@@ -80,7 +80,7 @@ c
         write (rstfnm,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .    trim(runid),'.blom',trim(inst_suffix),'.r.',
      .    date%year,'-',date%month,'-',date%day,'-',
-     .    mod(nstep,nstep_in_day)*86400,'.nc'
+     .    86400*mod(nstep,nstep_in_day)/nstep_in_day,'.nc'
       else
         if (nday_of_year-max(1,nint(rstfrq/nstep_in_day)).le.0) then
           write(rstfnm,'(2a,i4.4,a,i2.2,a,i2.2,a,i6.6,a)')
@@ -195,7 +195,8 @@ c --- output model fields to restart file
       if (sprfac) then
         call ncputr('prfac',prfac)
       endif
-      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
+      if (expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn'.or.
+     .   expcnf.eq.'channel') then
         call ncputi('ntda',ntda)
       endif
       do n=1,nphy 
@@ -311,6 +312,10 @@ c
         call wrtrst('iagem',trim(c5p)//' time',iagem,ip)
         call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
       endif
+c      
+c      if (expcnf.eq.'channel') then
+c        call wrtrst('rnfres',trim(c5p)//' time',rnfres,ip)
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call wrtrst('ustarw_da',trim(c5p)//' k2 time',ustarw_da,ip)
@@ -771,7 +776,7 @@ c
         call ncfcls
       endif
 c
-      if (expcnf.eq.'cesm') then
+      if (expcnf.eq.'cesm'.or.expcnf.eq.'channel') then
 c
 c --- - write restart filename to rpointer.ocn
         if (mnproc.eq.1) then
@@ -909,6 +914,10 @@ c
         call defvarrst('iagem',trim(c5p)//' time')
         call defvarrst('rnfres',trim(c5p)//' time')
       endif
+c
+c      if (expcnf.eq.'channel') then
+c        call defvarrst('rnfres',trim(c5p)//' time')
+c      endif
 c
       if (expcnf.eq.'cesm') then
         call defvarrst('ustarw_da',trim(c5p)//' k2 time')

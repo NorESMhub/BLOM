@@ -29,9 +29,9 @@ module mod_pointtest
    private
 
    integer :: &
-      itest = 60, & ! Global i-index of point diagnostics.
-      jtest = 60, & ! Global j-index of point diagnostics.
-      ptest = 0     ! Processor containing the test point.
+      itest = 0, & ! Global i-index of point diagnostics.
+      jtest = 0, & ! Global j-index of point diagnostics.
+      ptest = 0    ! Processor containing the test point.
 
    public :: itest, jtest, ptest, init_ptest
 

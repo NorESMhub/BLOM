@@ -89,7 +89,7 @@ subroutine dipowa(kpie,kpje,kpke,omask)
   zcoeflo(ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
 !$OMP PARALLEL DO                            &
-!$OMP&PRIVATE(bolven,tredsy,sedb1,aprior,iv_oc)
+!$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
   j_loop: do j=1,kpje
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange

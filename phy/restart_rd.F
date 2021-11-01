@@ -98,7 +98,7 @@ c --- - time corresponding to start date
                  stop '(restart_rd)'
         endif
 c
-      elseif (expcnf.eq.'cesm') then
+      elseif (expcnf.eq.'cesm'.or.expcnf.eq.'channel') then
 c
 c --- - get restart file name from rpointer.ocn
         if (mnproc.eq.1)
@@ -486,6 +486,12 @@ c
         call ncread('iagem',iagem,ip,1,0.)
         call ncread('rnfres',rnfres,ip,1,0.)
       endif
+c
+      if (expcnf.eq.'channel') then
+        call ncgeti('ntda',ntda)
+        call xcbcst(ntda)
+c        call ncread('rnfres',rnfres,ip,1,0.)
+      endif 
 c
       if (expcnf.eq.'cesm') then
         vexist=ncinqv('ustarw_da')

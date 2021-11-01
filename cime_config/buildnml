@@ -91,6 +91,7 @@ set EXPCNF   = "'cesm'"
 set RUNTYP   = "'$RUN_TYPE'"
 set GRFILE   = "'unset'"
 set ICFILE   = "'unset'"
+set PREF     = 2000.e5
 set BACLIN   = 1800.
 set BATROP   = 36.
 set MDV2HI   = 2.
@@ -152,6 +153,8 @@ set SCFILE   = "'unset'"
 set SMTFRC   = .true.
 set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
+set ITEST    = 60
+set JTEST    = 60
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -180,6 +183,8 @@ if ($BLOM_N_DEPOSITION == TRUE) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
   else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
+  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.125v4) then
+    set NDEPFNAME = ndep_1850_CMIP6_tnx0.125v4_20190912.nc
   else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
   else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
@@ -613,6 +618,24 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set EGC    = 0.85
   set EGMXDF = 1500.e4
   set CE     = 1.0
+else if ($OCN_GRID == tnx0.125v4) then
+  set BACLIN = 300.
+  set BATROP = 6.
+  set EGMNDF = 0.0
+  set EGMXDF = 0.0
+  set EDWMTH = "'step'"
+  set CWBDTS = .75e-4
+  set CWBDLS = 25
+  set MDV2HI = .5
+  set MDV2LO = .1
+  set MDV4HI = 0.
+  set MDV4LO = 0.
+  set MDC2HI = 300.e4
+  set MDC2LO = 100.e4
+  set VSC2HI = .5
+  set VSC2LO = .5
+  set VSC4HI = 0.0
+  set VSC4LO = 0.0
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -698,6 +721,26 @@ else if ($OCN_GRID == tnx0.25v4) then
   else
     set NDEPFILE  = "''"
   endif
+else if ($OCN_GRID == tnx0.125v4) then
+  set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20200722.nc'"
+  set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20200728.nc'"
+  set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20200722.nc'"
+  set MER_ORFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20200722.nc'"
+  set MER_MIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20200722.dat'"
+  set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20200722.dat'"
+  set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20200722.nc'"
+  set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20200722.nc'"
+  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20200722.nc'"
+  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20170821.nc'"
+  else
+    set RIVINFILE = "''"
+  endif
+  if ($BLOM_N_DEPOSITION == TRUE) then
+    set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
+  else
+    set NDEPFILE  = "''"
+  endif
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -739,6 +782,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 ! ICFILE   : Name of file containing initial conditions, that is either
 !            a valid restart file or 'inicon.nc' if climatological based
 !            initial conditions are desired (a)
+! PREF     : Reference pressure for potential density (g/cm/s2) (f)
 ! BACLIN   : Baroclinic time step (sec) (f)
 ! BATROP   : Barotropic time step (sec) (f)
 ! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
@@ -829,6 +873,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
 !            'ben02syn' (a)
+! ITEST    : Global i-index of point diagnostics (i)
+! JTEST    : Global j-index of point diagnostics (i)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -844,6 +890,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   RUNTYP   = $RUNTYP
   GRFILE   = $GRFILE
   ICFILE   = $ICFILE
+  PREF     = $PREF
   BACLIN   = $BACLIN
   BATROP   = $BATROP
   MDV2HI   = $MDV2HI
@@ -905,6 +952,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   SMTFRC   = $SMTFRC
   SPRFAC   = $SPRFAC
   ATM_PATH = $ATM_PATH
+  ITEST    = $ITEST
+  JTEST    = $JTEST
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT
   RSTCMP   = $RSTCMP
@@ -1725,8 +1774,8 @@ inisil_file = `echo $INISIL | tr -d '"' | tr -d "'"`
 EOF
   if ($HAMOCC_CISO == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-inic13_file = `echo $INIC13 | tr -d '"' | tr -d "'"`
-inic14_file = `echo $INIC14 | tr -d '"' | tr -d "'"`
+inic13_file = `echo $INID13C | tr -d '"' | tr -d "'"`
+inic14_file = `echo $INID14C | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($RUN_TYPE == startup) then

@@ -44,6 +44,13 @@
 !     -------
 !     - declaration and memory allocation
 !
+!     Description:
+!     ------------
+!     Public routines and variable of this module:
+!
+!     -subroutine alloc_mem_carbch
+!        Allocate memory for inorganic carbon variables
+!
 !
 !**********************************************************************     
       implicit none

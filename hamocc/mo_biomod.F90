@@ -39,6 +39,14 @@
 !     -------
 !     - declaration and memory allocation.
 !
+!     Description:
+!     ------------
+!     Public routines and variable of this module:
+!
+!     -subroutine alloc_mem_biomod
+!        Allocate memory for biomod variables
+!
+!
 !******************************************************************************
       implicit none
 

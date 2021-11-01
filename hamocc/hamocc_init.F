@@ -37,7 +37,6 @@ c  *INTEGER*   *read_rest*  - flag indicating whether to read restart files.
 c  *INTEGER*   *rstfnm_ocn* - restart filename.
 c
 c******************************************************************************
-      USE mod_config,    only: inst_suffix
       use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
      .                         mnproc,lp,nfu
@@ -58,7 +57,8 @@ c******************************************************************************
       use mo_riverinpt,  only: ini_riverinpt,rivinfile
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
-     .                         omask,sedlay2,powtra2,burial2
+     .                         omask,sedlay2,powtra2,burial2,
+     .                         blom2hamocc
 c
       implicit none
 c
@@ -66,6 +66,7 @@ c
       character(len=*), intent(in) :: rstfnm_ocn
 
       integer :: i,j,k,l,nt
+      integer :: iounit
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
@@ -76,7 +77,6 @@ c
 c --- Set io units and some control parameters
 c
       io_stdo_bgc = lp              !  standard out.
-      io_nml = nfu                  !  namelist
       dtbgc = nphys*baclin          !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
@@ -97,16 +97,17 @@ c
 c
 c --- Read the HAMOCC BGCNML namelist.
 c
-      open (unit=io_nml,file='ocn_in'//trim(inst_suffix),status='old'
+      if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+      open (newunit=iounit, file=bgc_namelist, status='old'
      .                 ,action='read')
-      read (unit=io_nml,nml=BGCNML)
-      close (unit=io_nml)
+      read (unit=iounit, nml=BGCNML)
+      close (unit=iounit)
       IF (mnproc.eq.1) THEN
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
         write(io_stdo_bgc,nml=BGCNML)
       ENDIF
-c                        
+c
 c --- Memory allocation 
 c
       CALL ALLOC_MEM_INTFCBLOM(idm,jdm,kdm)

@@ -33,9 +33,11 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: field
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: tmp
-      real sum
+      real vland_orig,sum
       integer i,j,mbdy,done,changed,num,il,jl
 c
+      vland_orig=vland
+      vland=missing_value
       mbdy=1
       done=0
       changed=1
@@ -94,6 +96,8 @@ c
         call xcmax(changed)
 c
       enddo
+c
+      vland=vland_orig
 c
       if (done.eq.0) then
         if (mnproc.eq.1) then

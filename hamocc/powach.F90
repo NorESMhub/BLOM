@@ -110,7 +110,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
 !$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                            &
-!$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14)
+!$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14,                &
+!$OMP&        k,i)
 
   j_loop: do j = 1, kpje
 
@@ -561,7 +562,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
 !ik this is currently assumed to depend on total and corg sedimentation:
 !ik f(POC) [kg C] / f(total) [kg] = 0.05
 !ik thus it is
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
   do j = 1, kpje
      do i = 1, kpie
         sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                          &
@@ -571,7 +572,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
 !$OMP END PARALLEL DO
 
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
   do j = 1, kpje
      do i = 1, kpie
         silpro(i,j) = 0.

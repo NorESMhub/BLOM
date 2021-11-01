@@ -304,131 +304,47 @@ c
       logical, intent(in) :: diagmon,diagann
       character(len=*), intent(out) :: fname
 c
+      character(len=256) :: prefix
+      character(len=1) :: sep1,sep2
       type(date_type) :: date_tmp
       integer errstat,ns
 c
-      if (diagfq+epsil.gt.1.) then
-        date_tmp=date
-        if   (expcnf.eq.'ben02clim') then
-          errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-          if (errstat.ne.calendar_noerr) then
-            if (mnproc.eq.1) then
-              write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                    trim(calendar_errstr(errstat))
-            endif
-            call xcstop('(diafnm)')
-                   stop '(diafnm)'
-          endif
-          if     (mod(nint(diagfq),360).eq.0) then
-            write(fname,'(4a,i4.4,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.nc'
-          elseif (mod(nint(diagfq),30).eq.0) then
-            write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.nc'
-          else
-            write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.nc'
-          endif
-        elseif (expcnf.eq.'ben02syn') then
-          if (diagmon) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,
-     .        '.nc'
-          elseif (diagann) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,
-     .        '.nc'
-          else
-            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'_',trim(ctag),'_',
-     .        date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,
-     .        '.nc'
-          endif
-        elseif (expcnf.eq.'cesm') then
-          if (diagmon) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a,i2.2,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,'-',date_tmp%month,
-     .        '.nc'
-          elseif (diagann) then
-            errstat=date_offset(calendar,date_tmp,-1)
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,
-     .        '.nc'
-          else
-            errstat=date_offset(calendar,date_tmp,-nint(diagfq))
-            if (errstat.ne.calendar_noerr) then
-              if (mnproc.eq.1) then
-                write (lp, '(2a)') ' diafnm: date_offset error: ',
-     .                      trim(calendar_errstr(errstat))
-              endif
-              call xcstop('(diafnm)')
-                     stop '(diafnm)'
-            endif
-            write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a)')
-     .        trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .        date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,
-     .        '.nc'
-          endif
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' expcnf=',trim(expcnf),' is unsupported!'
-          endif
-          call xcstop('(inifrc)')
-                 stop '(inifrc)'
-        endif
+      if (expcnf.eq.'cesm') then
+        prefix=trim(runid)//'.blom'//trim(inst_suffix)
+        sep1='.'
+        sep2='-'
       else
-        date_tmp=date
+        prefix=trim(runid)
+        sep1='_'
+        sep2='.'
+      endif
+c
+      date_tmp=date
+c
+      if (diagfq+epsil.gt.1.) then
+        errstat=date_offset(calendar,date_tmp,-1)
+        if (errstat.ne.calendar_noerr) then
+          if (mnproc.eq.1) then
+            write (lp, '(2a)') ' diafnm: date_offset error: ',
+     .                  trim(calendar_errstr(errstat))
+          endif
+          call xcstop('(diafnm)')
+                 stop '(diafnm)'
+        endif
+        if     (diagann) then
+          write(fname,'(4a,i4.4,a)')
+     .      trim(prefix),sep1,trim(ctag),sep1,
+     .      date_tmp%year,'.nc'
+        elseif (diagmon) then
+          write(fname,'(4a,i4.4,a,i2.2,a)')
+     .      trim(prefix),sep1,trim(ctag),sep1,
+     .      date_tmp%year,sep2,date_tmp%month,'.nc'
+        else
+          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
+     .      trim(runid),sep1,trim(ctag),sep1,
+     .      date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,'.nc'
+          endif
+      else
         if (mod(nstep,nstep_in_day).eq.0) then
           errstat=date_offset(calendar,date_tmp,-1)
           if (errstat.ne.calendar_noerr) then
@@ -440,21 +356,13 @@ c
                    stop '(diafnm)'
           endif
         endif
-        ns=nint(nint(mod(nstep+.5-diagfq,real(nstep_in_day))/diagfq)
-     .          *diagfq/nstep_in_day*86400)
-        if (expcnf.eq.'cesm') then
-          write(fname,'(6a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      trim(runid),'.blom',trim(inst_suffix),'.',trim(ctag),'.',
-     .      date_tmp%year,'-',date_tmp%month,'-',date_tmp%day,'-',ns,
-     .      '.nc'
-        else
-          write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .      trim(runid),'_',trim(ctag),'_',
-     .      date_tmp%year,'.',date_tmp%month,'.',date_tmp%day,'.',ns,
-     .      '.nc'
-        endif
+        ns=86400*(mod(nstep-1,nstep_in_day)+1)/nstep_in_day
+        write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
+     .    trim(runid),sep1,trim(ctag),sep1,
+     .    date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,sep2,ns,
+     .    '.nc'
       endif
-
+c
       end subroutine diafnm
 
 
@@ -474,23 +382,33 @@ c
 c --- Check existence of data files for meridional and section transport
 c --- diagnostics 
       if (mnproc.eq.1) then
-        inquire(file=mer_orfile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(mer_orfile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
+        if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
+     .         +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
+     .         +MSC_MHFLD(1:nphy)+MSC_MSFLX(1:nphy)+MSC_MSFTD(1:nphy)
+     .         +MSC_MSFLD(1:nphy)).ne.0) then
+          inquire(file=mer_orfile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(mer_orfile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
+          inquire(file=mer_mifile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(mer_mifile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
         endif
-        inquire(file=mer_mifile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(mer_mifile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
-        endif
-        inquire(file=sec_sifile,exist=fexist)
-        if (.not.fexist) then
-          write (lp,'(3a)') ' Could not find file ',trim(sec_sifile),'!'
-          call xchalt('(diaini)')
-                 stop '(diaini)'
+        if (sum(MSC_VOLTR(1:nphy)).ne.0) then
+          inquire(file=sec_sifile,exist=fexist)
+          if (.not.fexist) then
+            write (lp,'(3a)') ' Could not find file ',
+     .                        trim(sec_sifile),'!'
+            call xchalt('(diaini)')
+                   stop '(diaini)'
+          endif
         endif
       endif
 c
@@ -1895,8 +1813,7 @@ c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
      .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
      .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0)
-     .  call diamer(iogrp)
+     .   +ACC_MSFLD(iogrp).ne.0) call diamer(iogrp)
       if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp)
 c
 c --- compute barotropic mass streamfunction
@@ -2269,10 +2186,31 @@ c --- define output dimensions
       endif
       call ncdims('sigma',kdm)
       call ncdims('depth',ddm)
-      call ncdims('region',mer_nreg)
       call ncdims('bounds',2) 
-      call ncdims('slenmax',slenmax)
       call ncdims('time',0)
+c
+      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
+     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
+     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
+     .   +ACC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
+        call ncdims('slenmax',slenmax)
+      endif
+c
+      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
+     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
+     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
+     .   +ACC_MSFLD(iogrp).ne.0) then
+        if ((lmax.gt.0.and.lmax.le.ldm)) then
+          call ncdims('lat',lmax)
+          call ncdims('region',mer_nreg)
+        else
+          write (lp,*)
+     .      'Illegal dimension of meridional diagnostics: lmax=',lmax,
+     .      ' ldm=',ldm
+          call xchalt('(diaout)')
+                 stop '(diaout)'
+        endif
+      endif
 c
       if (ACC_VOLTR(iogrp).ne.0) then
         if ((sec_num.gt.0.and.sec_num.le.max_sec)) then
@@ -2285,24 +2223,9 @@ c
         endif
       endif
 c
-      if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
-     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
-     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0) then
-        if ((lmax.gt.0.and.lmax.le.ldm)) then
-          call ncdims('lat',lmax)
-        else
-          write (lp,*)
-     .      'Illegal dimension of meridional diagnostics: lmax=',lmax,
-     .      ' ldm=',ldm
-          call xchalt('(diaout)')
-                 stop '(diaout)'
-        endif
-      endif
-c
-       call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
+      call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
-       call nctime(datenum,calendar,timeunits,startdate)
+      call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
       if (irec(iogrp).eq.1) then
@@ -2322,20 +2245,15 @@ c --- zlevel
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then 
+     .     +MSC_MSFLD(iogrp).ne.0) then 
           call ncwrt1('lat','lat',mtlat)  
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
           call ncattr('units','degree_north')
-        endif 
-        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp).ne.0) then
           call ncwrtc('region','slenmax region',mer_regnam)  
           call ncattr('long_name','Region name') 
         endif
-        if (MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)+MSC_MHFLD(iogrp)
-     .     +MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)+MSC_MSFLD(iogrp).ne.0)
-     .  then 
+        if (MSC_VOLTR(iogrp).ne.0) then 
           call ncwrtc('section','slenmax section',sec_name)
           call ncattr('long_name','Section name') 
         endif 
@@ -5884,20 +5802,15 @@ c --- - define zlevel
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
      .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
      .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
+     .     +MSC_MSFLD(iogrp).ne.0) then
           call ncdefvar('lat','lat',ndouble,8)
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
           call ncattr('units','degree_north')
-        endif
-        if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp).ne.0) then
           call ncdefvar('region','slenmax region',nchar,0)
           call ncattr('long_name','Region name')
         endif
-        if (MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)+MSC_MHFLD(iogrp)
-     .     +MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)+MSC_MSFLD(iogrp).ne.0)
-     .  then
+        if (MSC_VOLTR(iogrp).ne.0) then
           call ncdefvar('section','slenmax section',nchar,0)
           call ncattr('long_name','Section name')
         endif

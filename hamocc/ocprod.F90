@@ -228,7 +228,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   abs_oce(:,:,1) = 1.
 #endif
 
-!$OMP PARALLEL DO PRIVATE(absorption,absorption_uv,atten,dz)
+!$OMP PARALLEL DO PRIVATE(i,k,absorption,absorption_uv,atten,dz)
   do j = 1,kpje
   do i = 1,kpie
 
@@ -274,7 +274,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! monthly mean values (kg/m2/month - assume 30 days per month here)
 ! dissolved iron is a fixed fraction (typically 3.5%), and immediately released
 
-!$OMP PARALLEL DO PRIVATE(dustinp)
+!$OMP PARALLEL DO PRIVATE(i,dustinp)
   do j = 1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -290,6 +290,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
 !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
 !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
+# ifdef AGG
+!$OMP  ,avmass,avnos,avnosloss,zmornos                                &
+# endif
 # ifdef cisonew
 !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
 !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
@@ -300,7 +303,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 # ifdef BROMO
 !$OMP  ,bro_beta,bro_uv                                               &
 # endif
-!$OMP  )
+!$OMP  ,i,k)
 
   loop1: do j = 1,kpje
   do i = 1,kpie
@@ -544,12 +547,15 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
 !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
+# ifdef AGG
+!$OMP  ,avmass,avnos,zmornos                                          &
+# endif
 # ifdef cisonew
 !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
 !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
 !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
 # endif
-!$OMP  )
+!$OMP  ,i,k)
 
   loop2: do j = 1,kpje
   do i = 1,kpie
@@ -702,10 +708,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
 !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
+# ifdef AGG
+!$OMP  ,avmass,avnos                                                  &
+# endif
 #ifdef cisonew
 !$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP  )
+!$OMP  ,i,k)
   loop3: do j = 1,kpje
   do i = 1,kpie
   do k = kwrbioz(i,j)+1,kpke
@@ -786,10 +795,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !                      does it make sense to check for oxygen and nitrate deficit?
 
 !$OMP PARALLEL DO PRIVATE(remin                                       &
+# ifdef AGG
+!$OMP  ,avmass,avnos                                                  &
+# endif
 #ifdef cisonew
 !$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP  )
+!$OMP  ,i,k)
   loop4: do j = 1,kpje
   do i = 1,kpie
   do k = kwrbioz(i,j)+1,kpke
@@ -1022,7 +1034,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #if defined(AGG)
 !$OMP ,wnos,wnosd,dagg                                                &
 #endif
-!$OMP )
+!$OMP ,i,k)
   do j = 1,kpje
   do i = 1,kpie
 
@@ -1276,7 +1288,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! fluxes are intentionally calculated using values at the NEW timelevel
 ! to be fully consistent with the implicit sinking scheme
 
-!$OMP PARALLEL DO PRIVATE(wpoc,wcal,wopal)
+!$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal)
   do j = 1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -1399,12 +1411,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! over the water column. Detritus is kept as detritus, while opal and CaCO3
 ! are remineralised instantanously
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+  dz,florca,flcaca,flsil
+!$OMP PARALLEL DO PRIVATE(                                              &
+!$OMP  dz,florca,flcaca,flsil                                           &
 #ifdef cisonew
-!$OMP+ ,flor13,flor14,flca13,flca14
+!$OMP ,flor13,flor14,flca13,flca14                                      &
 #endif
-!$OMP+ )
+!$OMP ,i,k)
   do j=1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then

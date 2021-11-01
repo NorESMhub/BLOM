@@ -35,100 +35,136 @@ module mod_tracers
    ! length scale, ideal age and HAMOCC tracers.
    integer, parameter :: ntrocn = 0
 
+   ! Number of age tracers.
+   integer, parameter :: natr = 0
+
    ! Number of turbulent kinetic energy and generic length scale tracers.
 #ifdef TKE
    integer, parameter :: ntrtke = 1, ntrgls = 1
+   ! Indices of first turbulent kinetic energy and generic length scale tracers.
+   integer, parameter :: itrtke = ntrocn - natr + 1
+   integer, parameter :: itrgls = ntrocn - natr + ntrtke + 1
 #else
-   integer, parameter :: ntrtke = 0, ntrgls = 0
+   integer, parameter :: ntrtke = 0,  ntrgls = 0
+   integer, parameter :: itrtke = -1, itrgls = -1
 #endif
 
    ! Number of ideal age tracer.
 #ifdef IDLAGE
    integer, parameter :: ntriag = 1
-#else
-   integer, parameter :: ntriag = 0
-#endif
-
-   ! Number of HAMOCC tracers.
-#ifdef HAMOCC
-   integer, parameter :: i_base = 22 ! Advected HAMOCC tracers.
-#  ifdef cisonew
-   integer, parameter :: i_iso = 12
-#  else 
-   integer, parameter :: i_iso = 0
-#  endif
-#  ifdef CFC  
-   integer, parameter :: i_cfc = 3
-#  else 
-   integer, parameter :: i_cfc = 0
-#  endif
-#  ifdef AGG
-   integer, parameter :: i_agg = 2
-#  else 
-   integer, parameter :: i_agg = 0
-#  endif
-#  ifdef natDIC
-   integer, parameter :: i_nat_dic = 3
-#  else
-   integer, parameter :: i_nat_dic = 0
-#  endif
-#  ifdef BROMO
-   integer, parameter :: i_bromo = 1
-#  else
-   integer, parameter :: i_bromo = 0
-#  endif
-   integer, parameter :: ntrbgc = i_base + i_iso + i_cfc + i_agg + i_nat_dic + i_bromo
-#else
-   integer, parameter :: ntrbgc = 0
-#endif
-
-   ! Total number of tracers.
-   integer, parameter :: ntr = ntrocn + ntrtke + ntrgls + ntriag + ntrbgc
-
-   ! Number of age tracers.
-   integer, parameter :: natr = 0
-
-#ifdef TKE
-   ! Indices of first turbulent kinetic energy and generic length scale tracers.
-   integer, parameter :: itrtke = ntrocn - natr + 1, &
-                         itrgls = ntrocn - natr + ntrtke + 1
-#else
-   integer, parameter :: itrtke = -1, &
-                         itrgls = -1
-#endif
-
-#ifdef IDLAGE
    ! Index of first ideal age tracer.
    integer, parameter :: itriag = ntrocn - natr + ntrtke + ntrgls + 1
 #else
+   integer, parameter :: ntriag = 0
    integer, parameter :: itriag = -1
 #endif
 
-#ifdef HAMOCC
-   ! Index of first HAMOCC tracer.
-   integer, parameter :: itrbgc = ntrocn - natr + ntrtke + ntrgls + ntriag + 1
-#else
-   integer, parameter :: itrbgc = -1
-#endif
+   ! HAMOCC tracers.
+   integer, protected :: ntrbgc = -999   ! Number of HAMOCC tracers.
+   integer, protected :: itrbgc = -999   ! Index of first HAMOCC tracer.
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, &
-                       2*kdm, ntr) :: &
-      trc       ! Tracer array.
+   ! Total number of tracers. (Return error if default value is used)
+   integer, protected :: ntr = -999
 
-   real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm, ntr) :: &
-      trcold    ! Tracer array at old time level.
+   real(r8), allocatable, dimension(:,:,:,:) ::  &
+      trc,      & ! Tracer array.
+      trcold      ! Tracer array at old time level.
 
-   real(r8), dimension(ntr, 1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: &
-      uflxtr, & ! u-component of tracer flux.
-      vflxtr, & ! v-component of tracer flux.
-      trflx     ! Surface flux of tracer.
+   real(r8), allocatable, dimension(:,:,:) ::  &
+      uflxtr,   & ! u-component of tracer flux.
+      vflxtr,   & ! v-component of tracer flux.
+      trflx       ! Surface flux of tracer.
 
-   public :: ntrocn, ntrtke, ntrgls, ntriag, ntrbgc, ntr, natr, &
-             itrtke, itrgls, itriag, itrbgc, &
-             trc, trcold, uflxtr, vflxtr, trflx, &
+   public :: ntrocn, ntrtke, ntrgls, ntriag, ntrbgc, ntr, natr,                 &
+             itrtke, itrgls, itriag, itrbgc,                                    &
+             trc, trcold, uflxtr, vflxtr, trflx,                                &
              inivar_tracers
 
 contains
+
+   subroutine allocate_tracers
+   ! ---------------------------------------------------------------------------
+   ! If using HAMOCC, set number of bgc tracers : ntrbgc, itrbgc
+   ! Set total number of tracers : ntr
+   ! Allocate tracer arrays.
+   ! ---------------------------------------------------------------------------
+
+#ifdef HAMOCC
+     use mo_param1_bgc, only: nocetra
+#endif
+
+     implicit none
+
+     integer :: errstat
+     integer :: num_bgc_tracers = 0
+
+     ! Number of HAMOCC tracers.
+#ifdef HAMOCC
+     ntrbgc = nocetra
+     itrbgc = ntrocn - natr + ntrtke + ntrgls + ntriag + 1
+#else
+     ntrbgc = 0
+     itrbgc = -1
+#endif
+
+     ! Total number of tracers.
+     if (mnproc.eq.1) then
+        ntr = ntrocn + ntrtke + ntrgls + ntriag + ntrbgc
+
+        write(lp,'(A,1X,I8)') 'Total tracer count: ', ntr
+        if (ntr < 0) then
+           write(lp,'(a)') 'Number of tracers must be non-negative.'
+           call xchalt('(allocate_tracers)')
+           stop '(allocate_tracers)'
+        endif
+     endif
+     call xcbcst(ntr)
+
+     ! Tracer array.
+     allocate (trc(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, 2*kdm, ntr),       &
+          stat = errstat)
+     if(errstat.ne.0) then
+        write(lp,'(a)') 'Not enough memory for variable trc.'
+        call xchalt('(allocate_tracers)')
+        stop '(allocate_tracers)'
+     endif
+
+     ! Tracer array at old time level.
+     allocate (trcold(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm, ntr),      &
+          stat = errstat)
+     if(errstat.ne.0) then
+        write(lp,'(a)') 'Not enough memory for variable trcold.'
+        call xchalt('(allocate_tracers)')
+        stop '(allocate_tracers)'
+     endif
+
+     ! u-component of tracer flux.
+     allocate (uflxtr(ntr, 1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy),           &
+          stat = errstat)
+     if(errstat.ne.0) then
+        write(lp,'(a)') 'Not enough memory for variable uflxtr.'
+        call xchalt('(allocate_tracers)')
+        stop '(allocate_tracers)'
+     endif
+
+     ! v-component of tracer flux.
+     allocate (vflxtr(ntr, 1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy),           &
+          stat = errstat)
+     if(errstat.ne.0) then
+        write(lp,'(a)') 'Not enough memory for variable vflxtr.'
+        call xchalt('(allocate_tracers)')
+        stop '(allocate_tracers)'
+     endif
+
+     ! Surface flux of tracer.
+     allocate (trflx(ntr, 1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy),            &
+          stat = errstat)
+     if(errstat.ne.0) then
+        write(lp,'(a)') 'allocate_tracers: Not enough memory for variable trflx.'
+        call xchalt('(allocate_tracers)')
+        stop '(allocate_tracers)'
+     endif
+   end subroutine allocate_tracers
 
    subroutine inivar_tracers
    ! ---------------------------------------------------------------------------
@@ -140,11 +176,17 @@ contains
 
       integer :: i, j, k, l, nt
 
+      ! Allocate tracer arrays
+      call allocate_tracers
+
    !$omp parallel do private(i, k, nt)
       do j = 1 - nbdy, jj + nbdy
          do i = 1 - nbdy, ii + nbdy
             uflux(i, j) = spval
             vflux(i, j) = spval
+            do nt = 1, ntr
+               trflx(nt, i, j) = spval
+            enddo
             do k = 1, kk
                do nt = 1, ntr
                   trc(i ,j ,k     , nt) = spval
@@ -198,7 +240,20 @@ contains
          enddo
       enddo
    !$omp end parallel do
-   
+
+      ! Initialize surface flux of tracer.
+   !$omp parallel do private(l, i, nt)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            do nt = 1, ntr
+               trflx(nt, i, j) = 0._r8
+            enddo
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
    end subroutine inivar_tracers
 
 end module mod_tracers

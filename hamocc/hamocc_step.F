@@ -29,7 +29,8 @@ c
       use mod_forcing, only: swa,slp,abswnd,atmco2,flxco2,flxdms,atmbrf,flxbrf
       use mod_seaice, only: ficem
       use mo_bgcmean
-      use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask
+      use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,
+     .     blom2hamocc,hamocc2blom
       use mo_riverinpt, only: rivflx
       use mo_fedep,     only: get_fedep
       use mo_ndep,      only: get_ndep
@@ -48,13 +49,13 @@ c
 c
       ldtday = mod(nstep,nstep_in_day)
 c
-      do l=1,nbgc 
-        bgcwrt(l)=0. 
+      do l=1,nbgc
+        bgcwrt(l)=.false.
         if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)
      .       .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.
      .      .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.
-     .      mod(nstep+.5,diagfq_bgc(l)).lt.1.) 
-     .    bgcwrt(l)=1.
+     .      mod(nstep+.5,diagfq_bgc(l)).lt.1.)
+     .    bgcwrt(l)=.true.
       enddo
 c
       call get_fedep(idm,jdm,date%month,dust)

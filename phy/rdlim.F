@@ -34,6 +34,7 @@ c
      .                    set_day_of_year, step_time
       use mod_xc
       use mod_grid, only: grfile
+      use mod_eos, only: pref
       use mod_inicon, only: icfile
       use mod_advect, only: rmpmth
       use mod_pbcor, only: bmcmth
@@ -55,26 +56,31 @@ c
       use mod_ben02, only: atm_path, atm_path_len
       use mod_cesm, only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl,
      .                    smtfrc
+      use mod_pointtest, only: itest, jtest
       use mod_checksum, only: csdiag
 c
       implicit none
 c
       type(date_type) :: date0_rest
-      integer :: m,n
       character(len = 256) :: nlfnm,runtyp,rstfnm
       logical :: fexist
-      integer :: idate,idate0
-      namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
-     .  grfile,icfile,baclin,batrop,mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,
-     .  mdc2lo,vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,mommth,
-     .  eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp,edsprs,egc,eggam,
-     .  eglsmn,egmndf,egmxdf,egidfq,ri0,rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,
-     .  tdfile,tkepf,niwgf,niwbf,niwlf,swamth,jwtype,chlopt,ccfile,
-     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,aptflx,apsflx,ditflx,
-     .  disflx,srxbal,scfile,smtfrc,sprfac,atm_path,rstfrq,rstfmt,
-     .  rstcmp,iotype
+      integer :: m,n,idate,idate0,ios
 c
-c --- read namelists
+      namelist /limits/ nday1,nday2,idate,idate0,runid,expcnf,runtyp,
+     .  grfile,icfile,pref,baclin,batrop,
+     .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
+     .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,
+     .  mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp,
+     .  edsprs,egc,eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,
+     .  rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tdfile,tkepf,niwgf,niwbf,niwlf,
+     .  swamth,jwtype,chlopt,ccfile,
+     .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
+     .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,smtfrc,sprfac,
+     .  atm_path,
+     .  itest,jtest,
+     .  rstfrq,rstfmt,rstcmp,iotype
+c
+c --- read limits and diaphy namelists
       if (mnproc.eq.1) then
 c
         GLB_AVEPERIO=-999
@@ -95,12 +101,10 @@ c
           endif
         endif
         read (unit=nfu,nml=LIMITS)
-        read (unit=nfu,nml=MERDIA)
-        read (unit=nfu,nml=SECDIA)
         read (unit=nfu,nml=DIAPHY)
         close (unit=nfu)
 c
-c --- - print namelist on stdout 
+c --- - print limits namelist to stdout 
         write (lp,*)
         write (lp,*) 'rdlim: BLOM LIMITS NAMELIST GROUP:' 
         write (lp,*) 'NDAY1',NDAY1
@@ -112,6 +116,7 @@ c --- - print namelist on stdout
         write (lp,*) 'RUNTYP ',trim(RUNTYP)
         write (lp,*) 'GRFILE ',trim(GRFILE)
         write (lp,*) 'ICFILE ',trim(ICFILE)
+        write (lp,*) 'PREF',PREF
         write (lp,*) 'BACLIN',BACLIN
         write (lp,*) 'BATROP',BATROP
         write (lp,*) 'MDV2HI',MDV2HI
@@ -172,46 +177,14 @@ c --- - print namelist on stdout
         write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'SPRFAC',SPRFAC
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
+        write (lp,*) 'ITEST',ITEST
+        write (lp,*) 'JTEST',JTEST
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
         write (lp,*) 'IOTYPE',IOTYPE
 c
-c --- - determine number of regions for meridional overturning and flux
-c --- - diagnostics and print namelist
-        mer_nreg=1
-        do while (mer_regnam(mer_nreg).ne.'')
-          mer_nreg=mer_nreg+1
-          if (mer_nreg.gt.odm) exit
-        enddo
-        mer_nreg=mer_nreg-1
-c
-        do m=1,mer_nreg
-          mer_nflg(m)=1
-          do while (mer_regflg(m,mer_nflg(m)).ne.-1)
-            mer_nflg(m)=mer_nflg(m)+1
-            if (mer_nflg(m).gt.rflgdm) exit
-          enddo
-          mer_nflg(m)=mer_nflg(m)-1
-        enddo
-c
-        write (lp,*)
-        write (lp,*) 'rdlim: BLOM MERDIA NAMELIST GROUP:'
-        write (lp,*) 'MER_ORFILE ',trim(mer_orfile)
-        write (lp,*) 'MER_MIFILE ',trim(mer_mifile)
-        do m=1,mer_nreg
-          write (lp,*)
-          write (lp,*) 'MER_REGNAM ',trim(mer_regnam(m))
-          write (lp,*) 'MER_MINLAT ',mer_minlat(m)
-          write (lp,*) 'MER_MAXLAT ',mer_maxlat(m)
-          write (lp,*) 'MER_REGFLG ',(mer_regflg(m,n),n=1,mer_nflg(m))
-        enddo
-c
-        write (lp,*)
-        write (lp,*) 'rdlim: BLOM SECDIA NAMELIST GROUP:'
-        write (lp,*) 'SEC_SIFILE ',trim(sec_sifile)
-c
-c --- - determine number of io groups and print namelist
+c --- - determine number of io groups and print diaphy namelist
         nphy=0  
         do n=1,nphymax 
           if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
@@ -376,7 +349,7 @@ c --- - determine number of io groups and print namelist
 c
       endif
 c
-c --- broadcast variables set by namelists
+c --- broadcast variables set by limits and diaphy namelists
 c
       call xcbcst(nday1)
       call xcbcst(nday2)
@@ -387,6 +360,7 @@ c
       call xcbcst(runtyp)
       call xcbcst(grfile)
       call xcbcst(icfile)
+      call xcbcst(pref)
       call xcbcst(baclin)
       call xcbcst(batrop)
       call xcbcst(mdv2hi)
@@ -448,15 +422,12 @@ c
       call xcbcst(smtfrc)
       call xcbcst(sprfac)
       call xcbcst(atm_path)
+      call xcbcst(itest)
+      call xcbcst(jtest)
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
       call xcbcst(rstcmp)
       call xcbcst(iotype)
-c
-      call xcbcst(mer_nreg)
-      do m=1,mer_nreg
-        call xcbcst(mer_regnam(m))
-      enddo
 c
       call xcbcst(H2D_ABSWND)
       call xcbcst(H2D_ALB)
@@ -617,6 +588,86 @@ c
 c
       call xcbcst(nphy)
 c
+c --- read merdia namelist if needed
+c
+      if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
+     .       +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
+     .       +MSC_MHFLD(1:nphy)+MSC_MSFLX(1:nphy)+MSC_MSFTD(1:nphy)
+     .       +MSC_MSFLD(1:nphy)).ne.0) then
+c
+        if (mnproc.eq.1) then
+c
+          open (unit=nfu,file=nlfnm,status='old',action='read',recl=80)
+          read (unit=nfu,nml=MERDIA,iostat=ios)
+          close (unit=nfu)
+          if (ios.ne.0) then
+            write (lp,*) 'rdlim: mertra namelist required!'
+            call xchalt('(rdlim)')
+                   stop '(rdlim)'
+          endif
+c
+c --- --- determine number of regions for meridional overturning and
+c --- --- flux diagnostics and print namelist
+          mer_nreg=1
+          do while (mer_regnam(mer_nreg).ne.'')
+            mer_nreg=mer_nreg+1
+            if (mer_nreg.gt.odm) exit
+          enddo
+          mer_nreg=mer_nreg-1
+c
+          do m=1,mer_nreg
+            mer_nflg(m)=1
+            do while (mer_regflg(m,mer_nflg(m)).ne.-1)
+              mer_nflg(m)=mer_nflg(m)+1
+              if (mer_nflg(m).gt.rflgdm) exit
+            enddo
+            mer_nflg(m)=mer_nflg(m)-1
+          enddo
+c
+          write (lp,*)
+          write (lp,*) 'rdlim: BLOM MERDIA NAMELIST GROUP:'
+          write (lp,*) 'MER_ORFILE ',trim(mer_orfile)
+          write (lp,*) 'MER_MIFILE ',trim(mer_mifile)
+          do m=1,mer_nreg
+            write (lp,*)
+            write (lp,*) 'MER_REGNAM ',trim(mer_regnam(m))
+            write (lp,*) 'MER_MINLAT ',mer_minlat(m)
+            write (lp,*) 'MER_MAXLAT ',mer_maxlat(m)
+            write (lp,*) 'MER_REGFLG ',(mer_regflg(m,n),n=1,mer_nflg(m))
+          enddo
+c
+        endif
+c
+        call xcbcst(mer_nreg)
+        do m=1,mer_nreg
+          call xcbcst(mer_regnam(m))
+        enddo
+c
+      endif
+c
+c --- read secdia namelist if needed
+c
+      if (sum(MSC_VOLTR(1:nphy)).ne.0) then
+c
+        if (mnproc.eq.1) then
+c
+          open (unit=nfu,file=nlfnm,status='old',action='read',recl=80)
+          read (unit=nfu,nml=SECDIA,iostat=ios)
+          close (unit=nfu)
+          if (ios.ne.0) then
+            write (lp,*) 'rdlim: sectra namelist required!'
+            call xchalt('(rdlim)')
+                   stop '(rdlim)'
+          endif
+c
+          write (lp,*)
+          write (lp,*) 'rdlim: BLOM SECDIA NAMELIST GROUP:'
+          write (lp,*) 'SEC_SIFILE ',trim(sec_sifile)
+c
+        endif
+c
+      endif
+c
 c --- convert integer dates 
       date%year=sign(abs(idate)/10000,idate)
       date%month=abs(idate)/100-abs(date%year)*100
@@ -626,7 +677,8 @@ c --- convert integer dates
       date0%day=abs(idate0)-abs(date0%year)*10000-date0%month*100
 c
 c --- set atm_path length
-      if (expcnf.eq.'ben02syn'.or.expcnf.eq.'ben02clim') then
+      if (expcnf.eq.'ben02syn'.or.expcnf.eq.'ben02clim'.or.
+     .    expcnf.eq.'single_column') then
         atm_path_len=1
         do while (atm_path_len.lt.80.and.
      .            atm_path(atm_path_len:atm_path_len).ne.' ')
@@ -814,7 +866,7 @@ c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
         nstep2=nday2*nstep_in_day
 c
         if (csdiag) then
-          nstep2=nstep1+2
+          nstep2=nstep1+5
         endif
 c
       endif
@@ -842,7 +894,7 @@ c --- represent time between restarts in time steps
       rstann=.false.
       if (nint(rstfrq).eq.30) then
         rstmon=.true.
-      elseif (nint(rstfrq).eq.365) then
+      elseif (nint(rstfrq).ge.360.and.nint(rstfrq).le.366) then
         rstann=.true.
       endif
       rstfrq=nstep_in_day*max(1.,rstfrq)
@@ -860,7 +912,7 @@ c
         diagann_phy(n)=.false.
         if (GLB_AVEPERIO(n).eq.30) then
           diagmon_phy(n)=.true.
-        elseif (GLB_AVEPERIO(n).eq.365) then
+        elseif (GLB_AVEPERIO(n).ge.360.and.GLB_AVEPERIO(n).le.366) then
           diagann_phy(n)=.true.
         endif
 c
@@ -873,7 +925,7 @@ c
         fileann_phy(n)=.false.
         if (GLB_FILEFREQ(n).eq.30) then
           filemon_phy(n)=.true.
-        elseif (GLB_FILEFREQ(n).eq.365) then
+        elseif (GLB_FILEFREQ(n).ge.360.and.GLB_FILEFREQ(n).le.366) then
           fileann_phy(n)=.true.
         endif
       enddo
@@ -893,8 +945,8 @@ c
         write (lp,'(a,i10)') ' barotr. steps per barocl. step: ',lstep
         write (lp,'(2a)') ' runid:                          ',
      .    trim(runid)
-        write (lp,'(a,f10.4)') ' rstfrq:                         ',
-     .    rstfrq
+        write (lp,'(a,i10)') ' rstfrq:                         ',
+     .    nint(rstfrq/nstep_in_day)
         write (lp,'(a,l10)') ' rstmon:                         ',rstmon
         write (lp,'(a,l10)') ' rstann:                         ',rstann
         write (lp,*)
