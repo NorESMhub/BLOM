@@ -207,6 +207,10 @@ else
   set DO_NDEP   = .false.
   set NDEPFNAME = ""
 endif
+if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
+  echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
+  exit -1
+endif
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1349,15 +1353,16 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! CONTENTS:
 !
-! ATM_CO2   : Atmospheric CO2 concentration [ppmv]
-! FEDEPFILE : File name (incl. full path) for iron (dust) deposition data
-! SWACLIMFILE: File name (incl. full path) for swa climatology field 
-! DO_RIVINPT: Logical switch to activate riverine input
-! RIVINFILE : File name (incl. full path) for riverine input data
-! DO_NDEP   : Logical switch to activate N-deposition
-! NDEPFILE  : File name (incl. full path) for atmopheric N-deposition data
-! INIXXX    : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
-!             OXY, NO3, SIL, D13C, and D14C
+! ATM_CO2     : Atmospheric CO2 concentration [ppmv]
+! FEDEPFILE   : File name (incl. full path) for iron (dust) deposition data
+! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed 
+!               if bromoform scheme is activated)
+! DO_RIVINPT  : Logical switch to activate riverine input
+! RIVINFILE   : File name (incl. full path) for riverine input data
+! DO_NDEP     : Logical switch to activate N-deposition
+! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
+!               OXY, NO3, SIL, D13C, and D14C
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
   FEDEPFILE  = $FEDEPFILE
