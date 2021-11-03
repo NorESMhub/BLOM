@@ -187,7 +187,7 @@
       </pes>
     </mach>
   </grid>
-  <grid name="a%0.9x1.25.+oi%tnx1v4">
+  <grid name="a%0.9x1.25.+oi%tnx1v4|a%1.9x2.5.+oi%tnx1v4">
     <mach name="any">
       <pes pesize="M" compset="_DATM%CPLHIST.*_BLOM">
         <comment>none</comment>
