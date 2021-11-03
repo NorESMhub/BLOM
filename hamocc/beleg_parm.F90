@@ -217,7 +217,10 @@
 
 #ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
-      rbro=6.72e-7*rnit
+!JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
+!      rbro=2.*6.72e-7*rnit
+!JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6 
+      rbro=2.4e-6*rnit
       fbro1=1.0
       fbro2=1.0
 #endif

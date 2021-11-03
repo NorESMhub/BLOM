@@ -321,10 +321,8 @@
       a_sf = 1e-12 * a_sf
 #endif
 #ifdef BROMO
-!Henry's law constant for Bromoform from Quack and Wallace (2003; GBC)
+!Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
       a_bromo = exp(13.16 - 4973*(1/tk))
-! conversion from mol/(l * atm) to kmol/(m3 * pptv) 
-      a_bromo = 1e-12 * a_bromo
 #endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
@@ -459,8 +457,14 @@
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
 #ifdef BROMO
+! Quack and Wallace (2003) eq. 1
+! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
+! Convert Ca(atbrf) from 
+!  [pptv]    to [ppp]      by multiplying with 1e-12 (ppp = parts per part, dimensionless)
+!  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
+!  [mol L-1] to [kmol m-3] by multiplying with 1 
       flx_bromo=kw_bromo*dtbgc*                                         &
-     & (a_bromo*atbrf*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,ibromo))
+     & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
       ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
 #endif
 
