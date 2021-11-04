@@ -148,6 +148,24 @@
      .      write (lp,*) 'export_mct: co2 flux not sent to coupler'
       endif
 
+      ! ----------------------------------------------------------------
+      ! Pack bromoform flux (kg CHBr3/m^2/s), if requested
+      ! ----------------------------------------------------------------
+
+      if (index_o2x_Faoo_fbrf_ocn > 0) then
+        n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               o2x_o%rAttr(index_o2x_Faoo_fbrf_ocn,n) =
+     .            sbuff(i,j,index_o2x_Faoo_fbrf_ocn)*tfac
+            enddo
+         enddo
+      else
+         if (mnproc.eq.1)
+     .     write (lp,*) 'export_mct: bromoform flux not sent to coupler'
+      endif
+
       tlast_coupled = 0._r8
 
       !-----------------------------------------------------------------

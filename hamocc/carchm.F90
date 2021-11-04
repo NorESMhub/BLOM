@@ -150,7 +150,9 @@
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
 #endif
-
+#ifdef BROMO
+      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
+#endif
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -192,6 +194,9 @@
 #ifdef cisonew
 !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
+#endif
+#ifdef BROMO
+!$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 #endif
 !$OMP  ,j,i)
       DO k=1,kpke
@@ -282,6 +287,11 @@
       sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
       sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
 #endif
+#ifdef BROMO
+! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
+! (2003; GBC)
+      sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
+#endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -310,9 +320,13 @@
       a_12 = 1e-12 * a_12
       a_sf = 1e-12 * a_sf
 #endif
+#ifdef BROMO
+!Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
+      a_bromo = exp(13.16 - 4973*(1/tk))
+#endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
-       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted to ms-1/(ms-1)^2 
+       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
        kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
        kwo2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sco2)**0.5 
        kwn2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scn2)**0.5 
@@ -323,7 +337,12 @@
        kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
        kw_sf = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_sf)**0.5
 #endif
-
+#ifdef BROMO
+! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
+!  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
+       kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
+     &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
+#endif
 
        atco2 = atm(i,j,iatmco2)
        ato2  = atm(i,j,iatmo2)
@@ -331,6 +350,9 @@
 #ifdef cisonew
        atco213 = atm(i,j,iatmc13)
        atco214 = atm(i,j,iatmc14)
+#endif
+#ifdef BROMO
+       atbrf = atm(i,j,iatmbromo)
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
@@ -347,7 +369,6 @@
        natfluxu=natpco2         *kwco2*dtbgc*Kh*1e-6*rrho 
        natfluxu=min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
 #endif
-
 
 ! Calculate saturation DIC concentration in mixed layer
        ta = ocetra(i,j,k,ialkali) / rrho
@@ -417,6 +438,7 @@
        atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
       ENDIF
 
+! Use conversion of 9.86923e-6 [std atm / Pascal]
 ! Surface flux of cfc11
       flx11=kw_11*dtbgc*                                               &
      & (a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))
@@ -434,6 +456,17 @@
 ! Surface flux of dms
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
+#ifdef BROMO
+! Quack and Wallace (2003) eq. 1
+! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
+! Convert Ca(atbrf) from 
+!  [pptv]    to [ppp]      by multiplying with 1e-12 (ppp = parts per part, dimensionless)
+!  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
+!  [mol L-1] to [kmol m-3] by multiplying with 1 
+      flx_bromo=kw_bromo*dtbgc*                                         &
+     & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+      ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
+#endif
 
 
 ! Save surface fluxes 
@@ -441,7 +474,7 @@
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
        atmflx(i,j,iatmn2o)=n2oflux
-       atmflx(i,j,iatmdms)=dmsflux ! [kmol dms m-2 timestep-1]
+       atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
        atmflx(i,j,iatmc14)=flux14u-flux14d
@@ -453,6 +486,9 @@
 #endif
 #ifdef natDIC
        atmflx(i,j,iatmnco2)=natfluxu-natfluxd
+#endif
+#ifdef BROMO
+       atmflx(i,j,iatmbromo)=-flx_bromo
 #endif
 
 ! Save up- and downward components of carbon fluxes for output
@@ -476,7 +512,15 @@
 
 
       endif ! k==1
-
+#ifdef BROMO
+! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
+! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1 
+       Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
+       ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
+! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
+       lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
+       ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
+#endif
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 

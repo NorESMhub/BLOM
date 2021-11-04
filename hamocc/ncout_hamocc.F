@@ -172,6 +172,10 @@ c --- finalize accumulation
       call finlyr(jnatomegaa(iogrp),jdp(iogrp))
       call finlyr(jnatomegac(iogrp),jdp(iogrp))
 #endif
+#ifdef BROMO
+      call finlyr(jbromo(iogrp),jdp(iogrp))
+#endif
+
 c
 c --- Mask sea floor in mass fluxes
       call msksrf(jcarflx0100(iogrp),k0100)
@@ -249,6 +253,10 @@ c --- Mask sea floor in level data
       call msklvl(jlvlnatomegaa(iogrp),depths)
       call msklvl(jlvlnatomegac(iogrp),depths)
 #endif
+#ifdef BROMO
+      call msklvl(jlvlbromo(iogrp),depths)
+#endif
+
 c
 c --- Compute log10 of pH
       if (LYR_PH(iogrp).ne.0) call loglyr(jph(iogrp),1.,0.) 
@@ -413,6 +421,22 @@ c --- Store 2d fields
      .  rnacc*12./dtbgc,0.,cmpflg,'natco2fx',
      .  'Natural CO2 flux',' ','kg C m-2 s-1')
 #endif
+#ifdef BROMO
+      call wrtsrf(jbromofx(iogrp),SRF_BROMOFX(iogrp),rnacc*1e3/dtbgc,
+     .  0.,cmpflg,'bromofx','Bromoform flux',' ','mol CHBr3 m-2 s-1')
+      call wrtsrf(jsrfbromo(iogrp),SRF_BROMO(iogrp),rnacc*1e3,0.,
+     .  cmpflg,'srfbromo','Surface bromoform',' ','mol CHBr3 m-3')
+      call wrtsrf(jbromo_prod(iogrp),INT_BROMOPRO(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'intbromoprod',
+     .  'Integrated bromoform production',' ','mol CHBr3 m-2 s-1')
+      call wrtsrf(jbromo_uv(iogrp),INT_BROMOUV(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'intbromouv',
+     .  'Integrated bromoform loss to photolysis',' ',
+     .  'mol CHBr3 m-2 s-1')
+      call wrtsrf(jatmbromo(iogrp),SRF_ATMBROMO(iogrp),rnacc,0.,     
+     .  cmpflg,'atmbromo','Atmospheric bromoform',' ','ppt')
+#endif
+
 
       call wrtsrf(jatmco2(iogrp),SRF_ATMCO2(iogrp),rnacc,0.,cmpflg,     
      .  'atmco2','Atmospheric CO2',' ','ppm')
@@ -541,6 +565,11 @@ c --- Store 3d layer fields
       call wrtlyr(jnatomegac(iogrp),LYR_NATOMEGAC(iogrp),1.,0.,cmpflg,  
      .  'natomegac','Natural OmegaC',' ','-')
 #endif
+#ifdef BROMO
+      call wrtlyr(jbromo(iogrp),LYR_BROMO(iogrp),1e3,0.,cmpflg,            
+     .  'bromo','Bromoform',' ','mol CHBr3 m-3')
+#endif
+
 c
 c --- Store 3d level fields
       call wrtlvl(jlvldic(iogrp),LVL_DIC(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -663,6 +692,11 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
 #endif
+#ifdef BROMO
+      call wrtlvl(jlvlbromo(iogrp),LVL_BROMO(iogrp),rnacc*1e3,0.,  
+     .  cmpflg,'bromolvl','Bromoform',' ','mol CHBr3 m-3')
+#endif
+
 c
 c --- Store sediment fields
 #ifndef sedbypass
@@ -765,6 +799,14 @@ c --- Initialise fields
       call inisrf(jnatpco2(iogrp),0.)       
       call inisrf(jnatco2fx(iogrp),0.)       
 #endif
+#ifdef BROMO
+      call inisrf(jsrfbromo(iogrp),0.)       
+      call inisrf(jbromofx(iogrp),0.)       
+      call inisrf(jbromo_prod(iogrp),0.)        
+      call inisrf(jbromo_uv(iogrp),0.)        
+      call inisrf(jatmbromo(iogrp),0.)        
+#endif
+
 
       call inisrf(jatmco2(iogrp),0.)        
 #if defined(BOXATM)
@@ -835,6 +877,10 @@ c
       call inilyr(jnatomegaa(iogrp),0.)       
       call inilyr(jnatomegac(iogrp),0.)       
 #endif
+#ifdef BROMO
+      call inilyr(jbromo(iogrp),0.)       
+#endif
+
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -894,6 +940,10 @@ c
       call inilvl(jlvlnatomegaa(iogrp),0.)       
       call inilvl(jlvlnatomegac(iogrp),0.)       
 #endif
+#ifdef BROMO
+      call inilvl(jlvlbromo(iogrp),0.)       
+#endif
+
 c
 #ifndef sedbypass
       call inisdm(jpowaic(iogrp),0.)       
@@ -1055,6 +1105,19 @@ c
       call ncdefvar3d(SRF_NATCO2FX(iogrp),
      .  cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
 #endif
+#ifdef BROMO
+      call ncdefvar3d(SRF_BROMO(iogrp),cmpflg,'p','srfbromo',
+     .   'Surface bromoform',' ','mol CHBr3 m-3',0)
+      call ncdefvar3d(SRF_BROMOfx(iogrp),cmpflg,'p','bromofx',
+     .   'Surface bromoform flux',' ','mol CHBr3 m-2 s-1',0)
+      call ncdefvar3d(INT_BROMOPRO(iogrp),cmpflg,'p','intbromoprod',
+     .   'Integrated bromoform production',' ','mol CHBr3 m-2 s-1',0)
+      call ncdefvar3d(INT_BROMOUV(iogrp),cmpflg,'p','intbromouv',
+     .   'Integrated bromoform loss to photolysis',' ',
+     .   'mol CHBr3 m-2 s-1',0)
+      call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',
+     .  'atmbromo','Atmospheric bromoform',' ','ppt',0)
+#endif
 
       call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',
      .  'atmco2','Atmospheric CO2',' ','ppm',0)
@@ -1182,6 +1245,11 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_NATOMEGAC(iogrp),cmpflg,'p','natomegac',
      .  'Natural OmegaC',' ','1',1)
 #endif
+#ifdef BROMO
+      call ncdefvar3d(LYR_BROMO(iogrp),cmpflg,'p',            
+     .  'bromo','Bromoform',' ','mol CHBr3 m-3',1)
+#endif
+
 c
 c --- define 3d level fields
       call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',      
@@ -1291,6 +1359,10 @@ c --- define 3d level fields
      .  'natomegaalvl','Natural OmegaA',' ','1',2)
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
+#endif
+#ifdef BROMO
+      call ncdefvar3d(LVL_BROMO(iogrp),cmpflg,'p',  
+     .  'bromolvl','Bromoform',' ','mol CHBr3 m-3',2)
 #endif
 c
 c --- define sediment fields

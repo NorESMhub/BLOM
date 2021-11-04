@@ -127,6 +127,10 @@
 #ifdef natDIC
       call accsrf(jnatco2fx,atmflx(1,1,iatmnco2),omask,0)
 #endif
+#ifdef BROMO
+      call accsrf(jatmbromo,atm(1,1,iatmbromo),omask,0)
+      call accsrf(jbromofx,atmflx(1,1,iatmbromo),omask,0)
+#endif
 #ifdef cisonew
       call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
       call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
@@ -167,6 +171,11 @@
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
       call accsrf(jnatpco2,natpco2d,omask,0)
+#endif
+#ifdef BROMO
+      call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
+      call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
+      call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
 #endif
 
 ! Accumulate the diagnostic mass sinking field 
@@ -251,6 +260,9 @@
       call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
       call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
 #endif
+#ifdef BROMO
+      call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
+#endif
 
 
 ! Accumulate level diagnostics
@@ -262,7 +274,7 @@
      &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+       &
      &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
      &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+       &
-     &  jlvlcfc11+jlvlcfc12+jlvlsf6).NE.0) THEN
+     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
@@ -322,6 +334,9 @@
           call acclvl(jlvlcfc11,ocetra(1,1,1,icfc11),k,ind1,ind2,wghts)
           call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
           call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
+#endif
+#ifdef BROMO
+          call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
 #endif
         ENDDO
       ENDIF

@@ -45,7 +45,8 @@
       USE mo_biomod
       USE mo_sedmnt,      only: claydens,o2ut,rno3
       USE mo_control_bgc, only: dtb,io_stdo_bgc
-      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14
+      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,               &
+                                iatmc13,iatmc14,iatmbromo
       USE mod_xc,         only: mnproc
 
       implicit none      
@@ -72,6 +73,11 @@
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
 #endif
+#ifdef BROMO
+!For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+!BE UPDATED WITH Ziska et al. (2013) climatology database
+      atm_bromo = 3.4
+#endif
 
 #ifdef cisonew
 ! set standard carbon isotope ratios
@@ -92,6 +98,7 @@
       c14fac   = atm_c14/atm_co2
 #endif
 
+
 ! Initialise atmosphere fields. We use a 2D representation of atmospheric
 ! fields for simplicity, even for cases where actually only a scalar value 
 ! is used. The overhead of this is small. If an atm-field is present in
@@ -107,6 +114,9 @@
 #ifdef cisonew
         atm(i,j,iatmc13)  = atm_c13
         atm(i,j,iatmc14)  = atm_c14/c14fac
+#endif
+#ifdef BROMO
+        atm(i,j,iatmbromo)= atm_bromo
 #endif
       ENDDO
       ENDDO
@@ -205,6 +215,15 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
+#ifdef BROMO
+!Bromoform to phosphate ratio (Hense and Quack, 2009)
+!JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
+!      rbro=2.*6.72e-7*rnit
+!JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6 
+      rbro=2.4e-6*rnit
+      fbro1=1.0
+      fbro2=1.0
+#endif
 
 #ifdef AGG
       rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio
@@ -225,6 +244,7 @@
       ctochl  = 60.        ! C to Chlorophyl ratio
       atten_w = 0.04       ! yellow substances attenuation in 1/m
       atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m 
+      atten_uv= 0.33       ! 
       atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer 
                            ! (only if FB_BGC_OCE) [feedback bgc-ocean]
       	
