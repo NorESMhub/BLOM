@@ -43,6 +43,7 @@ module blom_cpl_indices
   integer :: index_o2x_Fioo_q
   integer :: index_o2x_Faoo_fco2_ocn
   integer :: index_o2x_Faoo_fdms_ocn
+  integer :: index_o2x_Faoo_fbrf_ocn
 
   ! drv -> ocn
 
@@ -51,6 +52,7 @@ module blom_cpl_indices
   integer :: index_x2o_Sa_pslv         ! sea-level pressure               (Pa)
   integer :: index_x2o_Sa_co2prog      ! bottom atm level prognostic CO2
   integer :: index_x2o_Sa_co2diag      ! bottom atm level diagnostic CO2
+  integer :: index_x2o_Sa_brfprog      ! bottom atm level prognostic bromoform (ppt)
   integer :: index_x2o_Faxa_nhx        ! nitrogen deposition (nhx) flux from atm (kgNm2/sec)
   integer :: index_x2o_Faxa_noy        ! nitrogen deposition (noy) flux from atm (kgNm2/sec)
 
@@ -126,6 +128,7 @@ contains
     index_o2x_Fioo_q        = mct_avect_indexra(o2x,'Fioo_q')
     index_o2x_Faoo_fco2_ocn = mct_avect_indexra(o2x,'Faoo_fco2_ocn',perrWith='quiet')
     index_o2x_Faoo_fdms_ocn = mct_avect_indexra(o2x,'Faoo_fdms_ocn',perrWith='quiet')
+    index_o2x_Faoo_fbrf_ocn = mct_avect_indexra(o2x,'Faoo_fbrf_ocn',perrWith='quiet')
     index_x2o_Si_ifrac      = mct_avect_indexra(x2o,'Si_ifrac')
     index_x2o_Sa_pslv       = mct_avect_indexra(x2o,'Sa_pslv')
     index_x2o_So_duu10n     = mct_avect_indexra(x2o,'So_duu10n')
@@ -169,6 +172,7 @@ contains
     index_x2o_Faxa_dstwet4  = mct_avect_indexra(x2o,'Faxa_dstwet4')
     index_x2o_Sa_co2prog    = mct_avect_indexra(x2o,'Sa_co2prog',perrWith='quiet')
     index_x2o_Sa_co2diag    = mct_avect_indexra(x2o,'Sa_co2diag',perrWith='quiet')
+    index_x2o_Sa_brfprog    = mct_avect_indexra(x2o,'Sa_brfprog',perrWith='quiet')
     index_x2o_Faxa_nhx      = mct_avect_indexra(x2o,'Faxa_nhx',perrWith='quiet')
     index_x2o_Faxa_noy      = mct_avect_indexra(x2o,'Faxa_noy',perrWith='quiet')
 

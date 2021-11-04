@@ -87,6 +87,8 @@
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
      & SRF_NATCO2FX  =0    ,                                            &
+     & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
+     & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
@@ -109,6 +111,7 @@
      & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
      & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
      & LYR_NATCO3    =0    ,                                            &
+     & LYR_BROMO     =0    ,                                            &
      & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
@@ -127,6 +130,7 @@
      & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
      & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
      & LVL_NATCO3    =0    ,                                            &
+     & LVL_BROMO     =0    ,                                            &
      & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
@@ -154,6 +158,8 @@
      & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
      & SRF_NATCO2FX      ,                                              &
+     & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
+     & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
@@ -176,6 +182,7 @@
      & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
      & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
      & LYR_NATCO3        ,                                              &
+     & LYR_BROMO         ,                                              &
      & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
      & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
      & LYR_DOC13         ,LYR_CALC13        ,                           &
@@ -194,6 +201,7 @@
      & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
      & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
      & LVL_NATCO3        ,                                              &
+     & LVL_BROMO         ,                                              &
      & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
      & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
      & LVL_DOC13         ,LVL_CALC13        ,                           &
@@ -281,6 +289,11 @@
      &          jnatpco2   = 0 ,                                        &
      &          jnatco2fx  = 0
 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jbromofx   = 0 ,                                        &
+     &          jsrfbromo  = 0 ,                                        &
+     &          jbromo_prod= 0 ,                                        &
+     &          jbromo_uv  = 0
 
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -288,7 +301,8 @@
      &          jatmo2   = 0 ,                                          &
      &          jatmn2   = 0 ,                                          &
      &          jatmc13  = 0 ,                                          &
-     &          jatmc14  = 0  
+     &          jatmc14  = 0 ,                                          &
+     &          jatmbromo= 0  
 
       INTEGER, SAVE :: nbgcm2d 
 
@@ -404,6 +418,10 @@
      &          jlvlnatph     = 0 ,                                     &
      &          jlvlnatomegaa = 0 ,                                     &
      &          jlvlnatomegac = 0 
+
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jbromo     = 0 ,                                        &
+     &          jlvlbromo  = 0               
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
@@ -626,6 +644,16 @@
         IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
 #endif
+#ifdef BROMO 
+        IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
+        IF (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromofx(n)=i_bsc_m2d*min(1,SRF_BROMOFX(n))
+        IF (INT_BROMOPRO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
+        IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
+#endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -651,6 +679,10 @@
         jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
         IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
+#endif
+#if defined(BROMO) 
+        IF (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
 #endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
@@ -770,6 +802,10 @@
         IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
 #endif
+#ifdef BROMO
+        IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -878,6 +914,10 @@
         jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
         IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
+#endif
+#ifdef BROMO
+        IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
 #endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1

@@ -84,6 +84,7 @@ def buildcpp(case):
     hamocc_nattrc = case.get_value("HAMOCC_NATTRC")
     hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_ciso = case.get_value("HAMOCC_CISO")
+    hamocc_vsls = case.get_value("HAMOCC_VSLS")
 
     blom_cppdefs = ""
 
@@ -130,6 +131,8 @@ def buildcpp(case):
                 if hamocc_ciso:
                     expect(hamocc_sedbypass, "HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE")
                     blom_cppdefs = blom_cppdefs + " -Dcisonew"
+                if hamocc_vsls:
+                    blom_cppdefs = blom_cppdefs + " -DBROMO"
                 if co2type == "prognostic":
                     blom_cppdefs = blom_cppdefs + " -DPROGCO2"
                 elif co2type == "diagnostic":
