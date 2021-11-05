@@ -1,144 +1,45 @@
-#! /bin/csh -f 
-cd $1
-set CONFIG_OCN_FILE = `./xmlquery CONFIG_OCN_FILE --value`
-set CASEROOT = `./xmlquery CASEROOT --value`
-set SRCROOT = `./xmlquery  SRCROOT --value`
-set EXEROOT = `./xmlquery  EXEROOT --value`
-set OBJROOT = `./xmlquery  OBJROOT --value`
-set OCN_GRID = `./xmlquery OCN_GRID --value`
-set CONFIG_OCN_DIR = `dirname $CONFIG_OCN_FILE`
-set NTASKS_OCN = `./xmlquery NTASKS_OCN --value`
-set DIN_LOC_ROOT = `./xmlquery DIN_LOC_ROOT --value`
-set RUN_TYPE = `./xmlquery RUN_TYPE --value`
-set CASEBUILD = `./xmlquery CASEBUILD --value`
-set CCSM_CO2_PPMV = `./xmlquery CCSM_CO2_PPMV --value`
-set OCN_NCPL = `./xmlquery OCN_NCPL --value`
-set BLOM_COUPLING = `./xmlquery BLOM_COUPLING --value`
-set RUNDIR = `./xmlquery  RUNDIR --value`
-set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
-set BLOM_TURBULENT_CLOSURE = `./xmlquery BLOM_TURBULENT_CLOSURE --value`
-set HAMOCC_CFC = `./xmlquery HAMOCC_CFC --value`
-set HAMOCC_NATTRC = `./xmlquery HAMOCC_NATTRC --value`
-set HAMOCC_SEDBYPASS = `./xmlquery HAMOCC_SEDBYPASS --value`
-set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
-set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
-set GMAKE = `./xmlquery GMAKE --value`
-set GMAKE_J = `./xmlquery  GMAKE_J --value`
-set OCN_CO2_TYPE = `./xmlquery OCN_CO2_TYPE --value`
-set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
+#!/usr/bin/env python
 
-cd $OBJROOT/ocn/obj
+"""
+build blom library
+"""
+import os, shutil, sys, glob, imp
 
-#------------------------------------------------------------------------------
-# Set list of file paths and resolve C preprocessor macros
-#------------------------------------------------------------------------------
+_CIMEROOT = os.environ.get("CIMEROOT")
+if _CIMEROOT is None:
+    raise SystemExit("ERROR: must set CIMEROOT environment variable")
+sys.path.append(os.path.join(_CIMEROOT, "scripts", "Tools"))
 
-cat >! Filepath << EOF1
-$OBJROOT/ocn/obj/dimensions
-$CASEROOT/SourceMods/src.blom
-$SRCROOT/components/blom/ben02
-$SRCROOT/components/blom/cesm
-$SRCROOT/components/blom/fuk95
-$SRCROOT/components/blom/channel
-$SRCROOT/components/blom/single_column
-$SRCROOT/components/blom/drivers/cpl_share
-$SRCROOT/components/blom/drivers/cpl_mct
-$SRCROOT/components/blom/phy
-EOF1
+from standard_script_setup import *
 
-set turbclo = (`echo $BLOM_TURBULENT_CLOSURE`)
-set tracers = (`echo $BLOM_TRACER_MODULES`)
-set co2type = (`echo $OCN_CO2_TYPE`)
+from CIME.case import Case
+from CIME.utils import run_cmd, expect
+from CIME.buildlib import parse_input
 
-set cpp_ocn = "-DMPI"
-if ($OCN_GRID == tnx2v1 || $OCN_GRID == tnx1.5v1 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4 || $OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4 || $OCN_GRID == tnx0.125v4) then
-  set cpp_ocn = "$cpp_ocn -DARCTIC"
-endif
-if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6 || $OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4  ||$OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4 || $OCN_GRID == tnx0.125v4) then
-  set cpp_ocn = "$cpp_ocn -DLEVITUS2X"
-endif
-if ($#turbclo != 0 || $#tracers != 0) then
-  echo $SRCROOT/components/blom/trc >> Filepath
-  set cpp_ocn = "$cpp_ocn -DTRC"
-endif
-if ($#turbclo != 0) then
-  set twoeq = FALSE
-  set oneeq = FALSE
-  foreach option ($turbclo)
-    if      ($option == twoeq) then
-      set cpp_ocn = "$cpp_ocn -DTKE -DGLS"
-      set twoeq = TRUE
-    else if ($option == oneeq) then
-      set cpp_ocn = "$cpp_ocn -DTKE"
-      set oneeq = TRUE
-    else if ($option == advection) then
-      set cpp_ocn = "$cpp_ocn -DTKEADV"
-    else if ($option == isodif) then
-      set cpp_ocn = "$cpp_ocn -DTKEIDF"
-    else
-      echo $0": Turbulent closure option $option is not recognized!"
-      exit -1
-    endif
-  end
-  if ($twoeq == 'FALSE' && $oneeq == 'FALSE') then
-    echo $0": For turbulent closure either twoeq or oneeq must be provided as options!"
-    exit -1
-  endif
-  if ($twoeq == 'TRUE' && $oneeq == 'TRUE') then
-    echo $0": Do not use both twoeq and oneeq as options for turbulent closure!"
-    exit -1
-  endif
-endif
-if ($#tracers != 0) then
-  foreach module ($tracers)
-    if      ($module == iage) then
-      echo $SRCROOT/components/blom/idlage >> Filepath
-      set cpp_ocn = "$cpp_ocn -DIDLAGE"
-    else if ($module == ecosys) then
-      echo $SRCROOT/components/blom/hamocc >> Filepath
-      set cpp_ocn = "$cpp_ocn -DHAMOCC -DRESTART_BGC -DWLIN"
-      if ($HAMOCC_CFC == TRUE) then
-        set cpp_ocn = "$cpp_ocn -DCFC"
-      endif       
-      if ($HAMOCC_NATTRC == TRUE) then
-        set cpp_ocn = "$cpp_ocn -DnatDIC"
-      endif       
-      if ($HAMOCC_SEDBYPASS == TRUE) then
-        set cpp_ocn = "$cpp_ocn -Dsedbypass"
-      endif       
-      if ($HAMOCC_CISO == TRUE) then
-        if($HAMOCC_SEDBYPASS == FALSE) then
-          echo $0": HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE."
-          exit -1
-        endif
-        set cpp_ocn = "$cpp_ocn -Dcisonew"
-      endif       
-      if ($HAMOCC_VSLS == TRUE) then
-        set cpp_ocn = "$cpp_ocn -DBROMO"
-      endif       
-      if ($co2type == prognostic) then
-        set cpp_ocn = "$cpp_ocn -DPROGCO2"
-      else if ($co2type == diagnostic) then
-        set cpp_ocn = "$cpp_ocn -DDIAGCO2"
-      else if ($co2type != constant) then
-        echo $0": CO2 type $co2type is not recognized!"
-        exit -1
-      endif
-    else
-      echo $0": tracer module $module is not recognized!"
-      exit -1
-    endif
-  end
-endif
+logger = logging.getLogger(__name__)
 
-#------------------------------------------------------------------------------
-# Build the library
-#------------------------------------------------------------------------------
+###############################################################################
+def _main_func():
+###############################################################################
 
-gmake complib -j $GMAKE_J MODEL=blom COMPLIB=$LIBROOT/libocn.a MACFILE=$CASEROOT/Macros.$MACH USER_CPPDEFS="$cpp_ocn" -f $CASETOOLS/Makefile || exit 2
+    caseroot, libroot, bldroot = parse_input(sys.argv)
 
-if !(-f $LIBROOT/libocn.a) then
-  echo "ERROR: blom library not available"
-  exit -1
-endif
+    # run buildlib variant based on detection of cesm/cime version
 
+    comp_root_dir_ocn = Case(caseroot).get_value("COMP_ROOT_DIR_OCN")
+
+    if os.path.exists(os.path.join(caseroot,"env_workflow.xml")):
+        cmd = "{} {} {} {}".format(os.path.join(comp_root_dir_ocn, "cime_config", "buildlib_2.2"), caseroot, libroot, bldroot)
+        rc, out, err = run_cmd(cmd)
+        expect(rc == 0, "Command %s failed rc=%d\nout=%s\nerr=%s" % (cmd, rc, out, err))
+        print(out)
+    else:
+        cmd = "{} {} {} {}".format(os.path.join(comp_root_dir_ocn, "cime_config", "buildlib_2.1"), caseroot, libroot, bldroot)
+        rc, out, err = run_cmd(cmd)
+        expect(rc == 0, "Command %s failed rc=%d\nout=%s\nerr=%s" % (cmd, rc, out, err))
+        print(out)
+
+###############################################################################
+
+if __name__ == "__main__":
+    _main_func()

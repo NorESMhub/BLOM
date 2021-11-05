@@ -4,12 +4,8 @@
 # Get variables from Case XML-files
 #------------------------------------------------------------------------------
 
-set CONFIG_OCN_FILE = `./xmlquery CONFIG_OCN_FILE --value`
 set CASEROOT = `./xmlquery CASEROOT --value`
-set EXEROOT = `./xmlquery EXEROOT --value`
 set OCN_GRID = `./xmlquery OCN_GRID --value`
-set CONFIG_OCN_DIR1 = `dirname $CONFIG_OCN_FILE`
-set NTASKS_OCN = `./xmlquery NTASKS_OCN --value` 
 set DIN_LOC_ROOT = `./xmlquery  DIN_LOC_ROOT --value`
 set RUN_TYPE = `./xmlquery RUN_TYPE --value`
 set CONTINUE_RUN = `./xmlquery CONTINUE_RUN --value`
@@ -28,8 +24,6 @@ set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
 set NINST_OCN = `./xmlquery NINST_OCN --value`
-cd $EXEROOT/ocn/obj
-set CONFIG_OCN_DIR = $CONFIG_OCN_DIR1/../
 
 #------------------------------------------------------------------------------
 # Check if HAMOCC is requested
@@ -43,22 +37,6 @@ if ($#tracers != 0) then
       set ecosys = TRUE
     endif
   end
-endif
-
-#------------------------------------------------------------------------------
-# Make dimensions.F
-#------------------------------------------------------------------------------
-
-set dimdir = $EXEROOT/ocn/obj/dimensions
-mkdir -p $dimdir
-set kdm = `cat $CONFIG_OCN_DIR/bld/$OCN_GRID/kdm`
-$CONFIG_OCN_DIR/bld/blom_dimensions -n $NTASKS_OCN -k $kdm -d $CONFIG_OCN_DIR/bld/$OCN_GRID || exit -1
-set recompile = FALSE
-cmp -s dimensions.F $dimdir/dimensions.F || set recompile = TRUE
-if ($recompile == 'TRUE') then
-  mv dimensions.F $dimdir
-else
-  rm dimensions.F
 endif
 
 #------------------------------------------------------------------------------
