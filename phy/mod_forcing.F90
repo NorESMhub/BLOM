@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2020 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2002-2021 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !

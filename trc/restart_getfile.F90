@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2021 T. Torsvik
+! Copyright (C) 2021 Tomas Torsvik
 !
 ! This file is part of BLOM.
 !

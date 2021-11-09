@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2021 Mats Bentsen, Alok Kumar Gupta, Mehmet Ilicak,
+!                         Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !

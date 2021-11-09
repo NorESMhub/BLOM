@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2011-2020 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
-!                         Ingo Bethke
+! Copyright (C) 2011-2021 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
+!                         Ingo Bethke, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !

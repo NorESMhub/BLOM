@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2021 Mats Bentsen, Alok Kumar Gupta, Tomas Torsvik
 !
 ! This file is part of BLOM.
 !
