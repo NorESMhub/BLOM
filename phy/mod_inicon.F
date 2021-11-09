@@ -397,7 +397,7 @@ c --- variables consistent.
 c --- ------------------------------------------------------------------
 c
       do k=1,2
-        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+        tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
@@ -413,7 +413,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
       enddo
       do k=3,kk
-        tfrz(:,:)=swtfrz(p(:,:,1),saln(:,:,k))
+        tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
