@@ -42,6 +42,7 @@ $SRCROOT/components/blom/channel
 $SRCROOT/components/blom/single_column
 $SRCROOT/components/blom/drivers/cpl_share
 $SRCROOT/components/blom/drivers/cpl_mct
+$SRCROOT/components/blom/pkgs/CVMix-src/src/shared
 $SRCROOT/components/blom/phy
 EOF1
 
