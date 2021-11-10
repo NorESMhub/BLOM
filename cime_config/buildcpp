@@ -91,7 +91,7 @@ def buildcpp(case):
     if ocn_grid in ["tnx2v1", "tnx1.5v1", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
         blom_cppdefs = blom_cppdefs + " -DARCTIC"
 
-    if ocn_grid in ["gx1v5", "gx1v6", "tnx2v1", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
+    if ocn_grid in ["gx1v5", "gx1v6", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
         blom_cppdefs = blom_cppdefs + " -DLEVITUS2X"
 
     if turbclo != 0 or tracers != 0:
