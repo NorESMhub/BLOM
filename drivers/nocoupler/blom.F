@@ -36,7 +36,7 @@ c
 c --- advance the model from time step nstep1 to nstep2
       blom_loop: do
         call blom_step
-        if (nstep.eq.nstep2) exit blom_loop
+        if (nstep.ge.nstep2) exit blom_loop
       enddo blom_loop
 c
 c --- write check sum of layer thickness
