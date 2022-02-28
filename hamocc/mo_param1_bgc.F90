@@ -135,10 +135,20 @@
       INTEGER, PARAMETER :: i_bromo=0,                                  &
      &                      ibromo=-1
 #endif
-
+#ifdef extNcycle
+      INTEGER, PARAMETER :: i_extn=2,                                   &
+     &                      iano2 = i_base+i_iso+i_cfc+i_agg+i_nat_dic  &
+     &                             +i_bromo+1,                          &
+     &                      ianh4 = i_base+i_iso+i_cfc+i_agg+i_nat_dic  &
+     &                             +i_bromo+2
+#else
+      INTEGER, PARAMETER :: i_extn=0,                                   &
+     &                      iano2 = -1,                                 &
+     &                      ianh4 = -1    
+#endif
 ! total number of advected tracers
       INTEGER, PARAMETER :: nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic  &
-                                    +i_bromo
+                                    +i_bromo+i_extn
 
 
 ! ATMOSPHERE
