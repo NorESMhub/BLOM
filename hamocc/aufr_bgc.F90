@@ -127,7 +127,7 @@
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
+      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn
 #ifdef cisonew
       REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
@@ -333,6 +333,26 @@
       ENDIF
 #endif
 
+! Find out whether to restart extended nitrogen cycle
+#ifdef extNcycle
+      lread_extn=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'anh4',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_extn=.false.
+      ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'anh4',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_extn=.false.
+#endif
+      ENDIF
+      IF(mnproc==1 .and. .not. lread_extn) THEN
+        WRITE(io_stdo_bgc,*) ' '
+        WRITE(io_stdo_bgc,*) 'AUFR_BGC info: extended nitrogen cycle tracer not in restart file '
+        WRITE(io_stdo_bgc,*) 'Initialising extended nitrogen cycle from scratch'
+      ENDIF
+#endif
+
 ! Find out whether to restart atmosphere
 #if defined(BOXATM)
       lread_atm=.true.
@@ -422,6 +442,12 @@
 #ifdef BROMO
       IF(lread_bro) THEN
       CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
+      ENDIF
+#endif
+#ifdef extNcycle
+      IF(lread_extn) THEN
+      CALL read_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0,iotype)
+      CALL read_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0,iotype)
       ENDIF
 #endif
 

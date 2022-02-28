@@ -552,7 +552,15 @@
 #endif
 #ifdef BROMO
       CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,           &
-     &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
+     &    6,'mol/kg',9,'Bromoform',rmissing,53,io_stdo_bgc)
+#endif
+#ifdef extNcycle
+      CALL NETCDF_DEF_VARDB(ncid,4,'anh4',3,ncdimst,ncvarid,            &
+     &    6,'mol/kg',18,'Dissolved ammonium',                           &
+          rmissing,54,io_stdo_bgc)
+      CALL NETCDF_DEF_VARDB(ncid,4,'ano2',3,ncdimst,ncvarid,            &
+     &    6,'mol/kg',17,'Dissolved nitrite',                            &
+          rmissing,55,io_stdo_bgc)
 #endif
 
 !
@@ -836,6 +844,10 @@
 #endif
 #ifdef BROMO
       CALL write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
+#endif
+#ifdef extNcycle
+      CALL write_netcdf_var(ncid,'anh4',locetra(1,1,1,ianh4),2*kpke,0)
+      CALL write_netcdf_var(ncid,'ano2',locetra(1,1,1,iano2),2*kpke,0)
 #endif
 
 !
