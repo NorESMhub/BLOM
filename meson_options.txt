@@ -25,6 +25,8 @@ option('hamocc_sedbypass', type: 'boolean',
        description: 'Bypass sediment code in HAMOCC', value: true)
 option('hamocc_ciso', type: 'boolean',
        description: 'Enable carbon isotopes in HAMOCC', value: false)
+option('hamocc_extNcycle', type: 'boolean',
+       description: 'Enable extended nitrogen cycle in HAMOCC', value: false)
 option('levitus2x', type: 'boolean',
        description: 'Enable level diagnostics at double resolution of standard Levitus depths', value: true)
 # Build configuration

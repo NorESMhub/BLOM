@@ -118,6 +118,9 @@ if get_option('ecosys')
     endif
     add_project_arguments('-Dcisonew', language: 'fortran')
   endif
+  if get_option('hamocc_extNcycle')
+    add_project_arguments('-DextNcycle', language: 'fortran')
+  endif
   subdir('hamocc')
 endif
 
