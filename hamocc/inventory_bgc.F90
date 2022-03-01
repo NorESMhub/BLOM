@@ -498,6 +498,9 @@
       totalnitr=                                                      &
      &   (zocetrato(idet)+zocetrato(idoc)+zocetrato(iphy)             &
      &  +zocetrato(izoo))*rnit+zocetrato(iano3)+zocetrato(igasnit)*2  &
+#ifdef extNcycle
+     &  +zocetrato(ianh4)+zocetrato(iano2)                            &
+#endif
      &  +zpowtrato(ipowno3)+zpowtrato(ipown2)*2                       &
      &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                &
      &  +zocetrato(ian2o)*2                                           &
@@ -525,6 +528,9 @@
      &  +zocetrato(izoo))*(-24.)+zocetrato(ioxygen)                   &
      &  +zocetrato(iphosph)*2 +zocetrato(isco212)+zocetrato(icalc)    &
      &  +zocetrato(iano3)*1.5+zocetrato(ian2o)*0.5                    & 
+#ifdef extNcycle
+     &  +zocetrato(iano2)                                             &
+#endif
      &  +zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)               &
 !     &  +zburial(issso12)*(-24.)   +   zburial(isssc12)               &
      &  +zpowtrato(ipowno3)*1.5+zpowtrato(ipowaic)                    &
