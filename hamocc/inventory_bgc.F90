@@ -421,13 +421,12 @@
       CALL xcsum(zatmn2,ztmp1,ips)
 #endif
 
-!      IF (mnproc.eq.1) THEN
-!      WRITE(io_stdo_bgc,*) ' '
-!      WRITE(io_stdo_bgc,*) 'CO2Flux  :',co2flux
-!      WRITE(io_stdo_bgc,*) 'O2 Flux  :',so2flux
-!      WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
-!      WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
-!      WRITE(io_stdo_bgc,*) ' '
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*) ' '
+      WRITE(io_stdo_bgc,*) 'CO2Flux  :',co2flux
+      WRITE(io_stdo_bgc,*) 'O2 Flux  :',so2flux
+      WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
+      WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
 #if defined(BOXATM)	      
 !      WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',          &
 !     &                               zatmco2/ztotarea,zatmco2*ppm2con       
@@ -435,9 +434,9 @@
 !     &                               zatmo2/ztotarea,zatmo2*ppm2con 
 !      WRITE(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',          &
 !     &                               zatmn2/ztotarea,zatmn2*ppm2con 
-!      ENDIF
-     
 #endif
+      WRITE(io_stdo_bgc,*) ' '
+      ENDIF
 
 ! Complete sum of inventory in between bgc.f90
 
