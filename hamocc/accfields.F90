@@ -52,7 +52,7 @@
       use mo_param1_bgc 
       use mo_vgrid, only: dp_min
       use mod_xc
-
+      use mod_config, only: expcnf
       implicit none
       INTEGER :: kpie,kpje,kpke
       REAL    :: pdlxp(kpie,kpje)
@@ -375,6 +375,16 @@
           nacc_bgc(l)=0
         endif
       ENDDO
+
+!     jm 
+      IF(expcnf.eq.'single_column') THEN
+        IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)' '
+         WRITE(io_stdo_bgc,*)'after BGC flux accumulation: call INVENTORY'
+        ENDIF
+        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+      ENDIF
+
 
      RETURN
      END

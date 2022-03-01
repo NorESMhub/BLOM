@@ -333,15 +333,6 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
-!     jm 
-      IF(expcnf.eq.'single_column') THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'after BGC: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
-
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
