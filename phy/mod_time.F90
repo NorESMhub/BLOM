@@ -51,9 +51,9 @@ module mod_time
       nstep0, &       ! Time step number at experiment start. Always zero in
                       ! standalone configurations and non-zero when coupled to
                       ! CESM.
-      nstep1, &       ! First time step number of current integration, counting
+      nstep1 = -1, &  ! First time step number of current integration, counting
                       ! from experiment start.
-      nstep2, &       ! Last time step number of current integration, counting
+      nstep2 = -1, &  ! Last time step number of current integration, counting
                       ! from experiment start (only used in standalone
                       ! configurations)
       nstep, &        ! Current time step number, counting from experiment

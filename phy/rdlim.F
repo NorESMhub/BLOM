@@ -79,6 +79,7 @@ c
      .  atm_path,
      .  itest,jtest,
      .  rstfrq,rstfmt,rstcmp,iotype
+     . ,nstep2
 c
 c --- read limits and diaphy namelists
       if (mnproc.eq.1) then
@@ -353,6 +354,7 @@ c --- broadcast variables set by limits and diaphy namelists
 c
       call xcbcst(nday1)
       call xcbcst(nday2)
+      call xcbcst(nstep2)
       call xcbcst(idate)
       call xcbcst(idate0)
       call xcbcst(runid)
@@ -863,7 +865,9 @@ c --- - model is to be integrated from time step 'nstep1' to 'nstep2'
         time0=0.
         nstep0=0
         nstep1=nday1*nstep_in_day
-        nstep2=nday2*nstep_in_day
+        if(nstep2 == -1) then ! nstep2 has not been defined inside the namelist
+          nstep2=nday2*nstep_in_day
+        end if
 c
         if (csdiag) then
           nstep2=nstep1+5
