@@ -384,7 +384,7 @@
         ENDIF
         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       ENDIF
-
+      atmflx(:,:,:)=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
 
      RETURN
      END

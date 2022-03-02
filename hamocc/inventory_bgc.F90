@@ -60,7 +60,9 @@
       USE mo_param1_bgc 
       use mo_vgrid, only: dp_min
       USE mod_xc
-      
+!jm
+      USE mod_config, only: expcnf
+
       implicit none
 
       INTEGER :: kpie,kpje,kpke,i,j,k,l,volchck
@@ -364,7 +366,24 @@
       ENDDO
 
       CALL xcsum(so2flux,ztmp1,ips)
+!jm
+      IF(expcnf.eq.'single_column') THEN ! enable time step wise cal of fluxes in single col mode
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = atmflx(i,j,iatmn2)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+         CALL xcsum(sn2flux,ztmp1,ips)
 
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = atmflx(i,j,iatmn2o)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+         CALL xcsum(sn2oflux,ztmp1,ips)
+      ELSE
       ztmp1(:,:)=0.0
       DO j=1,kpje
       DO i=1,kpie
@@ -382,6 +401,7 @@
       ENDDO
 
       CALL xcsum(sn2oflux,ztmp1,ips)
+      ENDIF ! single column
 
       ztmp1(:,:)=0.0
       DO j=1,kpje
