@@ -226,7 +226,8 @@
      &          jprcaca   =7,                                           &
      &          jsilpro   =8,                                           &
      &          jprodus   =9,                                           &
-     &          nbgct2d   =9
+     &          jndep     =10,                                          &
+     &          nbgct2d   =10
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 

@@ -103,6 +103,7 @@
         bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
         bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
         bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
+        bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
     
         endif
       enddo
@@ -385,6 +386,6 @@
         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       ENDIF
       atmflx(:,:,:)=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
-
+      ndepflx=0.
      RETURN
      END

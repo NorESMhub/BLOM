@@ -81,6 +81,7 @@
       REAL :: zhito,zco3to,sum,zprorca,zprcaca,zsilpro
       REAL :: zatmco2,zatmo2,zatmn2
       REAL :: co2flux,so2flux,sn2flux,sn2oflux
+      REAL :: sndepflux
       REAL :: totalcarbon,totalphos,totalsil,totalnitr,totaloxy
       REAL :: ppm2con, co2atm
 
@@ -329,6 +330,7 @@
       so2flux  =0.
       sn2flux  =0.
       sn2oflux =0.
+      sndepflux=0.
       zatmco2  =0.
       zatmo2   =0.
       zatmn2   =0.
@@ -340,6 +342,7 @@
         so2flux =so2flux +bgct2d(i,j,jo2flux) *dlxp(i,j)*dlyp(i,j)
         sn2flux =sn2flux +bgct2d(i,j,jn2flux) *dlxp(i,j)*dlyp(i,j)
         sn2oflux=sn2oflux+bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
+        sndepflux=sndepflux+bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
         ztotarea = ztotarea + dlxp(i,j)*dlyp(i,j)
         zatmco2 =zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
 #if defined(BOXATM)
@@ -383,6 +386,15 @@
           ENDDO
          ENDDO
          CALL xcsum(sn2oflux,ztmp1,ips)
+
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = ndepflx(i,j)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+         CALL xcsum(sndepflux,ztmp1,ips)
+
       ELSE
       ztmp1(:,:)=0.0
       DO j=1,kpje
@@ -401,6 +413,16 @@
       ENDDO
 
       CALL xcsum(sn2oflux,ztmp1,ips)
+
+      ztmp1(:,:)=0.0
+      DO j=1,kpje
+      DO i=1,kpie
+        ztmp1(i,j) = bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
+      ENDDO
+      ENDDO
+      CALL xcsum(sndepflux,ztmp1,ips)
+
+
       ENDIF ! single column
 
       ztmp1(:,:)=0.0
@@ -447,6 +469,7 @@
       WRITE(io_stdo_bgc,*) 'O2 Flux  :',so2flux
       WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
       WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
+      WRITE(io_stdo_bgc,*) 'NdepFlux :',sndepflux
 #if defined(BOXATM)	      
 !      WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',          &
 !     &                               zatmco2/ztotarea,zatmco2*ppm2con       
@@ -525,10 +548,11 @@
      &  +zocetrato(ian2o)*2                                           &
      &  +zprorca*rnit                                                 &
 #if defined(BOXATM)
-    &  +zatmn2*ppm2con*2                        
+    &  +zatmn2*ppm2con*2                                              &             
 #else
-     & +sn2flux*2+sn2oflux*2
+     & +sn2flux*2+sn2oflux*2                                          &
 #endif     
+     & - sndepflux
 
       totalphos=                                                      &
      &   zocetrato(idet)+zocetrato(idoc)+zocetrato(iphy)              &
@@ -556,10 +580,11 @@
      &  +zpowtrato(ipowaox)+zpowtrato(ipowaph)*2                      &
      &  +zprorca*(-24.)+zprcaca                                       & 
 #if defined(BOXATM)
-     &  +zatmo2*ppm2con+zatmco2*ppm2con
+     &  +zatmo2*ppm2con+zatmco2*ppm2con                               &
 #else
-     & +so2flux+sn2oflux*0.5+co2flux
+     & +so2flux+sn2oflux*0.5+co2flux                                  &
 #endif     
+     & - sndepflux*1.5
 
       IF (mnproc.eq.1) THEN
 !      WRITE(io_stdo_bgc,*) ' '
