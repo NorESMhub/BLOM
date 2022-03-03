@@ -216,6 +216,8 @@
 
 !----------------------------------------------------------------      
 ! declarations for inventory_bgc.F90
+! order and increments of river (jir...) indices require to be the same 
+! as in mo_riverinpt 
       INTEGER, parameter ::                                             &
      &          jco2flux  =1,                                           &
      &          jco214f   =2,                                           &
@@ -226,7 +228,15 @@
      &          jprcaca   =7,                                           &
      &          jsilpro   =8,                                           &
      &          jprodus   =9,                                           &
-     &          nbgct2d   =9
+     &          jndep     =10,                                          &
+     &          jirdin    =11,                                          &
+     &          jirdip    =12,                                          &
+     &          jirsi     =13,                                          &
+     &          jiralk    =14,                                          &
+     &          jiriron   =15,                                          &
+     &          jirdoc    =16,                                          &
+     &          jirdet    =17,                                          &
+     &          nbgct2d   =17
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
