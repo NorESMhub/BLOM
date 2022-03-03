@@ -60,9 +60,8 @@
       USE mo_param1_bgc 
       use mo_vgrid, only: dp_min
       USE mod_xc
-!jm
       USE mod_config, only: expcnf
-      USE mo_riverinpt, only: rivinflx,irdin,irdip,irsi,iralk,iriron,&
+      USE mo_riverinpt, only: rivinflx,irdin,irdip,irsi,iralk, &
                              & irdoc,irdet,nriv  
 
       implicit none
@@ -334,6 +333,7 @@
       sn2flux  =0.
       sn2oflux =0.
       sndepflux=0.
+      srivflux =0.
       zatmco2  =0.
       zatmo2   =0.
       zatmn2   =0.
@@ -345,7 +345,6 @@
         so2flux =so2flux +bgct2d(i,j,jo2flux) *dlxp(i,j)*dlyp(i,j)
         sn2flux =sn2flux +bgct2d(i,j,jn2flux) *dlxp(i,j)*dlyp(i,j)
         sn2oflux=sn2oflux+bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
-        sndepflux=sndepflux+bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
         ztotarea = ztotarea + dlxp(i,j)*dlyp(i,j)
         zatmco2 =zatmco2 + atm(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
 #if defined(BOXATM)
@@ -389,14 +388,15 @@
           ENDDO
          ENDDO
          CALL xcsum(sn2oflux,ztmp1,ips)
-
-         ztmp1(:,:)=0.0
-         DO j=1,kpje
-          DO i=1,kpie
-           ztmp1(i,j) = ndepflx(i,j)*dlxp(i,j)*dlyp(i,j)
+         IF(do_ndep)THEN
+          ztmp1(:,:)=0.0
+          DO j=1,kpje
+           DO i=1,kpie
+            ztmp1(i,j) = ndepflx(i,j)*dlxp(i,j)*dlyp(i,j)
+           ENDDO
           ENDDO
-         ENDDO
-         CALL xcsum(sndepflux,ztmp1,ips)
+          CALL xcsum(sndepflux,ztmp1,ips)
+         ENDIF
       ELSE ! accumulated fluxes
       ztmp1(:,:)=0.0
       DO j=1,kpje
@@ -415,15 +415,15 @@
       ENDDO
 
       CALL xcsum(sn2oflux,ztmp1,ips)
-
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(sndepflux,ztmp1,ips)
+      IF(do_ndep)THEN
+       ztmp1(:,:)=0.0
+        DO j=1,kpje
+         DO i=1,kpie
+          ztmp1(i,j) = bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
+         ENDDO
+        ENDDO
+        CALL xcsum(sndepflux,ztmp1,ips)
+      ENDIF
       ENDIF ! single column time step-wise check
 
       ztmp1(:,:)=0.0
@@ -464,7 +464,8 @@
       CALL xcsum(zatmn2,ztmp1,ips)
 #endif
 
-!------------------------riverine fluxes   
+!------------------------riverine fluxes  
+      IF(do_rivinpt)THEN 
       IF(expcnf.eq.'single_column') THEN 
         DO l=1,nriv
          ztmp1(:,:)=0.0
@@ -486,7 +487,7 @@
          CALL xcsum(srivflux(l),ztmp1,ips)
       ENDDO
       ENDIF ! single column
-
+      ENDIF
 !---------------------- fluxes summary 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) ' '
@@ -494,11 +495,13 @@
       WRITE(io_stdo_bgc,*) 'O2 Flux  :',so2flux
       WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
       WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
-      WRITE(io_stdo_bgc,*) 'NdepFlux :',sndepflux
-      WRITE(io_stdo_bgc,*) 'Riverine fluxes:'
-      DO l=1,nriv
+      IF(do_ndep) WRITE(io_stdo_bgc,*) 'NdepFlux :',sndepflux
+      IF(do_rivinpt)THEN
+        WRITE(io_stdo_bgc,*) 'Riverine fluxes:'
+        DO l=1,nriv
          WRITE(io_stdo_bgc,*) 'No. ',l,srivflux(l)
-      ENDDO
+        ENDDO
+      ENDIF
 
 #if defined(BOXATM)	      
 !      WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',          &
@@ -594,7 +597,7 @@
       totalsil=                                                       &
      &   zocetrato(isilica)+zocetrato(iopal)                          & 
      &  +zpowtrato(ipowasi)+zsedlayto(issssil)+zburial(issssil)       &
-     &  +zsilpro 
+     &  +zsilpro
 
       totaloxy=                                                       &
      &  (zocetrato(idet)+zocetrato(idoc)+zocetrato(iphy)              &
