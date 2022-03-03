@@ -52,6 +52,7 @@
       use mo_param1_bgc 
       use mo_vgrid, only: dp_min
       use mod_xc
+      use mo_riverinpt, only: irdin,irdip,irsi,iralk,iriron,irdoc,irdet,rivinflx
       use mod_config, only: expcnf
       implicit none
       INTEGER :: kpie,kpje,kpke
@@ -104,6 +105,13 @@
         bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
         bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
         bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
+        bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
+        bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
+        bgct2d(i,j,jirsi)    = bgct2d(i,j,jirsi)    + rivinflx(i,j,irsi)/2.0
+        bgct2d(i,j,jiralk)   = bgct2d(i,j,jiralk)   + rivinflx(i,j,iralk)/2.0
+        bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0
+        bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0
+        bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0
     
         endif
       enddo
@@ -387,5 +395,6 @@
       ENDIF
       atmflx(:,:,:)=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepflx=0.
+      rivinflx=0.
      RETURN
      END
