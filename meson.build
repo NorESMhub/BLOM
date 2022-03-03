@@ -121,6 +121,15 @@ if get_option('ecosys')
   if get_option('hamocc_extNcycle')
     add_project_arguments('-DextNcycle', language: 'fortran')
   endif
+  if get_option('hamocc_debug_timestep')
+    add_project_arguments('-DPBGC_OCNP_TIMESTEP','-DPBGC_CK_TIMESTEP', language: 'fortran')
+  endif
+  if get_option('hamocc_pbgc_ocnp_timestep')
+    add_project_arguments('-DPBGC_OCNP_TIMESTEP', language: 'fortran')
+  endif
+  if get_option('hamocc_pbgc_ck_timestep')
+    add_project_arguments('-DPBGC_CK_TIMESTEP', language: 'fortran')
+  endif
   subdir('hamocc')
 endif
 

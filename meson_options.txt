@@ -27,6 +27,14 @@ option('hamocc_ciso', type: 'boolean',
        description: 'Enable carbon isotopes in HAMOCC', value: false)
 option('hamocc_extNcycle', type: 'boolean',
        description: 'Enable extended nitrogen cycle in HAMOCC', value: false)
+#HAMOCC debugging options:
+option('hamocc_debug_timestep', type: 'boolean',
+       description: 'Debug HAMOCC on timestep basis', value: false)
+option('hamocc_pbgc_ocnp_timestep', type: 'boolean',
+       description: 'Debug HAMOCC only PBGC_OCNP_TIMESTEP', value: false)
+option('hamocc_pbgc_ck_timestep', type: 'boolean',
+       description: 'Debug HAMOCC only PBGC_CK_TIMESTEP', value: false)
+#----
 option('levitus2x', type: 'boolean',
        description: 'Enable level diagnostics at double resolution of standard Levitus depths', value: true)
 # Build configuration
