@@ -66,7 +66,7 @@ use mod_xc ,        only: mnproc,nbdy
 implicit none
 
 private
-public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile
+public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile,rivinflx
 public :: irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 integer,         parameter :: nriv     = 7    ! size of river input field
@@ -77,7 +77,8 @@ integer,         parameter :: irdin    = 1, & ! dissolved inorganic nitrogen
                               iriron   = 5, & ! dissolved bioavailable iron
                               irdoc    = 6, & ! dissolved organic carbon
                               irdet    = 7    ! particulate carbon
-real,save,allocatable      :: rivflx(:,:,:)
+real,save,allocatable      :: rivflx(:,:,:)   ! holds raw input file
+real,save,allocatable      :: rivinflx(:,:,:) ! holds the fluxes per timestep for inventory calc
 
 ! File name (incl. full path) for input data, set through namelist 
 ! in hamocc_init.F 
@@ -140,6 +141,20 @@ subroutine ini_riverinpt(kpie,kpje,omask)
   ALLOCATE (rivflx(kpie,kpje,nriv),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory rivflx'
   rivflx(:,:,:) = 0.0
+
+  ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
+  IF (mnproc.eq.1) THEN
+  WRITE(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
+  WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+  WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+  WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
+  ENDIF
+
+  ALLOCATE (rivinflx(kpie,kpje,nriv),stat=errstat)
+  if(errstat.ne.0) stop 'not enough memory rivinflx'
+  rivinflx(:,:,:) = 0.0
+
+
 
   ! Return if riverine input is turned off
   if (.not. do_rivinpt) then
@@ -230,6 +245,7 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 
   if (.not. do_rivinpt) return
 
+  rivinflx = 0.
 !$OMP PARALLEL DO PRIVATE(i,k,fdt,volij)
   DO j=1,kpje
   DO i=1,kpie
@@ -266,6 +282,13 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
       ocetra(i,j,1:kmle,idoc)       = ocetra(i,j,1:kmle,idoc)       + rivin(i,j,irdoc)*fdt/volij
       ocetra(i,j,1:kmle,idet)       = ocetra(i,j,1:kmle,idet)       + rivin(i,j,irdet)*fdt/volij
 
+      rivinflx(i,j,irdin)    = rivin(i,j,irdin)*fdt
+      rivinflx(i,j,irdip)    = rivin(i,j,irdip)*fdt
+      rivinflx(i,j,irsi)     = rivin(i,j,irsi)*fdt
+      rivinflx(i,j,iralk)    = rivin(i,j,iralk)*fdt
+      rivinflx(i,j,iriron)   = rivin(i,j,iriron)*fdt*0.01
+      rivinflx(i,j,irdoc)    = rivin(i,j,irdoc)*fdt
+      rivinflx(i,j,irdet)    = rivin(i,j,irdet)*fdt 
   ENDIF
 ENDDO
 ENDDO
