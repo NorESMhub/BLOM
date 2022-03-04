@@ -354,25 +354,24 @@
       enddo
       enddo
 
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = bgct2d(i,j,jco2flux)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(co2flux,ztmp1,ips)
-
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = bgct2d(i,j,jo2flux)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(so2flux,ztmp1,ips)
 
       IF(expcnf.eq.'single_column') THEN ! enable time step wise cal of fluxes in single col mode
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = atmflx(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+         CALL xcsum(co2flux,ztmp1,ips)
+
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = atmflx(i,j,iatmo2)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+         CALL xcsum(so2flux,ztmp1,ips)
+
          ztmp1(:,:)=0.0
          DO j=1,kpje
           DO i=1,kpie
@@ -398,32 +397,50 @@
           CALL xcsum(sndepflux,ztmp1,ips)
          ENDIF
       ELSE ! accumulated fluxes
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = bgct2d(i,j,jn2flux)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(sn2flux,ztmp1,ips)
-
-      ztmp1(:,:)=0.0
-      DO j=1,kpje
-      DO i=1,kpie
-        ztmp1(i,j) = bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
-      ENDDO
-      ENDDO
-
-      CALL xcsum(sn2oflux,ztmp1,ips)
-      IF(do_ndep)THEN
-       ztmp1(:,:)=0.0
-        DO j=1,kpje
-         DO i=1,kpie
-          ztmp1(i,j) = bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = bgct2d(i,j,jco2flux)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
          ENDDO
-        ENDDO
-        CALL xcsum(sndepflux,ztmp1,ips)
-      ENDIF
+
+         CALL xcsum(co2flux,ztmp1,ips)
+
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = bgct2d(i,j,jo2flux)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+
+         CALL xcsum(so2flux,ztmp1,ips)
+
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = bgct2d(i,j,jn2flux)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+
+         CALL xcsum(sn2flux,ztmp1,ips)
+
+         ztmp1(:,:)=0.0
+         DO j=1,kpje
+          DO i=1,kpie
+           ztmp1(i,j) = bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
+          ENDDO
+         ENDDO
+
+         CALL xcsum(sn2oflux,ztmp1,ips)
+         IF(do_ndep)THEN
+          ztmp1(:,:)=0.0
+          DO j=1,kpje
+           DO i=1,kpie
+            ztmp1(i,j) = bgct2d(i,j,jndep)*dlxp(i,j)*dlyp(i,j)
+           ENDDO
+          ENDDO
+          CALL xcsum(sndepflux,ztmp1,ips)
+         ENDIF
       ENDIF ! single column time step-wise check
 
       ztmp1(:,:)=0.0
@@ -568,7 +585,7 @@
      & +zocetrato(izoo))*rcar+zocetrato(isco212)+zocetrato(icalc)     & 
      & +zpowtrato(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
      & +zburial(isssc12)+zburial(issso12)*rcar+zprorca*rcar+zprcaca   & 
-     & +zatmco2*ppm2con  
+     & +zatmco2*ppm2con + co2flux 
 
       totalnitr=                                                      &
      &   (zocetrato(idet)+zocetrato(idoc)+zocetrato(iphy)             &
