@@ -88,7 +88,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   use mo_control_bgc
   use mo_vgrid
   use mo_clim_swa
-
+  use mod_xc, only: mnproc
   implicit none
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
