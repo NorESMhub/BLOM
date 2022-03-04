@@ -275,8 +275,24 @@
       ! Apply n-deposition
       CALL n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after N deposition: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
+
       ! Apply riverine input of carbon and nutrients
       call riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
+
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after river input: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
 
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
