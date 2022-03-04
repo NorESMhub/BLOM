@@ -385,7 +385,6 @@
         endif
       ENDDO
 
-!     jm 
       IF(expcnf.eq.'single_column') THEN
         IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*)' '
@@ -393,7 +392,7 @@
         ENDIF
         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       ENDIF
-      atmflx(:,:,:)=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
+      atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepflx=0.
       rivinflx=0.
      RETURN

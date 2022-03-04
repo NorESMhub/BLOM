@@ -645,7 +645,8 @@
      &              -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip)) 
         totalsil = totalsil-srivflux(irsi)
         totaloxy = totaloxy-(srivflux(irdoc)+srivflux(irdet))*(-24.)  &
-     &             - srivflux(irdin)*1.5 - srivflux(irdip)*2.
+     &             - srivflux(irdin)*1.5 - srivflux(irdip)*2.         &
+     &             -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
      ENDIF
 
   
