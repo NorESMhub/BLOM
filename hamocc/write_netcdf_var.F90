@@ -24,8 +24,9 @@
 ! The NETCDF File is only accessed by mnproc=1
 !
 !**************************************************************************
-      use netcdf
-      use mod_xc
+      use netcdf, only: nf90_noerr,nf90_inq_varid,nf90_strerror,       &
+                      & nf90_put_var
+      use mod_xc, only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
       use mod_dia, only : iotype      
       implicit none
 #ifdef PNETCDF

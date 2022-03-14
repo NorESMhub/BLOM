@@ -53,15 +53,17 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
-      USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
+      USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
       USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      USE mod_nctools
-      USE mo_param1_bgc, only: ks 
+      USE mod_nctools,only:ncpack,nccomp,nccopa,ncwrtr
+      USE netcdf, only: nf90_fill_double
+      USE mo_param1_bgc, only: ks
+      USE mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
       PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp                
-      PUBLIC :: ks,ddm,depthslev,depthslev_bnds
+      PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
 
 ! --- Averaging and writing frequencies for diagnostic output     
       INTEGER, SAVE :: nbgc
@@ -480,9 +482,7 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      USE mod_xc
-      USE mo_control_bgc
-      USE mo_param1_bgc 
+      USE mo_control_bgc, only: io_stdo_bgc,bgc_namelist
 
       IMPLICIT NONE 
      
@@ -2231,7 +2231,6 @@
       SUBROUTINE bgczlv(pddpo,kin,ind1,ind2,weights)
 !-----------------------------------------------------------------------
 !
-      USE mod_xc
 !
       IMPLICIT NONE
 !

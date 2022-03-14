@@ -43,7 +43,7 @@ c      and strong precipitation.
 c
 c***********************************************************************
 c
-      use mod_xc
+      use mod_xc, only: ii,jj,ips,ifp,isp,ilp,xcsum
       use mod_grid, only: scp2
       use mod_state, only: dp
       use mod_tracers, only: ntrbgc, itrbgc, trc

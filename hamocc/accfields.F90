@@ -44,16 +44,109 @@
 !     *REAL*    *omask*   - land/ocean mask
 !
 !**********************************************************************
-      USE mo_carbch
-      USE mo_sedmnt
-      USE mo_biomod
-      USE mo_bgcmean
-      USE mo_control_bgc
-      use mo_param1_bgc 
-      use mo_vgrid, only: dp_min
-      use mod_xc
-      use mo_riverinpt, only: irdin,irdip,irsi,iralk,iriron,irdoc,irdet,rivinflx
-      use mod_config, only: expcnf
+      USE mo_carbch, only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,   &
+                         & ndepflx,ocetra,omegaa,omegac,pco2d,satoxy 
+      USE mo_biomod, only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,&
+                         & bsiflx2000,bsiflx4000,                      &
+                         & calflx_bot,calflx0100,calflx0500,calflx1000,&
+                         & calflx2000,calflx4000,carflx_bot,carflx0100,&
+                         & carflx0500,carflx1000,carflx2000,carflx4000,&
+                         & expoca,expoor,exposi,intdms_bac,intdms_uv,  &
+                         & intdmsprod,intdnit,intnfix,intphosy,phosy3d
+      USE mod_dia, only: ddm
+      USE mod_xc, only: mnproc
+      USE mo_bgcmean, only: domassfluxes,jalkali,jano3,jasize,jatmco2, &
+                         & jbsiflx0100,jbsiflx0500,jbsiflx1000,        &
+                         & jbsiflx2000,jbsiflx4000,jbsiflx_bot,        &
+                         & jcalc,jcalflx0100,jcalflx0500,jcalflx1000,  &
+                         & jcalflx2000,jcalflx4000,jcalflx_bot,        &
+                         & jcarflx0100,jcarflx0500,jcarflx1000,        &
+                         & jcarflx2000,jcarflx4000,jcarflx_bot,        &
+                         & jco2flux,jco2fxd,jco2fxu,jco3,jdic,jdicsat, &
+                         & jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,    &
+                         & jdoc,jdp,jeps,jexpoca,jexport,jexposi,      &
+                         & jgrazer,   &
+                         & jintdnit,jintnfix,jintphosy,jiralk,jirdet,  &
+                         & jirdin,jirdip,jirdoc,jiriron,jiron,jirsi,   &
+                         & jkwco2,jlvlalkali,jlvlano3,jlvlasize,       &
+                         & jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,  &
+                         & jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,       &
+                         & jlvld14c,jlvldic,jlvldic13,jlvldic14,       &
+                         & jlvldicsat,jlvldoc,jlvldoc13,jlvleps,       &
+                         & jlvlgrazer,jlvlgrazer13,jlvliron,jlvln2o,   &
+                         & jlvlnatalkali,jlvlnatcalc,jlvlnatco3,       &
+                         & jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,     &
+                         & jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,    &
+                         & jlvlopal,jlvloxygen,jlvlph,jlvlphosph,      &
+                         & jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,    &
+                         & jlvlpoc13,jlvlprefalk,jlvlprefdic,          &
+                         & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,  &
+                         & jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,    &
+                         & jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,   &
+                         & jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,&
+                         & jph,jphosph,jphosy,jphyto,jpoc,jprefalk,    &
+                         & jprefdic,jprefo2,jprefpo4,jsilica,          &
+                         & jsrfalkali,jsrfano3,jsrfdic,jsrfiron,       &
+                         & jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica, &
+                         & jwnos,jwphy,                                &
+                         & nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,  &
+                         & acclvl,acclyr,accsrf,bgczlv
+      USE mo_control_bgc, only: io_stdo_bgc
+      USE mo_param1_bgc, only: ialkali,ian2o,iano3,iatmco2,iatmdms,    &
+                         & iatmn2,iatmn2o,iatmo2,icalc,idet,idms,      &
+                         & idicsat,idoc,iiron,iopal,ioxygen,iphosph,   &
+                         & iphy,iprefalk,iprefdic,iprefpo4,iprefo2,    &
+                         & isco212,isilica,izoo 
+      USE mo_riverinpt, only: irdin,irdip,irsi,iralk,iriron,irdoc,     &
+                         & irdet,rivinflx
+      USE mod_config, only: expcnf
+
+#ifdef AGG
+      USE mo_biomod, only: asize3d,eps3d,wnumb,wmass
+      USE mo_param1_bgc, only: inos
+      USE mo_control_bgc, only: dtb
+#endif
+#ifdef BROMO
+      USE mo_param1_bgc, only: iatmbromo,ibromo
+      USE mo_biomod, only: int_chbr3_prod,int_chbr3_uv
+      USE mo_bgcmean,only: jatmbromo,jbromo,jbromo_prod,jbromo_uv,     &
+                         & jbromofx,jsrfbromo
+#endif
+#ifdef CFC
+      USE mo_param1_bgc, only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,  &
+                             & isf6
+      USE mo_bgcmean, only: jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx
+#endif
+#ifdef cisonew
+      USE mo_carbch, only: co213fxd,co213fxu,co214fxd,co214fxu 
+      USE mo_biomod, only: c14fac,re1312,re14to
+      USE mo_vgrid, only: dp_min
+      USE mo_param1_bgc, only: iatmc13,iatmc14,icalc13,idet13,idoc13,  &
+                           & iphy13,isco213,isco214,izoo13,safediv
+      USE mo_bgcmean, only: jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,&
+                          & jco213fxu,jco214fxd,jco214fxu,jd13c,jd14c, &
+                          & jdic13,jdic14,jdoc13,jgrazer13,jphyto13,   &
+                          & jpoc13
+#endif
+#ifdef natDIC
+      USE mo_param1_bgc, only: iatmnco2,inatalkali,inatcalc,inatsco212
+      USE mo_carbch, only: natco3,nathi,natomegaa,natomegac,natpco2d
+      USE mo_bgcmean, only: jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,   &
+                           & jnatco3,jnatdic,jnatomegaa,jnatomegac,    &
+                           & jnatpco2,jnatph,jsrfnatalk,jsrfnatdic
+#endif
+#ifndef sedbypass
+      USE mo_param1_bgc, only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,&
+                           & ipown2, ipowno3,isssc12,issso12,issssil,  &
+                           & issster
+      USE mo_sedmnt, only: powtra,sedlay,burial
+      USE mo_bgcmean, only: jbursssc12,jburssso12,jburssssil,          &
+                          & jburssster,jpowaal,jpowaic,jpowaox,jpowaph,&
+                          & jpowaph,jpowasi,jpown2,jpowno3,jsssc12,    &
+                          & jssso12,jssssil,jssster,accbur,accsdm
+#endif
+
+
       implicit none
       INTEGER :: kpie,kpje,kpke
       REAL    :: pdlxp(kpie,kpje)

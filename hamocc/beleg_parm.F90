@@ -41,13 +41,44 @@
 !  *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !
 !******************************************************************************
-      USE mo_carbch
-      USE mo_biomod
+      USE mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar 
+      USE mo_biomod,      only:atten_c,atten_f,atten_uv,atten_w,bkopal,&
+                            & bkphy,bkopal,bkzoo,bluefix,ctochl,       &
+                            & dremn2o,dremopal,drempoc,dremsul,        &
+                            & dyphy,ecan,epsher,fesoly,fetune,gammap,  &
+                            & gammaz,grami,grazra,perc_diron,phytomi,  &
+                            & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,      &
+                            & rdnit0,rdnit1,rdnit2,relaxfe,remido,     &
+                            & riron,rnit,rnoi,ro2ut,ropal,spemor,tf0,  &
+                            & tf1,tf2,tff,wcal,wdust,                  &
+                            & wopal,wpoc,zinges 
       USE mo_sedmnt,      only: claydens,o2ut,rno3
       USE mo_control_bgc, only: dtb,io_stdo_bgc
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,               &
                                 iatmc13,iatmc14,iatmbromo
       USE mod_xc,         only: mnproc
+
+#ifdef AGG
+      USE mo_biomod, only: alar1,alar2,alar3,alow1,alow2,alow3,calmax, &
+                         & cellmass,cellsink,dustd1,dustd2,dustd3,     &
+                         & dustsink,     &
+                         & fractdim,fse,fsh,nmldmin,plower,pupper,     &
+                         & safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
+#elif defined(WLIN)
+      USE mo_biomod, only: wmin,wmax,wlin
+#endif
+#ifdef BROMO
+      USE mo_biomod, only: rbro
+      USE mo_carbch, only: atm_bromo,fbro1,fbro2
+#endif
+#ifdef cisonew
+      USE mo_biomod, only: bifr13,bifr14,c14fac,prei13,prei14,re1312,   &
+                         & re14to
+      USE mo_carbch, only: atm_c13, atm_c14,c14_t_half,c14dec
+#endif
+#ifdef natDIC
+      USE mo_carbch, only: atm_co2_nat
+#endif
 
       implicit none      
 
@@ -59,7 +90,7 @@
       REAL :: alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
 #ifdef AGG
-      REAL :: shear,snow
+      REAL :: shear
 #else
       REAL :: dustd1, dustd2, dustsink
 #endif
@@ -167,7 +198,8 @@
       wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
-#ifdef WLIN
+
+#if defined(WLIN) && ! defined(AGG)
       wmin  =  1.*dtb       !m/d   minimum sinking speed
       wmax  = 60.*dtb       !m/d   maximum sinking speed
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0

@@ -52,17 +52,29 @@
 !
 !**********************************************************************
     
-      USE mo_carbch
-      USE mo_sedmnt
-      USE mo_biomod
-      USE mo_control_bgc
-      USE mo_bgcmean
-      USE mo_param1_bgc 
+      USE mo_carbch, only: atm,atmflx,co3,hi,ndepflx,ocetra,sedfluxo
+      USE mo_sedmnt, only: prcaca,prorca,silpro
+      USE mo_biomod, only: expoor,expoca,exposi,rcar,rnit
+      USE mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
+      USE mo_bgcmean, only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,   &
+                          & jndep,jo2flux,jprcaca,jprorca,jsilpro 
+      USE mo_param1_bgc, only: ialkali,ian2o,iano3,iatmco2,iatmn2,     &
+                          & iatmn2o,iatmo2,icalc,idet,idoc,igasnit,    &
+                          & iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,&
+                          & ipowaph,ipowasi,ipown2,ipowno3,isco212,    &
+                          & isilica,isssc12,issso12,issssil,izoo,      &
+                          & nocetra,npowtra,nsedtra 
       use mo_vgrid, only: dp_min
-      USE mod_xc
+      USE mod_xc, only: mnproc,ips,nbdy,xcsum 
       USE mod_config, only: expcnf
       USE mo_riverinpt, only: rivinflx,irdin,irdip,irsi,iralk, &
                              & irdoc,irdet,nriv  
+# ifndef sedbypass
+      USE mo_param1_bgc, only: ks
+      USE mo_sedmnt, only: porwat,seddw,sedlay,burial,sedhpl,powtra,   &
+                         & porsol
+#endif
+
 
       implicit none
 
