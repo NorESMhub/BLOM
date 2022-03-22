@@ -742,7 +742,7 @@ subroutine write_netcdf(iogrp)
      write(tstamp,'(i4.4,a1,i2.2,a1,i2.2)')                                    &
           &    date%year,sep2,date%month,sep2,date%day
      fname_inv(iogrp) = prefix//sep1//trim(glb_fnametag(iogrp))//sep1//        &
-          &    'inv'//sep1//trim(tstamp)//'.nc'
+          &    'i'//sep1//trim(tstamp)//'.nc'
 
      !--- create a new netCDF file
      write(io_stdo_bgc,*) 'Create BGC inventory file : ',trim(fname_inv(iogrp))
