@@ -4786,6 +4786,8 @@ c
 c
       real*8     zero8
       parameter (zero8=0.0)
+
+      mnloc = 1
 c
 c     get total time.
 c
