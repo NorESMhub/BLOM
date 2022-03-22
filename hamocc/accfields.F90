@@ -53,7 +53,6 @@
       use mo_vgrid, only: dp_min
       use mod_xc
       use mo_riverinpt, only: irdin,irdip,irsi,iralk,iriron,irdoc,irdet,rivinflx
-      use mod_config, only: expcnf
       implicit none
       INTEGER :: kpie,kpje,kpke
       REAL    :: pdlxp(kpie,kpje)
@@ -385,13 +384,6 @@
         endif
       ENDDO
 
-      IF(expcnf.eq.'single_column') THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'after BGC flux accumulation: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
       atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepflx=0.
       rivinflx=0.

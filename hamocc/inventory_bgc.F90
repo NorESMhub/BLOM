@@ -60,7 +60,6 @@
       USE mo_param1_bgc 
       use mo_vgrid, only: dp_min
       USE mod_xc
-      USE mod_config, only: expcnf
       USE mo_riverinpt, only: rivinflx,irdin,irdip,irsi,iralk, &
                              & irdoc,irdet,nriv  
 
@@ -354,8 +353,8 @@
       enddo
       enddo
 
-
-      IF(expcnf.eq.'single_column') THEN ! enable time step wise cal of fluxes in single col mode
+#ifdef PBGC_CK_TIMESTEP
+         ! only consider instantaneous fluxes in debugging mode
          ztmp1(:,:)=0.0
          DO j=1,kpje
           DO i=1,kpie
@@ -387,6 +386,8 @@
           ENDDO
          ENDDO
          CALL xcsum(sn2oflux,ztmp1,ips)
+
+         ! nitrogen deposition
          IF(do_ndep)THEN
           ztmp1(:,:)=0.0
           DO j=1,kpje
@@ -396,14 +397,27 @@
           ENDDO
           CALL xcsum(sndepflux,ztmp1,ips)
          ENDIF
-      ELSE ! accumulated fluxes
+
+         ! river fluxes
+         IF(do_rivinpt)THEN
+          DO l=1,nriv
+           ztmp1(:,:)=0.0
+           DO j=1,kpje
+            DO i=1,kpie
+             ztmp1(i,j) = rivinflx(i,j,l)*dlxp(i,j)*dlyp(i,j)
+            ENDDO
+           ENDDO
+           CALL xcsum(srivflux(l),ztmp1,ips)
+          ENDDO
+         ENDIF
+#else
+         ! consider accumulated fluxes in the regular mode
          ztmp1(:,:)=0.0
          DO j=1,kpje
           DO i=1,kpie
            ztmp1(i,j) = bgct2d(i,j,jco2flux)*dlxp(i,j)*dlyp(i,j)
           ENDDO
          ENDDO
-
          CALL xcsum(co2flux,ztmp1,ips)
 
          ztmp1(:,:)=0.0
@@ -412,7 +426,6 @@
            ztmp1(i,j) = bgct2d(i,j,jo2flux)*dlxp(i,j)*dlyp(i,j)
           ENDDO
          ENDDO
-
          CALL xcsum(so2flux,ztmp1,ips)
 
          ztmp1(:,:)=0.0
@@ -421,7 +434,6 @@
            ztmp1(i,j) = bgct2d(i,j,jn2flux)*dlxp(i,j)*dlyp(i,j)
           ENDDO
          ENDDO
-
          CALL xcsum(sn2flux,ztmp1,ips)
 
          ztmp1(:,:)=0.0
@@ -430,8 +442,9 @@
            ztmp1(i,j) = bgct2d(i,j,jn2oflux)*dlxp(i,j)*dlyp(i,j)
           ENDDO
          ENDDO
-
          CALL xcsum(sn2oflux,ztmp1,ips)
+
+         ! nitrogen deposition fluxes
          IF(do_ndep)THEN
           ztmp1(:,:)=0.0
           DO j=1,kpje
@@ -441,7 +454,20 @@
           ENDDO
           CALL xcsum(sndepflux,ztmp1,ips)
          ENDIF
-      ENDIF ! single column time step-wise check
+         
+         ! River fluxes 
+         IF(do_rivinpt)THEN
+           DO l=1,nriv
+            ztmp1(:,:)=0.0
+            DO j=1,kpje
+             DO i=1,kpie
+                ztmp1(i,j) = bgct2d(i,j,jirdin+l-1)*dlxp(i,j)*dlyp(i,j)
+             ENDDO
+            ENDDO
+            CALL xcsum(srivflux(l),ztmp1,ips)
+           ENDDO
+         ENDIF
+#endif  
 
       ztmp1(:,:)=0.0
       DO j=1,kpje
@@ -481,30 +507,6 @@
       CALL xcsum(zatmn2,ztmp1,ips)
 #endif
 
-!------------------------riverine fluxes  
-      IF(do_rivinpt)THEN 
-      IF(expcnf.eq.'single_column') THEN 
-        DO l=1,nriv
-         ztmp1(:,:)=0.0
-         DO j=1,kpje
-          DO i=1,kpie
-             ztmp1(i,j) = rivinflx(i,j,l)*dlxp(i,j)*dlyp(i,j)
-          ENDDO
-         ENDDO
-         CALL xcsum(srivflux(l),ztmp1,ips)
-        ENDDO
-      ELSE
-      DO l=1,nriv
-         ztmp1(:,:)=0.0
-         DO j=1,kpje
-          DO i=1,kpie
-             ztmp1(i,j) = bgct2d(i,j,jirdin+l-1)*dlxp(i,j)*dlyp(i,j)
-          ENDDO
-         ENDDO
-         CALL xcsum(srivflux(l),ztmp1,ips)
-      ENDDO
-      ENDIF ! single column
-      ENDIF
 !---------------------- fluxes summary 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) ' '

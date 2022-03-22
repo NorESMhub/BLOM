@@ -91,7 +91,6 @@
       use mo_vgrid,     only: set_vgrid
       use mo_riverinpt, only: riverinpt,nriv
       use mo_ndep,      only: n_deposition
-      use mod_config, only: expcnf
 #if defined(BOXATM)
       use mo_boxatm
 #endif
@@ -193,15 +192,6 @@
       call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
                            atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
 #endif
-
-!     jm 
-      IF(expcnf.eq.'single_column')THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
 
 #ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN
