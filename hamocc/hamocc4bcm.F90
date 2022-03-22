@@ -106,7 +106,7 @@
       REAL,    intent(in)  :: prho   (kpie,kpje,kpke)
       REAL,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: omask  (kpie,kpje)
-      REAL,    intent(in)  :: dust   (kpie,kpje,nriv)
+      REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
