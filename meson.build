@@ -7,6 +7,7 @@ project('BLOM', ['fortran', 'c'],
 # Setup additional flags for compilation
 fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
+  add_project_arguments(['-g' ], language: 'fortran')
   add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
                         language: 'fortran')
   if get_option('buildtype').startswith('debug')
@@ -21,6 +22,7 @@ if fcc.get_id() == 'gcc'
                           language: 'fortran')
   endif
 elif fcc.get_id() == 'intel'
+  add_project_arguments(['-g' ], language: 'fortran')
   add_project_arguments(['-r8', '-convert', 'big_endian', '-assume',
                          'byterecl'], language: 'fortran')
   if get_option('buildtype').startswith('debug')
