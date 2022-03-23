@@ -620,9 +620,11 @@ subroutine write_netcdf(iogrp)
 !**** Write inventory to netCDF file.
 !**********************************************************************
   use netcdf
-  use mod_types,    only: r8
-  use mod_config,   only: expcnf, runid, inst_suffix
-  use mod_time,     only: date0, time0, date, time, nstep
+  use mod_types,  only: r8
+  use mod_config, only: expcnf, runid, inst_suffix
+  use mod_time,   only: date0, time0, date, time, nstep, nday_of_year,         &
+       &                nstep_in_day
+  use mo_bgcmean, only: filefq_bgc, fileann_bgc, filemon_bgc
 
   implicit none
 
@@ -632,6 +634,8 @@ subroutine write_netcdf(iogrp)
   !--- netCDF output file names
   character(len=256), dimension(nbgcmax), save :: fname_inv
   integer, dimension(nbgcmax), save :: ncrec = 0
+  logical, dimension(nbgcmax), save :: append2file_inv
+  data append2file_inv /nbgcmax*.false./
 
   !=== Local variables
   character(len=:), allocatable :: prefix, sep1, sep2
@@ -730,7 +734,7 @@ subroutine write_netcdf(iogrp)
 
 
   !=== Create new or open existing netCDF file
-  if (ncrec(iogrp) == 0) then
+  if (.not.append2file_inv(iogrp)) then
      !--- file name : fname_inv(iogrp)
      if (expcnf.eq.'cesm') then
         prefix=trim(runid)//'.blom'//trim(inst_suffix)
@@ -1566,7 +1570,7 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_INQ_VARID(ncid, "sum_exposi", sum_exposi_varid) )
   end if
 
-  !--- Increment record by 1, reset start and count arrays
+  !=== Increment record by 1, reset start and count arrays
   ncrec(iogrp) = ncrec(iogrp) + 1
   wrstart = (/ ncrec(iogrp) /)
 #ifndef sedbypass
@@ -1808,6 +1812,18 @@ subroutine write_netcdf(iogrp)
 
   !--- Close netCDF file
   call nccheck( NF90_CLOSE(ncid) )
+
+  !=== Check if file should be appended next time inventory routine is called
+  if ((  (fileann_bgc(iogrp) .and. nday_of_year == 1 .or.                      &
+       &  filemon_bgc(iogrp) .and. date%day == 1) .and.                        &
+       &  mod(nstep, nstep_in_day) == 0) .or.                                  &
+       &  .not.(fileann_bgc(iogrp) .or. filemon_bgc(iogrp)) .and.              &
+       &  mod(nstep + .5, filefq_bgc(iogrp)) < 1.) then
+     append2file_inv(iogrp) = .false.
+     ncrec(iogrp) = 0
+  else
+     append2file_inv(iogrp) = .true.
+  endif
 
 end subroutine write_netcdf
 
