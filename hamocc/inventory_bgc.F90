@@ -134,12 +134,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 #else
   ztmp1(:,:)=0.0
   DO k=1,ks
-  DO j=1,kpje
-  DO i=1,kpie
-     ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                             &
-          &       *dlxp(i,j)*dlyp(i,j)*porwat(k)
-  ENDDO
-  ENDDO
+     DO j=1,kpje
+        DO i=1,kpie
+           ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
+                &       *dlxp(i,j)*dlyp(i,j)*porwat(k)
+        ENDDO
+     ENDDO
   ENDDO
 
   CALL xcsum(zsedtotvol,ztmp1,ips)
@@ -147,12 +147,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO l=1,npowtra
      ztmp1(:,:)=0.0
      DO k=1,ks
-     DO j=1,kpje
-     DO i=1,kpie
-        vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(k)
-        ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
-     ENDDO
-     ENDDO
+        DO j=1,kpje
+           DO i=1,kpie
+              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(k)
+              ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
+           ENDDO
+        ENDDO
      ENDDO
 
      CALL xcsum(zpowtratot(l),ztmp1,ips)
@@ -166,12 +166,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO l=1,nsedtra
      ztmp1(:,:)=0.0
      DO k=1,ks
-     DO j=1,kpje
-     DO i=1,kpie
-        vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
-        ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
-     ENDDO
-     ENDDO
+        DO j=1,kpje
+           DO i=1,kpie
+              vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+              ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
+           ENDDO
+        ENDDO
      ENDDO
 
      CALL xcsum(zsedlayto(l),ztmp1,ips)
@@ -179,12 +179,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ztmp1(:,:)=0.0
   DO k=1,ks
-  DO j=1,kpje
-  DO i=1,kpie
-     vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
-     ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
-  ENDDO
-  ENDDO
+     DO j=1,kpje
+        DO i=1,kpie
+           vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+           ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
+        ENDDO
+     ENDDO
   ENDDO
 
   CALL xcsum(zsedhplto,ztmp1,ips)
@@ -198,13 +198,14 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ztmp1(:,:)=0.0
   DO k=1,kpke
-  DO j=1,kpje
-  DO i=1,kpie
-     IF(ddpo(i,j,k).gt.dp_min) THEN
-        ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-     ENDIF
-  ENDDO
-  ENDDO
+     DO j=1,kpje
+        DO i=1,kpie
+           IF(ddpo(i,j,k).gt.dp_min) THEN
+              ztmp1(i,j) = ztmp1(i,j)                                          &
+                   &       + omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+           ENDIF
+        ENDDO
+     ENDDO
   ENDDO
 
   CALL xcsum(ztotvol,ztmp1,ips)
@@ -212,17 +213,17 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO l=1,nocetra
      ztmp1(:,:)=0.0
      DO k=1,kpke
-     DO j=1,kpje
-     DO i=1,kpie
-        IF(ddpo(i,j,k).gt.dp_min) THEN
-           vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-           ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
+        DO j=1,kpje
+           DO i=1,kpie
+              IF(ddpo(i,j,k).gt.dp_min) THEN
+                 vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+                 ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
 !             if (ocetra(i,j,k,l).lt.0.0) then
 !      WRITE(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
 !             endif
-        ENDIF
-     ENDDO
-     ENDDO
+              ENDIF
+           ENDDO
+        ENDDO
      ENDDO
 
      CALL xcsum(zocetratot(l),ztmp1,ips)
@@ -237,15 +238,15 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   ztmp1(:,:)=0.0
   ztmp2(:,:)=0.0
   DO k=1,kpke
-  DO j=1,kpje
-  DO i=1,kpie
-     IF(ddpo(i,j,k).gt.dp_min) THEN
-        vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-        ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*hi(i,j,k) *vol
-        ztmp2(i,j) = ztmp2(i,j) + omask(i,j)*co3(i,j,k)*vol
-     ENDIF
-  ENDDO
-  ENDDO
+     DO j=1,kpje
+        DO i=1,kpie
+           IF(ddpo(i,j,k).gt.dp_min) THEN
+              vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+              ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*hi(i,j,k) *vol
+              ztmp2(i,j) = ztmp2(i,j) + omask(i,j)*co3(i,j,k)*vol
+           ENDIF
+        ENDDO
+     ENDDO
   ENDDO
 
   CALL xcsum(zhito ,ztmp1,ips)
@@ -260,10 +261,10 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   ztmp1(:,:)=0.0
   ztmp2(:,:)=0.0
   DO j=1,kpje
-  DO i=1,kpie
-     ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-     ztmp2(i,j) = ocetra(i,j,k,ialkali)*ztmp1(i,j)
-  ENDDO
+     DO i=1,kpie
+        ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
+        ztmp2(i,j) = ocetra(i,j,k,ialkali)*ztmp1(i,j)
+     ENDDO
   ENDDO
 
   CALL xcsum(zvoltop,ztmp1,ips)
@@ -290,36 +291,99 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   ENDDO
   CALL xcsum(ztotarea,ztmp1,ips)
 
-  co2flux = sum2d(bgct2d(:,:,jco2flux))
-  so2flux = sum2d(bgct2d(:,:,jo2flux))
-  sn2flux = sum2d(bgct2d(:,:,jn2flux))
-  sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
-  zatmco2 = sum2d(atm(:,:,iatmco2))
-#if defined(BOXATM)
-  zatmo2 = sum2d(atm(:,:,iatmo2))
-  zatmn2 = sum2d(atm(:,:,iatmn2))
-#endif
-  if(do_ndep) then
-     sndepflux = sum2d(bgct2d(:,:,jndep))
-  endif
+#ifdef PBGC_CK_TIMESTEP
+  ! only consider instantaneous fluxes in debugging mode
+  ztmp1(:,:)=0.0
+  DO j=1,kpje
+     DO i=1,kpie
+        ztmp1(i,j) = atmflx(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
+     ENDDO
+  ENDDO
+  CALL xcsum(co2flux,ztmp1,ips)
 
-!--- Complete sum of inventory in between bgc.f90
-  zprorca = sum2d(prorca)
-  zprcaca = sum2d(prcaca)
-  zsilpro = sum2d(silpro)
+  ztmp1(:,:)=0.0
+  DO j=1,kpje
+     DO i=1,kpie
+        ztmp1(i,j) = atmflx(i,j,iatmo2)*dlxp(i,j)*dlyp(i,j)
+     ENDDO
+  ENDDO
+  CALL xcsum(so2flux,ztmp1,ips)
 
-!------------------------riverine fluxes
+  ztmp1(:,:)=0.0
+  DO j=1,kpje
+     DO i=1,kpie
+        ztmp1(i,j) = atmflx(i,j,iatmn2)*dlxp(i,j)*dlyp(i,j)
+     ENDDO
+  ENDDO
+  CALL xcsum(sn2flux,ztmp1,ips)
+
+  ztmp1(:,:)=0.0
+  DO j=1,kpje
+     DO i=1,kpie
+        ztmp1(i,j) = atmflx(i,j,iatmn2o)*dlxp(i,j)*dlyp(i,j)
+     ENDDO
+  ENDDO
+  CALL xcsum(sn2oflux,ztmp1,ips)
+
+  ! nitrogen deposition
+  IF(do_ndep)THEN
+     ztmp1(:,:)=0.0
+     DO j=1,kpje
+        DO i=1,kpie
+           ztmp1(i,j) = ndepflx(i,j)*dlxp(i,j)*dlyp(i,j)
+        ENDDO
+     ENDDO
+     CALL xcsum(sndepflux,ztmp1,ips)
+  ENDIF
+
+  ! river fluxes
   IF(do_rivinpt)THEN
      DO l=1,nriv
         ztmp1(:,:)=0.0
         DO j=1,kpje
-        DO i=1,kpie
-           ztmp1(i,j) = bgct2d(i,j,jirdin+l-1)*dlxp(i,j)*dlyp(i,j)
-        ENDDO
+           DO i=1,kpie
+              ztmp1(i,j) = rivinflx(i,j,l)*dlxp(i,j)*dlyp(i,j)
+           ENDDO
         ENDDO
         CALL xcsum(srivflux(l),ztmp1,ips)
      ENDDO
   ENDIF
+#else
+  ! consider accumulated fluxes in the regular mode
+  co2flux = sum2d(bgct2d(:,:,jco2flux))
+  so2flux = sum2d(bgct2d(:,:,jo2flux))
+  sn2flux = sum2d(bgct2d(:,:,jn2flux))
+  sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
+
+  ! nitrogen deposition fluxes
+  if(do_ndep) then
+     sndepflux = sum2d(bgct2d(:,:,jndep))
+  endif
+
+  ! River fluxes
+  IF(do_rivinpt)THEN
+     DO l=1,nriv
+        ztmp1(:,:)=0.0
+        DO j=1,kpje
+           DO i=1,kpie
+              ztmp1(i,j) = bgct2d(i,j,jirdin+l-1)*dlxp(i,j)*dlyp(i,j)
+           ENDDO
+        ENDDO
+        CALL xcsum(srivflux(l),ztmp1,ips)
+     ENDDO
+  ENDIF
+#endif
+
+#if defined(BOXATM)
+  zatmco2 = sum2d(atm(:,:,iatmco2))
+  zatmo2 = sum2d(atm(:,:,iatmo2))
+  zatmn2 = sum2d(atm(:,:,iatmn2))
+#endif
+
+  !--- Complete sum of inventory in between bgc.f90
+  zprorca = sum2d(prorca)
+  zprcaca = sum2d(prcaca)
+  zsilpro = sum2d(silpro)
 
 !=== Sum of inventory
 !----------------------------------------------------------------------
