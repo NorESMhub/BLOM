@@ -88,7 +88,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   real :: ztotarea                 ! Total sea surface area
   !--- aqueous sediment tracer
   real :: zsedtotvol               ! Total pore water volume
-  real :: zpowtrato(npowtra)       ! Sum : Pore water tracers
+  real :: zpowtratot(npowtra)      ! Sum : Pore water tracers
+  real :: zpowtratoc(npowtra)      ! Mean concentration of pore water tracers
   !--- non aqueous sediment tracer
   real :: zsedhplto                ! Total sediment accumulated hydrogen ions
   real :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
@@ -125,7 +126,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !----------------------------------------------------------------------
 #ifdef sedbypass
   zsedtotvol = 0.0
-  zpowtrato(:)=0.0
+  zpowtratot(:)=0.0
+  zpowtratoc(:)=0.0
   zsedlayto(:)=0.0
   zburial(:)=0.0
   zsedhplto=0.0
@@ -153,7 +155,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      ENDDO
      ENDDO
 
-     CALL xcsum(zpowtrato(l),ztmp1,ips)
+     CALL xcsum(zpowtratot(l),ztmp1,ips)
+     zpowtratoc(l) = zpowtratot(l)/zsedtotvol
   ENDDO
 
 !=== non aqueous sediment tracer
@@ -329,7 +332,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   totalcarbon=                                                                 &
        & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                   &
        & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
-       & +zpowtrato(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar        &
+       & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
        & +zburial(isssc12)+zburial(issso12)*rcar                               &
 #if defined(BOXATM)
        & +zatmco2*ppm2con
@@ -340,7 +343,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   totalnitr=                                                                   &
        &   (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                 &
        &  +zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2      &
-       &  +zpowtrato(ipowno3)+zpowtrato(ipown2)*2                              &
+       &  +zpowtratot(ipowno3)+zpowtratot(ipown2)*2                            &
        &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
        &  +zocetratot(ian2o)*2                                                 &
        &  - sndepflux                                                          &
@@ -353,12 +356,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   totalphos=                                                                   &
        &   zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
        &  +zocetratot(izoo)+zocetratot(iphosph)                                &
-       &  +zpowtrato(ipowaph)+zsedlayto(issso12)                               &
+       &  +zpowtratot(ipowaph)+zsedlayto(issso12)                              &
        &  +zburial(issso12)
 
   totalsil=                                                                    &
        &   zocetratot(isilica)+zocetratot(iopal)                               &
-       &  +zpowtrato(ipowasi)+zsedlayto(issssil)+zburial(issssil)
+       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)
 
   totaloxy=                                                                    &
        &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
@@ -367,8 +370,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                         &
        &  +zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                      &
 !       &  +zburial(issso12)*(-24.)   +   zburial(isssc12)                      &
-       &  +zpowtrato(ipowno3)*1.5+zpowtrato(ipowaic)                           &
-       &  +zpowtrato(ipowaox)+zpowtrato(ipowaph)*2                             &
+       &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
+       &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
        &  - sndepflux*1.5                                                      &
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
@@ -481,8 +484,8 @@ subroutine write_stdout
   WRITE(io_stdo_bgc,*)'-------------------------------------------'
   WRITE(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
   DO l=1,npowtra
-     WRITE(io_stdo_bgc,*)'No. ',l,' ',zpowtrato(l),                            &
-          &     '  ',zpowtrato(l)/zsedtotvol,'  ',zsedtotvol
+     WRITE(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
+          &     '  ',zpowtratoc(l),'  ',zsedtotvol
   ENDDO
   WRITE(io_stdo_bgc,*) ' '
 
@@ -643,8 +646,6 @@ subroutine write_netcdf(iogrp)
   !--- dimension id
   integer :: time_dimid
   integer :: nocetra_dimid
-  ! integer :: zpowtra_dimids(2)     ! aqueous sediment dimensions
-  ! integer :: zsedtra_dimids(2)     ! solid sediments dimensions
   ! integer :: zocetra_dimids(2)     ! ocean tracer dimensions
   ! integer :: zocetra_wrstart(2)
   ! integer :: zocetra_count(2)
@@ -652,10 +653,18 @@ subroutine write_netcdf(iogrp)
   integer :: time_varid
 #ifndef sedbypass
   !--- aqueous sediment tracers
+  integer :: npowtra_dimid
+  integer :: zpowtra_dimids(2)     ! aqueous sediment dimensions
+  integer :: zpowtra_wrstart(2)    ! record start point
+  integer :: zpowtra_count(2)      ! record count
   integer :: zsedtotvol_varid      ! Total sediment volume
   integer :: zpowtratot_varid      ! Total aqueous sediment tracer [kmol]
   integer :: zpowtratoc_varid      ! Sediment tracer concentration [kmol/L]
   !--- non-aqueous sediment tracers
+  integer :: nsedtra_dimid
+  integer :: zsedtra_dimids(2)     ! solid sediments dimensions
+  integer :: zsedtra_wrstart(2)    ! record start point
+  integer :: zsedtra_count(2)      ! record count
   integer :: zsedlayto_varid
   integer :: zburial_varid
   integer :: zsedhplto_varid
@@ -762,16 +771,64 @@ subroutine write_netcdf(iogrp)
 
      !--- Define dimensions
      call nccheck( NF90_DEF_DIM(ncid, 'nocetra', nocetra, nocetra_dimid) )
+#ifndef sedbypass
+     call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
+     call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
+#endif
      call nccheck( NF90_DEF_DIM(ncid, 'time', NF90_UNLIMITED, time_dimid) )
 
      !--- Dimensions for arrays.
      !--- The unlimited "time" dimension must come last in the list of dimensions.
      ! zocetra_dimids = (/ nocetra_dimid, time_dimid /)
+#ifndef sedbypass
+     zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
+     zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
+#endif
 
      !--- Define variables : time
      call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,         &
           &    time_varid) )
      call nccheck( NF90_PUT_ATT(ncid, time_varid, 'units', 'days') )
+
+#ifndef sedbypass
+     !--- aqueous sediment tracers
+     call nccheck( NF90_DEF_VAR(ncid, 'zsedtotvol', NF90_DOUBLE, time_dimid,   &
+          &    zsedtotvol_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'long_name',           &
+          &    'Total sediment volume') )
+     call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'L') )
+
+     call nccheck( NF90_DEF_VAR(ncid, 'zpowtratot', NF90_DOUBLE,               &
+          &    zpowtra_dimids, zpowtratot_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'long_name',           &
+          &    'Total aqueous sediment tracer') )
+     call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'units', 'kmol') )
+
+     call nccheck( NF90_DEF_VAR(ncid, 'zpowtratoc', NF90_DOUBLE,               &
+          &    zpowtra_dimids, zpowtratoc_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'long_name',           &
+          &    'Aqueous sediment concentration') )
+     call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/L') )
+
+     !--- non-aqueous sediment tracers
+     call nccheck( NF90_DEF_VAR(ncid, 'zsedlayto', NF90_DOUBLE,                &
+          &    zsedtra_dimids, zsedlayto_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'long_name',            &
+          &    'Sediment layer tracers') )
+     call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'units', 'kmol') )
+
+     call nccheck( NF90_DEF_VAR(ncid, 'zburial', NF90_DOUBLE,                  &
+          &    zsedtra_dimids, zburial_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'long_name',              &
+          &    'Sediment burial tracers') )
+     call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'units', 'kmol') )
+
+     call nccheck( NF90_DEF_VAR(ncid, 'zsedhplto', NF90_DOUBLE, time_dimid,    &
+          &    zsedhplto_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
+          &    'Total sediment accumulated hydrogen ions') )
+     call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
+#endif
 
      !--- Define variables : oceanic tracers
      call nccheck( NF90_DEF_VAR(ncid, 'ztotvol', NF90_DOUBLE, time_dimid,      &
@@ -1402,8 +1459,22 @@ subroutine write_netcdf(iogrp)
      !--- Inquire dimid
      call nccheck( NF90_INQ_DIMID(ncid, "time", time_dimid) )
      call nccheck( NF90_INQ_DIMID(ncid, "nocetra", nocetra_dimid) )
+#ifndef sedbypass
+     call nccheck( NF90_INQ_DIMID(ncid, 'npowtra', npowtra_dimid) )
+     call nccheck( NF90_INQ_DIMID(ncid, 'nsedtra', nsedtra_dimid) )
+#endif
      !--- Inquire varid : time
      call nccheck( NF90_INQ_VARID(ncid, "time", time_varid) )
+#ifndef sedbypass
+     !--- aqueous sediment tracers
+     call nccheck( NF90_INQ_VARID(ncid, 'zsedtotvol', zsedtotvol_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, 'zpowtratot', zpowtratot_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, 'zpowtratoc', zpowtratoc_varid) )
+     !--- non-aqueous sediment tracers
+     call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
+#endif
      !--- Inquire varid : ocean tracers
      call nccheck( NF90_INQ_VARID(ncid, "ztotvol", ztotvol_varid) )
      ! call nccheck( NF90_INQ_VARID(ncid, "zocetratot", zocetratot_varid) )
@@ -1522,6 +1593,12 @@ subroutine write_netcdf(iogrp)
   !--- Increment record by 1, reset start and count arrays
   ncrec(iogrp) = ncrec(iogrp) + 1
   wrstart = (/ ncrec(iogrp) /)
+#ifndef sedbypass
+  zpowtra_wrstart = (/ 1, ncrec(iogrp) /)
+  zpowtra_count = (/ npowtra, 1 /)
+  zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
+  zsedtra_count = (/ nsedtra, 1 /)
+#endif
   ! zocetra_wrstart = (/ 1, ncrec(iogrp) /)
   ! zocetra_count = (/ nocetra, 1 /)
 
@@ -1529,6 +1606,22 @@ subroutine write_netcdf(iogrp)
   !--- Write data : time
   datenum = time - time0
   call nccheck( NF90_PUT_VAR(ncid, time_varid, datenum, start = wrstart) )
+#ifndef sedbypass
+  !--- aqueous sediment tracers
+  call nccheck( NF90_PUT_VAR(ncid, zsedtotvol_varid, zsedtotvol,                &
+       &     start = wrstart) )
+  call nccheck( NF90_PUT_VAR(ncid, zpowtratot_varid, zpowtratot,                &
+       &     start = zpowtra_wrstart, count = zpowtra_count) )
+  call nccheck( NF90_PUT_VAR(ncid, zpowtratoc_varid, zpowtratoc,                &
+       &     start = zpowtra_wrstart, count = zpowtra_count) )
+  !--- non-aqueous sediment tracers
+  call nccheck( NF90_PUT_VAR(ncid, zsedlayto_varid, zsedlayto,                  &
+       &     start = zsedtra_wrstart, count = zsedtra_count) )
+  call nccheck( NF90_PUT_VAR(ncid, zburial_varid, zburial,                      &
+       &     start = zsedtra_wrstart, count = zsedtra_count) )
+  call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
+       &     start = wrstart) )
+#endif
   !--- Write data : ocean tracers
   call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
   ! call nccheck( NF90_PUT_VAR(ncid, zocetratot_varid, zocetratot,               &
