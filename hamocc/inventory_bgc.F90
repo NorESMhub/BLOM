@@ -643,37 +643,30 @@ subroutine write_netcdf(iogrp)
   !=== Variables for netcdf
   integer :: ncid, ncvarid, ncstat
   integer :: wrstart(1)
-  !--- dimension id
+  !--- time: dimension and variable id
   integer :: time_dimid
-  integer :: nocetra_dimid
-  ! integer :: zocetra_dimids(2)     ! ocean tracer dimensions
-  ! integer :: zocetra_wrstart(2)
-  ! integer :: zocetra_count(2)
-  !--- variable id
   integer :: time_varid
 #ifndef sedbypass
   !--- aqueous sediment tracers
-  integer :: npowtra_dimid
+  integer :: npowtra_dimid         ! id: aqueous sediments
   integer :: zpowtra_dimids(2)     ! aqueous sediment dimensions
   integer :: zpowtra_wrstart(2)    ! record start point
   integer :: zpowtra_count(2)      ! record count
-  integer :: zsedtotvol_varid      ! Total sediment volume
-  integer :: zpowtratot_varid      ! Total aqueous sediment tracer [kmol]
-  integer :: zpowtratoc_varid      ! Sediment tracer concentration [kmol/L]
+  integer :: zsedtotvol_varid      ! id: Total sediment volume
+  integer :: zpowtratot_varid      ! id: Total aqueous sediment tracer [kmol]
+  integer :: zpowtratoc_varid      ! id: Sediment tracer concentration [kmol/L]
   !--- non-aqueous sediment tracers
-  integer :: nsedtra_dimid
+  integer :: nsedtra_dimid         ! id: solid sediments
   integer :: zsedtra_dimids(2)     ! solid sediments dimensions
   integer :: zsedtra_wrstart(2)    ! record start point
   integer :: zsedtra_count(2)      ! record count
-  integer :: zsedlayto_varid
-  integer :: zburial_varid
-  integer :: zsedhplto_varid
+  integer :: zsedlayto_varid       ! id: sediment layer tracers
+  integer :: zburial_varid         ! id: sediment burial tracers
+  integer :: zsedhplto_varid       ! id: accumulated hydrogen ions
 #endif
   !--- oceanic tracers
   !--- Write total sum zt_<variable>_varid, and mean concentration zc_<variable>_varid
-  integer :: ztotvol_varid         ! Total ocean volume
-  ! integer :: zocetratot_varid      ! Total ocean tracer [kmol]
-  ! integer :: zocetratoc_varid      ! Ocean tracer concentration [kmol/m^3]
+  integer :: ztotvol_varid                            ! Total ocean volume
   integer :: zt_sco212_varid,    zc_sco212_varid      ! Dissolved CO2
   integer :: zt_alkali_varid,    zc_alkali_varid      ! Alkalinity
   integer :: zt_phosph_varid,    zc_phosph_varid      ! Dissolved phosphate
@@ -770,7 +763,6 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, NF90_GLOBAL, 'date', timeunits) )
 
      !--- Define dimensions
-     call nccheck( NF90_DEF_DIM(ncid, 'nocetra', nocetra, nocetra_dimid) )
 #ifndef sedbypass
      call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
      call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
@@ -779,7 +771,6 @@ subroutine write_netcdf(iogrp)
 
      !--- Dimensions for arrays.
      !--- The unlimited "time" dimension must come last in the list of dimensions.
-     ! zocetra_dimids = (/ nocetra_dimid, time_dimid /)
 #ifndef sedbypass
      zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
      zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
@@ -836,18 +827,6 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, ztotvol_varid, 'long_name',              &
           &    'Total ocean volume') )
      call nccheck( NF90_PUT_ATT(ncid, ztotvol_varid, 'units', 'm^3') )
-
-     ! call nccheck( NF90_DEF_VAR(ncid, 'zocetratot', NF90_DOUBLE,               &
-     !      &    zocetra_dimids, zocetratot_varid) )
-     ! call nccheck( NF90_PUT_ATT(ncid, zocetratot_varid, 'long_name',           &
-     !      &    'Total ocean tracer') )
-     ! call nccheck( NF90_PUT_ATT(ncid, zocetratot_varid, 'units', 'kmol') )
-
-     ! call nccheck( NF90_DEF_VAR(ncid, 'zocetratoc', NF90_DOUBLE,               &
-     !      &    zocetra_dimids, zocetratoc_varid) )
-     ! call nccheck( NF90_PUT_ATT(ncid, zocetratoc_varid, 'long_name',           &
-     !      &    'Ocean tracer concentration') )
-     ! call nccheck( NF90_PUT_ATT(ncid, zocetratoc_varid, 'units', 'kmol/m^3') )
 
      call nccheck( NF90_DEF_VAR(ncid, 'zt_sco212', NF90_DOUBLE,                &
           &    time_dimid, zt_sco212_varid) )
@@ -1458,7 +1437,6 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_OPEN(trim(fname_inv(iogrp)), NF90_WRITE, ncid) )
      !--- Inquire dimid
      call nccheck( NF90_INQ_DIMID(ncid, "time", time_dimid) )
-     call nccheck( NF90_INQ_DIMID(ncid, "nocetra", nocetra_dimid) )
 #ifndef sedbypass
      call nccheck( NF90_INQ_DIMID(ncid, 'npowtra', npowtra_dimid) )
      call nccheck( NF90_INQ_DIMID(ncid, 'nsedtra', nsedtra_dimid) )
@@ -1477,8 +1455,6 @@ subroutine write_netcdf(iogrp)
 #endif
      !--- Inquire varid : ocean tracers
      call nccheck( NF90_INQ_VARID(ncid, "ztotvol", ztotvol_varid) )
-     ! call nccheck( NF90_INQ_VARID(ncid, "zocetratot", zocetratot_varid) )
-     ! call nccheck( NF90_INQ_VARID(ncid, "zocetratoc", zocetratoc_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zt_sco212", zt_sco212_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_sco212", zc_sco212_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zt_alkali", zt_alkali_varid) )
@@ -1599,8 +1575,6 @@ subroutine write_netcdf(iogrp)
   zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
   zsedtra_count = (/ nsedtra, 1 /)
 #endif
-  ! zocetra_wrstart = (/ 1, ncrec(iogrp) /)
-  ! zocetra_count = (/ nocetra, 1 /)
 
   !=== Write output data to netCDF file
   !--- Write data : time
@@ -1624,10 +1598,6 @@ subroutine write_netcdf(iogrp)
 #endif
   !--- Write data : ocean tracers
   call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
-  ! call nccheck( NF90_PUT_VAR(ncid, zocetratot_varid, zocetratot,               &
-  !      &    start = zocetra_wrstart, count = zocetra_count) )
-  ! call nccheck( NF90_PUT_VAR(ncid, zocetratoc_varid, zocetratoc,               &
-  !      &    start = zocetra_wrstart, count = zocetra_count) )
   call nccheck( NF90_PUT_VAR(ncid, zt_sco212_varid,                            &
        &    zocetratot(isco212), start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, zc_sco212_varid,                            &
