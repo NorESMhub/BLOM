@@ -64,7 +64,7 @@ subdir('drivers')
 subdir('ben02')
 subdir('cesm')
 subdir('fuk95')
-subdir('channel')
+subdir('channel_small')
 subdir('single_column')
 
 # Handle options and add necessary flags and subfolders with source files
