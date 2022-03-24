@@ -293,61 +293,20 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
 #ifdef PBGC_CK_TIMESTEP
   ! only consider instantaneous fluxes in debugging mode
-  ztmp1(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
-        ztmp1(i,j) = atmflx(i,j,iatmco2)*dlxp(i,j)*dlyp(i,j)
-     ENDDO
-  ENDDO
-  CALL xcsum(co2flux,ztmp1,ips)
-
-  ztmp1(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
-        ztmp1(i,j) = atmflx(i,j,iatmo2)*dlxp(i,j)*dlyp(i,j)
-     ENDDO
-  ENDDO
-  CALL xcsum(so2flux,ztmp1,ips)
-
-  ztmp1(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
-        ztmp1(i,j) = atmflx(i,j,iatmn2)*dlxp(i,j)*dlyp(i,j)
-     ENDDO
-  ENDDO
-  CALL xcsum(sn2flux,ztmp1,ips)
-
-  ztmp1(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
-        ztmp1(i,j) = atmflx(i,j,iatmn2o)*dlxp(i,j)*dlyp(i,j)
-     ENDDO
-  ENDDO
-  CALL xcsum(sn2oflux,ztmp1,ips)
+  co2flux = sum2d(atmflx(:,:,iatmco2))
+  so2flux = sum2d(atmflx(:,:,iatmo2))
+  sn2flux = sum2d(atmflx(:,:,iatmn2))
+  sn2oflux = sum2d(atmflx(:,:,iatmn2o))
 
   ! nitrogen deposition
-  IF(do_ndep)THEN
-     ztmp1(:,:)=0.0
-     DO j=1,kpje
-        DO i=1,kpie
-           ztmp1(i,j) = ndepflx(i,j)*dlxp(i,j)*dlyp(i,j)
-        ENDDO
-     ENDDO
-     CALL xcsum(sndepflux,ztmp1,ips)
-  ENDIF
+  if(do_ndep) then
+     sndepflux = sum2d(ndepflx)
+  endif
 
   ! river fluxes
-  IF(do_rivinpt)THEN
-     DO l=1,nriv
-        ztmp1(:,:)=0.0
-        DO j=1,kpje
-           DO i=1,kpie
-              ztmp1(i,j) = rivinflx(i,j,l)*dlxp(i,j)*dlyp(i,j)
-           ENDDO
-        ENDDO
-        CALL xcsum(srivflux(l),ztmp1,ips)
-     ENDDO
-  ENDIF
+  if(do_rivinpt) then
+     srivflx = sum2d_array(rivinflx, nriv)
+  endif
 #else
   ! consider accumulated fluxes in the regular mode
   co2flux = sum2d(bgct2d(:,:,jco2flux))
@@ -361,17 +320,9 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   endif
 
   ! River fluxes
-  IF(do_rivinpt)THEN
-     DO l=1,nriv
-        ztmp1(:,:)=0.0
-        DO j=1,kpje
-           DO i=1,kpie
-              ztmp1(i,j) = bgct2d(i,j,jirdin+l-1)*dlxp(i,j)*dlyp(i,j)
-           ENDDO
-        ENDDO
-        CALL xcsum(srivflux(l),ztmp1,ips)
-     ENDDO
-  ENDIF
+  if(do_rivinpt) then
+     srivflux = sum2d_array(bgct2d(:,:,jirdin:jirdin+nriv-1), nriv)
+  endif
 #endif
 
 #if defined(BOXATM)
