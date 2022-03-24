@@ -4,16 +4,16 @@
 ! This file is part of BLOM/iHAMOCC.
 !
 ! BLOM is free software: you can redistribute it and/or modify it under the
-! terms of the GNU Lesser General Public License as published by the Free 
-! Software Foundation, either version 3 of the License, or (at your option) 
-! any later version. 
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
 !
-! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
-! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-! more details. 
+! more details.
 !
-! You should have received a copy of the GNU Lesser General Public License 
+! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
@@ -634,7 +634,10 @@ subroutine write_netcdf(iogrp)
 !**********************************************************************
 !**** Write inventory to netCDF file.
 !**********************************************************************
-  use netcdf
+  use netcdf,     only: nf90_clobber, nf90_close, nf90_create, nf90_def_dim,   &
+       &                nf90_def_var, nf90_double, nf90_enddef, nf90_global,   &
+       &                nf90_inq_dimid, nf90_inq_varid, nf90_open,             &
+       &                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
   use mod_types,  only: r8
   use mod_config, only: expcnf, runid, inst_suffix
   use mod_time,   only: date0, time0, date, time, nstep, nday_of_year,         &
@@ -1413,19 +1416,19 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_DEF_VAR(ncid, 'sum_zprorca', NF90_DOUBLE,              &
           &    time_dimid, sum_zprorca_varid) )
      call nccheck( NF90_PUT_ATT(ncid, sum_zprorca_varid, 'long_name',          &
-          &    'Global flux of detritus into and out of sediments') )
+          &    'Global flux of detritus into sediments') )
      call nccheck( NF90_PUT_ATT(ncid, sum_zprorca_varid, 'units', 'kmol') )
 
      call nccheck( NF90_DEF_VAR(ncid, 'sum_zprcaca', NF90_DOUBLE,              &
           &    time_dimid, sum_zprcaca_varid) )
      call nccheck( NF90_PUT_ATT(ncid, sum_zprcaca_varid, 'long_name',          &
-          &    'Global flux of calcium carbonate into and out of sediments') )
+          &    'Global flux of calcium carbonate into sediments') )
      call nccheck( NF90_PUT_ATT(ncid, sum_zprcaca_varid, 'units', 'kmol') )
 
      call nccheck( NF90_DEF_VAR(ncid, 'sum_zsilpro', NF90_DOUBLE,              &
           &    time_dimid, sum_zsilpro_varid) )
      call nccheck( NF90_PUT_ATT(ncid, sum_zsilpro_varid, 'long_name',          &
-          &    'Global flux of silicate into and out of sediments') )
+          &    'Global flux of silicate into sediments') )
      call nccheck( NF90_PUT_ATT(ncid, sum_zsilpro_varid, 'units', 'kmol') )
 
      call nccheck( NF90_DEF_VAR(ncid, 'sum_expoor', NF90_DOUBLE,               &
@@ -1810,7 +1813,7 @@ subroutine write_netcdf(iogrp)
        &    start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, totoxyg_varid, totaloxy,                    &
        &    start = wrstart) )
-  !--- Write data : fluxes into and out of sediments
+  !--- Write data : fluxes into sediments
   call nccheck( NF90_PUT_VAR(ncid, sum_zprorca_varid, sum_zprorca,             &
        &    start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, sum_zprcaca_varid, sum_zprcaca,             &
@@ -1844,7 +1847,7 @@ end subroutine write_netcdf
 
 
 subroutine nccheck(status)
-  use netcdf
+  use netcdf, only: nf90_noerr
   implicit none
 
   integer, intent(in) :: status
