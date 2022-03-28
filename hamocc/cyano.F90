@@ -67,7 +67,7 @@
       use mo_vgrid, only: kmle
 
       implicit none
-
+      
       INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
       REAL,    intent(in) :: omask(kpie,kpje)
@@ -75,48 +75,64 @@
 
       ! Local variables
       INTEGER :: i,j,k
-      REAL :: oldocetra,dano3
+      REAL :: oldocetra,anavail,dansp,dox,dalk
       REAL :: ttemp,nfixtfac
 
       intnfix(:,:)=0.0
       
 !
-! N-fixation by cyano bacteria (followed by remineralisation and nitrification), 
+! N-fixation by cyano bacteria (followed by remineralisation and nitrification,
+! or, for the extended nitrogen cycle only by remin to NH4), 
 ! it is assumed here that this process is limited to the mixed layer
 !
       DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(i,oldocetra,dano3,ttemp,nfixtfac) 
+!$OMP PARALLEL DO PRIVATE(i,oldocetra,dansp,anavail,dox,dalk,ttemp,nfixtfac) 
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN
-          IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+#ifdef extNcycle
+          ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
+          anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
+#else
+          anavail = ocetra(i,j,k,iano3)
+#endif 
+          IF(anavail.LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
-            oldocetra = ocetra(i,j,k,iano3)
             ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
-! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
+            ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
             nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
-            ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac) &
+#ifndef extNcycle
+            oldocetra = ocetra(i,j,k,iano3)
+            ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1.-bluefix*nfixtfac) &
      &                      +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+            dansp=ocetra(i,j,k,iano3)-oldocetra
+            ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
+            ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
+            dox  = -dansp*1.25
+            ! Nitrogen fixation followed by remineralisation and nitrification decreases
+            ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
+            dalk = -dansp 
+#else
+            oldocetra = ocetra(i,j,k,ianh4)
+            ocetra(i,j,k,ianh4)=ocetra(i,j,k,ianh4)*(1.-bluefix*nfixtfac) &
+     &                      +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+            dansp=ocetra(i,j,k,ianh4)-oldocetra
+            dox  = dansp*0.75
+            dalk = dansp 
 
-            dano3=ocetra(i,j,k,iano3)-oldocetra
+#endif
+            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dansp*(1./2.)
 
-            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
+            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)+dox
 
-! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
-! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
-            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
-
-! Nitrogen fixation followed by remineralisation and nitrification decreases
-! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
-            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
+            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+dalk
 #ifdef natDIC
-            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
+            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+dalk
 #endif
 
-            intnfix(i,j) = intnfix(i,j) +                          &
-     &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
+            intnfix(i,j) = intnfix(i,j) + dansp*pddpo(i,j,k)
 
             ENDIF  
          ENDIF  
