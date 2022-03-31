@@ -53,8 +53,8 @@ module mo_vgrid
 !******************************************************************************
   implicit none
 
-  INTEGER, PARAMETER :: kmle   = 2        ! k-end index for layers that 
-                                          ! represent the mixed layer in BLOM
+  ! INTEGER, PARAMETER :: kmle   = 2        ! k-end index for layers that 
+  !                                         ! represent the mixed layer in BLOM
   REAL,    PARAMETER :: dp_ez  = 100.0    ! depth of euphotic zone
   REAL,    PARAMETER :: dp_min = 1.0E-12  ! min layer thickness layers thinner 
                                           ! than this are ignored by HAMOCC
@@ -63,6 +63,7 @@ module mo_vgrid
                                           ! layer above). Note that the bottom layer index kbo(i,j)
                                           ! is defined as the lowermost layer thicker than dp_min_sink.
 
+  INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kmle
   INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kbo
   INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kwrbioz
   INTEGER, DIMENSION(:,:),   ALLOCATABLE :: k0100,k0500,k1000,k2000,k4000
@@ -124,6 +125,7 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
 !$OMP END PARALLEL DO
 
 
+  kmle(:,:) =2
   kbo(:,:)  =1
   bolay(:,:)=0.0
 
@@ -261,6 +263,17 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
   ALLOCATE (ptiestw(kpie,kpje,kpke+1),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory ptiestw'
   ptiestw(:,:,:) = 0.0
+
+
+  IF(mnproc.eq.1) THEN
+     WRITE(io_stdo_bgc,*)'Memory allocation for variable kmle ...'
+     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+     WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+  ENDIF
+
+  ALLOCATE(kmle(kpie,kpje),stat=errstat)
+  if(errstat.ne.0) stop 'not enough memory kmle'
+  kmle(:,:) = 0
 
 
   IF(mnproc.eq.1) THEN
