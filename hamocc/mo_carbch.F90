@@ -58,6 +58,7 @@
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
@@ -312,6 +313,16 @@
       if(errstat.ne.0) stop 'not enough memory atmflx'
       atmflx(:,:,:) = 0.0
 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      !WRITE(io_stdo_bgc,*)'Third dimension    : ',natm
+      ENDIF
+
+      ALLOCATE (ndepflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepflx'
+      ndepflx(:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable pco2d ...'

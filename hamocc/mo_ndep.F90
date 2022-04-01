@@ -257,7 +257,7 @@ subroutine n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 !******************************************************************************
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
-  use mo_carbch,      only: ocetra
+  use mo_carbch,      only: ocetra,ndepflx
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
 
   implicit none
@@ -273,13 +273,15 @@ subroutine n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
   if (.not. do_ndep) return 
 
   ! deposite N in topmost layer 
+  ndepflx=0.
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
-      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndep(i,j)*dtb/365./pddpo(i,j,1)
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndep(i,j)*dtb/365./pddpo(i,j,1)
+      ndepflx(i,j) = ndep(i,j)*dtb/365.
+      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepflx(i,j)/pddpo(i,j,1)
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepflx(i,j)/pddpo(i,j,1)
 #ifdef natDIC
-      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndep(i,j)*dtb/365./pddpo(i,j,1)
+      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepflx(i,j)/pddpo(i,j,1)
 #endif
     endif
   enddo
