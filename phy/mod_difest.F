@@ -88,7 +88,7 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv,msku
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
-     .  kmax,kfil
+     .  kmax,kfil,kOBL
 c
       type(CVMix_tidal_params_type)   :: CVMix_tidal_params
       type(CVMix_global_params_type)  :: CVMix_glb_params   !<CVMix-specific for Prandtl number only
@@ -174,7 +174,7 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           cs=98.96,minOBLdepth=1.0)
 c
       public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
-     .          difest_lateral_hybrid, difest_vertical_hybrid
+     .          difest_lateral_hybrid, difest_vertical_hybrid, kOBL
 c
       contains
 c
@@ -203,7 +203,8 @@ c$OMP PARALLEL DO PRIVATE(i,k)
         enddo
         do i=1-nbdy,ii+nbdy
           OBLdepth(i,j)=spval
-        enddo
+          kOBL(i,j)=2
+       enddo
       enddo
 c$OMP END PARALLEL DO
 c
@@ -903,7 +904,7 @@ c
       real :: SLdepth_0d, hTot
       real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
-      integer ki, ksfc, ktmp, kOBL, kn1
+      integer ki, ksfc, ktmp, kn1
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
 c
       surf_layer_ext = 0.1
@@ -1161,7 +1162,7 @@ c --- ------ centers.
      .                               cellHeight,OBLdepth(i,j))
 
              ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
+             kOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
      .                               cellHeight,OBLdepth(i,j))
 c --- ------ Diapycnal mixing when local stability is weak
 c --- ------ convection routine based on N2 not rho
@@ -1170,9 +1171,9 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .                        Tdiff_out=Kd_conv, Nsqr = bvfsq_i,
      .                        dens=rho_zeros,dens_lwr=rho_lwr,
      .                        nlev=kk, max_nlev=kk,
-     .                        OBL_ind=kOBL)
+     .                        OBL_ind=kOBL(i,j))
              ! Do not apply mixing due to convection within the boundary layer
-             do k = 1,kOBL
+             do k = 1,kOBL(i,j)
                 Kv_conv(k) = 0.0
                 Kd_conv(k) = 0.0
              enddo
@@ -1206,7 +1207,7 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
 
              ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
+             kOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
      .                               cellHeight,OBLdepth(i,j))
 
 c ---- ccc -------
