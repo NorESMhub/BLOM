@@ -125,7 +125,6 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
 !$OMP END PARALLEL DO
 
 
-  kmle(:,:) =2
   kbo(:,:)  =1
   bolay(:,:)=0.0
 
