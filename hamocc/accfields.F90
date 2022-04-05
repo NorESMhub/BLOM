@@ -471,22 +471,16 @@
         nacc_bgc(l)=nacc_bgc(l)+1
         if (bgcwrt(l)) then
           if (GLB_INVENTORY(l).ne.0) then
-            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,l)
           endif
           call ncwrt_bgc(l)
           nacc_bgc(l)=0
         endif
       ENDDO
 
-      IF(expcnf.eq.'single_column') THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'after BGC flux accumulation: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
       atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepflx=0.
       rivinflx=0.
+
      RETURN
      END

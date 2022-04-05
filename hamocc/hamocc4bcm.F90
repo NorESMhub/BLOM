@@ -111,7 +111,7 @@
       REAL,    intent(in)  :: prho   (kpie,kpje,kpke)
       REAL,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: omask  (kpie,kpje)
-      REAL,    intent(in)  :: dust   (kpie,kpje,nriv)
+      REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -197,15 +197,6 @@
       call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
                            atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
 #endif
-
-!     jm 
-      IF(expcnf.eq.'single_column')THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
 
 #ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN

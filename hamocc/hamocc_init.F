@@ -57,7 +57,8 @@ c******************************************************************************
       use mo_ndep,       only: ini_ndep,ndepfile
       use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,
      .                         inisil,inid13c,inid14c
-      use mo_riverinpt,  only: ini_riverinpt,rivinfile
+      use mo_riverinpt,  only: ini_riverinpt,rivinfile, 
+     .                         alloc_mem_riverinpt_bgm
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2,
@@ -127,6 +128,7 @@ c
       CALL ALLOC_MEM_BIOMOD(idm,jdm,kdm)
       CALL ALLOC_MEM_SEDMNT(idm,jdm)
       CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
+c$$$      CALL ALLOC_MEM_RIVERINPT_BGM(idm,jdm,omask)
 c
 c --- initialise trc array (two time levels)
 c

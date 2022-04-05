@@ -343,7 +343,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
 !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
 # ifdef AGG
-!$OMP  ,avmass,avnos,zmornos                                &
+!$OMP  ,avmass,avnos,zmornos                                          &
 # endif
 # ifdef cisonew
 !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
