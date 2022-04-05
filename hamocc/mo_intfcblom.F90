@@ -244,10 +244,11 @@ subroutine blom2hamocc(m,n,mm,nn)
 !******************************************************************************
 !
   use mod_constants, only: onem
-  use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm 
+  use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
   use mod_eos,       only: rho,p_alpha
+  use mod_vcoord,    only: vcoord_type_tag, cntiso_hybrid
   use mod_difest,    only: kOBL
   use mod_tracers,   only: ntrbgc,itrbgc,trc
   use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
@@ -296,7 +297,9 @@ subroutine blom2hamocc(m,n,mm,nn)
      bgc_dy(i,j) = scpy(i,j)/1.e2
 !
 ! --- - index of level above OBL depth
-     kmle(i,j) = kOBL(i,j)
+     if (vcoord_type_tag == cntiso_hybrid) then
+        kmle(i,j) = kOBL(i,j)
+     endif
   enddo
   enddo
 !$OMP END PARALLEL DO
