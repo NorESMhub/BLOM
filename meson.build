@@ -7,6 +7,7 @@ project('BLOM', ['fortran', 'c'],
 # Setup additional flags for compilation
 fcc = meson.get_compiler('fortran')
 if fcc.get_id() == 'gcc'
+  add_project_arguments(['-g' ], language: 'fortran')
   add_project_arguments(['-fdefault-real-8', '-fconvert=big-endian'],
                         language: 'fortran')
   if get_option('buildtype').startswith('debug')
@@ -21,6 +22,7 @@ if fcc.get_id() == 'gcc'
                           language: 'fortran')
   endif
 elif fcc.get_id() == 'intel'
+  add_project_arguments(['-g' ], language: 'fortran')
   add_project_arguments(['-r8', '-convert', 'big_endian', '-assume',
                          'byterecl'], language: 'fortran')
   if get_option('buildtype').startswith('debug')
@@ -30,9 +32,6 @@ elif fcc.get_id() == 'intel'
   endif
   if get_option('buildtype') == 'release'
     add_project_arguments('-fp-model precise'.split(),language: 'fortran')
-  endif
-  if get_option('processors') == 1 and get_option('grid') == 'channel'
-    add_project_arguments('-mcmodel=medium', language: 'fortran')
   endif
 else
   warning('Unknown Fortran compiler ("' + fcc.get_id() + '"), no default flags specified')
@@ -65,7 +64,7 @@ subdir('drivers')
 subdir('ben02')
 subdir('cesm')
 subdir('fuk95')
-subdir('channel')
+subdir('channel_small')
 subdir('single_column')
 
 # Handle options and add necessary flags and subfolders with source files
