@@ -58,7 +58,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       USE mo_biomod, only: expoor,expoca,exposi,rcar,rnit
       USE mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
       USE mo_bgcmean, only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,   &
-                          & jndep,jo2flux,jprcaca,jprorca,jsilpro 
+                          & jndep,jo2flux,jprcaca,jprorca,jsilpro,     &
+                          & nbgcmax,glb_inventory 
       USE mo_param1_bgc, only: ialkali,ian2o,iano3,iatmco2,iatmn2,     &
                           & iatmn2o,iatmo2,icalc,idet,idoc,igasnit,    &
                           & iopal,ioxygen,iphosph,iphy,ipowaic,ipowaox,&
@@ -319,7 +320,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ! river fluxes
   if(do_rivinpt) then
-     srivflx = sum2d_array(rivinflx, nriv)
+     srivflux = sum2d_array(rivinflx, nriv)
   endif
 #else
   ! consider accumulated fluxes in the regular mode
@@ -656,7 +657,26 @@ subroutine write_netcdf(iogrp)
   use mod_config, only: expcnf, runid, inst_suffix
   use mod_time,   only: date0, time0, date, time, nstep, nday_of_year,         &
        &                nstep_in_day
-  use mo_bgcmean, only: filefq_bgc, fileann_bgc, filemon_bgc
+  use mo_bgcmean, only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
+  use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,&
+       &                   iprefpo4
+#ifdef AGG
+  use mo_param1_bgc, only: iadust,inos
+#endif
+#ifdef BROMO
+  use mo_param1_bgc, only: ibromo
+#endif
+#ifdef CFC
+  use mo_param1_bgc, only: icfc11,icfc12,isf6
+#endif
+#ifdef cisonew
+  use mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,&
+       &                   iphy13,iphy14,isco213,isco214,izoo13,izoo14
+#endif
+#ifdef natDIC
+  use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
+#endif
+
 
   implicit none
 
@@ -1862,6 +1882,7 @@ end subroutine write_netcdf
 
 subroutine nccheck(status)
   use netcdf, only: nf90_noerr
+  use mod_xc, only: xchalt
   implicit none
 
   integer, intent(in) :: status
