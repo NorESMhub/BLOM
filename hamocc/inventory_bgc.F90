@@ -437,9 +437,11 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !=== Write output to netCDF file or stdout
 !----------------------------------------------------------------------
   if (mnproc == 1) then
-     if (GLB_INVENTORY(iogrp) == 2) then
+     if (iogrp == 0) then                       ! debug mode
+        call write_stdout
+     else if (GLB_INVENTORY(iogrp) == 2) then   ! netcdf output
         call write_netcdf(iogrp)
-     else
+     else                                       ! default
         call write_stdout
      end if
   end if
