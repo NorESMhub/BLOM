@@ -305,7 +305,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ! river fluxes
   if(do_rivinpt) then
-     srivflx = sum2d_array(rivinflx, nriv)
+     srivflux = sum2d_array(rivinflx, nriv)
   endif
 #else
   ! consider accumulated fluxes in the regular mode
