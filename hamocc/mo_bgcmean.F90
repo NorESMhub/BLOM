@@ -53,12 +53,12 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
-      USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
-      USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      USE mod_nctools,only:ncpack,nccomp,nccopa,ncwrtr
-      USE netcdf, only: nf90_fill_double
-      USE mo_param1_bgc, only: ks
-      USE mo_control_bgc, only: get_bgc_namelist 
+      use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
+      use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
+      use mod_nctools,    only:ncpack,nccomp,nccopa,ncwrtr
+      use netcdf,         only: nf90_fill_double
+      use mo_param1_bgc,  only: ks
+      use mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
@@ -482,7 +482,7 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      USE mo_control_bgc, only: io_stdo_bgc,bgc_namelist
+      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
 
       IMPLICIT NONE 
      

@@ -81,25 +81,24 @@
 !  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
 !
 !******************************************************************************
-      use mod_xc, only: mnproc
-      USE mo_carbch, only: atmflx,ocetra 
-      USE mo_biomod, only: strahl
-      USE mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc
-      use mo_param1_bgc, only: iatmco2,iatmdms,nocetra
-      use mo_vgrid,     only: set_vgrid
-      use mo_riverinpt, only: riverinpt,nriv
-      use mo_ndep,      only: n_deposition
-      use mod_config, only: expcnf
+      use mod_xc,         only: mnproc
+      use mo_carbch,      only: atmflx,ocetra 
+      use mo_biomod,      only: strahl
+      use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc
+      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra
+      use mo_vgrid,       only: set_vgrid
+      use mo_riverinpt,   only: riverinpt,nriv
+      use mo_ndep,        only: n_deposition
+      use mod_config,     only: expcnf
 #if defined(BOXATM)
-      use mo_boxatm, only: update_boxatm
+      use mo_boxatm,      only: update_boxatm
 #endif
 #ifdef BROMO
-      use mo_param1_bgc, only: iatmbromo
-      use mo_carbch, only: atm
+      use mo_param1_bgc,  only: iatmbromo
+      use mo_carbch,      only: atm
 #endif
 #ifdef CFC
-      use mo_carbch, only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,     &
-                         & atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
+      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
 #endif
       implicit none
 

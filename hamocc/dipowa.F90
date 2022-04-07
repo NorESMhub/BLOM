@@ -55,10 +55,10 @@ subroutine dipowa(kpie,kpje,kpke,omask)
 !
 !**********************************************************************
 
-  use mo_carbch, only: ocetra, sedfluxo 
-  use mo_sedmnt, only: powtra,porwat,porwah,sedict,seddw,seddzi 
+  use mo_carbch,     only: ocetra, sedfluxo 
+  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi 
   use mo_param1_bgc, only: ks,npowtra
-  use mo_vgrid, only: kbo,bolay
+  use mo_vgrid,      only: kbo,bolay
 #ifdef cisonew
   use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
 #endif

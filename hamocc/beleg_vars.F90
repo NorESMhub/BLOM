@@ -51,44 +51,40 @@
 !
 !
 !******************************************************************************
-      USE mo_carbch, only:   co2star,co3,hi,ocetra 
-      USE mo_biomod, only:   fesoly 
-      USE mo_control_bgc, only: rmasks
-      USE mo_param1_bgc, only:ialkali,ian2o,iano3,icalc,idet,idicsat,  &
-                              & idms,idoc,ifdust,igasnit,iiron,iopal,  &
-                              & ioxygen,iphosph,iphy,iprefalk,iprefdic,&
-                              & iprefo2,iprefpo4,isco212,isilica,izoo 
-      USE mo_vgrid, only: kmle,kbo
+
+      use mo_carbch,      only: co2star,co3,hi,ocetra 
+      use mo_biomod,      only: fesoly 
+      use mo_control_bgc, only: rmasks
+      use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
+      use mo_vgrid,       only: kmle,kbo
 
 #ifdef AGG
-      USE mo_biomod, only: cellmass,fractdim
-      USE mo_param1_bgc, only: iadust,inos
+      use mo_biomod,      only: cellmass,fractdim
+      use mo_param1_bgc,  only: iadust,inos
 #endif
 #ifdef BROMO
-      USE mo_param1_bgc, only: ibromo
+      use mo_param1_bgc,  only: ibromo
 #endif
 #ifdef CFC
-      USE mo_param1_bgc, only: icfc11,icfc12,isf6
+      use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
 #ifdef cisonew
-      USE mo_biomod, only: bifr13,bifr14,c14fac,re1312,re14to
-      USE mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,   &
-                             & idoc14,iphy13,iphy14,isco213,isco214,   &
-                             & izoo13,izoo14,safediv
+      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
 #endif
 #ifdef natDIC
-      USE mo_param1_bgc, only: inatcalc
-      USE mo_carbch, only: nathi,natco3
+      use mo_param1_bgc,  only: inatcalc
+      use mo_carbch,      only: nathi,natco3
 #endif
 #ifndef sedbypass
-      USE mo_param1_bgc, only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,&
-                            &  ipown2,ipowno3,isssc12,issso12,issssil, &
-                            &  issster,ks,nsedtra
-      USE mo_sedmnt, only: sedhpl,burial,powtra,sedlay
+      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra
+      use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
 #endif
 #ifdef FB_BGC_OCE
-      USE mo_biomod, only: abs_oce
+      use mo_biomod,      only: abs_oce
 #endif 
+
       implicit none
 
       INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd

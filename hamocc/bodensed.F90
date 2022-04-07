@@ -42,13 +42,12 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !
 !**********************************************************************
-  use mo_sedmnt, only: calcwei,calfa,clafa,claydens,calcdens,opaldens, &
-                       & opalwei,oplfa,orgdens,orgfa,seddzi,porwat,    &
-                       & porwah,porsol,dzs,seddw,sedac,sedict,sedifti, &
-                       & solfu,orgwei
+  
+  use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
+                          & porsol,dzs,seddw,sedac,sedict,sedifti,solfu,orgwei
   use mo_control_bgc, only: dtbgc,io_stdo_bgc,isac 
-  use mo_param1_bgc, only: ks
-  use mod_xc, only: mnproc
+  use mo_param1_bgc,  only: ks
+  use mod_xc,         only: mnproc
 
   implicit none
 

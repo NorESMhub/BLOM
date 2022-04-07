@@ -41,43 +41,32 @@
 !  *INTEGER*   *kpje*    - 2nd dimension of model grid.
 !
 !******************************************************************************
-      USE mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar 
-      USE mo_biomod,      only:atten_c,atten_f,atten_uv,atten_w,bkopal,&
-                            & bkphy,bkopal,bkzoo,bluefix,ctochl,       &
-                            & dremn2o,dremopal,drempoc,dremsul,        &
-                            & dyphy,ecan,epsher,fesoly,fetune,gammap,  &
-                            & gammaz,grami,grazra,perc_diron,phytomi,  &
-                            & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,      &
-                            & rdnit0,rdnit1,rdnit2,relaxfe,remido,     &
-                            & riron,rnit,rnoi,ro2ut,ropal,spemor,tf0,  &
-                            & tf1,tf2,tff,wcal,wdust,                  &
-                            & wopal,wpoc,zinges 
-      USE mo_sedmnt,      only: claydens,o2ut,rno3
-      USE mo_control_bgc, only: dtb,io_stdo_bgc
-      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,               &
-                                iatmc13,iatmc14,iatmbromo
-      USE mod_xc,         only: mnproc
+      use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar 
+      use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,        &
+                              & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,     &
+                              & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,      &
+                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
+      use mo_sedmnt,      only: claydens,o2ut,rno3
+      use mo_control_bgc, only: dtb,io_stdo_bgc
+      use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
+      use mod_xc,         only: mnproc
 
 #ifdef AGG
-      USE mo_biomod, only: alar1,alar2,alar3,alow1,alow2,alow3,calmax, &
-                         & cellmass,cellsink,dustd1,dustd2,dustd3,     &
-                         & dustsink,     &
-                         & fractdim,fse,fsh,nmldmin,plower,pupper,     &
-                         & safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
+      use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,        &
+                              & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
 #elif defined(WLIN)
-      USE mo_biomod, only: wmin,wmax,wlin
+      use mo_biomod,      only: wmin,wmax,wlin
 #endif
 #ifdef BROMO
-      USE mo_biomod, only: rbro
-      USE mo_carbch, only: atm_bromo,fbro1,fbro2
+      use mo_biomod,      only: rbro
+      use mo_carbch,      only: atm_bromo,fbro1,fbro2
 #endif
 #ifdef cisonew
-      USE mo_biomod, only: bifr13,bifr14,c14fac,prei13,prei14,re1312,   &
-                         & re14to
-      USE mo_carbch, only: atm_c13, atm_c14,c14_t_half,c14dec
+      use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
+      use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
 #endif
 #ifdef natDIC
-      USE mo_carbch, only: atm_co2_nat
+      use mo_carbch,      only: atm_co2_nat
 #endif
 
       implicit none      

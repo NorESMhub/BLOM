@@ -60,10 +60,11 @@
 !     ---------
 !     .
 !**********************************************************************
-      USE mo_carbch, only: ocetra 
-      USE mo_biomod, only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff 
+
+      use mo_carbch,     only: ocetra 
+      use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff 
       use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen 
-      use mo_vgrid, only: kmle
+      use mo_vgrid,      only: kmle
 #ifdef natDIC
       use mo_param1_bgc, only: inatalkali
 #endif

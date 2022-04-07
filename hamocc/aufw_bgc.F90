@@ -96,47 +96,37 @@
 !     *CHAR*    *rstfnm*     - restart file name-informations
 !
 !**************************************************************************
-      USE netcdf, only: nf90_64bit_offset,nf90_global,nf90_noerr,      &
-                      & nf90_nofill,nf90_def_dim,nf90_enddef,          &
-                      & nf90_close,nf90_create,nf90_put_att,           &
-                      & nf90_set_fill 
-      USE mo_carbch,    only: co2star,co3, hi,satoxy
-      USE mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko
-      use mo_param1_bgc, only: ialkali, ian2o,iano3,icalc,idet,idicsat,&
-                              & idms,idoc,ifdust,igasnit,iiron,iopal,  &
-                              & ioxygen,iphosph,iphy,iprefalk,iprefdic,&
-                              & iprefo2,iprefpo4,isco212,isilica,izoo, &
-                              & ks,nocetra
-      USE mo_sedmnt,    only: sedhpl
-      use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      use mod_xc,       only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
-      use mod_dia,      only: iotype
-
+      use netcdf,         only: nf90_64bit_offset,nf90_global,nf90_noerr,nf90_nofill,nf90_def_dim,nf90_enddef,nf90_close,          &
+                              & nf90_create,nf90_put_att,nf90_set_fill 
+      use mo_carbch,      only: co2star,co3, hi,satoxy
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko
+      use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,ks,nocetra
+      use mo_sedmnt,      only: sedhpl
+      use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
+      use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
+      use mod_dia,        only: iotype
 #ifdef AGG
-      use mo_param1_bgc, only: iadust, inos
+      use mo_param1_bgc,  only: iadust, inos
 #endif
 #ifdef BOXATM
-      use mo_param1_bgc, only: iatmco2,iatmn2,iatmo2
+      use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
 #endif
 #ifdef BROMO
-      use mo_param1_bgc, only: ibromo
+      use mo_param1_bgc,  only: ibromo
 #endif
 #ifdef CFC
-      use mo_param1_bgc, only: icfc11,icfc12,isf6
+      use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
 #ifdef cisonew
-      use mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,   &
-                             & idoc14,iphy13,iphy14,isco213,isco214,   &
-                             & izoo13,izoo14
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14
 #endif
 #ifdef natDIC
-      use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
-      use mo_carbch, only: nathi
+      use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
+      use mo_carbch,      only: nathi
 #endif
 #ifndef sedbypass
-      use mo_param1_bgc, only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,&
-                             & ipown2,ipowno3,isssc12,issso12,issssil, &
-                             & issster
+      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
 #endif
 
  

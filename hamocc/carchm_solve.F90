@@ -62,7 +62,8 @@ SUBROUTINE CARCHM_SOLVE(saln,tc,ta,sit,pt,                            &
 !     none.
 !
 !**********************************************************************
-USE mo_chemcon, only: bor1,bor2,salchl
+
+use mo_chemcon, only: bor1,bor2,salchl
 
 IMPLICIT NONE
 REAL,    INTENT(IN)    :: saln,tc,ta,sit,pt

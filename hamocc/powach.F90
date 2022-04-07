@@ -59,20 +59,18 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao)
 !     none.
 !
 !******************************************************************************
-  use mo_carbch, only: co3,keqb,ocetra,sedfluxo
-  use mo_chemcon, only: calcon
-  use mo_sedmnt, only: porwat,porsol,powtra,produs,prcaca,prorca,rno3, &
-                     & seddw,sedhpl,sedlay,silpro
-  use mo_biomod, only: rnit,ro2ut
+  use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
+  use mo_chemcon,     only: calcon
+  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro
+  use mo_biomod,      only: rnit,ro2ut
   use mo_control_bgc, only: dtbgc 
-  use mo_param1_bgc, only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,    &
-                     & ipowasi,ipown2,ipowno3,isilica,isssc12,issso12, &
-                     & issssil,issster, ks 
-  use mo_vgrid, only: kbo,bolay
+  use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
+                          & issster, ks 
+  use mo_vgrid,       only: kbo,bolay
+
 #ifdef cisonew
-  use mo_param1_bgc, only: ipowc13,ipowc14,isssc13,isssc14,issso13,    &
-                     & issso14,safediv
-  use mo_sedmnt, only: pror13,pror14,prca13,prca14
+  use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
+  use mo_sedmnt,      only: pror13,pror14,prca13,prca14
 #endif
 
 

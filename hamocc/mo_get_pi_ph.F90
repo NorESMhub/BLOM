@@ -30,10 +30,10 @@
       SUBROUTINE GET_PI_PH(kpie,kpje,kpke,omask)
 !**********************************************************************
 
-      USE mo_carbch, only: pi_ph 
-      USE mo_control_bgc, only: io_stdo_bgc 
-      USE netcdf, only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
-      USE mod_xc, only: mnproc,xchalt
+      use mo_carbch,      only: pi_ph 
+      use mo_control_bgc, only: io_stdo_bgc 
+      use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
+      use mod_xc,         only: mnproc,xchalt
 
       implicit none
       INTEGER, INTENT(in) :: kpie,kpje,kpke

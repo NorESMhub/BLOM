@@ -70,10 +70,8 @@ module mo_Gdata_read
 !
 !********************************************************************************
 
-use netcdf, only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,&
-                & nf90_inquire_dimension,nf90_inq_varid,nf90_get_var,  &
-                & nf90_inquire_variable,nf90_get_att,nf90_close,       &
-                & nf90_open 
+use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,nf90_inquire_dimension,nf90_inq_varid,nf90_get_var, &
+                        & nf90_inquire_variable,nf90_get_att,nf90_close,nf90_open 
 use mod_xc,         only: mnproc,xchalt
 use mo_control_bgc, only: io_stdo_bgc
 
