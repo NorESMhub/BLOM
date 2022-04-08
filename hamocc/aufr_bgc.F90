@@ -137,6 +137,9 @@
 #ifndef sedbypass
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: ianh4,iano2
+#endif
 
 
       implicit none

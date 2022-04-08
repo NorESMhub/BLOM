@@ -70,6 +70,9 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_param1_bgc,  only: ks
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: ianh4,iano2
+#endif
 
 
   implicit none

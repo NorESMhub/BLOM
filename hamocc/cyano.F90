@@ -68,6 +68,9 @@
 #ifdef natDIC
       use mo_param1_bgc, only: inatalkali
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc, only: ianh4
+#endif
 
       implicit none
       
