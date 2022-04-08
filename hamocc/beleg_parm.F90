@@ -68,6 +68,11 @@
 #ifdef natDIC
       use mo_carbch,      only: atm_co2_nat
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: iatmnh3,iatmn2o
+      use mo_carbch,      only: atm_nh3,atm_n2o
+      use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 3e-7
+#endif
 
       implicit none      
 
@@ -97,6 +102,13 @@
 !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
 !BE UPDATED WITH Ziska et al. (2013) climatology database
       atm_bromo = 3.4
+#endif
+#ifdef extNcycle
+      ! Six & Mikolajewicz 2022: less than 1nmol m−3
+      atm_nh3 = 0.
+      ! for now initializing the atmosphereic mixing ratio for N2O with fixed value 
+      ! - later to be revereted to namelist parameter
+      atm_n2o = atn2o
 #endif
 
 #ifdef cisonew
@@ -137,6 +149,10 @@
 #endif
 #ifdef BROMO
         atm(i,j,iatmbromo)= atm_bromo
+#endif
+#ifdef extNcycle
+        atm(i,j,iatmnh3)  = atm_nh3
+        atm(i,j,iatmn2o)  = atm_n2o
 #endif
       ENDDO
       ENDDO
@@ -314,6 +330,10 @@
      &'*                              atm_o2       = ',atm_o2           
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_n2       = ',atm_n2 
+#ifdef extNcycle
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              atm_nh3       = ',atm_nh3
+#endif
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              phytomi      = ',phytomi
       WRITE(io_stdo_bgc,*)                                             &

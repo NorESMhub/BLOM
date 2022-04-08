@@ -105,6 +105,9 @@
 #ifdef BROMO
       REAL :: atm_bromo, fbro1, fbro2
 #endif
+#ifdef extNcycle
+      REAL :: atm_nh3,atm_n2o
+#endif
 
       CONTAINS
 

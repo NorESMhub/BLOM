@@ -196,9 +196,17 @@
       INTEGER, PARAMETER :: i_bromo_atm=0,                              &
      &                      iatmbromo=-1
 #endif
+#ifdef extNcycle
+      INTEGER, PARAMETER :: i_nh3_atm=1,                                &
+     &                      iatmnh3=i_base_atm+i_iso_atm+i_cfc_atm+     &
+     &                                i_ndic_atm+i_bromo_atm+1
+#else 
+      INTEGER, PARAMETER :: i_nh3_atm=0,                                &
+     &                      iatmnh3=-1
+#endif
 
 ! total number of atmosphere tracers
-      INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm
+      INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
 
 
 ! sediment
