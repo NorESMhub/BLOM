@@ -103,11 +103,26 @@ endif
 
 if get_option('ecosys')
   add_project_arguments('-DHAMOCC','-DRESTART_BGC', '-DWLIN', language: 'fortran')
+  if get_option('hamocc_agg')
+    add_project_arguments('-DAGG', language: 'fortran')
+  endif
+  if get_option('hamocc_boxatm')
+    add_project_arguments('-DBOXATM', language: 'fortran')
+  endif
+  if get_option('hamocc_bromo')
+    add_project_arguments('-DBROMO', language: 'fortran')
+  endif
   if get_option('hamocc_cfc')
     add_project_arguments('-DCFC', language: 'fortran')
   endif
+  if get_option('hamocc_dmsph')
+    add_project_arguments('-DDMSPH', language: 'fortran')
+  endif
   if get_option('hamocc_nattrc')
     add_project_arguments('-DnatDIC', language: 'fortran')
+  endif
+  if get_option('hamocc_fb_bgc_oce')
+    add_project_arguments('-DFB_BGC_OCE', language: 'fortran')
   endif
   if get_option('hamocc_sedbypass')
     add_project_arguments('-Dsedbypass', language: 'fortran')

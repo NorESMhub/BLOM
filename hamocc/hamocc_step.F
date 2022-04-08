@@ -22,14 +22,15 @@ c --- ------------------------------------------------------------------
 c --- perform one HAMOCC step     
 c --- ------------------------------------------------------------------
 c
-      use mod_xc
+      use mod_xc,       only: idm,jdm,kdm,nbdy 
       use mod_time,     only: date,nday_of_year,nstep,nstep_in_day
       use mod_grid,     only: plat
       use mod_state,    only: temp,saln
       use mod_forcing,  only: swa,slp,abswnd,atmco2,flxco2,flxdms,
      .                        atmbrf,flxbrf
       use mod_seaice,   only: ficem
-      use mo_bgcmean
+      use mo_bgcmean,   only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc, 
+     .                        diagann_bgc 
       use mo_intfcblom, only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,
      .                        blom2hamocc,hamocc2blom
       use mo_riverinpt, only: rivflx

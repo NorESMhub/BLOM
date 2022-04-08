@@ -199,7 +199,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
 
 #if defined(BOXATM)
   IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable atm ...'
+    WRITE(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
     WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
     WRITE(io_stdo_bgc,*)'Third dimension    : ',2
@@ -244,7 +244,7 @@ subroutine blom2hamocc(m,n,mm,nn)
 !******************************************************************************
 !
   use mod_constants, only: onem
-  use mod_xc
+  use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm 
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
   use mod_eos,       only: rho,p_alpha
@@ -432,7 +432,7 @@ subroutine hamocc2blom(m,n,mm,nn)
 !
 !******************************************************************************
 !
-  use mod_xc
+  use mod_xc,        only: ii,jj,kk,ifp,ilp,isp 
   use mod_tracers,   only: ntrbgc,itrbgc,trc
   use mod_tmsmt,     only: wts1, wts2
   use mo_carbch,     only: ocetra,atm

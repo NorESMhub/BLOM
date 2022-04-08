@@ -255,8 +255,7 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 !  *REAL*      *rivin*   - riverine input field [kmol m-2 yr-1]
 !
 !--------------------------------------------------------------------------------
-  use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,      &
-                            ialkali,inatsco212,inatalkali
+  use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali,inatsco212,inatalkali
   use mo_control_bgc, only: dtb,do_rivinpt
   use mo_vgrid,       only: kmle
   use mo_carbch,      only: ocetra

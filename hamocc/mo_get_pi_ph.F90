@@ -15,32 +15,42 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-
-      SUBROUTINE GET_PI_PH(kpie,kpje,kpke,omask,path)
-!**********************************************************************
-
-      USE mo_carbch
-      USE mo_control_bgc
-      use mo_param1_bgc 
-      use netcdf
-      USE mod_xc 
+      MODULE mo_get_pi_ph
 
       implicit none
-      INTEGER :: kpie,kpje,kpke,i,j,k,l
+      private
+      public :: get_pi_ph,pi_ph_path
+
+      ! Path to input data, set through namelist 
+      ! in hamocc_init.F 
+      character(len=256),save    :: pi_ph_path = ''
+
+      CONTAINS     
+ 
+      SUBROUTINE GET_PI_PH(kpie,kpje,kpke,omask)
+!**********************************************************************
+
+      use mo_carbch,      only: pi_ph 
+      use mo_control_bgc, only: io_stdo_bgc 
+      use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
+      use mod_xc,         only: mnproc,xchalt
+
+      implicit none
+      INTEGER, INTENT(in) :: kpie,kpje,kpke
+      INTEGER ::i,j,l
   
-      REAL ::omask(kpie,kpje)
-      character*(*) path
+      REAL,intent(in) ::omask(kpie,kpje)
 
 ! define the fields
 
       REAL :: pi_ph_in(kpie,kpje,12)
 
-      INTEGER ncid,ncstat,ncvarid
+      INTEGER ncid,ncstat
 !
 ! Open netCDF data file
 !      
        IF(mnproc==1) THEN
-        ncstat = NF90_OPEN(trim(path)//'MONTHLY_PI_PH.nc',   &
+        ncstat = NF90_OPEN(trim(pi_ph_path)//'MONTHLY_PI_PH.nc',   &
      &                   NF90_NOWRITE, ncid)
         write(io_stdo_bgc,*) 'HAMOCC: opening MONTHLY_PI_PH file'
         IF (ncstat.NE.NF90_NOERR ) THEN
@@ -77,3 +87,5 @@
 
       RETURN
       END
+
+      END MODULE mo_get_pi_ph
