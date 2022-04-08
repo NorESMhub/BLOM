@@ -117,6 +117,10 @@
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: iatmnh3,ianh4
+      use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3
+#endif
 
       implicit none
 
@@ -169,6 +173,9 @@
 #ifdef BROMO
       REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
 #endif
+#ifdef extNcycle
+      REAL    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
+#endif
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -214,6 +221,9 @@
 #ifdef BROMO
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 #endif
+#ifdef extNcycle
+!$OMP ,kw_nh3,ka_nh3                                                  &
+#endif 
 !$OMP  ,j,i)
       DO k=1,kpke
       DO j=1,kpje
@@ -308,7 +318,37 @@
 ! (2003; GBC)
       sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
 #endif
+#ifdef extNcycle
+      ! Tsilingiris 2008 Eq.(45) for moist air (kg/m s) 
+      mu_air   = SV0_air + SV1_air*t + SV2_air*t2 + SV3_air*t3 + SV4_air*t4
 
+      ! Tsinlingiris(44) moist air density (kg/m3)
+      rho_air  = SD0_air + SD1_air*t + SD2_air*t2 + SD3_air*t3
+
+      ! molecular viscosity of sea water 
+      ! (Matthaeus 1972, Richards 1998,assuming salinity s in per mille = ~PSU)
+      p_dbar =  1.01325 * 10. ! sea level pressure (bar) -> dbar
+      mu_w   = 1.79e-2 - 6.1299e-4 * t + 1.4467e-5 * t2 - 1.6826e-7 * t3          &        
+             & - 1.8266e-7 * p_dbar + 9.8972e-12 * p_dbar*p_dbar + 2.4727e-5 * s  &
+             & + s * (4.8429e-7 * t - 4.7172e-8 * t2 + 7.5986e-10 * t3)           &
+             & + s * (1.3817e-8 * t - 2.6363e-10 * t2)                            &
+             & - p_dbar*p_dbar * (6.3255e-13 * t - 1.2116e-14 * t2)
+      mu_w   = mu_w * 0.1 ! conversion from g/(cm s) to kg/(m s) 
+ 
+      ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
+      ! division by pressure: assuming 1 atm, in Fuller, p is a factor for denominator 
+      diff_nh3_a =  1e-7 * (t+273.15)**1.75 * M_nh3
+
+      ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
+      ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
+      ! mu_w*1000: kg/(m s) -> cPoise as in Eq.(34) of Johnson 2010
+      diff_nh3_w = 1.25e-12*(t+273.15)**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**-0.19 - 0.292)
+
+      ! Schmidt number air phase
+      sch_nh3_a  = mu_air /(diff_nh3_a * rho_air)
+      ! Schmidt number water phase
+      sch_nh3_w  = mu_w   /(diff_nh3_w * rrho * 1000.)
+#endif
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
        ani=an0+an1/tk100+an2*alog(tk100)+an3*tk100+s*(an4+an5*tk100+an6*tk100**2)

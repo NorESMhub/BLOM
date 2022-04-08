@@ -174,6 +174,29 @@
 !
       real, parameter :: atn2o=3.e-7
 
+#ifdef extNcycle
+      ! Tsilingiris 2008
+      ! moist air dynamic viscosity parameters
+      real, parameter :: SV0_air =  1.715747771e-5
+      real, parameter :: SV1_air =  4.722402075e-8
+      real, parameter :: SV2_air = -3.663027156e-10
+      real, parameter :: SV3_air =  1.873236686e-12
+      real, parameter :: SV4_air = -8.050218737e-14
+
+      ! moist air density parameters
+      real, parameter :: SD0_air =  1.293393662
+      real, parameter :: SD1_air = -5.538444326e-3
+      real, parameter :: SD2_air =  3.860201577e-5
+      real, parameter :: SD3_air = -5.2536065e-7
+
+      ! diffusion of NH3 in water and air 
+      real, parameter :: Va_air  = 20.1  ! Johnson 2010
+      real, parameter :: Ma_air  = 28.97 ! Johnson 2010
+      real, parameter :: Mb_nh3  = 17.03 ! Johnson 2010, Tang 2014
+      real, parameter :: Vb_nh3  = 20.7  ! Johnson 2010
+      real, parameter :: M_nh3   =  (1./Ma_air + 1./Mb_nh3)**0.5 / (Va_air**(1./3.)+Vb_nh3**(1./3.))**2.
+#endif
+
 
 
 !     -----------------------------------------------------------------
