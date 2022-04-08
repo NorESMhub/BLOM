@@ -44,16 +44,16 @@
 !     *REAL*    *omask*   - land/ocean mask
 !
 !**********************************************************************
-      USE mo_carbch
-      USE mo_sedmnt
       USE mo_biomod
       USE mo_bgcmean
+      USE mo_carbch
       USE mo_control_bgc
-      use mo_param1_bgc 
+      use mo_param1_bgc
+      USE mo_sedmnt
       use mo_vgrid, only: dp_min
       use mod_xc
       use mo_riverinpt, only: irdin,irdip,irsi,iralk,iriron,irdoc,irdet,rivinflx
-      use mod_config, only: expcnf
+
       implicit none
       INTEGER :: kpie,kpje,kpke
       REAL    :: pdlxp(kpie,kpje)
@@ -378,22 +378,16 @@
         nacc_bgc(l)=nacc_bgc(l)+1
         if (bgcwrt(l)) then
           if (GLB_INVENTORY(l).ne.0) then
-            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,l)
           endif
           call ncwrt_bgc(l)
           nacc_bgc(l)=0
         endif
       ENDDO
 
-      IF(expcnf.eq.'single_column') THEN
-        IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)' '
-         WRITE(io_stdo_bgc,*)'after BGC flux accumulation: call INVENTORY'
-        ENDIF
-        CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      ENDIF
       atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepflx=0.
       rivinflx=0.
+
      RETURN
      END

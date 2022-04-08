@@ -30,6 +30,9 @@ module mo_riverinpt
 ! ------------
 !  Public routines and variable of this module:
 !
+!  -subroutine alloc_mem_riverinpt_bgm
+!    memory allocation for inventory calc handled inside hamocc4bgm
+!
 !  -subroutine ini_riverinpt
 !    read gnews riverine nutrient and cabon data 
 !
@@ -56,7 +59,7 @@ module mo_riverinpt
 ! Changes: 
 ! --------
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-!  - re-structured this moodule such that riverine input can be passed as an 
+!  - re-structured this module such that riverine input can be passed as an 
 !    argument to iHAMOCC's main routine
 ! 
 !********************************************************************************
@@ -67,6 +70,7 @@ implicit none
 
 private
 public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile,rivinflx
+public :: alloc_mem_riverinpt_bgm
 public :: irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 integer,         parameter :: nriv     = 7    ! size of river input field
@@ -93,7 +97,44 @@ real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   
 !********************************************************************************
 contains
 
+subroutine alloc_mem_riverinpt_bgm(kpie,kpje,omask)
+!-------------------------------------------------------------------------------
+!
+! Purpose:
+! --------
+! Initialise river input-related memory for inventory calculations
+! handled inside hamocc4bgm
+!
+! Arguments:
+! ----------
+!  *INTEGER*     *kpie*    - 1st dimension of model grid.
+!  *INTEGER*     *kpje*    - 2nd dimension of model grid.
+!  *REAL*        *omask*   - ocean mask
+! 
+!-------------------------------------------------------------------------------
 
+  use mo_control_bgc, only: io_stdo_bgc
+  implicit none
+  integer, intent(in)  :: kpie,kpje
+  real,    intent(in)  :: omask(kpie,kpje)
+
+  ! local variables
+  integer :: errstat
+
+
+  ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
+  IF (mnproc.eq.1) THEN
+  WRITE(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
+  WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+  WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+  WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
+  ENDIF
+  
+  ALLOCATE (rivinflx(kpie,kpje,nriv),stat=errstat)
+  if(errstat.ne.0) stop 'not enough memory rivinflx'
+  rivinflx(:,:,:) = 0.0
+
+end 
 
 subroutine ini_riverinpt(kpie,kpje,omask)
 !--------------------------------------------------------------------------------
@@ -143,18 +184,7 @@ subroutine ini_riverinpt(kpie,kpje,omask)
   rivflx(:,:,:) = 0.0
 
   ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
-  IF (mnproc.eq.1) THEN
-  WRITE(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
-  WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-  WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
-  ENDIF
-
-  ALLOCATE (rivinflx(kpie,kpje,nriv),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory rivinflx'
-  rivinflx(:,:,:) = 0.0
-
-
+  call alloc_mem_riverinpt_bgm(kpie,kpje,omask)
 
   ! Return if riverine input is turned off
   if (.not. do_rivinpt) then
