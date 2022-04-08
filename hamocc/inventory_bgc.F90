@@ -363,7 +363,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zocetratot(ian2o)*2                                                 &
        &  - sndepflux                                                          &
 #ifdef extNcycle
-       &  +zocetrato(ianh4)+zocetrato(iano2)                                   &
+       &  +zocetratot(ianh4)+zocetratot(iano2)                                 &
 #endif
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
@@ -392,7 +392,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
        &  - sndepflux*1.5                                                      &
 #ifdef extNcycle
-      &  +zocetrato(iano2)                                                     &
+      &  +zocetratot(iano2)                                                    &
 #endif
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
