@@ -37,29 +37,38 @@ c  *INTEGER*   *read_rest*     - flag indicating whether to read restart files.
 c  *INTEGER*   *rstfnm_hamocc* - restart filename.
 c
 c******************************************************************************
-      use mod_time,      only: date,baclin
-      use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
-     .                         mnproc,lp,nfu
-      use mod_grid,      only: plon,plat
-      use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
-      USE mo_control_bgc
-      use mo_param1_bgc, only: ks,nsedtra,npowtra
-      USE mo_carbch,     only: alloc_mem_carbch,ocetra,atm,atm_co2
-      USE mo_biomod,     only: alloc_mem_biomod
-      USE mo_sedmnt,     only: alloc_mem_sedmnt,sedlay,powtra,burial
-      use mo_vgrid,      only: alloc_mem_vgrid,set_vgrid
-      use mo_bgcmean,    only: alloc_mem_bgcmean
-      use mo_fedep,      only: ini_fedep,fedepfile
-      use mo_clim_swa,   only: ini_swa_clim,swaclimfile
-      use mo_ndep,       only: ini_ndep,ndepfile
-      use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,
-     .                         inisil,inid13c,inid14c
-      use mo_riverinpt,  only: ini_riverinpt,rivinfile, 
-     .                         alloc_mem_riverinpt_bgm
-      use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
-     .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
-     .                         omask,sedlay2,powtra2,burial2,
-     .                         blom2hamocc
+      use mod_time,       only: date,baclin
+      use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
+     .                          mnproc,lp,nfu
+      use mod_grid,       only: plon,plat
+      use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
+      use mo_control_bgc, only: bgc_namelist,do_ndep,do_rivinpt,dtb,
+     .                          dtbgc,io_stdo_bgc,isac,ldtbgc,
+     .                          ldtrunbgc,
+     .                          ndtdaybgc,get_bgc_namelist 
+      use mo_param1_bgc,  only: ks,nsedtra,npowtra
+      use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
+      use mo_biomod,      only: alloc_mem_biomod
+      use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial
+      use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
+      use mo_bgcmean,     only: alloc_mem_bgcmean
+      use mo_fedep,       only: ini_fedep,fedepfile
+      use mo_clim_swa,    only: ini_swa_clim,swaclimfile
+      use mo_ndep,        only: ini_ndep,ndepfile
+      use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,
+     .                          inisil,inid13c,inid14c
+      use mo_riverinpt,   only: ini_riverinpt,rivinfile, 
+     .                          alloc_mem_riverinpt_bgm
+      use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,
+     .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
+     .                          omask,sedlay2,powtra2,burial2,
+     .                          blom2hamocc
+#ifdef BOXATM
+      use mo_intfcblom,   only: atm2
+#endif
+#ifdef DMSPH
+      use mo_get_pi_ph,   only: get_pi_ph,pi_ph_path
+#endif
 c
       implicit none
 c
@@ -73,7 +82,9 @@ c
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
      .                  inid13c,inid14c,swaclimfile
-
+#ifdef DMSPH
+     .                  ,pi_ph_path
+#endif
 c
 c --- Set io units and some control parameters
 c
@@ -171,7 +182,7 @@ c
 
       CALL INI_RIVERINPT(idm,jdm,omask)
 #ifdef DMSPH
-      CALL GET_PI_PH(idm,jdm,kdm,omask,path)
+      CALL GET_PI_PH(idm,jdm,kdm,omask)
 #endif
 c
 c --- Read restart fields from restart file if requested, otherwise 

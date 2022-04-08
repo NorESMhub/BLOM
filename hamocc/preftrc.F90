@@ -43,8 +43,8 @@
 !
 !**************************************************************************
 
-      USE mo_carbch
-      use mo_param1_bgc
+      use mo_carbch,     only: ocetra
+      use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212
       use mo_vgrid, only: kmle
 
       implicit none

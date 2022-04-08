@@ -70,7 +70,7 @@
       ! Get filename for namelist file
       !-------------------------------------------------------------------------
         use mod_config, only: inst_suffix
-        use mod_xc, only: xchalt
+        use mod_xc,     only: xchalt
 
         implicit none
 

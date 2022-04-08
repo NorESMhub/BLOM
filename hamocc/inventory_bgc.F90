@@ -52,16 +52,25 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     none.
 !
 !**********************************************************************
+    
+      use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,ocetra,sedfluxo
+      use mo_sedmnt,      only: prcaca,prorca,silpro
+      use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
+      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
+      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
+      use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
+                              & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
+                              & nocetra,npowtra,nsedtra 
+      use mo_vgrid,       only: dp_min
+      use mod_xc,         only: mnproc,ips,nbdy,xcsum 
+      use mod_config,     only: expcnf
+      use mo_riverinpt,   only: rivinflx,irdin,irdip,irsi,iralk,irdoc,irdet,nriv
+  
+# ifndef sedbypass
+      use mo_param1_bgc,  only: ks
+      use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
+#endif
 
-  use mo_carbch
-  use mo_sedmnt
-  use mo_biomod
-  use mo_control_bgc
-  use mo_bgcmean
-  use mo_param1_bgc
-  use mo_vgrid,       only: dp_min
-  use mod_xc,         only: ips, mnproc, nbdy, xcsum
-  use mo_riverinpt,   only: rivinflx,irdin,irdip,irsi,iralk,irdoc,irdet,nriv
 
   implicit none
 
@@ -636,15 +645,34 @@ subroutine write_netcdf(iogrp)
 !**********************************************************************
 !**** Write inventory to netCDF file.
 !**********************************************************************
-  use netcdf,     only: nf90_clobber, nf90_close, nf90_create, nf90_def_dim,   &
-       &                nf90_def_var, nf90_double, nf90_enddef, nf90_global,   &
-       &                nf90_inq_dimid, nf90_inq_varid, nf90_open,             &
-       &                nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
-  use mod_types,  only: r8
-  use mod_config, only: expcnf, runid, inst_suffix
-  use mod_time,   only: date0, time0, date, time, nstep, nday_of_year,         &
-       &                nstep_in_day
-  use mo_bgcmean, only: filefq_bgc, fileann_bgc, filemon_bgc
+  use netcdf,        only: nf90_clobber, nf90_close, nf90_create, nf90_def_dim,    &
+                         & nf90_def_var, nf90_double, nf90_enddef, nf90_global,    &
+                         & nf90_inq_dimid, nf90_inq_varid, nf90_open,              &
+                         & nf90_put_att, nf90_put_var, nf90_unlimited, nf90_write
+  use mod_types,     only: r8
+  use mod_config,    only: expcnf, runid, inst_suffix
+  use mod_time,      only: date0, time0, date, time, nstep, nday_of_year,          &
+                         & nstep_in_day
+  use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
+  use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,    &
+                         & iprefpo4
+#ifdef AGG
+  use mo_param1_bgc, only: iadust,inos
+#endif
+#ifdef BROMO
+  use mo_param1_bgc, only: ibromo
+#endif
+#ifdef CFC
+  use mo_param1_bgc, only: icfc11,icfc12,isf6
+#endif
+#ifdef cisonew
+  use mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,           &
+                         & iphy13,iphy14,isco213,isco214,izoo13,izoo14
+#endif
+#ifdef natDIC
+  use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
+#endif
+
 
   implicit none
 
@@ -1850,6 +1878,7 @@ end subroutine write_netcdf
 
 subroutine nccheck(status)
   use netcdf, only: nf90_noerr
+  use mod_xc, only: xchalt
   implicit none
 
   integer, intent(in) :: status

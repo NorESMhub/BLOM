@@ -79,7 +79,7 @@ subroutine ini_fedep(kpie,kpje,omask)
 !   *REAL*      *omask*   - land/ocean mask (1=ocean)
 !
 !******************************************************************************
-  use netcdf
+  use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
