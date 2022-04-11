@@ -238,7 +238,8 @@
      &          jiriron   =15,                                          &
      &          jirdoc    =16,                                          &
      &          jirdet    =17,                                          &
-     &          nbgct2d   =17
+     &          jnh3flux  =18,                                          &
+     &          nbgct2d   =18
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
