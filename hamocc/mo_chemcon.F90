@@ -195,6 +195,7 @@
       real, parameter :: Mb_nh3  = 17.03 ! Johnson 2010, Tang 2014
       real, parameter :: Vb_nh3  = 20.7  ! Johnson 2010
       real, parameter :: M_nh3   =  (1./Ma_air + 1./Mb_nh3)**0.5 / (Va_air**(1./3.)+Vb_nh3**(1./3.))**2.
+      real, parameter :: kappa   = 0.4   ! von Karman constant
 #endif
 
 

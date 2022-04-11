@@ -119,7 +119,7 @@
 #endif
 #ifdef extNcycle
       use mo_param1_bgc,  only: iatmnh3,ianh4
-      use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3
+      use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3,kappa
 #endif
 
       implicit none
@@ -175,7 +175,8 @@
 #endif
 #ifdef extNcycle
       REAL    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
-      REAL    :: h_nh3,hstar_nh3,pKa_nh3
+      REAL    :: h_nh3,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star
+      eps_safe = EPSILON(1.)
 #endif
 
 ! set variables for diagnostic output to zero
@@ -337,8 +338,8 @@
       mu_w   = mu_w * 0.1 ! conversion from g/(cm s) to kg/(m s) 
  
       ! diffusion coeff in air (m2/s) Fuller 1966 / Johnson 2010
-      ! division by pressure: assuming 1 atm, in Fuller, p is a factor for denominator 
-      diff_nh3_a =  1e-7 * (t+273.15)**1.75 * M_nh3
+      ! division by pressure: ppao [Pa]; in Fuller, p is a factor for denominator [atm] 
+      diff_nh3_a =  1e-7 * (t+273.15)**1.75 * M_nh3 / (ppao(i,j)/101325.0)
 
       ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
       ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
@@ -406,6 +407,22 @@
 !  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
        kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
      &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
+#endif
+#ifdef extNcycle
+      ! Paulot et al. 2015 / Johnson 2010
+      ! friction velocity of wind (m/s)
+      u_star  = pfu10(i,j)*sqrt(6.1e-4 + 6.3e-5*pfu10(i,j)) 
+      ! wind drag coeff (-)
+      cD_wind = (u_star / (pfu10(i,j) + eps_safe))**2.
+      ! gas transfer velocity on gas phase side (m/s)
+      ka_nh3  = 1e-3 + u_star/ (13.3*sch_nh3_a + (eps_safe + cD_wind)**(-0.5) - 5. + log(sch_nh3_a)/(2.*kappa))
+      ! gas transfer velocity on liquid phase side (m/s) Nightingale 2000b - 3600*100: cm/h -> m/s
+      kw_nh3  =  (0.24*pfu10(i,j)**2 + 0.061*pfu10(i,j))*sqrt(600./sch_nh3_w)/360000.
+
+      ! total effective gas transfer velocity (m/s)
+      Kh_nh3  = (1./(ka_nh3 + eps_safe) + hstar_nh3/(kw_nh3 + eps_safe))**(-1.)
+      ! account for ice
+      Kh_nh3  = (1.-psicomo(i,j)) * Kh_nh3 
 #endif
 
        atco2 = atm(i,j,iatmco2)
