@@ -84,7 +84,9 @@
 #ifdef FB_BGC_OCE
       use mo_biomod,      only: abs_oce
 #endif 
-
+#ifdef extNcycle
+      use mo_param1_bgc, only: iano2,ianh4
+#endif
       implicit none
 
       INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
@@ -213,6 +215,11 @@
 ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
          ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
 #endif
+#ifdef extNcycle
+         ocetra(i,j,k,iano2) =1.9e-8/prho(i,j,k)
+         ocetra(i,j,k,ianh4) =2.9e-8/prho(i,j,k)
+#endif
+
         ENDIF ! omask > 0.5
       ENDDO
       ENDDO
