@@ -175,6 +175,7 @@
 #endif
 #ifdef extNcycle
       REAL    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
+      REAL    :: h_nh3,hstar_nh3,pKa_nh3
 #endif
 
 ! set variables for diagnostic output to zero
@@ -342,7 +343,7 @@
       ! Johnson 2010 - (34) cm2/s -> m2/s (1e-8*1e-4=1e-12)
       ! closer to fit for Li & Gregory of: 9.874e-6*exp(2.644e-2*t)
       ! mu_w*1000: kg/(m s) -> cPoise as in Eq.(34) of Johnson 2010
-      diff_nh3_w = 1.25e-12*(t+273.15)**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**-0.19 - 0.292)
+      diff_nh3_w = 1.25e-12*(t+273.15)**1.52 *(mu_w*1000.)**(9.58/Vb_nh3 -1.12)*(Vb_nh3**(-0.19) - 0.292)
 
       ! Schmidt number air phase
       sch_nh3_a  = mu_air /(diff_nh3_a * rho_air)
@@ -380,7 +381,14 @@
 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
       a_bromo = exp(13.16 - 4973*(1/tk))
 #endif
-
+#ifdef extNcycle
+      !Henry number for NH3 (Paulot et al. 2015, )
+      h_nh3 =  (17.93*(t+273.15)/273.15 * exp(4092./(t+273.15) - 9.7))**(-1)
+      ! Dissociation constant (Paulot et al. 2015, Bell 2007)
+      pKa_nh3 = 10.04 - 3.16e-2*t + 3.1e-3*s
+      ! effective gas-over-liquid Henry constant (Paulot et al. 2015)
+      hstar_nh3   = h_nh3/(1. + 10.**(log10(hi(i,j,k))+pKa_nh3))
+#endif
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
        Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
        kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
