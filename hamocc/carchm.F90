@@ -329,7 +329,7 @@
 
       ! molecular viscosity of sea water 
       ! (Matthaeus 1972, Richards 1998,assuming salinity s in per mille = ~PSU)
-      p_dbar =  1.01325 * 10. ! sea level pressure (bar) -> dbar
+      p_dbar =  ppao(i,j)*1e-4  ! sea level pressure (Pa *1e-5 -> bar *10-> dbar
       mu_w   = 1.79e-2 - 6.1299e-4 * t + 1.4467e-5 * t2 - 1.6826e-7 * t3          &        
              & - 1.8266e-7 * p_dbar + 9.8972e-12 * p_dbar*p_dbar + 2.4727e-5 * s  &
              & + s * (4.8429e-7 * t - 4.7172e-8 * t2 + 7.5986e-10 * t3)           &
@@ -434,6 +434,9 @@
 #endif
 #ifdef BROMO
        atbrf = atm(i,j,iatmbromo)
+#endif
+#ifdef extNcycle
+       atnh3 = atm(i,j,iatmnh3)
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
@@ -548,7 +551,11 @@
      & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
       ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
 #endif
-
+#ifdef extNcycle
+      ! surface flux NH3: STILL REQUIRES TO CHECK CONVERSION FACTOR FOR atNH3 (currently assumed atNH3 in pptv)     
+      flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4)) 
+      ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
+#endif
 
 ! Save surface fluxes 
        atmflx(i,j,iatmco2)=fluxu-fluxd
@@ -570,6 +577,9 @@
 #endif
 #ifdef BROMO
        atmflx(i,j,iatmbromo)=-flx_bromo
+#endif
+#ifdef extNcycle
+       atmflx(i,j,iatmnh3)=-flx_nh3 
 #endif
 
 ! Save up- and downward components of carbon fluxes for output
