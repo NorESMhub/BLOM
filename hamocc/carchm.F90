@@ -224,7 +224,9 @@
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 #endif
 #ifdef extNcycle
-!$OMP ,kw_nh3,ka_nh3                                                  &
+!$OMP ,flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3         &
+!$OMP ,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air,h_nh3         &
+!$OMP ,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star               &
 #endif 
 !$OMP  ,j,i)
       DO k=1,kpke
@@ -385,8 +387,8 @@
 #ifdef extNcycle
       !Henry number for NH3 (Paulot et al. 2015, )
       h_nh3 =  (17.93*(t+273.15)/273.15 * exp(4092./(t+273.15) - 9.7))**(-1)
-      ! Dissociation constant (Paulot et al. 2015, Bell 2007)
-      pKa_nh3 = 10.04 - 3.16e-2*t + 3.1e-3*s
+      ! Dissociation constant (Paulot et al. 2015, Bell 2007/2008)
+      pKa_nh3 = 10.0423 - 3.15536e-2*t + 3.071e-3*s
       ! effective gas-over-liquid Henry constant (Paulot et al. 2015)
       hstar_nh3   = h_nh3/(1. + 10.**(log10(hi(i,j,k))+pKa_nh3))
 #endif
