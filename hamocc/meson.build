@@ -9,4 +9,4 @@ sources += files('accfields.F90', 'aufr_bgc.F90', 'aufw_bgc.F90',
 'mo_riverinpt.F90', 'mo_sedmnt.F90', 'mo_vgrid.F90', 'ncout_hamocc.F',
 'netcdf_def_vardb.F90', 'ocprod.F90', 'powach.F90', 'powadi.F90',
 'preftrc.F90', 'profile_gd.F90', 'read_netcdf_var.F90', 'restart_hamoccwt.F',
-'sedshi.F90', 'trc_limitc.F', 'write_netcdf_var.F90')
+'sedshi.F90', 'trc_limitc.F', 'write_netcdf_var.F90','mo_extNbioproc.F90')
