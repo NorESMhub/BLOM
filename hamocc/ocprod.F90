@@ -121,6 +121,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #ifdef FB_BGC_OCE
   use mo_biomod,      only: abs_oce,atten_f
 #endif
+#ifdef extNcycle
+  use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+#endif
 
 
   implicit none
@@ -194,6 +197,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #ifdef BROMO
   real :: bro_beta,bro_uv
   real :: abs_uv(kpie,kpje,kpke)
+#endif
+#ifdef extNcycle
+  character(len=:), allocatable :: inv_message
 #endif
 
 
@@ -741,6 +747,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
+#ifndef extNcycle
+! =====>>>> Regular CMIP6 iHAMOCC version for denitrification wo extended nitrogen cycle =====>>>> 
 !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
 # ifdef AGG
 !$OMP  ,avmass,avnos                                                  &
@@ -810,13 +818,31 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   enddo loop3
 !$OMP END PARALLEL DO
 
-
 #ifdef PBGC_OCNP_TIMESTEP
   if (mnproc == 1) then
      write(io_stdo_bgc,*)' '
      write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
   endif
   CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif
+! <<<<===== end of CMIP6 version denitrification processes without extended nitrogen cycle <<<<===== 
+#else
+  !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
+  inv_message = 'in OCPROD after extNcycle nitrification'
+  CALL nitrification(kpie,kpje,kpke,pddpo,omask)
+  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+
+  inv_message = 'in OCPROD after extNcycle denitrification NO3 -> NO2'
+  CALL denit_NO3_to_NO2(kpie,kpje,kpke,pddpo,omask,ptho)
+  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+  
+  inv_message = 'in OCPROD after extNcycle anammox'
+  CALL anammox(kpie,kpje,kpke,pddpo,omask,ptho)
+  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+  
+  inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
+  CALL denit_dnra(kpie,kpje,kpke,pddpo,omask) 
+  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 #endif
 
 
