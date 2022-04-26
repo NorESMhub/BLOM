@@ -72,6 +72,7 @@
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 3e-7
+      use mo_extNbioproc, only: extNbioparam_init
 #endif
 
       implicit none      
@@ -251,6 +252,11 @@
 ! is no nitrate created by this process, organic N is released as N2
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
+
+#ifdef extNcycle
+      ! initialize the extended nitrogen cycle parameters
+      call extNbioparam_init()
+#endif
 
 #ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
