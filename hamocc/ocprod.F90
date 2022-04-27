@@ -829,7 +829,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #else
   !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
   inv_message = 'in OCPROD after extNcycle nitrification'
-  CALL nitrification(kpie,kpje,kpke,pddpo,omask)
+  CALL nitrification(kpie,kpje,kpke,pddpo,omask,ptho)
   CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 
   inv_message = 'in OCPROD after extNcycle denitrification NO3 -> NO2'
@@ -841,7 +841,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
   
   inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
-  CALL denit_dnra(kpie,kpje,kpke,pddpo,omask) 
+  CALL denit_dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
   CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 #endif
 
