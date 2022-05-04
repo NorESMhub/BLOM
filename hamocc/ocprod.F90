@@ -123,6 +123,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 #ifdef extNcycle
   use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+  use mo_param1_bgc,  only: ianh4
 #endif
 
 
@@ -635,9 +636,15 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
         if(ocetra(i,j,k,ioxygen) > 5.e-8) then
+#ifndef extNcycle
            pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+#else
+           pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/140.)
+           docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/140.)
+           phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/140.)
+#endif
 #ifdef cisonew
            pocrem13 = pocrem*rdet13
            pocrem14 = pocrem*rdet14
@@ -667,10 +674,16 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         remin = pocrem + docrem + phyrem
 
         ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+remin
+#ifndef extNcycle
         ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+remin*rnit
-        ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
         ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-(rnit+1)*remin
         ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-ro2ut*remin
+#else
+        ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
+        ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
+        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - 140.*remin
+#endif
+        ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
              &             -relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
 #ifdef natDIC
@@ -698,17 +711,20 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)-opalrem
         ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+opalrem
 
+#ifndef extNcycle
 !***********************************************************************
 !           There is about 1.e4 O2 on 1 N2O molecule (Broeker&Peng)
 !           refra : Tim Rixton, private communication
 !***********************************************************************
         aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
         refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-        dms_bac = dmsp3 * dtb * abs(temp+3.) * ocetra(i,j,k,idms)               &
-             &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
         ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
         ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra
         ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-remin*1.e-4*ro2ut*refra*0.5
+#endif
+
+        dms_bac = dmsp3 * dtb * abs(temp+3.) * ocetra(i,j,k,idms)               &
+             &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
         ocetra(i,j,k,idms) = ocetra(i,j,k,idms)-dms_bac
 
         dz = pddpo(i,j,k)
