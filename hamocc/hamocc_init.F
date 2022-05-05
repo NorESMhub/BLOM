@@ -63,11 +63,9 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
+      use mo_get_pi_ph,   only: get_pi_ph,pi_ph_path,with_dmsph
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
-#endif
-#ifdef DMSPH
-      use mo_get_pi_ph,   only: get_pi_ph,pi_ph_path
 #endif
 c
       implicit none
@@ -81,10 +79,8 @@ c
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
-     .                  inid13c,inid14c,swaclimfile
-#ifdef DMSPH
-     .                  ,pi_ph_path
-#endif
+     .                  inid13c,inid14c,swaclimfile,
+     .                  with_dmsph,pi_ph_path
 c
 c --- Set io units and some control parameters
 c
@@ -181,9 +177,10 @@ c
 #endif
 
       CALL INI_RIVERINPT(idm,jdm,omask)
-#ifdef DMSPH
-      CALL GET_PI_PH(idm,jdm,kdm,omask)
-#endif
+
+      if(with_dmsph) then
+         CALL GET_PI_PH(idm,jdm,kdm,omask)
+      endif
 c
 c --- Read restart fields from restart file if requested, otherwise 
 c     (at first start-up) copy ocetra and sediment arrays (which are

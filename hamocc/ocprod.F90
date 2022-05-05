@@ -81,7 +81,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch,      only: dmspar,ocetra,satoxy 
+  use mo_carbch,      only: dmspar,ocetra,satoxy
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro
   use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
                           & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
@@ -94,6 +94,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   use mo_control_bgc, only: dtb,io_stdo_bgc 
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
+  use mo_get_pi_ph,   only: with_dmsph,get_dmsph
 
 #ifdef AGG
   use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
@@ -138,7 +139,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   integer, parameter :: nsinkmax = 12
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
-  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
+  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
   real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,              &
      &        avgra,grazing,avsil,avdic,graton,                         &
      &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,           &
@@ -239,7 +240,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   dmsp3 = dmspar(3)
   dmsp2 = dmspar(2)
   dmsp1 = dmspar(1)
-  dms_gamma = 0.87
 
 
 #ifdef PBGC_OCNP_TIMESTEP
@@ -452,8 +452,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         delcar14 = rcalc * export14 * bkopal/(avsil+bkopal)
 #endif
 #endif
-!        dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
-        dms_ph  = 1.
+
+        if(with_dmsph) then
+           dms_ph  = get_dmsph(i,j)
+        else
+           dms_ph  = 1.
+        endif
         dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
      &           *(1.+1./(temp+dmsp1)**2)*dms_ph
         dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)             &

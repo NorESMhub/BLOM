@@ -15,77 +15,127 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-      MODULE mo_get_pi_ph
+module mo_get_pi_ph
 
-      implicit none
-      private
-      public :: get_pi_ph,pi_ph_path
+  implicit none
+  private
+  public :: get_pi_ph,get_dmsph,pi_ph_path,with_dmsph
 
-      ! Path to input data, set through namelist 
-      ! in hamocc_init.F 
-      character(len=256),save    :: pi_ph_path = ''
+  ! Path to input data, set through namelist 
+  ! in hamocc_init.F 
+  character(len=256),save    :: pi_ph_path = ''
 
-      CONTAINS     
- 
-      SUBROUTINE GET_PI_PH(kpie,kpje,kpke,omask)
-!**********************************************************************
+  ! Activate/deactivate calculation of DMS as a function of pH.
+  logical :: with_dmsph = .false.
 
-      use mo_carbch,      only: pi_ph 
-      use mo_control_bgc, only: io_stdo_bgc 
-      use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
-      use mod_xc,         only: mnproc,xchalt
+  ! pH field
+  real, parameter :: dms_gamma = 0.87 
+  real, dimension(:,:,:), allocatable :: pi_ph
 
-      implicit none
-      INTEGER, INTENT(in) :: kpie,kpje,kpke
-      INTEGER ::i,j,l
+CONTAINS     
+
+
+  SUBROUTINE GET_PI_PH(kpie,kpje,kpke,omask)
+  !**********************************************************************
+
+    use mo_control_bgc, only: io_stdo_bgc 
+    use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
+    use mod_xc,         only: mnproc,xchalt
+
+    implicit none
+    INTEGER, INTENT(in) :: kpie,kpje,kpke
+    INTEGER ::i,j,l
   
-      REAL,intent(in) ::omask(kpie,kpje)
+    REAL,intent(in) ::omask(kpie,kpje)
 
-! define the fields
+    ! define the fields
+    REAL :: pi_ph_in(kpie,kpje,12)
+    INTEGER ncid,ncstat
 
-      REAL :: pi_ph_in(kpie,kpje,12)
+    ! allocate pi_ph field
+    if(.not. allocated(pi_ph)) call alloc_pi_ph(kpie,kpje,kpke)
 
-      INTEGER ncid,ncstat
-!
-! Open netCDF data file
-!      
-       IF(mnproc==1) THEN
-        ncstat = NF90_OPEN(trim(pi_ph_path)//'MONTHLY_PI_PH.nc',   &
+    !
+    ! Open netCDF data file
+    !      
+    IF(mnproc==1) THEN
+       ncstat = NF90_OPEN(trim(pi_ph_path)//'MONTHLY_PI_PH.nc',        &
      &                   NF90_NOWRITE, ncid)
-        write(io_stdo_bgc,*) 'HAMOCC: opening MONTHLY_PI_PH file'
-        IF (ncstat.NE.NF90_NOERR ) THEN
-         CALL xchalt('(get_pi_ph: Problem with netCDF1)')
-                stop '(get_pi_ph: Problem with netCDF1)'
-        END IF
+       write(io_stdo_bgc,*) 'HAMOCC: opening MONTHLY_PI_PH file'
+       IF (ncstat.NE.NF90_NOERR ) THEN
+          CALL xchalt('(get_pi_ph: Problem with netCDF1)')
+                 stop '(get_pi_ph: Problem with netCDF1)'
        END IF
-!
-! Read  data
-       call read_netcdf_var(ncid,'pH',pi_ph_in(1,1,1),12,0,0)
-
-!
-! Close file
-       IF(mnproc==1) THEN
-        ncstat = NF90_CLOSE(ncid)
-        IF ( ncstat .NE. NF90_NOERR ) THEN
-         CALL xchalt('(get_pi_ph: Problem with netCDF200)')
-                stop '(get_pi_ph: Problem with netCDF200)'
-        END IF
+    END IF
+    !
+    ! Read  data
+    call read_netcdf_var(ncid,'pH',pi_ph_in(1,1,1),12,0,0)
+    !
+    ! Close file
+    IF(mnproc==1) THEN
+       ncstat = NF90_CLOSE(ncid)
+       IF ( ncstat .NE. NF90_NOERR ) THEN
+          CALL xchalt('(get_pi_ph: Problem with netCDF200)')
+                 stop '(get_pi_ph: Problem with netCDF200)'
        END IF
+    END IF
 
-! set missings over land
-      do l=1,12
-        do j=1,kpje
+    ! set missings over land
+    do l=1,12
+       do j=1,kpje
           do i=1,kpie
-            if(omask(i,j).gt.0.5) then 
-              pi_ph(i,j,l) = pi_ph_in(i,j,l)
-            else 
-              pi_ph(i,j,l) = 0.
-            endif    
+             if(omask(i,j).gt.0.5) then 
+                pi_ph(i,j,l) = pi_ph_in(i,j,l)
+             else 
+                pi_ph(i,j,l) = 0.
+             endif
           enddo
-         enddo
-      enddo
+       enddo
+    enddo
 
-      RETURN
-      END
+  END SUBROUTINE GET_PI_PH
 
-      END MODULE mo_get_pi_ph
+
+  !**********************************************************************
+  ! Allocate the PI_PH field.
+  !**********************************************************************
+  subroutine alloc_pi_ph(kpie,kpje,kpke)
+    use mod_xc,         only: mnproc
+    use mo_control_bgc, only: io_stdo_bgc
+    
+    implicit none
+    integer, intent(in) :: kpie,kpje,kpke
+    integer             :: errstat
+
+    IF (mnproc.eq.1) THEN
+       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
+       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+       WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+    ENDIF
+
+    ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pi_ph'
+    pi_ph(:,:,:) = 0.0
+
+  end subroutine alloc_pi_ph
+
+
+  !**********************************************************************
+  ! Get DMS_PH as a function of pH
+  !**********************************************************************
+  function get_dmsph(i,j) result(dms_ph)
+    use mo_carbch, only: hi
+    use mod_time,  only: date
+
+    implicit none
+
+    integer, intent(in) :: i,j
+    real :: dms_ph
+
+    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j,date%month))*dms_gamma
+
+  end function get_dmsph
+
+
+end module mo_get_pi_ph

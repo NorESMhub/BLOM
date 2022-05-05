@@ -83,7 +83,6 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxu
 #endif
       REAL :: dmspar(6)
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
 #ifdef natDIC
       REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:),     ALLOCATABLE :: natpco2d
@@ -187,19 +186,6 @@
       OmegaA(:,:,:) = 0.0
       OmegaC(:,:,:) = 0.0
 
-
-#ifdef DMSPH
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
-
-      ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory pi_ph'
-      pi_ph(:,:,:) = 0.0
-#endif
 #ifdef natDIC
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable natpco2d ...'
