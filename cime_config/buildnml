@@ -191,6 +191,8 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
+set WITH_DMSPH = .false.
+set PI_PH_PATH = ""
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1346,6 +1348,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
 ! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
 !               OXY, NO3, SIL, D13C, and D14C
+! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
+! PI_PH_PATH  : Path for surface PI pH input data. File name currently set to MONTHLY_PI_PH.nc.
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
   FEDEPFILE  = $FEDEPFILE
@@ -1362,6 +1366,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INISIL     = $INISIL
   INID13C    = $INID13C
   INID14C    = $INID14C
+  WITH_DMSPH = $WITH_DMSPH
+  PI_PH_PATH = $PI_PH_PATH
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
