@@ -94,7 +94,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   use mo_control_bgc, only: dtb,io_stdo_bgc 
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
-  use mo_get_pi_ph,   only: with_dmsph,get_dmsph
+  use mo_dmsph,       only: with_dmsph,get_dmsph
 
 #ifdef AGG
   use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &

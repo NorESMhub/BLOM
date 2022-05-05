@@ -63,7 +63,7 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
-      use mo_get_pi_ph,   only: get_pi_ph,pi_ph_path,with_dmsph
+      use mo_dmsph,       only: get_pi_ph,pi_ph_path,with_dmsph
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
