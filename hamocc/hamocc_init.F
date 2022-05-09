@@ -179,7 +179,7 @@ c
       CALL INI_RIVERINPT(idm,jdm,omask)
 
       if(with_dmsph) then
-         CALL GET_PI_PH(idm,jdm,kdm,omask)
+         CALL GET_PI_PH(idm,jdm,omask)
       endif
 c
 c --- Read restart fields from restart file if requested, otherwise 
