@@ -63,7 +63,7 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
-      use mo_dmsph,       only: ini_pi_ph,pi_ph_path,with_dmsph
+      use mo_dmsph,       only: ini_pi_ph,pi_ph_clim,with_dmsph
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
@@ -80,7 +80,7 @@ c
      .                  ndepfile,fedepfile,rivinfile,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
      .                  inid13c,inid14c,swaclimfile,
-     .                  with_dmsph,pi_ph_path
+     .                  with_dmsph,pi_ph_clim
 c
 c --- Set io units and some control parameters
 c

@@ -192,7 +192,7 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   exit -1
 endif
 set WITH_DMSPH = .false.
-set PI_PH_PATH = ""
+set PI_PH_CLIM = ""
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1349,7 +1349,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
 !               OXY, NO3, SIL, D13C, and D14C
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
-! PI_PH_PATH  : Path for surface PI pH input data. File name currently set to MONTHLY_PI_PH.nc.
+! PI_PH_CLIM  : File name (incl. full path) for surface PI pH input data.
 &BGCNML
   ATM_CO2    = $CCSM_CO2_PPMV
   FEDEPFILE  = $FEDEPFILE
@@ -1367,7 +1367,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INID13C    = $INID13C
   INID14C    = $INID14C
   WITH_DMSPH = $WITH_DMSPH
-  PI_PH_PATH = $PI_PH_PATH
+  PI_PH_CLIM = $PI_PH_CLIM
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT

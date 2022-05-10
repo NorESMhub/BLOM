@@ -19,13 +19,13 @@ module mo_dmsph
 
   implicit none
   private
-  public :: ini_pi_ph,get_dmsph,pi_ph_path,with_dmsph
+  public :: ini_pi_ph,get_dmsph,pi_ph_clim,with_dmsph
 
   ! Activate/deactivate calculation of DMS as a function of pH.
   logical :: with_dmsph = .false.
 
   ! Path to input data, set through namelist in hamocc_init.F
-  character(len=256),save    :: pi_ph_path = ''
+  character(len=256),save    :: pi_ph_clim = ''
 
   ! Length of surface PI pH record from file
   ! Assume monthly record by default (otherwise change get_dmsph)
@@ -42,7 +42,8 @@ CONTAINS
 
   subroutine ini_pi_ph(kpie,kpje,omask)
   !**********************************************************************
-
+  ! Initialise the PI_PH field from climatology.
+  !**********************************************************************
     use mo_control_bgc, only: io_stdo_bgc
     use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,         only: mnproc,xchalt
@@ -64,9 +65,8 @@ CONTAINS
     ! Open netCDF data file
     !
     IF(mnproc==1) THEN
-       ncstat = NF90_OPEN(trim(pi_ph_path)//'MONTHLY_PI_PH.nc',        &
-     &                   NF90_NOWRITE, ncid)
-       write(io_stdo_bgc,*) 'HAMOCC: opening MONTHLY_PI_PH file'
+       ncstat = NF90_OPEN(trim(pi_ph_clim), NF90_NOWRITE, ncid)
+       write(io_stdo_bgc,*) 'HAMOCC: opening PI_PH climatology file'
        IF (ncstat.NE.NF90_NOERR ) THEN
           CALL xchalt('(ini_pi_ph: Problem with netCDF1)')
                  stop '(ini_pi_ph: Problem with netCDF1)'
