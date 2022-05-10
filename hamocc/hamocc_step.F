@@ -63,7 +63,7 @@ c
 c
       call get_fedep(idm,jdm,date%month,dust)
       call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
-      if(with_dmsph) call get_pi_ph(date%month)
+      if(with_dmsph) call get_pi_ph(idm,jdm,date%month)
 c
       call hamocc4bcm(idm,jdm,kdm,nbdy,
      .            date%year,date%month,date%day,ldtday,

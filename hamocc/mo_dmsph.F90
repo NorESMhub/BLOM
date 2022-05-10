@@ -142,14 +142,14 @@ CONTAINS
   !**********************************************************************
   ! Return PI_PH field for a given month.
   !**********************************************************************
-  subroutine get_pi_ph(kplmon)
+  subroutine get_pi_ph(kpie,kpje,kplmon)
     implicit none
 
-    integer, intent(in) :: kplmon
+    integer, intent(in) :: kpie,kpje,kplmon
     integer, save :: oldmonth=0
 
     if(kplmon /= oldmonth) then
-       pi_ph_mon(:,:) = pi_ph(:,:,kplmon)
+       pi_ph_mon = reshape(pi_ph(:,:,kplmon), [kpie,kpje])
        oldmonth = kplmon
     endif
 
