@@ -19,7 +19,7 @@ module mo_dmsph
 
   implicit none
   private
-  public :: ini_pi_ph,get_dmsph,pi_ph_clim,with_dmsph
+  public :: ini_pi_ph,get_pi_ph,get_dmsph,pi_ph_clim,with_dmsph
 
   ! Activate/deactivate calculation of DMS as a function of pH.
   logical :: with_dmsph = .false.
@@ -34,16 +34,19 @@ module mo_dmsph
   ! dms_ph scaling factor
   real, parameter :: dms_gamma = 0.87
 
-  ! surface PI pH field
+  ! surface PI pH climatology
   real, dimension(:,:,:), allocatable :: pi_ph
+
+  ! surface PI pH monthly data
+  real, dimension(:,:), allocatable :: pi_ph_mon
 
 CONTAINS
 
 
-  subroutine ini_pi_ph(kpie,kpje,omask)
   !**********************************************************************
   ! Initialise the PI_PH field from climatology.
   !**********************************************************************
+  subroutine ini_pi_ph(kpie,kpje,omask)
     use mo_control_bgc, only: io_stdo_bgc
     use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,         only: mnproc,xchalt
@@ -123,21 +126,47 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory pi_ph'
     pi_ph(:,:,:) = 0.0
 
+    IF (mnproc.eq.1) THEN
+       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph_mon ...'
+       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+    ENDIF
+
+    ALLOCATE (pi_ph_mon(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pi_ph_mon'
+    pi_ph_mon(:,:) = 0.0
+
   end subroutine alloc_pi_ph
 
 
   !**********************************************************************
+  ! Return PI_PH field for a given month.
+  !**********************************************************************
+  subroutine get_pi_ph(kplmon)
+    implicit none
+
+    integer, intent(in) :: kplmon
+    integer, save :: oldmonth=0
+
+    if(kplmon /= oldmonth) then
+       pi_ph_mon(:,:) = pi_ph(:,:,kplmon)
+       oldmonth = kplmon
+    endif
+
+  end subroutine get_pi_ph
+
+  !**********************************************************************
   ! Get DMS_PH as a function of pH
   !**********************************************************************
-  function get_dmsph(i,j,kplmon) result(dms_ph)
+  function get_dmsph(i,j) result(dms_ph)
     use mo_carbch, only: hi
 
     implicit none
 
-    integer, intent(in) :: i,j,kplmon
+    integer, intent(in) :: i,j
     real :: dms_ph
 
-    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j,kplmon))*dms_gamma
+    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph_mon(i,j))*dms_gamma
 
   end function get_dmsph
 

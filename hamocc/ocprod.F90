@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,kplmon)
+subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -73,7 +73,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,kplmon)
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *INTEGER* *kbnd*    - nb of halo grid points
-!     *INTEGER* *kplmon*  - current month.
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
@@ -127,7 +126,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,kplmon)
 
   implicit none
 
-  integer, intent(in) :: kpie,kpje,kpke,kbnd,kplmon
+  integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
@@ -455,7 +454,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,kplmon)
 #endif
 
         if(with_dmsph) then
-           dms_ph  = get_dmsph(i,j,kplmon)
+           dms_ph  = get_dmsph(i,j)
         else
            dms_ph  = 1.
         endif
