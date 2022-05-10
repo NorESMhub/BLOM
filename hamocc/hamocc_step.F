@@ -36,6 +36,7 @@ c
       use mo_riverinpt, only: rivflx
       use mo_fedep,     only: get_fedep
       use mo_ndep,      only: get_ndep
+      use mo_dmsph,     only: get_pi_ph,with_dmsph
 c
       implicit none
 c
@@ -62,6 +63,7 @@ c
 c
       call get_fedep(idm,jdm,date%month,dust)
       call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
+      if(with_dmsph) call get_pi_ph(date%month)
 c
       call hamocc4bcm(idm,jdm,kdm,nbdy,
      .            date%year,date%month,date%day,ldtday,
