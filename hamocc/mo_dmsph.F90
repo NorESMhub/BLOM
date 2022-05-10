@@ -19,7 +19,7 @@ module mo_dmsph
 
   implicit none
   private
-  public :: get_pi_ph,get_dmsph,pi_ph_path,with_dmsph
+  public :: ini_pi_ph,get_dmsph,pi_ph_path,with_dmsph
 
   ! Activate/deactivate calculation of DMS as a function of pH.
   logical :: with_dmsph = .false.
@@ -40,7 +40,7 @@ module mo_dmsph
 CONTAINS
 
 
-  SUBROUTINE GET_PI_PH(kpie,kpje,omask)
+  subroutine ini_pi_ph(kpie,kpje,omask)
   !**********************************************************************
 
     use mo_control_bgc, only: io_stdo_bgc
@@ -68,8 +68,8 @@ CONTAINS
      &                   NF90_NOWRITE, ncid)
        write(io_stdo_bgc,*) 'HAMOCC: opening MONTHLY_PI_PH file'
        IF (ncstat.NE.NF90_NOERR ) THEN
-          CALL xchalt('(get_pi_ph: Problem with netCDF1)')
-                 stop '(get_pi_ph: Problem with netCDF1)'
+          CALL xchalt('(ini_pi_ph: Problem with netCDF1)')
+                 stop '(ini_pi_ph: Problem with netCDF1)'
        END IF
     END IF
     !
@@ -80,8 +80,8 @@ CONTAINS
     IF(mnproc==1) THEN
        ncstat = NF90_CLOSE(ncid)
        IF ( ncstat .NE. NF90_NOERR ) THEN
-          CALL xchalt('(get_pi_ph: Problem with netCDF200)')
-                 stop '(get_pi_ph: Problem with netCDF200)'
+          CALL xchalt('(ini_pi_ph: Problem with netCDF200)')
+                 stop '(ini_pi_ph: Problem with netCDF200)'
        END IF
     END IF
 
@@ -98,7 +98,7 @@ CONTAINS
        enddo
     enddo
 
-  END SUBROUTINE GET_PI_PH
+  end subroutine ini_pi_ph
 
 
   !**********************************************************************

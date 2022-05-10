@@ -63,7 +63,7 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
-      use mo_dmsph,       only: get_pi_ph,pi_ph_path,with_dmsph
+      use mo_dmsph,       only: ini_pi_ph,pi_ph_path,with_dmsph
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
@@ -179,7 +179,7 @@ c
       CALL INI_RIVERINPT(idm,jdm,omask)
 
       if(with_dmsph) then
-         CALL GET_PI_PH(idm,jdm,omask)
+         call ini_pi_ph(idm,jdm,omask)
       endif
 c
 c --- Read restart fields from restart file if requested, otherwise 
