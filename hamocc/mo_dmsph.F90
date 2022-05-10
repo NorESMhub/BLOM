@@ -129,16 +129,15 @@ CONTAINS
   !**********************************************************************
   ! Get DMS_PH as a function of pH
   !**********************************************************************
-  function get_dmsph(i,j) result(dms_ph)
+  function get_dmsph(i,j,kplmon) result(dms_ph)
     use mo_carbch, only: hi
-    use mod_time,  only: date
 
     implicit none
 
-    integer, intent(in) :: i,j
+    integer, intent(in) :: i,j,kplmon
     real :: dms_ph
 
-    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j,date%month))*dms_gamma
+    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j,kplmon))*dms_gamma
 
   end function get_dmsph
 
