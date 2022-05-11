@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-module mo_dmsph
+module mo_read_pi_ph
 
   implicit none
   private
@@ -171,4 +171,4 @@ CONTAINS
   end function get_dmsph
 
 
-end module mo_dmsph
+end module mo_read_pi_ph
