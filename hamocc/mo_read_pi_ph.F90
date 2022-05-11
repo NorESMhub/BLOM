@@ -19,10 +19,7 @@ module mo_read_pi_ph
 
   implicit none
   private
-  public :: ini_pi_ph,get_pi_ph,get_dmsph,pi_ph_clim,with_dmsph
-
-  ! Activate/deactivate calculation of DMS as a function of pH.
-  logical :: with_dmsph = .false.
+  public :: ini_pi_ph,get_pi_ph,get_dmsph,pi_ph_clim
 
   ! Path to input data, set through namelist in hamocc_init.F
   character(len=256),save    :: pi_ph_clim = ''

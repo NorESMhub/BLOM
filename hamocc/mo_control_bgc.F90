@@ -62,6 +62,7 @@
 ! Logical switches
       LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
       LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
+      logical :: with_dmsph = .false.    ! apply DMS with pH dependence (set via namelist)
 
     contains
 
