@@ -45,7 +45,7 @@ c******************************************************************************
       use mo_control_bgc, only: bgc_namelist,do_ndep,do_rivinpt,dtb,
      .                          dtbgc,io_stdo_bgc,isac,ldtbgc,
      .                          ldtrunbgc,
-     .                          ndtdaybgc,get_bgc_namelist 
+     .                          ndtdaybgc,get_bgc_namelist,with_dmsph
       use mo_param1_bgc,  only: ks,nsedtra,npowtra
       use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
       use mo_biomod,      only: alloc_mem_biomod
@@ -63,7 +63,7 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
-      use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_clim,with_dmsph
+      use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_clim
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
