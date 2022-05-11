@@ -123,6 +123,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 #ifdef extNcycle
   use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+  use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron
   use mo_param1_bgc,  only: ianh4
 #endif
 
@@ -201,6 +202,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 #ifdef extNcycle
   character(len=:), allocatable :: inv_message
+  real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac  
 #endif
 
 
@@ -344,6 +346,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 # ifdef BROMO
 !$OMP  ,bro_beta,bro_uv                                               &
 # endif
+#ifdef extNcycle
+!$OMP  , ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac              &
+#endif
 !$OMP  ,i,k)
 
   loop1: do j = 1,kpje
@@ -368,12 +373,29 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         avgra = MAX(grami,ocetra(i,j,k,izoo))                     ! 'available' zooplankton
         avsil = MAX(0.,ocetra(i,j,k,isilica))
         avdic = MAX(0.,ocetra(i,j,k,isco212))
+#ifdef extNcycle
+        ano3up_inh = bkphyanh4/(bkphyanh4 + ocetra(i,j,k,ianh4)) ! inhibition of NO3 uptake 
+        nutlim     = min(ocetra(i,j,k,iphosph)/(ocetra(i,j,k,iphosph)+bkphosph),ocetra(i,j,k,iiron)/(ocetra(i,j,k,iiron)+bkiron))
+        anh4lim    = ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4) + bkphyanh4)
+        nlim       = ano3up_inh*ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) +  bkphyano3) + anh4lim
+        grlim      = min(nutlim,nlim) ! growth limitation
+
+        nh4uptfrac = 1.
+        if(nlim .gt. 1.e-18) nh4uptfrac = anh4lim/nlim  
+        ! re-check avnut - can sum N avail exceed indiv. contrib?
+        avanut     = max(0.,min(ocetra(i,j,k,iphosph), ocetra(i,j,k,iiron)/riron,                              &
+                   &        rnoi*((1.-nh4uptfrac)*ocetra(i,j,k,iano3) + nh4uptfrac*ocetra(i,j,k,ianh4))))
+
+        xn         = avphy/(1. - pho*grlim)      ! phytoplankton growth 
+        phosy      = max(0.,min(xn-avphy,avanut)) ! limit PP growth to available nutr.
+#else
         avanut = MAX(0.,MIN(ocetra(i,j,k,iphosph),                      &
              &         rnoi*ocetra(i,j,k,iano3)))
         avanfe = MAX(0.,MIN(avanut,ocetra(i,j,k,iiron)/riron))
         xa = avanfe
         xn = xa/(1.+pho*avphy/(xa+bkphy))
         phosy = MAX(0.,xa-xn)
+#endif
         phosy = MERGE(avdic/rcar, phosy, avdic <= rcar*phosy)     ! limit phosy by available DIC
         ya = avphy+phosy
         yn = (ya+grazra*avgra*phytomi/(avphy+bkzoo))                    &
@@ -470,12 +492,23 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         dtr = bacfra-phosy+graton+ecan*zoomor
 
         ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph)+dtr
+#ifndef extNcycle
         ocetra(i,j,k,iano3) = ocetra(i,j,k,iano3)+dtr*rnit
+        ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
+        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
+#else
+        ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) - (1.-nh4uptfrac)*phosy*rnit
+        ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4) - nh4uptfrac*phosy*rnit + (dtr+phosy)*rnit
+        ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - nh4uptfrac*phosy*(rnit-1.)             & ! NH4 + PO4 Uptake  
+                              &                       + (1.-nh4uptfrac)*phosy*(rnit+1.)        & ! NO3 + PO4 Uptake
+                              &                       + (dtr+phosy)*(rnit-1.)  - 2.*delcar       ! Remin to (NH4 + PO4) and CaCO3 formation 
+        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*140.                  & ! NH4 uptake
+                              &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
+                              &                       - (dtr+phosy)*140.                         ! Remin to NH4
+#endif
         ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
         ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
         ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)-delcar+rcar*dtr
-        ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)-2.*delcar-(rnit+1)*dtr
-        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)-dtr*ro2ut
         ocetra(i,j,k,iphy) = ocetra(i,j,k,iphy)+phosy-grazing-phymor-exud
         ocetra(i,j,k,izoo) = ocetra(i,j,k,izoo)+grawa-excdoc-zoomor
         ocetra(i,j,k,idoc) = ocetra(i,j,k,idoc)-bacfra+excdoc+exud

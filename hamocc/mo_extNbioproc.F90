@@ -58,8 +58,12 @@
 
       private
 
+      ! public functions
       public :: extNbioparam_init,nitrification,denit_NO3_to_NO2,&
               & anammox,denit_dnra,extN_inv_check
+      ! public parameters
+      public :: bkphyanh4,bkphyano3,bkphosph,bkiron
+
 
       real   :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
               & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
@@ -67,8 +71,9 @@
               & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
               & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
               & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,        &
-              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,n2oybeta
- 
+              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
+              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron
+
       real :: eps
 
       CONTAINS
@@ -78,6 +83,12 @@
       !===========================================================================
       ! Initialization of model parameters for the extended nitrogen cycle
       
+      ! Phytoplankton growth     
+      bkphyanh4     = 0.1e-6    ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
+      bkphyano3     = 0.16e-6   ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
+      bkphosph      = 0.01e-6   ! Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)
+      bkiron        = bkphosph*riron ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
+
       ! === Denitrification step NO3 -> NO2:
       rano3denit    = 0.15*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
       q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
