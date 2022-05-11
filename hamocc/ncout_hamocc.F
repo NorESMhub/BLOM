@@ -25,14 +25,136 @@ c --- -------------------------------------------
 c
       use mod_time,       only: date0,date,calendar,nstep,nstep_in_day,
      .                          nday_of_year,time0,time
-      use mod_xc
+      use mod_xc,         only: kdm,mnproc,itdm,jtdm,lp
       use mod_grid,       only: depths
-      use mod_dia,        only: diafnm,sigmar1,iotype
+      use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,
+     .                     depthslev_bnds
       use mo_control_bgc, only: dtbgc
       use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
-      use mo_bgcmean
+      use mo_param1_bgc,  only: ks
+      use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,
+     .                          ncdimc 
+      use mo_bgcmean,     only: domassfluxes,
+     .                     flx_cal0100,flx_cal0500,flx_cal1000,
+     .                     flx_cal2000,flx_cal4000,flx_cal_bot,
+     .                     flx_car0100,flx_car0500,flx_car1000,
+     .                     flx_car2000,flx_car4000,flx_car_bot,
+     .                     flx_bsi0100,flx_bsi0500,flx_bsi1000,
+     .                     flx_bsi2000,flx_bsi4000,flx_bsi_bot,
+     .                     int_phosy,int_nfix,int_dnit, 
+     .                     jalkali,jano3,jasize,
+     .                     jatmco2,
+     .                     jbsiflx0100,jbsiflx0500,jbsiflx1000,        
+     .                     jbsiflx2000,jbsiflx4000,jbsiflx_bot,        
+     .                     jcalc,jcalflx0100,jcalflx0500,jcalflx1000,  
+     .                     jcalflx2000,jcalflx4000,jcalflx_bot,        
+     .                     jcarflx0100,jcarflx0500,jcarflx1000,        
+     .                     jcarflx2000,jcarflx4000,jcarflx_bot,        
+     .                     jco2flux,jco2fxd,jco2fxu,jco3,jdic,jdicsat, 
+     .                     jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,    
+     .                     jdoc,jdp,jeps,jexpoca,jexport,jexposi,      
+     .                     jgrazer,   
+     .                     jintdnit,jintnfix,jintphosy,jiralk,jirdet,  
+     .                     jirdin,jirdip,jirdoc,jiriron,jiron,jirsi,   
+     .                     jkwco2,jlvlalkali,jlvlano3,jlvlasize,       
+     .                     jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,  
+     .                     jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,       
+     .                     jlvld14c,jlvldic,jlvldic13,jlvldic14,       
+     .                     jlvldicsat,jlvldoc,jlvldoc13,jlvleps,       
+     .                     jlvlgrazer,jlvlgrazer13,jlvliron,jlvln2o,   
+     .                     jlvlnatalkali,jlvlnatcalc,jlvlnatco3,       
+     .                     jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,     
+     .                     jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,    
+     .                     jlvlopal,jlvloxygen,jlvlph,jlvlphosph,      
+     .                     jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,    
+     .                     jlvlpoc13,jlvlprefalk,jlvlprefdic,          
+     .                     jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,  
+     .                     jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,    
+     .                     jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,   
+     .                     jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,
+     .                     jph,jphosph,jphosy,jphyto,jpoc,jprefalk,    
+     .                     jprefdic,jprefo2,jprefpo4,jsilica,          
+     .                     jsrfalkali,jsrfano3,jsrfdic,jsrfiron,       
+     .                     jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica, 
+     .                     jwnos,jwphy,
+     .                     lyr_dp,lyr_dic,lyr_alkali,lyr_phosph,
+     .                     lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,
+     .                     lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,
+     .                     lyr_opal,lyr_iron,lyr_phosy,lyr_co3,lyr_ph,
+     .                     lyr_omegaa,lyr_omegac,lyr_n2o,lyr_prefo2,
+     .                     lyr_o2sat,lyr_prefpo4,lyr_prefalk,
+     .                     lyr_prefdic,lyr_dicsat,
+     .                     lvl_dic,lvl_alkali,
+     .                     lvl_phosph,lvl_oxygen,lvl_ano3,lvl_silica,
+     .                     lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,
+     .                     lvl_calc,lvl_opal,lvl_iron,lvl_phosy,
+     .                     lvl_co3,lvl_ph,lvl_omegaa,lvl_omegac,
+     .                     lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,
+     .                     lvl_prefalk,lvl_prefdic,lvl_dicsat,
+     .                     lvl_o2sat,srf_n2ofx,srf_atmco2,srf_kwco2,
+     .                     srf_pco2,srf_dmsflux,srf_co2fxd,
+     .                     srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,
+     .                     srf_dmsprod,srf_dms_bac,srf_dms_uv,
+     .                     srf_export,srf_exposi,srf_expoca,srf_dic,
+     .                     srf_alkali,srf_phosph,srf_oxygen,srf_ano3,
+     .                     srf_silica,srf_iron,srf_phyto,                               
+     .                     nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,
+     .                     nbgcmax,glb_ncformat,glb_compflag,
+     .                     glb_fnametag,filefq_bgc,diagfq_bgc,
+     .                     filemon_bgc,fileann_bgc,ip,wrtlyr,wrtlvl,
+     .                     loglyr,inilvl,inilyr,inisrf,loglvl,
+     ,                     msklvl,wrtsrf,msksrf,finlyr
+#ifdef AGG
+      use mo_bgcmean, only: lyr_nos,lyr_wphy, lyr_wnos,lyr_eps,        
+     .                  lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,
+     .                  lvl_asize
+#endif
+#ifdef BROMO
+      use mo_bgcmean, only: jbromo,jbromofx,jsrfbromo,jbromo_prod,
+     .                      jbromo_uv,jatmbromo,lvl_bromo,srf_bromofx,
+     .                      srf_bromo,int_bromopro,int_bromouv,
+     .                      srf_atmbromo,lyr_bromo
+#endif
+#ifdef CFC
+      use mo_bgcmean,only: jcfc11,jcfc12,jsf6,jcfc11fx,jcfc12fx,jsf6fx,
+     .                     lvl_cfc11,lvl_cfc12,lvl_sf6,srf_cfc11,
+     .                     srf_cfc12,srf_sf6,lyr_cfc11,lyr_cfc12,
+     .                     lyr_sf6
+#endif
 #ifdef cisonew
       use mo_biomod, only: c14fac
+      use mo_bgcmean, only: jdic13,jdic14,jd13c,jd14c,jbigd14c,jpoc13,
+     .                     jdoc13,jcalc13,jphyto13,jgrazer13,jco213fxd,
+     .                     jco213fxu,jco214fxd,jco214fxu,jatmc13,
+     .                     jatmc14,jdic13,jdic14,jd13c,jd14c,jbigd14c,
+     .                     srf_co213fxd,srf_co213fxu,srf_co214fxd,
+     .                     srf_co214fxu,srf_atmc13,srf_atmc14,lyr_dic13,
+     .                     lyr_dic14,lyr_d13c,lyr_d14c,lyr_bigd14c,
+     .                     lyr_poc13,lyr_doc13,lyr_calc13,lyr_phyto13,
+     .                     lyr_grazer13,lvl_dic13,lvl_dic14,lvl_d13c,
+     .                     lvl_d14c,lvl_bigd14c,lvl_poc13,lvl_doc13,
+     .                     lvl_calc13,lvl_phyto13,lvl_grazer13
+#endif
+#ifdef natDIC
+      use mo_bgcmean, only: jnatalkali,jnatdic,jnatcalc,jnatco3,jnatph,
+     .                     jnatomegaa,jnatomegac,lyr_natph,jlvlnatph,
+     .                     lvl_natph,jsrfnatdic,
+     .                     jsrfnatalk,jnatpco2,jnatco2fx,lyr_natco3,
+     .                     lyr_natalkali,lyr_natdic,lyr_natcalc,
+     .                     lyr_natomegaa,lyr_natomegac,lvl_natco3,
+     .                     lvl_natalkali,lvl_natdic,lvl_natcalc,
+     .                     lvl_natomegaa,lvl_natomegac,srf_natdic,
+     .                     srf_natalkali,srf_natpco2,srf_natco2fx
+#endif
+#ifndef sedbypass
+      use mo_bgcmean, only: jpowaic,jpowaal,jpowaph,jpowaox,jpown2,
+     .                     jpowno3,jpowasi,jssso12,jssssil,jssster,
+     .                     jsssc12,jbursssc12,jburssssil,jburssster,
+     .                     sdm_powaic,sdm_powaal,sdm_powaph,sdm_powaox,
+     .                     sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,
+     .                     sdm_ssssil,sdm_sssc12,sdm_ssster,jburssso12,
+     .                     bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,
+     .                     inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
 #endif
 c      
       implicit none
@@ -995,7 +1117,65 @@ c
 
 
       subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
-      use mo_bgcmean
+      use mod_nctools, only:ncdefvar,ncattr,ncfopn,ncdimc,ncdims,
+     .                      nctime,ncfcls,ncedef,ncdefvar3d,ndouble
+
+      use mo_bgcmean, only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,
+     .   srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,srf_dmsprod,     
+     .   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,
+     .   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,
+     .   srf_iron,srf_phyto,int_phosy,int_nfix,int_dnit,flx_car0100,
+     .   flx_car0500,flx_car1000,flx_car2000,flx_car4000,flx_car_bot,
+     .   flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,
+     .   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,
+     .   flx_cal4000,flx_cal_bot,srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,
+     .   lyr_alkali,lyr_phosph,lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,
+     .   lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,lyr_opal,lyr_iron, 
+     .   lyr_phosy,lyr_co3,lyr_ph,lyr_omegaa,lyr_omegac,lyr_n2o,
+     .   lyr_prefo2,lyr_o2sat,lyr_prefpo4,lyr_prefalk,lyr_prefdic,
+     .   lyr_dicsat,lvl_dic,lvl_alkali,lvl_phosph,lvl_oxygen,lvl_ano3,
+     .   lvl_silica,lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,lvl_calc,
+     .   lvl_opal,lvl_iron,lvl_phosy,lvl_co3,lvl_ph,lvl_omegaa,
+     .   lvl_omegac,lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,
+     .   lvl_prefalk,lvl_prefdic,lvl_dicsat
+#ifdef AGG
+      use mo_bgcmean, only: lyr_nos,lyr_wphy,lyr_wnos,lyr_eps,
+     . lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,lvl_asize
+#endif     
+#if defined(BOXATM)
+      use mo_bgcmean, only: srf_atmo2,srf_atmn2
+#endif 
+     
+#ifdef BROMO
+      use mo_bgcmean, only:srf_bromo,srf_bromofx,int_bromopro,
+     .        int_bromouv,srf_atmbromo,lyr_bromo,lvl_bromo
+#endif
+#ifdef CFC
+      use mo_bgcmean, only: srf_cfc11,srf_cfc12,srf_sf6,lyr_cfc11,
+     .        lyr_cfc12,lyr_sf6,lvl_cfc11,lvl_cfc12,lvl_sf6
+#endif
+#ifdef cisonew
+      use mo_bgcmean, only: srf_co213fxd,srf_co213fxu,srf_co214fxd,
+     .        srf_co214fxu,srf_atmc13,srf_atmc14,lyr_dic13,lyr_dic14,
+     .        lyr_d13c,lyr_d14c,lyr_bigd14c,lyr_poc13,lyr_doc13,
+     .        lyr_calc13,lyr_phyto13,lyr_grazer13,lvl_dic13,lvl_dic14,
+     .        lvl_d13c,lvl_d14c,lvl_bigd14c,lvl_poc13,lvl_doc13,
+     .        lvl_calc13,lvl_phyto13,lvl_grazer13
+#endif
+#ifdef natDIC
+      use mo_bgcmean, only: srf_natdic,srf_natalkali,srf_natpco2,
+     .        srf_natco2fx,lyr_natco3,lyr_natalkali,lyr_natdic,
+     .        lyr_natcalc,lyr_natph,lyr_natomegaa,lyr_natomegac,
+     .        lvl_natalkali,lvl_natdic,lvl_natcalc,lvl_natph,
+     .        lvl_natomegaa,lvl_natomegac,lvl_natco3
+#endif
+#ifndef sedbypass
+      use mo_bgcmean, only: sdm_powaic,sdm_powaal,sdm_powaph,sdm_powaox,
+     .        sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,
+     .        sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,
+     .        bur_ssster
+#endif
+
       integer iogrp,cmpflg
       character timeunits*30,calendar*19
       call ncdefvar('time','time',ndouble,0)

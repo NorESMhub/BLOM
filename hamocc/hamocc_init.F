@@ -42,7 +42,11 @@ c******************************************************************************
      .                         mnproc,lp,nfu,xchalt
       use mod_grid,      only: plon,plat
       use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
-      USE mo_control_bgc
+      use mo_control_bgc,only: bgc_namelist,get_bgc_namelist 
+     .                         do_ndep,do_rivinpt,do_sedspinup,
+     .                         sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,
+     .                         dtb,dtbgc,io_stdo_bgc,isac,ldtbgc,
+     .                         ldtrunbgc,ndtdaybgc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       USE mo_carbch,     only: alloc_mem_carbch,ocetra,atm,atm_co2
       USE mo_biomod,     only: alloc_mem_biomod
@@ -54,11 +58,18 @@ c******************************************************************************
       use mo_ndep,       only: ini_ndep,ndepfile
       use mo_Gdata_read, only: inidic,inialk,inipo4,inioxy,inino3,
      .                         inisil,inid13c,inid14c
-      use mo_riverinpt,  only: ini_riverinpt,rivinfile
+      use mo_riverinpt,  only: ini_riverinpt,rivinfile, 
+     .                         alloc_mem_riverinpt_bgm
       use mo_intfcblom,  only: alloc_mem_intfcblom,nphys,
      .                         bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                         omask,sedlay2,powtra2,burial2,
      .                         blom2hamocc
+#ifdef BOXATM
+      use mo_intfcblom,   only: atm2
+#endif
+#ifdef DMSPH
+      use mo_get_pi_ph,   only: get_pi_ph,pi_ph_path
+#endif
 c
       implicit none
 c
@@ -74,7 +85,9 @@ c
      .                  sedspin_yr_e,sedspin_ncyc,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
      .                  inid13c,inid14c,swaclimfile
-
+#ifdef DMSPH
+     .                  ,pi_ph_path
+#endif
 c
 c --- Set io units and some control parameters
 c
@@ -132,6 +145,7 @@ c
       CALL ALLOC_MEM_BIOMOD(idm,jdm,kdm)
       CALL ALLOC_MEM_SEDMNT(idm,jdm)
       CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
+c$$$      CALL ALLOC_MEM_RIVERINPT_BGM(idm,jdm,omask)
 c
 c --- initialise trc array (two time levels)
 c
@@ -185,7 +199,7 @@ c
 
       CALL INI_RIVERINPT(idm,jdm,omask)
 #ifdef DMSPH
-      CALL GET_PI_PH(idm,jdm,kdm,omask,path)
+      CALL GET_PI_PH(idm,jdm,kdm,omask)
 #endif
 c
 c --- Read restart fields from restart file if requested, otherwise 

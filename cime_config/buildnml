@@ -1413,9 +1413,12 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   COMPFLAG - switch for compressed/uncompressed output (i) 
 !   NCFORMAT - netcdf format (valid arguments are 0 for classic,
 !              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
-!   INVENTORY- how often to write an inventory of tracers to ocean 
-!              output file
-!  
+!   INVENTORY- how often to write an inventory of tracers to ocean
+!              output file:
+!              0 : no output
+!              1 : write inventory to standard output (log file)
+!              2 : write output to inventory netCDF file
+!
 ! Arguments for diagnostic variables:
 !   0        - variable is not written
 !   2        - variable is written as int2 with scale factor and offset

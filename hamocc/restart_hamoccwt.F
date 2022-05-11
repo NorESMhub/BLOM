@@ -21,9 +21,8 @@ c
 c write restart for HAMOCC
 c
       use mod_time,      only: date,nstep
-      use mod_xc
+      use mod_xc,        only: idm,jdm,kdm 
       use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
-      use mo_param1_bgc, only: ks,nsedtra,npowtra
       use mo_intfcblom,  only: omask
 c
       implicit none

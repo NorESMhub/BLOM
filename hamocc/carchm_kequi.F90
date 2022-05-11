@@ -64,10 +64,8 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,           &
 !     none.
 !
 !*******************************************************************************
-USE mo_chemcon, only: tzero,rgas,bor1,bor2,salchl,  &
-                      ac1,ac2,ac3,ac4,bc1,bc2,bc3,  &
-                      ad1,ad2,ad3,bd1,bd2,bd3,      &
-                      a0,a1,a2,b0,b1,b2
+
+use mo_chemcon, only: tzero,rgas,bor1,bor2,salchl,ac1,ac2,ac3,ac4,bc1,bc2,bc3,ad1,ad2,ad3,bd1,bd2,bd3,a0,a1,a2,b0,b1,b2
 
 IMPLICIT NONE
 REAL,    INTENT(IN)    :: temp,saln,prb

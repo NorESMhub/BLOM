@@ -53,15 +53,17 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
-      USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
-      USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      USE mod_nctools
-      USE mo_param1_bgc, only: ks 
+      use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
+      use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
+      use mod_nctools,    only:ncpack,nccomp,nccopa,ncwrtr
+      use netcdf,         only: nf90_fill_double
+      use mo_param1_bgc,  only: ks
+      use mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
       PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp                
-      PUBLIC :: ks,ddm,depthslev,depthslev_bnds
+      PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
 
 ! --- Averaging and writing frequencies for diagnostic output     
       INTEGER, SAVE :: nbgc
@@ -222,6 +224,8 @@
 
 !----------------------------------------------------------------      
 ! declarations for inventory_bgc.F90
+! order and increments of river (jir...) indices require to be the same 
+! as in mo_riverinpt 
       INTEGER, parameter ::                                             &
      &          jco2flux  =1,                                           &
      &          jo2flux   =2,                                           &
@@ -237,7 +241,15 @@
      &          jpodin2   =12,                                          &
      &          jpodino3  =13,                                          &
      &          jpodisi   =14,                                          &
-     &          nbgct2d   =14
+     &          jndep     =15,                                          &
+     &          jirdin    =16,                                          &
+     &          jirdip    =17,                                          &
+     &          jirsi     =18,                                          &
+     &          jiralk    =19,                                          &
+     &          jiriron   =20,                                          &
+     &          jirdoc    =21,                                          &
+     &          jirdet    =22,                                          &
+     &          nbgct2d   =22
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
@@ -490,9 +502,7 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      USE mod_xc
-      USE mo_control_bgc
-      USE mo_param1_bgc 
+      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
 
       IMPLICIT NONE 
      
@@ -2257,7 +2267,6 @@
       SUBROUTINE bgczlv(pddpo,kin,ind1,ind2,weights)
 !-----------------------------------------------------------------------
 !
-      USE mod_xc
 !
       IMPLICIT NONE
 !
