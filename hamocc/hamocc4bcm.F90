@@ -122,6 +122,8 @@
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
+      INTEGER :: nspin,it
+      LOGICAL :: lspin
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -173,7 +175,7 @@
 #endif
 
 #ifdef BROMO
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         IF (patmbromo(i,j).gt.0.) THEN
@@ -293,8 +295,30 @@
 #ifndef sedbypass
 ! jump over sediment if sedbypass is defined
 
-      CALL POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao)
+      if(do_sedspinup .and. kplyear>=sedspin_yr_s                              &
+                      .and. kplyear<=sedspin_yr_e) then
+        nspin = sedspin_ncyc
+        if(mnproc == 1) then
+          write(io_stdo_bgc,*)
+          write(io_stdo_bgc,*) 'iHAMOCC: sediment spinup activated with ',     &
+                                nspin, ' subcycles' 
+        endif
+      else
+        nspin = 1
+      endif
+      
+      ! Loop for sediment spinup. If deactivated then nspin=1 and lspin=.false.
+      do it=1,nspin
 
+        if( it<nspin ) then
+          lspin=.true.
+        else
+          lspin=.false.      
+        endif
+
+        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+
+      enddo
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -353,7 +377,7 @@
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
 ! Negative values to the atmosphere
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc

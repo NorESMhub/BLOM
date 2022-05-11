@@ -384,6 +384,22 @@ c --- Store 2d fields
       call wrtsrf(jcalflx_bot(iogrp),FLX_CAL_BOT(iogrp),
      .  rnacc*1e3/dtbgc,0.,cmpflg,'calflx_bot',
      .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1')
+#ifndef sedbypass
+      call wrtsrf(jsediffic(iogrp),FLX_SEDIFFIC(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfdic',' ',' ',' ')
+      call wrtsrf(jsediffal(iogrp),FLX_SEDIFFAL(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfalk',' ',' ',' ')
+      call wrtsrf(jsediffph(iogrp),FLX_SEDIFFPH(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfpho',' ',' ',' ')
+      call wrtsrf(jsediffox(iogrp),FLX_SEDIFFOX(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfox',' ',' ',' ')
+      call wrtsrf(jsediffn2(iogrp),FLX_SEDIFFN2(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2',' ',' ',' ')
+      call wrtsrf(jsediffno3(iogrp),FLX_SEDIFFNO3(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfno3',' ',' ',' ')
+      call wrtsrf(jsediffsi(iogrp),FLX_SEDIFFSI(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi',' ',' ',' ')
+#endif
       call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,
      .  cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
 #ifdef cisonew
@@ -782,6 +798,15 @@ c --- Initialise fields
       call inisrf(jcalflx2000(iogrp),0.)       
       call inisrf(jcalflx4000(iogrp),0.)       
       call inisrf(jcalflx_bot(iogrp),0.)
+#ifndef sedbypass
+      call inisrf(jsediffic(iogrp),0.)
+      call inisrf(jsediffal(iogrp),0.)
+      call inisrf(jsediffph(iogrp),0.)
+      call inisrf(jsediffox(iogrp),0.)
+      call inisrf(jsediffn2(iogrp),0.)
+      call inisrf(jsediffno3(iogrp),0.)
+      call inisrf(jsediffsi(iogrp),0.)
+#endif
 #ifdef cisonew
       call inisrf(jco213fxd(iogrp),0.)       
       call inisrf(jco213fxu(iogrp),0.)       
@@ -1077,6 +1102,29 @@ c
      .  'CaCO3 flux to sediment',' ','mol Ca m-2 s-1',0)
       call ncdefvar3d(SRF_N2OFX(iogrp),cmpflg,'p','n2oflux',
      .  'N2O flux',' ','mol N2O m-2 s-1',0)
+#ifndef sedbypass
+      call ncdefvar3d(FLX_SEDIFFIC(iogrp),cmpflg,'p','sedfdic',
+     .  'diffusive DIC flux to sediment (positive downwards)',
+     .  ' ','mol C m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFAL(iogrp),cmpflg,'p','sedfalk',
+     .  'diffusive alkalinity flux to sediment (positive downwards)',
+     .  ' ','mol m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFPH(iogrp),cmpflg,'p','sedfpho',
+     .  'diffusive phosphate flux to sediment (positive downwards)',
+     .  ' ','mol m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFOX(iogrp),cmpflg,'p','sedfox',
+     .  'diffusive oxygen flux to sediment (positive downwards)',
+     .  ' ','mol O2 m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFN2(iogrp),cmpflg,'p','sedfn2',
+     .  'diffusive N2 flux to sediment (positive downwards)',
+     .  ' ','mol N2 m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFNO3(iogrp),cmpflg,'p','sedfno3',
+     .  'diffusive nitrate flux to sediment (positive downwards)',
+     .  ' ','mol NO3 m-2 s-1',0)
+      call ncdefvar3d(FLX_SEDIFFSI(iogrp),cmpflg,'p','sedfsi',
+     .  'diffusive silica flux to sediment (positive downwards)',
+     .  ' ','mol Si m-2 s-1',0)
+#endif
 #ifdef cisonew
       call ncdefvar3d(SRF_CO213FXD(iogrp),cmpflg,'p','co213fxd',
      .  'Downward 13CO2 flux',' ','kg C m-2 s-1',0)

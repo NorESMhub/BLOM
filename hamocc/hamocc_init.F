@@ -39,7 +39,7 @@ c
 c******************************************************************************
       use mod_time,      only: date,baclin
       use mod_xc,        only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
-     .                         mnproc,lp,nfu
+     .                         mnproc,lp,nfu,xchalt
       use mod_grid,      only: plon,plat
       use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
       USE mo_control_bgc
@@ -70,6 +70,8 @@ c
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
+     .                  do_sedspinup,sedspin_yr_s,
+     .                  sedspin_yr_e,sedspin_ncyc,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
      .                  inid13c,inid14c,swaclimfile
 
@@ -95,7 +97,7 @@ c
       write(io_stdo_bgc,*) 'time step',dtbgc
       endif
 c
-c --- Read the HAMOCC BGCNML namelist.
+c --- Read the HAMOCC BGCNML namelist and check the value of some variables.
 c
       if(.not. allocated(bgc_namelist)) call get_bgc_namelist
       open (newunit=iounit, file=bgc_namelist, status='old'
@@ -103,9 +105,23 @@ c
       read (unit=iounit, nml=BGCNML)
       close (unit=iounit)
       IF (mnproc.eq.1) THEN
+
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
         write(io_stdo_bgc,nml=BGCNML)
+
+        if(do_sedspinup) then
+          if(sedspin_yr_s<0 .or. sedspin_yr_e<0 .or. 
+     .       sedspin_yr_s>sedspin_yr_e) then
+             call xchalt('(invalid sediment spinup start/end year)')
+             stop        '(invalid sediment spinup start/end year)'
+          endif
+          if(sedspin_ncyc < 2) then
+             call xchalt('(invalid nb. of sediment spinup subcycles)')
+             stop        '(invalid nb. of sediment spinup subcycles)'
+          endif
+        endif
+
       ENDIF
 c
 c --- Memory allocation 

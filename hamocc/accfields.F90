@@ -99,10 +99,23 @@
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
  
+        ! Atmosphere-ocean fluxes
         bgct2d(i,j,jco2flux) = bgct2d(i,j,jco2flux) + atmflx(i,j,iatmco2)/2.0
         bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
         bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
         bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
+        ! Particle fluxes between water-column and sediment
+        bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
+        bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0
+        bgct2d(i,j,jsilpro)  = bgct2d(i,j,jsilpro)  + bsiflx_bot(i,j)/2.0
+        ! Diffusive fluxes between water-column and sediment
+        bgct2d(i,j,jpodiic)  = bgct2d(i,j,jpodiic)  + sedfluxo(i,j,ipowaic)/2.0
+        bgct2d(i,j,jpodial)  = bgct2d(i,j,jpodial)  + sedfluxo(i,j,ipowaal)/2.0
+        bgct2d(i,j,jpodiph)  = bgct2d(i,j,jpodiph)  + sedfluxo(i,j,ipowaph)/2.0
+        bgct2d(i,j,jpodiox)  = bgct2d(i,j,jpodiox)  + sedfluxo(i,j,ipowaox)/2.0
+        bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0
+        bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
+        bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
     
         endif
       enddo
@@ -199,6 +212,16 @@
         call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)    
         call accsrf(jcalflx_bot,calflx_bot,omask,0)    
       ENDIF
+
+! Accumulate diffusive fluxes between water column and sediment
+      call accsrf(jsediffic,sedfluxo(1,1,ipowaic),omask,0)    
+      call accsrf(jsediffal,sedfluxo(1,1,ipowaal),omask,0)    
+      call accsrf(jsediffph,sedfluxo(1,1,ipowaph),omask,0)    
+      call accsrf(jsediffox,sedfluxo(1,1,ipowaox),omask,0)    
+      call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)    
+      call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)    
+      call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)    
+
 
 ! Accumulate layer diagnostics
       call acclyr(jdp,pddpo,pddpo,0)

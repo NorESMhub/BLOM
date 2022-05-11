@@ -597,19 +597,21 @@
       WRITE(io_stdo_bgc,*) ' '      
       ENDIF
       
-      DO l=1,npowtra
+      !DO l=1,npowtra
+      DO l=8,12
 
         ztmp1(:,:)=0.0
         DO j=1,kpje
         DO i=1,kpie
-          ztmp1(i,j) = sedfluxo(i,j,l)*dlxp(i,j)*dlyp(i,j)
+          ztmp1(i,j) = bgct2d(i,j,l)*dlxp(i,j)*dlyp(i,j)
         ENDDO
         ENDDO
 
         CALL xcsum(sum,ztmp1,ips)
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*) 'No. ',l,' ',sum
-      ENDIF
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*) 'No. ',l,' ',sum
+        ENDIF
+
       ENDDO
 
       IF (mnproc.eq.1) THEN
