@@ -147,7 +147,7 @@
       REAL    :: scco2,sco2,scn2,scdms,scn2o
       REAL    :: Xconvxa
       REAL    :: oxflux,niflux,dmsflux,n2oflux
-      REAL    :: ato2,atn2,atco2,pco2
+      REAL    :: ato2,atn2,atco2,pco2,atn2ov
       REAL    :: oxy,ani,anisa 
       REAL    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
       REAL    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
@@ -174,7 +174,7 @@
       REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
 #endif
 #ifdef extNcycle
-      REAL    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
+      REAL    :: flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air
       REAL    :: h_nh3,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star
       eps_safe = EPSILON(1.)
 #endif
@@ -206,8 +206,8 @@
 !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
 !$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac    &
 !$OMP  ,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa     &
-!$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat    &
-!$OMP  ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol              &
+!$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,atn2ov,fluxd,fluxu,oxflux    &
+!$OMP  ,tc_sat,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol       &
 #ifdef CFC
 !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
 !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6                       &
@@ -224,7 +224,7 @@
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 #endif
 #ifdef extNcycle
-!$OMP ,flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atn2ov,atnh3         &
+!$OMP ,flx_nh3,sch_nh3_a,sch_nh3_w,kw_nh3,ka_nh3,atnh3                &
 !$OMP ,diff_nh3_a,diff_nh3_w,mu_air,mu_w,p_dbar,rho_air,h_nh3         &
 !$OMP ,hstar_nh3,pKa_nh3,eps_safe,Kh_nh3,cD_wind,u_star               &
 #endif 
