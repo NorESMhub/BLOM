@@ -160,7 +160,9 @@
         bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
         bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
         bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
+#ifdef extNcycle
         bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
+#endif
         bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
         bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
         bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
