@@ -195,7 +195,7 @@ if ($HAMOCC_SEDSPINUP == TRUE) then
   set SEDSPIN_YR_E = $HAMOCC_SEDSPINUP_YR_END
   set SEDSPIN_NCYC = $HAMOCC_SEDSPINUP_NCYCLE
 else
-  set DO_SETSPINUP = .false.
+  set DO_SEDSPINUP = .false.
   set SEDSPIN_YR_S = -1
   set SEDSPIN_YR_E = -1
   set SEDSPIN_NCYC = -1

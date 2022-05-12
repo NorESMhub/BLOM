@@ -51,8 +51,6 @@
       INTEGER, save :: ldtbgc             !  time step number from bgc restart file
       INTEGER, save :: ldtrunbgc          !  actual time steps of run.
 
-      INTEGER, save :: isac               !  acceleration factor for sediment, read from namelist
-
       INTEGER, save :: sedspin_yr_s = -1
       INTEGER, save :: sedspin_yr_e = -1
       INTEGER, save :: sedspin_ncyc = -1

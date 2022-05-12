@@ -1892,4 +1892,4 @@ end subroutine nccheck
 
 
 END SUBROUTINE INVENTORY_BGC
->>>>>>> master
+

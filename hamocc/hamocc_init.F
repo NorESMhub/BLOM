@@ -42,10 +42,10 @@ c******************************************************************************
      .                         mnproc,lp,nfu,xchalt
       use mod_grid,      only: plon,plat
       use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
-      use mo_control_bgc,only: bgc_namelist,get_bgc_namelist 
+      use mo_control_bgc,only: bgc_namelist,get_bgc_namelist, 
      .                         do_ndep,do_rivinpt,do_sedspinup,
      .                         sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,
-     .                         dtb,dtbgc,io_stdo_bgc,isac,ldtbgc,
+     .                         dtb,dtbgc,io_stdo_bgc,ldtbgc,
      .                         ldtrunbgc,ndtdaybgc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
       USE mo_carbch,     only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -95,7 +95,6 @@ c
       dtbgc = nphys*baclin          !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
-      isac = 1
       ldtbgc = 0
       ldtrunbgc = 0
 

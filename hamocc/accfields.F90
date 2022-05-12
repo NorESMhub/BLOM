@@ -44,7 +44,7 @@
 !     *REAL*    *omask*   - land/ocean mask
 !
 !**********************************************************************
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,ocetra,omegaa,omegac,pco2d,satoxy 
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,ocetra,omegaa,omegac,pco2d,satoxy,sedfluxo
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
@@ -52,7 +52,8 @@
       use mod_xc,         only: mnproc
       use mo_bgcmean,     only: domassfluxes,jalkali,jano3,jasize,jatmco2,jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,         &
                               & jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,jcalflx1000,jcalflx2000,jcalflx4000,         &
-                              & jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,jco2flux,      &
+                              & jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,               &
+                              & jsediffic,jsediffal,jsediffph,jsediffox,jsediffn2,jsediffno3,jsediffsi,jco2flux,                   &
                               & jco2fxd,jco2fxu,jco3,jdic,jdicsat,jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,jdoc,jdp,jeps,jexpoca,   &
                               & jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,    &
                               & jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,        &
@@ -60,7 +61,8 @@
                               & jlvldoc13,jlvleps,jlvlgrazer,jlvlgrazer13,jlvliron,jlvln2o,jlvlnatalkali,jlvlnatcalc,jlvlnatco3,   &
                               & jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,jlvlopal,jlvloxygen,&
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
-                              & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,jndep,    &
+                              & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
+                              & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
                               & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jph,jphosph,jphosy,jphyto, &
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &

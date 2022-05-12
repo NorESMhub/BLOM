@@ -41,9 +41,12 @@ c
      .                     flx_car2000,flx_car4000,flx_car_bot,
      .                     flx_bsi0100,flx_bsi0500,flx_bsi1000,
      .                     flx_bsi2000,flx_bsi4000,flx_bsi_bot,
-     .                     int_phosy,int_nfix,int_dnit, 
-     .                     jalkali,jano3,jasize,
-     .                     jatmco2,
+     .                     flx_sediffic,flx_sediffal,flx_sediffph,
+     .                     flx_sediffox,flx_sediffn2,flx_sediffno3,
+     .                     flx_sediffsi,  
+     .                     jsediffic,jsediffal,jsediffph,jsediffox,
+     .                     jsediffn2,jsediffno3,jsediffsi,
+     .                     jalkali,jano3,jasize,jatmco2,
      .                     jbsiflx0100,jbsiflx0500,jbsiflx1000,        
      .                     jbsiflx2000,jbsiflx4000,jbsiflx_bot,        
      .                     jcalc,jcalflx0100,jcalflx0500,jcalflx1000,  
@@ -98,6 +101,7 @@ c
      .                     srf_export,srf_exposi,srf_expoca,srf_dic,
      .                     srf_alkali,srf_phosph,srf_oxygen,srf_ano3,
      .                     srf_silica,srf_iron,srf_phyto,                               
+     .                     int_phosy,int_nfix,int_dnit, 
      .                     nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,
      .                     nbgcmax,glb_ncformat,glb_compflag,
      .                     glb_fnametag,filefq_bgc,diagfq_bgc,
@@ -1128,7 +1132,9 @@ c
      .   flx_car0500,flx_car1000,flx_car2000,flx_car4000,flx_car_bot,
      .   flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,
      .   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,
-     .   flx_cal4000,flx_cal_bot,srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,
+     .   flx_cal4000,flx_cal_bot,flx_sediffic,flx_sediffal,
+     .   flx_sediffph,flx_sediffox,flx_sediffn2,flx_sediffno3,
+     .   flx_sediffsi,srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,
      .   lyr_alkali,lyr_phosph,lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,
      .   lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,lyr_opal,lyr_iron, 
      .   lyr_phosy,lyr_co3,lyr_ph,lyr_omegaa,lyr_omegac,lyr_n2o,
@@ -1175,6 +1181,7 @@ c
      .        sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,
      .        bur_ssster
 #endif
+      implicit none
 
       integer iogrp,cmpflg
       character timeunits*30,calendar*19
