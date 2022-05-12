@@ -178,9 +178,7 @@ c
 
       CALL INI_RIVERINPT(idm,jdm,omask)
 
-      if(with_dmsph) then
-         call ini_pi_ph(idm,jdm,omask)
-      endif
+      call ini_pi_ph(idm,jdm,omask)
 c
 c --- Read restart fields from restart file if requested, otherwise 
 c     (at first start-up) copy ocetra and sediment arrays (which are
