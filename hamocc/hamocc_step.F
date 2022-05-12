@@ -36,7 +36,7 @@ c
       use mo_riverinpt,   only: rivflx
       use mo_fedep,       only: get_fedep
       use mo_ndep,        only: get_ndep
-      use mo_read_pi_ph,  only: get_pi_ph
+      use mo_read_pi_ph,  only: get_pi_ph,pi_ph
       use mo_control_bgc, only: with_dmsph
 c
       implicit none
@@ -69,7 +69,7 @@ c
       call hamocc4bcm(idm,jdm,kdm,nbdy,
      .            date%year,date%month,date%day,ldtday,
      .            bgc_dx,bgc_dy,bgc_dp,bgc_rho,plat,omask,
-     .            dust,rivflx,ndep,
+     .            dust,rivflx,ndep,pi_ph,
      .            swa,ficem,slp,abswnd,
      .            temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),
      .            atmco2,flxco2,flxdms,atmbrf,flxbrf)

@@ -18,7 +18,8 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho, &
+     &            pi_ph)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -81,7 +82,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch,      only: dmspar,ocetra,satoxy
+  use mo_carbch,      only: dmspar,ocetra,satoxy,hi
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro
   use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
                           & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
@@ -94,7 +95,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
-  use mo_read_pi_ph,  only: get_dmsph
 
 #ifdef AGG
   use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
@@ -132,11 +132,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real,    intent(in) :: omask(kpie,kpje)
   real,    intent(in) :: dust(kpie,kpje)
   real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: pi_ph(kpie,kpje)
 
   ! Local varaibles
   integer :: i,j,k,l
   integer :: is,kdonor
   integer, parameter :: nsinkmax = 12
+  real, parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
   real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
@@ -196,7 +198,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real :: bro_beta,bro_uv
   real :: abs_uv(kpie,kpje,kpke)
 #endif
-
 
 
 ! set variables for diagnostic output to zero
@@ -454,7 +455,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
         if(with_dmsph) then
-           dms_ph  = get_dmsph(i,j)
+           dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j))*dms_gamma
         else
            dms_ph  = 1.
         endif

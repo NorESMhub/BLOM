@@ -19,7 +19,7 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,                                  &
+                            dust,rivin,ndep,pi_ph,                            &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 !******************************************************************************
@@ -113,6 +113,7 @@
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -209,7 +210,8 @@
 !---------------------------------------------------------------------
 ! Biogeochemistry
 !
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,&
+           &      pi_ph)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
