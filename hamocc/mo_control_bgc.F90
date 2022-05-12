@@ -58,10 +58,11 @@
       REAL,    save :: rmasks = 0.0       !  value at wet cells in sediment.
       REAL,    save :: rmasko = 99999.00  !  value at wet cells in ocean.
 
-! Logical switches
-      LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition   (set via namelist)
-      LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input (set via namelist)
-      LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up (set via namelist)
+! Logical switches set via namelist
+      LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition
+      LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
+      LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up
+      logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
 
     contains
 

@@ -206,6 +206,8 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
+set WITH_DMSPH = .false.
+set PI_PH_FILE = ""
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1358,20 +1360,22 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! CONTENTS:
 !
-! ATM_CO2      : Atmospheric CO2 concentration [ppmv]
-! FEDEPFILE    : File name (incl. full path) for iron (dust) deposition data
-! SWACLIMFILE  : File name (incl. full path) for swa climatology field (needed 
+! ATM_CO2     : Atmospheric CO2 concentration [ppmv]
+! FEDEPFILE   : File name (incl. full path) for iron (dust) deposition data
+! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed 
 !                if bromoform scheme is activated)
-! DO_RIVINPT   : Logical switch to activate riverine input
-! RIVINFILE    : File name (incl. full path) for riverine input data
-! DO_NDEP      : Logical switch to activate N-deposition
-! NDEPFILE     : File name (incl. full path) for atmopheric N-deposition data
-! DO_SEDSPINUP : Logical switch to activate sediment spin-up
-! SEDSPIN_YR_S : Start year for sediment spinup
-! SEDSPIN_YR_E : End   year for sediment spinup
-! SEDSPIN_NCYC : Number of subcyles per time-step for sediment spinup
-! INIXXX       : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
+! DO_RIVINPT  : Logical switch to activate riverine input
+! RIVINFILE   : File name (incl. full path) for riverine input data
+! DO_NDEP     : Logical switch to activate N-deposition
+! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! DO_SEDSPINUP: Logical switch to activate sediment spin-up
+! SEDSPIN_YR_S: Start year for sediment spinup
+! SEDSPIN_YR_E: End   year for sediment spinup
+! SEDSPIN_NCYC: Number of subcyles per time-step for sediment spinup
+! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
 !                OXY, NO3, SIL, D13C, and D14C
+! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
+! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
 &BGCNML
   ATM_CO2      = $CCSM_CO2_PPMV
   FEDEPFILE    = $FEDEPFILE
@@ -1392,6 +1396,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INISIL       = $INISIL
   INID13C      = $INID13C
   INID14C      = $INID14C
+  WITH_DMSPH   = $WITH_DMSPH
+  PI_PH_FILE   = $PI_PH_FILE
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
