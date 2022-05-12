@@ -160,9 +160,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
 ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
 
-  !disso=1.e-8 
-  disso=3.e-8  ! (2011-01-04) EMR
-  !disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
+! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
+! FOR BACKWARDS COMPATIBILITY
+  !disso=3.e-8  ! (2011-01-04) EMR
+  disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
   dissot=disso*dtbgc
 
 ! Silicate saturation concentration is 1 mol/m3
