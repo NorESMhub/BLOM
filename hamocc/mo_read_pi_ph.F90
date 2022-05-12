@@ -19,10 +19,10 @@ module mo_read_pi_ph
 
   implicit none
   private
-  public :: ini_pi_ph,get_pi_ph,get_dmsph,pi_ph_clim
+  public :: ini_pi_ph,get_pi_ph,get_dmsph,pi_ph_file
 
   ! Path to input data, set through namelist in hamocc_init.F
-  character(len=256),save    :: pi_ph_clim = ''
+  character(len=256),save    :: pi_ph_file = ''
 
   ! Length of surface PI pH record from file
   ! Assume monthly record by default (otherwise change get_dmsph)
@@ -32,10 +32,10 @@ module mo_read_pi_ph
   real, parameter :: dms_gamma = 0.87
 
   ! surface PI pH climatology
-  real, dimension(:,:,:), allocatable :: pi_ph
+  real, dimension(:,:,:), allocatable :: pi_ph_clim
 
   ! surface PI pH monthly data
-  real, dimension(:,:), allocatable :: pi_ph_mon
+  real, dimension(:,:), allocatable :: pi_ph
 
 CONTAINS
 
@@ -65,7 +65,7 @@ CONTAINS
     ! Open netCDF data file
     !
     IF(mnproc==1) THEN
-       ncstat = NF90_OPEN(trim(pi_ph_clim), NF90_NOWRITE, ncid)
+       ncstat = NF90_OPEN(trim(pi_ph_file), NF90_NOWRITE, ncid)
        write(io_stdo_bgc,*) 'HAMOCC: opening PI_PH climatology file'
        IF (ncstat.NE.NF90_NOERR ) THEN
           CALL xchalt('(ini_pi_ph: Problem with netCDF1)')
@@ -90,9 +90,9 @@ CONTAINS
        do j=1,kpje
           do i=1,kpie
              if(omask(i,j).gt.0.5) then
-                pi_ph(i,j,l) = pi_ph_in(i,j,l)
+                pi_ph_clim(i,j,l) = pi_ph_in(i,j,l)
              else
-                pi_ph(i,j,l) = 0.
+                pi_ph_clim(i,j,l) = 0.
              endif
           enddo
        enddo
@@ -113,25 +113,25 @@ CONTAINS
     integer             :: errstat
 
     IF (mnproc.eq.1) THEN
-       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
+       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph_clim ...'
        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
        WRITE(io_stdo_bgc,*)'Third dimension    : ',pi_ph_record
     ENDIF
 
-    ALLOCATE (pi_ph(kpie,kpje,pi_ph_record),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory pi_ph'
-    pi_ph(:,:,:) = 0.0
+    ALLOCATE (pi_ph_clim(kpie,kpje,pi_ph_record),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pi_ph_clim'
+    pi_ph_clim(:,:,:) = 0.0
 
     IF (mnproc.eq.1) THEN
-       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph_mon ...'
+       WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
     ENDIF
 
-    ALLOCATE (pi_ph_mon(kpie,kpje),stat=errstat)
-    if(errstat.ne.0) stop 'not enough memory pi_ph_mon'
-    pi_ph_mon(:,:) = 0.0
+    ALLOCATE (pi_ph(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory pi_ph'
+    pi_ph(:,:) = 0.0
 
   end subroutine alloc_pi_ph
 
@@ -146,7 +146,7 @@ CONTAINS
     integer, save :: oldmonth=0
 
     if(kplmon /= oldmonth) then
-       pi_ph_mon = reshape(pi_ph(:,:,kplmon), [kpie,kpje])
+       pi_ph = reshape(pi_ph_clim(:,:,kplmon), [kpie,kpje])
        oldmonth = kplmon
     endif
 
@@ -163,7 +163,7 @@ CONTAINS
     integer, intent(in) :: i,j
     real :: dms_ph
 
-    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph_mon(i,j))*dms_gamma
+    dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j))*dms_gamma
 
   end function get_dmsph
 
