@@ -102,7 +102,7 @@ if get_option('iage')
 endif
 
 if get_option('ecosys')
-  add_project_arguments('-DHAMOCC','-DRESTART_BGC', '-DWLIN', language: 'fortran')
+  add_project_arguments('-DHAMOCC', '-DWLIN', language: 'fortran')
   if get_option('hamocc_agg')
     add_project_arguments('-DAGG', language: 'fortran')
   endif

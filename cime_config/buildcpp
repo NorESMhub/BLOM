@@ -121,7 +121,7 @@ def buildcpp(case):
             if module == "iage":
                 blom_cppdefs = blom_cppdefs + " -DIDLAGE"
             elif module == "ecosys":
-                blom_cppdefs = blom_cppdefs + " -DHAMOCC -DRESTART_BGC -DWLIN"
+                blom_cppdefs = blom_cppdefs + " -DHAMOCC -DWLIN"
                 if hamocc_cfc:
                     blom_cppdefs = blom_cppdefs + " -DCFC"
                 if hamocc_nattrc:
