@@ -28,7 +28,7 @@
 !
 !     Purpose
 !     -------
-!     Accumulate fields for time-avaraged output and write output
+!     Accumulate fields for time-averaged output and write output
 !
 !
 !
@@ -106,8 +106,8 @@
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc, only: iatmnh3
-      use mo_bgcmean,    only: jnh3flux 
+      use mo_param1_bgc, only: iatmnh3,ianh4,iano2
+      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jlvlanh4,jlvlano2 
 #endif
 
       implicit none
@@ -203,6 +203,9 @@
       call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
       call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
 #endif
+#ifdef extNcycle
+      call accsrf(janh3fx,atmflx(1,1,iatmnh3),omask,0)
+#endif
 
       ! Save up and downward fluxes for CO2 seperately
       call accsrf(jco2fxd,co2fxd,omask,0)
@@ -244,6 +247,10 @@
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
       call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
+#endif
+#ifdef extNcycle
+      call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)
+      call accsrf(jsrfano2,ocetra(1,1,1,iano2),omask,0)
 #endif
 
 ! Accumulate the diagnostic mass sinking field 
@@ -331,7 +338,10 @@
 #ifdef BROMO
       call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
 #endif
-
+#ifdef extNcycle
+      call acclyr(janh4,ocetra(1,1,1,ianh4),pddpo,1)    
+      call acclyr(jano2,ocetra(1,1,1,iano2),pddpo,1)    
+#endif
 
 ! Accumulate level diagnostics
       IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
@@ -342,7 +352,7 @@
      &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+       &
      &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
      &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+       &
-     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo).NE.0) THEN
+     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+jlvlanh4+jlvlano2).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
@@ -405,6 +415,10 @@
 #endif
 #ifdef BROMO
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
+#endif
+#ifdef extNcycle 
+          call acclvl(jlvlanh4,ocetra(1,1,1,ianh4),k,ind1,ind2,wghts)
+          call acclvl(jlvlano2,ocetra(1,1,1,iano2),k,ind1,ind2,wghts)
 #endif
         ENDDO
       ENDIF

@@ -103,7 +103,7 @@ c
      .                     glb_fnametag,filefq_bgc,diagfq_bgc,
      .                     filemon_bgc,fileann_bgc,ip,wrtlyr,wrtlvl,
      .                     loglyr,inilvl,inilyr,inisrf,loglvl,
-     ,                     msklvl,wrtsrf,msksrf,finlyr
+     .                     msklvl,wrtsrf,msksrf,finlyr
 #ifdef AGG
       use mo_bgcmean, only: lyr_nos,lyr_wphy, lyr_wnos,lyr_eps,        
      .                  lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,
@@ -155,6 +155,12 @@ c
      .                     sdm_ssssil,sdm_sssc12,sdm_ssster,jburssso12,
      .                     bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,
      .                     inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
+#endif
+#ifdef extNcycle
+      use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,
+     .                     jsrfano2,janh3fx,srf_anh4,srf_ano2,
+     .                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,
+     .                     lvl_ano2
 #endif
 c      
       implicit none
@@ -297,6 +303,10 @@ c --- finalize accumulation
 #ifdef BROMO
       call finlyr(jbromo(iogrp),jdp(iogrp))
 #endif
+#ifdef extNcycle
+      call finlyr(janh4(iogrp),jdp(iogrp))
+      call finlyr(jano2(iogrp),jdp(iogrp))
+#endif
 
 c
 c --- Mask sea floor in mass fluxes
@@ -377,6 +387,10 @@ c --- Mask sea floor in level data
 #endif
 #ifdef BROMO
       call msklvl(jlvlbromo(iogrp),depths)
+#endif
+#ifdef extNcycle
+      call msklvl(jlvlanh4(iogrp),depths)
+      call msklvl(jlvlano2(iogrp),depths)
 #endif
 
 c
@@ -574,6 +588,16 @@ c --- Store 2d fields
       call wrtsrf(jatmc14(iogrp),SRF_ATMC14(iogrp),rnacc,0.,cmpflg,     
      .  'atmc14','Atmospheric 14CO2',' ','ppm')
 #endif
+#ifdef extNcycle
+      call wrtsrf(jsrfanh4(iogrp),SRF_ANH4(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfnh4',           
+     .  'Surface ammonium',' ','mol N m-3')
+      call wrtsrf(jsrfano2(iogrp),SRF_ANO2(iogrp),
+     .  rnacc*1e3,0.,cmpflg,'srfno2',           
+     .  'Surface nitrite',' ','mol N m-3')
+      call wrtsrf(janh3fx(iogrp),SRF_ANH3FX(iogrp),rnacc*1e3/dtbgc,0.,
+     .  cmpflg,'nh3flux','NH3 flux',' ','mol NH3 m-2 s-1')
+#endif
 c
 c --- Store 3d layer fields
       call wrtlyr(jdp(iogrp),LYR_DP(iogrp),rnacc,0.,cmpflg, 
@@ -691,7 +715,12 @@ c --- Store 3d layer fields
       call wrtlyr(jbromo(iogrp),LYR_BROMO(iogrp),1e3,0.,cmpflg,            
      .  'bromo','Bromoform',' ','mol CHBr3 m-3')
 #endif
-
+#ifdef extNcycle
+      call wrtlyr(janh4(iogrp),LYR_ANH4(iogrp),1e3,0.,cmpflg,            
+     .  'nh4','Ammonium',' ','mol N m-3')
+      call wrtlyr(jano2(iogrp),LYR_ANO2(iogrp),1e3,0.,cmpflg,            
+     .  'no2','Nitrite',' ','mol N m-3')
+#endif
 c
 c --- Store 3d level fields
       call wrtlvl(jlvldic(iogrp),LVL_DIC(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -818,6 +847,12 @@ c --- Store 3d level fields
       call wrtlvl(jlvlbromo(iogrp),LVL_BROMO(iogrp),rnacc*1e3,0.,  
      .  cmpflg,'bromolvl','Bromoform',' ','mol CHBr3 m-3')
 #endif
+#ifdef extNcycle
+      call wrtlvl(jlvlanh4(iogrp),LVL_ANH4(iogrp),rnacc*1e3,0.,cmpflg,      
+     .  'nh4lvl','Ammonium',' ','mol N m-3')
+      call wrtlvl(jlvlano2(iogrp),LVL_ANO2(iogrp),rnacc*1e3,0.,cmpflg,      
+     .  'no2lvl','Nitrite',' ','mol N m-3')
+#endif
 
 c
 c --- Store sediment fields
@@ -939,6 +974,11 @@ c --- Initialise fields
       call inisrf(jatmc13(iogrp),0.)
       call inisrf(jatmc14(iogrp),0.)
 #endif
+#ifdef extNcycle
+      call inisrf(jsrfanh4(iogrp),0.)       
+      call inisrf(jsrfano2(iogrp),0.)       
+      call inisrf(janh3fx(iogrp),0.)       
+#endif
 c
       call inilyr(jdp(iogrp),0.)       
       call inilyr(jdic(iogrp),0.)       
@@ -1002,7 +1042,10 @@ c
 #ifdef BROMO
       call inilyr(jbromo(iogrp),0.)       
 #endif
-
+#ifdef extNcycle
+      call inilyr(janh4(iogrp),0.)       
+      call inilyr(jano2(iogrp),0.)       
+#endif
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -1065,7 +1108,10 @@ c
 #ifdef BROMO
       call inilvl(jlvlbromo(iogrp),0.)       
 #endif
-
+#ifdef extNcycle
+      call inilvl(jlvlanh4(iogrp),0.)  
+      call inilvl(jlvlano2(iogrp),0.)  
+#endif
 c
 #ifndef sedbypass
       call inisdm(jpowaic(iogrp),0.)       
@@ -1150,6 +1196,13 @@ c
      .        sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,
      .        bur_ssster
 #endif
+#ifdef extNcycle
+      use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,
+     .                     jsrfano2,janh3fx,srf_anh4,srf_ano2,
+     .                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,
+     .                     lvl_ano2
+#endif
+      implicit none
 
       integer iogrp,cmpflg
       character timeunits*30,calendar*19
@@ -1313,6 +1366,14 @@ c
       call ncdefvar3d(SRF_ATMC14(iogrp),cmpflg,'p',
      .  'atmc14','Atmospheric 14CO2',' ','ppm',0)
 #endif
+#ifdef extNcycle
+      call ncdefvar3d(SRF_ANH4(iogrp),cmpflg,'p','srfnh4',
+     .  'Surface ammonium',' ','mol N m-3',0)
+      call ncdefvar3d(SRF_ANO2(iogrp),cmpflg,'p','srfno2',
+     .  'Surface nitrite',' ','mol N m-3',0)
+      call ncdefvar3d(SRF_ANH3FX(iogrp),cmpflg,'p','nh3flux',
+     .  'NH3 flux',' ','mol NH3 m-2 s-1',0)
+#endif
 c
 c --- define 3d layer fields
       call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',
@@ -1429,7 +1490,12 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_BROMO(iogrp),cmpflg,'p',            
      .  'bromo','Bromoform',' ','mol CHBr3 m-3',1)
 #endif
-
+#ifdef extNcycle
+      call ncdefvar3d(LYR_ANH4(iogrp),cmpflg,'p',      
+     .  'nh4','Ammonium',' ','mol N m-3',1)
+      call ncdefvar3d(LYR_ANO2(iogrp),cmpflg,'p',      
+     .  'no2','Nitrite',' ','mol N m-3',1)
+#endif
 c
 c --- define 3d level fields
       call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',      
@@ -1543,6 +1609,12 @@ c --- define 3d level fields
 #ifdef BROMO
       call ncdefvar3d(LVL_BROMO(iogrp),cmpflg,'p',  
      .  'bromolvl','Bromoform',' ','mol CHBr3 m-3',2)
+#endif
+#ifdef extNcycle
+      call ncdefvar3d(LVL_ANH4(iogrp),cmpflg,'p',      
+     .  'nh4lvl','Ammonium',' ','mol N m-3',2)
+      call ncdefvar3d(LVL_ANO2(iogrp),cmpflg,'p',      
+     .  'no2lvl','Nitrite',' ','mol N m-3',2)
 #endif
 c
 c --- define sediment fields

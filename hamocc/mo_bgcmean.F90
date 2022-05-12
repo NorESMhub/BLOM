@@ -90,6 +90,7 @@
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
      & SRF_NATCO2FX  =0    ,                                            &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
+     & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -117,6 +118,7 @@
      & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
+     & LYR_ANH4      =0    ,LYR_ANO2      =0    ,                       &
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
      & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -136,6 +138,7 @@
      & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
+     & LVL_ANH4      =0    ,LVL_ANO2      =0    ,                       &
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
@@ -161,6 +164,7 @@
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
      & SRF_NATCO2FX      ,                                              &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
+     & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -188,6 +192,7 @@
      & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
      & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
      & LYR_DOC13         ,LYR_CALC13        ,                           &
+     & LYR_ANH4          ,LYR_ANO2          ,                           &
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -207,6 +212,7 @@
      & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
      & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
      & LVL_DOC13         ,LVL_CALC13        ,                           &
+     & LVL_ANH4          ,LVL_ANO2          ,                           &
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -308,6 +314,11 @@
      &          jbromo_prod= 0 ,                                        &
      &          jbromo_uv  = 0
 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          janh3fx    = 0 ,                                        &
+     &          jsrfanh4   = 0 ,                                        &
+     &          jsrfano2
+ 
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jatmco2  = 0 ,                                          &
@@ -435,6 +446,12 @@
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jbromo     = 0 ,                                        &
      &          jlvlbromo  = 0               
+
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          janh4      = 0 ,                                        &
+     &          jano2      = 0 ,                                        &
+     &          jlvlanh4   = 0 ,                                        &
+     &          jlvlano2   = 0 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
@@ -665,6 +682,14 @@
         IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
 #endif
+#ifdef extNcycle
+        IF (SRF_ANH3FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        janh3fx(n)=i_bsc_m2d*min(1,SRF_ANH3FX(n))
+        IF (SRF_ANH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
+        IF (SRF_ANO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfano2(n)=i_bsc_m2d*min(1,SRF_ANO2(n))
+#endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -817,6 +842,12 @@
         IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
 #endif
+#ifdef extNcycle
+        IF (LYR_ANH4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        janh4(n)=i_bsc_m3d*min(1,LYR_ANH4(n))
+        IF (LYR_ANO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jano2(n)=i_bsc_m3d*min(1,LYR_ANO2(n))
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -929,6 +960,12 @@
 #ifdef BROMO
         IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
+#endif
+#ifdef extNcycle
+        IF (LVL_ANH4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlanh4(n)=ilvl_bsc_m3d*min(1,LVL_ANH4(n))
+        IF (LVL_ANO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlano2(n)=ilvl_bsc_m3d*min(1,LVL_ANO2(n))
 #endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
