@@ -1409,6 +1409,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   ALKALI         - Alkalinity (talk) [eq m-3]
 !   OXYGEN         - Oxygen (o2) [mol O2 m-3]
 !   ANO3           - Nitrate (no3) [mol N m-3]
+!   ANO2           - Nitrite (no2) [mol N m-3] - extended N cycle only
+!   ANH4           - Ammonium (nh4) [mol N m-3] - extended N cycle only
 !   PHOSPH         - Phosphorus (po4) [mol P m-3]
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
@@ -1472,6 +1474,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
 !   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
 !   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
+!   ANH3FX         - Ammonia flux [mol NH3 m-2 s-1]
 !   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
 !   DMS            - surface DMS concentration (dms) [mol DMS m-3]
 !   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
