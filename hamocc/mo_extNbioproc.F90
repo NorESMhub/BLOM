@@ -102,7 +102,7 @@
       Trefanmx      = 10.      ! Reference temperature for anammox (degr C)
       alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
       bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
-      bkano2anmx    = 5.       ! Half-saturation constant for NO2 limitation (kmol/m3)
+      bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
       bkanh4anmx    = bkano2anmx * 880./1144. !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
 
       ! === Denitrification step NO2 -> N2O
@@ -135,7 +135,7 @@
       bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       n2omaxy       = 0.006    ! Maximum yield of OM on NH4 nitrification (-)
-      n2oybeta      = 18.e-6   ! Half saturation constant for inhibition function for yield during nitrification on NH4 (kmol/m3)
+      n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
       bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
   
       ! === Nitrification on NO2
