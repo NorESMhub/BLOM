@@ -148,6 +148,15 @@
     <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
  
+  <entry id="HAMOCC_EXTNCYCLE">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
+  </entry>
+
   <entry id="HAMOCC_VSLS">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
