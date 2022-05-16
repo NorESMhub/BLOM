@@ -156,6 +156,15 @@
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
   </entry>
+  
+  <entry id="HAMOCC_DEBUG">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the debugging mode for iHAMOCC. Requires module ecosys</desc>
+  </entry>
 
   <entry id="HAMOCC_VSLS">
     <type>logical</type>

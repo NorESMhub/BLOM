@@ -216,8 +216,8 @@
          ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
 #endif
 #ifdef extNcycle
-         ocetra(i,j,k,iano2) =1.9e-8/prho(i,j,k)
-         ocetra(i,j,k,ianh4) =2.9e-8/prho(i,j,k)
+         ocetra(i,j,k,iano2) =1.e-10
+         ocetra(i,j,k,ianh4) =0.5e-10
 #endif
 
         ENDIF ! omask > 0.5
