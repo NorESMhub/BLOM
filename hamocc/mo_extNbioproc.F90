@@ -399,8 +399,8 @@
 
            ! limitation of processes due to detritus
            potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3)*ano2dnra  ! P units              
-           fdetano2denit = 1./280.*ano2denit/potddet
-           fdetan2odenit = 1./280.*an2odenit/potddet
+           fdetano2denit = 1./280.*ano2denit/(potddet + eps)
+           fdetan2odenit = 1./280.*an2odenit/(potddet + eps)
            fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
            potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
