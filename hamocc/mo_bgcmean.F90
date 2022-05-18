@@ -98,6 +98,9 @@
      & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
      & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
      & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
+     & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
+     & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
+     & FLX_SEDIFFSI  =0    ,                                            &   
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -169,6 +172,9 @@
      & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
      & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
      & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+     & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
+     & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
+     & FLX_SEDIFFSI      ,                                              &   
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -222,23 +228,28 @@
 ! as in mo_riverinpt 
       INTEGER, parameter ::                                             &
      &          jco2flux  =1,                                           &
-     &          jco214f   =2,                                           &
-     &          jo2flux   =3,                                           &
-     &          jn2flux   =4,                                           &
-     &          jn2oflux  =5,                                           &
-     &          jprorca   =6,                                           &
-     &          jprcaca   =7,                                           &
-     &          jsilpro   =8,                                           &
-     &          jprodus   =9,                                           &
-     &          jndep     =10,                                          &
-     &          jirdin    =11,                                          &
-     &          jirdip    =12,                                          &
-     &          jirsi     =13,                                          &
-     &          jiralk    =14,                                          &
-     &          jiriron   =15,                                          &
-     &          jirdoc    =16,                                          &
-     &          jirdet    =17,                                          &
-     &          nbgct2d   =17
+     &          jo2flux   =2,                                           &
+     &          jn2flux   =3,                                           &
+     &          jn2oflux  =4,                                           &
+     &          jprorca   =5,                                           &
+     &          jprcaca   =6,                                           &
+     &          jsilpro   =7,                                           &
+     &          jpodiic   =8,                                           &
+     &          jpodial   =9,                                           &
+     &          jpodiph   =10,                                          &
+     &          jpodiox   =11,                                          &
+     &          jpodin2   =12,                                          &
+     &          jpodino3  =13,                                          &
+     &          jpodisi   =14,                                          &
+     &          jndep     =15,                                          &
+     &          jirdin    =16,                                          &
+     &          jirdip    =17,                                          &
+     &          jirsi     =18,                                          &
+     &          jiralk    =19,                                          &
+     &          jiriron   =20,                                          &
+     &          jirdoc    =21,                                          &
+     &          jirdet    =22,                                          &
+     &          nbgct2d   =22
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
@@ -294,6 +305,15 @@
      &          jcalflx2000= 0 ,                                        &
      &          jcalflx4000= 0 ,                                        &
      &          jcalflx_bot= 0
+
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jsediffic  = 0 ,                                        &
+     &          jsediffal  = 0 ,                                        &
+     &          jsediffph  = 0 ,                                        &
+     &          jsediffox  = 0 ,                                        &
+     &          jsediffn2  = 0 ,                                        &
+     &          jsediffno3 = 0 ,                                        &
+                jsediffsi  = 0
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jsrfnatdic = 0 ,                                        &
@@ -626,6 +646,22 @@
         jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
         IF (FLX_CAL_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+#ifndef sedbypass
+        IF (FLX_SEDIFFIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
+        IF (FLX_SEDIFFAL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffal(n)=i_bsc_m2d*min(1,FLX_SEDIFFAL(n))
+        IF (FLX_SEDIFFPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffph(n)=i_bsc_m2d*min(1,FLX_SEDIFFph(n))
+        IF (FLX_SEDIFFOX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffox(n)=i_bsc_m2d*min(1,FLX_SEDIFFOX(n))
+        IF (FLX_SEDIFFN2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffn2(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2(n))
+        IF (FLX_SEDIFFNO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
+        IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+#endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))

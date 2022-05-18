@@ -374,6 +374,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
 #else
+
        &  +sn2flux*2+sn2oflux*2
 #endif
 
@@ -1891,3 +1892,4 @@ end subroutine nccheck
 
 
 END SUBROUTINE INVENTORY_BGC
+

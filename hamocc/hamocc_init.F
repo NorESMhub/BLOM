@@ -39,13 +39,14 @@ c
 c******************************************************************************
       use mod_time,       only: date,baclin
       use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,
-     .                          mnproc,lp,nfu
+     .                          mnproc,lp,nfu,xchalt
       use mod_grid,       only: plon,plat
       use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
-      use mo_control_bgc, only: bgc_namelist,do_ndep,do_rivinpt,dtb,
-     .                          dtbgc,io_stdo_bgc,isac,ldtbgc,
-     .                          ldtrunbgc,
-     .                          ndtdaybgc,get_bgc_namelist,with_dmsph
+      use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, 
+     .                          do_ndep,do_rivinpt,do_sedspinup,
+     .                          sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,
+     .                          dtb,dtbgc,io_stdo_bgc,ldtbgc,
+     .                          ldtrunbgc,ndtdaybgc,with_dmsph
       use mo_param1_bgc,  only: ks,nsedtra,npowtra
       use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
       use mo_biomod,      only: alloc_mem_biomod
@@ -78,6 +79,8 @@ c
 
       namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,
      .                  ndepfile,fedepfile,rivinfile,
+     .                  do_sedspinup,sedspin_yr_s,
+     .                  sedspin_yr_e,sedspin_ncyc,
      .                  inidic,inialk,inipo4,inioxy,inino3,inisil,
      .                  inid13c,inid14c,swaclimfile,
      .                  with_dmsph,pi_ph_file
@@ -88,7 +91,6 @@ c
       dtbgc = nphys*baclin          !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
-      isac = 1
       ldtbgc = 0
       ldtrunbgc = 0
 
@@ -103,7 +105,7 @@ c
       write(io_stdo_bgc,*) 'time step',dtbgc
       endif
 c
-c --- Read the HAMOCC BGCNML namelist.
+c --- Read the HAMOCC BGCNML namelist and check the value of some variables.
 c
       if(.not. allocated(bgc_namelist)) call get_bgc_namelist
       open (newunit=iounit, file=bgc_namelist, status='old'
@@ -111,9 +113,23 @@ c
       read (unit=iounit, nml=BGCNML)
       close (unit=iounit)
       IF (mnproc.eq.1) THEN
+
         write(io_stdo_bgc,*)
         write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
         write(io_stdo_bgc,nml=BGCNML)
+
+        if(do_sedspinup) then
+          if(sedspin_yr_s<0 .or. sedspin_yr_e<0 .or. 
+     .       sedspin_yr_s>sedspin_yr_e) then
+             call xchalt('(invalid sediment spinup start/end year)')
+             stop        '(invalid sediment spinup start/end year)'
+          endif
+          if(sedspin_ncyc < 2) then
+             call xchalt('(invalid nb. of sediment spinup subcycles)')
+             stop        '(invalid nb. of sediment spinup subcycles)'
+          endif
+        endif
+
       ENDIF
 c
 c --- Memory allocation 
