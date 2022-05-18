@@ -16,10 +16,10 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_fedep
+module mo_read_fedep
 !******************************************************************************
 !
-! MODULE mo_fedep - Variables and routines for iron deposition
+! MODULE mo_read_fedep - routines for reading iron deposition data
 !
 !
 !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-27
@@ -29,7 +29,8 @@ module mo_fedep
 !
 !  Purpose
 !  -------
-!   Declaration, memory allocation, and routines related to iron deposition
+!   Declaration, memory allocation, and routines related to reading iron 
+!   deposition input data
 !
 !  Description:
 !  ------------
@@ -46,7 +47,7 @@ module mo_fedep
   implicit none
 
   private
-  public :: ini_fedep, get_fedep,fedepfile
+  public :: ini_read_fedep,get_fedep,fedepfile
 
   ! File name (incl. full path) for input data, set through namelist 
   ! in hamocc_init.F
@@ -60,7 +61,7 @@ contains
 
 
 
-subroutine ini_fedep(kpie,kpje,omask)
+subroutine ini_read_fedep(kpie,kpje,omask)
 !******************************************************************************
 !
 ! INI_FEDEP - initialise the iron deposition module.
@@ -152,7 +153,7 @@ subroutine ini_fedep(kpie,kpje,omask)
   RETURN
 
 !******************************************************************************
-end subroutine ini_fedep
+end subroutine ini_read_fedep
 
 
 subroutine get_fedep(kpie,kpje,kplmon,dust)
@@ -187,4 +188,4 @@ end subroutine get_fedep
 
 
 !******************************************************************************
-end module mo_fedep
+end module mo_read_fedep

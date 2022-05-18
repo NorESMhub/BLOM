@@ -33,9 +33,9 @@ c
      .                          diagann_bgc
       use mo_intfcblom,   only: bgc_dx,bgc_dy,bgc_dp,bgc_rho,omask,
      .                          blom2hamocc,hamocc2blom
-      use mo_riverinpt,   only: rivflx
-      use mo_fedep,       only: get_fedep
-      use mo_ndep,        only: get_ndep
+      use mo_read_rivin,  only: rivflx
+      use mo_read_fedep,  only: get_fedep
+      use mo_read_ndep,   only: get_ndep
       use mo_read_pi_ph,  only: get_pi_ph,pi_ph
       use mo_control_bgc, only: with_dmsph
 c
