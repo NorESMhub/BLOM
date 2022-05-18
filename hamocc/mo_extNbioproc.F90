@@ -145,7 +145,7 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps = epsilon(1.)
+      eps = 1e-12
       !===========================================================================
       end subroutine extNbioparam_init
      
