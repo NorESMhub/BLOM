@@ -378,35 +378,36 @@
            rpotano2dnra = rdnra*Tdepdnra*O2inhibdnra*nutlimdnra ! pot. rate of dnra
 
            ! === limitation due to NO2:
-           ! fraction on potential change:
-           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra)
+           ! fraction on potential change of NO2:
+           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
            fdnra  = 1. - fdenit
 
-           ! potential new conc of NO2
+           ! potential new conc of NO2 due to denitrification and DNRA
            potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2denit + rpotano2dnra)
-           potdano2   = ocetra(i,j,k,iano2) - potano2new
+           potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
            
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
            ano2dnra   = fdnra  * potdano2
 
            ! === denitrification on N2O
-           Tdepan2o    =  q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
+           Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
            O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxan2odenit**2.) 
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
-           an2odenit   = ocetra(i,j,k,ian2o) - an2onew
+           an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
 
            ! limitation of processes due to detritus
-           potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3)*ano2dnra  ! P units              
+           potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3.)*ano2dnra  ! P units              
            fdetano2denit = 1./280.*ano2denit/(potddet + eps)
            fdetan2odenit = 1./280.*an2odenit/(potddet + eps)
            fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
            potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
+           ! change of NO2 and N2O in N units
            ano2denit     = fdetano2denit*280.*potddet
            an2odenit     = fdetan2odenit*280.*potddet
-           ano2dnra      = fdetdnra * (93. + 1./3)*potddet
+           ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
 
            ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit - ano2dnra
