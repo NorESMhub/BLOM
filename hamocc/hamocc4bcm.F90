@@ -391,18 +391,20 @@
       ENDDO
 !$OMP END PARALLEL DO
 
-#ifdef BROMO
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
 ! Negative values to the atmosphere
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
-       if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+#ifdef BROMO
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+#else
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+#endif
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-#endif
 !--------------------------------------------------------------------
       RETURN
       END
