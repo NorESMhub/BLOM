@@ -53,6 +53,12 @@ implicit none
 private
 public :: apply_rivin
 
+! Approx. 80-99% of dFe riverine input is lost to the particulate phase in 
+! estuaries at low salinities [Boyle et al., 1977; Chester, 1990; Dai and 
+! Martin, 1995; Lohan and Bruland, 2006; Sholkovitz, 1978]. dFe_frac is the
+! fraction of dissolved iron that enters the costal ocean.
+real, parameter :: dFe_frac = 0.01  ! assume 99% loss of dissolved iron
+
 
 !********************************************************************************
 contains
@@ -105,12 +111,12 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
   if (.not. do_rivinpt) return
   
-!$OMP PARALLEL DO PRIVATE(i,k,fdt,volij)
+  fdt = dtb/365.
+
+!$OMP PARALLEL DO PRIVATE(i,k,volij)
   DO j=1,kpje
   DO i=1,kpie
     IF(omask(i,j).GT.0.5) THEN
-
-      fdt   = dtb/365.
 
       ! Distribute riverine inputs over the model mixed layer
       volij = 0.
@@ -118,12 +124,8 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
         volij=volij+pddpo(i,j,k)
       ENDDO
 
-      ! Notes:
-      ! 1) DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total 
+      ! DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total 
       ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t). 
-      ! 2) Approx. 80-99% of dFe input is lost to the particulate phase in estuaries at 
-      ! low salinities [Boyle et al., 1977; Chester, 1990; Dai and Martin, 1995; Lohan 
-      ! and Bruland, 2006; Sholkovitz, 1978]. Below we assume 99% loss.
       ocetra(i,j,1:kmle,iano3)      = ocetra(i,j,1:kmle,iano3)      + rivin(i,j,irdin)*fdt/volij
       ocetra(i,j,1:kmle,iphosph)    = ocetra(i,j,1:kmle,iphosph)    + rivin(i,j,irdip)*fdt/volij
       ocetra(i,j,1:kmle,isilica)    = ocetra(i,j,1:kmle,isilica)    + rivin(i,j,irsi) *fdt/volij
@@ -137,7 +139,7 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
                                                                     + rivin(i,j,irdip)*fdt/volij
       ocetra(i,j,1:kmle,inatalkali) = ocetra(i,j,1:kmle,inatalkali) + rivin(i,j,iralk)*fdt/volij
 #endif
-      ocetra(i,j,1:kmle,iiron)      = ocetra(i,j,1:kmle,iiron)      + rivin(i,j,iriron)*fdt/volij*0.01
+      ocetra(i,j,1:kmle,iiron)      = ocetra(i,j,1:kmle,iiron)      + rivin(i,j,iriron)*fdt/volij*dFe_frac
       ocetra(i,j,1:kmle,idoc)       = ocetra(i,j,1:kmle,idoc)       + rivin(i,j,irdoc)*fdt/volij
       ocetra(i,j,1:kmle,idet)       = ocetra(i,j,1:kmle,idet)       + rivin(i,j,irdet)*fdt/volij
 
@@ -145,7 +147,7 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
       rivinflx(i,j,irdip)    = rivin(i,j,irdip)*fdt
       rivinflx(i,j,irsi)     = rivin(i,j,irsi)*fdt
       rivinflx(i,j,iralk)    = rivin(i,j,iralk)*fdt
-      rivinflx(i,j,iriron)   = rivin(i,j,iriron)*fdt*0.01
+      rivinflx(i,j,iriron)   = rivin(i,j,iriron)*fdt*dFe_frac
       rivinflx(i,j,irdoc)    = rivin(i,j,irdoc)*fdt
       rivinflx(i,j,irdet)    = rivin(i,j,irdet)*fdt 
     ENDIF
