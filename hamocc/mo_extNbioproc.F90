@@ -369,13 +369,13 @@
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
            O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxano2denit**2.) 
            nutlimano2  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2denit)
-           rpotano2denit = rano2denit*Tdepano2*O2inhibano2*nutlimano2 ! potential rate of denit
+           rpotano2denit = max(0.,rano2denit*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
            
            ! DNRA on NO2
            Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
            O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxdnra**2.) 
            nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
-           rpotano2dnra = rdnra*Tdepdnra*O2inhibdnra*nutlimdnra ! pot. rate of dnra
+           rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
 
            ! === limitation due to NO2:
            ! fraction on potential change of NO2:
