@@ -186,7 +186,7 @@
             fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
             fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
             fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
-                     & /(ocetra(i,j,k,ioxygen)**2. + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2.)
+                     & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
 
             ! normalization of pathway splitting functions to sum=1
             ftotnh4  = fn2o + fno2 + fdetamox + eps
@@ -367,13 +367,13 @@
            
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
-           O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxano2denit**2.) 
+           O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
            nutlimano2  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2denit)
            rpotano2denit = max(0.,rano2denit*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
            
            ! DNRA on NO2
            Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
-           O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxdnra**2.) 
+           O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
            nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
            rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
 
@@ -392,7 +392,7 @@
 
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
-           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2./(ocetra(i,j,k,ioxygen)**2. + bkoxan2odenit**2.) 
+           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
