@@ -88,6 +88,7 @@
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
       use mo_vgrid,       only: set_vgrid
+      use mo_apply_fedep, only: apply_fedep
       use mo_apply_rivin, only: apply_rivin
       use mo_apply_ndep,  only: apply_ndep
 #if defined(BOXATM)
@@ -211,8 +212,14 @@
 !---------------------------------------------------------------------
 ! Biogeochemistry
 !
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,&
-           &      pi_ph)
+      ! Apply dust (iron) deposition
+      ! This routine should be moved to the other routines that handle 
+      ! external inputs below for consistency. For now we keep it here
+      ! to maintain bit-for-bit reproducibility with the CMIP6 version of 
+      ! the model
+      CALL apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
+
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
