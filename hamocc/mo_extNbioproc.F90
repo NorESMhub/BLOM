@@ -96,7 +96,7 @@
       q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
       Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C) 
       sc_ano3denit  = 0.05e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      bkano3denit   = 5e-6     ! Half-saturation constant for NO3 denitrification (kmol/m3)
+      bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
 
       ! === Anammox
       rano2anmx     = 0.05*dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
@@ -118,8 +118,8 @@
       ran2odenit    = 0.16*dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
       q10an2odenit  = 3.       ! Q1- factor for denitrificationj on N2O (-)
       Trefan2odenit = 10.      ! Reference temperature for denitrification on N2O (degr C)
-      bkoxan2odenit = 5e-6     ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
-      bkan2odenit   = 1e-6     ! Half-saturation constant for denitrification on N2O (kmol/m3)
+      bkoxan2odenit = 5.e-6    ! Half-saturation constant for (quadratic) oxygen inhibition function of denitrification on N2O (kmol/m3)
+      bkan2odenit   = 1.e-6    ! Half-saturation constant for denitrification on N2O (kmol/m3)
 
       ! === DNRA NO2 -> NH4
       rdnra         = 0.1*dtb  ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
@@ -147,7 +147,7 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps = 1e-12
+      eps = 1.e-12
       !===========================================================================
       end subroutine extNbioparam_init
      
@@ -168,7 +168,7 @@
       real    :: amoxfrac,nitrfrac,totd,amox,nitr
  
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4, & 
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4, & 
       !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2,amoxfrac,   &
       !$OMP                     nitrfrac,totd,amox,nitr)
 
@@ -182,7 +182,7 @@
             O2limanh4   = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkoxamox)
             nut1lim     = ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4) + bkanh4nitr)
             anh4new     = ocetra(i,j,k,ianh4)/(1. + ranh4nitr*Tdepanh4*O2limanh4*nut1lim)
-            potdnh4amox = ocetra(i,j,k,ianh4) - anh4new
+            potdnh4amox = max(0.,ocetra(i,j,k,ianh4) - anh4new)
             
             ! pathway splitting functions according to Goreau 1980
             fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
@@ -201,7 +201,7 @@
             O2limano2   = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkoxnitr)
             nut2lim     = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2nitr)
             ano2new     = ocetra(i,j,k,iano2)/(1. + rano2nitr*Tdepano2*O2limano2*nut2lim)
-            potdno2nitr = ocetra(i,j,k,iano2) - ano2new
+            potdno2nitr = max(0.,ocetra(i,j,k,iano2) - ano2new)
 
             ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
             fno3     = fno2 + fn2o! no N2O prod in this step - NO2 enters instead NO3
@@ -261,7 +261,7 @@
       integer :: i,j,k
       real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdep,O2inhib,nutlim,ano3new,ano3denit)
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit)
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
@@ -305,7 +305,7 @@
       real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx
 
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx)
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx)
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
@@ -355,7 +355,7 @@
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,    &
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,    &
       !$OMP                     Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit,  &
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
@@ -443,7 +443,7 @@
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet
 
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet)
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet)
 
       do j = 1,kpje
        do i = 1,kpie
@@ -495,7 +495,7 @@
       !local variables
       integer :: i,j,k
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet)
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet)
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
@@ -543,7 +543,7 @@
       integer :: i,j,k
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new,potdano2
 
-      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new, &
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new, &
       !$OMP                     potdano2)
 
       do j = 1,kpje
