@@ -76,7 +76,7 @@
               & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
               & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron
 
-      real :: eps
+      real :: eps,minlim
 
       CONTAINS
 
@@ -147,7 +147,8 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps = 1.e-12
+      eps = 1.e-12 
+      minlim = 1e-3 ! minimum for limitation functions 
       !===========================================================================
       end subroutine extNbioparam_init
      
@@ -176,7 +177,9 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-       
+           if(ocetra(i,j,k,ioxygen) > bkoxnitr*minlim .and. ocetra(i,j,k,ianh4)>bkanh4nitr*minlim &
+            &  .and. ocetra(i,j,k,iano2)>bkano2nitr*minlim)then
+
             ! Ammonium oxidation step of nitrification
             Tdepanh4    = q10anh4nitr**((ptho(i,j,k)-Trefanh4nitr)/10.) 
             O2limanh4   = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkoxamox)
@@ -240,6 +243,7 @@
             ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - 140./16.*fdetamox)*amox   &
                                   &                       - (0.5*fno3 - 140./16.*fdetnitr)*nitr
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + 15./16.*fdetamox)*amox - 15./16.*fdetnitr*nitr
+           endif
          endif
         enddo
        enddo
@@ -266,7 +270,7 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-         
+           if(ocetra(i,j,k,ioxygen) < log(2./minlim-1.)/(2.*sc_ano3denit) .and. ocetra(i,j,k,iano3)>bkano3denit*minlim)then
             Tdep      = q10ano3denit**((ptho(i,j,k)-Trefano3denit)/10.) 
             O2inhib   = 1. - tanh(sc_ano3denit*ocetra(i,j,k,ioxygen)) 
             nutlim    = ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) + bkano3denit)
@@ -283,6 +287,7 @@
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano3denit/280.
             ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron/280.
             ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*15./280.    
+           endif
          endif
         enddo
        enddo
@@ -310,7 +315,8 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-    
+          if(ocetra(i,j,k,iano2) > bkano2anmx*minlim .and. ocetra(i,j,k,ianh4) > bkanh4anmx*minlim &
+           &  .and. ocetra(i,j,k,ioxygen)<log((1.-minlim)/minlim)/alphaanmx+bkoxanmx) then
            Tdep     = q10anmx**((ptho(i,j,k)-Trefanmx)/10.)         
            O2inhib  = 1. - exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))/(1.+ exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))) 
            nut1lim  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2)+bkano2anmx)
@@ -330,7 +336,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx/1144.
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron*16./1144.
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*15./1144.
-
+          endif
          endif
         enddo
        enddo
@@ -449,6 +455,7 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+          if(ocetra(i,j,k,ioxygen)<bkoxdnra/sqrt(minlim) .and. ocetra(i,j,k,iano2) > bkdnra*minlim)then
            ! DNRA on NO2
            Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
            O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
@@ -476,6 +483,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2dnra/(93.+1./3.)
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/(93.+1./3.) * ano2dnra
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (201.+1./3.)/(93.+1./3.) * ano2dnra
+          endif
          endif
         enddo
        enddo
@@ -500,6 +508,7 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+          if(ocetra(i,j,k,ioxygen)<bkoxan2odenit/sqrt(minlim) .and. ocetra(i,j,k,ian2o) > bkan2odenit*minlim)then
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
            O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
@@ -523,6 +532,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + an2odenit/280.
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*an2odenit
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 15.*an2odenit/280.
+          endif
          endif
         enddo
        enddo
@@ -550,6 +560,7 @@
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+          if(ocetra(i,j,k,ioxygen)<bkoxano2denit/sqrt(minlim) .and. ocetra(i,j,k,iano2) > bkano2denit*minlim)then
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
            O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
@@ -576,7 +587,8 @@
            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*ano2denit
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2denit/280. 
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*ano2denit
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 295.*ano2denit/280.   
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 295.*ano2denit/280.  
+          endif 
          endif
         enddo
        enddo
