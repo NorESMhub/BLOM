@@ -425,7 +425,7 @@
        enddo
       enddo
       !$OMP END PARALLEL DO
-      end subroutine
+      end subroutine denit_dnra
 
 !==================================================================================================================================      
       subroutine extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
