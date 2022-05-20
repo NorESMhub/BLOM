@@ -61,6 +61,8 @@
       ! public functions
       public :: extNbioparam_init,nitrification,denit_NO3_to_NO2,&
               & anammox,denit_dnra,extN_inv_check
+
+      public :: denit_NO2,denit_N2O, dnra
       ! public parameters
       public :: bkphyanh4,bkphyano3,bkphosph,bkiron
 
@@ -426,6 +428,163 @@
       enddo
       !$OMP END PARALLEL DO
       end subroutine denit_dnra
+
+!##### FOR DEBUGGING PURPOSES ONLY #################
+      subroutine dnra(kpie,kpje,kpke,pddpo,omask,ptho)
+      ! Denitrification processes (N2O -> N2)
+
+      integer, intent(in) :: kpie,kpje,kpke
+      real,    intent(in) :: omask(kpie,kpje)       
+      real,    intent(in) :: pddpo(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(kpie,kpje,kpke)
+
+      !local variables
+      integer :: i,j,k
+      real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet
+
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet)
+
+      do j = 1,kpje
+       do i = 1,kpie
+        do k = 1,kpke
+         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+           ! DNRA on NO2
+           Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
+           O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
+           nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
+           rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
+
+           ! potential new conc of NO2 due to denitrification and DNRA
+           potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2dnra)
+           potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
+           
+           ! potential fractional change
+           ano2dnra   = potdano2
+           ! limitation of processes due to detritus
+           potddet       = 1./(93. + 1./3.)*ano2dnra  ! P units              
+           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
+       
+           ! change of NO2 and N2O in N units
+           ano2dnra      = (93. + 1./3.)*potddet
+
+           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
+           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2dnra
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + (109.+1./3.)/(93.+1./3.)*ano2dnra
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (201.+1./3.)/(93.+1./3.) * ano2dnra
+         endif
+        enddo
+       enddo
+      enddo
+      !$OMP END PARALLEL DO
+      end subroutine dnra
+
+      !----------------------------------------------------------------
+      subroutine denit_N2O(kpie,kpje,kpke,pddpo,omask,ptho)
+      ! Denitrification processes (N2O -> N2)
+
+      integer, intent(in) :: kpie,kpje,kpke
+      real,    intent(in) :: omask(kpie,kpje)       
+      real,    intent(in) :: pddpo(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(kpie,kpje,kpke)
+
+      !local variables
+      integer :: i,j,k
+      real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet
+      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet)
+      do j = 1,kpje
+       do i = 1,kpie
+        do k = 1,kpke
+         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+           ! === denitrification on N2O
+           Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
+           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
+           nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
+           an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
+           an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
+
+           ! limitation of processes due to detritus
+           potddet       = 1./280.*an2odenit   !P units              
+           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
+       
+           ! change of N2O in N units
+           an2odenit     = 280.*potddet
+
+          ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
+           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   - an2odenit 
+           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + an2odenit
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. *an2odenit
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - an2odenit/280. 
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*an2odenit
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + an2odenit/280.
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*an2odenit
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 15.*an2odenit/280.
+         endif
+        enddo
+       enddo
+      enddo
+      !$OMP END PARALLEL DO
+      end subroutine denit_N2O
+
+      !----------------------------------------------------------------
+      subroutine denit_NO2(kpie,kpje,kpke,pddpo,omask,ptho)
+      ! Denitrification processes (NO2 -> N2O)
+
+      integer, intent(in) :: kpie,kpje,kpke
+      real,    intent(in) :: omask(kpie,kpje)       
+      real,    intent(in) :: pddpo(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(kpie,kpje,kpke)
+
+      !local variables
+      integer :: i,j,k
+      real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new,potdano2
+
+      !$OMP PARALLEL DO PRIVATE(i,j,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new, &
+      !$OMP                     potdano2)
+
+      do j = 1,kpje
+       do i = 1,kpie
+        do k = 1,kpke
+         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+           ! denitrification on NO2
+           Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
+           O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
+           nutlimano2  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2denit)
+           rpotano2denit = max(0.,rano2denit*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
+
+           ! potential new conc of NO2 due to denitrification and DNRA
+           potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2denit)
+           potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
+           ano2denit  = potdano2   
+           
+           ! limitation of processes due to detritus
+           potddet       = 1./280.*ano2denit ! P units  
+           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
+
+           ! change of NO2 in N units
+           ano2denit     = 280.*potddet
+
+           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
+           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit
+           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   + 0.5*ano2denit
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. * ano2denit 
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano2denit/280.
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*ano2denit
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2denit/280. 
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*ano2denit
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 295.*ano2denit/280.   
+         endif
+        enddo
+       enddo
+      enddo
+      !$OMP END PARALLEL DO
+      end subroutine denit_NO2
+
+!###################################################
 
 !==================================================================================================================================      
       subroutine extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
