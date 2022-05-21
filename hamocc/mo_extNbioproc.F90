@@ -385,11 +385,14 @@
       real,    intent(in) :: ptho(kpie,kpje,kpke)
 
       !local variables
-      integer :: i,j,k,proc_ctr,n2oden
+      integer :: i,j,k,n2oden,dnra
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
+
+      real    :: dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk
+
 
       real    :: minlim_ox,minlim_oxn2o,minlim_no2,minlim_n2o
 
@@ -404,16 +407,19 @@
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
       !$OMP                     fdetan2odenit,fdetdnra,                                        &
-      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,proc_ctr,n2oden)
+      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,dnra,n2oden,&
+      !$OMP                     dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          proc_ctr = 0 
           n2oden   = 0
+          dnra     = 0
 
           potddet  = 0.
+          fdetano2denit = 0.
+          fdetdnra      = 0.
           if(ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
@@ -422,10 +428,7 @@
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
            potddet     = 1./280.*an2odenit !P-units
-           proc_ctr    = proc_ctr + 1
            n2oden      = 1
-          else
-           an2odenit   = 0.
           endif
 
           if(ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
@@ -458,39 +461,62 @@
            ! limitation of processes due to detritus
            fdetano2denit = 1./280.*ano2denit/(potddet + eps)
            fdetdnra      = 1./(93. + 1./3.)*ano2dnra/(potddet + eps) 
-           
-           proc_ctr   = proc_ctr + 1
-          else
-           ano2denit     = 0.
-           ano2dnra      = 0.
-           fdetano2denit = 0.
-           fdetdnra      = 0.
+           dnra          = 1 
           endif
 
-          if(proc_ctr>0)then
+          if(n2oden+dnra>0)then
+           dano2   = 0.
+           dan2o   = 0.
+           dgasnit = 0.
+           danh4   = 0.
+           ddet    = 0. 
+           dsco212 = 0.
+           dphosph = 0.
+           diron   = 0.
+           dalk    = 0.
+
            ! limitation of processes due to detritus
            potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
            if (n2oden == 1) then 
               fdetan2odenit = 1. -  fdetano2denit - fdetdnra
               an2odenit     = fdetan2odenit*280.*potddet
+              dan2o   = -an2odenit
+              dgasnit = an2odenit
+              danh4   = 16./280.*an2odenit 
+              ddet    = -an2odenit/280. 
+              dsco212 = 122./280.*an2odenit
+              dphosph = an2odenit/280.
+              diron   = riron/280.*an2odenit
+              dalk    = 15.*an2odenit/280. 
            endif
 
-           ! change of NO2 and N2O in N units
-           ano2denit     = fdetano2denit*280.*potddet
-           ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
+           if (dnra == 1)then
+              ! change of NO2 and N2O in N units
+              ano2denit     = fdetano2denit*280.*potddet
+              ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
+              dano2   = -(ano2denit + ano2dnra)    
+              dan2o   = dan2o    + 0.5*ano2denit
+              danh4   = danh4    + 16./280.*ano2denit   + (109.+1./3.)/(93.+1./3.)*ano2dnra
+              ddet    = ddet     - ano2denit/280.       - ano2dnra/(93.+1./3.)
+              dsco212 = dsco212  + 122./280.*ano2denit  + 122./(93.+1./3.)*ano2dnra
+              dphosph = dphosph  + ano2denit/280.       + ano2dnra/(93.+1./3.)
+              diron   = diron    + riron/280.*ano2denit + riron/(93.+1./3.)*ano2dnra
+              dalk    = dalk     + 295.*ano2denit/280.  + (201.+1./3.)/(93.+1./3.)*ano2dnra
+           endif
+
 
            ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
-           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit - ano2dnra
-           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   - an2odenit + 0.5*ano2denit
-           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + an2odenit
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. * (ano2denit+an2odenit) + (109.+1./3.)/(93.+1./3.)*ano2dnra
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - (ano2denit + an2odenit)/280. - ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*(ano2denit + an2odenit) + 122./(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
-                                 &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   + dano2   !- ano2denit - ano2dnra
+           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   + dan2o   !- an2odenit + 0.5*ano2denit
+           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + dgasnit ! an2odenit
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + danh4   ! 16./280. * (ano2denit+an2odenit) + (109.+1./3.)/(93.+1./3.)*ano2dnra
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    + ddet    !- (ano2denit + an2odenit)/280. - ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + dsco212 !122./280.*(ano2denit + an2odenit) + 122./(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + dphosph !(ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + diron   ! riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + dalk    ! (295.*ano2denit + 15.*an2odenit)/280. &
+              !                   &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
           endif
          endif
         enddo
