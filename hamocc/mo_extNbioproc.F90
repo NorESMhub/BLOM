@@ -147,8 +147,8 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps = 1.e-12 
-      minlim = 1e-3 ! minimum for limitation functions 
+      eps    = 1.e-25 ! safe division etc. 
+      minlim = 1e-3   ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to 1/1000) 
       !===========================================================================
       end subroutine extNbioparam_init
      
@@ -163,23 +163,28 @@
       real,    intent(in) :: ptho(kpie,kpje,kpke)
 
       !local variables
-      integer :: i,j,k
+      integer :: i,j,k,proc_ctr
       real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4 
       real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2
       real    :: amoxfrac,nitrfrac,totd,amox,nitr
+
+      real    :: minlim_oxnh4,minlim_nh4,minlim_oxno2,minlim_no2 ! minimum conc for limitation functions 
  
+      minlim_oxnh4  = bkoxamox*minlim/(1. - minlim) 
+      minlim_oxno2  = bkoxnitr*minlim/(1. - minlim)  
+      minlim_nh4    = bkanh4nitr*minlim/(1. - minlim) 
+      minlim_no2    = bkano2nitr*minlim/(1. - minlim)
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4, & 
       !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2,amoxfrac,   &
-      !$OMP                     nitrfrac,totd,amox,nitr)
+      !$OMP                     nitrfrac,totd,amox,nitr,proc_ctr)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-           if(ocetra(i,j,k,ioxygen) > bkoxnitr*minlim .and. ocetra(i,j,k,ianh4)>bkanh4nitr*minlim &
-            &  .and. ocetra(i,j,k,iano2)>bkano2nitr*minlim)then
-
+           proc_ctr = 0
+           if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
             ! Ammonium oxidation step of nitrification
             Tdepanh4    = q10anh4nitr**((ptho(i,j,k)-Trefanh4nitr)/10.) 
             O2limanh4   = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkoxamox)
@@ -198,7 +203,15 @@
             fn2o     = fn2o/ftotnh4
             fno2     = fno2/ftotnh4
             fdetamox = 1. - (fn2o + fno2)
+            proc_ctr = proc_ctr + 1
+           else
+            potdnh4amox = 0.
+            fn2o        = 0.
+            fno2        = 0.
+            fdetamox    = 0.
+           endif
 
+           if(ocetra(i,j,k,ioxygen)>minlim_oxno2 .and. ocetra(i,j,k,iano2)>minlim_no2)then
             ! NO2 oxidizing step of nitrification
             Tdepano2    = q10ano2nitr**((ptho(i,j,k)-Trefano2nitr)/10.) 
             O2limano2   = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkoxnitr)
@@ -215,9 +228,17 @@
             fno3     = fno3/ftotno2
             fdetnitr = 1. - fno3
 
+            proc_ctr = proc_ctr + 1
+           else
+            potdno2nitr = 0.
+            fno3        = 0.
+            fdetnitr    = 0.
+           endif
+
+           if (proc_ctr>0)then
             ! limitation of the two processes through available nutrients, etc.
             totd     = potdnh4amox + potdno2nitr
-            amoxfrac =  potdnh4amox/(totd + eps)
+            amoxfrac = potdnh4amox/(totd + eps)
             nitrfrac = 1. - amoxfrac
             totd     = max(0.,                                                                                                     &
                      &   min(totd,                                                                                                 &
@@ -265,12 +286,17 @@
       integer :: i,j,k
       real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit
 
+      real    :: minlim_ox,minlim_no3 ! minimum conc for limitation functions 
+
+      minlim_ox  = log(2./minlim-1.)/(2.*sc_ano3denit) 
+      minlim_no3 = bkano3denit*minlim/(1.-minlim)
+
       !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit)
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-           if(ocetra(i,j,k,ioxygen) < log(2./minlim-1.)/(2.*sc_ano3denit) .and. ocetra(i,j,k,iano3)>bkano3denit*minlim)then
+           if(ocetra(i,j,k,ioxygen) < minlim_ox .and. ocetra(i,j,k,iano3)>minlim_no3)then
             Tdep      = q10ano3denit**((ptho(i,j,k)-Trefano3denit)/10.) 
             O2inhib   = 1. - tanh(sc_ano3denit*ocetra(i,j,k,ioxygen)) 
             nutlim    = ocetra(i,j,k,iano3)/(ocetra(i,j,k,iano3) + bkano3denit)
@@ -309,14 +335,18 @@
       integer :: i,j,k
       real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx
 
+      real    :: minlim_ox,minlim_nh4,minlim_no2 ! minimum conc for limitation functions
+
+      minlim_ox  = log((1.-minlim)/minlim)/alphaanmx + bkoxanmx
+      minlim_nh4 = bkanh4anmx*minlim/(1.-minlim)
+      minlim_no2 = bkano2anmx*minlim/(1.-minlim) 
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx)
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,iano2) > bkano2anmx*minlim .and. ocetra(i,j,k,ianh4) > bkanh4anmx*minlim &
-           &  .and. ocetra(i,j,k,ioxygen)<log((1.-minlim)/minlim)/alphaanmx+bkoxanmx) then
+          if(ocetra(i,j,k,iano2)>minlim_no2 .and. ocetra(i,j,k,ianh4)>minlim_nh4 .and. ocetra(i,j,k,ioxygen)<minlim_ox) then
            Tdep     = q10anmx**((ptho(i,j,k)-Trefanmx)/10.)         
            O2inhib  = 1. - exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))/(1.+ exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))) 
            nut1lim  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2)+bkano2anmx)
@@ -355,24 +385,33 @@
       real,    intent(in) :: ptho(kpie,kpje,kpke)
 
       !local variables
-      integer :: i,j,k
+      integer :: i,j,k,proc_ctr
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
+
+      real    :: minlim_ox,minlim_oxn2o,minlim_no2,minlim_n2o
+
+      minlim_ox     = min(bkoxano2denit,bkoxdnra)/sqrt(minlim)
+      minlim_oxn2o  = bkoxan2odenit/sqrt(minlim)
+      minlim_no2    = min(bkdnra,bkano2denit)*minlim/(1. - minlim)
+      minlim_n2o    = bkan2odenit*minlim/(1. - minlim)
+
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,    &
       !$OMP                     Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit,  &
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
       !$OMP                     fdetan2odenit,fdetdnra,                                        &
-      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra)
+      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,proc_ctr)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-           
+          proc_ctr = 0
+          if(ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
            O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
@@ -397,14 +436,25 @@
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
            ano2dnra   = fdnra  * potdano2
+           proc_ctr   = proc_ctr + 1
+          else
+           ano2denit = 0.
+           ano2dnra  = 0.
+          endif
 
+          if(ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
            O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
+           proc_ctr    = proc_ctr + 1
+          else
+           an2odenit   = 0.
+          endif
 
+          if(proc_ctr>0)then
            ! limitation of processes due to detritus
            potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3.)*ano2dnra  ! P units              
            fdetano2denit = 1./280.*ano2denit/(potddet + eps)
@@ -428,6 +478,7 @@
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
                                  &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
+          endif
          endif
         enddo
        enddo

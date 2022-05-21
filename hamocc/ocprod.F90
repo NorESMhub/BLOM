@@ -890,21 +890,21 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   CALL anammox(kpie,kpje,kpke,pddpo,omask,ptho)
   CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
   
-!  inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
-!  CALL denit_dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
+  inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
+  CALL denit_dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
+  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+  
+!  inv_message = 'in OCPROD after extNcycle denitrification NO2 '
+!  CALL denit_NO2(kpie,kpje,kpke,pddpo,omask,ptho) 
 !  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
   
-  inv_message = 'in OCPROD after extNcycle denitrification NO2 '
-  CALL denit_NO2(kpie,kpje,kpke,pddpo,omask,ptho) 
-  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+!  inv_message = 'in OCPROD after extNcycle denitrification DNRA '
+!  CALL dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
+!  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
   
-  inv_message = 'in OCPROD after extNcycle denitrification DNRA '
-  CALL dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
-  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-  inv_message = 'in OCPROD after extNcycle denitrification N2O '
-  CALL denit_N2O(kpie,kpje,kpke,pddpo,omask,ptho) 
-  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
+!  inv_message = 'in OCPROD after extNcycle denitrification N2O '
+!  CALL denit_N2O(kpie,kpje,kpke,pddpo,omask,ptho) 
+!  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 #endif
 
 
