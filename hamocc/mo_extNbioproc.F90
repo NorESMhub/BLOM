@@ -453,7 +453,7 @@
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
            ano2dnra   = fdnra  * potdano2
-           potddet    = 1./280.*ano2denit + 1./(93. + 1./3.)*ano2dnra  ! P units              
+           potddet    = potddet + 1./280.*ano2denit + 1./(93. + 1./3.)*ano2dnra  ! P units              
            
            ! limitation of processes due to detritus
            fdetano2denit = 1./280.*ano2denit/(potddet + eps)
