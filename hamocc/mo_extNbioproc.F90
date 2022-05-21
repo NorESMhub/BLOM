@@ -385,7 +385,7 @@
       real,    intent(in) :: ptho(kpie,kpje,kpke)
 
       !local variables
-      integer :: i,j,k,proc_ctr
+      integer :: i,j,k,proc_ctr,n2oden
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
@@ -404,13 +404,30 @@
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
       !$OMP                     fdetan2odenit,fdetdnra,                                        &
-      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,proc_ctr)
+      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,proc_ctr,n2oden)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          proc_ctr = 0
+          proc_ctr = 0 
+          n2oden   = 0
+
+          potddet  = 0.
+          if(ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
+           ! === denitrification on N2O
+           Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
+           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
+           nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
+           an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
+           an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
+           potddet     = 1./280.*an2odenit !P-units
+           proc_ctr    = proc_ctr + 1
+           n2oden      = 1
+          else
+           an2odenit   = 0.
+          endif
+
           if(ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
@@ -436,35 +453,31 @@
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
            ano2dnra   = fdnra  * potdano2
+           potddet    = 1./280.*ano2denit + 1./(93. + 1./3.)*ano2dnra  ! P units              
+           
+           ! limitation of processes due to detritus
+           fdetano2denit = 1./280.*ano2denit/(potddet + eps)
+           fdetdnra      = 1./(93. + 1./3.)*ano2dnra/(potddet + eps) 
+           
            proc_ctr   = proc_ctr + 1
           else
-           ano2denit = 0.
-           ano2dnra  = 0.
-          endif
-
-          if(ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
-           ! === denitrification on N2O
-           Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
-           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
-           nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
-           an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
-           an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
-           proc_ctr    = proc_ctr + 1
-          else
-           an2odenit   = 0.
+           ano2denit     = 0.
+           ano2dnra      = 0.
+           fdetano2denit = 0.
+           fdetdnra      = 0.
           endif
 
           if(proc_ctr>0)then
            ! limitation of processes due to detritus
-           potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3.)*ano2dnra  ! P units              
-           fdetano2denit = 1./280.*ano2denit/(potddet + eps)
-           fdetan2odenit = 1./280.*an2odenit/(potddet + eps)
-           fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
            potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
+           if (n2oden == 1) then 
+              fdetan2odenit = 1. -  fdetano2denit - fdetdnra
+              an2odenit     = fdetan2odenit*280.*potddet
+           endif
+
            ! change of NO2 and N2O in N units
            ano2denit     = fdetano2denit*280.*potddet
-           an2odenit     = fdetan2odenit*280.*potddet
            ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
 
            ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
