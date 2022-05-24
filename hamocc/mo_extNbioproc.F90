@@ -147,8 +147,8 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps    = 1.e-25 ! safe division etc. 
-      minlim = 1e-3   ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to 1/1000) 
+      eps    = 1.e-16 ! safe division etc. 
+      minlim = 1.e-3   ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to 1/1000) 
       !===========================================================================
       end subroutine extNbioparam_init
      
@@ -417,10 +417,10 @@
           n2oden   = 0
           dnra     = 0
 
-          potddet  = 0.
+          potddet       = 0.
           fdetano2denit = 0.
           fdetdnra      = 0.
-          if(ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
+          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
            O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
@@ -431,7 +431,7 @@
            n2oden      = 1
           endif
 
-          if(ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
+          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
            O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
@@ -444,14 +444,16 @@
            nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
            rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
 
-           ! === limitation due to NO2:
-           ! fraction on potential change of NO2:
-           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
-           fdnra  = 1. - fdenit
-
            ! potential new conc of NO2 due to denitrification and DNRA
            potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2denit + rpotano2dnra)
            potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
+           
+           ! === limitation due to NO2:
+           ! fraction on potential change of NO2:
+           rpotano2denit = rpotano2denit*1.e8 ! to avoid potential numerical issues
+           rpotano2dnra  = rpotano2dnra *1.e8
+           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
+           fdnra  = 1. - fdenit
            
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
@@ -464,7 +466,9 @@
            dnra          = 1 
           endif
 
-          if(n2oden+dnra>0)then
+          ! limitation of processes due to detritus
+          potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
+          if(n2oden+dnra>0 .and. potddet>0.)then
            dano2   = 0.
            dan2o   = 0.
            dgasnit = 0.
@@ -474,11 +478,8 @@
            dphosph = 0.
            diron   = 0.
            dalk    = 0.
-
-           ! limitation of processes due to detritus
-           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-       
-           if (n2oden == 1) then 
+ 
+           if (n2oden == 1) then ! change due to N2O denitrification
               fdetan2odenit = 1. -  fdetano2denit - fdetdnra
               an2odenit     = fdetan2odenit*280.*potddet
               dan2o   = -an2odenit
