@@ -385,13 +385,13 @@
       real,    intent(in) :: ptho(kpie,kpje,kpke)
 
       !local variables
-      integer :: i,j,k,n2oden,dnra
+      integer :: i,j,k,n2oden,dnra_use
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
 
-      real    :: dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk
+      real    :: dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk,sc
 
 
       real    :: minlim_ox,minlim_oxn2o,minlim_no2,minlim_n2o
@@ -401,13 +401,14 @@
       minlim_no2    = min(bkdnra,bkano2denit)*minlim/(1. - minlim)
       minlim_n2o    = bkan2odenit*minlim/(1. - minlim)
 
+      sc = 1.e8 ! scaling factor
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,    &
       !$OMP                     Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit,  &
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
       !$OMP                     fdetan2odenit,fdetdnra,                                        &
-      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,dnra,n2oden,&
+      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,dnra_use,n2oden,&
       !$OMP                     dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk)
 
       do j = 1,kpje
@@ -415,7 +416,7 @@
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
           n2oden   = 0
-          dnra     = 0
+          dnra_use = 0
 
           potddet       = 0.
           fdetano2denit = 0.
@@ -423,7 +424,7 @@
           if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
-           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
+           O2inhiban2o = bkoxan2odenit**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
@@ -434,13 +435,13 @@
           if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
-           O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
+           O2inhibano2 = bkoxano2denit**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
            nutlimano2  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2denit)
            rpotano2denit = max(0.,rano2denit*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
            
            ! DNRA on NO2
            Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
-           O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
+           O2inhibdnra = bkoxdnra**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
            nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
            rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
 
@@ -450,25 +451,26 @@
            
            ! === limitation due to NO2:
            ! fraction on potential change of NO2:
-           rpotano2denit = rpotano2denit*1.e8 ! to avoid potential numerical issues
-           rpotano2dnra  = rpotano2dnra *1.e8
+           rpotano2denit = rpotano2denit*sc ! to avoid potential numerical issues
+           rpotano2dnra  = rpotano2dnra *sc
            fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
            fdnra  = 1. - fdenit
            
            ! potential fractional change
-           ano2denit  = fdenit * potdano2   
-           ano2dnra   = fdnra  * potdano2
-           potddet    = potddet + 1./280.*ano2denit + 1./(93. + 1./3.)*ano2dnra  ! P units              
+           ano2denit  = fdenit * potdano2 / 280.           ! P units
+           ano2dnra   = fdnra  * potdano2 / (93. + 1./3.)  ! P units
+           potddet    = potddet + ano2denit + ano2dnra  ! P units              
            
            ! limitation of processes due to detritus
-           fdetano2denit = 1./280.*ano2denit/(potddet + eps)
-           fdetdnra      = 1./(93. + 1./3.)*ano2dnra/(potddet + eps) 
-           dnra          = 1 
+           fdetano2denit = ano2denit /(potddet + eps)
+           fdetdnra      = ano2dnra  /(potddet + eps) 
+           dnra_use      = 1 
+
           endif
 
           ! limitation of processes due to detritus
           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-          if(n2oden+dnra>0 .and. potddet>0.)then
+          if((n2oden+dnra_use)>0 .and. potddet>0.)then
            dano2   = 0.
            dan2o   = 0.
            dgasnit = 0.
@@ -492,7 +494,7 @@
               dalk    = 15.*an2odenit/280. 
            endif
 
-           if (dnra == 1)then
+           if (dnra_use == 1)then
               ! change of NO2 and N2O in N units
               ano2denit     = fdetano2denit*280.*potddet
               ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
