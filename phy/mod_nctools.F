@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2004-2020 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2004-2022 Ingo Bethke, Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -869,8 +869,7 @@ c
       character*100 :: dimname 
       integer :: i,j,ij,k,kd,n,ndm
       integer, parameter :: maxdm=5, ijdm=(idm+2*nbdy)*(jdm+2*nbdy)
-      integer ndims,dimids(maxdm),dimlen,strind(2,maxdm),
-     .  msk(*),mskflg
+      integer ndims,dimids(maxdm),dimlen,msk(*),mskflg
 #ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) tdimlen 
 #endif

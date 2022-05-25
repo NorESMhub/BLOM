@@ -832,7 +832,7 @@ module mod_cmnfld_routines
       enddo
    !$omp end parallel do
 
-   !$omp parallel do private(k, l, i, k, bfsqm)
+   !$omp parallel do private(k, l, i, bfsqm)
       do j = 0, jj + 2
          do k = 1, kk
             do l = 1, isv(j)
@@ -970,8 +970,6 @@ module mod_cmnfld_routines
    ! ---------------------------------------------------------------------------
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
-
-      integer :: i, j, l
 
       ! ------------------------------------------------------------------------
       ! Compute fields depending on selection of physics and diagnostics.

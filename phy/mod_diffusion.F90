@@ -168,7 +168,8 @@ contains
       enddo
    !$omp end parallel do
 
-   ! Initialize isopycnal diffusivity .
+      ! Initialize isopycnal diffusivity.
+   !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, kk
             do l = 1, isp(j)
@@ -181,8 +182,8 @@ contains
    !$omp end parallel do
       call xctilr(difiso, 1, kk, nbdy, nbdy, halo_ps)
 
-   ! Initialize diffusive fluxes at points located upstream and downstream (in
-   ! i-direction) of p-points.
+      ! Initialize diffusive fluxes at points located upstream and downstream
+      ! (in i-direction) of p-points.
    !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, 2*kk
@@ -202,8 +203,8 @@ contains
       call xctilr(utflld, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(usflld, 1, 2*kk, nbdy, nbdy, halo_us)
 
-   ! Initialize diffusive fluxes at points located upstream and downstream (in
-   ! j-direction) of p-points.
+      ! Initialize diffusive fluxes at points located upstream and downstream
+      ! (in j-direction) of p-points.
    !$omp parallel do private(k, l, j)
       do i = 1, ii
          do k = 1, 2*kk
