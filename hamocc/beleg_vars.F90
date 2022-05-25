@@ -216,8 +216,9 @@
          ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
 #endif
 #ifdef extNcycle
-         ocetra(i,j,k,iano2) =1.e-10
-         ocetra(i,j,k,ianh4) =0.5e-10
+         ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
+         ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
+         ocetra(i,j,k,ian2o) =20.e-9  ! 20nmol/kg = ca. value deep ocean Toyoda et al. 2019
 #endif
 
         ENDIF ! omask > 0.5
