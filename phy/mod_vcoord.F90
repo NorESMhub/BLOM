@@ -540,9 +540,6 @@ contains
       integer :: l, i, nt, k, kr, kl, klastok, kt, errstat
       logical :: ok
 
-      real(r8) :: x,tt,st
-
-      nudge_factor = 1._r8
       nudge_factor = 1._r8/10._r8
 
       do l = 1, isp(j)
@@ -1209,7 +1206,7 @@ contains
       real(r8) :: q
       integer :: i, j, k, l, kn, errstat
 
-   !$omp parallel do private(k, km, l, i)
+   !$omp parallel do private(k, kn, l, i)
       do j = 1, jj
          do k = 1, kk
             kn = k + nn
