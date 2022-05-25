@@ -71,28 +71,34 @@ subdir('pkgs/')
 
 # Handle options and add necessary flags and subfolders with source files
 
-if get_option('iage') or get_option('turbclo').length() > 0 or get_option('ecosys')
+turbclo = get_option('turbclo')
+if turbclo.length() > 0 and get_option('vcoord') == 'cntiso_hybrid'
+  message('Setting turbclo = [] for vcoord == \'cntiso_hybrid\'')
+  turbclo = []
+endif
+
+if get_option('iage') or turbclo.length() > 0 or get_option('ecosys')
   add_project_arguments('-DTRC', language: 'fortran')
   subdir('trc')
 endif
 
-if get_option('turbclo').length() > 0
-  if not (get_option('turbclo').contains('oneeq') or get_option('turbclo').contains('twoeq'))
+if turbclo.length() > 0
+  if not (turbclo.contains('oneeq') or turbclo.contains('twoeq'))
     error('For turbulent closure, either twoeq or oneeq must be provided as options!')
   endif
-  if get_option('turbclo').contains('oneeq') and get_option('turbclo').contains('twoeq')
+  if turbclo.contains('oneeq') and turbclo.contains('twoeq')
     error('For turbulent closure, do not use both twoeq and oneeq as options!')
   endif
-  if get_option('turbclo').contains('oneeq')
+  if turbclo.contains('oneeq')
     add_project_arguments('-DTKE', language: 'fortran')
   endif
-  if get_option('turbclo').contains('twoeq')
+  if turbclo.contains('twoeq')
     add_project_arguments('-DTKE', '-DGLS', language: 'fortran')
   endif
-  if get_option('turbclo').contains('advection')
+  if turbclo.contains('advection')
     add_project_arguments('-DTKEADV', language: 'fortran')
   endif
-  if get_option('turbclo').contains('isodif')
+  if turbclo.contains('isodif')
     add_project_arguments('-DTKEIDF', language: 'fortran')
   endif
 endif
@@ -115,7 +121,7 @@ if get_option('ecosys')
   endif
   if get_option('hamocc_ciso')
     if not get_option('hamocc_sedbypass')
-      error('hamocc_ciso=true requires hamocc_sedbypass=true!')
+      error('hamocc_ciso == true requires hamocc_sedbypass == true!')
     endif
     add_project_arguments('-Dcisonew', language: 'fortran')
   endif
