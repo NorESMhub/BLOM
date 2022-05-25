@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -1085,9 +1085,9 @@ c
           endif
 c
 c --- --- u-component of mass, heat and salt flux.
-          uflx(i,j)=fdu(i,j)
-          utflx(i,j)=ftu(i,j)
-          usflx(i,j)=fsu(i,j)
+          uflx(i,j)=uflx(i,j)+fdu(i,j)
+          utflx(i,j)=utflx(i,j)+ftu(i,j)
+          usflx(i,j)=usflx(i,j)+fsu(i,j)
 c
         enddo
         enddo
@@ -2549,9 +2549,9 @@ c
           endif
 c
 c --- --- u-component of mass, heat and salt flux.
-          uflx(i,j)=fdu(i,j)
-          utflx(i,j)=ftu(i,j)
-          usflx(i,j)=fsu(i,j)
+          uflx(i,j)=uflx(i,j)+fdu(i,j)
+          utflx(i,j)=utflx(i,j)+ftu(i,j)
+          usflx(i,j)=usflx(i,j)+fsu(i,j)
 c
         enddo
         enddo

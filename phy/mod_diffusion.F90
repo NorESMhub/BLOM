@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -68,6 +68,8 @@ module mod_diffusion
       edwmth    ! Method to estimate eddy diffusivity weight as a function of
                 ! the ration of Rossby radius of deformation to the horizontal
                 ! grid spacing. Valid methods: 'smooth', 'step'.
+   logical :: &
+      ntrdif = .false.
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm) :: &
       difint, & ! Layer interface diffusivity [cm2 s-1].
@@ -75,9 +77,13 @@ module mod_diffusion
       difdia    ! Diapycnal diffusivity [cm2 s-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm+1) :: &
-      Kvisc_m, & ! momentum eddy viscosity [cm2 s-1].
-      Kdiff_t, & ! temperature eddy diffusivity [cm2 s-1].
-      Kdiff_s    ! salinity eddy  diffusivity [cm2 s-1].
+      Kvisc_m, &      ! momentum eddy viscosity [cm2 s-1].
+      Kdiff_t, &      ! temperature eddy diffusivity [cm2 s-1].
+      Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
+      t_ns_nonloc, &  ! Non-local transport term that is the fraction of
+                      ! non-shortwave flux passing a layer interface [].
+      s_nonloc        ! Non-local transport term that is the fraction of
+                      ! material tracer flux passing a layer interface [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
@@ -108,11 +114,12 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, eitmth, edritp, edwmth, &
+             tkepf, bdmtyp, edsprs, eitmth, edritp, edwmth, ntrdif, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
              usfltd, vsfltd, usflld, vsflld, &
-             inivar_diffusion, Kvisc_m, Kdiff_t, Kdiff_s
+             Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nonloc, &
+             inivar_diffusion
 
 contains
 
@@ -160,6 +167,19 @@ contains
          enddo
       enddo
    !$omp end parallel do
+
+   ! Initialize isopycnal diffusivity .
+      do j = 1, jj
+         do k = 1, kk
+            do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+               difiso(i, j, k) = 0._r8
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+      call xctilr(difiso, 1, kk, nbdy, nbdy, halo_ps)
 
    ! Initialize diffusive fluxes at points located upstream and downstream (in
    ! i-direction) of p-points.

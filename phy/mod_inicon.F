@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen
+! Copyright (C) 2008-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -32,7 +32,8 @@ c
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
      .                      cntiso_hybrid, sigmar,
-     .                      cntiso_hybrid_regrid_remap, remap_velocity
+     .                      cntiso_hybrid_regrid_direct_remap, 
+     .                      remap_velocity
       use mod_grid, only: scuy, scvx, scuyi, scvxi, depths,
      .                    corioq
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu,
@@ -640,7 +641,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,q)
 c$OMP END PARALLEL DO
 c
       if (vcoord_type_tag.eq.cntiso_hybrid) then
-        call cntiso_hybrid_regrid_remap(2,1,kk,0,kk+1,1)
+        call cntiso_hybrid_regrid_direct_remap(2,1,kk,0,kk+1,1)
         call remap_velocity(2,1,kk,0,kk+1,1)
       endif
       call xctilr(temp, 1,kk, 1,1, halo_ps)
