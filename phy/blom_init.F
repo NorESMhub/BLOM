@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -36,10 +36,11 @@ c
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_eos, only: inieos
       use mod_swabs, only: iniswa
+      use mod_tmsmt, only: initms
       use mod_dia
       use mod_inicon, only: inicon
       use mod_budget, only: budget_init
-      use mod_cmnfld, only: cmnfld
+      use mod_cmnfld_routines, only: cmnfld1
       use netcdf
 #if defined(TRC) && defined(TKE)
       use mod_tke, only: initke
@@ -47,7 +48,7 @@ c
 c
       implicit none
 c
-      integer istat,ncid,varid,i,j,k,l,m,n,mm,km
+      integer istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,km
       real q
       logical icrest,fexist
 c
@@ -200,15 +201,71 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
-c --- Set layer thickness at u,v points
+c --- Initialize model time step and set time level indices consistent
+c --- with starting state
+c --- ------------------------------------------------------------------
+c
+      nstep=nstep1
+      m=mod(nstep+1,2)+1
+      n=mod(nstep  ,2)+1
+      mm=(m-1)*kk
+      nn=(n-1)*kk
+      k1m=1+mm
+      k1n=1+nn
+c
+c --- ------------------------------------------------------------------
+c --- Initialize layer thicknesses 
 c --- ------------------------------------------------------------------
 c
       call xctilr(dp, 1,2*kk, 3,3, halo_ps)
 c
-      n=mod(nstep1,2)+1
+      if (vcoord_type_tag == isopyc_bulkml) then
 c
-      do m=n,3-n,3-2*n
-        mm=(m-1)*kk
+        do mt=n,3-n,3-2*n
+          mmt=(mt-1)*kk
+c
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+          do j=-2,jj+2
+            do k=1,kk
+              do l=1,isp(j)
+              do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
+                p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mmt)
+              enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
+          do j=-1,jj+2
+            do k=1,kk
+              km=k+mmt
+              do l=1,isu(j)
+              do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+                q=min(p(i,j,kk+1),p(i-1,j,kk+1))
+                dpu(i,j,km)=
+     .            .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .               +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+              enddo
+              enddo
+              do l=1,isv(j)
+              do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+                q=min(p(i,j,kk+1),p(i,j-1,kk+1))
+                dpv(i,j,km)=
+     .            .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .               +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+              enddo
+              enddo
+            enddo
+          enddo
+c$OMP END PARALLEL DO
+c
+        enddo
+c
+      else
+c
+        call xctilr(dpu, 1,2*kk, 3,3, halo_us)
+        call xctilr(dpv, 1,2*kk, 3,3, halo_vs)
 c
 c$OMP PARALLEL DO PRIVATE(k,l,i)
         do j=-2,jj+2
@@ -222,38 +279,6 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         enddo
 c$OMP END PARALLEL DO
 c
-c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
-        do j=-1,jj+2
-          do k=1,kk
-            km=k+mm
-            do l=1,isu(j)
-            do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
-              q=min(p(i,j,kk+1),p(i-1,j,kk+1))
-              dpu(i,j,km)=
-     .          .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
-     .             +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
-            enddo
-            enddo
-            do l=1,isv(j)
-            do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
-              q=min(p(i,j,kk+1),p(i,j-1,kk+1))
-              dpv(i,j,km)=
-     .          .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
-     .             +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
-            enddo
-            enddo
-          enddo
-        enddo
-c$OMP END PARALLEL DO
-c
-      enddo
-c
-      nstep=nstep1
-      if (mnproc.eq.1.and.expcnf.ne.'cesm') then
-        write (lp,'(/2(a,i6),2(a,i9),a/)')
-     .    'model starts at day',nday1,', goes to day',nday2,'   (steps',
-     .    nstep1,' --',nstep2,')'
-          call flush(lp)
       endif
 c
 c --- ------------------------------------------------------------------
@@ -280,6 +305,7 @@ c
       call xctilr(vml, 1,4, 0,1, halo_vv)
       call xctilr(umlres, 1,2, 1,0, halo_uv)
       call xctilr(vmlres, 1,2, 0,1, halo_vv)
+      call xctilr(sigmar, 1,kk, 1,1, halo_ps)
 c
 c --- with arctic patch, switch xixp and xixm and xiyp and xiym in the
 c --- halo region adjacent to the arctic grid intersection
@@ -314,8 +340,12 @@ c --- halo region adjacent to the arctic grid intersection
         enddo
       endif
 c
-      m=3-n
-      call cmnfld(m,n,(m-1)*kk,(n-1)*kk,1+(m-1)*kk,1+(n-1)*kk)
+c --- ------------------------------------------------------------------
+c --- Initialize time smoothing variables and some common fields.
+c --- ------------------------------------------------------------------
+c
+      call initms(m,n,mm,nn,k1m,k1n)
+      call cmnfld1(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
 c --- Extract reference potential density vector representative of the
@@ -323,6 +353,15 @@ c --- dominating ocean domain
 c --- ------------------------------------------------------------------
 c
       call diasg1
+c
+c --- ------------------------------------------------------------------
+c
+      if (mnproc.eq.1.and.expcnf.ne.'cesm') then
+        write (lp,'(/2(a,i6),2(a,i9),a/)')
+     .    'model starts at day',nday1,', goes to day',nday2,'   (steps',
+     .    nstep1,' --',nstep2,')'
+          call flush(lp)
+      endif
 c
 c --- print seconds elapsed since last call to system_clock (Time 0)
       if (mnproc.eq.1) then

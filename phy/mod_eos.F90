@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2007-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -72,7 +72,8 @@ module mod_eos
              ap11, ap12, ap13, ap14, ap15, ap16, &
              ap21, ap22, ap23, ap24, ap25, ap26, &
              atf, btf, ctf, &
-             inieos, rho, alp, sig, sig0, dsigdt, dsigdt0, dsigds, dsigds0, &
+             inieos, rho, alp, sig, sig0, &
+             drhodt, dsigdt, dsigdt0, drhods, dsigds, dsigds0, &
              tofsig, sofsig, p_alpha, p_p_alpha, delphi
 
 contains
@@ -213,6 +214,29 @@ contains
 
    end function sig0
 
+   pure real(r8) function drhodt(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of in situ density with respect to potential temperature
+   ! [g cm-3 K-1].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+         + (b11 + b12*th + b13*s)*p
+      r2i = 1._r8/( a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+                  + (b21 + b22*th + b23*s)*p)
+
+      drhodt = ( a12 + 2._r8*a14*th + a15*s + b12*p &
+               - (a22 + 2._r8*a24*th + a25*s + b22*p)*r1*r2i)*r2i
+
+   end function drhodt
+
    pure real(r8) function dsigdt(th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of potential density with respect to potential temperature
@@ -253,6 +277,28 @@ contains
                 - (ap220 + 2._r8*ap240*th + ap250*s)*r1*r2i)*r2i
 
    end function dsigdt0
+
+   pure real(r8) function drhods(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of in situ density with respect to salinity [kg cm-3].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+         + (b11 + b12*th + b13*s)*p
+      r2i = 1._r8/( a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+                  + (b21 + b22*th + b23*s)*p)
+
+      drhods = ( a13 + a15*th + 2._r8*a16*s + b13*p &
+               - (a23 + a25*th + 2._r8*a26*s + b23*p)*r1*r2i)*r2i
+
+   end function drhods
 
    pure real(r8) function dsigds(th, s)
    ! ---------------------------------------------------------------------------

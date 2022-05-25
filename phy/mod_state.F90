@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -86,7 +86,7 @@ module mod_state
              p, pu, pv, phi, ubflxs, vbflxs, &
              ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p, &
              pb_p, pbu_p, pbv_p, ubcors_p, vbcors_p, sealv, kfpla, &
-             inivar_state
+             inivar_state, init_fluxes
 
 contains
 
@@ -350,5 +350,49 @@ contains
       endif
 
    end subroutine inivar_state
+
+   subroutine init_fluxes(m, n, mm, nn, k1m, k1n, update_flux_halos)
+   ! ---------------------------------------------------------------------------
+   ! Reset fluxes to be accumulated over a model time step and update flux
+   ! halos if requested.
+   ! ---------------------------------------------------------------------------
+
+      integer, intent(in) :: m, n, mm, nn, k1m, k1n
+      logical, intent(in) :: update_flux_halos
+
+      integer :: i, j, k, km, l
+
+    !$omp parallel do private(k, km, l, i)
+        do j = 0, jj+2
+           do k = 1, kk
+              km = k + mm
+              do l=1, isu(j)
+              do i=max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+                 uflx(i,j,km) = 0._r8
+                 utflx(i,j,km) = 0._r8
+                 usflx(i,j,km) = 0._r8
+              enddo
+              enddo
+              do l=1, isv(j)
+              do i=max(0, ifv(j,l)), min(ii+2, ilv(j,l))
+                 vflx(i,j,km) = 0._r8
+                 vtflx(i,j,km) = 0._r8
+                 vsflx(i,j,km) = 0._r8
+              enddo
+              enddo
+           enddo
+        enddo
+    !$omp end parallel do
+
+      if (update_flux_halos) then
+         call xctilr(uflx (1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_uv)
+         call xctilr(utflx(1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_uv)
+         call xctilr(usflx(1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_uv)
+         call xctilr(vflx (1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_vv)
+         call xctilr(vtflx(1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_vv)
+         call xctilr(vsflx(1-nbdy,1-nbdy,k1n), 1, kk, 1, 1, halo_vv)
+      endif
+
+   end subroutine init_fluxes
 
 end module mod_state

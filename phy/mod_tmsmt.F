@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2021 Mats Bentsen
+! Copyright (C) 2005-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -29,6 +29,7 @@ c
       use mod_types, only: r8
       use mod_constants, only: epsil, spval
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml
       use mod_state, only: dp, dpu, dpv, temp, saln, p, pb
       use mod_checksum, only: csdiag, chksummsk
 #ifdef TRC
@@ -61,7 +62,7 @@ c
      .  sold           ! Salinity at old time level [g kg-1].
 c
       public :: wuv1, wuv2, wts1, wts2, wbaro, dpold, dpuold, dpvold,
-     .          inivar_tmsmt, tmsmt1, tmsmt2
+     .          inivar_tmsmt, initms, tmsmt1, tmsmt2
 c
       contains
 c
@@ -161,7 +162,7 @@ c
 c
 c --- ------------------------------------------------------------------
 c
-      subroutine tmsmt1(m,n,mm,nn,k1m,k1n)
+      subroutine initms(m,n,mm,nn,k1m,k1n)
 c
 c --- save old layer thickness, temperature and salinity for time
 c --- smoothing
@@ -175,40 +176,70 @@ c
       integer nt
 #endif
 c
-      integer i,j,k,l,kn
+      integer i,j,k,l,km
 c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i
+c$OMP PARALLEL DO PRIVATE(k,km,l,i
 #ifdef TRC
 c$OMP+ ,nt
 #endif
 c$OMP+ )
       do j=1,jj
         do k=1,kk
-          kn=k+nn
+          km=k+mm
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            dpold(i,j,kn)=dp(i,j,kn)
-            told(i,j,k)=temp(i,j,kn)
-            sold(i,j,k)=saln(i,j,kn)
+            dpold(i,j,km)=dp(i,j,km)
+            told(i,j,k)=temp(i,j,km)
+            sold(i,j,k)=saln(i,j,km)
 #ifdef TRC
             do nt=1,ntr
-              trcold(i,j,k,nt)=trc(i,j,kn,nt)
+              trcold(i,j,k,nt)=trc(i,j,km,nt)
             enddo
 #endif
-          enddo
-          enddo
-          do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
-            dpuold(i,j,k)=dpu(i,j,kn)
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'initms:'
+        endif
+        call chksummsk(dpold,ip,2*kk,'dpold')
+        call chksummsk(told,ip,kk,'told')
+        call chksummsk(sold,ip,kk,'sold')
+#ifdef TRC
+        do nt=1,ntr
+          call chksummsk(trcold(1-nbdy,1-nbdy,1,nt),ip,kk,'trcold')
+        enddo
+#endif
+      endif
+c
+      end subroutine initms
+c
+      subroutine tmsmt1(m,n,mm,nn,k1m,k1n)
+c
+c --- save old layer thickness at velocity points for time smoothing in
+c --- momentum equation.
+c
+      use mod_xc
+c
+      implicit none
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+      integer i,j,k,l,kn
+c
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=1,jj+1
+      do j=1,jj
         do k=1,kk
           kn=k+nn
+          do l=1,isu(j)
+          do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+            dpuold(i,j,k)=dpu(i,j,kn)
+          enddo
+          enddo
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             dpvold(i,j,k)=dpv(i,j,kn)
@@ -222,14 +253,8 @@ c
         if (mnproc.eq.1) then
           write (lp,*) 'tmsmt1:'
         endif
-        call chksummsk(dpold,ip,2*kk,'dpold')
-        call chksummsk(told,ip,kk,'told')
-        call chksummsk(sold,ip,kk,'sold')
-#ifdef TRC
-        do nt=1,ntr
-          call chksummsk(trcold(1-nbdy,1-nbdy,1,nt),ip,kk,'trcold')
-        enddo
-#endif
+        call chksummsk(dpuold,iu,kk,'dpuold')
+        call chksummsk(dpvold,iv,kk,'dpvold')
       endif
 c
       end subroutine tmsmt1
@@ -292,21 +317,25 @@ c$OMP+ )
             pmid=max(0.,dp(i,j,km))
             pnew=max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)
+            dpold(i,j,km)=dp(i,j,km)
             pold=pold+epsil
             pmid=pmid+epsil
             pnew=pnew+epsil
             temp(i,j,km)=(wts1*pmid*temp(i,j,km)
      .                   +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn)))
      .                   /(dp(i,j,km)+epsil)
+            told(i,j,k)=temp(i,j,km)
             saln(i,j,km)=(wts1*pmid*saln(i,j,km)
      .                   +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn)))
      .                   /(dp(i,j,km)+epsil)
+            sold(i,j,k)=saln(i,j,km)
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,km,nt)=(wts1*pmid*trc(i,j,km,nt)
      .                       +wts2*(pold*trcold(i,j,k,nt)
      .                             +pnew*trc(i,j,kn,nt)))
      .                       /(dp(i,j,km)+epsil)
+              trcold(i,j,k,nt)=trc(i,j,km,nt)
             enddo
 #endif
           enddo
@@ -315,43 +344,61 @@ c$OMP+ )
       enddo
 c$OMP END PARALLEL DO
 c
-      call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
+      if (vcoord_type_tag == isopyc_bulkml) then
+c
+        call xctilr(dp(1-nbdy,1-nbdy,k1m), 1,kk, 3,3, halo_ps)
 c
 c$OMP PARALLEL DO PRIVATE(k,l,i)
-      do j=-2,jj+2
-        do k=1,kk
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mm)
-          enddo
+        do j=-2,jj+2
+          do k=1,kk
+            do l=1,isp(j)
+            do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
+              p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mm)
+            enddo
+            enddo
           enddo
         enddo
-      enddo
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(k,km,l,i,q)
-      do j=-1,jj+2
-        do k=1,kk
-          km=k+mm
-          do l=1,isu(j)
-          do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
-            q=min(p(i,j,kk+1),p(i-1,j,kk+1))
-            dpu(i,j,km)=
-     .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
-     .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
-          enddo
-          enddo
-          do l=1,isv(j)
-          do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
-            q=min(p(i,j,kk+1),p(i,j-1,kk+1))
-            dpv(i,j,km)=
-     .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
-     .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
-          enddo
+        do j=-1,jj+2
+          do k=1,kk
+            km=k+mm
+            do l=1,isu(j)
+            do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
+              q=min(p(i,j,kk+1),p(i-1,j,kk+1))
+              dpu(i,j,km)=
+     .          .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
+     .             +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+            enddo
+            enddo
+            do l=1,isv(j)
+            do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+              q=min(p(i,j,kk+1),p(i,j-1,kk+1))
+              dpv(i,j,km)=
+     .          .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
+     .             +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+            enddo
+            enddo
           enddo
         enddo
-      enddo
 c$OMP END PARALLEL DO
+c
+      else
+c
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+        do j=1,jj
+          do k=1,kk
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mm)
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+      endif
 c
       if (csdiag) then
         if (mnproc.eq.1) then
