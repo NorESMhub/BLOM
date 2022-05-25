@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2021 Mats Bentsen
+! Copyright (C) 2015-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_eddtra
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsil, onemm
+   use mod_constants, only: g, alpha0, epsil, onecm, onemm
    use mod_time, only: delt1
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
@@ -33,7 +33,7 @@ module mod_eddtra
    use mod_state, only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
    use mod_diffusion, only: eitmth, difint, umfltd, vmfltd, &
                             utfltd, vtfltd, usfltd, vsfltd
-   use mod_cmnfld, only: nslpx, nslpy
+   use mod_cmnfld, only: nslpx, nslpy, mlts
    use mod_checksum, only: csdiag, chksummsk
 
    implicit none
@@ -969,9 +969,9 @@ contains
 
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: mfl
-      real(r8), dimension(kdm) :: dlm, dlp
-      real(r8) :: rho0, q, et2mf, kappa
-      integer :: i, j, k, l, km, kn, kmax, niter, kdir
+      real(r8), dimension(kdm) :: puv, dlm, dlp
+      real(r8) :: rho0, q, et2mf, mlp, kappa
+      integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
 
       rho0 = 1._r8/alpha0
@@ -979,7 +979,7 @@ contains
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
       call xctilr(pbv, 1, 2, 2, 2, halo_vs)
-
+      call xctilr(mlts, 1, 1, 1, 1, halo_ps)
 
       ! Compute top pressure at velocity points.
    !$omp parallel do private(l, i)
@@ -1005,8 +1005,8 @@ contains
      ! Compute u-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kappa, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir, q)
+   !$omp parallel do private(l, i, k, km, et2mf, kmax, puv, kn, mlp, kml, &
+   !$omp                     kappa, mfl, dlm, dlp, changed, niter, kdir, q)
       do j = - 1, jj + 2
          do l = 1, isu(j)
          do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
@@ -1020,25 +1020,42 @@ contains
             ! Eddy transport to mass flux conversion factor.
             et2mf = - g*rho0*delt1*scuy(i, j)
 
-            ! Index of last layer containing mass at either of the scalar points
-            ! adjacent to the velocity point.
+            ! Find index of last layer containing mass at either of the scalar
+            ! points adjacent to the velocity point and pressure at interfaces.
             kmax = 1
+            puv(1) = ptu(i,j)
             do k = 2, kk
                kn = k + nn
+               puv(k) = puv(k - 1) + dpu(i, j, kn - 1)
                if (dp(i - 1, j, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
             enddo
 
-            ! Compute the eddy induced mass flux at layer interfaces.
-            mfl(1) = 0._r8
-            do k = 2, kmax
-               kn = k + nn
-               kappa = .25_r8*( difint(i - 1, j, k - 1) &
-                              + difint(i    , j, k - 1) &
-                              + difint(i - 1, j, k    ) &
-                              + difint(i    , j, k    ))
-               mfl(k) = - kappa*nslpx(i, j, k)*et2mf
-            enddo
+            ! Compute the eddy induced mass flux at layer interfaces below the
+            ! mixed layer.
+            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*onecm
+            kml = kmax + 1
             mfl(kmax + 1) = 0._r8
+            do k = kmax, 2, -1
+               if (puv(k) > mlp) then
+                  kappa = .25_r8*( difint(i - 1, j, k - 1) &
+                                 + difint(i    , j, k - 1) &
+                                 + difint(i - 1, j, k    ) &
+                                 + difint(i    , j, k    ))
+                  mfl(k) = - kappa*nslpx(i, j, k)*et2mf
+                  kml = k
+               else
+                  exit
+               endif
+            enddo
+
+            ! In the mixed layer, let the eddy induced mass flux change
+            ! linearly, with respect to interface pressure, from zero at the
+            ! surface to the mass flux below the mixed layer.
+            mfl(1) = 0._r8
+            q = 1._r8/(mlp - puv(1))
+            do k = 2, kml - 1
+               mfl(k) = mfl(kml)*(puv(k) - puv(1))*q
+            enddo
 
             ! ------------------------------------------------------------------
             ! Ensure that mass fluxes do not create negative layer thicknesses.
@@ -1182,8 +1199,8 @@ contains
      ! Compute v-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kappa, mfl, &
-   !$omp                     dlm, dlp, changed, niter, kdir, q)
+   !$omp parallel do private(l, i, k, km, et2mf, kmax, puv, kn, mlp, kml, &
+   !$omp                     kappa, mfl, dlm, dlp, changed, niter, kdir, q)
       do j = 0, jj + 2
          do l = 1, isv(j)
          do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
@@ -1197,25 +1214,42 @@ contains
             ! Eddy transport to mass flux conversion factor.
             et2mf = - g*rho0*delt1*scvx(i, j)
 
-            ! Index of last layer containing mass at either of the scalar points
-            ! adjacent to the velocity point.
+            ! Find index of last layer containing mass at either of the scalar
+            ! points adjacent to the velocity point and pressure at interfaces.
             kmax = 1
+            puv(1) = ptv(i,j)
             do k = 2, kk
                kn = k + nn
+               puv(k) = puv(k - 1) + dpv(i, j, kn - 1)
                if (dp(i, j - 1, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
             enddo
 
-            ! Compute the eddy induced mass flux at layer interfaces.
-            mfl(1) = 0._r8
-            do k = 2, kmax
-               kn = k + nn
-               kappa = .25_r8*( difint(i, j - 1, k - 1) &
-                              + difint(i, j    , k - 1) &
-                              + difint(i, j - 1, k    ) &
-                              + difint(i, j    , k    ))
-               mfl(k) = - kappa*nslpy(i, j, k)*et2mf
-            enddo
+            ! Compute the eddy induced mass flux at layer interfaces below the
+            ! mixed layer.
+            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*onecm
+            kml = kmax + 1
             mfl(kmax + 1) = 0._r8
+            do k = kmax, 2, -1
+               if (puv(k) > mlp) then
+                  kappa = .25_r8*( difint(i, j - 1, k - 1) &
+                                 + difint(i, j    , k - 1) &
+                                 + difint(i, j - 1, k    ) &
+                                 + difint(i, j    , k    ))
+                  mfl(k) = - kappa*nslpy(i, j, k)*et2mf
+                  kml = k
+               else
+                  exit
+               endif
+            enddo
+
+            ! In the mixed layer, let the eddy induced mass flux change
+            ! linearly, with respect to interface pressure, from zero at the
+            ! surface to the mass flux below the mixed layer.
+            mfl(1) = 0._r8
+            q = 1._r8/(mlp - puv(1))
+            do k = 2, kml - 1
+               mfl(k) = mfl(kml)*(puv(k) - puv(1))*q
+            enddo
 
             ! ------------------------------------------------------------------
             ! Ensure that mass fluxes do not create negative layer thicknesses.
