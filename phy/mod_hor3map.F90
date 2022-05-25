@@ -2319,7 +2319,7 @@ contains
 
       real(r8), dimension(rcss%rcgs%n_src_actual) :: d2, sl, sr, sc
       logical, dimension(rcss%rcgs%n_src_actual) :: smooth
-      real(r8) :: min_u_0, a0, a1, a2, a3, b0, b1, b2, q1, q2, q3, s, xi
+      real(r8) :: a0, a1, a2, a3, b0, b1, b2, q1, q2, q3, s, xi
       integer :: ns, j
       logical :: inflex, incon_inflex
 
@@ -2940,8 +2940,6 @@ contains
       real(r8), intent(in) :: u, u_eps, xil, xir
 
       real(r8) :: xi
-
-      real(r8) :: q, s, xi1, xi2, xim
 
       if (abs(pc(2)) < u_eps) then
          xi = xil
@@ -4497,7 +4495,7 @@ contains
 
       integer :: errstat
 
-      real(r8) :: u_sgn, ue_min, ue_max
+      real(r8) :: u_sgn
 
       errstat = hor3map_noerr
 
