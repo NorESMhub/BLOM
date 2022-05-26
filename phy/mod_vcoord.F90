@@ -67,7 +67,8 @@ module mod_vcoord
    real(r8) :: &
       dpmin_surface          = 1.5_r8, &
       dpmin_inflation_factor = 1._r8, &
-      dpmin_interior         = .1_r8
+      dpmin_interior         = .1_r8, &
+      regrid_nudge_factor    = .1_r8
 
    ! Options derived from string options.
    integer :: &
@@ -536,11 +537,9 @@ contains
       integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
 
       real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
-      real(r8) :: nudge_factor, sig_max, dpmin_sfc, dsig, dsigdx, q
+      real(r8) :: sig_max, dpmin_sfc, dsig, dsigdx, q
       integer :: l, i, nt, k, kr, kl, klastok, kt, errstat
       logical :: ok
-
-      nudge_factor = 1._r8/10._r8
 
       do l = 1, isp(j)
       do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
@@ -623,7 +622,7 @@ contains
             ok = .true.
             if      (sigmar_1d(k) < sig_srcdi(2,k-1) .and. &
                      sigmar_1d(k) < sig_srcdi(1,k  )) then
-               dsig = (sigmar_1d(k) - sig_srcdi(2,k-1))*nudge_factor
+               dsig = (sigmar_1d(k) - sig_srcdi(2,k-1))*regrid_nudge_factor
                dsigdx = dsigdt(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
                         *dpeval1(tpc_src(:,k-1,it,i)) &
                       + dsigds(t_srcdi(2,k-1,it,i), t_srcdi(2,k-1,is,i)) &
@@ -636,7 +635,7 @@ contains
                                   + dsig*(p_src(k,i) - p_src(k-1,i))/dsigdx
             elseif  (sigmar_1d(k) > sig_srcdi(2,k-1) .and. &
                      sigmar_1d(k) > sig_srcdi(1,k  )) then
-               dsig = (sigmar_1d(k) - sig_srcdi(1,k))*nudge_factor
+               dsig = (sigmar_1d(k) - sig_srcdi(1,k))*regrid_nudge_factor
                dsigdx = dsigdt(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
                         *dpeval0(tpc_src(:,k,it,i)) &
                       + dsigds(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i)) &
@@ -669,7 +668,7 @@ contains
          do k = max(kr, min(ksmx(i), kdmx(i))) + 1, kdmx(i)
             ok = .true.
             if (sigmar_1d(k) < sig_srcdi(2,ksmx(i))) then
-               dsig = (sigmar_1d(k) - sig_srcdi(2,ksmx(i)))*nudge_factor
+               dsig = (sigmar_1d(k) - sig_srcdi(2,ksmx(i)))*regrid_nudge_factor
                dsigdx = dsigdt(t_srcdi(2,ksmx(i),it,i), &
                                t_srcdi(2,ksmx(i),is,i)) &
                         *dpeval1(tpc_src(:,ksmx(i),it,i)) &
@@ -760,7 +759,8 @@ contains
          density_pc_upper_bndr, density_pc_lower_bndr, &
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
          velocity_pc_upper_bndr, velocity_pc_lower_bndr, &
-         dpmin_surface, dpmin_inflation_factor, dpmin_interior
+         dpmin_surface, dpmin_inflation_factor, dpmin_interior, &
+         regrid_nudge_factor
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -803,6 +803,7 @@ contains
         call xcbcst(dpmin_surface)
         call xcbcst(dpmin_inflation_factor)
         call xcbcst(dpmin_interior)
+        call xcbcst(regrid_nudge_factor)
       endif
       if (mnproc == 1) then
          write (lp,*) 'readnml_vcoord: vertical coordinate variables:'
@@ -825,6 +826,7 @@ contains
          write (lp,*) '  dpmin_surface =          ', dpmin_surface
          write (lp,*) '  dpmin_inflation_factor = ', dpmin_inflation_factor
          write (lp,*) '  dpmin_interior =         ', dpmin_interior
+         write (lp,*) '  regrid_nudge_factor =    ', regrid_nudge_factor
       endif
 
       ! Resolve options.
