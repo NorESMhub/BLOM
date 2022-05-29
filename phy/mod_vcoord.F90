@@ -38,7 +38,7 @@ module mod_vcoord
                           extract_polycoeff, regrid2, &
                           prepare_remapping, remap, &
                           hor3map_noerr, hor3map_errstr
-   use mod_diffusion, only : ntrdif, difiso
+   use mod_diffusion, only : ltedtp_opt, ltedtp_neutral, difiso
    use mod_ndiff, only: ndiff_prep_jslice, ndiff_uflx_jslice, &
                         ndiff_vflx_jslice, ndiff_update_trc_jslice
    use mod_checksum, only: csdiag, chksummsk
@@ -922,7 +922,7 @@ contains
       ! Configuration of the reconstruction data structure that only depends on
       ! the source grid.
       rcgs%n_src = kk
-      if (ntrdif) then
+      if (ltedtp_opt == ltedtp_neutral) then
          rcgs%i_lbound = 0
          rcgs%i_ubound = ii + 1
       else
@@ -1015,7 +1015,7 @@ contains
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
       integer :: j_rs, jm_rs, jp_rs, j, nt
 
-      if (.not.ntrdif) then
+      if (ltedtp_opt /= ltedtp_neutral) then
 
          j_rs = 1
 
@@ -1111,7 +1111,7 @@ contains
       real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy) :: trc_rm
       integer :: j_rs, jm_rs, jp_rs, j, nt
 
-      if (.not.ntrdif) then
+      if (ltedtp_opt /= ltedtp_neutral) then
 
          j_rs = 1
 

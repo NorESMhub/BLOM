@@ -35,7 +35,9 @@ module mod_cmnfld_routines
    use mod_cmnfld, only: sls0, slsmfq, slsels, bfsqmn, dbcrit, &
                          bfsqi, bfsqf, z, bfsql, nslpx, nslpy, nnslpx, nnslpy, &
                          dz, mlts
-   use mod_diffusion, only: eitmth, edritp, ntrdif 
+   use mod_diffusion, only: eitmth_opt, eitmth_gm, &
+                            edritp_opt, edritp_large_scale, &
+                            ltedtp_opt, ltedtp_neutral
    use mod_utility, only: util1
    use mod_checksum, only: csdiag, chksummsk
 
@@ -1051,7 +1053,7 @@ module mod_cmnfld_routines
 !         edritp == 'large scale' .or. eitmth == 'gm' .or. &
 !         sum(ACC_BFSQ(1:nphy)) /= 0) then
       if (vcoord_type_tag == cntiso_hybrid .or. &
-          edritp == 'large scale' .or. eitmth == 'gm') then
+          edritp_opt == edritp_large_scale .or. eitmth_opt == eitmth_gm) then
 
          ! ---------------------------------------------------------------------
          ! Compute filtered buoyancy frequency squared.
@@ -1065,7 +1067,7 @@ module mod_cmnfld_routines
 
       endif
 
-      if (edritp == 'large scale' .or. eitmth == 'gm') then
+      if (edritp_opt == edritp_large_scale .or. eitmth_opt == eitmth_gm) then
 
          ! ---------------------------------------------------------------------
          ! Estimate slope of local neutral surface.
@@ -1074,7 +1076,7 @@ module mod_cmnfld_routines
          if (vcoord_type_tag == isopyc_bulkml) then
             call cmnfld_nslope_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
-            if (ntrdif) then
+            if (ltedtp_opt == ltedtp_neutral) then
                call cmnfld_nnslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
             else
                call cmnfld_nslope_cntiso_hybrid(m, n, mm, nn, k1m, k1n)

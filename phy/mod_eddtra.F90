@@ -31,8 +31,9 @@ module mod_eddtra
    use mod_grid, only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi
    use mod_eos, only: rho
    use mod_state, only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
-   use mod_diffusion, only: eitmth, difint, umfltd, vmfltd, &
-                            utfltd, vtfltd, usfltd, vsfltd
+   use mod_diffusion, only: eitmth_opt, eitmth_intdif, eitmth_gm, &
+                            difint, umfltd, vmfltd, utfltd, vtfltd, &
+                            usfltd, vsfltd
    use mod_cmnfld, only: nslpx, nslpy, mlts
    use mod_checksum, only: csdiag, chksummsk
 
@@ -1406,24 +1407,26 @@ contains
 
       ! Compute eddy-induced transport of mass.
       if (vcoord_type_tag == isopyc_bulkml) then
-         if     (eitmth == 'intdif') then
+         if     (eitmth_opt == eitmth_intdif) then
             call eddtra_intdif_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
-         elseif (eitmth == 'gm') then
+         elseif (eitmth_opt == eitmth_gm) then
             call eddtra_gm_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          else
             if (mnproc == 1) then
-               write(lp,'(4a)') ' eitmth=', trim(eitmth), ' is unsupported ', &
+               write(lp,'(a,i1,2a)') &
+                  ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
                   'for vcoord_type = ''isopyc_bulkml''!'
             endif
             call xcstop('(eddtra)')
                    stop '(eddtra)'
          endif
       else
-         if     (eitmth == 'gm') then
+         if     (eitmth_opt == eitmth_gm) then
             call eddtra_gm_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
          else
             if (mnproc == 1) then
-               write(lp,'(3a)') ' eitmth=', trim(eitmth), ' is unsupported!', &
+               write(lp,'(a,i1,2a)') &
+                  ' eitmth_opt = ', eitmth_opt, ' is unsupported ', &
                   'for vcoord_type = ''cntiso_hybrid''!'
             endif
             call xcstop('(eddtra)')

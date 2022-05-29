@@ -29,7 +29,7 @@ c
       use mod_eos, only: sig
       use mod_state, only:  dp, temp, saln, sigma,
      .                      utflx, vtflx, usflx, vsflx
-      use mod_diffusion, only: ntrdif,difiso,
+      use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso,
      .                         utflld, vtflld, usflld, vsflld
       use mod_checksum, only: csdiag, chksummsk
 #ifdef TRC
@@ -50,7 +50,7 @@ c
       parameter (dpeps=1.e-4)
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
-      if (ntrdif) then
+      if (ltedtp_opt.eq.ltedtp_neutral) then
         call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_ps)
         call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_ps)
 #ifdef TRC
