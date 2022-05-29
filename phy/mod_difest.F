@@ -32,7 +32,9 @@ c
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp, edwmth,
+     .                         edsprs, edritp_opt, edritp_shear,
+     .                         edritp_large_scale, edwmth_opt,
+     .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
      .                         t_ns_nonloc, s_nonloc
@@ -1337,7 +1339,7 @@ c ----- the WKB approximation by Chelton at al. (1998).
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
 c --- - Rossby radius is resolved by the grid.
-        if     (edwmth.eq.'smooth') then
+        if     (edwmth_opt.eq.edwmth_smooth) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1345,7 +1347,7 @@ c --- - Rossby radius is resolved by the grid.
             difwgt(i,j)=1./(1.+.25*q**4)
           enddo
           enddo
-        elseif (edwmth.eq.'step') then
+        elseif (edwmth_opt.eq.edwmth_step) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1357,13 +1359,6 @@ c --- - Rossby radius is resolved by the grid.
             endif
           enddo
           enddo
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' edwmth=',trim(edwmth),
-     .                        ' is unsupported!'
-          endif
-          call xcstop('(difest_lateral_hyb)')
-                 stop '(difest_lateral_hyb)'
         endif
 c
 c --- ------------------------------------------------------------------
@@ -1404,7 +1399,7 @@ c --- --- Eady growth rate.
             enddo
             enddo
           endif
-          if     (edritp.eq.'shear') then
+          if     (edritp_opt.eq.edritp_shear) then
             do k=2,kk
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1422,7 +1417,7 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          elseif (edritp.eq.'large scale') then
+          elseif (edritp_opt.eq.edritp_large_scale) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (kmax(i,j)-kfil(i,j).ge.1) then
@@ -1484,13 +1479,6 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          else
-            if (mnproc.eq.1) then
-              write (lp,'(3a)') ' edritp=',trim(edritp),
-     .                          ' is unsupported!'
-            endif
-            call xcstop('(difest)')
-                   stop '(difest)'
           endif
           if (edsprs) then
             do l=1,isp(j)
@@ -1748,7 +1736,7 @@ c ----- !!! Could include top layer in computation !!!
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
 c --- - Rossby radius is resolved by the grid.
-        if     (edwmth.eq.'smooth') then
+        if     (edwmth_opt.eq.edwmth_smooth) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1756,7 +1744,7 @@ c --- - Rossby radius is resolved by the grid.
             difwgt(i,j)=1./(1.+.25*q**4)
           enddo
           enddo
-        elseif (edwmth.eq.'step') then
+        elseif (edwmth_opt.eq.edwmth_step) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1768,13 +1756,6 @@ c --- - Rossby radius is resolved by the grid.
             endif
           enddo
           enddo
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' edwmth=',trim(edwmth),
-     .                        ' is unsupported!'
-          endif
-          call xcstop('(difest)')
-                 stop '(difest)'
         endif
 c
 c --- ------------------------------------------------------------------
@@ -1815,7 +1796,7 @@ c --- --- Eady growth rate.
             enddo
             enddo
           endif
-          if     (edritp.eq.'shear') then
+          if     (edritp_opt.eq.edritp_shear) then
             do k=2,kk
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1832,7 +1813,7 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          elseif (edritp.eq.'large scale') then
+          elseif (edritp_opt.eq.edritp_large_scale) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (kmax(i,j)-kfil(i,j).ge.1) then
@@ -1894,13 +1875,6 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          else
-            if (mnproc.eq.1) then
-              write (lp,'(3a)') ' edritp=',trim(edritp),
-     .                          ' is unsupported!'
-            endif
-            call xcstop('(difest)')
-                   stop '(difest)'
           endif
           if (edsprs) then
             do l=1,isp(j)
