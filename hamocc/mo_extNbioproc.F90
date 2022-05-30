@@ -153,14 +153,14 @@
       end subroutine extNbioparam_init
      
 !==================================================================================================================================      
-      subroutine nitrification(kpie,kpje,kpke,pddpo,omask,ptho)
+      subroutine nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Nitrification processes (NH4 -> NO2, NO2 -> NO3) accompanied
       ! by dark carbon fixation and O2-dependent N2O production 
 
-      integer, intent(in) :: kpie,kpje,kpke
+      integer, intent(in) :: kpie,kpje,kpke,kbnd
       real,    intent(in) :: omask(kpie,kpje)       
       real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
       integer :: i,j,k,proc_ctr
@@ -276,13 +276,13 @@
       end subroutine nitrification
 
 !==================================================================================================================================      
-      subroutine denit_NO3_to_NO2(kpie,kpje,kpke,pddpo,omask,ptho)
+      subroutine denit_NO3_to_NO2(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Denitrification / dissimilatory nitrate reduction (NO3 -> NO2)
 
-      integer, intent(in) :: kpie,kpje,kpke
+      integer, intent(in) :: kpie,kpje,kpke,kbnd
       real,    intent(in) :: omask(kpie,kpje)       
       real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
       integer :: i,j,k
@@ -326,13 +326,13 @@
       end subroutine denit_NO3_to_NO2
 
 !==================================================================================================================================      
-      subroutine anammox(kpie,kpje,kpke,pddpo,omask,ptho)
+      subroutine anammox(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Aanammox
 
-      integer, intent(in) :: kpie,kpje,kpke
+      integer, intent(in) :: kpie,kpje,kpke,kbnd
       real,    intent(in) :: omask(kpie,kpje)       
       real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
       integer :: i,j,k
@@ -380,13 +380,13 @@
       end subroutine anammox
 
 !==================================================================================================================================      
-      subroutine denit_dnra(kpie,kpje,kpke,pddpo,omask,ptho)
+      subroutine denit_dnra(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Denitrification processes (NO2 -> N2O -> N2) and dissmilatory nitrite reduction (NO2 -> NH4)
 
-      integer, intent(in) :: kpie,kpje,kpke
+      integer, intent(in) :: kpie,kpje,kpke,kbnd
       real,    intent(in) :: omask(kpie,kpje)       
       real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
+      real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
       integer :: i,j,k,n2oden,dnra_use
