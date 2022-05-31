@@ -60,11 +60,14 @@
 !     ---------
 !     .
 !**********************************************************************
-      USE mo_carbch
-      USE mo_biomod
-      USE mo_control_bgc
-      use mo_param1_bgc 
-      use mo_vgrid, only: kmle
+
+      use mo_carbch,     only: ocetra 
+      use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff 
+      use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen 
+      use mo_vgrid,      only: kmle
+#ifdef natDIC
+      use mo_param1_bgc, only: inatalkali
+#endif
 
       implicit none
 
@@ -85,7 +88,7 @@
 ! it is assumed here that this process is limited to the mixed layer
 !
       DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(oldocetra,dano3) 
+!$OMP PARALLEL DO PRIVATE(i,oldocetra,dano3,ttemp,nfixtfac) 
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j).gt.0.5) THEN

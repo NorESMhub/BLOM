@@ -19,7 +19,7 @@
 
 
       SUBROUTINE AUFR_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,               &
-                          kplyear,kplmon,kplday,omask,rstfnm_ocn)
+                          kplyear,kplmon,kplday,omask,rstfnm)
 !******************************************************************************
 !
 !**** *AUFR_BGC* - reads marine bgc restart data.
@@ -97,39 +97,64 @@
 !     *INTEGER* *kplmon*     - month in ocean restart date
 !     *INTEGER* *kplday*     - day   in ocean restart date
 !     *REAL*    *omask*      - land/ocean mask
-!     *CHAR*    *rstfnm_ocn* - restart file name-informations
+!     *CHAR*    *rstfnm*     - restart file name-informations
 !
 !
 !**************************************************************************
-      use netcdf
-      USE mo_carbch
-      USE mo_biomod
-      USE mo_control_bgc
-      use mo_param1_bgc
-      use mo_vgrid,     only: kbo
-      USE mo_sedmnt,    only: sedhpl
-      use mo_intfcblom, only: sedlay2,powtra2,burial2,atm2
-      USE mod_config,   only: inst_suffix
-      use mod_xc,       only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
-      use mod_dia,      only: iotype
+
+      use netcdf,         only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,nf90_open,nf90_get_att,nf90_inq_varid 
+      use mo_carbch,      only: co2star,co3,hi,satoxy
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc
+      use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,&
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra
+      use mo_vgrid,       only: kbo
+      use mo_sedmnt,      only: sedhpl
+      use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
+      use mod_xc,         only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
+      use mod_dia,        only: iotype
+#ifdef AGG
+      use mo_param1_bgc,  only: iadust,inos
+#endif
+#ifdef BOXATM
+      use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
+      use mo_carbch,      only: atm
+#endif
+#ifdef BROMO
+      use mo_param1_bgc,  only: ibromo
+#endif
+#ifdef CFC
+      use mo_param1_bgc,  only: icfc11,icfc12,isf6
+#endif
+#ifdef cisonew
+      use mo_carbch,      only: ocetra
+      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv 
+#endif
+#ifdef natDIC
+      use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
+      use mo_carbch,      only: nathi
+#endif
+#ifndef sedbypass
+      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
+#endif
+
 
       implicit none
 
       INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-      REAL             :: omask(kpie,kpje)    
+      REAL             :: omask(kpie,kpje)
       INTEGER          :: kplyear,kplmon,kplday
-      character(len=*) :: rstfnm_ocn
+      character(len=*) :: rstfnm
 
       ! Local variables
-      REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading 
+      REAL      :: locetra(kpie,kpje,2*kpke,nocetra) ! local array for reading
       INTEGER   :: restyear                          !  year of restart file
       INTEGER   :: restmonth                         !  month of restart file
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      character :: rstfnm*256
-      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm
+      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
 #ifdef cisonew
       REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
 #endif
@@ -154,25 +179,7 @@
 ! Open netCDF data file
 !
       testio=0
-      leninrstfn = len('.blom'//trim(inst_suffix)//'.r.')-1
       IF(mnproc==1 .AND. IOTYPE==0) THEN
-
-        i=1
-        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
-     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            write (io_stdo_bgc,*)                                    &
-     &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
-          endif
-        enddo
-        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)  //'.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-        else
-          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
-        endif
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
              CALL xchalt('(AUFR: Problem with netCDF1)')
@@ -203,22 +210,6 @@
       ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
         testio=1
-        i=1
-        do while (rstfnm_ocn(i:i+leninrstfn).ne.'.blom'//trim(inst_suffix)//'.r.' .AND.              &
-     &            rstfnm_ocn(i:i+8).ne.'.micom.r.')
-          i=i+1
-          if (i+8.gt.len(rstfnm_ocn)) then
-            write (io_stdo_bgc,*)                                    &
-     &        'Could not generate restart file name!'
-            call xchalt('(aufr_bgc)')
-            stop '(aufr_bgc)'
-          endif
-        enddo
-        if (rstfnm_ocn(i:i+leninrstfn).eq.'.blom'//trim(inst_suffix)//   '.r.') then
-          rstfnm=rstfnm_ocn(1:i-1)//'.blom'//trim(inst_suffix)//'.rbgc.'//rstfnm_ocn(i+leninrstfn+1:)
-        else
-          rstfnm=rstfnm_ocn(1:i-1)//'.micom.rbgc.'//rstfnm_ocn(i+9:)
-        endif
         write(stripestr,('(i3)')) 16
         write(stripestr2,('(i9)')) 1024*1024
         call mpi_info_create(info,ierr)
@@ -349,6 +340,26 @@
       ENDIF
 #endif
 
+! Find out whether to restart Bromoform
+#ifdef BROMO
+      lread_bro=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'bromo',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_bro=.false.
+      ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'bromo',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_bro=.false.
+#endif
+      ENDIF
+      IF(mnproc==1 .and. .not. lread_bro) THEN
+        WRITE(io_stdo_bgc,*) ' '
+        WRITE(io_stdo_bgc,*) 'AUFR_BGC info: Bromoform tracer not in restart file, '
+        WRITE(io_stdo_bgc,*) 'Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
+      ENDIF
+#endif
+
 ! Find out whether to restart atmosphere
 #if defined(BOXATM)
       lread_atm=.true.
@@ -435,6 +446,12 @@
       CALL read_netcdf_var(ncid,'hi',nathi(1,1,1),kpke,0,iotype)
       ENDIF
 #endif
+#ifdef BROMO
+      IF(lread_bro) THEN
+      CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
+      ENDIF
+#endif
+
 !
 ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
 !

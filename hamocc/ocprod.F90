@@ -18,7 +18,8 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho, &
+     &            pi_ph)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -81,12 +82,47 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch
-  use mo_sedmnt
-  use mo_biomod
-  use mo_param1_bgc
-  use mo_control_bgc
-  use mo_vgrid
+  use mo_carbch,      only: dmspar,ocetra,satoxy,hi
+  use mo_sedmnt,      only: prcaca,produs,prorca,silpro
+  use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
+                          & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
+                          & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
+                          & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
+                          & perc_diron,phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
+                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
+  use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
+                          & isilica,izoo
+  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
+  use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
+  use mod_xc,         only: mnproc
+
+#ifdef AGG
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
+                          & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
+  use mo_param1_bgc,  only: iadust,inos
+  use mo_vgrid,       only: kmle
+#elif defined(WLIN)
+  use mo_biomod,      only: wmin,wmax,wlin
+#endif
+#ifdef BROMO
+  use mo_param1_bgc,  only: ibromo
+  use mo_biomod,      only: int_chbr3_prod,int_chbr3_uv,rbro
+  use mo_carbch,      only: fbro1,fbro2
+  use mo_clim_swa,    only: swa_clim
+#endif
+#ifdef cisonew
+  use mo_biomod,      only: bifr13,bifr13_perm,bifr14,growth_co2
+  use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
+  use mo_sedmnt,      only: pror13,pror14,prca13,prca14
+  use mo_carbch,      only: co2star
+#endif
+#ifdef natDIC
+  use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
+#endif
+#ifdef FB_BGC_OCE
+  use mo_biomod,      only: abs_oce,atten_f
+#endif
+
 
   implicit none
 
@@ -96,14 +132,16 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real,    intent(in) :: omask(kpie,kpje)
   real,    intent(in) :: dust(kpie,kpje)
   real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: pi_ph(kpie,kpje)
 
   ! Local varaibles
   integer :: i,j,k,l
   integer :: is,kdonor
   integer, parameter :: nsinkmax = 12
+  real, parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
-  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
+  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
   real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,              &
      &        avgra,grazing,avsil,avdic,graton,                         &
      &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,           &
@@ -113,7 +151,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real :: zoothresh,phythresh
   real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
   real :: dustinp
-  real :: absorption
+  real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
   real :: wpocd,wcald,wopald,dagg
@@ -156,6 +194,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
   real :: wnos,wnosd
 #endif
+#ifdef BROMO
+  real :: bro_beta,bro_uv
+  real :: abs_uv(kpie,kpje,kpke)
+#endif
 
 
 ! set variables for diagnostic output to zero
@@ -183,6 +225,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   intdms_bac(:,:) = 0.
   intdms_uv (:,:) = 0.
   phosy3d (:,:,:) = 0.
+#ifdef BROMO
+  int_chbr3_uv (:,:) = 0.
+  int_chbr3_prod (:,:) = 0.
+#endif
 #ifdef AGG
   eps3d(:,:,:)    = 0.
   asize3d(:,:,:)  = 0.
@@ -195,7 +241,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   dmsp3 = dmspar(3)
   dmsp2 = dmspar(2)
   dmsp1 = dmspar(1)
-  dms_gamma = 0.87
 
 
 #ifdef PBGC_OCNP_TIMESTEP
@@ -210,18 +255,22 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! Calculate swr absorption by water and phytoplankton
 
   abs_bgc(:,:,:) = 0.
+#ifdef BROMO
+  abs_uv(:,:,:) = 0.
+#endif
 #ifdef FB_BGC_OCE
   abs_oce(:,:,:) = 0.
   abs_oce(:,:,1) = 1.
 #endif
 
-!$OMP PARALLEL DO PRIVATE(absorption,atten,dz)
+!$OMP PARALLEL DO PRIVATE(i,k,absorption,absorption_uv,atten,dz)
   do j = 1,kpje
   do i = 1,kpie
 
      if(omask(i,j) > 0.5) then
 
-        absorption = 1.
+        absorption    = 1.
+        absorption_uv = 1.
 
         vloop: do k = 1,kwrbioz(i,j)
 
@@ -231,8 +280,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
               ! Average light intensity in layer k
               atten = atten_w + atten_c * max(0.,ocetra(i,j,k,iphy))
-              abs_bgc(i,j,k) = ((absorption/atten) * (1.-exp(-atten*dz)))/dz
-
+              abs_bgc(i,j,k) = ((absorption/atten)*      (1.-exp(-atten*dz)))/dz
+#ifdef BROMO
+              abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
+#endif
 #ifdef FB_BGC_OCE
               abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
               if (k == 2) then
@@ -241,7 +292,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
               ! Radiation intensity I_0 at the top of next layer
-              absorption = absorption * exp(-atten*dz)
+              absorption    = absorption    * exp(-atten*dz)
+              absorption_uv = absorption_uv * exp(-atten_uv*dz)
 
            endif
         enddo vloop
@@ -257,7 +309,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! monthly mean values (kg/m2/month - assume 30 days per month here)
 ! dissolved iron is a fixed fraction (typically 3.5%), and immediately released
 
-!$OMP PARALLEL DO PRIVATE(dustinp)
+!$OMP PARALLEL DO PRIVATE(i,dustinp)
   do j = 1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -273,6 +325,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
 !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
 !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
+# ifdef AGG
+!$OMP  ,avmass,avnos,zmornos                                          &
+# endif
 # ifdef cisonew
 !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
 !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
@@ -280,7 +335,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
 !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
 # endif
-!$OMP  )
+# ifdef BROMO
+!$OMP  ,bro_beta,bro_uv                                               &
+# endif
+!$OMP  ,i,k)
 
   loop1: do j = 1,kpje
   do i = 1,kpie
@@ -395,8 +453,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         delcar14 = rcalc * export14 * bkopal/(avsil+bkopal)
 #endif
 #endif
-!        dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
-        dms_ph  = 1.
+
+        if(with_dmsph) then
+           dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j))*dms_gamma
+        else
+           dms_ph  = 1.
+        endif
         dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
      &           *(1.+1./(temp+dmsp1)**2)*dms_ph
         dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)             &
@@ -442,7 +504,22 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
-
+#ifdef BROMO
+! Bromo source from phytoplankton production and sink to photolysis
+! Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
+! sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
+! 2009) is omitted because the magnitude is more than 2 order smaller
+! than sink through halide substitution & hydrolysis (Fig. 3)
+! Assume that only 30% of incoming radiation are UV (i.e. 50% of non-PAR
+! radiation; PAR radiationis assume to be 40% of incoming radiation)
+        bro_beta = rbro*(fbro1*avsil/(avsil+bkopal)+fbro2*bkopal/(avsil+bkopal))
+        if (swa_clim(i,j,1) > 0.) then
+         bro_uv = 0.0333*dtb*0.3*(strahl(i,j)/swa_clim(i,j,1))*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
+        else
+         bro_uv = 0.0
+        endif
+        ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
+#endif
 
 #ifdef AGG
 !***********************************************************************
@@ -484,6 +561,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
         intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
         intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
+#ifdef BROMO
+        int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
+        int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
+#endif
         intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
         phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
@@ -505,12 +586,15 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
 !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
+# ifdef AGG
+!$OMP  ,avmass,avnos,zmornos                                          &
+# endif
 # ifdef cisonew
 !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
 !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
 !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
 # endif
-!$OMP  )
+!$OMP  ,i,k)
 
   loop2: do j = 1,kpje
   do i = 1,kpie
@@ -663,10 +747,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
 !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
+# ifdef AGG
+!$OMP  ,avmass,avnos                                                  &
+# endif
 #ifdef cisonew
 !$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP  )
+!$OMP  ,i,k)
   loop3: do j = 1,kpje
   do i = 1,kpie
   do k = kwrbioz(i,j)+1,kpke
@@ -747,10 +834,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !                      does it make sense to check for oxygen and nitrate deficit?
 
 !$OMP PARALLEL DO PRIVATE(remin                                       &
+# ifdef AGG
+!$OMP  ,avmass,avnos                                                  &
+# endif
 #ifdef cisonew
 !$OMP  ,rem13,rem14                                                   &
 #endif
-!$OMP  )
+!$OMP  ,i,k)
   loop4: do j = 1,kpje
   do i = 1,kpie
   do k = kwrbioz(i,j)+1,kpke
@@ -983,7 +1073,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #if defined(AGG)
 !$OMP ,wnos,wnosd,dagg                                                &
 #endif
-!$OMP )
+!$OMP ,i,k)
   do j = 1,kpje
   do i = 1,kpie
 
@@ -1237,7 +1327,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! fluxes are intentionally calculated using values at the NEW timelevel
 ! to be fully consistent with the implicit sinking scheme
 
-!$OMP PARALLEL DO PRIVATE(wpoc,wcal,wopal)
+!$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal)
   do j = 1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -1360,12 +1450,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 ! over the water column. Detritus is kept as detritus, while opal and CaCO3
 ! are remineralised instantanously
 
-!$OMP PARALLEL DO PRIVATE(
-!$OMP+  dz,florca,flcaca,flsil
+!$OMP PARALLEL DO PRIVATE(                                              &
+!$OMP  dz,florca,flcaca,flsil                                           &
 #ifdef cisonew
-!$OMP+ ,flor13,flor14,flca13,flca14
+!$OMP ,flor13,flor14,flca13,flca14                                      &
 #endif
-!$OMP+ )
+!$OMP ,i,k)
   do j=1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then

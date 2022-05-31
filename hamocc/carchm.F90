@@ -94,13 +94,29 @@
 !     none.
 !
 !**********************************************************************
-      USE mo_carbch
-      USE mo_chemcon
-      USE mo_biomod
-      USE mo_sedmnt
-      USE mo_control_bgc
-      USE mo_param1_bgc 
-      use mo_vgrid, only: dp_min,kbo,ptiestu
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy
+      use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
+                              & oxyco,tzero 
+      use mo_control_bgc, only: dtbgc 
+      use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
+                              & isco212,isilica  
+      use mo_vgrid,       only: dp_min,kbo,ptiestu
+
+#ifdef BROMO
+      use mo_param1_bgc,  only: iatmbromo,ibromo
+#endif
+#ifdef CFC
+      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
+      use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
+#endif
+#ifdef cisonew
+      use mo_carbch,      only: co213fxd,co213fxu,co214fxd,co214fxu,c14dec
+      use mo_param1_bgc,  only: iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv
+#endif
+#ifdef natDIC
+      use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
+      use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
+#endif
 
       implicit none
 
@@ -150,7 +166,9 @@
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
 #endif
-
+#ifdef BROMO
+      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
+#endif
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -176,11 +194,11 @@
        natomegaC(:,:,:)=0.
 #endif
 
-!$OMP PARALLEL DO PRIVATE(t,tk,tk100,s,rs,prb,Kh,Khd,K1,K2,Kb,K1p,K2p &
-!$OMP  ,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac,cu,cb,cc,pco2 &
-!$OMP  ,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa,kwco2,kwdms,kwo2  &
-!$OMP  ,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat,niflux,n2oflux      &
-!$OMP  ,dmsflux,omega,supsat,undsa,dissol                             &
+!$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
+!$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac    &
+!$OMP  ,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa     &
+!$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat    &
+!$OMP  ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol              &
 #ifdef CFC
 !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
 !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6                       &
@@ -193,14 +211,17 @@
 !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 #endif
-!$OMP  )
+#ifdef BROMO
+!$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
+#endif
+!$OMP  ,j,i)
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
 
       IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
 
-! Carbon chemistry: Caculate equilibrium constants and solve for [H+] and
+! Carbon chemistry: Calculate equilibrium constants and solve for [H+] and
 ! carbonate alkalinity (ac)
       t    = min(40.,max(-3.,ptho(i,j,k)))
       t2   = t**2
@@ -282,6 +303,11 @@
       sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
       sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
 #endif
+#ifdef BROMO
+! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
+! (2003; GBC)
+      sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
+#endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -310,9 +336,13 @@
       a_12 = 1e-12 * a_12
       a_sf = 1e-12 * a_sf
 #endif
+#ifdef BROMO
+!Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
+      a_bromo = exp(13.16 - 4973*(1/tk))
+#endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
-       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted to ms-1/(ms-1)^2 
+       Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
        kwco2 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scco2)**0.5
        kwo2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sco2)**0.5 
        kwn2  = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./scn2)**0.5 
@@ -323,7 +353,12 @@
        kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
        kw_sf = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_sf)**0.5
 #endif
-
+#ifdef BROMO
+! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
+!  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
+       kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
+     &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
+#endif
 
        atco2 = atm(i,j,iatmco2)
        ato2  = atm(i,j,iatmo2)
@@ -331,6 +366,9 @@
 #ifdef cisonew
        atco213 = atm(i,j,iatmc13)
        atco214 = atm(i,j,iatmc14)
+#endif
+#ifdef BROMO
+       atbrf = atm(i,j,iatmbromo)
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
@@ -347,7 +385,6 @@
        natfluxu=natpco2         *kwco2*dtbgc*Kh*1e-6*rrho 
        natfluxu=min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
 #endif
-
 
 ! Calculate saturation DIC concentration in mixed layer
        ta = ocetra(i,j,k,ialkali) / rrho
@@ -417,6 +454,7 @@
        atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
       ENDIF
 
+! Use conversion of 9.86923e-6 [std atm / Pascal]
 ! Surface flux of cfc11
       flx11=kw_11*dtbgc*                                               &
      & (a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))
@@ -434,6 +472,17 @@
 ! Surface flux of dms
        dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
        ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
+#ifdef BROMO
+! Quack and Wallace (2003) eq. 1
+! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
+! Convert Ca(atbrf) from 
+!  [pptv]    to [ppp]      by multiplying with 1e-12 (ppp = parts per part, dimensionless)
+!  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
+!  [mol L-1] to [kmol m-3] by multiplying with 1 
+      flx_bromo=kw_bromo*dtbgc*                                         &
+     & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+      ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
+#endif
 
 
 ! Save surface fluxes 
@@ -441,7 +490,7 @@
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
        atmflx(i,j,iatmn2o)=n2oflux
-       atmflx(i,j,iatmdms)=dmsflux ! [kmol dms m-2 timestep-1]
+       atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
        atmflx(i,j,iatmc14)=flux14u-flux14d
@@ -453,6 +502,9 @@
 #endif
 #ifdef natDIC
        atmflx(i,j,iatmnco2)=natfluxu-natfluxd
+#endif
+#ifdef BROMO
+       atmflx(i,j,iatmbromo)=-flx_bromo
 #endif
 
 ! Save up- and downward components of carbon fluxes for output
@@ -476,7 +528,15 @@
 
 
       endif ! k==1
-
+#ifdef BROMO
+! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
+! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1 
+       Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
+       ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
+! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
+       lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
+       ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
+#endif
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 
@@ -557,7 +617,7 @@
 #ifdef cisonew
 #ifndef sedbypass
         do k=1,ks
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(i)
         do j=1,kpje
         do i=1,kpie
         if(omask(i,j).gt.0.5) then

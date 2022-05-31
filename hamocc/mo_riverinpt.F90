@@ -30,6 +30,9 @@ module mo_riverinpt
 ! ------------
 !  Public routines and variable of this module:
 !
+!  -subroutine alloc_mem_riverinpt_bgm
+!    memory allocation for inventory calc handled inside hamocc4bgm
+!
 !  -subroutine ini_riverinpt
 !    read gnews riverine nutrient and cabon data 
 !
@@ -56,7 +59,7 @@ module mo_riverinpt
 ! Changes: 
 ! --------
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-!  - re-structured this moodule such that riverine input can be passed as an 
+!  - re-structured this module such that riverine input can be passed as an 
 !    argument to iHAMOCC's main routine
 ! 
 !********************************************************************************
@@ -66,7 +69,8 @@ use mod_xc ,        only: mnproc,nbdy
 implicit none
 
 private
-public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile
+public :: ini_riverinpt,riverinpt,nriv,rivflx,rivinfile,rivinflx
+public :: alloc_mem_riverinpt_bgm
 public :: irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 integer,         parameter :: nriv     = 7    ! size of river input field
@@ -77,7 +81,8 @@ integer,         parameter :: irdin    = 1, & ! dissolved inorganic nitrogen
                               iriron   = 5, & ! dissolved bioavailable iron
                               irdoc    = 6, & ! dissolved organic carbon
                               irdet    = 7    ! particulate carbon
-real,save,allocatable      :: rivflx(:,:,:)
+real,save,allocatable      :: rivflx(:,:,:)   ! holds raw input file
+real,save,allocatable      :: rivinflx(:,:,:) ! holds the fluxes per timestep for inventory calc
 
 ! File name (incl. full path) for input data, set through namelist 
 ! in hamocc_init.F 
@@ -92,7 +97,44 @@ real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   
 !********************************************************************************
 contains
 
+subroutine alloc_mem_riverinpt_bgm(kpie,kpje,omask)
+!-------------------------------------------------------------------------------
+!
+! Purpose:
+! --------
+! Initialise river input-related memory for inventory calculations
+! handled inside hamocc4bgm
+!
+! Arguments:
+! ----------
+!  *INTEGER*     *kpie*    - 1st dimension of model grid.
+!  *INTEGER*     *kpje*    - 2nd dimension of model grid.
+!  *REAL*        *omask*   - ocean mask
+! 
+!-------------------------------------------------------------------------------
 
+  use mo_control_bgc, only: io_stdo_bgc
+  implicit none
+  integer, intent(in)  :: kpie,kpje
+  real,    intent(in)  :: omask(kpie,kpje)
+
+  ! local variables
+  integer :: errstat
+
+
+  ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
+  IF (mnproc.eq.1) THEN
+  WRITE(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
+  WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+  WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+  WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
+  ENDIF
+  
+  ALLOCATE (rivinflx(kpie,kpje,nriv),stat=errstat)
+  if(errstat.ne.0) stop 'not enough memory rivinflx'
+  rivinflx(:,:,:) = 0.0
+
+end 
 
 subroutine ini_riverinpt(kpie,kpje,omask)
 !--------------------------------------------------------------------------------
@@ -140,6 +182,9 @@ subroutine ini_riverinpt(kpie,kpje,omask)
   ALLOCATE (rivflx(kpie,kpje,nriv),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory rivflx'
   rivflx(:,:,:) = 0.0
+
+  ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
+  call alloc_mem_riverinpt_bgm(kpie,kpje,omask)
 
   ! Return if riverine input is turned off
   if (.not. do_rivinpt) then
@@ -210,8 +255,7 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 !  *REAL*      *rivin*   - riverine input field [kmol m-2 yr-1]
 !
 !--------------------------------------------------------------------------------
-  use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,      &
-                            ialkali,inatsco212,inatalkali
+  use mo_param1_bgc,  only: iano3,iphosph,isilica,isco212,iiron,idoc,idet,ialkali,inatsco212,inatalkali
   use mo_control_bgc, only: dtb,do_rivinpt
   use mo_vgrid,       only: kmle
   use mo_carbch,      only: ocetra
@@ -230,7 +274,8 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
 
   if (.not. do_rivinpt) return
 
-!$OMP PARALLEL DO PRIVATE(fdt,volij)
+  rivinflx = 0.
+!$OMP PARALLEL DO PRIVATE(i,k,fdt,volij)
   DO j=1,kpje
   DO i=1,kpie
     IF(omask(i,j).GT.0.5) THEN
@@ -266,6 +311,13 @@ subroutine riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
       ocetra(i,j,1:kmle,idoc)       = ocetra(i,j,1:kmle,idoc)       + rivin(i,j,irdoc)*fdt/volij
       ocetra(i,j,1:kmle,idet)       = ocetra(i,j,1:kmle,idet)       + rivin(i,j,irdet)*fdt/volij
 
+      rivinflx(i,j,irdin)    = rivin(i,j,irdin)*fdt
+      rivinflx(i,j,irdip)    = rivin(i,j,irdip)*fdt
+      rivinflx(i,j,irsi)     = rivin(i,j,irsi)*fdt
+      rivinflx(i,j,iralk)    = rivin(i,j,iralk)*fdt
+      rivinflx(i,j,iriron)   = rivin(i,j,iriron)*fdt*0.01
+      rivinflx(i,j,irdoc)    = rivin(i,j,irdoc)*fdt
+      rivinflx(i,j,irdet)    = rivin(i,j,irdet)*fdt 
   ENDIF
 ENDDO
 ENDDO
