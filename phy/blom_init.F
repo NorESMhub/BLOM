@@ -36,6 +36,7 @@ c
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_eos, only: inieos
       use mod_swabs, only: iniswa
+      use mod_ndiff, only: ndiff_init
       use mod_tmsmt, only: initms
       use mod_dia
       use mod_inicon, only: inicon
@@ -140,6 +141,12 @@ c
       call initke
 c
 #endif
+c --- ------------------------------------------------------------------
+c --- Initialize neutral diffusion
+c --- ------------------------------------------------------------------
+c
+      call ndiff_init
+c
 c --- ------------------------------------------------------------------
 c --- Initialize diagnostic accumulation fields
 c --- ------------------------------------------------------------------
