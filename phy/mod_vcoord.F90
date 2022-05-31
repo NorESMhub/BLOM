@@ -82,16 +82,10 @@ module mod_vcoord
    integer, parameter :: &
       isopyc_bulkml = 1, &        ! Vertical coordinate type: bulk surface mixed
                                   ! layer with isopycnic layers below.
-      cntiso_hybrid = 2, &        ! Vertical coordinate type: Hybrid coordinate
+      cntiso_hybrid = 2           ! Vertical coordinate type: Hybrid coordinate
                                   ! with pressure coordinates towards the
                                   ! surface and continuous isopycnal below.
-#ifdef TRC
-      ntr_loc = ntr + 2           ! Local number of tracers where temperature
-                                  ! and salinity is added to the ntr parameter.
-#else
-      ntr_loc = 2                 ! Local number of tracers consisting of
-                                  ! temperature and salinity.
-#endif
+
    real(r8), parameter :: &
       bfsq_min      = 1.e-7_r8, & ! Minimum buoyancy frequency squared in
                                   ! monotonized potential density to be used in
@@ -99,9 +93,11 @@ module mod_vcoord
       regrid_mval   = - 1.e33_r8  ! Missing value for regridding.
 
 
+   integer :: ntr_loc
+
    type(recon_grd_struct) :: rcgs
    type(recon_src_struct) :: d_rcss, v_rcss
-   type(recon_src_struct) , dimension(ntr_loc) :: trc_rcss
+   type(recon_src_struct), allocatable, dimension(:) :: trc_rcss
    type(remap_struct) :: rms
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
@@ -919,6 +915,23 @@ contains
       enddo
    !$omp end parallel do
 
+#ifdef TRC
+      ! Local number of tracers where temperature and salinity is added to the
+      ! ntr parameter.
+      ntr_loc = ntr + 2
+#else
+      ! Local number of tracers consisting of temperature and salinity.
+      ntr_loc = 2
+#endif
+
+      ! Allocate reconstruction data structures for tracer source data.
+      allocate(trc_rcss(ntr_loc), stat = errstat)
+      if (errstat /= 0) then
+         write(lp,*) 'Failed to allocate trc_rcss!'
+         call xchalt('(inivar_vcoord)')
+                stop '(inivar_vcoord)'
+      endif
+
       ! Configuration of the reconstruction data structure that only depends on
       ! the source grid.
       rcgs%n_src = kk
@@ -942,21 +955,17 @@ contains
       trc_rcss(1)%pc_left_bndr = tracer_pc_upper_bndr
       trc_rcss(1)%pc_right_bndr = tracer_pc_lower_bndr
       if (tracer_limiting_tag == hor3map_non_oscillatory) then
-#ifdef TRC
          do nt = 2, ntr_loc
             trc_rcss(nt)%limiting = hor3map_non_oscillatory_posdef
             trc_rcss(nt)%pc_left_bndr = tracer_pc_upper_bndr
             trc_rcss(nt)%pc_right_bndr = tracer_pc_lower_bndr
          enddo
-#endif
       else
-#ifdef TRC
          do nt = 2, ntr_loc
             trc_rcss(nt)%limiting = tracer_limiting_tag
             trc_rcss(nt)%pc_left_bndr = tracer_pc_upper_bndr
             trc_rcss(nt)%pc_right_bndr = tracer_pc_lower_bndr
          enddo
-#endif
       endif
 
       v_rcss%limiting = velocity_limiting_tag

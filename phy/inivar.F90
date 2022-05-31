@@ -48,6 +48,9 @@ subroutine inivar
    ! ---------------------------------------------------------------------------
    ! Call initialization routines for various modules.
    ! ---------------------------------------------------------------------------
+#ifdef TRC
+   call inivar_tracers
+#endif
    call inivar_vcoord
    call inivar_state
    call inivar_pgforc
@@ -63,8 +66,5 @@ subroutine inivar
    call inivar_cmnfld
    call inivar_niw
    call inivar_tidaldissip
-#ifdef TRC
-   call inivar_tracers
-#endif
 
 end subroutine inivar

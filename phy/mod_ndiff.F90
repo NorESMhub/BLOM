@@ -47,24 +47,19 @@ module mod_ndiff
    integer, parameter :: &
       p_ord = 4, &
       it = 1, &
-      is = 2, &
-#ifdef TRC
-      ntr_loc = ntr + 2           ! Local number of tracers where temperature
-                                  ! and salinity is added to the ntr parameter.
-#else
-      ntr_loc = 2                 ! Local number of tracers consisting of
-                                  ! temperature and salinity.
-#endif
+      is = 2
 
-   real(r8), dimension(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2), target :: &
-      tpc_src_rs
+   integer :: ntr_loc
+
+   real(r8), allocatable, dimension(:,:,:,:,:), target :: &
+      tpc_src_rs, t_srcdi_rs
+   real(r8), allocatable, dimension(:,:,:,:) :: flxconv_rs
    real(r8), dimension(2,kdm,1-nbdy:idm+nbdy,2), target :: &
       p_srcdi_rs, drhodt_srcdi_rs, drhods_srcdi_rs
-   real(r8), dimension(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2), target :: t_srcdi_rs
-   real(r8), dimension(kdm,ntr_loc,1-nbdy:idm+nbdy,2) :: flxconv_rs
    integer, dimension(1-nbdy:idm+nbdy,2) :: ksmx_rs, kdmx_rs
 
-   public :: ndiff_prep_jslice, ndiff_uflx_jslice, ndiff_vflx_jslice, &
+   public :: ndiff_init, ndiff_prep_jslice, &
+             ndiff_uflx_jslice, ndiff_vflx_jslice, &
              ndiff_update_trc_jslice
 
 contains
@@ -879,6 +874,7 @@ contains
                   enddo
                endif
 
+#ifdef TRC
                do nt = 3, ntr_loc
                   dt = t_nl_m(nt) - t_nl_p(nt)
                   if (dt*( trc(i_m,j_m,ks_m+nn,nt-2) &
@@ -892,6 +888,7 @@ contains
                      flxconv_rs(kd_p,nt,i_p,j_rs_p) - tflx
                   endif
                enddo
+#endif
 
             endif
 
@@ -937,6 +934,32 @@ contains
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
+
+   subroutine ndiff_init
+
+      integer :: errstat
+
+#ifdef TRC
+      ! Local number of tracers where temperature and salinity is added to the
+      ! ntr parameter.
+      ntr_loc = ntr + 2
+#else
+      ! Local number of tracers consisting of temperature and salinity.
+      ntr_loc = 2
+#endif
+
+      ! Allocate arrays depending on the tracer count.
+      allocate(tpc_src_rs(p_ord+1,kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
+               t_srcdi_rs(2,kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
+               flxconv_rs(kdm,ntr_loc,1-nbdy:idm+nbdy,2), &
+               stat = errstat)
+      if (errstat /= 0) then
+         write(lp,*) 'Failed to allocate neutral diffusion arrays!'
+         call xchalt('(ndiff_init)')
+                stop '(ndiff_init)'
+      endif
+
+   end subroutine ndiff_init
 
    subroutine ndiff_prep_jslice(p_src_rs, p_dst_rs, trc_rcss, &
                                 i_lb, i_ub, j, j_rs, mm)
