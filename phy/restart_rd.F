@@ -1,6 +1,7 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
-!                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin
+!                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin,
+!                         Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -45,15 +46,15 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, ustarb, buoyfl
+     .                       flxco2, flxdms, flxbrf, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
-     .                    slp_da, abswnd_da, atmco2_da, ficem_da,
-     .                    l1ci, l2ci
+     .                    slp_da, abswnd_da, atmco2_da, atmbrf_da,
+     .                    ficem_da, l1ci, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
      .                     alb_tda, fice_tda, ntda, rnfres
@@ -560,6 +561,16 @@ c
         elseif (mnproc.eq.1) then
           write (lp,*)
      .     'Warning: DMS flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        vexist=ncinqv('flxbrf')
+!        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxbrf',flxbrf,ip,1,0.)
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: bromoform flux is not read from restart file and'
           write (lp,*)
      .     'will be initialized to zero.'
         endif

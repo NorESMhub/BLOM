@@ -43,8 +43,8 @@
 !
 !**************************************************************************
 
-      USE mo_carbch
-      use mo_param1_bgc
+      use mo_carbch,     only: ocetra
+      use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212
       use mo_vgrid, only: kmle
 
       implicit none
@@ -55,7 +55,7 @@
       INTEGER :: i,j,k
 
       do k=1,kmle
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       do j=1,kpje
       do i=1,kpie
         if (omask(i,j) .gt. 0.5 ) then

@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2015-2021 Mats Bentsen, Alok Kumar Gupta, Tomas Torsvik
 !
 ! This file is part of BLOM.
 !
@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine restart_ocntrcwt(rstfnm_ocn)
+      subroutine restart_ocntrcwt(rstfnm)
 c
 c --- ------------------------------------------------------------------
 c --- Write ocean tracer state to restart file
@@ -31,10 +31,10 @@ c
 c
       implicit none
 c
-      character rstfnm_ocn*(*)
+      character rstfnm*(*)
 c
-      integer i,nt,nat
-      character(len=256) :: rstfnm,trcnm
+      integer nt,nat
+      character(len=256) :: trcnm
 c
 c --- ------------------------------------------------------------------
 c --- if no ocean tracers are defined, return
@@ -43,41 +43,14 @@ c
       if (ntrocn.eq.0) return
 c
 c --- ------------------------------------------------------------------
-c --- Generate file name and create file 
+c --- Create file
 c --- ------------------------------------------------------------------
 c
-#ifdef CCSMCOUPLED
-      i=1
-      do while (rstfnm_ocn(i:i+7).ne.'.blom.r.')
-        i=i+1
-        if (i+7.gt.len(rstfnm_ocn)) then
-          if (mnproc.eq.1)
-     .      write (lp,*)
-     .        'Could not generate ocean tracer restart file name!'
-          call xchalt('(restart_ocntrcrd)')
-          stop '(restart_ocntrcrd)'
-        endif
-      enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'.blom.rtrc.'//rstfnm_ocn(i+8:)
-#else
-      i=1
-      do while (rstfnm_ocn(i:i+8).ne.'_restphy_')
-        i=i+1
-        if (i+8.gt.len(rstfnm_ocn)) then
-          if (mnproc.eq.1)
-     .      write (lp,*)
-     .        'Could not generate ocean tracer restart file name!'
-          call xchalt('(restart_ocntrcrd)')
-          stop '(restart_ocntrcrd)'
-        endif
-      enddo
-      rstfnm=rstfnm_ocn(1:i-1)//'_resttrc_'//rstfnm_ocn(i+9:)
-#endif
       if (mnproc.eq.1) then
         write (lp,'(2a)') ' saving ocean tracer restart file ',
      .                    trim(rstfnm)
       endif
-      if (rstfmt.eq.1) then 
+      if (rstfmt.eq.1) then
         call ncfopn(rstfnm,'w','6',1,iotype)
       elseif (rstfmt.eq.2) then
         call ncfopn(rstfnm,'w','h',1,iotype)

@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2008-2021 Mats Bentsen, Alok Kumar Gupta, Jerry Tjiputra,
+!                         Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -29,7 +30,7 @@
       use mod_cesm, only: swa_da, nsf_da, hmlt_da, lip_da, sop_da,
      .                    eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da,
      .                    ztx_da, mty_da, ustarw_da, slp_da, abswnd_da,
-     .                    atmco2_da, ficem_da, l1ci, l2ci
+     .                    atmco2_da, atmbrf_da, ficem_da, l1ci, l2ci
       use mod_utility, only: util1, util2
       use mod_checksum, only: csdiag, chksummsk
       use blom_cpl_indices
@@ -309,6 +310,40 @@
      .   write (lp,*) 'import_mct: atmospheric co2 not read'
 #endif      
 
+      if (index_x2o_Sa_brfprog > 0) then
+         n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               if     (ip(i,j) == 0) then
+                  atmbrf_da(i,j,l2ci) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  atmbrf_da(i,j,l2ci) = fval
+               else
+                  ! Atmospheric bromoform concentration [ppt]
+                  atmbrf_da(i,j,l2ci) =
+     .               x2o_o%rAttr(index_x2o_Sa_brfprog,n)
+               endif
+            enddo
+         enddo
+         call fill_global(mval, fval, halo_ps,
+     .                    atmbrf_da(1-nbdy,1-nbdy,l2ci))
+         if (mnproc.eq.1)
+     .      write (lp,*) 'import_mct: prog. atmospheric bromoform read'
+      else
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  atmbrf_da(i,j,l2ci) = mval
+               else
+                  atmbrf_da(i,j,l2ci) = -1
+               endif
+            enddo
+         enddo
+         if (mnproc.eq.1)
+     .   write (lp,*) 'import_mct: prog. atmospheric bromoform not read'
+      endif
+
       if (csdiag) then
          if (mnproc.eq.1) then
             write (lp,*) 'import_mct:'
@@ -329,7 +364,8 @@
          call chksummsk(slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
          call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
-         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
+         call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
+         call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
       endif
 
       end subroutine import_mct

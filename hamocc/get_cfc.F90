@@ -25,8 +25,8 @@
 !
 !     Jerry Tjiputra         *BCCR*          05.12.2012
 ! 
-      USE mo_control_bgc
-      USE mod_xc
+      use mo_control_bgc, only: io_stdo_bgc
+      use mod_xc,         only: mnproc
 
       implicit none
 

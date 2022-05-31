@@ -53,24 +53,25 @@
 !     - declaration of auxiliary functions  
 !
 !**********************************************************************
-      USE mod_config, only: inst_suffix
-      USE mod_xc, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
-      USE mod_dia, only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      USE mod_nctools
-      USE mo_param1_bgc, only: ks 
+      use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
+      use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
+      use mod_nctools,    only:ncpack,nccomp,nccopa,ncwrtr
+      use netcdf,         only: nf90_fill_double
+      use mo_param1_bgc,  only: ks
+      use mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
       PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp                
-      PUBLIC :: ks,ddm,depthslev,depthslev_bnds
+      PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
 
 ! --- Averaging and writing frequencies for diagnostic output     
       INTEGER, SAVE :: nbgc
       INTEGER, PARAMETER :: nbgcmax=10
-      REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc,bgcwrt
+      REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc
       INTEGER, DIMENSION(nbgcmax), SAVE :: nacc_bgc
       LOGICAL, DIMENSION(nbgcmax), SAVE :: diagmon_bgc,diagann_bgc,     &
-     &  filemon_bgc,fileann_bgc
+     &  filemon_bgc,fileann_bgc,bgcwrt
  
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -88,6 +89,8 @@
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
      & SRF_NATCO2FX  =0    ,                                            &
+     & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
+     & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
@@ -95,6 +98,9 @@
      & FLX_BSI2000   =0    ,FLX_BSI4000   =0    ,FLX_BSI_BOT   =0    ,  &
      & FLX_CAL0100   =0    ,FLX_CAL0500   =0    ,FLX_CAL1000   =0    ,  &
      & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
+     & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
+     & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
+     & FLX_SEDIFFSI  =0    ,                                            &   
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -110,6 +116,7 @@
      & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
      & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
      & LYR_NATCO3    =0    ,                                            &
+     & LYR_BROMO     =0    ,                                            &
      & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
@@ -128,6 +135,7 @@
      & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
      & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
      & LVL_NATCO3    =0    ,                                            &
+     & LVL_BROMO     =0    ,                                            &
      & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
@@ -155,6 +163,8 @@
      & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
      & SRF_NATCO2FX      ,                                              &
+     & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
+     & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
@@ -162,6 +172,9 @@
      & FLX_BSI2000       ,FLX_BSI4000       ,FLX_BSI_BOT       ,        &
      & FLX_CAL0100       ,FLX_CAL0500       ,FLX_CAL1000       ,        &
      & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
+     & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
+     & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
+     & FLX_SEDIFFSI      ,                                              &   
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -177,6 +190,7 @@
      & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
      & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
      & LYR_NATCO3        ,                                              &
+     & LYR_BROMO         ,                                              &
      & LYR_D13C          ,LYR_D14C          ,LYR_BIGD14C       ,        &
      & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
      & LYR_DOC13         ,LYR_CALC13        ,                           &
@@ -195,6 +209,7 @@
      & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
      & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
      & LVL_NATCO3        ,                                              &
+     & LVL_BROMO         ,                                              &
      & LVL_D13C          ,LVL_D14C          ,LVL_BIGD14C       ,        &
      & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
      & LVL_DOC13         ,LVL_CALC13        ,                           &
@@ -209,17 +224,32 @@
 
 !----------------------------------------------------------------      
 ! declarations for inventory_bgc.F90
+! order and increments of river (jir...) indices require to be the same 
+! as in mo_riverinpt 
       INTEGER, parameter ::                                             &
      &          jco2flux  =1,                                           &
-     &          jco214f   =2,                                           &
-     &          jo2flux   =3,                                           &
-     &          jn2flux   =4,                                           &
-     &          jn2oflux  =5,                                           &
-     &          jprorca   =6,                                           &
-     &          jprcaca   =7,                                           &
-     &          jsilpro   =8,                                           &
-     &          jprodus   =9,                                           &
-     &          nbgct2d   =9
+     &          jo2flux   =2,                                           &
+     &          jn2flux   =3,                                           &
+     &          jn2oflux  =4,                                           &
+     &          jprorca   =5,                                           &
+     &          jprcaca   =6,                                           &
+     &          jsilpro   =7,                                           &
+     &          jpodiic   =8,                                           &
+     &          jpodial   =9,                                           &
+     &          jpodiph   =10,                                          &
+     &          jpodiox   =11,                                          &
+     &          jpodin2   =12,                                          &
+     &          jpodino3  =13,                                          &
+     &          jpodisi   =14,                                          &
+     &          jndep     =15,                                          &
+     &          jirdin    =16,                                          &
+     &          jirdip    =17,                                          &
+     &          jirsi     =18,                                          &
+     &          jiralk    =19,                                          &
+     &          jiriron   =20,                                          &
+     &          jirdoc    =21,                                          &
+     &          jirdet    =22,                                          &
+     &          nbgct2d   =22
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
@@ -277,11 +307,25 @@
      &          jcalflx_bot= 0
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jsediffic  = 0 ,                                        &
+     &          jsediffal  = 0 ,                                        &
+     &          jsediffph  = 0 ,                                        &
+     &          jsediffox  = 0 ,                                        &
+     &          jsediffn2  = 0 ,                                        &
+     &          jsediffno3 = 0 ,                                        &
+                jsediffsi  = 0
+
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jsrfnatdic = 0 ,                                        &
      &          jsrfnatalk = 0 ,                                        &
      &          jnatpco2   = 0 ,                                        &
      &          jnatco2fx  = 0
 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jbromofx   = 0 ,                                        &
+     &          jsrfbromo  = 0 ,                                        &
+     &          jbromo_prod= 0 ,                                        &
+     &          jbromo_uv  = 0
 
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -289,7 +333,8 @@
      &          jatmo2   = 0 ,                                          &
      &          jatmn2   = 0 ,                                          &
      &          jatmc13  = 0 ,                                          &
-     &          jatmc14  = 0  
+     &          jatmc14  = 0 ,                                          &
+     &          jatmbromo= 0  
 
       INTEGER, SAVE :: nbgcm2d 
 
@@ -406,6 +451,10 @@
      &          jlvlnatomegaa = 0 ,                                     &
      &          jlvlnatomegac = 0 
 
+      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+     &          jbromo     = 0 ,                                        &
+     &          jlvlbromo  = 0               
+
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
 !----------------------------------------------------------------
@@ -453,35 +502,19 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      USE mod_xc
-      USE mo_control_bgc
-      USE mo_param1_bgc 
+      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
 
       IMPLICIT NONE 
      
       INTEGER, intent(in) :: kpie,kpje,kpke
 
       INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
-      LOGICAL             :: isopen,exists      
 
-!     Read namelist for diagnostic output 
-      GLB_AVEPERIO=0 
-      DO iounit=10,99
-        INQUIRE(unit=iounit,opened=isopen)
-        IF (.NOT.isopen) EXIT
-      ENDDO
-      INQUIRE(file='ocn_in'//trim(inst_suffix),exist=exists)
-      IF (exists) THEN
-        OPEN (iounit,file='ocn_in'//trim(inst_suffix),status='old',action='read',recl=80)
-      ELSE   
-        INQUIRE(file='limits',exist=exists)
-        IF (exists) THEN
-          OPEN (iounit,file='limits',status='old',action='read',      &
-     &      recl=80)
-        ELSE
-          STOP 'cannot find limits file' 
-        ENDIF 
-      ENDIF  
+!     Read namelist for diagnostic output
+      GLB_AVEPERIO=0
+      if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+      OPEN (newunit=iounit, file=bgc_namelist,                          &
+           status='old', action='read', recl=80)
       READ (iounit,nml=diabgc)
       CLOSE (iounit)
 
@@ -613,6 +646,22 @@
         jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
         IF (FLX_CAL_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
+#ifndef sedbypass
+        IF (FLX_SEDIFFIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
+        IF (FLX_SEDIFFAL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffal(n)=i_bsc_m2d*min(1,FLX_SEDIFFAL(n))
+        IF (FLX_SEDIFFPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffph(n)=i_bsc_m2d*min(1,FLX_SEDIFFph(n))
+        IF (FLX_SEDIFFOX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffox(n)=i_bsc_m2d*min(1,FLX_SEDIFFOX(n))
+        IF (FLX_SEDIFFN2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffn2(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2(n))
+        IF (FLX_SEDIFFNO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
+        IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+#endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))
@@ -641,6 +690,16 @@
         IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
 #endif
+#ifdef BROMO 
+        IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
+        IF (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromofx(n)=i_bsc_m2d*min(1,SRF_BROMOFX(n))
+        IF (INT_BROMOPRO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
+        IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
+#endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -666,6 +725,10 @@
         jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
         IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
+#endif
+#if defined(BROMO) 
+        IF (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
 #endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
@@ -785,6 +848,10 @@
         IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
 #endif
+#ifdef BROMO
+        IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -893,6 +960,10 @@
         jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
         IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
+#endif
+#ifdef BROMO
+        IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
 #endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
@@ -1064,7 +1135,7 @@
 ! --- Check whether field should be initialised
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1099,7 +1170,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,kdm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1135,7 +1206,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ddm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1171,7 +1242,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ks
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1206,7 +1277,7 @@
 ! --- Check whether field should be initialised
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1243,7 +1314,7 @@
         IF (pos(o).EQ.0) cycle
 !
           IF (wghtsflg.eq.0) then 
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
             DO j=1,jj
               DO l=1,isp(j)
                 DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1253,7 +1324,7 @@
             ENDDO
 !$OMP END PARALLEL DO
           ELSE
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
             DO j=1,jj
               DO l=1,isp(j)
                 DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1295,7 +1366,7 @@
 !
           IF (wghtsflg.eq.0) then 
             DO k=1,kk
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
               DO j=1,jj
                 DO l=1,isp(j)
                   DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1308,7 +1379,7 @@
             ENDDO
           ELSE
             DO k=1,kk
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
               DO j=1,jj
                 DO l=1,isp(j)
                   DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1353,7 +1424,7 @@
       DO o=1,nbgc
         IF (pos(o).EQ.0) cycle
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i,d)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1393,7 +1464,7 @@
         IF (pos(o).EQ.0) cycle
 !
         DO k=1,ks
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1430,7 +1501,7 @@
       DO o=1,nbgc
         IF (pos(o).EQ.0) cycle
 !
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1465,7 +1536,7 @@
 ! --- Check whether field should be initialised
       IF (posacc.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1501,7 +1572,7 @@
       IF (posacc.EQ.0) RETURN
 !
       DO k=1,kk
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1953,7 +2024,7 @@
 ! --- Check whether field should be processed
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1994,7 +2065,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,kdm
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2036,7 +2107,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ddm
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2079,7 +2150,7 @@
       IF (pos.EQ.0) RETURN
 !
       DO k=1,ks
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2119,7 +2190,7 @@
 ! --- Check whether field should be initia
       IF (pos.EQ.0) RETURN
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(l,i)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2160,7 +2231,7 @@
 ! --- Prepare index fields for masking
 
       IF (iniflg) THEN
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
         DO j=1,jj
           DO i=1,ii
             kmax(i,j)=0
@@ -2168,7 +2239,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=1,ddm
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
           DO j=1,jj
             DO i=1,ii
               IF (depths(i,j).GT.depthslev_bnds(1,k)) kmax(i,j)=k
@@ -2179,7 +2250,7 @@
         iniflg=.false.
       ENDIF
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,k)
       DO j=1,jj
         DO i=1,ii
           DO k=kmax(i,j)+1,ddm
@@ -2196,7 +2267,6 @@
       SUBROUTINE bgczlv(pddpo,kin,ind1,ind2,weights)
 !-----------------------------------------------------------------------
 !
-      USE mod_xc
 !
       IMPLICIT NONE
 !
@@ -2214,7 +2284,7 @@
 ! --- Adjust bounds of levitus levels according to model bathymetry
       IF (iniflg) THEN
         DO d=1,ddm
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2230,7 +2300,7 @@
 !
 ! --- Compute top and bottom depths of density layers 
       IF (kin.EQ.1) THEN       
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2240,7 +2310,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=2,kk
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2250,7 +2320,7 @@
           ENDDO
 !$OMP END PARALLEL DO
         ENDDO
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2262,7 +2332,7 @@
         ENDDO
 !$OMP END PARALLEL DO
         DO k=2,kk
-!$OMP PARALLEL DO  
+!$OMP PARALLEL DO PRIVATE(l,i)
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -2276,7 +2346,7 @@
       ENDIF
 !
 ! --- Compute interpolation weights 
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(l,i,d)
       DO j=1,jj
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))

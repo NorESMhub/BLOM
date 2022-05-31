@@ -27,32 +27,41 @@ module mo_ndep
 !  -add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
 !
 !  J. Schwinger,     *Uni Research, Bergen*    2018-04-12
-!  -re-organised this module into an initialisation routine and a routine that 
+!  -re-organised this module into an initialisation routine and a routine that
 !   does the deposition; introduced logical switch to activate N deposition.
 !
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
 !  -put reading of a time-slice of n-deposition data into own subroutine
 !  -removed default file name
-!   
+!
 !
 ! Purpose
 ! -------
-!  -Routines for reading and applying nitrogen deposition fluxes 
+!  -Routines for reading and applying nitrogen deposition fluxes
 !
 !
 ! Description:
 ! ------------
-!  
-!  The routine n_deposition reads nitrogen deposition from file and applies it 
-!  to the top-most model layer. 
 !
-!  N deposition is activated through a logical switch 'do_ndep' read from 
+!  The routine n_deposition reads nitrogen deposition from file and applies it
+!  to the top-most model layer.
+!
+!  N deposition is activated through a logical switch 'do_ndep' read from
 !  HAMOCC's bgcnml namelist. If N deposition is acitvated, a valid filename
-!  needs to be provided via HAMOCC's bgcnml namelist (variable ndepfile). If 
-!  the input file is not found, an error will be issued.  
-! 
-!  The input data must be already pre-interpolated to the ocean grid and stored 
-!  in the same folder with BLOM's grid information.   
+!  needs to be provided via HAMOCC's bgcnml namelist (variable ndepfile). If
+!  the input file is not found, an error will be issued.
+!
+!  The input data must be already pre-interpolated to the ocean grid and stored
+!  in the same folder with BLOM's grid information.
+!
+!  -subroutine ini_ndep
+!     Initialise the n-deposition module
+!
+!  -subroutine get_ndep
+!     Read and return n-deposition data for a given month.
+!
+!  -subroutine n_deposition
+!     Apply n-deposition to the top-most model layer.
 !
 !
 !******************************************************************************
@@ -248,7 +257,7 @@ subroutine n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 !******************************************************************************
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
-  use mo_carbch,      only: ocetra
+  use mo_carbch,      only: ocetra,ndepflx
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
 
   implicit none
@@ -264,13 +273,15 @@ subroutine n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
   if (.not. do_ndep) return 
 
   ! deposite N in topmost layer 
+  ndepflx=0.
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
-      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndep(i,j)*dtb/365./pddpo(i,j,1)
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndep(i,j)*dtb/365./pddpo(i,j,1)
+      ndepflx(i,j) = ndep(i,j)*dtb/365.
+      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepflx(i,j)/pddpo(i,j,1)
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepflx(i,j)/pddpo(i,j,1)
 #ifdef natDIC
-      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndep(i,j)*dtb/365./pddpo(i,j,1)
+      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepflx(i,j)/pddpo(i,j,1)
 #endif
     endif
   enddo

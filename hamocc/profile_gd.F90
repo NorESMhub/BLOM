@@ -41,14 +41,18 @@ subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 !
 !*******************************************************************************
    
-use mod_xc,         only: xchalt
-use mo_carbch,      only: ocetra
-use mo_Gdata_read,  only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
-use mo_control_bgc, only: io_stdo_bgc
-use mo_vgrid,       only: ptiestw
-use mo_param1_bgc
-
-
+use mod_xc,          only: xchalt
+use mo_carbch,       only: ocetra
+use mo_Gdata_read,   only: set_Gdata,clean_Gdata,get_profile,nzmax,nz,zlev_bnds,fillval
+use mo_control_bgc,  only: io_stdo_bgc
+use mo_vgrid,        only: ptiestw
+use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica  
+#ifdef cisonew
+  use mo_param1_bgc, only: isco213,isco214
+#endif
+#ifdef natDIC
+  use mo_param1_bgc, only: inatalkali,inatsco212
+#endif
 implicit none
 
 integer, intent(in) :: kpie,kpje,kpke,kbnd
