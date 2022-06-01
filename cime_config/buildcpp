@@ -35,11 +35,12 @@ def create_dimmod(case):
 
     comp_root_dir_ocn = case.get_value("COMP_ROOT_DIR_OCN")
     ocn_grid = case.get_value("OCN_GRID")
+    blom_vcoord = case.get_value("BLOM_VCOORD")
     ntasks_ocn = case.get_value("NTASKS_OCN")
     objroot = case.get_value("OBJROOT")
 
     gridconf_dir = os.path.join(comp_root_dir_ocn, "bld", ocn_grid)
-    kdm_file = os.path.join(gridconf_dir, "kdm")
+    kdm_file = os.path.join(gridconf_dir, "kdm." + blom_vcoord)
     blom_dimensions_script = os.path.join(comp_root_dir_ocn, "bld", "blom_dimensions")
 
     try:
@@ -77,6 +78,7 @@ def buildcpp(case):
     # Determine the CPP flags values needed to build the blom component
 
     ocn_grid = case.get_value("OCN_GRID")
+    blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
     tracers = case.get_value("BLOM_TRACER_MODULES")
     co2type = case.get_value("OCN_CO2_TYPE")
@@ -86,6 +88,8 @@ def buildcpp(case):
     hamocc_ciso = case.get_value("HAMOCC_CISO")
     hamocc_vsls = case.get_value("HAMOCC_VSLS")
 
+    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, "BLOM_VCOORD == {} and BLOM_TURBULENT_CLOSURE == {} is not a valid combination".format(blom_vcoord, turbclo))
+
     blom_cppdefs = ""
 
     if ocn_grid in ["tnx2v1", "tnx1.5v1", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
@@ -94,10 +98,10 @@ def buildcpp(case):
     if ocn_grid in ["gx1v5", "gx1v6", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
         blom_cppdefs = blom_cppdefs + " -DLEVITUS2X"
 
-    if turbclo != 0 or tracers != 0:
+    if turbclo or tracers:
         blom_cppdefs = blom_cppdefs + " -DTRC"
 
-    if turbclo != 0:
+    if turbclo:
         twoeq = False
         oneeq = False
         for option in turbclo.split():
@@ -116,7 +120,7 @@ def buildcpp(case):
         expect(twoeq or oneeq, "For turbulent closure either twoeq or oneeq must be provided as options")
         expect(not twoeq or not oneeq, "Do not use both twoeq and oneeq as options for turbulent closure")
 
-    if tracers != 0:
+    if tracers:
         for module in tracers.split():
             if module == "iage":
                 blom_cppdefs = blom_cppdefs + " -DIDLAGE"
