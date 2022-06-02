@@ -96,7 +96,7 @@
       <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
       <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
       <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
-      <value compset="SSP534OS_CAM60%NORESM.*_BLOM%ECO">ssp534os</value>
+      <value compset="SSP534_CAM60%NORESM.*_BLOM%ECO"  >ssp534os</value>
       <value compset="SSP585_CAM60%NORESM.*_BLOM%ECO"  >ssp585</value>
      </values>
     <group>run_component_blom</group>
