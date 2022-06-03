@@ -51,11 +51,12 @@
 !
 !**********************************************************************
 
-      USE mo_carbch
-      USE mo_sedmnt
-      USE mo_biomod
-      use mo_param1_bgc 
-
+      use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu 
+      use mo_biomod,     only: rcar 
+      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra 
+#ifdef cisonew
+      use mo_param1_bgc, only: isssc13,isssc14,issso13,issso14 
+#endif
       implicit none
 
       INTEGER :: kpie,kpje,i,j,k,l,iv
@@ -73,7 +74,7 @@
 
       do k=1,ks-1
 
-!$OMP PARALLEL DO PRIVATE(sedlo) 
+!$OMP PARALLEL DO PRIVATE(i,sedlo)
         do j=1,kpje
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
@@ -91,7 +92,7 @@
 
 ! filling downward  (accumulation)
         do iv=1,nsedtra
-!$OMP PARALLEL DO PRIVATE(uebers) 
+!$OMP PARALLEL DO PRIVATE(i,uebers)
         do j=1,kpje
         do i=1,kpie
           if(omask(i,j).gt.0.5) then
@@ -116,7 +117,7 @@
 ! to surface layers in the long range. Can be supplied again if a 
 ! sediment column has a deficiency in volume.
 
-!$OMP PARALLEL DO PRIVATE(sedlo)  
+!$OMP PARALLEL DO PRIVATE(i,sedlo)
        do j=1,kpje
        do i=1,kpie
           if(omask(i,j).gt.0.5) then
@@ -132,7 +133,7 @@
 !$OMP END PARALLEL DO
 
       do iv=1,nsedtra
-!$OMP PARALLEL DO PRIVATE(uebers)  
+!$OMP PARALLEL DO PRIVATE(i,uebers)
       do j=1,kpje
       do i=1,kpie
           if(omask(i,j).gt.0.5) then
@@ -158,7 +159,7 @@
 ! then, successively, the following layers are filled upwards.
 ! if there is not enough solid matter to fill the column, add clay.
 
-!$OMP PARALLEL DO 
+!$OMP PARALLEL DO PRIVATE(i)
       do j=1,kpje
       do i=1,kpie
         fulsed(i,j)=0.
@@ -168,7 +169,7 @@
       
 ! determine how the total sediment column is filled 
       do k=1,ks
-!$OMP PARALLEL DO PRIVATE(sedlo) 
+!$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
@@ -187,7 +188,7 @@
 ! shift the sediment deficiency from the deepest (burial) 
 ! layer into layer ks
 !$OMP PARALLEL DO                                          &
-!$OMP&PRIVATE(seddef,spresent,buried,refill,frac) 
+!$OMP&PRIVATE(i,seddef,spresent,buried,refill,frac)
       do j=1,kpje
       do i=1,kpie
       if(omask(i,j).gt.0.5) then
@@ -246,7 +247,7 @@
 
 !     redistribute overload of layer ks
       do  k=ks,2,-1
-!$OMP PARALLEL DO PRIVATE(sedlo) 
+!$OMP PARALLEL DO PRIVATE(i,sedlo)
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
@@ -262,7 +263,7 @@
 !$OMP END PARALLEL DO
 
       do iv=1,4
-!$OMP PARALLEL DO PRIVATE(uebers,frac) 
+!$OMP PARALLEL DO PRIVATE(i,uebers,frac)
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then

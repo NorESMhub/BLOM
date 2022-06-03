@@ -6,12 +6,19 @@ Model (<https://github.com/NorESMhub/NorESM>).
 
 ## BLOM documentation
 
-BLOM documetation is integrated in the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/noresm2/>).
-- [Running OMIP-type experiments](https://noresm-docs.readthedocs.io/en/noresm2/configurations/omips.html#blom)
-- [BLOM model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
-- [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/noresm2/model-description/ocn_model.html)
+Since BLOM is mainly used in connection with the NorESM system, the BLOM user documetation has been integrated
+into the general NorESM documentation on ReadTheDocs (<https://noresm-docs.readthedocs.io/en/latest/>).
+- [Running OMIP-type experiments](https://noresm-docs.readthedocs.io/en/latest/configurations/omips.html#blom)
+- [BLOM model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
+- [iHAMOCC model description](https://noresm-docs.readthedocs.io/en/latest/model-description/ocn_model.html)
 
-### Building the code with meson
+The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) contains information about
+BLOM-specific topics that is not considered relevant for the general NorESM documentation:
+- working with the BLOM git repository on gitHub
+- running BLOM/iHAMOCC stand-alone test cases
+- details about model structure
+
+### Building a stand-alone BLOM executable with meson
 When compiling BLOM with NorESM, the NorESM build system should be used. A stand-alone
 BLOM executable can be built by using the meson build system.
 To build the code ensure that [`Meson`](https://mesonbuild.com/) is available.
@@ -24,37 +31,8 @@ $ meson compile -C builddir
 
 The executable `blom` file will then be stored in the `./builddir` directory.
 
-The code has several different configuration options setup in
-[`meson_options.txt`](./meson_options.txt) which can be specified either when
-setting up or through [`meson
-configure`](https://mesonbuild.com/Commands.html#configure).
-
-To change the configuration, after `meson setup`, use `meson configure`. E.g. to
-enable `MPI` and parallel `NetCDF` one could reconfigure the build by
-
-```bash
-$ meson configure builddir -D mpi=true -D parallel_netcdf=true
-$ meson compile -C builddir
-```
-
-The same configuration when setting up would be
-```bash
-$ meson setup builddir --buildtype=debugoptimized -D mpi=true -D parallle_netcdf=true
-$ meson compile -C builddir
-```
-
-#### Changing compiler
-To change the compiler one must define the `FC` (Fortran compiler) and `CC` (C
-compiler) environment variables. As an example, the following changes the
-compiler suite to the Intel compilers.
-
-```bash
-$ CC=icc FC=ifort meson setup builddir --buildtype=debugoptimized
-$ meson compiler -C builddir
-```
-
-After the first line all subsequent compiles (and changes with `meson
-configure`) will utilize the Intel compiler to build and link BLOM.
+See the [BLOM/iHAMOCC stand-alone](https://github.com/NorESMhub/BLOM/wiki/Run-BLOM-iHAMOCC-stand-alone)
+wiki page for further instructions on how to configure the meson build system.
 
 ### Running tests
 After successfully building the code it can be a good idea to test that the code
@@ -75,9 +53,12 @@ single test with:
 $ meson test -C builddir "run single_column"
 ```
 
-### Working with the BLOM git repository
+## Contribute to BLOM/iHAMOCC development
 
-The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) includes instructions on how to contribute to the BLOM/iHAMOCC model system, and how to work with the BLOM git repository with your own fork on gitHub.
+The [CONTRIBUTING.md](CONTRIBUTING.md) file includes instructions on how to contribute
+to the BLOM/iHAMOCC model system. The [BLOM wiki](https://github.com/NorESMhub/BLOM/wiki) 
+includes more detailed instructions on how to work with the BLOM git repository with your
+own fork on gitHub.
 
 ## License
 

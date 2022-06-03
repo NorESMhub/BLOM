@@ -42,13 +42,12 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !
 !**********************************************************************
-  use mo_carbch
-  use mo_sedmnt
-  use mo_biomod
-
-  use mo_control_bgc
-  use mo_param1_bgc
-  use mod_xc
+  
+  use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
+                          & porsol,dzs,seddw,sedict,solfu,orgwei
+  use mo_control_bgc, only: dtbgc,io_stdo_bgc
+  use mo_param1_bgc,  only: ks
+  use mod_xc,         only: mnproc
 
   implicit none
 
@@ -106,39 +105,7 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
      seddw(k) = 0.5 * (dzs(k) + dzs(k+1))
   enddo
 
-! ******************************************************************
-! the following section is to include the SEDIMENT ACCELERATION
-! mechanism to accelerate the sediment:
-
-  sedac = 1. / real(isac)
-
-! determine total solid sediment thickness sumsed
-! and reduced sediment volume
-  sumsed = 0.
-  do k = 1, ks
-     porwat(k) = porwat(k) * sedac
-     porsol(k) = porsol(k) * sedac
-     sumsed = sumsed + seddw(k)
-  enddo
-
-! determine reduced diffusion rate sedict,
-! and scaling for bottom layer ventilation, sedifti
-
   sedict = 1.e-9 * dtbgc
-  sedifti = sedict / (sumsed**2)
-  sedict = sedict * sedac
-
-  if (mnproc == 1) then
-     write(io_stdo_bgc,*)  'sediment acceleration factor: ',isac
-     write(io_stdo_bgc,*)  'sediment area reduction: ',sedac
-     write(io_stdo_bgc,*)  'new diffusion is: ',sedict
-     write(io_stdo_bgc,*)  'total sediment thickness: ',sumsed
-     write(io_stdo_bgc,*)  'sedict / sumsed**2: ',sedifti
-     write(io_stdo_bgc,*)  'new pore water fraction: ',porwat
-  endif
-
-
-! ******************************************************************
 
 ! ******************************************************************
 ! densities etc. for SEDIMENT SHIFTING

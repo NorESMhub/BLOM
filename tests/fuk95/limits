@@ -34,48 +34,21 @@
 !            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
 !            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
 !            (1975) energy conserving with some dissipation) (a)
-! EITMTH   : Eddy-induced transport parameterization method. Valid
-!            methods: 'intdif', 'gm' (a)
-! EDRITP   : Type of Richardson number used in eddy diffusivity
-!            computation. Valid types: 'shear', 'large scale' (a)
 ! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
 ! RMPMTH   : Method of applying eddy-induced transport in the remap
 !            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
-! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
-!            the ration of Rossby radius of deformation to the
-!            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
-! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
-! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
-! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
-! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
-! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
-! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
-! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
-!            interface diffusivity in the Eden and Greatbatch (2008)
-!            parameterization. egidfq=difint/difiso () (f)
-! RI0      : Critical gradient richardson number for shear driven
-!            vertical mixing () (f)
 ! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
 !            (1993) TKE closure () (f)
 ! RM5      : Efficiency factor of TKE generation by momentum
 !            entrainment in the Oberhuber (1993) TKE closure () (f)
 ! CE       : Efficiency factor for the restratification by mixed layer
 !            eddies (Fox-Kemper et al., 2008) () (f)
-! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
-!            background diffusivity is a constant divided by the
-!            Brunt-Vaisala frequency, if bdmtyp=2 the background
-!            diffusivity is constant () (i)
-! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
-!            frequency (cm**2/s**2) (f)
-! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
 ! TDFILE   : Name of file containing tidal wave energy dissipation
 !            divided by by bottom buoyancy frequency (a)
-! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
-!            () (f)
 ! NIWGF    : Global factor applied to the energy input by near-intertial
 !            motions () (f)
 ! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
@@ -139,28 +112,13 @@
   CWBDTS   = 0.
   CWBDLS   = 25.
   MOMMTH   = 'enscon'
-  EITMTH   = 'gm'
-  EDRITP   = 'large scale'
   BMCMTH   = 'uc'
   RMPMTH   = 'eitvel'
-  EDWMTH   = 'smooth'
   MLRTTP   = 'constant'
-  EDSPRS   = .true.
-  EGC      = 0.
-  EGGAM    = 200.
-  EGLSMN   = 4000.e2
-  EGMNDF   = 0.
-  EGMXDF   = 1500.e4
-  EGIDFQ   = 1.
-  RI0      = 1.2
   RM0      = 1.2
   RM5      = 0.
   CE       = 0.
-  BDMTYP   = 2
-  BDMC1    = 5.e-4
-  BDMC2    = .15
   TDFILE   = 'unset'
-  TKEPF    = 0.
   NIWGF    = 0.
   NIWBF    = .35
   NIWLF    = .5
@@ -191,6 +149,60 @@
   IOTYPE   = 0
 /
  
+! NAMELIST FOR DIFFUSION PARAMETERS
+!
+! CONTENTS:
+!
+! EITMTH   : Eddy-induced transport parameterization method. Valid
+!            methods: 'intdif', 'gm' (a)
+! EDRITP   : Type of Richardson number used in eddy diffusivity
+!            computation. Valid types: 'shear', 'large scale' (a)
+! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
+!            the ration of Rossby radius of deformation to the
+!            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
+! MLRTTP   : Type of mixed layer restratification time scale. Valid
+!            types: 'variable', 'constant', 'limited' (a)
+! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
+! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
+! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
+! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
+! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
+! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
+!            interface diffusivity in the Eden and Greatbatch (2008)
+!            parameterization. egidfq=difint/difiso () (f)
+! RI0      : Critical gradient richardson number for shear driven
+!            vertical mixing () (f)
+! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
+!            background diffusivity is a constant divided by the
+!            Brunt-Vaisala frequency, if bdmtyp=2 the background
+!            diffusivity is constant () (i)
+! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
+!            frequency (cm**2/s**2) (f)
+! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
+! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
+!            () (f)
+! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
+!            'layer', 'neutral'.
+&DIFFUSION
+  EITMTH   = 'gm'
+  EDRITP   = 'large scale'
+  EDWMTH   = 'smooth'
+  EDSPRS   = .true.
+  EGC      = 0.
+  EGGAM    = 200.
+  EGLSMN   = 4000.e2
+  EGMNDF   = 0.
+  EGMXDF   = 1500.e4
+  EGIDFQ   = 1.
+  RI0      = 1.2
+  BDMTYP   = 2
+  BDMC1    = 5.e-4
+  BDMC2    = .15
+  TKEPF    = 0.
+  LTEDTP   = 'layer'
+/
+
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
 !
 ! CONTENTS:

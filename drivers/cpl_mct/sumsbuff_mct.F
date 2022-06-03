@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2008-2021 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -27,7 +27,7 @@
       use mod_grid, only: scuy, scvx, scuxi, scvyi
       use mod_state, only: u, v, temp, saln, pbu, pbv, ubflxs, vbflxs,
      .                     sealv
-      use mod_forcing, only: flxco2, flxdms
+      use mod_forcing, only: flxco2, flxdms, flxbrf
       use mod_cesm, only: frzpot
       use blom_cpl_indices
 
@@ -136,6 +136,18 @@
                sbuff(i,j,index_o2x_Faoo_fdms_ocn) =
      .            sbuff(i,j,index_o2x_Faoo_fdms_ocn)
      .          + flxdms(i,j)*baclin
+            enddo
+            enddo
+         enddo
+      endif
+
+      if (index_o2x_Faoo_fbrf_ocn > 0) then
+         do j = 1, jj
+            do l = 1, isp(j)
+            do i = max(1,ifp(j,l)), min(ii,ilp(j,l))
+               sbuff(i,j,index_o2x_Faoo_fbrf_ocn) =
+     .            sbuff(i,j,index_o2x_Faoo_fbrf_ocn)
+     .          + flxbrf(i,j)*baclin
             enddo
             enddo
          enddo

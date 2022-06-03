@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2020 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2002-2022 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -108,7 +108,10 @@ module mod_forcing
       abswnd, &       ! Wind speed at measurement height (zu) [m s-1].
       atmco2, &       ! Atmospheric CO2 concentration [ppm].
       flxco2, &       ! Air-sea CO2 flux [kg m-2 s-1].
-      flxdms          ! Sea-air DMS flux [kg m-2 s-1].
+      flxdms, &       ! Sea-air DMS flux [kg m-2 s-1].
+      flxbrf, &       ! sea-air bromoform flux
+      atmbrf          ! atmospheric bromoform concentration
+
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       surflx, &       ! Surface thermal energy flux [W cm-2].
@@ -121,17 +124,23 @@ module mod_forcing
       tauy, &         ! v-component of surface stress [g cm-1 s-2].
       ustar, &        ! Surface friction velocity [cm s-1].
       ustarb, &       ! Bottom friction velocity [cm s-1].
-      ustar3, &       ! Friction velocity cubed [cm3 s-3].
-      buoyfl          ! Surface buoyancy flux [cm2 s-3].
+      ustar3          ! Friction velocity cubed [cm3 s-3].
+
+   ! Flux fields at model interfaces.
+
+   real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kk + 1) :: &
+      buoyfl, &       ! Buoyancy flux [cm2 s-3].
+      t_sw_nonloc     ! Non-local transport term that is the fraction of
+                      ! shortwave flux passing a layer interface [].
 
    public :: aptflx, apsflx, ditflx, disflx, srxbal, sprfac, &
              trxday, srxday, trxdpt, srxdpt, trxlim, srxlim, scfile, &
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
-             ustarw, slp, abswnd, atmco2, flxco2, flxdms, &
+             ustarw, slp, abswnd, atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
-             ustar, ustarb, ustar3, buoyfl, &
+             ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, &
              inivar_forcing, fwbbal
 
 contains
@@ -141,7 +150,7 @@ contains
    ! Initialize variables related to forcing.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, l
+      integer :: i, j, k, l
 
    !$omp parallel do private(i)
       do j = 1 - nbdy, jj + nbdy
@@ -166,6 +175,8 @@ contains
             atmco2(i, j) = spval
             flxco2(i, j) = spval
             flxdms(i, j) = spval
+            atmbrf(i, j) = spval
+            flxbrf(i, j) = spval
             surflx(i, j) = spval
             surrlx(i, j) = spval
             sswflx(i, j) = spval
@@ -177,7 +188,16 @@ contains
             ustar(i, j) = spval
             ustarb(i, j) = spval
             ustar3(i, j) = spval
-            buoyfl(i, j) = spval
+         enddo
+      enddo
+   !$omp end parallel do
+
+   !$omp parallel do private(k, i)
+      do j = 1 - nbdy, jj + nbdy
+         do k = 1, kk + 1
+            do i = 1 - nbdy, ii + nbdy
+               buoyfl(i, j, k) = spval
+            enddo
          enddo
       enddo
    !$omp end parallel do
@@ -188,10 +208,22 @@ contains
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
             flxco2(i, j) = 0._r8
             flxdms(i, j) = 0._r8
+            flxbrf(i, j) = 0._r8
             ustar (i, j) = 0._r8
             ustarb(i, j) = 0._r8
-            buoyfl(i, j) = 0._r8
          enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
+   !$omp parallel do private(k, l, i)
+      do j = 1, jj
+         do k = 1, kk + 1
+            do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+               buoyfl(i, j, k) = 0._r8
+            enddo
+            enddo
          enddo
       enddo
    !$omp end parallel do

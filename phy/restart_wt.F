@@ -1,7 +1,7 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
-!                         Aleksi Nummelin
+!                         Aleksi Nummelin, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -28,8 +28,9 @@ c
       use mod_config, only: expcnf, runid, inst_suffix
       use mod_time, only: date0, date, nstep, nstep_in_day, nday_of_year
       use mod_xc
-      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
-      use mod_state, only: u, v, dp, temp, saln, sigma,
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     phi, ubflxs, vbflxs,
      .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
@@ -43,14 +44,15 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, ustarb, buoyfl
+     .                       flxco2, flxdms, ustarb, buoyfl,flxbrf
       use mod_niw, only: uml, vml, umlres, vmlres
-      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
+      use mod_difest, only: OBLdepth
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
-     .                    slp_da, abswnd_da, atmco2_da, ficem_da,
-     .                    l2ci
+     .                    slp_da, abswnd_da, atmco2_da, atmbrf_da,
+     .                    ficem_da, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
      .                     alb_tda, fice_tda, ntda, rnfres
@@ -281,7 +283,6 @@ c
       call wrtrst('phi',trim(c5p)//' time',phi(1-nbdy,1-nbdy,kk+1),ip)
       call wrtrst('sealv',trim(c5p)//' time',sealv,ip)
       call wrtrst('ustar',trim(c5p)//' time',ustar,ip)
-      call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
       call wrtrst('uml',trim(c5u)//' k4 time',uml,iuu)
@@ -289,10 +290,15 @@ c
       call wrtrst('umlres',trim(c5u)//' k2 time',umlres,iuu)
       call wrtrst('vmlres',trim(c5v)//' k2 time',vmlres,ivv)
 c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
+      endif
+c
       if (vcoord_type_tag.eq.cntiso_hybrid) then
-        call wrtrst('Kvisc_m',trim(c5p)//' kkp1 time',Kvisc_m,ip)
-        call wrtrst('Kdiff_t',trim(c5p)//' kkp1 time',Kdiff_t,ip)
-        call wrtrst('Kdiff_s',trim(c5p)//' kkp1 time',Kdiff_s,ip)
+        call wrtrst('dpu',trim(c5p)//' kk2 time',dpu,iu)
+        call wrtrst('dpv',trim(c5p)//' kk2 time',dpv,iv)
+        call wrtrst('difiso',trim(c5p)//' kk time',difiso,ip)
+        call wrtrst('OBLdepth',trim(c5p)//' time',OBLdepth,ip)
       endif
 c
       if (sprfac) then
@@ -345,10 +351,14 @@ c
         call wrtrst('ficem_da',trim(c5p)//' k2 time',ficem_da,ip)
         call wrtrst('abswnd_da',trim(c5p)//' k2 time',abswnd_da,ip)
         call wrtrst('atmco2_da',trim(c5p)//' k2 time',atmco2_da,ip)
+        call wrtrst('atmbrf_da',trim(c5p)//' k2 time',atmbrf_da,ip)  ! not read in restart_rd, necesarry?
         call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
         call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
+#ifdef BROMO
+        call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+#endif
       endif
 c
 #ifdef TRC
@@ -877,7 +887,6 @@ c
       call defvarrst('phi',trim(c5p)//' time')
       call defvarrst('sealv',trim(c5p)//' time')
       call defvarrst('ustar',trim(c5p)//' time')
-      call defvarrst('buoyfl',trim(c5p)//' time')
       call defvarrst('kfpla',trim(c5p)//' k2 time')
       call defvarrst('ficem',trim(c5p)//' time')
       call defvarrst('uml',trim(c5u)//' k4 time')
@@ -885,10 +894,15 @@ c
       call defvarrst('umlres',trim(c5u)//' k2 time')
       call defvarrst('vmlres',trim(c5v)//' k2 time')
 c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call defvarrst('buoyfl',trim(c5p)//' time')
+      endif
+c
       if (vcoord_type_tag.eq.cntiso_hybrid) then
-        call defvarrst('Kvisc_m',trim(c5p)//' kkp1 time')
-        call defvarrst('Kdiff_t',trim(c5p)//' kkp1 time')
-        call defvarrst('Kdiff_s',trim(c5p)//' kkp1 time')
+        call defvarrst('dpu',trim(c5p)//' kk2 time')
+        call defvarrst('dpv',trim(c5p)//' kk2 time')
+        call defvarrst('difiso',trim(c5p)//' kk time')
+        call defvarrst('OBLdepth',trim(c5p)//' time')
       endif
 c
       if (sprfac) then
@@ -941,10 +955,14 @@ c
         call defvarrst('ficem_da',trim(c5p)//' k2 time')
         call defvarrst('abswnd_da',trim(c5p)//' k2 time')
         call defvarrst('atmco2_da',trim(c5p)//' k2 time')
+        call defvarrst('atmbrf_da',trim(c5p)//' k2 time')
         call defvarrst('frzpot',trim(c5p)//' time')
         call defvarrst('mltpot',trim(c5p)//' time')
         call defvarrst('flxco2',trim(c5p)//' time')
         call defvarrst('flxdms',trim(c5p)//' time')
+#ifdef BROMO
+        call defvarrst('flxbrf',trim(c5p)//' time')
+#endif
       endif
 c
 #ifdef TRC

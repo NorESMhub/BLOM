@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2021 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2022 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
@@ -1000,7 +1000,7 @@ c
      .  avdsg_p,dpvor_p,pv_p,dummy
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  dpml,sbot,tbot,dps,t20d
-      real dsig,q,zup,zlo,plo,tup,tlo
+      real dsig,q,zup,zlo,tup,tlo
 c
 c --- Increase counter
       do iogrp=1,nphy

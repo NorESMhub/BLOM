@@ -56,12 +56,9 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 !
 !**********************************************************************
 
-  use mo_carbch
-  use mo_sedmnt
-  use mo_biomod
-  use mo_param1_bgc
-  use mo_control_bgc
-  use mo_vgrid, only: bolay
+  use mo_sedmnt,     only: porwah,porwat,seddw,sedict,seddzi
+  use mo_param1_bgc, only: ks
+  use mo_vgrid,      only: bolay
 
   implicit none
 

@@ -383,7 +383,7 @@ contains
             enddo
          !$omp end parallel do
 
-         s0 = rho0 - 1._r8
+            s0 = rho0 - 1._r8
          !$omp parallel do private(k, l, i, x, s1)
             do j = 1, jj
                do k = 1, kk

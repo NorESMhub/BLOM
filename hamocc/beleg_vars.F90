@@ -1,3 +1,22 @@
+! Copyright (C) 2001  Ernst Maier-Reimer, S. Legutke
+! Copyright (C) 2020  K. Assmann, J. Tjiputra, J. Schwinger, I. Kriest,
+!                     A. Moree, C. Heinze
+!
+! This file is part of BLOM/iHAMOCC.
+!
+! BLOM is free software: you can redistribute it and/or modify it under the
+! terms of the GNU Lesser General Public License as published by the Free 
+! Software Foundation, either version 3 of the License, or (at your option) 
+! any later version. 
+!
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+! more details. 
+!
+! You should have received a copy of the GNU Lesser General Public License 
+! along with BLOM. If not, see https://www.gnu.org/licenses/.
+
       SUBROUTINE BELEG_VARS(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,      &
                             pglon,pglat)
 !******************************************************************************
@@ -32,15 +51,41 @@
 !
 !
 !******************************************************************************
-      USE mo_carbch
-      USE mo_biomod
-      USE mo_sedmnt
-      USE mo_control_bgc, only: rmasks
-      use mo_param1_bgc
-      use mo_vgrid, only: kmle,kbo
-      USE mod_xc,   only: mnproc
 
-      implicit none      
+      use mo_carbch,      only: co2star,co3,hi,ocetra 
+      use mo_biomod,      only: fesoly 
+      use mo_control_bgc, only: rmasks
+      use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
+      use mo_vgrid,       only: kmle,kbo
+
+#ifdef AGG
+      use mo_biomod,      only: cellmass,fractdim
+      use mo_param1_bgc,  only: iadust,inos
+#endif
+#ifdef BROMO
+      use mo_param1_bgc,  only: ibromo
+#endif
+#ifdef CFC
+      use mo_param1_bgc,  only: icfc11,icfc12,isf6
+#endif
+#ifdef cisonew
+      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
+#endif
+#ifdef natDIC
+      use mo_param1_bgc,  only: inatcalc
+      use mo_carbch,      only: nathi,natco3
+#endif
+#ifndef sedbypass
+      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra
+      use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
+#endif
+#ifdef FB_BGC_OCE
+      use mo_biomod,      only: abs_oce
+#endif 
+
+      implicit none
 
       INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
       REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
@@ -51,6 +96,12 @@
 
       ! local variables
       INTEGER :: i,j,k,l
+#ifdef cisonew
+      REAL :: rco213,rco214,beta13,beta14
+#endif
+#ifdef AGG
+      REAL :: snow
+#endif
 
 
 #ifdef FB_BGC_OCE
@@ -157,6 +208,10 @@
           ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
           ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
           ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
+#endif
+#ifdef BROMO
+! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
+         ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
 #endif
         ENDIF ! omask > 0.5
       ENDDO

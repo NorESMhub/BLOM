@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021 Mats Bentsen
+! Copyright (C) 2021-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -56,48 +56,55 @@ module mod_hor3map
 
    ! Error parameters.
    integer, parameter :: &
-      hor3map_noerr                   =  0, &
-      hor3map_invalid_method          =  1, &
-      hor3map_nonmonotonic_src_edges  =  2, &
-      hor3map_src_extent_too_small    =  3, &
-      hor3map_failed_to_allocate_rcs  =  4, &
-      hor3map_recon_not_prepared      =  5, &
-      hor3map_inconsistent_grid_range =  6, &
-      hor3map_nonmonotonic_dst_edges  =  7, &
-      hor3map_failed_to_allocate_rms  =  8, &
-      hor3map_src_size_mismatch       =  9, &
-      hor3map_invalid_plm_limiting    = 10, &
-      hor3map_invalid_ppm_limiting    = 11, &
-      hor3map_invalid_pqm_limiting    = 12, &
-      hor3map_recon_not_available     = 13, &
-      hor3map_grd_size_mismatch       = 14, &
-      hor3map_remap_not_prepared      = 15, &
-      hor3map_dst_size_mismatch       = 16, &
-      hor3map_errmsg_num = 16
+      hor3map_noerr                     =  0, &
+      hor3map_invalid_method            =  1, &
+      hor3map_resizing_initialized_rcgs =  2, &
+      hor3map_nonmonotonic_src_edges    =  3, &
+      hor3map_src_extent_too_small      =  4, &
+      hor3map_failed_to_allocate_rcgs   =  5, &
+      hor3map_recon_not_prepared        =  6, &
+      hor3map_resizing_initialized_rms  =  7, &
+      hor3map_inconsistent_grid_range   =  8, &
+      hor3map_nonmonotonic_dst_edges    =  9, &
+      hor3map_failed_to_allocate_rms    = 10, &
+      hor3map_src_size_mismatch         = 11, &
+      hor3map_failed_to_allocate_rcss   = 12, &
+      hor3map_invalid_plm_limiting      = 13, &
+      hor3map_invalid_ppm_limiting      = 14, &
+      hor3map_invalid_pqm_limiting      = 15, &
+      hor3map_recon_not_available       = 16, &
+      hor3map_grd_size_mismatch         = 17, &
+      hor3map_remap_not_prepared        = 18, &
+      hor3map_dst_size_mismatch         = 19, &
+      hor3map_index_out_of_bounds       = 20, &
+      hor3map_inconsistent_rcgs         = 21, &
+      hor3map_errmsg_num = 21
    character(len = 80), dimension(hor3map_errmsg_num), parameter :: errmsg = &
       ["Invalid reconstruction method!                                   ", &
+       "Cannot resize initialized reconstruction grid data structure!    ", &
        "Source grid edges do not monotonically increase or decrease!     ", &
        "Source grid extent too small!                                    ", &
-       "Failed to allocate reconstruction data structure!                ", &
+       "Failed to allocate reconstruction grid data structure!           ", &
        "Call 'prepare_reconstruction' first!                             ", &
+       "Cannot resize initialized remapping data structure!              ", &
        "Inconsistent source and destination grid range!                  ", &
        "Destination grid edges do not monotonically increase or decrease!", &
        "Failed to allocate remapping data structure!                     ", &
        "Size mismatch between source grid edges and data array!          ", &
+       "Failed to allocate reconstruction source data structure!         ", &
        "Invalid limiting method for PLM!                                 ", &
        "Invalid limiting method for PPM!                                 ", &
        "Invalid limiting method for PQM!                                 ", &
        "Call 'reconstruct' first!                                        ", &
        "Size mismatch between grid edge values and locations!            ", &
        "Call 'prepare_remapping' first!                                  ", &
-       "Size mismatch between destination grid edges and data array!     "]
+       "Size mismatch between destination grid edges and data array!     ", &
+       "Array index of data structure is out of bounds!                  ", &
+       "Inconsistent data structure for reconstruction and remapping!    "]
 
    ! Numeric data types.
    integer, parameter :: &
       r8 = real64
-
-   ! Maximum order of accuracy in edge estimation.
-   integer, parameter :: maxord = 6
 
    ! Small non-dimensional value.
    real(r8), parameter :: eps = 1.e-14_r8
@@ -115,41 +122,126 @@ module mod_hor3map
    ! Numeric constants.
    real(r8), parameter :: &
       c0 = 0._r8, c1 = 1._r8, c2 = 2._r8, c3 = 3._r8, c4 = 4._r8, c5 = 5._r8, &
-      c6 = 6._r8, c12 = 12._r8, c15 = 15._r8, c18 = 18._r8, c28 = 28._r8, &
-      c30 = 30._r8, c32 = 32._r8, c60 = 60._r8, &
+      c6 = 6._r8, c10 = 10._r8, c12 = 12._r8, c15 = 15._r8, c18 = 18._r8, &
+      c20 = 20._r8, c28 = 28._r8, c30 = 30._r8, c32 = 32._r8, c60 = 60._r8, &
       c1_2 = 1._r8/2._r8, c1_3 = 1._r8/3._r8, c1_4 = 1._r8/4._r8, &
-      c1_5 = 1._r8/5._r8, c1_6 = 1._r8/6._r8, c1_12 = 1._r8/12._r8, &
-      c1_24 = 1._r8/24._r8, c1_80 = 1._r8/80._r8, c1_120 = 1._r8/120._r8, &
-      c3_4 = 3._r8/4._r8, c3_2 = 3._r8/2._r8, c5_2 = 5._r8/2._r8, &
+      c1_5 = 1._r8/5._r8, c1_6 = 1._r8/6._r8, c1_8 = 1._r8/8._r8, &
+      c1_12 = 1._r8/12._r8, c1_16 = 1._r8/16._r8, c1_24 = 1._r8/24._r8, &
+      c1_80 = 1._r8/80._r8, c1_120 = 1._r8/120._r8, &
+      c2_3 = 2._r8/3._r8, c3_4 = 3._r8/4._r8, c3_2 = 3._r8/2._r8, &
+      c5_2 = 5._r8/2._r8, c8_3 = 8._r8/3._r8, c10_3 = 10._r8/3._r8, &
       c9_2 = 9._r8/2._r8
 
-   type reconstruction_struct
-      real(r8), allocatable, dimension(:, :) :: &
-         tdecoeff, tdscoeff, lblu, rblu, polycoeff
-      real(r8), allocatable, dimension(:) :: &
-         x_edge_src, h_src, hi_src, hci_src, src_dst_weight, &
-         u_src, uel, uer, usl, usr
-      real(r8) :: x_eps
-      integer, allocatable, dimension(:) :: src_dst_index
-      integer :: n_src_all, n_src, method
-      logical :: &
-         alloced       = .false., &
-         prepared      = .false., &
-         reconstructed = .false.
-   end type reconstruction_struct
+   type :: recon_grd_struct
 
-   type remap_struct
-      real(r8), allocatable, dimension(:) :: h_dst, hi_dst, seg_int_lim
-      integer, allocatable, dimension(:) :: n_src_seg, seg_dst_index
-      integer :: n_dst
+      integer :: &
+         i_lbound     = 1, &
+         i_ubound     = 1, &
+         j_lbound     = 1, &
+         j_ubound     = 1, &
+         i_index      = 1, &
+         j_index      = 1, &
+         i_index_curr = 0, &
+         j_index_curr = 0, &
+         method       = hor3map_ppm
       logical :: &
-         alloced  = .false., &
-         prepared = .false.
+         initialized  = .false.
+      integer :: n_src, p_ord
+
+      real(r8), allocatable, dimension(:,:,:) :: &
+         tdecoeff_data, tdscoeff_data, lblu_data, rblu_data
+      real(r8), allocatable, dimension(:,:) :: &
+         x_edge_src_data, h_src_data, hi_src_data, hci_src_data, &
+         src_dst_weight_data
+      real(r8), allocatable, dimension(:) :: &
+         x_eps_data
+      integer, allocatable, dimension(:,:) :: &
+         src_dst_index_data
+      integer, allocatable, dimension(:) :: &
+         n_src_actual_data, method_actual_data
+      logical, allocatable, dimension(:) :: &
+         prepared_data
+
+      real(r8), dimension(:,:), pointer :: &
+         tdecoeff, tdscoeff, lblu, rblu
+      real(r8), dimension(:), pointer :: &
+         x_edge_src, h_src, hi_src, hci_src, &
+         src_dst_weight
+      real(r8), pointer :: &
+         x_eps
+      integer, dimension(:), pointer :: &
+         src_dst_index
+      integer, pointer :: &
+         n_src_actual, method_actual
+      logical, pointer :: &
+         prepared
+
+      type(recon_src_struct), pointer :: rcss_dep_head
+      type(remap_struct), pointer :: rms_dep_head
+
+   end type recon_grd_struct
+
+   type :: recon_src_struct
+
+      integer :: &
+         limiting      = hor3map_monotonic, &
+         i_index_curr  = 0, &
+         j_index_curr  = 0
+      logical :: &
+         pc_left_bndr  = .true., &
+         pc_right_bndr = .true., &
+         initialized   = .false.
+      real(r8) :: u_range, u_eps, uu_eps
+
+      real(r8), allocatable, dimension(:,:,:) :: &
+         polycoeff_data
+      real(r8), allocatable, dimension(:,:) :: &
+         u_src_data, uel_data, uer_data, usl_data, usr_data
+      logical, allocatable, dimension(:) :: &
+         reconstructed_data
+
+      real(r8), dimension(:,:), pointer :: &
+         polycoeff
+      real(r8), dimension(:), pointer :: &
+         u_src, uel, uer, usl, usr
+      logical, pointer :: &
+         reconstructed
+
+      type(recon_grd_struct), pointer :: rcgs
+      type(recon_src_struct), pointer :: rcss_dep_next
+
+   end type recon_src_struct
+
+   type :: remap_struct
+
+      integer :: &
+         i_index_curr = 0, &
+         j_index_curr = 0
+      logical :: &
+         initialized  = .false.
+      integer :: n_dst
+
+      real(r8), allocatable, dimension(:,:) :: &
+         h_dst_data, hi_dst_data, seg_int_lim_data
+      integer, allocatable, dimension(:,:) :: &
+         n_src_seg_data, seg_dst_index_data
+      logical, allocatable, dimension(:) :: &
+         prepared_data
+
+      real(r8), dimension(:), pointer :: h_dst, hi_dst, seg_int_lim
+      integer, dimension(:), pointer :: n_src_seg, seg_dst_index
+      logical, pointer :: prepared
+
+      type(recon_grd_struct), pointer :: rcgs
+      type(remap_struct), pointer :: rms_dep_next
+
    end type remap_struct
 
-   public :: reconstruction_struct, remap_struct, &
+   public :: recon_grd_struct, recon_src_struct, remap_struct, &
+             initialize_rcgs, initialize_rcss, initialize_rms, &
              prepare_reconstruction, prepare_remapping, &
-             reconstruct, regrid, remap, free_rcs, free_rms, &
+             reconstruct, extract_polycoeff, regrid, regrid2, remap, &
+             free_rcgs, free_rcss, free_rms, &
              hor3map_pcm, hor3map_plm, hor3map_ppm, hor3map_pqm, &
              hor3map_no_limiting, hor3map_monotonic, hor3map_non_oscillatory, &
              hor3map_non_oscillatory_posdef, &
@@ -161,92 +253,170 @@ contains
    ! Private procedures.
    ! ---------------------------------------------------------------------------
 
-   function allocate_rcs(rcs) result(errstat)
+   function assign_ptr_rcgs(rcgs) result(errstat)
    ! ---------------------------------------------------------------------------
-   ! Allocate arrays in the reconstruction data structure.
+   ! Assign array pointers within reconstruction grid data structure.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), target, intent(inout) :: rcgs
 
       integer :: errstat
 
-      integer :: allocstat
+      integer :: ij_index
 
-      allocate(rcs%x_edge_src(rcs%n_src_all + 1), rcs%h_src(rcs%n_src_all), &
-               rcs%hi_src(rcs%n_src_all), rcs%hci_src(2:rcs%n_src_all - 1), &
-               rcs%src_dst_weight(rcs%n_src_all), &
-               rcs%tdecoeff(maxord, rcs%n_src_all), &
-               rcs%tdscoeff(maxord, rcs%n_src_all), &
-               rcs%lblu(maxord, maxord), rcs%rblu(maxord, maxord), &
-               rcs%u_src(rcs%n_src_all), &
-               rcs%uel(rcs%n_src_all), rcs%uer(rcs%n_src_all), &
-               rcs%usl(rcs%n_src_all), rcs%usr(rcs%n_src_all), &
-               rcs%src_dst_index(rcs%n_src_all), &
-               rcs%polycoeff(maxord - 1, rcs%n_src_all), &
-               stat = allocstat)
+      errstat = hor3map_noerr
 
-      if (allocstat == 0) then
-         errstat = hor3map_noerr
-      else
-         errstat = hor3map_failed_to_allocate_rcs
+      ! Check if new pointer assignments are needed.
+      if (rcgs%i_index == rcgs%i_index_curr .and. &
+          rcgs%j_index == rcgs%j_index_curr) return
+
+      ! Check index bounds.
+      if (rcgs%i_index < rcgs%i_lbound .or. rcgs%i_index > rcgs%i_ubound .or. &
+          rcgs%j_index < rcgs%j_lbound .or. rcgs%j_index > rcgs%j_ubound) then
+         errstat = hor3map_index_out_of_bounds
          return
       endif
 
-      rcs%alloced = .true.
+      ! Assign array pointers within the reconstruction grid data structure.
 
-   end function allocate_rcs
+      ij_index = rcgs%i_index - rcgs%i_lbound + 1 &
+               + (rcgs%j_index - rcgs%j_lbound) &
+                *(rcgs%i_ubound - rcgs%i_lbound + 1)
 
-   function allocate_rms(rcs, rms) result(errstat)
+      rcgs%x_eps => rcgs%x_eps_data(ij_index)
+      rcgs%x_edge_src => rcgs%x_edge_src_data(:,ij_index)
+      rcgs%h_src => rcgs%h_src_data(:,ij_index)
+      rcgs%hi_src => rcgs%hi_src_data(:,ij_index)
+      rcgs%src_dst_index => rcgs%src_dst_index_data(:,ij_index)
+      rcgs%n_src_actual => rcgs%n_src_actual_data(ij_index)
+      rcgs%method_actual => rcgs%method_actual_data(ij_index)
+      rcgs%prepared => rcgs%prepared_data(ij_index)
+      if (rcgs%method /= hor3map_pcm) then
+         rcgs%hci_src => rcgs%hci_src_data(:,ij_index)
+      endif
+      if (rcgs%method == hor3map_ppm .or. rcgs%method == hor3map_pqm) then
+         rcgs%src_dst_weight => rcgs%src_dst_weight_data(:,ij_index)
+         rcgs%tdecoeff => rcgs%tdecoeff_data(:,:,ij_index)
+         rcgs%tdscoeff => rcgs%tdscoeff_data(:,:,ij_index)
+         rcgs%lblu => rcgs%lblu_data(:,:,ij_index)
+         rcgs%rblu => rcgs%rblu_data(:,:,ij_index)
+      endif
+
+      rcgs%i_index_curr = rcgs%i_index
+      rcgs%j_index_curr = rcgs%j_index
+
+   end function assign_ptr_rcgs
+
+   function assign_ptr_rcss(rcss) result(errstat)
    ! ---------------------------------------------------------------------------
-   ! Allocate arrays in the remapping data structure.
+   ! Assign array pointers within reconstruction grid and source data
+   ! structures.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(in) :: rcs
-      type(remap_struct), intent(inout) :: rms
+      type(recon_src_struct), target, intent(inout) :: rcss
 
       integer :: errstat
 
-      integer :: allocstat
+      integer :: ij_index
 
-      allocate(rms%h_dst(rms%n_dst), rms%hi_dst(rms%n_dst), &
-               rms%seg_int_lim(rcs%n_src_all + rms%n_dst), &
-               rms%n_src_seg(rcs%n_src_all), &
-               rms%seg_dst_index(rcs%n_src_all + rms%n_dst), &
-               stat = allocstat)
+      errstat = hor3map_noerr
 
-      if (allocstat == 0) then
-         errstat = hor3map_noerr
-      else
-         errstat = hor3map_failed_to_allocate_rms
+      ! Check if new pointer assignments are needed.
+      if (rcss%rcgs%i_index == rcss%i_index_curr .and. &
+          rcss%rcgs%j_index == rcss%j_index_curr) return
+
+      ! Check index bounds.
+      if (rcss%rcgs%i_index < rcss%rcgs%i_lbound .or. &
+          rcss%rcgs%i_index > rcss%rcgs%i_ubound .or. &
+          rcss%rcgs%j_index < rcss%rcgs%j_lbound .or. &
+          rcss%rcgs%j_index > rcss%rcgs%j_ubound) then
+         errstat = hor3map_index_out_of_bounds
          return
       endif
 
-      rms%alloced = .true.
+      ij_index = rcss%rcgs%i_index - rcss%rcgs%i_lbound + 1 &
+               + (rcss%rcgs%j_index - rcss%rcgs%j_lbound) &
+                *(rcss%rcgs%i_ubound - rcss%rcgs%i_lbound + 1)
 
-   end function allocate_rms
+      rcss%u_src => rcss%u_src_data(:,ij_index)
+      rcss%uel => rcss%uel_data(:,ij_index)
+      rcss%uer => rcss%uer_data(:,ij_index)
+      rcss%polycoeff => rcss%polycoeff_data(:,:,ij_index)
+      rcss%reconstructed => rcss%reconstructed_data(ij_index)
+      if (rcss%rcgs%method == hor3map_pqm) then
+         rcss%usl => rcss%usl_data(:,ij_index)
+         rcss%usr => rcss%usr_data(:,ij_index)
+      endif
 
-   subroutine lu_decompose(n, a)
+      rcss%i_index_curr = rcss%rcgs%i_index
+      rcss%j_index_curr = rcss%rcgs%j_index
+
+   end function assign_ptr_rcss
+
+   function assign_ptr_rms(rms) result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Assign array pointers within the remapping data structure.
+   ! ---------------------------------------------------------------------------
+
+      type(remap_struct), target, intent(inout) :: rms
+
+      integer :: errstat
+
+      integer :: ij_index
+
+      errstat = hor3map_noerr
+
+      ! Check if new pointer assignments are needed.
+      if (rms%rcgs%i_index == rms%i_index_curr .and. &
+          rms%rcgs%j_index == rms%j_index_curr) return
+
+      ! Check index bounds.
+      if (rms%rcgs%i_index < rms%rcgs%i_lbound .or. &
+          rms%rcgs%i_index > rms%rcgs%i_ubound .or. &
+          rms%rcgs%j_index < rms%rcgs%j_lbound .or. &
+          rms%rcgs%j_index > rms%rcgs%j_ubound) then
+         errstat = hor3map_index_out_of_bounds
+         return
+      endif
+
+      ij_index = rms%rcgs%i_index - rms%rcgs%i_lbound + 1 &
+               + (rms%rcgs%j_index - rms%rcgs%j_lbound) &
+                *(rms%rcgs%i_ubound - rms%rcgs%i_lbound + 1)
+
+      rms%h_dst => rms%h_dst_data(:,ij_index)
+      rms%hi_dst => rms%hi_dst_data(:,ij_index)
+      rms%seg_int_lim => rms%seg_int_lim_data(:,ij_index)
+      rms%n_src_seg => rms%n_src_seg_data(:,ij_index)
+      rms%seg_dst_index => rms%seg_dst_index_data(:,ij_index)
+      rms%prepared => rms%prepared_data(ij_index)
+
+      rms%i_index_curr = rms%rcgs%i_index
+      rms%j_index_curr = rms%rcgs%j_index
+
+   end function assign_ptr_rms
+
+   pure subroutine lu_decompose(n, a)
    ! ---------------------------------------------------------------------------
    ! Replace the n x n input matrix A with its LU decomposition.
    ! ---------------------------------------------------------------------------
 
       integer, intent(in) :: n
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
 
       integer :: i, j, k
 
-      do k = 1, n - 1
-         do i = k + 1, n
-            a(i, k) = a(i, k)/a(k, k)
-            do j = k + 1, n
-               a(i, j) = a(i, j) - a(i, k)*a(k, j)
+      do k = 1, n-1
+         do i = k+1, n
+            a(i,k) = a(i,k)/a(k,k)
+            do j = k+1, n
+               a(i,j) = a(i,j) - a(i,k)*a(k,j)
             enddo
          enddo
       enddo
 
    end subroutine lu_decompose
 
-   subroutine lu_solve(n, lu, x)
+   pure subroutine lu_solve(n, lu, x)
    ! ---------------------------------------------------------------------------
    ! Solve the linear system of equations A*x = b using the LU decomposition of
    ! the n x n matrix A. The argument x has b as input and is replaced with the
@@ -254,30 +424,30 @@ contains
    ! ---------------------------------------------------------------------------
 
       integer, intent(in) :: n
-      real(r8), dimension(:, :), intent(in) :: lu
+      real(r8), dimension(:,:), intent(in) :: lu
       real(r8), dimension(:), intent(inout) :: x
 
       integer :: i, j
 
       ! Forward substitution.
       do i = 2, n
-         do j = 1, i - 1
-            x(i) = x(i) - lu(i, j)*x(j)
+         do j = 1, i-1
+            x(i) = x(i) - lu(i,j)*x(j)
          enddo
       enddo
 
       ! Back substitution.
       x(n) = x(n)/lu(n, n)
-      do i = n - 1, 1, -1
-         do j = i + 1, n
-            x(i) = x(i) - lu(i, j)*x(j)
+      do i = n-1, 1, -1
+         do j = i+1, n
+            x(i) = x(i) - lu(i,j)*x(j)
          enddo
-         x(i) = x(i)/lu(i, i)
+         x(i) = x(i)/lu(i,i)
       enddo
 
    end subroutine lu_solve
 
-   subroutine edge_ih4_coeff(h, tdecoeff)
+   pure subroutine edge_ih4_coeff(h, tdecoeff)
    ! ---------------------------------------------------------------------------
    ! Compute row coefficients for the tridiagonal system of equations to be
    ! solved for 4th order accurate edge estimates.
@@ -296,37 +466,37 @@ contains
 
    end subroutine edge_ih4_coeff
 
-   subroutine edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
+   pure subroutine edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
    ! ---------------------------------------------------------------------------
    ! Common procedure for the various stencils for the computation of row
    ! coefficients for the tridiagonal system of equations to be solved for 6th
    ! and 5th order accurate edge and slope estimates, respectively.
    ! ---------------------------------------------------------------------------
 
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
       real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
 
-      real(r8), dimension(6, 6) :: b
+      real(r8), dimension(6,6) :: b
 
       ! Define matrix for linear system to be solved for slope coefficients.
 
-      b(1:5, 3:6) = a(2:6, 3:6)
+      b(1:5,3:6) = a(2:6,3:6)
 
-      b(1, 1) = c1
-      b(2, 1) = c2*a(2, 1)
-      b(3, 1) = c3*a(3, 1)
-      b(4, 1) = c4*a(4, 1)
-      b(5, 1) = c5*a(5, 1)
-      b(6, 1) = c0
+      b(1,1) = c1
+      b(2,1) = c2*a(2,1)
+      b(3,1) = c3*a(3,1)
+      b(4,1) = c4*a(4,1)
+      b(5,1) = c5*a(5,1)
+      b(6,1) = c0
 
-      b(1, 2) = c1
-      b(2, 2) = c2*a(2, 2)
-      b(3, 2) = c3*a(3, 2)
-      b(4, 2) = c4*a(4, 2)
-      b(5, 2) = c5*a(5, 2)
-      b(6, 2) = c0
+      b(1,2) = c1
+      b(2,2) = c2*a(2,2)
+      b(3,2) = c3*a(3,2)
+      b(4,2) = c4*a(4,2)
+      b(5,2) = c5*a(5,2)
+      b(6,2) = c0
 
-      b(6, 3:6) = c1
+      b(6,3:6) = c1
 
       ! Solve linear system for edge coefficients.
       tdecoeff(:) = [ - c1, c0, c0, c0, c0, c0]
@@ -340,7 +510,7 @@ contains
 
    end subroutine edge_ih6_slope_ih5_coeff_common
 
-   subroutine edge_ih6_slope_ih5_coeff_asymleft(h, tdecoeff, tdscoeff)
+   pure subroutine edge_ih6_slope_ih5_coeff_asymleft(h, tdecoeff, tdscoeff)
    ! ---------------------------------------------------------------------------
    ! With an asymmetrical stencil, where edge values are shifted left compared
    ! to cell mean values, compute row coefficients for the tridiagonal system of
@@ -351,62 +521,62 @@ contains
       real(r8), dimension(:), intent(in) :: h
       real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
 
-      real(r8), dimension(6, 6) :: a
+      real(r8), dimension(6,6) :: a
       real(r8) :: a25sq, a26sq, h3sq, h4sq
 
       ! Define matrix for linear system to be solved for edge coefficients.
 
-      a(1, 1) = c1
-      a(2, 1) = - h(1)
-      a(3, 1) = - a(2, 1)*h(1)
-      a(4, 1) = - a(3, 1)*h(1)
-      a(5, 1) = - a(4, 1)*h(1)
-      a(6, 1) = - a(5, 1)*h(1)
+      a(1,1) = c1
+      a(2,1) = - h(1)
+      a(3,1) = - a(2,1)*h(1)
+      a(4,1) = - a(3,1)*h(1)
+      a(5,1) = - a(4,1)*h(1)
+      a(6,1) = - a(5,1)*h(1)
 
-      a(1, 2) = c1
-      a(2, 2) = h(2)
-      a(3, 2) = a(2, 2)*h(2)
-      a(4, 2) = a(3, 2)*h(2)
-      a(5, 2) = a(4, 2)*h(2)
-      a(6, 2) = a(5, 2)*h(2)
+      a(1,2) = c1
+      a(2,2) = h(2)
+      a(3,2) = a(2,2)*h(2)
+      a(4,2) = a(3,2)*h(2)
+      a(5,2) = a(4,2)*h(2)
+      a(6,2) = a(5,2)*h(2)
 
-      a(1, 3) = - c1
-      a(2, 3) = - c1_2*a(2, 1)
-      a(3, 3) = - c1_3*a(3, 1)
-      a(4, 3) = - c1_4*a(4, 1)
-      a(5, 3) = - c1_5*a(5, 1)
-      a(6, 3) = - c1_6*a(6, 1)
+      a(1,3) = - c1
+      a(2,3) = - c1_2*a(2,1)
+      a(3,3) = - c1_3*a(3,1)
+      a(4,3) = - c1_4*a(4,1)
+      a(5,3) = - c1_5*a(5,1)
+      a(6,3) = - c1_6*a(6,1)
 
-      a(1, 4) = - c1
-      a(2, 4) = - c1_2*a(2, 2)
-      a(3, 4) = - c1_3*a(3, 2)
-      a(4, 4) = - c1_4*a(4, 2)
-      a(5, 4) = - c1_5*a(5, 2)
-      a(6, 4) = - c1_6*a(6, 2)
+      a(1,4) = - c1
+      a(2,4) = - c1_2*a(2,2)
+      a(3,4) = - c1_3*a(3,2)
+      a(4,4) = - c1_4*a(4,2)
+      a(5,4) = - c1_5*a(5,2)
+      a(6,4) = - c1_6*a(6,2)
 
-      a(1, 5) = - c1
-      a(2, 5) = - h(2) - c1_2*h(3)
-      a25sq = a(2, 5)*a(2, 5)
+      a(1,5) = - c1
+      a(2,5) = - h(2) - c1_2*h(3)
+      a25sq = a(2,5)*a(2,5)
       h3sq = h(3)*h(3)
-      a(3, 5) = - a25sq - c1_12*h3sq
-      a(4, 5) = a(2, 5)*(a25sq + c1_4*h3sq)
-      a(5, 5) = - a25sq*(a25sq + c1_2*h3sq) - c1_80*h3sq*h3sq
-      a(6, 5) = a(2, 5)*(a25sq + c3_4*h3sq)*(a25sq + c1_12*h3sq)
+      a(3,5) = - a25sq - c1_12*h3sq
+      a(4,5) = a(2,5)*(a25sq + c1_4*h3sq)
+      a(5,5) = - a25sq*(a25sq + c1_2*h3sq) - c1_80*h3sq*h3sq
+      a(6,5) = a(2,5)*(a25sq + c3_4*h3sq)*(a25sq + c1_12*h3sq)
 
-      a(1, 6) = - c1
-      a(2, 6) = - h(2) - h(3) - c1_2*h(4)
-      a26sq = a(2, 6)*a(2, 6)
+      a(1,6) = - c1
+      a(2,6) = - h(2) - h(3) - c1_2*h(4)
+      a26sq = a(2,6)*a(2,6)
       h4sq = h(4)*h(4)
-      a(3, 6) = - a26sq - c1_12*h4sq
-      a(4, 6) = a(2, 6)*(a26sq + c1_4*h4sq)
-      a(5, 6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
-      a(6, 6) = a(2, 6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
+      a(3,6) = - a26sq - c1_12*h4sq
+      a(4,6) = a(2,6)*(a26sq + c1_4*h4sq)
+      a(5,6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
+      a(6,6) = a(2,6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
 
       call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
 
    end subroutine edge_ih6_slope_ih5_coeff_asymleft
 
-   subroutine edge_ih6_slope_ih5_coeff_sym(h, tdecoeff, tdscoeff)
+   pure subroutine edge_ih6_slope_ih5_coeff_sym(h, tdecoeff, tdscoeff)
    ! ---------------------------------------------------------------------------
    ! With a symmetrical stencil, compute row coefficients for the tridiagonal
    ! system of equations to be solved for 6th and 5th order accurate edge and
@@ -416,62 +586,62 @@ contains
       real(r8), dimension(:), intent(in) :: h
       real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
 
-      real(r8), dimension(6, 6) :: a
+      real(r8), dimension(6,6) :: a
       real(r8) :: a23sq, a26sq, h1sq, h4sq
 
       ! Define matrix for linear system to be solved for edge coefficients.
 
-      a(1, 1) = c1
-      a(2, 1) = - h(2)
-      a(3, 1) = - a(2, 1)*h(2)
-      a(4, 1) = - a(3, 1)*h(2)
-      a(5, 1) = - a(4, 1)*h(2)
-      a(6, 1) = - a(5, 1)*h(2)
+      a(1,1) = c1
+      a(2,1) = - h(2)
+      a(3,1) = - a(2,1)*h(2)
+      a(4,1) = - a(3,1)*h(2)
+      a(5,1) = - a(4,1)*h(2)
+      a(6,1) = - a(5,1)*h(2)
 
-      a(1, 2) = c1
-      a(2, 2) = h(3)
-      a(3, 2) = a(2, 2)*h(3)
-      a(4, 2) = a(3, 2)*h(3)
-      a(5, 2) = a(4, 2)*h(3)
-      a(6, 2) = a(5, 2)*h(3)
+      a(1,2) = c1
+      a(2,2) = h(3)
+      a(3,2) = a(2,2)*h(3)
+      a(4,2) = a(3,2)*h(3)
+      a(5,2) = a(4,2)*h(3)
+      a(6,2) = a(5,2)*h(3)
 
-      a(1, 3) = - c1
-      a(2, 3) = c1_2*h(1) + h(2)
-      a23sq = a(2, 3)*a(2, 3)
+      a(1,3) = - c1
+      a(2,3) = c1_2*h(1) + h(2)
+      a23sq = a(2,3)*a(2,3)
       h1sq = h(1)*h(1)
-      a(3, 3) = - a23sq - c1_12*h1sq
-      a(4, 3) = a(2, 3)*(a23sq + c1_4*h1sq)
-      a(5, 3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
-      a(6, 3) = a(2, 3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
+      a(3,3) = - a23sq - c1_12*h1sq
+      a(4,3) = a(2,3)*(a23sq + c1_4*h1sq)
+      a(5,3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
+      a(6,3) = a(2,3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
 
-      a(1, 4) = - c1
-      a(2, 4) = - c1_2*a(2, 1)
-      a(3, 4) = - c1_3*a(3, 1)
-      a(4, 4) = - c1_4*a(4, 1)
-      a(5, 4) = - c1_5*a(5, 1)
-      a(6, 4) = - c1_6*a(6, 1)
+      a(1,4) = - c1
+      a(2,4) = - c1_2*a(2,1)
+      a(3,4) = - c1_3*a(3,1)
+      a(4,4) = - c1_4*a(4,1)
+      a(5,4) = - c1_5*a(5,1)
+      a(6,4) = - c1_6*a(6,1)
 
-      a(1, 5) = - c1
-      a(2, 5) = - c1_2*a(2, 2)
-      a(3, 5) = - c1_3*a(3, 2)
-      a(4, 5) = - c1_4*a(4, 2)
-      a(5, 5) = - c1_5*a(5, 2)
-      a(6, 5) = - c1_6*a(6, 2)
+      a(1,5) = - c1
+      a(2,5) = - c1_2*a(2,2)
+      a(3,5) = - c1_3*a(3,2)
+      a(4,5) = - c1_4*a(4,2)
+      a(5,5) = - c1_5*a(5,2)
+      a(6,5) = - c1_6*a(6,2)
 
-      a(1, 6) = - c1
-      a(2, 6) = - h(3) - c1_2*h(4)
-      a26sq = a(2, 6)*a(2, 6)
+      a(1,6) = - c1
+      a(2,6) = - h(3) - c1_2*h(4)
+      a26sq = a(2,6)*a(2,6)
       h4sq = h(4)*h(4)
-      a(3, 6) = - a26sq - c1_12*h4sq
-      a(4, 6) = a(2, 6)*(a26sq + c1_4*h4sq)
-      a(5, 6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
-      a(6, 6) = a(2, 6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
+      a(3,6) = - a26sq - c1_12*h4sq
+      a(4,6) = a(2,6)*(a26sq + c1_4*h4sq)
+      a(5,6) = - a26sq*(a26sq + c1_2*h4sq) - c1_80*h4sq*h4sq
+      a(6,6) = a(2,6)*(a26sq + c3_4*h4sq)*(a26sq + c1_12*h4sq)
 
       call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
 
    end subroutine edge_ih6_slope_ih5_coeff_sym
 
-   subroutine edge_ih6_slope_ih5_coeff_asymright(h, tdecoeff, tdscoeff)
+   pure subroutine edge_ih6_slope_ih5_coeff_asymright(h, tdecoeff, tdscoeff)
    ! ---------------------------------------------------------------------------
    ! With an asymmetrical stencil, where edge values are shifted left compared
    ! to cell mean values, compute row coefficients for the tridiagonal system of
@@ -482,302 +652,303 @@ contains
       real(r8), dimension(:), intent(in) :: h
       real(r8), dimension(:), intent(inout) :: tdecoeff, tdscoeff
 
-      real(r8), dimension(6, 6) :: a
+      real(r8), dimension(6,6) :: a
       real(r8) :: a23sq, a24sq, h1sq, h2sq
 
       ! Define matrix for linear system to be solved for edge coefficients.
 
-      a(1, 1) = c1
-      a(2, 1) = - h(3)
-      a(3, 1) = - a(2, 1)*h(3)
-      a(4, 1) = - a(3, 1)*h(3)
-      a(5, 1) = - a(4, 1)*h(3)
-      a(6, 1) = - a(5, 1)*h(3)
+      a(1,1) = c1
+      a(2,1) = - h(3)
+      a(3,1) = - a(2,1)*h(3)
+      a(4,1) = - a(3,1)*h(3)
+      a(5,1) = - a(4,1)*h(3)
+      a(6,1) = - a(5,1)*h(3)
 
-      a(1, 2) = c1
-      a(2, 2) = h(4)
-      a(3, 2) = a(2, 2)*h(4)
-      a(4, 2) = a(3, 2)*h(4)
-      a(5, 2) = a(4, 2)*h(4)
-      a(6, 2) = a(5, 2)*h(4)
+      a(1,2) = c1
+      a(2,2) = h(4)
+      a(3,2) = a(2,2)*h(4)
+      a(4,2) = a(3,2)*h(4)
+      a(5,2) = a(4,2)*h(4)
+      a(6,2) = a(5,2)*h(4)
 
-      a(1, 3) = - c1
-      a(2, 3) = c1_2*h(1) + h(2) + h(3)
-      a23sq = a(2, 3)*a(2, 3)
+      a(1,3) = - c1
+      a(2,3) = c1_2*h(1) + h(2) + h(3)
+      a23sq = a(2,3)*a(2,3)
       h1sq = h(1)*h(1)
-      a(3, 3) = - a23sq - c1_12*h1sq
-      a(4, 3) = a(2, 3)*(a23sq + c1_4*h1sq)
-      a(5, 3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
-      a(6, 3) = a(2, 3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
+      a(3,3) = - a23sq - c1_12*h1sq
+      a(4,3) = a(2,3)*(a23sq + c1_4*h1sq)
+      a(5,3) = - a23sq*(a23sq + c1_2*h1sq) - c1_80*h1sq*h1sq
+      a(6,3) = a(2,3)*(a23sq + c3_4*h1sq)*(a23sq + c1_12*h1sq)
 
-      a(1, 4) = - c1
-      a(2, 4) = c1_2*h(2) + h(3)
-      a24sq = a(2, 4)*a(2, 4)
+      a(1,4) = - c1
+      a(2,4) = c1_2*h(2) + h(3)
+      a24sq = a(2,4)*a(2,4)
       h2sq = h(2)*h(2)
-      a(3, 4) = - a24sq - c1_12*h2sq
-      a(4, 4) = a(2, 4)*(a24sq + c1_4*h2sq)
-      a(5, 4) = - a24sq*(a24sq + c1_2*h2sq) - c1_80*h2sq*h2sq
-      a(6, 4) = a(2, 4)*(a24sq + c3_4*h2sq)*(a24sq + c1_12*h2sq)
+      a(3,4) = - a24sq - c1_12*h2sq
+      a(4,4) = a(2,4)*(a24sq + c1_4*h2sq)
+      a(5,4) = - a24sq*(a24sq + c1_2*h2sq) - c1_80*h2sq*h2sq
+      a(6,4) = a(2,4)*(a24sq + c3_4*h2sq)*(a24sq + c1_12*h2sq)
 
-      a(1, 5) = - c1
-      a(2, 5) = - c1_2*a(2, 1)
-      a(3, 5) = - c1_3*a(3, 1)
-      a(4, 5) = - c1_4*a(4, 1)
-      a(5, 5) = - c1_5*a(5, 1)
-      a(6, 5) = - c1_6*a(6, 1)
+      a(1,5) = - c1
+      a(2,5) = - c1_2*a(2,1)
+      a(3,5) = - c1_3*a(3,1)
+      a(4,5) = - c1_4*a(4,1)
+      a(5,5) = - c1_5*a(5,1)
+      a(6,5) = - c1_6*a(6,1)
 
-      a(1, 6) = - c1
-      a(2, 6) = - c1_2*a(2, 2)
-      a(3, 6) = - c1_3*a(3, 2)
-      a(4, 6) = - c1_4*a(4, 2)
-      a(5, 6) = - c1_5*a(5, 2)
-      a(6, 6) = - c1_6*a(6, 2)
+      a(1,6) = - c1
+      a(2,6) = - c1_2*a(2,2)
+      a(3,6) = - c1_3*a(3,2)
+      a(4,6) = - c1_4*a(4,2)
+      a(5,6) = - c1_5*a(5,2)
+      a(6,6) = - c1_6*a(6,2)
 
       call edge_ih6_slope_ih5_coeff_common(a, tdecoeff, tdscoeff)
 
    end subroutine edge_ih6_slope_ih5_coeff_asymright
 
-   subroutine edge_eh4_lblu(h, a)
+   pure subroutine edge_eh4_lblu(h, a)
    ! ---------------------------------------------------------------------------
    ! Compute LU matrix for explicitly estimating 4th order accurate left
    ! boundary edge value.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
 
       real(r8) :: a22sq, a32sq, a42sq, h2sq, h3sq, h4sq
 
       ! Define matrix for linear system to be solved for edge value.
 
-      a(1:4, 1) = c1
+      a(1:4,1) = c1
 
-      a(1, 2) = c1_2*h(1)
-      a(2, 2) = a(1, 2) + c1_2*(h(1) + h(2))
-      a(3, 2) = a(2, 2) + c1_2*(h(2) + h(3))
-      a(4, 2) = a(3, 2) + c1_2*(h(3) + h(4))
+      a(1,2) = c1_2*h(1)
+      a(2,2) = a(1,2) + c1_2*(h(1) + h(2))
+      a(3,2) = a(2,2) + c1_2*(h(2) + h(3))
+      a(4,2) = a(3,2) + c1_2*(h(3) + h(4))
 
-      a22sq = a(2, 2)*a(2, 2)
-      a32sq = a(3, 2)*a(3, 2)
-      a42sq = a(4, 2)*a(4, 2)
+      a22sq = a(2,2)*a(2,2)
+      a32sq = a(3,2)*a(3,2)
+      a42sq = a(4,2)*a(4,2)
       h2sq = h(2)*h(2)
       h3sq = h(3)*h(3)
       h4sq = h(4)*h(4)
 
-      a(1, 3) = c1_3*a(1, 2)*h(1)
-      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
+      a(1,3) = c1_3*a(1,2)*h(1)
+      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
 
-      a(1, 4) = c1_4*a(1, 3)*h(1)
-      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
-      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
-      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
+      a(1,4) = c1_4*a(1,3)*h(1)
+      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
+      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
+      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
 
       ! LU decomposition.
       call lu_decompose(4, a)
 
    end subroutine edge_eh4_lblu
 
-   subroutine edge_eh4_rblu(h, a)
+   pure subroutine edge_eh4_rblu(h, a)
    ! ---------------------------------------------------------------------------
    ! Compute LU matrix for explicitly estimating 4th order accurate right
    ! boundary edge value.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
 
       real(r8) :: a12sq, a22sq, a32sq, h1sq, h2sq, h3sq
 
       ! Define matrix for linear system to be solved for edge value.
 
-      a(1:4, 1) = c1
+      a(1:4,1) = c1
 
-      a(4, 2) = - c1_2*h(4)
-      a(3, 2) = a(4, 2) - c1_2*(h(4) + h(3))
-      a(2, 2) = a(3, 2) - c1_2*(h(3) + h(2))
-      a(1, 2) = a(2, 2) - c1_2*(h(2) + h(1))
+      a(4,2) = - c1_2*h(4)
+      a(3,2) = a(4,2) - c1_2*(h(4) + h(3))
+      a(2,2) = a(3,2) - c1_2*(h(3) + h(2))
+      a(1,2) = a(2,2) - c1_2*(h(2) + h(1))
 
-      a12sq = a(1, 2)*a(1, 2)
-      a22sq = a(2, 2)*a(2, 2)
-      a32sq = a(3, 2)*a(3, 2)
+      a12sq = a(1,2)*a(1,2)
+      a22sq = a(2,2)*a(2,2)
+      a32sq = a(3,2)*a(3,2)
       h1sq = h(1)*h(1)
       h2sq = h(2)*h(2)
       h3sq = h(3)*h(3)
 
-      a(1, 3) = c1_2*(a12sq + c1_12*h1sq)
-      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4, 3) = - c1_3*a(4, 2)*h(4)
+      a(1,3) = c1_2*(a12sq + c1_12*h1sq)
+      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4,3) = - c1_3*a(4,2)*h(4)
 
-      a(1, 4) = c1_6*a(1, 2)*(a12sq + c1_4*h1sq)
-      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
-      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
-      a(4, 4) = - c1_4*a(4, 3)*h(4)
+      a(1,4) = c1_6*a(1,2)*(a12sq + c1_4*h1sq)
+      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
+      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
+      a(4,4) = - c1_4*a(4,3)*h(4)
 
       ! LU decomposition.
       call lu_decompose(4, a)
 
    end subroutine edge_eh4_rblu
 
-   subroutine edge_eh6_slope_eh5_lblu(h, a)
+   pure subroutine edge_eh6_slope_eh5_lblu(h, a)
    ! ---------------------------------------------------------------------------
    ! Compute LU matrix for explicitly estimating 6th and 5th order accurate left
    ! edge and slope values, respectively.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
 
       real(r8) :: a22sq, a32sq, a42sq, a52sq, a62sq, &
                   h2sq, h3sq, h4sq, h5sq, h6sq
 
       ! Define matrix for linear system to be solved for edge and slope values.
 
-      a(1:6, 1) = c1
+      a(1:6,1) = c1
 
-      a(1, 2) = c1_2*h(1)
-      a(2, 2) = a(1, 2) + c1_2*(h(1) + h(2))
-      a(3, 2) = a(2, 2) + c1_2*(h(2) + h(3))
-      a(4, 2) = a(3, 2) + c1_2*(h(3) + h(4))
-      a(5, 2) = a(4, 2) + c1_2*(h(4) + h(5))
-      a(6, 2) = a(5, 2) + c1_2*(h(5) + h(6))
+      a(1,2) = c1_2*h(1)
+      a(2,2) = a(1,2) + c1_2*(h(1) + h(2))
+      a(3,2) = a(2,2) + c1_2*(h(2) + h(3))
+      a(4,2) = a(3,2) + c1_2*(h(3) + h(4))
+      a(5,2) = a(4,2) + c1_2*(h(4) + h(5))
+      a(6,2) = a(5,2) + c1_2*(h(5) + h(6))
 
-      a22sq = a(2, 2)*a(2, 2)
-      a32sq = a(3, 2)*a(3, 2)
-      a42sq = a(4, 2)*a(4, 2)
-      a52sq = a(5, 2)*a(5, 2)
-      a62sq = a(6, 2)*a(6, 2)
+      a22sq = a(2,2)*a(2,2)
+      a32sq = a(3,2)*a(3,2)
+      a42sq = a(4,2)*a(4,2)
+      a52sq = a(5,2)*a(5,2)
+      a62sq = a(6,2)*a(6,2)
       h2sq = h(2)*h(2)
       h3sq = h(3)*h(3)
       h4sq = h(4)*h(4)
       h5sq = h(5)*h(5)
       h6sq = h(6)*h(6)
 
-      a(1, 3) = c1_3*a(1, 2)*h(1)
-      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
-      a(5, 3) = c1_2*(a52sq + c1_12*h5sq)
-      a(6, 3) = c1_2*(a62sq + c1_12*h6sq)
+      a(1,3) = c1_3*a(1,2)*h(1)
+      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
+      a(5,3) = c1_2*(a52sq + c1_12*h5sq)
+      a(6,3) = c1_2*(a62sq + c1_12*h6sq)
 
-      a(1, 4) = c1_4*a(1, 3)*h(1)
-      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
-      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
-      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
-      a(5, 4) = c1_6*a(5, 2)*(a52sq + c1_4*h5sq)
-      a(6, 4) = c1_6*a(6, 2)*(a62sq + c1_4*h6sq)
+      a(1,4) = c1_4*a(1,3)*h(1)
+      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
+      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
+      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
+      a(5,4) = c1_6*a(5,2)*(a52sq + c1_4*h5sq)
+      a(6,4) = c1_6*a(6,2)*(a62sq + c1_4*h6sq)
 
-      a(1, 5) = c1_5*a(1, 4)*h(1)
-      a(2, 5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
-      a(3, 5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
-      a(4, 5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
-      a(5, 5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
-      a(6, 5) = c1_24*(a62sq*(a62sq + c1_2*h6sq) + c1_80*h6sq*h6sq)
+      a(1,5) = c1_5*a(1,4)*h(1)
+      a(2,5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
+      a(3,5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
+      a(4,5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
+      a(5,5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
+      a(6,5) = c1_24*(a62sq*(a62sq + c1_2*h6sq) + c1_80*h6sq*h6sq)
 
-      a(1, 6) = c1_6*a(1, 5)*h(1)
-      a(2, 6) = c1_120*a(2, 2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
-      a(3, 6) = c1_120*a(3, 2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
-      a(4, 6) = c1_120*a(4, 2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
-      a(5, 6) = c1_120*a(5, 2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
-      a(6, 6) = c1_120*a(6, 2)*(a62sq + c3_4*h6sq)*(a62sq + c1_12*h6sq)
+      a(1,6) = c1_6*a(1,5)*h(1)
+      a(2,6) = c1_120*a(2,2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
+      a(3,6) = c1_120*a(3,2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
+      a(4,6) = c1_120*a(4,2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
+      a(5,6) = c1_120*a(5,2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
+      a(6,6) = c1_120*a(6,2)*(a62sq + c3_4*h6sq)*(a62sq + c1_12*h6sq)
 
       ! LU decomposition.
       call lu_decompose(6, a)
 
    end subroutine edge_eh6_slope_eh5_lblu
 
-   subroutine edge_eh6_slope_eh5_rblu(h, a)
+   pure subroutine edge_eh6_slope_eh5_rblu(h, a)
    ! ---------------------------------------------------------------------------
    ! Compute LU matrix for explicitly estimating 6th and 5th order accurate
    ! right edge and slope values, respectively.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:), intent(in) :: h
-      real(r8), dimension(:, :), intent(inout) :: a
+      real(r8), dimension(:,:), intent(inout) :: a
 
       real(r8) :: a12sq, a22sq, a32sq, a42sq, a52sq, &
                   h1sq, h2sq, h3sq, h4sq, h5sq
 
       ! Define matrix for linear system to be solved for edge and slope values.
 
-      a(1:6, 1) = c1
+      a(1:6,1) = c1
 
-      a(6, 2) = - c1_2*h(6)
-      a(5, 2) = a(6, 2) - c1_2*(h(6) + h(5))
-      a(4, 2) = a(5, 2) - c1_2*(h(5) + h(4))
-      a(3, 2) = a(4, 2) - c1_2*(h(4) + h(3))
-      a(2, 2) = a(3, 2) - c1_2*(h(3) + h(2))
-      a(1, 2) = a(2, 2) - c1_2*(h(2) + h(1))
+      a(6,2) = - c1_2*h(6)
+      a(5,2) = a(6,2) - c1_2*(h(6) + h(5))
+      a(4,2) = a(5,2) - c1_2*(h(5) + h(4))
+      a(3,2) = a(4,2) - c1_2*(h(4) + h(3))
+      a(2,2) = a(3,2) - c1_2*(h(3) + h(2))
+      a(1,2) = a(2,2) - c1_2*(h(2) + h(1))
 
-      a12sq = a(1, 2)*a(1, 2)
-      a22sq = a(2, 2)*a(2, 2)
-      a32sq = a(3, 2)*a(3, 2)
-      a42sq = a(4, 2)*a(4, 2)
-      a52sq = a(5, 2)*a(5, 2)
+      a12sq = a(1,2)*a(1,2)
+      a22sq = a(2,2)*a(2,2)
+      a32sq = a(3,2)*a(3,2)
+      a42sq = a(4,2)*a(4,2)
+      a52sq = a(5,2)*a(5,2)
       h1sq = h(1)*h(1)
       h2sq = h(2)*h(2)
       h3sq = h(3)*h(3)
       h4sq = h(4)*h(4)
       h5sq = h(5)*h(5)
 
-      a(1, 3) = c1_2*(a12sq + c1_12*h1sq)
-      a(2, 3) = c1_2*(a22sq + c1_12*h2sq)
-      a(3, 3) = c1_2*(a32sq + c1_12*h3sq)
-      a(4, 3) = c1_2*(a42sq + c1_12*h4sq)
-      a(5, 3) = c1_2*(a52sq + c1_12*h5sq)
-      a(6, 3) = - c1_3*a(6, 2)*h(6)
+      a(1,3) = c1_2*(a12sq + c1_12*h1sq)
+      a(2,3) = c1_2*(a22sq + c1_12*h2sq)
+      a(3,3) = c1_2*(a32sq + c1_12*h3sq)
+      a(4,3) = c1_2*(a42sq + c1_12*h4sq)
+      a(5,3) = c1_2*(a52sq + c1_12*h5sq)
+      a(6,3) = - c1_3*a(6,2)*h(6)
 
-      a(1, 4) = c1_6*a(1, 2)*(a12sq + c1_4*h1sq)
-      a(2, 4) = c1_6*a(2, 2)*(a22sq + c1_4*h2sq)
-      a(3, 4) = c1_6*a(3, 2)*(a32sq + c1_4*h3sq)
-      a(4, 4) = c1_6*a(4, 2)*(a42sq + c1_4*h4sq)
-      a(5, 4) = c1_6*a(5, 2)*(a52sq + c1_4*h5sq)
-      a(6, 4) = - c1_4*a(6, 3)*h(6)
+      a(1,4) = c1_6*a(1,2)*(a12sq + c1_4*h1sq)
+      a(2,4) = c1_6*a(2,2)*(a22sq + c1_4*h2sq)
+      a(3,4) = c1_6*a(3,2)*(a32sq + c1_4*h3sq)
+      a(4,4) = c1_6*a(4,2)*(a42sq + c1_4*h4sq)
+      a(5,4) = c1_6*a(5,2)*(a52sq + c1_4*h5sq)
+      a(6,4) = - c1_4*a(6,3)*h(6)
 
-      a(1, 5) = c1_24*(a12sq*(a12sq + c1_2*h1sq) + c1_80*h1sq*h1sq)
-      a(2, 5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
-      a(3, 5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
-      a(4, 5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
-      a(5, 5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
-      a(6, 5) = - c1_5*a(6, 4)*h(6)
+      a(1,5) = c1_24*(a12sq*(a12sq + c1_2*h1sq) + c1_80*h1sq*h1sq)
+      a(2,5) = c1_24*(a22sq*(a22sq + c1_2*h2sq) + c1_80*h2sq*h2sq)
+      a(3,5) = c1_24*(a32sq*(a32sq + c1_2*h3sq) + c1_80*h3sq*h3sq)
+      a(4,5) = c1_24*(a42sq*(a42sq + c1_2*h4sq) + c1_80*h4sq*h4sq)
+      a(5,5) = c1_24*(a52sq*(a52sq + c1_2*h5sq) + c1_80*h5sq*h5sq)
+      a(6,5) = - c1_5*a(6,4)*h(6)
 
-      a(1, 6) = c1_120*a(1, 2)*(a12sq + c3_4*h1sq)*(a12sq + c1_12*h1sq)
-      a(2, 6) = c1_120*a(2, 2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
-      a(3, 6) = c1_120*a(3, 2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
-      a(4, 6) = c1_120*a(4, 2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
-      a(5, 6) = c1_120*a(5, 2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
-      a(6, 6) = - c1_6*a(6, 5)*h(6)
+      a(1,6) = c1_120*a(1,2)*(a12sq + c3_4*h1sq)*(a12sq + c1_12*h1sq)
+      a(2,6) = c1_120*a(2,2)*(a22sq + c3_4*h2sq)*(a22sq + c1_12*h2sq)
+      a(3,6) = c1_120*a(3,2)*(a32sq + c3_4*h3sq)*(a32sq + c1_12*h3sq)
+      a(4,6) = c1_120*a(4,2)*(a42sq + c3_4*h4sq)*(a42sq + c1_12*h4sq)
+      a(5,6) = c1_120*a(5,2)*(a52sq + c3_4*h5sq)*(a52sq + c1_12*h5sq)
+      a(6,6) = - c1_6*a(6,5)*h(6)
 
       ! LU decomposition.
       call lu_decompose(6, a)
 
    end subroutine edge_eh6_slope_eh5_rblu
 
-   subroutine prepare_pqm(rcs, x_edge_src)
+   pure subroutine prepare_pqm(rcgs, x_edge_src)
    ! ---------------------------------------------------------------------------
    ! Prepare reconstruction with piecewise quartics using implicit 6th order
    ! accurate edge and 5th order accurate slope estimation.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: x_edge_src
 
-      integer, dimension(rcs%n_src_all) :: prev_index, next_index
-      real(r8) :: hp, h_max, h_min
-      integer :: jp, j, last_index, jf, jl, n, j_min, jn, jd, js
-      integer :: first_index = 0 ! Initialized to avoid compiler warning.
+      integer, dimension(rcgs%n_src) :: prev_index, next_index
+      real(r8) :: hp, h_max, h_min, h
+      integer :: ns, jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      integer :: first_index
+!     integer :: first_index = 0 ! Initialized to avoid compiler warning.
 
       ! Exclude near-empty grid cells and establish a doubly linked list that
       ! connects the remaining grid cells.
-      rcs%n_src = 0
+      ns = 0
       jp = 0
-      do j = 1, rcs%n_src_all
-         rcs%h_src(j) = abs(x_edge_src(j + 1) - x_edge_src(j))
-         if (rcs%h_src(j) > c2*rcs%x_eps) then
-            rcs%n_src = rcs%n_src + 1
-            rcs%src_dst_index(j) = 1
+      do j = 1, rcgs%n_src
+         rcgs%h_src(j) = abs(x_edge_src(j+1) - x_edge_src(j))
+         if (rcgs%h_src(j) > c2*rcgs%x_eps) then
+            ns = ns + 1
+            rcgs%src_dst_index(j) = 1
             prev_index(j) = jp
             if (jp == 0) then
                first_index = j
@@ -786,12 +957,15 @@ contains
             endif
             jp = j
          else
-            rcs%src_dst_index(j) = 0
+            rcgs%src_dst_index(j) = 0
          endif
       enddo
       last_index = jp
       next_index(jp) = 0
-      if (rcs%n_src < 6) return
+      if (ns < 6) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! Exclude grid cells that may lead to large condition numbers for the
       ! linear systems to be solved in edge_ih6_slope_ih5_coeff_asymleft,
@@ -801,50 +975,53 @@ contains
       jf = first_index
       outer: do
          j = jf
-         hp = rcs%h_src(j)
-         h_max = rcs%h_src(j)
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
          do n = 1, 3
             j = next_index(j)
             if (j == 0) exit outer
-            hp = hp*rcs%h_src(j)
-            h_max = max(h_max, rcs%h_src(j))
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
          enddo
          if (hp > hplim_ih6*h_max**4) then
             jf = next_index(jf)
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 6) return
+            ns = ns - 1
+            if (ns < 6) then
+               rcgs%n_src_actual = ns
+               return
+            endif
             j = jf
-            h_min = rcs%h_src(j)
+            h_min = rcgs%h_src(j)
             j_min = j
             do n = 1, 3
                j = next_index(j)
-               if (rcs%h_src(j) < h_min) then
-                  h_min = rcs%h_src(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
                   j_min = j
                endif
             enddo
             jp = prev_index(j_min)
             jn = next_index(j_min)
             if     (jp == 0) then
-               rcs%src_dst_index(j_min) = - jn
-               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jn
+               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                first_index = jn
                prev_index(jn) = 0
                jf = jn
             elseif (jn == 0) then
-               rcs%src_dst_index(j_min) = - jp
-               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jp
+               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                next_index(jp) = 0
                last_index = jp
                exit
             else
-               if (rcs%h_src(jn) < rcs%h_src(jp)) then
-                  rcs%src_dst_index(j_min) = - jn
-                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                else
-                  rcs%src_dst_index(j_min) = - jp
-                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                endif
                next_index(jp) = jn
                prev_index(jn) = jp
@@ -864,43 +1041,46 @@ contains
       jf = first_index
       do
          j = jf
-         hp = rcs%h_src(j)
-         h_max = rcs%h_src(j)
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
          do n = 1, 5
             j = next_index(j)
-            hp = hp*rcs%h_src(j)
-            h_max = max(h_max, rcs%h_src(j))
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
          enddo
          if (hp > hplim_eh6*h_max**6) then
             exit
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 6) return
+            ns = ns - 1
+            if (ns < 6) then
+               rcgs%n_src_actual = ns
+               return
+            endif
             j = jf
-            h_min = rcs%h_src(j)
+            h_min = rcgs%h_src(j)
             j_min = j
             do n = 1, 5
                j = next_index(j)
-               if (rcs%h_src(j) < h_min) then
-                  h_min = rcs%h_src(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
                   j_min = j
                endif
             enddo
             jp = prev_index(j_min)
             jn = next_index(j_min)
             if (jp == 0) then
-               rcs%src_dst_index(j_min) = - jn
-               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jn
+               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                first_index = jn
                prev_index(jn) = 0
                jf = jn
             else
-               if (rcs%h_src(jn) < rcs%h_src(jp)) then
-                  rcs%src_dst_index(j_min) = - jn
-                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                else
-                  rcs%src_dst_index(j_min) = - jp
-                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                endif
                next_index(jp) = jn
                prev_index(jn) = jp
@@ -915,42 +1095,45 @@ contains
       jl = last_index
       do
          j = jl
-         hp = rcs%h_src(j)
-         h_max = rcs%h_src(j)
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
          do n = 1, 5
             j = prev_index(j)
-            hp = hp*rcs%h_src(j)
-            h_max = max(h_max, rcs%h_src(j))
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
          enddo
          if (hp > hplim_eh6*h_max**6) then
             exit
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 6) return
+            ns = ns - 1
+            if (ns < 6) then
+               rcgs%n_src_actual = ns
+               return
+            endif
             j = jl
-            h_min = rcs%h_src(j)
+            h_min = rcgs%h_src(j)
             j_min = j
             do n = 1, 5
                j = prev_index(j)
-               if (rcs%h_src(j) < h_min) then
-                  h_min = rcs%h_src(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
                   j_min = j
                endif
             enddo
             jp = prev_index(j_min)
             jn = next_index(j_min)
             if (jn == 0) then
-               rcs%src_dst_index(j_min) = - jp
-               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jp
+               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                next_index(jp) = 0
                jl = jp
             else
-               if (rcs%h_src(jn) < rcs%h_src(jp)) then
-                  rcs%src_dst_index(j_min) = - jn
-                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                else
-                  rcs%src_dst_index(j_min) = - jp
-                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                endif
                next_index(jp) = jn
                prev_index(jn) = jp
@@ -962,94 +1145,100 @@ contains
       ! continuous array of grid cells to be used in the reconstruction. Also
       ! set the grid cell widths of the continuous array.
       jd = 0
-      do js = 1, rcs%n_src_all
-         if (rcs%src_dst_index(js) > 0) then
+      do js = 1, rcgs%n_src
+         if (rcgs%src_dst_index(js) > 0) then
             jd = jd + 1
-            rcs%src_dst_index(js) = jd
-            rcs%h_src(jd) = rcs%h_src(js)
-            rcs%hi_src(jd) = c1/rcs%h_src(jd)
+            rcgs%src_dst_index(js) = jd
+            rcgs%h_src(jd) = rcgs%h_src(js)
+            rcgs%hi_src(jd) = c1/rcgs%h_src(jd)
          endif
       enddo
 
       ! Find the destination index of excluded grid cells to be merged and
       ! compute the mapping weights.
-      do js = 1, rcs%n_src_all
-         jd = rcs%src_dst_index(js)
+      do js = 1, rcgs%n_src
+         jd = rcgs%src_dst_index(js)
          do while (jd < 0)
-            jd = rcs%src_dst_index(- jd)
+            jd = rcgs%src_dst_index(- jd)
          enddo
-         rcs%src_dst_index(js) = jd
-         if (jd > 0) &
-            rcs%src_dst_weight(js) = ( x_edge_src(js + 1) &
-                                     - x_edge_src(js    ))*rcs%hi_src(jd)
+         rcgs%src_dst_index(js) = jd
+         if (jd > 0) then
+            h = abs(x_edge_src(js+1) - x_edge_src(js))
+            if (abs(h - rcgs%h_src(jd)) < rcgs%x_eps) then
+               rcgs%src_dst_weight(js) = c1
+            else
+               rcgs%src_dst_weight(js) = h*rcgs%hi_src(jd)
+            endif
+         endif
       enddo
 
       ! Set source edge values in the continuous reconstruction array.
-      rcs%x_edge_src(1) = x_edge_src(1)
+      rcgs%x_edge_src(1) = x_edge_src(1)
       js = 1
-      do j = 1, rcs%n_src - 1
+      do j = 1, ns-1
          do
-           js = js + 1
-           if (rcs%src_dst_index(js) /= j .and. rcs%src_dst_index(js) /= 0) exit
+            js = js + 1
+            if (rcgs%src_dst_index(js) /= j .and. &
+                rcgs%src_dst_index(js) /= 0) exit
          enddo
-         rcs%x_edge_src(j + 1) = x_edge_src(js)
+         rcgs%x_edge_src(j+1) = x_edge_src(js)
       enddo
-      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+      rcgs%x_edge_src(ns+1) = x_edge_src(rcgs%n_src+1)
 
       ! Compute the multiplicative inverse of cell width used for estimating
       ! centered linear slope.
-      do j = 2, rcs%n_src - 1
-         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
-                             + rcs%h_src(j + 1))
+      do j = 2, ns-1
+         rcgs%hci_src(j) = c2/( rcgs%h_src(j-1) + c2*rcgs%h_src(j) &
+                              + rcgs%h_src(j+1))
       enddo
-
 
       ! Compute coefficients for the tridiagonal system of equations for the
       ! estimation of interior edge and slope values.
-      call edge_ih6_slope_ih5_coeff_asymleft( &
-              rcs%h_src(1:4), &
-              rcs%tdecoeff(:, 2), rcs%tdscoeff(:, 2))
-      do j = 3, rcs%n_src - 1
-         call edge_ih6_slope_ih5_coeff_sym( &
-                 rcs%h_src((j - 2):(j + 1)), &
-                 rcs%tdecoeff(:, j), rcs%tdscoeff(:, j))
+      call edge_ih6_slope_ih5_coeff_asymleft(rcgs%h_src(1:4), &
+                                             rcgs%tdecoeff(:,2), &
+                                             rcgs%tdscoeff(:,2))
+      do j = 3, ns-1
+         call edge_ih6_slope_ih5_coeff_sym(rcgs%h_src((j-2):(j+1)), &
+                                           rcgs%tdecoeff(:,j), &
+                                           rcgs%tdscoeff(:,j))
       enddo
-      call edge_ih6_slope_ih5_coeff_asymright( &
-              rcs%h_src((rcs%n_src - 3):rcs%n_src), &
-              rcs%tdecoeff(:, rcs%n_src), rcs%tdscoeff(:, rcs%n_src))
+      call edge_ih6_slope_ih5_coeff_asymright(rcgs%h_src((ns-3):ns), &
+                                              rcgs%tdecoeff(:,ns), &
+                                              rcgs%tdscoeff(:,ns))
 
       ! Compute LU matrices for the explicit estimation of boundary edge and
       ! slope values.
-      call edge_eh6_slope_eh5_lblu(rcs%h_src(1:6), &
-                                   rcs%lblu)
-      call edge_eh6_slope_eh5_rblu(rcs%h_src((rcs%n_src - 5):rcs%n_src), &
-                                   rcs%rblu)
+      call edge_eh6_slope_eh5_lblu(rcgs%h_src(1:6), rcgs%lblu)
+      call edge_eh6_slope_eh5_rblu(rcgs%h_src((ns-5):ns), rcgs%rblu)
+
+      rcgs%n_src_actual = ns
 
    end subroutine prepare_pqm
 
-   subroutine prepare_ppm(rcs, x_edge_src)
+   pure subroutine prepare_ppm(rcgs, x_edge_src)
    ! ---------------------------------------------------------------------------
    ! Prepare reconstruction with piecewise parabolas using implicit 4th order
    ! accurate edge estimation.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: x_edge_src
 
-      integer, dimension(rcs%n_src_all) :: prev_index, next_index
-      real(r8) :: hp, h_max, h_min
-      integer :: jp, j, last_index, jf, jl, n, j_min, jn, jd, js
-      integer :: first_index = 0 ! Initialized to avoid compiler warning.
+      integer, dimension(rcgs%n_src) :: prev_index, next_index
+      real(r8) :: hp, h_max, h_min, h
+      integer :: ns, jp, j, last_index, jf, jl, n, j_min, jn, jd, js
+      integer :: first_index
+!     integer :: first_index = 0 ! Initialized to avoid compiler warning.
 
       ! Exclude near-empty grid cells and establish a doubly linked list that
       ! connects the remaining grid cells.
-      rcs%n_src = 0
+      ns = 0
       jp = 0
-      do j = 1, rcs%n_src_all
-         rcs%h_src(j) = abs(x_edge_src(j + 1) - x_edge_src(j))
-         if (rcs%h_src(j) > c2*rcs%x_eps) then
-            rcs%n_src = rcs%n_src + 1
-            rcs%src_dst_index(j) = 1
+      do j = 1, rcgs%n_src
+         rcgs%h_src(j) = abs(x_edge_src(j+1) - x_edge_src(j))
+         if (rcgs%h_src(j) > c2*rcgs%x_eps) then
+            ns = ns + 1
+            rcgs%src_dst_index(j) = 1
             prev_index(j) = jp
             if (jp == 0) then
                first_index = j
@@ -1058,12 +1247,15 @@ contains
             endif
             jp = j
          else
-            rcs%src_dst_index(j) = 0
+            rcgs%src_dst_index(j) = 0
          endif
       enddo
       last_index = jp
       next_index(jp) = 0
-      if (rcs%n_src < 4) return
+      if (ns < 4) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! Exclude grid cells that may lead to large condition numbers for the
       ! linear systems to be solved in edge_ih4_coeff. Excluded grid cells are
@@ -1072,32 +1264,35 @@ contains
       jf = first_index
       jl = next_index(jf)
       do
-         if (rcs%h_src(jf)*rcs%h_src(jl) > &
-             hplim_ih4*max(rcs%h_src(jf), rcs%h_src(jl))**2) then
+         if (rcgs%h_src(jf)*rcgs%h_src(jl) > &
+             hplim_ih4*max(rcgs%h_src(jf), rcgs%h_src(jl))**2) then
             jf = jl
             jl = next_index(jf)
             if (jl == 0) exit
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 4) return
-            if (rcs%h_src(jf) < rcs%h_src(jl)) then
+            ns = ns - 1
+            if (ns < 4) then
+               rcgs%n_src_actual = ns
+               return
+            endif
+            if (rcgs%h_src(jf) < rcgs%h_src(jl)) then
                j = jf
                jf = prev_index(jf)
                prev_index(jl) = jf
                if (jf == 0) then
-                  rcs%src_dst_index(j) = - jl
-                  rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+                  rcgs%src_dst_index(j) = - jl
+                  rcgs%h_src(jl) = rcgs%h_src(jl) + rcgs%h_src(j)
                   first_index = jl
                   jf = jl
                   jl = next_index(jf)
                   if (jl == 0) exit
                else
-                  if (rcs%h_src(jf) < rcs%h_src(jl)) then
-                     rcs%src_dst_index(j) = - jf
-                     rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+                  if (rcgs%h_src(jf) < rcgs%h_src(jl)) then
+                     rcgs%src_dst_index(j) = - jf
+                     rcgs%h_src(jf) = rcgs%h_src(jf) + rcgs%h_src(j)
                   else
-                     rcs%src_dst_index(j) = - jl
-                     rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+                     rcgs%src_dst_index(j) = - jl
+                     rcgs%h_src(jl) = rcgs%h_src(jl) + rcgs%h_src(j)
                   endif
                   next_index(jf) = jl
                endif
@@ -1106,17 +1301,17 @@ contains
                jl = next_index(jl)
                next_index(jf) = jl
                if (jl == 0) then
-                  rcs%src_dst_index(j) = - jf
-                  rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+                  rcgs%src_dst_index(j) = - jf
+                  rcgs%h_src(jf) = rcgs%h_src(jf) + rcgs%h_src(j)
                   last_index = jf
                   exit
                endif
-               if (rcs%h_src(jf) < rcs%h_src(jl)) then
-                  rcs%src_dst_index(j) = - jf
-                  rcs%h_src(jf) = rcs%h_src(jf) + rcs%h_src(j)
+               if (rcgs%h_src(jf) < rcgs%h_src(jl)) then
+                  rcgs%src_dst_index(j) = - jf
+                  rcgs%h_src(jf) = rcgs%h_src(jf) + rcgs%h_src(j)
                else
-                  rcs%src_dst_index(j) = - jl
-                  rcs%h_src(jl) = rcs%h_src(jl) + rcs%h_src(j)
+                  rcgs%src_dst_index(j) = - jl
+                  rcgs%h_src(jl) = rcgs%h_src(jl) + rcgs%h_src(j)
                endif
                prev_index(jl) = jf
             endif
@@ -1130,43 +1325,46 @@ contains
       jf = first_index
       do
          j = jf
-         hp = rcs%h_src(j)
-         h_max = rcs%h_src(j)
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
          do n = 1, 3
             j = next_index(j)
-            hp = hp*rcs%h_src(j)
-            h_max = max(h_max, rcs%h_src(j))
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
          enddo
          if (hp > hplim_eh4*h_max**4) then
             exit
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 4) return
+            ns = ns - 1
+            if (ns < 4) then
+               rcgs%n_src_actual = ns
+               return
+            endif
             j = jf
-            h_min = rcs%h_src(j)
+            h_min = rcgs%h_src(j)
             j_min = j
             do n = 1, 3
                j = next_index(j)
-               if (rcs%h_src(j) < h_min) then
-                  h_min = rcs%h_src(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
                   j_min = j
                endif
             enddo
             jp = prev_index(j_min)
             jn = next_index(j_min)
             if (jp == 0) then
-               rcs%src_dst_index(j_min) = - jn
-               rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jn
+               rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                first_index = jn
                prev_index(jn) = 0
                jf = jn
             else
-               if (rcs%h_src(jn) < rcs%h_src(jp)) then
-                  rcs%src_dst_index(j_min) = - jn
-                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                else
-                  rcs%src_dst_index(j_min) = - jp
-                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                endif
                next_index(jp) = jn
                prev_index(jn) = jp
@@ -1181,42 +1379,45 @@ contains
       jl = last_index
       do
          j = jl
-         hp = rcs%h_src(j)
-         h_max = rcs%h_src(j)
+         hp = rcgs%h_src(j)
+         h_max = rcgs%h_src(j)
          do n = 1, 3
             j = prev_index(j)
-            hp = hp*rcs%h_src(j)
-            h_max = max(h_max, rcs%h_src(j))
+            hp = hp*rcgs%h_src(j)
+            h_max = max(h_max, rcgs%h_src(j))
          enddo
          if (hp > hplim_eh4*h_max**4) then
             exit
          else
-            rcs%n_src = rcs%n_src - 1
-            if (rcs%n_src < 4) return
+            ns = ns - 1
+            if (ns < 4) then
+               rcgs%n_src_actual = ns
+               return
+            endif
             j = jl
-            h_min = rcs%h_src(j)
+            h_min = rcgs%h_src(j)
             j_min = j
             do n = 1, 3
                j = prev_index(j)
-               if (rcs%h_src(j) < h_min) then
-                  h_min = rcs%h_src(j)
+               if (rcgs%h_src(j) < h_min) then
+                  h_min = rcgs%h_src(j)
                   j_min = j
                endif
             enddo
             jp = prev_index(j_min)
             jn = next_index(j_min)
             if (jn == 0) then
-               rcs%src_dst_index(j_min) = - jp
-               rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+               rcgs%src_dst_index(j_min) = - jp
+               rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                next_index(jp) = 0
                jl = jp
             else
-               if (rcs%h_src(jn) < rcs%h_src(jp)) then
-                  rcs%src_dst_index(j_min) = - jn
-                  rcs%h_src(jn) = rcs%h_src(jn) + rcs%h_src(j_min)
+               if (rcgs%h_src(jn) < rcgs%h_src(jp)) then
+                  rcgs%src_dst_index(j_min) = - jn
+                  rcgs%h_src(jn) = rcgs%h_src(jn) + rcgs%h_src(j_min)
                else
-                  rcs%src_dst_index(j_min) = - jp
-                  rcs%h_src(jp) = rcs%h_src(jp) + rcs%h_src(j_min)
+                  rcgs%src_dst_index(j_min) = - jp
+                  rcgs%h_src(jp) = rcgs%h_src(jp) + rcgs%h_src(j_min)
                endif
                next_index(jp) = jn
                prev_index(jn) = jp
@@ -1228,671 +1429,1529 @@ contains
       ! continuous array of grid cells to be used in the reconstruction. Also
       ! set the grid cell widths of the continuous array.
       jd = 0
-      do js = 1, rcs%n_src_all
-         if (rcs%src_dst_index(js) > 0) then
+      do js = 1, rcgs%n_src
+         if (rcgs%src_dst_index(js) > 0) then
             jd = jd + 1
-            rcs%src_dst_index(js) = jd
-            rcs%h_src(jd) = rcs%h_src(js)
-            rcs%hi_src(jd) = c1/rcs%h_src(jd)
+            rcgs%src_dst_index(js) = jd
+            rcgs%h_src(jd) = rcgs%h_src(js)
+            rcgs%hi_src(jd) = c1/rcgs%h_src(jd)
          endif
       enddo
 
       ! Find the destination index of excluded grid cells to be merged and
       ! compute the mapping weights.
-      do js = 1, rcs%n_src_all
-         jd = rcs%src_dst_index(js)
+      do js = 1, rcgs%n_src
+         jd = rcgs%src_dst_index(js)
          do while (jd < 0)
-            jd = rcs%src_dst_index(- jd)
+            jd = rcgs%src_dst_index(- jd)
          enddo
-         rcs%src_dst_index(js) = jd
-         if (jd > 0) &
-            rcs%src_dst_weight(js) = ( x_edge_src(js + 1) &
-                                     - x_edge_src(js    ))*rcs%hi_src(jd)
+         rcgs%src_dst_index(js) = jd
+         if (jd > 0) then
+            h = abs(x_edge_src(js+1) - x_edge_src(js))
+            if (abs(h - rcgs%h_src(jd)) < rcgs%x_eps) then
+               rcgs%src_dst_weight(js) = c1
+            else
+               rcgs%src_dst_weight(js) = h*rcgs%hi_src(jd)
+            endif
+         endif
       enddo
 
       ! Set source edge values in the continuous reconstruction array.
-      rcs%x_edge_src(1) = x_edge_src(1)
+      rcgs%x_edge_src(1) = x_edge_src(1)
       js = 1
-      do j = 1, rcs%n_src - 1
+      do j = 1, ns-1
          do
-           js = js + 1
-           if (rcs%src_dst_index(js) /= j .and. rcs%src_dst_index(js) /= 0) exit
+            js = js + 1
+            if (rcgs%src_dst_index(js) /= j .and. &
+                rcgs%src_dst_index(js) /= 0) exit
          enddo
-         rcs%x_edge_src(j + 1) = x_edge_src(js)
+         rcgs%x_edge_src(j+1) = x_edge_src(js)
       enddo
-      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+      rcgs%x_edge_src(ns+1) = x_edge_src(rcgs%n_src+1)
 
       ! Compute the multiplicative inverse of cell width used for estimating
       ! centered linear slope.
-      do j = 2, rcs%n_src - 1
-         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
-                             + rcs%h_src(j + 1))
+      do j = 2, ns-1
+         rcgs%hci_src(j) = c2/( rcgs%h_src(j-1) + c2*rcgs%h_src(j) &
+                              + rcgs%h_src(j+1))
       enddo
 
       ! Compute coefficients for the tridiagonal system of equations for the
       ! estimation of interior edge values.
-      do j = 2, rcs%n_src
-         call edge_ih4_coeff(rcs%h_src((j - 1):j), rcs%tdecoeff(:, j))
+      do j = 2, ns
+         call edge_ih4_coeff(rcgs%h_src((j-1):j), rcgs%tdecoeff(:,j))
       enddo
 
       ! Compute LU matrices for the explicit estimation of boundary edge values.
-      call edge_eh4_lblu(rcs%h_src(1:4), rcs%lblu)
-      call edge_eh4_rblu(rcs%h_src((rcs%n_src - 3):rcs%n_src), rcs%rblu)
+      call edge_eh4_lblu(rcgs%h_src(1:4), rcgs%lblu)
+      call edge_eh4_rblu(rcgs%h_src((ns-3):ns), rcgs%rblu)
+      
+      rcgs%n_src_actual = ns
 
    end subroutine prepare_ppm
 
-   subroutine prepare_plm(rcs, x_edge_src)
+   pure subroutine prepare_plm(rcgs, x_edge_src)
    ! ---------------------------------------------------------------------------
    ! Prepare reconstruction with piecewise lines.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: x_edge_src
 
-      integer :: j, js
+      integer :: ns, j, js
 
       ! Exclude near-empty grid cells and assign the destination index in the
       ! continuous array of grid cells to be used in the reconstruction.
-      rcs%n_src = 0
-      do j = 1, rcs%n_src_all
-         if (abs(x_edge_src(j + 1) - x_edge_src(j)) > c2*rcs%x_eps) then
-            rcs%n_src = rcs%n_src + 1
-            rcs%src_dst_index(j) = rcs%n_src
+      ns = 0
+      do j = 1, rcgs%n_src
+         if (abs(x_edge_src(j+1) - x_edge_src(j)) > c2*rcgs%x_eps) then
+            ns = ns + 1
+            rcgs%src_dst_index(j) = ns
          else
-            rcs%src_dst_index(j) = 0
+            rcgs%src_dst_index(j) = 0
          endif
       enddo
-      if (rcs%n_src < 2) return
+      if (ns < 2) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! Set source edge values in the continuous reconstruction array.
-      rcs%x_edge_src(1) = x_edge_src(1)
+      rcgs%x_edge_src(1) = x_edge_src(1)
       js = 1
-      do j = 1, rcs%n_src - 1
+      do j = 1, ns-1
          do
             js = js + 1
-            if (rcs%src_dst_index(js) /= 0) exit
+            if (rcgs%src_dst_index(js) /= j .and. &
+                rcgs%src_dst_index(js) /= 0) exit
          enddo
-         rcs%x_edge_src(j + 1) = x_edge_src(js)
+         rcgs%x_edge_src(j+1) = x_edge_src(js)
       enddo
-      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+      rcgs%x_edge_src(ns+1) = x_edge_src(rcgs%n_src+1)
 
       ! From edge locations, obtain source grid cell widths and their
       ! multiplicative inverse.
-      do j = 1, rcs%n_src
-         rcs%h_src(j) = abs(rcs%x_edge_src(j + 1) - rcs%x_edge_src(j))
-         rcs%hi_src(j) = c1/rcs%h_src(j)
+      do j = 1, ns
+         rcgs%h_src(j) = abs(rcgs%x_edge_src(j+1) - rcgs%x_edge_src(j))
+         rcgs%hi_src(j) = c1/rcgs%h_src(j)
       enddo
 
       ! Compute the multiplicative inverse of cell width used for estimating
       ! centered linear slope.
-      do j = 2, rcs%n_src - 1
-         rcs%hci_src(j) = c2/( rcs%h_src(j - 1) + c2*rcs%h_src(j) &
-                             + rcs%h_src(j + 1))
+      do j = 2, ns-1
+         rcgs%hci_src(j) = c2/( rcgs%h_src(j-1) + c2*rcgs%h_src(j) &
+                              + rcgs%h_src(j+1))
       enddo
+
+      rcgs%n_src_actual = ns
 
    end subroutine prepare_plm
 
-   subroutine prepare_pcm(rcs, x_edge_src)
+   pure subroutine prepare_pcm(rcgs, x_edge_src)
    ! ---------------------------------------------------------------------------
    ! Prepare piecewise constant reconstruction.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: x_edge_src
 
-      integer :: j, js
+      integer :: ns, j, js
 
       ! Exclude near-empty grid cells and assign the destination index in the
       ! continuous array of grid cells to be used in the reconstruction.
-      rcs%n_src = 0
-      do j = 1, rcs%n_src_all
-         if (abs(x_edge_src(j + 1) - x_edge_src(j)) > c2*rcs%x_eps) then
-            rcs%n_src = rcs%n_src + 1
-            rcs%src_dst_index(j) = rcs%n_src
+      ns = 0
+      do j = 1, rcgs%n_src
+         if (abs(x_edge_src(j+1) - x_edge_src(j)) > c2*rcgs%x_eps) then
+            ns = ns + 1
+            rcgs%src_dst_index(j) = ns
          else
-            rcs%src_dst_index(j) = 0
+            rcgs%src_dst_index(j) = 0
          endif
       enddo
-      if (rcs%n_src == 0) return
+      if (ns == 0) then
+         rcgs%n_src_actual = ns
+         return
+      endif
 
       ! Set source edge values in the continuous reconstruction array.
-      rcs%x_edge_src(1) = x_edge_src(1)
+      rcgs%x_edge_src(1) = x_edge_src(1)
       js = 1
-      do j = 1, rcs%n_src - 1
+      do j = 1, ns-1
          do
             js = js + 1
-            if (rcs%src_dst_index(js) /= 0) exit
+            if (rcgs%src_dst_index(js) /= j .and. &
+                rcgs%src_dst_index(js) /= 0) exit
          enddo
-         rcs%x_edge_src(j + 1) = x_edge_src(js)
+         rcgs%x_edge_src(j+1) = x_edge_src(js)
       enddo
-      rcs%x_edge_src(rcs%n_src + 1) = x_edge_src(rcs%n_src_all + 1)
+      rcgs%x_edge_src(ns+1) = x_edge_src(rcgs%n_src+1)
 
       ! From edge locations, obtain source grid cell widths and their
       ! multiplicative inverse.
-      do j = 1, rcs%n_src
-         rcs%h_src(j) = abs(rcs%x_edge_src(j + 1) - rcs%x_edge_src(j))
-         rcs%hi_src(j) = c1/rcs%h_src(j)
+      do j = 1, ns
+         rcgs%h_src(j) = abs(rcgs%x_edge_src(j+1) - rcgs%x_edge_src(j))
+         rcgs%hi_src(j) = c1/rcgs%h_src(j)
       enddo
+
+      rcgs%n_src_actual = ns
 
    end subroutine prepare_pcm
 
-   subroutine reconstruct_plm_no_limiting(rcs)
+   pure subroutine reconstruct_plm_no_limiting(rcss)
    ! ---------------------------------------------------------------------------
    ! Carry out a reconstruction with piecewise lines.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8) :: sc
       integer :: ns, j
 
-      ns = rcs%n_src
+      ns = rcss%rcgs%n_src_actual
 
-      sc = c2*(rcs%u_src(2) - rcs%u_src(1)) &
-             /(rcs%h_src(2) + rcs%h_src(1))
-      rcs%polycoeff(2, 1) = sc*rcs%h_src(1)
-      rcs%polycoeff(1, 1) = rcs%u_src(1) - c1_2*rcs%polycoeff(2, 1)
-      rcs%uel(1) = rcs%polycoeff(1, 1)
-      rcs%uer(1) = rcs%polycoeff(1, 1) + rcs%polycoeff(2, 1)
-      do j = 2, ns - 1
-         sc = (rcs%u_src(j + 1) - rcs%u_src(j - 1))*rcs%hci_src(j)
-         rcs%polycoeff(2, j) = sc*rcs%h_src(j)
-         rcs%polycoeff(1, j) = rcs%u_src(j) - c1_2*rcs%polycoeff(2, j)
-         rcs%uel(j) = rcs%polycoeff(1, j)
-         rcs%uer(j) = rcs%polycoeff(1, j) + rcs%polycoeff(2, j)
+      sc = c2*(rcss%u_src(2) - rcss%u_src(1)) &
+             /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(1))
+      rcss%polycoeff(2,1) = sc*rcss%rcgs%h_src(1)
+      rcss%polycoeff(1,1) = rcss%u_src(1) - c1_2*rcss%polycoeff(2,1)
+      rcss%uel(1) = rcss%polycoeff(1,1)
+      rcss%uer(1) = rcss%polycoeff(1,1) + rcss%polycoeff(2,1)
+      do j = 2, ns-1
+         sc = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
+         rcss%polycoeff(2,j) = sc*rcss%rcgs%h_src(j)
+         rcss%polycoeff(1,j) = rcss%u_src(j) - c1_2*rcss%polycoeff(2,j)
+         rcss%uel(j) = rcss%polycoeff(1,j)
+         rcss%uer(j) = rcss%polycoeff(1,j) + rcss%polycoeff(2,j)
       enddo
-      sc = c2*(rcs%u_src(ns) - rcs%u_src(ns - 1)) &
-             /(rcs%h_src(ns) + rcs%h_src(ns - 1))
-      rcs%polycoeff(2, ns) = sc*rcs%h_src(ns)
-      rcs%polycoeff(1, ns) = rcs%u_src(ns) - c1_2*rcs%polycoeff(2, ns)
-      rcs%uel(ns) = rcs%polycoeff(1, ns)
-      rcs%uer(ns) = rcs%polycoeff(1, ns) + rcs%polycoeff(2, ns)
+      sc = c2*(rcss%u_src(ns) - rcss%u_src(ns-1)) &
+             /(rcss%rcgs%h_src(ns) + rcss%rcgs%h_src(ns-1))
+      rcss%polycoeff(2,ns) = sc*rcss%rcgs%h_src(ns)
+      rcss%polycoeff(1,ns) = rcss%u_src(ns) - c1_2*rcss%polycoeff(2,ns)
+      rcss%uel(ns) = rcss%polycoeff(1,ns)
+      rcss%uer(ns) = rcss%polycoeff(1,ns) + rcss%polycoeff(2,ns)
 
-      rcs%polycoeff(3, :) = c0
+      rcss%polycoeff(3:rcss%rcgs%p_ord+1,:) = c0
 
    end subroutine reconstruct_plm_no_limiting
 
-   subroutine reconstruct_plm_monotonic(rcs, pclb, pcrb)
+   pure subroutine reconstruct_plm_monotonic(rcss)
    ! ---------------------------------------------------------------------------
    ! Carry out a reconstruction with piecewise lines and apply limiting to
    ! ensure a monotonic reconstruction.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
-      logical, intent(in) :: pclb, pcrb
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8) :: sl, sr, sc
       integer :: ns, j
 
-      ns = rcs%n_src
+      ns = rcss%rcgs%n_src_actual
 
       ! Use monotonized central-difference limiter for interior grid cells.
-      do j = 2, ns - 1
-         sl = c2*(rcs%u_src(j) - rcs%u_src(j - 1))*rcs%hi_src(j)
-         sr = c2*(rcs%u_src(j + 1) - rcs%u_src(j))*rcs%hi_src(j)
+      do j = 2, ns-1
+         sl = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+         sr = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
          if (sl*sr > c0) then
-            sc = (rcs%u_src(j + 1) - rcs%u_src(j - 1))*rcs%hci_src(j)
+            sc = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
             sc = sign(min(abs(sl), abs(sr), abs(sc)), sc)
          else
             sc = c0
          endif
-         rcs%polycoeff(2, j) = sc*rcs%h_src(j)
-         rcs%polycoeff(1, j) = rcs%u_src(j) - c1_2*rcs%polycoeff(2, j)
-         rcs%uel(j) = rcs%polycoeff(1, j)
-         rcs%uer(j) = rcs%polycoeff(1, j) + rcs%polycoeff(2, j)
+         rcss%polycoeff(2,j) = sc*rcss%rcgs%h_src(j)
+         rcss%polycoeff(1,j) = rcss%u_src(j) - c1_2*rcss%polycoeff(2,j)
+         rcss%uel(j) = rcss%polycoeff(1,j)
+         rcss%uer(j) = rcss%polycoeff(1,j) + rcss%polycoeff(2,j)
       enddo
 
-      if (pclb) then
+      if (rcss%pc_left_bndr) then
          ! Piecewise constant reconstruction of left boundary cell.
-         rcs%polycoeff(1, 1) = rcs%u_src(1)
-         rcs%polycoeff(2, 1) = c0
-         rcs%uel(1) = rcs%u_src(1)
-         rcs%uer(1) = rcs%u_src(1)
+         rcss%polycoeff(1,1) = rcss%u_src(1)
+         rcss%polycoeff(2,1) = c0
+         rcss%uel(1) = rcss%u_src(1)
+         rcss%uer(1) = rcss%u_src(1)
       else
          ! Piecewise linear reconstruction of left boundary cell.
-         sc = c2*(rcs%u_src(2) - rcs%u_src(1)) &
-                /(rcs%h_src(2) + rcs%h_src(1))
-         rcs%polycoeff(2, 1) = sc*rcs%h_src(1)
-         rcs%polycoeff(1, 1) = rcs%u_src(1) - c1_2*rcs%polycoeff(2, 1)
-         rcs%uel(1) = rcs%polycoeff(1, 1)
-         rcs%uer(1) = rcs%polycoeff(1, 1) + rcs%polycoeff(2, 1)
+         sc = c2*(rcss%u_src(2) - rcss%u_src(1)) &
+                /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(1))
+         rcss%polycoeff(2,1) = sc*rcss%rcgs%h_src(1)
+         rcss%polycoeff(1,1) = rcss%u_src(1) - c1_2*rcss%polycoeff(2,1)
+         rcss%uel(1) = rcss%polycoeff(1,1)
+         rcss%uer(1) = rcss%polycoeff(1,1) + rcss%polycoeff(2,1)
       endif
 
-      if (pcrb) then
+      if (rcss%pc_right_bndr) then
          ! Piecewise constant reconstruction of right boundary cell.
-         rcs%polycoeff(1, ns) = rcs%u_src(ns)
-         rcs%polycoeff(2, ns) = c0
-         rcs%uel(ns) = rcs%u_src(ns)
-         rcs%uer(ns) = rcs%u_src(ns)
+         rcss%polycoeff(1,ns) = rcss%u_src(ns)
+         rcss%polycoeff(2,ns) = c0
+         rcss%uel(ns) = rcss%u_src(ns)
+         rcss%uer(ns) = rcss%u_src(ns)
       else
          ! Piecewise linear reconstruction of right boundary cell.
-         sc = c2*(rcs%u_src(ns) - rcs%u_src(ns - 1)) &
-                /(rcs%h_src(ns) + rcs%h_src(ns - 1))
-         rcs%polycoeff(2, ns) = sc*rcs%h_src(ns)
-         rcs%polycoeff(1, ns) = rcs%u_src(ns) &
-                              - c1_2*rcs%polycoeff(2, ns)
-         rcs%uel(ns) = rcs%polycoeff(1, ns)
-         rcs%uer(ns) = rcs%polycoeff(1, ns) + rcs%polycoeff(2, ns)
+         sc = c2*(rcss%u_src(ns) - rcss%u_src(ns-1)) &
+                /(rcss%rcgs%h_src(ns) + rcss%rcgs%h_src(ns-1))
+         rcss%polycoeff(2,ns) = sc*rcss%rcgs%h_src(ns)
+         rcss%polycoeff(1,ns) = rcss%u_src(ns) - c1_2*rcss%polycoeff(2,ns)
+         rcss%uel(ns) = rcss%polycoeff(1,ns)
+         rcss%uer(ns) = rcss%polycoeff(1,ns) + rcss%polycoeff(2,ns)
       endif
 
-      rcs%polycoeff(3, :) = c0
+      rcss%polycoeff(3:rcss%rcgs%p_ord+1,:) = c0
 
    end subroutine reconstruct_plm_monotonic
 
-   subroutine reconstruct_ppm_edge_values(rcs)
+   pure subroutine reconstruct_ppm_edge_values(rcss)
    ! ---------------------------------------------------------------------------
    ! Reconstruct edge values using an implicit 4th order scheme.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8), dimension(4) :: x
-      real(r8), dimension(rcs%n_src + 1) :: uedge
-      real(r8), dimension(rcs%n_src) :: rhs, gam
+      real(r8), dimension(rcss%rcgs%n_src_actual+1) :: uedge
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: rhs, gam
       real(r8) :: bei
       integer :: ns, j
 
-      ns = rcs%n_src
+      ns = rcss%rcgs%n_src_actual
 
       ! Obtain the left boundary edge value.
-      x(:) = rcs%u_src(1:4)
-      call lu_solve(4, rcs%lblu, x)
+      x(:) = rcss%u_src(1:4)
+      call lu_solve(4, rcss%rcgs%lblu, x)
       uedge(1) = x(1)
 
       ! Obtain the right boundary edge value.
-      x(:) = rcs%u_src((ns - 3):ns)
-      call lu_solve(4, rcs%rblu, x)
-      uedge(ns + 1) = x(1)
+      x(:) = rcss%u_src((ns-3):ns)
+      call lu_solve(4, rcss%rcgs%rblu, x)
+      uedge(ns+1) = x(1)
 
       ! Obtain right hand side of tridiagonal system of equations.
       do j = 2, ns
-         rhs(j) = rcs%tdecoeff(3, j)*rcs%u_src(j - 1) &
-                + rcs%tdecoeff(4, j)*rcs%u_src(j)
+         rhs(j) = rcss%rcgs%tdecoeff(3,j)*rcss%u_src(j-1) &
+                + rcss%rcgs%tdecoeff(4,j)*rcss%u_src(j  )
       enddo
 
       ! Solve tridiagonal system of equations to obtain interior edge values.
       gam(1) = c0
       do j = 2, ns
-         bei = c1/(c1 - rcs%tdecoeff(1, j)*gam(j - 1))
-         uedge(j) = (rhs(j) - rcs%tdecoeff(1, j)*uedge(j - 1))*bei
-         gam(j) = rcs%tdecoeff(2, j)*bei
+         bei = c1/(c1 - rcss%rcgs%tdecoeff(1,j)*gam(j-1))
+         uedge(j) = (rhs(j) - rcss%rcgs%tdecoeff(1,j)*uedge(j-1))*bei
+         gam(j) = rcss%rcgs%tdecoeff(2,j)*bei
       enddo
-      do j = ns, 2, - 1
-         uedge(j) = uedge(j) - gam(j)*uedge(j + 1)
+      do j = ns, 2, -1
+         uedge(j) = uedge(j) - gam(j)*uedge(j+1)
       enddo
 
       ! Set left and right edge values for each grid cell.
-      rcs%uel(1:ns) = uedge(1:ns)
-      rcs%uer(1:ns) = uedge(2:(ns + 1))
+      rcss%uel(1:ns) = uedge(1:ns)
+      rcss%uer(1:ns) = uedge(2:(ns+1))
 
    end subroutine reconstruct_ppm_edge_values
 
-   subroutine reconstruct_pqm_edge_slope_values(rcs)
+   pure subroutine reconstruct_pqm_edge_slope_values(rcss)
    ! ---------------------------------------------------------------------------
    ! Reconstruct edge and slope values using implicit 6th and 5th order schemes,
    ! respectively.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8), dimension(6) :: x
-      real(r8), dimension(rcs%n_src + 1) :: uedge, uslope
-      real(r8), dimension(rcs%n_src) :: rhs, gam
+      real(r8), dimension(rcss%rcgs%n_src_actual+1) :: uedge, uslope
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: rhs, gam
       real(r8) :: bei
       integer :: ns, j
 
-      ns = rcs%n_src
+      ns = rcss%rcgs%n_src_actual
 
       ! Obtain the left boundary edge and slope values.
-      x(:) = rcs%u_src(1:6)
-      call lu_solve(6, rcs%lblu, x)
+      x(:) = rcss%u_src(1:6)
+      call lu_solve(6, rcss%rcgs%lblu, x)
       uedge(1) = x(1)
       uslope(1) = x(2)
 
       ! Obtain the right boundary edge and slope values.
-      x(:) = rcs%u_src((ns - 5):ns)
-      call lu_solve(6, rcs%rblu, x)
-      uedge(ns + 1) = x(1)
-      uslope(ns + 1) = x(2)
+      x(:) = rcss%u_src((ns - 5):ns)
+      call lu_solve(6, rcss%rcgs%rblu, x)
+      uedge(ns+1) = x(1)
+      uslope(ns+1) = x(2)
 
       ! Obtain right hand side of tridiagonal system of equations for edge
       ! values.
-      rhs(2) = rcs%tdecoeff(3, 2)*rcs%u_src(1) &
-             + rcs%tdecoeff(4, 2)*rcs%u_src(2) &
-             + rcs%tdecoeff(5, 2)*rcs%u_src(3) &
-             + rcs%tdecoeff(6, 2)*rcs%u_src(4)
-      do j = 3, ns - 1
-         rhs(j) = rcs%tdecoeff(3, j)*rcs%u_src(j - 2) &
-                + rcs%tdecoeff(4, j)*rcs%u_src(j - 1) &
-                + rcs%tdecoeff(5, j)*rcs%u_src(j) &
-                + rcs%tdecoeff(6, j)*rcs%u_src(j + 1)
+      rhs(2) = rcss%rcgs%tdecoeff(3,2)*rcss%u_src(1) &
+             + rcss%rcgs%tdecoeff(4,2)*rcss%u_src(2) &
+             + rcss%rcgs%tdecoeff(5,2)*rcss%u_src(3) &
+             + rcss%rcgs%tdecoeff(6,2)*rcss%u_src(4)
+      do j = 3, ns-1
+         rhs(j) = rcss%rcgs%tdecoeff(3,j)*rcss%u_src(j-2) &
+                + rcss%rcgs%tdecoeff(4,j)*rcss%u_src(j-1) &
+                + rcss%rcgs%tdecoeff(5,j)*rcss%u_src(j  ) &
+                + rcss%rcgs%tdecoeff(6,j)*rcss%u_src(j+1)
       enddo
-      rhs(ns) = rcs%tdecoeff(3, ns)*rcs%u_src(ns - 3) &
-              + rcs%tdecoeff(4, ns)*rcs%u_src(ns - 2) &
-              + rcs%tdecoeff(5, ns)*rcs%u_src(ns - 1) &
-              + rcs%tdecoeff(6, ns)*rcs%u_src(ns)
+      rhs(ns) = rcss%rcgs%tdecoeff(3,ns)*rcss%u_src(ns-3) &
+              + rcss%rcgs%tdecoeff(4,ns)*rcss%u_src(ns-2) &
+              + rcss%rcgs%tdecoeff(5,ns)*rcss%u_src(ns-1) &
+              + rcss%rcgs%tdecoeff(6,ns)*rcss%u_src(ns  )
 
       ! Solve tridiagonal system of equations to obtain interior edge values.
       gam(1) = c0
       do j = 2, ns
-         bei = c1/(c1 - rcs%tdecoeff(1, j)*gam(j - 1))
-         uedge(j) = (rhs(j) - rcs%tdecoeff(1, j)*uedge(j - 1))*bei
-         gam(j) = rcs%tdecoeff(2, j)*bei
+         bei = c1/(c1 - rcss%rcgs%tdecoeff(1,j)*gam(j-1))
+         uedge(j) = (rhs(j) - rcss%rcgs%tdecoeff(1,j)*uedge(j-1))*bei
+         gam(j) = rcss%rcgs%tdecoeff(2,j)*bei
       enddo
-      do j = ns, 2, - 1
-         uedge(j) = uedge(j) - gam(j)*uedge(j + 1)
+      do j = ns, 2, -1
+         uedge(j) = uedge(j) - gam(j)*uedge(j+1)
       enddo
 
       ! Obtain right hand side of tridiagonal system of equations for slope
       ! values.
-      rhs(2) = rcs%tdscoeff(3, 2)*rcs%u_src(1) &
-             + rcs%tdscoeff(4, 2)*rcs%u_src(2) &
-             + rcs%tdscoeff(5, 2)*rcs%u_src(3) &
-             + rcs%tdscoeff(6, 2)*rcs%u_src(4)
-      do j = 3, ns - 1
-         rhs(j) = rcs%tdscoeff(3, j)*rcs%u_src(j - 2) &
-                + rcs%tdscoeff(4, j)*rcs%u_src(j - 1) &
-                + rcs%tdscoeff(5, j)*rcs%u_src(j) &
-                + rcs%tdscoeff(6, j)*rcs%u_src(j + 1)
+      rhs(2) = rcss%rcgs%tdscoeff(3,2)*rcss%u_src(1) &
+             + rcss%rcgs%tdscoeff(4,2)*rcss%u_src(2) &
+             + rcss%rcgs%tdscoeff(5,2)*rcss%u_src(3) &
+             + rcss%rcgs%tdscoeff(6,2)*rcss%u_src(4)
+      do j = 3, ns-1
+         rhs(j) = rcss%rcgs%tdscoeff(3,j)*rcss%u_src(j-2) &
+                + rcss%rcgs%tdscoeff(4,j)*rcss%u_src(j-1) &
+                + rcss%rcgs%tdscoeff(5,j)*rcss%u_src(j  ) &
+                + rcss%rcgs%tdscoeff(6,j)*rcss%u_src(j+1)
       enddo
-      rhs(ns) = rcs%tdscoeff(3, ns)*rcs%u_src(ns - 3) &
-              + rcs%tdscoeff(4, ns)*rcs%u_src(ns - 2) &
-              + rcs%tdscoeff(5, ns)*rcs%u_src(ns - 1) &
-              + rcs%tdscoeff(6, ns)*rcs%u_src(ns)
+      rhs(ns) = rcss%rcgs%tdscoeff(3,ns)*rcss%u_src(ns-3) &
+              + rcss%rcgs%tdscoeff(4,ns)*rcss%u_src(ns-2) &
+              + rcss%rcgs%tdscoeff(5,ns)*rcss%u_src(ns-1) &
+              + rcss%rcgs%tdscoeff(6,ns)*rcss%u_src(ns  )
 
       ! Solve tridiagonal system of equations to obtain interior slope values.
       gam(1) = c0
       do j = 2, ns
-         bei = c1/(c1 - rcs%tdscoeff(1, j)*gam(j - 1))
-         uslope(j) = (rhs(j) - rcs%tdscoeff(1, j)*uslope(j - 1))*bei
-         gam(j) = rcs%tdscoeff(2, j)*bei
+         bei = c1/(c1 - rcss%rcgs%tdscoeff(1,j)*gam(j-1))
+         uslope(j) = (rhs(j) - rcss%rcgs%tdscoeff(1,j)*uslope(j-1))*bei
+         gam(j) = rcss%rcgs%tdscoeff(2,j)*bei
       enddo
-      do j = ns, 2, - 1
-         uslope(j) = uslope(j) - gam(j)*uslope(j + 1)
+      do j = ns, 2, -1
+         uslope(j) = uslope(j) - gam(j)*uslope(j+1)
       enddo
 
       ! Set left and right edge values for each grid cell.
-      rcs%uel(1:ns) = uedge(1:ns)
-      rcs%uer(1:ns) = uedge(2:(ns + 1))
+      rcss%uel(1:ns) = uedge(1:ns)
+      rcss%uer(1:ns) = uedge(2:(ns+1))
 
       ! Set left and right slope values for each grid cell and scale the slope
       ! values with the grid cell widths.
-      rcs%usl(1:ns) = uslope(1:ns)*rcs%h_src(1:ns)
-      rcs%usr(1:ns) = uslope(2:(ns + 1))*rcs%h_src(1:ns)
+      rcss%usl(1:ns) = uslope(1:ns)*rcss%rcgs%h_src(1:ns)
+      rcss%usr(1:ns) = uslope(2:(ns+1))*rcss%rcgs%h_src(1:ns)
 
    end subroutine reconstruct_pqm_edge_slope_values
 
-   subroutine limit_ppm_interior_monotonic(rcs)
+   pure subroutine limit_ppm_interior_monotonic(rcss)
    ! ---------------------------------------------------------------------------
    ! Apply limiting to ensure a monotonic reconstruction of piecewise parabolas
    ! for interior grid cells.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8) :: sl, sr, sc, d, q, r
-      integer :: j
+      integer :: ns, j
 
-      do j = 2, rcs%n_src - 1
+      ns = rcss%rcgs%n_src_actual
 
-         sl = c2*(rcs%u_src(j) - rcs%u_src(j - 1))*rcs%hi_src(j)
-         sr = c2*(rcs%u_src(j + 1) - rcs%u_src(j))*rcs%hi_src(j)
-
+      do j = 2, ns-1
+         sl = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+         sr = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
          if (sl*sr > c0) then
-
-            sc = (rcs%u_src(j + 1) - rcs%u_src(j - 1))*rcs%hci_src(j)
+            sc = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
             sc = sign(min(abs(sl), abs(sr), abs(sc)), sc)
-            if ( (rcs%u_src(j - 1) - rcs%uel(j)) &
-                *(rcs%u_src(j    ) - rcs%uel(j)) > c0) &
-               rcs%uel(j) = rcs%u_src(j) &
-                          - sign(min(c1_2*rcs%h_src(j)*abs(sc), &
-                                     abs(rcs%uel(j) - rcs%u_src(j))), sc)
-            if ( (rcs%u_src(j + 1) - rcs%uer(j)) &
-                *(rcs%u_src(j    ) - rcs%uer(j)) > c0) &
-               rcs%uer(j) = rcs%u_src(j) &
-                          + sign(min(c1_2*rcs%h_src(j)*abs(sc), &
-                                     abs(rcs%uer(j) - rcs%u_src(j))), sc)
-
-            d = rcs%uer(j) - rcs%uel(j)
-            q = d*(c2*rcs%u_src(j) - rcs%uel(j) - rcs%uer(j))
-            r = c1_3*d*d
-            if     (  q > r) then
-               rcs%uel(j) = c3*rcs%u_src(j) - c2*rcs%uer(j)
-            elseif (- r > q) then
-               rcs%uer(j) = c3*rcs%u_src(j) - c2*rcs%uel(j)
-            endif
-
+            if ( (rcss%u_src(j-1) - rcss%uel(j)) &
+                *(rcss%u_src(j  ) - rcss%uel(j)) > c0) &
+               rcss%uel(j) = rcss%u_src(j) &
+                           - sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc), &
+                                      abs(rcss%uel(j) - rcss%u_src(j))), sc)
+            if ( (rcss%u_src(j+1) - rcss%uer(j)) &
+                *(rcss%u_src(j  ) - rcss%uer(j)) > c0) &
+               rcss%uer(j) = rcss%u_src(j) &
+                           + sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc), &
+                                      abs(rcss%uer(j) - rcss%u_src(j))), sc)
          else
-            rcs%uel(j) = rcs%u_src(j)
-            rcs%uer(j) = rcs%u_src(j)
+            rcss%uel(j) = rcss%u_src(j)
+            rcss%uer(j) = rcss%u_src(j)
          endif
+      enddo
 
+!     do j = 2, ns-1
+      do j = 3, ns-1
+         if ( (rcss%uel(j) - rcss%uer(j-1)) &
+             *(rcss%u_src(j) - rcss%u_src(j-1)) < c0) then
+            rcss%uel(j) = c1_2*(rcss%uer(j-1) + rcss%uel(j))
+            rcss%uer(j-1) = rcss%uel(j)
+         endif
+      enddo
+
+      do j = 2, ns-1
+         d = rcss%uer(j) - rcss%uel(j)
+         q = d*(c2*rcss%u_src(j) - rcss%uel(j) - rcss%uer(j))
+         r = c1_3*d*d
+         if     (  q > r) then
+            rcss%uel(j) = c3*rcss%u_src(j) - c2*rcss%uer(j)
+         elseif (- r > q) then
+            rcss%uer(j) = c3*rcss%u_src(j) - c2*rcss%uel(j)
+         endif
       enddo
 
    end subroutine limit_ppm_interior_monotonic
 
-   subroutine limit_ppm_interior_non_oscillatory(rcs)
+   pure subroutine limit_ppm_interior_non_oscillatory(rcss)
    ! ---------------------------------------------------------------------------
    ! Apply limiting to prevent a oscillatory reconstruction of piecewise
    ! parabolas for interior grid cells.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
-      real(r8), dimension(rcs%n_src) :: d2
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: d2
       real(r8) :: sl, sr, sc, d, q, r
-      integer :: j
+      integer :: ns, j
+
+      ns = rcss%rcgs%n_src_actual
 
       ! Obtain values proportional to the second derivative of the unlimited
       ! parabolas. 
-      do j = 1, rcs%n_src
-         d2(j) = rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j)
+      do j = 1, ns
+         d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
       enddo
 
-      do j = 2, rcs%n_src - 1
-
+      do j = 2, ns-1
          ! Only apply limiting if the sign of the second 
          ! derivative differs from the sign of second derivatives
          ! of any of the neighbouring parabolas.
-         if (d2(j - 1)*d2(j) < c0 .or. d2(j)*d2(j + 1) < c0) then
-
-            sl = c2*(rcs%u_src(j) - rcs%u_src(j - 1))*rcs%hi_src(j)
-            sr = c2*(rcs%u_src(j + 1) - rcs%u_src(j))*rcs%hi_src(j)
-
+         if (d2(j-1)*d2(j) < c0 .or. d2(j)*d2(j+1) < c0) then
+            sl = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+            sr = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
             if (sl*sr > c0) then
-
-               sc = (rcs%u_src(j + 1) - rcs%u_src(j - 1))*rcs%hci_src(j)
+               sc = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
                sc = sign(min(abs(sl), abs(sr), abs(sc)), sc)
-               if ( (rcs%u_src(j - 1) - rcs%uel(j)) &
-                   *(rcs%u_src(j    ) - rcs%uel(j)) > c0) &
-                  rcs%uel(j) = rcs%u_src(j) &
-                             - sign(min(c1_2*rcs%h_src(j)*abs(sc), &
-                                        abs(rcs%uel(j) - rcs%u_src(j))), sc)
-               if ( (rcs%u_src(j + 1) - rcs%uer(j)) &
-                   *(rcs%u_src(j    ) - rcs%uer(j)) > c0) &
-                  rcs%uer(j) = rcs%u_src(j) &
-                             + sign(min(c1_2*rcs%h_src(j)*abs(sc), &
-                                        abs(rcs%uer(j) - rcs%u_src(j))), sc)
-
-               d = rcs%uer(j) - rcs%uel(j)
-               q = d*(c2*rcs%u_src(j) - rcs%uel(j) - rcs%uer(j))
-               r = c1_3*d*d
-               if     (  q > r) then
-                  rcs%uel(j) = c3*rcs%u_src(j) - c2*rcs%uer(j)
-               elseif (- r > q) then
-                  rcs%uer(j) = c3*rcs%u_src(j) - c2*rcs%uel(j)
-               endif
-
+               if ( (rcss%u_src(j-1) - rcss%uel(j)) &
+                   *(rcss%u_src(j  ) - rcss%uel(j)) > c0) &
+                  rcss%uel(j) = rcss%u_src(j) &
+                              - sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc), &
+                                         abs(rcss%uel(j) - rcss%u_src(j))), sc)
+               if ( (rcss%u_src(j+1) - rcss%uer(j)) &
+                   *(rcss%u_src(j  ) - rcss%uer(j)) > c0) &
+                  rcss%uer(j) = rcss%u_src(j) &
+                              + sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc), &
+                                         abs(rcss%uer(j) - rcss%u_src(j))), sc)
             else
-               rcs%uel(j) = rcs%u_src(j)
-               rcs%uer(j) = rcs%u_src(j)
+               rcss%uel(j) = rcss%u_src(j)
+               rcss%uer(j) = rcss%u_src(j)
             endif
-
          endif
+      enddo
 
+!     do j = 2, ns-1
+      do j = 3, ns-1
+         if ( (rcss%uel(j) - rcss%uer(j-1)) &
+             *(rcss%u_src(j) - rcss%u_src(j-1)) < c0) then
+            rcss%uel(j) = c1_2*(rcss%uer(j-1) + rcss%uel(j))
+            rcss%uer(j-1) = rcss%uel(j)
+         endif
+      enddo
+
+      do j = 2, ns-1
+         if (d2(j-1)*d2(j) < c0 .or. d2(j)*d2(j+1) < c0) then
+            d = rcss%uer(j) - rcss%uel(j)
+            q = d*(c2*rcss%u_src(j) - rcss%uel(j) - rcss%uer(j))
+            r = c1_3*d*d
+            if     (  q > r) then
+               rcss%uel(j) = c3*rcss%u_src(j) - c2*rcss%uer(j)
+            elseif (- r > q) then
+               rcss%uer(j) = c3*rcss%u_src(j) - c2*rcss%uel(j)
+            endif
+         endif
       enddo
 
    end subroutine limit_ppm_interior_non_oscillatory
 
-   subroutine limit_ppm_boundary(rcs, pclb, pcrb)
+   pure subroutine limit_ppm_boundary(rcss)
    ! ---------------------------------------------------------------------------
    ! Handle piecewise parabola limiting of boundary cells.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
-      logical, intent(in) :: pclb, pcrb
+      type(recon_src_struct), intent(inout) :: rcss
 
-      real(r8) :: dl, dr, d, q, r
+      real(r8) :: s
       integer :: ns
 
-      ns = rcs%n_src
+      ns = rcss%rcgs%n_src_actual
 
-      if (pclb) then
+      if (rcss%pc_left_bndr) then
          ! Piecewise constant reconstruction of the left boundary cell.
-         rcs%uel(1) = rcs%u_src(1)
-         rcs%uer(1) = rcs%u_src(1)
+         rcss%uel(1) = rcss%u_src(1)
+         rcss%uer(1) = rcss%u_src(1)
       else
          ! Do not treat the left boundary cell as a local extrema, but ensure
          ! that the piecewise parabola is monotonic within the cell.
-         if ((rcs%u_src(2) - rcs%uer(1))*(rcs%u_src(1) - rcs%uer(1)) > c0) then
-            rcs%uel(1) = rcs%u_src(1)
-            rcs%uer(1) = rcs%u_src(1)
-         elseif (( (rcs%u_src(3) - rcs%u_src(2)) &
-                  *(rcs%h_src(1) + rcs%h_src(2)) &
-                 - (rcs%u_src(2) - rcs%u_src(1)) &
-                  *(rcs%h_src(2) + rcs%h_src(3))) &
-                 *(rcs%uel(1) - c2*rcs%u_src(1) + rcs%uer(1)) < c0) then
-            rcs%uel(1) = c1_2*(c3*rcs%u_src(1) - rcs%uer(1))
+         if ( (rcss%u_src(2) - rcss%uer(1)) &
+             *(rcss%u_src(1) - rcss%uer(1)) > c0) then
+            rcss%uel(1) = rcss%u_src(1)
+            rcss%uer(1) = rcss%u_src(1)
          else
-            dl = rcs%u_src(1) - rcs%uel(1)
-            dr = rcs%uer(1) - rcs%u_src(1)
-            if (dl*dr < c0) then
-               rcs%uel(1) = c1_2*(c3*rcs%u_src(1) - rcs%uer(1))
+            s = c2*(rcss%u_src(3) - rcss%u_src(2)) &
+                  /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(3))
+            if (s > 0) then
+               rcss%uer(1) = &
+                  max(rcss%u_src(1), &
+                      min(rcss%uer(1), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
             else
-               d = dl + dr
-               q = d*(dl - dr)
-               r = c1_3*d*d
-               if     (  q > r) then
-                  rcs%uel(1) = c3*rcs%u_src(1) - c2*rcs%uer(1)
-               elseif (- r > q) then
-                  rcs%uer(1) = c3*rcs%u_src(1) - c2*rcs%uel(1)
-               endif
+               rcss%uer(1) = &
+                  min(rcss%u_src(1), &
+                      max(rcss%uer(1), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
             endif
+            rcss%uel(1) = c1_2*(c3*rcss%u_src(1) - rcss%uer(1))
          endif
       endif
 
-      if (pcrb) then
+      if (rcss%pc_right_bndr) then
          ! Piecewise constant reconstruction of the right boundary cell.
-         rcs%uel(ns) = rcs%u_src(ns)
-         rcs%uer(ns) = rcs%u_src(ns)
+         rcss%uel(ns) = rcss%u_src(ns)
+         rcss%uer(ns) = rcss%u_src(ns)
       else
          ! Do not treat the right boundary cell as a local extrema, but ensure
          ! that the piecewise parabola is monotonic within the cell.
-         if ( (rcs%u_src(ns    ) - rcs%uel(ns)) &
-             *(rcs%u_src(ns - 1) - rcs%uel(ns)) > c0) then
-            rcs%uel(ns) = rcs%u_src(ns)
-            rcs%uer(ns) = rcs%u_src(ns)
-         elseif (( (rcs%u_src(ns    ) - rcs%u_src(ns - 1)) &
-                  *(rcs%h_src(ns - 2) + rcs%h_src(ns - 1)) &
-                 - (rcs%u_src(ns - 1) - rcs%u_src(ns - 2)) &
-                  *(rcs%h_src(ns - 1) + rcs%h_src(ns    ))) &
-                 *(rcs%uel(ns) - c2*rcs%u_src(ns) + rcs%uer(ns)) < c0) then
-            rcs%uer(ns) = c1_2*(c3*rcs%u_src(ns) - rcs%uel(ns))
+         if ( (rcss%u_src(ns  ) - rcss%uel(ns)) &
+             *(rcss%u_src(ns-1) - rcss%uel(ns)) > c0) then
+            rcss%uel(ns) = rcss%u_src(ns)
+            rcss%uer(ns) = rcss%u_src(ns)
          else
-            dl = rcs%u_src(ns) - rcs%uel(ns)
-            dr = rcs%uer(ns) - rcs%u_src(ns)
-            if (dl*dr < c0) then
-               rcs%uer(ns) = c1_2*(c3*rcs%u_src(ns) - rcs%uel(ns))
+            s = c2*(rcss%u_src(ns-1) - rcss%u_src(ns-2)) &
+                  /(rcss%rcgs%h_src(ns-2) + rcss%rcgs%h_src(ns-1))
+            if (s > 0) then
+               rcss%uel(ns) = &
+                  min(rcss%u_src(ns), &
+                      max(rcss%uel(ns), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
             else
-               d = dl + dr
-               q = d*(dl - dr)
-               r = c1_3*d*d
-               if     (  q > r) then
-                  rcs%uel(ns) = c3*rcs%u_src(ns) - c2*rcs%uer(ns)
-               elseif (- r > q) then
-                  rcs%uer(ns) = c3*rcs%u_src(ns) - c2*rcs%uel(ns)
-               endif
+               rcss%uel(ns) = &
+                  max(rcss%u_src(ns), &
+                      min(rcss%uel(ns), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
             endif
+            rcss%uer(ns) = c1_2*(c3*rcss%u_src(ns) - rcss%uel(ns))
          endif
       endif
 
    end subroutine limit_ppm_boundary
 
-   subroutine limit_ppm_posdef(rcs)
+   pure subroutine limit_ppm_posdef(rcss)
    ! ---------------------------------------------------------------------------
    ! Modify piecewise parabolas so they are never negative within the grid cell.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       real(r8) :: min_u_0, sl, a2, sr, q
       integer :: j
 
-      do j = 1, rcs%n_src
-         min_u_0 = min(rcs%u_src(j), c0)
-         rcs%uel(j) = max(rcs%uel(j), min_u_0)
-         rcs%uer(j) = max(rcs%uer(j), min_u_0)
-         sl = c2*(c3*rcs%u_src(j) - c2*rcs%uel(j) - rcs%uer(j))
-         a2 = c3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
+      do j = 1, rcss%rcgs%n_src_actual
+         min_u_0 = min(rcss%u_src(j), c0)
+         rcss%uel(j) = max(rcss%uel(j), min_u_0)
+         rcss%uer(j) = max(rcss%uer(j), min_u_0)
+         sl = c2*(c3*rcss%u_src(j) - c2*rcss%uel(j) - rcss%uer(j))
+         a2 = c3*(rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j))
          sr = sl + c2*a2
          if (sl < c0 .and. sr > c0) then
-            if (a2*rcs%uel(j) - c1_4*sl*sl < a2*min_u_0) then
-               q = c3*rcs%u_src(j)/(c3*sl*sr + c4*a2*a2)
-               rcs%uel(j) = sl*sl*q
-               rcs%uer(j) = sr*sr*q
+            if (a2*rcss%uel(j) - c1_4*sl*sl < a2*min_u_0) then
+               q = c3*rcss%u_src(j)/(c3*sl*sr + c4*a2*a2)
+               rcss%uel(j) = sl*sl*q
+               rcss%uer(j) = sr*sr*q
             endif
          endif
       enddo
 
    end subroutine limit_ppm_posdef
 
-   subroutine polycoeff_ppm(rcs)
+   pure subroutine polycoeff_ppm(rcss)
    ! ---------------------------------------------------------------------------
    ! Obtain coefficients for piecewise parabolas from grid cell means and left
    ! and right edge values.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       integer :: j
 
-      do j = 1, rcs%n_src
-         rcs%polycoeff(1, j) = rcs%uel(j)
-         rcs%polycoeff(2, j) = c6*rcs%u_src(j) - c4*rcs%uel(j) - c2*rcs%uer(j)
-         rcs%polycoeff(3, j) = c3*(rcs%uel(j) - c2*rcs%u_src(j) + rcs%uer(j))
+      do j = 1, rcss%rcgs%n_src_actual
+         rcss%polycoeff(1,j) = rcss%uel(j)
+         rcss%polycoeff(2,j) = c6*rcss%u_src(j) - c4*rcss%uel(j) &
+                             - c2*rcss%uer(j)
+         rcss%polycoeff(3,j) = c3*(rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j))
       enddo
 
    end subroutine polycoeff_ppm
 
-   subroutine polycoeff_pqm(rcs)
+   pure subroutine limit_pqm_monotonic(rcss)
+   ! ---------------------------------------------------------------------------
+   ! Apply limiting to ensure a monotonic reconstruction of piecewise quartics
+   ! for interior grid cells.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: sl, sr, sc
+      real(r8) :: a0, a1, a2, a3, b0, b1, b2, q1, q2, q3, s, xi
+      integer :: ns, j
+      logical :: incon_inflex
+
+      ns = rcss%rcgs%n_src_actual
+
+      do j = 2, ns-1
+         sl(j) = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+         sr(j) = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
+         sc(j) = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
+         sc(j) = sign(min(abs(sl(j)), abs(sr(j)), abs(sc(j))), sc(j))
+         if (sl(j)*sr(j) > c0) then
+            if ( (rcss%u_src(j-1) - rcss%uel(j)) &
+                *(rcss%u_src(j  ) - rcss%uel(j)) > c0) &
+               rcss%uel(j) = rcss%u_src(j) &
+                           - sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                      abs(rcss%uel(j) - rcss%u_src(j))), sc(j))
+            if ( (rcss%u_src(j+1) - rcss%uer(j)) &
+                *(rcss%u_src(j  ) - rcss%uer(j)) > c0) &
+               rcss%uer(j) = rcss%u_src(j) &
+                           + sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                      abs(rcss%uer(j) - rcss%u_src(j))), sc(j))
+!           if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = sc(j)
+!           if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = sc(j)
+            if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = c0
+            if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = c0
+         else
+            rcss%uel(j) = rcss%u_src(j)
+            rcss%uer(j) = rcss%u_src(j)
+            rcss%usl(j) = c0
+            rcss%usr(j) = c0
+         endif
+      enddo
+
+      do j = 3, ns-1
+         if ( (rcss%uel(j) - rcss%uer(j-1)) &
+             *(rcss%u_src(j) - rcss%u_src(j-1)) < c0) then
+            rcss%uel(j) = c1_2*(rcss%uer(j-1) + rcss%uel(j))
+            rcss%uer(j-1) = rcss%uel(j)
+         endif
+      enddo
+
+      do j = 2, ns-1
+
+         ! Compute polynomial coefficients for 1. derivative of the
+         ! reconstruction.
+         a0 = rcss%usl(j)
+         a1 = c2*( c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+                 - c9_2*rcss%usl(j) + c3_2*rcss%usr(j))
+         a2 = c3*(- c60*rcss%u_src(j) + c32*rcss%uel(j) + c28*rcss%uer(j) &
+                  + c6*rcss%usl(j) - c4*rcss%usr(j))
+         a3 = c4*( c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+                 - c5_2*(rcss%usl(j) - rcss%usr(j)))
+
+         ! Compute polynomial coefficients for 2. derivative of the
+         ! reconstruction.
+         b0 = a1
+         b1 = c2*a2
+         b2 = c3*a3
+
+         ! Check for inconsistent inflextion points.
+         incon_inflex = .false.
+         q1 = b0*b2
+         q2 = b1*b1 - c4*q1
+         if (q2 > c0) then
+            if (b0*(b0 + b1 + b2) < c0) then
+               ! One inflection point.
+               if (abs(b2) < rcss%u_eps) then
+                  if (abs(b1) > rcss%u_eps) then
+                     xi = - b0/b1
+                     if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                        incon_inflex = .true.
+                  endif
+               else
+                  q3 = c1_2/b2
+                  s = sqrt(q2)
+                  xi = - (b1 + s)*q3
+                  if (xi > c0 .and. xi < c1) then
+                     if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                        incon_inflex = .true.
+                  else
+                     xi = - (b1 - s)*q3
+                     if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                        incon_inflex = .true.
+                  endif
+               endif
+            elseif (q1 > rcss%uu_eps) then ! Should imply b2 != 0
+               ! Two inflection points.
+               q3 = c1_2/b2
+               s = sqrt(q2)
+               xi = - (b1 + s)*q3
+               if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) then
+                  incon_inflex = .true.
+               else
+                  xi = - (b1 - s)*q3
+                  if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                     incon_inflex = .true.
+               endif
+            endif
+         endif
+
+         if (incon_inflex) then
+            if (abs(sl(j)) < abs(sr(j))) then
+               rcss%usl(j) = c10_3*rcss%u_src(j) - c8_3*rcss%uel(j) &
+                           - c2_3*rcss%uer(j)
+               if (rcss%usl(j)*sc(j) < c0) then
+                  rcss%usl(j) = c0
+                  rcss%uer(j) = c5*rcss%u_src(j) - c4*rcss%uel(j)
+                  rcss%usr(j) = c20*(rcss%u_src(j) - rcss%uel(j))
+               else
+                  rcss%usr(j) = c4*rcss%uel(j) + c6*rcss%uer(j) &
+                              - c10*rcss%u_src(j)
+                  if (rcss%usr(j)*sc(j) < c0) then
+                     rcss%usr(j) = c0
+                     rcss%uel(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uer(j)
+                     rcss%usl(j) = c10_3*(rcss%uer(j) - rcss%u_src(j))
+                  endif
+               endif
+            else
+               rcss%usr(j) = c8_3*rcss%uer(j) + c2_3*rcss%uel(j) &
+                           - c10_3*rcss%u_src(j)
+               if (rcss%usr(j)*sc(j) < c0) then
+                  rcss%usr(j) = c0
+                  rcss%uel(j) = c5*rcss%u_src(j) - c4*rcss%uer(j)
+                  rcss%usl(j) = c20*(rcss%uer(j) - rcss%u_src(j))
+               else
+                  rcss%usl(j) = c10*rcss%u_src(j) - c4*rcss%uer(j) &
+                              - c6*rcss%uel(j)
+                  if (rcss%usl(j)*sc(j) < c0) then
+                     rcss%usl(j) = c0
+                     rcss%uer(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uel(j)
+                     rcss%usr(j) = c10_3*(rcss%u_src(j) - rcss%uel(j))
+                  endif
+               endif
+            endif
+         endif
+
+      enddo
+
+
+      if (rcss%pc_left_bndr) then
+         ! Piecewise constant reconstruction of the left boundary cell.
+         rcss%uel(1) = rcss%u_src(1)
+         rcss%uer(1) = rcss%u_src(1)
+         rcss%usl(1) = c0
+         rcss%usr(1) = c0
+      else
+         ! Do not treat the left boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(2) - rcss%uer(1)) &
+             *(rcss%u_src(1) - rcss%uer(1)) > c0) then
+            rcss%uel(1) = rcss%u_src(1)
+            rcss%uer(1) = rcss%u_src(1)
+            rcss%usl(1) = c0
+            rcss%usr(1) = c0
+         else
+            s = c2*(rcss%u_src(3) - rcss%u_src(2)) &
+                  /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(3))
+            if (s > 0) then
+               rcss%uer(1) = &
+                  max(rcss%u_src(1), &
+                      min(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+            else
+               rcss%uer(1) = &
+                  min(rcss%u_src(1), &
+                      max(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+            endif
+            rcss%uel(1) = c1_2*(c3*rcss%u_src(1) - rcss%uer(1))
+            rcss%usl(1) = c6*rcss%u_src(1) - c4*rcss%uel(1) - c2*rcss%uer(1)
+            rcss%usr(1) = c2*rcss%uel(1) + c4*rcss%uer(1) - c6*rcss%u_src(1)
+         endif
+      endif
+
+      if (rcss%pc_right_bndr) then
+         ! Piecewise constant reconstruction of the right boundary cell.
+         rcss%uel(ns) = rcss%u_src(ns)
+         rcss%uer(ns) = rcss%u_src(ns)
+         rcss%usl(ns) = c0
+         rcss%usr(ns) = c0
+      else
+         ! Do not treat the right boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(ns  ) - rcss%uel(ns)) &
+             *(rcss%u_src(ns-1) - rcss%uel(ns)) > c0) then
+            rcss%uel(ns) = rcss%u_src(ns)
+            rcss%uer(ns) = rcss%u_src(ns)
+            rcss%usl(ns) = c0
+            rcss%usr(ns) = c0
+         else
+            s = c2*(rcss%u_src(ns-1) - rcss%u_src(ns-2)) &
+                  /(rcss%rcgs%h_src(ns-2) + rcss%rcgs%h_src(ns-1))
+            if (s > 0) then
+               rcss%uel(ns) = &
+                  min(rcss%u_src(ns), &
+                      max(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+            else
+               rcss%uel(ns) = &
+                  max(rcss%u_src(ns), &
+                      min(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+            endif
+            rcss%uer(ns) = c1_2*(c3*rcss%u_src(ns) - rcss%uel(ns))
+            rcss%usl(ns) = c6*rcss%u_src(ns) - c4*rcss%uel(ns) - c2*rcss%uer(ns)
+            rcss%usr(ns) = c2*rcss%uel(ns) + c4*rcss%uer(ns) - c6*rcss%u_src(ns)
+         endif
+      endif
+
+   end subroutine limit_pqm_monotonic
+
+   pure subroutine limit_pqm_non_oscillatory(rcss)
+   ! ---------------------------------------------------------------------------
+   ! Apply limiting to ensure a monotonic reconstruction of piecewise quartics
+   ! for interior grid cells.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: d2, sl, sr, sc
+      logical, dimension(rcss%rcgs%n_src_actual) :: smooth
+      real(r8) :: a0, a1, a2, a3, b0, b1, b2, q1, q2, q3, s, xi
+      integer :: ns, j
+      logical :: inflex, incon_inflex
+
+      ns = rcss%rcgs%n_src_actual
+
+      ! Obtain values proportional to the second derivative of the unlimited
+      ! parabolas. 
+      do j = 1, ns
+         d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
+      enddo
+
+      do j = 2, ns-1
+         ! Set flag if the reconstruction is considered smooth, that is
+         ! the sign of the second derivative equals the sign of the second
+         ! derivatives of both the neighbouring parabolas.
+         smooth(j) = d2(j-1)*d2(j) >= c0 .and. d2(j)*d2(j+1) >= c0
+
+         if (smooth(j)) then
+
+            ! Slopes of a parabolic reconstruction.
+            sl(j) = c6*rcss%u_src(j) - c4*rcss%uel(j) - c2*rcss%uer(j)
+            sr(j) = c2*rcss%uel(j) + c4*rcss%uer(j) - c6*rcss%u_src(j)
+
+            if (sl(j) < c0 .and. sr(j) > c0) then
+
+               ! If the slopes of a parabolic reconstruction has different
+               ! signs, the parabolic reconstruction is chosen.
+               rcss%usl(j) = sl(j)
+               rcss%usr(j) = sr(j)
+
+            else
+
+               ! If the quartic reconstruction has one or more inflextion
+               ! points, a parabolic reconstruction is chosen.
+               b0 = c2*( c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+                       - c9_2*rcss%usl(j) + c3_2*rcss%usr(j))
+               b1 = c6*(- c60*rcss%u_src(j) + c32*rcss%uel(j) &
+                        + c28*rcss%uer(j) + c6*rcss%usl(j) - c4*rcss%usr(j))
+               b2 = c12*( c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+                        - c5_2*(rcss%usl(j) - rcss%usr(j)))
+               q1 = b0*b2
+               q2 = b1*b1 - c4*q1
+               if (q2 > c0 .and. &
+                   (b0*(b0 + b1 + b2) < c0 .or. q1 > rcss%uu_eps)) then
+                  inflex = .true.
+               else
+                  inflex = .false.
+               endif
+               if (inflex) then
+                  rcss%usl(j) = sl(j)
+                  rcss%usr(j) = sr(j)
+               endif
+
+            endif
+
+         else
+
+            ! Apply limiting for unsmooth reconstruction.
+            sl(j) = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+            sr(j) = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
+            sc(j) = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
+            sc(j) = sign(min(abs(sl(j)), abs(sr(j)), abs(sc(j))), sc(j))
+            if (sl(j)*sr(j) > c0) then
+               if ( (rcss%u_src(j-1) - rcss%uel(j)) &
+                   *(rcss%u_src(j  ) - rcss%uel(j)) > c0) &
+                  rcss%uel(j) = rcss%u_src(j) &
+                              - sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                         abs(rcss%uel(j) - rcss%u_src(j))), &
+                                     sc(j))
+               if ( (rcss%u_src(j+1) - rcss%uer(j)) &
+                   *(rcss%u_src(j  ) - rcss%uer(j)) > c0) &
+                  rcss%uer(j) = rcss%u_src(j) &
+                              + sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                         abs(rcss%uer(j) - rcss%u_src(j))), &
+                                     sc(j))
+!              if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = sc(j)
+!              if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = sc(j)
+               if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = c0
+               if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = c0
+            else
+               rcss%uel(j) = rcss%u_src(j)
+               rcss%uer(j) = rcss%u_src(j)
+               rcss%usl(j) = c0
+               rcss%usr(j) = c0
+            endif
+
+         endif
+      enddo
+
+      do j = 3, ns-1
+         if ( (rcss%uel(j) - rcss%uer(j-1)) &
+             *(rcss%u_src(j) - rcss%u_src(j-1)) < c0) then
+            if     (smooth(j-1)) then
+               rcss%uel(j) = rcss%uer(j-1)
+            elseif (smooth(j  )) then
+               rcss%uer(j-1) = rcss%uel(j)
+            else
+               rcss%uel(j) = c1_2*(rcss%uer(j-1) + rcss%uel(j))
+               rcss%uer(j-1) = rcss%uel(j)
+            endif
+         endif
+      enddo
+
+      do j = 2, ns-1
+
+         if (.not.smooth(j)) then
+
+            ! Compute polynomial coefficients for 1. derivative of the
+            ! reconstruction.
+            a0 = rcss%usl(j)
+            a1 = c2*( c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+                    - c9_2*rcss%usl(j) + c3_2*rcss%usr(j))
+            a2 = c3*(- c60*rcss%u_src(j) + c32*rcss%uel(j) + c28*rcss%uer(j) &
+                     + c6*rcss%usl(j) - c4*rcss%usr(j))
+            a3 = c4*( c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+                    - c5_2*(rcss%usl(j) - rcss%usr(j)))
+
+            ! Compute polynomial coefficients for 2. derivative of the
+            ! reconstruction.
+            b0 = a1
+            b1 = c2*a2
+            b2 = c3*a3
+
+            ! Check for inconsistent inflextion points.
+            incon_inflex = .false.
+            q1 = b0*b2
+            q2 = b1*b1 - c4*q1
+            if (q2 > c0) then
+               if (b0*(b0 + b1 + b2) < c0) then
+                  ! One inflection point.
+                  if (abs(b2) < rcss%u_eps) then
+                     if (abs(b1) > rcss%u_eps) then
+                        xi = - b0/b1
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     endif
+                  else
+                     q3 = c1_2/b2
+                     s = sqrt(q2)
+                     xi = - (b1 + s)*q3
+                     if (xi > c0 .and. xi < c1) then
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     else
+                        xi = - (b1 - s)*q3
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     endif
+                  endif
+               elseif (q1 > rcss%uu_eps) then ! Should imply b2 != 0
+                  ! Two inflection points.
+                  q3 = c1_2/b2
+                  s = sqrt(q2)
+                  xi = - (b1 + s)*q3
+                  if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) then
+                     incon_inflex = .true.
+                  else
+                     xi = - (b1 - s)*q3
+                     if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                        incon_inflex = .true.
+                  endif
+               endif
+            endif
+
+            if (incon_inflex) then
+               if (abs(sl(j)) < abs(sr(j))) then
+                  rcss%usl(j) = c10_3*rcss%u_src(j) - c8_3*rcss%uel(j) &
+                              - c2_3*rcss%uer(j)
+                  if (rcss%usl(j)*sc(j) < c0) then
+                     rcss%usl(j) = c0
+                     rcss%uer(j) = c5*rcss%u_src(j) - c4*rcss%uel(j)
+                     rcss%usr(j) = c20*(rcss%u_src(j) - rcss%uel(j))
+                  else
+                     rcss%usr(j) = c4*rcss%uel(j) + c6*rcss%uer(j) &
+                                 - c10*rcss%u_src(j)
+                     if (rcss%usr(j)*sc(j) < c0) then
+                        rcss%usr(j) = c0
+                        rcss%uel(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uer(j)
+                        rcss%usl(j) = c10_3*(rcss%uer(j) - rcss%u_src(j))
+                     endif
+                  endif
+               else
+                  rcss%usr(j) = c8_3*rcss%uer(j) + c2_3*rcss%uel(j) &
+                              - c10_3*rcss%u_src(j)
+                  if (rcss%usr(j)*sc(j) < c0) then
+                     rcss%usr(j) = c0
+                     rcss%uel(j) = c5*rcss%u_src(j) - c4*rcss%uer(j)
+                     rcss%usl(j) = c20*(rcss%uer(j) - rcss%u_src(j))
+                  else
+                     rcss%usl(j) = c10*rcss%u_src(j) - c4*rcss%uer(j) &
+                                 - c6*rcss%uel(j)
+                     if (rcss%usl(j)*sc(j) < c0) then
+                        rcss%usl(j) = c0
+                        rcss%uer(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uel(j)
+                        rcss%usr(j) = c10_3*(rcss%u_src(j) - rcss%uel(j))
+                     endif
+                  endif
+               endif
+            endif
+
+         endif
+
+      enddo
+
+
+      if (rcss%pc_left_bndr) then
+         ! Piecewise constant reconstruction of the left boundary cell.
+         rcss%uel(1) = rcss%u_src(1)
+         rcss%uer(1) = rcss%u_src(1)
+         rcss%usl(1) = c0
+         rcss%usr(1) = c0
+      else
+         ! Do not treat the left boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(2) - rcss%uer(1)) &
+             *(rcss%u_src(1) - rcss%uer(1)) > c0) then
+            rcss%uel(1) = rcss%u_src(1)
+            rcss%uer(1) = rcss%u_src(1)
+            rcss%usl(1) = c0
+            rcss%usr(1) = c0
+         else
+            s = c2*(rcss%u_src(3) - rcss%u_src(2)) &
+                  /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(3))
+            if (s > 0) then
+               rcss%uer(1) = &
+                  max(rcss%u_src(1), &
+                      min(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+            else
+               rcss%uer(1) = &
+                  min(rcss%u_src(1), &
+                      max(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+            endif
+            rcss%uel(1) = c1_2*(c3*rcss%u_src(1) - rcss%uer(1))
+            rcss%usl(1) = c6*rcss%u_src(1) - c4*rcss%uel(1) - c2*rcss%uer(1)
+            rcss%usr(1) = c2*rcss%uel(1) + c4*rcss%uer(1) - c6*rcss%u_src(1)
+         endif
+      endif
+
+      if (rcss%pc_right_bndr) then
+         ! Piecewise constant reconstruction of the right boundary cell.
+         rcss%uel(ns) = rcss%u_src(ns)
+         rcss%uer(ns) = rcss%u_src(ns)
+         rcss%usl(ns) = c0
+         rcss%usr(ns) = c0
+      else
+         ! Do not treat the right boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(ns  ) - rcss%uel(ns)) &
+             *(rcss%u_src(ns-1) - rcss%uel(ns)) > c0) then
+            rcss%uel(ns) = rcss%u_src(ns)
+            rcss%uer(ns) = rcss%u_src(ns)
+            rcss%usl(ns) = c0
+            rcss%usr(ns) = c0
+         else
+            s = c2*(rcss%u_src(ns-1) - rcss%u_src(ns-2)) &
+                  /(rcss%rcgs%h_src(ns-2) + rcss%rcgs%h_src(ns-1))
+            if (s > 0) then
+               rcss%uel(ns) = &
+                  min(rcss%u_src(ns), &
+                      max(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+            else
+               rcss%uel(ns) = &
+                  max(rcss%u_src(ns), &
+                      min(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+            endif
+            rcss%uer(ns) = c1_2*(c3*rcss%u_src(ns) - rcss%uel(ns))
+            rcss%usl(ns) = c6*rcss%u_src(ns) - c4*rcss%uel(ns) - c2*rcss%uer(ns)
+            rcss%usr(ns) = c2*rcss%uel(ns) + c4*rcss%uer(ns) - c6*rcss%u_src(ns)
+         endif
+      endif
+
+   end subroutine limit_pqm_non_oscillatory
+
+   pure subroutine limit_pqm_non_oscillatory_posdef(rcss)
+   ! ---------------------------------------------------------------------------
+   ! Apply limiting to ensure a monotonic reconstruction of piecewise quartics
+   ! for interior grid cells.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+
+      real(r8), dimension(rcss%rcgs%n_src_actual) :: d2, sl, sr, sc
+      logical, dimension(rcss%rcgs%n_src_actual) :: smooth
+      real(r8) :: min_u_0, a0, a1, a2, a3, b0, b1, b2, q1, q2, q3, s, xi
+      integer :: ns, j
+      logical :: inflex, incon_inflex
+
+      ns = rcss%rcgs%n_src_actual
+
+      ! Obtain values proportional to the second derivative of the unlimited
+      ! parabolas. 
+      do j = 1, ns
+         d2(j) = rcss%uel(j) - c2*rcss%u_src(j) + rcss%uer(j)
+      enddo
+
+      do j = 2, ns-1
+         ! Set flag if the reconstruction is considered smooth, that is
+         ! the sign of the second derivative equals the sign of the second
+         ! derivatives of both the neighbouring parabolas.
+         smooth(j) = d2(j-1)*d2(j) >= c0 .and. d2(j)*d2(j+1) >= c0
+
+         if (smooth(j)) then
+
+            ! Ensure edge values of smooth reconstruction is positive definite.
+            min_u_0 = min(rcss%u_src(j), c0)
+            rcss%uel(j) = max(rcss%uel(j), min_u_0)
+            rcss%uer(j) = max(rcss%uer(j), min_u_0)
+
+            ! Slopes of a parabolic reconstruction.
+            sl(j) = c6*rcss%u_src(j) - c4*rcss%uel(j) - c2*rcss%uer(j)
+            sr(j) = c2*rcss%uel(j) + c4*rcss%uer(j) - c6*rcss%u_src(j)
+
+            if (sl(j) < c0 .and. sr(j) > c0) then
+
+               ! If the slopes of a parabolic reconstruction has different
+               ! signs, the parabolic reconstruction is chosen. If needed, 
+               ! modify the parabola it is positive definite.
+               a2 = c1_2*(sr(j) - sl(j))
+               if (a2*rcss%uel(j) - c1_4*sl(j)*sl(j) < a2*min_u_0) then
+                  q1 = c3*rcss%u_src(j)/(c3*sl(j)*sr(j) + c4*a2*a2)
+                  rcss%uel(j) = sl(j)*sl(j)*q1
+                  rcss%uer(j) = sr(j)*sr(j)*q1
+                  rcss%usl(j) = c6*rcss%u_src(j) - c4*rcss%uel(j) &
+                              - c2*rcss%uer(j)
+                  rcss%usr(j) = c2*rcss%uel(j) + c4*rcss%uer(j) &
+                              - c6*rcss%u_src(j)
+               else
+                  rcss%usl(j) = sl(j)
+                  rcss%usr(j) = sr(j)
+               endif
+
+            else
+
+               ! If the quartic reconstruction has one or more inflextion
+               ! points, a parabolic reconstruction is chosen.
+               b0 = c2*( c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+                       - c9_2*rcss%usl(j) + c3_2*rcss%usr(j))
+               b1 = c6*(- c60*rcss%u_src(j) + c32*rcss%uel(j) &
+                        + c28*rcss%uer(j) + c6*rcss%usl(j) - c4*rcss%usr(j))
+               b2 = c12*( c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+                        - c5_2*(rcss%usl(j) - rcss%usr(j)))
+               q1 = b0*b2
+               q2 = b1*b1 - c4*q1
+               if (q2 > c0 .and. &
+                   (b0*(b0 + b1 + b2) < c0 .or. q1 > rcss%uu_eps)) then
+                  inflex = .true.
+               else
+                  inflex = .false.
+               endif
+               if (inflex) then
+                  rcss%usl(j) = sl(j)
+                  rcss%usr(j) = sr(j)
+               endif
+
+            endif
+
+         else
+
+            ! Apply limiting for unsmooth reconstruction.
+            sl(j) = c2*(rcss%u_src(j) - rcss%u_src(j-1))*rcss%rcgs%hi_src(j)
+            sr(j) = c2*(rcss%u_src(j+1) - rcss%u_src(j))*rcss%rcgs%hi_src(j)
+            sc(j) = (rcss%u_src(j+1) - rcss%u_src(j-1))*rcss%rcgs%hci_src(j)
+            sc(j) = sign(min(abs(sl(j)), abs(sr(j)), abs(sc(j))), sc(j))
+            if (sl(j)*sr(j) > c0) then
+               if ( (rcss%u_src(j-1) - rcss%uel(j)) &
+                   *(rcss%u_src(j  ) - rcss%uel(j)) > c0) &
+                  rcss%uel(j) = rcss%u_src(j) &
+                              - sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                         abs(rcss%uel(j) - rcss%u_src(j))), &
+                                     sc(j))
+               if ( (rcss%u_src(j+1) - rcss%uer(j)) &
+                   *(rcss%u_src(j  ) - rcss%uer(j)) > c0) &
+                  rcss%uer(j) = rcss%u_src(j) &
+                              + sign(min(c1_2*rcss%rcgs%h_src(j)*abs(sc(j)), &
+                                         abs(rcss%uer(j) - rcss%u_src(j))), &
+                                     sc(j))
+!              if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = sc(j)
+!              if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = sc(j)
+               if (rcss%usl(j)*sc(j) < c0) rcss%usl(j) = c0
+               if (rcss%usr(j)*sc(j) < c0) rcss%usr(j) = c0
+            else
+               rcss%uel(j) = rcss%u_src(j)
+               rcss%uer(j) = rcss%u_src(j)
+               rcss%usl(j) = c0
+               rcss%usr(j) = c0
+            endif
+
+         endif
+      enddo
+
+      do j = 3, ns-1
+         if ( (rcss%uel(j) - rcss%uer(j-1)) &
+             *(rcss%u_src(j) - rcss%u_src(j-1)) < c0) then
+            if     (smooth(j-1)) then
+               rcss%uel(j) = rcss%uer(j-1)
+            elseif (smooth(j  )) then
+               rcss%uer(j-1) = rcss%uel(j)
+            else
+               rcss%uel(j) = c1_2*(rcss%uer(j-1) + rcss%uel(j))
+               rcss%uer(j-1) = rcss%uel(j)
+            endif
+         endif
+      enddo
+
+      do j = 2, ns-1
+
+         if (.not.smooth(j)) then
+
+            ! Compute polynomial coefficients for 1. derivative of the
+            ! reconstruction.
+            a0 = rcss%usl(j)
+            a1 = c2*( c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+                    - c9_2*rcss%usl(j) + c3_2*rcss%usr(j))
+            a2 = c3*(- c60*rcss%u_src(j) + c32*rcss%uel(j) + c28*rcss%uer(j) &
+                     + c6*rcss%usl(j) - c4*rcss%usr(j))
+            a3 = c4*( c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+                    - c5_2*(rcss%usl(j) - rcss%usr(j)))
+
+            ! Compute polynomial coefficients for 2. derivative of the
+            ! reconstruction.
+            b0 = a1
+            b1 = c2*a2
+            b2 = c3*a3
+
+            ! Check for inconsistent inflextion points.
+            incon_inflex = .false.
+            q1 = b0*b2
+            q2 = b1*b1 - c4*q1
+            if (q2 > c0) then
+               if (b0*(b0 + b1 + b2) < c0) then
+                  ! One inflection point.
+                  if (abs(b2) < rcss%u_eps) then
+                     if (abs(b1) > rcss%u_eps) then
+                        xi = - b0/b1
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     endif
+                  else
+                     q3 = c1_2/b2
+                     s = sqrt(q2)
+                     xi = - (b1 + s)*q3
+                     if (xi > c0 .and. xi < c1) then
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     else
+                        xi = - (b1 - s)*q3
+                        if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                           incon_inflex = .true.
+                     endif
+                  endif
+               elseif (q1 > rcss%uu_eps) then ! Should imply b2 != 0
+                  ! Two inflection points.
+                  q3 = c1_2/b2
+                  s = sqrt(q2)
+                  xi = - (b1 + s)*q3
+                  if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) then
+                     incon_inflex = .true.
+                  else
+                     xi = - (b1 - s)*q3
+                     if ((a0 + xi*(a1 + xi*(a2 + xi*a3)))*sc(j) < c0) &
+                        incon_inflex = .true.
+                  endif
+               endif
+            endif
+
+            if (incon_inflex) then
+               if (abs(sl(j)) < abs(sr(j))) then
+                  rcss%usl(j) = c10_3*rcss%u_src(j) - c8_3*rcss%uel(j) &
+                              - c2_3*rcss%uer(j)
+                  if (rcss%usl(j)*sc(j) < c0) then
+                     rcss%usl(j) = c0
+                     rcss%uer(j) = c5*rcss%u_src(j) - c4*rcss%uel(j)
+                     rcss%usr(j) = c20*(rcss%u_src(j) - rcss%uel(j))
+                  else
+                     rcss%usr(j) = c4*rcss%uel(j) + c6*rcss%uer(j) &
+                                 - c10*rcss%u_src(j)
+                     if (rcss%usr(j)*sc(j) < c0) then
+                        rcss%usr(j) = c0
+                        rcss%uel(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uer(j)
+                        rcss%usl(j) = c10_3*(rcss%uer(j) - rcss%u_src(j))
+                     endif
+                  endif
+               else
+                  rcss%usr(j) = c8_3*rcss%uer(j) + c2_3*rcss%uel(j) &
+                              - c10_3*rcss%u_src(j)
+                  if (rcss%usr(j)*sc(j) < c0) then
+                     rcss%usr(j) = c0
+                     rcss%uel(j) = c5*rcss%u_src(j) - c4*rcss%uer(j)
+                     rcss%usl(j) = c20*(rcss%uer(j) - rcss%u_src(j))
+                  else
+                     rcss%usl(j) = c10*rcss%u_src(j) - c4*rcss%uer(j) &
+                                 - c6*rcss%uel(j)
+                     if (rcss%usl(j)*sc(j) < c0) then
+                        rcss%usl(j) = c0
+                        rcss%uer(j) = c5_2*rcss%u_src(j) - c3_2*rcss%uel(j)
+                        rcss%usr(j) = c10_3*(rcss%u_src(j) - rcss%uel(j))
+                     endif
+                  endif
+               endif
+            endif
+
+         endif
+
+      enddo
+
+
+      if (rcss%pc_left_bndr) then
+         ! Piecewise constant reconstruction of the left boundary cell.
+         rcss%uel(1) = rcss%u_src(1)
+         rcss%uer(1) = rcss%u_src(1)
+         rcss%usl(1) = c0
+         rcss%usr(1) = c0
+      else
+         ! Do not treat the left boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(2) - rcss%uer(1)) &
+             *(rcss%u_src(1) - rcss%uer(1)) > c0) then
+            rcss%uel(1) = rcss%u_src(1)
+            rcss%uer(1) = rcss%u_src(1)
+            rcss%usl(1) = c0
+            rcss%usr(1) = c0
+         else
+            s = c2*(rcss%u_src(3) - rcss%u_src(2)) &
+                  /(rcss%rcgs%h_src(2) + rcss%rcgs%h_src(3))
+            if (s > 0) then
+               rcss%uer(1) = &
+                  max(rcss%u_src(1), &
+                      min(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+               rcss%uel(1) = max(min(rcss%u_src(1), c0), &
+                                 c1_2*(c3*rcss%u_src(1) - rcss%uer(1)))
+               rcss%uer(1) = c3*rcss%u_src(1) - c2*rcss%uel(1)
+            else
+               rcss%uer(1) = &
+                  min(rcss%u_src(1), &
+                      max(rcss%uel(2), &
+                          rcss%u_src(1) + c1_3*s*rcss%rcgs%h_src(1)))
+               rcss%uel(1) = c1_2*(c3*rcss%u_src(1) - rcss%uer(1))
+            endif
+            rcss%usl(1) = c6*rcss%u_src(1) - c4*rcss%uel(1) - c2*rcss%uer(1)
+            rcss%usr(1) = c2*rcss%uel(1) + c4*rcss%uer(1) - c6*rcss%u_src(1)
+         endif
+      endif
+
+      if (rcss%pc_right_bndr) then
+         ! Piecewise constant reconstruction of the right boundary cell.
+         rcss%uel(ns) = rcss%u_src(ns)
+         rcss%uer(ns) = rcss%u_src(ns)
+         rcss%usl(ns) = c0
+         rcss%usr(ns) = c0
+      else
+         ! Do not treat the right boundary cell as a local extrema, but ensure
+         ! that the piecewise parabola is monotonic within the cell.
+         if ( (rcss%u_src(ns  ) - rcss%uel(ns)) &
+             *(rcss%u_src(ns-1) - rcss%uel(ns)) > c0) then
+            rcss%uel(ns) = rcss%u_src(ns)
+            rcss%uer(ns) = rcss%u_src(ns)
+            rcss%usl(ns) = c0
+            rcss%usr(ns) = c0
+         else
+            s = c2*(rcss%u_src(ns-1) - rcss%u_src(ns-2)) &
+                  /(rcss%rcgs%h_src(ns-2) + rcss%rcgs%h_src(ns-1))
+            if (s > 0) then
+               rcss%uel(ns) = &
+                  min(rcss%u_src(ns), &
+                      max(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+               rcss%uer(ns) = c1_2*(c3*rcss%u_src(ns) - rcss%uel(ns))
+            else
+               rcss%uel(ns) = &
+                  max(rcss%u_src(ns), &
+                      min(rcss%uer(ns-1), &
+                          rcss%u_src(ns) - c1_3*s*rcss%rcgs%h_src(ns)))
+               rcss%uer(ns) = max(min(rcss%u_src(ns), c0), &
+                                  c1_2*(c3*rcss%u_src(ns) - rcss%uel(ns)))
+               rcss%uel(ns) = c3*rcss%u_src(ns) - c2*rcss%uer(ns)
+            endif
+            rcss%usl(ns) = c6*rcss%u_src(ns) - c4*rcss%uel(ns) - c2*rcss%uer(ns)
+            rcss%usr(ns) = c2*rcss%uel(ns) + c4*rcss%uer(ns) - c6*rcss%u_src(ns)
+         endif
+      endif
+
+   end subroutine limit_pqm_non_oscillatory_posdef
+
+   pure subroutine polycoeff_pqm(rcss)
    ! ---------------------------------------------------------------------------
    ! Obtain coefficients for piecewise quartics from grid cell means and left
    ! and right edge and slope values.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
 
       integer :: j
 
-      do j = 1, rcs%n_src
-         rcs%polycoeff(1, j) = rcs%uel(j)
-         rcs%polycoeff(2, j) = rcs%usl(j)
-         rcs%polycoeff(3, j) = &
-              c30*rcs%u_src(j) - c18*rcs%uel(j) - c12*rcs%uer(j) &
-            - c9_2*rcs%usl(j) + c3_2*rcs%usr(j) 
-         rcs%polycoeff(4, j) = &
-            - c60*rcs%u_src(j) + c32*rcs%uel(j) + c28*rcs%uer(j) &
-            + c6*rcs%usl(j) - c4*rcs%usr(j)
-         rcs%polycoeff(5, j) = &
-              c30*rcs%u_src(j) - c15*(rcs%uel(j) + rcs%uer(j)) &
-            - c5_2*(rcs%usl(j) - rcs%usr(j))
+      do j = 1, rcss%rcgs%n_src_actual
+         rcss%polycoeff(1,j) = rcss%uel(j)
+         rcss%polycoeff(2,j) = rcss%usl(j)
+         rcss%polycoeff(3,j) = &
+              c30*rcss%u_src(j) - c18*rcss%uel(j) - c12*rcss%uer(j) &
+            - c9_2*rcss%usl(j) + c3_2*rcss%usr(j) 
+         rcss%polycoeff(4,j) = &
+            - c60*rcss%u_src(j) + c32*rcss%uel(j) + c28*rcss%uer(j) &
+            + c6*rcss%usl(j) - c4*rcss%usr(j)
+         rcss%polycoeff(5,j) = &
+              c30*rcss%u_src(j) - c15*(rcss%uel(j) + rcss%uer(j)) &
+            - c5_2*(rcss%usl(j) - rcss%usr(j))
       enddo
 
    end subroutine polycoeff_pqm
 
+   pure function line_intersection(pc, u, u_eps, xil, xir) result(xi)
+
+      real(r8), dimension(2), intent(in) :: pc
+      real(r8), intent(in) :: u, u_eps, xil, xir
+
+      real(r8) :: xi
+
+      if (abs(pc(2)) < u_eps) then
+         xi = xil
+      else
+         xi = max(xil, min(xir, (u - pc(1))/pc(2)))
+      endif
+
+   end function line_intersection
+
    pure function parabola_intersection(pc, u, u_eps, xil, xir) result(xi)
 
-      real(r8), dimension(:), intent(in) :: pc
+      real(r8), dimension(3), intent(in) :: pc
       real(r8), intent(in) :: u, u_eps, xil, xir
 
       real(r8) :: xi
@@ -1900,11 +2959,7 @@ contains
       real(r8) :: q, s, xi1, xi2, xim
 
       if (abs(pc(3)) < u_eps) then
-         if (abs(pc(2)) < u_eps) then
-            xi = xil
-         else
-            xi = (u - pc(1))/pc(2)
-         endif
+         xi = line_intersection(pc(1:2), u, u_eps, xil, xir)
       else
          q = c1_2/pc(3)
          s = sqrt(max(c0, pc(2)*pc(2) - c4*pc(3)*(pc(1) - u)))
@@ -1916,92 +2971,875 @@ contains
          else
             xi = xi2
          endif
+         xi = max(xil, min(xir, xi))
       endif
 
-      xi = max(xil, min(xir, xi))
-
    end function parabola_intersection
+
+   pure function quartic_intersection(pc, u, u_eps, xil, xir) result(xi)
+
+      real(r8), dimension(5), intent(in) :: pc
+      real(r8), intent(in) :: u, u_eps, xil, xir
+
+      real(r8) :: xi
+
+      real(r8) :: r, drdx, xi_old
+      integer :: n
+
+      if (abs(pc(4)) < u_eps .and. abs(pc(5)) < u_eps) then
+         xi = parabola_intersection(pc(1:3), u, u_eps, xil, xir)
+      else
+         xi = c1_2*(xil + xir)
+         do n = 1, 10
+            r = pc(1) + (pc(2) + (pc(3) + (pc(4) + pc(5)*xi)*xi)*xi)*xi - u
+            drdx = pc(2) + (c2*pc(3) + (c3*pc(4) + c4*pc(5)*xi)*xi)*xi
+            xi_old = xi
+            xi = max(xil, min(xir, xi_old - r/sign(max(eps, abs(drdx)), drdx)))
+            if (abs(xi - xi_old) < 1.e-9_r8) return
+         enddo
+      endif
+
+   end function quartic_intersection
+
+   pure subroutine regrid_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8), dimension(3) :: pcl, pcr
+      real(r8) :: umr, uml, xi, duml, dumr, uerl, uelr
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      ! Find possible intersections in the first half of the first source grid
+      ! cell. 
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      js = 1
+      umr =      rcss%polycoeff(1,js) &
+          + c1_2*rcss%polycoeff(2,js)
+      do
+         if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+         xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                rcss%u_eps, c0, c1_2)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      outer: do 
+
+         ! For the current grid edge index, find the index of the first source
+         ! grid cell with mid point reconstructed value larger than the grid
+         ! edge value.
+         do
+            uml = umr
+            umr =      rcss%polycoeff(1,js) &
+                + c1_2*rcss%polycoeff(2,js)
+            if ((u_edge_grd(jg) - umr)*u_sgn <= c0) exit
+            js = js + 1
+            if (js > ns) exit outer
+         enddo
+
+         ! Construct new parabolas left and right of the edge that are
+         ! continuous and smooth across the edge and with the original piecewise
+         ! parabolas left and right of the edge at the mid points of their
+         ! respective grid cells.
+         duml = rcss%polycoeff(2,js-1)
+         dumr = rcss%polycoeff(2,js  )
+         pcr(2) = (c4*(umr - uml) - duml - dumr)*rcss%rcgs%h_src(js) &
+                  /(rcss%rcgs%h_src(js-1) + rcss%rcgs%h_src(js))
+         pcr(1) = umr - c1_4*(dumr + pcr(2))
+         if (pcr(2)*(rcss%u_src(js) - rcss%u_src(js-1)) < c0) then
+            ! If the slope of the new parabolas are non-monotonic at the
+            ! edge, set the edge slope to zero and enforce that the new
+            ! parabolas cross the edge within the interval spanned by the
+            ! edge values of the original piecewise parabolas. Smoothness
+            ! with the original piecewise parabolas at grid cell mid points
+            ! is then not guaranteed.
+            pcr(2) = c0
+            uerl = rcss%uer(js-1)
+            uelr = rcss%uel(js)
+            pcr(1) = min(max(pcr(1), min(uerl, uelr)), max(uerl, uelr))
+            pcr(3) = c4*(umr - pcr(1))
+            pcl(1) = c4*uml - c3*pcr(1)
+            pcl(2) = c2*(pcr(1) - pcl(1))
+            pcl(3) = - c1_2*pcl(2)
+         else
+            pcr(3) = dumr - pcr(2)
+            pcl(1) = pcr(1) - duml
+            pcl(2) = c4*(uml - pcl(1)) - duml
+            pcl(3) = duml - pcl(2)
+         endif
+
+         ! Find all intersections with piecewise parabola in the last half of
+         ! the source grid cell left of the edge.
+         do
+            if ((u_edge_grd(jg) - pcr(1))*u_sgn > c0) exit
+            xi = parabola_intersection(pcl, u_edge_grd(jg), &
+                                       rcss%u_eps, c1_2, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js-1) &
+                           + ( rcss%rcgs%x_edge_src(js  ) &
+                             - rcss%rcgs%x_edge_src(js-1))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+         ! Find all intersections with piecewise parabola in the first half of
+         ! the source grid cell right of the edge.
+         do
+            if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+            xi = parabola_intersection(pcr, u_edge_grd(jg), &
+                                       rcss%u_eps, c0, c1_2)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+      enddo outer
+
+      ! Find possible intersections in the last half of the last source grid
+      ! cell. 
+      js = ns
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                rcss%u_eps, c1_2, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_plm_intersections
+
+   pure subroutine regrid_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8), dimension(3) :: pcl, pcr
+      real(r8) :: umr, uml, xi, duml, dumr, uerl, uelr
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      ! Find possible intersections in the first half of the first source grid
+      ! cell. 
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      js = 1
+      umr =      rcss%polycoeff(1,js) &
+          + c1_2*rcss%polycoeff(2,js) &
+          + c1_4*rcss%polycoeff(3,js)
+      do
+         if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+         xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                    rcss%u_eps, c0, c1_2)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      outer: do 
+
+         ! For the current grid edge index, find the index of the first source
+         ! grid cell with mid point reconstructed value larger than the grid
+         ! edge value.
+         do
+            uml = umr
+            umr =      rcss%polycoeff(1,js) &
+                + c1_2*rcss%polycoeff(2,js) &
+                + c1_4*rcss%polycoeff(3,js)
+            if ((u_edge_grd(jg) - umr)*u_sgn <= c0) exit
+            js = js + 1
+            if (js > ns) exit outer
+         enddo
+
+         ! Construct new parabolas left and right of the edge that are
+         ! continuous and smooth across the edge and with the original piecewise
+         ! parabolas left and right of the edge at the mid points of their
+         ! respective grid cells.
+         duml = rcss%polycoeff(2,js-1) + rcss%polycoeff(3,js-1)
+         dumr = rcss%polycoeff(2,js  ) + rcss%polycoeff(3,js  )
+         pcr(2) = (c4*(umr - uml) - duml - dumr)*rcss%rcgs%h_src(js) &
+                  /(rcss%rcgs%h_src(js-1) + rcss%rcgs%h_src(js))
+         pcr(1) = umr - c1_4*(dumr + pcr(2))
+         if (pcr(2)*(rcss%u_src(js) - rcss%u_src(js-1)) < c0) then
+            ! If the slope of the new parabolas are non-monotonic at the
+            ! edge, set the edge slope to zero and enforce that the new
+            ! parabolas cross the edge within the interval spanned by the
+            ! edge values of the original piecewise parabolas. Smoothness
+            ! with the original piecewise parabolas at grid cell mid points
+            ! is then not guaranteed.
+            pcr(2) = c0
+            uerl = rcss%uer(js-1)
+            uelr = rcss%uel(js)
+            pcr(1) = min(max(pcr(1), min(uerl, uelr)), max(uerl, uelr))
+            pcr(3) = c4*(umr - pcr(1))
+            pcl(1) = c4*uml - c3*pcr(1)
+            pcl(2) = c2*(pcr(1) - pcl(1))
+            pcl(3) = - c1_2*pcl(2)
+         else
+            pcr(3) = dumr - pcr(2)
+            pcl(1) = pcr(1) - duml
+            pcl(2) = c4*(uml - pcl(1)) - duml
+            pcl(3) = duml - pcl(2)
+         endif
+
+         ! Find all intersections with piecewise parabola in the last half of
+         ! the source grid cell left of the edge.
+         do
+            if ((u_edge_grd(jg) - pcr(1))*u_sgn > c0) exit
+            xi = parabola_intersection(pcl, u_edge_grd(jg), &
+                                       rcss%u_eps, c1_2, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js-1) &
+                           + ( rcss%rcgs%x_edge_src(js  ) &
+                             - rcss%rcgs%x_edge_src(js-1))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+         ! Find all intersections with piecewise parabola in the first half of
+         ! the source grid cell right of the edge.
+         do
+            if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+            xi = parabola_intersection(pcr, u_edge_grd(jg), &
+                                       rcss%u_eps, c0, c1_2)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+      enddo outer
+
+      ! Find possible intersections in the last half of the last source grid
+      ! cell. 
+      js = ns
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                    rcss%u_eps, c1_2, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_ppm_intersections
+
+   pure subroutine regrid_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8), dimension(3) :: pcl, pcr
+      real(r8) :: umr, uml, xi, duml, dumr, uerl, uelr
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      ! Find possible intersections in the first half of the first source grid
+      ! cell. 
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      js = 1
+      umr =       rcss%polycoeff(1,js) &
+          + c1_2 *rcss%polycoeff(2,js) &
+          + c1_4 *rcss%polycoeff(3,js) &
+          + c1_8 *rcss%polycoeff(4,js) &
+          + c1_16*rcss%polycoeff(5,js)
+      do
+         if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+         xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c0, c1_2)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+      outer: do 
+
+         ! For the current grid edge index, find the index of the first source
+         ! grid cell with mid point reconstructed value larger than the grid
+         ! edge value.
+         do
+            uml = umr
+            umr =       rcss%polycoeff(1,js) &
+                + c1_2 *rcss%polycoeff(2,js) &
+                + c1_4 *rcss%polycoeff(3,js) &
+                + c1_8 *rcss%polycoeff(4,js) &
+                + c1_16*rcss%polycoeff(5,js)
+            if ((u_edge_grd(jg) - umr)*u_sgn <= c0) exit
+            js = js + 1
+            if (js > ns) exit outer
+         enddo
+
+         ! Construct new parabolas left and right of the edge that are
+         ! continuous and smooth across the edge and with the original piecewise
+         ! parabolas left and right of the edge at the mid points of their
+         ! respective grid cells.
+         duml =      rcss%polycoeff(2,js-1) +      rcss%polycoeff(3,js-1) &
+              + c3_4*rcss%polycoeff(4,js-1) + c1_2*rcss%polycoeff(5,js-1)
+         dumr =      rcss%polycoeff(2,js  ) +      rcss%polycoeff(3,js  ) &
+              + c3_4*rcss%polycoeff(4,js  ) + c1_2*rcss%polycoeff(5,js  )
+         pcr(2) = (c4*(umr - uml) - duml - dumr)*rcss%rcgs%h_src(js) &
+                  /(rcss%rcgs%h_src(js-1) + rcss%rcgs%h_src(js))
+         pcr(1) = umr - c1_4*(dumr + pcr(2))
+         if (pcr(2)*(rcss%u_src(js) - rcss%u_src(js-1)) < c0) then
+            ! If the slope of the new parabolas are non-monotonic at the
+            ! edge, set the edge slope to zero and enforce that the new
+            ! parabolas cross the edge within the interval spanned by the
+            ! edge values of the original piecewise parabolas. Smoothness
+            ! with the original piecewise parabolas at grid cell mid points
+            ! is then not guaranteed.
+            pcr(2) = c0
+            uerl = rcss%uer(js-1)
+            uelr = rcss%uel(js)
+            pcr(1) = min(max(pcr(1), min(uerl, uelr)), max(uerl, uelr))
+            pcr(3) = c4*(umr - pcr(1))
+            pcl(1) = c4*uml - c3*pcr(1)
+            pcl(2) = c2*(pcr(1) - pcl(1))
+            pcl(3) = - c1_2*pcl(2)
+         else
+            pcr(3) = dumr - pcr(2)
+            pcl(1) = pcr(1) - duml
+            pcl(2) = c4*(uml - pcl(1)) - duml
+            pcl(3) = duml - pcl(2)
+         endif
+
+         ! Find all intersections with piecewise parabola in the last half of
+         ! the source grid cell left of the edge.
+         do
+            if ((u_edge_grd(jg) - pcr(1))*u_sgn > c0) exit
+            xi = parabola_intersection(pcl, u_edge_grd(jg), &
+                                       rcss%u_eps, c1_2, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js-1) &
+                           + ( rcss%rcgs%x_edge_src(js  ) &
+                             - rcss%rcgs%x_edge_src(js-1))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+         ! Find all intersections with piecewise parabola in the first half of
+         ! the source grid cell right of the edge.
+         do
+            if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
+            xi = parabola_intersection(pcr, u_edge_grd(jg), &
+                                       rcss%u_eps, c0, c1_2)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+
+      enddo outer
+
+      ! Find possible intersections in the last half of the last source grid
+      ! cell. 
+      js = ns
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c1_2, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid_pqm_intersections
+
+   pure subroutine regrid2_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = line_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid2_plm_intersections
+
+   pure subroutine regrid2_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                       rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = parabola_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                    rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid2_ppm_intersections
+
+   pure subroutine regrid2_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+
+      type(recon_src_struct), intent(in) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(inout) :: x_edge_grd
+      real(r8), intent(in) :: u_sgn
+
+      real(r8) :: ue_min, ue_max, xi
+      integer :: ns, ng, jg, js
+
+      ! Number of source grid cells.
+      ns = rcss%rcgs%n_src_actual
+
+      ! Number of grid edges.
+      ng = size(u_edge_grd)
+
+      jg = 1
+      do
+         if ((u_edge_grd(jg) - rcss%uel(1))*u_sgn >= c0) exit
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+      
+      js = 1
+      do
+         if (js + 1 > ns) exit
+         ue_min = min(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn >= ue_min) exit
+            xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                      rcss%u_eps, c0, c1)
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                           + ( rcss%rcgs%x_edge_src(js+1) &
+                             - rcss%rcgs%x_edge_src(js  ))*xi
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         ue_max = max(rcss%uer(js)*u_sgn, rcss%uel(js+1)*u_sgn)
+         do
+            if (u_edge_grd(jg)*u_sgn > ue_max) exit
+            x_edge_grd(jg) = rcss%rcgs%x_edge_src(js+1)
+            jg = jg + 1
+            if (jg > ng) return
+         enddo
+         js = js + 1
+      enddo
+
+      do
+         if ((u_edge_grd(jg) - rcss%uer(js))*u_sgn > c0) return
+         xi = quartic_intersection(rcss%polycoeff(:,js), u_edge_grd(jg), &
+                                   rcss%u_eps, c0, c1)
+         x_edge_grd(jg) = rcss%rcgs%x_edge_src(js) &
+                        + ( rcss%rcgs%x_edge_src(js+1) &
+                          - rcss%rcgs%x_edge_src(js  ))*xi
+         jg = jg + 1
+         if (jg > ng) return
+      enddo
+
+   end subroutine regrid2_pqm_intersections
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
 
-   function prepare_reconstruction(x_edge_src, method, rcs) result(errstat)
+   function initialize_rcgs(rcgs) result(errstat)
    ! ---------------------------------------------------------------------------
-   ! Prepare reconstruction based on edge locations of source grid cells and
-   ! requested reconstruction method. Reconstruction data is stored in a
-   ! reconstruction data structure.
+   ! Initialize reconstruction grid data structure.
    ! ---------------------------------------------------------------------------
 
-      real(r8), dimension(:), intent(in) :: x_edge_src
-      integer, intent(in) :: method
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
 
       integer :: errstat
 
-      integer :: n_src_all, j
+      integer :: ij_size, allocstat
 
-      rcs%prepared = .false.
-      errstat = hor3map_noerr
+      ! Check requested reconstruction method and set the required order of
+      ! polynomials for the piecewise reconstruction.
+      select case (rcgs%method)
+         case (hor3map_pcm)
+            rcgs%p_ord = 0
+         case (hor3map_plm)
+            rcgs%p_ord = 1
+         case (hor3map_ppm)
+            rcgs%p_ord = 2
+         case (hor3map_pqm)
+            rcgs%p_ord = 4
+         case default
+            errstat = hor3map_invalid_method
+            return
+      end select
 
-      ! Check reconstruction method.
-      if (method /= hor3map_pcm .and. method /= hor3map_plm .and. &
-          method /= hor3map_ppm .and. method /= hor3map_pqm) then
-         errstat = hor3map_invalid_method
+      ! Allocate data arrays.
+
+      ij_size = (rcgs%i_ubound - rcgs%i_lbound + 1) &
+               *(rcgs%j_ubound - rcgs%j_lbound + 1)
+
+      allocate(rcgs%x_eps_data(ij_size), &
+               rcgs%x_edge_src_data(rcgs%n_src+1,ij_size), &
+               rcgs%h_src_data(rcgs%n_src,ij_size), &
+               rcgs%hi_src_data(rcgs%n_src,ij_size), &
+               rcgs%src_dst_index_data(rcgs%n_src,ij_size), &
+               rcgs%n_src_actual_data(ij_size), &
+               rcgs%method_actual_data(ij_size), &
+               rcgs%prepared_data(ij_size), &
+               stat = allocstat)
+      if (allocstat /= 0) then
+         errstat = hor3map_failed_to_allocate_rcgs
          return
       endif
+#ifdef DEBUG
+      rcgs%x_eps_data(:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcgs%x_edge_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcgs%h_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcgs%hi_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcgs%src_dst_index_data(:,:) = - 9999
+      rcgs%n_src_actual_data(:) = - 9999
+      rcgs%method_actual_data(:) = - 9999
+#endif
+
+      if (rcgs%method /= hor3map_pcm) then
+         allocate(rcgs%hci_src_data(rcgs%n_src,ij_size), &
+                  stat = allocstat)
+         if (allocstat /= 0) then
+            errstat = hor3map_failed_to_allocate_rcgs
+            return
+         endif
+#ifdef DEBUG
+         rcgs%hci_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+#endif
+      endif
+
+      if (rcgs%method == hor3map_ppm .or. rcgs%method == hor3map_pqm) then
+         allocate(rcgs%src_dst_weight_data(rcgs%n_src,ij_size), &
+                  rcgs%tdecoeff_data(rcgs%p_ord+2,rcgs%n_src,ij_size), &
+                  rcgs%tdscoeff_data(rcgs%p_ord+2,rcgs%n_src,ij_size), &
+                  rcgs%lblu_data(rcgs%p_ord+2,rcgs%p_ord+2,ij_size), &
+                  rcgs%rblu_data(rcgs%p_ord+2,rcgs%p_ord+2,ij_size), &
+                  stat = allocstat)
+         if (allocstat /= 0) then
+            errstat = hor3map_failed_to_allocate_rcgs
+            return
+         endif
+#ifdef DEBUG
+         rcgs%src_dst_weight_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcgs%tdecoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcgs%tdscoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcgs%lblu_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcgs%rblu_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+#endif
+      endif
+
+      rcgs%prepared_data(:) = .false.
+      rcgs%initialized = .true.
+
+      errstat = hor3map_noerr
+
+   end function initialize_rcgs
+
+   function initialize_rcss(rcgs, rcss) result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Initialize reconstruction source data structure.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_grd_struct), target, intent(inout) :: rcgs
+      type(recon_src_struct), target, intent(inout) :: rcss
+
+      integer :: errstat
+
+      integer :: ij_size, allocstat
+
+      ij_size = (rcgs%i_ubound - rcgs%i_lbound + 1) &
+               *(rcgs%j_ubound - rcgs%j_lbound + 1)
+
+      allocate(rcss%u_src_data(rcgs%n_src,ij_size), &
+               rcss%uel_data(rcgs%n_src,ij_size), &
+               rcss%uer_data(rcgs%n_src,ij_size), &
+               rcss%polycoeff_data(rcgs%p_ord+1,rcgs%n_src,ij_size), &
+               rcss%reconstructed_data(ij_size), &
+               stat = allocstat)
+      if (allocstat /= 0) then
+         errstat = hor3map_failed_to_allocate_rcss
+         return
+      endif
+#ifdef DEBUG
+      rcss%u_src_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%uel_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%uer_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rcss%polycoeff_data(:,:,:) = ieee_value(1._r8, ieee_signaling_nan)
+#endif
+      if (rcgs%method == hor3map_pqm) then
+         allocate(rcss%usl_data(rcgs%n_src,ij_size), &
+                  rcss%usr_data(rcgs%n_src,ij_size), &
+                  stat = allocstat)
+         if (allocstat /= 0) then
+            errstat = hor3map_failed_to_allocate_rcss
+            return
+         endif
+#ifdef DEBUG
+         rcss%usl_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+         rcss%usr_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+#endif
+      endif
+
+      rcss%rcgs => rcgs
+      rcss%rcss_dep_next => rcgs%rcss_dep_head
+      rcgs%rcss_dep_head => rcss
+      rcss%reconstructed_data(:) = .false.
+      rcss%initialized = .true.
+
+      errstat = hor3map_noerr
+
+   end function initialize_rcss
+
+   function initialize_rms(rcgs, rms) result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Initialize remapping data structure.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_grd_struct), target, intent(inout) :: rcgs
+      type(remap_struct), target, intent(inout) :: rms
+
+      integer :: errstat
+
+      integer :: ij_size, allocstat
+
+      ij_size = (rcgs%i_ubound - rcgs%i_lbound + 1) &
+               *(rcgs%j_ubound - rcgs%j_lbound + 1)
+
+      allocate(rms%h_dst_data(rms%n_dst,ij_size), &
+               rms%hi_dst_data(rms%n_dst,ij_size), &
+               rms%seg_int_lim_data(rcgs%n_src+rms%n_dst,ij_size), &
+               rms%n_src_seg_data(rcgs%n_src,ij_size), &
+               rms%seg_dst_index_data(rcgs%n_src+rms%n_dst,ij_size), &
+               rms%prepared_data(ij_size), &
+               stat = allocstat)
+      if (allocstat /= 0) then
+         errstat = hor3map_failed_to_allocate_rms
+         return
+      endif
+#ifdef DEBUG
+      rms%h_dst_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%hi_dst_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%seg_int_lim_data(:,:) = ieee_value(1._r8, ieee_signaling_nan)
+      rms%n_src_seg_data(:,:) = - 9999
+      rms%seg_dst_index_data(:,:) = - 9999
+#endif
+
+      rms%rcgs => rcgs
+      rms%rms_dep_next => rcgs%rms_dep_head
+      rcgs%rms_dep_head => rms
+      rms%prepared_data(:) = .false.
+      rms%initialized = .true.
+
+      errstat = hor3map_noerr
+
+   end function initialize_rms
+
+   function prepare_reconstruction(rcgs, x_edge_src, i_index, j_index) &
+      result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Prepare reconstruction based on edge locations of source grid cells and
+   ! requested reconstruction method. Reconstruction data is stored in a
+   ! reconstruction grid data structure.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_grd_struct), intent(inout) :: rcgs
+      real(r8), dimension(:), intent(in) :: x_edge_src
+      integer, optional, intent(in) :: i_index, j_index
+
+      integer :: errstat
+
+      integer :: n_src, j
+
+      errstat = hor3map_noerr
+
+      ! Check optional arguments.
+      if (present(i_index)) rcgs%i_index = i_index
+      if (present(j_index)) rcgs%j_index = j_index
 
       ! Number of source grid cells.
-      n_src_all = size(x_edge_src) - 1
+      n_src = size(x_edge_src) - 1
 
       ! Check that source grid edges are monotonically increasing or decreasing.
-      if (x_edge_src(n_src_all + 1) - x_edge_src(1) > c0) then
-         do j = 1, n_src_all
-            if (x_edge_src(j + 1) < x_edge_src(j)) then
+      if (x_edge_src(n_src+1) - x_edge_src(1) > c0) then
+         do j = 1, n_src
+            if (x_edge_src(j+1) < x_edge_src(j)) then
                errstat = hor3map_nonmonotonic_src_edges
                return
             endif
          enddo
       else
-         do j = 1, n_src_all
-            if (x_edge_src(j + 1) > x_edge_src(j)) then
+         do j = 1, n_src
+            if (x_edge_src(j+1) > x_edge_src(j)) then
                errstat = hor3map_nonmonotonic_src_edges
                return
             endif
          enddo
       endif
 
-      ! Set small value with same dimensions as edge locations.
-      rcs%x_eps = max(abs( x_edge_src(n_src_all + 1) &
-                         - x_edge_src(1)), eps)*eps
-
-      ! If needed, allocate arrays in reconstruction data structure.
-      if (.not. rcs%alloced) then
-         rcs%n_src_all = n_src_all
-         errstat = allocate_rcs(rcs)
+      ! If needed, initialize reconstruction grid data structure.
+      if (.not. rcgs%initialized) then
+         rcgs%n_src = n_src
+         errstat = initialize_rcgs(rcgs)
          if (errstat /= hor3map_noerr) return
-      elseif (rcs%n_src_all /= n_src_all) then
-         call free_rcs(rcs)
-         rcs%n_src_all = n_src_all
-         errstat = allocate_rcs(rcs)
-         if (errstat /= hor3map_noerr) return
+      elseif (rcgs%n_src /= n_src) then
+         if (rcgs%i_lbound == 1 .and. rcgs%i_ubound == 1 .and. &
+             rcgs%j_lbound == 1 .and. rcgs%j_ubound == 1) then
+            call free_rcgs(rcgs)
+            rcgs%n_src = n_src
+            errstat = initialize_rcgs(rcgs)
+            if (errstat /= hor3map_noerr) return
+         else
+            errstat = hor3map_resizing_initialized_rcgs
+            return
+         endif
       endif
-#ifdef DEBUG
-      rcs%x_edge_src(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%h_src(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%hi_src(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%hci_src(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%src_dst_weight(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%tdecoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%tdscoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%lblu(:, :) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%rblu(:, :) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%u_src(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%uel(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%uer(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rcs%src_dst_index = -9999
-      rcs%polycoeff(:, :) = ieee_value(1._r8, ieee_signaling_nan)
-#endif
+
+      ! Assign array pointers within reconstruction grid data structure.
+      errstat = assign_ptr_rcgs(rcgs)
+      if (errstat /= hor3map_noerr) return
+
+      rcgs%prepared = .false.
+
+      ! Set small value with same dimensions as edge locations.
+      rcgs%x_eps = max(abs(x_edge_src(n_src+1) - x_edge_src(1)), eps)*eps
 
       ! Based on the requested reconstruction method, prepare the data structure
       ! for the various methods. Arrays with indices and weights are
@@ -2011,70 +3849,74 @@ contains
       ! equation systems to be solved. If insufficient grid cells are available
       ! for the requested method, lower order methods are tried.
 
-      rcs%method = method
+      rcgs%method_actual = rcgs%method
 
-      if (rcs%method == hor3map_pqm) then
-         call prepare_pqm(rcs, x_edge_src)
-         if (rcs%n_src < 6) then
-            rcs%method = hor3map_ppm
+      if (rcgs%method_actual == hor3map_pqm) then
+         call prepare_pqm(rcgs, x_edge_src)
+         if (rcgs%n_src_actual < 6) then
+            rcgs%method_actual = hor3map_ppm
          else
-            rcs%method = hor3map_pqm
+            rcgs%method_actual = hor3map_pqm
          endif
       endif
 
-      if (rcs%method == hor3map_ppm) then
-         call prepare_ppm(rcs, x_edge_src)
-         if (rcs%n_src < 4) then
-            rcs%method = hor3map_plm
+      if (rcgs%method_actual == hor3map_ppm) then
+         call prepare_ppm(rcgs, x_edge_src)
+         if (rcgs%n_src_actual < 4) then
+            rcgs%method_actual = hor3map_plm
          else
-            rcs%method = hor3map_ppm
+            rcgs%method_actual = hor3map_ppm
          endif
       endif
 
-      if (rcs%method == hor3map_plm) then
-         call prepare_plm(rcs, x_edge_src)
-         if (rcs%n_src < 2) then
-            rcs%method = hor3map_pcm
+      if (rcgs%method_actual == hor3map_plm) then
+         call prepare_plm(rcgs, x_edge_src)
+         if (rcgs%n_src_actual < 2) then
+            rcgs%method_actual = hor3map_pcm
          else
-            rcs%method = hor3map_plm
+            rcgs%method_actual = hor3map_plm
          endif
       endif
 
-      if (rcs%method == hor3map_pcm) then
-         call prepare_pcm(rcs, x_edge_src)
-         if (rcs%n_src == 0) then
+      if (rcgs%method_actual == hor3map_pcm) then
+         call prepare_pcm(rcgs, x_edge_src)
+         if (rcgs%n_src_actual == 0) then
             errstat = hor3map_src_extent_too_small
             return
          else
-            rcs%method = hor3map_pcm
+            rcgs%method_actual = hor3map_pcm
          endif
       endif
 
-      rcs%prepared = .true.
+      ! Set flag to indicate the reconstruction has been prepared.
+      rcgs%prepared = .true.
 
    end function prepare_reconstruction
 
-   function prepare_remapping(rcs, x_edge_dst, rms) result(errstat)
+   function prepare_remapping(rcgs, rms, x_edge_dst, i_index, j_index) &
+      result(errstat)
    ! ---------------------------------------------------------------------------
    ! Prepare remapping based on a reconstruction data structure and edge
    ! locations of destination grid cells. Remapping data is stored in a remap
    ! data structure.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(in) :: rcs
+      type(recon_grd_struct), target, intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: x_edge_dst
-      type(remap_struct), intent(out) :: rms
+      type(remap_struct), intent(inout) :: rms
+      integer, optional, intent(in) :: i_index, j_index
 
       integer :: errstat
 
       real(r8) :: xil
       integer :: n_dst, j, js, jd, iseg
 
-      rms%prepared = .false.
-      errstat = hor3map_noerr
+      ! Check optional arguments.
+      if (present(i_index)) rcgs%i_index = i_index
+      if (present(j_index)) rcgs%j_index = j_index
 
-      ! Check that the reconstruction has been prepared.
-      if (.not. rcs%prepared) then
+      ! Check that the reconstruction grid data structure has been initialized.
+      if (.not. rcgs%initialized) then
          errstat = hor3map_recon_not_prepared
          return
       endif
@@ -2082,56 +3924,75 @@ contains
       ! Number of destination grid cells.
       n_dst = size(x_edge_dst) - 1
 
+      ! If needed, initialize remapping data structure.
+      if (.not. rms%initialized) then
+         rms%n_dst = n_dst
+         errstat = initialize_rms(rcgs, rms)
+         if (errstat /= hor3map_noerr) return
+      elseif (.not. associated(rms%rcgs, rcgs)) then
+         call free_rms(rms)
+         rms%n_dst = n_dst
+         errstat = initialize_rms(rcgs, rms)
+         if (errstat /= hor3map_noerr) return
+      elseif (rms%n_dst /= n_dst) then
+         if (rcgs%i_lbound == 1 .and. rcgs%i_ubound == 1 .and. &
+             rcgs%j_lbound == 1 .and. rcgs%j_ubound == 1) then
+            call free_rms(rms)
+            rms%n_dst = n_dst
+            errstat = initialize_rms(rcgs, rms)
+            if (errstat /= hor3map_noerr) return
+         else
+            errstat = hor3map_resizing_initialized_rms
+            return
+         endif
+      endif
+
+      ! Assign array pointers within reconstruction grid and source
+      ! data structures.
+      errstat = assign_ptr_rcgs(rms%rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rms(rms)
+      if (errstat /= hor3map_noerr) return
+
+      ! Check that the reconstruction has been prepared.
+      if (.not. rcgs%prepared) then
+         errstat = hor3map_recon_not_prepared
+         return
+      endif
+
+      rms%prepared = .false.
+
       ! Check for consistency between the source and destination grid range.
-      if (abs( rcs%x_edge_src(1) - x_edge_dst(1)) > rcs%x_eps .or. &
-          abs( rcs%x_edge_src(rcs%n_src + 1) &
-             - x_edge_dst(n_dst + 1)) > rcs%x_eps) then
+      if (abs(rcgs%x_edge_src(1) - x_edge_dst(1)) > rcgs%x_eps .or. &
+          abs(rcgs%x_edge_src(rcgs%n_src_actual+1) - x_edge_dst(n_dst+1)) &
+          > rcgs%x_eps) then
          errstat = hor3map_inconsistent_grid_range
          return
       endif
 
       ! Check that destination grid edges are monotonically increasing or
       ! decreasing.
-      if (x_edge_dst(n_dst + 1) - x_edge_dst(1) > c0) then
+      if (x_edge_dst(n_dst+1) - x_edge_dst(1) > c0) then
          do j = 1, n_dst
-            if (x_edge_dst(j + 1) < x_edge_dst(j)) then
+            if (x_edge_dst(j+1) < x_edge_dst(j)) then
                errstat = hor3map_nonmonotonic_dst_edges
                return
             endif
          enddo
       else
          do j = 1, n_dst
-            if (x_edge_dst(j + 1) > x_edge_dst(j)) then
+            if (x_edge_dst(j+1) > x_edge_dst(j)) then
                errstat = hor3map_nonmonotonic_dst_edges
                return
             endif
          enddo
       endif
 
-      ! If needed, allocate arrays in remap data structure.
-      if (.not. rms%alloced) then
-         rms%n_dst = n_dst
-         errstat = allocate_rms(rcs, rms)
-         if (errstat /= hor3map_noerr) return
-      elseif (rms%n_dst /= n_dst) then
-         call free_rms(rms)
-         rms%n_dst = n_dst
-         errstat = allocate_rms(rcs, rms)
-         if (errstat /= hor3map_noerr) return
-      endif
-#ifdef DEBUG
-      rms%h_dst(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rms%hi_dst(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rms%seg_int_lim(:) = ieee_value(1._r8, ieee_signaling_nan)
-      rms%n_src_seg(:) = -9999
-      rms%seg_dst_index(:) = -9999
-#endif
-
       ! From edge locations, obtain destination grid cell widths and their
       ! multiplicative inverse.
       do j = 1, rms%n_dst
-         rms%h_dst(j) = abs(x_edge_dst(j + 1) - x_edge_dst(j))
-         if (rms%h_dst(j) > rcs%x_eps) then
+         rms%h_dst(j) = abs(x_edge_dst(j+1) - x_edge_dst(j))
+         if (rms%h_dst(j) > rcgs%x_eps) then
             rms%hi_dst(j) = c1/rms%h_dst(j)
          else
             rms%hi_dst(j) = c0
@@ -2151,25 +4012,25 @@ contains
       rms%n_src_seg(js) = 0
       xil = c0
 
-      if (x_edge_dst(n_dst + 1) - x_edge_dst(1) > c0) then
+      if (x_edge_dst(n_dst+1) - x_edge_dst(1) > c0) then
 
          do
             iseg = iseg + 1
             rms%n_src_seg(js) = rms%n_src_seg(js) + 1
             rms%seg_dst_index(iseg) = jd
-            if     (  abs(rcs%x_edge_src(js + 1) - x_edge_dst(jd + 1)) &
-                   <= rcs%x_eps) then
+            if     (  abs(rcgs%x_edge_src(js+1) - x_edge_dst(jd+1)) &
+                   <= rcgs%x_eps) then
                if (rms%hi_dst(jd) == c0) then
                   rms%seg_int_lim(iseg) = xil
                else
                   rms%seg_int_lim(iseg) = c1
                endif
-               if (js == rcs%n_src) exit
+               if (js == rcgs%n_src_actual) exit
                xil = c0
                js = js + 1
                jd = jd + 1
                rms%n_src_seg(js) = 0
-            elseif (rcs%x_edge_src(js + 1) < x_edge_dst(jd + 1)) then
+            elseif (rcgs%x_edge_src(js+1) < x_edge_dst(jd+1)) then
                rms%seg_int_lim(iseg) = c1
                xil = c0
                js = js + 1
@@ -2179,7 +4040,7 @@ contains
                   rms%seg_int_lim(iseg) = xil
                else
                   rms%seg_int_lim(iseg) = &
-                     (x_edge_dst(jd + 1) - rcs%x_edge_src(js))*rcs%hi_src(js)
+                     (x_edge_dst(jd+1) - rcgs%x_edge_src(js))*rcgs%hi_src(js)
                   xil = rms%seg_int_lim(iseg)
                endif
                jd = jd + 1
@@ -2192,19 +4053,19 @@ contains
             iseg = iseg + 1
             rms%n_src_seg(js) = rms%n_src_seg(js) + 1
             rms%seg_dst_index(iseg) = jd
-            if     (  abs(rcs%x_edge_src(js + 1) - x_edge_dst(jd + 1)) &
-                   <= rcs%x_eps) then
+            if     (  abs(rcgs%x_edge_src(js+1) - x_edge_dst(jd+1)) &
+                   <= rcgs%x_eps) then
                if (rms%hi_dst(jd) == c0) then
                   rms%seg_int_lim(iseg) = xil
                else
                   rms%seg_int_lim(iseg) = c1
                endif
-               if (js == rcs%n_src) exit
+               if (js == rcgs%n_src_actual) exit
                xil = c0
                js = js + 1
                jd = jd + 1
                rms%n_src_seg(js) = 0
-            elseif (rcs%x_edge_src(js + 1) > x_edge_dst(jd + 1)) then
+            elseif (rcgs%x_edge_src(js+1) > x_edge_dst(jd+1)) then
                rms%seg_int_lim(iseg) = c1
                xil = c0
                js = js + 1
@@ -2214,7 +4075,7 @@ contains
                   rms%seg_int_lim(iseg) = xil
                else
                   rms%seg_int_lim(iseg) = &
-                     (rcs%x_edge_src(js) - x_edge_dst(jd + 1))*rcs%hi_src(js)
+                     (rcgs%x_edge_src(js) - x_edge_dst(jd+1))*rcgs%hi_src(js)
                   xil = rms%seg_int_lim(iseg)
                endif
                jd = jd + 1
@@ -2227,141 +4088,369 @@ contains
 
    end function prepare_remapping
 
-   function reconstruct(rcs, u_src, limiting, pc_left_bndr, pc_right_bndr) &
-      result(errstat)
+   function reconstruct(rcgs, rcss, u_src, i_index, j_index) result(errstat)
    ! ---------------------------------------------------------------------------
    ! Carry out the piecewise polynomial reconstruction of the source data with
    ! desired limiting method and handling of boundaries.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), target, intent(inout) :: rcgs
       real(r8), dimension(:), intent(in) :: u_src
-      integer, intent(in) :: limiting
-      logical, optional, intent(in) :: pc_left_bndr, pc_right_bndr
+      type(recon_src_struct), intent(inout) :: rcss
+      integer, optional, intent(in) :: i_index, j_index
 
       integer :: errstat
 
       integer :: js, jd
-      logical :: pclb, pcrb
 
-      errstat = hor3map_noerr
+      ! Check optional arguments.
+      if (present(i_index)) rcgs%i_index = i_index
+      if (present(j_index)) rcgs%j_index = j_index
 
-      ! Check optional arguments that controls whether left and right boundary
-      ! cells are reconstructed as piecewise constants or not.
-      if (present(pc_left_bndr) .and. present(pc_right_bndr)) then
-         pclb = pc_left_bndr
-         pcrb = pc_right_bndr
-      elseif (present(pc_left_bndr)) then
-         pclb = pc_left_bndr
-         pcrb = pclb
-      else
-         pclb = .true.
-         pcrb = .true.
-      endif
-
-      ! Check that the reconstruction has been prepared.
-      if (.not. rcs%prepared) then
+      ! Check that the reconstruction grid data structure has been initialized.
+      if (.not. rcgs%initialized) then
          errstat = hor3map_recon_not_prepared
          return
       endif
 
-      if (size(u_src) /= rcs%n_src_all) then
+      ! Check consistency of number of source grid cells.
+      if (size(u_src) /= rcgs%n_src) then
          errstat = hor3map_src_size_mismatch
+         return
+      endif
+
+      ! If needed, initialize reconstruction source data structure.
+      if (.not. rcss%initialized) then
+         errstat = initialize_rcss(rcgs, rcss)
+         if (errstat /= hor3map_noerr) return
+      elseif (.not. associated(rcss%rcgs, rcgs)) then
+         call free_rcss(rcss)
+         errstat = initialize_rcss(rcgs, rcss)
+         if (errstat /= hor3map_noerr) return
+      endif
+
+      ! Assign array pointers within reconstruction grid and source data
+      ! structures.
+      errstat = assign_ptr_rcgs(rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rcss(rcss)
+      if (errstat /= hor3map_noerr) return
+
+      ! Check that the reconstruction has been prepared.
+      if (.not. rcgs%prepared) then
+         errstat = hor3map_recon_not_prepared
          return
       endif
 
       ! Copy source data array to continuous array of grid cells to be used in
       ! the reconstruction.
-      if (rcs%method == hor3map_pcm .or. rcs%method == hor3map_plm) then
-         do js = 1, rcs%n_src_all
-            jd = rcs%src_dst_index(js)
-            if (jd /= 0) rcs%u_src(jd) = u_src(js)
+      if (rcgs%method_actual == hor3map_pcm .or. &
+          rcgs%method_actual == hor3map_plm) then
+         do js = 1, rcgs%n_src
+            jd = rcgs%src_dst_index(js)
+            if (jd /= 0) rcss%u_src(jd) = u_src(js)
          enddo
       else
-         rcs%u_src(1:rcs%n_src) = c0
-         do js = 1, rcs%n_src_all
-            jd = rcs%src_dst_index(js)
-            if (jd /= 0) rcs%u_src(jd) = rcs%u_src(jd) &
-                                       + rcs%src_dst_weight(js)*u_src(js)
+         rcss%u_src(1:rcgs%n_src_actual) = c0
+         do js = 1, rcgs%n_src
+            jd = rcgs%src_dst_index(js)
+            if (jd /= 0) rcss%u_src(jd) = rcss%u_src(jd) &
+                                        + rcgs%src_dst_weight(js)*u_src(js)
          enddo
       endif
 
-      select case (rcs%method)
+      ! Set small value with same dimensions as source data.
+      rcss%u_range = abs( minval(rcss%u_src(1:rcgs%n_src_actual)) &
+                        - maxval(rcss%u_src(1:rcgs%n_src_actual)))
+      rcss%u_eps = rcss%u_range*eps
+      rcss%uu_eps = rcss%u_range*rcss%u_eps
+
+
+      select case (rcgs%method_actual)
          case (hor3map_plm)
-            select case (limiting)
+            select case (rcss%limiting)
                case (hor3map_no_limiting)
-                  call reconstruct_plm_no_limiting(rcs)
-               case (hor3map_monotonic)
-                  call reconstruct_plm_monotonic(rcs, pclb, pcrb)
+                  call reconstruct_plm_no_limiting(rcss)
+               case (hor3map_monotonic, hor3map_non_oscillatory, &
+                     hor3map_non_oscillatory_posdef)
+                  call reconstruct_plm_monotonic(rcss)
                case default
                   errstat = hor3map_invalid_plm_limiting
                   return
             end select
          case (hor3map_ppm)
-            call reconstruct_ppm_edge_values(rcs)
-            select case (limiting)
+            call reconstruct_ppm_edge_values(rcss)
+            select case (rcss%limiting)
                case (hor3map_no_limiting)
                case (hor3map_monotonic)
-                  call limit_ppm_interior_monotonic(rcs)
-                  call limit_ppm_boundary(rcs, pclb, pcrb)
+                  call limit_ppm_interior_monotonic(rcss)
+                  call limit_ppm_boundary(rcss)
                case (hor3map_non_oscillatory)
-                  call limit_ppm_interior_non_oscillatory(rcs)
-                  call limit_ppm_boundary(rcs, pclb, pcrb)
+                  call limit_ppm_interior_non_oscillatory(rcss)
+                  call limit_ppm_boundary(rcss)
                case (hor3map_non_oscillatory_posdef)
-                  call limit_ppm_interior_non_oscillatory(rcs)
-                  call limit_ppm_boundary(rcs, pclb, pcrb)
-                  call limit_ppm_posdef(rcs)
+                  call limit_ppm_interior_non_oscillatory(rcss)
+                  call limit_ppm_boundary(rcss)
+                  call limit_ppm_posdef(rcss)
                case default
                   errstat = hor3map_invalid_ppm_limiting
                   return
             end select
-            call polycoeff_ppm(rcs)
+            call polycoeff_ppm(rcss)
          case (hor3map_pqm)
-            call reconstruct_pqm_edge_slope_values(rcs)
-            select case (limiting)
+            call reconstruct_pqm_edge_slope_values(rcss)
+            select case (rcss%limiting)
                case (hor3map_no_limiting)
+               case (hor3map_monotonic)
+                  call limit_pqm_monotonic(rcss)
+               case (hor3map_non_oscillatory)
+                  call limit_pqm_non_oscillatory(rcss)
+               case (hor3map_non_oscillatory_posdef)
+                  call limit_pqm_non_oscillatory_posdef(rcss)
                case default
                   errstat = hor3map_invalid_pqm_limiting
                   return
             end select
-            call polycoeff_pqm(rcs)
+            call polycoeff_pqm(rcss)
       end select
 
-      rcs%reconstructed = .true.
+      rcss%reconstructed = .true.
 
    end function reconstruct
 
-   function regrid(rcs, u_edge_grd, x_edge_grd, missing_value) result(errstat)
+   function extract_polycoeff(rcss, polycoeff, i_index, j_index) result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Extract polynomial coefficients of a reconstruction. For grid cells that
+   ! have been merged due to potential for ill-conditioned linear systems,
+   ! polynomial coefficients will be constructed that are consistent with the
+   ! reconstruction of the merged cells. Near-empty grid cells are set to a
+   ! constant reconstruction.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+      real(r8), dimension(:,:), intent(out) :: polycoeff
+      integer, optional, intent(in) :: i_index, j_index
+
+      integer :: errstat
+
+      real(r8) :: xi0, q
+      integer :: js0, js, jd
+
+      ! Check that reconstruction source data structure has been initialized.
+      if (.not. rcss%initialized) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
+
+      ! Check optional arguments.
+      if (present(i_index)) rcss%rcgs%i_index = i_index
+      if (present(j_index)) rcss%rcgs%j_index = j_index
+
+      ! Assign array pointers within data structures.
+      errstat = assign_ptr_rcgs(rcss%rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rcss(rcss)
+      if (errstat /= hor3map_noerr) return
+
+      ! Check that the reconstruction is available.
+      if (.not. rcss%reconstructed) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
+
+      ! Extract polynomial coefficients.
+
+      polycoeff(:,:) = c0
+
+      select case (rcss%rcgs%method_actual)
+
+         case (hor3map_pcm)
+
+            js0 = 1
+            do
+               jd = rcss%rcgs%src_dst_index(js0)
+               if (jd == 0) then
+                  polycoeff(1,js0) = rcss%u_src(1)
+               else
+                  polycoeff(1,js0) = rcss%u_src(jd)
+                  exit
+               endif
+               js0 = js0 + 1
+               if (js0 > rcss%rcgs%n_src) exit
+            enddo
+            do js = js0+1, rcss%rcgs%n_src
+               jd = rcss%rcgs%src_dst_index(js)
+               if (jd == 0) then
+                  polycoeff(1,js) = polycoeff(1,js-1)
+               else
+                  polycoeff(1,js) = rcss%u_src(jd)
+               endif
+            enddo
+
+         case (hor3map_plm)
+
+            js0 = 1
+            do
+               jd = rcss%rcgs%src_dst_index(js0)
+               if (jd == 0) then
+                  polycoeff(1,js0) = rcss%polycoeff(1,1)
+               else
+                  polycoeff(1:2,js0) = rcss%polycoeff(1:2,1)
+                  exit
+               endif
+               js0 = js0 + 1
+               if (js0 > rcss%rcgs%n_src) exit
+            enddo
+            do js = js0+1, rcss%rcgs%n_src
+               jd = rcss%rcgs%src_dst_index(js)
+               if (jd == 0) then
+                  polycoeff(1,js) = polycoeff(1,js-1) + polycoeff(2,js-1)
+               else
+                  polycoeff(1:2,js) = rcss%polycoeff(1:2,jd)
+               endif
+            enddo
+
+         case (hor3map_ppm)
+
+            js0 = 1
+            do
+               jd = rcss%rcgs%src_dst_index(js0)
+               if (jd == 0) then
+                  polycoeff(1,js0) = rcss%polycoeff(1,1)
+               else
+                  exit
+               endif
+               js0 = js0 + 1
+               if (js0 > rcss%rcgs%n_src) exit
+            enddo
+            xi0 = c0
+            do js = js0, rcss%rcgs%n_src
+               jd = rcss%rcgs%src_dst_index(js)
+               if (jd == 0) then
+                  polycoeff(1,js) = polycoeff(1,js-1) &
+                                  + polycoeff(2,js-1) &
+                                  + polycoeff(3,js-1)
+               else
+                  if (rcss%rcgs%src_dst_weight(js) == c1) then
+                     polycoeff(1:3,js) = rcss%polycoeff(1:3,jd)
+                     xi0 = c0
+                  else
+                     polycoeff(1,js) =   rcss%polycoeff(1,jd) &
+                                     + ( rcss%polycoeff(2,jd) &
+                                       + rcss%polycoeff(3,jd)*xi0)*xi0
+                     polycoeff(2,js) = (    rcss%polycoeff(2,jd) &
+                                       + c2*rcss%polycoeff(3,jd)*xi0) &
+                                       *rcss%rcgs%src_dst_weight(js)
+                     polycoeff(3,js) = rcss%polycoeff(3,jd) &
+                                       *rcss%rcgs%src_dst_weight(js) &
+                                       *rcss%rcgs%src_dst_weight(js)
+                     xi0 = xi0 + rcss%rcgs%src_dst_weight(js)
+                  endif
+               endif
+            enddo
+
+         case (hor3map_pqm)
+
+            js0 = 1
+            do
+               jd = rcss%rcgs%src_dst_index(js0)
+               if (jd == 0) then
+                  polycoeff(1,js0) = rcss%polycoeff(1,1)
+               else
+                  exit
+               endif
+               js0 = js0 + 1
+               if (js0 > rcss%rcgs%n_src) exit
+            enddo
+            xi0 = c0
+            do js = js0, rcss%rcgs%n_src
+               jd = rcss%rcgs%src_dst_index(js)
+               if (jd == 0) then
+                  polycoeff(1,js) = polycoeff(1,js-1) &
+                                  + polycoeff(2,js-1) &
+                                  + polycoeff(3,js-1) &
+                                  + polycoeff(4,js-1) &
+                                  + polycoeff(5,js-1)
+               else
+                  if (rcss%rcgs%src_dst_weight(js) == c1) then
+                     polycoeff(1:5,js) = rcss%polycoeff(1:5,jd)
+                     xi0 = c0
+                  else
+                     polycoeff(1,js) =       rcss%polycoeff(1,jd) &
+                                     + (     rcss%polycoeff(2,jd) &
+                                       + (   rcss%polycoeff(3,jd) &
+                                         + ( rcss%polycoeff(4,jd) &
+                                           + rcss%polycoeff(5,jd) &
+                                       *xi0)*xi0)*xi0)*xi0
+                     q = rcss%rcgs%src_dst_weight(js)
+                     polycoeff(2,js) = (        rcss%polycoeff(2,jd) &
+                                       + (   c2*rcss%polycoeff(3,jd) &
+                                         + ( c3*rcss%polycoeff(4,jd) &
+                                           + c4*rcss%polycoeff(5,jd) &
+                                         *xi0)*xi0)*xi0)*q
+                     q = q*rcss%rcgs%src_dst_weight(js)
+                     polycoeff(3,js) = (        rcss%polycoeff(3,jd) &
+                                       + (   c3*rcss%polycoeff(4,jd) &
+                                         +   c6*rcss%polycoeff(5,jd) &
+                                         *xi0)*xi0)*q
+                     q = q*rcss%rcgs%src_dst_weight(js)
+                     polycoeff(4,js) = (    rcss%polycoeff(4,jd) &
+                                       + c4*rcss%polycoeff(5,jd)*xi0)*q
+                     q = q*rcss%rcgs%src_dst_weight(js)
+                     polycoeff(5,js) = rcss%polycoeff(5,jd)*q
+                     xi0 = xi0 + rcss%rcgs%src_dst_weight(js)
+                  endif
+               endif
+            enddo
+
+      end select
+
+   end function extract_polycoeff
+
+   function regrid(rcss, u_edge_grd, x_edge_grd, missing_value, &
+                   i_index, j_index) &
+      result(errstat)
    ! ---------------------------------------------------------------------------
    ! Find grid locations where desired grid cell edge data values intersect with
    ! a reconstruction of the source data.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(in) :: rcs
+      type(recon_src_struct), intent(inout) :: rcss
       real(r8), dimension(:), intent(in) :: u_edge_grd
       real(r8), dimension(:), intent(out) :: x_edge_grd
       real(r8), intent(in) :: missing_value
+      integer, optional, intent(in) :: i_index, j_index
 
       integer :: errstat
 
-      real(r8), dimension(3) :: pcl, pcr
-      real(r8) :: u_min, u_max, u_eps, u_sgn, umr, uml, xi, &
-                  duml, dumr, uerl, uelr
-      integer :: n_grd, jg, js
+      real(r8) :: u_sgn
 
       errstat = hor3map_noerr
 
-      ! Check that the reconstruction is available.
-      if (.not. rcs%reconstructed) then
+      ! Check that reconstruction source data structure has been initialized.
+      if (.not. rcss%initialized) then
          errstat = hor3map_recon_not_available
          return
       endif
 
-      ! Number of grid edges.
-      n_grd = size(u_edge_grd)
+      ! Check optional arguments.
+      if (present(i_index)) rcss%rcgs%i_index = i_index
+      if (present(j_index)) rcss%rcgs%j_index = j_index
+
+      ! Assign array pointers within data structures.
+      errstat = assign_ptr_rcgs(rcss%rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rcss(rcss)
+      if (errstat /= hor3map_noerr) return
+
+      ! Check that the reconstruction is available.
+      if (.not. rcss%reconstructed) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
 
       ! Check grid array size consistency.
-      if (size(x_edge_grd) /= n_grd) then
+      if (size(x_edge_grd) /= size(u_edge_grd)) then
          errstat = hor3map_grd_size_mismatch
          return
       endif
@@ -2370,143 +4459,145 @@ contains
       x_edge_grd(:) = missing_value
 
       ! Return in case PCM method is used.
-      if (rcs%method == hor3map_pcm) return
+      if (rcss%rcgs%method_actual == hor3map_pcm) return
 
-      ! Set small value with same dimensions as source data.
-      u_min = minval(rcs%u_src(1:rcs%n_src))
-      u_max = maxval(rcs%u_src(1:rcs%n_src))
-      if (abs(u_max - u_min) < eps) then
-         return
-      endif
-      u_eps = abs(u_max - u_min)*eps
+      ! Return in case the source data range is small.
+      if (rcss%u_range < eps) return
 
       ! To indicate monotonically increasing or decreasing source values, use
       ! the sign of the difference of the source boundary values.
-      u_sgn = sign(c1, rcs%u_src(rcs%n_src) - rcs%u_src(1))
+      u_sgn = sign(c1, rcss%u_src(rcss%rcgs%n_src_actual) - rcss%u_src(1))
 
-      ! Find possible intersections in the first half of the first source grid
-      ! cell. 
-      jg = 1
-      do
-         if ((u_edge_grd(jg) - rcs%uel(1))*u_sgn >= c0) exit
-         jg = jg + 1
-         if (jg > n_grd) return
-      enddo
-      js = 1
-      umr =      rcs%polycoeff(1, js) &
-          + c1_2*rcs%polycoeff(2, js) &
-          + c1_4*rcs%polycoeff(3, js)
-      do
-         if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
-         xi = parabola_intersection(rcs%polycoeff(:, js), u_edge_grd(jg), &
-                                    u_eps, c0, c1_2)
-         x_edge_grd(jg) = rcs%x_edge_src(js) &
-                        + (rcs%x_edge_src(js + 1) - rcs%x_edge_src(js))*xi
-         jg = jg + 1
-         if (jg > n_grd) return
-      enddo
-
-      outer: do 
-
-         ! For the current grid edge index, find the index of the first source
-         ! grid cell with mid point reconstructed value larger than the grid
-         ! edge value.
-         do
-            uml = umr
-            umr =      rcs%polycoeff(1, js) &
-                + c1_2*rcs%polycoeff(2, js) &
-                + c1_4*rcs%polycoeff(3, js)
-            if ((u_edge_grd(jg) - umr)*u_sgn <= c0) exit
-            js = js + 1
-            if (js > rcs%n_src) exit outer
-         enddo
-
-         ! Construct new parabolas left and right of the edge that are
-         ! continuous and smooth across the edge and with the original piecewise
-         ! parabolas left and right of the edge at the mid points of their
-         ! respective grid cells.
-         duml = rcs%polycoeff(2, js - 1) + rcs%polycoeff(3, js - 1)
-         dumr = rcs%polycoeff(2, js    ) + rcs%polycoeff(3, js    )
-         pcr(2) = (c4*(umr - uml) - duml - dumr) &
-                  *rcs%h_src(js)/(rcs%h_src(js - 1) + rcs%h_src(js))
-         pcr(1) = umr - c1_4*(dumr + pcr(2))
-         if (pcr(2)*(rcs%u_src(js) - rcs%u_src(js - 1)) < c0) then
-            ! If the slope of the new parabolas are non-monotonic at the
-            ! edge, set the edge slope to zero and enforce that the new
-            ! parabolas cross the edge within the interval spanned by the
-            ! edge values of the original piecewise parabolas. Smoothness
-            ! with the original piecewise parabolas at grid cell mid points
-            ! is then not guaranteed.
-            pcr(2) = c0
-            uerl = rcs%uer(js - 1)
-            uelr = rcs%uel(js)
-            pcr(1) = min(max(pcr(1), min(uerl, uelr)), max(uerl, uelr))
-            pcr(3) = c4*(umr - pcr(1))
-            pcl(1) = c4*uml - c3*pcr(1)
-            pcl(2) = c2*(pcr(1) - pcl(1))
-            pcl(3) = - c1_2*pcl(2)
-         else
-            pcr(3) = dumr - pcr(2)
-            pcl(1) = pcr(1) - duml
-            pcl(2) = c4*(uml - pcl(1)) - duml
-            pcl(3) = duml - pcl(2)
-         endif
-
-         ! Find all intersections with piecewise parabola in the last half of
-         ! the source grid cell left of the edge.
-         do
-            if ((u_edge_grd(jg) - pcr(1))*u_sgn > c0) exit
-            xi = parabola_intersection(pcl, u_edge_grd(jg), u_eps, c1_2, c1)
-            x_edge_grd(jg) = rcs%x_edge_src(js - 1) &
-                           + (rcs%x_edge_src(js) - rcs%x_edge_src(js - 1))*xi
-            jg = jg + 1
-            if (jg > n_grd) return
-         enddo
-
-         ! Find all intersections with piecewise parabola in the first half of
-         ! the source grid cell right of the edge.
-         do
-            if ((u_edge_grd(jg) - umr)*u_sgn > c0) exit
-            xi = parabola_intersection(pcr, u_edge_grd(jg), u_eps, c0, c1_2)
-            x_edge_grd(jg) = rcs%x_edge_src(js) &
-                           + (rcs%x_edge_src(js + 1) - rcs%x_edge_src(js))*xi
-            jg = jg + 1
-            if (jg > n_grd) return
-         enddo
-
-      enddo outer
-
-      ! Find possible intersections in the last half of the last source grid
-      ! cell. 
-      js = rcs%n_src
-      do
-         if ((u_edge_grd(jg) - rcs%uer(js))*u_sgn > c0) return
-         xi = parabola_intersection(rcs%polycoeff(:, js), u_edge_grd(jg), &
-                                    u_eps, c1_2, c1)
-         x_edge_grd(jg) = rcs%x_edge_src(js) &
-                        + (rcs%x_edge_src(js + 1) - rcs%x_edge_src(js))*xi
-         jg = jg + 1
-         if (jg > n_grd) return
-      enddo
+      select case (rcss%rcgs%method_actual)
+         case (hor3map_plm)
+            call regrid_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         case (hor3map_ppm)
+            call regrid_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         case (hor3map_pqm)
+            call regrid_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+      end select
 
    end function regrid
 
-   function remap(rcs, rms, u_dst) result(errstat)
+   function regrid2(rcss, u_edge_grd, x_edge_grd, missing_value, &
+                    i_index, j_index) &
+      result(errstat)
+   ! ---------------------------------------------------------------------------
+   ! Find grid locations where desired grid cell edge data values intersect with
+   ! a reconstruction of the source data.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+      real(r8), dimension(:), intent(in) :: u_edge_grd
+      real(r8), dimension(:), intent(out) :: x_edge_grd
+      real(r8), intent(in) :: missing_value
+      integer, optional, intent(in) :: i_index, j_index
+
+      integer :: errstat
+
+      real(r8) :: u_sgn
+
+      errstat = hor3map_noerr
+
+      ! Check that reconstruction source data structure has been initialized.
+      if (.not. rcss%initialized) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
+
+      ! Check optional arguments.
+      if (present(i_index)) rcss%rcgs%i_index = i_index
+      if (present(j_index)) rcss%rcgs%j_index = j_index
+
+      ! Assign array pointers within data structures.
+      errstat = assign_ptr_rcgs(rcss%rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rcss(rcss)
+      if (errstat /= hor3map_noerr) return
+
+      ! Check that the reconstruction is available.
+      if (.not. rcss%reconstructed) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
+
+      ! Check grid array size consistency.
+      if (size(x_edge_grd) /= size(u_edge_grd)) then
+         errstat = hor3map_grd_size_mismatch
+         return
+      endif
+
+      ! Initialize grid intersections as missing value.
+      x_edge_grd(:) = missing_value
+
+      ! Return in case PCM method is used.
+      if (rcss%rcgs%method_actual == hor3map_pcm) return
+
+      ! Return in case the source data range is small.
+      if (rcss%u_range < eps) return
+
+      ! To indicate monotonically increasing or decreasing source values, use
+      ! the sign of the difference of the source boundary values.
+      u_sgn = sign(c1, rcss%u_src(rcss%rcgs%n_src_actual) - rcss%u_src(1))
+
+      select case (rcss%rcgs%method_actual)
+         case (hor3map_plm)
+            call regrid2_plm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         case (hor3map_ppm)
+            call regrid2_ppm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+         case (hor3map_pqm)
+            call regrid2_pqm_intersections(rcss, u_sgn, u_edge_grd, x_edge_grd)
+      end select
+
+   end function regrid2
+
+   function remap(rcss, rms, u_dst, i_index, j_index) result(errstat)
    ! ---------------------------------------------------------------------------
    ! Carry out the remapping of a piecewise polynomial reconstruction of the
    ! source data to a destination grid.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(in) :: rcs
-      type(remap_struct), intent(in) :: rms
+      type(recon_src_struct), intent(inout) :: rcss
+      type(remap_struct), intent(inout) :: rms
       real(r8), dimension(:), intent(out) :: u_dst
+      integer, optional, intent(in) :: i_index, j_index
 
       integer :: errstat
 
       real(r8) :: xil, xir, adl, adr
-      integer :: iseg, js, jd, i_src_seg
+      integer :: ns, iseg, js, jd, i_src_seg
 
       errstat = hor3map_noerr
+
+      ! Check that reconstruction source data structure has been initialized.
+      if (.not. rcss%initialized) then
+         errstat = hor3map_recon_not_available
+         return
+      endif
+
+      ! Check optional arguments.
+      if (present(i_index)) rcss%rcgs%i_index = i_index
+      if (present(j_index)) rcss%rcgs%j_index = j_index
+
+      ! Check that remapping data structure has been initialized.
+      if (.not. rms%initialized) then
+         errstat = hor3map_remap_not_prepared
+         return
+      endif
+
+      ! Check that data structures have consistent associations.
+      if (.not. associated(rcss%rcgs, rms%rcgs)) then
+         errstat = hor3map_inconsistent_rcgs
+         return
+      endif
+
+      ! Assign array pointers within data structures.
+      errstat = assign_ptr_rcgs(rcss%rcgs)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rcss(rcss)
+      if (errstat /= hor3map_noerr) return
+      errstat = assign_ptr_rms(rms)
+      if (errstat /= hor3map_noerr) return
 
       ! Check that the remapping has been prepared
       if (.not. rms%prepared) then
@@ -2515,7 +4606,7 @@ contains
       endif
 
       ! Check that the reconstruction is available.
-      if (.not. rcs%reconstructed) then
+      if (.not. rcss%reconstructed) then
          errstat = hor3map_recon_not_available
          return
       endif
@@ -2526,21 +4617,22 @@ contains
       endif
 
       u_dst(:) = 0._r8
+      ns = rcss%rcgs%n_src_actual
       iseg = 0
 
-      select case (rcs%method)
+      select case (rcss%rcgs%method_actual)
 
          case (hor3map_pcm)
 
             ! Integrate the required segments of each source grid cell in
             ! succession, adding the integrals to the appropriate destination
             ! grid cells.
-            do js = 1, rcs%n_src
+            do js = 1, ns
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
-                            + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
+                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
                else
                   xil = c0
                   do i_src_seg = 1, rms%n_src_seg(js)
@@ -2548,11 +4640,11 @@ contains
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) = rcs%u_src(js)
+                        u_dst(jd) = rcss%u_src(js)
                      else
                         u_dst(jd) = u_dst(jd) &
-                                  + rcs%u_src(js)*(xir - xil)*rcs%h_src(js) &
-                                    *rms%hi_dst(jd)
+                                  + rcss%u_src(js)*(xir - xil) &
+                                    *rcss%rcgs%h_src(js)*rms%hi_dst(jd)
                         xil = xir
                      endif
                   enddo
@@ -2561,11 +4653,11 @@ contains
 
             ! Set values for any near-empty destination grid cells at the start
             ! and the end of the array.
-            do jd = 1, rms%seg_dst_index(1) - 1
-               u_dst(jd) = rcs%u_src(1)
+            do jd = 1, rms%seg_dst_index(1)-1
+               u_dst(jd) = rcss%u_src(1)
             enddo
-            do jd = rms%seg_dst_index(iseg) + 1, rms%n_dst
-               u_dst(jd) = rcs%u_src(rcs%n_src)
+            do jd = rms%seg_dst_index(iseg)+1, rms%n_dst
+               u_dst(jd) = rcss%u_src(ns)
             enddo
 
          case (hor3map_plm)
@@ -2573,12 +4665,12 @@ contains
             ! Integrate the required segments of each source grid cell in
             ! succession, adding the integrals to the appropriate destination
             ! grid cells.
-            do js = 1, rcs%n_src
+            do js = 1, ns
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
-                            + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
+                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
                else
                   xil = c0
                   adl = c0
@@ -2587,13 +4679,14 @@ contains
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) = rcs%polycoeff(1, js) &
-                                  + rcs%polycoeff(2, js)*xir
+                        u_dst(jd) = rcss%polycoeff(1,js) &
+                                  + rcss%polycoeff(2,js)*xir
                      else
-                        adr = (      rcs%polycoeff(1, js) &
-                              + c1_2*rcs%polycoeff(2, js)*xir)*xir
+                        adr = (      rcss%polycoeff(1,js) &
+                              + c1_2*rcss%polycoeff(2,js)*xir)*xir
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcs%h_src(js)*rms%hi_dst(jd)
+                                  + (adr - adl)*rcss%rcgs%h_src(js) &
+                                    *rms%hi_dst(jd)
                         xil = xir
                         adl = adr
                      endif
@@ -2603,15 +4696,14 @@ contains
 
             ! Set values for any near-empty destination grid cells at the start
             ! and the end of the array.
-            do jd = 1, rms%seg_dst_index(1) - 1
-               u_dst(jd) = rcs%polycoeff(1, 1)
+            do jd = 1, rms%seg_dst_index(1)-1
+               u_dst(jd) = rcss%polycoeff(1,1)
             enddo
             if (rms%seg_dst_index(iseg) < rms%n_dst) then
                jd = rms%seg_dst_index(iseg) + 1
-               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
-                         + rcs%polycoeff(2, rcs%n_src)
-               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
-                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               u_dst(jd) = rcss%polycoeff(1,ns) + rcss%polycoeff(2,ns)
+               do jd = rms%seg_dst_index(iseg)+2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg)+1)
                enddo
             endif
 
@@ -2620,12 +4712,12 @@ contains
             ! Integrate the required segments of each source grid cell in
             ! succession, adding the integrals to the appropriate destination
             ! grid cells.
-            do js = 1, rcs%n_src
+            do js = 1, ns
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
-                            + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
+                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
                else
                   xil = c0
                   adl = c0
@@ -2634,15 +4726,16 @@ contains
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) =   rcs%polycoeff(1, js) &
-                                  + ( rcs%polycoeff(2, js) &
-                                    + rcs%polycoeff(3, js)*xir)*xir
+                        u_dst(jd) =   rcss%polycoeff(1,js) &
+                                  + ( rcss%polycoeff(2,js) &
+                                    + rcss%polycoeff(3,js)*xir)*xir
                      else
-                        adr = (        rcs%polycoeff(1, js) &
-                              + ( c1_2*rcs%polycoeff(2, js) &
-                                + c1_3*rcs%polycoeff(3, js)*xir)*xir)*xir
+                        adr = (        rcss%polycoeff(1,js) &
+                              + ( c1_2*rcss%polycoeff(2,js) &
+                                + c1_3*rcss%polycoeff(3,js)*xir)*xir)*xir
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcs%h_src(js)*rms%hi_dst(jd)
+                                  + (adr - adl)*rcss%rcgs%h_src(js) &
+                                    *rms%hi_dst(jd)
                         xil = xir
                         adl = adr
                      endif
@@ -2652,16 +4745,15 @@ contains
 
             ! Set values for any near-empty destination grid cells at the start
             ! and the end of the array.
-            do jd = 1, rms%seg_dst_index(1) - 1
-               u_dst(jd) = rcs%polycoeff(1, 1)
+            do jd = 1, rms%seg_dst_index(1)-1
+               u_dst(jd) = rcss%polycoeff(1,1)
             enddo
             if (rms%seg_dst_index(iseg) < rms%n_dst) then
                jd = rms%seg_dst_index(iseg) + 1
-               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
-                         + rcs%polycoeff(2, rcs%n_src) &
-                         + rcs%polycoeff(3, rcs%n_src)
-               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
-                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               u_dst(jd) = rcss%polycoeff(1,ns) + rcss%polycoeff(2,ns) &
+                         + rcss%polycoeff(3,ns)
+               do jd = rms%seg_dst_index(iseg)+2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg)+1)
                enddo
             endif
 
@@ -2670,12 +4762,12 @@ contains
             ! Integrate the required segments of each source grid cell in
             ! succession, adding the integrals to the appropriate destination
             ! grid cells.
-            do js = 1, rcs%n_src
+            do js = 1, ns
                if (rms%n_src_seg(js) == 1) then
                   iseg = iseg + 1
                   jd = rms%seg_dst_index(iseg)
                   u_dst(jd) = u_dst(jd) &
-                            + rcs%u_src(js)*rcs%h_src(js)*rms%hi_dst(jd)
+                            + rcss%u_src(js)*rcss%rcgs%h_src(js)*rms%hi_dst(jd)
                else
                   xil = c0
                   adl = c0
@@ -2684,21 +4776,22 @@ contains
                      xir = rms%seg_int_lim(iseg)
                      jd = rms%seg_dst_index(iseg)
                      if (xil == xir) then
-                        u_dst(jd) =       rcs%polycoeff(1, js) &
-                                  + (     rcs%polycoeff(2, js) &
-                                    + (   rcs%polycoeff(3, js) &
-                                      + ( rcs%polycoeff(4, js) &
-                                        + rcs%polycoeff(5, js) &
+                        u_dst(jd) =       rcss%polycoeff(1,js) &
+                                  + (     rcss%polycoeff(2,js) &
+                                    + (   rcss%polycoeff(3,js) &
+                                      + ( rcss%polycoeff(4,js) &
+                                        + rcss%polycoeff(5,js) &
                                     *xir)*xir)*xir)*xir
                      else
-                        adr = (            rcs%polycoeff(1, js) &
-                              + (     c1_2*rcs%polycoeff(2, js) &
-                                + (   c1_3*rcs%polycoeff(3, js) &
-                                  + ( c1_4*rcs%polycoeff(4, js) &
-                                    + c1_5*rcs%polycoeff(5, js) &
+                        adr = (            rcss%polycoeff(1,js) &
+                              + (     c1_2*rcss%polycoeff(2,js) &
+                                + (   c1_3*rcss%polycoeff(3,js) &
+                                  + ( c1_4*rcss%polycoeff(4,js) &
+                                    + c1_5*rcss%polycoeff(5,js) &
                               *xir)*xir)*xir)*xir)*xir
                         u_dst(jd) = u_dst(jd) &
-                                  + (adr - adl)*rcs%h_src(js)*rms%hi_dst(jd)
+                                  + (adr - adl)*rcss%rcgs%h_src(js) &
+                                    *rms%hi_dst(jd)
                         xil = xir
                         adl = adr
                      endif
@@ -2708,18 +4801,16 @@ contains
 
             ! Set values for any near-empty destination grid cells at the start
             ! and the end of the array.
-            do jd = 1, rms%seg_dst_index(1) - 1
-               u_dst(jd) = rcs%polycoeff(1, 1)
+            do jd = 1, rms%seg_dst_index(1)-1
+               u_dst(jd) = rcss%polycoeff(1,1)
             enddo
             if (rms%seg_dst_index(iseg) < rms%n_dst) then
                jd = rms%seg_dst_index(iseg) + 1
-               u_dst(jd) = rcs%polycoeff(1, rcs%n_src) &
-                         + rcs%polycoeff(2, rcs%n_src) &
-                         + rcs%polycoeff(3, rcs%n_src) &
-                         + rcs%polycoeff(4, rcs%n_src) &
-                         + rcs%polycoeff(5, rcs%n_src)
-               do jd = rms%seg_dst_index(iseg) + 2, rms%n_dst
-                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg) + 1)
+               u_dst(jd) = rcss%polycoeff(1,ns) + rcss%polycoeff(2,ns) &
+                         + rcss%polycoeff(3,ns) + rcss%polycoeff(4,ns) &
+                         + rcss%polycoeff(5,ns)
+               do jd = rms%seg_dst_index(iseg)+2, rms%n_dst
+                  u_dst(jd) = u_dst(rms%seg_dst_index(iseg)+1)
                enddo
             endif
 
@@ -2727,34 +4818,95 @@ contains
 
    end function remap
 
-   subroutine free_rcs(rcs)
+   subroutine free_rcgs(rcgs)
    ! ---------------------------------------------------------------------------
-   ! Deallocate arrays and reset flags.
+   ! Nullify pointers, deallocate arrays and reset flags.
    ! ---------------------------------------------------------------------------
 
-      type(reconstruction_struct), intent(inout) :: rcs
+      type(recon_grd_struct), intent(inout) :: rcgs
 
-      deallocate(rcs%x_edge_src, rcs%h_src, rcs%hi_src, rcs%hci_src, &
-                 rcs%src_dst_weight, rcs%tdecoeff, rcs%tdscoeff, rcs%lblu, &
-                 rcs%rblu, rcs%u_src, rcs%uel, rcs%uer, rcs%usl, rcs%usr, &
-                 rcs%src_dst_index, rcs%polycoeff)
+      type(recon_src_struct), pointer :: rcss_dep, rcss_dep_next
+      type(remap_struct), pointer :: rms_dep, rms_dep_next
 
-      rcs%alloced = .false.
-      rcs%reconstructed = .false.
+      ! Free data structures that depends on this
+      ! reconstruction grid data structure.
+      rcss_dep => rcgs%rcss_dep_head
+      do while (associated(rcss_dep))
+         rcss_dep_next => rcss_dep%rcss_dep_next
+         call free_rcss(rcss_dep)
+         rcss_dep => rcss_dep_next
+      enddo
+      rms_dep => rcgs%rms_dep_head
+      do while (associated(rms_dep))
+         rms_dep_next => rms_dep%rms_dep_next
+         call free_rms(rms_dep)
+         rms_dep => rms_dep_next
+      enddo
 
-   end subroutine free_rcs
+      nullify(rcgs%x_eps, rcgs%x_edge_src, rcgs%h_src, rcgs%hi_src, &
+              rcgs%src_dst_index, rcgs%n_src_actual, rcgs%method_actual, &
+              rcgs%prepared, rcgs%rcss_dep_head, rcgs%rms_dep_head)
+      deallocate(rcgs%x_eps_data, rcgs%x_edge_src_data, rcgs%h_src_data, &
+                 rcgs%hi_src_data, rcgs%src_dst_index_data, &
+                 rcgs%n_src_actual_data, rcgs%method_actual_data, &
+                 rcgs%prepared_data)
+
+      if (rcgs%method /= hor3map_pcm) then
+         nullify(rcgs%hci_src)
+         deallocate(rcgs%hci_src_data)
+      endif
+
+      if (rcgs%method == hor3map_ppm .or. rcgs%method == hor3map_pqm) then
+         nullify(rcgs%src_dst_weight, rcgs%tdecoeff, rcgs%tdscoeff, rcgs%lblu, &
+                 rcgs%rblu) 
+         deallocate(rcgs%src_dst_weight_data, rcgs%tdecoeff_data, &
+                    rcgs%tdscoeff_data, rcgs%lblu_data, rcgs%rblu_data)
+      endif
+
+      rcgs%i_index_curr = 0
+      rcgs%j_index_curr = 0
+      rcgs%initialized = .false.
+
+   end subroutine free_rcgs
+
+   subroutine free_rcss(rcss)
+   ! ---------------------------------------------------------------------------
+   ! Nullify pointers, deallocate arrays and reset flags.
+   ! ---------------------------------------------------------------------------
+
+      type(recon_src_struct), intent(inout) :: rcss
+
+      nullify(rcss%u_src, rcss%uel, rcss%uer, rcss%polycoeff, &
+              rcss%reconstructed, rcss%rcss_dep_next)
+      deallocate(rcss%u_src_data, rcss%uel_data, rcss%uer_data, &
+                 rcss%polycoeff_data, rcss%reconstructed_data)
+
+      if (rcss%rcgs%method == hor3map_pqm) then
+         nullify(rcss%usl, rcss%usr)
+         deallocate(rcss%usl_data, rcss%usr_data)
+      endif
+
+      rcss%i_index_curr = 0
+      rcss%j_index_curr = 0
+      rcss%initialized = .false.
+
+   end subroutine free_rcss
 
    subroutine free_rms(rms)
    ! ---------------------------------------------------------------------------
-   ! Deallocate arrays and reset flags.
+   ! Nullify pointers, deallocate arrays and reset flags.
    ! ---------------------------------------------------------------------------
 
       type(remap_struct), intent(inout) :: rms
 
-      deallocate(rms%h_dst, rms%hi_dst, rms%seg_int_lim, rms%n_src_seg, &
-                 rms%seg_dst_index)
+      nullify(rms%h_dst, rms%hi_dst, rms%seg_int_lim, rms%n_src_seg, &
+              rms%seg_dst_index, rms%prepared, rms%rms_dep_next)
+      deallocate(rms%h_dst_data, rms%hi_dst_data, rms%seg_int_lim_data, &
+                 rms%n_src_seg_data, rms%seg_dst_index_data, rms%prepared_data)
 
-      rms%alloced = .false.
+      rms%i_index_curr = 0
+      rms%j_index_curr = 0
+      rms%initialized = .false.
 
    end subroutine free_rms
 

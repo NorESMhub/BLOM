@@ -71,28 +71,34 @@ subdir('pkgs/')
 
 # Handle options and add necessary flags and subfolders with source files
 
-if get_option('iage') or get_option('turbclo').length() > 0 or get_option('ecosys')
+turbclo = get_option('turbclo')
+if turbclo.length() > 0 and get_option('vcoord') == 'cntiso_hybrid'
+  message('Setting turbclo = [] for vcoord == \'cntiso_hybrid\'')
+  turbclo = []
+endif
+
+if get_option('iage') or turbclo.length() > 0 or get_option('ecosys')
   add_project_arguments('-DTRC', language: 'fortran')
   subdir('trc')
 endif
 
-if get_option('turbclo').length() > 0
-  if not (get_option('turbclo').contains('oneeq') or get_option('turbclo').contains('twoeq'))
+if turbclo.length() > 0
+  if not (turbclo.contains('oneeq') or turbclo.contains('twoeq'))
     error('For turbulent closure, either twoeq or oneeq must be provided as options!')
   endif
-  if get_option('turbclo').contains('oneeq') and get_option('turbclo').contains('twoeq')
+  if turbclo.contains('oneeq') and turbclo.contains('twoeq')
     error('For turbulent closure, do not use both twoeq and oneeq as options!')
   endif
-  if get_option('turbclo').contains('oneeq')
+  if turbclo.contains('oneeq')
     add_project_arguments('-DTKE', language: 'fortran')
   endif
-  if get_option('turbclo').contains('twoeq')
+  if turbclo.contains('twoeq')
     add_project_arguments('-DTKE', '-DGLS', language: 'fortran')
   endif
-  if get_option('turbclo').contains('advection')
+  if turbclo.contains('advection')
     add_project_arguments('-DTKEADV', language: 'fortran')
   endif
-  if get_option('turbclo').contains('isodif')
+  if turbclo.contains('isodif')
     add_project_arguments('-DTKEIDF', language: 'fortran')
   endif
 endif
@@ -103,21 +109,45 @@ if get_option('iage')
 endif
 
 if get_option('ecosys')
-  add_project_arguments('-DHAMOCC','-DRESTART_BGC', '-DWLIN', language: 'fortran')
+  add_project_arguments('-DHAMOCC', '-DWLIN', language: 'fortran')
+  if get_option('hamocc_agg')
+    add_project_arguments('-DAGG', language: 'fortran')
+  endif
+  if get_option('hamocc_boxatm')
+    add_project_arguments('-DBOXATM', language: 'fortran')
+  endif
+  if get_option('hamocc_bromo')
+    add_project_arguments('-DBROMO', language: 'fortran')
+  endif
   if get_option('hamocc_cfc')
     add_project_arguments('-DCFC', language: 'fortran')
   endif
+  if get_option('hamocc_dmsph')
+    add_project_arguments('-DDMSPH', language: 'fortran')
+  endif
   if get_option('hamocc_nattrc')
     add_project_arguments('-DnatDIC', language: 'fortran')
+  endif
+  if get_option('hamocc_fb_bgc_oce')
+    add_project_arguments('-DFB_BGC_OCE', language: 'fortran')
   endif
   if get_option('hamocc_sedbypass')
     add_project_arguments('-Dsedbypass', language: 'fortran')
   endif
   if get_option('hamocc_ciso')
     if not get_option('hamocc_sedbypass')
-      error('hamocc_ciso=true requires hamocc_sedbypass=true!')
+      error('hamocc_ciso == true requires hamocc_sedbypass == true!')
     endif
     add_project_arguments('-Dcisonew', language: 'fortran')
+  endif
+  if get_option('hamocc_debug_timestep')
+    add_project_arguments('-DPBGC_OCNP_TIMESTEP','-DPBGC_CK_TIMESTEP', language: 'fortran')
+  endif
+  if get_option('hamocc_pbgc_ocnp_timestep')
+    add_project_arguments('-DPBGC_OCNP_TIMESTEP', language: 'fortran')
+  endif
+  if get_option('hamocc_pbgc_ck_timestep')
+    add_project_arguments('-DPBGC_CK_TIMESTEP', language: 'fortran')
   endif
   subdir('hamocc')
 endif
