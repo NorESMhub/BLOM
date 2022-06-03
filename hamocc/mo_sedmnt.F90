@@ -33,6 +33,13 @@
 !     -------
 !     - declaration and memory allocation
 !
+!     Description:
+!     ------------
+!     Public routines and variable of this module:
+!
+!     -subroutine alloc_mem_sedmnt
+!        Allocate memory for sediment variables
+!
 !     *sedlay*         *REAL*  - .
 !     *sedla1*         *REAL*  - .
 !     *sedtot*         *REAL*  - .
@@ -81,7 +88,7 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: produs
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: burial
 
-      REAL :: sedict,rno3,o2ut,ansed,sedac,sedifti
+      REAL :: sedict,rno3,o2ut,ansed
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
       REAL :: calfa, oplfa, orgfa, clafa, solfu

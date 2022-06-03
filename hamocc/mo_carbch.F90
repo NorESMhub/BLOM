@@ -44,6 +44,13 @@
 !     -------
 !     - declaration and memory allocation
 !
+!     Description:
+!     ------------
+!     Public routines and variable of this module:
+!
+!     -subroutine alloc_mem_carbch
+!        Allocate memory for inorganic carbon variables
+!
 !
 !**********************************************************************     
       implicit none
@@ -51,6 +58,7 @@
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
@@ -75,7 +83,6 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxu
 #endif
       REAL :: dmspar(6)
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: pi_ph
 #ifdef natDIC
       REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:),     ALLOCATABLE :: natpco2d
@@ -93,6 +100,9 @@
       REAL :: atm_cfc11_nh,atm_cfc11_sh
       REAL :: atm_cfc12_nh,atm_cfc12_sh
       REAL :: atm_sf6_nh,atm_sf6_sh
+#endif
+#ifdef BROMO
+      REAL :: atm_bromo, fbro1, fbro2
 #endif
 
       CONTAINS
@@ -176,19 +186,6 @@
       OmegaA(:,:,:) = 0.0
       OmegaC(:,:,:) = 0.0
 
-
-#ifdef DMSPH
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
-
-      ALLOCATE (pi_ph(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory pi_ph'
-      pi_ph(:,:,:) = 0.0
-#endif
 #ifdef natDIC
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable natpco2d ...'
@@ -302,6 +299,16 @@
       if(errstat.ne.0) stop 'not enough memory atmflx'
       atmflx(:,:,:) = 0.0
 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      !WRITE(io_stdo_bgc,*)'Third dimension    : ',natm
+      ENDIF
+
+      ALLOCATE (ndepflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepflx'
+      ndepflx(:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable pco2d ...'

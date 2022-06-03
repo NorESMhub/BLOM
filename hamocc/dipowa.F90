@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine dipowa(kpie,kpje,kpke,omask)
+subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !**********************************************************************
 !
 !**** *DIPOWA* - 'diffusion of pore water'
@@ -55,17 +55,22 @@ subroutine dipowa(kpie,kpje,kpke,omask)
 !
 !**********************************************************************
 
-  use mo_carbch
-  use mo_sedmnt
-  use mo_biomod
-  use mo_param1_bgc
-  use mo_control_bgc
-  use mo_vgrid, only: kbo,bolay
+  use mo_carbch,     only: ocetra, sedfluxo 
+  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi 
+  use mo_param1_bgc, only: ks,npowtra
+  use mo_vgrid,      only: kbo,bolay
+#ifdef cisonew
+  use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
+#endif
+#ifdef natDIC
+  use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
+#endif
 
   implicit none
 
   integer, intent(in) :: kpie, kpje, kpke
-  real, dimension(kpie,kpje), intent(in) :: omask
+  real,    intent(in) :: omask(kpie,kpje)
+  logical, intent(in) :: lspin
 
   ! Local variables
   integer :: i,j,k,l,iv
@@ -89,7 +94,7 @@ subroutine dipowa(kpie,kpje,kpke,omask)
   zcoeflo(ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
 !$OMP PARALLEL DO                            &
-!$OMP&PRIVATE(bolven,tredsy,sedb1,aprior,iv_oc)
+!$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
   j_loop: do j=1,kpje
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange
@@ -170,7 +175,6 @@ subroutine dipowa(kpie,kpje,kpke,omask)
      enddo
   enddo
 
-!  call maschk(kpie,kpje,kpke,23)
 ! sediment column
   do iv = 1,npowtra
      do k = 1,ks-1
@@ -183,8 +187,8 @@ subroutine dipowa(kpie,kpje,kpke,omask)
         enddo
      enddo
   enddo
-!  call maschk(kpie,kpje,kpke,24)
 
+  if(.not. lspin) THEN
 ! sediment ocean interface
 !
 ! CAUTION - the following assumes same indecees for ocetra and powtra
@@ -204,9 +208,9 @@ subroutine dipowa(kpie,kpje,kpke,omask)
                 &  ( sedb1(i,l,iv) - tredsy(i,l,3) * powtra(i,j,l+1,iv) )      &
                 &  / tredsy(i,l,2)
 
-           ! used in inventory_bgc/maschk (diagnostics)
+           ! diffusive fluxes (positive downward)
            sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
-                &  + ocetra(i,j,kbo(i,j),iv) - aprior
+                &  -(ocetra(i,j,kbo(i,j),iv) - aprior)* bolay(i,j)
 #ifdef natDIC
            if (iv==isco212) ocetra(i,j,kbo(i,j),inatsco212) =                  &
                 &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
@@ -218,8 +222,9 @@ subroutine dipowa(kpie,kpje,kpke,omask)
         endif
      enddo
   enddo
-!  call maschk(kpie,kpje,kpke,25)
 
+  endif ! .not. lspin
+  
   enddo j_loop
 
 end subroutine dipowa

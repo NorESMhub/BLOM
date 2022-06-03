@@ -1,6 +1,7 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
-!                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+!                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin,
+!                         Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -28,9 +29,10 @@ c
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
-      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid
       use mod_inicon, only: icfile
-      use mod_state, only: u, v, dp, temp, saln, sigma,
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     phi, ubflxs, vbflxs,
      .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
@@ -44,14 +46,15 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, ustarb, buoyfl
+     .                       flxco2, flxdms, flxbrf, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
-      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
+      use mod_difest, only: OBLdepth
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
-     .                    slp_da, abswnd_da, atmco2_da, ficem_da,
-     .                    l1ci, l2ci
+     .                    slp_da, abswnd_da, atmco2_da, atmbrf_da,
+     .                    ficem_da, l1ci, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
      .                     alb_tda, fice_tda, ntda, rnfres
@@ -398,7 +401,6 @@ c
       call ncread('phi',phi(1-nbdy,1-nbdy,kk+1),ip,1,0.)
       call ncread('sealv',sealv,ip,1,0.)
       call ncread('ustar',ustar,ip,1,0.)
-      call ncread('buoyfl',buoyfl,ip,1,0.)
       call ncread('kfpla',rkfpla,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)
 c
@@ -446,10 +448,15 @@ c
      .   'will be initialized to zero.'
       endif
 c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call ncread('buoyfl',buoyfl,ip,1,0.)
+      endif
+c
       if (vcoord_type_tag.eq.cntiso_hybrid) then
-        call ncread('Kvisc_m',Kvisc_m,ip,1,0.)
-        call ncread('Kdiff_t',Kdiff_t,ip,1,0.)
-        call ncread('Kdiff_s',Kdiff_s,ip,1,0.)
+        call ncread('dpu',dpu,iu,1,0.)
+        call ncread('dpv',dpv,iv,1,0.)
+        call ncread('difiso',difiso,ip,1,0.)
+        call ncread('OBLdepth',OBLdepth,ip,1,0.)
       endif
 c
       if (sprfac) then
@@ -554,6 +561,16 @@ c
         elseif (mnproc.eq.1) then
           write (lp,*)
      .     'Warning: DMS flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        vexist=ncinqv('flxbrf')
+!        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxbrf',flxbrf,ip,1,0.)
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: bromoform flux is not read from restart file and'
           write (lp,*)
      .     'will be initialized to zero.'
         endif

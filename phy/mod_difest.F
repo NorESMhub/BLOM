@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2021 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,9 +23,8 @@ c
       use mod_constants, only: g, alpha0, pi, epsil, spval, onem, onecm
       use mod_time, only: delt1
       use mod_xc
-      use mod_vcoord, only: sigmar
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
-     .                      cntiso_hybrid
+     .                      cntiso_hybrid, sigmar
       use mod_grid, only: scpx, scpy, scp2,
      .                    plat, coriop, betafp, cosang, sinang
       use mod_eos, only: rho
@@ -33,16 +32,20 @@ c
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp, edwmth,
-     .                         difint, difiso, difdia, difmxp, difwgt
-      use mod_cmnfld, only: nnslpx, nnslpy, mlts
-      use mod_forcing, only: ustar, ustarb, ustar3, buoyfl
+     .                         edsprs, edritp_opt, edritp_shear,
+     .                         edritp_large_scale, edwmth_opt,
+     .                         edwmth_smooth, edwmth_step,
+     .                         difint, difiso, difdia, difmxp, difwgt,
+     .                         Kvisc_m, Kdiff_t, Kdiff_s, 
+     .                         t_ns_nonloc, s_nonloc
+      use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
+      use mod_forcing, only: ustar, ustarb, ustar3, buoyfl, t_sw_nonloc
+     .                       , surflx, sswflx, salflx
       use mod_tidaldissip, only: twedon
       use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
       use mod_seaice, only: ficem
       use mod_utility, only: util1
       use mod_checksum, only: csdiag, chksummsk
-      use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s
       use CVMix_kpp, only : CVMix_coeffs_kpp
       use CVMix_kpp, only : CVMix_kpp_compute_turbulent_scales
       use CVMix_kpp, only : CVMix_kpp_compute_bulk_Richardson
@@ -60,7 +63,6 @@ c
       use CVMix_kpp,  only : CVMix_put_kpp
       use CVMix_kpp,  only : CVMix_init_kpp
       use CVMix_put_get,  only : CVMix_put
-      use mod_cmnfld, only: bfsqi
 #if defined(TRC) && defined(TKE)
       use mod_tracers, only: itrtke, itrgls, trc
       use mod_tke, only: gls_cmu0, Pr_t, tke_min, gls_psi_min, gls_p,
@@ -171,7 +173,8 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
      .           cs=98.96,minOBLdepth=1.0)
 c
-      public :: inivar_difest, init_difest, difest, OBLdepth
+      public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
+     .          difest_lateral_hybrid, difest_vertical_hybrid
 c
       contains
 c
@@ -251,6 +254,34 @@ c --- ------ convert nuls0 to m2/s
      .          lnonzero_surf_nonlocal=.false.  ,
      .          lnoDGat1=.true.                 ,
      .          CVMix_kpp_params_user=KPP_params )
+c         call CVMix_init_kpp(Ri_crit=0.3,
+c    .          minOBLdepth=minOBLdepth,
+c    .          minVtsqr=1e-10,
+c    .          vonKarman=0.4,
+c    .          surf_layer_ext=0.1,
+c    .          interp_type='quadratic',
+c    .          interp_type2='LMD94',
+c    .          lEkman=.false.,
+c    .          lMonOb=.false.,
+c    .          MatchTechnique='MatchGradient',
+c    .          lenhanced_diff=.true.,
+c    .          lnonzero_surf_nonlocal=.false.  ,
+c    .          lnoDGat1=.false.                 ,
+c    .          CVMix_kpp_params_user=KPP_params )
+c         call CVMix_init_kpp(Ri_crit=0.3,
+c    .          minOBLdepth=minOBLdepth,
+c    .          minVtsqr=1e-10,
+c    .          vonKarman=0.4,
+c    .          surf_layer_ext=0.1,
+c    .          interp_type='quadratic',
+c    .          interp_type2='LMD94',
+c    .          lEkman=.false.,
+c    .          lMonOb=.false.,
+c    .          MatchTechnique='ParabolicNonLocal',
+c    .          lenhanced_diff=.true.,
+c    .          lnonzero_surf_nonlocal=.true.  ,
+c    .          lnoDGat1=.true.                 ,
+c    .          CVMix_kpp_params_user=KPP_params )
 c
 c
       end subroutine init_difest
@@ -631,7 +662,7 @@ c
 c
       end subroutine difest_common_hyb
 c
-      subroutine difest(m,n,mm,nn,k1m,k1n)
+      subroutine difest_isobml(m,n,mm,nn,k1m,k1n)
 c
 c --- ------------------------------------------------------------------
 c --- estimate diffusivities for eddy-induced transport, layer-wise
@@ -684,51 +715,148 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 c
-      if (vcoord_type_tag == isopyc_bulkml) then
+c --- Estimate energy input by near-inertial waves.
+      call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
 c
-c --- - Estimate energy input by near-inertial waves.
-        call niw_ke_tendency(m,n,mm,nn,k1m,k1n)
+c --- Obtain common fields for the estimation of lateral and vertical
+c --- diffusivities diapycnal diffusivities.
+      call difest_common_iso(m,n,mm,nn,k1m,k1n)
 c
-c --- - Obtain common fields for the estimation of lateral and vertical
-c --- - diffusivities diapycnal diffusivities.
-        call difest_common_iso(m,n,mm,nn,k1m,k1n)
+c --- Estimate vertical diffusivity.
+      call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
 c
-c --- - Estimate vertical diffusivity.
-        call difest_vertical_iso(m,n,mm,nn,k1m,k1n)
-c
-c --- - Estimate diffusivities for eddy-induced transport and layer-wise
-c --- - diffusion.
-        call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
-c
-      elseif (vcoord_type_tag == cntiso_hybrid) then
-c
-c --- - Obtain common fields for the estimation of lateral and vertical
-c --- - diffusivities diapycnal diffusivities.
-        call difest_common_hyb(m,n,mm,nn,k1m,k1n)
-c
-c --- - Estimate vertical diffusivities..
-        call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
-c
-c --- - Estimate diffusivities for eddy-induced transport and layer-wise
-c --- - diffusion.
-        call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
-c
-      else
-        if (mnproc.eq.1) then
-          write (lp,*) 'difest: unsupported vertical coordinate!'
-        endif
-        call xcstop('(difest)')
-               stop '(difest)'
-      endif
+c --- Estimate diffusivities for eddy-induced transport and layer-wise
+c --- diffusion.
+      call difest_lateral_iso(m,n,mm,nn,k1m,k1n)
 c
       if (csdiag) then
         if (mnproc.eq.1) then
-          write (lp,*) 'difest:'
+          write (lp,*) 'difest_isobml:'
         endif
         call chksummsk(ustar3,ip,1,'ustar3')
       endif
 c
-      end subroutine difest
+      end subroutine difest_isobml
+c
+      subroutine difest_lateral_hybrid(m,n,mm,nn,k1m,k1n)
+c
+c --- ------------------------------------------------------------------
+c --- estimate diffusivities for eddy-induced transport, layer-wise
+c --- diffusion and vertical diffusion
+c --- ------------------------------------------------------------------
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+      integer i,j,k,l,kn
+c
+c --- ------------------------------------------------------------------
+c --- update halos of various fields
+c --- ------------------------------------------------------------------
+c
+      call xctilr(u, 1,2*kk, 2,2, halo_uv)
+      call xctilr(v, 1,2*kk, 2,2, halo_vv)
+      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
+      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
+      call xctilr(pbu, 1,2, 2,2, halo_us)
+      call xctilr(pbv, 1,2, 2,2, halo_vs)
+c
+c --- ------------------------------------------------------------------
+c --- Update layer interface pressure.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+      do j=-2,jj+3
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- ------------------------------------------------------------------
+c --- Estimate friction velocity cubed.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          ustar3(i,j)=ustar(i,j)**3
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- Obtain common fields for the estimation of lateral and vertical
+c --- diffusivities diapycnal diffusivities.
+      call difest_common_hyb(m,n,mm,nn,k1m,k1n)
+c
+c --- Estimate diffusivities for eddy-induced transport and layer-wise
+c --- diffusion.
+      call difest_lateral_hyb(m,n,mm,nn,k1m,k1n)
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest_lateral_hybrid:'
+        endif
+        call chksummsk(ustar3,ip,1,'ustar3')
+      endif
+c
+      end subroutine difest_lateral_hybrid
+c
+      subroutine difest_vertical_hybrid(m,n,mm,nn,k1m,k1n)
+c
+c --- ------------------------------------------------------------------
+c --- estimate diffusivities for eddy-induced transport, layer-wise
+c --- diffusion and vertical diffusion
+c --- ------------------------------------------------------------------
+c
+      integer m,n,mm,nn,k1m,k1n
+c
+      integer i,j,k,l,kn
+c
+c --- ------------------------------------------------------------------
+c --- update halos of various fields
+c --- ------------------------------------------------------------------
+c
+      call xctilr(u(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
+      call xctilr(v(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
+c
+c --- ------------------------------------------------------------------
+c --- Update layer interface pressure.
+c --- ------------------------------------------------------------------
+c
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+      do j=-2,jj+3
+        do k=1,kk
+          kn=k+nn
+          do l=1,isp(j)
+          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
+            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+          enddo
+          enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
+c
+c --- Obtain common fields for the estimation of lateral and vertical
+c --- diffusivities diapycnal diffusivities.
+      call difest_common_hyb(m,n,mm,nn,k1m,k1n)
+c
+c --- Estimate vertical diffusivities..
+      call difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
+c
+      if (csdiag) then
+        if (mnproc.eq.1) then
+          write (lp,*) 'difest_vertical_hybrid:'
+        endif
+      endif
+c
+      end subroutine difest_vertical_hybrid
 c
       subroutine difest_vertical_hyb(m,n,mm,nn,k1m,k1n)
 c
@@ -762,7 +890,7 @@ c
       real, dimension(kdm) :: deltaU2          ! square of delta U (shear) in denominator of Bulk Ri [m2 s-2]
       real, dimension(kdm) :: VT2              ! unresolved shear used for  Bulk Ri
       real, dimension(kdm) :: deltaRho         ! delta Rho [g/cm3] in numerator of Bulk Ri number
-      real, dimension(kdm,2) :: nonLocalTrans  ! Non-local transport for heat/salt at interfaces [nondim]
+      real, dimension(kdm+1,2) :: nonLocalTrans  ! Non-local transport for heat/salt at interfaces [nondim]
       real :: surf_layer_ext, surfFricVel
       real :: surfBuoyFlux
       real :: delH, bvfbot, dps
@@ -828,8 +956,7 @@ c             Ws_1d = 0.0
              ! convert cm/s to m/s
              surfFricVel = ustar(i,j) * 1e-2
              ! convert cm2/s3 to m2/s3
-             surfBuoyFlux = buoyfl(i,j) * 1e-4
-             surfBuoyFlux2(1) = buoyfl(i,j) * 1e-4
+             surfBuoyFlux = - buoyfl(i,j,1) * 1e-4
              do k=1,kk
                 kn = k + nn
                 kn1 = max(nn+1,kn-1)
@@ -883,7 +1010,7 @@ c     .                                  iFaceHeight(k))
                 surfSalt = surfHsalt / hTot
                 surfU    = surfHu / hTot
                 surfV    = surfHv / hTot
-                surfRho  = rho(0.0,surfTemp,surfSalt)
+                surfRho  = rho(p(i,j,k),surfTemp,surfSalt)
                 if (p(i,j,kk+1)-p(i,j,k) < epsil) then
                     deltaRho(k) = deltaRho(k-1)
                 else
@@ -910,6 +1037,9 @@ c --- ------- bottom
 
 c --- ------- Local gradient Richardson number
                 rig_i(k)=rig(i,j,k)
+
+                surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) 
+     .                             - buoyfl(i,j,1  )) * 1e-4
 c
              enddo  ! k
              if(dps.gt.0.) bvfbot=bvfbot/dps
@@ -1003,7 +1133,8 @@ c --- ------ centers.
      .              delta_Vsqr_cntr=deltaU2,                 ! Square of resolved velocity difference [m2 s-2]
      .              Vt_sqr_cntr=VT2(:),                      ! Unresolved shear [m2 s-2]
      .              ws_cntr=Ws_1d,                           ! Turbulent velocity scale profile [m s-1]
-     .              N_iface=bvf_i)                           ! Buoyancy frequency at the interface [s-1]
+     .              N_iface=bvf_i,                           ! Buoyancy frequency at the interface [s-1]
+     .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
 
              ! Compute OBL depth for KPP
              call CVMix_kpp_compute_OBL_depth(
@@ -1051,6 +1182,10 @@ c --- ------ make sure it is in metrics if stability depends on rho
              Kt_kpp(:) = Kd_col(:)+Kd_conv(:)+Kd_shr(:)+Kd_tidal(:)
              Ks_kpp(:) = Kd_col(:)+Kd_conv(:)+Kd_shr(:)+Kd_tidal(:)
 
+             ! Buoyancy flux acting on the OBL
+             surfBuoyFlux = ( buoyfl(i,j,kOBL+1)
+     .                      - buoyfl(i,j,1  )) * 1e-4
+
              ! Compute KPP using CVMix
              call CVMix_coeffs_kpp(Kv_kpp(:),          ! (inout) Total viscosity [m2 s-1]
      .              Kt_kpp(:),                         ! (inout) Total temp diffusivity [m2 s-1]
@@ -1085,6 +1220,13 @@ c ---- ccc -------
              Kvisc_m(i,j,:) = Kv_kpp(:)
              Kdiff_t(i,j,:) = Kt_kpp(:)
              Kdiff_s(i,j,:) = Ks_kpp(:)
+             t_ns_nonloc(i,j,:) = nonLocalTrans(:,1)
+             s_nonloc(i,j,:) = nonLocalTrans(:,2)
+             do k = 1, kk+1
+                t_sw_nonloc(i,j,k) = max(t_sw_nonloc(i,j,k),
+     .                                   nonLocalTrans(k,1))
+             enddo
+
         enddo
         enddo
 c end of single column
@@ -1197,7 +1339,7 @@ c ----- the WKB approximation by Chelton at al. (1998).
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
 c --- - Rossby radius is resolved by the grid.
-        if     (edwmth.eq.'smooth') then
+        if     (edwmth_opt.eq.edwmth_smooth) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1205,7 +1347,7 @@ c --- - Rossby radius is resolved by the grid.
             difwgt(i,j)=1./(1.+.25*q**4)
           enddo
           enddo
-        elseif (edwmth.eq.'step') then
+        elseif (edwmth_opt.eq.edwmth_step) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1217,13 +1359,6 @@ c --- - Rossby radius is resolved by the grid.
             endif
           enddo
           enddo
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' edwmth=',trim(edwmth),
-     .                        ' is unsupported!'
-          endif
-          call xcstop('(difest_lateral_hyb)')
-                 stop '(difest_lateral_hyb)'
         endif
 c
 c --- ------------------------------------------------------------------
@@ -1264,7 +1399,7 @@ c --- --- Eady growth rate.
             enddo
             enddo
           endif
-          if     (edritp.eq.'shear') then
+          if     (edritp_opt.eq.edritp_shear) then
             do k=2,kk
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1282,7 +1417,7 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          elseif (edritp.eq.'large scale') then
+          elseif (edritp_opt.eq.edritp_large_scale) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (kmax(i,j)-kfil(i,j).ge.1) then
@@ -1344,13 +1479,6 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          else
-            if (mnproc.eq.1) then
-              write (lp,'(3a)') ' edritp=',trim(edritp),
-     .                          ' is unsupported!'
-            endif
-            call xcstop('(difest)')
-                   stop '(difest)'
           endif
           if (edsprs) then
             do l=1,isp(j)
@@ -1608,7 +1736,7 @@ c ----- !!! Could include top layer in computation !!!
 c
 c --- - Compute diffusivity weigth to reduce eddy diffusivity when the
 c --- - Rossby radius is resolved by the grid.
-        if     (edwmth.eq.'smooth') then
+        if     (edwmth_opt.eq.edwmth_smooth) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1616,7 +1744,7 @@ c --- - Rossby radius is resolved by the grid.
             difwgt(i,j)=1./(1.+.25*q**4)
           enddo
           enddo
-        elseif (edwmth.eq.'step') then
+        elseif (edwmth_opt.eq.edwmth_step) then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
@@ -1628,13 +1756,6 @@ c --- - Rossby radius is resolved by the grid.
             endif
           enddo
           enddo
-        else
-          if (mnproc.eq.1) then
-            write (lp,'(3a)') ' edwmth=',trim(edwmth),
-     .                        ' is unsupported!'
-          endif
-          call xcstop('(difest)')
-                 stop '(difest)'
         endif
 c
 c --- ------------------------------------------------------------------
@@ -1675,7 +1796,7 @@ c --- --- Eady growth rate.
             enddo
             enddo
           endif
-          if     (edritp.eq.'shear') then
+          if     (edritp_opt.eq.edritp_shear) then
             do k=2,kk
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1692,7 +1813,7 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          elseif (edritp.eq.'large scale') then
+          elseif (edritp_opt.eq.edritp_large_scale) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (kmax(i,j)-kfil(i,j).ge.1) then
@@ -1754,13 +1875,6 @@ c --- --- Eady growth rate.
               enddo
               enddo
             enddo
-          else
-            if (mnproc.eq.1) then
-              write (lp,'(3a)') ' edritp=',trim(edritp),
-     .                          ' is unsupported!'
-            endif
-            call xcstop('(difest)')
-                   stop '(difest)'
           endif
           if (edsprs) then
             do l=1,isp(j)
@@ -2388,8 +2502,8 @@ c --- --- Lower bounded friction velocity
           ust=max(ustmin,ustar(i,j))
 c
 c --- --- Monin-Obukhov length scale
-          mols=ust**3
-     .         /(kappa*sign(max(abs(buoyfl(i,j)),bfeps),-buoyfl(i,j)))
+          mols=ust**3/(kappa*sign(max(abs(buoyfl(i,j,1)),bfeps),
+     .                           -buoyfl(i,j,1)))
 c
 c --- --- Mixed layer thickness
           h=(p(i,j,3)-p(i,j,1))/onecm

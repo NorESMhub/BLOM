@@ -19,9 +19,9 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,                                  &
+                            dust,rivin,ndep,pi_ph,                            &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-                            patmco2,pflxco2,pflxdms)
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -76,23 +76,29 @@
 !                           fully coupled mode (prognostic/diagnostic CO2).
 !  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
 !  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
+!  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
 !
 !******************************************************************************
-      use mod_xc
-      USE mo_carbch
-      USE mo_sedmnt
-      USE mo_biomod
-      USE mo_bgcmean
-      USE mo_control_bgc
-      use mo_param1_bgc
-      use mo_vgrid,     only: set_vgrid
-      use mo_riverinpt, only: riverinpt,nriv
-      use mo_ndep,      only: n_deposition
+      use mod_xc,         only: mnproc
+      use mo_carbch,      only: atmflx,ocetra,atm
+      use mo_biomod,      only: strahl
+      use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra
+      use mo_vgrid,       only: set_vgrid
+      use mo_riverinpt,   only: riverinpt,nriv
+      use mo_ndep,        only: n_deposition
 #if defined(BOXATM)
-      use mo_boxatm
+      use mo_boxatm,      only: update_boxatm
 #endif
-
-
+#ifdef BROMO
+      use mo_param1_bgc,  only: iatmbromo
+#endif
+#ifdef CFC
+      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
+#endif
       implicit none
 
       INTEGER, intent(in)  :: kpie,kpje,kpke,kbnd
@@ -103,9 +109,10 @@
       REAL,    intent(in)  :: prho   (kpie,kpje,kpke)
       REAL,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: omask  (kpie,kpje)
-      REAL,    intent(in)  :: dust   (kpie,kpje,nriv)
+      REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -115,8 +122,12 @@
       REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
+      INTEGER :: nspin,it
+      LOGICAL :: lspin
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -124,13 +135,13 @@
 
 
 !--------------------------------------------------------------------
-! Increment bgc time step counter of run (initialized in INI_BGC).
+! Increment bgc time step counter of run (initialized in HAMOCC_INIT).
 !
       ldtrunbgc = ldtrunbgc + 1
 
 
 !--------------------------------------------------------------------
-! Increment bgc time step counter of experiment (initialized if IAUFR=0).
+! Increment bgc time step counter of experiment.
 !
       ldtbgc = ldtbgc + 1
 
@@ -142,9 +153,9 @@
 
 
 !--------------------------------------------------------------------
-! Pass net solar radiation 
+! Pass net solar radiation
 !
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         strahl(i,j)=pfswr(i,j)
@@ -157,7 +168,7 @@
 ! Pass atmospheric co2 if coupled to an active atmosphere model
 !
 #if defined(PROGCO2) || defined(DIAGCO2)
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         atm(i,j,iatmco2)=patmco2(i,j)
@@ -167,6 +178,18 @@
       !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
 #endif
 
+#ifdef BROMO
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+        IF (patmbromo(i,j).gt.0.) THEN
+         atm(i,j,iatmbromo)=patmbromo(i,j)
+        ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
+#endif
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -175,8 +198,6 @@
       call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
                            atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
 #endif
-
-
 
 #ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN
@@ -190,7 +211,8 @@
 !---------------------------------------------------------------------
 ! Biogeochemistry
 !
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho,&
+           &      pi_ph)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -203,7 +225,7 @@
  
       do l=1,nocetra
       do K=1,kpke
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       do J=1,kpje
       do I=1,kpie
         if (OMASK(I,J) .gt. 0.5 ) then
@@ -250,8 +272,24 @@
       ! Apply n-deposition
       CALL n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after N deposition: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
+
       ! Apply riverine input of carbon and nutrients
       call riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
+
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after river input: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
 
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
@@ -276,8 +314,30 @@
 #ifndef sedbypass
 ! jump over sediment if sedbypass is defined
 
-      CALL POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao)
+      if(do_sedspinup .and. kplyear>=sedspin_yr_s                              &
+                      .and. kplyear<=sedspin_yr_e) then
+        nspin = sedspin_ncyc
+        if(mnproc == 1) then
+          write(io_stdo_bgc,*)
+          write(io_stdo_bgc,*) 'iHAMOCC: sediment spinup activated with ',     &
+                                nspin, ' subcycles' 
+        endif
+      else
+        nspin = 1
+      endif
+      
+      ! Loop for sediment spinup. If deactivated then nspin=1 and lspin=.false.
+      do it=1,nspin
 
+        if( it<nspin ) then
+          lspin=.true.
+        else
+          lspin=.false.      
+        endif
+
+        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+
+      enddo
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -308,11 +368,10 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
-
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
@@ -324,7 +383,7 @@
 !--------------------------------------------------------------------
 ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
@@ -332,6 +391,20 @@
       ENDDO
 !$OMP END PARALLEL DO
 
+!--------------------------------------------------------------------
+! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
+! Negative values to the atmosphere
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+#ifdef BROMO
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+#else
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+#endif
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
 !--------------------------------------------------------------------
       RETURN
       END

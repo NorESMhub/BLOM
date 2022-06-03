@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021 Mats Bentsen
+! Copyright (C) 2021-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,88 +24,75 @@ subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
 
    use mod_types, only: r8
    use mod_constants, only: g, spcifh, alpha0, onem, onemu
-   use mod_time, only: delt1
    use mod_xc
-   use mod_eos, only: sig, dsigdt0, dsigds0
-   use mod_state, only: dp, temp, saln, sigma
+   use mod_eos, only: dsigdt0, dsigds0
+   use mod_state, only: dp, temp, saln
    use mod_swabs, only: swbgal, swbgfc, swamxd
-   use mod_forcing, only: surflx, surrlx, sswflx, salflx, salrlx, buoyfl
+   use mod_forcing, only: surflx, sswflx, salflx, buoyfl, t_sw_nonloc
    use mod_checksum, only: csdiag, chksummsk
-#ifdef TRC
-   use mod_tracers, only: ntr, trc, trflx
-#endif
 
    implicit none
 
    integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-   real(r8) :: pradd, lei, pres, pswbas, pswup, pswlo, q
-   integer :: i, j, k, l, kfmax, kn
-#ifdef TRC
-   integer :: nt
-#endif
+   real(r8) :: pres(kk+1)
+   real(r8) :: cpi, pswamx, gaa, dsgdt, dsgds, lei, pswamxi, pswbot
+   integer :: i, j, k, l, kswamx, kn
 
-   ! Maximum pressure of shortwave radiation penetration.
-   pradd = swamxd*onem
+   ! Set some constants:
+   cpi = 1._r8/spcifh      ! Multiplicative inverse of specific heat capacity.
+   pswamx = swamxd*onem    ! Maximum pressure of shortwave absorption.
+   gaa = g*alpha0*alpha0
 
-!$omp parallel do private(l, i, lei, pres, pswbas, pswup, kfmax, k, kn, pswlo, &
-!$omp                     q  &
-#ifdef TRC
-!$omp                   , nt &
-#endif
-!$omp )
+!$omp parallel do private(l, i, dsgdt, dsgds, lei, pres, kswamx, k, kn, &
+!$omp                     pswamxi, pswbot)
    do j = 1, jj
       do l = 1, isp(j)
-      do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+      do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
 
-         ! Compute total buoyancy flux [cm2 s-3]
-         buoyfl(i,j) = &
-           - ( dsigdt0(temp(i, j, k1n),saln(i, j, k1n))*surflx(i,j)/spcifh &
-             + dsigds0(temp(i, j, k1n),saln(i, j, k1n))*salflx(i,j)) &
-             *g*alpha0*alpha0
+         ! Derivatives of potential density referenced at the surface.
+         dsgdt = dsigdt0(temp(i,j,k1n), saln(i,j,k1n))
+         dsgds = dsigds0(temp(i,j,k1n), saln(i,j,k1n))
 
-         ! Modify temperature below top layer due to penetrating short-wave
-         ! flux.
-         lei = 1._r8/(onem*swbgal(i, j))
-         pres = dp(i, j, k1n)
-         pswbas = swbgfc(i, j)*exp( - lei*pres)
-         pswup = pswbas
-         kfmax = 1
-         k = 2
-         do while (k <= kk)
+         ! Compute surface buoyancy flux [cm2 s-3].
+         buoyfl(i,j,1) = - (dsgdt*surflx(i,j)*cpi + dsgds*salflx(i,j))*gaa
+
+         ! Compute shortwave penetration factors at layer interfaces.
+         lei = 1._r8/(onem*swbgal(i,j))
+         pres(1) = 0._r8
+         kswamx = 1
+         t_sw_nonloc(i,j,1) = 1._r8
+         do k = 1, kk
             kn = k + nn
-            pres = pres + dp(i, j, kn)
-            if (dp(i, j, kn) > onemu) then
-               pswlo = swbgfc(i,j)*exp( - lei*min(pradd, pres))
-               temp(i, j, kn) = temp(i, j, kn) &
-                              - (pswup - pswlo)*sswflx(i, j)*delt1*g &
-                                /(spcifh*dp(i, j, kn))
-               pswup = pswlo
-               kfmax = k
+            pres(k+1) = pres(k) + dp(i,j,kn)
+            if (dp(i,j,kn) > onemu) then
+               t_sw_nonloc(i,j,k+1) = &
+                  swbgfc(i,j)*exp( - lei*min(pswamx, pres(k+1)))
+               kswamx = k
+            else
+               t_sw_nonloc(i,j,k+1) = t_sw_nonloc(i,j,k)
             endif
-            k = k + 1
-            if (pres > pradd) exit
+            if (pres(k+1) > pswamx) exit
          enddo
 
-         ! Modify temperature and salinity in top layer due to surface heat and
-         ! salt fluxes.
-         q = delt1*g/dp(i, j, k1n)
-         temp(i, j, k1n) = temp(i, j, k1n) &
-                         - ( surflx(i, j ) - (pswbas - pswup)*sswflx(i, j) &
-                           + surrlx(i, j))*q/spcifh
-         saln(i, j, k1n) = saln(i, j, k1n) - (salflx(i,j) + salrlx(i,j))*q
-
-#ifdef TRC
-         ! Modify tracer content in top layer due to surface fluxes.
-         do nt = 1, ntr
-            trc(i, j, k1n, nt) = trc(i, j, k1n, nt) - trflx(nt, i, j)*q
+         ! Compute buoyancy flux at subsurface layer interfaces. Penetration
+         ! factors are modified so that shortwave radiation destined to
+         ! penetrate below the lowest model layer is evenly absorbed in the
+         ! water column.
+         pswamxi = 1._r8/min(pswamx, pres(kswamx+1))
+         pswbot = t_sw_nonloc(i,j,kswamx+1)
+         do k = kswamx+1, kk+1
+            t_sw_nonloc(i,j,k) = 0._r8
+            buoyfl(i,j,k) = 0._r8
          enddo
-#endif
-
-         ! Update potential density in modified layers.
-         do k = 1, kfmax
+         do k = kswamx, 2, -1
             kn = k + nn
-            sigma(i, j, kn) = sig(temp(i, j, kn), saln(i, j, kn))
+            if (dp(i,j,kn) > onemu) then
+               t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k) - pswbot*pres(k)*pswamxi
+            else
+               t_sw_nonloc(i,j,k) = t_sw_nonloc(i,j,k+1)
+            endif
+            buoyfl(i,j,k) = - dsgdt*t_sw_nonloc(i,j,k)*sswflx(i,j)*cpi*gaa
          enddo
 
       enddo
@@ -115,17 +102,10 @@ subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
 
    if (csdiag) then
       if (mnproc == 1) then
-         write (lp,*) 'mxlayr:'
+         write (lp,*) 'cntiso_hybrid_forcing:'
       endif
-      call chksummsk(dp, ip, 2*kk, 'dp')
-      call chksummsk(temp, ip, 2*kk, 'temp')
-      call chksummsk(saln, ip, 2*kk, 'saln')
-      call chksummsk(sigma, ip, 2*kk, 'sigma')
-#ifdef TRC
-      do nt=1,ntr
-         call chksummsk(trc(1-nbdy,1-nbdy,1,nt),ip,2*kk,'trc')
-      enddo
-#endif
+      call chksummsk(buoyfl, ip, kk+1, 'buoyfl')
+      call chksummsk(t_sw_nonloc, ip, kk+1, 't_sw_nonloc')
    endif
 
 end subroutine cntiso_hybrid_forcing

@@ -46,9 +46,7 @@ c
      .                       trxday, srxday, trxdpt, srxdpt, trxlim,
      .                       srxlim, srxbal, sprfac
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
-      use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
-     .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, eitmth, edritp, edwmth
+      use mod_diffusion, only: readnml_diffusion
       use mod_mxlayr, only: rm0, rm5, ce, mlrttp
       use mod_niw, only: niwgf, niwbf, niwlf
       use mod_tidaldissip, only: tdfile
@@ -72,9 +70,9 @@ c
      .  grfile,icfile,pref,baclin,batrop,
      .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,
-     .  mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp,
-     .  edsprs,egc,eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,
-     .  rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tdfile,tkepf,niwgf,niwbf,niwlf,
+     .  mommth,bmcmth,rmpmth,mlrttp,
+     .  
+     .  rm0,rm5,ce,tdfile,niwgf,niwbf,niwlf,
      .  swamth,jwtype,chlopt,ccfile,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
      .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,smtfrc,sprfac,
@@ -135,27 +133,12 @@ c --- - print limits namelist to stdout
         write (lp,*) 'CWBDTS',CWBDTS
         write (lp,*) 'CWBDLS',CWBDLS
         write (lp,*) 'MOMMTH ',trim(MOMMTH)
-        write (lp,*) 'EITMTH ',trim(EITMTH)
-        write (lp,*) 'EDRITP ',trim(EDRITP)
         write (lp,*) 'BMCMTH ',trim(BMCMTH)
         write (lp,*) 'RMPMTH ',trim(RMPMTH)
-        write (lp,*) 'EDWMTH ',trim(EDWMTH)
-        write (lp,*) 'EDSPRS ',EDSPRS
-        write (lp,*) 'EGC',EGC
-        write (lp,*) 'EGGAM',EGGAM
-        write (lp,*) 'EGLSMN',EGLSMN
-        write (lp,*) 'EGMNDF',EGMNDF
-        write (lp,*) 'EGMXDF',EGMXDF
-        write (lp,*) 'EGIDFQ',EGIDFQ
-        write (lp,*) 'RI0',RI0
         write (lp,*) 'RM0',RM0
         write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
-        write (lp,*) 'BDMTYP',BDMTYP
-        write (lp,*) 'BDMC1',BDMC1
-        write (lp,*) 'BDMC2',BDMC2
         write (lp,*) 'TDFILE',trim(TDFILE)
-        write (lp,*) 'TKEPF',TKEPF
         write (lp,*) 'NIWGF',NIWGF
         write (lp,*) 'NIWBF',NIWBF
         write (lp,*) 'NIWLF',NIWLF
@@ -217,28 +200,13 @@ c
       call xcbcst(cwbdts)
       call xcbcst(cwbdls)
       call xcbcst(mommth)
-      call xcbcst(eitmth)
-      call xcbcst(edritp)
       call xcbcst(bmcmth)
       call xcbcst(rmpmth)
-      call xcbcst(edwmth)
       call xcbcst(mlrttp)
-      call xcbcst(edsprs)
-      call xcbcst(egc)
-      call xcbcst(eggam)
-      call xcbcst(eglsmn)
-      call xcbcst(egmndf)
-      call xcbcst(egmxdf)
-      call xcbcst(egidfq)
-      call xcbcst(ri0)
       call xcbcst(rm0)
       call xcbcst(rm5)
       call xcbcst(ce)
-      call xcbcst(bdmtyp)
-      call xcbcst(bdmc1)
-      call xcbcst(bdmc2)
       call xcbcst(tdfile)
-      call xcbcst(tkepf)
       call xcbcst(niwgf)
       call xcbcst(niwbf)
       call xcbcst(niwlf)
@@ -270,6 +238,9 @@ c
 c
 c --- read vertical coordinate namelist variables
       call readnml_vcoord
+c
+c --- read diffusion namelist variables
+      call readnml_diffusion
 c
 c --- read diaphy namelist
 c

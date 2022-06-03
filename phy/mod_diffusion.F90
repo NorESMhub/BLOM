@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -23,6 +23,7 @@ module mod_diffusion
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
+   use mod_config, only: inst_suffix
    use mod_constants, only: spval, epsil
    use mod_xc
 
@@ -65,9 +66,35 @@ module mod_diffusion
                 ! methods: 'intdif', 'gm'.
       edritp, & ! Type of Richardson number used in eddy diffusivity
                 ! computation. Valid types: 'shear', 'large scale'.
-      edwmth    ! Method to estimate eddy diffusivity weight as a function of
+      edwmth, & ! Method to estimate eddy diffusivity weight as a function of
                 ! the ration of Rossby radius of deformation to the horizontal
                 ! grid spacing. Valid methods: 'smooth', 'step'.
+      ltedtp    ! Type of lateral tracer eddy diffusion: Valid methods: 'layer',
+                ! 'neutral'.
+
+   ! Options derived from string options.
+   integer :: &
+      eitmth_opt, &
+      edritp_opt, &
+      edwmth_opt, &
+      ltedtp_opt
+
+   ! Parameters:
+   integer, parameter :: &
+      ! Eddy-induced transport parameterization methods:
+      eitmth_intdif      = 1, & ! Interface diffusion.
+      eitmth_gm          = 2, & ! Gent-McWilliams.
+      ! Type of Richardson number used in eddy diffusivity computation:
+      edritp_shear       = 1, & ! Using local vertical velocity shear.
+      edritp_large_scale = 2, & ! Using large scale variables.
+      ! Method to estimate eddy diffusivity weight:
+      edwmth_smooth      = 1, & ! Smooth function of Rossby radius over grid
+                                ! spacing.
+      edwmth_step        = 2, & ! Step function of Rossby radius over grid
+                                ! spacing.
+      ! Lateral tracer eddy diffusion type:
+      ltedtp_layer       = 1, & ! Diffusion along model layers.
+      ltedtp_neutral     = 2    ! Diffusion along neutral sublayers.
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm) :: &
       difint, & ! Layer interface diffusivity [cm2 s-1].
@@ -75,15 +102,18 @@ module mod_diffusion
       difdia    ! Diapycnal diffusivity [cm2 s-1].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kdm+1) :: &
-      Kvisc_m, & ! momentum eddy viscosity [cm2 s-1].
-      Kdiff_t, & ! temperature eddy diffusivity [cm2 s-1].
-      Kdiff_s    ! salinity eddy  diffusivity [cm2 s-1].
+      Kvisc_m, &      ! momentum eddy viscosity [cm2 s-1].
+      Kdiff_t, &      ! temperature eddy diffusivity [cm2 s-1].
+      Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
+      t_ns_nonloc, &  ! Non-local transport term that is the fraction of
+                      ! non-shortwave flux passing a layer interface [].
+      s_nonloc        ! Non-local transport term that is the fraction of
+                      ! material tracer flux passing a layer interface [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
       difmxq, & ! Maximum lateral diffusivity at q-points [cm2 s-1].
       difwgt    ! Eddy diffusivity weight [].
-
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, 2*kdm) :: &
       umfltd, & ! u-component of horizontal mass flux due to thickness diffusion
@@ -108,13 +138,150 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, eitmth, edritp, edwmth, &
+             tkepf, bdmtyp, edsprs, eitmth_opt, eitmth_intdif, eitmth_gm, &
+             edritp_opt, edritp_shear, edritp_large_scale, &
+             edwmth_opt, edwmth_smooth, edwmth_step, &
+             ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
              usfltd, vsfltd, usflld, vsflld, &
-             inivar_diffusion, Kvisc_m, Kdiff_t, Kdiff_s
+             Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nonloc, &
+             readnml_diffusion, inivar_diffusion
 
 contains
+
+   subroutine readnml_diffusion
+   ! ---------------------------------------------------------------------------
+   ! Read variables in the namelist group 'diffusion' and resolve options.
+   ! ---------------------------------------------------------------------------
+
+      character(len = 80) :: nml_fname
+      integer :: ios
+      logical :: fexist
+
+      namelist /diffusion/ &
+         egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, tkepf, &
+         bdmtyp, edsprs, eitmth, edritp, edwmth, ltedtp
+
+      ! Read variables in the namelist group 'diffusion'.
+      if (mnproc == 1) then
+         nml_fname = 'ocn_in'//trim(inst_suffix)
+         inquire(file = nml_fname, exist = fexist)
+         if (fexist) then
+            open (unit = nfu, file = nml_fname, status = 'old', action = 'read')
+         else
+            nml_fname = 'limits'//trim(inst_suffix)
+            inquire(file = nml_fname, exist = fexist)
+            if (fexist) then
+               open (unit = nfu, file = nml_fname, status = 'old', &
+                     action = 'read')
+            else
+               write (lp,*) 'readnml_diffusion: could not find namelist file!'
+               call xchalt('(readnml_diffusion)')
+                      stop '(readnml_diffusion)'
+            endif
+         endif
+         read (unit = nfu, nml = diffusion, iostat = ios)
+         close (unit = nfu)
+      endif
+      call xcbcst(ios)
+      if (ios /= 0) then
+         if (mnproc == 1) &
+            write (lp,*) 'readnml_diffusion: No diffusion variable '//  &
+                         'group found in namelist. Using defaults.'
+      else
+        call xcbcst(egc)
+        call xcbcst(eggam)
+        call xcbcst(eglsmn)
+        call xcbcst(egmndf)
+        call xcbcst(egmxdf)
+        call xcbcst(egidfq)
+        call xcbcst(ri0)
+        call xcbcst(bdmc1)
+        call xcbcst(bdmc2)
+        call xcbcst(tkepf)
+        call xcbcst(bdmtyp)
+        call xcbcst(edsprs)
+        call xcbcst(eitmth)
+        call xcbcst(edritp)
+        call xcbcst(edwmth)
+        call xcbcst(ltedtp)
+      endif
+      if (mnproc == 1) then
+         write (lp,*) 'readnml_diffusion: diffusion variables:'
+         write (lp,*) '  egc    = ', egc
+         write (lp,*) '  eggam  = ', eggam
+         write (lp,*) '  eglsmn = ', eglsmn
+         write (lp,*) '  egmndf = ', egmndf
+         write (lp,*) '  egmxdf = ', egmxdf
+         write (lp,*) '  egidfq = ', egidfq
+         write (lp,*) '  ri0    = ', ri0
+         write (lp,*) '  bdmc1  = ', bdmc1
+         write (lp,*) '  bdmc2  = ', bdmc2
+         write (lp,*) '  tkepf  = ', tkepf
+         write (lp,*) '  bdmtyp = ', bdmtyp
+         write (lp,*) '  edsprs = ', edsprs
+         write (lp,*) '  eitmth = ', trim(eitmth)
+         write (lp,*) '  edritp = ', trim(edritp)
+         write (lp,*) '  edwmth = ', trim(edwmth)
+         write (lp,*) '  ltedtp = ', trim(ltedtp)
+      endif
+
+      ! Resolve options.
+      select case (trim(eitmth))
+         case ('intdif')
+            eitmth_opt = eitmth_intdif
+         case ('gm')
+            eitmth_opt = eitmth_gm
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: eitmth = ', trim(eitmth), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
+      select case (trim(edritp))
+         case ('shear')
+            edritp_opt = edritp_shear
+         case ('large scale')
+            edritp_opt = edritp_large_scale
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: edritp = ', trim(edritp), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
+      select case (trim(edwmth))
+         case ('smooth')
+            edwmth_opt = edwmth_smooth
+         case ('step')
+            edwmth_opt = edwmth_step
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: edwmth = ', trim(edwmth), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
+      select case (trim(ltedtp))
+         case ('layer')
+            ltedtp_opt = ltedtp_layer
+         case ('neutral')
+            ltedtp_opt = ltedtp_neutral
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: ltedtp = ', trim(ltedtp), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
+
+   end subroutine readnml_diffusion
 
    subroutine inivar_diffusion
    ! ---------------------------------------------------------------------------
@@ -161,8 +328,22 @@ contains
       enddo
    !$omp end parallel do
 
-   ! Initialize diffusive fluxes at points located upstream and downstream (in
-   ! i-direction) of p-points.
+      ! Initialize isopycnal diffusivity.
+   !$omp parallel do private(k, l, i)
+      do j = 1, jj
+         do k = 1, kk
+            do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+               difiso(i, j, k) = 0._r8
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+      call xctilr(difiso, 1, kk, nbdy, nbdy, halo_ps)
+
+      ! Initialize diffusive fluxes at points located upstream and downstream
+      ! (in i-direction) of p-points.
    !$omp parallel do private(k, l, i)
       do j = 1, jj
          do k = 1, 2*kk
@@ -182,8 +363,8 @@ contains
       call xctilr(utflld, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(usflld, 1, 2*kk, nbdy, nbdy, halo_us)
 
-   ! Initialize diffusive fluxes at points located upstream and downstream (in
-   ! j-direction) of p-points.
+      ! Initialize diffusive fluxes at points located upstream and downstream
+      ! (in j-direction) of p-points.
    !$omp parallel do private(k, l, j)
       do i = 1, ii
          do k = 1, 2*kk

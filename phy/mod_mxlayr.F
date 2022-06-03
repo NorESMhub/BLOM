@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2021 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -333,7 +333,7 @@ c --- --- bfltot > 0
           beta=alpha0*dsigds0(tmxl,smxl)
           bfltot=g*alpha0*(alfa*surflx(i,j)/spcifh
      .                    -beta*(salflx(i,j)-brnflx(i,j)))
-          buoyfl(i,j)=bfltot
+          buoyfl(i,j,1)=bfltot
           bflpsw=g*alpha0*alfa*swbgfc(i,j)*sswflx(i,j)/spcifh
 c
           pmxl=pres(3)
