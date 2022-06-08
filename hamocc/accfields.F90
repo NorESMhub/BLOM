@@ -163,6 +163,7 @@
         bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
         bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0
         bgct2d(i,j,jsilpro)  = bgct2d(i,j,jsilpro)  + bsiflx_bot(i,j)/2.0
+#ifndef sedbypass
         ! Diffusive fluxes between water-column and sediment
         bgct2d(i,j,jpodiic)  = bgct2d(i,j,jpodiic)  + sedfluxo(i,j,ipowaic)/2.0
         bgct2d(i,j,jpodial)  = bgct2d(i,j,jpodial)  + sedfluxo(i,j,ipowaal)/2.0
@@ -171,6 +172,7 @@
         bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0
         bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
         bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
+#endif
         ! N-deposition and riverine input fluxes
         bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
         bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
@@ -277,6 +279,7 @@
         call accsrf(jcalflx_bot,calflx_bot,omask,0)    
       ENDIF
 
+#ifndef sedbypass
 ! Accumulate diffusive fluxes between water column and sediment
       call accsrf(jsediffic,sedfluxo(1,1,ipowaic),omask,0)    
       call accsrf(jsediffal,sedfluxo(1,1,ipowaal),omask,0)    
@@ -285,7 +288,7 @@
       call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)    
       call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)    
       call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)    
-
+#endif
 
 ! Accumulate layer diagnostics
       call acclyr(jdp,pddpo,pddpo,0)
