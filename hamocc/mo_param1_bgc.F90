@@ -209,6 +209,17 @@
       INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
 
 
+! rivers
+      integer, parameter :: nriv   =7                                     ! size of river input field
+      integer, parameter :: irdin  =1,                                  & ! dissolved inorganic nitrogen
+     &                      irdip  =2,                                  & ! dissolved inorganic phosphorous 
+     &                      irsi   =3,                                  & ! dissolved silicate 
+     &                      iralk  =4,                                  & ! alkalinity
+     &                      iriron =5,                                  & ! dissolved bioavailable iron
+     &                      irdoc  =6,                                  & ! dissolved organic carbon
+     &                      irdet  =7                                     ! particulate carbon
+
+
 ! sediment
 #ifdef cisonew
       INTEGER, PARAMETER :: nsedtra=8

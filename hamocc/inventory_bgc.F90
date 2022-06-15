@@ -52,19 +52,16 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     none.
 !
 !**********************************************************************
-    
-      use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,ocetra,sedfluxo
+      use mod_xc,         only: mnproc,ips,nbdy,xcsum    
+      use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
       use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
       use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
       use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
                               & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
-                              & nocetra,npowtra,nsedtra 
+                              & irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
       use mo_vgrid,       only: dp_min
-      use mod_xc,         only: mnproc,ips,nbdy,xcsum 
-      use mod_config,     only: expcnf
-      use mo_riverinpt,   only: rivinflx,irdin,irdip,irsi,iralk,irdoc,irdet,nriv
   
 # ifndef sedbypass
       use mo_param1_bgc,  only: ks
@@ -388,6 +385,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
 #else
+
        &  +sn2flux*2+sn2oflux*2
 #endif
 
@@ -1941,3 +1939,4 @@ end subroutine nccheck
 
 
 END SUBROUTINE INVENTORY_BGC
+

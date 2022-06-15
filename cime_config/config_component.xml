@@ -96,7 +96,7 @@
       <value compset="SSP370REFGHGLOWNTCF_CAM60%NORESM.*_BLOM%ECO">ssp370</value>
       <value compset="SSP434_CAM60%NORESM.*_BLOM%ECO"  >ssp434</value>
       <value compset="SSP460_CAM60%NORESM.*_BLOM%ECO"  >ssp460</value>
-      <value compset="SSP534OS_CAM60%NORESM.*_BLOM%ECO">ssp534os</value>
+      <value compset="SSP534_CAM60%NORESM.*_BLOM%ECO"  >ssp534os</value>
       <value compset="SSP585_CAM60%NORESM.*_BLOM%ECO"  >ssp585</value>
      </values>
     <group>run_component_blom</group>
@@ -147,7 +147,47 @@
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
   </entry>
+
+  <entry id="HAMOCC_SEDSPINUP">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Activate sediment spinup. HAMOCC_SEDSPINUP_YR_START and HAMOCC_SEDSPINUP_YR_END 
+      need to be set to valid values for this option to take effect. Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDSPINUP_YR_START">
+    <type>integer</type>
+    <valid_values/>
+    <default_value>-1</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set start year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+      Requires module ecosys</desc>
+  </entry>
+
+  <entry id="HAMOCC_SEDSPINUP_YR_END">
+    <type>integer</type>
+    <valid_values/>
+    <default_value>-1</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set end year for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+      Requires module ecosys</desc>
+  </entry>
  
+  <entry id="HAMOCC_SEDSPINUP_NCYCLE">
+    <type>integer</type>
+    <valid_values/>
+    <default_value>-1</default_value>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
+    <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
+      Requires module ecosys</desc>
+  </entry>
+
   <entry id="HAMOCC_EXTNCYCLE">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>

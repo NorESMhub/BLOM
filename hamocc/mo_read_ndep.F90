@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_ndep
+module mo_read_ndep
 !******************************************************************************
 !
 !   S.Gao             *Gfi, Bergen*             2017-08-19
@@ -68,7 +68,7 @@ module mo_ndep
   implicit none
 
   private
-  public :: ini_ndep,get_ndep,n_deposition,ndepfile
+  public :: ini_read_ndep,get_ndep,ndepfile
 
   character(len=512), save :: ndepfile=''
   real,  allocatable, save :: ndepread(:,:)
@@ -80,14 +80,15 @@ contains
 
 
 
-subroutine ini_ndep(kpie,kpje)
+subroutine ini_read_ndep(kpie,kpje)
 !******************************************************************************
 !
 !     S. Gao               *Gfi, Bergen*    19.08.2017 
 !
 ! Purpose
 ! -------
-!  -Initialise the n-deposition module.
+!  -Initialise the module, check existence of input file, allocate array
+!   for reading the data
 !
 ! Changes: 
 ! --------
@@ -115,7 +116,7 @@ subroutine ini_ndep(kpie,kpje)
   if (.not. do_ndep) then
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_ndep: N deposition is not activated.'
+      write(io_stdo_bgc,*) 'ini_read_ndep: N deposition is not activated.'
     endif
     return
   end if
@@ -123,21 +124,21 @@ subroutine ini_ndep(kpie,kpje)
   ! Initialise the module
   if (.not. lini) then 
 
+    IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'***************************************************'
+      WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_ndep:'
+      WRITE(io_stdo_bgc,*)' '
+    ENDIF
+
     ! Check if nitrogen deposition file exists. If not, abort. 
     inquire(file=ndepfile,exist=file_exists)
     if (.not. file_exists .and. mnproc.eq.1) then 
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_ndep: Cannot find N deposition file... '
-      call xchalt('(ini_ndep)')
-      stop '(ini_ndep)' 
+      write(io_stdo_bgc,*) 'ini_read_ndep: Cannot find N deposition file... '
+      call xchalt('(ini_read_ndep)')
+      stop '(ini_read_ndep)' 
     endif 
-
-    IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'***************************************************'
-      WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_ndep:'
-      WRITE(io_stdo_bgc,*)' '
-    ENDIF
 
     ! Allocate field to hold N-deposition fluxes
     IF (mnproc.eq.1) THEN
@@ -158,7 +159,7 @@ subroutine ini_ndep(kpie,kpje)
 
     if (mnproc.eq.1) then 
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_ndep: Using N deposition file '//trim(ndepfile) 
+      write(io_stdo_bgc,*) 'ini_read_ndep: Using N deposition file '//trim(ndepfile) 
     endif
 
     lini=.true.
@@ -167,7 +168,7 @@ subroutine ini_ndep(kpie,kpje)
 
 
 !******************************************************************************
-end subroutine ini_ndep
+end subroutine ini_read_ndep
 
 
 subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
@@ -177,7 +178,7 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
 !
 ! Purpose
 ! -------
-!  -Read and return n-deposition data for a given month.
+!  -Read and return CMIP6 n-deposition data for a given month.
 !
 ! Parameter list:
 ! ---------------
@@ -231,65 +232,5 @@ end subroutine get_ndep
 
 
 
-subroutine n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
 !******************************************************************************
-!
-!     S. Gao               *Gfi, Bergen*    19.08.2017 
-!
-! Purpose
-! -------
-!  -apply n-deposition to the top-most model layer.
-!
-! Changes: 
-! --------
-!  Tjiputra (18.09.2017): add 1 mol [H+], per mol [NO3] deposition, to 
-!    alkalinity (minus 1 mol)
-!
-! Parameter list:
-! ---------------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!  *REAL*      *pddpo*   - size of grid cell (depth) [m].
-!  *REAL*      *omask*   - land/ocean mask (1=ocean)
-!  *REAL*      *ndep*    - N-deposition field to apply
-!
-!******************************************************************************
-  use mod_xc,         only: mnproc
-  use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
-  use mo_carbch,      only: ocetra,ndepflx
-  use mo_param1_bgc,  only: iano3,ialkali,inatalkali
-
-  implicit none
-
-  integer, intent(in) :: kpie,kpje,kpke
-  real,    intent(in) :: pddpo(kpie,kpje,kpke)
-  real,    intent(in) :: omask(kpie,kpje)
-  real,    intent(in) :: ndep(kpie,kpje)
-
-  ! local variables 
-  integer :: i,j
-
-  if (.not. do_ndep) return 
-
-  ! deposite N in topmost layer 
-  ndepflx=0.
-  do j=1,kpje
-  do i=1,kpie
-    if (omask(i,j).gt.0.5) then
-      ndepflx(i,j) = ndep(i,j)*dtb/365.
-      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepflx(i,j)/pddpo(i,j,1)
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepflx(i,j)/pddpo(i,j,1)
-#ifdef natDIC
-      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepflx(i,j)/pddpo(i,j,1)
-#endif
-    endif
-  enddo
-  enddo
-
-!******************************************************************************
-end subroutine n_deposition 
-
-
-!******************************************************************************
-end module mo_ndep 
+end module mo_read_ndep

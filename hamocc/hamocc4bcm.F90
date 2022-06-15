@@ -19,7 +19,7 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,                                  &
+                            dust,rivin,ndep,pi_ph,                            &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 !******************************************************************************
@@ -82,20 +82,20 @@
 !
 !******************************************************************************
       use mod_xc,         only: mnproc
-      use mo_carbch,      only: atmflx,ocetra 
+      use mo_carbch,      only: atmflx,ocetra,atm
       use mo_biomod,      only: strahl
-      use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc
-      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra
+      use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
       use mo_vgrid,       only: set_vgrid
-      use mo_riverinpt,   only: riverinpt,nriv
-      use mo_ndep,        only: n_deposition
-      use mod_config,     only: expcnf
+      use mo_apply_fedep, only: apply_fedep
+      use mo_apply_rivin, only: apply_rivin
+      use mo_apply_ndep,  only: apply_ndep
 #if defined(BOXATM)
       use mo_boxatm,      only: update_boxatm
 #endif
 #ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo
-      use mo_carbch,      only: atm
 #endif
 #ifdef CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
@@ -113,6 +113,7 @@
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -126,6 +127,8 @@
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
+      INTEGER :: nspin,it
+      LOGICAL :: lspin
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -177,7 +180,7 @@
 #endif
 
 #ifdef BROMO
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
         IF (patmbromo(i,j).gt.0.) THEN
@@ -209,7 +212,14 @@
 !---------------------------------------------------------------------
 ! Biogeochemistry
 !
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+      ! Apply dust (iron) deposition
+      ! This routine should be moved to the other routines that handle 
+      ! external inputs below for consistency. For now we keep it here
+      ! to maintain bit-for-bit reproducibility with the CMIP6 version of 
+      ! the model
+      CALL apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
+
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -267,7 +277,7 @@
 
 
       ! Apply n-deposition
-      CALL n_deposition(kpie,kpje,kpke,pddpo,omask,ndep)
+      CALL apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -278,7 +288,7 @@
 #endif	 
 
       ! Apply riverine input of carbon and nutrients
-      call riverinpt(kpie,kpje,kpke,pddpo,omask,rivin)
+      call apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -311,8 +321,30 @@
 #ifndef sedbypass
 ! jump over sediment if sedbypass is defined
 
-      CALL POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao)
+      if(do_sedspinup .and. kplyear>=sedspin_yr_s                              &
+                      .and. kplyear<=sedspin_yr_e) then
+        nspin = sedspin_ncyc
+        if(mnproc == 1) then
+          write(io_stdo_bgc,*)
+          write(io_stdo_bgc,*) 'iHAMOCC: sediment spinup activated with ',     &
+                                nspin, ' subcycles' 
+        endif
+      else
+        nspin = 1
+      endif
+      
+      ! Loop for sediment spinup. If deactivated then nspin=1 and lspin=.false.
+      do it=1,nspin
 
+        if( it<nspin ) then
+          lspin=.true.
+        else
+          lspin=.false.      
+        endif
+
+        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+
+      enddo
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN
@@ -366,18 +398,20 @@
       ENDDO
 !$OMP END PARALLEL DO
 
-#ifdef BROMO
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
 ! Negative values to the atmosphere
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
-       if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+#ifdef BROMO
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+#else
+        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+#endif
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-#endif
 !--------------------------------------------------------------------
       RETURN
       END

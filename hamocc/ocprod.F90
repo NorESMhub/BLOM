@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
+subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -77,21 +77,20 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !     *REAL*    *omask*   - land/ocean mask (1=ocean)
-!     *REAL*    *dust*    - dust deposition flux [kg/m2/month].
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch,      only: dmspar,ocetra,satoxy 
+  use mo_carbch,      only: dmspar,ocetra,satoxy,hi
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro
   use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
                           & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
                           & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
                           & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
-                          & perc_diron,phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
+                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
                           & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
-  use mo_control_bgc, only: dtb,io_stdo_bgc 
+  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
 
@@ -135,16 +134,17 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
-  real,    intent(in) :: dust(kpie,kpje)
   real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: pi_ph(kpie,kpje)
 
   ! Local varaibles
   integer :: i,j,k,l
   integer :: is,kdonor
   integer, parameter :: nsinkmax = 12
+  real, parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
-  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,dms_ph
+  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
   real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,              &
      &        avgra,grazing,avsil,avdic,graton,                         &
      &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,           &
@@ -153,7 +153,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 
   real :: zoothresh,phythresh
   real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
-  real :: dustinp
   real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
@@ -207,7 +206,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
 #endif
 
 
-
 ! set variables for diagnostic output to zero
   expoor    (:,:) = 0.
   expoca    (:,:) = 0.
@@ -249,7 +247,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   dmsp3 = dmspar(3)
   dmsp2 = dmspar(2)
   dmsp1 = dmspar(1)
-  dms_gamma = 0.87
 
 
 #ifdef PBGC_OCNP_TIMESTEP
@@ -313,22 +310,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
   enddo
 !$OMP END PARALLEL DO
 
-
-! dust flux from the atmosphere to the surface layer; dust fields are
-! monthly mean values (kg/m2/month - assume 30 days per month here)
-! dissolved iron is a fixed fraction (typically 3.5%), and immediately released
-
-!$OMP PARALLEL DO PRIVATE(i,dustinp)
-  do j = 1,kpje
-  do i = 1,kpie
-     if(omask(i,j) > 0.5) then
-        dustinp = dust(i,j) / 30. * dtb / pddpo(i,j,1)
-        ocetra(i,j,1,ifdust) = ocetra(i,j,1,ifdust) + dustinp
-        ocetra(i,j,1,iiron) = ocetra(i,j,1,iiron) + dustinp * perc_diron
-     endif
-  enddo
-  enddo
-!$OMP END PARALLEL DO
 
 !$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
 !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
@@ -482,8 +463,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,dust,ptho)
         delcar14 = rcalc * export14 * bkopal/(avsil+bkopal)
 #endif
 #endif
-!        dms_ph  = 1+(-log10(hi(i,j,1))-pi_ph(i,j,kplmon))*dms_gamma
-        dms_ph  = 1.
+
+        if(with_dmsph) then
+           dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j))*dms_gamma
+        else
+           dms_ph  = 1.
+        endif
         dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
      &           *(1.+1./(temp+dmsp1)**2)*dms_ph
         dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)             &

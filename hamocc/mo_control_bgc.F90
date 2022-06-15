@@ -38,30 +38,31 @@
       implicit none
 
 ! Logical unit number for I/O.
-
-      INTEGER :: io_stdo_bgc           !  standard out.
+      INTEGER, save :: io_stdo_bgc        !  standard out.
 
 ! File containing namelists
       CHARACTER(LEN=:), ALLOCATABLE, PROTECTED :: bgc_namelist
 
 ! Control variables
+      REAL,    save :: dtbgc              !  time step length [sec].
+      REAL,    save :: dtb                !  time step length [days].
+      INTEGER, save :: ndtdaybgc          !  time steps per day.
 
-      REAL    :: dtbgc            !  time step length [sec].
-      REAL    :: dtb              !  time step length [days].
-      INTEGER :: ndtdaybgc        !  time steps per day.
+      INTEGER, save :: ldtbgc             !  time step number from bgc restart file
+      INTEGER, save :: ldtrunbgc          !  actual time steps of run.
 
-      INTEGER :: ldtbgc           !  time step number from bgc restart file
-      INTEGER :: ldtrunbgc        !  actual time steps of run.
+      INTEGER, save :: sedspin_yr_s = -1
+      INTEGER, save :: sedspin_yr_e = -1
+      INTEGER, save :: sedspin_ncyc = -1
 
-      INTEGER :: isac             !  acceleration factor for sediment, read from namelist
+      REAL,    save :: rmasks = 0.0       !  value at wet cells in sediment.
+      REAL,    save :: rmasko = 99999.00  !  value at wet cells in ocean.
 
-
-      REAL    :: rmasks = 0.0       !  value at wet cells in sediment.
-      REAL    :: rmasko = 99999.00  !  value at wet cells in ocean.
-
-! Logical switches
-      LOGICAL, SAVE :: do_ndep=.true.    ! apply n-deposition   (set via namelist)
-      LOGICAL, SAVE :: do_rivinpt=.true. ! apply riverine input (set via namelist)
+! Logical switches set via namelist
+      LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition
+      LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
+      LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up
+      logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
 
     contains
 

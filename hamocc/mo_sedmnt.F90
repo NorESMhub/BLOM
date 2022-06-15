@@ -88,7 +88,7 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: produs
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: burial
 
-      REAL :: sedict,rno3,o2ut,ansed,sedac,sedifti
+      REAL :: sedict,rno3,o2ut,ansed
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
       REAL :: calfa, oplfa, orgfa, clafa, solfu

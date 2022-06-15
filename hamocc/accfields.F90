@@ -44,15 +44,16 @@
 !     *REAL*    *omask*   - land/ocean mask
 !
 !**********************************************************************
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,ocetra,omegaa,omegac,pco2d,satoxy 
+      use mod_xc,         only: mnproc
+      use mod_dia,        only: ddm
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,sedfluxo
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
-      use mod_dia,        only: ddm
-      use mod_xc,         only: mnproc
       use mo_bgcmean,     only: domassfluxes,jalkali,jano3,jasize,jatmco2,jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,         &
                               & jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,jcalflx1000,jcalflx2000,jcalflx4000,         &
-                              & jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,jco2flux,      &
+                              & jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,               &
+                              & jsediffic,jsediffal,jsediffph,jsediffox,jsediffn2,jsediffno3,jsediffsi,jco2flux,                   &
                               & jco2fxd,jco2fxu,jco3,jdic,jdicsat,jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,jdoc,jdp,jeps,jexpoca,   &
                               & jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,    &
                               & jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,        &
@@ -60,16 +61,16 @@
                               & jlvldoc13,jlvleps,jlvlgrazer,jlvlgrazer13,jlvliron,jlvln2o,jlvlnatalkali,jlvlnatcalc,jlvlnatco3,   &
                               & jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,jlvlopal,jlvloxygen,&
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
-                              & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,jndep,    &
+                              & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
+                              & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
                               & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jph,jphosph,jphosy,jphyto, &
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
                               & acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2 
       use mo_control_bgc, only: io_stdo_bgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
-                              & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo 
-      use mo_riverinpt,   only: irdin,irdip,irsi,iralk,iriron,irdoc,irdet,rivinflx
-      use mod_config,     only: expcnf
+                              & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
+                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
 #ifdef AGG
       use mo_biomod,      only: asize3d,eps3d,wnumb,wmass
@@ -155,7 +156,8 @@
       do j=1,kpje
       do i=1,kpie
         if(omask(i,j).gt.0.5) then
- 
+
+        ! Atmosphere-ocean fluxes
         bgct2d(i,j,jco2flux) = bgct2d(i,j,jco2flux) + atmflx(i,j,iatmco2)/2.0
         bgct2d(i,j,jo2flux)  = bgct2d(i,j,jo2flux)  + atmflx(i,j,iatmo2)/2.0
         bgct2d(i,j,jn2flux)  = bgct2d(i,j,jn2flux)  + atmflx(i,j,iatmn2)/2.0
@@ -163,6 +165,21 @@
 #ifdef extNcycle
         bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
 #endif
+        ! Particle fluxes between water-column and sediment
+        bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
+        bgct2d(i,j,jprcaca)  = bgct2d(i,j,jprcaca)  + calflx_bot(i,j)/2.0
+        bgct2d(i,j,jsilpro)  = bgct2d(i,j,jsilpro)  + bsiflx_bot(i,j)/2.0
+#ifndef sedbypass
+        ! Diffusive fluxes between water-column and sediment
+        bgct2d(i,j,jpodiic)  = bgct2d(i,j,jpodiic)  + sedfluxo(i,j,ipowaic)/2.0
+        bgct2d(i,j,jpodial)  = bgct2d(i,j,jpodial)  + sedfluxo(i,j,ipowaal)/2.0
+        bgct2d(i,j,jpodiph)  = bgct2d(i,j,jpodiph)  + sedfluxo(i,j,ipowaph)/2.0
+        bgct2d(i,j,jpodiox)  = bgct2d(i,j,jpodiox)  + sedfluxo(i,j,ipowaox)/2.0
+        bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0
+        bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
+        bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
+#endif
+        ! N-deposition and riverine input fluxes
         bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
         bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
         bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
@@ -171,7 +188,7 @@
         bgct2d(i,j,jiriron)  = bgct2d(i,j,jiriron)  + rivinflx(i,j,iriron)/2.0
         bgct2d(i,j,jirdoc)   = bgct2d(i,j,jirdoc)   + rivinflx(i,j,irdoc)/2.0
         bgct2d(i,j,jirdet)   = bgct2d(i,j,jirdet)   + rivinflx(i,j,irdet)/2.0
-    
+
         endif
       enddo
       enddo
@@ -274,6 +291,17 @@
         call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)    
         call accsrf(jcalflx_bot,calflx_bot,omask,0)    
       ENDIF
+
+#ifndef sedbypass
+! Accumulate diffusive fluxes between water column and sediment
+      call accsrf(jsediffic,sedfluxo(1,1,ipowaic),omask,0)    
+      call accsrf(jsediffal,sedfluxo(1,1,ipowaal),omask,0)    
+      call accsrf(jsediffph,sedfluxo(1,1,ipowaph),omask,0)    
+      call accsrf(jsediffox,sedfluxo(1,1,ipowaox),omask,0)    
+      call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)    
+      call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)    
+      call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)    
+#endif
 
 ! Accumulate layer diagnostics
       call acclyr(jdp,pddpo,pddpo,0)
