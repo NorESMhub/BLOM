@@ -53,18 +53,17 @@ c******************************************************************************
       use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial
       use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
       use mo_bgcmean,     only: alloc_mem_bgcmean
-      use mo_fedep,       only: ini_fedep,fedepfile
+      use mo_read_rivin,  only: ini_read_rivin,rivinfile 
+      use mo_read_fedep,  only: ini_read_fedep,fedepfile
+      use mo_read_ndep,   only: ini_read_ndep,ndepfile
+      use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
       use mo_clim_swa,    only: ini_swa_clim,swaclimfile
-      use mo_ndep,        only: ini_ndep,ndepfile
       use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,
      .                          inisil,inid13c,inid14c
-      use mo_riverinpt,   only: ini_riverinpt,rivinfile, 
-     .                          alloc_mem_riverinpt_bgm
       use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
-      use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
@@ -140,7 +139,6 @@ c
       CALL ALLOC_MEM_BIOMOD(idm,jdm,kdm)
       CALL ALLOC_MEM_SEDMNT(idm,jdm)
       CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
-c$$$      CALL ALLOC_MEM_RIVERINPT_BGM(idm,jdm,omask)
 c
 c --- initialise trc array (two time levels)
 c
@@ -182,17 +180,17 @@ c
       CALL BELEG_VARS(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,
      .                plon,plat)
 c
-c --- Initialise dust input, n-deposition and river input
+c --- Initialise reading of input data (dust, n-deposition, river, etc.)
 c
-      CALL ini_fedep(idm,jdm,omask)
+      CALL ini_read_fedep(idm,jdm,omask)
 
-      CALL ini_ndep(idm,jdm)
+      CALL ini_read_ndep(idm,jdm)
+
+      CALL ini_read_rivin(idm,jdm,omask)
 
 #ifdef BROMO
       CALL ini_swa_clim(idm,jdm,omask)
 #endif
-
-      CALL INI_RIVERINPT(idm,jdm,omask)
 
       call ini_pi_ph(idm,jdm,omask)
 c
