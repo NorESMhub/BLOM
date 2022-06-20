@@ -1184,7 +1184,7 @@ c --- ------ make sure it is in metrics if stability depends on rho
              Ks_kpp(:) = Kd_col(:)+Kd_conv(:)+Kd_shr(:)+Kd_tidal(:)
 
              ! Buoyancy flux acting on the OBL
-             surfBuoyFlux = ( buoyfl(i,j,kOBL+1)
+             surfBuoyFlux = ( buoyfl(i,j,kOBL(i,j)+1)
      .                      - buoyfl(i,j,1  )) * 1e-4
 
              ! Compute KPP using CVMix
