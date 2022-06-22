@@ -122,7 +122,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #endif
 #ifdef extNcycle
   use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
-  use mo_extNbioproc, only: denit_NO2,denit_N2O,dnra
   use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron
   use mo_param1_bgc,  only: ianh4
 #endif
@@ -878,18 +877,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   inv_message = 'in OCPROD after extNcycle denitrification / DNRA'
   CALL denit_dnra(kpie,kpje,kpke,kbnd,pddpo,omask,ptho) 
   CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-!  inv_message = 'in OCPROD after extNcycle denitrification NO2 '
-!  CALL denit_NO2(kpie,kpje,kpke,pddpo,omask,ptho) 
-!  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-!  inv_message = 'in OCPROD after extNcycle denitrification DNRA '
-!  CALL dnra(kpie,kpje,kpke,pddpo,omask,ptho) 
-!  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
-  
-!  inv_message = 'in OCPROD after extNcycle denitrification N2O '
-!  CALL denit_N2O(kpie,kpje,kpke,pddpo,omask,ptho) 
-!  CALL extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
 #endif
 
 

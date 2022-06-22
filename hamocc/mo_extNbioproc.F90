@@ -62,7 +62,6 @@
       public :: extNbioparam_init,nitrification,denit_NO3_to_NO2,&
               & anammox,denit_dnra,extN_inv_check
 
-      public :: denit_NO2,denit_N2O, dnra
       ! public parameters
       public :: bkphyanh4,bkphyano3,bkphosph,bkiron
 
@@ -147,8 +146,8 @@
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
 
-      eps    = 1.e-16 ! safe division etc. 
-      minlim = 1.e-3   ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to 1/1000) 
+      eps    = 1.e-25 ! safe division etc. 
+      minlim = 1.e-9  ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to minlim) 
       !===========================================================================
       end subroutine extNbioparam_init
      
@@ -163,7 +162,7 @@
       real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
-      integer :: i,j,k,proc_ctr
+      integer :: i,j,k
       real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4 
       real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2
       real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp
@@ -175,15 +174,22 @@
       minlim_nh4    = bkanh4nitr*minlim/(1. - minlim) 
       minlim_no2    = bkano2nitr*minlim/(1. - minlim)
 
-      !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4, & 
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4,   & 
       !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2,amoxfrac,   &
-      !$OMP                     nitrfrac,totd,amox,nitr,proc_ctr,temp)
+      !$OMP                     nitrfrac,totd,amox,nitr,temp)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-           proc_ctr = 0
+           potdnh4amox = 0.
+           fn2o        = 0.
+           fno2        = 0.
+           fdetamox    = 0.
+           potdno2nitr = 0.
+           fno3        = 0.
+           fdetnitr    = 0.
+
            if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
             temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
             ! Ammonium oxidation step of nitrification
@@ -204,12 +210,6 @@
             fn2o     = fn2o/ftotnh4
             fno2     = fno2/ftotnh4
             fdetamox = 1. - (fn2o + fno2)
-            proc_ctr = proc_ctr + 1
-           else
-            potdnh4amox = 0.
-            fn2o        = 0.
-            fno2        = 0.
-            fdetamox    = 0.
            endif
 
            if(ocetra(i,j,k,ioxygen)>minlim_oxno2 .and. ocetra(i,j,k,iano2)>minlim_no2)then
@@ -229,44 +229,36 @@
             ftotno2  = fno2 + fdetamox + eps
             fno3     = fno3/ftotno2
             fdetnitr = 1. - fno3
-
-            proc_ctr = proc_ctr + 1
-           else
-            potdno2nitr = 0.
-            fno3        = 0.
-            fdetnitr    = 0.
            endif
 
-           if (proc_ctr>0)then
-            ! limitation of the two processes through available nutrients, etc.
-            totd     = potdnh4amox + potdno2nitr
-            amoxfrac = potdnh4amox/(totd + eps)
-            nitrfrac = 1. - amoxfrac
-            totd     = max(0.,                                                                                                     &
-                     &   min(totd,                                                                                                 &
-                     &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetamox*nitrfrac + eps),                                             & ! ammonium
-                     &       ocetra(i,j,k,isco212)/((122./16.)*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                     & ! CO2
-                     &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/16. + eps),                            & ! PO4
-                     &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/(16.*riron) + eps),                      & ! Fe
-                     &       ocetra(i,j,k,ioxygen)                                                                                 &
-                     &       /((1.5*fno2 + fn2o - 140./16.*fdetamox)*amoxfrac + (0.5*fno3 + 140./16.*fdetnitr)*nitrfrac +eps),     & ! O2
-                     &       ocetra(i,j,k,ialkali)                                                                                 &
-                     &       /((2.*fno2 + fn2o + 15./16.*fdetamox)*amoxfrac + (15./16.*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
-            amox     = amoxfrac*totd 
-            nitr     = nitrfrac*totd
+           ! limitation of the two processes through available nutrients, etc.
+           totd     = potdnh4amox + potdno2nitr
+           amoxfrac = potdnh4amox/(totd + eps)
+           nitrfrac = 1. - amoxfrac
+           totd     = max(0.,                                                                                                      &
+                    &   min(totd,                                                                                                  &
+                    &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetamox*nitrfrac + eps),                                              & ! ammonium
+                    &       ocetra(i,j,k,isco212)/((122./16.)*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                      & ! CO2
+                    &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/16. + eps),                             & ! PO4
+                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/(16.*riron) + eps),                       & ! Fe
+                    &       ocetra(i,j,k,ioxygen)                                                                                  &
+                    &       /((1.5*fno2 + fn2o - 140./16.*fdetamox)*amoxfrac + (0.5*fno3 + 140./16.*fdetnitr)*nitrfrac +eps),      & ! O2
+                    &       ocetra(i,j,k,ialkali)                                                                                  &
+                    &       /((2.*fno2 + fn2o + 15./16.*fdetamox)*amoxfrac + (15./16.*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
+           amox     = amoxfrac*totd 
+           nitr     = nitrfrac*totd
 
-            ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4) - amox - fdetnitr*nitr
-            ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o) + 0.5*fn2o*amox
-            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2) + fno2*amox - nitr
-            ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) + nitr
-            ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)  + fdetamox/16.*amox + fdetnitr/16.*nitr
-            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - 122./16.*fdetamox*amox - 122./16.*fdetnitr*nitr
-            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - fdetamox/16.*amox - fdetnitr/16.*nitr
-            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron/16.*fdetamox*amox - riron/16.*fdetnitr*nitr
-            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - 140./16.*fdetamox)*amox   &
-                                  &                       - (0.5*fno3 - 140./16.*fdetnitr)*nitr
-            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + 15./16.*fdetamox)*amox - 15./16.*fdetnitr*nitr
-           endif
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4) - amox - fdetnitr*nitr
+           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o) + 0.5*fn2o*amox
+           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2) + fno2*amox - nitr
+           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) + nitr
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)  + fdetamox/16.*amox + fdetnitr/16.*nitr
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - 122./16.*fdetamox*amox - 122./16.*fdetnitr*nitr
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - fdetamox/16.*amox - fdetnitr/16.*nitr
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron/16.*fdetamox*amox - riron/16.*fdetnitr*nitr
+           ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - 140./16.*fdetamox)*amox   &
+                                 &                       - (0.5*fno3 - 140./16.*fdetnitr)*nitr
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + 15./16.*fdetamox)*amox - 15./16.*fdetnitr*nitr
          endif
         enddo
        enddo
@@ -389,13 +381,13 @@
       real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       !local variables
-      integer :: i,j,k,n2oden,dnra_use
+      integer :: i,j,k
       real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
       real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
       real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
       real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
 
-      real    :: dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk,sc,temp
+      real    :: temp
 
 
       real    :: minlim_ox,minlim_oxn2o,minlim_no2,minlim_n2o
@@ -405,26 +397,22 @@
       minlim_no2    = min(bkdnra,bkano2denit)*minlim/(1. - minlim)
       minlim_n2o    = bkan2odenit*minlim/(1. - minlim)
 
-      sc = 1.e8 ! scaling factor
-
-      !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,    &
+      !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,      &
       !$OMP                     Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit,  &
       !$OMP                     rpotano2denit,rpotano2dnra,                                    &
       !$OMP                     fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,        &
       !$OMP                     fdetan2odenit,fdetdnra,                                        &
-      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,dnra_use,n2oden,&
-      !$OMP                     dano2,dan2o,dgasnit,danh4,ddet,dsco212,dphosph,diron,dalk,temp)
+      !$OMP                     Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,ano2dnra,temp)
 
       do j = 1,kpje
        do i = 1,kpie
         do k = 1,kpke
          if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          n2oden   = 0
-          dnra_use = 0
-
           potddet       = 0.
-          fdetano2denit = 0.
-          fdetdnra      = 0.
+          an2odenit     = 0.
+          ano2denit     = 0.
+          ano2dnra      = 0.
+
           if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            ! === denitrification on N2O
@@ -433,8 +421,6 @@
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
-           potddet     = 1./280.*an2odenit !P-units
-           n2oden      = 1
           endif
 
           if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
@@ -457,75 +443,38 @@
            
            ! === limitation due to NO2:
            ! fraction on potential change of NO2:
-           rpotano2denit = rpotano2denit*sc ! to avoid potential numerical issues
-           rpotano2dnra  = rpotano2dnra *sc
            fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
            fdnra  = 1. - fdenit
            
            ! potential fractional change
-           ano2denit  = fdenit * potdano2 / 280.           ! P units
-           ano2dnra   = fdnra  * potdano2 / (93. + 1./3.)  ! P units
-           potddet    = potddet + ano2denit + ano2dnra  ! P units              
-           
-           ! limitation of processes due to detritus
-           fdetano2denit = ano2denit /(potddet + eps)
-           fdetdnra      = ano2dnra  /(potddet + eps) 
-           dnra_use      = 1 
-
+           ano2denit  = fdenit * potdano2   
+           ano2dnra   = fdnra  * potdano2
           endif
 
           ! limitation of processes due to detritus
+          potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3.)*ano2dnra  ! P units              
+          fdetano2denit = 1./280.*ano2denit/(potddet + eps)
+          fdetan2odenit = 1./280.*an2odenit/(potddet + eps)
+          fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-          if((n2oden+dnra_use)>0 .and. potddet>0.)then
-           dano2   = 0.
-           dan2o   = 0.
-           dgasnit = 0.
-           danh4   = 0.
-           ddet    = 0. 
-           dsco212 = 0.
-           dphosph = 0.
-           diron   = 0.
-           dalk    = 0.
- 
-           if (n2oden == 1) then ! change due to N2O denitrification
-              fdetan2odenit = 1. -  fdetano2denit - fdetdnra
-              an2odenit     = fdetan2odenit*280.*potddet
-              dan2o   = -an2odenit
-              dgasnit = an2odenit
-              danh4   = 16./280.*an2odenit 
-              ddet    = -an2odenit/280. 
-              dsco212 = 122./280.*an2odenit
-              dphosph = an2odenit/280.
-              diron   = riron/280.*an2odenit
-              dalk    = 15.*an2odenit/280. 
-           endif
-
-           if (dnra_use == 1)then
-              ! change of NO2 and N2O in N units
-              ano2denit     = fdetano2denit*280.*potddet
-              ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
-              dano2   = -(ano2denit + ano2dnra)    
-              dan2o   = dan2o    + 0.5*ano2denit
-              danh4   = danh4    + 16./280.*ano2denit   + (109.+1./3.)/(93.+1./3.)*ano2dnra
-              ddet    = ddet     - ano2denit/280.       - ano2dnra/(93.+1./3.)
-              dsco212 = dsco212  + 122./280.*ano2denit  + 122./(93.+1./3.)*ano2dnra
-              dphosph = dphosph  + ano2denit/280.       + ano2dnra/(93.+1./3.)
-              diron   = diron    + riron/280.*ano2denit + riron/(93.+1./3.)*ano2dnra
-              dalk    = dalk     + 295.*ano2denit/280.  + (201.+1./3.)/(93.+1./3.)*ano2dnra
-           endif
-
+       
+          if(potddet>0.)then
+           ! change of NO2 and N2O in N units
+           ano2denit     = fdetano2denit*280.*potddet
+           an2odenit     = fdetan2odenit*280.*potddet
+           ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
 
            ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
-           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   + dano2   !- ano2denit - ano2dnra
-           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   + dan2o   !- an2odenit + 0.5*ano2denit
-           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + dgasnit ! an2odenit
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + danh4   ! 16./280. * (ano2denit+an2odenit) + (109.+1./3.)/(93.+1./3.)*ano2dnra
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    + ddet    !- (ano2denit + an2odenit)/280. - ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + dsco212 !122./280.*(ano2denit + an2odenit) + 122./(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + dphosph !(ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + diron   ! riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + dalk    ! (295.*ano2denit + 15.*an2odenit)/280. &
-              !                   &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit - ano2dnra
+           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   - an2odenit + 0.5*ano2denit
+           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + an2odenit
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. * (ano2denit+an2odenit) + (109.+1./3.)/(93.+1./3.)*ano2dnra
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - (ano2denit + an2odenit)/280. - ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*(ano2denit + an2odenit) + 122./(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
+                                 &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
           endif
          endif
         enddo
@@ -534,168 +483,7 @@
       !$OMP END PARALLEL DO
       end subroutine denit_dnra
 
-!##### FOR DEBUGGING PURPOSES ONLY #################
-      subroutine dnra(kpie,kpje,kpke,pddpo,omask,ptho)
-      ! Denitrification processes (N2O -> N2)
 
-      integer, intent(in) :: kpie,kpje,kpke
-      real,    intent(in) :: omask(kpie,kpje)       
-      real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
-
-      !local variables
-      integer :: i,j,k
-      real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet
-
-
-      !$OMP PARALLEL DO PRIVATE(i,k,Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,potano2new,potdano2,ano2dnra,potddet)
-
-      do j = 1,kpje
-       do i = 1,kpie
-        do k = 1,kpke
-         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,ioxygen)<bkoxdnra/sqrt(minlim) .and. ocetra(i,j,k,iano2) > bkdnra*minlim)then
-           ! DNRA on NO2
-           Tdepdnra    = q10dnra**((ptho(i,j,k)-Trefdnra)/10.) 
-           O2inhibdnra = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxdnra**2) 
-           nutlimdnra  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkdnra)
-           rpotano2dnra = max(0.,rdnra*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
-
-           ! potential new conc of NO2 due to denitrification and DNRA
-           potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2dnra)
-           potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
-           
-           ! potential fractional change
-           ano2dnra   = potdano2
-           ! limitation of processes due to detritus
-           potddet       = 1./(93. + 1./3.)*ano2dnra  ! P units              
-           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-       
-           ! change of NO2 and N2O in N units
-           ano2dnra      = (93. + 1./3.)*potddet
-
-           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
-           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2dnra
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + (109.+1./3.)/(93.+1./3.)*ano2dnra
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (201.+1./3.)/(93.+1./3.) * ano2dnra
-          endif
-         endif
-        enddo
-       enddo
-      enddo
-      !$OMP END PARALLEL DO
-      end subroutine dnra
-
-      !----------------------------------------------------------------
-      subroutine denit_N2O(kpie,kpje,kpke,pddpo,omask,ptho)
-      ! Denitrification processes (N2O -> N2)
-
-      integer, intent(in) :: kpie,kpje,kpke
-      real,    intent(in) :: omask(kpie,kpje)       
-      real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
-
-      !local variables
-      integer :: i,j,k
-      real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet
-      !$OMP PARALLEL DO PRIVATE(i,k,Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit,potddet)
-      do j = 1,kpje
-       do i = 1,kpie
-        do k = 1,kpke
-         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,ioxygen)<bkoxan2odenit/sqrt(minlim) .and. ocetra(i,j,k,ian2o) > bkan2odenit*minlim)then
-           ! === denitrification on N2O
-           Tdepan2o    = q10an2odenit**((ptho(i,j,k)-Trefan2odenit)/10.) 
-           O2inhiban2o = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxan2odenit**2) 
-           nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
-           an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
-           an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
-
-           ! limitation of processes due to detritus
-           potddet       = 1./280.*an2odenit   !P units              
-           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-       
-           ! change of N2O in N units
-           an2odenit     = 280.*potddet
-
-          ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
-           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   - an2odenit 
-           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + an2odenit
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. *an2odenit
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - an2odenit/280. 
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*an2odenit
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + an2odenit/280.
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*an2odenit
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 15.*an2odenit/280.
-          endif
-         endif
-        enddo
-       enddo
-      enddo
-      !$OMP END PARALLEL DO
-      end subroutine denit_N2O
-
-      !----------------------------------------------------------------
-      subroutine denit_NO2(kpie,kpje,kpke,pddpo,omask,ptho)
-      ! Denitrification processes (NO2 -> N2O)
-
-      integer, intent(in) :: kpie,kpje,kpke
-      real,    intent(in) :: omask(kpie,kpje)       
-      real,    intent(in) :: pddpo(kpie,kpje,kpke)
-      real,    intent(in) :: ptho(kpie,kpje,kpke)
-
-      !local variables
-      integer :: i,j,k
-      real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new,potdano2
-
-      !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit,potddet,potano2new, &
-      !$OMP                     potdano2)
-
-      do j = 1,kpje
-       do i = 1,kpie
-        do k = 1,kpke
-         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,ioxygen)<bkoxano2denit/sqrt(minlim) .and. ocetra(i,j,k,iano2) > bkano2denit*minlim)then
-           ! denitrification on NO2
-           Tdepano2    =  q10ano2denit**((ptho(i,j,k)-Trefano2denit)/10.) 
-           O2inhibano2 = 1. - ocetra(i,j,k,ioxygen)**2/(ocetra(i,j,k,ioxygen)**2 + bkoxano2denit**2) 
-           nutlimano2  = ocetra(i,j,k,iano2)/(ocetra(i,j,k,iano2) + bkano2denit)
-           rpotano2denit = max(0.,rano2denit*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
-
-           ! potential new conc of NO2 due to denitrification and DNRA
-           potano2new = ocetra(i,j,k,iano2)/(1. + rpotano2denit)
-           potdano2   = max(0.,min(ocetra(i,j,k,iano2), ocetra(i,j,k,iano2) - potano2new))
-           ano2denit  = potdano2   
-           
-           ! limitation of processes due to detritus
-           potddet       = 1./280.*ano2denit ! P units  
-           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
-
-           ! change of NO2 in N units
-           ano2denit     = 280.*potddet
-
-           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
-           ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit
-           ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   + 0.5*ano2denit
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. * ano2denit 
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano2denit/280.
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*ano2denit
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano2denit/280. 
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*ano2denit
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + 295.*ano2denit/280.  
-          endif 
-         endif
-        enddo
-       enddo
-      enddo
-      !$OMP END PARALLEL DO
-      end subroutine denit_NO2
-
-!###################################################
 
 !==================================================================================================================================      
       subroutine extN_inv_check(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,inv_message)
