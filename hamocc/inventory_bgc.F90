@@ -355,6 +355,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
        & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
        & +zburial(isssc12)+zburial(issso12)*rcar                               &
+       & +zprorca*rcar+zprcaca                                                 &
 #if defined(BOXATM)
        & +zatmco2*ppm2con
 #else
@@ -368,6 +369,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
        &  +zocetratot(ian2o)*2                                                 &
        &  - sndepflux                                                          &
+       &  +zprorca*rnit                                                        &
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
 #else
@@ -379,11 +381,13 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &   zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
        &  +zocetratot(izoo)+zocetratot(iphosph)                                &
        &  +zpowtratot(ipowaph)+zsedlayto(issso12)                              &
-       &  +zburial(issso12)
+       &  +zburial(issso12)                                                    &
+       &  +zprorca
 
   totalsil=                                                                    &
        &   zocetratot(isilica)+zocetratot(iopal)                               &
-       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)
+       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)             &
+       &  +zsilpro
 
   totaloxy=                                                                    &
        &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
@@ -395,6 +399,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
        &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
        &  - sndepflux*1.5                                                      &
+       &  +zprorca*(-24.)+zprcaca                                              &
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
 #else
