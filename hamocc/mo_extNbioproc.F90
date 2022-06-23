@@ -52,7 +52,7 @@
       use mo_control_bgc, only: io_stdo_bgc,dtb
       use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,isco212
       use mo_carbch,      only: ocetra
-      use mo_biomod,      only: riron
+      use mo_biomod,      only: riron,rnit,rcar,rnoi
 
       implicit none
 
@@ -63,7 +63,7 @@
               & anammox,denit_dnra,extN_inv_check
 
       ! public parameters
-      public :: bkphyanh4,bkphyano3,bkphosph,bkiron
+      public :: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
 
 
       real   :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &
@@ -75,6 +75,9 @@
               & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
               & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron
 
+      real   :: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
+              & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
+
       real :: eps,minlim
 
       CONTAINS
@@ -83,7 +86,21 @@
       subroutine extNbioparam_init()
       !===========================================================================
       ! Initialization of model parameters for the extended nitrogen cycle
-      
+      rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
+      ro2utammo     = 140.            ! Oxygen utilization per mol detitus during ammonification
+      ro2nnit       = ro2utammo/rnit  !  
+      rnoxp         = 280.            ! consumption of NOx per mol detritus during denitrification
+      rnoxpi        = 1./rnoxp        ! inverse
+      rno2anmx      = 1144.           ! consumption of NO2 per mol organic production by anammox
+      rno2anmxi     = 1./rno2anmx     ! inverse
+      rnh4anmx      = 880.            ! consumption of NH4 per mol organic production by anammox
+      rnh4anmxi     = 1./rnh4anmx     ! inverse
+      rno2dnra      = 93. + 1./3      ! consumption of NO2 per mol OM degradation during DNRA
+      rno2dnrai     = 1./rno2dnra     ! inverse
+      rnh4dnra      = rno2dnra + rnit ! production of NH4 per mol OM during DNRA
+      rnh4dnrai     = 1./rnh4dnra     ! inverse
+      rnm1          = rnit - 1.       
+
       ! Phytoplankton growth     
       bkphyanh4     = 0.1e-6    ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
       bkphyano3     = 0.16e-6   ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
