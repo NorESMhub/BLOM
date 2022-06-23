@@ -240,9 +240,9 @@
                     &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetamox*nitrfrac + eps),                                              & ! ammonium
                     &       ocetra(i,j,k,isco212)/((122./16.)*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                      & ! CO2
                     &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/16. + eps),                             & ! PO4
-                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/(16.*riron) + eps),                       & ! Fe
+                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*riron/16. + eps),                         & ! Fe
                     &       ocetra(i,j,k,ioxygen)                                                                                  &
-                    &       /((1.5*fno2 + fn2o - 140./16.*fdetamox)*amoxfrac + (0.5*fno3 + 140./16.*fdetnitr)*nitrfrac +eps),      & ! O2
+                    &       /((1.5*fno2 + fn2o - 140./16.*fdetamox)*amoxfrac + (0.5*fno3 - 140./16.*fdetnitr)*nitrfrac +eps),      & ! O2
                     &       ocetra(i,j,k,ialkali)                                                                                  &
                     &       /((2.*fno2 + fn2o + 15./16.*fdetamox)*amoxfrac + (15./16.*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
            amox     = amoxfrac*totd 
