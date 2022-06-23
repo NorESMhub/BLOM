@@ -52,7 +52,7 @@
       use mo_control_bgc, only: io_stdo_bgc,dtb
       use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,isco212
       use mo_carbch,      only: ocetra
-      use mo_biomod,      only: riron,rnit,rnoi,rcar
+      use mo_biomod,      only: riron
 
       implicit none
 
@@ -74,9 +74,7 @@
               & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,        &
               & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
               & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron
-     
-      real   ::  
- 
+
       real :: eps,minlim
 
       CONTAINS
@@ -476,7 +474,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
-                                 &                       + (201.+2./3.)/(93.+1./3.) * ano2dnra
+                                 &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
           endif
          endif
         enddo
