@@ -474,7 +474,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
-                                 &                       + (201.+1./3.)/(93.+1./3.) * ano2dnra
+                                 &                       + (201.+2./3.)/(93.+1./3.) * ano2dnra
           endif
          endif
         enddo
