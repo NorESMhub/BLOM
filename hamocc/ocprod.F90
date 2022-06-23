@@ -122,7 +122,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #endif
 #ifdef extNcycle
   use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
-  use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron
+  use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
   use mo_param1_bgc,  only: ianh4
 #endif
 
@@ -487,9 +487,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - nh4uptfrac*phosy*(rnit-1.)             & ! NH4 + PO4 Uptake  
                               &                       + (1.-nh4uptfrac)*phosy*(rnit+1.)        & ! NO3 + PO4 Uptake
                               &                       + (dtr+phosy)*(rnit-1.)  - 2.*delcar       ! Remin to (NH4 + PO4) and CaCO3 formation 
-        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*140.                  & ! NH4 uptake
+        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*ro2utammo             & ! NH4 uptake
                               &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
-                              &                       - (dtr+phosy)*140.                         ! Remin to NH4
+                              &                       - (dtr+phosy)*ro2utammo                    ! Remin to NH4
 #endif
         ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
         ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
@@ -659,9 +659,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
 #else
-           pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/140.)
-           docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/140.)
-           phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/140.)
+           pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+           docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+           phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
 #endif
 #ifdef cisonew
            pocrem13 = pocrem*rdet13
@@ -699,7 +699,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #else
         ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
         ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
-        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - 140.*remin
+        ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
 #endif
         ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &

@@ -121,7 +121,7 @@
       alphaanmx     = 0.45e6   ! Shape factor for anammox oxygen inhibition function (m3/kmol)
       bkoxanmx      = 11.3e-6  ! Half-saturation constant for oxygen inhibition function (kmol/m3)
       bkano2anmx    = 5.e-6    ! Half-saturation constant for NO2 limitation (kmol/m3)
-      bkanh4anmx    = bkano2anmx * 880./1144. !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
+      bkanh4anmx    = bkano2anmx * rnh4anmx/rno2anmx !Half-saturation constant for NH4 limitation of anammox (kmol/m3)
 
       ! === Denitrification step NO2 -> N2O
       rano2denit    = 0.12*dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
@@ -255,13 +255,13 @@
            totd     = max(0.,                                                                                                      &
                     &   min(totd,                                                                                                  &
                     &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetamox*nitrfrac + eps),                                              & ! ammonium
-                    &       ocetra(i,j,k,isco212)/((122./16.)*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                      & ! CO2
-                    &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)/16. + eps),                             & ! PO4
-                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*riron/16. + eps),                         & ! Fe
+                    &       ocetra(i,j,k,isco212)/(rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                            & ! CO2
+                    &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*rnoi + eps),                            & ! PO4
+                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*riron*rnoi + eps),                        & ! Fe
                     &       ocetra(i,j,k,ioxygen)                                                                                  &
-                    &       /((1.5*fno2 + fn2o - 140./16.*fdetamox)*amoxfrac + (0.5*fno3 - 140./16.*fdetnitr)*nitrfrac +eps),      & ! O2
+                    &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac + (0.5*fno3 - ro2nnit*fdetnitr)*nitrfrac +eps),        & ! O2
                     &       ocetra(i,j,k,ialkali)                                                                                  &
-                    &       /((2.*fno2 + fn2o + 15./16.*fdetamox)*amoxfrac + (15./16.*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
+                    &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
            amox     = amoxfrac*totd 
            nitr     = nitrfrac*totd
 
@@ -269,13 +269,13 @@
            ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o) + 0.5*fn2o*amox
            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2) + fno2*amox - nitr
            ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3) + nitr
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)  + fdetamox/16.*amox + fdetnitr/16.*nitr
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - 122./16.*fdetamox*amox - 122./16.*fdetnitr*nitr
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - fdetamox/16.*amox - fdetnitr/16.*nitr
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron/16.*fdetamox*amox - riron/16.*fdetnitr*nitr
-           ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - 140./16.*fdetamox)*amox   &
-                                 &                       - (0.5*fno3 - 140./16.*fdetnitr)*nitr
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + 15./16.*fdetamox)*amox - 15./16.*fdetnitr*nitr
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)  + rnoi*(fdetamox*amox + fdetnitr*nitr)
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - rc2n*(fdetamox*amox + fdetnitr*nitr)
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - rnoi*(fdetamox*amox + fdetnitr*nitr)
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron*rnoi*(fdetamox*amox + fdetnitr*nitr)
+           ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - ro2nnit*fdetamox)*amox   &
+                                 &                       - (0.5*fno3 - ro2nnit*fdetnitr)*nitr
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
          endif
         enddo
        enddo
@@ -315,16 +315,16 @@
  
             ano3new   = ocetra(i,j,k,iano3)/(1. + rano3denit*Tdep*O2inhib*nutlim) 
 
-            ano3denit = max(0.,min(ocetra(i,j,k,iano3) - ano3new, ocetra(i,j,k,idet)*280.))
+            ano3denit = max(0.,min(ocetra(i,j,k,iano3) - ano3new, ocetra(i,j,k,idet)*rnoxp))
 
             ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   - ano3denit
             ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   + ano3denit
-            ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano3denit/280.
-            ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + ano3denit*16./280.
-            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*122./280.
-            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano3denit/280.
-            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron/280.
-            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*15./280.    
+            ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - ano3denit*rnoxpi
+            ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + ano3denit*rnit*rnoxpi
+            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
+            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano3denit*rnoxpi
+            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron*rnoxpi
+            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi    
            endif
          endif
         enddo
@@ -367,18 +367,19 @@
 
            ano2new  = ocetra(i,j,k,iano2)/(1. + rano2anmx*Tdep*O2inhib*nut1lim*nut2lim) 
 
-           ano2anmx = max(0.,min(ocetra(i,j,k,iano2) - ano2new, ocetra(i,j,k,ianh4)*1144./880., ocetra(i,j,k,isco212)*1144./122., &
-                         & ocetra(i,j,k,iphosph)*1144.,  ocetra(i,j,k,iiron)*1144./riron, ocetra(i,j,k,ialkali)*1144./15.))
+           ano2anmx = max(0.,min(ocetra(i,j,k,iano2) - ano2new, ocetra(i,j,k,ianh4)*rno2anmx*rnh4anmxi,                            &
+                             ocetra(i,j,k,isco212)*rno2anmx/rcar, ocetra(i,j,k,iphosph)*rno2anmx,                                  &
+                             ocetra(i,j,k,iiron)*rno2anmx/riron, ocetra(i,j,k,ialkali)*rno2anmx/rnm1))
 
            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2anmx
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   - ano2anmx*880./1144.
-           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + ano2anmx*864./1144.
-           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + ano2anmx*280./1144.
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    + ano2anmx/1144.
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - ano2anmx*122./1144.
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx/1144.
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron/1144.
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*15./1144.
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   - ano2anmx*rnh4anmx*rno2anmxi
+           ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + ano2anmx*(rnh4anmx-rnit)*rno2anmxi
+           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)   + ano2anmx*rnoxp*rno2anmxi
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    + ano2anmx*rno2anmxi
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - ano2anmx*rcar*rno2anmxi
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx*rno2anmxi
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron*rno2anmxi
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*rnm1*rno2anmxi
           endif
          endif
         enddo
@@ -469,29 +470,29 @@
           endif
 
           ! limitation of processes due to detritus
-          potddet       = 1./280.*(ano2denit + an2odenit) + 1./(93. + 1./3.)*ano2dnra  ! P units              
-          fdetano2denit = 1./280.*ano2denit/(potddet + eps)
-          fdetan2odenit = 1./280.*an2odenit/(potddet + eps)
+          potddet       = rnoxpi*(ano2denit + an2odenit) + rno2dnrai*ano2dnra  ! P units              
+          fdetano2denit = rnoxpi*ano2denit/(potddet + eps)
+          fdetan2odenit = rnoxpi*an2odenit/(potddet + eps)
           fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
           if(potddet>0.)then
            ! change of NO2 and N2O in N units
-           ano2denit     = fdetano2denit*280.*potddet
-           an2odenit     = fdetan2odenit*280.*potddet
-           ano2dnra      = fdetdnra * (93. + 1./3.)*potddet
+           ano2denit     = fdetano2denit*rnoxp*potddet
+           an2odenit     = fdetan2odenit*rnoxp*potddet
+           ano2dnra      = fdetdnra*rno2dnra*potddet
 
            ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2denit - ano2dnra
            ocetra(i,j,k,ian2o)   = ocetra(i,j,k,ian2o)   - an2odenit + 0.5*ano2denit
            ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit) + an2odenit
-           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + 16./280. * (ano2denit+an2odenit) + (109.+1./3.)/(93.+1./3.)*ano2dnra
-           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - (ano2denit + an2odenit)/280. - ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + 122./280.*(ano2denit + an2odenit) + 122./(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)/280. + ano2dnra/(93.+1./3.)
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron/280.*(ano2denit + an2odenit) + riron/(93.+1./3.) * ano2dnra
-           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + 15.*an2odenit)/280. &
-                                 &                       + (201.+2./3.)/(93.+1./3.) * ano2dnra
+           ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   + rnit*rnoxpi*(ano2denit+an2odenit) + rnh4dnra*rno2dnrai*ano2dnra
+           ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    - (ano2denit + an2odenit)*rnoxpi - ano2dnra*rno2dnrai
+           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + rcar*rnoxpi*(ano2denit + an2odenit) + rcar*rno2dnrai*ano2dnra
+           ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + (ano2denit + an2odenit)*rnoxpi + ano2dnra*rno2dnrai
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron*rnoxpi*(ano2denit + an2odenit) + riron*rno2dnrai*ano2dnra
+           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi &
+                                 &                       + (rno2dnra + rnh4dnra - 1.)*rno2dnrai * ano2dnra
           endif
          endif
         enddo
