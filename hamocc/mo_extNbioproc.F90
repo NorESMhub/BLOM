@@ -351,7 +351,7 @@
            ano2new  = ocetra(i,j,k,iano2)/(1. + rano2anmx*Tdep*O2inhib*nut1lim*nut2lim) 
 
            ano2anmx = max(0.,min(ocetra(i,j,k,iano2) - ano2new, ocetra(i,j,k,ianh4)*1144./880., ocetra(i,j,k,isco212)*1144./122., &
-                         & ocetra(i,j,k,iphosph)*1144.,  ocetra(i,j,k,iiron)*1144./(riron*16.), ocetra(i,j,k,ialkali)*1144./15.))
+                         & ocetra(i,j,k,iphosph)*1144.,  ocetra(i,j,k,iiron)*1144./riron, ocetra(i,j,k,ialkali)*1144./15.))
 
            ocetra(i,j,k,iano2)   = ocetra(i,j,k,iano2)   - ano2anmx
            ocetra(i,j,k,ianh4)   = ocetra(i,j,k,ianh4)   - ano2anmx*880./1144.
@@ -360,7 +360,7 @@
            ocetra(i,j,k,idet)    = ocetra(i,j,k,idet)    + ano2anmx/1144.
            ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - ano2anmx*122./1144.
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx/1144.
-           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron*16./1144.
+           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron/1144.
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*15./1144.
           endif
          endif
