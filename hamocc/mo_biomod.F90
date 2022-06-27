@@ -92,6 +92,11 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_prod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_uv
 #endif
+#ifdef extNcycle
+      REAL, DIMENSION (:,:,:), ALLOCATABLE :: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2,         &
+                                            & denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod,phosy_NH4,phosy_NO3,remin_aerob,        &
+                                            & remin_sulf                                        
+#endif
 
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
@@ -383,6 +388,48 @@
       if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
       int_chbr3_prod(:,:) = 0.0
       int_chbr3_uv(:,:) = 0.0
+#endif
+
+#ifdef extNcycle
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable of the extended nitrogen cycle ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+      ENDIF
+
+      ALLOCATE (nitr_NH4(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (nitr_NO2(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (nitr_N2O_prod(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (nitr_NH4_OM(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (nitr_NO2_OM(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (denit_NO3(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (denit_NO2(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (denit_N2O(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (DNRA_NO2(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (anmx_N2_prod(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (anmx_OM_prod(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (phosy_NH4(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (phosy_NO3(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (remin_aerob(kpie,kpje,kpke),stat=errstat)
+      ALLOCATE (remin_sulf(kpie,kpje,kpke),stat=errstat)
+
+      if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
+      nitr_NH4      = 0.
+      nitr_NO2      = 0.
+      nitr_N2O_prod = 0.
+      nitr_NH4_OM   = 0.
+      nitr_NO2_OM   = 0.
+      denit_NO3     = 0.
+      denit_NO2     = 0.
+      denit_N2O     = 0.
+      DNRA_NO2      = 0.
+      anmx_N2_prod  = 0.
+      anmx_OM_prod  = 0.
+      phosy_NH4     = 0.
+      phosy_NO3     = 0.
+      remin_aerob   = 0.
+      remin_sulf    = 0.
 #endif
 
 !******************************************************************************

@@ -108,7 +108,14 @@
 #endif
 #ifdef extNcycle
       use mo_param1_bgc, only: iatmnh3,ianh4,iano2
-      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2
+      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,                                                     &
+                             & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
+                             & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,jlvl_nitr_NH4, &
+                             & jlvl_nitr_NO2,jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,jlvl_nitr_NO2_OM,jlvl_denit_NO3,jlvl_denit_NO2,   &
+                             & jlvl_denit_N2O,jlvl_DNRA_NO2,jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,jlvl_phosy_NH4,jlvl_phosy_NO3,     &
+                             & jlvl_remin_aerob,jlvl_remin_sulf  
+      use mo_biomod,     only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2,denit_N2O,DNRA_NO2,     &
+                             &  anmx_N2_prod,anmx_OM_prod,phosy_NH4,phosy_NO3,remin_aerob,remin_sulf
 #endif
 
       implicit none
@@ -368,7 +375,22 @@
 #endif
 #ifdef extNcycle
       call acclyr(janh4,ocetra(1,1,1,ianh4),pddpo,1)    
-      call acclyr(jano2,ocetra(1,1,1,iano2),pddpo,1)    
+      call acclyr(jano2,ocetra(1,1,1,iano2),pddpo,1)
+      call acclyr(jnitr_NH4,nitr_NH4,pddpo,1)
+      call acclyr(jnitr_NO2,nitr_NO2,pddpo,1)
+      call acclyr(jnitr_N2O_prod,nitr_N2O_prod,pddpo,1)
+      call acclyr(jnitr_NH4_OM,nitr_NH4_OM,pddpo,1)
+      call acclyr(jnitr_NO2_OM,nitr_NO2_OM,pddpo,1)
+      call acclyr(jdenit_NO3,denit_NO3,pddpo,1)
+      call acclyr(jdenit_NO2,denit_NO2,pddpo,1)
+      call acclyr(jdenit_N2O,denit_N2O,pddpo,1)
+      call acclyr(jDNRA_NO2,DNRA_NO2,pddpo,1)
+      call acclyr(janmx_N2_prod,anmx_N2_prod,pddpo,1)
+      call acclyr(janmx_OM_prod,anmx_OM_prod,pddpo,1)
+      call acclyr(jphosy_NH4,phosy_NH4,pddpo,1)
+      call acclyr(jphosy_NO3,phosy_NO3,pddpo,1)
+      call acclyr(jremin_aerob,remin_aerob,pddpo,1)
+      call acclyr(jremin_sulf,remin_sulf,pddpo,1)
 #endif
 
 ! Accumulate level diagnostics
@@ -380,7 +402,12 @@
      &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+       &
      &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
      &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+       &
-     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+jlvlanh4+jlvlano2).NE.0) THEN
+     &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo+jlvlanh4+jlvlano2+        &
+     &  jlvl_nitr_NH4+jlvl_nitr_NO2+jlvl_nitr_N2O_prod+jlvl_nitr_NH4_OM+&
+     &  jlvl_nitr_NO2_OM+jlvl_denit_NO3+jlvl_denit_NO2+jlvl_denit_N2O+  &
+     &  jlvl_DNRA_NO2+jlvl_anmx_N2_prod+jlvl_anmx_OM_prod+              &
+     &  jlvl_phosy_NH4+jlvl_phosy_NO3+jlvl_remin_aerob+jlvl_remin_sulf  &   
+     &  ).NE.0) THEN
         DO k=1,kpke
           call bgczlv(pddpo,k,ind1,ind2,wghts)
           call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)
@@ -447,6 +474,22 @@
 #ifdef extNcycle 
           call acclvl(jlvlanh4,ocetra(1,1,1,ianh4),k,ind1,ind2,wghts)
           call acclvl(jlvlano2,ocetra(1,1,1,iano2),k,ind1,ind2,wghts)
+          
+           call acclvl(jlvl_nitr_NH4,nitr_NH4,k,ind1,ind2,wghts)
+           call acclvl(jlvl_nitr_NO2,nitr_NO2,k,ind1,ind2,wghts)
+           call acclvl(jlvl_nitr_N2O_prod,nitr_N2O_prod,k,ind1,ind2,wghts)
+           call acclvl(jlvl_nitr_NH4_OM,nitr_NH4_OM,k,ind1,ind2,wghts)
+           call acclvl(jlvl_nitr_NO2_OM,nitr_NO2_OM,k,ind1,ind2,wghts)
+           call acclvl(jlvl_denit_NO3,denit_NO3,k,ind1,ind2,wghts)
+           call acclvl(jlvl_denit_NO2,denit_NO2,k,ind1,ind2,wghts)
+           call acclvl(jlvl_denit_N2O,denit_N2O,k,ind1,ind2,wghts)
+           call acclvl(jlvl_DNRA_NO2,DNRA_NO2,k,ind1,ind2,wghts)
+           call acclvl(jlvl_anmx_N2_prod,anmx_N2_prod,k,ind1,ind2,wghts)
+           call acclvl(jlvl_anmx_OM_prod,anmx_OM_prod,k,ind1,ind2,wghts)
+           call acclvl(jlvl_phosy_NH4,phosy_NH4,k,ind1,ind2,wghts)
+           call acclvl(jlvl_phosy_NO3,phosy_NO3,k,ind1,ind2,wghts)
+           call acclvl(jlvl_remin_aerob,remin_aerob,k,ind1,ind2,wghts)
+           call acclvl(jlvl_remin_sulf,remin_sulf,k,ind1,ind2,wghts)
 #endif
         ENDDO
       ENDIF

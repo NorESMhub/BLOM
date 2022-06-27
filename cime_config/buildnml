@@ -453,6 +453,21 @@ set LYR_IRON      = '0, 0, 2'
 set LYR_ANO3      = '0, 0, 2'
 set LYR_ANO2      = '0, 0, 2'
 set LYR_ANH4      = '0, 0, 2'
+set LYR_nitr_NH4      = '0, 0, 2'    
+set LYR_nitr_NO2      = '0, 0, 2'
+set LYR_nitr_N2O_prod = '0, 0, 2'
+set LYR_nitr_NH4_OM   = '0, 0, 2'
+set LYR_nitr_NO2_OM   = '0, 0, 2'
+set LYR_denit_NO3     = '0, 0, 2'
+set LYR_denit_NO2     = '0, 0, 2'
+set LYR_denit_N2O     = '0, 0, 2'
+set LYR_DNRA_NO2      = '0, 0, 2'
+set LYR_anmx_N2_prod  = '0, 0, 2'
+set LYR_anmx_OM_prod  = '0, 0, 2'
+set LYR_phosy_NH4     = '0, 0, 2'
+set LYR_phosy_NO3     = '0, 0, 2'
+set LYR_remin_aerob   = '0, 0, 2'
+set LYR_remin_sulf    = '0, 0, 2'
 set LYR_ALKALI    = '0, 0, 2'
 set LYR_SILICA    = '0, 0, 2'
 set LYR_DIC       = '0, 0, 2'
@@ -507,6 +522,21 @@ set LVL_IRON      = '0, 2, 2'
 set LVL_ANO3      = '0, 2, 2'
 set LVL_ANO2      = '0, 2, 2'
 set LVL_ANH4      = '0, 2, 2'
+set LVL_nitr_NH4      = '0, 2, 2'    
+set LVL_nitr_NO2      = '0, 2, 2'
+set LVL_nitr_N2O_prod = '0, 2, 2'
+set LVL_nitr_NH4_OM   = '0, 2, 2'
+set LVL_nitr_NO2_OM   = '0, 2, 2'
+set LVL_denit_NO3     = '0, 2, 2'
+set LVL_denit_NO2     = '0, 2, 2'
+set LVL_denit_N2O     = '0, 2, 2'
+set LVL_DNRA_NO2      = '0, 2, 2'
+set LVL_anmx_N2_prod  = '0, 2, 2'
+set LVL_anmx_OM_prod  = '0, 2, 2'
+set LVL_phosy_NH4     = '0, 2, 2'
+set LVL_phosy_NO3     = '0, 2, 2'
+set LVL_remin_aerob   = '0, 2, 2'
+set LVL_remin_sulf    = '0, 2, 2'
 set LVL_ALKALI    = '0, 2, 2'
 set LVL_SILICA    = '0, 2, 2'
 set LVL_DIC       = '0, 2, 2'
@@ -1470,6 +1500,21 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   PHOSY          - Primary production (pp) [mol C m-3 s-1]
 !   CO3            - Carbonate ions (co3) [mol C m-3]
 !   N2O            - Nitrous oxide concentration [mol N2O m-3]
+!   nitr_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   nitr_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
+!   nitr_N2O_prod  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
+!   nitr_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
+!   nitr_NO2_OM    - detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only
+!   denit_NO3      - denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only
+!   denit_NO2      - denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   denit_N2O      - denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only
+!   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   anmx_N2_prod   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
+!   anmx_OM_prod   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
+!   phosy_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   phosy_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   remin_aerob    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   remin_sulf     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
 !   PH             - pH (ph) [-log10([h+])]
 !   OMEGAA         - Aragonite saturation state (omegaa) [1]
 !   OMEGAC         - Calcite saturation state (omegac) [1]
@@ -1648,6 +1693,21 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LYR_ANO3      = $LYR_ANO3
   LYR_ANO2      = $LYR_ANO2
   LYR_ANH4      = $LYR_ANH4
+  LYR_nitr_NH4      = $LYR_nitr_NH4 
+  LYR_nitr_NO2      = $LYR_nitr_NO2 
+  LYR_nitr_N2O_prod = $LYR_nitr_N2O_prod
+  LYR_nitr_NH4_OM   = $LYR_nitr_NH4_OM 
+  LYR_nitr_NO2_OM   = $LYR_nitr_NO2_OM  
+  LYR_denit_NO3     = $LYR_denit_NO3 
+  LYR_denit_NO2     = $LYR_denit_NO2 
+  LYR_denit_N2O     = $LYR_denit_N2O 
+  LYR_DNRA_NO2      = $LYR_DNRA_NO2 
+  LYR_anmx_N2_prod  = $LYR_anmx_N2_prod 
+  LYR_anmx_OM_prod  = $LYR_anmx_OM_prod
+  LYR_phosy_NH4     = $LYR_phosy_NH4 
+  LYR_phosy_NO3     = $LYR_phosy_NO3 
+  LYR_remin_aerob   = $LYR_remin_aerob 
+  LYR_remin_sulf    = $LYR_remin_sulf 
   LYR_ALKALI    = $LYR_ALKALI
   LYR_SILICA    = $LYR_SILICA
   LYR_DIC       = $LYR_DIC
@@ -1702,6 +1762,21 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LVL_ANO3      = $LVL_ANO3
   LVL_ANO2      = $LVL_ANO2
   LVL_ANH4      = $LVL_ANH4
+  LVL_nitr_NH4      = $LVL_nitr_NH4 
+  LVL_nitr_NO2      = $LVL_nitr_NO2 
+  LVL_nitr_N2O_prod = $LVL_nitr_N2O_prod
+  LVL_nitr_NH4_OM   = $LVL_nitr_NH4_OM 
+  LVL_nitr_NO2_OM   = $LVL_nitr_NO2_OM  
+  LVL_denit_NO3     = $LVL_denit_NO3 
+  LVL_denit_NO2     = $LVL_denit_NO2 
+  LVL_denit_N2O     = $LVL_denit_N2O 
+  LVL_DNRA_NO2      = $LVL_DNRA_NO2 
+  LVL_anmx_N2_prod  = $LVL_anmx_N2_prod 
+  LVL_anmx_OM_prod  = $LVL_anmx_OM_prod
+  LVL_phosy_NH4     = $LVL_phosy_NH4 
+  LVL_phosy_NO3     = $LVL_phosy_NO3 
+  LVL_remin_aerob   = $LVL_remin_aerob 
+  LVL_remin_sulf    = $LVL_remin_sulf 
   LVL_ALKALI    = $LVL_ALKALI
   LVL_SILICA    = $LVL_SILICA
   LVL_DIC       = $LVL_DIC

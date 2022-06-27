@@ -52,7 +52,8 @@
       use mo_control_bgc, only: io_stdo_bgc,dtb
       use mo_param1_bgc,  only: ialkali,ianh4,iano2,ian2o,iano3,idet,igasnit,iiron,ioxygen,iphosph,isco212
       use mo_carbch,      only: ocetra
-      use mo_biomod,      only: riron,rnit,rcar,rnoi
+      use mo_biomod,      only: riron,rnit,rcar,rnoi, nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2, &
+                              & denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod
 
       implicit none
 
@@ -191,6 +192,13 @@
       minlim_nh4    = bkanh4nitr*minlim/(1. - minlim) 
       minlim_no2    = bkano2nitr*minlim/(1. - minlim)
 
+      ! Set output-related fields to zero
+      nitr_NH4      = 0.
+      nitr_NO2      = 0.
+      nitr_N2O_prod = 0.
+      nitr_NH4_OM   = 0.
+      nitr_NO2_OM   = 0.
+
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4,   & 
       !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2,amoxfrac,   &
       !$OMP                     nitrfrac,totd,amox,nitr,temp)
@@ -276,6 +284,13 @@
            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - ro2nnit*fdetamox)*amox   &
                                  &                       - (0.5*fno3 - ro2nnit*fdetnitr)*nitr
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
+
+           ! Output
+           nitr_NH4(i,j,k)       = amox               ! kmol N/m3/dtb   - NH4 consumption for nitrification on NH4-incl. usage for biomass
+           nitr_NO2(i,j,k)       = nitr               ! kmol N/m3/dtb   - NO2 consumption for nitrification on NO2
+           nitr_N2O_prod(i,j,k)  = 0.5*fn2o*amox      ! kmol N2O/m3/dtb - N2O production during aerob ammonium oxidation
+           nitr_NH4_OM(i,j,k)    = rnoi*fdetamox*amox ! kmol P/m3/dtb   - organic matter production during aerob NH4 oxidation
+           nitr_NO2_OM(i,j,k)    = rnoi*fdetnitr*nitr ! kmol P/m3/dtb   - organic matter production during aerob NO2 oxidation
          endif
         enddo
        enddo
@@ -302,6 +317,9 @@
       minlim_ox  = log(2./minlim-1.)/(2.*sc_ano3denit) 
       minlim_no3 = bkano3denit*minlim/(1.-minlim)
 
+      ! Sett output-related field to zero
+      denit_NO3  = 0.
+
       !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nutlim,ano3new,ano3denit,temp)
       do j = 1,kpje
        do i = 1,kpie
@@ -324,7 +342,10 @@
             ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
             ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) + ano3denit*rnoxpi
             ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron*rnoxpi
-            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi    
+            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi
+
+            ! Output
+            denit_NO3(i,j,k) = ano3denit ! kmol NO3/m3/dtb   - NO3 usage for denit on NO3    
            endif
          endif
         enddo
@@ -353,6 +374,10 @@
       minlim_nh4 = bkanh4anmx*minlim/(1.-minlim)
       minlim_no2 = bkano2anmx*minlim/(1.-minlim) 
 
+      ! Set output-related field to zero
+      anmx_N2_prod = 0.
+      anmx_OM_prod = 0.
+
       !$OMP PARALLEL DO PRIVATE(i,k,Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp)
       do j = 1,kpje
        do i = 1,kpie
@@ -380,6 +405,10 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - ano2anmx*rno2anmxi
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - ano2anmx*riron*rno2anmxi
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*rnm1*rno2anmxi
+
+           ! Output
+           anmx_N2_prod(i,j,k) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi  ! kmol N2/m3/dtb - N2 prod through anammox
+           anmx_OM_prod(i,j,k) = ano2anmx*rno2anmxi                  ! kmol P/m3/dtb  - OM production by anammox
           endif
          endif
         enddo
@@ -414,6 +443,11 @@
       minlim_oxn2o  = bkoxan2odenit/sqrt(minlim)
       minlim_no2    = min(bkdnra,bkano2denit)*minlim/(1. - minlim)
       minlim_n2o    = bkan2odenit*minlim/(1. - minlim)
+      
+      ! Set output-related field to zero
+      denit_NO2 = 0.
+      denit_N2O = 0.
+      DNRA_NO2  = 0.
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepano2,O2inhibano2,nutlimano2,detlimano2,ano2denit,      &
       !$OMP                     Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit,  &
@@ -493,6 +527,10 @@
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron*rnoxpi*(ano2denit + an2odenit) + riron*rno2dnrai*ano2dnra
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi &
                                  &                       + (rno2dnra + rnh4dnra - 1.)*rno2dnrai * ano2dnra
+           ! Output
+           denit_NO2(i,j,k) = ano2denit ! kmol NO2/m3/dtb - denitrification on NO2
+           denit_N2O(i,j,k) = an2odenit ! kmol N2O/m3/dtb - denitrification on N2O
+           DNRA_NO2(i,j,k)  = ano2dnra  ! kmol NO2/m3/dtb - DNRA on NO2
           endif
          endif
         enddo

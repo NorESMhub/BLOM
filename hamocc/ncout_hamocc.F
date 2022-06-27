@@ -164,7 +164,31 @@ c
       use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,
      .                     jsrfano2,janh3fx,srf_anh4,srf_ano2,
      .                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,
-     .                     lvl_ano2
+     .                     lvl_ano2,
+     .                     LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,
+     .                     LYR_nitr_NH4_OM,LYR_nitr_NO2_OM,
+     .                     LYR_denit_NO3,LYR_denit_NO2,LYR_denit_N2O,
+     .                     LYR_DNRA_NO2,LYR_anmx_N2_prod,
+     .                     LYR_anmx_OM_prod,LYR_phosy_NH4,
+     .                     LYR_phosy_NO3,LYR_remin_aerob,LYR_remin_sulf, 
+     .                     LVL_nitr_NH4,LVL_nitr_NO2,LVL_nitr_N2O_prod,
+     .                     LVL_nitr_NH4_OM,LVL_nitr_NO2_OM,
+     .                     LVL_denit_NO3,LVL_denit_NO2,LVL_denit_N2O,
+     .                     LVL_DNRA_NO2,LVL_anmx_N2_prod,
+     .                     LVL_anmx_OM_prod,LVL_phosy_NH4,
+     .                     LVL_phosy_NO3,LVL_remin_aerob,LVL_remin_sulf, 
+     .                     jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,
+     .                     jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,
+     .                     jdenit_NO2,jdenit_N2O,jDNRA_NO2,
+     .                     janmx_N2_prod,janmx_OM_prod,jphosy_NH4,
+     .                     jphosy_NO3,jremin_aerob,jremin_sulf,   
+     .                     jlvl_nitr_NH4,jlvl_nitr_NO2,
+     .                     jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,
+     .                     jlvl_nitr_NO2_OM,jlvl_denit_NO3,
+     .                     jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,
+     .                     jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,
+     .                     jlvl_phosy_NH4,jlvl_phosy_NO3,
+     .                     jlvl_remin_aerob,jlvl_remin_sulf  
 #endif
 c      
       implicit none
@@ -740,6 +764,54 @@ c --- Store 3d layer fields
      .  'nh4','Ammonium',' ','mol N m-3')
       call wrtlyr(jano2(iogrp),LYR_ANO2(iogrp),1e3,0.,cmpflg,            
      .  'no2','Nitrite',' ','mol N m-3')
+      call wrtlyr(jnitr_NH4(iogrp),LYR_nitr_NH4(iogrp),1e3/dtbgc,0.,
+     .   cmpflg,            
+     .  'nh4nitr','NH4 nitrification rate',' ','mol N m-3 s-1')
+      call wrtlyr(jnitr_NO2(iogrp),LYR_nitr_NO2(iogrp),1e3/dtbgc,0.,
+     .   cmpflg,            
+     .  'no2nitr','NO2 nitrification rate',' ','mol N m-3 s-1')
+      call wrtlyr(jnitr_N2O_prod(iogrp),LYR_nitr_N2O_prod(iogrp),
+     .  1e3/dtbgc,0.,cmpflg,            
+     .  'nitr_n2o','N2O prod during NH4 nitrification',' ',
+     .  'mol N2O m-3 s-1')
+      call wrtlyr(jnitr_NH4_OM(iogrp),LYR_nitr_NH4_OM(iogrp),1e3/dtbgc,
+     .  0.,cmpflg,            
+     .  'nh4nitr_om','OM production during NH4 nitrification',' ',
+     .  'mol P m-3 s-1')
+      call wrtlyr(jnitr_NO2_OM(iogrp),LYR_nitr_NO2_OM(iogrp),1e3/dtbgc,
+     .  0.,cmpflg,            
+     .  'no2nitr_om','OM production during NO2 nitrification',' ',
+     .  'mol P m-3 s-1')
+      call wrtlyr(jdenit_NO3(iogrp),LYR_denit_NO3(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'no3denit','NO3 denitrification rate',' ','mol N m-3 s-1')
+      call wrtlyr(jdenit_NO2(iogrp),LYR_denit_NO2(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'no2denit','NO2 denitrification rate',' ','mol N m-3 s-1')
+      call wrtlyr(jdenit_N2O(iogrp),LYR_denit_N2O(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'n2odenit','N2O denitrification rate',' ','mol N2O m-3 s-1')
+      call wrtlyr(jDNRA_NO2(iogrp),LYR_DNRA_NO2(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'no2dnra','NO2 DNRA rate',' ','mol N m-3 s-1')
+      call wrtlyr(janmx_N2_prod(iogrp),LYR_anmx_N2_prod(iogrp),
+     .  1e3/dtbgc,0.,cmpflg,            
+     .  'anmx_n2','Anammox N2 production rate',' ','mol N2 m-3 s-1')
+      call wrtlyr(janmx_OM_prod(iogrp),LYR_anmx_OM_prod(iogrp),
+     .  1e3/dtbgc,0.,cmpflg,            
+     .  'anmx_om','Anammox OM production rate',' ','mol P m-3 s-1')
+      call wrtlyr(jphosy_NH4(iogrp),LYR_phosy_NH4(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'phosy_nh4','PP consumption rate of NH4',' ','mol N m-3 s-1')
+      call wrtlyr(jphosy_NO3(iogrp),LYR_phosy_NO3(iogrp),1e3/dtbgc,0.,
+     .  cmpflg,            
+     .  'phosy_no3','PP consumption rate of NO3',' ','mol N m-3 s-1')
+      call wrtlyr(jremin_aerob(iogrp),LYR_remin_aerob(iogrp),1e3/dtbgc,
+     .  0.,cmpflg,            
+     .  'remina','Aerob remineralization rate',' ','mol N m-3 s-1')
+      call wrtlyr(jremin_sulf(iogrp),LYR_remin_sulf(iogrp),1e3/dtbgc,
+     .  0.,cmpflg,            
+     .  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1')
 #endif
 c
 c --- Store 3d level fields
@@ -872,6 +944,56 @@ c --- Store 3d level fields
      .  'nh4lvl','Ammonium',' ','mol N m-3')
       call wrtlvl(jlvlano2(iogrp),LVL_ANO2(iogrp),rnacc*1e3,0.,cmpflg,      
      .  'no2lvl','Nitrite',' ','mol N m-3')
+      call wrtlvl(jlvl_nitr_NH4(iogrp),LVL_nitr_NH4(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'nh4nitrlvl','NH4 nitrification rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_nitr_NO2(iogrp),LVL_nitr_NO2(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'no2nitrlvl','NO2 nitrification rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_nitr_N2O_prod(iogrp),LVL_nitr_N2O_prod(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'nitr_n2olvl','N2O prod during NH4 nitrification',' ',
+     .  'mol N2O m-3 s-1')
+      call wrtlvl(jlvl_nitr_NH4_OM(iogrp),LVL_nitr_NH4_OM(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'nh4nitr_omlvl','OM production during NH4 nitrification',' ',
+     .  'mol P m-3 s-1')
+      call wrtlvl(jlvl_nitr_NO2_OM(iogrp),LVL_nitr_NO2_OM(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'no2nitr_omlvl','OM production during NO2 nitrification',' ',
+     .  'mol P m-3 s-1')
+      call wrtlvl(jlvl_denit_NO3(iogrp),LVL_denit_NO3(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'no3denitlvl','NO3 denitrification rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_denit_NO2(iogrp),LVL_denit_NO2(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'no2denitlvl','NO2 denitrification rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_denit_N2O(iogrp),LVL_denit_N2O(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'n2odenitlvl','N2O denitrification rate',' ','mol N2O m-3 s-1')
+      call wrtlvl(jlvl_DNRA_NO2(iogrp),LVL_DNRA_NO2(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'no2dnralvl','NO2 DNRA rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_anmx_N2_prod(iogrp),LVL_anmx_N2_prod(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'anmx_n2lvl','Anammox N2 production rate',' ','mol N2 m-3 s-1')
+      call wrtlvl(jlvl_anmx_OM_prod(iogrp),LVL_anmx_OM_prod(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'anmx_omlvl','Anammox OM production rate',' ','mol P m-3 s-1')
+      call wrtlvl(jlvl_phosy_NH4(iogrp),LVL_phosy_NH4(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'phosy_nh4lvl','PP consumption rate of NH4',' ',
+     .  'mol N m-3 s-1')
+      call wrtlvl(jlvl_phosy_NO3(iogrp),LVL_phosy_NO3(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'phosy_no3lvl','PP consumption rate of NO3',' ',
+     .  'mol N m-3 s-1')
+      call wrtlvl(jlvl_remin_aerob(iogrp),LVL_remin_aerob(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'reminalvl','Aerob remineralization rate',' ','mol N m-3 s-1')
+      call wrtlvl(jlvl_remin_sulf(iogrp),LVL_remin_sulf(iogrp),
+     .  rnacc*1e3/dtbgc,0.,cmpflg,            
+     .  'reminslvl','Sulfate remineralization rate',' ','mol P m-3 s-1')
 #endif
 
 c
@@ -1073,7 +1195,22 @@ c
 #endif
 #ifdef extNcycle
       call inilyr(janh4(iogrp),0.)       
-      call inilyr(jano2(iogrp),0.)       
+      call inilyr(jano2(iogrp),0.)      
+      call inilyr(jnitr_NH4(iogrp),0.)
+      call inilyr(jnitr_NO2(iogrp),0.)
+      call inilyr(jnitr_N2O_prod(iogrp),0.)
+      call inilyr(jnitr_NH4_OM(iogrp),0.)
+      call inilyr(jnitr_NO2_OM(iogrp),0.)
+      call inilyr(jdenit_NO3(iogrp),0.)
+      call inilyr(jdenit_NO2(iogrp),0.)
+      call inilyr(jdenit_N2O(iogrp),0.)
+      call inilyr(jDNRA_NO2(iogrp),0.)
+      call inilyr(janmx_N2_prod(iogrp),0.)
+      call inilyr(janmx_OM_prod(iogrp),0.)
+      call inilyr(jphosy_NH4(iogrp),0.)
+      call inilyr(jphosy_NO3(iogrp),0.)
+      call inilyr(jremin_aerob(iogrp),0.)
+      call inilyr(jremin_sulf(iogrp),0.) 
 #endif
 c
       call inilvl(jlvldic(iogrp),0.)
@@ -1140,6 +1277,21 @@ c
 #ifdef extNcycle
       call inilvl(jlvlanh4(iogrp),0.)  
       call inilvl(jlvlano2(iogrp),0.)  
+      call inilvl(jlvl_nitr_NH4(iogrp),0.)
+      call inilvl(jlvl_nitr_NO2(iogrp),0.)
+      call inilvl(jlvl_nitr_N2O_prod(iogrp),0.)
+      call inilvl(jlvl_nitr_NH4_OM(iogrp),0.)
+      call inilvl(jlvl_nitr_NO2_OM(iogrp),0.)
+      call inilvl(jlvl_denit_NO3(iogrp),0.)
+      call inilvl(jlvl_denit_NO2(iogrp),0.)
+      call inilvl(jlvl_denit_N2O(iogrp),0.)
+      call inilvl(jlvl_DNRA_NO2(iogrp),0.)
+      call inilvl(jlvl_anmx_N2_prod(iogrp),0.)
+      call inilvl(jlvl_anmx_OM_prod(iogrp),0.)
+      call inilvl(jlvl_phosy_NH4(iogrp),0.)
+      call inilvl(jlvl_phosy_NO3(iogrp),0.)
+      call inilvl(jlvl_remin_aerob(iogrp),0.)
+      call inilvl(jlvl_remin_sulf(iogrp),0.) 
 #endif
 c
 #ifndef sedbypass
@@ -1231,7 +1383,31 @@ c
       use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,
      .                     jsrfano2,janh3fx,srf_anh4,srf_ano2,
      .                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,
-     .                     lvl_ano2
+     .                     lvl_ano2,
+     .                     LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,
+     .                     LYR_nitr_NH4_OM,LYR_nitr_NO2_OM,
+     .                     LYR_denit_NO3,LYR_denit_NO2,LYR_denit_N2O,
+     .                     LYR_DNRA_NO2,LYR_anmx_N2_prod,
+     .                     LYR_anmx_OM_prod,LYR_phosy_NH4,
+     .                     LYR_phosy_NO3,LYR_remin_aerob,LYR_remin_sulf, 
+     .                     LVL_nitr_NH4,LVL_nitr_NO2,LVL_nitr_N2O_prod,
+     .                     LVL_nitr_NH4_OM,LVL_nitr_NO2_OM,
+     .                     LVL_denit_NO3,LVL_denit_NO2,LVL_denit_N2O,
+     .                     LVL_DNRA_NO2,LVL_anmx_N2_prod,
+     .                     LVL_anmx_OM_prod,LVL_phosy_NH4,
+     .                     LVL_phosy_NO3,LVL_remin_aerob,LVL_remin_sulf, 
+     .                     jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,
+     .                     jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,
+     .                     jdenit_NO2,jdenit_N2O,jDNRA_NO2,
+     .                     janmx_N2_prod,janmx_OM_prod,jphosy_NH4,
+     .                     jphosy_NO3,jremin_aerob,jremin_sulf,
+     .                     jlvl_nitr_NH4,jlvl_nitr_NO2,
+     .                     jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,
+     .                     jlvl_nitr_NO2_OM,jlvl_denit_NO3,
+     .                     jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,
+     .                     jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,
+     .                     jlvl_phosy_NH4,jlvl_phosy_NO3,
+     .                     jlvl_remin_aerob,jlvl_remin_sulf      
 #endif
       implicit none
 
@@ -1549,6 +1725,39 @@ c --- define 3d layer fields
      .  'nh4','Ammonium',' ','mol N m-3',1)
       call ncdefvar3d(LYR_ANO2(iogrp),cmpflg,'p',      
      .  'no2','Nitrite',' ','mol N m-3',1)
+      call ncdefvar3d(LYR_nitr_NH4(iogrp),cmpflg,'p',            
+     .  'nh4nitr','NH4 nitrification rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_nitr_NO2(iogrp),cmpflg,'p',            
+     .  'no2nitr','NO2 nitrification rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_nitr_N2O_prod(iogrp),cmpflg,'p',            
+     .  'nitr_n2o','N2O prod during NH4 nitrification',' ',
+     .  'mol N2O m-3 s-1',1)
+      call ncdefvar3d(LYR_nitr_NH4_OM(iogrp),cmpflg,'p',            
+     .  'nh4nitr_om','OM production during NH4 nitrification',' ',
+     .  'mol P m-3 s-1',1)
+      call ncdefvar3d(LYR_nitr_NO2_OM(iogrp),cmpflg,'p',            
+     .  'no2nitr_om','OM production during NO2 nitrification',' ',
+     .  'mol P m-3 s-1',1)
+      call ncdefvar3d(LYR_denit_NO3(iogrp),cmpflg,'p',            
+     .  'no3denit','NO3 denitrification rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_denit_NO2(iogrp),cmpflg,'p',            
+     .  'no2denit','NO2 denitrification rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_denit_N2O(iogrp),cmpflg,'p',            
+     .  'n2odenit','N2O denitrification rate',' ','mol N2O m-3 s-1',1)
+      call ncdefvar3d(LYR_DNRA_NO2(iogrp),cmpflg,'p',            
+     .  'no2dnra','NO2 DNRA rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_anmx_N2_prod(iogrp),cmpflg,'p',            
+     .  'anmx_n2','Anammox N2 production rate',' ','mol N2 m-3 s-1',1)
+      call ncdefvar3d(LYR_anmx_OM_prod(iogrp),cmpflg,'p',            
+     .  'anmx_om','Anammox OM production rate',' ','mol P m-3 s-1',1)
+      call ncdefvar3d(LYR_phosy_NH4(iogrp),cmpflg,'p',            
+     .  'phosy_nh4','PP consumption rate of NH4',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_phosy_NO3(iogrp),cmpflg,'p',            
+     .  'phosy_no3','PP consumption rate of NO3',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_remin_aerob(iogrp),cmpflg,'p',            
+     .  'remina','Aerob remineralization rate',' ','mol N m-3 s-1',1)
+      call ncdefvar3d(LYR_remin_sulf(iogrp),cmpflg,'p',            
+     .  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1',1)
 #endif
 c
 c --- define 3d level fields
@@ -1669,6 +1878,46 @@ c --- define 3d level fields
      .  'nh4lvl','Ammonium',' ','mol N m-3',2)
       call ncdefvar3d(LVL_ANO2(iogrp),cmpflg,'p',      
      .  'no2lvl','Nitrite',' ','mol N m-3',2)
+
+      call ncdefvar3d(LVL_nitr_NH4(iogrp),cmpflg,'p',            
+     .  'nh4nitrlvl','NH4 nitrification rate',' ','mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_nitr_NO2(iogrp),cmpflg,'p',            
+     .  'no2nitrlvl','NO2 nitrification rate',' ','mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_nitr_N2O_prod(iogrp),cmpflg,'p',            
+     .  'nitr_n2olvl','N2O prod during NH4 nitrification',' ',
+     .  'mol N2O m-3 s-1',2)
+      call ncdefvar3d(LVL_nitr_NH4_OM(iogrp),cmpflg,'p',            
+     .  'nh4nitr_omlvl','OM production during NH4 nitrification',' ',
+     .  'mol P m-3 s-1',2)
+      call ncdefvar3d(LVL_nitr_NO2_OM(iogrp),cmpflg,'p',            
+     .  'no2nitr_omlvl','OM production during NO2 nitrification',' ',
+     .  'mol P m-3 s-1',2)
+      call ncdefvar3d(LVL_denit_NO3(iogrp),cmpflg,'p',            
+     .  'no3denitlvl','NO3 denitrification rate',' ','mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_denit_NO2(iogrp),cmpflg,'p',            
+     .  'no2denitlvl','NO2 denitrification rate',' ','mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_denit_N2O(iogrp),cmpflg,'p',            
+     .  'n2odenitlvl','N2O denitrification rate',' ',
+     .  'mol N2O m-3 s-1',2)
+      call ncdefvar3d(LVL_DNRA_NO2(iogrp),cmpflg,'p',            
+     .  'no2dnralvl','NO2 DNRA rate',' ','mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_anmx_N2_prod(iogrp),cmpflg,'p',            
+     .  'anmx_n2lvl','Anammox N2 production rate',' ',
+     .  'mol N2 m-3 s-1',2)
+      call ncdefvar3d(LVL_anmx_OM_prod(iogrp),cmpflg,'p',            
+     .  'anmx_omlvl','Anammox OM production rate',' ','mol P m-3 s-1',2)
+      call ncdefvar3d(LVL_phosy_NH4(iogrp),cmpflg,'p',            
+     .  'phosy_nh4lvl','PP consumption rate of NH4',' ',
+     .  'mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_phosy_NO3(iogrp),cmpflg,'p',            
+     .  'phosy_no3lvl','PP consumption rate of NO3',' ',
+     .  'mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_remin_aerob(iogrp),cmpflg,'p',            
+     .  'reminalvl','Aerob remineralization rate',' ',
+     .  'mol N m-3 s-1',2)
+      call ncdefvar3d(LVL_remin_sulf(iogrp),cmpflg,'p',            
+     .  'reminslvl','Sulfate remineralization rate',' ',
+     .  'mol P m-3 s-1',2)
 #endif
 c
 c --- define sediment fields

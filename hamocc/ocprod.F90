@@ -124,6 +124,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
   use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
   use mo_param1_bgc,  only: ianh4
+  use mo_biomod,      only: phosy_NH4, phosy_NO3, remin_aerob,remin_sulf
 #endif
 
 
@@ -237,6 +238,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #ifdef AGG
   eps3d(:,:,:)    = 0.
   asize3d(:,:,:)  = 0.
+#endif
+#ifdef extNcycle
+  phosy_NH4(:,:,:)   = 0.
+  phosy_NO3(:,:,:)   = 0.
+  remin_aerob(:,:,:) = 0.
+  remin_sulf(:,:,:)  = 0.
 #endif
 
 ! parameter for DMS scheme (dmspar defined in BELEG_PARM)
@@ -490,6 +497,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) + nh4uptfrac*phosy*ro2utammo             & ! NH4 uptake
                               &                       + (1.-nh4uptfrac)*phosy*ro2ut            & ! NO3 uptake
                               &                       - (dtr+phosy)*ro2utammo                    ! Remin to NH4
+        ! Output
+        phosy_NH4(i,j,k)   =  nh4uptfrac*phosy*rnit      ! kmol N/m3/dtb - NH4 uptake during PP growth
+        phosy_NO3(i,j,k)   = (1.-nh4uptfrac)*phosy*rnit  ! kmol N/m3/dtb - NO3 uptake during PP growth
+        remin_aerob(i,j,k) = (dtr+phosy)*rnit            ! kmol N/m3/dtb - Aerob remin to ammonium  (var. sources)
 #endif
         ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+export
         ocetra(i,j,k,idms) = ocetra(i,j,k,idms)+dmsprod-dms_bac-dms_uv
@@ -700,6 +711,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,ianh4) = ocetra(i,j,k,ianh4) + remin*rnit
         ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (rnit-1.)*remin
         ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - ro2utammo*remin
+        remin_aerob(i,j,k)  = remin*rnit ! kmol/NH4/dtb - remin to NH4 from various sources
 #endif
         ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+rcar*remin
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+remin*riron           &
@@ -926,7 +938,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+rcar*rem13
            ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+rcar*rem14
 #endif
-
+#ifdef extNcycle
+           ! Output
+           remin_sulf(i,j,k) = remin ! kmol P/m3/dtb
+#endif
 #ifdef AGG
 !***********************************************************************
 ! loss of snow numbers due to remineralization of poc

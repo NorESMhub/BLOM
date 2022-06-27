@@ -121,7 +121,13 @@
      & LYR_D13C      =0    ,LYR_D14C      =0    ,LYR_BIGD14C   =0    ,  &
      & LYR_POC13     =0    ,LYR_DOC13     =0    ,LYR_CALC13    =0    ,  &
      & LYR_PHYTO13   =0    ,LYR_GRAZER13  =0    ,                       &
+     ! extNcycle LYR
      & LYR_ANH4      =0    ,LYR_ANO2      =0    ,                       &
+     & LYR_nitr_NH4  =0    ,LYR_nitr_NO2  =0    ,LYR_nitr_N2O_prod =0,  &
+     & LYR_nitr_NH4_OM =0  ,LYR_nitr_NO2_OM =0  ,LYR_denit_NO3     =0,  &
+     & LYR_denit_NO2 = 0   ,LYR_denit_N2O = 0   ,LYR_DNRA_NO2      =0,  &
+     & LYR_anmx_N2_prod=0  ,LYR_anmx_OM_prod=0  ,LYR_phosy_NH4     =0,  &
+     & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  & 
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
      & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -141,7 +147,13 @@
      & LVL_D13C      =0    ,LVL_D14C      =0    ,LVL_BIGD14C   =0    ,  &
      & LVL_POC13     =0    ,LVL_DOC13     =0    ,LVL_CALC13    =0    ,  &
      & LVL_PHYTO13   =0    ,LVL_GRAZER13  =0    ,                       &
+     ! extNcycle LVL
      & LVL_ANH4      =0    ,LVL_ANO2      =0    ,                       &
+     & LVL_nitr_NH4  =0    ,LVL_nitr_NO2  =0    ,LVL_nitr_N2O_prod =0,  &
+     & LVL_nitr_NH4_OM =0  ,LVL_nitr_NO2_OM =0  ,LVL_denit_NO3     =0,  &
+     & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
+     & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
+     & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  & 
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
@@ -199,6 +211,11 @@
      & LYR_PHYTO13       ,LYR_GRAZER13      ,LYR_POC13         ,        &
      & LYR_DOC13         ,LYR_CALC13        ,                           &
      & LYR_ANH4          ,LYR_ANO2          ,                           &
+     & LYR_nitr_NH4      ,LYR_nitr_NO2      ,LYR_nitr_N2O_prod ,        &
+     & LYR_nitr_NH4_OM   ,LYR_nitr_NO2_OM   ,LYR_denit_NO3     ,        &
+     & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
+     & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
+     & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        & 
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -219,6 +236,11 @@
      & LVL_PHYTO13       ,LVL_GRAZER13      ,LVL_POC13         ,        &
      & LVL_DOC13         ,LVL_CALC13        ,                           &
      & LVL_ANH4          ,LVL_ANO2          ,                           &
+     & LVL_nitr_NH4      ,LVL_nitr_NO2      ,LVL_nitr_N2O_prod ,        &
+     & LVL_nitr_NH4_OM   ,LVL_nitr_NO2_OM   ,LVL_denit_NO3     ,        &
+     & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
+     & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
+     & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        & 
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -470,8 +492,38 @@
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          janh4      = 0 ,                                        &
      &          jano2      = 0 ,                                        &
+     &          jnitr_NH4          = 0 ,                                &
+     &          jnitr_NO2          = 0 ,                                &
+     &          jnitr_N2O_prod     = 0 ,                                &
+     &          jnitr_NH4_OM       = 0 ,                                &
+     &          jnitr_NO2_OM       = 0 ,                                &
+     &          jdenit_NO3         = 0 ,                                &
+     &          jdenit_NO2         = 0 ,                                &
+     &          jdenit_N2O         = 0 ,                                &
+     &          jDNRA_NO2          = 0 ,                                &
+     &          janmx_N2_prod      = 0 ,                                &
+     &          janmx_OM_prod      = 0 ,                                &
+     &          jphosy_NH4         = 0 ,                                &
+     &          jphosy_NO3         = 0 ,                                &
+     &          jremin_aerob       = 0 ,                                &
+     &          jremin_sulf        = 0,                                 & 
      &          jlvlanh4   = 0 ,                                        &
-     &          jlvlano2   = 0 
+     &          jlvlano2   = 0 ,                                        &  
+     &          jlvl_nitr_NH4      = 0 ,                                &
+     &          jlvl_nitr_NO2      = 0 ,                                &
+     &          jlvl_nitr_N2O_prod = 0 ,                                &
+     &          jlvl_nitr_NH4_OM   = 0 ,                                &
+     &          jlvl_nitr_NO2_OM   = 0 ,                                &
+     &          jlvl_denit_NO3     = 0 ,                                &
+     &          jlvl_denit_NO2     = 0 ,                                &
+     &          jlvl_denit_N2O     = 0 ,                                &
+     &          jlvl_DNRA_NO2      = 0 ,                                &
+     &          jlvl_anmx_N2_prod  = 0 ,                                &
+     &          jlvl_anmx_OM_prod  = 0 ,                                &
+     &          jlvl_phosy_NH4     = 0 ,                                &
+     &          jlvl_phosy_NO3     = 0 ,                                &
+     &          jlvl_remin_aerob   = 0 ,                                &
+     &          jlvl_remin_sulf    = 0 
 
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
@@ -883,6 +935,36 @@
         janh4(n)=i_bsc_m3d*min(1,LYR_ANH4(n))
         IF (LYR_ANO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jano2(n)=i_bsc_m3d*min(1,LYR_ANO2(n))
+        IF (LYR_nitr_NH4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NH4(n)=i_bsc_m3d*min(1,LYR_nitr_NH4(n))
+        IF (LYR_nitr_NO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NO2(n)=i_bsc_m3d*min(1,LYR_nitr_NO2(n))
+        IF (LYR_nitr_N2O_prod(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_N2O_prod(n)=i_bsc_m3d*min(1,LYR_nitr_N2O_prod(n))
+        IF (LYR_nitr_NH4_OM(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NH4_OM(n)=i_bsc_m3d*min(1,LYR_nitr_NH4_OM(n))
+        IF (LYR_nitr_NO2_OM(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jnitr_NO2_OM(n)=i_bsc_m3d*min(1,LYR_nitr_NO2_OM(n))
+        IF (LYR_denit_NO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_NO3(n)=i_bsc_m3d*min(1,LYR_denit_NO3(n))
+        IF (LYR_denit_NO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_NO2(n)=i_bsc_m3d*min(1,LYR_denit_NO2(n))
+        IF (LYR_denit_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdenit_N2O(n)=i_bsc_m3d*min(1,LYR_denit_N2O(n))
+        IF (LYR_DNRA_NO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jDNRA_NO2(n)=i_bsc_m3d*min(1,LYR_DNRA_NO2(n))
+        IF (LYR_anmx_N2_prod(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        janmx_N2_prod(n)=i_bsc_m3d*min(1,LYR_anmx_N2_prod(n))
+        IF (LYR_anmx_OM_prod(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        janmx_OM_prod(n)=i_bsc_m3d*min(1,LYR_anmx_OM_prod(n))
+        IF (LYR_phosy_NH4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jphosy_NH4(n)=i_bsc_m3d*min(1,LYR_phosy_NH4(n))
+        IF (LYR_phosy_NO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jphosy_NO3(n)=i_bsc_m3d*min(1,LYR_phosy_NO3(n))
+        IF (LYR_remin_aerob(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jremin_aerob(n)=i_bsc_m3d*min(1,LYR_remin_aerob(n))
+        IF (LYR_remin_sulf(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
 #endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
@@ -1002,6 +1084,36 @@
         jlvlanh4(n)=ilvl_bsc_m3d*min(1,LVL_ANH4(n))
         IF (LVL_ANO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlano2(n)=ilvl_bsc_m3d*min(1,LVL_ANO2(n))
+        IF (LVL_nitr_NH4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NH4(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NH4(n))
+        IF (LVL_nitr_NO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NO2(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NO2(n))
+        IF (LVL_nitr_N2O_prod(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_N2O_prod(n)=ilvl_bsc_m3d*min(1,LVL_nitr_N2O_prod(n))
+        IF (LVL_nitr_NH4_OM(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NH4_OM(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NH4_OM(n))
+        IF (LVL_nitr_NO2_OM(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_nitr_NO2_OM(n)=ilvl_bsc_m3d*min(1,LVL_nitr_NO2_OM(n))
+        IF (LVL_denit_NO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_NO3(n)=ilvl_bsc_m3d*min(1,LVL_denit_NO3(n))
+        IF (LVL_denit_NO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_NO2(n)=ilvl_bsc_m3d*min(1,LVL_denit_NO2(n))
+        IF (LVL_denit_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_denit_N2O(n)=ilvl_bsc_m3d*min(1,LVL_denit_N2O(n))
+        IF (LVL_DNRA_NO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_DNRA_NO2(n)=ilvl_bsc_m3d*min(1,LVL_DNRA_NO2(n))
+        IF (LVL_anmx_N2_prod(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_anmx_N2_prod(n)=ilvl_bsc_m3d*min(1,LVL_anmx_N2_prod(n))
+        IF (LVL_anmx_OM_prod(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_anmx_OM_prod(n)=ilvl_bsc_m3d*min(1,LVL_anmx_OM_prod(n))
+        IF (LVL_phosy_NH4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_phosy_NH4(n)=ilvl_bsc_m3d*min(1,LVL_phosy_NH4(n))
+        IF (LVL_phosy_NO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_phosy_NO3(n)=ilvl_bsc_m3d*min(1,LVL_phosy_NO3(n))
+        IF (LVL_remin_aerob(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_remin_aerob(n)=ilvl_bsc_m3d*min(1,LVL_remin_aerob(n))
+        IF (LVL_remin_sulf(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
 #endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
