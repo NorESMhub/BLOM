@@ -182,7 +182,7 @@
       !local variables
       integer :: i,j,k
       real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4 
-      real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2
+      real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,no2fdetamox
       real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp
 
       real    :: minlim_oxnh4,minlim_nh4,minlim_oxno2,minlim_no2 ! minimum conc for limitation functions 
@@ -200,8 +200,8 @@
       nitr_NO2_OM   = 0.
 
       !$OMP PARALLEL DO PRIVATE(i,k,Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4,   & 
-      !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,fno3,ftotno2,amoxfrac,   &
-      !$OMP                     nitrfrac,totd,amox,nitr,temp)
+      !$OMP                     Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,amoxfrac,        &
+      !$OMP                     nitrfrac,totd,amox,nitr,temp,no2fn2o,no2fno2,no2fdetamox)
 
       do j = 1,kpje
        do i = 1,kpie
@@ -212,7 +212,6 @@
            fno2        = 0.
            fdetamox    = 0.
            potdno2nitr = 0.
-           fno3        = 0.
            fdetnitr    = 0.
 
            if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
@@ -247,29 +246,29 @@
             potdno2nitr = max(0.,ocetra(i,j,k,iano2) - ano2new)
 
             ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
-            fno3     = fno2 + fn2o! no N2O prod in this step - NO2 enters instead NO3
-            fdetnitr = fdetamox
+            no2fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+            no2fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
+            no2fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
+                     & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
 
-            ! normalization of pathway splitting functions for NO2 nitrification
-            ftotno2  = fno2 + fdetamox + eps
-            fno3     = fno3/ftotno2
-            fdetnitr = 1. - fno3
+            fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
            endif
 
            ! limitation of the two processes through available nutrients, etc.
            totd     = potdnh4amox + potdno2nitr
            amoxfrac = potdnh4amox/(totd + eps)
            nitrfrac = 1. - amoxfrac
+           
            totd     = max(0.,                                                                                                      &
                     &   min(totd,                                                                                                  &
-                    &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetamox*nitrfrac + eps),                                              & ! ammonium
+                    &       ocetra(i,j,k,ianh4)/(amoxfrac + fdetnitr*nitrfrac + eps),                                              & ! ammonium
                     &       ocetra(i,j,k,isco212)/(rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                            & ! CO2
-                    &       ocetra(i,j,k,iphosph)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*rnoi + eps),                            & ! PO4
-                    &       ocetra(i,j,k,iiron)/((fdetamox*amoxfrac + fdetnitr*nitrfrac)*riron*rnoi + eps),                        & ! Fe
+                    &       ocetra(i,j,k,iphosph)/(rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                            & ! PO4
+                    &       ocetra(i,j,k,iiron)/(riron*rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                        & ! Fe
                     &       ocetra(i,j,k,ioxygen)                                                                                  &
-                    &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac + (0.5*fno3 - ro2nnit*fdetnitr)*nitrfrac +eps),        & ! O2
+                    &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),            & ! O2
                     &       ocetra(i,j,k,ialkali)                                                                                  &
-                    &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                   ! alkalinity
+                    &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                ! alkalinity
            amox     = amoxfrac*totd 
            nitr     = nitrfrac*totd
 
@@ -282,7 +281,7 @@
            ocetra(i,j,k,iphosph) = ocetra(i,j,k,iphosph) - rnoi*(fdetamox*amox + fdetnitr*nitr)
            ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron*rnoi*(fdetamox*amox + fdetnitr*nitr)
            ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen) - (1.5*fno2 + fn2o - ro2nnit*fdetamox)*amox   &
-                                 &                       - (0.5*fno3 - ro2nnit*fdetnitr)*nitr
+                                 &                       - (0.5 - ro2nnit*fdetnitr)*nitr
            ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
 
            ! Output
@@ -291,6 +290,7 @@
            nitr_N2O_prod(i,j,k)  = 0.5*fn2o*amox      ! kmol N2O/m3/dtb - N2O production during aerob ammonium oxidation
            nitr_NH4_OM(i,j,k)    = rnoi*fdetamox*amox ! kmol P/m3/dtb   - organic matter production during aerob NH4 oxidation
            nitr_NO2_OM(i,j,k)    = rnoi*fdetnitr*nitr ! kmol P/m3/dtb   - organic matter production during aerob NO2 oxidation
+       
          endif
         enddo
        enddo
