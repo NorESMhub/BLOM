@@ -334,6 +334,21 @@ c --- finalize accumulation
 #ifdef extNcycle
       call finlyr(janh4(iogrp),jdp(iogrp))
       call finlyr(jano2(iogrp),jdp(iogrp))
+      call finlyr(jnitr_NH4(iogrp),jdp(iogrp))
+      call finlyr(jnitr_NO2(iogrp),jdp(iogrp))
+      call finlyr(jnitr_N2O_prod(iogrp),jdp(iogrp))
+      call finlyr(jnitr_NH4_OM(iogrp),jdp(iogrp))
+      call finlyr(jnitr_NO2_OM(iogrp),jdp(iogrp))
+      call finlyr(jdenit_NO3(iogrp),jdp(iogrp))
+      call finlyr(jdenit_NO2(iogrp),jdp(iogrp))
+      call finlyr(jdenit_N2O(iogrp),jdp(iogrp))
+      call finlyr(jDNRA_NO2(iogrp),jdp(iogrp))
+      call finlyr(janmx_N2_prod(iogrp),jdp(iogrp))
+      call finlyr(janmx_OM_prod(iogrp),jdp(iogrp))
+      call finlyr(jphosy_NH4(iogrp),jdp(iogrp))
+      call finlyr(jphosy_NO3(iogrp),jdp(iogrp))
+      call finlyr(jremin_aerob(iogrp),jdp(iogrp))
+      call finlyr(jremin_sulf(iogrp),jdp(iogrp))
 #endif
 
 c
@@ -419,6 +434,21 @@ c --- Mask sea floor in level data
 #ifdef extNcycle
       call msklvl(jlvlanh4(iogrp),depths)
       call msklvl(jlvlano2(iogrp),depths)
+      call msklvl(jlvl_nitr_NH4(iogrp),depths)
+      call msklvl(jlvl_nitr_NO2(iogrp),depths)
+      call msklvl(jlvl_nitr_N2O_prod(iogrp),depths)
+      call msklvl(jlvl_nitr_NH4_OM(iogrp),depths)
+      call msklvl(jlvl_nitr_NO2_OM(iogrp),depths)
+      call msklvl(jlvl_denit_NO3(iogrp),depths)
+      call msklvl(jlvl_denit_NO2(iogrp),depths)
+      call msklvl(jlvl_denit_N2O(iogrp),depths)
+      call msklvl(jlvl_DNRA_NO2(iogrp),depths)
+      call msklvl(jlvl_anmx_N2_prod(iogrp),depths)
+      call msklvl(jlvl_anmx_OM_prod(iogrp),depths)
+      call msklvl(jlvl_phosy_NH4(iogrp),depths)
+      call msklvl(jlvl_phosy_NO3(iogrp),depths)
+      call msklvl(jlvl_remin_aerob(iogrp),depths)
+      call msklvl(jlvl_remin_sulf(iogrp),depths)
 #endif
 
 c
