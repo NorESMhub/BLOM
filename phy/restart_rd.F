@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin,
 !                         Jörg Schwinger
 !
@@ -29,8 +29,10 @@ c
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid
       use mod_inicon, only: icfile
-      use mod_state, only: u, v, dp, temp, saln, sigma,
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     phi, ubflxs, vbflxs,
      .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
@@ -46,6 +48,8 @@ c
      .                       prfac, eiacc, pracc,
      .                       flxco2, flxdms, flxbrf, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_difest, only: OBLdepth
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -397,7 +401,6 @@ c
       call ncread('phi',phi(1-nbdy,1-nbdy,kk+1),ip,1,0.)
       call ncread('sealv',sealv,ip,1,0.)
       call ncread('ustar',ustar,ip,1,0.)
-      call ncread('buoyfl',buoyfl,ip,1,0.)
       call ncread('kfpla',rkfpla,ip,1,0.)
       call ncread('ficem',ficem,ip,1,0.)
 c
@@ -443,6 +446,17 @@ c
      .   'Warning: field ''vmlres'' is not read from restart file and'
         write (lp,*)
      .   'will be initialized to zero.'
+      endif
+c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call ncread('buoyfl',buoyfl,ip,1,0.)
+      endif
+c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call ncread('dpu',dpu,iu,1,0.)
+        call ncread('dpv',dpv,iv,1,0.)
+        call ncread('difiso',difiso,ip,1,0.)
+        call ncread('OBLdepth',OBLdepth,ip,1,0.)
       endif
 c
       if (sprfac) then
@@ -663,14 +677,6 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu,1,0.)
             if (ACC_TAUY(n).ne.0) call ncread('tauy_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv,1,0.)
-            if (ACC_MXLU(n).ne.0) call ncread('mxlu_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu,1,0.)
-            if (ACC_MXLV(n).ne.0) call ncread('mxlv_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv,1,0.)
-            if (ACC_MLDU(n).ne.0) call ncread('mldu_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu,1,0.)
-            if (ACC_MLDV(n).ne.0) call ncread('mldv_phy'//c2,
-     .        phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv,1,0.)
             if (ACC_UICE(n).ne.0) call ncread('uice_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu,1,0.)
             if (ACC_VICE(n).ne.0) call ncread('vice_phy'//c2,

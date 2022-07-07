@@ -25,7 +25,9 @@ c --- ------------------------------------------------------------------
 c
       use mod_config, only: expcnf
       use mod_xc, only: lp, mnproc, xcstop
+      use mod_vcoord, only: vcoord_type_tag, cntiso_hybrid
       use mod_tidaldissip, only: read_tidaldissip
+      use mod_difest, only: init_difest
 c
       implicit none
 c
@@ -43,6 +45,10 @@ c
         endif
         call xcstop('(iniphy)')
                stop '(iniphy)'
+      endif
+c
+      if (vcoord_type_tag == cntiso_hybrid) then
+        call init_difest
       endif
 c
       return

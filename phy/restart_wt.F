@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2021 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
 !                         Aleksi Nummelin, Jörg Schwinger
 !
@@ -28,7 +28,9 @@ c
       use mod_config, only: expcnf, runid, inst_suffix
       use mod_time, only: date0, date, nstep, nstep_in_day, nday_of_year
       use mod_xc
-      use mod_state, only: u, v, dp, temp, saln, sigma,
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid
+      use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     phi, ubflxs, vbflxs,
      .                     ub, vb, pb, pbu, pbv, ubflxs_p, vbflxs_p,
@@ -44,6 +46,8 @@ c
      .                       prfac, eiacc, pracc,
      .                       flxco2, flxdms, ustarb, buoyfl,flxbrf
       use mod_niw, only: uml, vml, umlres, vmlres
+      use mod_difest, only: OBLdepth
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -187,6 +191,7 @@ c$OMP END PARALLEL DO
       call ncdims('k3',3)
       call ncdims('k4',4)
       call ncdims('kk',kk)
+      call ncdims('kkp1',kk+1)
       call ncdims('kk2',2*kk)
       call ncdims('plev',ddm)
       call ncputr('plev',depthslev)
@@ -278,13 +283,23 @@ c
       call wrtrst('phi',trim(c5p)//' time',phi(1-nbdy,1-nbdy,kk+1),ip)
       call wrtrst('sealv',trim(c5p)//' time',sealv,ip)
       call wrtrst('ustar',trim(c5p)//' time',ustar,ip)
-      call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
       call wrtrst('kfpla',trim(c5p)//' k2 time',rkfpla,ip)
       call wrtrst('ficem',trim(c5p)//' time',ficem,ip)
       call wrtrst('uml',trim(c5u)//' k4 time',uml,iuu)
       call wrtrst('vml',trim(c5v)//' k4 time',vml,ivv)
       call wrtrst('umlres',trim(c5u)//' k2 time',umlres,iuu)
       call wrtrst('vmlres',trim(c5v)//' k2 time',vmlres,ivv)
+c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call wrtrst('buoyfl',trim(c5p)//' time',buoyfl,ip)
+      endif
+c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call wrtrst('dpu',trim(c5p)//' kk2 time',dpu,iu)
+        call wrtrst('dpv',trim(c5p)//' kk2 time',dpv,iv)
+        call wrtrst('difiso',trim(c5p)//' kk time',difiso,ip)
+        call wrtrst('OBLdepth',trim(c5p)//' time',OBLdepth,ip)
+      endif
 c
       if (sprfac) then
         call wrtrst('eiacc',trim(c5p)//' time',eiacc,ip)
@@ -382,14 +397,6 @@ c --- write accumulated fields
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUX(n)),iuu)
           if (ACC_TAUY(n)  .ne.0) call wrtrst('tauy_phy'//c2,
      .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_TAUY(n)),ivv)
-          if (ACC_MXLU(n)  .ne.0) call wrtrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLU(n)),iuu)
-          if (ACC_MXLV(n)  .ne.0) call wrtrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MXLV(n)),ivv)
-          if (ACC_MLDU(n)  .ne.0) call wrtrst('mldu_phy'//c2,
-     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLDU(n)),iuu)
-          if (ACC_MLDV(n)  .ne.0) call wrtrst('mldv_phy'//c2,
-     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MLDV(n)),ivv)
           if (ACC_UICE(n)  .ne.0) call wrtrst('uice_phy'//c2,
      .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_UICE(n)),iuu)
           if (ACC_VICE(n)  .ne.0) call wrtrst('vice_phy'//c2,
@@ -880,13 +887,23 @@ c
       call defvarrst('phi',trim(c5p)//' time')
       call defvarrst('sealv',trim(c5p)//' time')
       call defvarrst('ustar',trim(c5p)//' time')
-      call defvarrst('buoyfl',trim(c5p)//' time')
       call defvarrst('kfpla',trim(c5p)//' k2 time')
       call defvarrst('ficem',trim(c5p)//' time')
       call defvarrst('uml',trim(c5u)//' k4 time')
       call defvarrst('vml',trim(c5v)//' k4 time')
       call defvarrst('umlres',trim(c5u)//' k2 time')
       call defvarrst('vmlres',trim(c5v)//' k2 time')
+c
+      if (vcoord_type_tag.eq.isopyc_bulkml) then
+        call defvarrst('buoyfl',trim(c5p)//' time')
+      endif
+c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call defvarrst('dpu',trim(c5p)//' kk2 time')
+        call defvarrst('dpv',trim(c5p)//' kk2 time')
+        call defvarrst('difiso',trim(c5p)//' kk time')
+        call defvarrst('OBLdepth',trim(c5p)//' time')
+      endif
 c
       if (sprfac) then
         call defvarrst('eiacc',trim(c5p)//' time')
@@ -980,14 +997,6 @@ c --- write accumulated fields
           if (ACC_TAUX(n)  .ne.0) call defvarrst('taux_phy'//c2,
      .      trim(c5u)//' time')
           if (ACC_TAUY(n)  .ne.0) call defvarrst('tauy_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MXLU(n)  .ne.0) call defvarrst('mxlu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MXLV(n)  .ne.0) call defvarrst('mxlv_phy'//c2,
-     .      trim(c5v)//' time')
-          if (ACC_MLDU(n)  .ne.0) call defvarrst('mldu_phy'//c2,
-     .      trim(c5u)//' time')
-          if (ACC_MLDV(n)  .ne.0) call defvarrst('mldv_phy'//c2,
      .      trim(c5v)//' time')
           if (ACC_UICE(n)  .ne.0) call defvarrst('uice_phy'//c2,
      .      trim(c5u)//' time')
