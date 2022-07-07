@@ -64,6 +64,7 @@ def _main_func():
                      os.path.join(comp_root_dir_ocn, "fuk95"),
                      os.path.join(comp_root_dir_ocn, "channel"),
                      os.path.join(comp_root_dir_ocn, "single_column"),
+                     os.path.join(comp_root_dir_ocn, "pkgs", "CVMix-src", "src", "shared"),
                      os.path.join(comp_root_dir_ocn, "phy")]
 
             if turbclo != 0 and tracers != 0:
@@ -78,8 +79,7 @@ def _main_func():
                     else:
                         expect(False, "tracer module {} is not recognized".format(module))
 
-            if driver == "nuopc":
-                expect(False, "NUOPC driver not supported")
+            expect(driver != "nuopc", "NUOPC driver not supported")
             if driver == "mct":
                 paths.append(os.path.join(comp_root_dir_ocn, "drivers", "cpl_share"))
                 paths.append(os.path.join(comp_root_dir_ocn, "drivers", "cpl_mct"))

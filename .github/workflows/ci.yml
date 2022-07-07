@@ -39,6 +39,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
       - name: Build
         env:
@@ -132,6 +134,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
       - name: Build with Intel compilers
         run: |

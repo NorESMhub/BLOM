@@ -31,6 +31,15 @@
       The default is constant.</desc>
   </entry>
 
+  <entry id="BLOM_VCOORD">
+    <type>char</type>
+    <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
+    <default_value>isopyc_bulkml</default_value>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Vertical coordinate type of BLOM</desc>
+  </entry>
+
   <entry id="BLOM_TRACER_MODULES">
     <type>char</type>
     <valid_values>iage,iage ecosys</valid_values>

@@ -46,14 +46,14 @@ c
      .                       trxday, srxday, trxdpt, srxdpt, trxlim,
      .                       srxlim, srxbal, sprfac
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
-      use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
-     .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, eitmth, edritp, edwmth
+      use mod_diffusion, only: readnml_diffusion
       use mod_mxlayr, only: rm0, rm5, ce, mlrttp
       use mod_niw, only: niwgf, niwbf, niwlf
       use mod_tidaldissip, only: tdfile
       use mod_dia
       use mod_ben02, only: atm_path, atm_path_len
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
+     .                      cntiso_hybrid, readnml_vcoord
       use mod_cesm, only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl,
      .                    smtfrc
       use mod_pointtest, only: itest, jtest
@@ -70,9 +70,9 @@ c
      .  grfile,icfile,pref,baclin,batrop,
      .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,
-     .  mommth,eitmth,edritp,bmcmth,rmpmth,edwmth,mlrttp,
-     .  edsprs,egc,eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,
-     .  rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tdfile,tkepf,niwgf,niwbf,niwlf,
+     .  mommth,bmcmth,rmpmth,mlrttp,
+     .  
+     .  rm0,rm5,ce,tdfile,niwgf,niwbf,niwlf,
      .  swamth,jwtype,chlopt,ccfile,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
      .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,smtfrc,sprfac,
@@ -80,10 +80,10 @@ c
      .  itest,jtest,
      .  rstfrq,rstfmt,rstcmp,iotype
 c
-c --- read limits and diaphy namelists
+c --- read limits namelist
+c
       if (mnproc.eq.1) then
 c
-        GLB_AVEPERIO=-999
         nlfnm='ocn_in'//trim(inst_suffix)
         inquire(file=nlfnm,exist=fexist)
         if (fexist) then
@@ -101,7 +101,6 @@ c
           endif
         endif
         read (unit=nfu,nml=LIMITS)
-        read (unit=nfu,nml=DIAPHY)
         close (unit=nfu)
 c
 c --- - print limits namelist to stdout 
@@ -134,27 +133,12 @@ c --- - print limits namelist to stdout
         write (lp,*) 'CWBDTS',CWBDTS
         write (lp,*) 'CWBDLS',CWBDLS
         write (lp,*) 'MOMMTH ',trim(MOMMTH)
-        write (lp,*) 'EITMTH ',trim(EITMTH)
-        write (lp,*) 'EDRITP ',trim(EDRITP)
         write (lp,*) 'BMCMTH ',trim(BMCMTH)
         write (lp,*) 'RMPMTH ',trim(RMPMTH)
-        write (lp,*) 'EDWMTH ',trim(EDWMTH)
-        write (lp,*) 'EDSPRS ',EDSPRS
-        write (lp,*) 'EGC',EGC
-        write (lp,*) 'EGGAM',EGGAM
-        write (lp,*) 'EGLSMN',EGLSMN
-        write (lp,*) 'EGMNDF',EGMNDF
-        write (lp,*) 'EGMXDF',EGMXDF
-        write (lp,*) 'EGIDFQ',EGIDFQ
-        write (lp,*) 'RI0',RI0
         write (lp,*) 'RM0',RM0
         write (lp,*) 'RM5',RM5
         write (lp,*) 'CE',CE
-        write (lp,*) 'BDMTYP',BDMTYP
-        write (lp,*) 'BDMC1',BDMC1
-        write (lp,*) 'BDMC2',BDMC2
         write (lp,*) 'TDFILE',trim(TDFILE)
-        write (lp,*) 'TKEPF',TKEPF
         write (lp,*) 'NIWGF',NIWGF
         write (lp,*) 'NIWBF',NIWBF
         write (lp,*) 'NIWLF',NIWLF
@@ -183,18 +167,129 @@ c --- - print limits namelist to stdout
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
         write (lp,*) 'IOTYPE',IOTYPE
+        write (lp,*)
 c
-c --- - determine number of io groups and print diaphy namelist
+      endif
+c
+c --- broadcast variables set by limits namelist
+c
+      call xcbcst(nday1)
+      call xcbcst(nday2)
+      call xcbcst(idate)
+      call xcbcst(idate0)
+      call xcbcst(runid)
+      call xcbcst(expcnf)
+      call xcbcst(runtyp)
+      call xcbcst(grfile)
+      call xcbcst(icfile)
+      call xcbcst(pref)
+      call xcbcst(baclin)
+      call xcbcst(batrop)
+      call xcbcst(mdv2hi)
+      call xcbcst(mdv2lo)
+      call xcbcst(mdv4hi)
+      call xcbcst(mdv4lo)
+      call xcbcst(mdc2hi)
+      call xcbcst(mdc2lo)
+      call xcbcst(vsc2hi)
+      call xcbcst(vsc2lo)
+      call xcbcst(vsc4hi)
+      call xcbcst(vsc4lo)
+      call xcbcst(cbar)
+      call xcbcst(cb)
+      call xcbcst(cwbdts)
+      call xcbcst(cwbdls)
+      call xcbcst(mommth)
+      call xcbcst(bmcmth)
+      call xcbcst(rmpmth)
+      call xcbcst(mlrttp)
+      call xcbcst(rm0)
+      call xcbcst(rm5)
+      call xcbcst(ce)
+      call xcbcst(tdfile)
+      call xcbcst(niwgf)
+      call xcbcst(niwbf)
+      call xcbcst(niwlf)
+      call xcbcst(swamth)
+      call xcbcst(jwtype)
+      call xcbcst(chlopt)
+      call xcbcst(ccfile)
+      call xcbcst(trxday)
+      call xcbcst(srxday)
+      call xcbcst(trxdpt)
+      call xcbcst(srxdpt)
+      call xcbcst(trxlim)
+      call xcbcst(srxlim)
+      call xcbcst(aptflx)
+      call xcbcst(apsflx)
+      call xcbcst(ditflx)
+      call xcbcst(disflx)
+      call xcbcst(srxbal)
+      call xcbcst(scfile)
+      call xcbcst(smtfrc)
+      call xcbcst(sprfac)
+      call xcbcst(atm_path)
+      call xcbcst(itest)
+      call xcbcst(jtest)
+      call xcbcst(rstfrq)
+      call xcbcst(rstfmt)
+      call xcbcst(rstcmp)
+      call xcbcst(iotype)
+c
+c --- read vertical coordinate namelist variables
+      call readnml_vcoord
+c
+c --- read diffusion namelist variables
+      call readnml_diffusion
+c
+c --- read diaphy namelist
+c
+      if (mnproc.eq.1) then
+c
+        GLB_AVEPERIO(:)=-999
+        open (unit=nfu,file=nlfnm,status='old',action='read',recl=80)
+        read (unit=nfu,nml=DIAPHY,iostat=ios)
+        close (unit=nfu)
+c
+c --- - determine number of io groups
         nphy=0  
         do n=1,nphymax 
           if (GLB_AVEPERIO(n).ne.-999) nphy=nphy+1 
         enddo
+c
+c --- - modify diaphy namelist variables based on dependency with other
+c --- - variables set in namelists
+        select case (vcoord_type_tag)
+          case (isopyc_bulkml)
+            LYR_DIFVMO(1:nphy)=0
+            LYR_DIFVHO(1:nphy)=0
+            LYR_DIFVSO(1:nphy)=0
+            LVL_DIFVMO(1:nphy)=0
+            LVL_DIFVHO(1:nphy)=0
+            LVL_DIFVSO(1:nphy)=0
+          case (cntiso_hybrid)
+            H2D_IDKEDT(1:nphy)=0
+            H2D_MTKEUS(1:nphy)=0
+            H2D_MTKENI(1:nphy)=0
+            H2D_MTKEBF(1:nphy)=0
+            H2D_MTKERS(1:nphy)=0
+            H2D_MTKEPE(1:nphy)=0
+            H2D_MTKEKE(1:nphy)=0
+            LYR_DIFDIA(1:nphy)=0
+            LVL_DIFDIA(1:nphy)=0
+          case default
+            write (lp,*) 'rdlim: unsupported vertical coordinate!'
+            call xcstop('(rdlim)')
+                   stop '(rdlim)'
+        end select
         if (trxday.eq.0.) then
           H2D_SURRLX(1:nphy)=0
         endif
         if (srxday.eq.0.) then
           H2D_SALRLX(1:nphy)=0
         endif
+c
+c --- - print diaphy namelist
         write (lp,*)
         write (lp,*) 'rdlim: BLOM DIAPHY NAMELIST GROUP:' 
         write (lp,*) 'GLB_FNAMETAG',GLB_FNAMETAG(1:nphy)
@@ -219,8 +314,6 @@ c --- - determine number of io groups and print diaphy namelist
         write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
         write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
         write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
-        write (lp,*) 'H2D_MLDU    ',H2D_MLDU(1:nphy)
-        write (lp,*) 'H2D_MLDV    ',H2D_MLDV(1:nphy)
         write (lp,*) 'H2D_MLTS    ',H2D_MLTS(1:nphy)
         write (lp,*) 'H2D_MLTSMN  ',H2D_MLTSMN(1:nphy)
         write (lp,*) 'H2D_MLTSMX  ',H2D_MLTSMX(1:nphy)
@@ -232,8 +325,6 @@ c --- - determine number of io groups and print diaphy namelist
         write (lp,*) 'H2D_MTKEPE  ',H2D_MTKEPE(1:nphy)
         write (lp,*) 'H2D_MTKEKE  ',H2D_MTKEKE(1:nphy)
         write (lp,*) 'H2D_MTY     ',H2D_MTY(1:nphy)
-        write (lp,*) 'H2D_MXLU    ',H2D_MXLU(1:nphy)
-        write (lp,*) 'H2D_MXLV    ',H2D_MXLV(1:nphy)
         write (lp,*) 'H2D_NSF     ',H2D_NSF(1:nphy)
         write (lp,*) 'H2D_PBOT    ',H2D_PBOT(1:nphy)
         write (lp,*) 'H2D_PSRF    ',H2D_PSRF(1:nphy)
@@ -269,9 +360,14 @@ c --- - determine number of io groups and print diaphy namelist
         write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
         write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
         write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
+        write (lp,*) 'LYR_DIFVMO  ',LYR_DIFVMO(1:nphy)
+        write (lp,*) 'LYR_DIFVHO  ',LYR_DIFVHO(1:nphy)
+        write (lp,*) 'LYR_DIFVSO  ',LYR_DIFVSO(1:nphy)
         write (lp,*) 'LYR_DIFINT  ',LYR_DIFINT(1:nphy)
         write (lp,*) 'LYR_DIFISO  ',LYR_DIFISO(1:nphy)
         write (lp,*) 'LYR_DP      ',LYR_DP(1:nphy)
+        write (lp,*) 'LYR_DPU     ',LYR_DPU(1:nphy)
+        write (lp,*) 'LYR_DPV     ',LYR_DPV(1:nphy)
         write (lp,*) 'LYR_DZ      ',LYR_DZ(1:nphy)
         write (lp,*) 'LYR_SALN    ',LYR_SALN(1:nphy)
         write (lp,*) 'LYR_TEMP    ',LYR_TEMP(1:nphy)
@@ -301,6 +397,14 @@ c --- - determine number of io groups and print diaphy namelist
         write (lp,*) 'LYR_GLS_PSI ',LYR_GLS_PSI(1:nphy)
         write (lp,*) 'LYR_IDLAGE  ',LYR_IDLAGE(1:nphy)
         write (lp,*) 'LVL_BFSQ    ',LVL_BFSQ(1:nphy)
+        write (lp,*) 'LVL_DIFDIA  ',LVL_DIFDIA(1:nphy)
+        write (lp,*) 'LVL_DIFVMO  ',LVL_DIFVMO(1:nphy)
+        write (lp,*) 'LVL_DIFVHO  ',LVL_DIFVHO(1:nphy)
+        write (lp,*) 'LVL_DIFVSO  ',LVL_DIFVSO(1:nphy)
+        write (lp,*) 'LVL_DIFINT  ',LVL_DIFINT(1:nphy)
+        write (lp,*) 'LVL_DIFISO  ',LVL_DIFISO(1:nphy)
+        write (lp,*) 'LVL_DIFISO  ',LVL_DIFISO(1:nphy)
+        write (lp,*) 'LVL_DZ      ',LVL_DZ(1:nphy)
         write (lp,*) 'LVL_SALN    ',LVL_SALN(1:nphy)
         write (lp,*) 'LVL_TEMP    ',LVL_TEMP(1:nphy)
         write (lp,*) 'LVL_TRC     ',LVL_TRC(1:nphy)
@@ -349,85 +453,7 @@ c --- - determine number of io groups and print diaphy namelist
 c
       endif
 c
-c --- broadcast variables set by limits and diaphy namelists
-c
-      call xcbcst(nday1)
-      call xcbcst(nday2)
-      call xcbcst(idate)
-      call xcbcst(idate0)
-      call xcbcst(runid)
-      call xcbcst(expcnf)
-      call xcbcst(runtyp)
-      call xcbcst(grfile)
-      call xcbcst(icfile)
-      call xcbcst(pref)
-      call xcbcst(baclin)
-      call xcbcst(batrop)
-      call xcbcst(mdv2hi)
-      call xcbcst(mdv2lo)
-      call xcbcst(mdv4hi)
-      call xcbcst(mdv4lo)
-      call xcbcst(mdc2hi)
-      call xcbcst(mdc2lo)
-      call xcbcst(vsc2hi)
-      call xcbcst(vsc2lo)
-      call xcbcst(vsc4hi)
-      call xcbcst(vsc4lo)
-      call xcbcst(cbar)
-      call xcbcst(cb)
-      call xcbcst(cwbdts)
-      call xcbcst(cwbdls)
-      call xcbcst(mommth)
-      call xcbcst(eitmth)
-      call xcbcst(edritp)
-      call xcbcst(bmcmth)
-      call xcbcst(rmpmth)
-      call xcbcst(edwmth)
-      call xcbcst(mlrttp)
-      call xcbcst(edsprs)
-      call xcbcst(egc)
-      call xcbcst(eggam)
-      call xcbcst(eglsmn)
-      call xcbcst(egmndf)
-      call xcbcst(egmxdf)
-      call xcbcst(egidfq)
-      call xcbcst(ri0)
-      call xcbcst(rm0)
-      call xcbcst(rm5)
-      call xcbcst(ce)
-      call xcbcst(bdmtyp)
-      call xcbcst(bdmc1)
-      call xcbcst(bdmc2)
-      call xcbcst(tdfile)
-      call xcbcst(tkepf)
-      call xcbcst(niwgf)
-      call xcbcst(niwbf)
-      call xcbcst(niwlf)
-      call xcbcst(swamth)
-      call xcbcst(jwtype)
-      call xcbcst(chlopt)
-      call xcbcst(ccfile)
-      call xcbcst(trxday)
-      call xcbcst(srxday)
-      call xcbcst(trxdpt)
-      call xcbcst(srxdpt)
-      call xcbcst(trxlim)
-      call xcbcst(srxlim)
-      call xcbcst(aptflx)
-      call xcbcst(apsflx)
-      call xcbcst(ditflx)
-      call xcbcst(disflx)
-      call xcbcst(srxbal)
-      call xcbcst(scfile)
-      call xcbcst(smtfrc)
-      call xcbcst(sprfac)
-      call xcbcst(atm_path)
-      call xcbcst(itest)
-      call xcbcst(jtest)
-      call xcbcst(rstfrq)
-      call xcbcst(rstfmt)
-      call xcbcst(rstcmp)
-      call xcbcst(iotype)
+c --- broadcast variables set by diaphy namelist
 c
       call xcbcst(H2D_ABSWND)
       call xcbcst(H2D_ALB)
@@ -446,8 +472,6 @@ c
       call xcbcst(H2D_LIP)
       call xcbcst(H2D_MAXMLD)
       call xcbcst(H2D_MLD)
-      call xcbcst(H2D_MLDU)
-      call xcbcst(H2D_MLDV)
       call xcbcst(H2D_MLTS)
       call xcbcst(H2D_MLTSMN)
       call xcbcst(H2D_MLTSMX)
@@ -459,8 +483,6 @@ c
       call xcbcst(H2D_MTKEPE)
       call xcbcst(H2D_MTKEKE)
       call xcbcst(H2D_MTY)
-      call xcbcst(H2D_MXLU)
-      call xcbcst(H2D_MXLV)
       call xcbcst(H2D_NSF)
       call xcbcst(H2D_PBOT)
       call xcbcst(H2D_PSRF)
@@ -496,6 +518,9 @@ c
       call xcbcst(H2D_ZTX)
       call xcbcst(LYR_BFSQ)
       call xcbcst(LYR_DIFDIA)
+      call xcbcst(LYR_DIFVMO)
+      call xcbcst(LYR_DIFVHO)
+      call xcbcst(LYR_DIFVSO)
       call xcbcst(LYR_DIFINT)
       call xcbcst(LYR_DIFISO)
       call xcbcst(LYR_DP)
@@ -531,6 +556,9 @@ c
       call xcbcst(LYR_IDLAGE)
       call xcbcst(LVL_BFSQ)
       call xcbcst(LVL_DIFDIA)
+      call xcbcst(LVL_DIFVMO)
+      call xcbcst(LVL_DIFVHO)
+      call xcbcst(LVL_DIFVSO)
       call xcbcst(LVL_DIFINT)
       call xcbcst(LVL_DIFISO)
       call xcbcst(LVL_DZ)

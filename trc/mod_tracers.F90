@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2020 Mats Bentsen, Jörg Schwinger, Jerry Tjiputra,
+! Copyright (C) 2007-2021 Mats Bentsen, Jörg Schwinger, Jerry Tjiputra,
 !                         Alok Kumar Gupta
 !
 ! This file is part of BLOM.
