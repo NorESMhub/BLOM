@@ -74,7 +74,7 @@
               & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
               & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,        &
               & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
-              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron
+              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron,NOB2AOAy 
 
       real   :: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
               & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
@@ -109,10 +109,12 @@
       bkiron        = bkphosph*riron ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
 
       ! === Denitrification step NO3 -> NO2:
-      rano3denit    = 0.15*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+      !rano3denit    = 0.15*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+      rano3denit    = 0.05*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
       q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
       Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C) 
-      sc_ano3denit  = 0.05e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+      !sc_ano3denit  = 0.05e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+      sc_ano3denit  = 0.08e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
       bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
 
       ! === Anammox
@@ -152,7 +154,8 @@
       bkoxamox      = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
       bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
       bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      !bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      bkamoxno2     = 0.1-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       n2omaxy       = 0.006    ! Maximum yield of OM on NH4 nitrification (-)
       n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
       bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
@@ -163,6 +166,7 @@
       Trefano2nitr  = 20.      ! Reference temperature for nitrification on NO2 (degr C)
       bkoxnitr      = 0.788e-6 ! Half-saturation constant for oxygen limitation of nitrification on NO2 (kmol/m3)
       bkano2nitr    = 0.287e-6 ! Half-saturation constant for NO2 for nitrification on NO2 (kmol/m3)
+      NOB2AOAy      = 0.44     ! Ratio of NOB versus AOA yield per energy source ~0.043/0.098 according to Zakem et al. 2022
 
       eps    = 1.e-25 ! safe division etc. 
       minlim = 1.e-9  ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to minlim) 
@@ -246,9 +250,10 @@
             potdno2nitr = max(0.,ocetra(i,j,k,iano2) - ano2new)
 
             ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
+            ! but with reduced OM gain per used NO2 as energy source (in amox: NH4)
             no2fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
             no2fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
-            no2fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
+            no2fdetamox = NOB2AOAy*n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
                      & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
 
             fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
