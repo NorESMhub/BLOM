@@ -259,6 +259,8 @@ c
       integer mrg
 #ifdef TRC
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,2*kdm,ntr) :: trc
+      real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     . trc_temp
       integer k
 #endif
 c
@@ -311,13 +313,26 @@ c --- ------------------------------------------------------------------
 c --- Add small number to density field and initialize some variables.
 c --- ------------------------------------------------------------------
 c
+#ifdef TRC
+        do nt=1,ntr
+        do j=1 - nbdy,jdm + nbdy
+          do i=1 - nbdy,idm + nbdy
+          trc_temp(nt,i,j)=trc(i,j,k,nt)
+        enddo
+      enddo
+      enddo
+#endif
       do j=1-mrg-2,jj+mrg+2
-        do l=1,isp(j)
-        do i=max(1-mrg-2,ifp(j,l)),min(ii+mrg+2,ilp(j,l))
+
+!alok        do l=1,isp(j)
+!alok        do i=max(1-mrg-2,ifp(j,l)),min(ii+mrg+2,ilp(j,l))
+          do i=1-mrg-2,ii+mrg+2
+        if(ip(i,j) .eq. 1) then
           dp(i,j)=max(0.,dp(i,j))+dpeps
           pup(i,j)=plo(i,j)-dp(i,j)
+        endif
         enddo
-        enddo
+!alok        enddo
         do i=1-mrg-1,ii+mrg+1
           fdu(i,j)=0.
           fdv(i,j)=0.
@@ -357,14 +372,17 @@ c
       do nt=1,natr
         nat=ntr-natr+nt
         do j=1-mrg-2,jj+mrg+2
-          do l=1,isp(j)
-          do i=max(1-mrg-2,ifp(j,l)),min(ii+mrg+2,ilp(j,l))
+!alok          do l=1,isp(j)
+!alok          do i=max(1-mrg-2,ifp(j,l)),min(ii+mrg+2,ilp(j,l))
+           do i=1-mrg-2,ii+mrg+2
+        if(ip(i,j) .eq. 1) then
             trc(i,j,k,nt)=max(0.,trc(i,j,k,nt))+treps
             ag(nt,i,j)=trc(i,j,k,nat)/trc(i,j,k,nt)
+        endif
           enddo
           enddo
         enddo
-      enddo
+!alok      enddo
 #endif
 c
 c --- ------------------------------------------------------------------
@@ -374,8 +392,11 @@ c --- ------------------------------------------------------------------
 c
       do j=1-mrg-1,jj+mrg+1
 c
-        do l=1,isp(j)
-        do i=max(1-mrg-1,ifp(j,l)),min(ii+mrg+1,ilp(j,l))
+!alok        do l=1,isp(j)
+!alok        do i=max(1-mrg-1,ifp(j,l)),min(ii+mrg+1,ilp(j,l))
+         
+        do i=1-mrg-1,ii+mrg+1
+        if(ip(i,j) .eq. 1) then
 c
 c --- --- Define indices for grid cell neighbors, ensuring that only wet
 c --- --- points are used.
@@ -484,13 +505,13 @@ c
             sd(i,j)=saln(i,j)
           endif
 #ifdef TRC
-#  ifdef ATRC
+#ifdef ATRC
 c
 c --- --- Compute limited gradient for tracers.
           do nt=1,ntr-natr
-#    if defined(TKE) && !defined(TKEADV)
+#if defined(TKE) && !defined(TKEADV)
             if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
-#    endif
+#endif
             trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
             try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
@@ -564,67 +585,74 @@ c --- --- Compute limited gradient for tracers.
 #    if defined(TKE) && !defined(TKEADV)
             if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #    endif
-            trx(nt,i,j)=(trc(ie,j,k,nt)-trc(iw,j,k,nt))*dxi
-            try(nt,i,j)=(trc(i,jn,k,nt)-trc(i,js,k,nt))*dyi
+            trx(nt,i,j)=(trc_temp(nt,ie,j)-trc_temp(nt,iw,j))*dxi
+            try(nt,i,j)=(trc_temp(nt,i,jn)-trc_temp(nt,i,js))*dyi
             q1=trx(nt,i,j)*(-.5-xd(i,j))
             q2=trx(nt,i,j)*( .5-xd(i,j))
             q3=try(nt,i,j)*(-.5-yd(i,j))
             q4=try(nt,i,j)*( .5-yd(i,j))
             tgmx=max(q1,q2)+max(q3,q4)
             tgmn=min(q1,q2)+min(q3,q4)
-            tfmx=max(0.,max(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-     .                 -trc(i,j,k,nt))
-            tfmn=min(0.,min(trc(isw,jsw,k,nt),trc(i  ,js ,k,nt),
-     .                      trc(ise,jse,k,nt),trc(iw ,j  ,k,nt),
-     .                      trc(ie ,j  ,k,nt),trc(inw,jnw,k,nt),
-     .                      trc(i  ,jn ,k,nt),trc(ine,jne,k,nt))
-     .                 -trc(i,j,k,nt))
+            tfmx=max(0.,max(trc_temp(nt,isw,jsw),trc_temp(nt,i  ,js),
+     .                      trc_temp(nt,ise,jse),trc_temp(nt,iw ,j),
+     .                      trc_temp(nt,ie ,j),trc_temp(nt,inw,jnw),
+     .                      trc_temp(nt,i  ,jn),trc_temp(nt,ine,jne))
+     .                 -trc_temp(nt,i,j))
+            tfmn=min(0.,min(trc_temp(nt,isw,jsw),trc_temp(nt,i  ,js),
+     .                      trc_temp(nt,ise,jse),trc_temp(nt,iw ,j),
+     .                      trc_temp(nt,ie ,j),trc_temp(nt,inw,jnw),
+     .                      trc_temp(nt,i  ,jn),trc_temp(nt,ine,jne))
+     .                 -trc_temp(nt,i,j))
             if (tfmx.gt.0..and.tfmn.lt.0.) then
               q=min(tfmx/max(tfmx,tgmx),tfmn/min(tfmn,tgmn))
               trx(nt,i,j)=trx(nt,i,j)*q
               try(nt,i,j)=try(nt,i,j)*q
-              trd(nt,i,j)=trc(i,j,k,nt)
+              trd(nt,i,j)=trc_temp(nt,i,j)
      .                   -trx(nt,i,j)*xd(i,j)-try(nt,i,j)*yd(i,j)
             else
               trx(nt,i,j)=0.
               try(nt,i,j)=0.
-              trd(nt,i,j)=trc(i,j,k,nt)
+              trd(nt,i,j)=trc_temp(nt,i,j)
             endif
           enddo
 #  endif
 #endif
 c
+        endif
         enddo
         enddo
 c
-      enddo
+!alok      enddo
 c
 c --- Compute non-dimensional velocities.
 c
       do j=1-mrg-1,jj+mrg+1
-        do l=1,isu(j)
-        do i=max(1-mrg,ifu(j,l)),min(ii+mrg+1,ilu(j,l))
+!alok        do l=1,isu(j)
+!alok        do i=max(1-mrg,ifu(j,l)),min(ii+mrg+1,ilu(j,l))
+          do i=1-mrg,ii+mrg+1
+        if(iu(i,j) .eq. 1) then
           if (u(i,j).gt.0.) then
             cu(i,j)=u(i,j)*dt*scuy(i,j)*scp2i(i-1,j)
           else
             cu(i,j)=u(i,j)*dt*scuy(i,j)*scp2i(i  ,j)
           endif
-        enddo
+          endif
+!alok        enddo
         enddo
       enddo
 c
       do j=1-mrg,jj+mrg+1
-        do l=1,isv(j)
-        do i=max(1-mrg-1,ifv(j,l)),min(ii+mrg+1,ilv(j,l))
+       do i=1-mrg-1,ii+mrg+1
+        if(iv(i,j) .eq. 1) then
+!alok        do l=1,isv(j)
+!alok        do i=max(1-mrg-1,ifv(j,l)),min(ii+mrg+1,ilv(j,l))
           if (v(i,j).gt.0.) then
             cv(i,j)=v(i,j)*dt*scvx(i,j)*scp2i(i,j-1)
           else
             cv(i,j)=v(i,j)*dt*scvx(i,j)*scp2i(i,j  )
           endif
-        enddo
+        endif
+!alok        enddo
         enddo
       enddo
 c
@@ -685,8 +713,10 @@ c --- - u-components of fluxes.
 c
       do j=1-mrg,jj+mrg
 c
-        do l=1,isu(j)
-        do i=max(1-mrg,ifu(j,l)),min(ii+mrg+1,ilu(j,l))
+           do i=1-mrg,ii+mrg+1
+        if(iu(i,j) .eq. 1) then
+!alok        do l=1,isu(j)
+!alok        do i=max(1-mrg,ifu(j,l)),min(ii+mrg+1,ilu(j,l))
 c
 c --- --- Assuming coordinate [0,0] at the u-point, the non-dimensional
 c --- --- fluxing area is defined as the area of a polygon with vertices
@@ -1089,7 +1119,8 @@ c --- --- u-component of mass, heat and salt flux.
           utflx(i,j)=ftu(i,j)
           usflx(i,j)=fsu(i,j)
 c
-        enddo
+!alok        enddo
+         endif
         enddo
 c
       enddo
@@ -1098,8 +1129,10 @@ c --- v-components of fluxes.
 c
       do j=1-mrg,jj+mrg+1
 c
-        do l=1,isv(j)
-        do i=max(1-mrg,ifv(j,l)),min(ii+mrg,ilv(j,l))
+         do i=1-mrg,ii+mrg
+        if(iv(i,j) .eq. 1) then
+calok        do l=1,isv(j)
+calok        do i=max(1-mrg,ifv(j,l)),min(ii+mrg,ilv(j,l))
 c
 c --- --- Assuming coordinate [0,0] at the v-point, the non-dimensional
 c --- --- fluxing area is defined as the area of a polygon with vertices
@@ -1502,7 +1535,8 @@ c --- --- v-component of mass, heat and salt flux.
           vtflx(i,j)=ftv(i,j)
           vsflx(i,j)=fsv(i,j)
 c
-        enddo
+calok        enddo
+         endif
         enddo
 c
       enddo
@@ -1512,8 +1546,10 @@ c --- Update fields
 c --- ------------------------------------------------------------------
 c
       do j=1-mrg,jj+mrg
-        do l=1,isp(j)
-        do i=max(1-mrg,ifp(j,l)),min(ii+mrg,ilp(j,l))
+        do i=1-mrg,ii+mrg
+        if(ip(i,j) .eq. 1) then
+calok        do l=1,isp(j)
+calok        do i=max(1-mrg,ifp(j,l)),min(ii+mrg,ilp(j,l))
           q=dp(i,j)
           dp(i,j)=q-(fdu(i+1,j)-fdu(i,j)
      .              +fdv(i,j+1)-fdv(i,j))*scp2i(i,j)
@@ -1553,7 +1589,7 @@ c
 #    if defined(TKE) && !defined(TKEADV)
             if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #    endif
-            trc(i,j,k,nt)=(q*trc(i,j,k,nt)
+            trc_temp(nt,i,j)=(q*trc_temp(nt,i,j)
      .                    -(ftru(nt,i+1,j)-ftru(nt,i,j)
      .                     +ftrv(nt,i,j+1)-ftrv(nt,i,j))*scp2i(i,j))
      .                    /dp(i,j)
@@ -1561,9 +1597,20 @@ c
 #  endif
 #endif
           dp(i,j)=max(0.,dp(i,j)-dpeps)
-        enddo
+         endif
+calok        enddo
         enddo
       enddo
+
+#ifdef TRC
+           do nt=1,ntr
+        do j=1 - nbdy,jdm + nbdy
+          do i=1 - nbdy,idm + nbdy
+          trc(i,j,k,nt)=trc_temp(nt,i,j)
+        enddo
+      enddo
+      enddo
+#endif
 c
       end subroutine remap_eitvel
 c

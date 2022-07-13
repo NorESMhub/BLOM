@@ -67,10 +67,12 @@ c
 #endif
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+  l,i,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne)
+c$OMP+  l,i,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne) collapse(2)
       do j=-1,jj+2
-        do l=1,isp(j)
-        do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
+calok        do l=1,isp(j)
+calok        do i=max(-1,ifp(j,l)),min(ii+2,ilp(j,l))
+            do i=-1,ii+2
+             if(ip(i,j) .eq. 1 ) then
           iw=i-iu(i  ,j)
           ie=i+iu(i+1,j)
           js=j-iv(i,j  )
@@ -87,7 +89,8 @@ c$OMP+  l,i,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne)
      .      min(p(isw,jsw,kk+1),p(i  ,js ,kk+1),p(ise,jse,kk+1),
      .          p(iw ,j  ,kk+1),p(i  ,j  ,kk+1),p(ie ,j  ,kk+1),
      .          p(inw,jnw,kk+1),p(i  ,jn ,kk+1),p(ine,jne,kk+1))
-        enddo
+          endif
+calok        enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -106,7 +109,7 @@ c
 #endif
 c
       if     (rmpmth.eq.'eitvel') then
-c$OMP PARALLEL DO PRIVATE(km,kn,j,l,i)
+c$OMP PARALLEL DO PRIVATE(km,kn,j,l,i,k) schedule(static,7)
 c$OMP+FIRSTPRIVATE(utotm,vtotm)
         do k=1,kk
           km=k+mm
@@ -115,25 +118,31 @@ c
 c --- --- advective and diffusive velocity at mid time level
 c
           do j=-1,jj+2
-            do l=1,isu(j)
-            do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
+calok            do l=1,isu(j)
+calok            do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
+            do i=0,ii+2
+             if(iu(i,j) .eq. 1 ) then
               utotm(i,j)=u(i,j,km)
      .          +(ubflxs_p(i,j,m)*dlt/pbu(i,j,m)
      .           +umfltd(i,j,km)/max(onemm,dpu(i,j,kn)))
      .           /(delt1*scuy(i,j))
               utotm(i,j)=max(-umax(i,j),min(umax(i,j),utotm(i,j)))
-            enddo
+            endif
+calok            enddo
             enddo
           enddo
           do j=0,jj+2
-            do l=1,isv(j)
-            do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+calok            do l=1,isv(j)
+calok            do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
+             do i=-1,ii+2
+            if(iv(i,j) .eq. 1 ) then
               vtotm(i,j)=v(i,j,km)
      .          +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m)
      .           +vmfltd(i,j,km)/max(onemm,dpv(i,j,kn)))
      .           /(delt1*scvx(i,j))
               vtotm(i,j)=max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
-            enddo
+           endif
+calok            enddo
             enddo
           enddo
 c

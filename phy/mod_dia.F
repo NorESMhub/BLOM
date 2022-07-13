@@ -4701,29 +4701,34 @@ c
 c --- Check whether field should be accumulated
       do o=1,nphy
         if (pos(o).eq.0) cycle
+           l=pos(o)
 c
         if (gridid.eq.'u') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j) collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isu(j)
-                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-                  enddo
+calok              do k=1,kk
+calok                do l=1,isu(j)
+calok                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                       do i=1,ii
+           if(iu(i,j) .eq. 1) phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
+calok                  enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j) collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isu(j)
-                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
+calok              do k=1,kk
+calok                do l=1,isu(j)
+calok                  do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                      do i=1,ii
+          if(iu(i,j) .eq. 1) phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
      .                *wghts(i,j,k)
-                  enddo
+calok                  enddo
                 enddo
               enddo
             enddo
@@ -4731,26 +4736,30 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'v') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j)  collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isv(j)
-                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-                  enddo
+calok              do k=1,kk
+calok                do l=1,isv(j)
+calok                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l)
+                  do i=1,ii
+          if(iv(i,j) .eq. 1)  phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
+calok                  enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j) collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isv(j)
-                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
+calok              do k=1,kk
+calok                do l=1,isv(j)
+calok                  do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                  do i=1,ii
+          if(iv(i,j) .eq. 1)  phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
      .                *wghts(i,j,k)
-                  enddo
+calok                  enddo
                 enddo
               enddo
             enddo
@@ -4758,26 +4767,30 @@ c$OMP END PARALLEL DO
           endif 
         elseif (gridid.eq.'p') then
           if (wghtsflg.eq.0) then 
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j) collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isp(j)
-                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
-                  enddo
+                do i=1,ii
+calok              do k=1,kk
+calok                do l=1,isp(j)
+calok                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           if(ip(i,j) .eq. 1) phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
+calok                  enddo
                 enddo
               enddo
             enddo
 c$OMP END PARALLEL DO
           else
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,i,j) collapse(3)
+          do k=1,kk
             do j=1,jj
-              do k=1,kk
-                do l=1,isp(j)
-                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                    phylyr(i,j,k,pos(o))=phylyr(i,j,k,pos(o))+fld(i,j,k)
+calok              do k=1,kk
+calok                do l=1,isp(j)
+calok                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+               do i=1,ii
+           if(ip(i,j) .eq. 1) phylyr(i,j,k,l)=phylyr(i,j,k,l)+fld(i,j,k)
      .                *wghts(i,j,k)
-                  enddo
+calok                  enddo
                 enddo
               enddo
             enddo

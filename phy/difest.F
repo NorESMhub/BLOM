@@ -195,18 +195,27 @@ c
       tmp2d_7=0.
 #endif
 c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+c$OMP PARALLEL DO PRIVATE(k,kn,j,i)
       do j=-2,jj+3
         do k=1,kk
           kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
+          do i=-2,ii+3
+            if(ip(i,j) .eq. 1) p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
+
+ccccc$OMP PARALLEL DO PRIVATE(k,kn,j,i) collapse(3)
+c      do k=1,kk
+c        do j=-2,jj+3
+c          do i=-2,ii+3
+c             kn=k+nn
+c            if(ip(i,j) .eq. 1)  p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
+c          enddo
+c        enddo
+c      enddo
+ccccc$OMP END PARALLEL DO
 c
       call xctilr(u, 1,2*kk, 2,2, halo_uv)
       call xctilr(v, 1,2*kk, 2,2, halo_vv)
@@ -225,12 +234,10 @@ c --- ------------------------------------------------------------------
 c --- Estimate friction velocity cubed.
 c --- ------------------------------------------------------------------
 c
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(j,i) collapse(2)
       do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          ustar3(i,j)=ustar(i,j)**3
-        enddo
+        do i=1,ii
+          if(ip(i,j) .eq. 1) ustar3(i,j)=ustar(i,j)**3
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -263,54 +270,52 @@ c --- diffusivities.
         enddo
       enddo
 c
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(j,i) collapse(2)
       do j=1,jj
-        do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do i=1,ii
+          if(ip(i,j) .eq. 1) then
           util1(i,j)=kfil(i,j)
 #ifdef DIAG
           tmp2d_1(i,j)=kfpla(i,j,n)
           tmp2d_2(i,j)=kfil(i,j)
 #endif
-        enddo
+          endif
         enddo
       enddo
 c$OMP END PARALLEL DO
       call xctilr(util1, 1,1, 1,1, halo_ps)
-c$OMP PARALLEL DO PRIVATE(l,i)
+c$OMP PARALLEL DO PRIVATE(j,i) collapse(2)
       do j=0,jj+1
-        do l=1,isp(j)
-        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-          kfil(i,j)=nint(util1(i,j))
-        enddo
+        do i=0,ii+1  
+          if(ip(i,j) .eq. 1)  kfil(i,j)=nint(util1(i,j))
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
 c --- Compute squared vertical velocity gradients of v-component
-c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
+c$OMP PARALLEL DO PRIVATE(j,i,kfpl,klpl,k,kn,q,tup)
       do j=1,jj+1
-        do l=1,isv(j)
-        do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+        do i=1,ii
+        if(iv(i,j) .eq. 1) then
           kfpl(i)=kk+1
           klpl(i)=1
-        enddo
+        endif
         enddo
         do k=3,kk
           kn=k+nn
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do i=1,ii
+          if(iv(i,j) .eq. 1) then
             if (dpv(i,j,kn).gt.dpbmin) klpl(i)=k
-          enddo
+          endif
           enddo
         enddo
         do k=kk,4,-1
           kn=k+nn
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do i=1,ii
+          if(iv(i,j) .eq. 1) then
             if (k.ge.max(kfil(i,j-1),kfil(i,j)).and.
      .          dpv(i,j,kn).gt.dptmin) kfpl(i)=k
-          enddo
+          endif
           enddo
         enddo
         do k=1,kk
@@ -319,8 +324,8 @@ c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
             dv2(i,j,k)=0.
             mskv(i,j,k)=0
           enddo
-          do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do i=1,ii
+          if(iv(i,j) .eq. 1) then
             if (k.ge.kfpl(i).and.k.le.klpl(i).and.
      .          klpl(i)-kfpl(i).ge.1) then
               if     (k.eq.kfpl(i)) then
@@ -338,7 +343,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
               endif
               mskv(i,j,k)=1
             endif
-          enddo
+         endif
           enddo
         enddo
       enddo

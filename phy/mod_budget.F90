@@ -83,12 +83,10 @@ contains
 
       if (.not. cnsvdi) return
 
-   !$omp parallel do private(l, i)
+   !$omp parallel do private(j, i) collapse(2)
       do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            util1(i, j) = pb(i, j, 1)*scp2(i, j)
-         enddo
+         do i = 1, ii
+          if(ip(i,j) .eq. 1)  util1(i, j) = pb(i, j, 1)*scp2(i, j)
          enddo
       enddo
    !$omp end parallel do
@@ -108,10 +106,10 @@ contains
 
       if (.not. cnsvdi) return
 
-   !$omp parallel do private(l, i)
+   !$omp parallel do private(j, i) collapse(2)
       do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+         do i = 1, ii
+         if(ip(i,j) .eq. 1) then
             util1(i, j) = 0._r8
             util2(i, j) = 0._r8
 #if defined(TRC) && defined(TKE)
@@ -120,17 +118,17 @@ contains
             util4(i, j) = 0._r8
 #  endif
 #endif
-         enddo
+         endif
          enddo
       enddo
    !$omp end parallel do
 
-   !$omp parallel do private(k, kn, l, i, q)
+   !$omp parallel do private(k, kn, j, i, q)
       do j = 1,jj
          do k = 1,kk
             kn = k + nn
-            do l = 1,isp(j)
-            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            do i = 1, ii
+            if(ip(i,j) .eq. 1) then
                q = dp(i, j, kn)*scp2(i, j)
                util1(i, j) = util1(i, j) + saln(i, j, kn)*q
                util2(i, j) = util2(i, j) + temp(i, j, kn)*q
@@ -140,7 +138,7 @@ contains
                util4(i, j) = util4(i, j) + trc(i, j, kn, itrgls)*q
 #  endif
 #endif
-            enddo
+            endif
             enddo
          enddo
       enddo
@@ -156,25 +154,23 @@ contains
 #endif
 
 #ifdef TRC
-   !$omp parallel do private(l, i)
+   !$omp parallel do private(j, i) collapse(2)
       do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            util1(i, j) = 0._r8
-         enddo
+         do i = 1, ii
+         if(ip(i,j) .eq. 1) util1(i, j) = 0._r8
          enddo
       enddo
    !$omp end parallel do
 
-   !$omp parallel do private(k, kn, l, i, q)
+   !$omp parallel do private(k, kn, j, i, q)
       do j = 1, jj
          do k = 1, kk
             kn = k + nn
-            do l = 1, isp(j)
-            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            do i = 1, ii
+            if(ip(i,j) .eq. 1) then
                q = dp(i, j, kn)*scp2(i, j)
                util1(i, j) = util1(i, j) + trc(i, j, kn, 1)*q
-            enddo
+            endif
             enddo
          enddo
       enddo
@@ -196,75 +192,75 @@ contains
 
       if (.not.cnsvdi) return
 
-      if (mnproc == 1 .and. nstep > nstep1 + 1) then
-         open (unit = nfu, file = 'salbud', position = 'append')
-         write (nfu, '(i8,6e12.4)') nstep - 1, &
-            (sdp(2, m) - sdp(1, m))/mass0, &
-            (sdp(3, m) - sdp(2, m))/mass0, &
-            (sdp(4, m) - sdp(3, m))/mass0, &
-            (sdp(5, m) - sdp(4, m) + sf*g)/mass0, &
-            (sdp(6, m) - sdp(5, m))/mass0, &
-            (sdp(7, m) - sdp(6, m))/mass0
-         close (nfu)
-         open (unit = nfu, file = 'tembud', position = 'append')
-         write (nfu, '(i8,6e12.4)') nstep - 1, &
-            (tdp(2, m) - tdp(1, m))/mass0, &
-            (tdp(3, m) - tdp(2, m))/mass0, &
-            (tdp(4, m) - tdp(3, m))/mass0, &
-            (tdp(5, m) - tdp(4, m) + tf*g/spcifh)/mass0, &
-            (tdp(6, m) - tdp(5, m))/mass0, &
-            (tdp(7, m) - tdp(6, m))/mass0
-         close (nfu)
+!      if (mnproc == 1 .and. nstep > nstep1 + 1) then
+!         open (unit = nfu, file = 'salbud', position = 'append')
+!         write (nfu, '(i8,6e12.4)') nstep - 1, &
+!            (sdp(2, m) - sdp(1, m))/mass0, &
+!            (sdp(3, m) - sdp(2, m))/mass0, &
+!            (sdp(4, m) - sdp(3, m))/mass0, &
+!            (sdp(5, m) - sdp(4, m) + sf*g)/mass0, &
+!            (sdp(6, m) - sdp(5, m))/mass0, &
+!            (sdp(7, m) - sdp(6, m))/mass0
+!         close (nfu)
+!         open (unit = nfu, file = 'tembud', position = 'append')
+!         write (nfu, '(i8,6e12.4)') nstep - 1, &
+!            (tdp(2, m) - tdp(1, m))/mass0, &
+!            (tdp(3, m) - tdp(2, m))/mass0, &
+!            (tdp(4, m) - tdp(3, m))/mass0, &
+!            (tdp(5, m) - tdp(4, m) + tf*g/spcifh)/mass0, &
+!            (tdp(6, m) - tdp(5, m))/mass0, &
+!            (tdp(7, m) - tdp(6, m))/mass0
+!         close (nfu)
 #ifdef TRC
 #  ifdef TKE
-         open (unit = nfu, file = 'tkebud', position = 'append')
-         write (nfu, '(i8,6e12.4)') nstep - 1, &
-            (tkedp(2, m) - tkedp(1, m))/mass0, &
-            (tkedp(3, m) - tkedp(2, m))/mass0, &
-            (tkedp(4, m) - tkedp(3, m))/mass0, &
-            (tkedp(5, m) - tkedp(4, m))/mass0, &
-            (tkedp(6, m) - tkedp(5, m))/mass0, &
-            (tkedp(7, m) - tkedp(6, m))/mass0
-         close (nfu)
+!         open (unit = nfu, file = 'tkebud', position = 'append')
+!         write (nfu, '(i8,6e12.4)') nstep - 1, &
+!            (tkedp(2, m) - tkedp(1, m))/mass0, &
+!            (tkedp(3, m) - tkedp(2, m))/mass0, &
+!            (tkedp(4, m) - tkedp(3, m))/mass0, &
+!            (tkedp(5, m) - tkedp(4, m))/mass0, &
+!            (tkedp(6, m) - tkedp(5, m))/mass0, &
+!            (tkedp(7, m) - tkedp(6, m))/mass0
+!         close (nfu)
 #    ifdef GLS
-         open (unit = nfu, file = 'glsbud', position = 'append')
-         write (nfu, '(i8,6e12.4)') nstep - 1, &
-            (glsdp(2, m) - glsdp(1, m))/mass0, &
-            (glsdp(3, m) - glsdp(2, m))/mass0, &
-            (glsdp(4, m) - glsdp(3, m))/mass0, &
-            (glsdp(5, m) - glsdp(4, m))/mass0, &
-            (glsdp(6, m) - glsdp(5, m))/mass0, &
-            (glsdp(7, m) - glsdp(6, m))/mass0
-         close (nfu)
+!         open (unit = nfu, file = 'glsbud', position = 'append')
+!         write (nfu, '(i8,6e12.4)') nstep - 1, &
+!            (glsdp(2, m) - glsdp(1, m))/mass0, &
+!            (glsdp(3, m) - glsdp(2, m))/mass0, &
+!            (glsdp(4, m) - glsdp(3, m))/mass0, &
+!            (glsdp(5, m) - glsdp(4, m))/mass0, &
+!            (glsdp(6, m) - glsdp(5, m))/mass0, &
+!            (glsdp(7, m) - glsdp(6, m))/mass0
+!         close (nfu)
 #    endif
 #  endif
-         open (unit = nfu, file = 'trcbud', position = 'append')
-         write (nfu, '(i8,6e12.4)') nstep - 1, &
-            (trdp(2, m) - trdp(1, m))/mass0, &
-            (trdp(3, m) - trdp(2, m))/mass0, &
-            (trdp(4, m) - trdp(3, m))/mass0, &
-            (trdp(5, m) - trdp(4, m) + trf*g)/mass0, &
-            (trdp(6, m) - trdp(5, m))/mass0, &
-            (trdp(7, m) - trdp(6, m))/mass0
-         close (nfu)
-         open (unit = nfu, file = 'trcbudtot', position = 'append')
-         write (nfu, '(i8,7e18.10)') nstep - 1, &
-            trdp(1, m)/mass0, trdp(2, m)/mass0, trdp(3, m)/mass0, &
-            trdp(4, m)/mass0, trdp(5, m)/mass0, trdp(6, m)/mass0, &
-            trdp(7, m)/mass0
-         close (nfu)
+!         open (unit = nfu, file = 'trcbud', position = 'append')
+!         write (nfu, '(i8,6e12.4)') nstep - 1, &
+!            (trdp(2, m) - trdp(1, m))/mass0, &
+!            (trdp(3, m) - trdp(2, m))/mass0, &
+!            (trdp(4, m) - trdp(3, m))/mass0, &
+!            (trdp(5, m) - trdp(4, m) + trf*g)/mass0, &
+!            (trdp(6, m) - trdp(5, m))/mass0, &
+!            (trdp(7, m) - trdp(6, m))/mass0
+!         close (nfu)
+!         open (unit = nfu, file = 'trcbudtot', position = 'append')
+!         write (nfu, '(i8,7e18.10)') nstep - 1, &
+!            trdp(1, m)/mass0, trdp(2, m)/mass0, trdp(3, m)/mass0, &
+!            trdp(4, m)/mass0, trdp(5, m)/mass0, trdp(6, m)/mass0, &
+!            trdp(7, m)/mass0
+!         close (nfu)
 #endif
-      endif
-   !$omp parallel do private(l, i)
+!      endif
+   !$omp parallel do private(j, i)
       do j = 1, jj
-         do l = 1, isp(j)
-         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+         do i = 1, ii
+         if(ip(i,j) .eq. 1) then
             util1(i, j) = (salflx(i, j) + salrlx(i, j))*scp2(i, j)*delt1
             util2(i, j) = (surflx(i, j) + surrlx(i, j))*scp2(i, j)*delt1
 #ifdef TRC
             util3(i, j) = trflx(1, i, j)*scp2(i, j)*delt1
 #endif
-         enddo
+         endif
          enddo
       enddo
    !$omp end parallel do
