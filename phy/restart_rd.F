@@ -25,7 +25,7 @@ c --- ------------------------------------------------------------------
 c --- Read initial conditions from restart file
 c --- ------------------------------------------------------------------
 c
-      use mod_config, only: expcnf, runid, inst_suffix
+      use mod_config, only: expcnf, runid, inst_suffix, resume_flag
       use mod_calendar, only: date_type, daynum_diff, operator(/=)
       use mod_time, only: date0, date, nday1, nstep0, nstep1
       use mod_xc
@@ -83,7 +83,7 @@ c
 c
 c --- open restart file and adjust time information if needed
 c
-      if     (nday1+nint(time0).eq.0) then
+      if     (nday1+nint(time0).eq.0 .and. (.not.resume_flag)) then
 c
 c --- - open restart file for initial conditions and adjust integration
 c --- - time corresponding to start date
@@ -955,7 +955,7 @@ c
       call settemmin
 c
 #ifdef TRC
-      call restart_trcrd(rstfnm)
+      if (.not.resume_flag) call restart_trcrd(rstfnm)
 #endif
 c
       if (ditflx) then
