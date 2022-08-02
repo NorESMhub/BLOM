@@ -96,7 +96,7 @@
       rno2anmxi     = 1./rno2anmx     ! inverse
       rnh4anmx      = 880.            ! consumption of NH4 per mol organic production by anammox
       rnh4anmxi     = 1./rnh4anmx     ! inverse
-      rno2dnra      = 93. + 1./3      ! consumption of NO2 per mol OM degradation during DNRA
+      rno2dnra      = 93. + 1./3.     ! consumption of NO2 per mol OM degradation during DNRA
       rno2dnrai     = 1./rno2dnra     ! inverse
       rnh4dnra      = rno2dnra + rnit ! production of NH4 per mol OM during DNRA
       rnh4dnrai     = 1./rnh4dnra     ! inverse
@@ -153,7 +153,12 @@
       Trefanh4nitr  = 20.      ! Reference temperature for nitrification on NH4 (degr C)
       bkoxamox      = 0.333e-6 ! Half-saturation constant for oxygen limitation of nitrification on NH4 (kmol/m3)
       bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
-      bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+!======
+! OLD VERSION OF pathway splitting function
+      !bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+! NEW version similar to Santoros 2021, Ji 2018:      
+      bkamoxn2o     = 0.002e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+!======
       !bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       bkamoxno2     = 0.1e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       n2omaxy       = 0.006    ! Maximum yield of OM on NH4 nitrification (-)
@@ -228,7 +233,12 @@
             potdnh4amox = max(0.,ocetra(i,j,k,ianh4) - anh4new)
             
             ! pathway splitting functions according to Goreau 1980
-            fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+       !=====
+       ! OLD version according to Goreau
+            !fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+       ! NEW version similar to Santoros et al. 2021, Ji et al. 2018
+            fn2o     = 1. - (1.-0.00157)*ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+       !=====
             fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
             fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
                      & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
