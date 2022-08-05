@@ -1205,10 +1205,6 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              kk,                                ! (in) Number of levels in array shape
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
 
-             ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
-
 c ---- ccc -------
              ! convert m2/s to cm2/s
              Kv_kpp = Kv_kpp*1e4
