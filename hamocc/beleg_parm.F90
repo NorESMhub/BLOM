@@ -193,13 +193,6 @@
       wmax  = 60.*dtb       !m/d   maximum sinking speed
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
 #endif
-      ! Dust sinking speed (individual clay particle)
-      dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
-      dustd2=dustd1*dustd1
-      dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
-     &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)*dtb
-      wdust = dustsink
 
 ! deep see remineralisation constants
       drempoc  = 0.025*dtb    !1/d
@@ -407,6 +400,17 @@
      &'*                              dmspar(4)    = ',dmspar(4)
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dmspar(5)    = ',dmspar(5)
+      ENDIF
+
+#ifndef AGG
+      dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
+      dustd2=dustd1*dustd1
+      dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
+     &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+     &         * dustd2 * 1.e-4)*dtb
+      wdust = dustsink
+
+      IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dustd1       = ',dustd1
       WRITE(io_stdo_bgc,*)                                             &
@@ -415,6 +419,10 @@
      &'*                              dustsink     = ',dustsink
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              wdust        = ',wdust
+      ENDIF
+#endif
+
+      IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)                                             &
      &'****************************************************************'
       ENDIF
