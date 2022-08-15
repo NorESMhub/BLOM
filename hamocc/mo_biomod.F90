@@ -100,7 +100,7 @@
       REAL :: bkphy,bkzoo,bkopal
       REAL :: wpoc,wcal,wopal
       REAL :: drempoc,dremopal,dremn2o,dremsul
-      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
+      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust,dustd1,dustd2,dustd3,dustsink
       REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
 #ifdef cisonew
       REAL :: c14fac
@@ -111,7 +111,7 @@
       REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
       REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
       REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
-      REAL :: dustd1,dustd2,dustd3,dustsink,calmax
+      REAL :: calmax
 #elif defined(WLIN)
       REAL :: wmin,wmax,wlin
 #endif
