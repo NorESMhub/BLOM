@@ -46,4 +46,5 @@ sources += files(
   'sedshi.F90',
   'trc_limitc.F',
   'write_netcdf_var.F90',
-  'mo_extNbioproc.F90')
+  'mo_extNbioproc.F90',
+  'mo_m4ago.F90')

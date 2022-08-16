@@ -127,7 +127,13 @@
      & LYR_nitr_NH4_OM =0  ,LYR_nitr_NO2_OM =0  ,LYR_denit_NO3     =0,  &
      & LYR_denit_NO2 = 0   ,LYR_denit_N2O = 0   ,LYR_DNRA_NO2      =0,  &
      & LYR_anmx_N2_prod=0  ,LYR_anmx_OM_prod=0  ,LYR_phosy_NH4     =0,  &
-     & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  & 
+     & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  &
+     ! M4AGO LYR
+     & LYR_agg_ws    =0    ,LYR_dynvis    =0    ,LYR_agg_stick =0    ,  &
+     & LYR_agg_stickf=0    ,LYR_agg_dmax  =0    ,LYR_agg_avdp  =0    ,  &
+     & LYR_agg_avrhop=0    ,LYR_agg_avdC  =0    ,LYR_agg_df    =0    ,  &
+     & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &        
+     !========== LVLs 
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
      & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -154,6 +160,11 @@
      & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
      & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
      & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  & 
+     ! M4AGO LVL
+     & LVL_agg_ws    =0    ,LVL_dynvis    =0    ,LVL_agg_stick =0    ,  &
+     & LVL_agg_stickf=0    ,LVL_agg_dmax  =0    ,LVL_agg_avdp  =0    ,  &
+     & LVL_agg_avrhop=0    ,LVL_agg_avdC  =0    ,LVL_agg_df    =0    ,  &
+     & LVL_agg_b     =0    ,LVL_agg_Vrhof =0    ,LVL_agg_Vpor  =0    ,  &        
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
@@ -216,6 +227,10 @@
      & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
      & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
      & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        & 
+     & LYR_agg_ws        ,LYR_dynvis        ,LYR_agg_stick     ,        &
+     & LYR_agg_stickf    ,LYR_agg_dmax      ,LYR_agg_avdp      ,        &
+     & LYR_agg_avrhop    ,LYR_agg_avdC      ,LYR_agg_df        ,        &
+     & LYR_agg_b         ,LYR_agg_Vrhof     ,LYR_agg_Vpor      ,        &        
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -241,6 +256,10 @@
      & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
      & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
      & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        & 
+     & LVL_agg_ws        ,LVL_dynvis        ,LVL_agg_stick     ,        &
+     & LVL_agg_stickf    ,LVL_agg_dmax      ,LVL_agg_avdp      ,        &
+     & LVL_agg_avrhop    ,LVL_agg_avdC      ,LVL_agg_df        ,        &
+     & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &        
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
@@ -506,7 +525,19 @@
      &          jphosy_NH4         = 0 ,                                &
      &          jphosy_NO3         = 0 ,                                &
      &          jremin_aerob       = 0 ,                                &
-     &          jremin_sulf        = 0,                                 & 
+     &          jremin_sulf        = 0 ,                                & 
+     &          jagg_ws            = 0 ,                                &
+     &          jdynvis            = 0 ,                                &
+     &          jagg_stick         = 0 ,                                &
+     &          jagg_stickf        = 0 ,                                &
+     &          jagg_dmax          = 0 ,                                &
+     &          jagg_avdp          = 0 ,                                &
+     &          jagg_avrhop        = 0 ,                                &
+     &          jagg_avdC          = 0 ,                                &
+     &          jagg_df            = 0 ,                                &
+     &          jagg_b             = 0 ,                                &
+     &          jagg_Vrhof         = 0 ,                                &
+     &          jagg_Vpor          = 0 ,                                &        
      &          jlvlanh4   = 0 ,                                        &
      &          jlvlano2   = 0 ,                                        &  
      &          jlvl_nitr_NH4      = 0 ,                                &
@@ -523,8 +554,19 @@
      &          jlvl_phosy_NH4     = 0 ,                                &
      &          jlvl_phosy_NO3     = 0 ,                                &
      &          jlvl_remin_aerob   = 0 ,                                &
-     &          jlvl_remin_sulf    = 0 
-
+     &          jlvl_remin_sulf    = 0 ,                                &
+     &          jlvl_agg_ws        = 0 ,                                &
+     &          jlvl_dynvis        = 0 ,                                &
+     &          jlvl_agg_stick     = 0 ,                                &
+     &          jlvl_agg_stickf    = 0 ,                                &
+     &          jlvl_agg_dmax      = 0 ,                                &
+     &          jlvl_agg_avdp      = 0 ,                                &
+     &          jlvl_agg_avrhop    = 0 ,                                &
+     &          jlvl_agg_avdC      = 0 ,                                &
+     &          jlvl_agg_df        = 0 ,                                &
+     &          jlvl_agg_b         = 0 ,                                &
+     &          jlvl_agg_Vrhof     = 0 ,                                &
+     &          jlvl_agg_Vpor      = 0  
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
 !----------------------------------------------------------------
@@ -966,6 +1008,32 @@
         IF (LYR_remin_sulf(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
 #endif
+        ! M4AGO
+        IF (LYR_agg_ws(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_ws(n)=i_bsc_m3d*min(1,LYR_agg_ws(n))
+        IF (LYR_dynvis(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdynvis(n)=i_bsc_m3d*min(1,LYR_dynvis(n))
+        IF (LYR_agg_stick(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stick(n)=i_bsc_m3d*min(1,LYR_agg_stick(n))
+        IF (LYR_agg_stickf(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stickf(n)=i_bsc_m3d*min(1,LYR_agg_stickf(n))
+        IF (LYR_agg_dmax(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_dmax(n)=i_bsc_m3d*min(1,LYR_agg_dmax(n))
+        IF (LYR_agg_avdp(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdp(n)=i_bsc_m3d*min(1,LYR_agg_avdp(n))
+        IF (LYR_agg_avrhop(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avrhop(n)=i_bsc_m3d*min(1,LYR_agg_avrhop(n))
+        IF (LYR_agg_avdC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdC(n)=i_bsc_m3d*min(1,LYR_agg_avdC(n))
+        IF (LYR_agg_df(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_df(n)=i_bsc_m3d*min(1,LYR_agg_df(n))
+        IF (LYR_agg_b(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_b(n)=i_bsc_m3d*min(1,LYR_agg_b(n))
+        IF (LYR_agg_Vrhof(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vrhof(n)=i_bsc_m3d*min(1,LYR_agg_Vrhof(n))
+        IF (LYR_agg_Vpor(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
+
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -1115,6 +1183,31 @@
         IF (LVL_remin_sulf(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
 #endif
+        ! M4AGO
+        IF (LVL_agg_ws(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_ws(n)=ilvl_bsc_m3d*min(1,LVL_agg_ws(n))
+        IF (LVL_dynvis(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_dynvis(n)=ilvl_bsc_m3d*min(1,LVL_dynvis(n))
+        IF (LVL_agg_stick(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stick(n)=ilvl_bsc_m3d*min(1,LVL_agg_stick(n))
+        IF (LVL_agg_stickf(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stickf(n)=ilvl_bsc_m3d*min(1,LVL_agg_stickf(n))
+        IF (LVL_agg_dmax(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_dmax(n)=ilvl_bsc_m3d*min(1,LVL_agg_dmax(n))
+        IF (LVL_agg_avdp(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdp(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdp(n))
+        IF (LVL_agg_avrhop(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avrhop(n)=ilvl_bsc_m3d*min(1,LVL_agg_avrhop(n))
+        IF (LVL_agg_avdC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdC(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdC(n))
+        IF (LVL_agg_df(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_df(n)=ilvl_bsc_m3d*min(1,LVL_agg_df(n))
+        IF (LVL_agg_b(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_b(n)=ilvl_bsc_m3d*min(1,LVL_agg_b(n))
+        IF (LVL_agg_Vrhof(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vrhof(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vrhof(n))
+        IF (LVL_agg_Vpor(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 

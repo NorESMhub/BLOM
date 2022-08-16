@@ -45,12 +45,12 @@
       use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,        &
                               & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,     &
                               & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,      &
-                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
+                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob 
       use mo_sedmnt,      only: claydens,o2ut,rno3
-      use mo_control_bgc, only: dtb,io_stdo_bgc
+      use mo_control_bgc, only: dtb,io_stdo_bgc,lm4ago
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
       use mod_xc,         only: mnproc
-
+      use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
 #ifdef AGG
       use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,        &
                               & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
@@ -216,7 +216,7 @@
       dremopal = 0.003*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
-      
+      drempoc_anaerob = 0.05*drempoc ! remin in sub-/anoxic environm. - not be overwritten by lm4ago 
 
 ! nirogen fixation by blue green algae
       bluefix=0.005*dtb       !1/d
@@ -280,6 +280,14 @@
       ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
 #endif
 
+      ! M4AGO parameters - requires ropal, opalwei, claydens and calcdens to be set
+      call init_m4ago_nml_params
+      call init_m4ago_params
+      if(lm4ago)then
+        ! reset drempoc and dremopal for T-dep remin/dissolution
+        drempoc  = 0.12*dtb
+        dremopal = 0.023*dtb
+      endif
 ! parameters for sw-radiation attenuation
 ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
 ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl] 

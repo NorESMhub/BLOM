@@ -46,7 +46,7 @@ c******************************************************************************
      .                          do_ndep,do_rivinpt,do_sedspinup,
      .                          sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,
      .                          dtb,dtbgc,io_stdo_bgc,ldtbgc,
-     .                          ldtrunbgc,ndtdaybgc,with_dmsph
+     .                          ldtrunbgc,ndtdaybgc,with_dmsph,lm4ago
       use mo_param1_bgc,  only: ks,nsedtra,npowtra
       use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
       use mo_biomod,      only: alloc_mem_biomod
@@ -64,6 +64,7 @@ c******************************************************************************
      .                          bgc_dx,bgc_dy,bgc_dp,bgc_rho,
      .                          omask,sedlay2,powtra2,burial2,
      .                          blom2hamocc
+      use mo_m4ago,       only: alloc_mem_m4ago
 #ifdef BOXATM
       use mo_intfcblom,   only: atm2
 #endif
@@ -139,6 +140,7 @@ c
       CALL ALLOC_MEM_BIOMOD(idm,jdm,kdm)
       CALL ALLOC_MEM_SEDMNT(idm,jdm)
       CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
+      CALL ALLOC_MEM_M4AGO(idm,jdm,kdm)
 c
 c --- initialise trc array (two time levels)
 c

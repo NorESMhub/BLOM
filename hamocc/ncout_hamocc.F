@@ -107,7 +107,23 @@ c
      .                     glb_fnametag,filefq_bgc,diagfq_bgc,
      .                     filemon_bgc,fileann_bgc,ip,wrtlyr,wrtlvl,
      .                     loglyr,inilvl,inilyr,inisrf,loglvl,
-     .                     msklvl,wrtsrf,msksrf,finlyr
+     .                     msklvl,wrtsrf,msksrf,finlyr,
+     .                     lyr_agg_ws,lyr_dynvis,lyr_agg_stick,
+     .                     lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,
+     .                     lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,
+     .                     lyr_agg_b,lyr_agg_Vrhof,lyr_agg_Vpor, 
+     .                     lvl_agg_ws,lvl_dynvis,lvl_agg_stick,
+     .                     lvl_agg_stickf,lvl_agg_dmax,lvl_agg_avdp,
+     .                     lvl_agg_avrhop,lvl_agg_avdC,lvl_agg_df,
+     .                     lvl_agg_b,lvl_agg_Vrhof,lvl_agg_Vpor, 
+     .                     jagg_ws,jdynvis,jagg_stick,
+     .                     jagg_stickf,jagg_dmax,jagg_avdp,
+     .                     jagg_avrhop,jagg_avdC,jagg_df,
+     .                     jagg_b,jagg_Vrhof,jagg_Vpor, 
+     .                     jlvl_agg_ws,jlvl_dynvis,jlvl_agg_stick,
+     .                     jlvl_agg_stickf,jlvl_agg_dmax,jlvl_agg_avdp,
+     .                     jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,
+     .                     jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor 
 #ifdef AGG
       use mo_bgcmean, only: lyr_nos,lyr_wphy, lyr_wnos,lyr_eps,        
      .                  lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,
@@ -350,6 +366,19 @@ c --- finalize accumulation
       call finlyr(jremin_aerob(iogrp),jdp(iogrp))
       call finlyr(jremin_sulf(iogrp),jdp(iogrp))
 #endif
+c       M4AGO
+      call finlyr(jagg_ws(iogrp),jdp(iogrp))
+      call finlyr(jdynvis(iogrp),jdp(iogrp))
+      call finlyr(jagg_stick(iogrp),jdp(iogrp))
+      call finlyr(jagg_stickf(iogrp),jdp(iogrp))
+      call finlyr(jagg_dmax(iogrp),jdp(iogrp))
+      call finlyr(jagg_avdp(iogrp),jdp(iogrp))
+      call finlyr(jagg_avrhop(iogrp),jdp(iogrp))
+      call finlyr(jagg_avdC(iogrp),jdp(iogrp))
+      call finlyr(jagg_df(iogrp),jdp(iogrp))
+      call finlyr(jagg_b(iogrp),jdp(iogrp))
+      call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
+      call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
 
 c
 c --- Mask sea floor in mass fluxes
@@ -450,6 +479,19 @@ c --- Mask sea floor in level data
       call msklvl(jlvl_remin_aerob(iogrp),depths)
       call msklvl(jlvl_remin_sulf(iogrp),depths)
 #endif
+c       M4AGO
+      call msklvl(jlvl_agg_ws(iogrp),depths)
+      call msklvl(jlvl_dynvis(iogrp),depths)
+      call msklvl(jlvl_agg_stick(iogrp),depths)
+      call msklvl(jlvl_agg_stickf(iogrp),depths)
+      call msklvl(jlvl_agg_dmax(iogrp),depths)
+      call msklvl(jlvl_agg_avdp(iogrp),depths)
+      call msklvl(jlvl_agg_avrhop(iogrp),depths)
+      call msklvl(jlvl_agg_avdC(iogrp),depths)
+      call msklvl(jlvl_agg_df(iogrp),depths)
+      call msklvl(jlvl_agg_b(iogrp),depths)
+      call msklvl(jlvl_agg_Vrhof(iogrp),depths)
+      call msklvl(jlvl_agg_Vpor(iogrp),depths)
 
 c
 c --- Compute log10 of pH
@@ -843,6 +885,32 @@ c --- Store 3d layer fields
      .  0.,cmpflg,            
      .  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1')
 #endif
+c      M4AGO
+      call wrtlyr(jagg_ws(iogrp),LYR_agg_ws(iogrp),1.,0.,cmpflg,            
+     .  'agg_ws','aggregate mean settling velocity',' ','m d-1')
+      call wrtlyr(jdynvis(iogrp),LYR_dynvis(iogrp),1.,0.,cmpflg,            
+     .  'dynvis','dynamic viscosity of sea water',' ','kg m-1 s-1')
+      call wrtlyr(jagg_stick(iogrp),LYR_agg_stick(iogrp),1.,0.,cmpflg,            
+     .  'agg_stick','aggregate mean stickiness',' ','-')
+      call wrtlyr(jagg_stickf(iogrp),LYR_agg_stickf(iogrp),1.,0.,cmpflg,            
+     .  'agg_stickf','opal frustule stickiness',' ','-')
+      call wrtlyr(jagg_dmax(iogrp),LYR_agg_dmax(iogrp),1.,0.,cmpflg,            
+     .  'agg_dmax','aggregate maximum diameter',' ','m')
+      call wrtlyr(jagg_avdp(iogrp),LYR_agg_avdp(iogrp),1.,0.,cmpflg,            
+     .  'agg_avdp','mean primary particle diameter',' ','m')
+      call wrtlyr(jagg_avrhop(iogrp),LYR_agg_avrhop(iogrp),1.,0.,cmpflg,            
+     .  'agg_avrhop','mean primary particle density',' ','kg m-3')
+      call wrtlyr(jagg_avdC(iogrp),LYR_agg_avdC(iogrp),1.,0.,cmpflg,            
+     .  'agg_avdC','Conc.-weighted mean aggregate diameter',' ','m')
+      call wrtlyr(jagg_df(iogrp),LYR_agg_df(iogrp),1.,0.,cmpflg,            
+     .  'agg_df','aggregate fractal dimension',' ','-')
+      call wrtlyr(jagg_b(iogrp),LYR_agg_b(iogrp),1.,0.,cmpflg,            
+     .  'agg_b','aggregate number distribution slope',' ','-')
+      call wrtlyr(jagg_Vrhof(iogrp),LYR_agg_Vrhof(iogrp),1.,0.,cmpflg,            
+     .  'agg_Vrhof','V-weighted aggregate mean density',' ','kg m-3')
+      call wrtlyr(jagg_Vpor(iogrp),LYR_agg_Vpor(iogrp),1.,0.,cmpflg,            
+     .  'agg_Vpor','V-weighted aggregate mean porosity',' ','-')
+
 c
 c --- Store 3d level fields
       call wrtlvl(jlvldic(iogrp),LVL_DIC(iogrp),rnacc*1e3,0.,cmpflg,      
@@ -1025,6 +1093,39 @@ c --- Store 3d level fields
      .  rnacc*1e3/dtbgc,0.,cmpflg,            
      .  'reminslvl','Sulfate remineralization rate',' ','mol P m-3 s-1')
 #endif
+c      M4AGO
+      call wrtlvl(jlvl_agg_ws(iogrp),LVL_agg_ws(iogrp),rnacc,0.,cmpflg,            
+     .  'agg_wslvl','aggregate mean settling velocity',' ','m d-1')
+      call wrtlvl(jlvl_dynvis(iogrp),LVL_dynvis(iogrp),rnacc,0.,cmpflg,            
+     .  'dynvislvl','dynamic viscosity of sea water',' ','kg m-1 s-1')
+      call wrtlvl(jlvl_agg_stick(iogrp),LVL_agg_stick(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_sticklvl','aggregate mean stickiness',' ','-')
+      call wrtlvl(jlvl_agg_stickf(iogrp),LVL_agg_stickf(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_stickflvl','opal frustule stickiness',' ','-')
+      call wrtlvl(jlvl_agg_dmax(iogrp),LVL_agg_dmax(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_dmaxlvl','aggregate maximum diameter',' ','m')
+      call wrtlvl(jlvl_agg_avdp(iogrp),LVL_agg_avdp(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_avdplvl','mean primary particle diameter',' ','m')
+      call wrtlvl(jlvl_agg_avrhop(iogrp),LVL_agg_avrhop(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_avrhoplvl','mean primary particle density',' ','kg m-3')
+      call wrtlvl(jlvl_agg_avdC(iogrp),LVL_agg_avdC(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_avdClvl','Conc.-weighted mean aggregate diameter',' ','m')
+      call wrtlvl(jlvl_agg_df(iogrp),LVL_agg_df(iogrp),rnacc,0.,cmpflg,            
+     .  'agg_dflvl','aggregate fractal dimension',' ','-')
+      call wrtlvl(jlvl_agg_b(iogrp),LVL_agg_b(iogrp),rnacc,0.,cmpflg,            
+     .  'agg_blvl','aggregate number distribution slope',' ','-')
+      call wrtlvl(jlvl_agg_Vrhof(iogrp),LVL_agg_Vrhof(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_Vrhoflvl','V-weighted aggregate mean density',' ','kg m-3')
+      call wrtlvl(jlvl_agg_Vpor(iogrp),LVL_agg_Vpor(iogrp),rnacc,0.,
+     .   cmpflg,            
+     .  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-')
 
 c
 c --- Store sediment fields
@@ -1242,6 +1343,19 @@ c
       call inilyr(jremin_aerob(iogrp),0.)
       call inilyr(jremin_sulf(iogrp),0.) 
 #endif
+c       M4AGO
+      call inilyr(jagg_ws(iogrp),0.)
+      call inilyr(jdynvis(iogrp),0.)
+      call inilyr(jagg_stick(iogrp),0.)
+      call inilyr(jagg_stickf(iogrp),0.)
+      call inilyr(jagg_dmax(iogrp),0.)
+      call inilyr(jagg_avdp(iogrp),0.)
+      call inilyr(jagg_avrhop(iogrp),0.)
+      call inilyr(jagg_avdC(iogrp),0.)
+      call inilyr(jagg_df(iogrp),0.)
+      call inilyr(jagg_b(iogrp),0.)
+      call inilyr(jagg_Vrhof(iogrp),0.)
+      call inilyr(jagg_Vpor(iogrp),0.)
 c
       call inilvl(jlvldic(iogrp),0.)
       call inilvl(jlvlalkali(iogrp),0.)
@@ -1323,6 +1437,19 @@ c
       call inilvl(jlvl_remin_aerob(iogrp),0.)
       call inilvl(jlvl_remin_sulf(iogrp),0.) 
 #endif
+c       M4AGO
+      call inilvl(jlvl_agg_ws(iogrp),0.)
+      call inilvl(jlvl_dynvis(iogrp),0.)
+      call inilvl(jlvl_agg_stick(iogrp),0.)
+      call inilvl(jlvl_agg_stickf(iogrp),0.)
+      call inilvl(jlvl_agg_dmax(iogrp),0.)
+      call inilvl(jlvl_agg_avdp(iogrp),0.)
+      call inilvl(jlvl_agg_avrhop(iogrp),0.)
+      call inilvl(jlvl_agg_avdC(iogrp),0.)
+      call inilvl(jlvl_agg_df(iogrp),0.)
+      call inilvl(jlvl_agg_b(iogrp),0.)
+      call inilvl(jlvl_agg_Vrhof(iogrp),0.)
+      call inilvl(jlvl_agg_Vpor(iogrp),0.)
 c
 #ifndef sedbypass
       call inisdm(jpowaic(iogrp),0.)       
@@ -1371,7 +1498,15 @@ c
      .   lvl_silica,lvl_doc,lvl_phyto,lvl_grazer,lvl_poc,lvl_calc,
      .   lvl_opal,lvl_iron,lvl_phosy,lvl_co3,lvl_ph,lvl_omegaa,
      .   lvl_omegac,lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,
-     .   lvl_prefalk,lvl_prefdic,lvl_dicsat
+     .   lvl_prefalk,lvl_prefdic,lvl_dicsat,
+     .   lyr_agg_ws,lyr_dynvis,lyr_agg_stick,
+     .   lyr_agg_stickf,lyr_agg_dmax,lyr_agg_avdp,
+     .   lyr_agg_avrhop,lyr_agg_avdC,lyr_agg_df,
+     .   lyr_agg_b,lyr_agg_Vrhof,lyr_agg_Vpor, 
+     .   lvl_agg_ws,lvl_dynvis,lvl_agg_stick,
+     .   lvl_agg_stickf,lvl_agg_dmax,lvl_agg_avdp,
+     .   lvl_agg_avrhop,lvl_agg_avdC,lvl_agg_df,
+     .   lvl_agg_b,lvl_agg_Vrhof,lvl_agg_Vpor 
 #ifdef AGG
       use mo_bgcmean, only: lyr_nos,lyr_wphy,lyr_wnos,lyr_eps,
      . lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,lvl_asize
@@ -1789,6 +1924,31 @@ c --- define 3d layer fields
       call ncdefvar3d(LYR_remin_sulf(iogrp),cmpflg,'p',            
      .  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1',1)
 #endif
+c      M4AGO
+      call ncdefvar3d(LYR_agg_ws(iogrp),cmpflg,'p',            
+     .  'agg_ws','aggregate mean settling velocity',' ','m d-1',1)
+      call ncdefvar3d(LYR_dynvis(iogrp),cmpflg,'p',            
+     .  'dynvis','dynamic viscosity of sea water',' ','kg m-1 s-1',1)
+      call ncdefvar3d(LYR_agg_stick(iogrp),cmpflg,'p',            
+     .  'agg_stick','aggregate mean stickiness',' ','-',1)
+      call ncdefvar3d(LYR_agg_stickf(iogrp),cmpflg,'p',            
+     .  'agg_stickf','opal frustule stickiness',' ','-',1)
+      call ncdefvar3d(LYR_agg_dmax(iogrp),cmpflg,'p',            
+     .  'agg_dmax','aggregate maximum diameter',' ','m',1)
+      call ncdefvar3d(LYR_agg_avdp(iogrp),cmpflg,'p',           
+     .  'agg_avdp','mean primary particle diameter',' ','m',1)
+      call ncdefvar3d(LYR_agg_avrhop(iogrp),cmpflg,'p',            
+     .  'agg_avrhop','mean primary particle density',' ','kg m-3',1)
+      call ncdefvar3d(LYR_agg_avdC(iogrp),cmpflg,'p',            
+     .  'agg_avdC','Conc.-weighted mean aggregate diameter',' ','m',1)
+      call ncdefvar3d(LYR_agg_df(iogrp),cmpflg,'p',            
+     .  'agg_df','aggregate fractal dimension',' ','-',1)
+      call ncdefvar3d(LYR_agg_b(iogrp),cmpflg,'p',            
+     .  'agg_b','aggregate number distribution slope',' ','-',1)
+      call ncdefvar3d(LYR_agg_Vrhof(iogrp),cmpflg,'p',            
+     .  'agg_Vrhof','V-weighted aggregate mean density',' ','kg m-3',1)
+      call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',            
+     .  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
 c
 c --- define 3d level fields
       call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',      
@@ -1949,6 +2109,34 @@ c --- define 3d level fields
      .  'reminslvl','Sulfate remineralization rate',' ',
      .  'mol P m-3 s-1',2)
 #endif
+c      M4AGO
+      call ncdefvar3d(LVL_agg_ws(iogrp),cmpflg,'p',            
+     .  'agg_wslvl','aggregate mean settling velocity',' ','m d-1',2)
+      call ncdefvar3d(LVL_dynvis(iogrp),cmpflg,'p',            
+     .  'dynvislvl','dynamic viscosity of sea water',' ','kg m-1 s-1',
+     .   2)
+      call ncdefvar3d(LVL_agg_stick(iogrp),cmpflg,'p',            
+     .  'agg_sticklvl','aggregate mean stickiness',' ','-',2)
+      call ncdefvar3d(LVL_agg_stickf(iogrp),cmpflg,'p',            
+     .  'agg_stickflvl','opal frustule stickiness',' ','-',2)
+      call ncdefvar3d(LVL_agg_dmax(iogrp),cmpflg,'p',            
+     .  'agg_dmaxlvl','aggregate maximum diameter',' ','m',2)
+      call ncdefvar3d(LVL_agg_avdp(iogrp),cmpflg,'p',           
+     .  'agg_avdplvl','mean primary particle diameter',' ','m',2)
+      call ncdefvar3d(LVL_agg_avrhop(iogrp),cmpflg,'p',            
+     .  'agg_avrhoplvl','mean primary particle density',' ','kg m-3',2)
+      call ncdefvar3d(LVL_agg_avdC(iogrp),cmpflg,'p',            
+     .  'agg_avdClvl','Conc.-weighted mean aggregate diameter',' ',
+     .  'm',2)
+      call ncdefvar3d(LVL_agg_df(iogrp),cmpflg,'p',            
+     .  'agg_dflvl','aggregate fractal dimension',' ','-',2)
+      call ncdefvar3d(LVL_agg_b(iogrp),cmpflg,'p',            
+     .  'agg_blvl','aggregate number distribution slope',' ','-',2)
+      call ncdefvar3d(LVL_agg_Vrhof(iogrp),cmpflg,'p',            
+     .  'agg_Vrhoflvl','V-weighted aggregate mean density',' ',
+     .  'kg m-3',2)
+      call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',            
+     .  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
 c
 c --- define sediment fields
 #ifndef sedbypass

@@ -104,7 +104,7 @@
       REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal
       REAL :: wpoc,wcal,wopal
-      REAL :: drempoc,dremopal,dremn2o,dremsul
+      REAL :: drempoc,dremopal,dremn2o,dremsul,drempoc_anaerob
       REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
       REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
 #ifdef cisonew

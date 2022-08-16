@@ -63,7 +63,7 @@
       LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
       LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up
       logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
-
+      LOGICAL, save :: lm4ago      =.true.  ! run with M4AGO settling scheme
     contains
 
       subroutine get_bgc_namelist

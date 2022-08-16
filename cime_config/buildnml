@@ -468,6 +468,18 @@ set LYR_PHOSY_NH4     = '0, 0, 2'
 set LYR_PHOSY_NO3     = '0, 0, 2'
 set LYR_REMIN_AEROB   = '0, 0, 2'
 set LYR_REMIN_SULF    = '0, 0, 2'
+set LYR_AGG_WS     = '0, 0, 2'
+set LYR_DYNVIS     = '0, 0, 2'
+set LYR_AGG_STICK  = '0, 0, 2'  
+set LYR_AGG_STICKF = '0, 0, 2'
+set LYR_AGG_DMAX   = '0, 0, 2'
+set LYR_AGG_AVDP   = '0, 0, 2'
+set LYR_AGG_AVRHOP = '0, 0, 2'
+set LYR_AGG_AVDC   = '0, 0, 2'
+set LYR_AGG_DF     = '0, 0, 2'
+set LYR_AGG_B      = '0, 0, 2'
+set LYR_AGG_VRHOF  = '0, 0, 2'
+set LYR_AGG_VPOR   = '0, 0, 2'
 set LYR_ALKALI    = '0, 0, 2'
 set LYR_SILICA    = '0, 0, 2'
 set LYR_DIC       = '0, 0, 2'
@@ -537,6 +549,18 @@ set LVL_PHOSY_NH4     = '0, 2, 2'
 set LVL_PHOSY_NO3     = '0, 2, 2'
 set LVL_REMIN_AEROB   = '0, 2, 2'
 set LVL_REMIN_SULF    = '0, 2, 2'
+set LVL_AGG_WS     = '0, 2, 2'
+set LVL_DYNVIS     = '0, 2, 2'
+set LVL_AGG_STICK  = '0, 0, 2'  
+set LVL_AGG_STICKF = '0, 0, 2'
+set LVL_AGG_DMAX   = '0, 2, 2'
+set LVL_AGG_AVDP   = '0, 2, 2'
+set LVL_AGG_AVRHOP = '0, 2, 2'
+set LVL_AGG_AVDC   = '0, 0, 2'
+set LVL_AGG_DF     = '0, 2, 2'
+set LVL_AGG_B      = '0, 2, 2'
+set LVL_AGG_VRHOF  = '0, 2, 2'
+set LVL_AGG_VPOR   = '0, 0, 2'
 set LVL_ALKALI    = '0, 2, 2'
 set LVL_SILICA    = '0, 2, 2'
 set LVL_DIC       = '0, 2, 2'
@@ -1515,6 +1539,18 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
 !   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
 !   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
+!   AGG_WS         - M4AGO aggregate mean settling velocity [m/d]
+!   DYNVIS         - molecular dynamic viscosity of sea water [kg m-1 s-1]
+!   AGG_STICK      - mean stickiness of marine aggregates [-]
+!   AGG_STICKF     - stickiness of opal frustule [-]
+!   AGG_DMAX       - maximum aggregate diameter [m]
+!   AGG_AVDP       - mean primary particle diameter [m]
+!   AGG_AVRHOP     - mean primary particle density [kg/m3]
+!   AGG_AVDC       - concentration weighted mean diameter of aggregates [m]
+!   AGG_DF         - fractal dimension of aggregates [-]
+!   AGG_B          - slope of aggregate number distribution [-]
+!   AGG_VRHOF      - Volume-weighted mean aggregate density [kg m-3]
+!   AGG_VPOR       - Volume weighted mean aggregate porosity [-]
 !   PH             - pH (ph) [-log10([h+])]
 !   OMEGAA         - Aragonite saturation state (omegaa) [1]
 !   OMEGAC         - Calcite saturation state (omegac) [1]
@@ -1708,6 +1744,18 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LYR_PHOSY_NO3     = $LYR_PHOSY_NO3 
   LYR_REMIN_AEROB   = $LYR_REMIN_AEROB 
   LYR_REMIN_SULF    = $LYR_REMIN_SULF
+  LYR_AGG_WS     = $LYR_AGG_WS 
+  LYR_DYNVIS     = $LYR_DYNVIS
+  LYR_AGG_STICK  = $LYR_AGG_STICK 
+  LYR_AGG_STICKF = $LYR_AGG_STICKF
+  LYR_AGG_DMAX   = $LYR_AGG_DMAX
+  LYR_AGG_AVDP   = $LYR_AGG_AVDP
+  LYR_AGG_AVRHOP = $LYR_AGG_AVRHOP
+  LYR_AGG_AVDC   = $LYR_AGG_AVDC
+  LYR_AGG_DF     = $LYR_AGG_DF
+  LYR_AGG_B      = $LYR_AGG_B
+  LYR_AGG_VRHOF  = $LYR_AGG_VRHOF
+  LYR_AGG_VPOR   = $LYR_AGG_VPOR
   LYR_ALKALI    = $LYR_ALKALI
   LYR_SILICA    = $LYR_SILICA
   LYR_DIC       = $LYR_DIC
@@ -1777,6 +1825,18 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LVL_PHOSY_NO3     = $LVL_PHOSY_NO3 
   LVL_REMIN_AEROB   = $LVL_REMIN_AEROB 
   LVL_REMIN_SULF    = $LVL_REMIN_SULF 
+  LVL_AGG_WS     = $LVL_AGG_WS 
+  LVL_DYNVIS     = $LVL_DYNVIS
+  LVL_AGG_STICK  = $LVL_AGG_STICK 
+  LVL_AGG_STICKF = $LVL_AGG_STICKF
+  LVL_AGG_DMAX   = $LVL_AGG_DMAX
+  LVL_AGG_AVDP   = $LVL_AGG_AVDP
+  LVL_AGG_AVRHOP = $LVL_AGG_AVRHOP
+  LVL_AGG_AVDC   = $LVL_AGG_AVDC
+  LVL_AGG_DF     = $LVL_AGG_DF
+  LVL_AGG_B      = $LVL_AGG_B
+  LVL_AGG_VRHOF  = $LVL_AGG_VRHOF
+  LVL_AGG_VPOR   = $LVL_AGG_VPOR
   LVL_ALKALI    = $LVL_ALKALI
   LVL_SILICA    = $LVL_SILICA
   LVL_DIC       = $LVL_DIC
