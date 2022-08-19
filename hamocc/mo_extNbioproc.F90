@@ -103,7 +103,7 @@
       rnm1          = rnit - 1.       
 
       ! Phytoplankton growth     
-      bkphyanh4     = 0.1e-6    ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
+      bkphyanh4     = 0.12e-6    ! Half-saturation constant for NH4 uptake by bulk phytoplankton (kmol/m3)
       bkphyano3     = 0.16e-6   ! Half-saturation constant for NO3 uptake by bulk phytoplankton (kmol/m3)
       bkphosph      = 0.01e-6   ! Half-saturation constant for PO4 uptake by bulk phytoplankton (kmol/m3)
       bkiron        = bkphosph*riron ! Half-saturation constant for Fe uptake by bulk phytoplankton (kmol/m3)
@@ -114,7 +114,7 @@
       q10ano3denit  = 2.       ! Q10 factor for denitrification on NO3 (-)
       Trefano3denit = 10.      ! Reference temperature for denitrification on NO3 (degr C) 
       !sc_ano3denit  = 0.05e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
-      sc_ano3denit  = 0.08e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
+      sc_ano3denit  = 0.12e6   ! Shape factor for NO3 denitrification oxygen inhibition function (m3/kmol)
       bkano3denit   = 5.e-6    ! Half-saturation constant for NO3 denitrification (kmol/m3)
 
       ! === Anammox
@@ -157,11 +157,11 @@
 ! OLD VERSION OF pathway splitting function
       !bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
 ! NEW version similar to Santoros 2021, Ji 2018:      
-      bkamoxn2o     = 0.002e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      bkamoxn2o     = 0.5e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
 !======
       !bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       bkamoxno2     = 0.1e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      n2omaxy       = 0.006    ! Maximum yield of OM on NH4 nitrification (-)
+      n2omaxy       = 0.003    ! Maximum yield of OM on NH4 nitrification (-)
       n2oybeta      = 18.      ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
       bkyamox       = 0.333e-6 ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
   
@@ -237,7 +237,14 @@
        ! OLD version according to Goreau
             !fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
        ! NEW version similar to Santoros et al. 2021, Ji et al. 2018
-            fn2o     = 1. - (1.-0.00157)*ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+            ! was set: bkamoxn2o  = 0.002e-6 
+            !fn2o     = 1. - (1.-0.00157)*ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+
+            ! 0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
+            fn2o     = 2.2e-9/bkoxamox * (0.3 + 0.7*bkoxamox/(ocetra(i,j,k,ioxygen)+bkoxamox))                                     &
+                                       * ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4)+bkamoxn2o)
+            ! continue using the 'old' fno2 - neglecting NH4 term here - which doesn'y make a huge difference, 
+            ! assuming that it's never really limited 
        !=====
             fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
             fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
