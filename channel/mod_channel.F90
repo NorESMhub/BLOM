@@ -28,8 +28,8 @@ module mod_channel
    use mod_types, only: r8
    use mod_constants, only: g, rearth, pi, radian
    use mod_xc
-   use mod_grid, only: sigmar, &
-                       qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
+   use mod_vcoord, only: sigmar
+   use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
                        scqx, scqy, scpx, scpy, scux, scuy, scvx, scvy, &
                        scq2, scp2, scu2, scv2, &
                        qlon, qlat, plon, plat, ulon, ulat, vlon, vlat, &

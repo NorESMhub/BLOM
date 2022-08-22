@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -37,6 +37,10 @@ c
      .                      diaacc_total_time, io_total_time,
      .                      get_time
       use mod_xc, only: lp, mnproc, xctilr, xcsum
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, 
+     .                      cntiso_hybrid, cntiso_hybrid_regrid_remap, 
+     .                      remap_velocity 
+      use mod_vdiff, only: cntiso_hybrid_vdifft, cntiso_hybrid_vdiffm
       use mod_swabs, only: updswa
       use mod_tmsmt, only: tmsmt1, tmsmt2
       use mod_eddtra, only: eddtra
@@ -46,19 +50,23 @@ c
       use mod_momtum, only: momtum
       use mod_mxlayr, only: mxlayr
       use mod_barotp, only: barotp
-      use mod_cmnfld, only: cmnfld
+      use mod_cmnfld_routines, only: cmnfld_bfsqi_cntiso_hybrid, 
+     .                               cmnfld1, cmnfld2
       use mod_forcing, only: fwbbal
       use mod_budget, only: budget_sums, budget_output
       use mod_eddtra, only: eddtra
       use mod_momtum, only: momtum
+      use mod_difest, only: difest_isobml, difest_lateral_hybrid,
+     .                      difest_vertical_hybrid
       use mod_chkvar, only: chkvar
       use mod_dia
 c
-      use mod_state, only: temp, saln, dp
+      use mod_state, only: temp, saln, dp, init_fluxes
       implicit none
 c
       real q
       integer i,m,n,mm,nn,k1m,k1n
+      logical update_flux_halos
 c
       real total_step_time,
      .     auxil_time ,
@@ -93,19 +101,13 @@ c
       call step_time
 c
 c --- ------------------------------------------------------------------
-c --- Update some flux halos the first time step of a day to reproduce
-c --- results after restart with arctic
+c --- Reset fluxes to be accumulated over a model time step and update
+c --- flux halos the first time step of a day to reproduce results after
+c --- restart with tripolar grid.
 c --- ------------------------------------------------------------------
 c
-      if (nreg.eq.2.and.mod(nstep,nstep_in_day).eq.1) then
-        if (mnproc.eq.1) write (lp,*) 'blom_step: update flux halos'
-        call xctilr(uflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
-        call xctilr(utflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
-        call xctilr(usflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
-        call xctilr(vflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
-        call xctilr(vtflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
-        call xctilr(vsflx(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
-      endif
+      update_flux_halos = nreg == 2 .and. mod(nstep,nstep_in_day) == 1
+      call init_fluxes(m,n,mm,nn,k1m,k1n,update_flux_halos)
 c
       auxil_time=get_time()
 c
@@ -123,19 +125,36 @@ c
 c
       getfrc_time=get_time()
 c
+      if (vcoord_type_tag == cntiso_hybrid) then
+        call cntiso_hybrid_regrid_remap(m,n,mm,nn,k1m,k1n)
+        call remap_velocity(m,n,mm,nn,k1m,k1n)
+        convec_time=get_time()
+        call budget_sums(2,n,nn)
+      endif
+c
+      call cmnfld2(m,n,mm,nn,k1m,k1n)
+c
 cdiag write (lp,*) 'tmsmt1...'
       call tmsmt1(m,n,mm,nn,k1m,k1n)
       tmsmt1_time=get_time()
 c
 cdiag write (lp,*) 'advdif...'
-      call difest(m,n,mm,nn,k1m,k1n)
+      if (vcoord_type_tag == isopyc_bulkml) then
+        call difest_isobml(m,n,mm,nn,k1m,k1n)
+      else
+        call difest_lateral_hybrid(m,n,mm,nn,k1m,k1n)
+      endif
       call eddtra(m,n,mm,nn,k1m,k1n)
       call advect(m,n,mm,nn,k1m,k1n)
       call pbcor1(m,n,mm,nn,k1m,k1n)
       call diffus(m,n,mm,nn,k1m,k1n)
       advdif_time=get_time()
 c
-      call budget_sums(2,n,nn)
+      if (vcoord_type_tag == isopyc_bulkml) then
+        call budget_sums(2,n,nn)
+      else
+        call budget_sums(3,n,nn)
+      endif
       auxil_time=auxil_time+get_time()
 c
 cdiag write (lp,*) 'sfcstr...'
@@ -150,27 +169,42 @@ cdiag write (lp,*) 'momtum...'
       call momtum(m,n,mm,nn,k1m,k1n)
       momtum_time=get_time()
 c
-cdiag write (lp,*) 'convec...'
-      call convec(m,n,mm,nn,k1m,k1n)
-      convec_time=get_time()
+      if (vcoord_type_tag == isopyc_bulkml) then
 c
-      call budget_sums(3,n,nn)
-      auxil_time=auxil_time+get_time()
+cdiag   write (lp,*) 'convec...'
+        call convec(m,n,mm,nn,k1m,k1n)
+        convec_time=get_time()
 c
-cdiag write (lp,*) 'diapfl...'
-      call diapfl(m,n,mm,nn,k1m,k1n)
-      diapfl_time=get_time()
+        call budget_sums(3,n,nn)
+        auxil_time=auxil_time+get_time()
 c
-      call budget_sums(4,n,nn)
-      auxil_time=auxil_time+get_time()
+cdiag   write (lp,*) 'diapfl...'
+        call diapfl(m,n,mm,nn,k1m,k1n)
+        diapfl_time=get_time()
+c
+        call budget_sums(4,n,nn)
+        auxil_time=auxil_time+get_time()
+c
+      endif
 c
 cdiag write (lp,*) 'thermf...'
       call thermf(m,n,mm,nn,k1m,k1n)
       thermf_time=get_time()
 c
-cdiag write (lp,*) 'mxlayr...'
-      call mxlayr(m,n,mm,nn,k1m,k1n)
-      mxlayr_time=get_time()
+      if (vcoord_type_tag == isopyc_bulkml) then
+cdiag   write (lp,*) 'mxlayr...'
+        call mxlayr(m,n,mm,nn,k1m,k1n)
+        mxlayr_time=get_time()
+      else
+        call cmnfld_bfsqi_cntiso_hybrid(m,n,mm,nn,k1m,k1n)
+        call cntiso_hybrid_forcing(m,n,mm,nn,k1m,k1n)
+        call difest_vertical_hybrid(m,n,mm,nn,k1m,k1n)
+        mxlayr_time=get_time()
+        call cntiso_hybrid_vdifft(m,n,mm,nn,k1m,k1n)
+        call cntiso_hybrid_vdiffm(m,n,mm,nn,k1m,k1n)
+        call budget_sums(4,n,nn)
+        diapfl_time=get_time()
+      endif
 c
 #ifdef TRC
 c --- update tracer due to non-passive processes
@@ -195,9 +229,12 @@ cdiag write (lp,*) 'tmsmt2...'
       call tmsmt2(m,n,mm,nn,k1m,k1n)
       tmsmt2_time=get_time()
 c
-      call cmnfld(m,n,mm,nn,k1m,k1n)
-c
       call budget_sums(7,m,mm)
+c
+      call cmnfld1(m,n,mm,nn,k1m,k1n)
+c
+      call diaacc(m,n,mm,nn,k1m,k1n)
+      diaacc_time=get_time()
 c
       call fwbbal(m,n,mm,nn,k1m,k1n)
 c
@@ -213,9 +250,6 @@ c ----------------------------------------------------------------------
 c
       call chkvar(m,n,mm,nn,k1m,k1n)
 c
-      call diaacc(m,n,mm,nn,k1m,k1n)
-      diaacc_time=get_time()
-c
       if (mod(nstep,nstep_in_day).eq.0.and.nday_of_year.eq.1) then
 c
 c --- ------------------------------------------------------------------
@@ -225,7 +259,6 @@ c
         call wdiflx
 c
       endif
-c
 c
 c --- ------------------------------------------------------------------
 c --- - output of BLOM diagnostics

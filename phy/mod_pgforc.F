@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -157,11 +157,11 @@ c
 c --- compute new -dpu,dpv- field.
 c
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=0,jj+1
+      do j=-2,jj+2
         do k=1,kk
           kn=k+nn
           do l=1,isp(j)
-          do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+          do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
             p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
           enddo
           enddo
@@ -170,11 +170,11 @@ c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
 c$OMP END PARALLEL DO
 c
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
-      do j=1,jj
+      do j=-1,jj+2
         do k=1,kk
           kn=k+nn
           do l=1,isu(j)
-          do i=max(1,ifu(j,l)),min(ii+1,ilu(j,l))
+          do i=max(-1,ifu(j,l)),min(ii+2,ilu(j,l))
             q=min(p(i,j,kk+1),p(i-1,j,kk+1))
             dpu(i,j,kn)=
      .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
@@ -182,15 +182,8 @@ c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
             pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,kn)
           enddo
           enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i,q)
-      do j=1,jj+1
-        do k=1,kk
-          kn=k+nn
           do l=1,isv(j)
-          do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+          do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             q=min(p(i,j,kk+1),p(i,j-1,kk+1))
             dpv(i,j,kn)=
      .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))

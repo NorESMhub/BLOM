@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad
+! Copyright (C) 2001-2022 Mats Bentsen, Lars Inge Enstad
 !
 ! This file is part of BLOM.
 !
@@ -38,9 +38,6 @@ c
 c
       integer   i,j,nfill,nzero
       real      depmax
-c
-      character fmt*13
-      data fmt/'(i4,1x,120i1)'/
 c
 c --- is the domain periodic in i-index?
       depmax=0.0

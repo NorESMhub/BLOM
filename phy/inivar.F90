@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen, Jerry Tjiputra
+! Copyright (C) 2015-2021 Mats Bentsen, Jerry Tjiputra
 !
 ! This file is part of BLOM.
 !
@@ -24,12 +24,14 @@ subroutine inivar
 
    use mod_constants, only: spval
    use mod_xc
+   use mod_vcoord, only: inivar_vcoord
    use mod_state, only: inivar_state
    use mod_pgforc, only: inivar_pgforc
    use mod_momtum, only: inivar_momtum
    use mod_barotp, only: inivar_barotp
    use mod_tmsmt, only: inivar_tmsmt
    use mod_diffusion, only: inivar_diffusion
+   use mod_difest, only: inivar_difest
    use mod_utility, only: inivar_utility
    use mod_mxlayr, only: inivar_mxlayr
    use mod_seaice, only: inivar_seaice
@@ -46,12 +48,17 @@ subroutine inivar
    ! ---------------------------------------------------------------------------
    ! Call initialization routines for various modules.
    ! ---------------------------------------------------------------------------
+#ifdef TRC
+   call inivar_tracers
+#endif
+   call inivar_vcoord
    call inivar_state
    call inivar_pgforc
    call inivar_momtum
    call inivar_barotp
    call inivar_tmsmt
    call inivar_diffusion
+   call inivar_difest
    call inivar_utility
    call inivar_mxlayr
    call inivar_seaice
@@ -59,8 +66,5 @@ subroutine inivar
    call inivar_cmnfld
    call inivar_niw
    call inivar_tidaldissip
-#ifdef TRC
-   call inivar_tracers
-#endif
 
 end subroutine inivar

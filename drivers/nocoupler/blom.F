@@ -40,7 +40,7 @@ c --- advance the model from time step nstep1 to nstep2
       enddo blom_loop
 c
 c --- write check sum of layer thickness
-      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,1,'dp')
+      call chksummsk(dp(1-nbdy,1-nbdy,1+mod(nstep2,2)*kk),ip,kk,'dp')
 c
       if (mnproc.eq.1) then
         open (unit=nfu,file='run.status',status='unknown')

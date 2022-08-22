@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2011-2021 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
+! Copyright (C) 2011-2022 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -93,7 +93,7 @@ contains
    ! Set initial conditions for variables specifically when coupled to CESM.
    ! ---------------------------------------------------------------------------
 
-      integer :: i, j, l
+      integer :: i, j
 
    !$omp parallel do private(i)
       do j = 1, jj

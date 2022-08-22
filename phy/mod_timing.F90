@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen, Alok Kumar Gupta
+! Copyright (C) 2006-2022 Mats Bentsen, Alok Kumar Gupta
 !
 ! This file is part of BLOM.
 !
@@ -93,7 +93,7 @@ contains
 
    real(r8) function get_time()
    ! ---------------------------------------------------------------------------
-   ! Return time in seconds since last call to either init_timer or get_time.
+   ! Return time in seconds since last call to either init_timing or get_time.
    ! ---------------------------------------------------------------------------
 
       if (mnproc == 1) then
