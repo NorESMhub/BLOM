@@ -150,7 +150,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
-  real :: wpocd,wcald,wopald,dagg
+  real :: wpocd,wcald,wopald,wdustd,dagg
 #ifdef sedbypass
   real :: florca,flcaca,flsil
 #endif
@@ -1049,7 +1049,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
+!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd   &
 #if defined(AGG)
 !$OMP ,wnos,wnosd,dagg                                                &
 #endif
@@ -1099,17 +1099,20 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wnos   = wnumb(i,j,k)
               wnosd  = wnumb(i,j,kdonor)
               wdust  = dustsink
+              wdustd = dustsink
               dagg   = dustagg(i,j,k)
 #elif defined(WLIN)
               wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
               wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
               wcald  = wcal
               wopald = wopal
+              wdustd = wdust
               dagg   = 0.0
 #else
               wpocd  = wpoc
               wcald  = wcal
               wopald = wopal
+              wdustd = wdust
               dagg   = 0.0
 #endif
 
@@ -1117,6 +1120,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                  wpocd  = 0.0
                  wcald  = 0.0
                  wopald = 0.0
+                 wdustd = 0.0
 #if defined(AGG)
                  wnosd  = 0.0
 #elif defined(WLIN)
@@ -1153,7 +1157,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                    &                 + ocetra(i,j,kdonor,iopal)*wopald)/        &
                    &                 (pddpo(i,j,k)+wopal)
               ocetra(i,j,k,ifdust) = (ocetra(i,j,k    ,ifdust) * pddpo(i,j,k)   &
-                   &                 + ocetra(i,j,kdonor,ifdust)*wdust)/        &
+                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/       &
                    &                 (pddpo(i,j,k)+wdust) - dagg
 #ifdef AGG
               ocetra(i,j,k,iphy)   = (ocetra(i,j,k    ,iphy) * pddpo(i,j,k)     &
