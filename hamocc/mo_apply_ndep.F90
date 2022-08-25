@@ -45,7 +45,7 @@ module mo_apply_ndep
 !  N deposition is activated through a logical switch 'do_ndep' read from
 !  HAMOCC's bgcnml namelist. 
 !
-!  -subroutine n_deposition
+!  -subroutine apply_ndep
 !     Apply n-deposition to the top-most model layer.
 !
 !
