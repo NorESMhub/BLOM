@@ -64,7 +64,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    bgc_dx,bgc_dy,bgc_dp,bgc_rho,                       &
        &                    omask,sedlay2,powtra2,burial2,                      &
        &                    blom2hamocc
-      use mo_m4ago,       only: alloc_mem_m4ago
+  use mo_m4ago,       only: alloc_mem_m4ago
 #ifdef BOXATM
   use mo_intfcblom,   only: atm2
 #endif
