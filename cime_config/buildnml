@@ -1865,7 +1865,7 @@ EOF
   endif
   if ($OALKFILE != "''") then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-oafx_file = `echo $OAFILE | tr -d '"' | tr -d "'"`
+oafx_file = `echo $OALKFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($HAMOCC_VSLS == TRUE) then
