@@ -91,7 +91,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
                           & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
                           & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
                           & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
-                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob
+                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
   use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph,lm4ago
@@ -210,7 +210,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 #endif
 #ifdef extNcycle
   character(len=:), allocatable :: inv_message
-  real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac  
+  real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac 
+  real :: o2lim 
 #endif
 
 
@@ -693,7 +694,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
 #else
-           pocrem = MIN(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+           o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+           pocrem = MIN(o2lim*pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
 #endif

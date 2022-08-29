@@ -45,7 +45,7 @@
       use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,        &
                               & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,     &
                               & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,      &
-                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob 
+                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc 
       use mo_sedmnt,      only: claydens,o2ut,rno3
       use mo_control_bgc, only: dtb,io_stdo_bgc,lm4ago
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
@@ -217,6 +217,7 @@
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
       drempoc_anaerob = 0.05*drempoc ! remin in sub-/anoxic environm. - not be overwritten by lm4ago 
+      bkox_drempoc = 1e-7 ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
 
 ! nirogen fixation by blue green algae
       bluefix=0.005*dtb       !1/d
