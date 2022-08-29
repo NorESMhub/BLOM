@@ -207,11 +207,11 @@ if ($BLOM_N_DEPOSITION == TRUE) then
     set NDEPFNAME = ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc
   else if( $BLOM_NDEP_SCENARIO == UNSET ) then
     set DO_NDEP   = .false.
-    set NDEPFNAME = ""
+    set NDEPFNAME = "''"
   endif
 else
   set DO_NDEP   = .false.
-  set NDEPFNAME = ""
+  set NDEPFNAME = "''"
 endif
 if ($HAMOCC_SEDSPINUP == TRUE) then
   set DO_SEDSPINUP = .true.
@@ -230,8 +230,13 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
+# For the following options, there are currently no switches in Case-XML files.
+# These options can be activated by expert users via user namelist.
+set DO_OALK = .false.
+set OALKSCEN = "''"
+set OALKFILE = "''"
 set WITH_DMSPH = .false.
-set PI_PH_FILE = ""
+set PI_PH_FILE = "''"
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -1448,6 +1453,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
+  DO_OALK      = $DO_OALK
+  OALKSCEN     = $OALKSCEN
+  OALKFILE     = $OALKFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1853,6 +1861,11 @@ EOF
   if ($BLOM_N_DEPOSITION == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($OALKFILE != "''") then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+oafx_file = `echo $OAFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($HAMOCC_VSLS == TRUE) then
