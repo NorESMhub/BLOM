@@ -338,16 +338,16 @@ MODULE mo_m4ago
 
      !$OMP PARALLEL DO PRIVATE(i,j,k)
      do j = 1,kpje
-       do i = 1,kpie
-          if(omask(i,j) > 0.5) then
+     do i = 1,kpie
+        if(omask(i,j) > 0.5) then
            m4ago_ppo(i,j,1) = ppao(i,j) + prho(i,j,1)*grav_acc_const*pddpo(i,j,1)   
            do k = 2,kpke
             if(pddpo(i,j,k) > dp_min) then
                m4ago_ppo(i,j,k) = m4ago_ppo(i,j,k-1) + prho(i,j,k)*grav_acc_const*pddpo(i,j,k)  
             endif
            enddo
-          endif
-         enddo
+        endif
+      enddo
       enddo 
       !$OMP END PARALLEL DO
   END SUBROUTINE calc_pressure
@@ -384,54 +384,54 @@ MODULE mo_m4ago
 
      !$OMP PARALLEL DO PRIVATE(i,j,k)
      DO j = 1,kpje
-       DO i = 1,kpie
-         DO k = 1,kpke
-          IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
-              ! Limit settling velocity wrt CFL:
-              ws_agg(i,j,k) = MIN(ws_agg(i,j,k), 0.99*pddpo(i,j,k))
+     DO i = 1,kpie
+     DO k = 1,kpke
+        IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
+            ! Limit settling velocity wrt CFL:
+            ws_agg(i,j,k) = MIN(ws_agg(i,j,k), 0.99*pddpo(i,j,k))
 
-              ! ============================== Write general diagnostics ============
-              ! ----- settling velocity-related -----
-              aggregate_diagnostics(i,j,k,kws_agg) = ws_agg(i,j,k)/dtb  ! applied ws conversion  m/time_step  to  m/d for output
+            ! ============================== Write general diagnostics ============
+            ! ----- settling velocity-related -----
+            aggregate_diagnostics(i,j,k,kws_agg) = ws_agg(i,j,k)/dtb  ! applied ws conversion  m/time_step  to  m/d for output
 
-              ! ----- settling environment -----
-              aggregate_diagnostics(i,j,k,kdynvis) = dyn_vis(i,j,k)     ! dynamic viscosity
+            ! ----- settling environment -----
+            aggregate_diagnostics(i,j,k,kdynvis) = dyn_vis(i,j,k)     ! dynamic viscosity
 
-              ! ----- aggregate properties -----
-              av_d_C(i,j,k) = (1. + df_agg(i,j,k) - b_agg(i,j,k))                      &
-                            & /(2. + df_agg(i,j,k) - b_agg(i,j,k))                     &
-                            & *(Lmax_agg(i,j,k)**(2. + df_agg(i,j,k) - b_agg(i,j,k))   &
-                            & - av_dp(i,j,k)**(2. + df_agg(i,j,k) - b_agg(i,j,k)))     &
-                            & / (Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))      &
-                            & - av_dp(i,j,k)**(1. + df_agg(i,j,k)-b_agg(i,j,k)))
+            ! ----- aggregate properties -----
+            av_d_C(i,j,k) = (1. + df_agg(i,j,k) - b_agg(i,j,k))                      &
+                          & /(2. + df_agg(i,j,k) - b_agg(i,j,k))                     &
+                          & *(Lmax_agg(i,j,k)**(2. + df_agg(i,j,k) - b_agg(i,j,k))   &
+                          & - av_dp(i,j,k)**(2. + df_agg(i,j,k) - b_agg(i,j,k)))     &
+                          & / (Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))      &
+                          & - av_dp(i,j,k)**(1. + df_agg(i,j,k)-b_agg(i,j,k)))
 
-              aggregate_diagnostics(i,j,k,kstickiness_agg) = stickiness_agg(i,j,k)           ! aggre. stickiness
-              aggregate_diagnostics(i,j,k,kstickiness_frustule) = stickiness_frustule(i,j,k) ! frustule stickiness
+            aggregate_diagnostics(i,j,k,kstickiness_agg) = stickiness_agg(i,j,k)           ! aggre. stickiness
+            aggregate_diagnostics(i,j,k,kstickiness_frustule) = stickiness_frustule(i,j,k) ! frustule stickiness
 
-              aggregate_diagnostics(i,j,k,kLmax_agg)  = Lmax_agg(i,j,k)   ! applied max. diameter
-              aggregate_diagnostics(i,j,k,kav_dp)     = av_dp(i,j,k)      ! mean primary particle diameter 
-              aggregate_diagnostics(i,j,k,kav_rho_p)  = av_rho_p(i,j,k)   ! mean primary particle density 
-              aggregate_diagnostics(i,j,k,kav_d_C)    = av_d_C(i,j,k)     ! conc-weighted mean agg. diameter
-              aggregate_diagnostics(i,j,k,kdf_agg)    = df_agg(i,j,k)     ! aggregate fractal dim        
-              aggregate_diagnostics(i,j,k,kb_agg)     = b_agg(i,j,k)      ! aggre number distr. slope
+            aggregate_diagnostics(i,j,k,kLmax_agg)  = Lmax_agg(i,j,k)   ! applied max. diameter
+            aggregate_diagnostics(i,j,k,kav_dp)     = av_dp(i,j,k)      ! mean primary particle diameter 
+            aggregate_diagnostics(i,j,k,kav_rho_p)  = av_rho_p(i,j,k)   ! mean primary particle density 
+            aggregate_diagnostics(i,j,k,kav_d_C)    = av_d_C(i,j,k)     ! conc-weighted mean agg. diameter
+            aggregate_diagnostics(i,j,k,kdf_agg)    = df_agg(i,j,k)     ! aggregate fractal dim        
+            aggregate_diagnostics(i,j,k,kb_agg)     = b_agg(i,j,k)      ! aggre number distr. slope
 
-              ! volume-weighted aggregate density
-              aggregate_diagnostics(i,j,k,kav_rhof_V) = (av_rho_p(i,j,k)-rho_aq)*av_dp(i,j,k)**(3.-df_agg(i,j,k)) &
-                          & *(4.-b_agg(i,j,k))*(Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))                  &
-                          &         - av_dp(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k)))                              &
-                          &  / ((1.+df_agg(i,j,k)-b_agg(i,j,k))                                                   &
-                          & *(Lmax_agg(i,j,k)**(4.-b_agg(i,j,k)) - av_dp(i,j,k)**(4.-b_agg(i,j,k)))) + rho_aq
+            ! volume-weighted aggregate density
+            aggregate_diagnostics(i,j,k,kav_rhof_V) = (av_rho_p(i,j,k)-rho_aq)*av_dp(i,j,k)**(3.-df_agg(i,j,k)) &
+                        & *(4.-b_agg(i,j,k))*(Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))                  &
+                        &         - av_dp(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k)))                              &
+                        &  / ((1.+df_agg(i,j,k)-b_agg(i,j,k))                                                   &
+                        & *(Lmax_agg(i,j,k)**(4.-b_agg(i,j,k)) - av_dp(i,j,k)**(4.-b_agg(i,j,k)))) + rho_aq
 
-              ! volume-weighted aggregate porosity
-              aggregate_diagnostics(i,j,k,kav_por_V)  =  1. - ((4.-b_agg(i,j,k))                                  &
-                          & *av_dp(i,j,k)**(3.-df_agg(i,j,k))                                                     &
-                          & *(Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))                                    &
-                          & - av_dp(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))))                                     &
-                          & / ((1.+df_agg(i,j,k)-b_agg(i,j,k))                                                    &
-                          & *(Lmax_agg(i,j,k)**(4.-b_agg(i,j,k)) - av_dp(i,j,k)**(4.-b_agg(i,j,k))))
-           END IF
-         END DO
-       END DO
+            ! volume-weighted aggregate porosity
+            aggregate_diagnostics(i,j,k,kav_por_V)  =  1. - ((4.-b_agg(i,j,k))                                  &
+                        & *av_dp(i,j,k)**(3.-df_agg(i,j,k))                                                     &
+                        & *(Lmax_agg(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))                                    &
+                        & - av_dp(i,j,k)**(1.+df_agg(i,j,k)-b_agg(i,j,k))))                                     &
+                        & / ((1.+df_agg(i,j,k)-b_agg(i,j,k))                                                    &
+                        & *(Lmax_agg(i,j,k)**(4.-b_agg(i,j,k)) - av_dp(i,j,k)**(4.-b_agg(i,j,k))))
+        END IF
+     END DO
+     END DO
      END DO 
 
   END SUBROUTINE mean_aggregate_sinking_speed
@@ -464,148 +464,148 @@ MODULE mo_m4ago
      !$OMP                    free_detritus,rho_diatom,cell_det_mass,cell_pot_det_mass,V_POM_cell,V_aq,rho_frustule,A_det,A_opal,  &
      !$OMP                    A_calc,A_dust,A_total,stickiness_mapped)
      DO j = 1,kpje
-       DO i = 1,kpie
-         DO k = 1,kpke
-           IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
-              C_det  = 0.
-              C_opal = 0.
-              C_calc = 0.
-              C_dust = 0.
+     DO i = 1,kpie
+     DO k = 1,kpke
+        IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
+           C_det  = 0.
+           C_opal = 0.
+           C_calc = 0.
+           C_dust = 0.
               
-              C_det  = ABS(ocetra(i,j,k,idet))
-              C_opal = ABS(ocetra(i,j,k,iopal))
-              C_calc = ABS(ocetra(i,j,k,icalc))
-              C_dust = ABS(ocetra(i,j,k,ifdust))
+           C_det  = ABS(ocetra(i,j,k,idet))
+           C_opal = ABS(ocetra(i,j,k,iopal))
+           C_calc = ABS(ocetra(i,j,k,icalc))
+           C_dust = ABS(ocetra(i,j,k,ifdust))
 
-              n_det   = 0. ! number of primary particles
-              n_opal  = 0.
-              n_dust  = 0.
-              n_calc  = 0.
-              mf      = 0.
+           n_det   = 0. ! number of primary particles
+           n_opal  = 0.
+           n_dust  = 0.
+           n_calc  = 0.
+           mf      = 0.
              
-              V_det   = 0. ! total volume of primary particles in a unit volume
-              V_opal  = 0.
-              V_calc  = 0.
-              V_dust  = 0.
-              V_solid = 0.
+           V_det   = 0. ! total volume of primary particles in a unit volume
+           V_opal  = 0.
+           V_calc  = 0.
+           V_dust  = 0.
+           V_solid = 0.
 
-              free_detritus = 0.
-              rho_diatom    = 0.
-              ! n_det are detritus primary particle that are
-              ! NOT linked to any diatom frustule
-              ! n_opal are number of frustule-like primary particles possessing
-              ! a density i) different from pure opal ii) due to a mixture of
-              ! opal frustule, detritus inside the frustule and potentially water
-              ! inside the frustule
+           free_detritus = 0.
+           rho_diatom    = 0.
+           ! n_det are detritus primary particle that are
+           ! NOT linked to any diatom frustule
+           ! n_opal are number of frustule-like primary particles possessing
+           ! a density i) different from pure opal ii) due to a mixture of
+           ! opal frustule, detritus inside the frustule and potentially water
+           ! inside the frustule
               
-              ! describing diatom frustule as hollow sphere
-              ! that is completely or partially filled with detritus 
-              ! and water
-              cell_det_mass     = 0.
-              cell_pot_det_mass = 0.
-              V_POM_cell        = 0.
-              V_aq              = 0.
-              rho_frustule      = 0.
+           ! describing diatom frustule as hollow sphere
+           ! that is completely or partially filled with detritus 
+           ! and water
+           cell_det_mass     = 0.
+           cell_pot_det_mass = 0.
+           V_POM_cell        = 0.
+           V_aq              = 0.
+           rho_frustule      = 0.
 
-             ! number of opal frustules (/NUM_FAC)
-              n_opal = C_opal*opalwei/rho_V_frustule_opal 
-              ! maximum mass of detritus inside a frustule
-              cell_pot_det_mass = n_opal*V_frustule_inner*agg_org_dens
+           ! number of opal frustules (/NUM_FAC)
+           n_opal = C_opal*opalwei/rho_V_frustule_opal 
+           ! maximum mass of detritus inside a frustule
+           cell_pot_det_mass = n_opal*V_frustule_inner*agg_org_dens
                  
-              ! detritus mass inside frustules  
-              cell_det_mass = MIN(cell_pot_det_mass, C_det*det_mol2mass - EPS_ONE)
+           ! detritus mass inside frustules  
+           cell_det_mass = MIN(cell_pot_det_mass, C_det*det_mol2mass - EPS_ONE)
 
-              ! volume of detritus component in cell
-              V_POM_cell = (cell_det_mass/n_opal)/agg_org_dens
+           ! volume of detritus component in cell
+           V_POM_cell = (cell_det_mass/n_opal)/agg_org_dens
    
-              ! if not detritus is available, water is added
-              V_aq = V_frustule_inner -  V_POM_cell                
+           ! if not detritus is available, water is added
+           V_aq = V_frustule_inner -  V_POM_cell                
                  
-              ! density of the diatom frsutules incl. opal, detritus and water 
-              rho_frustule = (rho_V_frustule_opal + cell_det_mass/n_opal + V_aq*rho_aq)/V_dp_opal               
+           ! density of the diatom frsutules incl. opal, detritus and water 
+           rho_frustule = (rho_V_frustule_opal + cell_det_mass/n_opal + V_aq*rho_aq)/V_dp_opal               
                  
-              ! mass of extra cellular detritus particles
-              free_detritus = C_det*det_mol2mass  - cell_det_mass
-              rho_diatom = (rho_frustule + cell_det_mass/cell_pot_det_mass*rho_TEP) &
-                              /(1. + cell_det_mass/cell_pot_det_mass)
+           ! mass of extra cellular detritus particles
+           free_detritus = C_det*det_mol2mass  - cell_det_mass
+           rho_diatom = (rho_frustule + cell_det_mass/cell_pot_det_mass*rho_TEP) &
+                           /(1. + cell_det_mass/cell_pot_det_mass)
 
-              ! number of primary particles 
-              n_det  = free_detritus/rho_V_dp_det  ! includes NUM_FAC 
-              n_calc = C_calc*calcwei/rho_V_dp_calc
-              n_dust = C_dust/rho_V_dp_dust     ! dust is in kg/m3
+           ! number of primary particles 
+           n_det  = free_detritus/rho_V_dp_det  ! includes NUM_FAC 
+           n_calc = C_calc*calcwei/rho_V_dp_calc
+           n_dust = C_dust/rho_V_dp_dust     ! dust is in kg/m3
 
-              ! primary particles surface weighted stickiness is mapped
-              ! on range between 0 and 1
-              ! fractal dimension of aggregates is based on that mapped df
-              ! number distribution slope b is based on df
+           ! primary particles surface weighted stickiness is mapped
+           ! on range between 0 and 1
+           ! fractal dimension of aggregates is based on that mapped df
+           ! number distribution slope b is based on df
                
-              ! calc total areas
-              A_det   = n_det*A_dp_det
-              A_opal  = n_opal*A_dp_opal
-              A_calc  = n_calc*A_dp_calc
-              A_dust  = n_dust*A_dp_dust
-              A_total = A_det + A_opal + A_calc + A_dust
+           ! calc total areas
+           A_det   = n_det*A_dp_det
+           A_opal  = n_opal*A_dp_opal
+           A_calc  = n_calc*A_dp_calc
+           A_dust  = n_dust*A_dp_dust
+           A_total = A_det + A_opal + A_calc + A_dust
 
-              ! calc frustule stickiness
-              stickiness_frustule(i,j,k) = cell_det_mass/(cell_pot_det_mass + EPS_ONE)*stickiness_TEP &
-                                         & + (1. - cell_det_mass/(cell_pot_det_mass + EPS_ONE))*stickiness_opal
+           ! calc frustule stickiness
+           stickiness_frustule(i,j,k) = cell_det_mass/(cell_pot_det_mass + EPS_ONE)*stickiness_TEP &
+                                      & + (1. - cell_det_mass/(cell_pot_det_mass + EPS_ONE))*stickiness_opal
 
-              ! calc mean stickiness
-              stickiness_agg(i,j,k) = stickiness_frustule(i,j,k)*A_opal  &
-                                    & + stickiness_det*A_det              &
-                                    & + stickiness_calc*A_calc             &
-                                    & + stickiness_dust*A_dust
+           ! calc mean stickiness
+           stickiness_agg(i,j,k) = stickiness_frustule(i,j,k)*A_opal  &
+                                 & + stickiness_det*A_det              &
+                                 & + stickiness_calc*A_calc             &
+                                 & + stickiness_dust*A_dust
 
-              stickiness_agg(i,j,k) = stickiness_agg(i,j,k)/(A_total+EPS_ONE)
+           stickiness_agg(i,j,k) = stickiness_agg(i,j,k)/(A_total+EPS_ONE)
 
-              stickiness_mapped = (stickiness_agg(i,j,k) - stickiness_min) & 
+           stickiness_mapped = (stickiness_agg(i,j,k) - stickiness_min) & 
                                & /(stickiness_max - stickiness_min)
 
-              df_agg(i,j,k) = agg_df_max*EXP(df_slope*stickiness_mapped)
+           df_agg(i,j,k) = agg_df_max*EXP(df_slope*stickiness_mapped)
 
-              ! Slope is here positive defined (as n(d)~d^-b), so *-1 of 
-              ! Jiang & Logan 1991: Fractal dimensions of aggregates 
-              ! determined from steady-state size distributions. 
-              ! Environ. Sci. Technol. 25, 2031-2038.
-              ! 
-              ! See also: 
-              ! Hunt 1980: Prediction of oceanic particle size distributions 
-              !            from coagulation and sedimentation mechanisms.  
-              !
-              ! Additional assumptions made here:
-              ! b in Jiang & Logan     (used for       Re <   0.1: b=1 
-              !                              for 0.1 < Re <  10  : b=0.871
-              !                              for 10  < Re < 100  : b=0.547)
-              ! is set to 0.871 as an 'average for our range of 0<Re<Re_crit'
-              ! D2=min(2,df(3d)) (Meakin 1988)
-              !
-              ! => Formulation in Jiang & Logan 1991:
-              ! slope = -0.5*(3+df+(2+df-D2)/(2-b)) reduces to:
+           ! Slope is here positive defined (as n(d)~d^-b), so *-1 of 
+           ! Jiang & Logan 1991: Fractal dimensions of aggregates 
+           ! determined from steady-state size distributions. 
+           ! Environ. Sci. Technol. 25, 2031-2038.
+           ! 
+           ! See also: 
+           ! Hunt 1980: Prediction of oceanic particle size distributions 
+           !            from coagulation and sedimentation mechanisms.  
+           !
+           ! Additional assumptions made here:
+           ! b in Jiang & Logan     (used for       Re <   0.1: b=1 
+           !                              for 0.1 < Re <  10  : b=0.871
+           !                              for 10  < Re < 100  : b=0.547)
+           ! is set to 0.871 as an 'average for our range of 0<Re<Re_crit'
+           ! D2=min(2,df(3d)) (Meakin 1988)
+           !
+           ! => Formulation in Jiang & Logan 1991:
+           ! slope = -0.5*(3+df+(2+df-D2)/(2-b)) reduces to:
                     
-              b_agg(i,j,k) = 0.5*(3. + df_agg(i,j,k) &  
-                           & + (2. + df_agg(i,j,k) - MIN(2., df_agg(i,j,k)))/(2. - BJ2))
+           b_agg(i,j,k) = 0.5*(3. + df_agg(i,j,k) &  
+                        & + (2. + df_agg(i,j,k) - MIN(2., df_agg(i,j,k)))/(2. - BJ2))
  
-              ! careful: for df=1.5904: b_agg=2*df where w_s is undefined.
+           ! careful: for df=1.5904: b_agg=2*df where w_s is undefined.
 
-              ! total volume of primary particles
-              V_det   = n_det*V_dp_det*NUM_FAC
-              V_opal  = n_opal*V_dp_opal*NUM_FAC
-              V_calc  = n_calc*V_dp_calc*NUM_FAC
-              V_dust  = n_dust*V_dp_dust*NUM_FAC
-              V_solid = V_det + V_opal + V_calc + V_dust
+           ! total volume of primary particles
+           V_det   = n_det*V_dp_det*NUM_FAC
+           V_opal  = n_opal*V_dp_opal*NUM_FAC
+           V_calc  = n_calc*V_dp_calc*NUM_FAC
+           V_dust  = n_dust*V_dp_dust*NUM_FAC
+           V_solid = V_det + V_opal + V_calc + V_dust
  
-              ! primary particle mean diameter according to Bushell & Amal 1998, 2000
-              ! sum(n_i) not changing - can be pulled out and thus cancels out
-              av_dp(i,j,k) = (n_calc*dp_calc**3. + n_dust*dp_dust**3. + n_opal*dp_opal**3. + n_det*dp_det**3.)
-              av_dp(i,j,k) = av_dp(i,j,k)/(n_calc*dp_calc**df_agg(i,j,k) + n_dust*dp_dust**df_agg(i,j,k) &
-                          & + n_opal*dp_opal**df_agg(i,j,k) + n_det*dp_det**df_agg(i,j,k))
-              av_dp(i,j,k) = av_dp(i,j,k)**(1./(3. - df_agg(i,j,k)))
+           ! primary particle mean diameter according to Bushell & Amal 1998, 2000
+           ! sum(n_i) not changing - can be pulled out and thus cancels out
+           av_dp(i,j,k) = (n_calc*dp_calc**3. + n_dust*dp_dust**3. + n_opal*dp_opal**3. + n_det*dp_det**3.)
+           av_dp(i,j,k) = av_dp(i,j,k)/(n_calc*dp_calc**df_agg(i,j,k) + n_dust*dp_dust**df_agg(i,j,k) &
+                        & + n_opal*dp_opal**df_agg(i,j,k) + n_det*dp_det**df_agg(i,j,k))
+           av_dp(i,j,k) = av_dp(i,j,k)**(1./(3. - df_agg(i,j,k)))
 
-              ! density of mean primary particles
-              av_rho_p(i,j,k) = (V_det*agg_org_dens + V_opal*rho_diatom + V_calc*calcdens + V_dust*claydens)/V_solid  
-           END IF
-         END DO
-       END DO
+           ! density of mean primary particles
+           av_rho_p(i,j,k) = (V_det*agg_org_dens + V_opal*rho_diatom + V_calc*calcdens + V_dust*claydens)/V_solid  
+        END IF
+     END DO
+     END DO
      END DO
      !$OMP END PARALLEL DO
  
@@ -652,13 +652,13 @@ MODULE mo_m4ago
 
      !$OMP PARALLEL DO PRIVATE(i,j,k)
      DO j = 1,kpje
-       DO i = 1,kpie
-         DO k = 1,kpke
-          IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
-               ws_agg(i,j,k) = ws_Re(i,j,k,Lmax_agg(i,j,k))
-           END IF
-         END DO
-       END DO
+     DO i = 1,kpie
+     DO k = 1,kpke
+       IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
+            ws_agg(i,j,k) = ws_Re(i,j,k,Lmax_agg(i,j,k))
+       END IF
+     END DO
+     END DO
      END DO
      !$OMP END PARALLEL DO
 
@@ -794,13 +794,13 @@ MODULE mo_m4ago
      !$OMP PARALLEL DO PRIVATE(i,j,k)
      ! base on analytical Jiang approximation
      DO j = 1,kpje
-       DO i = 1,kpie
-         DO k = 1,kpke
-          IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
-                Lmax_agg(i,j,k)   = max_agg_diam_white(i,j,k)
-          END IF
-         END DO
-       END DO
+     DO i = 1,kpie
+     DO k = 1,kpke
+        IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
+             Lmax_agg(i,j,k)   = max_agg_diam_white(i,j,k)
+        END IF
+     END DO
+     END DO
      END DO
      !$OMP END PARALLEL DO
   END SUBROUTINE max_agg_diam
@@ -896,35 +896,35 @@ MODULE mo_m4ago
      kch = 0   
      !$OMP PARALLEL DO PRIVATE(i,j,k,press_val,ptho_val,psao_val,kch)
      DO j = 1,kpje
-       DO i = 1,kpie
-         DO k = 1,kpke
-          IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
-             kch = MERGE(k+1,k,k<kpke)
-             IF(pddpo(i,j,kch) > 0.5) THEN
-               press_val    = 0.5*(ppo(i,j,k)  + ppo(i,j,kch))*1.e-5 ! Pascal -> dbar
-               ptho_val     = 0.5*(ptho(i,j,k) + ptho(i,j,kch))
-               psao_val     = 0.5*(psao(i,j,k) + ptho(i,j,kch))  
-             ELSE
-               press_val    = ppo(i,j,k)*1.e-5 ! Pascal -> dbar 
-               ptho_val     = ptho(i,j,k)
-               psao_val     = psao(i,j,k)  
-             END IF
+     DO i = 1,kpie
+     DO k = 1,kpke
+       IF(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) THEN
+         kch = MERGE(k+1,k,k<kpke)
+         IF(pddpo(i,j,kch) > 0.5) THEN
+            press_val    = 0.5*(ppo(i,j,k)  + ppo(i,j,kch))*1.e-5 ! Pascal -> dbar
+            ptho_val     = 0.5*(ptho(i,j,k) + ptho(i,j,kch))
+            psao_val     = 0.5*(psao(i,j,k) + ptho(i,j,kch))  
+         ELSE
+            press_val    = ppo(i,j,k)*1.e-5 ! Pascal -> dbar 
+            ptho_val     = ptho(i,j,k)
+            psao_val     = psao(i,j,k)  
+         END IF
 
      
-             ! molecular dynamic viscosity
-             dyn_vis(i,j,k) = 0.1    & ! Unit: g / (cm*s) -> kg / (m*s)
-               &     *(1.79e-2                                                                &
-               &     - 6.1299e-4*ptho_val + 1.4467e-5*ptho_val**2.                      &
-               &     - 1.6826e-7*ptho_val**3.                                              &
-               &     - 1.8266e-7*press_val  + 9.8972e-12*press_val**2.                  &
-               &     + 2.4727e-5*psao_val                                                     &
-               &     + psao_val*(4.8429e-7*ptho_val - 4.7172e-8*ptho_val**2.            &
-               &     + 7.5986e-10*ptho_val**3.)                                            &
-               &     + press_val*(1.3817e-8*ptho_val - 2.6363e-10*ptho_val**2.)         &
-               &     - press_val**2.*(6.3255e-13*ptho_val - 1.2116e-14*ptho_val**2.))
-           END IF
-         END DO
-       END DO
+         ! molecular dynamic viscosity
+         dyn_vis(i,j,k) = 0.1    & ! Unit: g / (cm*s) -> kg / (m*s)
+             &     *(1.79e-2                                                                &
+             &     - 6.1299e-4*ptho_val + 1.4467e-5*ptho_val**2.                      &
+             &     - 1.6826e-7*ptho_val**3.                                              &
+             &     - 1.8266e-7*press_val  + 9.8972e-12*press_val**2.                  &
+             &     + 2.4727e-5*psao_val                                                     &
+             &     + psao_val*(4.8429e-7*ptho_val - 4.7172e-8*ptho_val**2.            &
+             &     + 7.5986e-10*ptho_val**3.)                                            &
+             &     + press_val*(1.3817e-8*ptho_val - 2.6363e-10*ptho_val**2.)         &
+             &     - press_val**2.*(6.3255e-13*ptho_val - 1.2116e-14*ptho_val**2.))
+       END IF
+     END DO
+     END DO
      END DO
      !$OMP END PARALLEL DO
   END SUBROUTINE dynvis
