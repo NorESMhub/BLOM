@@ -62,6 +62,7 @@
       LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition
       LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
       LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up
+      LOGICAL, save :: do_oalk     =.false.  ! apply ocean alkalinization
       logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
       LOGICAL, save :: lm4ago      =.true.  ! run with M4AGO settling scheme
     contains
