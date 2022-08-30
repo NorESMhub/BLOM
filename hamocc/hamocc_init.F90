@@ -43,7 +43,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mod_grid,       only: plon,plat
   use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
   use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                      &
-       &                    do_ndep,do_rivinpt,do_sedspinup,                    &
+       &                    do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph
@@ -56,6 +56,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mo_read_rivin,  only: ini_read_rivin,rivinfile
   use mo_read_fedep,  only: ini_read_fedep,fedepfile
   use mo_read_ndep,   only: ini_read_ndep,ndepfile
+  use mo_read_oafx,   only: ini_read_oafx,oalkfile,oalkscen
   use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
   use mo_clim_swa,    only: ini_swa_clim,swaclimfile
   use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,                 &
@@ -76,9 +77,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   integer :: i,j,k,l,nt
   integer :: iounit
 
-  namelist /bgcnml/ atm_co2,do_rivinpt,do_ndep,                                 &
-       &   ndepfile,fedepfile,rivinfile,                                        &
-       &   do_sedspinup,sedspin_yr_s,                                           &
+  namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,    &
+       &   do_oalk,oalkscen,oalkfile,do_sedspinup,sedspin_yr_s,                 &
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
@@ -187,6 +187,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   CALL ini_read_ndep(idm,jdm)
 
   CALL ini_read_rivin(idm,jdm,omask)
+
+  CALL ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
 
 #ifdef BROMO
   CALL ini_swa_clim(idm,jdm,omask)
