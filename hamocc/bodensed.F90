@@ -79,30 +79,35 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
      write(io_stdo_bgc,*)  ' '
   endif
 
-  porwat(1) = 0.85
-  porwat(2) = 0.83
-  porwat(3) = 0.8
-  porwat(4) = 0.79
-  porwat(5) = 0.77
-  porwat(6) = 0.75
-  porwat(7) = 0.73
-  porwat(8) = 0.7
-  porwat(9) = 0.68
-  porwat(10) = 0.66
-  porwat(11) = 0.64
-  porwat(12) = 0.62
+  ! this initialization can be done later via reading a porosity map
+  porwat(:,:,1) = 0.85
+  porwat(:,:,2) = 0.83
+  porwat(:,:,3) = 0.8
+  porwat(:,:,4) = 0.79
+  porwat(:,:,5) = 0.77
+  porwat(:,:,6) = 0.75
+  porwat(:,:,7) = 0.73
+  porwat(:,:,8) = 0.7
+  porwat(:,:,9) = 0.68
+  porwat(:,:,10) = 0.66
+  porwat(:,:,11) = 0.64
+  porwat(:,:,12) = 0.62
 
   if (mnproc == 1) then
-     write(io_stdo_bgc,*)  'Pore water in sediment: ',porwat
+     write(io_stdo_bgc,*)  'Pore water in sediment initialized'
   endif
 
   seddzi(1) = 500.
   do k = 1, ks
-     porsol(k) = 1. - porwat(k)
-     if(k >= 2) porwah(k) = 0.5 * (porwat(k) + porwat(k-1))
-     if(k == 1) porwah(k) = 0.5 * (1. + porwat(1))
      seddzi(k+1) = 1. / dzs(k+1)
      seddw(k) = 0.5 * (dzs(k) + dzs(k+1))
+     do i = 1, kpie
+     do j = 1, kpje
+        porsol(i,j,k) = 1. - porwat(i,j,k)
+        if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))
+        if(k == 1) porwah(i,j,k) = 0.5 * (1. + porwat(i,j,1))
+     enddo
+     enddo
   enddo
 
   sedict = 1.e-9 * dtbgc
@@ -131,8 +136,12 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 
 ! determine total solid sediment volume
   solfu = 0.
+  do i = 1, kpie
+  do j = 1, kpje
   do k = 1, ks
-     solfu = solfu + seddw(k) * porsol(k)
+     solfu(i,j) = solfu(i,j) + seddw(k) * porsol(i,j,k)
+  enddo
+  enddo
   enddo
 
 
