@@ -262,7 +262,18 @@
       INTEGER, PARAMETER :: ipowc13 = -1,                               &
      &                      ipowc14 = -1  
 #endif
-      INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew
+#ifdef extNcycle
+      INTEGER, PARAMETER :: i_pow_extNcycle = 3 !indices not corresponding to ocetra
+      INTEGER, PARAMETER :: ipownh4=i_pow_base + i_pow_cisonew+1,       &  
+     &                      ipown2o=i_pow_base + i_pow_cisonew+2,       &
+     &                      ipowno2=i_pow_base + i_pow_cisonew+3
+#else
+      INTEGER, PARAMETER :: i_pow_extNcycle = 0
+      INTEGER, PARAMETER :: ipownh4 = -1,                               &
+     &                      ipown2o = -1,                               &
+     &                      ipowno2 = -1
+#endif
+      INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew + i_pow_extNcycle
 
 
 !******************************************************************************
