@@ -80,6 +80,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porsol
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwah
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwat
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: solfu
 
       REAL, DIMENSION (:,:),     ALLOCATABLE :: silpro
       REAL, DIMENSION (:,:),     ALLOCATABLE :: prorca
@@ -230,7 +231,16 @@
       ALLOCATE (porwat(kpie,kpje,ks),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory porwat'
       porwat(:,:,:) = 0.0
+      
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable solfu ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      ENDIF
 
+      ALLOCATE (solfu(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory solfu'
+      solfu(:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'
