@@ -219,53 +219,51 @@
      &                      irdoc  =6,                                  & ! dissolved organic carbon
      &                      irdet  =7                                     ! particulate carbon
 
-
-! sediment
-#ifdef cisonew
-      INTEGER, PARAMETER :: nsedtra=8
+      
+! ---  sediment
+     ! sediment solid components 
+      INTEGER, PARAMETER :: i_sed_base = 4
       INTEGER, PARAMETER :: issso12=1,                                  &
      &                      isssc12=2,                                  &
      &                      issssil=3,                                  &
-     &                      issster=4,                                  &
-     &                      issso13=5,                                  &
-     &                      issso14=6,                                  &
-     &                      isssc13=7,                                  &
-     &                      isssc14=8
-     
-! pore water tracers, index should be the same as for ocetra
-      INTEGER, PARAMETER :: npowtra=9
-      INTEGER, PARAMETER :: ipowaic=1,                                  &
-     &                      ipowaal=2,                                  &
-     &                      ipowaph=3,                                  &
-     &                      ipowaox=4,                                  &
-     &                      ipown2 =5,                                  &
-     &                      ipowno3=6,                                  &
-     &                      ipowasi=7,                                  &
-     &                      ipowc13=8,                                  &  ! C-isotope idices do NOT correspond to ocetra!
-     &                      ipowc14=9                                      ! C-isotope idices do NOT correspond to ocetra!
+     &                      issster=4
+#ifdef cisonew 
+      INTEGER, PARAMETER :: i_sed_cisonew = 4
+      INTEGER, PARAMETER :: issso13 = i_sed_base+1,                     &
+     &                      issso14 = i_sed_base+2,                     &
+     &                      isssc13 = i_sed_base+3,                     &
+     &                      isssc14 = i_sed_base+4
 #else
-      INTEGER, PARAMETER :: nsedtra=4
-      INTEGER, PARAMETER :: issso12=1,                                  &
-     &                      isssc12=2,                                  &
-     &                      issssil=3,                                  &
-     &                      issster=4,                                  &
-     &                      issso13=-1,                                 &
-     &                      issso14=-1,                                 &
-     &                      isssc13=-1,                                 &
-     &                      isssc14=-1
+      INTEGER, PARAMETER :: i_sed_cisonew = 0
+      INTEGER, PARAMETER :: issso13 = -1,                               &
+     &                      issso14 = -1,                               &
+     &                      isssc13 = -1,                               &
+     &                      isssc14 = -1 
+#endif
+      INTEGER, PARAMETER :: nsedtra = i_sed_base + i_sed_cisonew
 
-! pore water tracers, index should be the same as for ocetra
-      INTEGER, PARAMETER :: npowtra=7
+
+     ! sediment pore water components
+     ! pore water tracers, index should be the same as for ocetra
+      INTEGER, PARAMETER :: i_pow_base=7
       INTEGER, PARAMETER :: ipowaic=1,                                  &
      &                      ipowaal=2,                                  &
      &                      ipowaph=3,                                  &
      &                      ipowaox=4,                                  &
      &                      ipown2 =5,                                  &
      &                      ipowno3=6,                                  &
-     &                      ipowasi=7,                                  &
-     &                      ipowc13=-1,                                 &  
-     &                      ipowc14=-1                                      
+     &                      ipowasi=7
+#ifdef cisonew
+      INTEGER, PARAMETER :: i_pow_cisonew = 2
+      INTEGER, PARAMETER :: ipowc13=i_pow_base + 1,                     &  ! C-isotope indices do NOT correspond to ocetra!
+     &                      ipowc14=i_pow_base + 2                         ! C-isotope indices do NOT correspond to ocetra!
+#else
+      INTEGER, PARAMETER :: i_pow_cisonew = 0
+      INTEGER, PARAMETER :: ipowc13 = -1,                               &
+     &                      ipowc14 = -1  
 #endif
+      INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew
+
 
 !******************************************************************************
       END MODULE mo_param1_bgc
