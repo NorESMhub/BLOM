@@ -36,6 +36,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mo_read_rivin,  only: rivflx
   use mo_read_fedep,  only: get_fedep
   use mo_read_ndep,   only: get_ndep
+  use mo_read_oafx,   only: get_oafx
   use mo_read_pi_ph,  only: get_pi_ph,pi_ph
   use mo_control_bgc, only: with_dmsph
 
@@ -46,6 +47,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   integer :: l,ldtday
   real    :: ndep(idm,jdm)
   real    :: dust(idm,jdm)
+  real    :: oafx(idm,jdm)      
 
   call trc_limitc(nn)
 
@@ -64,12 +66,13 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
 
   call get_fedep(idm,jdm,date%month,dust)
   call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
+  call get_oafx(idm,jdm,date%year,date%month,omask,oafx)
   if(with_dmsph) call get_pi_ph(idm,jdm,date%month)
 
   call hamocc4bcm(idm,jdm,kdm,nbdy,                                             &
        &   date%year,date%month,date%day,ldtday,                                &
        &   bgc_dx,bgc_dy,bgc_dp,bgc_rho,plat,omask,                             &
-       &   dust,rivflx,ndep,pi_ph,                                              &
+       &   dust,rivflx,ndep,oafx,pi_ph,                                         &
        &   swa,ficem,slp,abswnd,                                                &
        &   temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                   &
        &   atmco2,flxco2,flxdms,atmbrf,flxbrf)
