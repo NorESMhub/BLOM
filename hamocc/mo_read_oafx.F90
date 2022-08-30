@@ -180,7 +180,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)' applying alkalinity flux of ', avflx, ' kmol m-2 yr-1'
-        write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m-2'
+        write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m2'
       endif
 
       do j=1,kpje

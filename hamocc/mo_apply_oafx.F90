@@ -71,7 +71,7 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 !******************************************************************************
   use mo_control_bgc, only: dtb,do_oalk
   use mo_carbch,      only: ocetra
-  use mo_param1_bgc,  only: ialkali,inatalkali
+  use mo_param1_bgc,  only: ialkali
 
   implicit none
 
@@ -90,9 +90,6 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
       ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+oafx(i,j)*dtb/365./pddpo(i,j,1)
-#ifdef natDIC
-      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)+oafx(i,j)*dtb/365./pddpo(i,j,1)
-#endif
     endif
   enddo
   enddo
