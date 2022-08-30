@@ -70,9 +70,20 @@ module mo_read_oafx
   character(len=512), save :: oalkfile=''
   real, parameter          :: Pmol2kmol  = 1.0e12
   
-  ! Parameter used in the definition of alkalinization scenarios:
-  real, parameter :: addalk_0p14 = 0.14 ! Pmol of alkalinit per year added in the
-  real, parameter :: addalk_0p56 = 0.56 ! 'const_0p14' and 'const_0p56' scenarios
+  ! Parameter used in the definition of alkalinization scenarios. The following 
+  ! scenarios are defined in this module:
+  !
+  !  const_0p14    Homogeneous addition of 0.14 Pmol ALK/yr-1 over the ice-free
+  !                surface ocean (assumed to be between 60S and 70N)
+  !  const_0p56    Homogeneous addition of 0.56 Pmol ALK/yr-1 over the ice-free
+  !                surface ocean (assumed to be between 60S and 70N)
+  !
+  real, parameter :: addalk_0p14   = 0.14  ! Pmol alkalinity/yr added in the
+  real, parameter :: addalk_0p56   = 0.56  ! 'const_0p14' and 'const_0p56' 
+                                           ! scenarios
+  real, parameter :: cdrmip_latmax =  70.0 ! Min and max latitude where
+  real, parameter :: cdrmip_latmin = -60.0 ! alkalinity is added according
+                                           ! to the CDRMIP protocol
 
   logical,   save :: lini = .false.
 
@@ -161,7 +172,8 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       ztmp1(:,:)=0.0
       do j=1,kpje
       do i=1,kpie
-        if( omask(i,j).gt.0.5 .and. pglat(i,j)<70.0 .and. pglat(i,j)>-60.0 ) then
+        if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
+                              .and. pglat(i,j)>cdrmip_latmin ) then
           ztmp1(i,j)=ztmp1(i,j)+pdlxp(i,j)*pdlyp(i,j)
         endif
       enddo
@@ -185,7 +197,8 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 
       do j=1,kpje
       do i=1,kpie
-        if( omask(i,j).gt.0.5 .and. pglat(i,j)<70.0 .and. pglat(i,j)>-60.0 ) then
+        if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
+                              .and. pglat(i,j)>cdrmip_latmin ) then
           oalkflx(i,j) = avflx
         endif
       enddo

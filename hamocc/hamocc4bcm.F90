@@ -64,9 +64,9 @@
 !  *REAL*    *pglat*      - latitude of grid cells [deg north].
 !  *REAL*    *omask*      - land/ocean mask.
 !  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
-!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-2].
-!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-2].
-!  *REAL*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-2]
+!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-1].
+!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-1].
+!  *REAL*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-1]
 !  *REAL*    *pfswr*      - solar radiation [W/m**2].
 !  *REAL*    *psicomo*    - sea ice concentration
 !  *REAL*    *ppao*       - sea level pressure [Pascal].
