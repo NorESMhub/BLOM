@@ -77,21 +77,12 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   integer :: iv_oc                     ! index of ocetra in powtra loop
 
   real :: sedb1(kpie,0:ks,npowtra)     ! ????
-!  real :: zcoefsu(0:ks),zcoeflo(0:ks)  ! diffusion coefficients (upper/lower)
   real :: tredsy(kpie,0:kpke,3)        ! redsy for 'reduced system'?
   real :: aprior                       ! start value of oceanic tracer in bottom layer
 
 !ik accelerated sediment
 !ik needed for boundary layer ventilation in fast sediment routine
   real :: bolven(kpie)                 ! bottom layer ventilation rate
-
-!  zcoefsu(0) = 0.0
-!  do k = 1,ks
-!     ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
-!     zcoefsu(k  ) = -sedict * seddzi(k) * porwah(k)
-!     zcoeflo(k-1) = -sedict * seddzi(k) * porwah(k)    ! why the same ?
-!  enddo
-!  zcoeflo(ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
 !$OMP PARALLEL DO                            &
 !$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
