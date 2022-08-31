@@ -81,6 +81,8 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwah
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwat
       REAL, DIMENSION (:,:),     ALLOCATABLE :: solfu
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: zcoefsu
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: zcoeflo
 
       REAL, DIMENSION (:,:),     ALLOCATABLE :: silpro
       REAL, DIMENSION (:,:),     ALLOCATABLE :: prorca
@@ -241,6 +243,28 @@
       ALLOCATE (solfu(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory solfu'
       solfu(:,:) = 0.0
+
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable zcoefsu ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
+      ENDIF
+
+      ALLOCATE (zcoefsu(kpie,kpje,0:ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory zcoefsu'
+      zcoefsu(:,:,:) = 0.0
+
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable zcoeflo ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
+      ENDIF
+
+      ALLOCATE (zcoeflo(kpie,kpje,0:ks),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory zcoeflo'
+      zcoeflo(:,:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'

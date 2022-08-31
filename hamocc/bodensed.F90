@@ -44,7 +44,7 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !**********************************************************************
   
   use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
-                          & porsol,dzs,seddw,sedict,solfu,orgwei
+                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoeflu,zcoeflo
   use mo_control_bgc, only: dtbgc,io_stdo_bgc
   use mo_param1_bgc,  only: ks
   use mod_xc,         only: mnproc
@@ -144,5 +144,18 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
   enddo
   enddo
 
+! Initialize porosity-dependent diffusion coefficients of sediment
+  zcoefsu(:,:,0) = 0.0
+  do i = 1, kpie
+  do j = 1, kpje
+  do k = 1,ks
+     ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
+     zcoefsu(i,j,k  ) = -sedict * seddzi(k) * porwah(i,j,k)
+     zcoeflo(i,j,k-1) = -sedict * seddzi(k) * porwah(i,j,k)    ! why the same ?
+  enddo
+  enddo
+  enddo
+  zcoeflo(:,:,ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
+  
 end subroutine bodensed
