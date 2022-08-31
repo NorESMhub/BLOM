@@ -44,7 +44,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !**********************************************************************
   
   use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
-                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoeflu,zcoeflo
+                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoefsu,zcoeflo
+
   use mo_control_bgc, only: dtbgc,io_stdo_bgc
   use mo_param1_bgc,  only: ks
   use mod_xc,         only: mnproc
