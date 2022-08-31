@@ -95,7 +95,7 @@
       REAL :: sedict,rno3,o2ut,ansed
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
-      REAL :: calfa, oplfa, orgfa, clafa, solfu
+      REAL :: calfa, oplfa, orgfa, clafa
 
       CONTAINS
 
