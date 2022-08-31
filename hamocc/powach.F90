@@ -61,7 +61,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !******************************************************************************
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
-  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro
+  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
+                          & sed_denit,disso_caco3
   use mo_biomod,      only: rnit,ro2ut
   use mo_control_bgc, only: dtbgc 
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
@@ -92,7 +93,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   real :: aerob13(kpie,ks),anaerob13(kpie,ks)
   real :: aerob14(kpie,ks),anaerob14(kpie,ks)
 #endif
-  real :: disso, dissot, undsa, silsat, posol
+  real :: dissot, undsa, posol
   real :: umfa, denit, saln, rrho, alk, c, sit, pt
   real :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
   real :: ah1, ac, cu, cb, cc, satlev
@@ -117,7 +118,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
 !$OMP PARALLEL DO                                                       &
 !$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                 &
-!$OMP&        disso,dissot,undsa,silsat,posol,                          &
+!$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
 !$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                            &
@@ -158,17 +159,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Calculate silicate-opal cycle and simultaneous silicate diffusion
 !******************************************************************
 
-! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
-
-! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
-! FOR BACKWARDS COMPATIBILITY
-  !disso=3.e-8  ! (2011-01-04) EMR
-  disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
-  dissot=disso*dtbgc
-
-! Silicate saturation concentration is 1 mol/m3
-
-  silsat = 0.001
+! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]*dtbgc
+  dissot=disso_sil
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and
@@ -243,10 +235,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Calculate oxygen-POC cycle and simultaneous oxygen diffusion
 !*************************************************************
 
-! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
-
-  disso  = 0.01 / 86400.  !  disso=3.e-5 was quite high
-  dissot = disso * dtbgc
+! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]*dtbgc
+  dissot = disso_poc
 
 ! This scheme is not based on undersaturation, but on O2 itself
 
@@ -345,11 +335,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Calculate nitrate reduction under anaerobic conditions explicitely
 !*******************************************************************
 
-! Denitrification rate constant of POP (disso) [1/sec]
-! Store flux in array anaerob, for later computation of DIC and alkalinity.
-
-!ik      denit = 1.e-6*dtbgc
-  denit = 0.01/86400. *dtbgc
+  ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
+  denit = sed_denit
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
@@ -456,9 +443,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   enddo
 
 
-! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
-  disso = 1.e-7
-  dissot = disso * dtbgc
+! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]*dtbgc
+  dissot = disso_caco3
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and

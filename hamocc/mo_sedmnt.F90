@@ -98,6 +98,7 @@
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
       REAL :: calfa, oplfa, orgfa, clafa
+      REAL :: disso_sil,silsat,disso_poc,sed_denit,disso_caco3
 
       CONTAINS
 

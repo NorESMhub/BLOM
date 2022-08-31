@@ -44,8 +44,7 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !**********************************************************************
   
   use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
-                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoefsu,zcoeflo
-
+                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoefsu,zcoeflo,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
   use mo_control_bgc, only: dtbgc,io_stdo_bgc
   use mo_param1_bgc,  only: ks
   use mod_xc,         only: mnproc
@@ -110,8 +109,25 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
      enddo
      enddo
   enddo
+  
+  sedict = 1.e-9 * dtbgc ! Moecular diffusion coefficient
+  ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
+  ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
+  ! FOR BACKWARDS COMPATIBILITY
+  !disso=3.e-8  ! (2011-01-04) EMR
+  !disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
+  disso_sil = 1.e-6*dtbgc
+  ! Silicate saturation concentration is 1 mol/m3
+  silsat    = 0.001
 
-  sedict = 1.e-9 * dtbgc
+  ! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
+  disso_poc = 0.01 / 86400. * dtbgc  !  disso=3.e-5 was quite high
+
+  ! Denitrification rate constant of POP (disso) [1/sec]
+  sed_denit =  0.01/86400. * dtbgc !ik      denit = 1.e-6*dtbgc
+
+  ! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
+  disso_caco3 = 1.e-7 * dtbgc
 
 ! ******************************************************************
 ! densities etc. for SEDIMENT SHIFTING
