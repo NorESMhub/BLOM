@@ -56,7 +56,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !**********************************************************************
 
   use mo_carbch,     only: ocetra, sedfluxo 
-  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi,zcoeflu,zcoeflo 
+  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi,zcoefsu,zcoeflo 
   use mo_param1_bgc, only: ks,npowtra
   use mo_vgrid,      only: kbo,bolay
 #ifdef cisonew
@@ -104,8 +104,8 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   k = 0
   do i = 1,kpie
-     tredsy(i,k,1) = zcoefsu(k)
-     tredsy(i,k,3) = zcoeflo(k)
+     tredsy(i,k,1) = zcoefsu(i,j,k)
+     tredsy(i,k,3) = zcoeflo(i,j,k)
      tredsy(i,k,2) = bolven(i)*bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
      !                            dz(kbo) - diff upper    - diff lower
   enddo
@@ -128,9 +128,9 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   do k = 1,ks
      do i = 1,kpie
-        tredsy(i,k,1) = zcoefsu(k)
-        tredsy(i,k,3) = zcoeflo(k)
-        tredsy(i,k,2) = seddw(k)*porwat(k) -tredsy(i,k,1) -tredsy(i,k,3)
+        tredsy(i,k,1) = zcoefsu(i,j,k)
+        tredsy(i,k,3) = zcoeflo(i,j,k)
+        tredsy(i,k,2) = seddw(k)*porwat(i,j,k) -tredsy(i,k,1) -tredsy(i,k,3)
      enddo
   enddo
 
@@ -138,7 +138,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
      do k = 1,ks
         do i = 1,kpie
            ! tracer_concentration(k[1:ks]) * porewater fraction(k) * dz(k)
-           sedb1(i,k,iv) = powtra(i,j,k,iv) * porwat(k) * seddw(k)
+           sedb1(i,k,iv) = powtra(i,j,k,iv) * porwat(i,j,k) * seddw(k)
         enddo
      enddo
   enddo
