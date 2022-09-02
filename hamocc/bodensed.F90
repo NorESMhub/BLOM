@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine bodensed(kpie,kpje,kpke,pddpo)
+subroutine bodensed(kpie,kpje,kpke,pddpo,omask,sed_por)
 !**********************************************************************
 !
 !**** *BODENSED* - .
@@ -45,7 +45,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
   
   use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
                           & porsol,dzs,seddw,sedict,solfu,orgwei,zcoefsu,zcoeflo,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
-  use mo_control_bgc, only: dtbgc,io_stdo_bgc
+  use mo_control_bgc, only: dtbgc,io_stdo_bgc,l_sed_por
+  use mo_apply_sedpor,only: apply_sedpor 
   use mo_param1_bgc,  only: ks
   use mod_xc,         only: mnproc
 
@@ -53,6 +54,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
+  real,    intent(in) :: omask(kpie,kpje)
+  real,    intent(in) :: sed_por(kpie,kpje,ks)
 
   ! Local variables
   integer             :: i,j,k
@@ -80,18 +83,23 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
   endif
 
   ! this initialization can be done later via reading a porosity map
-  porwat(:,:,1) = 0.85
-  porwat(:,:,2) = 0.83
-  porwat(:,:,3) = 0.8
-  porwat(:,:,4) = 0.79
-  porwat(:,:,5) = 0.77
-  porwat(:,:,6) = 0.75
-  porwat(:,:,7) = 0.73
-  porwat(:,:,8) = 0.7
-  porwat(:,:,9) = 0.68
-  porwat(:,:,10) = 0.66
-  porwat(:,:,11) = 0.64
-  porwat(:,:,12) = 0.62
+  if (l_sed_por)then
+   ! lon-lat variable sediment porosity from input file
+   call apply_sedpor(kpie,kpje,ks,omask,sed_por)
+  else
+   porwat(:,:,1) = 0.85
+   porwat(:,:,2) = 0.83
+   porwat(:,:,3) = 0.8
+   porwat(:,:,4) = 0.79
+   porwat(:,:,5) = 0.77
+   porwat(:,:,6) = 0.75
+   porwat(:,:,7) = 0.73
+   porwat(:,:,8) = 0.7
+   porwat(:,:,9) = 0.68
+   porwat(:,:,10) = 0.66
+   porwat(:,:,11) = 0.64
+   porwat(:,:,12) = 0.62
+  endif
 
   if (mnproc == 1) then
      write(io_stdo_bgc,*)  'Pore water in sediment initialized'
