@@ -34,7 +34,7 @@ module ocn_comp_mct
    use seq_flds_mod
    use seq_timemgr_mod, only: &
       seq_timemgr_EClockGetData, seq_timemgr_RestartAlarmIsOn, &
-      seq_timemgr_EClockDateInSync
+      seq_timemgr_EClockDateInSync,seq_timemgr_pauseAlarmIsOn
    use seq_comm_mct, only: seq_comm_suffix, seq_comm_inst, seq_comm_name
    use shr_file_mod, only: &
       shr_file_getUnit, shr_file_setIO, &
@@ -46,7 +46,7 @@ module ocn_comp_mct
    use perf_mod, only: t_startf, t_stopf
 
    use mod_types, only: r8
-   use mod_config, only: inst_index, inst_name, inst_suffix
+   use mod_config, only: inst_index, inst_name, inst_suffix, resume_flag
    use mod_time, only: blom_time
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_xc
@@ -275,6 +275,14 @@ module ocn_comp_mct
 
       call seq_cdata_setptrs(cdata_o, infodata=infodata)
 
+      if (resume_flag) then
+          if (mnproc == 1) then
+             call blom_time(ymd, tod)
+             write(lp,*)'Resume from restart: ymd=',ymd,' tod= ',tod
+          endif
+         call restart_rd  !! resume_flag is applied
+         resume_flag = .false.
+      end if
       !-----------------------------------------------------------------
       ! Advance the model in time over a coupling interval
       !-----------------------------------------------------------------
@@ -314,9 +322,10 @@ module ocn_comp_mct
       ! if requested, write restart file
       !-----------------------------------------------------------------
 
-      if (seq_timemgr_RestartAlarmIsOn(EClock)) then
+      if (seq_timemgr_RestartAlarmIsOn(EClock).or.seq_timemgr_pauseAlarmIsOn(EClock)) then
          call restart_wt
       endif
+      if (seq_timemgr_pauseAlarmIsOn(EClock)) resume_flag = .true.
 
       !-----------------------------------------------------------------
       ! check that internal clock is in sync with master clock
