@@ -109,8 +109,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo,omask,sed_por)
   do k = 1, ks
      seddzi(k+1) = 1. / dzs(k+1)
      seddw(k) = 0.5 * (dzs(k) + dzs(k+1))
-     do i = 1, kpie
      do j = 1, kpje
+     do i = 1, kpie
         porsol(i,j,k) = 1. - porwat(i,j,k)
         if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))
         if(k == 1) porwah(i,j,k) = 0.5 * (1. + porwat(i,j,1))
@@ -171,9 +171,9 @@ subroutine bodensed(kpie,kpje,kpke,pddpo,omask,sed_por)
 
 ! Initialize porosity-dependent diffusion coefficients of sediment
   zcoefsu(:,:,0) = 0.0
-  do i = 1, kpie
-  do j = 1, kpje
   do k = 1,ks
+  do j = 1, kpje
+  do i = 1, kpie
      ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
      zcoefsu(i,j,k  ) = -sedict * seddzi(k) * porwah(i,j,k)
      zcoeflo(i,j,k-1) = -sedict * seddzi(k) * porwah(i,j,k)    ! why the same ?

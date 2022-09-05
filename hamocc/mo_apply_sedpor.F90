@@ -49,9 +49,9 @@ subroutine apply_sedpor(kpie,kpje,ks,omask,sed_por)
  ! local variables
  integer :: i,j,k
 
+ do k=1,ks
  do j=1,kpje
  do i=1,kpie
- do k=1,ks
    if(omask(i,j).gt. 0.5)then
      porwat(i,j,k) = sed_por(i,j,k)
    endif

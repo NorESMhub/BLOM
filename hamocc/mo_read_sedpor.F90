@@ -114,9 +114,9 @@ subroutine ini_read_sedpor(kpie,kpje,ks,omask)
   call ncread('sedpor',sed_por_in,dummymask,0,0.)
   call ncfcls
 
+  do k=1,ks
   do j=1,kpje
   do i=1,kpie
-  do k=1,ks
      if(omask(i,j).gt. 0.5)then
        sed_por(i,j,k)=sed_por_in(i,j,k)
      endif
