@@ -118,12 +118,12 @@ subroutine bodensed(kpie,kpje,kpke,pddpo,omask,sed_por)
      enddo
   enddo
   
-  sedict = 1.e-9 * dtbgc ! Moecular diffusion coefficient
+  sedict = 1.e-9 * dtbgc ! Molecular diffusion coefficient
   ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
   ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
   ! FOR BACKWARDS COMPATIBILITY
-  !disso=3.e-8  ! (2011-01-04) EMR
-  !disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
+  !disso_sil = 3.e-8*dtbgc  ! (2011-01-04) EMR
+  !disso_sil = 1.e-6*dtbgc  ! test vom 03.03.04 half live sil ca. 20.000 yr 
   disso_sil = 1.e-6*dtbgc
   ! Silicate saturation concentration is 1 mol/m3
   silsat    = 0.001

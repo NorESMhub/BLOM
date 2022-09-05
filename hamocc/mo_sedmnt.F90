@@ -70,9 +70,6 @@
       REAL, save :: dzs(ksp)    = 0.0
       REAL, save :: seddzi(ksp) = 0.0
       REAL, save :: seddw(ks)   = 0.0
-      !REAL, save :: porsol(ks)  = 0.0
-      !REAL, save :: porwah(ks)  = 0.0
-      !REAL, save :: porwat(ks)  = 0.0
 
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: sedlay
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: powtra
