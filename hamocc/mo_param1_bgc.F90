@@ -245,6 +245,27 @@
      &                      ipowc14 = -1  
 #endif
       INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew
+      
+     ! Mapping between pore water and ocean tracers needed for pore water diffusion
+      INTEGER, SAVE      :: map_por2octra(npowtra)
+   
+      contains
+
+      subroutine init_por2octra_mapping()
+        
+        map_por2octra(ipowaic) = isco212 
+        map_por2octra(ipowaal) = ialkali 
+        map_por2octra(ipowaph) = iphosph 
+        map_por2octra(ipowaox) = ioxygen 
+        map_por2octra(ipown2)  = igasnit 
+        map_por2octra(ipowno3) = iano3 
+        map_por2octra(ipowasi) = isilica 
+       
+        ! if statements for non-base tracers 
+        if(ipowc13 > 0) map_por2octra(ipowc13) = isco213 
+        if(ipowc14 > 0) map_por2octra(ipowc14) = isco214
+      
+      end subroutine init_por2octra_mapping
 
 !******************************************************************************
       END MODULE mo_param1_bgc
