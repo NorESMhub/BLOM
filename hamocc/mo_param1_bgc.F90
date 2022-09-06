@@ -226,7 +226,6 @@
 
 
      ! sediment pore water components
-     ! pore water tracers, index should be the same as for ocetra
       INTEGER, PARAMETER :: i_pow_base=7
       INTEGER, PARAMETER :: ipowaic=1,                                  &
      &                      ipowaal=2,                                  &
@@ -237,8 +236,8 @@
      &                      ipowasi=7
 #ifdef cisonew
       INTEGER, PARAMETER :: i_pow_cisonew = 2
-      INTEGER, PARAMETER :: ipowc13=i_pow_base + 1,                     &  ! C-isotope indices do NOT correspond to ocetra!
-     &                      ipowc14=i_pow_base + 2                         ! C-isotope indices do NOT correspond to ocetra!
+      INTEGER, PARAMETER :: ipowc13=i_pow_base + 1,                     &
+     &                      ipowc14=i_pow_base + 2                       
 #else
       INTEGER, PARAMETER :: i_pow_cisonew = 0
       INTEGER, PARAMETER :: ipowc13 = -1,                               &
