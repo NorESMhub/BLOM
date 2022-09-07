@@ -198,14 +198,15 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
            ! diffusive fluxes (positive downward)
            sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
-                &  -(ocetra(i,j,kbo(i,j),iv) - aprior)* bolay(i,j)
+                &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
 #ifdef natDIC
-           if (iv==isco212) ocetra(i,j,kbo(i,j),inatsco212) =                  &
+           ! workaround as long as natDIC is not implemented throughout the sediment module 
+           if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =               &
                 &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
-                &  ocetra(i,j,kbo(i,j),iv) - aprior
-           if (iv==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =                  &
+                &  ocetra(i,j,kbo(i,j),isco212) - aprior
+           if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =               &
                 &  ocetra(i,j,kbo(i,j),inatalkali) +                           &
-                &  ocetra(i,j,kbo(i,j),iv) - aprior
+                &  ocetra(i,j,kbo(i,j),ialkali) - aprior
 #endif
         endif
      enddo
