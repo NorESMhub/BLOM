@@ -244,7 +244,6 @@
 
 
      ! sediment pore water components
-     ! pore water tracers, index should be the same as for ocetra
       INTEGER, PARAMETER :: i_pow_base=7
       INTEGER, PARAMETER :: ipowaic=1,                                  &
      &                      ipowaal=2,                                  &
@@ -255,8 +254,8 @@
      &                      ipowasi=7
 #ifdef cisonew
       INTEGER, PARAMETER :: i_pow_cisonew = 2
-      INTEGER, PARAMETER :: ipowc13=i_pow_base + 1,                     &  ! C-isotope indices do NOT correspond to ocetra!
-     &                      ipowc14=i_pow_base + 2                         ! C-isotope indices do NOT correspond to ocetra!
+      INTEGER, PARAMETER :: ipowc13=i_pow_base + 1,                     &
+     &                      ipowc14=i_pow_base + 2                       
 #else
       INTEGER, PARAMETER :: i_pow_cisonew = 0
       INTEGER, PARAMETER :: ipowc13 = -1,                               &
@@ -274,7 +273,27 @@
      &                      ipowno2 = -1
 #endif
       INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew + i_pow_extNcycle
+      
+     ! Mapping between pore water and ocean tracers needed for pore water diffusion
+      INTEGER, SAVE      :: map_por2octra(npowtra)
+   
+      contains
 
+      subroutine init_por2octra_mapping()
+        
+        map_por2octra(ipowaic) = isco212 
+        map_por2octra(ipowaal) = ialkali 
+        map_por2octra(ipowaph) = iphosph 
+        map_por2octra(ipowaox) = ioxygen 
+        map_por2octra(ipown2)  = igasnit 
+        map_por2octra(ipowno3) = iano3 
+        map_por2octra(ipowasi) = isilica 
+       
+        ! if statements for non-base tracers 
+        if(ipowc13 > 0) map_por2octra(ipowc13) = isco213 
+        if(ipowc14 > 0) map_por2octra(ipowc14) = isco214
+      
+      end subroutine init_por2octra_mapping
 
 !******************************************************************************
       END MODULE mo_param1_bgc

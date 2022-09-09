@@ -47,7 +47,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph,lm4ago
-  use mo_param1_bgc,  only: ks,nsedtra,npowtra
+  use mo_param1_bgc,  only: ks,nsedtra,npowtra,init_por2octra_mapping
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
   use mo_biomod,      only: alloc_mem_biomod
   use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial
@@ -131,6 +131,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
      endif
 
   ENDIF
+  ! init the index-mapping between pore water and ocean tracers
+  CALL init_por2octra_mapping()
+
   !
   ! --- Memory allocation
   !
