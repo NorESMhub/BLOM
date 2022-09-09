@@ -83,7 +83,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
-       &   with_dmsph,pi_ph_file
+       &   with_dmsph,pi_ph_file,lm4ago
   !
   ! --- Set io units and some control parameters
   !

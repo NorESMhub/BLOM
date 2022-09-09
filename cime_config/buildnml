@@ -233,6 +233,7 @@ endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
 set DO_OALK = .false.
+set LM4AGO = .false.
 set OALKSCEN = "''"
 set OALKFILE = "''"
 set WITH_DMSPH = .false.
@@ -1502,6 +1503,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! SEDSPIN_YR_S: Start year for sediment spinup
 ! SEDSPIN_YR_E: End   year for sediment spinup
 ! SEDSPIN_NCYC: Number of subcyles per time-step for sediment spinup
+! LM4AGO      : Switch for M4AGO settling scheme
 ! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
 !                OXY, NO3, SIL, D13C, and D14C
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
@@ -1521,6 +1523,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
   SEDSPIN_NCYC = $SEDSPIN_NCYC
+  LM4AGO       = $LM4AGO
   INIDIC       = $INIDIC
   INIALK       = $INIALK
   INIPO4       = $INIPO4
