@@ -57,7 +57,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   use mo_carbch,     only: ocetra, sedfluxo 
   use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi 
-  use mo_param1_bgc, only: ks,npowtra
+  use mo_param1_bgc, only: ks,npowtra,map_por2octra
   use mo_vgrid,      only: kbo,bolay
 #ifdef cisonew
   use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
@@ -112,11 +112,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   k = 0
   do iv = 1,npowtra      ! loop over pore water tracers
-     iv_oc = iv
-#ifdef cisonew
-     if (iv == ipowc13) iv_oc = isco213
-     if (iv == ipowc14) iv_oc = isco214
-#endif
+     iv_oc = map_por2octra(iv)
      do i = 1,kpie
         sedb1(i,k,iv) = 0.
         if (omask(i,j) > 0.5) then
@@ -190,16 +186,8 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   if(.not. lspin) THEN
 ! sediment ocean interface
-!
-! CAUTION - the following assumes same indecees for ocetra and powtra
-!           test npowa_base 071106
-!           check mo_param1_bgc.f90 for consistency
   do iv = 1, npowtra
-     iv_oc = iv
-#ifdef cisonew
-     if (iv == ipowc13) iv_oc=isco213
-     if (iv == ipowc14) iv_oc=isco214
-#endif
+     iv_oc = map_por2octra(iv)
      do i = 1,kpie
         l = 0
         if (omask(i,j) > 0.5) then
@@ -210,14 +198,15 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
            ! diffusive fluxes (positive downward)
            sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
-                &  -(ocetra(i,j,kbo(i,j),iv) - aprior)* bolay(i,j)
+                &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
 #ifdef natDIC
-           if (iv==isco212) ocetra(i,j,kbo(i,j),inatsco212) =                  &
+           ! workaround as long as natDIC is not implemented throughout the sediment module 
+           if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =               &
                 &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
-                &  ocetra(i,j,kbo(i,j),iv) - aprior
-           if (iv==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =                  &
+                &  ocetra(i,j,kbo(i,j),isco212) - aprior
+           if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =               &
                 &  ocetra(i,j,kbo(i,j),inatalkali) +                           &
-                &  ocetra(i,j,kbo(i,j),iv) - aprior
+                &  ocetra(i,j,kbo(i,j),ialkali) - aprior
 #endif
         endif
      enddo
