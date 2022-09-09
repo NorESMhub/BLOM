@@ -292,6 +292,9 @@
         ! if statements for non-base tracers 
         if(ipowc13 > 0) map_por2octra(ipowc13) = isco213 
         if(ipowc14 > 0) map_por2octra(ipowc14) = isco214
+        if(ipownh4 > 0) map_por2octra(ipownh4) = ianh4
+        if(ipown2o > 0) map_por2octra(ipown2o) = ian2o
+        if(ipowno2 > 0) map_por2octra(ipowno2) = iano2
       
       end subroutine init_por2octra_mapping
 
