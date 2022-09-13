@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 !******************************************************************************
 !
 !**** *POWACH* - .
@@ -53,6 +53,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !     *REAL*    *prho*    - seawater density [g/cm^3].
 !     *REAL*    *psao*    - salinity [psu].
 !     *REAL*    *omask*   - land/ocean mask
+!     *REAL*    *ptho*    - potential temperature [deg C]
 !
 !     Externals
 !     ---------
@@ -72,6 +73,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
   use mo_sedmnt,      only: pror13,pror14,prca13,prca14
 #endif
+#ifdef extNcycle
+  use mo_param1_bgc,   only: ipownh4
+  use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA
+#endif
 
 
   implicit none
@@ -80,6 +85,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   real,    intent(in) :: prho(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
   real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
   logical, intent(in) :: lspin
 
   ! Local variables
@@ -344,7 +350,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
 ! Calculate nitrate reduction under anaerobic conditions explicitely
 !*******************************************************************
-
+#ifndef extNcycle
 ! Denitrification rate constant of POP (disso) [1/sec]
 ! Store flux in array anaerob, for later computation of DIC and alkalinity.
 
@@ -381,6 +387,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         endif
      enddo
   enddo
+#else
+  !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
+  CALL sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,aerob)
+  CALL sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
+  CALL sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
+  CALL sed_denit_dnra(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob) 
+#endif
 
 
 ! sulphate reduction in sediments

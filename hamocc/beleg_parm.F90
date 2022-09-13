@@ -73,6 +73,7 @@
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 3e-7
       use mo_extNbioproc, only: extNbioparam_init
+      use mo_extNsediment,only: extNsediment_param_init
 #endif
 
       implicit none      
@@ -257,6 +258,7 @@
 #ifdef extNcycle
       ! initialize the extended nitrogen cycle parameters
       call extNbioparam_init()
+      call extNsediment_param_init()
 #endif
 
 #ifdef BROMO
