@@ -44,7 +44,9 @@
       !
       ! Explicit cyanobacteria?
       !
-      ! Sediment processes?
+      ! The respective sediment processes are handled in:
+      !     - powach.F90 and
+      !     - mo_extNsediment.F90
       !
       !****************************************************************
       use mo_vgrid,       only: dp_min
