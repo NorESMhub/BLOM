@@ -36,8 +36,9 @@ module mod_nuopc_methods
    use mod_cesm, only: frzpot, mltpot, &
                        swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
                        rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
-                       ustarw_da, slp_da, abswnd_da, atmco2_da, atmbrf_da, &
-                       ficem_da, l1ci, l2ci
+                       ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
+                       lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
+                       l1ci, l2ci
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
@@ -492,10 +493,10 @@ contains
          index_Sw_ustokes  = - 1, &
          index_Sw_vstokes  = - 1, &
          index_Sw_hstokes  = - 1, &
-         index_Sa_pslv     = - 1, &
          index_Faxa_lwdn   = - 1, &
          index_Faxa_snow   = - 1, &
          index_Faxa_rain   = - 1, &
+         index_Sa_pslv     = - 1, &
          index_Sa_co2diag  = - 1, &
          index_Sa_co2prog  = - 1, &
          index_Sa_brfprog  = - 1
@@ -512,7 +513,7 @@ contains
       call getfldindex(fldlist_num, fldlist, 'Foxx_taux', index_Foxx_taux)
       call getfldindex(fldlist_num, fldlist, 'Foxx_tauy', index_Foxx_tauy)
 
-   !$omp parallel do private(i, n)
+   !$omp parallel do private(i, n, afac, utmp, vtmp)
       do j = 1, jjcpl
          do i = 1, ii
             if     (ip(i,j) == 0) then
@@ -526,6 +527,7 @@ contains
             else
                n = (j - 1)*ii + i
                afac = med2mod_areacor(n)
+
                utmp = fldlist(index_Foxx_taux)%dataptr(n)*afac
                vtmp = fldlist(index_Foxx_tauy)%dataptr(n)*afac
                util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
@@ -577,10 +579,10 @@ contains
       call getfldindex(fldlist_num, fldlist, 'Faxa_lwdn', index_Faxa_lwdn)
       call getfldindex(fldlist_num, fldlist, 'Fioi_melth', index_Fioi_melth)
       call getfldindex(fldlist_num, fldlist, 'Sa_pslv', index_Sa_pslv)
-      call getfldindex(fldlist_num, fldlist, 'Si_ifrac', index_Si_ifrac)
       call getfldindex(fldlist_num, fldlist, 'So_duu10n', index_So_duu10n)
+      call getfldindex(fldlist_num, fldlist, 'Si_ifrac', index_Si_ifrac)
 
-   !$omp parallel do private(i, n)
+   !$omp parallel do private(i, n, afac)
       do j = 1, jjcpl
          do i = 1, ii
 
@@ -596,8 +598,8 @@ contains
                nsf_da(i,j,l2ci) = mval
                hmlt_da(i,j,l2ci) = mval
                slp_da(i,j,l2ci) = mval
-               ficem_da(i,j,l2ci) = mval
                abswnd_da(i,j,l2ci) = mval
+               ficem_da(i,j,l2ci) = mval
             elseif (cplmsk(i,j) == 0) then
                lip_da(i,j,l2ci) = 0._r8
                sop_da(i,j,l2ci) = 0._r8
@@ -610,8 +612,8 @@ contains
                nsf_da(i,j,l2ci) = 0._r8
                hmlt_da(i,j,l2ci) = 0._r8
                slp_da(i,j,l2ci) = fval
-               ficem_da(i,j,l2ci) = fval
                abswnd_da(i,j,l2ci) = fval
+               ficem_da(i,j,l2ci) = fval
             else
                n = (j - 1)*ii + i
                afac = med2mod_areacor(n)
@@ -656,11 +658,11 @@ contains
                ! Sea level pressure [kg m-1 s-2].
                slp_da(i,j,l2ci) = fldlist(index_Sa_pslv)%dataptr(n)
 
-               ! Ice fraction [].
-               ficem_da(i,j,l2ci) = fldlist(index_Si_ifrac)%dataptr(n)
-
                ! 10m wind speed [m s-1].
                abswnd_da(i,j,l2ci) = sqrt(fldlist(index_So_duu10n)%dataptr(n))
+
+               ! Ice fraction [].
+               ficem_da(i,j,l2ci) = fldlist(index_Si_ifrac)%dataptr(n)
 
             endif
 
@@ -682,8 +684,70 @@ contains
       endif
 
       call fill_global(mval, fval, halo_ps, slp_da(1-nbdy,1-nbdy,l2ci))
-      call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
       call fill_global(mval, fval, halo_ps, abswnd_da(1-nbdy,1-nbdy,l2ci))
+      call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
+
+      call getfldindex(fldlist_num, fldlist, 'Sw_lamult', index_Sw_lamult)
+      call getfldindex(fldlist_num, fldlist, 'Sw_ustokes', index_Sw_ustokes)
+      call getfldindex(fldlist_num, fldlist, 'Sw_vstokes', index_Sw_vstokes)
+      call getfldindex(fldlist_num, fldlist, 'Sw_hstokes', index_Sw_hstokes)
+
+   !$omp parallel do private(i, n, utmp, vtmp)
+      do j = 1, jjcpl
+         do i = 1, ii
+            if     (ip(i,j) == 0) then
+               util1(i,j) = mval
+               util2(i,j) = mval
+               lamult_da(i,j,l2ci) = mval
+               lasl_da(i,j,l2ci) = mval
+            elseif (cplmsk(i,j) == 0) then
+               util1(i,j) = fval
+               util2(i,j) = fval
+               lamult_da(i,j,l2ci) = fval
+               lasl_da(i,j,l2ci) = fval
+            else
+               n = (j - 1)*ii + i
+
+               utmp = fldlist(index_Sw_ustokes)%dataptr(n)
+               vtmp = fldlist(index_Sw_vstokes)%dataptr(n)
+               util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
+               util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
+
+               ! Langmuir enhancement factor [].
+               lamult_da(i,j,l2ci) = fldlist(index_Sw_lamult)%dataptr(n)
+
+               ! Surface layer averaged Langmuir number [].
+               lasl_da(i,j,l2ci) = fldlist(index_Sw_hstokes)%dataptr(n)
+
+            endif
+         enddo
+      enddo
+   !$omp end parallel do
+
+      call fill_global(mval, fval, halo_pv, util1)
+      call fill_global(mval, fval, halo_pv, util2)
+      call fill_global(mval, fval, halo_ps, lamult_da(1-nbdy,1-nbdy,l2ci))
+      call fill_global(mval, fval, halo_ps, lasl_da(1-nbdy,1-nbdy,l2ci))
+
+      call xctilr(util1, 1,1, 1,1, halo_pv)
+      call xctilr(util2, 1,1, 1,1, halo_pv)
+
+   !$omp parallel do private(l, i)
+      do j = 1, jj
+         do l = 1, isu(j)
+         do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
+            ! x-component of surface Stokes drift [m s-1].
+            ustokes_da(i,j,l2ci) = .5_r8*(util1(i-1,j) + util1(i,j))
+         enddo
+         enddo
+         do l = 1,isv(j)
+         do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
+            ! y-component of surface Stokes drift [m s-1].
+            vstokes_da(i,j,l2ci) = .5_r8*(util2(i,j-1) + util2(i,j))
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
 
 #ifdef PROGCO2
       call getfldindex(fldlist_num, fldlist, 'Sa_co2prog', index_Sa_co2prog)
@@ -831,8 +895,8 @@ contains
          call chksummsk(nsf_da(1-nbdy,1-nbdy,l2ci),ip,1,'nsf')
          call chksummsk(hmlt_da(1-nbdy,1-nbdy,l2ci),ip,1,'hmlt')
          call chksummsk(slp_da(1-nbdy,1-nbdy,l2ci),ip,1,'slp')
-         call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(abswnd_da(1-nbdy,1-nbdy,l2ci),ip,1,'abswnd')
+         call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
          call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
       endif
