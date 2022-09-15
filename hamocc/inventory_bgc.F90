@@ -143,7 +143,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO j=1,kpje
         DO i=1,kpie
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
-                &       *dlxp(i,j)*dlyp(i,j)*porwat(k)
+                &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
         ENDDO
      ENDDO
   ENDDO
@@ -155,7 +155,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(k)
+              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
               ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -174,7 +174,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+              vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -187,7 +187,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO k=1,ks
      DO j=1,kpje
         DO i=1,kpie
-           vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+           vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
         ENDDO
      ENDDO
