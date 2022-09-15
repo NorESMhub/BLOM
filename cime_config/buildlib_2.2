@@ -81,7 +81,6 @@ def _main_func():
                         expect(False, "tracer module {} is not recognized".format(module))
 
             if driver == "mct":
-                paths.append(os.path.join(comp_root_dir_ocn, "drivers", "cpl_share"))
                 paths.append(os.path.join(comp_root_dir_ocn, "drivers", "mct"))
             elif driver == "nuopc":
                 paths.append(os.path.join(comp_root_dir_ocn, "drivers", "nuopc"))
