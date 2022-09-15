@@ -219,7 +219,7 @@
 
 ! fill the last active layer
         refill=seddef/(buried+1.e-10) 
-        frac = porsol(i,j,ks)*seddw(ks) !changed k to ks, ik
+        frac = porsol(i,j,ks)*seddw(ks)
         
         sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)                  &
      &                        +refill*burial(i,j,issso12)/frac
