@@ -62,7 +62,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 !******************************************************************************
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
-  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro
+  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
+                          & sed_denit,disso_caco3
   use mo_biomod,      only: rnit,ro2ut
   use mo_control_bgc, only: dtbgc 
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
@@ -98,7 +99,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   real :: aerob13(kpie,ks),anaerob13(kpie,ks)
   real :: aerob14(kpie,ks),anaerob14(kpie,ks)
 #endif
-  real :: disso, dissot, undsa, silsat, posol
+  real :: dissot, undsa, posol
   real :: umfa, denit, saln, rrho, alk, c, sit, pt
   real :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
   real :: ah1, ac, cu, cb, cc, satlev
@@ -123,7 +124,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
 !$OMP PARALLEL DO                                                       &
 !$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                 &
-!$OMP&        disso,dissot,undsa,silsat,posol,                          &
+!$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
 !$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                            &
@@ -164,17 +165,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 ! Calculate silicate-opal cycle and simultaneous silicate diffusion
 !******************************************************************
 
-! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
-
-! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
-! FOR BACKWARDS COMPATIBILITY
-  !disso=3.e-8  ! (2011-01-04) EMR
-  disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr 
-  dissot=disso*dtbgc
-
-! Silicate saturation concentration is 1 mol/m3
-
-  silsat = 0.001
+! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]*dtbgc
+  dissot=disso_sil
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and
@@ -186,8 +178,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         sedb1(i,0) = bolay(i,j) * (silsat - ocetra(i,j,kbo(i,j),isilica))      &
              &   * bolven(i)
         solrat(i,1) = ( sedlay(i,j,1,issssil)                                  &
-             &   + silpro(i,j) / (porsol(1) * seddw(1)) )                      &
-             &   * dissot / (1. + dissot * undsa) * porsol(1) / porwat(1)
+             &   + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                      &
+             &   * dissot / (1. + dissot * undsa) * porsol(i,j,1) / porwat(i,j,1)
      endif
   enddo
 
@@ -200,9 +192,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            undsa = silsat - powtra(i,j,k,ipowasi)
-           sedb1(i,k) = seddw(k) * porwat(k) * (silsat - powtra(i,j,k,ipowasi))
+           sedb1(i,k) = seddw(k) * porwat(i,j,k) * (silsat - powtra(i,j,k,ipowasi))
            if ( k > 1 ) solrat(i,k) = sedlay(i,j,k,issssil)                    &
-                &   * dissot / (1. + dissot * undsa) * porsol(k) / porwat(k)
+                &   * dissot / (1. + dissot * undsa) * porsol(i,j,k) / porwat(i,j,k)
         endif
      enddo
   enddo
@@ -224,7 +216,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
            ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
         endif
         sedlay(i,j,1,issssil) =                                                &
-             &   sedlay(i,j,1,issssil) + silpro(i,j) / (porsol(1) * seddw(1))
+             &   sedlay(i,j,1,issssil) + silpro(i,j) / (porsol(i,j,1) * seddw(1))
      endif
   enddo
 
@@ -236,7 +228,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
-           umfa = porsol(k)/porwat(k)
+           umfa = porsol(i,j,k)/porwat(i,j,k)
            solrat(i,k) = sedlay(i,j,k,issssil) * dissot                        &
                 &   / (1. + dissot * sediso(i,k))
            posol = sediso(i,k) * solrat(i,k)
@@ -249,10 +241,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 ! Calculate oxygen-POC cycle and simultaneous oxygen diffusion
 !*************************************************************
 
-! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
-
-  disso  = 0.01 / 86400.  !  disso=3.e-5 was quite high
-  dissot = disso * dtbgc
+! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]*dtbgc
+  dissot = disso_poc
 
 ! This scheme is not based on undersaturation, but on O2 itself
 
@@ -265,9 +255,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         undsa = powtra(i,j,1,ipowaox)
         sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen) * bolven(i)
         solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
-             &   / (porsol(1) * seddw(1)) )                                    &
+             &   / (porsol(i,j,1) * seddw(1)) )                                    &
              &   * ro2ut * dissot / (1. + dissot * undsa)                      &
-             &   * porsol(1) / porwat(1)
+             &   * porsol(i,j,1) / porwat(i,j,1)
      endif
   enddo
 
@@ -279,9 +269,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            undsa = powtra(i,j,k,ipowaox)
-           sedb1(i,k) = seddw(k) * porwat(k) * powtra(i,j,k,ipowaox)
+           sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
            if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot     &
-                &   / (1. + dissot*undsa) * porsol(k) / porwat(k)
+                &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
         endif
      enddo
   enddo
@@ -303,12 +293,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
            ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
         endif
         sedlay(i,j,1,issso12) =                                                &
-             &   sedlay(i,j,1,issso12) + prorca(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,issso12) + prorca(i,j) / (porsol(i,j,1)*seddw(1))
 #ifdef cisonew
         sedlay(i,j,1,issso13) =                                                &
-             &   sedlay(i,j,1,issso13) + pror13(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,issso13) + pror13(i,j) / (porsol(i,j,1)*seddw(1))
         sedlay(i,j,1,issso14) =                                                &
-             &   sedlay(i,j,1,issso14) + pror14(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,issso14) + pror14(i,j) / (porsol(i,j,1)*seddw(1))
 #endif
      endif
   enddo
@@ -321,7 +311,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
-           umfa = porsol(k) / porwat(k)
+           umfa = porsol(i,j,k) / porwat(i,j,k)
            solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1. + dissot*sediso(i,k))
            posol = sediso(i,k)*solrat(i,k)
            aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
@@ -351,18 +341,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 ! Calculate nitrate reduction under anaerobic conditions explicitely
 !*******************************************************************
 #ifndef extNcycle
-! Denitrification rate constant of POP (disso) [1/sec]
-! Store flux in array anaerob, for later computation of DIC and alkalinity.
+  ! Denitrification rate constant of POP (disso) [1/sec]
+  denit = sed_denit
 
-!ik      denit = 1.e-6*dtbgc
-  denit = 0.01/86400. *dtbgc
+  ! Store flux in array anaerob, for later computation of DIC and alkalinity.
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            if(powtra(i,j,k,ipowaox) < 1.e-6) then
               posol = denit * MIN(0.5*powtra(i,j,k,ipowno3)/114.,              &
                    &                sedlay(i,j,k,issso12))
-              umfa = porsol(k)/porwat(k)
+              umfa = porsol(i,j,k)/porwat(i,j,k)
               anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
 #ifdef cisonew
               rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
@@ -402,7 +391,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         if(omask(i,j) > 0.5) then
            if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
               posol = denit * sedlay(i,j,k,issso12)         ! remineralization of poc
-              umfa = porsol(k) / porwat(k)
+              umfa = porsol(i,j,k) / porwat(i,j,k)
               !this overwrites anaerob from denitrification. added =anaerob+..., works
               anaerob(i,k) = anaerob(i,k) + posol*umfa      !this has P units: kmol P/m3 of pore water
 #ifdef cisonew
@@ -469,9 +458,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   enddo
 
 
-! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
-  disso = 1.e-7
-  dissot = disso * dtbgc
+! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]*dtbgc
+  dissot = disso_caco3
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and
@@ -486,8 +474,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         undsa = MAX( satlev-powcar(i,1), 0. )
         sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j))) * bolven(i)
         solrat(i,1) = (sedlay(i,j,1,isssc12)                                   &
-             &   + prcaca(i,j) / (porsol(1)*seddw(1)))                         &
-             &   * dissot / (1.+dissot*undsa) * porsol(1) / porwat(1)
+             &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                         &
+             &   * dissot / (1.+dissot*undsa) * porsol(i,j,1) / porwat(i,j,1)
      endif
   enddo
 
@@ -499,9 +487,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            undsa = MAX( keqb(11,i,j) / calcon - powcar(i,k), 0. )
-           sedb1(i,k) = seddw(k) * porwat(k) * undsa
+           sedb1(i,k) = seddw(k) * porwat(i,j,k) * undsa
            if (k > 1) solrat(i,k) = sedlay(i,j,k,isssc12)                      &
-                &     * dissot/(1.+dissot*undsa) * porsol(k)/porwat(k)
+                &     * dissot/(1.+dissot*undsa) * porsol(i,j,k)/porwat(i,j,k)
            if (undsa <= 0.) solrat(i,k) = 0.
         endif
      enddo
@@ -517,12 +505,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   do i = 1, kpie
      if(omask(i,j) > 0.5) then
         sedlay(i,j,1,isssc12) =                                                &
-             &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
 #ifdef cisonew
         sedlay(i,j,1,isssc13) =                                                &
-             &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
         sedlay(i,j,1,isssc14) =                                                &
-             &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(1)*seddw(1))
+             &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(i,j,1)*seddw(1))
 #endif
      endif
   enddo
@@ -536,7 +524,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
-           umfa = porsol(k) / porwat(k)
+           umfa = porsol(i,j,k) / porwat(i,j,k)
            solrat(i,k) = sedlay(i,j,k,isssc12)                                 &
                 &   * dissot / (1. + dissot * sediso(i,k))
            posol = sediso(i,k) * solrat(i,k)
@@ -578,7 +566,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   do j = 1, kpje
      do i = 1, kpie
         sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                          &
-             &   + produs(i,j) / (porsol(1) * seddw(1))
+             &   + produs(i,j) / (porsol(i,j,1) * seddw(1))
      enddo
   enddo
 !$OMP END PARALLEL DO

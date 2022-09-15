@@ -56,7 +56,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !**********************************************************************
 
   use mo_carbch,     only: ocetra, sedfluxo 
-  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi 
+  use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi,zcoefsu,zcoeflo 
   use mo_param1_bgc, only: ks,npowtra,map_por2octra
   use mo_vgrid,      only: kbo,bolay
 #ifdef cisonew
@@ -77,21 +77,12 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   integer :: iv_oc                     ! index of ocetra in powtra loop
 
   real :: sedb1(kpie,0:ks,npowtra)     ! ????
-  real :: zcoefsu(0:ks),zcoeflo(0:ks)  ! diffusion coefficients (upper/lower)
   real :: tredsy(kpie,0:kpke,3)        ! redsy for 'reduced system'?
   real :: aprior                       ! start value of oceanic tracer in bottom layer
 
 !ik accelerated sediment
 !ik needed for boundary layer ventilation in fast sediment routine
   real :: bolven(kpie)                 ! bottom layer ventilation rate
-
-  zcoefsu(0) = 0.0
-  do k = 1,ks
-     ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
-     zcoefsu(k  ) = -sedict * seddzi(k) * porwah(k)
-     zcoeflo(k-1) = -sedict * seddzi(k) * porwah(k)    ! why the same ?
-  enddo
-  zcoeflo(ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
 !$OMP PARALLEL DO                            &
 !$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
@@ -104,8 +95,8 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   k = 0
   do i = 1,kpie
-     tredsy(i,k,1) = zcoefsu(k)
-     tredsy(i,k,3) = zcoeflo(k)
+     tredsy(i,k,1) = zcoefsu(i,j,k)
+     tredsy(i,k,3) = zcoeflo(i,j,k)
      tredsy(i,k,2) = bolven(i)*bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
      !                            dz(kbo) - diff upper    - diff lower
   enddo
@@ -124,9 +115,9 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
   do k = 1,ks
      do i = 1,kpie
-        tredsy(i,k,1) = zcoefsu(k)
-        tredsy(i,k,3) = zcoeflo(k)
-        tredsy(i,k,2) = seddw(k)*porwat(k) -tredsy(i,k,1) -tredsy(i,k,3)
+        tredsy(i,k,1) = zcoefsu(i,j,k)
+        tredsy(i,k,3) = zcoeflo(i,j,k)
+        tredsy(i,k,2) = seddw(k)*porwat(i,j,k) -tredsy(i,k,1) -tredsy(i,k,3)
      enddo
   enddo
 
@@ -134,7 +125,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
      do k = 1,ks
         do i = 1,kpie
            ! tracer_concentration(k[1:ks]) * porewater fraction(k) * dz(k)
-           sedb1(i,k,iv) = powtra(i,j,k,iv) * porwat(k) * seddw(k)
+           sedb1(i,k,iv) = powtra(i,j,k,iv) * porwat(i,j,k) * seddw(k)
         enddo
      enddo
   enddo

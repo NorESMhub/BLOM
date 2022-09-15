@@ -34,6 +34,7 @@ sources += files(
   'mo_read_pi_ph.F90',
   'mo_read_rivin.F90',
   'mo_read_oafx.F90',
+  'mo_read_sedpor.F90',
   'mo_sedmnt.F90',
   'mo_vgrid.F90',
   'ncout_hamocc.F90',
