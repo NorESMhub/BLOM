@@ -46,8 +46,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
-       &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_sed_por
-  use mo_param1_bgc,  only: ks,nsedtra,npowtra
+       &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor
+  use mo_param1_bgc,  only: ks
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
   use mo_biomod,      only: alloc_mem_biomod
   use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial
@@ -58,7 +58,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mo_read_ndep,   only: ini_read_ndep,ndepfile
   use mo_read_oafx,   only: ini_read_oafx,oalkfile,oalkscen
   use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
-  use mo_read_sedpor, only: ini_read_sedpor,sedporfile,sed_por
+  use mo_read_sedpor, only: read_sedpor,sedporfile
   use mo_clim_swa,    only: ini_swa_clim,swaclimfile
   use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,                 &
        &                    inisil,inid13c,inid14c
@@ -77,13 +77,14 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   integer :: i,j,k,l,nt
   integer :: iounit
+  real    :: sed_por(idm,jdm,ks) = 0.
 
   namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,    &
        &   do_oalk,oalkscen,oalkfile,do_sedspinup,sedspin_yr_s,                 &
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
-       &   with_dmsph,pi_ph_file,l_sed_por,sedporfile
+       &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile
   !
   ! --- Set io units and some control parameters
   !
@@ -172,8 +173,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   call set_vgrid(idm,jdm,kdm,bgc_dp)
   !
   ! --- Initialize sediment layering
-  ! First init the porosity, then apply it in bodensed
-  CALL ini_read_sedpor(idm,jdm,ks,omask)
+  ! First raed the porosity, then apply it in bodensed
+  CALL read_sedpor(idm,jdm,ks,omask,sed_por)
   CALL BODENSED(idm,jdm,kdm,bgc_dp,omask,sed_por)
   !
   ! --- Initialize parameters, sediment and ocean tracer.

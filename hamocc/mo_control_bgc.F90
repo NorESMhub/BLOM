@@ -58,8 +58,8 @@
       REAL,    save :: rmasks = 0.0       !  value at wet cells in sediment.
       REAL,    save :: rmasko = 99999.00  !  value at wet cells in ocean.
       
-      LOGICAL, save :: l_sed_por  = .false.  ! apply lon-lat-variable sediment porosity via input file
 ! Logical switches set via namelist
+      LOGICAL, save :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
       LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition
       LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
       LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up

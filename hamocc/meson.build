@@ -21,7 +21,6 @@ sources += files(
   'mo_apply_ndep.F90',
   'mo_apply_rivin.F90',
   'mo_apply_oafx.F90',
-  'mo_apply_sedpor.F90',
   'mo_bgcmean.F90',
   'mo_biomod.F90',
   'mo_carbch.F90',

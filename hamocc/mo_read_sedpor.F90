@@ -43,54 +43,34 @@ implicit none
 
 private
 
-public :: ini_read_sedpor,sedporfile,sed_por
+public :: read_sedpor,sedporfile
 
 character(len=512),save :: sedporfile = ''
-real,save,allocatable   :: sed_por(:,:,:) ! holds input data from nc-file 
-
 
 contains
 
-subroutine ini_read_sedpor(kpie,kpje,ks,omask)
+subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   use mod_xc,         only: mnproc,xchalt
   use mod_dia,        only: iotype
-  use mo_control_bgc, only: io_stdo_bgc,l_sed_por
+  use mo_control_bgc, only: io_stdo_bgc,l_3Dvarsedpor
   use mod_nctools,    only: ncfopn,ncread,ncfcls
 
   implicit none
 
   integer, intent(in) :: kpie,kpje,ks
   real,    intent(in) :: omask(kpie,kpje)
+  real,    intent(inout) :: sed_por(kpie,kpje,ks)
 
   !local variables
   integer :: i,j,k,errstat,dummymask(2)
   real    :: sed_por_in(kpie,kpje,ks)
   logical :: file_exists = .false.
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_sedpor:'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
-  
-  ! Allocate field to hold N-deposition fluxes
-  IF (mnproc.eq.1) THEN
-     WRITE(io_stdo_bgc,*)'Memory allocation for variable sed_por ...'
-     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-     WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-     WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-  ENDIF
-   
-  ALLOCATE (sed_por(kpie,kpje,ks),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory sed_por'
-  sed_por(:,:,:) = 0.0
-
-  ! Return if l_sed_por is turned off
-  if (.not. l_sed_por) then
+  ! Return if l_3Dvarsedpor is turned off
+  if (.not. l_3Dvarsedpor) then
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_read_sedpor: spatially variable sediment porosity is not activated.'
+      write(io_stdo_bgc,*) 'read_sedpor: spatially variable sediment porosity is not activated.'
     endif
     return
   endif
@@ -99,15 +79,15 @@ subroutine ini_read_sedpor(kpie,kpje,ks,omask)
   inquire(file=sedporfile,exist=file_exists)
   if (.not. file_exists .and. mnproc.eq.1) then 
     write(io_stdo_bgc,*) ''
-    write(io_stdo_bgc,*) 'ini_read_sedpor: Cannot find sediment porosity file... '
-    call xchalt('(ini_read_sedpor)')
-    stop '(ini_read_sedpor)' 
+    write(io_stdo_bgc,*) 'read_sedpor: Cannot find sediment porosity file... '
+    call xchalt('(read_sedpor)')
+    stop '(read_sedpor)' 
   endif 
 
   ! read sediment porosity from file
   if (mnproc.eq.1) then
     write(io_stdo_bgc,*) ''
-    write(io_stdo_bgc,*) 'ini_read_sedpor: read sediment porosity from ',       & 
+    write(io_stdo_bgc,*) 'read_sedpor: read sediment porosity from ',       & 
                           trim(sedporfile)
   endif
   call ncfopn(trim(sedporfile),'r',' ',1,iotype)
@@ -124,7 +104,5 @@ subroutine ini_read_sedpor(kpie,kpje,ks,omask)
   enddo
   enddo
 
-end subroutine ini_read_sedpor
-
-
+end subroutine read_sedpor
 end module mo_read_sedpor
