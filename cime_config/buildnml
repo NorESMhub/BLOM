@@ -238,6 +238,9 @@ set OALKSCEN = "''"
 set OALKFILE = "''"
 set WITH_DMSPH = .false.
 set PI_PH_FILE = "''"
+set L_3DVARSEDPOR = .false.
+set SEDPORFILE = "''"
+
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -768,6 +771,7 @@ if      ($OCN_GRID == tnx2v1) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx2v1_20130927.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc'"
   else
@@ -788,6 +792,7 @@ else if ($OCN_GRID == tnx1v4) then
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
+  set SEDPORFILE = "''"
   if ($HAMOCC_VSLS == TRUE) then
     set SWACLIMFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc'"
   else
@@ -814,6 +819,7 @@ else if ($OCN_GRID == tnx0.25v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc'"
   else
@@ -835,6 +841,7 @@ else if ($OCN_GRID == tnx0.125v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20200722.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20200722.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20170821.nc'"
   else
@@ -1508,6 +1515,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !                OXY, NO3, SIL, D13C, and D14C
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
 ! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
+! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
+! SEDPORFILE  : File name (incl. full path) for sediment porosity
 &BGCNML
   ATM_CO2      = $CCSM_CO2_PPMV
   FEDEPFILE    = $FEDEPFILE
@@ -1534,6 +1543,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INID14C      = $INID14C
   WITH_DMSPH   = $WITH_DMSPH
   PI_PH_FILE   = $PI_PH_FILE
+  L_3DVARSEDPOR = $L_3DVARSEDPOR
+  SEDPORFILE   = $SEDPORFILE
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
@@ -2026,6 +2037,11 @@ EOF
   if ($HAMOCC_VSLS == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 swa_clim_file = `echo $SWACLIMFILE | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($L_3DVARSEDPOR == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+sed_porosity_file = `echo $SEDPORFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
