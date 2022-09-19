@@ -62,7 +62,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro
-  use mo_biomod,      only: rnit,ro2ut,rcar,rdnit1
+  use mo_biomod,      only: rnit,ro2ut,rcar,rdnit1,rdnit2
   use mo_control_bgc, only: dtbgc 
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
                           & issster, ks 
@@ -357,7 +357,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            if(powtra(i,j,k,ipowaox) < 1.e-6) then
-              posol = denit * MIN(0.5*powtra(i,j,k,ipowno3)/114.,              &
+              posol = denit * MIN(0.25*powtra(i,j,k,ipowno3)/rdnit2,              &
                    &                sedlay(i,j,k,issso12))
               umfa = porsol(k)/porwat(k)
               anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
@@ -371,8 +371,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 #endif
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
-              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - 98.*posol*umfa
-              powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + 57.*posol*umfa
+              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - rdnit1*posol*umfa
+              powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + rdnit2*posol*umfa
 #ifdef cisonew
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
