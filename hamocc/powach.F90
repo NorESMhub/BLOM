@@ -337,9 +337,6 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 #ifdef cisonew
            sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
            sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-           ! is this correct? no correspondance in the lines above
-           powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-           powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
 #endif
         endif
      enddo
@@ -376,9 +373,6 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 #ifdef cisonew
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-              ! is this correct? no corresponance in the lines above
-              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
 #endif
            endif
         endif
