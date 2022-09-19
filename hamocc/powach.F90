@@ -89,8 +89,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   real :: solrat(kpie,ks),powcar(kpie,ks)
   real :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
 #ifdef cisonew
-  real :: aerob13(kpie,ks),anaerob13(kpie,ks)
-  real :: aerob14(kpie,ks),anaerob14(kpie,ks)
+  real :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks)
+  real :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks)
 #endif
   real :: disso, dissot, undsa, silsat, posol
   real :: umfa, denit, saln, rrho, alk, c, sit, pt
@@ -136,8 +136,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 #ifdef cisonew
         anaerob13(i,k)=0.
         aerob13(i,k)  =0.
+        sulf13(i,k)   =0.
         anaerob14(i,k)=0.
         aerob14(i,k)  =0.
+        sulf14(i,k)   =0.
 #endif
      enddo
   enddo
@@ -397,8 +399,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
               rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12)+safediv)
               poso13 = posol * rato13
               poso14 = posol * rato14
-              anaerob13(i,k) = anaerob13(i,k) + poso13*umfa !this has P units: kmol P/m3 of pore water
-              anaerob14(i,k) = anaerob14(i,k) + poso14*umfa !this has P units: kmol P/m3 of pore water
+              sulf13(i,k) = poso13*umfa !this has P units: kmol P/m3 of pore water
+              sulf14(i,k) = poso14*umfa !this has P units: kmol P/m3 of pore water
 #endif
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
@@ -542,9 +544,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
            sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
            powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa       &
-                &   + (aerob13(i,k) + anaerob13(i,k)) * rcar
+                &   + (aerob13(i,k) + anaerob13(i,k) + sulf13(i,k)) * rcar
            powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa       &
-                &   + (aerob14(i,k) + anaerob14(i,k)) * rcar
+                &   + (aerob14(i,k) + anaerob14(i,k) + sulf14(i,k)) * rcar
 #endif
         endif
      enddo
