@@ -76,21 +76,21 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 !**********************************************************************
 
   do k = 1, ks
-     asu = sedict * seddzi(k) * porwah(k)
-     alo = 0.
-     if(k < ks) alo = sedict * seddzi(k+1) * porwah(k+1)
      do i = 1, kpie
+        asu = sedict * seddzi(k) * porwah(i,j,k)
+        alo = 0.
+        if(k < ks) alo = sedict * seddzi(k+1) * porwah(i,j,k+1)
         tredsy(i,k,1) = -asu
         tredsy(i,k,3) = -alo
-        tredsy(i,k,2) = seddw(k) * porwat(k) - tredsy(i,k,1)                   &
-             &          - tredsy(i,k,3) + solrat(i,k) * porwat(k) * seddw(k)
+        tredsy(i,k,2) = seddw(k) * porwat(i,j,k) - tredsy(i,k,1)                   &
+             &          - tredsy(i,k,3) + solrat(i,k) * porwat(i,j,k) * seddw(k)
      enddo
   enddo
 
   k = 0
   asu = 0.
-  alo = sedict * seddzi(1) * porwah(1)
   do i = 1, kpie
+     alo = sedict * seddzi(1) * porwah(i,j,1)
      if(omask(i,j) > 0.5) then
         tredsy(i,k,1) = -asu
         tredsy(i,k,3) = -alo
