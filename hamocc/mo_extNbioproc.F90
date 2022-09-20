@@ -76,7 +76,7 @@
               & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
               & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,        &
               & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
-              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron,NOB2AOAy 
+              & n2oybeta,bkphyanh4,bkphyano3,bkphosph,bkiron,NOB2AOAy,bn2o,mufn2o 
 
       real   :: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
               & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
@@ -90,7 +90,7 @@
       !===========================================================================
       ! Initialization of model parameters for the extended nitrogen cycle
       rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
-      ro2utammo     = 140.            ! Oxygen utilization per mol detitus during ammonification
+      ro2utammo     = 140.            ! Oxygen utilization per mol detritus during ammonification
       ro2nnit       = ro2utammo/rnit  !  
       rnoxp         = 280.            ! consumption of NOx per mol detritus during denitrification
       rnoxpi        = 1./rnoxp        ! inverse
@@ -157,9 +157,11 @@
       bkanh4nitr    = 0.133e-6 ! Half-saturation constant for nitrification on NH4 (kmol/m3)
 !======
 ! OLD VERSION OF pathway splitting function
-      !bkamoxn2o     = 0.453e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      !bkamoxn2o     = 0.453e-6 ! Half saturation constant for O2 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
 ! NEW version similar to Santoros 2021, Ji 2018:      
-      bkamoxn2o     = 0.5e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      bkamoxn2o     = 0.5e-6 ! Half saturation constant for NH4 in pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+      mufn2o        = 0.11/(50.*1e6*bkoxamox) !=6.61e-3  0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM,  
+      bn2o          = 0.077/(50.*mufn2o)  !=0.2331 - before set to 0.3 - base fraction entering N2O 
 !======
       !bkamoxno2     = 0.479e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       bkamoxno2     = 0.1e-6 ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
@@ -239,14 +241,8 @@
        ! OLD version according to Goreau
             !fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
        ! NEW version similar to Santoros et al. 2021, Ji et al. 2018
-            ! was set: bkamoxn2o  = 0.002e-6 
-            !fn2o     = 1. - (1.-0.00157)*ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
-
-            ! 0.11/(50*1e6)=2.2e-9 - ~Santoro et al. 2011 with simple MM
-           fn2o     = 2.2e-9/bkoxamox * (0.3 + 0.7*bkoxamox/(ocetra(i,j,k,ioxygen)+bkoxamox))                                     &
-                                       * ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4)+bkamoxn2o)
-           ! continue using the 'old' fno2 - neglecting NH4 term here - which doesn'y make a huge difference, 
-           ! assuming that it's never really limited 
+           fn2o     = mufn2o * (bn2o + (1.-bn2o)*bkoxamox/(ocetra(i,j,k,ioxygen)+bkoxamox))                                        &
+                    &        * ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4)+bkamoxn2o)
        !=====
            fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
            fdetamox = n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
@@ -270,7 +266,13 @@
 
            ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
            ! but with reduced OM gain per used NO2 as energy source (in amox: NH4)
-           no2fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+        !=====
+        ! OLD version according to Goreau
+           ! no2fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+        ! NEW version
+           no2fn2o     = mufn2o * (bn2o + (1.-bn2o)*bkoxamox/(ocetra(i,j,k,ioxygen)+bkoxamox))                                     &
+                       &        * ocetra(i,j,k,ianh4)/(ocetra(i,j,k,ianh4)+bkamoxn2o)
+        !=====
            no2fno2     = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxno2)
            no2fdetamox = NOB2AOAy*n2omaxy*2.*(1. + n2oybeta)*ocetra(i,j,k,ioxygen)*bkyamox &
                      & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
