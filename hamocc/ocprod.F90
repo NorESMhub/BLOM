@@ -685,7 +685,14 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 
         if(ocetra(i,j,k,ioxygen) > 5.e-8) then
            if(lm4ago) then
+#ifndef extNcycle
+              ! M4AGO comes with O2-lim
+              o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+              pocrem = o2lim*drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
+#else
+              ! nitrogen always accounts for O2-lim - see below 
               pocrem = drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
+#endif
            else
               pocrem = drempoc*ocetra(i,j,k,idet)
            endif 
