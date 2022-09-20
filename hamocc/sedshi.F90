@@ -100,7 +100,7 @@
             uebers=wsed(i,j)*sedlay(i,j,k,iv)
             sedlay(i,j,k  ,iv)=sedlay(i,j,k  ,iv)-uebers
             sedlay(i,j,k+1,iv)=sedlay(i,j,k+1,iv)+uebers               &
-     &        *(seddw(k)*porsol(k))/(seddw(k+1)*porsol(k+1))
+     &        *(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))
           endif
         enddo !end i-loop
         enddo !end j-loop
@@ -140,7 +140,7 @@
 !ka          if(bolay(i,j).gt.0.) then
             uebers=wsed(i,j)*sedlay(i,j,k,iv)
             sedlay(i,j,ks ,iv)=sedlay(i,j,ks ,iv)-uebers
-            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(k)*porsol(k)
+            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(k)*porsol(i,j,k)
           endif
       enddo !end i-loop
       enddo !end j-loop
@@ -178,7 +178,7 @@
      &         +calfa*sedlay(i,j,k,isssc12)                            &
      &         +oplfa*sedlay(i,j,k,issssil)                            &
      &         +clafa*sedlay(i,j,k,issster)
-          fulsed(i,j)=fulsed(i,j)+porsol(k)*seddw(k)*sedlo
+          fulsed(i,j)=fulsed(i,j)+porsol(i,j,k)*seddw(k)*sedlo
         endif
       enddo !end i-loop
       enddo !end j-loop
@@ -197,7 +197,7 @@
 ! deficiency to fully loaded sediment packed in sedlay(i,j,ks)
 ! this is the volume required from the buried layer
 
-        seddef=solfu-fulsed(i,j)
+        seddef=solfu(i,j)-fulsed(i,j)
 
 ! total volume of solid constituents in buried layer
         spresent=orgfa*rcar*burial(i,j,issso12)                        &
@@ -219,7 +219,7 @@
 
 ! fill the last active layer
         refill=seddef/(buried+1.e-10) 
-        frac = porsol(ks)*seddw(ks) !changed k to ks, ik
+        frac = porsol(i,j,ks)*seddw(ks)
         
         sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)                  &
      &                        +refill*burial(i,j,issso12)/frac
@@ -269,7 +269,7 @@
         if(omask(i,j).gt.0.5) then
 !ka        if(bolay(i,j).gt.0.) then
           uebers=sedlay(i,j,k,iv)*wsed(i,j)
-          frac=porsol(k)*seddw(k)/(porsol(k-1)*seddw(k-1))
+          frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
           sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
           sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
 #ifdef cisonew

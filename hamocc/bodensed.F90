@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine bodensed(kpie,kpje,kpke,pddpo)
+subroutine bodensed(kpie,kpje,kpke,pddpo,omask,sed_por)
 !**********************************************************************
 !
 !**** *BODENSED* - .
@@ -44,8 +44,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 !**********************************************************************
   
   use mo_sedmnt,      only: calcwei,calfa,clafa,claydens,calcdens,opaldens,opalwei,oplfa,orgdens,orgfa,seddzi,porwat,porwah,       &
-                          & porsol,dzs,seddw,sedict,solfu,orgwei
-  use mo_control_bgc, only: dtbgc,io_stdo_bgc
+                          & porsol,dzs,seddw,sedict,solfu,orgwei,zcoefsu,zcoeflo,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
+  use mo_control_bgc, only: dtbgc,io_stdo_bgc,l_3Dvarsedpor
   use mo_param1_bgc,  only: ks
   use mod_xc,         only: mnproc
 
@@ -53,6 +53,8 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
+  real,    intent(in) :: omask(kpie,kpje)
+  real,    intent(in) :: sed_por(kpie,kpje,ks)
 
   ! Local variables
   integer             :: i,j,k
@@ -79,33 +81,68 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
      write(io_stdo_bgc,*)  ' '
   endif
 
-  porwat(1) = 0.85
-  porwat(2) = 0.83
-  porwat(3) = 0.8
-  porwat(4) = 0.79
-  porwat(5) = 0.77
-  porwat(6) = 0.75
-  porwat(7) = 0.73
-  porwat(8) = 0.7
-  porwat(9) = 0.68
-  porwat(10) = 0.66
-  porwat(11) = 0.64
-  porwat(12) = 0.62
+  ! this initialization can be done later via reading a porosity map
+  if (l_3Dvarsedpor)then
+   ! lon-lat variable sediment porosity from input file
+   do k=1,ks
+   do j=1,kpje
+   do i=1,kpie
+     if(omask(i,j).gt. 0.5)then
+       porwat(i,j,k) = sed_por(i,j,k)
+     endif
+   enddo
+   enddo
+   enddo
+  else
+   porwat(:,:,1) = 0.85
+   porwat(:,:,2) = 0.83
+   porwat(:,:,3) = 0.8
+   porwat(:,:,4) = 0.79
+   porwat(:,:,5) = 0.77
+   porwat(:,:,6) = 0.75
+   porwat(:,:,7) = 0.73
+   porwat(:,:,8) = 0.7
+   porwat(:,:,9) = 0.68
+   porwat(:,:,10) = 0.66
+   porwat(:,:,11) = 0.64
+   porwat(:,:,12) = 0.62
+  endif
 
   if (mnproc == 1) then
-     write(io_stdo_bgc,*)  'Pore water in sediment: ',porwat
+     write(io_stdo_bgc,*)  'Pore water in sediment initialized'
   endif
 
   seddzi(1) = 500.
   do k = 1, ks
-     porsol(k) = 1. - porwat(k)
-     if(k >= 2) porwah(k) = 0.5 * (porwat(k) + porwat(k-1))
-     if(k == 1) porwah(k) = 0.5 * (1. + porwat(1))
      seddzi(k+1) = 1. / dzs(k+1)
      seddw(k) = 0.5 * (dzs(k) + dzs(k+1))
+     do j = 1, kpje
+     do i = 1, kpie
+        porsol(i,j,k) = 1. - porwat(i,j,k)
+        if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))
+        if(k == 1) porwah(i,j,k) = 0.5 * (1. + porwat(i,j,1))
+     enddo
+     enddo
   enddo
+  
+  sedict = 1.e-9 * dtbgc ! Molecular diffusion coefficient
+  ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
+  ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
+  ! FOR BACKWARDS COMPATIBILITY
+  !disso_sil = 3.e-8*dtbgc  ! (2011-01-04) EMR
+  !disso_sil = 1.e-6*dtbgc  ! test vom 03.03.04 half live sil ca. 20.000 yr 
+  disso_sil = 1.e-6*dtbgc
+  ! Silicate saturation concentration is 1 mol/m3
+  silsat    = 0.001
 
-  sedict = 1.e-9 * dtbgc
+  ! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
+  disso_poc = 0.01 / 86400. * dtbgc  !  disso=3.e-5 was quite high
+
+  ! Denitrification rate constant of POP (disso) [1/sec]
+  sed_denit =  0.01/86400. * dtbgc 
+
+  ! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
+  disso_caco3 = 1.e-7 * dtbgc
 
 ! ******************************************************************
 ! densities etc. for SEDIMENT SHIFTING
@@ -131,9 +168,26 @@ subroutine bodensed(kpie,kpje,kpke,pddpo)
 
 ! determine total solid sediment volume
   solfu = 0.
+  do i = 1, kpie
+  do j = 1, kpje
   do k = 1, ks
-     solfu = solfu + seddw(k) * porsol(k)
+     solfu(i,j) = solfu(i,j) + seddw(k) * porsol(i,j,k)
+  enddo
+  enddo
   enddo
 
+! Initialize porosity-dependent diffusion coefficients of sediment
+  zcoefsu(:,:,0) = 0.0
+  do k = 1,ks
+  do j = 1, kpje
+  do i = 1, kpie
+     ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
+     zcoefsu(i,j,k  ) = -sedict * seddzi(k) * porwah(i,j,k)
+     zcoeflo(i,j,k-1) = -sedict * seddzi(k) * porwah(i,j,k)    ! why the same ?
+  enddo
+  enddo
+  enddo
+  zcoeflo(:,:,ks) = 0.0                    ! diffusion coefficient for bottom sediment layer
 
+  
 end subroutine bodensed
