@@ -100,7 +100,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   use mo_m4ago,       only: mean_aggregate_sinking_speed,ws_agg,POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref 
 
 #ifdef AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
                           & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
   use mo_param1_bgc,  only: iadust,inos
   use mo_vgrid,       only: kmle
@@ -549,7 +549,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
            opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
         else
            opalrem = dremopal*ocetra(i,j,k,iopal)
-        endif 
+        endif
         ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
@@ -892,6 +892,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   enddo
   enddo loop3
 !$OMP END PARALLEL DO
+
 
 #ifdef PBGC_OCNP_TIMESTEP
   if (mnproc == 1) then
@@ -1291,7 +1292,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
                    &                 + ocetra(i,j,kdonor,iopal)*wopald)/        &
                    &                 (pddpo(i,j,k)+wopal)
               ocetra(i,j,k,ifdust) = (ocetra(i,j,k    ,ifdust) * pddpo(i,j,k)   &
-                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/        &
+                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/       &
                    &                 (pddpo(i,j,k)+wdust) - dagg
 #ifdef AGG
               ocetra(i,j,k,iphy)   = (ocetra(i,j,k    ,iphy) * pddpo(i,j,k)     &
