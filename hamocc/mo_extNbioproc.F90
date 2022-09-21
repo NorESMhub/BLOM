@@ -65,8 +65,24 @@
       public :: extNbioparam_init,nitrification,denit_NO3_to_NO2,&
               & anammox,denit_dnra,extN_inv_check
 
-      ! public parameters
+      ! public parameters for primary production
       public :: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+
+      ! Public parameters for extended nitrogen cycle in the sediment.
+      ! The basic idea is that we have the same temperature dependence
+      ! and same nutrient sensitivities, 
+      ! while only the rates vary between sediment and water column
+      ! (Thus far, we keep the rates public in order to enable to write them to the log in beleg_parm)
+      public ::  q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,     &
+              & rano2anmx,q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx, &
+              & rano2denit,q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,     &
+              & ran2odenit,q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,     &
+              & rdnra,q10dnra,Trefdnra,bkoxdnra,bkdnra,ranh4nitr,q10anh4nitr,        &
+              & Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,        &
+              & rano2nitr,q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,n2omaxy,      &
+              & n2oybeta,NOB2AOAy,bn2o,mufn2o,   &
+              & rc2n,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,     &
+              & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
 
 
       real   :: q10ano3denit,sc_ano3denit,Trefano3denit,rano3denit,bkano3denit,      &

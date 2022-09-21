@@ -256,7 +256,8 @@
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
 #ifdef extNcycle
-      ! initialize the extended nitrogen cycle parameters
+      ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
+      ! since sediment relies on water column parameters for the extended nitrogen cycle
       call extNbioparam_init()
       call extNsediment_param_init()
 #endif
