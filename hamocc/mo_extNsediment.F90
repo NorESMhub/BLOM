@@ -154,25 +154,35 @@ MODULE mo_extNsediment
   end subroutine extNsediment_param_init
 
   ! ================================================================================================================================  
-  subroutine sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,aerob)
+  subroutine sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]! 
-    real,    intent(inout) :: aerob(kpie,ks)
+    real,    intent(inout) :: ex_ddic(kpie,ks)
+    real,    intent(inout) :: ex_dalk(kpie,ks)
    
     ! local variables
     integer :: i,k
+    do i = 1,kpie
+    do k = 1,ks
+       if(omask(i,j)>0.5) then
+
+       endif
+    enddo
+    enddo
+
  
   end subroutine sed_nitrification
 
   ! ================================================================================================================================
-  subroutine sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
+  subroutine sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]! 
-    real,    intent(inout) :: anaerob(kpie,ks)
+    real,    intent(inout) :: ex_ddic(kpie,ks)
+    real,    intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
@@ -180,12 +190,13 @@ MODULE mo_extNsediment
   end subroutine sed_denit_NO3_to_NO2
 
   ! ================================================================================================================================
-  subroutine sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
+  subroutine sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]! 
-    real,    intent(inout) :: anaerob(kpie,ks)
+    real,    intent(inout) :: ex_ddic(kpie,ks)
+    real,    intent(inout) :: ex_dalk(kpie,ks)
 
     ! local variables
     integer :: i,k
@@ -193,12 +204,13 @@ MODULE mo_extNsediment
   end subroutine sed_anammox
 
   ! ================================================================================================================================
-  subroutine sed_denit_DNRA(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
+  subroutine sed_denit_DNRA(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
     integer, intent(in) :: j,kpie,kpje,kpke,kbnd
     real,    intent(in) :: omask(kpie,kpje)
     real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
     ! for calculation of pore water DIC and alkalinity changes [P-units]! 
-    real,    intent(inout) :: anaerob(kpie,ks)
+    real,    intent(inout) :: ex_ddic(kpie,ks)
+    real,    intent(inout) :: ex_dalk(kpie,ks)
     
     ! local variables
     integer :: i,k

@@ -94,7 +94,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
   real :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
   real :: solrat(kpie,ks),powcar(kpie,ks)
-  real :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
+  real :: aerob(kpie,ks),sulf(kpie,ks)
+#ifndef extNcycle
+  real :: anaerob(kpie,ks)
+#else
+  real :: ex_ddic(kpie,ks),ex_dalk(kpie,ks) !sum of DIC and alk changes related to extended nitrogen cycle
+#endif
 #ifdef cisonew
   real :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks)
   real :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks)
@@ -123,7 +128,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
 
 !$OMP PARALLEL DO                                                       &
-!$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                 &
+!$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,                         &
+#ifndef extNcycle
+!$OMP&        anaerob,                                                  &
+#else
+!$OMP&        ex_dalk,ex_ddic,                                          &
+#endif
 !$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
@@ -137,7 +147,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
      do i = 1, kpie
         solrat(i,k) = 0.
         powcar(i,k) = 0.
+#ifndef extNcycle
         anaerob(i,k)= 0.
+#else
+        ex_ddic(i,k)=0.
+        ex_dalk(i,j)=0.
+#endif
         aerob(i,k)  = 0.
         sulf(i,k)   = 0.
 #ifdef cisonew
@@ -375,10 +390,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   enddo
 #else
   !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
-  CALL sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,aerob)
-  CALL sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
-  CALL sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob)
-  CALL sed_denit_dnra(j,kpie,kpje,kpke,kbnd,ptho,omask,anaerob) 
+  CALL sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_denit_dnra(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk) 
 #endif
 
 
@@ -424,8 +439,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         if(omask(i,j) > 0.5) then
            saln= min( 40., max( 0., psao(i,j,kbo(i,j))))
            rrho= prho(i,j,kbo(i,j))
+#ifdef extNcycle
+           alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + ex_dalk(i,k))  / rrho
+           c   = (powtra(i,j,k,ipowaic) + (aerob(i,k)+sulf(i,k))*rcar + ex_ddic(i,k)) / rrho
+#else
            alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + anaerob(i,k)*(rdnit1-1.))  / rrho
            c   = (powtra(i,j,k,ipowaic) + (anaerob(i,k)+aerob(i,k)+sulf(i,k))*rcar) / rrho
+#endif  
            sit =  powtra(i,j,k,ipowasi) / rrho
            pt  =  powtra(i,j,k,ipowaph) / rrho
            ah1 = sedhpl(i,j,k)
@@ -531,10 +551,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
            poso14 = posol * ratc14
 #endif
            sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
+#ifdef extNcycle
+           powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
+                &   + posol * umfa + (aerob(i,k) + sulf(i,k)) * rcar + ex_ddic(i,k)
+           powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
+                &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k))  + ex_dalk(i,k)
+#else
            powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
                 &   + posol * umfa + (aerob(i,k) + anaerob(i,k) + sulf(i,k)) * rcar
            powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
                 &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k)) + (rdnit1-1.)*anaerob(i,k)
+#endif  
 #ifdef cisonew
            sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
            sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
