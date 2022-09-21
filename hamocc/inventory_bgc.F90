@@ -68,7 +68,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc,  only: ianh4,iano2,iatmnh3
+      use mo_param1_bgc,  only: ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
       use mo_bgcmean,     only: jnh3flux
 #endif
 
@@ -383,6 +383,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zprorca*rnit                                                        &
 #ifdef extNcycle
        &  +zocetratot(ianh4)+zocetratot(iano2)+snh3flux                        &
+       &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)       & 
 #endif
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
@@ -416,6 +417,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zprorca*(-24.)+zprcaca                                              &
 #ifdef extNcycle
       &  +zocetratot(iano2)                                                    &
+      &  +zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)                          & 
 #endif
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
