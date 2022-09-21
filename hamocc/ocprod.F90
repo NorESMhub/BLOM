@@ -165,6 +165,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
   real :: wpocd,wcald,wopald,wdustd,dagg
+  real :: o2lim ! O2 limitation of ammonification (POC remin) 
 #ifdef sedbypass
   real :: florca,flcaca,flsil
 #endif
@@ -211,7 +212,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 #ifdef extNcycle
   character(len=:), allocatable :: inv_message
   real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac 
-  real :: o2lim 
 #endif
 
 
@@ -635,7 +635,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 #endif
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
-!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
+!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
 # ifdef AGG
 !$OMP  ,avmass,avnos,zmornos                                          &
 # endif
