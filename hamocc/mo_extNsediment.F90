@@ -47,17 +47,9 @@ MODULE mo_extNsediment
   use mo_biomod,     only: rnit,rcar,rnoi
   use mo_control_bgc,only: dtb
   use mo_sedmnt,     only: powtra,sedlay,porsol,porwat
-  use mo_extNbioproc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                    &
-                         & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx,                                              &
-                         & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
-                         & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
-                         & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
-                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,bn2o,mufn2o,  &
-                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,                                                  &
-                         & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                        &
+  use mo_extNbioproc,only: rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                        &
                          & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1  
 
- 
   implicit none
 
   private
@@ -83,7 +75,18 @@ MODULE mo_extNsediment
   contains
   ! ================================================================================================================================
   subroutine extNsediment_param_init()
-         ! === Denitrification step NO3 -> NO2:
+  use mo_extNbioproc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                    &
+                         & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx,                                              &
+                         & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
+                         & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
+                         & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
+                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,bn2o,mufn2o,  &
+                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,                                                  &
+                         & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                        &
+                         & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1 
+  implicit none
+   
+      ! === Denitrification step NO3 -> NO2:
       !rano3denit_sed    = 0.15*dtb       ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
       rano3denit_sed    = 0.05*dtb       ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
       q10ano3denit_sed  = q10ano3denit   ! Q10 factor for denitrification on NO3 (-)
