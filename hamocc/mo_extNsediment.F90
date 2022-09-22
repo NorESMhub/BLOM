@@ -44,7 +44,7 @@ MODULE mo_extNsediment
   !**********************************************************************
   use mo_param1_bgc, only: issso12,ipowaic,ipowaal,ipowaph,ipowaox,ipown2,ipowno3,ipownh4,ipown2o,ipowno2,ks 
   use mo_vgrid,      only: kbo
-  use mo_biomod,     only: rnit,rcar
+  use mo_biomod,     only: rnit,rcar,rnoi
   use mo_control_bgc,only: dtb
   use mo_sedmnt,     only: powtra,sedlay,porsol,porwat
   use mo_extNbioproc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                    &
@@ -165,10 +165,105 @@ MODULE mo_extNsediment
    
     ! local variables
     integer :: i,k
+
+    real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4 
+    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,no2fdetamox
+    real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
+
     do i = 1,kpie
     do k = 1,ks
        if(omask(i,j)>0.5) then
+          potdnh4amox = 0.
+          fn2o        = 0.
+          fno2        = 0.
+          fdetamox    = 0.
+          potdno2nitr = 0.
+          fdetnitr    = 0.
+          w2s         = porwat(i,j,k) / porsol(i,j,k)
 
+!         if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
+           temp = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+           ! Ammonium oxidation step of nitrification
+           Tdepanh4    = q10anh4nitr_sed**((temp-Trefanh4nitr_sed)/10.) 
+           O2limanh4   = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
+           nut1lim     = powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4) + bkanh4nitr_sed)
+           anh4new     = powtra(i,j,k,ipownh4)/(1. + ranh4nitr_sed*Tdepanh4*O2limanh4*nut1lim)
+           potdnh4amox = max(0.,powtra(i,j,k,ipownh4) - anh4new)
+            
+            ! pathway splitting functions according to Goreau 1980
+       !=====
+       ! OLD version according to Goreau
+            !fn2o     = 1. - ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkamoxn2o)
+       ! NEW version similar to Santoros et al. 2021, Ji et al. 2018
+           fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed/(powtra(i,j,k,ipowaox)+bkoxamox_sed))                    &
+                    &        * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
+       !=====
+           fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkamoxno2_sed)
+           fdetamox = n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed                                         &
+                     & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
+
+           ! normalization of pathway splitting functions to sum=1
+           ftotnh4  = fn2o + fno2 + fdetamox + eps
+           fn2o     = fn2o/ftotnh4
+           fno2     = fno2/ftotnh4
+           fdetamox = 1. - (fn2o + fno2)
+!          endif
+
+!          if(ocetra(i,j,k,ioxygen)>minlim_oxno2 .and. ocetra(i,j,k,iano2)>minlim_no2)then
+!           temp = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+           ! NO2 oxidizing step of nitrification
+           Tdepano2    = q10ano2nitr_sed**((temp-Trefano2nitr_sed)/10.) 
+           O2limano2   = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxnitr_sed)
+           nut2lim     = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkano2nitr_sed)
+           ano2new     = powtra(i,j,k,ipowno2)/(1. + rano2nitr_sed*Tdepano2*O2limano2*nut2lim)
+           potdno2nitr = max(0.,powtra(i,j,k,ipowno2) - ano2new)
+
+           ! pathway splitting functions for NO2 nitrification - assuming to be the same as for NH4
+           ! but with reduced OM gain per used NO2 as energy source (in amox: NH4)
+        
+           no2fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed/(powtra(i,j,k,ipowaox)+bkoxamox_sed))                 &
+                       &        * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
+           no2fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkamoxno2_sed)
+           no2fdetamox = NOB2AOAy_sed*n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed                         &
+                     & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
+
+           fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
+!          endif
+
+          ! limitation of the two processes through available nutrients, etc.
+          totd     = potdnh4amox + potdno2nitr
+          amoxfrac = potdnh4amox/(totd + eps)
+          nitrfrac = 1. - amoxfrac
+           
+          ! Account for potential earlier changes in DIC and alkalinity in finiding the minimum 
+          totd     = max(0.,                                                                                                       &
+                   &   min(totd,                                                                                                   &
+                   &       powtra(i,j,k,ipownh4)/(amoxfrac + fdetnitr*nitrfrac + eps),                                             & ! ammonium
+                   &       (powtra(i,j,k,ipowaic)+ex_ddic(i,k))/(rc2n*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),              & ! CO2
+                   &       powtra(i,j,k,ipowaph)/(rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                             & ! PO4
+                   &       powtra(i,j,k,ipowaox)                                                                                   &
+                   &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),             & ! O2
+                   &       (powtra(i,j,k,ipowaal) + ex_dalk(i,j))                                                                  &
+                   &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                ! alkalinity
+          amox     = amoxfrac*totd 
+          nitr     = nitrfrac*totd
+
+          powtra(i,j,k,ipownh4)   = powtra(i,j,k,ipownh4) - amox - fdetnitr*nitr
+          powtra(i,j,k,ipown2o)   = powtra(i,j,k,ipown2o) + 0.5*fn2o*amox
+          powtra(i,j,k,ipowno2)   = powtra(i,j,k,ipowno2) + fno2*amox - nitr
+          powtra(i,j,k,ipowno3)   = powtra(i,j,k,ipowno3) + nitr
+          sedlay(i,j,k,issso12)   = sedlay(i,j,k,issso12)  + rnoi*(fdetamox*amox + fdetnitr*nitr) * w2s
+!          ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - rc2n*(fdetamox*amox + fdetnitr*nitr)
+          powtra(i,j,k,ipowaph)   = powtra(i,j,k,ipowaph) - rnoi*(fdetamox*amox + fdetnitr*nitr)
+!          ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   - riron*rnoi*(fdetamox*amox + fdetnitr*nitr)
+          powtra(i,j,k,ipowaox)   = powtra(i,j,k,ipowaox) - (1.5*fno2 + fn2o - ro2nnit*fdetamox)*amox   &
+                                &                       - (0.5 - ro2nnit*fdetnitr)*nitr
+!          ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
+
+          ! update of DIC and alkalinity through ex_ddic and ex_dalk fields 
+          ! at later stage, when undersaturation of CaCO3 has been calculted  
+          ex_ddic(i,k) = ex_ddic(i,k) - rc2n*(fdetamox*amox + fdetnitr*nitr)
+          ex_dalk(i,k) = ex_dalk(i,k) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
        endif
     enddo
     enddo 
