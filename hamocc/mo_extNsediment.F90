@@ -46,6 +46,7 @@ MODULE mo_extNsediment
   use mo_vgrid,      only: kbo
   use mo_biomod,     only: rnit,rcar
   use mo_control_bgc,only: dtb
+  use mo_sedmnt,     only: powtra,sedlay,porsol,porwat
   use mo_extNbioproc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                    &
                          & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx,                                              &
                          & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
@@ -170,9 +171,7 @@ MODULE mo_extNsediment
 
        endif
     enddo
-    enddo
-
- 
+    enddo 
   end subroutine sed_nitrification
 
   ! ================================================================================================================================
@@ -186,6 +185,37 @@ MODULE mo_extNsediment
 
     ! local variables
     integer :: i,k
+    real    :: Tdep,O2inhib,nutlim,ano3new,ano3denit,temp,s2w
+
+    do i = 1,kpie
+    do k = 1,ks
+       if(omask(i,j)>0.5) then
+            s2w       = porsol(i,j,k) / porwat(i,j,k)
+            temp      = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+            Tdep      = q10ano3denit_sed**((temp-Trefano3denit_sed)/10.) 
+            O2inhib   = 1. - tanh(sc_ano3denit_sed*powtra(i,j,k,ipowaox)) 
+            nutlim    = powtra(i,j,k,ipowno3)/(powtra(i,j,k,ipowno3) + bkano3denit_sed)
+ 
+            ano3new   = powtra(i,j,k,ipowno3)/(1. + rano3denit_sed*Tdep*O2inhib*nutlim) 
+
+            ano3denit = max(0.,min(powtra(i,j,k,ipowno3) - ano3new, sedlay(i,j,k,issso12)*rnoxp*s2w))
+
+            powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - ano3denit
+            powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) + ano3denit
+            powtra(i,j,k,issso12) = powtra(i,j,k,issso12) - ano3denit*rnoxpi/s2w
+            powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + ano3denit*rnit*rnoxpi
+            !ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
+            powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + ano3denit*rnoxpi
+            !ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron*rnoxpi
+            !ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi
+ 
+            ! update of DIC and alkalinity through ex_ddic and ex_dalk fields 
+            ! at later stage, when undersaturation of CaCO3 has been calculted  
+            ex_ddic(i,k) = ex_ddic(i,k) + ano3denit*rcar*rnoxpi
+            ex_dalk(i,k) = ex_dalk(i,k) + ano3denit*rnm1*rnoxpi
+       endif
+    enddo
+    enddo 
 
   end subroutine sed_denit_NO3_to_NO2
 
@@ -200,6 +230,13 @@ MODULE mo_extNsediment
 
     ! local variables
     integer :: i,k
+    do i = 1,kpie
+    do k = 1,ks
+       if(omask(i,j)>0.5) then
+
+       endif
+    enddo
+    enddo 
 
   end subroutine sed_anammox
 
@@ -214,6 +251,13 @@ MODULE mo_extNsediment
     
     ! local variables
     integer :: i,k
+    do i = 1,kpie
+    do k = 1,ks
+       if(omask(i,j)>0.5) then
+
+       endif
+    enddo
+    enddo 
 
   end subroutine sed_denit_DNRA
 
