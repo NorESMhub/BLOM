@@ -374,10 +374,88 @@ MODULE mo_extNsediment
     
     ! local variables
     integer :: i,k
+    real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
+    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
+    real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
+    real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
+    real    :: temp,s2w
+
+
     do i = 1,kpie
     do k = 1,ks
        if(omask(i,j)>0.5) then
+          potddet       = 0.
+          an2odenit     = 0.
+          ano2denit     = 0.
+          ano2dnra      = 0.
+          s2w           =  porsol(i,j,k) / porwat(i,j,k)
+!          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
+           temp = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+           ! === denitrification on N2O
+           Tdepan2o    = q10an2odenit_sed**((temp-Trefan2odenit_sed)/10.) 
+           O2inhiban2o = bkoxan2odenit_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxan2odenit_sed**2) 
+           nutliman2o  = powtra(i,j,k,ipown2o)/(powtra(i,j,k,ipown2o) + bkan2odenit_sed)   
+           an2onew     = powtra(i,j,k,ipown2o)/(1. + ran2odenit_sed*Tdepan2o*O2inhiban2o*nutliman2o)  
+           an2odenit   = max(0.,min(powtra(i,j,k,ipown2o),powtra(i,j,k,ipown2o) - an2onew))
+!          endif
 
+!          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
+!           temp = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+           ! denitrification on NO2
+           Tdepano2    = q10ano2denit_sed**((temp-Trefano2denit_sed)/10.) 
+           O2inhibano2 = bkoxano2denit_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxano2denit_sed**2) 
+           nutlimano2  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkano2denit_sed)
+           rpotano2denit = max(0.,rano2denit_sed*Tdepano2*O2inhibano2*nutlimano2) ! potential rate of denit
+           
+           ! DNRA on NO2
+           Tdepdnra    = q10dnra_sed**((temp-Trefdnra_sed)/10.) 
+           O2inhibdnra = bkoxdnra_sed**2/(powtra(i,j,k,ipowaox)**2 + bkoxdnra_sed**2) 
+           nutlimdnra  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2) + bkdnra_sed)
+           rpotano2dnra = max(0.,rdnra_sed*Tdepdnra*O2inhibdnra*nutlimdnra) ! pot. rate of dnra
+
+           ! potential new conc of NO2 due to denitrification and DNRA
+           potano2new = powtra(i,j,k,ipowno2)/(1. + rpotano2denit + rpotano2dnra)
+           potdano2   = max(0.,min(powtra(i,j,k,ipowno2), powtra(i,j,k,ipowno2) - potano2new))
+           
+           ! === limitation due to NO2:
+           ! fraction on potential change of NO2:
+           fdenit = rpotano2denit/(rpotano2denit + rpotano2dnra + eps)
+           fdnra  = 1. - fdenit
+           
+           ! potential fractional change
+           ano2denit  = fdenit * potdano2   
+           ano2dnra   = fdnra  * potdano2
+ !         endif
+
+          ! limitation of processes due to detritus (based on pore water volume)
+          potddet       = rnoxpi*(ano2denit + an2odenit) + rno2dnrai*ano2dnra  ! P units              
+          fdetano2denit = rnoxpi*ano2denit/(potddet + eps)
+          fdetan2odenit = rnoxpi*an2odenit/(potddet + eps)
+          fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
+          potddet       = max(0.,min(potddet,powtra(i,j,k,issso12)*s2w)) 
+       
+!          if(potddet>0.)then
+           ! change of NO2 and N2O in N units
+           ano2denit     = fdetano2denit*rnoxp*potddet
+           an2odenit     = fdetan2odenit*rnoxp*potddet
+           ano2dnra      = fdetdnra*rno2dnra*potddet
+
+           ! change in tracer concentrations due to denit (NO2->N2O->N2) and DNRA (NO2->NH4)
+           powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) - ano2denit - ano2dnra
+           powtra(i,j,k,ipown2o) = powtra(i,j,k,ipown2o) - an2odenit + 0.5*ano2denit
+           powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + an2odenit
+           powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + rnit*rnoxpi*(ano2denit+an2odenit) + rnh4dnra*rno2dnrai*ano2dnra
+           sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - ((ano2denit + an2odenit)*rnoxpi + ano2dnra*rno2dnrai)/s2w
+           powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + (ano2denit + an2odenit)*rnoxpi + ano2dnra*rno2dnrai
+!           ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + rcar*rnoxpi*(ano2denit + an2odenit) + rcar*rno2dnrai*ano2dnra
+!           ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + riron*rnoxpi*(ano2denit + an2odenit) + riron*rno2dnrai*ano2dnra
+!           ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi &
+!                                 &                       + (rno2dnra + rnh4dnra - 1.)*rno2dnrai * ano2dnra
+
+         ! update of DIC and alkalinity through ex_ddic and ex_dalk fields 
+         ! at later stage, when undersaturation of CaCO3 has been calculted  
+         ex_ddic(i,k) = ex_ddic(i,k) + rcar*rnoxpi*(ano2denit + an2odenit) + rcar*rno2dnrai*ano2dnra
+         ex_dalk(i,k) = ex_dalk(i,k) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi + (rno2dnra + rnh4dnra - 1.)*rno2dnrai * ano2dnra
        endif
     enddo
     enddo 
