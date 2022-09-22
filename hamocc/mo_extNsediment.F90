@@ -243,7 +243,7 @@ MODULE mo_extNsediment
                    &       powtra(i,j,k,ipowaph)/(rnoi*(fdetamox*amoxfrac + fdetnitr*nitrfrac) + eps),                             & ! PO4
                    &       powtra(i,j,k,ipowaox)                                                                                   &
                    &       /((1.5*fno2 + fn2o - ro2nnit*fdetamox)*amoxfrac + (0.5 - ro2nnit*fdetnitr)*nitrfrac + eps),             & ! O2
-                   &       (powtra(i,j,k,ipowaal) + ex_dalk(i,j))                                                                  &
+                   &       (powtra(i,j,k,ipowaal) + ex_dalk(i,k))                                                                  &
                    &       /((2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amoxfrac + (rnm1*rnoi*fdetnitr)*nitrfrac + eps)))                ! alkalinity
           amox     = amoxfrac*totd 
           nitr     = nitrfrac*totd
@@ -299,9 +299,8 @@ MODULE mo_extNsediment
             powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) + ano3denit
             powtra(i,j,k,issso12) = powtra(i,j,k,issso12) - ano3denit*rnoxpi/s2w
             powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + ano3denit*rnit*rnoxpi
-            !ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
             powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + ano3denit*rnoxpi
-            !ocetra(i,j,k,iiron)   = ocetra(i,j,k,iiron)   + ano3denit*riron*rnoxpi
+            !ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
             !ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) + ano3denit*rnm1*rnoxpi
  
             ! update of DIC and alkalinity through ex_ddic and ex_dalk fields 
@@ -325,10 +324,39 @@ MODULE mo_extNsediment
 
     ! local variables
     integer :: i,k
+    real    :: Tdep,O2inhib,nut1lim,nut2lim,ano2new,ano2anmx,temp,w2s
+
     do i = 1,kpie
     do k = 1,ks
        if(omask(i,j)>0.5) then
+         w2s         = porwat(i,j,k) / porsol(i,j,k)
+         temp     = merge(ptho(i,j,kbo(i,j)),10.,ptho(i,j,kbo(i,j))<40.)
+         Tdep     = q10anmx_sed**((temp-Trefanmx_sed)/10.)         
+         O2inhib  = 1. - exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))                                                   &
+                  &       /(1.+ exp(alphaanmx_sed*(powtra(i,j,k,ipowaox)-bkoxanmx_sed))) 
+         nut1lim  = powtra(i,j,k,ipowno2)/(powtra(i,j,k,ipowno2)+bkano2anmx_sed)
+         nut2lim  = powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkanh4anmx_sed)
 
+         ano2new  = powtra(i,j,k,ipowno2)/(1. + rano2anmx_sed*Tdep*O2inhib*nut1lim*nut2lim) 
+
+         ! Account for former changes in DIC and alkalinity
+         ano2anmx = max(0.,min(powtra(i,j,k,ipowno2) - ano2new, powtra(i,j,k,ipownh4)*rno2anmx*rnh4anmxi,                          &
+                               (powtra(i,j,k,ipowaic)+ex_ddic(i,k))*rno2anmx/rcar, powtra(i,j,k,ipowaph)*rno2anmx,                 &
+                               (powtra(i,j,k,ipowaal)+ex_dalk(i,k))*rno2anmx/rnm1))
+
+         powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) - ano2anmx
+         powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) - ano2anmx*rnh4anmx*rno2anmxi
+         powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + ano2anmx*(rnh4anmx-rnit)*rno2anmxi
+         powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + ano2anmx*rnoxp*rno2anmxi
+         sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) + ano2anmx*rno2anmxi*w2s
+         powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) - ano2anmx*rno2anmxi
+!         ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) - ano2anmx*rcar*rno2anmxi
+!         ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali) - ano2anmx*rnm1*rno2anmxi
+            
+         ! update of DIC and alkalinity through ex_ddic and ex_dalk fields 
+         ! at later stage, when undersaturation of CaCO3 has been calculted  
+         ex_ddic(i,k) = ex_ddic(i,k) - ano2anmx*rcar*rno2anmxi
+         ex_dalk(i,k) = ex_dalk(i,k) - ano2anmx*rnm1*rno2anmxi
        endif
     enddo
     enddo 
