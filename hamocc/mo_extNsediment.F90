@@ -300,7 +300,7 @@ MODULE mo_extNsediment
 
             powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - ano3denit
             powtra(i,j,k,ipowno2) = powtra(i,j,k,ipowno2) + ano3denit
-            powtra(i,j,k,issso12) = powtra(i,j,k,issso12) - ano3denit*rnoxpi/s2w
+            sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - ano3denit*rnoxpi/s2w
             powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + ano3denit*rnit*rnoxpi
             powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + ano3denit*rnoxpi
             !ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212) + ano3denit*rcar*rnoxpi
