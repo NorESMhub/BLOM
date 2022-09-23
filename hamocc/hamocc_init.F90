@@ -70,6 +70,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 #ifdef BOXATM
   use mo_intfcblom,   only: atm2
 #endif
+#ifdef extNcycle
+  use mo_extNsediment,only: alloc_mem_extNsediment_diag
+#endif
 
   implicit none
 
@@ -146,6 +149,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   CALL ALLOC_MEM_SEDMNT(idm,jdm)
   CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
   CALL ALLOC_MEM_M4AGO(idm,jdm,kdm)
+#if defined(extNcycle) && ! defined(sedbypass)
+  CALL ALLOC_MEM_extNsediment_diag(idm,jdm,ks)
+#endif
   !
   ! --- initialise trc array (two time levels)
   !

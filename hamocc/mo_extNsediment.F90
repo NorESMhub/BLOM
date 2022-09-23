@@ -55,10 +55,11 @@ MODULE mo_extNsediment
   private
 
   ! public functions
-  public :: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA
+  public :: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,alloc_mem_extNsediment_diag
 
-  ! public parameters
-  !public ::
+  ! public parameters and fields
+  public :: ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,ised_nitr_NH4_OM,ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,        &
+            ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics
 
   ! extended nitrogen cycle sediment parameters 
   real   ::  q10ano3denit_sed,sc_ano3denit_sed,Trefano3denit_sed,rano3denit_sed,bkano3denit_sed,                                   &
@@ -68,22 +69,64 @@ MODULE mo_extNsediment
           & rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,                              &
           & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkamoxno2_sed,bkyamox_sed,                                  &
           & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,                                &
-          & n2oybeta_sed,bkphyanh4_sed,bkphyano3_sed,bkphosph_sed,bkiron_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed 
+          & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed 
 
+  ! output
+  real, dimension (:,:,:,:), allocatable :: extNsed_diagnostics
+  integer, parameter :: &
+             ised_nitr_NH4      = 1,  & 
+             ised_nitr_NO2      = 2,  &
+             ised_nitr_N2O_prod = 3,  &
+             ised_nitr_NH4_OM   = 4,  &
+             ised_nitr_NO2_OM   = 5,  &
+             ised_denit_NO3     = 6,  &
+             ised_denit_NO2     = 7,  &
+             ised_denit_N2O     = 8,  &
+             ised_DNRA_NO2      = 9,  &
+             ised_anmx_N2_prod  = 10, &
+             ised_anmx_OM_prod  = 11, &
+             ised_remin_aerob   = 12, &
+             ised_remin_sulf    = 13, &
+             n_seddiag          = 13
+  
   real :: eps,minlim
 
   contains
+
+  ! ================================================================================================================================
+  subroutine alloc_mem_extNsediment_diag(kpie,kpje,ksed)
+  use mod_xc,         only: mnproc
+  use mo_control_bgc, only: io_stdo_bgc
+  
+  implicit none
+
+  INTEGER, intent(in) :: kpie,kpje,ksed ! ksed = ks
+  INTEGER             :: errstat
+
+
+    IF (mnproc.eq.1) THEN
+     WRITE(io_stdo_bgc,*)'Memory allocation for sediment output of the extended nitrogen cycle ...'
+     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+     WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+     WRITE(io_stdo_bgc,*)'Third dimension    : ',ksed
+     WRITE(io_stdo_bgc,*)'Fourth dimension   : ',n_seddiag
+    ENDIF
+
+    ALLOCATE (extNsed_diagnostics(kpie,kpje,ksed,n_seddiag),stat=errstat)
+
+    if(errstat.ne.0) stop 'not enough memory extended nitrogen cycle'
+
+  end subroutine alloc_mem_extNsediment_diag
+
   ! ================================================================================================================================
   subroutine extNsediment_param_init()
   use mo_extNbioproc,only: q10ano3denit,sc_ano3denit,Trefano3denit,bkano3denit,                                                    &
-                         & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,bkanh4anmx,                                              &
+                         & q10anmx,Trefanmx,alphaanmx,bkoxanmx,bkano2anmx,                                                         &
                          & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
                          & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
                          & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
-                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,bn2o,mufn2o,  &
-                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,                                                  &
-                         & rc2n,ro2utammo,ro2nnit,rnoxp,rnoxpi,rno2anmx,rno2anmxi,rnh4anmx,                                        &
-                         & rnh4anmxi,rno2dnra,rno2dnrai,rnh4dnra,rnh4dnrai,rnm1 
+                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,              &
+                         & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
   implicit none
    
       ! === Denitrification step NO3 -> NO2:
@@ -170,7 +213,7 @@ MODULE mo_extNsediment
     integer :: i,k
 
     real    :: Tdepanh4,O2limanh4,nut1lim,anh4new,potdnh4amox,fdetamox,fno2,fn2o,ftotnh4 
-    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,ftotno2,no2fn2o,no2fno2,no2fdetamox
+    real    :: Tdepano2,O2limano2,nut2lim,ano2new,potdno2nitr,fdetnitr,no2fn2o,no2fno2,no2fdetamox
     real    :: amoxfrac,nitrfrac,totd,amox,nitr,temp,w2s
 
     do i = 1,kpie
@@ -267,6 +310,13 @@ MODULE mo_extNsediment
           ! at later stage, when undersaturation of CaCO3 has been calculted  
           ex_ddic(i,k) = ex_ddic(i,k) - rc2n*(fdetamox*amox + fdetnitr*nitr)
           ex_dalk(i,k) = ex_dalk(i,k) - (2.*fno2 + fn2o + rnm1*rnoi*fdetamox)*amox - rnm1*rnoi*fdetnitr*nitr
+
+          ! output:
+          extNsed_diagnostics(i,j,k,ised_nitr_NH4)      = amox
+          extNsed_diagnostics(i,j,k,ised_nitr_NO2)      = nitr
+          extNsed_diagnostics(i,j,k,ised_nitr_N2O_prod) = 0.5*fn2o*amox
+          extNsed_diagnostics(i,j,k,ised_nitr_NH4_OM)   = rnoi*fdetamox*amox * w2s 
+          extNsed_diagnostics(i,j,k,ised_nitr_NO2_OM)   = rnoi*fdetnitr*nitr * w2s
        endif
     enddo
     enddo 
@@ -310,6 +360,9 @@ MODULE mo_extNsediment
             ! at later stage, when undersaturation of CaCO3 has been calculted  
             ex_ddic(i,k) = ex_ddic(i,k) + ano3denit*rcar*rnoxpi
             ex_dalk(i,k) = ex_dalk(i,k) + ano3denit*rnm1*rnoxpi
+
+            ! Output:
+            extNsed_diagnostics(i,j,k,ised_denit_NO3) = ano3denit
        endif
     enddo
     enddo 
@@ -360,6 +413,10 @@ MODULE mo_extNsediment
          ! at later stage, when undersaturation of CaCO3 has been calculted  
          ex_ddic(i,k) = ex_ddic(i,k) - ano2anmx*rcar*rno2anmxi
          ex_dalk(i,k) = ex_dalk(i,k) - ano2anmx*rnm1*rno2anmxi
+
+         ! Output:
+         extNsed_diagnostics(i,j,k,ised_anmx_N2_prod) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi  ! kmol N2/m3/dtb - N2 prod through anammox
+         extNsed_diagnostics(i,j,k,ised_anmx_OM_prod) = ano2anmx*rno2anmxi*w2s
        endif
     enddo
     enddo 
@@ -377,10 +434,10 @@ MODULE mo_extNsediment
     
     ! local variables
     integer :: i,k
-    real    :: Tdepano2,O2inhibano2,nutlimano2,detlimano2,rpotano2denit,ano2denit
-    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,detlimdnra,rpotano2dnra,ano2dnra
+    real    :: Tdepano2,O2inhibano2,nutlimano2,rpotano2denit,ano2denit
+    real    :: Tdepdnra,O2inhibdnra,nutlimdnra,rpotano2dnra,ano2dnra
     real    :: fdenit,fdnra,potano2new,potdano2,potddet,fdetano2denit,fdetan2odenit,fdetdnra  
-    real    :: Tdepan2o,O2inhiban2o,nutliman2o,detliman2o,an2onew,an2odenit
+    real    :: Tdepan2o,O2inhiban2o,nutliman2o,an2onew,an2odenit
     real    :: temp,s2w
 
 
@@ -459,6 +516,10 @@ MODULE mo_extNsediment
          ! at later stage, when undersaturation of CaCO3 has been calculted  
          ex_ddic(i,k) = ex_ddic(i,k) + rcar*rnoxpi*(ano2denit + an2odenit) + rcar*rno2dnrai*ano2dnra
          ex_dalk(i,k) = ex_dalk(i,k) + (295.*ano2denit + rnm1*an2odenit)*rnoxpi + (rno2dnra + rnh4dnra - 1.)*rno2dnrai * ano2dnra
+
+         extNsed_diagnostics(i,j,k,ised_denit_NO2) = ano2denit
+         extNsed_diagnostics(i,j,k,ised_denit_N2O) = an2odenit
+         extNsed_diagnostics(i,j,k,ised_DNRA_NO2)  = ano2dnra
        endif
     enddo
     enddo 

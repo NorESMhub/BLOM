@@ -101,7 +101,8 @@
      & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
      & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
      & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
-     & FLX_SEDIFFSI  =0    ,                                            &   
+     & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
+     & FLX_SEDIFFNO2 =0    ,                                            &   
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -169,6 +170,13 @@
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
      & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
+     !extNcycle
+     & SDM_POWNH4    =0    ,SDM_POWN2O    =0    ,SDM_POWNO2    =0    ,  &
+     & SDM_nitr_NH4  =0    ,SDM_nitr_NO2  =0    ,SDM_nitr_N2O_prod =0,  &
+     & SDM_nitr_NH4_OM =0  ,SDM_nitr_NO2_OM =0  ,SDM_denit_NO3     =0,  &
+     & SDM_denit_NO2 = 0   ,SDM_denit_N2O = 0   ,SDM_DNRA_NO2      =0,  &
+     & SDM_anmx_N2_prod=0  ,SDM_anmx_OM_prod=0  ,SDM_remin_aerob =0  ,  &
+     & SDM_remin_sulf  =0  ,                                            & 
      & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
      & BUR_SSSTER    =0                                              ,  &
      & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
@@ -201,7 +209,8 @@
      & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
      & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
      & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
-     & FLX_SEDIFFSI      ,                                              &   
+     & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
+     & FLX_SEDIFFNO2     ,                                              &   
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -264,6 +273,12 @@
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
      & SDM_SSSC12        ,SDM_SSSTER                           ,        &
+     & SDM_POWNH4        ,SDM_POWN2O        ,SDM_POWNO2        ,        &
+     & SDM_nitr_NH4      ,SDM_nitr_NO2      ,SDM_nitr_N2O_prod ,        &
+     & SDM_nitr_NH4_OM   ,SDM_nitr_NO2_OM   ,SDM_denit_NO3     ,        &
+     & SDM_denit_NO2     ,SDM_denit_N2O     ,SDM_DNRA_NO2      ,        &
+     & SDM_anmx_N2_prod  ,SDM_anmx_OM_prod  ,SDM_remin_aerob   ,        &
+     & SDM_remin_sulf    ,                                              & 
      & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
      & BUR_SSSTER                                              ,        &
      & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
@@ -361,7 +376,10 @@
      &          jsediffox  = 0 ,                                        &
      &          jsediffn2  = 0 ,                                        &
      &          jsediffno3 = 0 ,                                        &
-                jsediffsi  = 0
+     &          jsediffsi  = 0 ,                                        &
+     &          jsediffnh4 = 0 ,                                        &
+     &          jsediffn2o = 0 ,                                        &
+     &          jsediffno2 = 0 
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jsrfnatdic = 0 ,                                        &
@@ -583,7 +601,23 @@
      &          jssso12 = 0 ,                                           &
      &          jssssil = 0 ,                                           &
      &          jsssc12 = 0 ,                                           &
-     &          jssster = 0              
+     &          jssster = 0 ,                                           &
+     &          jpownh4 = 0 ,                                           &
+     &          jpown2o = 0 ,                                           &
+     &          jpowno2 = 0 ,                                           &             
+     &          jsdm_nitr_NH4      = 0 ,                                &
+     &          jsdm_nitr_NO2      = 0 ,                                &
+     &          jsdm_nitr_N2O_prod = 0 ,                                &
+     &          jsdm_nitr_NH4_OM   = 0 ,                                &
+     &          jsdm_nitr_NO2_OM   = 0 ,                                &
+     &          jsdm_denit_NO3     = 0 ,                                &
+     &          jsdm_denit_NO2     = 0 ,                                &
+     &          jsdm_denit_N2O     = 0 ,                                &
+     &          jsdm_DNRA_NO2      = 0 ,                                &
+     &          jsdm_anmx_N2_prod  = 0 ,                                &
+     &          jsdm_anmx_OM_prod  = 0 ,                                &
+     &          jsdm_remin_aerob   = 0 ,                                &
+     &          jsdm_remin_sulf    = 0 
 
 
       INTEGER, SAVE :: nbgct_sed    
@@ -773,6 +807,14 @@
         jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
         IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+#endif
+#if defined (extNcycle) && ! defined(sedbypass)
+        IF (FLX_SEDIFFNH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffnh4(n)=i_bsc_m2d*min(1,FLX_SEDIFFNH4(n))
+        IF (FLX_SEDIFFN2O(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
+        IF (FLX_SEDIFFNO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
 #endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
@@ -1260,6 +1302,43 @@
         jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
       ENDDO
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+      DO n=1,nbgc
+        IF (SDM_POWNH4(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpownh4(n)=i_bsc_sed*min(1,SDM_POWNH4(n))
+        IF (SDM_POWN2O(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpown2o(n)=i_bsc_sed*min(1,SDM_POWN2O(n))
+        IF (SDM_POWNO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpowno2(n)=i_bsc_sed*min(1,SDM_POWNO2(n))
+        IF (SDM_nitr_NH4(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NH4(n)=i_bsc_sed*min(1,SDM_nitr_NH4(n))
+        IF (SDM_nitr_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NO2(n)=i_bsc_sed*min(1,SDM_nitr_NO2(n))
+        IF (SDM_nitr_N2O_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_N2O_prod(n)=i_bsc_sed*min(1,SDM_nitr_N2O_prod(n))
+        IF (SDM_nitr_NH4_OM(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NH4_OM(n)=i_bsc_sed*min(1,SDM_nitr_NH4_OM(n))
+        IF (SDM_nitr_NO2_OM(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NO2_OM(n)=i_bsc_sed*min(1,SDM_nitr_NO2_OM(n))
+        IF (SDM_denit_NO3(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_NO3(n)=i_bsc_sed*min(1,SDM_denit_NO3(n))
+        IF (SDM_denit_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_NO2(n)=i_bsc_sed*min(1,SDM_denit_NO2(n))
+        IF (SDM_denit_N2O(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_N2O(n)=i_bsc_sed*min(1,SDM_denit_N2O(n))
+        IF (SDM_DNRA_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_DNRA_NO2(n)=i_bsc_sed*min(1,SDM_DNRA_NO2(n))
+        IF (SDM_anmx_N2_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_anmx_N2_prod(n)=i_bsc_sed*min(1,SDM_anmx_N2_prod(n))
+        IF (SDM_anmx_OM_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_anmx_OM_prod(n)=i_bsc_sed*min(1,SDM_anmx_OM_prod(n))
+        IF (SDM_remin_aerob(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
+        IF (SDM_remin_sulf(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
+      ENDDO
+#endif
+
          
       nbgcm2d    = i_bsc_m2d+i_atm_m2d
       nbgcm3d    = i_bsc_m3d

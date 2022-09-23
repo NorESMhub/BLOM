@@ -651,6 +651,22 @@ set SDM_POWAOX    = '0, 0, 2'
 set SDM_POWN2     = '0, 0, 2'
 set SDM_POWNO3    = '0, 0, 2'
 set SDM_POWASI    = '0, 0, 2'
+set SDM_POWNH4    = '0, 0, 2'
+set SDM_POWN2O    = '0, 0, 2'
+set SDM_POWNO2    = '0, 0, 2'
+set SDM_NITR_NH4      = '0, 0, 2'    
+set SDM_NITR_NO2      = '0, 0, 2'
+set SDM_NITR_N2O_PROD = '0, 0, 2'
+set SDM_NITR_NH4_OM   = '0, 0, 2'
+set SDM_NITR_NO2_OM   = '0, 0, 2'
+set SDM_DENIT_NO3     = '0, 0, 2'
+set SDM_DENIT_NO2     = '0, 0, 2'
+set SDM_DENIT_N2O     = '0, 0, 2'
+set SDM_DNRA_NO2      = '0, 0, 2'
+set SDM_ANMX_N2_PROD  = '0, 0, 2'
+set SDM_ANMX_OM_PROD  = '0, 0, 2'
+set SDM_REMIN_AEROB   = '0, 0, 2'
+set SDM_REMIN_SULF    = '0, 0, 2'
 set SDM_SSSO12    = '0, 0, 2'
 set SDM_SSSSIL    = '0, 0, 2'
 set SDM_SSSC12    = '0, 0, 2'
@@ -1713,7 +1729,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   SEDIFFN2       - sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]
 !   SEDIFFNO3      - sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]
 !   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
-!   
+!   SEDIFFNH4      - sediment - water-column diffusive flux of ammonia [mol NH4 m-2 s-1] 
+!   SEDIFFN2O      - sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1]
+!   SEDIFFNO2      - sediment - water-column diffusive flux of NO2 [mol NO2 m-2 s-1]
+!
 ! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
 !   POWAAL         - (powalk) [eq m-3]
@@ -1722,6 +1741,24 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   POWN2          - (pown2) [mol N2 m-3]
 !   POWNO3         - (powno3)[mol N m-3]
 !   POWASI         - (powsi) [mol Si m-3]
+!   POWNH4         - (pownh4) [mol NH4 m-3] - extended N cycle only
+!   POWN2O         - (pown2o) [mol N2O m-3] - extended N cycle only
+!   POWNO2         - (powno2) [mol NO2 m-3] - extended N cycle only
+!   NITR_NH4       - nitrification rate on NH4 [mol NH4 m-3 s-1] - extended N cycle only   
+!   NITR_NO2       - nitrification rate on NO2 [mol NO2 m-3 s-1] - extended N cycle only
+!   NITR_N2O_PROD  - N2O production rate during nitrification on NH4 [mol N2O m-3 s-1] - ext. N cycle only
+!   NITR_NH4_OM    - detritus production during nitrification on NH4 [mol P m-3 s-1] - ext. N cycle only
+!   NITR_NO2_OM    - detritus production during nitrification on NO2 [mol P m-3 s-1] - ext. N cycle only
+!   DENIT_NO3      - denitrification rate on NO3 [mol NO3 m-3 s-1] - ext. N cycle only
+!   DENIT_NO2      - denitrification rate on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   DENIT_N2O      - denitrification rate on N20 [mol N20 m-3 s-1] - ext. N cycle only
+!   DNRA_NO2       - DNRA on NO2 [mol NO2 m-3 s-1] - ext. N cycle only
+!   ANMX_N2_PROD   - anammox N2 production [mol N2 m-3 s-1] - ext. N cycle only
+!   ANMX_OM_PROD   - anammox detritus production [mol P m-3 s-1] - ext. N cycle only
+!   PHOSY_NH4      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   PHOSY_NO3      - PP consumption of NH4 [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_AEROB    - aerob remineralization rate (sev. sources) [mol NH4 m-3 s-1] - ext. N cycle only 
+!   REMIN_SULF     - sulfate-based remin rate on det [mol P m-3 s-1] - ext. N cycle only
 !   SSSO12         - (ssso12) [mol m-3]
 !   SSSSIL         - (ssssil) [mol Si m-3]
 !   SSSC12         - (sssc12) [mol C m-3]
@@ -1971,6 +2008,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   FLX_SEDIFFN2  = $FLX_SEDIFFN2
   FLX_SEDIFFNO3 = $FLX_SEDIFFNO3
   FLX_SEDIFFSI  = $FLX_SEDIFFSI
+  FLX_SEDIFFNH4 = $FLX_SEDIFFNH4
+  FLX_SEDIFFN2O = $FLX_SEDIFFN2O
+  FLX_SEDIFFNO2 = $FLX_SEDIFFNO2
   SDM_POWAIC    = $SDM_POWAIC
   SDM_POWAAL    = $SDM_POWAAL
   SDM_POWAPH    = $SDM_POWAPH
@@ -1978,6 +2018,22 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SDM_POWN2     = $SDM_POWN2
   SDM_POWNO3    = $SDM_POWNO3
   SDM_POWASI    = $SDM_POWASI
+  SDM_POWNH4    = $SDM_POWNH4
+  SDM_POWN2O    = $SDM_POWN2O
+  SDM_POWNO2    = $SDM_POWNO2
+  SDM_NITR_NH4      = $SDM_NITR_NH4 
+  SDM_NITR_NO2      = $SDM_NITR_NO2
+  SDM_NITR_N2O_PROD = $SDM_NITR_N2O_PROD
+  SDM_NITR_NH4_OM   = $SDM_NITR_NH4_OM
+  SDM_NITR_NO2_OM   = $SDM_NITR_NO2_OM
+  SDM_DENIT_NO3     = $SDM_DENIT_NO3
+  SDM_DENIT_NO2     = $SDM_DENIT_NO2
+  SDM_DENIT_N2O     = $SDM_DENIT_N2O
+  SDM_DNRA_NO2      = $SDM_DNRA_NO2
+  SDM_ANMX_N2_PROD  = $SDM_ANMX_N2_PROD
+  SDM_ANMX_OM_PROD  = $SDM_ANMX_OM_PROD
+  SDM_REMIN_AEROB   = $SDM_REMIN_AEROB
+  SDM_REMIN_SULF    = $SDM_REMIN_SULF
   SDM_SSSO12    = $SDM_SSSO12
   SDM_SSSSIL    = $SDM_SSSSIL
   SDM_SSSC12    = $SDM_SSSC12

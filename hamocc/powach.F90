@@ -77,7 +77,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 #ifdef extNcycle
   use mo_param1_bgc,   only: ipownh4
   use mo_extNbioproc,  only: ro2utammo
-  use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA
+  use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,            &
+                           & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf
 #endif
 
 
@@ -364,6 +365,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
            powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + posol*rnit*umfa
            ex_ddic(i,k) = rcar*posol*umfa ! C-units kmol C/m3 of pore water
            ex_dalk(i,k) = (rnit-1.)*posol*umfa ! alkalinity units
+           extNsed_diagnostics(i,j,k,ised_remin_aerob) = posol*rnit*umfa ! Output
 #endif
            powtra(i,j,k,ipowaox) = sediso(i,k)
 #ifdef cisonew
@@ -440,6 +442,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 #ifdef cisonew
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
+#endif
+#ifdef extNcycle
+              extNsed_diagnostics(i,j,k,ised_remin_sulf) = posol*umfa ! Output
 #endif
            endif
         endif
