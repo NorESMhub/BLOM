@@ -78,7 +78,8 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   use mo_param1_bgc,   only: ipownh4
   use mo_extNbioproc,  only: ro2utammo
   use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,            &
-                           & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf
+                           & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf,POM_remin_q10_sed,POM_remin_Tref_sed,           &
+                           & bkox_drempoc_sed
 #endif
 
 
@@ -101,6 +102,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
   real :: anaerob(kpie,ks)
 #else
   real :: ex_ddic(kpie,ks),ex_dalk(kpie,ks) !sum of DIC and alk changes related to extended nitrogen cycle
+  real :: ex_disso_poc
 #endif
 #ifdef cisonew
   real :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks)
@@ -134,7 +136,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 #ifndef extNcycle
 !$OMP&        anaerob,                                                  &
 #else
-!$OMP&        ex_dalk,ex_ddic,                                          &
+!$OMP&        ex_dalk,ex_ddic,ex_disso_poc,                             &
 #endif
 !$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
@@ -281,9 +283,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
              &   * porsol(i,j,1) / porwat(i,j,1)
 #else
         ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption 
-        solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
-             &   / (porsol(i,j,1) * seddw(1)) )                                    &
-             &   * ro2utammo * dissot / (1. + dissot * undsa)                      &
+        ! O2 and T-dep
+        ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                     &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+        solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                  &
+             &   / (porsol(i,j,1) * seddw(1)) )                                              &
+             &   * ro2utammo * ex_disso_poc / (1. + ex_disso_poc * undsa)                    &
              &   * porsol(i,j,1) / porwat(i,j,1)
 #endif
      endif
@@ -303,8 +308,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
                 &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
 #else
            ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption 
-           if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * dissot     &
-                &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
+           ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                        &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+           if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * ex_disso_poc     &
+                &   / (1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
 #endif
         endif
      enddo
@@ -346,7 +353,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            umfa = porsol(i,j,k) / porwat(i,j,k)
+#ifndef extNcycle
            solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1. + dissot*sediso(i,k))
+#else
+           ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                        &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+           solrat(i,k) = sedlay(i,j,k,issso12) * ex_disso_poc/(1. + ex_disso_poc*sediso(i,k))
+#endif
            posol = sediso(i,k)*solrat(i,k)
 #ifdef cisonew
            rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)

@@ -59,7 +59,8 @@ MODULE mo_extNsediment
 
   ! public parameters and fields
   public :: ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,ised_nitr_NH4_OM,ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,        &
-            ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics
+            ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf,extNsed_diagnostics, &
+            POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed
 
   ! extended nitrogen cycle sediment parameters 
   real   ::  q10ano3denit_sed,sc_ano3denit_sed,Trefano3denit_sed,rano3denit_sed,bkano3denit_sed,                                   &
@@ -69,7 +70,7 @@ MODULE mo_extNsediment
           & rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,                              &
           & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkamoxno2_sed,bkyamox_sed,                                  &
           & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,                                &
-          & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed 
+          & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed 
 
   ! output
   real, dimension (:,:,:,:), allocatable :: extNsed_diagnostics
@@ -127,8 +128,16 @@ MODULE mo_extNsediment
                          & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
                          & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,              &
                          & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
+  use mo_m4ago,      only: POM_remin_q10,POM_remin_Tref
+  use mo_biomod,     only: bkox_drempoc
+
   implicit none
-   
+ 
+      ! === Ammonification in the sediment
+      POM_remin_q10_sed  = POM_remin_q10  ! ammonification Q10 in sediment 
+      POM_remin_Tref_sed = POM_remin_Tref ! ammonification Tref in sediment
+      bkox_drempoc_sed   = bkox_drempoc   ! half saturation constant for O2 limitatio of ammonification in sediment
+
       ! === Denitrification step NO3 -> NO2:
       !rano3denit_sed    = 0.15*dtb       ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
       rano3denit_sed    = 0.05*dtb       ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
