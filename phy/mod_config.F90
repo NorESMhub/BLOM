@@ -34,7 +34,9 @@ module mod_config
       inst_suffix = ''    ! Instance suffix.
    integer :: &
       inst_index = 0      ! Instance index.
+   logical :: &
+      resume_flag = .false.    ! resume flag, use at ocn_run_mct()
 
-   public ::  expcnf, runid, inst_name, inst_suffix, inst_index
+   public ::  expcnf, runid, inst_name, inst_suffix, inst_index, resume_flag
 
 end module mod_config
