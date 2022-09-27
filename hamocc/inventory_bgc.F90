@@ -143,7 +143,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO j=1,kpje
         DO i=1,kpie
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
-                &       *dlxp(i,j)*dlyp(i,j)*porwat(k)
+                &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
         ENDDO
      ENDDO
   ENDDO
@@ -155,7 +155,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(k)
+              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
               ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -174,7 +174,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+              vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -187,7 +187,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO k=1,ks
      DO j=1,kpje
         DO i=1,kpie
-           vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+           vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
         ENDDO
      ENDDO
@@ -355,6 +355,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
        & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
        & +zburial(isssc12)+zburial(issso12)*rcar                               &
+       & +zprorca*rcar+zprcaca                                                 &
 #if defined(BOXATM)
        & +zatmco2*ppm2con
 #else
@@ -368,6 +369,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
        &  +zocetratot(ian2o)*2                                                 &
        &  - sndepflux                                                          &
+       &  +zprorca*rnit                                                        &
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
 #else
@@ -379,11 +381,13 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &   zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
        &  +zocetratot(izoo)+zocetratot(iphosph)                                &
        &  +zpowtratot(ipowaph)+zsedlayto(issso12)                              &
-       &  +zburial(issso12)
+       &  +zburial(issso12)                                                    &
+       &  +zprorca
 
   totalsil=                                                                    &
        &   zocetratot(isilica)+zocetratot(iopal)                               &
-       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)
+       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)             &
+       &  +zsilpro
 
   totaloxy=                                                                    &
        &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
@@ -395,6 +399,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
        &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
        &  - sndepflux*1.5                                                      &
+       &  +zprorca*(-24.)+zprcaca                                              &
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
 #else
