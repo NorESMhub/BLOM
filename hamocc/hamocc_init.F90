@@ -47,10 +47,10 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor
-  use mo_param1_bgc,  only: ks,nsedtra,npowtra,init_por2octra_mapping
+  use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
   use mo_biomod,      only: alloc_mem_biomod
-  use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial
+  use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt
   use mo_vgrid,       only: alloc_mem_vgrid,set_vgrid
   use mo_bgcmean,     only: alloc_mem_bgcmean
   use mo_read_rivin,  only: ini_read_rivin,rivinfile
@@ -176,9 +176,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   call set_vgrid(idm,jdm,kdm,bgc_dp)
   !
   ! --- Initialize sediment layering
-  ! First raed the porosity, then apply it in bodensed
+  ! First read the porosity, then apply it in ini_sedmnt
   CALL read_sedpor(idm,jdm,ks,omask,sed_por)
-  CALL BODENSED(idm,jdm,kdm,bgc_dp,omask,sed_por)
+  CALL ini_sedmnt(idm,jdm,kdm,omask,sed_por)
   !
   ! --- Initialize parameters, sediment and ocean tracer.
   !
