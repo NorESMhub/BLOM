@@ -184,19 +184,25 @@
 
       seddzi(1) = 500.
       do k = 1, ks
-        seddzi(k+1) = 1. / dzs(k+1)
-        seddw(k) = 0.5 * (dzs(k) + dzs(k+1))
+        seddzi(k+1) = 1. / dzs(k+1)          ! inverse of grid cell size
+        seddw(k) = 0.5 * (dzs(k) + dzs(k+1)) ! distance between grid cell centers (pressure points)
       enddo
 
 #ifndef sedbypass
       ! 2d and 3d fields are not allocated in case of sedbypass
       ! so only initialize them if we are using the sediment
-      CALL ini_sedmnt_fields(kpie,kpje,kpke,omask,sed_por)
+      CALL ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
 #endif     
  END SUBROUTINE ini_sedmnt
 
       !========================================================================
- SUBROUTINE ini_sedmnt_fields(kpie,kpje,kpke,omask,sed_por)
+ SUBROUTINE ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
+      !
+      ! Initialization of:
+      !   - 3D porosity field (cell center and cell boundaries)
+      !   - solid volume fraction at cell center
+      !   - vertical molecular diffusion coefficients scaled with porosity
+      !
       use mo_control_bgc, only: l_3Dvarsedpor
 
       implicit none
@@ -208,7 +214,8 @@
       ! local
       integer :: i,j,k
 
-      ! this initialization can be done later via reading a porosity map
+      ! this initialization can be done via reading a porosity map
+      ! porwat is the poroisty at the (pressure point) center of the grid cell
       if (l_3Dvarsedpor)then
        ! lon-lat variable sediment porosity from input file
        do k=1,ks
@@ -242,8 +249,8 @@
       do k = 1, ks
       do j = 1, kpje
       do i = 1, kpie
-        porsol(i,j,k) = 1. - porwat(i,j,k)
-        if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))
+        porsol(i,j,k) = 1. - porwat(i,j,k)                                  ! solid volume fraction at grid center
+        if(k >= 2) porwah(i,j,k) = 0.5 * (porwat(i,j,k) + porwat(i,j,k-1))  ! porosity at cell interfaces
         if(k == 1) porwah(i,j,k) = 0.5 * (1. + porwat(i,j,1))
       enddo
       enddo
@@ -276,7 +283,7 @@
         write(io_stdo_bgc,*)  'Pore water diffusion coefficients in sediment initialized'
       endif
 
- END SUBROUTINE ini_sedmnt_fields
+ END SUBROUTINE ini_sedmnt_por
 
 
       !========================================================================
