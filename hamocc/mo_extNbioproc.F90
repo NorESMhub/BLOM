@@ -243,7 +243,7 @@
           potdno2nitr = 0.
           fdetnitr    = 0.
 
-          if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
+!          if(ocetra(i,j,k,ioxygen)>minlim_oxnh4 .and. ocetra(i,j,k,ianh4)>minlim_nh4)then
            temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            ! Ammonium oxidation step of nitrification
            Tdepanh4    = q10anh4nitr**((temp-Trefanh4nitr)/10.) 
@@ -269,9 +269,9 @@
            fn2o     = fn2o/ftotnh4
            fno2     = fno2/ftotnh4
            fdetamox = 1. - (fn2o + fno2)
-          endif
+!          endif
 
-          if(ocetra(i,j,k,ioxygen)>minlim_oxno2 .and. ocetra(i,j,k,iano2)>minlim_no2)then
+!          if(ocetra(i,j,k,ioxygen)>minlim_oxno2 .and. ocetra(i,j,k,iano2)>minlim_no2)then
            temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            ! NO2 oxidizing step of nitrification
            Tdepano2    = q10ano2nitr**((temp-Trefano2nitr)/10.) 
@@ -294,7 +294,7 @@
                      & /(ocetra(i,j,k,ioxygen)**2 + 2.*ocetra(i,j,k,ioxygen)*bkyamox + bkyamox**2)
 
            fdetnitr = no2fdetamox/(no2fno2 + no2fn2o)   ! yield to energy usage ratio for NO2 -> ratio equals 16:x
-          endif
+!          endif
 
           ! limitation of the two processes through available nutrients, etc.
           totd     = potdnh4amox + potdno2nitr
@@ -367,7 +367,7 @@
       do i = 1,kpie
       do k = 1,kpke
         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,ioxygen) < minlim_ox .and. ocetra(i,j,k,iano3)>minlim_no3)then
+!          if(ocetra(i,j,k,ioxygen) < minlim_ox .and. ocetra(i,j,k,iano3)>minlim_no3)then
             temp      = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
             Tdep      = q10ano3denit**((temp-Trefano3denit)/10.) 
             O2inhib   = 1. - tanh(sc_ano3denit*ocetra(i,j,k,ioxygen)) 
@@ -388,7 +388,7 @@
 
             ! Output
             denit_NO3(i,j,k) = ano3denit ! kmol NO3/m3/dtb   - NO3 usage for denit on NO3    
-          endif
+!          endif
         endif
       enddo
       enddo
@@ -425,7 +425,7 @@
       do i = 1,kpie
       do k = 1,kpke
         if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
-          if(ocetra(i,j,k,iano2)>minlim_no2 .and. ocetra(i,j,k,ianh4)>minlim_nh4 .and. ocetra(i,j,k,ioxygen)<minlim_ox) then
+!          if(ocetra(i,j,k,iano2)>minlim_no2 .and. ocetra(i,j,k,ianh4)>minlim_nh4 .and. ocetra(i,j,k,ioxygen)<minlim_ox) then
            temp     = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            Tdep     = q10anmx**((temp-Trefanmx)/10.)         
            O2inhib  = 1. - exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))/(1.+ exp(alphaanmx*(ocetra(i,j,k,ioxygen)-bkoxanmx))) 
@@ -451,7 +451,7 @@
            ! Output
            anmx_N2_prod(i,j,k) = ano2anmx*(rnh4anmx-rnit)*rno2anmxi  ! kmol N2/m3/dtb - N2 prod through anammox
            anmx_OM_prod(i,j,k) = ano2anmx*rno2anmxi                  ! kmol P/m3/dtb  - OM production by anammox
-          endif
+!          endif
         endif
       enddo
       enddo
@@ -507,7 +507,7 @@
           ano2denit     = 0.
           ano2dnra      = 0.
 
-          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
+!          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_oxn2o .and. ocetra(i,j,k,ian2o)>minlim_n2o)then
            temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            ! === denitrification on N2O
            Tdepan2o    = q10an2odenit**((temp-Trefan2odenit)/10.) 
@@ -515,9 +515,9 @@
            nutliman2o  = ocetra(i,j,k,ian2o)/(ocetra(i,j,k,ian2o) + bkan2odenit)   
            an2onew     = ocetra(i,j,k,ian2o)/(1. + ran2odenit*Tdepan2o*O2inhiban2o*nutliman2o)  
            an2odenit   = max(0.,min(ocetra(i,j,k,ian2o),ocetra(i,j,k,ian2o) - an2onew))
-          endif
+!          endif
 
-          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
+!          if(0.<=ocetra(i,j,k,ioxygen) .and. ocetra(i,j,k,ioxygen)<minlim_ox .and. ocetra(i,j,k,iano2)>minlim_no2)then 
            temp = merge(ptho(i,j,k),10.,ptho(i,j,k)<40.)
            ! denitrification on NO2
            Tdepano2    =  q10ano2denit**((temp-Trefano2denit)/10.) 
@@ -543,7 +543,7 @@
            ! potential fractional change
            ano2denit  = fdenit * potdano2   
            ano2dnra   = fdnra  * potdano2
-          endif
+!          endif
 
           ! limitation of processes due to detritus
           potddet       = rnoxpi*(ano2denit + an2odenit) + rno2dnrai*ano2dnra  ! P units              
@@ -552,7 +552,7 @@
           fdetdnra      = 1. - fdetano2denit - fdetan2odenit 
           potddet       = max(0.,min(potddet,ocetra(i,j,k,idet))) 
        
-          if(potddet>0.)then
+!          if(potddet>0.)then
            ! change of NO2 and N2O in N units
            ano2denit     = fdetano2denit*rnoxp*potddet
            an2odenit     = fdetan2odenit*rnoxp*potddet
@@ -573,7 +573,7 @@
            denit_NO2(i,j,k) = ano2denit ! kmol NO2/m3/dtb - denitrification on NO2
            denit_N2O(i,j,k) = an2odenit ! kmol N2O/m3/dtb - denitrification on N2O
            DNRA_NO2(i,j,k)  = ano2dnra  ! kmol NO2/m3/dtb - DNRA on NO2
-          endif
+!          endif
         endif
       enddo
       enddo
