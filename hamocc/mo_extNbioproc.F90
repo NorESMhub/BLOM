@@ -196,6 +196,14 @@
       eps    = 1.e-25 ! safe division etc. 
       minlim = 1.e-9  ! minimum for limitation functions (e.g. nutlim or oxlim/inh can only decrease to minlim) 
       !===========================================================================
+
+      ! Tweaked parameters:
+      rano3denit    = 0.0005*dtb ! Maximum growth rate denitrification on NO3 at reference T (1/d -> 1/dt)
+      rano2anmx     = 0.001*dtb ! Maximum growth rate for anammox at reference T (1/d -> 1/dt)
+      rano2denit    = 0.001*dtb ! Maximum growth rate denitrification on NO2 at reference T (1/d -> 1/dt) 
+      ran2odenit    = 0.0012*dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
+      rdnra         = 0.001*dtb  ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
+
       end subroutine extNbioparam_init
      
 !==================================================================================================================================      
