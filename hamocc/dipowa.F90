@@ -40,7 +40,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !     Method
 !     -------
 !     implicit formulation;
-!     constant diffusion coefficient : 1.e-9 set in BODENSED.
+!     constant diffusion coefficient : 1.e-9 set in ini_sedmnt in mo_sedmnt
 !     diffusion coefficient : zcoefsu/zcoeflo for upper/lower
 !     sediment layer boundary.
 !

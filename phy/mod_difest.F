@@ -1161,8 +1161,8 @@ c --- ------ centers.
      .                               cellHeight,OBLdepth(i,j))
 
              ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
+             kOBL = int(hOBL(i,j))    ! index of interface above OBL depth
+
 c --- ------ Diapycnal mixing when local stability is weak
 c --- ------ convection routine based on N2 not rho
 c --- ------ make sure it is in metrics if stability depends on rho
@@ -1204,10 +1204,6 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              kk,                                ! (in) Number of levels to compute coeffs for
      .              kk,                                ! (in) Number of levels in array shape
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
-
-             ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
 
 c ---- ccc -------
              ! convert m2/s to cm2/s
