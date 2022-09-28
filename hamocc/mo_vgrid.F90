@@ -53,10 +53,11 @@ module mo_vgrid
 !******************************************************************************
   implicit none
 
-  ! INTEGER, PARAMETER :: kmle   = 2        ! k-end index for layers that 
-  !                                         ! represent the mixed layer in BLOM
+  INTEGER, PARAMETER :: kmle_static = 2   ! k-end index for layers that
+                                          ! represent the mixed layer in BLOM.
+                                          ! Default value used for isopycnic coordinates.
   REAL,    PARAMETER :: dp_ez  = 100.0    ! depth of euphotic zone
-  REAL,    PARAMETER :: dp_min = 1.0E-12  ! min layer thickness layers thinner 
+  REAL,    PARAMETER :: dp_min = 1.0E-12  ! min layer thickness layers thinner
                                           ! than this are ignored by HAMOCC
   REAL,    PARAMETER :: dp_min_sink = 1.0 ! min layer thickness for sinking (layers thinner than 
                                           ! this are ignored and set to the concentration of the 
@@ -125,7 +126,6 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
 !$OMP END PARALLEL DO
 
 
-  kmle(:,:) =2
   kbo(:,:)  =1
   bolay(:,:)=0.0
 
@@ -273,7 +273,7 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
 
   ALLOCATE(kmle(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory kmle'
-  kmle(:,:) = 0
+  kmle(:,:) = kmle_static
 
 
   IF(mnproc.eq.1) THEN
