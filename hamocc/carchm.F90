@@ -390,8 +390,6 @@
        ta = ocetra(i,j,k,ialkali) / rrho
        CALL carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
                                Ksi,K1p,K2p,K3p,tc_sat,niter)
-       ! ocetra(i,j,k,  idicsat)=tc_sat * rrho ! convert mol/kg to kmol/m^3 
-       ! ocetra(i,j,k+1,idicsat)=tc_sat * rrho ! k+1 = the rest of the mixed layer
        ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
 #ifdef cisonew 
