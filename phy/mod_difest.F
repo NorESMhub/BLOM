@@ -85,6 +85,8 @@ c
      .  du2l,drhol,up,vp
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  OBLdepth
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  hOBL
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv,msku
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -174,7 +176,7 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           cs=98.96,minOBLdepth=1.0)
 c
       public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
-     .          difest_lateral_hybrid, difest_vertical_hybrid
+     .          difest_lateral_hybrid, difest_vertical_hybrid, hOBL
 c
       contains
 c
@@ -203,6 +205,7 @@ c$OMP PARALLEL DO PRIVATE(i,k)
         enddo
         do i=1-nbdy,ii+nbdy
           OBLdepth(i,j)=spval
+          hOBL(i,j)=spval
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -904,7 +907,6 @@ c
       real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
       integer ki, ksfc, ktmp, kOBL, kn1
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
 c
       surf_layer_ext = 0.1
       bl1 = 8e-5
