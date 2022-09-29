@@ -248,8 +248,6 @@ subroutine blom2hamocc(m,n,mm,nn)
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
   use mod_eos,       only: rho,p_alpha
-  use mod_vcoord,    only: vcoord_type_tag, cntiso_hybrid
-  use mod_constants, only: spval
   use mod_difest,    only: hOBL
   use mod_tracers,   only: ntrbgc,itrbgc,trc
   use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
@@ -298,15 +296,9 @@ subroutine blom2hamocc(m,n,mm,nn)
      bgc_dy(i,j) = scpy(i,j)/1.e2
 !
 ! --- - index of level above OBL depth
-! ---   Defined according to cvmix_kpp_compute_kOBL_depth
-     if (vcoord_type_tag == cntiso_hybrid) then
-        ! nint(spval) returns arithmetic operation error
-        if (hOBL(i,j) < spval) then
-           kmle(i,j) = nint(hOBL(i,j))-1
-        else
-           kmle(i,j) = kmle_static
-        end if
-     endif
+! ---   isopycninc coords: hOBL(i,j) = hOBL_static = 3.  =>  kmle(i,j) = 2
+! ---   hybrid coords: hOBL defined according to cvmix_kpp_compute_kOBL_depth
+     kmle(i,j) = nint(hOBL(i,j))-1
   enddo
   enddo
 !$OMP END PARALLEL DO

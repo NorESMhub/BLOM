@@ -79,6 +79,10 @@ c
 c
       private
 c
+c     Initialize hOBL with hOBL_static = 3. for consistency with bulk
+c     mixed layer formulation in iHAMOCC: kmle = nint(hOBL) - 1 = 2
+      real, PARAMETER :: hOBL_static = 3.
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
      .  rig
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
@@ -205,7 +209,7 @@ c$OMP PARALLEL DO PRIVATE(i,k)
         enddo
         do i=1-nbdy,ii+nbdy
           OBLdepth(i,j)=spval
-          hOBL(i,j)=spval
+          hOBL(i,j) = hOBL_static
         enddo
       enddo
 c$OMP END PARALLEL DO
