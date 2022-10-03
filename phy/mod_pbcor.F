@@ -27,7 +27,7 @@ c --- by the integration of the barotropic equations.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: epsil
+      use mod_constants, only: epsilp, P_mks2cgs
       use mod_time, only: dlt
       use mod_xc
       use mod_grid, only: scp2i
@@ -54,10 +54,10 @@ c --- Variables to be set in namelist:
 c
 c --- Parameters:
       real(r8), parameter ::
-     .  dpeps1 = 1.e-4_r8, ! Small layer pressure thickness
-                           ! [g cm-1 s-2].
-     .  dpeps2 = 1.e-6_r8  ! Small layer pressure thickness
-                           ! [g cm-1 s-2].
+     .  dpeps1 = 1.e-5_r8*P_mks2cgs, ! Small layer pressure thickness
+                                     ! [g cm-1 s-2].
+     .  dpeps2 = 1.e-7_r8*P_mks2cgs  ! Small layer pressure thickness
+                                     ! [g cm-1 s-2].
 c
       public :: bmcmth, pbcor1, pbcor2
 c
@@ -459,7 +459,7 @@ c$OMP PARALLEL DO PRIVATE(k,km,l,i)
           km=k+mm
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-            dp(i,j,km)=max(0.,dp(i,j,km))+epsil
+            dp(i,j,km)=max(0.,dp(i,j,km))+epsilp
             p(i,j,k+1)=p(i,j,k)+dp(i,j,km)
           enddo
           enddo
@@ -719,7 +719,7 @@ c$OMP+ )
             enddo
 #endif
             sigma(i,j,km)=sig(temp(i,j,km),saln(i,j,km))
-            dp(i,j,km)=dp(i,j,km)-epsil
+            dp(i,j,km)=dp(i,j,km)-epsilp
             if (dp(i,j,km).lt.dpeps2) dp(i,j,km)=0.
           enddo
           enddo

@@ -24,7 +24,7 @@ module mod_tidaldissip
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: spval
+   use mod_constants, only: spval, M_mks2cgs
    use mod_xc
    use mod_checksum, only: csdiag, chksummsk
    use netcdf
@@ -78,7 +78,7 @@ contains
 
       real(r8), dimension(itdm,jtdm) :: tmpg
       integer :: i, j, l, errstat, ncid, dimid, varid
-
+      
       if (mnproc == 1) then
          write (lp, '(2a)') ' reading tidal dissipation data from ', &
                             trim(tdfile)
@@ -157,7 +157,7 @@ contains
       do j = 1, jj
          do l = 1, isp(j)
          do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-            twedon(i, j) = twedon(i, j)*1.e3_r8
+            twedon(i, j) = twedon(i, j)*M_mks2cgs
          enddo
          enddo
       enddo

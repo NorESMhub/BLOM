@@ -37,6 +37,7 @@ c
       use mod_remap, only: remap_eitvel, remap_eitflx
       use mod_utility, only: utotm, vtotm, umax, vmax
       use mod_checksum, only: csdiag, chksummsk
+      use mod_pointtest, only: itest, jtest, ptest
 #ifdef TRC
       use mod_tracers, only: ntr, itrtke, itrgls, trc, uflxtr, vflxtr
 #endif

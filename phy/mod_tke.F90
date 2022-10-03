@@ -34,10 +34,8 @@ module mod_tke
 
    real(r8), parameter :: &
       gls_cmu0 = .527_r8, &      ! cmu0
-      Pr_t = 1._r8, &            ! Turbulent Prandtl number [].
-      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [?].
+      Pr_t = 1._r8, &            ! Turbulent Prandtl number [non-dimensional].
       zos = .0002_r8, &          !
-      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [?].
       gls_p = 3._r8, &           !
       gls_m = 1.5_r8, &          !
       gls_n = -1._r8, &          !
@@ -56,8 +54,20 @@ module mod_tke
       gls_Gh0 = .0329_r8, &      !
       gls_Ghmin = -.28_r8, &     !
       gls_Ghcri = .03_r8, &      !
-      vonKar = .4_r8, &          !
-      Ls_unlmt_min = 1.e-6_r8    !
+      vonKar = .4_r8             !
+
+#if defined(CGS)
+   real(r8), parameter :: &
+      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [cm2/s2].
+      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [cm2/s3].
+      Ls_unlmt_min = 1.e-6_r8    ! [cm]
+#endif
+#if defined(MKS)
+   real(r8), parameter :: &
+      tke_min = 7.6e-8_r8, &     ! Minimum TKE value [m2/s2].
+      gls_psi_min = 1.e-14_r8, & ! Minimum GLS value [m2/s3].
+      Ls_unlmt_min = 1.e-8_r8    ! [m]
+#endif
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
       Prod, &                    ! Shear production [?].

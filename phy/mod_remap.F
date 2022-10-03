@@ -26,6 +26,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_xc
+      use mod_constants, only: P_mks2cgs
 #ifdef TRC
       use mod_tracers, only: ntr, itrtke, itrgls
 #endif
@@ -36,8 +37,8 @@ c
 c
 c --- Parameters:
       real(r8), parameter ::
-     .  dpeps = 1.e-11_r8 ! Small layer pressure thickness (equivalent
-                          ! to approximately 10-16 m) [g cm-1 s-2].
+     .  dpeps = 1.e-12_r8*P_mks2cgs ! Small layer pressure thickness (equivalent
+                                    ! to approximately 10-16 m) [g cm-1 s-2].
 #if defined(TRC) && defined(ATRC)
       real(r8), parameter ::
      .  treps = 1.e-14_r8 ! Small tracer concentration.
@@ -1984,7 +1985,7 @@ c
             ca=aa*scp2i(i-1,j)
             q=dlm+.5*dx(i-1,j)*(1.-ca)
             if (abs(2.*dx(i-1,j)*umfl(i,j)*scp2i(i-1,j)).lt.
-     .          1.e-8*q*q) then
+     .          1.e-6*P_mks2cgs**-2*q*q) then
               cu(i,j)=ca+umfl(i,j)*scp2i(i-1,j)/q
             else
 cdiag
@@ -2004,7 +2005,7 @@ cdiag
             ca=aa*scp2i(i  ,j)
             q=dlp-.5*dx(i  ,j)*(1.+ca)
             if (abs(2.*dx(i  ,j)*umfl(i,j)*scp2i(i  ,j)).lt.
-     .          1.e-8*q*q) then
+     .          1.e-6*P_mks2cgs**-2*q*q) then
               cu(i,j)=ca+umfl(i,j)*scp2i(i  ,j)/q
             else
 cdiag
@@ -2048,7 +2049,7 @@ c
             ca=aa*scp2i(i,j-1)
             q=dlm+.5*dy(i,j-1)*(1.-ca)
             if (abs(2.*dy(i,j-1)*vmfl(i,j)*scp2i(i,j-1)).lt.
-     .          1.e-8*q*q) then
+     .          1.e-6*P_mks2cgs**-2*q*q) then
               cv(i,j)=ca+vmfl(i,j)*scp2i(i,j-1)/q
             else
 cdiag
@@ -2068,7 +2069,7 @@ cdiag
             ca=aa*scp2i(i,j  )
             q=dlp-.5*dy(i,j  )*(1.+ca)
             if (abs(2.*dy(i,j  )*vmfl(i,j)*scp2i(i,j  )).lt.
-     .          1.e-8*q*q) then
+     .          1.e-6*P_mks2cgs**-2*q*q) then
               cv(i,j)=ca+vmfl(i,j)*scp2i(i,j  )/q
             else
 cdiag

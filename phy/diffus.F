@@ -24,6 +24,7 @@ c --- diffusion of tracers
 c --- ------------------------------------------------------------------
 c
       use mod_time, only: delt1
+      use mod_constants, only: P_mks2cgs
       use mod_xc
       use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi
       use mod_eos, only: sig
@@ -47,7 +48,7 @@ c
 #endif
 c
       real dpeps
-      parameter (dpeps=1.e-4)
+      parameter (dpeps=1.e-5*P_mks2cgs)
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
       if (ltedtp_opt.eq.ltedtp_neutral) then
@@ -75,6 +76,8 @@ c
 #endif
         call xctilr(difiso, 1,kk, 2,2, halo_ps)
       endif
+      ! Mehmet
+      difiso(:,:,:) = 300.0
 c
       do k=1,kk
         kn=k+nn
@@ -89,7 +92,7 @@ c$OMP+ )
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             q=delt1*.5*(difiso(i-1,j,k)+difiso(i,j,k))
-     .        *scuy(i,j)*scuxi(i,j)
+c     .        *scuy(i,j)*scuxi(i,j)
      .        *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
             usflld(i,j,km)=q*(saln(i-1,j,kn)-saln(i,j,kn))
             utflld(i,j,km)=q*(temp(i-1,j,kn)-temp(i,j,kn))
@@ -116,7 +119,7 @@ c$OMP+ )
           do l=1,isv(j)
           do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
             q=delt1*.5*(difiso(i,j-1,k)+difiso(i,j,k))
-     .        *scvx(i,j)*scvyi(i,j)
+c     .        *scvx(i,j)*scvyi(i,j)
      .        *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
             vsflld(i,j,km)=q*(saln(i,j-1,kn)-saln(i,j,kn))
             vtflld(i,j,km)=q*(temp(i,j-1,kn)-temp(i,j,kn))
@@ -142,7 +145,8 @@ c$OMP+ )
         do j=0,jj+1
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-            q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
+            q=1./(max(dp(i,j,kn),dpeps))
+c            q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
             saln(i,j,kn)=saln(i,j,kn)
      .                  -q*(usflld(i+1,j,km)-usflld(i,j,km)
      .                     +vsflld(i,j+1,km)-vsflld(i,j,km))

@@ -21,7 +21,8 @@
 c
 c --- NERSC version of thermf. To be used when coupled to CESM
 c
-      use mod_constants, only: g, spcifh, t0deg, epsil, onem
+      use mod_constants, only: g, spcifh, t0deg, epsilt, onem
+      use mod_constants, only: L_mks2cgs, M_mks2cgs, g2kg, alpha0
       use mod_time, only: nstep, nstep_in_day, nday_in_year,
      .                    nday_of_year, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -69,9 +70,12 @@ c
       real tottrsf,tottrav,trflxc
 #endif
 c
+      real iL_mks2cgssq
       real intp1d
       external intp1d
 c
+      iL_mks2cgssq = 1.0 / (L_mks2cgs*L_mks2cgs)
+c      
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
       y=(nday_of_year-1+mod(nstep,nstep_in_day)/real(nstep_in_day))*48.
@@ -132,10 +136,10 @@ c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
 c
 c --- --- Salt flux due to brine rejection of freezing sea
 c --- --- ice [kg m-2 m-1] (positive downwards)
-          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*1.e-3+sfl(i,j))
+          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*g2kg+sfl(i,j))
 c
 c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
-          vrtsfl(i,j)=-sotl*fwflx*1.e-3
+          vrtsfl(i,j)=-sotl*fwflx*g2kg
 c
 c --- --- Store area weighted virtual salt flux and fresh water flux
           util1(i,j)=vrtsfl(i,j)*scp2(i,j)
@@ -150,20 +154,21 @@ c --- --- surface has a temperature below freezing temperature and must
 c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
-          frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl/(2.*g)*1.e4
+          frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl
+     .                   /(2.*g)*L_mks2cgs*L_mks2cgs
           mltpot(i,j)=
      .      min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n)))
-     .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*1.e4
+     .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*L_mks2cgs*L_mks2cgs
 c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
 c
 c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*iL_mks2cgssq
 c
 c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
-          sswflx(i,j)=-swa(i,j)*1.e-4
+          sswflx(i,j)=-swa(i,j)*iL_mks2cgssq
 c
 #ifdef TRC
 c --- ------------------------------------------------------------------
@@ -196,7 +201,7 @@ c
             endif
 #    endif
 #  endif
-            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*1.e-3
+            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*g2kg
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
           enddo
@@ -208,7 +213,7 @@ c
           surrlx(i,j)=0.
 c
 c --- --- If  trxday>0 , apply relaxation towards observed sst
-          if (trxday.gt.epsil) then
+          if (trxday.gt.epsilt) then
             sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
      .                  sstclm(i,j,l3mi),sstclm(i,j,l4mi),
      .                  sstclm(i,j,l5mi),xmi)
@@ -216,8 +221,8 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
      .                  ricclm(i,j,l3mi),ricclm(i,j,l4mi),
      .                  ricclm(i,j,l5mi),xmi)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*min(hmxl,trxdpt)/(trxday*86400.)
-     .                        *min(trxlim,max(-trxlim,sstc-tmxl))
+            trxflx=spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.)
+     .                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -239,12 +244,12 @@ c
           salrlx(i,j)=0.
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday.gt.epsil) then
+          if (srxday.gt.epsilt) then
             sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
-            srxflx=100.*min(hmxl,srxdpt)/(srxday*86400.)
-     .                 *min(srxlim,max(-srxlim,sssc-smxl))
+            srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)
+     .                 *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             salrlx(i,j)=-srxflx
             util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
             util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
@@ -269,7 +274,7 @@ c --- -------------------------------------------------------------------
 c --- --- Friction velocity (cm/s)
 c --- -------------------------------------------------------------------
 c
-          ustar(i,j)=ustarw(i,j)*1.e2
+          ustar(i,j)=ustarw(i,j)*L_mks2cgs
 c
         enddo
         enddo
@@ -287,7 +292,7 @@ c
       call xcsum(totwfl,util2,ips)
 c
 c --- Correction for the virtual salt flux [kg m-2 s-1]
-      sflxc=(-sref*totwfl*1.e-3-totsfl)/area
+      sflxc=(-sref*totwfl*g2kg-totsfl)/area
       if (mnproc.eq.1) then
         write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
       endif
@@ -298,8 +303,10 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2
-          brnflx(i,j)=-brnflx(i,j)*1.e2
+          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))
+     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
+          brnflx(i,j)=-brnflx(i,j)
+     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
         enddo
         enddo
       enddo
@@ -308,7 +315,7 @@ c
 c --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
 c --- so the net input of salt in grid cells connected to the world
 c --- ocean is zero
-      if (srxday.gt.epsil.and.srxbal) then
+      if (srxday.gt.epsilt.and.srxbal) then
         call xcsum(totsrp,util3,ipwocn)
         call xcsum(totsrn,util4,ipwocn)
         if (abs(totsrp-totsrn).gt.0.) then
@@ -352,14 +359,14 @@ c
         tottrav=tottrav/area
 c
         trflxc=(-tottrsf)/area
-c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
+c        trflxc=(-tottrav*totwfl*g2kg-tottrsf)/area
 c        trflxc=0.
 c
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*1.e2
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*L_mks2cgs
           enddo
           enddo
         enddo

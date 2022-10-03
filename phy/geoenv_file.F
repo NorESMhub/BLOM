@@ -25,7 +25,7 @@ c --- Coriolis parameter
 c --- ------------------------------------------------------------------
 c
       use mod_config, only: inst_suffix
-      use mod_constants, only: rearth, pi, radian
+      use mod_constants, only: rearth, pi, radian, L_mks2cgs
       use mod_xc
       use mod_grid, only: grfile, qclon, qclat, pclon, pclat, uclon,
      .                    uclat, vclon, vclat, scqx, scqy, scpx, scpy,
@@ -797,18 +797,18 @@ c$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
 c
-          scqx(i,j)=scqx(i,j)*1.e2
-          scqy(i,j)=scqy(i,j)*1.e2
-          scpx(i,j)=scpx(i,j)*1.e2
-          scpy(i,j)=scpy(i,j)*1.e2
-          scux(i,j)=scux(i,j)*1.e2
-          scuy(i,j)=scuy(i,j)*1.e2
-          scvx(i,j)=scvx(i,j)*1.e2
-          scvy(i,j)=scvy(i,j)*1.e2
-          scq2(i,j)=scq2(i,j)*1.e4
-          scp2(i,j)=scp2(i,j)*1.e4
-          scu2(i,j)=scu2(i,j)*1.e4
-          scv2(i,j)=scv2(i,j)*1.e4
+          scqx(i,j)=scqx(i,j)*L_mks2cgs
+          scqy(i,j)=scqy(i,j)*L_mks2cgs
+          scpx(i,j)=scpx(i,j)*L_mks2cgs
+          scpy(i,j)=scpy(i,j)*L_mks2cgs
+          scux(i,j)=scux(i,j)*L_mks2cgs
+          scuy(i,j)=scuy(i,j)*L_mks2cgs
+          scvx(i,j)=scvx(i,j)*L_mks2cgs
+          scvy(i,j)=scvy(i,j)*L_mks2cgs
+          scq2(i,j)=scq2(i,j)*L_mks2cgs**2
+          scp2(i,j)=scp2(i,j)*L_mks2cgs**2
+          scu2(i,j)=scu2(i,j)*L_mks2cgs**2
+          scv2(i,j)=scv2(i,j)*L_mks2cgs**2
 c
           cosang(i,j)=cos(angle(i,j))
           sinang(i,j)=sin(angle(i,j))

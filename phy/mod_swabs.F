@@ -113,7 +113,7 @@ c ---           (blue/green).
      .  ma94z2=(/ 7.925,-6.644, 3.662,-1.815, -.218,  .502/)
 c
 c --- Other parameters:
-c----   swamxd: Maximum depth of shortwave radiation penetration.
+c----   swamxd: Maximum depth of shortwave radiation penetration [m].
       real, parameter ::
      .  swamxd = 200.
 c

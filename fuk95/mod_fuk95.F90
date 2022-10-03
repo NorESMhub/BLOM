@@ -25,7 +25,7 @@ module mod_fuk95
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, rearth, pi, radian, epsil
+   use mod_constants, only: g, rearth, pi, radian, epsilt
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid, sigmar
    use mod_grid, only: qclon, qclat, pclon, pclat, uclon, uclat, vclon, vclat, &
@@ -426,7 +426,7 @@ contains
                zl = .5_r8*(z(i, j - 1, k + 1) + z(i, j, k + 1))
                v1 = u0*psi(x)*(h1 - .5*(zu + zl))/h1
                v1 = 0._r8
-               if (abs(zl - zu) < epsil) then
+               if (abs(zl - zu) < epsilt) then
                   v(i, j, k) = v1
                else
                   v(i, j, k) = ( v1*max(0._r8, min(zl, h1) - zu) &
