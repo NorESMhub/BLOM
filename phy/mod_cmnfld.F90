@@ -24,7 +24,7 @@ module mod_cmnfld
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: spval
+   use mod_constants, only: spval, onem, L_mks2cgs
    use mod_xc
 
    implicit none
@@ -33,7 +33,7 @@ module mod_cmnfld
 
    ! Parameters:
    real(r8) :: &
-      sls0 = 10._r8*98060._r8, & ! Minimum smoothing length scale in the
+      sls0 = 10._r8*onem, &      ! Minimum smoothing length scale in the
                                  ! computation of filtered BFSQ [g cm-1 s-2].
       slsmfq = 2._r8, &          ! Factor to be multiplied with the mixed
                                  ! layer depth to find the smoothing length
@@ -45,7 +45,7 @@ module mod_cmnfld
                                  ! computation of filtered BFSQ [].
       bfsqmn = 1.e-7_r8, &       ! Minimum value of BFSQ used in the
                                  ! computation of neutral slope [s-2].
-      dbcrit = .03_r8            ! Critical buoyancy difference used in the
+      dbcrit = .0003_r8*L_mks2cgs! Critical buoyancy difference used in the
                                  ! mixed layer thickness estimation (Levitus,
                                  ! 1982) [cm s-2].
 

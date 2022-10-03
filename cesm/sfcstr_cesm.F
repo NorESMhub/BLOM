@@ -24,6 +24,7 @@ c --- Compute the surface stress. To be used when coupled to CESM
 c --- ------------------------------------------------------------------
 c
       use mod_xc
+      use mod_constants, only: P_mks2cgs
       use mod_forcing, only: ztx, mty, taux, tauy
       use mod_checksum, only: csdiag, chksummsk
 c
@@ -37,12 +38,12 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isu(j)
         do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-          taux(i,j)=10.*ztx(i,j)
+          taux(i,j)=P_mks2cgs*ztx(i,j)
         enddo
         enddo
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          tauy(i,j)=10.*mty(i,j)
+          tauy(i,j)=P_mks2cgs*mty(i,j)
         enddo
         enddo
       enddo

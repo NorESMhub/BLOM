@@ -23,7 +23,8 @@ c --- ------------------------------------------------------------------
 c --- Diapycnal mixing
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: g, alpha0, spval, epsil, onem
+      use mod_constants, only: g, alpha0, spval, epsilp, onem
+      use mod_constants, only: L_mks2cgs
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: sigmar
@@ -33,6 +34,7 @@ c
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     p, pu, pv, kfpla
       use mod_diffusion, only: difdia
+      use mod_pointtest, only: itest, jtest, ptest
       use mod_forcing, only: ustarb
       use mod_utility, only: util1
       use mod_checksum, only: csdiag, chksummsk
@@ -64,7 +66,7 @@ c ---   ustmin - minimum value of ustar used in computing the length
 c ---            scale bottom boundary layer mixing [cm/s]
       real dsgmnr,fcmxr,dsgcr0,dfeps,gbbl,kappa,ustmin
       parameter (dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,
-     .           kappa=.4,ustmin=.01)
+     .           kappa=.4,ustmin=.0001*L_mks2cgs)
 c
       real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  fpug=spval,fplg=spval
@@ -80,6 +82,7 @@ c
       logical done,dwnwrd,remfmx
 c
       real, dimension(kdm) :: ttem0,ssal0,delp0,dens0,sigr0,nu0
+      real, dimension(kdm) :: rnd
       integer niter
 #ifdef TRC
       real, dimension(ntr,kdm) :: ttrc
@@ -127,13 +130,18 @@ cdiag
             enddo
 #endif
           enddo
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+                print*,'mehmet',ttem,ssal
+                print*,'mehmetniter',niter
+                print*,'mehmetdifdia',nu
+            endif
 c
 c --- --- Locate range of physical layers.
           kfpl=kfpla(i,j,n)
           kmin=kfpl-2
           kmax=1
           do k=2,kk
-            if (delp(k).gt.epsil) kmax=k
+            if (delp(k).gt.epsilp) kmax=k
           enddo
 c
           if (kmin.lt.kmax) then
@@ -197,6 +205,8 @@ c --- --------- bottom drag drives diapycnal mixing.
      .                *exp(-(delp(k+1)+.5*delp(k))*abs(coriop(i,j))
      .                      *alpha0/(kappa*max(ustmin,ustarb(i,j))*g))
      .                /(alpha0*g*(sigr(k+1)-sigr(k)))
+                !Mehmet
+                ! nubbl = 0.001*L_mks2cgs**2
                 nu(k)=max(nu(k),nubbl)
                 difdia(i,j,k)=nu(k)
               endif
@@ -314,7 +324,7 @@ c --- ------- fluid domain.
      .              i+i0,j+j0
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
+                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')
@@ -334,7 +344,7 @@ c --- ------- boundary conditions
                 f(k)=min(fmax(k),
      .                   .5*sqrt(c*nu(k)*dsg(k)
      .                           *(dsgui(k)+dsgli(k)))*dsghm(k),
-     .                   c*nu(k)*dsg(k)/max(epsil,delp(k)))
+     .                   c*nu(k)*dsg(k)/max(epsilp,delp(k)))
                 fold(k)=f(k)
                 h(k)=fcu(k  )*dsgui(k  )-fcl(k  )*dsgli(k  )
      .              +fcl(k-1)*dsgli(k-1)-fcu(k+1)*dsgui(k+1)
@@ -519,7 +529,7 @@ c --- --------- iteration.
      .          i+i0,j+j0,maxdf,dflim
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
+                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')
@@ -646,10 +656,12 @@ c --- --- salinity, and tracers
             enddo
           endif
 c
+          call random_number(rnd)
 c --- --- Copy 1d arrays to 3d arrays
           do k=1,kk
             kn=k+nn
-            temp(i,j,kn)=ttem(k)
+            !Mehmet
+            temp(i,j,kn)=ttem(k)!+(2e-11*(1.0-rnd(k)) - 1e-11)
             saln(i,j,kn)=ssal(k)
             dp(i,j,kn)=delp(k)
             sigma(i,j,kn)=dens(k)
@@ -672,6 +684,10 @@ c --- --- Copy 1d arrays to 3d arrays
             enddo
 #endif
           enddo
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+                print*,'mehmetend',ttem,ssal
+                print*,'mehmetendniter',niter
+            endif
 c
 c --- --- Save variables used for momentum mixing
           kming(i,j)=kmin

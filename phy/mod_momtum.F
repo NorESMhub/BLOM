@@ -26,7 +26,8 @@ c --- integration of the baroclinic momentum equation.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: g, alpha0, epsil, spval, onem, onemm
+      use mod_constants, only: g, alpha0, spval, onem, onemm
+      use mod_constants, only: epsilp, epsilpl
       use mod_time, only: delt1, dlt
       use mod_xc
       use mod_grid, only: scqx, scqy, scpx, scpy, scux, scuy,
@@ -276,14 +277,14 @@ c
 c
         do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
           ubot=(ubflxs_p(i  ,j,n)
-     .          /max(epsil,pbu(i  ,j,n)*scuy(i  ,j))
+     .          /max(epsilpl,pbu(i  ,j,n)*scuy(i  ,j))
      .         +ubflxs_p(i+1,j,n)
-     .          /max(epsil,pbu(i+1,j,n)*scuy(i+1,j)))*tsfac
+     .          /max(epsilpl,pbu(i+1,j,n)*scuy(i+1,j)))*tsfac
      .        +util1(i,j)/thkbop
           vbot=(vbflxs_p(i,j  ,n)
-     .          /max(epsil,pbv(i,j  ,n)*scvx(i,j  ))
+     .          /max(epsilpl,pbv(i,j  ,n)*scvx(i,j  ))
      .         +vbflxs_p(i,j+1,n)
-     .          /max(epsil,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac
+     .          /max(epsilpl,pbv(i,j+1,n)*scvx(i,j+1)))*tsfac
      .        +util2(i,j)/thkbop
           ubbl=.5*sqrt(ubot*ubot+vbot*vbot)
           q=cb*(ubbl+cbar)
@@ -445,9 +446,9 @@ c
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             wgtja(i,j)=max(0.,min(1.,(pu(i,j,k+1)-pbu(i,j-1,m))
-     .                 /max(pu(i,j,k+1)-pu(i,j,k),epsil)))
+     .                 /max(pu(i,j,k+1)-pu(i,j,k),epsilp)))
             wgtjb(i,j)=max(0.,min(1.,(pu(i,j,k+1)-pbu(i,j+1,m))
-     .                 /max(pu(i,j,k+1)-pu(i,j,k),epsil)))
+     .                 /max(pu(i,j,k+1)-pu(i,j,k),epsilp)))
             uja(i,j)=(1.-wgtja(i,j))*utotn(i,j-1)
      .              +wgtja(i,j)*slip*utotn(i,j)
             ujb(i,j)=(1.-wgtjb(i,j))*utotn(i,j+1)
@@ -464,9 +465,9 @@ c
           do l=1,isv(j)
           do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
             wgtia(i,j)=max(0.,min(1.,(pv(i,j,k+1)-pbv(i-1,j,m))
-     .                 /max(pv(i,j,k+1)-pv(i,j,k),epsil)))
+     .                 /max(pv(i,j,k+1)-pv(i,j,k),epsilp)))
             wgtib(i,j)=max(0.,min(1.,(pv(i,j,k+1)-pbv(i+1,j,m))
-     .                 /max(pv(i,j,k+1)-pv(i,j,k),epsil)))
+     .                 /max(pv(i,j,k+1)-pv(i,j,k),epsilp)))
             via(i,j)=(1.-wgtia(i,j))*vtotn(i-1,j)
      .              +wgtia(i,j)*slip*vtotn(i,j)
             vib(i,j)=(1.-wgtib(i,j))*vtotn(i+1,j)

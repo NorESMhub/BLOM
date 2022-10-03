@@ -25,6 +25,7 @@ c --- Read limits file
 c --- ------------------------------------------------------------------
 c
       use mod_config, only: expcnf, runid, inst_suffix
+      use mod_constants, only: epsilt
       use mod_calendar, only: date_type, daynum_diff, calendar_errstr,
      .                        calendar_noerr, operator(==), operator(<),
      .                        operator(/=)
@@ -726,7 +727,7 @@ c --- - coupler
 c
 c --- - verify integer number of baroclinic time steps per coupling
 c --- - interval
-        if (mod(ocn_cpl_dt_cesm+epsil,baclin).gt.2.*epsil) then
+        if (mod(ocn_cpl_dt_cesm+epsilt,baclin).gt.2.*epsilt) then
           if (mnproc.eq.1) then
             write (lp,*) 'rdlim: must have an integer number of '//
      .                   'baroclinic time steps in a coupling'

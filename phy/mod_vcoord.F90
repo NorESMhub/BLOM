@@ -25,7 +25,7 @@ module mod_vcoord
 
    use mod_types, only: r8
    use mod_config, only: inst_suffix
-   use mod_constants, only: g, epsil, spval, onem
+   use mod_constants, only: g, epsilp, spval, onem
    use mod_xc
    use mod_eos, only: sig, dsigdt, dsigds
    use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv
@@ -296,7 +296,7 @@ contains
          kl = kk
          ku = kl - 1
          do while (ku > 0)
-            thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsil
+            thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsilp
             if (thin_layers .or. &
                 sigma_1d(kl) - sigma_1d(ku) &
                 < .5_r8*beta*(p_src(kl+1,i) - p_src(ku,i))) then
@@ -311,7 +311,7 @@ contains
                         ku = ku - 1
                         sdpsum = sdpsum &
                                + sigma_1d(ku)*(p_src(ku+1,i) - p_src(ku,i))
-                        thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsil
+                        thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsilp
                         if (.not. thin_layers) &
                            smean = sdpsum/(p_src(kl+1,i) - p_src(ku,i))
                         layer_added = .true.
@@ -331,7 +331,7 @@ contains
                         kl = kl + 1
                         sdpsum = sdpsum &
                                + sigma_1d(kl)*(p_src(kl+1,i) - p_src(kl,i))
-                        thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsil
+                        thin_layers = p_src(kl+1,i) - p_src(ku,i) < epsilp
                         if (.not. thin_layers) &
                            smean = sdpsum/(p_src(kl+1,i) - p_src(ku,i))
                         layer_added = .true.
