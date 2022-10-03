@@ -220,16 +220,14 @@
 
 ! Initialise preformed tracers in the mixed layer; note that the 
 ! whole field has been initialised to zero above
-      DO k=1,kmle
       DO j=1,kpje
       DO i=1,kpie
         IF(omask(i,j) .GT. 0.5) THEN
-          ocetra(i,j,k,iprefo2) =ocetra(i,j,k,ioxygen)
-          ocetra(i,j,k,iprefpo4)=ocetra(i,j,k,iphosph)
-          ocetra(i,j,k,iprefalk)=ocetra(i,j,k,ialkali)
-          ocetra(i,j,k,iprefdic)=ocetra(i,j,k,isco212)
+          ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
+          ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+          ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
+          ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
         ENDIF
-      ENDDO
       ENDDO
       ENDDO
 

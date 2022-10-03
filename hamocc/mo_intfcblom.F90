@@ -244,14 +244,16 @@ subroutine blom2hamocc(m,n,mm,nn)
 !******************************************************************************
 !
   use mod_constants, only: onem
-  use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm 
+  use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
   use mod_eos,       only: rho,p_alpha
+  use mod_difest,    only: hOBL
   use mod_tracers,   only: ntrbgc,itrbgc,trc
   use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
   use mo_carbch,     only: ocetra,atm
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
+  use mo_vgrid,      only: kmle, kmle_static
 
   implicit none
 
@@ -292,6 +294,11 @@ subroutine blom2hamocc(m,n,mm,nn)
 ! --- - dimension of grid box in meters
      bgc_dx(i,j) = scpx(i,j)/1.e2
      bgc_dy(i,j) = scpy(i,j)/1.e2
+!
+! --- - index of level above OBL depth
+! ---   isopycninc coords: hOBL(i,j) = hOBL_static = 3.  =>  kmle(i,j) = 2
+! ---   hybrid coords: hOBL defined according to cvmix_kpp_compute_kOBL_depth
+     kmle(i,j) = nint(hOBL(i,j))-1
   enddo
   enddo
 !$OMP END PARALLEL DO
