@@ -222,6 +222,8 @@ c --- ------------------------------------------------------------------
 c --- Initialize CVmix variables.
 c --- ------------------------------------------------------------------
 c
+      integer :: i,j,l
+c
 c -- ------- Background diapycnal mixing.
 c         The Bryan-Lewis parameterization is based on the following:
 c         \begin{eqnarray*}
@@ -290,6 +292,15 @@ c    .          lnonzero_surf_nonlocal=.true.  ,
 c    .          lnoDGat1=.true.                 ,
 c    .          CVMix_kpp_params_user=KPP_params )
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          OBLdepth(i,j)=10.
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c
       end subroutine init_difest
 c
