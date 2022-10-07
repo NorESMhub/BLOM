@@ -1065,7 +1065,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 ! Set minimum particle number to nmldmin in the mixed layer. This is to prevent
 ! very small values of nos (and asscociated high sinking speed if there is mass)
 ! in high latitudes during winter
-           if ( k <= kmle ) then
+           if ( k <= kmle(i,j) ) then
               ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos))
            endif
 
@@ -1101,7 +1101,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 
 ! As a first step, assume that shear in the mixed layer is high and
 ! zero below.
-           if ( k <= kmle ) then
+           if ( k <= kmle(i,j) ) then
               fshear = fsh
            else
               fshear = 0.

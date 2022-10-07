@@ -96,11 +96,11 @@
 !**********************************************************************
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
-                              & oxyco,tzero 
-      use mo_control_bgc, only: dtbgc 
+                              & oxyco,tzero
+      use mo_control_bgc, only: dtbgc
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
-                              & isco212,isilica  
-      use mo_vgrid,       only: dp_min,kbo,ptiestu
+                              & isco212,isilica
+      use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
 
 #ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
@@ -463,8 +463,7 @@
        ta = ocetra(i,j,k,ialkali) / rrho
        CALL carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
                                Ksi,K1p,K2p,K3p,tc_sat,niter)
-       ocetra(i,j,k,  idicsat)=tc_sat * rrho ! convert mol/kg to kmol/m^3 
-       ocetra(i,j,k+1,idicsat)=tc_sat * rrho ! k+1 = the rest of the mixed layer
+       ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
 #ifdef cisonew 
 ! Ocean-Atmosphere fluxes for carbon isotopes

@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-       SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !**********************************************************************
 !
 !**** *CYANO* -  .
@@ -61,48 +61,47 @@
 !     .
 !**********************************************************************
 
-      use mo_carbch,     only: ocetra 
-      use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff 
-      use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen 
-      use mo_vgrid,      only: kmle
+  use mo_carbch,     only: ocetra
+  use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff
+  use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen
+  use mo_vgrid,      only: kmle
 #ifdef natDIC
-      use mo_param1_bgc, only: inatalkali
+  use mo_param1_bgc, only: inatalkali
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc, only: ianh4
+  use mo_param1_bgc, only: ianh4
 #endif
 
-      implicit none
-      
-      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
-      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-      REAL,    intent(in) :: omask(kpie,kpje)
-      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  implicit none
 
-      ! Local variables
-      INTEGER :: i,j,k
-      REAL :: oldocetra,anavail,dansp,dox,dalk
-      REAL :: ttemp,nfixtfac
+  INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
+  REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+  REAL,    intent(in) :: omask(kpie,kpje)
+  REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
-      intnfix(:,:)=0.0
-      
+  ! Local variables
+  INTEGER :: i,j,k
+  REAL :: oldocetra,anavail,dansp,dox,dalk
+  REAL :: ttemp,nfixtfac
+
+  intnfix(:,:)=0.0
+
 !
 ! N-fixation by cyano bacteria (followed by remineralisation and nitrification,
 ! or, for the extended nitrogen cycle only by remin to NH4), 
 ! it is assumed here that this process is limited to the mixed layer
 !
-      DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(i,oldocetra,dansp,anavail,dox,dalk,ttemp,nfixtfac) 
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).gt.0.5) THEN
+  DO j=1,kpje
+  DO i=1,kpie
+  IF(omask(i,j).gt.0.5) THEN
+     DO k=1,kmle(i,j)
 #ifdef extNcycle
-          ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
-          anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
+        ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
+        anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
 #else
-          anavail = ocetra(i,j,k,iano3)
+        anavail = ocetra(i,j,k,iano3)
 #endif 
-          IF(anavail.LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+        IF(anavail.LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
             ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
@@ -140,14 +139,10 @@
 
             intnfix(i,j) = intnfix(i,j) + dansp*pddpo(i,j,k)
 
-            ENDIF  
-         ENDIF  
-      ENDDO
-      ENDDO
-!$OMP END PARALLEL DO
-      ENDDO
+        ENDIF
+     ENDDO
+  ENDIF
+  ENDDO
+  ENDDO
 
-
-
-      RETURN
-      END
+END SUBROUTINE CYANO
