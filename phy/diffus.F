@@ -76,8 +76,6 @@ c
 #endif
         call xctilr(difiso, 1,kk, 2,2, halo_ps)
       endif
-      ! Mehmet
-      difiso(:,:,:) = 300.0
 c
       do k=1,kk
         kn=k+nn
@@ -92,7 +90,7 @@ c$OMP+ )
           do l=1,isu(j)
           do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
             q=delt1*.5*(difiso(i-1,j,k)+difiso(i,j,k))
-c     .        *scuy(i,j)*scuxi(i,j)
+     .        *scuy(i,j)*scuxi(i,j)
      .        *max(min(dp(i-1,j,kn),dp(i,j,kn)),dpeps)
             usflld(i,j,km)=q*(saln(i-1,j,kn)-saln(i,j,kn))
             utflld(i,j,km)=q*(temp(i-1,j,kn)-temp(i,j,kn))
@@ -119,7 +117,7 @@ c$OMP+ )
           do l=1,isv(j)
           do i=max(0,ifv(j,l)),min(ii+1,ilv(j,l))
             q=delt1*.5*(difiso(i,j-1,k)+difiso(i,j,k))
-c     .        *scvx(i,j)*scvyi(i,j)
+     .        *scvx(i,j)*scvyi(i,j)
      .        *max(min(dp(i,j-1,kn),dp(i,j,kn)),dpeps)
             vsflld(i,j,km)=q*(saln(i,j-1,kn)-saln(i,j,kn))
             vtflld(i,j,km)=q*(temp(i,j-1,kn)-temp(i,j,kn))
@@ -145,8 +143,7 @@ c$OMP+ )
         do j=0,jj+1
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-            q=1./(max(dp(i,j,kn),dpeps))
-c            q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
+            q=1./(scp2(i,j)*max(dp(i,j,kn),dpeps))
             saln(i,j,kn)=saln(i,j,kn)
      .                  -q*(usflld(i+1,j,km)-usflld(i,j,km)
      .                     +vsflld(i,j+1,km)-vsflld(i,j,km))

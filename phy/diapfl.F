@@ -82,7 +82,6 @@ c
       logical done,dwnwrd,remfmx
 c
       real, dimension(kdm) :: ttem0,ssal0,delp0,dens0,sigr0,nu0
-      real, dimension(kdm) :: rnd
       integer niter
 #ifdef TRC
       real, dimension(ntr,kdm) :: ttrc
@@ -130,11 +129,6 @@ cdiag
             enddo
 #endif
           enddo
-            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-                print*,'mehmet',ttem,ssal
-                print*,'mehmetniter',niter
-                print*,'mehmetdifdia',nu
-            endif
 c
 c --- --- Locate range of physical layers.
           kfpl=kfpla(i,j,n)
@@ -205,8 +199,6 @@ c --- --------- bottom drag drives diapycnal mixing.
      .                *exp(-(delp(k+1)+.5*delp(k))*abs(coriop(i,j))
      .                      *alpha0/(kappa*max(ustmin,ustarb(i,j))*g))
      .                /(alpha0*g*(sigr(k+1)-sigr(k)))
-                !Mehmet
-                ! nubbl = 0.001*L_mks2cgs**2
                 nu(k)=max(nu(k),nubbl)
                 difdia(i,j,k)=nu(k)
               endif
@@ -656,12 +648,10 @@ c --- --- salinity, and tracers
             enddo
           endif
 c
-          call random_number(rnd)
 c --- --- Copy 1d arrays to 3d arrays
           do k=1,kk
             kn=k+nn
-            !Mehmet
-            temp(i,j,kn)=ttem(k)!+(2e-11*(1.0-rnd(k)) - 1e-11)
+            temp(i,j,kn)=ttem(k)
             saln(i,j,kn)=ssal(k)
             dp(i,j,kn)=delp(k)
             sigma(i,j,kn)=dens(k)
@@ -684,10 +674,6 @@ c --- --- Copy 1d arrays to 3d arrays
             enddo
 #endif
           enddo
-            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
-                print*,'mehmetend',ttem,ssal
-                print*,'mehmetendniter',niter
-            endif
 c
 c --- --- Save variables used for momentum mixing
           kming(i,j)=kmin
