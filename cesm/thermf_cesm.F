@@ -155,10 +155,10 @@ c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
           frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl
-     .                   /(2.*g)*L_mks2cgs*L_mks2cgs
+     .                   /(2.*g)*(L_mks2cgs**2)
           mltpot(i,j)=
      .      min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n)))
-     .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*L_mks2cgs*L_mks2cgs
+     .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
 c
 c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
