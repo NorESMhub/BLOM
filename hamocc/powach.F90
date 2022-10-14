@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 !******************************************************************************
 !
 !**** *POWACH* - .
@@ -53,6 +53,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !     *REAL*    *prho*    - seawater density [g/cm^3].
 !     *REAL*    *psao*    - salinity [psu].
 !     *REAL*    *omask*   - land/ocean mask
+!     *REAL*    *ptho*    - potential temperature [deg C]
 !
 !     Externals
 !     ---------
@@ -73,6 +74,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
   use mo_sedmnt,      only: pror13,pror14,prca13,prca14
 #endif
+#ifdef extNcycle
+  use mo_param1_bgc,   only: ipownh4
+  use mo_extNbioproc,  only: ro2utammo
+  use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,            &
+                           & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf,POM_remin_q10_sed,POM_remin_Tref_sed,           &
+                           & bkox_drempoc_sed
+#endif
 
 
   implicit none
@@ -81,6 +89,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   real,    intent(in) :: prho(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
   real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
   logical, intent(in) :: lspin
 
   ! Local variables
@@ -88,7 +97,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
   real :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
   real :: solrat(kpie,ks),powcar(kpie,ks)
-  real :: aerob(kpie,ks),anaerob(kpie,ks),sulf(kpie,ks)
+  real :: aerob(kpie,ks),sulf(kpie,ks)
+#ifndef extNcycle
+  real :: anaerob(kpie,ks)
+#else
+  real :: ex_ddic(kpie,ks),ex_dalk(kpie,ks) !sum of DIC and alk changes related to extended nitrogen cycle
+  real :: ex_disso_poc
+#endif
 #ifdef cisonew
   real :: aerob13(kpie,ks),anaerob13(kpie,ks),sulf13(kpie,ks)
   real :: aerob14(kpie,ks),anaerob14(kpie,ks),sulf14(kpie,ks)
@@ -117,7 +132,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
 
 !$OMP PARALLEL DO                                                       &
-!$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,anaerob,                 &
+!$OMP&PRIVATE(sedb1,sediso,solrat,powcar,aerob,                         &
+#ifndef extNcycle
+!$OMP&        anaerob,                                                  &
+#else
+!$OMP&        ex_dalk,ex_ddic,ex_disso_poc,                             &
+#endif
 !$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
@@ -131,7 +151,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      do i = 1, kpie
         solrat(i,k) = 0.
         powcar(i,k) = 0.
+#ifndef extNcycle
         anaerob(i,k)= 0.
+#else
+        ex_ddic(i,k)=0.
+        ex_dalk(i,j)=0.
+#endif
         aerob(i,k)  = 0.
         sulf(i,k)   = 0.
 #ifdef cisonew
@@ -251,10 +276,21 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      if(omask(i,j) > 0.5) then
         undsa = powtra(i,j,1,ipowaox)
         sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen) * bolven(i)
+#ifndef extNcyce
         solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
              &   / (porsol(i,j,1) * seddw(1)) )                                    &
              &   * ro2ut * dissot / (1. + dissot * undsa)                      &
              &   * porsol(i,j,1) / porwat(i,j,1)
+#else
+        ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption 
+        ! O2 and T-dep
+        ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                     &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+        solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                                  &
+             &   / (porsol(i,j,1) * seddw(1)) )                                              &
+             &   * ro2utammo * ex_disso_poc / (1. + ex_disso_poc * undsa)                    &
+             &   * porsol(i,j,1) / porwat(i,j,1)
+#endif
      endif
   enddo
 
@@ -267,8 +303,16 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         if(omask(i,j) > 0.5) then
            undsa = powtra(i,j,k,ipowaox)
            sedb1(i,k) = seddw(k) * porwat(i,j,k) * powtra(i,j,k,ipowaox)
+#ifndef extNcycle
            if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2ut * dissot     &
                 &   / (1. + dissot*undsa) * porsol(i,j,k) / porwat(i,j,k)
+#else
+           ! extended nitrogen cycle - 140mol O2/mol POP O2-consumption 
+           ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                        &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+           if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12) * ro2utammo * ex_disso_poc     &
+                &   / (1. + ex_disso_poc*undsa) * porsol(i,j,k) / porwat(i,j,k)
+#endif
         endif
      enddo
   enddo
@@ -309,9 +353,14 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
            umfa = porsol(i,j,k) / porwat(i,j,k)
+#ifndef extNcycle
            solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1. + dissot*sediso(i,k))
+#else
+           ex_disso_poc = dissot * powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkox_drempoc_sed) & ! oxygen limitation
+                        &        * POM_remin_q10_sed**((ptho(i,j,kbo(i,j))-POM_remin_Tref_sed)/10.)   ! T-dep
+           solrat(i,k) = sedlay(i,j,k,issso12) * ex_disso_poc/(1. + ex_disso_poc*sediso(i,k))
+#endif
            posol = sediso(i,k)*solrat(i,k)
-           aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
 #ifdef cisonew
            rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
            rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12) + safediv)
@@ -322,7 +371,15 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 #endif
            sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
            powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
+#ifndef extNcycle
            powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
+           aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
+#else
+           powtra(i,j,k,ipownh4) = powtra(i,j,k,ipownh4) + posol*rnit*umfa
+           ex_ddic(i,k) = rcar*posol*umfa ! C-units kmol C/m3 of pore water
+           ex_dalk(i,k) = (rnit-1.)*posol*umfa ! alkalinity units
+           extNsed_diagnostics(i,j,k,ised_remin_aerob) = posol*rnit*umfa ! Output
+#endif
            powtra(i,j,k,ipowaox) = sediso(i,k)
 #ifdef cisonew
            sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
@@ -334,9 +391,11 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
 ! Calculate nitrate reduction under anaerobic conditions explicitely
 !*******************************************************************
-
-  ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
+#ifndef extNcycle
+  ! Denitrification rate constant of POP (disso) [1/sec]
   denit = sed_denit
+
+  ! Store flux in array anaerob, for later computation of DIC and alkalinity.
   do k = 1, ks
      do i = 1, kpie
         if(omask(i,j) > 0.5) then
@@ -365,6 +424,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         endif
      enddo
   enddo
+#else
+  !======>>>> extended nitrogen cycle processes (aerobic and anaerobic) that follow ammonification
+  CALL sed_nitrification(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_denit_NO3_to_NO2(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_anammox(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk)
+  CALL sed_denit_dnra(j,kpie,kpje,kpke,kbnd,ptho,omask,ex_ddic,ex_dalk) 
+#endif
 
 
 ! sulphate reduction in sediments
@@ -390,6 +456,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
 #endif
+#ifdef extNcycle
+              extNsed_diagnostics(i,j,k,ised_remin_sulf) = posol*umfa ! Output
+#endif
            endif
         endif
      enddo
@@ -409,8 +478,13 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         if(omask(i,j) > 0.5) then
            saln= min( 40., max( 0., psao(i,j,kbo(i,j))))
            rrho= prho(i,j,kbo(i,j))
+#ifdef extNcycle
+           alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + ex_dalk(i,k))  / rrho
+           c   = (powtra(i,j,k,ipowaic) + (aerob(i,k)+sulf(i,k))*rcar + ex_ddic(i,k)) / rrho
+#else
            alk = (powtra(i,j,k,ipowaal) - (sulf(i,k)+aerob(i,k))*(rnit+1.) + anaerob(i,k)*(rdnit1-1.))  / rrho
            c   = (powtra(i,j,k,ipowaic) + (anaerob(i,k)+aerob(i,k)+sulf(i,k))*rcar) / rrho
+#endif  
            sit =  powtra(i,j,k,ipowasi) / rrho
            pt  =  powtra(i,j,k,ipowaph) / rrho
            ah1 = sedhpl(i,j,k)
@@ -516,10 +590,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            poso14 = posol * ratc14
 #endif
            sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
+#ifdef extNcycle
+           powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
+                &   + posol * umfa + (aerob(i,k) + sulf(i,k)) * rcar + ex_ddic(i,k)
+           powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
+                &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k))  + ex_dalk(i,k)
+#else
            powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
                 &   + posol * umfa + (aerob(i,k) + anaerob(i,k) + sulf(i,k)) * rcar
            powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
                 &   + 2. * posol * umfa - (rnit+1.)*(aerob(i,k) + sulf(i,k)) + (rdnit1-1.)*anaerob(i,k)
+#endif  
 #ifdef cisonew
            sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
            sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14

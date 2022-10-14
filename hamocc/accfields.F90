@@ -115,12 +115,18 @@
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc, only: iatmnh3,ianh4,iano2
+      use mo_param1_bgc, only: iatmnh3,ianh4,iano2,ipownh4,ipown2o,ipowno2
       use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,                                                     &
                              & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
-                             & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf
+                             & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,               &
+                             & jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,            &
+                             & jsdm_nitr_NO2_OM,jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,jsdm_DNRA_NO2,jsdm_anmx_N2_prod,      &
+                             & jsdm_anmx_OM_prod,jsdm_remin_aerob,jsdm_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2
       use mo_biomod,     only: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2,denit_N2O,DNRA_NO2,     &
                              &  anmx_N2_prod,anmx_OM_prod,phosy_NH4,phosy_NO3,remin_aerob,remin_sulf
+      use mo_extNsediment,only: extNsed_diagnostics,ised_nitr_NH4,ised_nitr_NO2,ised_nitr_N2O_prod,ised_nitr_NH4_OM,               &
+                             & ised_nitr_NO2_OM,ised_denit_NO3,ised_denit_NO2,ised_denit_N2O,ised_DNRA_NO2,ised_anmx_N2_prod,      &
+                             & ised_anmx_OM_prod,ised_remin_aerob,ised_remin_sulf
 #endif
 
       implicit none
@@ -313,6 +319,11 @@
       call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)    
       call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)    
       call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)    
+#endif
+#if defined(extNcycle) && ! defined(sedbypass)
+      call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)    
+      call accsrf(jsediffn2o,sedfluxo(1,1,ipown2o),omask,0)    
+      call accsrf(jsediffno2,sedfluxo(1,1,ipowno2),omask,0)    
 #endif
 
 ! Accumulate layer diagnostics
@@ -548,6 +559,26 @@
       call accbur(jburssssil,burial(1,1,issssil))
       call accbur(jbursssc12,burial(1,1,isssc12))
       call accbur(jburssster,burial(1,1,issster))
+#endif
+#if defined(extNcycle) && ! defined(sedbypass)
+      call accsdm(jpownh4,powtra(1,1,1,ipownh4))
+      call accsdm(jpown2o,powtra(1,1,1,ipown2o))
+      call accsdm(jpowno2,powtra(1,1,1,ipowno2))
+
+      call accsdm(jsdm_nitr_NH4      ,extNsed_diagnostics(1,1,1,ised_nitr_NH4))
+      call accsdm(jsdm_nitr_NO2      ,extNsed_diagnostics(1,1,1,ised_nitr_NO2))
+      call accsdm(jsdm_nitr_N2O_prod ,extNsed_diagnostics(1,1,1,ised_nitr_N2O_prod))
+      call accsdm(jsdm_nitr_NH4_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NH4_OM))
+      call accsdm(jsdm_nitr_NO2_OM   ,extNsed_diagnostics(1,1,1,ised_nitr_NO2_OM))
+      call accsdm(jsdm_denit_NO3     ,extNsed_diagnostics(1,1,1,ised_denit_NO3))
+      call accsdm(jsdm_denit_NO2     ,extNsed_diagnostics(1,1,1,ised_denit_NO2))
+      call accsdm(jsdm_denit_N2O     ,extNsed_diagnostics(1,1,1,ised_denit_N2O))
+      call accsdm(jsdm_DNRA_NO2      ,extNsed_diagnostics(1,1,1,ised_DNRA_NO2))
+      call accsdm(jsdm_anmx_N2_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_N2_prod))
+      call accsdm(jsdm_anmx_OM_prod  ,extNsed_diagnostics(1,1,1,ised_anmx_OM_prod))
+      call accsdm(jsdm_remin_aerob   ,extNsed_diagnostics(1,1,1,ised_remin_aerob))
+      call accsdm(jsdm_remin_sulf    ,extNsed_diagnostics(1,1,1,ised_remin_sulf))
+
 #endif
 
 

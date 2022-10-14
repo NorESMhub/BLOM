@@ -206,6 +206,19 @@ subroutine ncwrt_bgc(iogrp)
        &                jlvl_phosy_NH4,jlvl_phosy_NO3,                          &
        &                jlvl_remin_aerob,jlvl_remin_sulf  
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
+       &                jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,jsdm_nitr_NO2_OM,   &
+       &                jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,           &
+       &                jsdm_DNRA_NO2,jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,      &
+       &                jsdm_remin_aerob,jsdm_remin_sulf, SDM_POWNH4,SDM_POWN2O,&
+       &                SDM_POWNO2,SDM_nitr_NH4,SDM_nitr_NO2,SDM_nitr_N2O_prod, &
+       &                SDM_nitr_NH4_OM,SDM_nitr_NO2_OM,SDM_denit_NO3,          &
+       &                SDM_denit_NO2,SDM_denit_N2O,SDM_DNRA_NO2,               &
+       &                SDM_anmx_N2_prod,SDM_anmx_OM_prod,SDM_remin_aerob,      &
+       &                SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,        &
+       &                FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2 
+#endif
   implicit none
 
   integer iogrp
@@ -632,6 +645,14 @@ subroutine ncwrt_bgc(iogrp)
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfno3',' ',' ',' ')
   call wrtsrf(jsediffsi(iogrp),FLX_SEDIFFSI(iogrp),                             &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi',' ',' ',' ')
+#endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call wrtsrf(jsediffnh4(iogrp),FLX_SEDIFFNH4(iogrp),                             &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfnh4',' ',' ',' ')
+  call wrtsrf(jsediffn2o(iogrp),FLX_SEDIFFN2O(iogrp),                             &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2o',' ',' ',' ')
+  call wrtsrf(jsediffno2(iogrp),FLX_SEDIFFNO2(iogrp),                             &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfno2',' ',' ',' ')
 #endif
   call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,                &
        &   cmpflg,'n2oflux','N2O flux',' ','mol N2O m-2 s-1')
@@ -1158,6 +1179,56 @@ subroutine ncwrt_bgc(iogrp)
   call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,                 &
        &   cmpflg,'burter','Burial clay',' ','mol  m-2')
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call wrtsdm(jpownh4(iogrp),SDM_POWNH4(iogrp),rnacc*1e3,0.,cmpflg,             &
+       &   'pownh4','PoWa ammonium',' ','mol N m-3')
+  call wrtsdm(jpown2o(iogrp),SDM_POWN2O(iogrp),rnacc*1e3,0.,cmpflg,             &
+       &   'pown2o','PoWa nitrous oxide',' ','mol N2O m-3')
+  call wrtsdm(jpowno2(iogrp),SDM_POWNO2(iogrp),rnacc*1e3,0.,cmpflg,             &
+       &   'powno2','PoWa nitrite',' ','mol N m-3')
+  call wrtsdm(jsdm_nitr_NH4(iogrp),sdm_nitr_NH4(iogrp),                         &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'nh4nitrsdm','NH4 nitrification rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_nitr_NO2(iogrp),sdm_nitr_NO2(iogrp),                         &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'no2nitrsdm','NO2 nitrification rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_nitr_N2O_prod(iogrp),sdm_nitr_N2O_prod(iogrp),               &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'nitr_n2osdm','N2O prod during NH4 nitrification sediment',' ',         &
+     &  'mol N2O m-3 s-1')
+  call wrtsdm(jsdm_nitr_NH4_OM(iogrp),sdm_nitr_NH4_OM(iogrp),                   &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'nh4nitr_omsdm','OM production during NH4 nitrification sediment',' ',  &
+     &  'mol P m-3 s-1')
+  call wrtsdm(jsdm_nitr_NO2_OM(iogrp),sdm_nitr_NO2_OM(iogrp),                   &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'no2nitr_omsdm','OM production during NO2 nitrification sediment',' ',  &
+     &  'mol P m-3 s-1')
+  call wrtsdm(jsdm_denit_NO3(iogrp),sdm_denit_NO3(iogrp),                       &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'no3denitsdm','NO3 denitrification rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_denit_NO2(iogrp),sdm_denit_NO2(iogrp),                       &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'no2denitsdm','NO2 denitrification rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_denit_N2O(iogrp),sdm_denit_N2O(iogrp),                       &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'n2odenitsdm','N2O denitrification rate sediment',' ','mol N2O m-3 s-1')
+  call wrtsdm(jsdm_DNRA_NO2(iogrp),sdm_DNRA_NO2(iogrp),                         &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'no2dnrasdm','NO2 DNRA rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_anmx_N2_prod(iogrp),sdm_anmx_N2_prod(iogrp),                 &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'anmx_n2sdm','Anammox N2 production rate sediment',' ','mol N2 m-3 s-1')
+  call wrtsdm(jsdm_anmx_OM_prod(iogrp),sdm_anmx_OM_prod(iogrp),                 &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'anmx_omsdm','Anammox OM production rate sediment',' ','mol P m-3 s-1')
+  call wrtsdm(jsdm_remin_aerob(iogrp),sdm_remin_aerob(iogrp),                   &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'reminasdm','Aerob remineralization rate sediment',' ','mol N m-3 s-1')
+  call wrtsdm(jsdm_remin_sulf(iogrp),sdm_remin_sulf(iogrp),                     &
+     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
+     &  'reminssdm','Sulfate remineralization rate sediment',' ','mol P m-3 s-1') 
+#endif
 
   ! --- close netcdf file
   call ncfcls
@@ -1459,6 +1530,24 @@ subroutine ncwrt_bgc(iogrp)
   call inibur(jburssssil(iogrp),0.)
   call inibur(jburssster(iogrp),0.)
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call inisdm(jpownh4(iogrp),0.)
+  call inisdm(jpown2o(iogrp),0.)
+  call inisdm(jpowno2(iogrp),0.)
+  call inisdm(jsdm_nitr_NH4(iogrp),0.)
+  call inisdm(jsdm_nitr_NO2(iogrp),0.)
+  call inisdm(jsdm_nitr_N2O_prod(iogrp),0.) 
+  call inisdm(jsdm_nitr_NH4_OM(iogrp),0.) 
+  call inisdm(jsdm_nitr_NO2_OM(iogrp),0.) 
+  call inisdm(jsdm_denit_NO3(iogrp),0.) 
+  call inisdm(jsdm_denit_NO2(iogrp),0.) 
+  call inisdm(jsdm_denit_N2O(iogrp),0.)
+  call inisdm(jsdm_DNRA_NO2(iogrp),0.)
+  call inisdm(jsdm_anmx_N2_prod(iogrp),0.)      
+  call inisdm(jsdm_anmx_OM_prod(iogrp),0.)
+  call inisdm(jsdm_remin_aerob(iogrp),0.)
+  call inisdm(jsdm_remin_sulf(iogrp),0.)
+#endif
 
   nacc_bgc(iogrp)=0
 
@@ -1564,6 +1653,22 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &                     jlvl_phosy_NH4,jlvl_phosy_NO3,                     &
        &                     jlvl_remin_aerob,jlvl_remin_sulf      
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
+       &                jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,jsdm_nitr_NO2_OM,   &
+       &                jsdm_denit_NO3,jsdm_denit_NO2,jsdm_denit_N2O,           &
+       &                jsdm_DNRA_NO2,jsdm_anmx_N2_prod,jsdm_anmx_OM_prod,      &
+       &                jsdm_remin_aerob,jsdm_remin_sulf, SDM_POWNH4,SDM_POWN2O,&
+       &                SDM_POWNO2,SDM_nitr_NH4,SDM_nitr_NO2,SDM_nitr_N2O_prod, &
+       &                SDM_nitr_NH4_OM,SDM_nitr_NO2_OM,SDM_denit_NO3,          &
+       &                SDM_denit_NO2,SDM_denit_N2O,SDM_DNRA_NO2,               &
+       &                SDM_anmx_N2_prod,SDM_anmx_OM_prod,SDM_remin_aerob,      &
+       &                SDM_remin_sulf,jsediffnh4,jsediffn2o,jsediffno2,        &
+       &                FLX_SEDIFFNH4,FLX_SEDIFFN2O,FLX_SEDIFFNO2 
+#endif
+
+
+
   implicit none
 
   integer iogrp,cmpflg
@@ -1694,6 +1799,17 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(FLX_SEDIFFSI(iogrp),cmpflg,'p','sedfsi',                      &
        &   'diffusive silica flux to sediment (positive downwards)',            &
        &   ' ','mol Si m-2 s-1',0)
+#endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call ncdefvar3d(FLX_SEDIFFNH4(iogrp),cmpflg,'p','sedfnh4',                    &
+       &   'diffusive ammonium flux to sediment (positive downwards)',          &
+       &   ' ','mol NH4 m-2 s-1',0)
+  call ncdefvar3d(FLX_SEDIFFN2O(iogrp),cmpflg,'p','sedfn2o',                    &
+       &   'diffusive nitrous oxide flux to sediment (positive downwards)',     &
+       &   ' ','mol N2O m-2 s-1',0)
+  call ncdefvar3d(FLX_SEDIFFNO2(iogrp),cmpflg,'p','sedfno2',                    &
+       &   'diffusive nitrite flux to sediment (positive downwards)',           &
+       &   ' ','mol NO2 m-2 s-1',0)
 #endif
 #ifdef cisonew
   call ncdefvar3d(SRF_CO213FXD(iogrp),cmpflg,'p','co213fxd',                    &
@@ -2161,7 +2277,49 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(BUR_SSSTER(iogrp),                                            &
        &   cmpflg,'p','burter','Burial clay',' ','mol  m-2',4)
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call ncdefvar3d(SDM_POWNH4(iogrp),cmpflg,'p',                                 &
+       &   'pownh4','PoWa ammonium',' ','mol N m-3',3)
+  call ncdefvar3d(SDM_POWN2O(iogrp),cmpflg,'p',                                 &
+       &   'pown2o','PoWa nitrous oxide',' ','mol N m-3',3)
+  call ncdefvar3d(SDM_POWNO2(iogrp),cmpflg,'p',                                 &
+       &   'powno2','PoWa nitrite',' ','mol N m-3',3)
 
+  call ncdefvar3d(sdm_nitr_NH4(iogrp),cmpflg,'p',                               &
+     &  'nh4nitrsdm','NH4 nitrification rate sediment',' ','mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_nitr_NO2(iogrp),cmpflg,'p',                               &
+     &  'no2nitrsdm','NO2 nitrification rate sediment',' ','mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_nitr_N2O_prod(iogrp),cmpflg,'p',                          &
+     &  'nitr_n2osdm','N2O prod during NH4 nitrification sediment',' ',         &
+     &  'mol N2O m-3 s-1',3)
+  call ncdefvar3d(sdm_nitr_NH4_OM(iogrp),cmpflg,'p',                            &
+     &  'nh4nitr_omsdm','OM production during NH4 nitrification sediment',' ',  &
+     &  'mol P m-3 s-1',3)
+  call ncdefvar3d(sdm_nitr_NO2_OM(iogrp),cmpflg,'p',                            &
+     &  'no2nitr_omsdm','OM production during NO2 nitrification sediment',' ',  &
+     &  'mol P m-3 s-1',3)
+  call ncdefvar3d(sdm_denit_NO3(iogrp),cmpflg,'p',                              &
+     &  'no3denitsdm','NO3 denitrification rate sediment',' ','mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_denit_NO2(iogrp),cmpflg,'p',                              &
+     &  'no2denitsdm','NO2 denitrification rate sediment',' ','mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_denit_N2O(iogrp),cmpflg,'p',                              &
+     &  'n2odenitsdm','N2O denitrification rate sediment',' ',                  &
+     &  'mol N2O m-3 s-1',3)
+  call ncdefvar3d(sdm_DNRA_NO2(iogrp),cmpflg,'p',                               &
+     &  'no2dnrasdm','NO2 DNRA rate sediment',' ','mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_anmx_N2_prod(iogrp),cmpflg,'p',                           &
+     &  'anmx_n2sdm','Anammox N2 production rate sediment',' ',                 &
+     &  'mol N2 m-3 s-1',3)
+  call ncdefvar3d(sdm_anmx_OM_prod(iogrp),cmpflg,'p',                           &
+     &  'anmx_omsdm','Anammox OM production rate sediment',' ',                 &
+     &  'mol P m-3 s-1',3)
+  call ncdefvar3d(sdm_remin_aerob(iogrp),cmpflg,'p',                            &
+     &  'reminasdm','Aerob remineralization rate sediment',' ',                 &
+     &  'mol N m-3 s-1',3)
+  call ncdefvar3d(sdm_remin_sulf(iogrp),cmpflg,'p',                             &
+     &  'reminssdm','Sulfate remineralization rate sediment',' ',               &
+     &  'mol P m-3 s-1',3) 
+#endif 
   ! --- enddef netcdf file
   call ncedef
 end subroutine hamoccvardef

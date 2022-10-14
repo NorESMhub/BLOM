@@ -356,7 +356,7 @@
           lspin=.false.      
         endif
 
-        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
       enddo
 

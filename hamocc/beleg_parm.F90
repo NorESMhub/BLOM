@@ -73,6 +73,7 @@
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 3e-7
       use mo_extNbioproc, only: extNbioparam_init
+      use mo_extNsediment,only: extNsediment_param_init
 #endif
 
       implicit none      
@@ -254,10 +255,6 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
-#ifdef extNcycle
-      ! initialize the extended nitrogen cycle parameters
-      call extNbioparam_init()
-#endif
 
 #ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
@@ -289,6 +286,15 @@
         drempoc  = 0.12*dtb
         dremopal = 0.023*dtb
       endif
+
+#ifdef extNcycle
+      ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
+      ! since sediment relies on water column parameters for the extended nitrogen cycle 
+      ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
+      call extNbioparam_init()
+      call extNsediment_param_init()
+#endif
+
 ! parameters for sw-radiation attenuation
 ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
 ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl] 
