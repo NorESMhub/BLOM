@@ -192,7 +192,7 @@ MODULE mo_extNsediment
       bn2o_sed          = 0.077/(50.*mufn2o_sed)       !=0.2331 - before set to 0.3 - base fraction entering N2O 
 !======
       !bkamoxno2_sed    = 0.479e-6       ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
-      bkamoxno2_sed     = bkamoxno2      ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
+    !  bkamoxno2_sed     = bkamoxno2      ! Half saturation constant for pathway splitting function N2O for nitrification on NH4 (kmol/m3)
       n2omaxy_sed       = n2omaxy        ! Maximum yield of OM on NH4 nitrification (-)
       n2oybeta_sed      = n2oybeta       ! Decay factor for inhibition function for yield during nitrification on NH4 (kmol/m3)
       bkyamox_sed       = bkyamox        ! Half saturation constant for pathway splitting function OM-yield for nitrification on NH4 (kmol/m3)
@@ -253,7 +253,7 @@ MODULE mo_extNsediment
            fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed/(powtra(i,j,k,ipowaox)+bkoxamox_sed))                    &
                     &        * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
        !=====
-           fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkamoxno2_sed)
+           fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
            fdetamox = n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed                                         &
                      & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
 
