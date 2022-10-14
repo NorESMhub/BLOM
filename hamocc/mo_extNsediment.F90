@@ -68,7 +68,7 @@ MODULE mo_extNsediment
           & rano2denit_sed,q10ano2denit_sed,Trefano2denit_sed,bkoxano2denit_sed,bkano2denit_sed,                                   &
           & ran2odenit_sed,q10an2odenit_sed,Trefan2odenit_sed,bkoxan2odenit_sed,bkan2odenit_sed,                                   &
           & rdnra_sed,q10dnra_sed,Trefdnra_sed,bkoxdnra_sed,bkdnra_sed,ranh4nitr_sed,q10anh4nitr_sed,                              &
-          & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkamoxno2_sed,bkyamox_sed,                                  &
+          & Trefanh4nitr_sed,bkoxamox_sed,bkanh4nitr_sed,bkamoxn2o_sed,bkyamox_sed,                                                &
           & rano2nitr_sed,q10ano2nitr_sed,Trefano2nitr_sed,bkoxnitr_sed,bkano2nitr_sed,n2omaxy_sed,                                &
           & n2oybeta_sed,NOB2AOAy_sed,bn2o_sed,mufn2o_sed,POM_remin_q10_sed, POM_remin_Tref_sed,bkox_drempoc_sed 
 
@@ -126,7 +126,7 @@ MODULE mo_extNsediment
                          & q10ano2denit,Trefano2denit,bkoxano2denit,bkano2denit,                                                   &
                          & q10an2odenit,Trefan2odenit,bkoxan2odenit,bkan2odenit,                                                   &
                          & q10dnra,Trefdnra,bkoxdnra,bkdnra,                                                                       &
-                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkamoxno2,bkyamox,n2omaxy,n2oybeta,              &
+                         & q10anh4nitr,Trefanh4nitr,bkoxamox,bkanh4nitr,bkamoxn2o,bkyamox,n2omaxy,n2oybeta,                        &
                          & q10ano2nitr,Trefano2nitr,bkoxnitr,bkano2nitr,NOB2AOAy,rno2anmx,rnh4anmx 
   use mo_m4ago,      only: POM_remin_q10,POM_remin_Tref
   use mo_biomod,     only: bkox_drempoc
@@ -278,7 +278,7 @@ MODULE mo_extNsediment
         
            no2fn2o     = mufn2o_sed * (bn2o_sed + (1.-bn2o_sed)*bkoxamox_sed/(powtra(i,j,k,ipowaox)+bkoxamox_sed))                 &
                        &        * powtra(i,j,k,ipownh4)/(powtra(i,j,k,ipownh4)+bkamoxn2o_sed)
-           no2fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkamoxno2_sed)
+           no2fno2     = powtra(i,j,k,ipowaox)/(powtra(i,j,k,ipowaox) + bkoxamox_sed)
            no2fdetamox = NOB2AOAy_sed*n2omaxy_sed*2.*(1. + n2oybeta_sed)*powtra(i,j,k,ipowaox)*bkyamox_sed                         &
                      & /(powtra(i,j,k,ipowaox)**2 + 2.*powtra(i,j,k,ipowaox)*bkyamox_sed + bkyamox_sed**2)
 
