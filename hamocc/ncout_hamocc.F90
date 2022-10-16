@@ -1322,7 +1322,16 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jatmc13(iogrp),0.)
   call inisrf(jatmc14(iogrp),0.)
 #endif
-
+#ifdef extNcycle
+  call inisrf(jsrfanh4(iogrp),0.)
+  call inisrf(jsrfano2(iogrp),0.)
+  call inisrf(janh3fx(iogrp),0.)
+#endif
+#if defined(extNcycle) && ! defined(sedbypass)
+  call inisrf(jsediffnh4(iogrp),0.)
+  call inisrf(jsediffn2o(iogrp),0.)
+  call inisrf(jsediffno2(iogrp),0.)
+#endif
   call inilyr(jdp(iogrp),0.)
   call inilyr(jdic(iogrp),0.)
   call inilyr(jalkali(iogrp),0.)
