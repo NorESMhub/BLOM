@@ -15,7 +15,7 @@ option('driver', type: 'combo',
 # List of BLOM options
 option('cgsmks', type: 'array',
        choices: ['cgs', 'mks'],
-       description: 'Enable CGS or MKS unit', value: ['mks'])
+       description: 'Enable CGS or MKS unit', value: ['cgs'])
 option('turbclo', type: 'array',
        choices: ['oneeq', 'twoeq', 'advection', 'isodif'],
        description: 'Turbulent closure options', value: ['oneeq', 'advection'])
