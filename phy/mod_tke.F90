@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2013-2020 Mehmet Ilicak, Mats Bentsen
+! Copyright (C) 2013-2022 Mehmet Ilicak, Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ module mod_tke
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
+   use mod_constants, only: spval
    use mod_xc
    use mod_diffusion, only: difdia
    use mod_forcing, only: ustarb
@@ -103,6 +104,18 @@ contains
 
       ! Initialize fields holding turbulent kinetic energy, generic length
       ! scale, and other fields used in the turbulence closure.
+   !$omp parallel do private(i, k)
+      do j = 1 - nbdy, jj + nbdy
+         do i = 1 - nbdy, ii + nbdy
+            do k = 1, kk
+               Prod(i ,j ,k) = spval
+               Buoy(i ,j ,k) = spval
+               Shear2(i ,j ,k) = spval
+               L_scale(i ,j ,k) = spval
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
    !$omp parallel do private(k, l, i)
       do j = 1 - nbdy, jj + nbdy
          do k = 1, 2*kdm
