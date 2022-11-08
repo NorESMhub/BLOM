@@ -104,7 +104,7 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   END IF
 
   ! Read  data
-  call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),12,0,0)
+  call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),ks,0,0)
 
   ! Close file
   IF(mnproc==1) THEN
