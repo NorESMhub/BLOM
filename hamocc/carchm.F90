@@ -531,7 +531,7 @@
 
 ! Save product of piston velocity and solubility for output
        kwco2sol(i,j) = kwco2*Kh*1e-6 !(WHY 1e-6???)
-       kwco2d(i,j)    = kwco2 ! m/s (incl. ice fraction!)
+       kwco2d(i,j)   = kwco2 ! m/s (incl. ice fraction!)
        co2sold(i,j)  = Khd  ! mol/kg/atm
        co2solm(i,j)  = Kh   ! mol/kg/atm
 

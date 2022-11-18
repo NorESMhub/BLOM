@@ -64,7 +64,7 @@
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
                               & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
                               & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
-                              & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khd,jco2khd,  &
+                              & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2kh,jco2khd,   &
                               & jco2kh,jph,jphosph,jphosy,jphyto,                                                                  & 
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
@@ -230,7 +230,7 @@
 ! Accumulate 2d diagnostics
       call accsrf(jpco2,pco2d,omask,0)
       call accsrf(jpco2m,pco2m,omask,0)
-      call accsrf(jkwco2khd,kwco2sol,omask,0)
+      call accsrf(jkwco2kh,kwco2sol,omask,0)
       call accsrf(jkwco2,kwco2d,omask,0)
       call accsrf(jco2khd,co2sold,omask,0)
       call accsrf(jco2kh,co2solm,omask,0)
