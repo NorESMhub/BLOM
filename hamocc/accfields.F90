@@ -46,7 +46,8 @@
 !**********************************************************************
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,sedfluxo
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,       &
+                              & sedfluxo,pco2m,kwco2d,co2sold,co2solm
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
@@ -63,7 +64,8 @@
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
                               & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
                               & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
-                              & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jph,jphosph,jphosy,jphyto, &
+                              & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khd,jco2khd,  &
+                              & jco2kh,jph,jphosph,jphosy,jphyto,                                                                  & 
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
                               & acclyr,accsrf,bgczlv
@@ -227,7 +229,11 @@
 
 ! Accumulate 2d diagnostics
       call accsrf(jpco2,pco2d,omask,0)
-      call accsrf(jkwco2,kwco2sol,omask,0)
+      call accsrf(jpco2m,pco2m,omask,0)
+      call accsrf(jkwco2khd,kwco2sol,omask,0)
+      call accsrf(jkwco2,kwco2d,omask,0)
+      call accsrf(jco2khd,co2sold,omask,0)
+      call accsrf(jco2kh,co2solm,omask,0)
       call accsrf(jsrfphosph,ocetra(1,1,1,iphosph),omask,0)
       call accsrf(jsrfoxygen,ocetra(1,1,1,ioxygen),omask,0)
       call accsrf(jsrfiron,ocetra(1,1,1,iiron),omask,0)
