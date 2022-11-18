@@ -432,7 +432,9 @@ set SRF_CO2FXD    = '4, 2, 2'
 set SRF_CO2FXU    = '4, 2, 2' 
 set SRF_OXFLUX    = '0, 2, 2' 
 set SRF_NIFLUX    = '0, 2, 2' 
+set SRF_PN2OM     = '0, 2, 2' 
 set SRF_N2OFX     = '0, 0, 2' 
+set SRF_PNH3M     = '0, 2, 2' 
 set SRF_ANH3FX    = '0, 0, 2' 
 set SRF_DMSFLUX   = '0, 2, 2' 
 set SRF_DMS       = '0, 2, 2' 
@@ -1695,7 +1697,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
 !   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   PN2OM          - Surface pN2O under moist air [uatm]
 !   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
+!   PNH3M          - Surface pNH3 under moist air [uatm]
 !   ANH3FX         - Ammonia flux [mol NH3 m-2 s-1]
 !   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
 !   DMS            - surface DMS concentration (dms) [mol DMS m-3]
@@ -1799,7 +1803,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_CO2FXU    = $SRF_CO2FXU
   SRF_OXFLUX    = $SRF_OXFLUX
   SRF_NIFLUX    = $SRF_NIFLUX
+  SRF_PN2OM     = $SRF_PN2OM
   SRF_N2OFX     = $SRF_N2OFX
+  SRF_PNH3M     = $SRF_PNH3M
   SRF_ANH3FX    = $SRF_ANH3FX
   SRF_DMSFLUX   = $SRF_DMSFLUX
   SRF_DMS       = $SRF_DMS

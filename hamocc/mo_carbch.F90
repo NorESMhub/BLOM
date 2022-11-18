@@ -69,6 +69,7 @@
 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: satoxy
       REAL, DIMENSION (:,:),     ALLOCATABLE :: satn2o
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: pn2om
       REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
@@ -106,6 +107,7 @@
       REAL :: atm_bromo, fbro1, fbro2
 #endif
 #ifdef extNcycle
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: pnh3m
       REAL :: atm_nh3,atm_n2o
 #endif
 
@@ -257,6 +259,16 @@
       ALLOCATE (satn2o(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory satn2o'
       satn2o(:,:) = 0.0
+      
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable pn2om ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      ENDIF
+
+      ALLOCATE (pn2om(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory pn2om'
+      pn2om(:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
@@ -377,6 +389,17 @@
       co213fxu(:,:) = 0.0
       co214fxd(:,:) = 0.0
       co214fxu(:,:) = 0.0
+#endif
+#ifdef extNcycle
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable pnh3m ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      ENDIF
+
+      ALLOCATE (pnh3m(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory pnh3m'
+      pnh3m(:,:) = 0.0
 #endif
 
 !******************************************************************************

@@ -46,7 +46,8 @@
 !**********************************************************************
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,sedfluxo
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,       &
+                              & sedfluxo, pn2om
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
@@ -67,7 +68,7 @@
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
                               & acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2,                                                            & 
-                              & jlvl_nitr_NH4, &
+                              & jlvl_nitr_NH4, jsrfpn2om,&
                               & jlvl_nitr_NO2,jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,jlvl_nitr_NO2_OM,jlvl_denit_NO3,jlvl_denit_NO2,  &
                               & jlvl_denit_N2O,jlvl_DNRA_NO2,jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,jlvl_phosy_NH4,jlvl_phosy_NO3,    &
                               & jlvl_remin_aerob,jlvl_remin_sulf,                                                                  &
@@ -115,8 +116,9 @@
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
 #endif
 #ifdef extNcycle
+      use mo_carbch,     only: pnh3m
       use mo_param1_bgc, only: iatmnh3,ianh4,iano2,ipownh4,ipown2o,ipowno2
-      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,                                                     &
+      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3m,                                           &
                              & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
                              & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,               &
                              & jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,            &
@@ -264,6 +266,7 @@
       call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
       call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
       call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
+      call accsrf(jsrfpn2om,pn2om,omask,0)
       call accsrf(jexport,expoor,omask,0)      
       call accsrf(jexpoca,expoca,omask,0)     
       call accsrf(jexposi,exposi,omask,0)     
@@ -285,6 +288,7 @@
 #endif
 #ifdef extNcycle
       call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)
+      call accsrf(jsrfpnh3m,pnh3m,omask,0)
       call accsrf(jsrfano2,ocetra(1,1,1,iano2),omask,0)
 #endif
 

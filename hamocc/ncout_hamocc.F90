@@ -72,7 +72,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,            &
        &                    jlvlpoc13,jlvlprefalk,jlvlprefdic,                  &
        &                    jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,          &
-       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,            &
+       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jsrfpn2om,jn2oflux,  &
        &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
        &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
@@ -94,7 +94,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    lvl_co3,lvl_ph,lvl_omegaa,lvl_omegac,               &
        &                    lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,           &
        &                    lvl_prefalk,lvl_prefdic,lvl_dicsat,                 &
-       &                    lvl_o2sat,srf_n2ofx,srf_atmco2,srf_kwco2,           &
+       &                    lvl_o2sat,srf_n2ofx,srf_pn2om,srf_atmco2,srf_kwco2, &
        &                    srf_pco2,srf_dmsflux,srf_co2fxd,                    &
        &                    srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,           &
        &                    srf_dmsprod,srf_dms_bac,srf_dms_uv,                 &
@@ -177,8 +177,8 @@ subroutine ncwrt_bgc(iogrp)
        &                inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
 #endif
 #ifdef extNcycle
-  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,                 &
-       &                jsrfano2,janh3fx,srf_anh4,srf_ano2,                     &
+  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,jsrfpnh3m,       &
+       &                jsrfano2,janh3fx,srf_pnh3m,srf_anh4,srf_ano2,           &
        &                srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,                  &
        &                lvl_ano2,                                               &
        &                LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,            &
@@ -525,6 +525,8 @@ subroutine ncwrt_bgc(iogrp)
        &   cmpflg,'co2fxu','Upward CO2 flux',' ','kg C m-2 s-1')
   call wrtsrf(joxflux(iogrp),SRF_OXFLUX(iogrp),rnacc*1e3/dtbgc,0.,              &
        &   cmpflg,'fgo2','Oxygen flux',' ','mol O2 m-2 s-1')
+  call wrtsrf(jsrfpn2om(iogrp),SRF_PN2OM(iogrp),rnacc,0.,cmpflg,                     &
+       &   'pn2om','Surface pN2O under moist air',' ','uatm')
   call wrtsrf(jniflux(iogrp),SRF_NIFLUX(iogrp),rnacc*1e3/dtbgc,0.,              &
        &   cmpflg,'fgn2','Nitrogen flux',' ','mol N2 m-2 s-1')
   call wrtsrf(jdms(iogrp),SRF_DMS(iogrp),rnacc,0.,cmpflg,                       &
@@ -726,6 +728,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfanh4(iogrp),SRF_ANH4(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfnh4',                                         &
        &  'Surface ammonium',' ','mol N m-3')
+  call wrtsrf(jsrfpnh3m(iogrp),SRF_PNH3M(iogrp),rnacc,0.,cmpflg,                     &
+       &   'pnh3m','Surface pNH3 under moist air',' ','uatm')
   call wrtsrf(jsrfano2(iogrp),SRF_ANO2(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfno2',                                         &
        &  'Surface nitrite',' ','mol N m-3')
@@ -1242,6 +1246,7 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(joxflux(iogrp),0.)
   call inisrf(jniflux(iogrp),0.)
   call inisrf(jn2ofx(iogrp),0.)
+  call inisrf(jsrfpn2om(iogrp),0.)
   call inisrf(jdms(iogrp),0.)
   call inisrf(jdmsprod(iogrp),0.)
   call inisrf(jdms_bac(iogrp),0.)
@@ -1324,6 +1329,7 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 #ifdef extNcycle
   call inisrf(jsrfanh4(iogrp),0.)
+  call inisrf(jsrfpnh3m(iogrp),0.)
   call inisrf(jsrfano2(iogrp),0.)
   call inisrf(janh3fx(iogrp),0.)
 #endif
@@ -1568,7 +1574,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   nctime,ncfcls,ncedef,ncdefvar3d,ndouble
 
   use mo_bgcmean, only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,              &
-       &   srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,srf_dmsprod,                &
+       &   srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
        &   srf_iron,srf_phyto,int_phosy,int_nfix,int_dnit,flx_car0100,          &
@@ -1634,7 +1640,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 #endif
 #ifdef extNcycle
   use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,                 &
-       &                     jsrfano2,janh3fx,srf_anh4,srf_ano2,                &
+       &                     jsrfano2,janh3fx,srf_pnh3m,srf_anh4,srf_ano2,      &
        &                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,             &
        &                     lvl_ano2,                                          &
        &                     LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,       &
@@ -1709,6 +1715,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   cmpflg,'p','co2fxu','Upward CO2 flux',' ','kg C m-2 s-1',0)
   call ncdefvar3d(SRF_OXFLUX(iogrp),                                            &
        &   cmpflg,'p','fgo2','Oxygen flux',' ','mol O2 m-2 s-1',0)
+  call ncdefvar3d(SRF_PN2OM(iogrp),cmpflg,'p',                                   &
+       &   'pn2om','Surface pN2O moist air',' ','uatm',0)
   call ncdefvar3d(SRF_NIFLUX(iogrp),                                            &
        &   cmpflg,'p','fgn2','Nitrogen flux',' ','mol N2 m-2 s-1',0)
   call ncdefvar3d(SRF_DMS(iogrp),cmpflg,'p',                                    &
@@ -1877,6 +1885,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'atmc14','Atmospheric 14CO2',' ','ppm',0)
 #endif
 #ifdef extNcycle
+  call ncdefvar3d(SRF_PNH3M(iogrp),cmpflg,'p',                                   &
+       &   'pnh3m','Surface pNH3 moist air',' ','uatm',0)
   call ncdefvar3d(SRF_ANH4(iogrp),cmpflg,'p','srfnh4',                          &
      &  'Surface ammonium',' ','mol N m-3',0)
   call ncdefvar3d(SRF_ANO2(iogrp),cmpflg,'p','srfno2',                          &

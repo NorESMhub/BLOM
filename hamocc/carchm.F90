@@ -94,7 +94,7 @@
 !     none.
 !
 !**********************************************************************
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,pn2om
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
                               & oxyco,tzero
       use mo_control_bgc, only: dtbgc
@@ -118,6 +118,7 @@
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
 #ifdef extNcycle
+      use mo_carbch,      only: pnh3m
       use mo_param1_bgc,  only: iatmnh3,ianh4
       use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3,kappa
 #endif
@@ -196,11 +197,15 @@
        satoxy (:,:,:)=0.
        omegaA (:,:,:)=0.
        omegaC (:,:,:)=0.
+       pn2om    (:,:)=0.
 #ifdef natDIC
        natpco2d   (:,:)=0. 
        natco3   (:,:,:)=0.
        natomegaA(:,:,:)=0.
        natomegaC(:,:,:)=0.
+#endif
+#ifdef extNcycle
+       pnh3m      (:,:)=0.
 #endif
 
 !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
@@ -500,7 +505,9 @@
        niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
        ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
 ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*rpp0) 
+       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*rpp0)
+       ! pN2O under moist air assumption at normal pressure
+       pn2om(i,j) = 1e6 * ocetra(i,j,1,ian2o)/satn2o(i,j)
        ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
 #ifdef CFC
 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)
@@ -604,7 +611,6 @@
 
 ! Save product of piston velocity and solubility for output
        kwco2sol(i,j) = kwco2*Kh*1e-6
-
 
       endif ! k==1
 #ifdef BROMO
