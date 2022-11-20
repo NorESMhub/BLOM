@@ -2919,7 +2919,7 @@ c
         call inilyr(ACC_UTILLYR(1),'p',0.)
         call acclyr(ACC_UTILLYR,dp(1-nbdy,1-nbdy,k1m),tmp3d,0,'p')
         call wrtlyr(ACC_UTILLYR(1),
-     .    max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),1.,0.,cmpflg,ip,'p',
+     .    max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),.1,0.,cmpflg,ip,'p',
      .    'dp_trc','Layer pressure thickness',' ','Pa')
       endif
 #  ifdef IDLAGE
