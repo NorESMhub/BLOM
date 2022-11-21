@@ -123,6 +123,8 @@ set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
 set ITEST    = 60
 set JTEST    = 60
+set CNSVDI   = .false.
+set CSDIAG   = .false.
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -897,6 +899,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)
 ! JTEST    : Global j-index of point diagnostics (i)
+! CNSVDI   : Conservation diagnostics flag (l)
+! CSDIAG   : Checksum diagnostics flag (l)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -961,6 +965,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   ATM_PATH = $ATM_PATH
   ITEST    = $ITEST
   JTEST    = $JTEST
+  CNSVDI   = $CNSVDI
+  CSDIAG   = $CSDIAG
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT
   RSTCMP   = $RSTCMP
