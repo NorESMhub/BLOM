@@ -183,7 +183,7 @@
 #endif
        pco2d    (:,:)=0.
        pco2m    (:,:)=0.
-       kwco2d    (:,:)=0.
+       kwco2d   (:,:)=0.
        co2sold  (:,:)=0.
        co2solm  (:,:)=0.
        kwco2sol (:,:)=0.

@@ -1133,7 +1133,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   nctime,ncfcls,ncedef,ncdefvar3d,ndouble
 
   use mo_bgcmean, only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,              &
-       &   srf_kwco2kh,srf_co2khd,srf_co2kh,srf_pco2m,                         &
+       &   srf_kwco2kh,srf_co2khd,srf_co2kh,srf_pco2m,                          &
        &   srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,srf_dmsprod,                &
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
@@ -1211,15 +1211,15 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar('depth_bnds','bounds depth',ndouble,8)
   call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',                                  &
        &   'kwco2','CO2 piston velocity',' ','m s-1',0)
-  call ncdefvar3d(SRF_KWCO2KH(iogrp),cmpflg,'p',                                  &
+  call ncdefvar3d(SRF_KWCO2KH(iogrp),cmpflg,'p',                                &
        &   'kwco2kh','CO2 piston velocity times solubility (moist air)',' ','m s-1 mol kg-1 atm-1',0)
-  call ncdefvar3d(SRF_CO2KHD(iogrp),cmpflg,'p',                                  &
+  call ncdefvar3d(SRF_CO2KHD(iogrp),cmpflg,'p',                                 &
        &   'co2khd','CO2 solubility (dry air)',' ','mol kg-1 atm-1',0)
   call ncdefvar3d(SRF_CO2KH(iogrp),cmpflg,'p',                                  &
        &   'co2kh','CO2 solubility (moist air)',' ','mol kg-1 atm-1',0)
   call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',                                   &
        &   'pco2','Surface PCO2',' ','uatm',0)
-  call ncdefvar3d(SRF_PCO2M(iogrp),cmpflg,'p',                                   &
+  call ncdefvar3d(SRF_PCO2M(iogrp),cmpflg,'p',                                  &
        &   'pco2m','Surface PCO2 (moist air)',' ','uatm',0)
   call ncdefvar3d(SRF_DMSFLUX(iogrp),                                           &
        &   cmpflg,'p','dmsflux','DMS flux',' ','mol DMS m-2 s-1',0)
