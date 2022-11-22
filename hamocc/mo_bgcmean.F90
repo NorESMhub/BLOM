@@ -76,7 +76,7 @@
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
-     & SRF_KWCO2KH   =0    ,SRF_CO2KH     =0    ,SRF_CO2KHD    =0    ,  &
+     & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
      & SRF_PCO2M     =0    ,                                            &
      & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
      & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
@@ -152,7 +152,7 @@
       CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
-     & SRF_KWCO2KH       ,SRF_CO2KH         ,SRF_CO2KHD        ,        &
+     & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
      & SRF_PCO2M         ,                                              &
      & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
      & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
@@ -259,9 +259,9 @@
       INTEGER, SAVE :: i_bsc_m2d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jkwco2     = 0 ,                                        &
-     &          jkwco2kh   = 0 ,                                        &
-     &          jco2khd    = 0 ,                                        &
+     &          jkwco2khm  = 0 ,                                        &
      &          jco2kh     = 0 ,                                        &
+     &          jco2khm    = 0 ,                                        &
      &          jpco2      = 0 ,                                        &
      &          jpco2m     = 0 ,                                        &
      &          jdmsflux   = 0 ,                                        &
@@ -568,12 +568,12 @@
       DO n=1,nbgc  
         IF (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
-        IF (SRF_KWCO2KH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jkwco2kh(n)=i_bsc_m2d*min(1,SRF_KWCO2KH(n))
-        IF (SRF_CO2KHD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jco2khd(n)=i_bsc_m2d*min(1,SRF_CO2KHD(n))
+        IF (SRF_KWCO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
         IF (SRF_CO2KH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
+        IF (SRF_CO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
         IF (SRF_PCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
         IF (SRF_PCO2M(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 

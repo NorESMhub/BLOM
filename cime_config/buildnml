@@ -424,9 +424,9 @@ set SRF_EXPORT    = '0, 2, 2'
 set SRF_EXPOSI    = '0, 2, 2' 
 set SRF_EXPOCA    = '0, 2, 2' 
 set SRF_KWCO2     = '0, 2, 2' 
-set SRF_KWCO2KH   = '0, 2, 2' 
-set SRF_CO2KHD    = '0, 2, 2' 
+set SRF_KWCO2KHM  = '0, 2, 2' 
 set SRF_CO2KH     = '0, 2, 2' 
+set SRF_CO2KHM    = '0, 2, 2' 
 set SRF_PCO2      = '0, 2, 2' 
 set SRF_PCO2M     = '0, 2, 2' 
 set SRF_CO2FXD    = '4, 2, 2' 
@@ -1584,9 +1584,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   PCO2           - Surface PCO2 (spco2) [uatm]
 !   PCO2M          - Surface PCO2 under moist air assumption [uatm]
 !   KWCO2          - kwco2 
-!   KWCO2KH        - kwco2 x solubility (moist air)
-!   CO2KHD         - khd CO2 solubility under dry air assumption 
-!   CO2KH          - kh CO2 solubility under moist air assumption 
+!   KWCO2KHM       - kwco2 x solubility (moist air)
+!   CO2KH          - khd CO2 solubility under dry air assumption 
+!   CO2KHM         - kh CO2 solubility under moist air assumption 
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
@@ -1666,9 +1666,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_EXPOSI    = $SRF_EXPOSI
   SRF_EXPOCA    = $SRF_EXPOCA
   SRF_KWCO2     = $SRF_KWCO2
-  SRF_KWCO2KH   = $SRF_KWCO2KH
-  SRF_CO2KHD    = $SRF_CO2KHD
+  SRF_KWCO2KHM  = $SRF_KWCO2KHM
   SRF_CO2KH     = $SRF_CO2KH
+  SRF_CO2KHM    = $SRF_CO2KHM
   SRF_PCO2      = $SRF_PCO2
   SRF_PCO2M     = $SRF_PCO2M
   SRF_CO2FXD    = $SRF_CO2FXD
