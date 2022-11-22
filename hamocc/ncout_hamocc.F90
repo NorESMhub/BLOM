@@ -397,7 +397,7 @@ subroutine ncwrt_bgc(iogrp)
        &   'kwco2','CO2 piston velocity',' ','m s-1')
   call wrtsrf(jkwco2khm(iogrp),SRF_KWCO2KHM(iogrp),rnacc,0.,cmpflg,             &
        &   'kwco2khm','CO2 piston velocity times solubility (moist air)',' ',   &
-       &   'm s-1 mol kg-1 muatm-1')
+       &   'm s-1 mol kg-1 uatm-1')
   call wrtsrf(jco2kh(iogrp),SRF_CO2KH(iogrp),rnacc,0.,cmpflg,                   &
        &   'co2kh','CO2 solubility (dry air) ',' ','mol kg-1 atm-1')
   call wrtsrf(jco2khm(iogrp),SRF_CO2KHM(iogrp),rnacc,0.,cmpflg,                 &

@@ -1583,10 +1583,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
 !   PCO2           - Surface PCO2 (spco2) [uatm]
 !   PCO2M          - Surface PCO2 under moist air assumption [uatm]
-!   KWCO2          - kwco2 
-!   KWCO2KHM       - kwco2 x solubility (moist air)
-!   CO2KH          - khd CO2 solubility under dry air assumption 
-!   CO2KHM         - kh CO2 solubility under moist air assumption 
+!   KWCO2          - Piston velocity (kwco2)  [m s-1]
+!   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
+!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
+!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
