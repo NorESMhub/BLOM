@@ -29,10 +29,12 @@
       use mod_dia, only: iotype      
 #ifdef PNETCDF
       use mod_xc, only: i0,ii,jj,j0
+#endif
+      implicit none
+#ifdef PNETCDF
 #  include <pnetcdf.inc>
 #  include <mpif.h>
 #endif
-      implicit none
       integer ncid, klev, time, ndims
       character (len=*) desc
       real arr(idm,jdm,klev)

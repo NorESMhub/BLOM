@@ -28,10 +28,12 @@
       use mod_xc, only: idm,itdm,jtdm,jdm,lp,mnproc,nbdy,xchalt,xcaput
 #ifdef PNETCDF
       use mod_xc, only: i0,ii,jj,j0
+#endif
+      implicit none
+#ifdef PNETCDF
 #include <pnetcdf.inc>
 #include <mpif.h>
 #endif
-      implicit none
       integer ncid, klev, time, ndims
       character (len=*) desc
       real arr(idm,jdm,klev),arr_g(itdm,jtdm)
