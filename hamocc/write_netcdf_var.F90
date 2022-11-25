@@ -27,11 +27,12 @@
       use netcdf,  only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_put_var
       use mod_xc,  only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
       use mod_dia, only: iotype      
-      implicit none
 #ifdef PNETCDF
+      use mod_xc, only: i0,ii,jj,j0
 #  include <pnetcdf.inc>
 #  include <mpif.h>
 #endif
+      implicit none
       integer ncid, klev, time, ndims
       character (len=*) desc
       real arr(idm,jdm,klev)
