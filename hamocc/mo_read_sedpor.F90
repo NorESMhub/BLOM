@@ -51,7 +51,6 @@ contains
 
 subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   use mod_xc,         only: mnproc,xchalt
-  use mod_dia,        only: iotype
   use mo_control_bgc, only: io_stdo_bgc,l_3Dvarsedpor
   use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
 
@@ -64,10 +63,10 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   real,    intent(inout) :: sed_por(kpie,kpje,ks)
 
   !local variables
-  integer :: i,j,k,errstat
+  integer :: i,j,k
   real    :: sed_por_in(kpie,kpje,ks)
   logical :: file_exists = .false.
-  integer :: ncid,ncstat,ncvarid
+  integer :: ncid,ncstat
 
   ! Return if l_3Dvarsedpor is turned off
   if (.not. l_3Dvarsedpor) then
@@ -104,7 +103,7 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   END IF
 
   ! Read  data
-  call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),12,0,0)
+  call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),ks,0,0)
 
   ! Close file
   IF(mnproc==1) THEN

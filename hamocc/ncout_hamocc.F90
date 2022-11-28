@@ -75,6 +75,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jsrfpn2om,jn2oflux,  &
        &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
        &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
+       &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
        &                    jsrfalkali,jsrfano3,jsrfdic,jsrfiron,               &
@@ -95,6 +96,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    lvl_n2o,lvl_prefo2,lvl_o2sat,lvl_prefpo4,           &
        &                    lvl_prefalk,lvl_prefdic,lvl_dicsat,                 &
        &                    lvl_o2sat,srf_n2ofx,srf_pn2om,srf_atmco2,srf_kwco2, &
+       &                    srf_kwco2khm,srf_co2kh,srf_co2khm,srf_pco2m,        &
        &                    srf_pco2,srf_dmsflux,srf_co2fxd,                    &
        &                    srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,           &
        &                    srf_dmsprod,srf_dms_bac,srf_dms_uv,                 &
@@ -514,9 +516,18 @@ subroutine ncwrt_bgc(iogrp)
 
   ! --- Store 2d fields
   call wrtsrf(jkwco2(iogrp),SRF_KWCO2(iogrp),rnacc,0.,cmpflg,                   &
-       &   'kwco2',' ',' ',' ')
+       &   'kwco2','CO2 piston velocity',' ','m s-1')
+  call wrtsrf(jkwco2khm(iogrp),SRF_KWCO2KHM(iogrp),rnacc,0.,cmpflg,             &
+       &   'kwco2khm','CO2 piston velocity times solubility (moist air)',' ',   &
+       &   'm s-1 mol kg-1 uatm-1')
+  call wrtsrf(jco2kh(iogrp),SRF_CO2KH(iogrp),rnacc,0.,cmpflg,                   &
+       &   'co2kh','CO2 solubility (dry air) ',' ','mol kg-1 atm-1')
+  call wrtsrf(jco2khm(iogrp),SRF_CO2KHM(iogrp),rnacc,0.,cmpflg,                 &
+       &   'co2khm','CO2 solubility (moist air) ',' ','mol kg-1 atm-1')
   call wrtsrf(jpco2(iogrp),SRF_PCO2(iogrp),rnacc,0.,cmpflg,                     &
        &   'pco2','Surface PCO2',' ','uatm')
+  call wrtsrf(jpco2m(iogrp),SRF_PCO2M(iogrp),rnacc,0.,cmpflg,                   &
+       &   'pco2m','Surface PCO2 (moist air)',' ','uatm')
   call wrtsrf(jdmsflux(iogrp),SRF_DMSFLUX(iogrp),rnacc*1e3/dtbgc,0.,            &
        &   cmpflg,'dmsflux','DMS flux',' ','mol DMS m-2 s-1')
   call wrtsrf(jco2fxd(iogrp),SRF_CO2FXD(iogrp),rnacc*12./dtbgc,0.,              &
@@ -525,7 +536,7 @@ subroutine ncwrt_bgc(iogrp)
        &   cmpflg,'co2fxu','Upward CO2 flux',' ','kg C m-2 s-1')
   call wrtsrf(joxflux(iogrp),SRF_OXFLUX(iogrp),rnacc*1e3/dtbgc,0.,              &
        &   cmpflg,'fgo2','Oxygen flux',' ','mol O2 m-2 s-1')
-  call wrtsrf(jsrfpn2om(iogrp),SRF_PN2OM(iogrp),rnacc,0.,cmpflg,                     &
+  call wrtsrf(jsrfpn2om(iogrp),SRF_PN2OM(iogrp),rnacc,0.,cmpflg,                &
        &   'pn2om','Surface pN2O under moist air',' ','uatm')
   call wrtsrf(jniflux(iogrp),SRF_NIFLUX(iogrp),rnacc*1e3/dtbgc,0.,              &
        &   cmpflg,'fgn2','Nitrogen flux',' ','mol N2 m-2 s-1')
@@ -649,11 +660,11 @@ subroutine ncwrt_bgc(iogrp)
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi',' ',' ',' ')
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
-  call wrtsrf(jsediffnh4(iogrp),FLX_SEDIFFNH4(iogrp),                             &
+  call wrtsrf(jsediffnh4(iogrp),FLX_SEDIFFNH4(iogrp),                           &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfnh4',' ',' ',' ')
-  call wrtsrf(jsediffn2o(iogrp),FLX_SEDIFFN2O(iogrp),                             &
+  call wrtsrf(jsediffn2o(iogrp),FLX_SEDIFFN2O(iogrp),                           &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2o',' ',' ',' ')
-  call wrtsrf(jsediffno2(iogrp),FLX_SEDIFFNO2(iogrp),                             &
+  call wrtsrf(jsediffno2(iogrp),FLX_SEDIFFNO2(iogrp),                           &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfno2',' ',' ',' ')
 #endif
   call wrtsrf(jn2ofx(iogrp),SRF_N2OFX(iogrp),rnacc*1e3/dtbgc,0.,                &
@@ -728,7 +739,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfanh4(iogrp),SRF_ANH4(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfnh4',                                         &
        &  'Surface ammonium',' ','mol N m-3')
-  call wrtsrf(jsrfpnh3m(iogrp),SRF_PNH3M(iogrp),rnacc,0.,cmpflg,                     &
+  call wrtsrf(jsrfpnh3m(iogrp),SRF_PNH3M(iogrp),rnacc,0.,cmpflg,                &
        &   'pnh3m','Surface pNH3 under moist air',' ','uatm')
   call wrtsrf(jsrfano2(iogrp),SRF_ANO2(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfno2',                                         &
@@ -1239,7 +1250,11 @@ subroutine ncwrt_bgc(iogrp)
 
   ! --- Initialise fields
   call inisrf(jkwco2(iogrp),0.)
+  call inisrf(jkwco2khm(iogrp),0.)
+  call inisrf(jco2kh(iogrp),0.)
+  call inisrf(jco2khm(iogrp),0.)
   call inisrf(jpco2(iogrp),0.)
+  call inisrf(jpco2m(iogrp),0.)
   call inisrf(jdmsflux(iogrp),0.)
   call inisrf(jco2fxd(iogrp),0.)
   call inisrf(jco2fxu(iogrp),0.)
@@ -1574,6 +1589,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   nctime,ncfcls,ncedef,ncdefvar3d,ndouble
 
   use mo_bgcmean, only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,              &
+       &   srf_kwco2khm,srf_co2kh,srf_co2khm,srf_pco2m,                         &
        &   srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
@@ -1704,9 +1720,18 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncattr('bounds','depth_bnds')
   call ncdefvar('depth_bnds','bounds depth',ndouble,8)
   call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',                                  &
-       &   'kwco2',' ',' ',' ',0)
+       &   'kwco2','CO2 piston velocity',' ','m s-1',0)
+  call ncdefvar3d(SRF_KWCO2KHM(iogrp),cmpflg,'p',                               &
+       &   'kwco2khm','CO2 piston velocity times solubility (moist air)',' ',   &
+       &   'm s-1 mol kg-1 muatm-1',0)
+  call ncdefvar3d(SRF_CO2KH(iogrp),cmpflg,'p',                                  &
+       &   'co2kh','CO2 solubility (dry air)',' ','mol kg-1 atm-1',0)
+  call ncdefvar3d(SRF_CO2KHM(iogrp),cmpflg,'p',                                 &
+       &   'co2khm','CO2 solubility (moist air)',' ','mol kg-1 atm-1',0)
   call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',                                   &
        &   'pco2','Surface PCO2',' ','uatm',0)
+  call ncdefvar3d(SRF_PCO2M(iogrp),cmpflg,'p',                                  &
+       &   'pco2m','Surface PCO2 (moist air)',' ','uatm',0)
   call ncdefvar3d(SRF_DMSFLUX(iogrp),                                           &
        &   cmpflg,'p','dmsflux','DMS flux',' ','mol DMS m-2 s-1',0)
   call ncdefvar3d(SRF_CO2FXD(iogrp),                                            &
@@ -1715,7 +1740,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   cmpflg,'p','co2fxu','Upward CO2 flux',' ','kg C m-2 s-1',0)
   call ncdefvar3d(SRF_OXFLUX(iogrp),                                            &
        &   cmpflg,'p','fgo2','Oxygen flux',' ','mol O2 m-2 s-1',0)
-  call ncdefvar3d(SRF_PN2OM(iogrp),cmpflg,'p',                                   &
+  call ncdefvar3d(SRF_PN2OM(iogrp),cmpflg,'p',                                  &
        &   'pn2om','Surface pN2O moist air',' ','uatm',0)
   call ncdefvar3d(SRF_NIFLUX(iogrp),                                            &
        &   cmpflg,'p','fgn2','Nitrogen flux',' ','mol N2 m-2 s-1',0)
@@ -1885,7 +1910,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'atmc14','Atmospheric 14CO2',' ','ppm',0)
 #endif
 #ifdef extNcycle
-  call ncdefvar3d(SRF_PNH3M(iogrp),cmpflg,'p',                                   &
+  call ncdefvar3d(SRF_PNH3M(iogrp),cmpflg,'p',                                  &
        &   'pnh3m','Surface pNH3 moist air',' ','uatm',0)
   call ncdefvar3d(SRF_ANH4(iogrp),cmpflg,'p','srfnh4',                          &
      &  'Surface ammonium',' ','mol N m-3',0)
@@ -2303,7 +2328,6 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'pown2o','PoWa nitrous oxide',' ','mol N m-3',3)
   call ncdefvar3d(SDM_POWNO2(iogrp),cmpflg,'p',                                 &
        &   'powno2','PoWa nitrite',' ','mol N m-3',3)
-
   call ncdefvar3d(sdm_nitr_NH4(iogrp),cmpflg,'p',                               &
      &  'nh4nitrsdm','NH4 nitrification rate sediment',' ','mol N m-3 s-1',3)
   call ncdefvar3d(sdm_nitr_NO2(iogrp),cmpflg,'p',                               &

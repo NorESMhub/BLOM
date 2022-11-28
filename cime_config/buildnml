@@ -123,6 +123,8 @@ set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
 set ITEST    = 60
 set JTEST    = 60
+set CNSVDI   = .false.
+set CSDIAG   = .false.
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -427,7 +429,11 @@ set SRF_EXPORT    = '0, 2, 2'
 set SRF_EXPOSI    = '0, 2, 2' 
 set SRF_EXPOCA    = '0, 2, 2' 
 set SRF_KWCO2     = '0, 2, 2' 
+set SRF_KWCO2KHM  = '0, 2, 2' 
+set SRF_CO2KH     = '0, 2, 2' 
+set SRF_CO2KHM    = '0, 2, 2' 
 set SRF_PCO2      = '0, 2, 2' 
+set SRF_PCO2M     = '0, 2, 2' 
 set SRF_CO2FXD    = '4, 2, 2' 
 set SRF_CO2FXU    = '4, 2, 2' 
 set SRF_OXFLUX    = '0, 2, 2' 
@@ -980,6 +986,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)
 ! JTEST    : Global j-index of point diagnostics (i)
+! CNSVDI   : Conservation diagnostics flag (l)
+! CSDIAG   : Checksum diagnostics flag (l)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -1044,6 +1052,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   ATM_PATH = $ATM_PATH
   ITEST    = $ITEST
   JTEST    = $JTEST
+  CNSVDI   = $CNSVDI
+  CSDIAG   = $CSDIAG
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT
   RSTCMP   = $RSTCMP
@@ -1692,7 +1702,11 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
 !   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
 !   PCO2           - Surface PCO2 (spco2) [uatm]
-!   KWCO2          - kwco2 x solubility
+!   PCO2M          - Surface PCO2 under moist air assumption [uatm]
+!   KWCO2          - Piston velocity (kwco2)  [m s-1]
+!   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
+!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
+!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
@@ -1798,7 +1812,11 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_EXPOSI    = $SRF_EXPOSI
   SRF_EXPOCA    = $SRF_EXPOCA
   SRF_KWCO2     = $SRF_KWCO2
+  SRF_KWCO2KHM  = $SRF_KWCO2KHM
+  SRF_CO2KH     = $SRF_CO2KH
+  SRF_CO2KHM    = $SRF_CO2KHM
   SRF_PCO2      = $SRF_PCO2
+  SRF_PCO2M     = $SRF_PCO2M
   SRF_CO2FXD    = $SRF_CO2FXD
   SRF_CO2FXU    = $SRF_CO2FXU
   SRF_OXFLUX    = $SRF_OXFLUX
