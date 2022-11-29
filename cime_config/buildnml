@@ -655,6 +655,10 @@ set FLX_SEDIFFSI  = '0, 0, 2'
 set FLX_SEDIFFNH4 = '0, 0, 2'
 set FLX_SEDIFFN2O = '0, 0, 2'
 set FLX_SEDIFFNO2 = '0, 0, 2'
+set FLX_BURSSO12  = '0, 0, 2'
+set FLX_BURSSSC12 = '0, 0, 2'
+set FLX_BURSSSSIL = '0, 0, 2'
+set FLX_BURSSSTER = '0, 0, 2'
 set SDM_POWAIC    = '0, 0, 2'
 set SDM_POWAAL    = '0, 0, 2'
 set SDM_POWAPH    = '0, 0, 2'
@@ -1753,6 +1757,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   SEDIFFNH4      - sediment - water-column diffusive flux of ammonia [mol NH4 m-2 s-1] 
 !   SEDIFFN2O      - sediment - water-column diffusive flux of N2O [mol N2O m-2 s-1]
 !   SEDIFFNO2      - sediment - water-column diffusive flux of NO2 [mol NO2 m-2 s-1]
+!   BURSSO12       - sediment - burial layer burial flux of organic matter [mol P m-2 s-1]
+!   BURSSSC12      - sediment - burial layer burial flux of CaCO3 [mol Ca m-2 s-1]
+!   BURSSSSIL      - sediment - burial layer burial flux of opal [mol Si m-2 s-1]
+!   BURSSSTER      - sediment - burial layer burial flux of ssster [g m-2 s-1]
 !
 ! Sediment fields (SDM)
 !   POWAIC         - (powdic) [mol C m-3]
@@ -2061,6 +2069,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SDM_ANMX_OM_PROD  = $SDM_ANMX_OM_PROD
   SDM_REMIN_AEROB   = $SDM_REMIN_AEROB
   SDM_REMIN_SULF    = $SDM_REMIN_SULF
+  FLX_BURSSO12  = $FLX_BURSSO12
+  FLX_BURSSSC12 = $FLX_BURSSSC12
+  FLX_BURSSSSIL = $FLX_BURSSSSIL 
+  FLX_BURSSSTER = $FLX_BURSSSTER 
   SDM_SSSO12    = $SDM_SSSO12
   SDM_SSSSIL    = $SDM_SSSSIL
   SDM_SSSC12    = $SDM_SSSC12

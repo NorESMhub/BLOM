@@ -72,7 +72,8 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: pn2om
       REAL, DIMENSION (:,:),     ALLOCATABLE :: atdifv
       REAL, DIMENSION (:,:),     ALLOCATABLE :: suppco2
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxo 
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedfluxb
 
       REAL, DIMENSION (:,:),     ALLOCATABLE :: pco2d
       REAL, DIMENSION (:,:),     ALLOCATABLE :: pco2m
@@ -123,7 +124,7 @@
 !******************************************************************************
       use mod_xc,         only: mnproc
       use mo_control_bgc, only: io_stdo_bgc
-      use mo_param1_bgc,  only: nocetra,npowtra,natm,nriv
+      use mo_param1_bgc,  only: nocetra,npowtra,nsedtra,natm,nriv
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
@@ -253,6 +254,17 @@
       ALLOCATE (sedfluxo(kpie,kpje,npowtra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory sedfluxo'
       sedfluxo(:,:,:) = 0.0
+
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable sedfluxb ..'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      WRITE(io_stdo_bgc,*)'Third dimension    : ',nsedtra
+      ENDIF
+
+      ALLOCATE (sedfluxb(kpie,kpje,nsedtra),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory sedfluxb'
+      sedfluxb(:,:,:) = 0.0
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'

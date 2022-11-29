@@ -44,8 +44,12 @@ subroutine ncwrt_bgc(iogrp)
        &                    flx_sediffic,flx_sediffal,flx_sediffph,             &
        &                    flx_sediffox,flx_sediffn2,flx_sediffno3,            &
        &                    flx_sediffsi,                                       &
+       &                    flx_bursso12,flx_bursssc12,flx_burssssil,           &
+       &                    flx_burssster,                                      &
        &                    jsediffic,jsediffal,jsediffph,jsediffox,            &
        &                    jsediffn2,jsediffno3,jsediffsi,                     &
+       &                    jburflxsso12,jburflxsssc12,jburflxssssil,           &
+       &                    jburflxssster,                                      &
        &                    jalkali,jano3,jasize,jatmco2,                       &
        &                    jbsiflx0100,jbsiflx0500,jbsiflx1000,                &
        &                    jbsiflx2000,jbsiflx4000,jbsiflx_bot,                &
@@ -657,7 +661,15 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsediffno3(iogrp),FLX_SEDIFFNO3(iogrp),                           &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfno3',' ',' ',' ')
   call wrtsrf(jsediffsi(iogrp),FLX_SEDIFFSI(iogrp),                             &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi',' ',' ',' ')
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi',' ',' ',' ') 
+  call wrtsrf(jburflxsso12(iogrp),FLX_BURSSO12(iogrp),                          &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfsso12',' ',' ',' ')
+  call wrtsrf(jburflxsssc12(iogrp),FLX_BURSSSC12(iogrp),                        &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfsssc12',' ',' ',' ')
+  call wrtsrf(jburflxssssil(iogrp),FLX_BURSSSSIL(iogrp),                        &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfssssil',' ',' ',' ')
+  call wrtsrf(jburflxssster(iogrp),FLX_BURSSSTER(iogrp),                        &
+       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfssster',' ',' ',' ')
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   call wrtsrf(jsediffnh4(iogrp),FLX_SEDIFFNH4(iogrp),                           &
@@ -1306,6 +1318,10 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jsediffn2(iogrp),0.)
   call inisrf(jsediffno3(iogrp),0.)
   call inisrf(jsediffsi(iogrp),0.)
+  call inisrf(jburflxsso12(iogrp),0.)
+  call inisrf(jburflxsssc12(iogrp),0.)
+  call inisrf(jburflxssssil(iogrp),0.)
+  call inisrf(jburflxssster(iogrp),0.)
 #endif
 #ifdef cisonew
   call inisrf(jco213fxd(iogrp),0.)
@@ -1599,7 +1615,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
        &   flx_cal4000,flx_cal_bot,flx_sediffic,flx_sediffal,                   &
        &   flx_sediffph,flx_sediffox,flx_sediffn2,flx_sediffno3,                &
-       &   flx_sediffsi,srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,                    &
+       &   flx_sediffsi,flx_bursso12,flx_bursssc12,flx_burssssil,flx_burssster, &
+       &   srf_n2ofx,srf_atmco2,lyr_dp,lyr_dic,                                 &
        &   lyr_alkali,lyr_phosph,lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,        &
        &   lyr_phyto,lyr_grazer,lyr_poc,lyr_calc,lyr_opal,lyr_iron,             &
        &   lyr_phosy,lyr_co3,lyr_ph,lyr_omegaa,lyr_omegac,lyr_n2o,              &
@@ -1841,6 +1858,18 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(FLX_SEDIFFSI(iogrp),cmpflg,'p','sedfsi',                      &
        &   'diffusive silica flux to sediment (positive downwards)',            &
        &   ' ','mol Si m-2 s-1',0)
+  call ncdefvar3d(FLX_BURSSO12(iogrp),cmpflg,'p','burfsso12',                   &
+       &   'Organic matter burial flux to burial layer (positive downwards)',   &
+       &   ' ','mol P m-2 s-1',0)
+  call ncdefvar3d(FLX_BURSSSC12(iogrp),cmpflg,'p','burfsssc12',                 &
+       &   'CaCO3 burial flux to burial layer (positive downwards)',            &
+       &   ' ','mol Ca m-2 s-1',0)
+  call ncdefvar3d(FLX_BURSSSSIL(iogrp),cmpflg,'p','burfssssil',                 &
+       &   'Opal burial flux to burial layer (positive downwards)',             &
+       &   ' ','mol Si m-2 s-1',0)
+  call ncdefvar3d(FLX_BURSSSTER(iogrp),cmpflg,'p','burfssster',                 &
+       &   'Clay burial flux to burial layer (positive downwards)',             &
+       &   ' ','g m-2 s-1',0)
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   call ncdefvar3d(FLX_SEDIFFNH4(iogrp),cmpflg,'p','sedfnh4',                    &

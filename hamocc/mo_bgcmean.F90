@@ -1,4 +1,4 @@
-! Copyright (C) 2002  P. Wetzel
+! Copyright (C) 2002  P. setzel
 ! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree,
 !                     P.-G. Chiu, M. Bentsen
 !
@@ -105,7 +105,9 @@
      & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
      & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
      & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
-     & FLX_SEDIFFNO2 =0    ,                                            &   
+     & FLX_SEDIFFNO2 =0    ,                                            &
+     & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
+     & FLX_BURSSSTER =0    ,                                            &   
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -217,6 +219,8 @@
      & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
      & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
      & FLX_SEDIFFNO2     ,                                              &   
+     & FLX_BURSSO12      ,FLX_BURSSSC12     ,FLX_BURSSSSIL     ,        &
+     & FLX_BURSSSTER     ,                                              &   
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -389,7 +393,11 @@
      &          jsediffsi  = 0 ,                                        &
      &          jsediffnh4 = 0 ,                                        &
      &          jsediffn2o = 0 ,                                        &
-     &          jsediffno2 = 0 
+     &          jsediffno2 = 0 ,                                        &
+     &          jburflxsso12  = 0 ,                                     &
+     &          jburflxsssc12 = 0 ,                                     &
+     &          jburflxssssil = 0 ,                                     &
+     &          jburflxssster = 0     
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jsrfnatdic = 0 ,                                        &
@@ -829,6 +837,14 @@
         jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
         IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+        IF (FLX_BURSSO12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxsso12(n)=i_bsc_m2d*min(1,FLX_BURSSO12(n))
+        IF (FLX_BURSSSC12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxsssc12(n)=i_bsc_m2d*min(1,FLX_BURSSSC12(n))
+        IF (FLX_BURSSSSIL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxssssil(n)=i_bsc_m2d*min(1,FLX_BURSSSSIL(n))
+        IF (FLX_BURSSSTER(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxssster(n)=i_bsc_m2d*min(1,FLX_BURSSSTER(n))
 #endif
 #if defined (extNcycle) && ! defined(sedbypass)
         IF (FLX_SEDIFFNH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 

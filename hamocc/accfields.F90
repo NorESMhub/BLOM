@@ -47,7 +47,7 @@
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,       &
-                              & sedfluxo,pco2m,kwco2d,co2sold,co2solm,pn2om
+                              & sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
@@ -55,6 +55,7 @@
                               & jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,jcalflx1000,jcalflx2000,jcalflx4000,         &
                               & jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,               &
                               & jsediffic,jsediffal,jsediffph,jsediffox,jsediffn2,jsediffno3,jsediffsi,jco2flux,                   &
+                              & jburflxsso12,jburflxsssc12,jburflxssssil,jburflxssster,                                            &   
                               & jco2fxd,jco2fxu,jco3,jdic,jdicsat,jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,jdoc,jdp,jeps,jexpoca,   &
                               & jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,    &
                               & jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,        &
@@ -79,7 +80,7 @@
       use mo_control_bgc, only: io_stdo_bgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
-                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet
+                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet,issso12,isssc12,issssil,issster
       use mo_m4ago,       only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,kstickiness_agg,kb_agg,             &
                               & kstickiness_frustule,kLmax_agg,kdynvis,kav_rhof_V,kav_por_V   
 #ifdef AGG
@@ -327,7 +328,11 @@
       call accsrf(jsediffox,sedfluxo(1,1,ipowaox),omask,0)    
       call accsrf(jsediffn2,sedfluxo(1,1,ipown2),omask,0)    
       call accsrf(jsediffno3,sedfluxo(1,1,ipowno3),omask,0)    
-      call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)    
+      call accsrf(jsediffsi,sedfluxo(1,1,ipowasi),omask,0)   
+      call accsrf(jburflxsso12,sedfluxb(1,1,issso12),omask,0)   
+      call accsrf(jburflxsssc12,sedfluxb(1,1,isssc12),omask,0)   
+      call accsrf(jburflxssssil,sedfluxb(1,1,issssil),omask,0)   
+      call accsrf(jburflxssster,sedfluxb(1,1,issster),omask,0)    
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
       call accsrf(jsediffnh4,sedfluxo(1,1,ipownh4),omask,0)    
