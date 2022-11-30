@@ -1,4 +1,4 @@
-! Copyright (C) 2002  P. setzel
+! Copyright (C) 2002  P. Wetzel
 ! Copyright (C) 2020  I. Bethke, J. Tjiputra, J. Schwinger, A. Moree,
 !                     P.-G. Chiu, M. Bentsen
 !
