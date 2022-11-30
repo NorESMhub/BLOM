@@ -141,10 +141,10 @@
       do i=1,kpie
           if(omask(i,j).gt.0.5) then
 !ka          if(bolay(i,j).gt.0.) then
-            uebers=wsed(i,j)*sedlay(i,j,k,iv)
+            uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             sedlay(i,j,ks ,iv)=sedlay(i,j,ks ,iv)-uebers
-            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(k)*porsol(i,j,k)
-            sedfluxb(i,j,iv) = uebers*seddw(k)*porsol(i,j,k) 
+            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(ks)*porsol(i,j,ks)
+            sedfluxb(i,j,iv) = uebers*seddw(ks)*porsol(i,j,ks) 
           endif
       enddo !end i-loop
       enddo !end j-loop
