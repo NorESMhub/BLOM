@@ -571,6 +571,9 @@
       ! surface flux NH3: STILL REQUIRES TO CHECK CONVERSION FACTOR FOR atNH3 (currently assumed atNH3 in pptv)     
       flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4)) 
       ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
+    
+      ! pNH3 in natm 
+      pnh3m(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12 
 #endif
 
 ! Save surface fluxes 
