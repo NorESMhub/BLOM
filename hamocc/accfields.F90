@@ -118,9 +118,9 @@
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
 #endif
 #ifdef extNcycle
-      use mo_carbch,     only: pnh3m
+      use mo_carbch,     only: pnh3
       use mo_param1_bgc, only: iatmnh3,ianh4,iano2,ipownh4,ipown2o,ipowno2
-      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3m,                                           &
+      use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3,                                           &
                              & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
                              & jDNRA_NO2,janmx_N2_prod,janmx_OM_prod,jphosy_NH4,jphosy_NO3,jremin_aerob,jremin_sulf,               &
                              & jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,jsdm_nitr_N2O_prod,jsdm_nitr_NH4_OM,            &
@@ -294,7 +294,7 @@
 #endif
 #ifdef extNcycle
       call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)
-      call accsrf(jsrfpnh3m,pnh3m,omask,0)
+      call accsrf(jsrfpnh3,pnh3,omask,0)
       call accsrf(jsrfano2,ocetra(1,1,1,iano2),omask,0)
 #endif
 

@@ -119,7 +119,7 @@
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
 #ifdef extNcycle
-      use mo_carbch,      only: pnh3m
+      use mo_carbch,      only: pnh3
       use mo_param1_bgc,  only: iatmnh3,ianh4
       use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3,kappa
 #endif
@@ -210,7 +210,7 @@
        natomegaC(:,:,:)=0.
 #endif
 #ifdef extNcycle
-       pnh3m      (:,:)=0.
+       pnh3       (:,:)=0.
 #endif
 
 !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
@@ -573,7 +573,7 @@
       ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
     
       ! pNH3 in natm 
-      pnh3m(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12 
+      pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12 
 #endif
 
 ! Save surface fluxes 

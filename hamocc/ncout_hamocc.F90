@@ -183,8 +183,8 @@ subroutine ncwrt_bgc(iogrp)
        &                inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
 #endif
 #ifdef extNcycle
-  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,jsrfpnh3m,       &
-       &                jsrfano2,janh3fx,srf_pnh3m,srf_anh4,srf_ano2,           &
+  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,jsrfpnh3,       &
+       &                jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,           &
        &                srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,                  &
        &                lvl_ano2,                                               &
        &                LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,            &
@@ -751,8 +751,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfanh4(iogrp),SRF_ANH4(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfnh4',                                         &
        &  'Surface ammonium',' ','mol N m-3')
-  call wrtsrf(jsrfpnh3m(iogrp),SRF_PNH3M(iogrp),rnacc,0.,cmpflg,                &
-       &   'pnh3m','Surface pNH3 under moist air',' ','natm')
+  call wrtsrf(jsrfpnh3(iogrp),SRF_PNH3(iogrp),rnacc,0.,cmpflg,                  &
+       &   'pnh3','Surface pNH3',' ','natm')
   call wrtsrf(jsrfano2(iogrp),SRF_ANO2(iogrp),                                  &
        &  rnacc*1e3,0.,cmpflg,'srfno2',                                         &
        &  'Surface nitrite',' ','mol N m-3')
@@ -1360,7 +1360,7 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 #ifdef extNcycle
   call inisrf(jsrfanh4(iogrp),0.)
-  call inisrf(jsrfpnh3m(iogrp),0.)
+  call inisrf(jsrfpnh3(iogrp),0.)
   call inisrf(jsrfano2(iogrp),0.)
   call inisrf(janh3fx(iogrp),0.)
 #endif
@@ -1673,7 +1673,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 #endif
 #ifdef extNcycle
   use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,                 &
-       &                     jsrfano2,janh3fx,srf_pnh3m,srf_anh4,srf_ano2,      &
+       &                     jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,      &
        &                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,             &
        &                     lvl_ano2,                                          &
        &                     LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,       &
@@ -1939,8 +1939,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'atmc14','Atmospheric 14CO2',' ','ppm',0)
 #endif
 #ifdef extNcycle
-  call ncdefvar3d(SRF_PNH3M(iogrp),cmpflg,'p',                                  &
-       &   'pnh3m','Surface pNH3 moist air',' ','natm',0)
+  call ncdefvar3d(SRF_PNH3(iogrp),cmpflg,'p',                                  &
+       &   'pnh3','Surface pNH3',' ','natm',0)
   call ncdefvar3d(SRF_ANH4(iogrp),cmpflg,'p','srfnh4',                          &
      &  'Surface ammonium',' ','mol N m-3',0)
   call ncdefvar3d(SRF_ANO2(iogrp),cmpflg,'p','srfno2',                          &

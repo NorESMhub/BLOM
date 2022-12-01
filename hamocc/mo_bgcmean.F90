@@ -93,7 +93,7 @@
      & SRF_NATCO2FX  =0    ,                                            &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
      & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
-     & SRF_PN2OM     =0    ,SRF_PNH3M     =0    ,                       &
+     & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,                       &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -206,7 +206,7 @@
      & SRF_NATCO2FX      ,                                              &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
      & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
-     & SRF_PN2OM         ,SRF_PNH3M         ,                           &
+     & SRF_PN2OM         ,SRF_PNH3          ,                           &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -416,7 +416,7 @@
      &          jsrfanh4   = 0 ,                                        &
      &          jsrfano2   = 0 ,                                        &
      &          jsrfpn2om  = 0 ,                                        &
-     &          jsrfpnh3m  = 0
+     &          jsrfpnh3   = 0
  
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -895,8 +895,8 @@
 #ifdef extNcycle
         IF (SRF_ANH3FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         janh3fx(n)=i_bsc_m2d*min(1,SRF_ANH3FX(n))
-        IF (SRF_PNH3M(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jsrfpnh3m(n)=i_bsc_m2d*min(1,SRF_PNH3M(n))
+        IF (SRF_PNH3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfpnh3(n)=i_bsc_m2d*min(1,SRF_PNH3(n))
         IF (SRF_ANH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
         IF (SRF_ANO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
