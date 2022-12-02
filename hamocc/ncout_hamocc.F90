@@ -869,18 +869,18 @@ subroutine ncwrt_bgc(iogrp)
        &   'ssssil','Sediment silicate',' ','mol Si m-3')
   call wrtsdm(jsssc12(iogrp),SDM_SSSC12(iogrp),rnacc*1e3,0.,cmpflg,             &
        &   'sssc12','Sediment CaCO3',' ','mol C m-3')
-  call wrtsdm(jssster(iogrp),SDM_SSSTER(iogrp),rnacc*1e3,0.,cmpflg,             &
-       &   'ssster','Sediment clay',' ','mol m-3')
+  call wrtsdm(jssster(iogrp),SDM_SSSTER(iogrp),rnacc,0.,cmpflg,                 &
+       &   'ssster','Sediment clay',' ','kg m-3')
 
   ! --- Store sediment burial fields
   call wrtbur(jburssso12(iogrp),BUR_SSSO12(iogrp),rnacc*1e3,0.,                 &
        &   cmpflg,'buro12','Burial org carbon',' ','mol P m-2')
   call wrtbur(jbursssc12(iogrp),BUR_SSSC12(iogrp),rnacc*1e3,0.,                 &
-       &   cmpflg,'burc12','Burial calcium ',' ','mol C m-2')
+       &   cmpflg,'burc12','Burial CaCO3',' ','mol C m-2')
   call wrtbur(jburssssil(iogrp),BUR_SSSSIL(iogrp),rnacc*1e3,0.,                 &
        &   cmpflg,'bursil','Burial silicate',' ','mol Si m-2')
-  call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,                 &
-       &   cmpflg,'burter','Burial clay',' ','mol  m-2')
+  call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc,0.,                     &
+       &   cmpflg,'burter','Burial clay',' ','kg m-2')
 #endif
 
   ! --- close netcdf file
@@ -1641,17 +1641,17 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(SDM_SSSC12(iogrp),cmpflg,'p',                                 &
        &   'sssc12','Sediment CaCO3',' ','mol C m-3',3)
   call ncdefvar3d(SDM_SSSTER(iogrp),cmpflg,'p',                                 &
-       &   'ssster','Sediment clay',' ','mol m-3',3)
+       &   'ssster','Sediment clay',' ','kg m-3',3)
 
   ! --- define sediment burial fields
   call ncdefvar3d(BUR_SSSO12(iogrp),                                            &
        &   cmpflg,'p','buro12','Burial org carbon',' ','mol P m-2',4)
   call ncdefvar3d(BUR_SSSC12(iogrp),                                            &
-       &   cmpflg,'p','burc12','Burial calcium ',' ','mol C m-2',4)
+       &   cmpflg,'p','burc12','Burial CaCO3',' ','mol C m-2',4)
   call ncdefvar3d(BUR_SSSSIL(iogrp),                                            &
        &   cmpflg,'p','bursil','Burial silicate',' ','mol Si m-2',4)
   call ncdefvar3d(BUR_SSSTER(iogrp),                                            &
-       &   cmpflg,'p','burter','Burial clay',' ','mol  m-2',4)
+       &   cmpflg,'p','burter','Burial clay',' ','kg m-2',4)
 #endif
 
   ! --- enddef netcdf file
