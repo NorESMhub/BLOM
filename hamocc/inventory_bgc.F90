@@ -698,7 +698,7 @@ subroutine write_netcdf(iogrp)
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
 #endif
 #ifdef extNcycle
-  use mo_param1_bgc, only: ianh4
+  use mo_param1_bgc, only: ianh4,iano2
 #endif
 
 
@@ -802,6 +802,7 @@ subroutine write_netcdf(iogrp)
 #endif
 #ifdef extNcycle
   integer :: zt_nh4_varid,       zc_nh4_varid         ! Ammonium (NH4+) 
+  integer :: zt_ano2_varid,      zc_ano2_varid        ! Nitrite (NO2-) 
 #endif
   !--- sum of inventory
   integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
@@ -1453,8 +1454,19 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'long_name',               &
           &    'Mean ammonium concentration') )
      call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'units', 'kmol/m^3') )
-#endif
+     
+     call nccheck( NF90_DEF_VAR(ncid, 'zt_ano2', NF90_DOUBLE,                  &
+          &    time_dimid, zt_ano2_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'long_name',              &
+          &    'Total nitrite tracer') )
+     call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'units', 'kmol') )
 
+     call nccheck( NF90_DEF_VAR(ncid, 'zc_ano2', NF90_DOUBLE,                  &
+          &    time_dimid, zc_ano2_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'long_name',              &
+          &    'Mean nitrite concentration') )
+     call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'units', 'kmol/m^3') )
+#endif
 
      !--- Define variables : sum of inventory
      call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
@@ -1651,6 +1663,8 @@ subroutine write_netcdf(iogrp)
 #ifdef extNcycle
      call nccheck( NF90_INQ_VARID(ncid, "zt_nh4", zt_nh4_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_nh4", zc_nh4_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, "zt_ano2", zt_ano2_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, "zc_ano2", zc_ano2_varid) )
 #endif
      !--- Inquire varid : sum of inventory
      call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
@@ -1882,10 +1896,14 @@ subroutine write_netcdf(iogrp)
        &    zocetratoc(ibromo), start = wrstart) )
 #endif
 #ifdef extNcycle
-  call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                             &
+  call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                               &
        &    zocetratot(ianh4), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                             &
+  call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                               &
        &    zocetratoc(ianh4), start = wrstart) )
+  call nccheck( NF90_PUT_VAR(ncid, zt_ano2_varid,                              &
+       &    zocetratot(iano2), start = wrstart) )
+  call nccheck( NF90_PUT_VAR(ncid, zc_ano2_varid,                              &
+       &    zocetratoc(iano2), start = wrstart) )
 #endif
   !--- Write data : sum of inventory
   call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
