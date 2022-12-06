@@ -76,7 +76,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,            &
        &                    jlvlpoc13,jlvlprefalk,jlvlprefdic,                  &
        &                    jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,          &
-       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jsrfpn2om,jn2oflux,  &
+       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,            &
        &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
        &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
        &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
@@ -183,8 +183,8 @@ subroutine ncwrt_bgc(iogrp)
        &                inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
 #endif
 #ifdef extNcycle
-  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,jsrfpnh3,       &
-       &                jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,           &
+  use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,jsrfpnh3,        &
+       &                jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,            &
        &                srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,                  &
        &                lvl_ano2,                                               &
        &                LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,            &
@@ -1939,7 +1939,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'atmc14','Atmospheric 14CO2',' ','ppm',0)
 #endif
 #ifdef extNcycle
-  call ncdefvar3d(SRF_PNH3(iogrp),cmpflg,'p',                                  &
+  call ncdefvar3d(SRF_PNH3(iogrp),cmpflg,'p',                                   &
        &   'pnh3','Surface pNH3',' ','natm',0)
   call ncdefvar3d(SRF_ANH4(iogrp),cmpflg,'p','srfnh4',                          &
      &  'Surface ammonium',' ','mol N m-3',0)

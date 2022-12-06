@@ -70,7 +70,7 @@
                               & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
                               & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
                               & acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2,                                                            & 
-                              & jlvl_nitr_NH4, jsrfpn2om,&
+                              & jlvl_nitr_NH4, jsrfpn2om,                                                                          &
                               & jlvl_nitr_NO2,jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,jlvl_nitr_NO2_OM,jlvl_denit_NO3,jlvl_denit_NO2,  &
                               & jlvl_denit_N2O,jlvl_DNRA_NO2,jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,jlvl_phosy_NH4,jlvl_phosy_NO3,    &
                               & jlvl_remin_aerob,jlvl_remin_sulf,                                                                  &
