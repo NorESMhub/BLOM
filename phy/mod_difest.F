@@ -79,12 +79,18 @@ c
 c
       private
 c
+c     Initialize hOBL with hOBL_static = 3. for consistency with bulk
+c     mixed layer formulation in iHAMOCC: kmle = nint(hOBL) - 1 = 2
+      real, PARAMETER :: hOBL_static = 3.
+c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) ::
      .  rig
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  du2l,drhol,up,vp
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  OBLdepth
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  hOBL
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  mskv,msku
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -174,7 +180,7 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .           cs=98.96,minOBLdepth=1.0)
 c
       public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
-     .          difest_lateral_hybrid, difest_vertical_hybrid
+     .          difest_lateral_hybrid, difest_vertical_hybrid, hOBL
 c
       contains
 c
@@ -203,6 +209,7 @@ c$OMP PARALLEL DO PRIVATE(i,k)
         enddo
         do i=1-nbdy,ii+nbdy
           OBLdepth(i,j)=spval
+          hOBL(i,j) = hOBL_static
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -214,6 +221,8 @@ c
 c --- ------------------------------------------------------------------
 c --- Initialize CVmix variables.
 c --- ------------------------------------------------------------------
+c
+      integer :: i,j,l
 c
 c -- ------- Background diapycnal mixing.
 c         The Bryan-Lewis parameterization is based on the following:
@@ -283,6 +292,15 @@ c    .          lnonzero_surf_nonlocal=.true.  ,
 c    .          lnoDGat1=.true.                 ,
 c    .          CVMix_kpp_params_user=KPP_params )
 c
+c$OMP PARALLEL DO PRIVATE(l,i)
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          OBLdepth(i,j)=10.
+        enddo
+        enddo
+      enddo
+c$OMP END PARALLEL DO
 c
       end subroutine init_difest
 c
@@ -904,7 +922,6 @@ c
       real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
       integer ki, ksfc, ktmp, kOBL, kn1
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
 c
       surf_layer_ext = 0.1
       bl1 = 8e-5
@@ -1161,8 +1178,8 @@ c --- ------ centers.
      .                               cellHeight,OBLdepth(i,j))
 
              ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
+             kOBL = int(hOBL(i,j))    ! index of interface above OBL depth
+
 c --- ------ Diapycnal mixing when local stability is weak
 c --- ------ convection routine based on N2 not rho
 c --- ------ make sure it is in metrics if stability depends on rho
@@ -1204,10 +1221,6 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              kk,                                ! (in) Number of levels to compute coeffs for
      .              kk,                                ! (in) Number of levels in array shape
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
-
-             ! gets index of the level and interface above hbl
-             kOBL = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
 
 c ---- ccc -------
              ! convert m2/s to cm2/s
