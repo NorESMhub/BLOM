@@ -79,7 +79,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,            &
        &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
        &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
-       &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
+       &                    jpco2m,jkwco2khm,jco2kh,jco2khm,jsrfpn2om,          &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
        &                    jsrfalkali,jsrfano3,jsrfdic,jsrfiron,               &
