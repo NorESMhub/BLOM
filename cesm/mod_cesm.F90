@@ -28,8 +28,8 @@ module mod_cesm
    use mod_time, only: nstep
    use mod_xc
    use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
-                          fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, atmco2,&
-                          atmbrf
+                          fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
+                          lamult, lasl, ustokes, vstokes, atmco2, atmbrf
    use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
@@ -70,9 +70,13 @@ module mod_cesm
       ustarw_da, &       ! Friction velocity for open water [m s-1].
       slp_da, &          ! Sea-level pressure [kg m-1 s-2].
       abswnd_da, &       ! Wind speed at measurement height (zu) [m s-1].
+      ficem_da, &        ! Ice concentration [].
+      lamult_da, &       ! Langmuir enhancement factor [].
+      lasl_da, &         ! Surface layer averaged Langmuir number [].
+      ustokes_da, &      ! u-component of surface Stokes drift [m s-1].
+      vstokes_da, &      ! v-component of surface Stokes drift [m s-1].
       atmco2_da, &       ! Atmospheric CO2 concentration [ppm].
-      atmbrf_da, &       ! Atmospheric bromoform concentration [ppt].
-      ficem_da           ! Ice concentration [].
+      atmbrf_da          ! Atmospheric bromoform concentration [ppt].
 
    logical :: &
       smtfrc             ! If true, time smooth CESM forcing fields.
@@ -83,7 +87,8 @@ module mod_cesm
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
-             slp_da, abswnd_da, atmco2_da, atmbrf_da, ficem_da, smtfrc, l1ci, l2ci, &
+             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, &
+             ustokes_da, vstokes_da, atmco2_da, atmbrf_da, smtfrc, l1ci, l2ci, &
              inicon_cesm, inifrc_cesm, getfrc_cesm
 
 contains
@@ -146,6 +151,7 @@ contains
 #undef DIAG
 #ifdef DIAG
       use mod_nctools
+      use mod_dia, only : iotype
 #endif
 
       integer :: i, j, l
@@ -163,22 +169,26 @@ contains
       do j = 1, jj
         do l = 1, isp(j)
         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-           ustarw(i, j) = w1*ustarw_da(i, j, l1ci) + w2*ustarw_da(i, j, l2ci)
-           lip(i, j)    = w1*lip_da(i, j, l1ci)    + w2*lip_da(i, j, l2ci)
-           sop(i, j)    = w1*sop_da(i, j, l1ci)    + w2*sop_da(i, j, l2ci)
-           eva(i, j)    = w1*eva_da(i, j, l1ci)    + w2*eva_da(i, j, l2ci)
-           rnf(i, j)    = w1*rnf_da(i, j, l1ci)    + w2*rnf_da(i, j, l2ci)
-           rfi(i, j)    = w1*rfi_da(i, j, l1ci)    + w2*rfi_da(i, j, l2ci)
-           fmltfz(i, j) = w1*fmltfz_da(i, j, l1ci) + w2*fmltfz_da(i, j, l2ci)
-           sfl(i, j)    = w1*sfl_da(i, j, l1ci)    + w2*sfl_da(i, j, l2ci)
-           swa(i, j)    = w1*swa_da(i, j, l1ci)    + w2*swa_da(i, j, l2ci)
-           nsf(i, j)    = w1*nsf_da(i, j, l1ci)    + w2*nsf_da(i, j, l2ci)
-           hmlt(i, j)   = w1*hmlt_da(i, j, l1ci)   + w2*hmlt_da(i, j, l2ci)
-           slp(i, j)    = w1*slp_da(i, j, l1ci)    + w2*slp_da(i, j, l2ci)
-           ficem(i, j)  = w1*ficem_da(i, j, l1ci)  + w2*ficem_da(i, j, l2ci)
-           abswnd(i, j) = w1*abswnd_da(i, j, l1ci) + w2*abswnd_da(i, j, l2ci)
-           atmco2(i, j) = w1*atmco2_da(i, j, l1ci) + w2*atmco2_da(i, j, l2ci)
-           atmbrf(i, j) = w1*atmbrf_da(i, j, l1ci) + w2*atmbrf_da(i, j, l2ci)
+           ustarw(i, j)  = w1*ustarw_da(i, j, l1ci)  + w2*ustarw_da(i, j, l2ci)
+           lip(i, j)     = w1*lip_da(i, j, l1ci)     + w2*lip_da(i, j, l2ci)
+           sop(i, j)     = w1*sop_da(i, j, l1ci)     + w2*sop_da(i, j, l2ci)
+           eva(i, j)     = w1*eva_da(i, j, l1ci)     + w2*eva_da(i, j, l2ci)
+           rnf(i, j)     = w1*rnf_da(i, j, l1ci)     + w2*rnf_da(i, j, l2ci)
+           rfi(i, j)     = w1*rfi_da(i, j, l1ci)     + w2*rfi_da(i, j, l2ci)
+           fmltfz(i, j)  = w1*fmltfz_da(i, j, l1ci)  + w2*fmltfz_da(i, j, l2ci)
+           sfl(i, j)     = w1*sfl_da(i, j, l1ci)     + w2*sfl_da(i, j, l2ci)
+           swa(i, j)     = w1*swa_da(i, j, l1ci)     + w2*swa_da(i, j, l2ci)
+           nsf(i, j)     = w1*nsf_da(i, j, l1ci)     + w2*nsf_da(i, j, l2ci)
+           hmlt(i, j)    = w1*hmlt_da(i, j, l1ci)    + w2*hmlt_da(i, j, l2ci)
+           slp(i, j)     = w1*slp_da(i, j, l1ci)     + w2*slp_da(i, j, l2ci)
+           abswnd(i, j)  = w1*abswnd_da(i, j, l1ci)  + w2*abswnd_da(i, j, l2ci)
+           ficem(i, j)   = w1*ficem_da(i, j, l1ci)   + w2*ficem_da(i, j, l2ci)
+           lamult(i, j)  = w1*lamult_da(i, j, l1ci)  + w2*lamult_da(i, j, l2ci)
+           lasl(i, j)    = w1*lasl_da(i, j, l1ci)    + w2*lasl_da(i, j, l2ci)
+           ustokes(i, j) = w1*ustokes_da(i, j, l1ci) + w2*ustokes_da(i, j, l2ci)
+           vstokes(i, j) = w1*vstokes_da(i, j, l1ci) + w2*vstokes_da(i, j, l2ci)
+           atmco2(i, j)  = w1*atmco2_da(i, j, l1ci)  + w2*atmco2_da(i, j, l2ci)
+           atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
         enddo
         enddo
         do l = 1, isu(j)
@@ -210,8 +220,12 @@ contains
       call ncdefvar('nsf_da', 'x y', ndouble, 8)
       call ncdefvar('hmlt_da', 'x y', ndouble, 8)
       call ncdefvar('slp_da', 'x y', ndouble, 8)
-      call ncdefvar('ficem_da', 'x y', ndouble, 8)
       call ncdefvar('abswnd_da', 'x y', ndouble, 8)
+      call ncdefvar('ficem_da', 'x y', ndouble, 8)
+      call ncdefvar('lamult_da', 'x y', ndouble, 8)
+      call ncdefvar('lasl_da', 'x y', ndouble, 8)
+      call ncdefvar('ustokes_da', 'x y', ndouble, 8)
+      call ncdefvar('vstokes_da', 'x y', ndouble, 8)
       call ncdefvar('atmco2_da', 'x y', ndouble, 8)
       call ncdefvar('atmbrf_da', 'x y', ndouble, 8)
       call ncdefvar('ztx_da', 'x y', ndouble, 8)
@@ -242,14 +256,22 @@ contains
                   ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('slp_da', 'x y', slp_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('abswnd_da', 'x y', abswnd_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('ficem_da', 'x y', ficem_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
-      call ncwrtr('abswnd_da', 'x y', abswnd_da(1 - nbdy, 1 - nbdy, l2ci), &
+      call ncwrtr('lamult_da', 'x y', lamult_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('lasl_da', 'x y', lasl_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('ustokes_da', 'x y', ustokes_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('vstokes_da', 'x y', vstokes_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('atmco2_da', 'x y', atmco2_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('atmbrf_da', 'x y', atmbrf_da(1 - nbdy, 1 - nbdy, l2ci), &
-     .            ip, 1, 1._r8, 0._r8, 8)
+                  ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('ztx_da', 'x y', ztx_da(1 - nbdy, 1 - nbdy, l2ci), &
                   iu, 1, 1._r8, 0._r8, 8)
       call ncwrtr('mty_da', 'x y', mty_da(1 - nbdy, 1 - nbdy, l2ci), &
@@ -277,8 +299,12 @@ contains
          call chksummsk(nsf, ip, 1, 'nsf')
          call chksummsk(hmlt, ip, 1, 'hmlt')
          call chksummsk(slp, ip, 1, 'slp')
-         call chksummsk(ficem, ip, 1, 'ficem')
          call chksummsk(abswnd, ip, 1, 'abswnd')
+         call chksummsk(ficem, ip, 1, 'ficem')
+         call chksummsk(lamult, ip, 1, 'lamult')
+         call chksummsk(lasl, ip, 1, 'lasl')
+         call chksummsk(ustokes, ip, 1, 'ustokes')
+         call chksummsk(vstokes, ip, 1, 'vstokes')
          call chksummsk(atmco2, ip, 1, 'atmco2')
          call chksummsk(atmbrf, ip, 1, 'atmbrf')
       endif
