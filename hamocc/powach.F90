@@ -374,8 +374,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
               posol = denit * sedlay(i,j,k,issso12)         ! remineralization of poc
               umfa = porsol(i,j,k) / porwat(i,j,k)
-              !this overwrites anaerob from denitrification. added =anaerob+..., works
-              anaerob(i,k) = anaerob(i,k) + posol*umfa      !this has P units: kmol P/m3 of pore water
+              sulf(i,k) = posol*umfa      !this has P units: kmol P/m3 of pore water
 #ifdef cisonew
               rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12)+safediv)
               rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12)+safediv)
