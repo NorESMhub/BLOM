@@ -76,10 +76,10 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,            &
        &                    jlvlpoc13,jlvlprefalk,jlvlprefdic,                  &
        &                    jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,          &
-       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,            &
+       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jsrfpn2om,jn2oflux,  &
        &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
        &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
-       &                    jpco2m,jkwco2khm,jco2kh,jco2khm,jsrfpn2om,          &
+       &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
        &                    jsrfalkali,jsrfano3,jsrfdic,jsrfiron,               &
