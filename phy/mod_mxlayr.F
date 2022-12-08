@@ -26,8 +26,8 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_constants, only: g, spcifh, alpha0, epsilp, spval, onem,
-     .                         tencm, onecm, onemm, onemu
-      use mod_constants, only: L_mks2cgs, R_mks2cgs
+     .                         tencm, onecm, onemm, onemu,
+     .                         L_mks2cgs, R_mks2cgs
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: sigmar
@@ -90,6 +90,11 @@ c --- Diagnostic variables:
      .  mtkeke,         ! Mixed layer TKE tendency related to kin.
                         ! energy change [cm3 s-3].
      .  pbrnda          ! Brine plume pressure depth [g cm-1 s-2].
+c
+      real(r8), parameter ::
+     .  iL_mks2cgs = 1./L_mks2cgs,
+     .  A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs),
+     .  V_mks2cgs  = L_mks2cgs**3
 c
       public :: rm0,rm5,ce,mlrttp,mltmin,
      .          mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,pbrnda,
@@ -420,8 +425,8 @@ c
               tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
               if (.not.(nitr.eq.1.and.pres(3)*lbi.gt.1.)) then
                 dtke=(tkew-tkeo)/dpmxl
-                if (abs(dtke)<(abs(tkew)+1.e-22*L_mks2cgs**3)
-     .                         /(pres(3)-pres(1))) then
+                if (abs(dtke)<(abs(tkew)+1.e-22*V_mks2cgs)
+     .                        /(pres(3)-pres(1))) then
                   if (tkew.lt.0.) then
                     dpmxl=.5*(pres(1)-pmxl)
                   else
@@ -440,9 +445,9 @@ c
               write (lp,*) 'dpth=',pres(3)/onem,';'
               write (lp,*) 'pmxl=',pmxl/onem,';'
               write (lp,*) 'corio=',coriop(i,j),';'
-              write (lp,*) 'ustar=',ustar(i,j)*L_mks2cgs**-1,';'
-              write (lp,*) 'bfltot=',bfltot*L_mks2cgs**-2,';'
-              write (lp,*) 'bflpsw=',bflpsw*L_mks2cgs**-2,';'
+              write (lp,*) 'ustar=',ustar(i,j)*iL_mks2cgs,';'
+              write (lp,*) 'bfltot=',bfltot*A_cgs2mks,';'
+              write (lp,*) 'bflpsw=',bflpsw*A_cgs2mks,';'
               write (lp,*) 'bg2=',util1(i,j),';'
               write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
               write (lp,*)
@@ -932,7 +937,7 @@ c
                       endif
                       if (.not.chngd) then
                         if (abs(dtke).lt.
-     .                    (abs(tkew)+1.e-22*L_mks2cgs**3)/delp(k)) then
+     .                    (abs(tkew)+1.e-22*V_mks2cgs)/delp(k)) then
                           if (tkew.lt.0.) then
                             dpmxl=.5*(pres(k)-pmxl)
                           else
@@ -955,9 +960,9 @@ c
                     write (lp,*) 'dpth=',pres(3)/onem,';'
                     write (lp,*) 'pmxl=',pmxl/onem,';'
                     write (lp,*) 'corio=',coriop(i,j),';'
-                    write (lp,*) 'ustar=',ustar(i,j)*L_mks2cgs**-1,';'
-                    write (lp,*) 'bfltot=',bfltot*L_mks2cgs**-2,';'
-                    write (lp,*) 'bflpsw=',bflpsw*L_mks2cgs**-2,';'
+                    write (lp,*) 'ustar=',ustar(i,j)*iL_mks2cgs,';'
+                    write (lp,*) 'bfltot=',bfltot*A_cgs2mks,';'
+                    write (lp,*) 'bflpsw=',bflpsw*A_cgs2mks,';'
                     write (lp,*) 'bg2=',util1(i,j),';'
                     write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
                     write (lp,*) 'pres(3)=',pres(3)/onem,';'

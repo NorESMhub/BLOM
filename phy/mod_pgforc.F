@@ -141,9 +141,6 @@ c --- ------------------------------------------------------------------
 c --- compute the pressure gradient force
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: g, epsilp
-      use mod_xc
-c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
