@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen
+! Copyright (C) 2015-2020 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -78,7 +78,7 @@ contains
 
       real(r8), dimension(itdm,jtdm) :: tmpg
       integer :: i, j, l, errstat, ncid, dimid, varid
-      
+
       if (mnproc == 1) then
          write (lp, '(2a)') ' reading tidal dissipation data from ', &
                             trim(tdfile)

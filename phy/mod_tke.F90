@@ -57,17 +57,16 @@ module mod_tke
       gls_Ghcri = .03_r8, &      !
       vonKar = .4_r8             !
 
-#if defined(CGS)
-   real(r8), parameter :: &
-      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [cm2/s2].
-      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [cm2/s3].
-      Ls_unlmt_min = 1.e-6_r8    ! [cm]
-#endif
-#if defined(MKS)
+#ifdef MKS
    real(r8), parameter :: &
       tke_min = 7.6e-8_r8, &     ! Minimum TKE value [m2/s2].
       gls_psi_min = 1.e-14_r8, & ! Minimum GLS value [m2/s3].
       Ls_unlmt_min = 1.e-8_r8    ! [m]
+#else
+   real(r8), parameter :: &
+      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [cm2/s2].
+      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [cm2/s3].
+      Ls_unlmt_min = 1.e-6_r8    ! [cm]
 #endif
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &

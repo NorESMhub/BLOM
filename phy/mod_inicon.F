@@ -27,8 +27,8 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_config, only: expcnf
-      use mod_constants, only: g, epsilp, onem
-      use mod_constants, only: L_mks2cgs, M_mks2cgs, P_mks2cgs
+      use mod_constants, only: g, epsilp, onem,
+     .                         L_mks2cgs, M_mks2cgs, P_mks2cgs
       use mod_time, only: nstep, delt1, dlt
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,

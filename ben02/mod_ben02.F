@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2021 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2002-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -183,14 +183,13 @@ c
      .  atm_cswa_era       ! short-wave radiation adjustment factor
                            ! (NCEP)
 c
-#if defined(CGS)
-      data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e14,1.e13/,
-     .     atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/,
-     .     atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e13/,
-     .     atm_crnf_era,atm_cswa_era /0.7234,0.9721/
-#endif
-#if defined(MKS)
+#ifdef MKS
       data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e10,1.e9/,
+     .     atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/,
+     .     atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e9/,
+     .     atm_crnf_era,atm_cswa_era /0.7234,0.9721/
+#else
+      data atm_ice_csmt_ncep,atm_rnf_csmt_ncep /2.e14,1.e13/,
      .     atm_crnf_ncep,atm_cswa_ncep /0.82073,0.88340/,
      .     atm_ice_csmt_era,atm_rnf_csmt_era /0.0,1.e13/,
      .     atm_crnf_era,atm_cswa_era /0.7234,0.9721/
@@ -2098,13 +2097,12 @@ c
       integer, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12) :: smtmsk
       real dx2,dy2,prc_sum,eva_sum,rnf_sum,swa_sum,lwa_sum,lht_sum,
      .     sht_sum,fwf_fac,dangle,garea,le,albedo,fac,swa_ave,lwa_ave,
-     .     lht_ave,sht_ave,crnf,cswa
+     .     lht_ave,sht_ave,crnf,cswa,A_cgs2mks
       real*4 rw4
       integer i,j,k,l,il,jl
       integer*2 rn2,ri2,rj2
 c
-      real iL_mks2cgssq
-      iL_mks2cgssq = 1.0 / (L_mks2cgs*L_mks2cgs)
+      A_cgs2mks=1./(L_mks2cgs**2)
 c      
 c --- Allocate memory for additional monthly forcing fields.
       allocate(taud  (1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,12),
@@ -2786,7 +2784,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,garea,le)
         do k=1,12
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea=scp2(i,j)*iL_mks2cgssq ! [m^2]
+            garea=scp2(i,j)*A_cgs2mks ! [m^2]
 c
 c --- ----- freshwater fluxes [m/s]
             util1(i,j)=util1(i,j)+precip(i,j,k)*fwf_fac*garea
@@ -2830,7 +2828,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,garea,albedo)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            garea=scp2(i,j)*iL_mks2cgssq ! [m^2]
+            garea=scp2(i,j)*A_cgs2mks ! [m^2]
 c
 c --- ----- heat fluxes
             albedo=albs_f*ricclm(i,j,k)+albw(i,j)*(1.-ricclm(i,j,k))

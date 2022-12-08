@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen
+! Copyright (C) 2021-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_vdiff
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, spcifh, alpha0, onem
+  use mod_constants, only: g, spcifh, alpha0, onem
    use mod_time, only: delt1
    use mod_xc
    use mod_eos, only: sig
