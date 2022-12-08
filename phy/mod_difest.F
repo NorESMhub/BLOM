@@ -1301,7 +1301,7 @@ c --- diffusivities.
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           kfil(i,j)=kk+1
           do k=kk,2,-1
-            if (p(i,j,k).gt.mlts(i,j)*onecm) kfil(i,j)=k
+            if (p(i,j,k).gt.mlts(i,j)*(onem*iL_mks2cgs)) kfil(i,j)=k
           enddo
         enddo
         enddo
@@ -2529,7 +2529,7 @@ c --- --- Monin-Obukhov length scale
      .                           -buoyfl(i,j,1)))
 c
 c --- --- Mixed layer thickness
-          h=(p(i,j,3)-p(i,j,1))/(onem/L_mks2cgs)
+          h=(p(i,j,3)-p(i,j,1))/(onem*iL_mks2cgs)
 c
 c --- --- Dimensionless vertical coordinate in the boundary layer
           sg=(p(i,j,2)-p(i,j,1))/(p(i,j,3)-p(i,j,1))
