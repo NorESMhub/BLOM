@@ -26,7 +26,7 @@ module mod_checksum
 
    private
 
-   ! Constants.
+   ! Options with default values, modifiable by namelist.
    logical :: &
       csdiag = .false. ! Flag that indicates whether checksums are written.
 

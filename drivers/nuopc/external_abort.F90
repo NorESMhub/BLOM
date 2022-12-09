@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen, Ping-Gin Chiu
+! Copyright (C) 2015 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,26 +17,19 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_config
+subroutine external_abort(msg)
 ! ------------------------------------------------------------------------------
-! This module contains configuration variables.
+! Call CESM shared abort routine.
 ! ------------------------------------------------------------------------------
+
+   use shr_sys_mod, only: shr_sys_abort
 
    implicit none
 
-   private
+   ! Input/output arguments.
 
-   character(len = 256) :: &
-      expcnf, &           ! Experiment configuration.
-      runid               ! Experiment name.
-   character(len = 16) :: &
-      inst_name   = '', & ! Instance name.
-      inst_suffix = ''    ! Instance suffix.
-   integer :: &
-      inst_index = 0      ! Instance index.
-   logical :: &
-      resume_flag = .false.    ! resume flag, use at ocn_run_mct()
+   character(len=*), intent(in) :: msg
 
-   public ::  expcnf, runid, inst_name, inst_suffix, inst_index, resume_flag
+   call shr_sys_abort(msg)
 
-end module mod_config
+end subroutine external_abort

@@ -34,35 +34,35 @@ module mo_read_ndep
 !  -put reading of a time-slice of n-deposition data into own subroutine
 !  -removed default file name
 !
+!  J. Schwinger,     *NORCE climate, Bergen*   2022-06-02
+!  -revise structure of this module, split into a module for reading the 
+!   data (mo_read_ndep) and a module that applies the fluxes in core 
+!   hamocc (mo_apply_ndep)
+!
 !
 ! Purpose
 ! -------
-!  -Routines for reading and applying nitrogen deposition fluxes
+!  -Routines for reading nitrogen deposition fluxes from netcdf files
 !
 !
 ! Description:
 ! ------------
 !
-!  The routine n_deposition reads nitrogen deposition from file and applies it
-!  to the top-most model layer.
+!  The routine get_ndep reads nitrogen deposition from file. The n-deposition
+!  field is then passed to hamocc4bcm where it is applied to the top-most model 
+!  layer by a call to apply_ndep (mo_apply_ndep).
 !
 !  N deposition is activated through a logical switch 'do_ndep' read from
 !  HAMOCC's bgcnml namelist. If N deposition is acitvated, a valid filename
-!  needs to be provided via HAMOCC's bgcnml namelist (variable ndepfile). If
-!  the input file is not found, an error will be issued.
+!  (including the full path) needs to be provided via HAMOCC's bgcnml namelist 
+!  (variable ndepfile). If the input file is not found, an error will be issued.
+!  The input data must be already pre-interpolated to the ocean grid.
 !
-!  The input data must be already pre-interpolated to the ocean grid and stored
-!  in the same folder with BLOM's grid information.
-!
-!  -subroutine ini_ndep
-!     Initialise the n-deposition module
+!  -subroutine ini_read_ndep
+!     Initialise the module
 !
 !  -subroutine get_ndep
 !     Read and return n-deposition data for a given month.
-!
-!  -subroutine n_deposition
-!     Apply n-deposition to the top-most model layer.
-!
 !
 !******************************************************************************
   implicit none

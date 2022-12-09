@@ -58,6 +58,7 @@ c
       use mod_cesm, only: runid_cesm, ocn_cpl_dt_cesm, nstep_in_cpl,
      .                    smtfrc
       use mod_pointtest, only: itest, jtest
+      use mod_budget, only: cnsvdi
       use mod_checksum, only: csdiag
 c
       implicit none
@@ -72,13 +73,14 @@ c
      .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,
      .  mommth,bmcmth,rmpmth,mlrttp,
-     .  
      .  rm0,rm5,ce,tdfile,niwgf,niwbf,niwlf,
      .  swamth,jwtype,chlopt,ccfile,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
      .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,smtfrc,sprfac,
      .  atm_path,
      .  itest,jtest,
+     .  cnsvdi,
+     .  csdiag,
      .  rstfrq,rstfmt,rstcmp,iotype
 c
 c --- read limits namelist
@@ -164,6 +166,8 @@ c --- - print limits namelist to stdout
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
         write (lp,*) 'ITEST',ITEST
         write (lp,*) 'JTEST',JTEST
+        write (lp,*) 'CNSVDI',CNSVDI
+        write (lp,*) 'CSDIAG',CSDIAG
         write (lp,*) 'RSTFRQ',RSTFRQ
         write (lp,*) 'RSTFMT',RSTFMT
         write (lp,*) 'RSTCMP',RSTCMP
@@ -232,6 +236,8 @@ c
       call xcbcst(atm_path)
       call xcbcst(itest)
       call xcbcst(jtest)
+      call xcbcst(cnsvdi)
+      call xcbcst(csdiag)
       call xcbcst(rstfrq)
       call xcbcst(rstfmt)
       call xcbcst(rstcmp)
