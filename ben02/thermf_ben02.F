@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2021 Mats Bentsen
+! Copyright (C) 2002-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -21,8 +21,8 @@
 c
 c --- NERSC version of thermf. 
 c
-      use mod_constants, only: spcifh, t0deg, epsilt, onem
-      use mod_constants, only: L_mks2cgs, M_mks2cgs, g2kg, alpha0
+      use mod_constants, only: spcifh, t0deg, alpha0, epsilt, onem,
+     .                         g2kg, kg2g, L_mks2cgs, M_mks2cgs
       use mod_time, only: nday_in_year, nday_of_year, nstep,
      .                    nstep_in_day, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -67,12 +67,12 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: vrtsfl
 c
       integer i,j,k,l,m1,m2,m3,m4,m5
-      real*8 dt,cpsw,rnf_fac,sag_fac,y,
+      real dt,cpsw,rnf_fac,sag_fac,y,
      .     dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,hice_min,
      .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
      .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totwfl,sflxc,totsrp,totsrn
+     .     totsfl,totwfl,sflxc,totsrp,totsrn,A_cgs2mks
 #ifdef TRC
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -83,9 +83,8 @@ c     real tottrsf,tottrav,trflxc
 c
       real intp1d
       external intp1d
-      real iL_mks2cgssq
 c
-      iL_mks2cgssq = 1.0 / (L_mks2cgs**2)
+      A_cgs2mks=1./(L_mks2cgs**2)
 c
 c --- Due to conservation, the ratio of ice and snow density must be
 c --- equal to the ratio of ice and snow heat of fusion
@@ -419,11 +418,11 @@ c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=(dvi*fusi+dvs*fuss)/dt
 c
 c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*iL_mks2cgssq
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
 c
 c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
-          sswflx(i,j)=-qsww*(1.-fice0)*iL_mks2cgssq
+          sswflx(i,j)=-qsww*(1.-fice0)*A_cgs2mks
 c
 #ifdef TRC
 c --- ------------------------------------------------------------------
@@ -478,7 +477,7 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
      .                  ricclm(i,j,l5mi),xmi)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
             trxflx=spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.)
-     .                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
+     .             *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -505,7 +504,7 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
             srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)
-     .                 *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
+     .             *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             salrlx(i,j)=-srxflx
             util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
             util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
@@ -572,9 +571,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))
-     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
           brnflx(i,j)=-brnflx(i,j)
-     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
         enddo
         enddo
       enddo

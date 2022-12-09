@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -62,7 +62,7 @@ subroutine numerical_bounds
          btdtmx = min(btdtmx, &
                       scpx(i, j)*scpy(i, j) &
                       /sqrt(g*depths(i, j)*L_mks2cgs*( scpx(i, j)*scpx(i, j) &
-                                                   + scpy(i, j)*scpy(i, j))))
+                                                     + scpy(i, j)*scpy(i, j))))
       enddo
       enddo
    enddo

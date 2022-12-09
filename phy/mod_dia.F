@@ -26,8 +26,9 @@ c
       use mod_time, only: date0, date, calendar, nstep, nstep_in_day,
      .                    nday_of_year, time, time0, baclin, dlt
       use mod_constants, only: g, spcifh, t0deg, alpha0, epsilp, spval,
-     .                         onem, onecm, onemm
-      use mod_constants, only: L_mks2cgs, M_mks2cgs, g2kg
+     .                         onem, onecm, onemm,
+     .                         L_mks2cgs, M_mks2cgs, P_mks2cgs,
+     .                         R_mks2cgs, g2kg
       use mod_xc
       use mod_nctools
       use netcdf, only : nf90_fill_double
@@ -171,6 +172,14 @@ c
 c --- Pressure thickness [g cm-1 s-2] of region for bottom salinity and
 c --- temperature diagnostics
       real, parameter :: dpbot=onem
+c
+      real, parameter ::
+     .  L_cgs2mks=1./L_mks2cgs,
+     .  A_cgs2mks=1./(L_mks2cgs**2),
+     .  V_cgs2mks=1./(L_mks2cgs**3),
+     .  M_cgs2mks=1./M_mks2cgs,
+     .  P_cgs2mks=1./P_mks2cgs,
+     .  R_cgs2mks=1./R_mks2cgs
 c
 c --- Namelist
       integer, dimension(nphymax), save ::
@@ -1750,12 +1759,6 @@ c
       parameter (treps=1.e-14)
 #endif
 c
-      real iM_mks2cgs, iL_mks2cgs, iL_mks2cgssq
-c
-      iM_mks2cgs = 1.0 / (M_mks2cgs)
-      iL_mks2cgs = 1.0 / (L_mks2cgs)
-      iL_mks2cgssq = 1.0 / (L_mks2cgs**2)
-c
 c --- prepare output fields
       if (mnproc.eq.1)
      .  write (lp,'(a,f6.2,a)') 'diaout: fields averaged over ',
@@ -1887,7 +1890,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         enddo
 c$OMP END PARALLEL DO
         call xcsum(volgs(1),util1,ips)
-        volgs(1)=rnacc*(iL_mks2cgs**3)*volgs(1)/g
+        volgs(1)=rnacc*V_cgs2mks*volgs(1)/g
       endif
       if (MSC_SALNGA(iogrp).ne.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
@@ -1956,7 +1959,7 @@ c$OMP END PARALLEL DO
         tempga(1)=tempga(1)/massgs(1)
       endif
       if (MSC_MASSGS(iogrp).ne.0) then
-        massgs(1)=rnacc*iM_mks2cgs*massgs(1)/g
+        massgs(1)=rnacc*M_cgs2mks*massgs(1)/g
       endif
       if (MSC_SSSGA(iogrp).ne.0) then
 c$OMP PARALLEL DO PRIVATE(l,i)
@@ -2011,30 +2014,30 @@ c --- finalize accumulation of layer fields
 c
 c --- compute log10 of diffusivities
       if (LYR_DIFDIA(iogrp).eq.2)
-     .  call loglyr(ACC_DIFDIA(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFDIA(iogrp),'p',A_cgs2mks,0.)
       if (LYR_DIFVMO(iogrp).eq.2)
-     .  call loglyr(ACC_DIFVMO(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFVMO(iogrp),'p',A_cgs2mks,0.)
       if (LYR_DIFVHO(iogrp).eq.2)
-     .  call loglyr(ACC_DIFVHO(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFVHO(iogrp),'p',A_cgs2mks,0.)
       if (LYR_DIFVSO(iogrp).eq.2)
-     .  call loglyr(ACC_DIFVSO(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFVSO(iogrp),'p',A_cgs2mks,0.)
       if (LYR_DIFINT(iogrp).eq.2)
-     .  call loglyr(ACC_DIFINT(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFINT(iogrp),'p',A_cgs2mks,0.)
       if (LYR_DIFISO(iogrp).eq.2)
-     .  call loglyr(ACC_DIFISO(iogrp),'p',iL_mks2cgssq,0.)
+     .  call loglyr(ACC_DIFISO(iogrp),'p',A_cgs2mks,0.)
 c
       if (LVL_DIFDIA(iogrp).eq.2)
-     .  call loglvl(ACC_DIFDIALVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFDIALVL(iogrp),'p',A_cgs2mks*rnacc,0.)
       if (LVL_DIFVMO(iogrp).eq.2)
-     .  call loglvl(ACC_DIFVMOLVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFVMOLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
       if (LVL_DIFVHO(iogrp).eq.2)
-     .  call loglvl(ACC_DIFVHOLVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFVHOLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
       if (LVL_DIFVSO(iogrp).eq.2)
-     .  call loglvl(ACC_DIFVSOLVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFVSOLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
       if (LVL_DIFINT(iogrp).eq.2)
-     .  call loglvl(ACC_DIFINTLVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFINTLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
       if (LVL_DIFISO(iogrp).eq.2)
-     .  call loglvl(ACC_DIFISOLVL(iogrp),'p',iL_mks2cgssq*rnacc,0.)
+     .  call loglvl(ACC_DIFISOLVL(iogrp),'p',A_cgs2mks*rnacc,0.)
 c
 c --- mask sea floor of level fields
       call msklvl(ACC_BFSQLVL(iogrp),'p')
@@ -2231,32 +2234,34 @@ c --- zlevel
       endif
 c
 c --- write 2d fields
-      call wrth2d(ACC_SIGMX(iogrp),H2D_SIGMX(iogrp),rnacc*M_mks2cgs,
+      call wrth2d(ACC_SIGMX(iogrp),H2D_SIGMX(iogrp),rnacc*R_cgs2mks,
      ,  0.,cmpflg,ip,'p','sigmx','Mixed layer density',' ','kg m-3')
 c
-      call wrth2d(ACC_UB(iogrp),H2D_UB(iogrp),rnacc*iL_mks2cgs,
+      call wrth2d(ACC_UB(iogrp),H2D_UB(iogrp),rnacc*L_cgs2mks,
      .  0.,cmpflg,iuu,'u','ubaro','Barotropic velocity x-component',
      .  ' ','m s-1')
 c
-      call wrth2d(ACC_VB(iogrp),H2D_VB(iogrp),rnacc*iL_mks2cgs,
+      call wrth2d(ACC_VB(iogrp),H2D_VB(iogrp),rnacc*L_cgs2mks,
      .  0.,cmpflg,ivv,'v','vbaro','Barotropic velocity y-component',
      .  ' ','m s-1')
 c
       call wrth2d(ACC_PSRF(iogrp),H2D_PSRF(iogrp),
-     .  rnacc*.1,0.,cmpflg,ip,'p','psrf','Surface pressure',' ','Pa')
+     .  rnacc*P_cgs2mks,0.,cmpflg,ip,'p','psrf','Surface pressure',
+     .  ' ','Pa')
 c
       call wrth2d(ACC_PBOT(iogrp),H2D_PBOT(iogrp),
-     .  rnacc*.1,0.,cmpflg,ip,'p','pbot','Bottom pressure',' ','Pa')
+     .  rnacc*P_cgs2mks,0.,cmpflg,ip,'p','pbot','Bottom pressure',
+     .  ' ','Pa')
 c
       call wrth2d(ACC_SEALV(iogrp),H2D_SEALV(iogrp),
-     .  -rnacc*iL_mks2cgs,0.,cmpflg,ip,'p','sealv','Sea level',' ','m')
+     .  -rnacc*L_cgs2mks,0.,cmpflg,ip,'p','sealv','Sea level',' ','m')
 c
       call wrth2d(ACC_SLVSQ(iogrp),H2D_SLVSQ(iogrp),
-     .  rnacc*iL_mks2cgssq,0.,cmpflg,ip,
-     .  'p','slvsq','Sea level squared',' ','m2')
+     .  rnacc*A_cgs2mks,0.,cmpflg,ip,'p','slvsq','Sea level squared',
+     .  ' ','m2')
 c
       call wrth2d(ACC_UTILH2D(1),H2D_BTMSTR(iogrp),
-     .  rnacc*0.5*iM_mks2cgs*dlt/(g*baclin),0.,cmpflg,ip,'p','btmstr',
+     .  rnacc*0.5*M_cgs2mks*dlt/(g*baclin),0.,cmpflg,ip,'p','btmstr',
      .  'Barotropic mass streamfunction',' ','kg s-1')
 c
       call wrth2d(ACC_HICE(iogrp),H2D_HICE(iogrp),1.,0.,
@@ -2277,10 +2282,10 @@ c
       call wrth2d(ACC_IAGE(iogrp),H2D_IAGE(iogrp),1.,0.,
      .  cmpflg,ip,'p','iage','Ice age',' ','day')
 c
-      call wrth2d(ACC_UICE(iogrp),H2D_UICE(iogrp),iL_mks2cgs,0.,
+      call wrth2d(ACC_UICE(iogrp),H2D_UICE(iogrp),L_cgs2mks,0.,
      .  cmpflg,iuu,'u','uice','Ice velocity x-component',' ','m s-1')
 c
-      call wrth2d(ACC_VICE(iogrp),H2D_VICE(iogrp),iL_mks2cgs,0.,
+      call wrth2d(ACC_VICE(iogrp),H2D_VICE(iogrp),L_cgs2mks,0.,
      .  cmpflg,ivv,'v','vice','Ice velocity y-component',' ','m s-1')
 c
       call wrth2d(ACC_SWA(iogrp),H2D_SWA(iogrp),rnacc,0.,
@@ -2325,16 +2330,16 @@ c
      .  rnacc,0.,cmpflg,ip,'p','rfi','Frozen runoff',' ','kg m-2 s-1')
 c
       call wrth2d(ACC_SALFLX(iogrp),H2D_SALFLX(iogrp),
-     .  -rnacc*iL_mks2cgs,0.,cmpflg,ip,'p','sflx',
+     .  -rnacc*(g2kg*M_cgs2mks/A_cgs2mks),0.,cmpflg,ip,'p','sflx',
      .  'Salt flux received by ocean',' ','kg m-2 s-1')
 c
       call wrth2d(ACC_SALRLX(iogrp),H2D_SALRLX(iogrp),
-     .  -rnacc*iL_mks2cgs,0.,cmpflg,ip,'p','srflx',
+     .  -rnacc*(g2kg*M_cgs2mks/A_cgs2mks),0.,cmpflg,ip,'p','srflx',
      .  'Restoring salt flux received by ocean',' ','kg m-2 s-1')
 c
       call wrth2d(ACC_BRNFLX(iogrp),H2D_BRNFLX(iogrp),
-     .  rnacc*(-iL_mks2cgs),0.,cmpflg,ip,'p','bflx','Brine flux',' ',
-     .  'kg m-2 s-1')
+     .  rnacc*(-g2kg*M_cgs2mks/A_cgs2mks),0.,cmpflg,ip,'p','bflx',
+     .  'Brine flux',' ','kg m-2 s-1')
 c
       call wrth2d(ACC_ZTX(iogrp),H2D_ZTX(iogrp),rnacc,0.,
      .  cmpflg,iuu,'u','ztx','Wind stress x-component',' ','N m-2')
@@ -2351,16 +2356,16 @@ c
      .  'Momentum flux received by ocean y-component',' ','N m-2')
 c
       call wrth2d(ACC_IDKEDT(iogrp),H2D_IDKEDT(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','idkedt',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','idkedt',
      .  'Mixed layer inertial kinetic energy tendency per unit area',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_USTAR(iogrp),H2D_USTAR(iogrp),
-     .  rnacc*iL_mks2cgs,0.,cmpflg,ip,
-     .  'p','ustar','Friction velocity',' ','m s-1')
+     .  rnacc*L_cgs2mks,0.,cmpflg,ip,'p','ustar','Friction velocity',
+     .  ' ','m s-1')
 c
       call wrth2d(ACC_USTAR3(iogrp),H2D_USTAR3(iogrp),
-     .  rnacc*(iL_mks2cgs**3),0.,cmpflg,ip,'p','ustar3',
+     .  rnacc*V_cgs2mks,0.,cmpflg,ip,'p','ustar3',
      .  'Friction velocity cubed',' ','m3 s-3')
 c
       call wrth2d(ACC_ABSWND(iogrp),H2D_ABSWND(iogrp),
@@ -2368,37 +2373,37 @@ c
      .  'm s-1')
 c
       call wrth2d(ACC_MTKEUS(iogrp),H2D_MTKEUS(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkeus',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkeus',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to friction velocity',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_MTKENI(iogrp),H2D_MTKENI(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkeni',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkeni',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to near inertial motions',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_MTKEBF(iogrp),H2D_MTKEBF(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkebf',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkebf',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to buoyancy forcing',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_MTKERS(iogrp),H2D_MTKERS(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkers',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkers',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to eddy restratification',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_MTKEPE(iogrp),H2D_MTKEPE(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkepe',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkepe',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to potential energy change',
      .  ' ','kg s-3')
 c
       call wrth2d(ACC_MTKEKE(iogrp),H2D_MTKEKE(iogrp),
-     .  rnacc*iM_mks2cgs/alpha0,0.,cmpflg,ip,'p','mtkeke',
+     .  rnacc*M_cgs2mks/alpha0,0.,cmpflg,ip,'p','mtkeke',
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to kinetic energy change',
      .  ' ','kg s-3')
@@ -2416,23 +2421,23 @@ c
      .  1./onem,0.,cmpflg,ip,'p','maxmld','Maximum mixed layer depth',
      .  ' ','m')
 c
-      call wrth2d(ACC_MLTS(iogrp),H2D_MLTS(iogrp),rnacc*iL_mks2cgs,
+      call wrth2d(ACC_MLTS(iogrp),H2D_MLTS(iogrp),rnacc*L_cgs2mks,
      .  0.,cmpflg,ip,'p','mlts',
      . 'Mixed layer thickness defined by sigma t',' ','m')
 c
-      call wrth2d(ACC_MLTSMN(iogrp),H2D_MLTSMN(iogrp),iL_mks2cgs,
+      call wrth2d(ACC_MLTSMN(iogrp),H2D_MLTSMN(iogrp),L_cgs2mks,
      .  0.,cmpflg,ip,'p','mltsmn',
      .  'Minimum mixed layer thickness defined by sigma t',' ','m')
 c
-      call wrth2d(ACC_MLTSMX(iogrp),H2D_MLTSMX(iogrp),iL_mks2cgs,
+      call wrth2d(ACC_MLTSMX(iogrp),H2D_MLTSMX(iogrp),L_cgs2mks,
      .  0.,cmpflg,ip,'p','mltsmx',
      .  'Maximum mixed layer thickness defined by sigma t',' ','m')
 c
-      call wrth2d(ACC_MLTSSQ(iogrp),H2D_MLTSSQ(iogrp),
-     .  rnacc*iL_mks2cgssq,0.,cmpflg,ip,'p','mltssq',
+      call wrth2d(ACC_MLTSSQ(iogrp),H2D_MLTSSQ(iogrp),rnacc*A_cgs2mks,
+     .  0.,cmpflg,ip,'p','mltssq',
      .  'Mixed layer thickness squared defined by sigma t',' ','m2')
 c
-      call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc*iL_mks2cgs,
+      call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc*L_cgs2mks,
      .  0.,cmpflg,ip,'p','t20d','20C isoterm depth',' ','m')
 c
       call wrth2d(ACC_BRNPD(iogrp),H2D_BRNPD(iogrp),rnacc/onem,
@@ -2459,12 +2464,11 @@ c
      .  cmpflg,ip,'p','tbot','Bottom temperature',' ','degC')
 c
 c --- write 3d layer fields
-      call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*.1,0.,
+      call wrtlyr(ACC_DP(iogrp),LYR_DP(iogrp),rnacc*P_cgs2mks,0.,
      .  cmpflg,ip,'p','dp','Layer pressure thickness',' ','Pa')
 c
       call wrtlyr(ACC_DZ(iogrp),LYR_DZ(iogrp),
-     .  rnacc*iL_mks2cgs,0.,cmpflg,ip,
-     .  'p','dz','Layer thickness',' ','m')
+     .  rnacc*L_cgs2mks,0.,cmpflg,ip,'p','dz','Layer thickness',' ','m')
 c
       call wrtlyr(ACC_TEMP(iogrp),LYR_TEMP(iogrp),1.,0.,
      .  cmpflg,ip,'p','temp','Temperature','Ocean temperature',
@@ -2473,18 +2477,18 @@ c
       call wrtlyr(ACC_SALN(iogrp),LYR_SALN(iogrp),1.,0.,
      .  cmpflg,ip,'p','saln','Salinity','Ocean salinity','g kg-1')
 c
-      call wrtlyr(ACC_UVEL(iogrp),LYR_UVEL(iogrp),iL_mks2cgs,
+      call wrtlyr(ACC_UVEL(iogrp),LYR_UVEL(iogrp),L_cgs2mks,
      .  0.,cmpflg,iuu,'u','uvel','Velocity x-component',' ','m s-1')
 c
-      call wrtlyr(ACC_VVEL(iogrp),LYR_VVEL(iogrp),iL_mks2cgs,
+      call wrtlyr(ACC_VVEL(iogrp),LYR_VVEL(iogrp),L_cgs2mks,
      .  0.,cmpflg,ivv,'v','vvel','Velocity y-component',' ','m s-1')
 c
       call wrtlyr(ACC_UFLX(iogrp),LYR_UFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','uflx',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','uflx',
      .  'Mass flux in x-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_VFLX(iogrp),LYR_VFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vflx',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vflx',
      .  'Mass flux in y-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_UTFLX(iogrp),LYR_UTFLX(iogrp),
@@ -2496,20 +2500,20 @@ c
      .  'Heat flux in y-direction',' ','W')
 c
       call wrtlyr(ACC_USFLX(iogrp),LYR_USFLX(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','usflx',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','usflx',
      .  'Salt flux in x-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_VSFLX(iogrp),LYR_VSFLX(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vsflx',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vsflx',
      .  'Salt flux in y-direction',' ','kg s-1')
 c
       call wrtlyr(ACC_UMFLTD(iogrp),LYR_UMFLTD(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','umfltd',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','umfltd',
      .  'Mass flux due to thickness diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_VMFLTD(iogrp),LYR_VMFLTD(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vmfltd',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vmfltd',
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
@@ -2534,31 +2538,31 @@ c
      .  'W')
 c
       call wrtlyr(ACC_USFLTD(iogrp),LYR_USFLTD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','usfltd',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','usfltd',
      .  'Salt flux due to thickness diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLTD(iogrp),LYR_VSFLTD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vsfltd',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vsfltd',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_USFLLD(iogrp),LYR_USFLLD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','usflld',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','usflld',
      .  'Salt flux due to lateral diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_VSFLLD(iogrp),LYR_VSFLLD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vsflld',
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vsflld',
      .  'Salt flux due to lateral diffusion in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_WFLX(iogrp),LYR_WFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ip,'p','wflx',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ip,'p','wflx',
      .  'Vertical mass flux',' ','kg s-1')
 c
       call wrtlyr(ACC_WFLX2(iogrp),LYR_WFLX2(iogrp),
-     .  rnacc*(0.5*iM_mks2cgs/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2',
+     .  rnacc*(0.5*M_cgs2mks/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2',
      .  'Vertical mass flux squared',' ','kg2 s-2')
 c
       call wrtlyr(ACC_BFSQ(iogrp),LYR_BFSQ(iogrp),1.,0.,
@@ -2574,7 +2578,7 @@ c
      .    0.,cmpflg,ip,'p','difint','Layer interface diffusivity',
      .    ' ','log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFINT(iogrp),LYR_DIFINT(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFINT(iogrp),LYR_DIFINT(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difint','Layer interface diffusivity',
      .    ' ','m2 s-1')
       endif
@@ -2584,7 +2588,7 @@ c
      .    0.,cmpflg,ip,'p','difiso','Isopycnal diffusivity',' ',
      .    'log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFISO(iogrp),LYR_DIFISO(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFISO(iogrp),LYR_DIFISO(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difiso','Isopycnal diffusivity',' ',
      .    'm2 s-1')
       endif
@@ -2594,7 +2598,7 @@ c
      .    0.,cmpflg,ip,'p','difdia','Vertical diffusivity',' ',
      .    'log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFDIA(iogrp),LYR_DIFDIA(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFDIA(iogrp),LYR_DIFDIA(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difdia','Vertical diffusivity',' ',
      .    'm2 s-1')
       endif
@@ -2604,7 +2608,7 @@ c
      .    0.,cmpflg,ip,'p','difvmo','Vertical momentum diffusivity',' ',
      .    'log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFVMO(iogrp),LYR_DIFVMO(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFVMO(iogrp),LYR_DIFVMO(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difvmo','Vertical momentum diffusivity',' ',
      .    'm2 s-1')
       endif
@@ -2614,7 +2618,7 @@ c
      .    0.,cmpflg,ip,'p','difvho','Vertical heat diffusivity',' ',
      .    'log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFVHO(iogrp),LYR_DIFVHO(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFVHO(iogrp),LYR_DIFVHO(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difvho','Vertical heat diffusivity',' ',
      .    'm2 s-1')
       endif
@@ -2624,24 +2628,24 @@ c
      .    0.,cmpflg,ip,'p','difvso','Vertical salt diffusivity',' ',
      .    'log10(m2 s-1)')
       else
-        call wrtlyr(ACC_DIFVSO(iogrp),LYR_DIFVSO(iogrp),iL_mks2cgssq,
+        call wrtlyr(ACC_DIFVSO(iogrp),LYR_DIFVSO(iogrp),A_cgs2mks,
      .    0.,cmpflg,ip,'p','difvso','Vertical salt diffusivity',' ',
      .    'm2 s-1')
       endif
 c
 #if defined(TRC) && defined(TKE)
-      call wrtlyr(ACC_TKE(iogrp),LYR_TKE(iogrp),iL_mks2cgssq,0.,
+      call wrtlyr(ACC_TKE(iogrp),LYR_TKE(iogrp),A_cgs2mks,0.,
      .  cmpflg,ip,'p','tke','TKE','Turbulent kinetic energy',
      .  'm2 s-2')
 c
-      call wrtlyr(ACC_GLS_PSI(iogrp),LYR_GLS_PSI(iogrp),iL_mks2cgssq,0.,
+      call wrtlyr(ACC_GLS_PSI(iogrp),LYR_GLS_PSI(iogrp),A_cgs2mks,0.,
      .  cmpflg,ip,'p','gls_psi','GLS_PSI','Generic length scale',
      .  'm2 s-3')
 c
 #endif
 c --- Write 3d depth fields
       call wrtlvl(ACC_DZLVL(iogrp),LVL_DZ(iogrp),
-     .  rnacc*iL_mks2cgs,0.,cmpflg,ip,
+     .  rnacc*L_cgs2mks,0.,cmpflg,ip,
      .  'p','dzlvl','Layer thickness',' ','m')
 c
       call wrtlvl(ACC_TEMPLVL(iogrp),LVL_TEMP(iogrp),
@@ -2653,19 +2657,19 @@ c
      .  'Ocean salinity','g kg-1')
 c
       call wrtlvl(ACC_UVELLVL(iogrp),LVL_UVEL(iogrp),
-     .  rnacc*iL_mks2cgs,0.,cmpflg,iuu,'u','uvellvl',
+     .  rnacc*L_cgs2mks,0.,cmpflg,iuu,'u','uvellvl',
      .  'Velocity x-component',' ','m s-1')
 c
       call wrtlvl(ACC_VVELLVL(iogrp),LVL_VVEL(iogrp),
-     .  rnacc*iL_mks2cgs,0.,cmpflg,ivv,'v','vvellvl',
+     .  rnacc*L_cgs2mks,0.,cmpflg,ivv,'v','vvellvl',
      .  'Velocity y-component',' ','m s-1')
 c
       call wrtlvl(ACC_UFLXLVL(iogrp),LVL_UFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','uflxlvl',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','uflxlvl',
      .  'Mass flux in x-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_VFLXLVL(iogrp),LVL_VFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vflxlvl',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vflxlvl',
      .  'Mass flux in y-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_UTFLXLVL(iogrp),LVL_UTFLX(iogrp),
@@ -2677,20 +2681,20 @@ c
      .  'Heat flux in y-direction',' ','W')
 c
       call wrtlvl(ACC_USFLXLVL(iogrp),LVL_USFLX(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,
-     .  'u','usflxlvl','Salt flux in x-direction',' ','kg s-1')
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u',
+     .  'usflxlvl','Salt flux in x-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_VSFLXLVL(iogrp),LVL_VSFLX(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,
-     .  'v','vsflxlvl','Salt flux in y-direction',' ','kg s-1')
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v',
+     .  'vsflxlvl','Salt flux in y-direction',' ','kg s-1')
 c
       call wrtlvl(ACC_UMFLTDLVL(iogrp),LVL_UMFLTD(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,'u','umfltdlvl',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','umfltdlvl',
      .  'Mass flux due to thickness diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_VMFLTDLVL(iogrp),LVL_VMFLTD(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,'v','vmfltdlvl',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vmfltdlvl',
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
@@ -2715,35 +2719,35 @@ c
      .  'W')
 c
       call wrtlvl(ACC_USFLTDLVL(iogrp),LVL_USFLTD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,
      .  'u','usfltdlvl',
      .  'Salt flux due to thickness diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_VSFLTDLVL(iogrp),LVL_VSFLTD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,
      .  'v','vsfltdlvl',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_USFLLDLVL(iogrp),LVL_USFLLD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,iuu,
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,
      .  'u','usflldlvl',
      .  'Salt flux due to lateral diffusion in x-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_VSFLLDLVL(iogrp),LVL_VSFLLD(iogrp),
-     .  rnacc*0.5*g2kg*iM_mks2cgs/(g*baclin),0.,cmpflg,ivv,
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,
      .  'v','vsflldlvl',
      .  'Salt flux due to lateral diffusion in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_WFLXLVL(iogrp),LVL_WFLX(iogrp),
-     .  rnacc*0.5*iM_mks2cgs/(g*baclin),0.,cmpflg,ip,'p','wflxlvl',
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ip,'p','wflxlvl',
      .  'Vertical mass flux',' ','kg s-1')
 c
       call wrtlvl(ACC_WFLX2LVL(iogrp),LVL_WFLX2(iogrp),
-     . rnacc*(0.5*iM_mks2cgs/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2lvl',
+     . rnacc*(0.5*M_cgs2mks/(g*baclin))**2,0.,cmpflg,ip,'p','wflx2lvl',
      .  'Vertical mass flux squared',' ','kg2 s-2')
 c
       call wrtlvl(ACC_BFSQLVL(iogrp),LVL_BFSQ(iogrp),
@@ -2760,9 +2764,8 @@ c
      .    ' ','log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFINTLVL(iogrp),LVL_DIFINT(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difintlvl','Layer interface diffusivity',
-     .    ' ','m2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difintlvl',
+     .    'Layer interface diffusivity',' ','m2 s-1')
       endif
 c
       if (LVL_DIFISO(iogrp).eq.2) then
@@ -2771,9 +2774,8 @@ c
      .    'log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFISOLVL(iogrp),LVL_DIFISO(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difisolvl','Isopycnal diffusivity',' ',
-     .    'm2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difisolvl',
+     .    'Isopycnal diffusivity',' ','m2 s-1')
       endif
 c
       if (LVL_DIFDIA(iogrp).eq.2) then
@@ -2782,9 +2784,8 @@ c
      .    'log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFDIALVL(iogrp),LVL_DIFDIA(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difdialvl','Vertical diffusivity',' ',
-     .    'm2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difdialvl',
+     .    'Vertical diffusivity',' ','m2 s-1')
       endif
 c
       if (LVL_DIFVMO(iogrp).eq.2) then
@@ -2793,9 +2794,8 @@ c
      .    ' ','log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFVMOLVL(iogrp),LVL_DIFVMO(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difvmolvl','Vertical momentum diffusivity',
-     .    ' ','m2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difvmolvl',
+     .    'Vertical momentum diffusivity',' ','m2 s-1')
       endif
 c
       if (LVL_DIFVHO(iogrp).eq.2) then
@@ -2804,9 +2804,8 @@ c
      .    ' ','log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFVHOLVL(iogrp),LVL_DIFVHO(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difvholvl','Vertical heat diffusivity',
-     .    ' ','m2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difvholvl',
+     .    'Vertical heat diffusivity',' ','m2 s-1')
       endif
 c
       if (LVL_DIFVSO(iogrp).eq.2) then
@@ -2815,20 +2814,18 @@ c
      .    ' ','log10(m2 s-1)')
       else
        call wrtlvl(ACC_DIFVSOLVL(iogrp),LVL_DIFVSO(iogrp),
-     .    iL_mks2cgssq*rnacc,
-     .    0.,cmpflg,ip,'p','difvsolvl','Vertical salt diffusivity',
-     .    ' ','m2 s-1')
+     .    A_cgs2mks*rnacc,0.,cmpflg,ip,'p','difvsolvl',
+     .    'Vertical salt diffusivity',' ','m2 s-1')
       endif
 c
 #if defined(TRC) && defined(TKE)
-      call wrtlvl(ACC_TKELVL(iogrp),LVL_TKE(iogrp),rnacc*iL_mks2cgssq,
+      call wrtlvl(ACC_TKELVL(iogrp),LVL_TKE(iogrp),rnacc*A_cgs2mks,
      .  0.,cmpflg,ip,'p','tkelvl','Turbulent kinetic energy',' ',
      .  'm2 s-2')
 c
       call wrtlvl(ACC_GLS_PSILVL(iogrp),LVL_GLS_PSI(iogrp),
-     .  rnacc*iL_mks2cgssq,
-     .  0.,cmpflg,ip,'p','gls_psilvl','Generic length scale',' ',
-     .  'm2 s-3')
+     .  rnacc*A_cgs2mks,0.,cmpflg,ip,'p','gls_psilvl',
+     .  'Generic length scale',' ','m2 s-3')
 c
 #endif
 c
@@ -2939,8 +2936,8 @@ c
         call inilyr(ACC_UTILLYR(1),'p',0.)
         call acclyr(ACC_UTILLYR,dp(1-nbdy,1-nbdy,k1m),tmp3d,0,'p')
         call wrtlyr(ACC_UTILLYR(1),
-     .    max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),1.,0.,cmpflg,ip,'p',
-     .    'dp_trc','Layer pressure thickness',' ','Pa')
+     .    max(LYR_IDLAGE(iogrp),LYR_TRC(iogrp)),P_cgs2mks,0.,cmpflg,ip,
+     .    'p','dp_trc','Layer pressure thickness',' ','Pa')
       endif
 #  ifdef IDLAGE
 c
@@ -3100,9 +3097,6 @@ c
       real, dimension(itdm,jtdm) :: uflx_cumt,vflx_cumt
      .       ,uflx_cum350t,vflx_cum350t
       real*8 :: volu,volv
-      real iM_mks2cgs
-c
-      iM_mks2cgs = 1.0 / (M_mks2cgs)
 c
 c --- ------------------------------------------------------------------
 c --- read section information
@@ -3157,14 +3151,14 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
               uflx_cum(i,j)=uflx_cum(i,j)+
      .          phylvl(i,j,k,ACC_UFLXLVL(iogrp))
-     .          *0.5*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+     .          *0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
             enddo
           enddo
           do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
               vflx_cum(i,j)=vflx_cum(i,j)+
      .          phylvl(i,j,k,ACC_VFLXLVL(iogrp))
-     .          *0.5*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+     .          *0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
             enddo
           enddo
 c
@@ -3255,11 +3249,7 @@ c
 c
       logical :: iniflg=.true.
 c
-      real iM_mks2cgs
-c
       save nind,iind,jind,oflg,uflg,vflg,depthst,iniflg,ocn_nreg
-c
-      iM_mks2cgs = 1.0 / (M_mks2cgs)
 c
       if (iniflg) then
 c
@@ -3397,17 +3387,17 @@ c
           if (ACC_MSFLX(iogrp).eq.0) exit
           ACC_UIND=ACC_USFLX(iogrp)
           ACC_VIND=ACC_VSFLX(iogrp)
-          r=0.5*g2kg*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+          r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
         elseif (nfld.eq.5) then
           if (ACC_MSFTD(iogrp).eq.0) exit
           ACC_UIND=ACC_USFLTD(iogrp)
           ACC_VIND=ACC_VSFLTD(iogrp)
-          r=0.5*g2kg*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+          r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
         elseif (nfld.eq.6) then
           if (ACC_MSFLD(iogrp).eq.0) exit
           ACC_UIND=ACC_USFLLD(iogrp)
           ACC_VIND=ACC_VSFLLD(iogrp)
-          r=0.5*g2kg*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+          r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
         else
           write(lp,*) 'field index out of range'
           call xchalt('(diamer)')
@@ -3568,7 +3558,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       enddo
 c$OMP END PARALLEL DO
 c
-      r=0.5*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+      r=0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
 c
       do nfld=1,2
 c
@@ -3733,7 +3723,7 @@ c
         enddo
       endif
 c
-      r=0.5*iM_mks2cgs/(g*baclin*nacc_phy(iogrp))
+      r=0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
 c
       do nfld=1,2
 c

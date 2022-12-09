@@ -71,11 +71,7 @@ subdir('pkgs/')
 
 # Handle options and add necessary flags and subfolders with source files
 
-cgsmks = get_option('cgsmks')
-if cgsmks.contains('cgs')
-  add_project_arguments('-DCGS', language: 'fortran')
-endif
-if cgsmks.contains('mks')
+if get_option('mks')
   add_project_arguments('-DMKS', language: 'fortran')
 endif
 

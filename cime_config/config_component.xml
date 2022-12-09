@@ -224,7 +224,7 @@
     <default_value>cgs</default_value>
     <group>build_component_blom</group>
     <file>env_build.xml</file>
-    <desc>BLOM UNIT values.  Valid values one of: cgs mks. </desc>
+    <desc>Unit system.  Valid values one of: cgs mks. </desc>
   </entry>
 
   <description>

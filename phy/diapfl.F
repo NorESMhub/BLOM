@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2021 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,8 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Diapycnal mixing
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: g, alpha0, spval, epsilp, onem
-      use mod_constants, only: L_mks2cgs
+      use mod_constants, only: g, alpha0, spval, epsilp, onem, L_mks2cgs
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: sigmar
@@ -34,7 +33,6 @@ c
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     p, pu, pv, kfpla
       use mod_diffusion, only: difdia
-      use mod_pointtest, only: itest, jtest, ptest
       use mod_forcing, only: ustarb
       use mod_utility, only: util1
       use mod_checksum, only: csdiag, chksummsk

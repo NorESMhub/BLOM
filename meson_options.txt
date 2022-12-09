@@ -13,9 +13,8 @@ option('vcoord', type: 'combo',
 option('driver', type: 'combo',
        choices: ['nocoupler', 'noforc'], value: 'nocoupler')
 # List of BLOM options
-option('cgsmks', type: 'array',
-       choices: ['cgs', 'mks'],
-       description: 'Enable CGS or MKS unit', value: ['cgs'])
+option('mks', type: 'boolean',
+       description: 'Enable MKS units', value: false)
 option('turbclo', type: 'array',
        choices: ['oneeq', 'twoeq', 'advection', 'isodif'],
        description: 'Turbulent closure options', value: ['oneeq', 'advection'])

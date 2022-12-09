@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen
+! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -21,8 +21,8 @@
 c
 c --- NERSC version of thermf. To be used when coupled to CESM
 c
-      use mod_constants, only: g, spcifh, t0deg, epsilt, onem
-      use mod_constants, only: L_mks2cgs, M_mks2cgs, g2kg, alpha0
+      use mod_constants, only: g, spcifh, t0deg, alpha0, epsilt, onem,
+     .                         g2kg, kg2g, L_mks2cgs, M_mks2cgs
       use mod_time, only: nstep, nstep_in_day, nday_in_year,
      .                    nday_of_year, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -62,7 +62,7 @@ c
       integer i,j,k,l,m1,m2,m3,m4,m5
       real y,dpotl,hotl,totl,sotl,dpmxl,hmxl,tmxl,smxl,tice_f,fwflx,
      .     sstc,rice,trxflx,sssc,srxflx,totsfl,totwfl,sflxc,totsrp,
-     .     totsrn,qp,qn
+     .     totsrn,qp,qn,A_cgs2mks
 #ifdef TRC
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -70,11 +70,10 @@ c
       real tottrsf,tottrav,trflxc
 #endif
 c
-      real iL_mks2cgssq
       real intp1d
       external intp1d
 c
-      iL_mks2cgssq = 1.0 / (L_mks2cgs*L_mks2cgs)
+      A_cgs2mks=1./(L_mks2cgs**2)
 c      
 c --- Set parameters for time interpolation when applying diagnosed heat
 c --- and salt relaxation fluxes
@@ -155,7 +154,7 @@ c --- --- be heated. Note the freezing potential is multiplied by 1/2
 c --- --- due to the leap-frog time stepping. The melting potential uses
 c --- --- time averaged quantities since it is not accumulated.
           frzpot(i,j)=max(0.,tice_f-totl)*spcifh*dpotl
-     .                   /(2.*g)*(L_mks2cgs**2)
+     .                /(2.*g)*(L_mks2cgs**2)
           mltpot(i,j)=
      .      min(0.,tfrzm(i,j)-.5*(temp(i,j,k1m)+temp(i,j,k1n)))
      .      *spcifh*.5*(dp(i,j,k1m)+dp(i,j,k1n))/g*(L_mks2cgs**2)
@@ -164,11 +163,11 @@ c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=hmlt(i,j)+frzpot(i,j)/baclin
 c
 c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*iL_mks2cgssq
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
 c
 c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
-          sswflx(i,j)=-swa(i,j)*iL_mks2cgssq
+          sswflx(i,j)=-swa(i,j)*A_cgs2mks
 c
 #ifdef TRC
 c --- ------------------------------------------------------------------
@@ -187,7 +186,7 @@ c
             if (nt.eq.itrgls) then
               trflx(nt,i,j)=-gls_n*difdia(i,j,1)*(gls_cmu0**gls_p)
      .                       *(trc(i,j,k1n,itrtke)**gls_m)
-     .                       *(vonKar**gls_n)*Zos**(gls_n-1.)
+     .                       *(vonKar**gls_n)*zos**(gls_n-1.)
               ttrsf(nt,i,j)=0.
               ttrav(nt,i,j)=0.
               cycle
@@ -206,6 +205,7 @@ c
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
           enddo
 #endif
+c
 c --- ------------------------------------------------------------------
 c --- --- Relaxation fluxes
 c --- ------------------------------------------------------------------
@@ -222,7 +222,7 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
      .                  ricclm(i,j,l5mi),xmi)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
             trxflx=spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.)
-     .                        *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
+     .             *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -249,7 +249,7 @@ c --- --- if  srxday>0 , apply relaxation towards observed sss
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
             srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)
-     .                 *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
+     .             *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             salrlx(i,j)=-srxflx
             util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
             util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
@@ -304,9 +304,9 @@ c$OMP PARALLEL DO PRIVATE(l,i)
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))
-     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
           brnflx(i,j)=-brnflx(i,j)
-     .                 *(1e3*(M_mks2cgs/L_mks2cgs**2))
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
         enddo
         enddo
       enddo

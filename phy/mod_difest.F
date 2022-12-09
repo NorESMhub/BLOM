@@ -20,8 +20,8 @@
       module mod_difest
 c
       use mod_types, only: r8
-      use mod_constants, only: g, alpha0, pi, epsilp, spval, onem, onecm
-      use mod_constants, only: L_mks2cgs, M_mks2cgs, R_mks2cgs
+      use mod_constants, only: g, alpha0, pi, epsilp, spval, onem,
+     .                         onecm, L_mks2cgs, M_mks2cgs, R_mks2cgs
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
@@ -64,7 +64,6 @@ c
       use CVMix_kpp,  only : CVMix_put_kpp
       use CVMix_kpp,  only : CVMix_init_kpp
       use CVMix_put_get,  only : CVMix_put
-      use mod_pointtest, only: itest, jtest, ptest
 #if defined(TRC) && defined(TKE)
       use mod_tracers, only: itrtke, itrgls, trc
       use mod_tke, only: gls_cmu0, Pr_t, tke_min, gls_psi_min, gls_p,
@@ -97,6 +96,12 @@ c
       type(CVMix_kpp_params_type)     :: KPP_params
 c      type(CVMix_kpp_params_type), pointer :: CVmix_kpp_params_in
 c      type(CVMix_kpp_params_type) ::  CVmix_kpp_params_in
+c
+      real, parameter ::
+     .  iL_mks2cgs = 1./L_mks2cgs,
+     .  iM_mks2cgs = 1./M_mks2cgs,
+     .  A_mks2cgs  = L_mks2cgs**2,
+     .  A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs)
 c
 c --- parameters:
 c ---   iidtyp - type of interface and isopycnal diffusivities. If
@@ -158,10 +163,10 @@ c ---            layers used to estimate diapycnal diffusivities in the
 c ---            non-isopycnic layers [g/cm/s**2].
 c ---   dpnbav - thickness of region near the bottom used to estimate
 c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
-c ---  cpsemin - Zonal eddy phase speed minus zonal barotropic velocity
-c ---            with a lower bound of -20 cm s-1.
-c ---  urmsemin- Eddy mixing suppresion factor of
-c ---            RMS eddy velocity is set to 5 cm s-1
+c ---  cpsemin - Lower bound of zonal eddy phase speed minus zonal
+c ---            barotropic velocity [cm/s].
+c ---  urmsemin- Lower bound of absolute value of RMS eddy velocity
+c ---            [cm/s].
       integer iidtyp,bdmldp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,nuls0,
      .     iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,niwls,
@@ -171,18 +176,18 @@ c ---            RMS eddy velocity is set to 5 cm s-1
       parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=onem,
      .           dpbmin=onecm,drhomn=6.e-3*R_mks2cgs,
      .           thkdff=5.e-3*L_mks2cgs,temdff=3.5e-3*L_mks2cgs,
-     .           nu0=1.e-5*L_mks2cgs**2,
-     .           nus0=5.e-3*L_mks2cgs**2,
-     .           nug0=2.5e-1*L_mks2cgs**2,
+     .           nu0=1.e-5*A_mks2cgs,
+     .           nus0=5.e-3*A_mks2cgs,
+     .           nug0=2.5e-1*A_mks2cgs,
      .           drho0=6.e-3*R_mks2cgs,
-     .           nuls0=5.e-2*L_mks2cgs**2,iwdfac=.06,
+     .           nuls0=5.e-2*A_mks2cgs,iwdfac=.06,
      .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*onem,
      .           tdmls1=100.*onem,tdclat=74.5,tddlat=3.,
      .           tkepls=20.*onem,niwls=300.*onem,cori30=7.2722e-5,
-     .           bvf0=5.24e-3,nubmin=1.e-6*L_mks2cgs**2,
+     .           bvf0=5.24e-3,nubmin=1.e-6*A_mks2cgs,
      .           dpgc=300.*onem,dpgrav=100.*onem,dpdiav=100.*onem,
      .           dpddav=10.*onem,dpnbav=250.*onem,ustmin=.001*L_mks2cgs,
-     .           kappa=.4,bfeps=1.e-16*L_mks2cgs**2,sleps=.1,zetas=-1.,
+     .           kappa=.4,bfeps=1.e-16*A_mks2cgs,sleps=.1,zetas=-1.,
      .           cpsemin=-0.2*L_mks2cgs,urmsemin=0.05*L_mks2cgs,
      .           as=-28.86,cs=98.96,minOBLdepth=1.0)
 c
@@ -224,10 +229,6 @@ c
 c
       subroutine init_difest
 c
-      real iL_mks2cgs, iL_mks2cgssq
-      iL_mks2cgs = 1.0 / (L_mks2cgs)
-      iL_mks2cgssq = 1.0 / (L_mks2cgs*L_mks2cgs)
-c
 c --- ------------------------------------------------------------------
 c --- Initialize CVmix variables.
 c --- ------------------------------------------------------------------
@@ -244,8 +245,8 @@ c --- ------ Diapycnal mixing when local stability is weak
 c --- ------ convection routine based on N2 not rho
 c --- ------ if lBruntVaisala is TRUE, otherwise based on rho
 c --- ------ convert nuls0 to m2/s
-          call CVMix_init_conv(convect_diff=20.0*nuls0*iL_mks2cgssq,
-     .                         convect_visc=20.0*nuls0*iL_mks2cgssq,
+          call CVMix_init_conv(convect_diff=20.0*nuls0*A_cgs2mks,
+     .                         convect_visc=20.0*nuls0*A_cgs2mks,
      .                         lBruntVaisala=.true.,
      .                         BVsqr_convect=0.0)
           call CVMix_put(CVMix_glb_params,'max_nlev',kk)
@@ -253,7 +254,7 @@ c --- ------ convert nuls0 to m2/s
           call CVMix_put(CVMix_glb_params,'FreshWaterDensity',1000.0)
           call CVMix_put(CVMix_glb_params,'SaltWaterDensity',1025.0)
           call cvmix_init_shear(mix_scheme='KPP',
-     .                           KPP_nu_zero=nus0*iL_mks2cgssq,
+     .                           KPP_nu_zero=nus0*A_cgs2mks,
      .                           KPP_Ri_zero=ri0,
      .                           KPP_exp=3.0)
          !  CVmix_kpp_params_in => CVmix_kpp_params_user
@@ -517,7 +518,7 @@ c
 c --- ------- Local gradient Richardson number.
               rig(i,j,k)=alpha0*alpha0
      .                   *max(drhomn,drhol(i,j,k))*dp(i,j,kn)
-     .                   /max(1.e-13*L_mks2cgs**2,du2l(i,j,k))
+     .                   /max(1.e-13*A_mks2cgs,du2l(i,j,k))
 c
             endif
           enddo
@@ -639,8 +640,8 @@ c --- - Compute local gradient Richardson number at interfaces.
      .         +(mskv(i,j,k)*dv2(i,j,k)+mskv(i,j+1,k)*dv2(i,j+1,k))
      .          /max(1,mskv(i,j,k)+mskv(i,j+1,k))
               dz=.5*(dp(i,j,kn-1)+dp(i,j,kn))*alpha0/g
-              rig(i,j,k)=max(0.,bfsqi(i,j,k)*dz*dz)/
-     .                       max(1.e-13*L_mks2cgs**2,q)
+              rig(i,j,k)=max(0.,bfsqi(i,j,k)*dz*dz)
+     .                   /max(1.e-13*A_mks2cgs,q)
             else
               rig(i,j,k)=rig(i,j,k-1)
             endif
@@ -923,12 +924,7 @@ c
       real :: bl1, bl2, bl3, bl4
       integer ki, ksfc, ktmp, kOBL, kn1
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::  hOBL
-      real iL_mks2cgs, iL_mks2cgssq, iM_mks2cgs
 c
-c
-      iL_mks2cgs = 1.0 / (L_mks2cgs)
-      iM_mks2cgs = 1.0 / (M_mks2cgs)
-      iL_mks2cgssq = 1.0 / (L_mks2cgs*L_mks2cgs)
       surf_layer_ext = 0.1
       bl1 = 8e-5
       bl2 = 1.05e-4
@@ -970,16 +966,16 @@ c             Ws_1d = 0.0
              Kt_kpp = 0.0
              Ks_kpp = 0.0
              do k=1,kk+1
-                 Kv_kpp(k) = Kvisc_m(i,j,k)*iL_mks2cgssq
-                 Kt_kpp(k) = Kdiff_t(i,j,k)*iL_mks2cgssq
-                 Ks_kpp(k) = Kdiff_s(i,j,k)*iL_mks2cgssq
+                 Kv_kpp(k) = Kvisc_m(i,j,k)*A_cgs2mks
+                 Kt_kpp(k) = Kdiff_t(i,j,k)*A_cgs2mks
+                 Ks_kpp(k) = Kdiff_s(i,j,k)*A_cgs2mks
              enddo
              depth_int(1) = p(i,j,1)/onem
              iFaceHeight(1) = -depth_int(1)
              ! convert cm/s to m/s
              surfFricVel = ustar(i,j) * iL_mks2cgs
              ! convert cm2/s3 to m2/s3
-             surfBuoyFlux = - buoyfl(i,j,1) * iL_mks2cgssq
+             surfBuoyFlux = - buoyfl(i,j,1) * A_cgs2mks
              do k=1,kk
                 kn = k + nn
                 kn1 = max(nn+1,kn-1)
@@ -1062,12 +1058,12 @@ c --- ------- Local gradient Richardson number
                 rig_i(k)=rig(i,j,k)
 
                 surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) 
-     .                             - buoyfl(i,j,1  )) * iL_mks2cgssq
+     .                             - buoyfl(i,j,1  )) * A_cgs2mks
 c
              enddo  ! k
              if(dps.gt.0.) bvfbot=bvfbot/dps
              ! convert cm2/s2 to m2/s2
-             deltaU2 = deltaU2*iL_mks2cgssq
+             deltaU2 = deltaU2*A_cgs2mks
 
              ! bottom values for the Ri, N2, and N
              rig_i(kk+1) = rig_i(kk)
@@ -1085,8 +1081,8 @@ c zw interface depths relative to the surface in m, must be positive.
              elseif (bdmtyp.eq.2) then
 c --- --------- Type 2: Background diffusivity is a constant
              ! convert cm2/s2 to m2/s2
-                Kv_col(:) = bdmc2*iL_mks2cgssq
-                Kd_col(:) = bdmc2*iL_mks2cgssq
+                Kv_col(:) = bdmc2*A_cgs2mks
+                Kd_col(:) = bdmc2*A_cgs2mks
              else
                 Kv_col(:) = 0.
                 Kd_col(:) = 0.
@@ -1207,7 +1203,7 @@ c --- ------ make sure it is in metrics if stability depends on rho
 
              ! Buoyancy flux acting on the OBL
              surfBuoyFlux = ( buoyfl(i,j,kOBL+1)
-     .                      - buoyfl(i,j,1  )) * iL_mks2cgssq
+     .                      - buoyfl(i,j,1  )) * A_cgs2mks
 
              ! Compute KPP using CVMix
              call CVMix_coeffs_kpp(Kv_kpp(:),          ! (inout) Total viscosity [m2 s-1]
@@ -1234,9 +1230,9 @@ c --- ------ make sure it is in metrics if stability depends on rho
 
 c ---- ccc -------
              ! convert m2/s to cm2/s
-             Kv_kpp = Kv_kpp*L_mks2cgs**2
-             Kt_kpp = Kt_kpp*L_mks2cgs**2
-             Ks_kpp = Ks_kpp*L_mks2cgs**2
+             Kv_kpp = Kv_kpp*A_mks2cgs
+             Kt_kpp = Kt_kpp*A_mks2cgs
+             Ks_kpp = Ks_kpp*A_mks2cgs
              Kv_kpp=max(nubmin,Kv_kpp)
              Kt_kpp=max(nubmin,Kt_kpp)
              Ks_kpp=max(nubmin,Ks_kpp)
@@ -1305,8 +1301,7 @@ c --- diffusivities.
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           kfil(i,j)=kk+1
           do k=kk,2,-1
-            ! if (p(i,j,k).gt.mlts(i,j)*onecm) kfil(i,j)=k
-            if (p(i,j,k).gt.mlts(i,j)*(onem/L_mks2cgs)) kfil(i,j)=k
+            if (p(i,j,k).gt.mlts(i,j)*(onem*iL_mks2cgs)) kfil(i,j)=k
           enddo
         enddo
         enddo
@@ -1530,7 +1525,7 @@ c
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
 c --- --------- Rhines scale.
-                rhisc=egr(i,k)/max(1.e-22*L_mks2cgs**-1,betafp(i,j))
+                rhisc=egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
@@ -1593,7 +1588,7 @@ c
 c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
 c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
 c --- ------- Abernathey, 2014).
-              rhisc=egrs(i)/max(1.e-22*L_mks2cgs**-1,betafp(i,j))
+              rhisc=egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
               els=max(eglsmn,min(bcrrd(i),rhisc))
               urmse(i)=2.86*egc*egrs(i)*els
 c
@@ -1928,7 +1923,7 @@ c
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
 c --- --------- Rhines scale.
-                rhisc=egr(i,k)/max(1.e-22*L_mks2cgs**-1,betafp(i,j))
+                rhisc=egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
@@ -1964,7 +1959,7 @@ c
 c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
 c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
 c --- ------- Abernathey, 2014).
-              rhisc=egrs(i)/max(1.e-22*L_mks2cgs**-1,betafp(i,j))
+              rhisc=egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
               els=max(eglsmn,min(bcrrd(i),rhisc))
               urmse(i)=2.86*egc*egrs(i)*els
 c
@@ -2061,8 +2056,8 @@ c --- ----------- Zonal velocity minus eddy phase speed.
      .             -cpse(i)
 c
 c --- ----------- Eddy mixing suppresion factor.
-                  esfac=1./
-     .              (1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
+                  esfac=
+     .              1./(1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
 c
                 else
                   esfac=1.
@@ -2167,7 +2162,7 @@ c
                 h=max(onem,dp(i,j,kn))*alpha0/g
 c               h=max(onem*1e-8,dp(i,j,kn))*alpha0/g
 c               h=max(onemm,dp(i,j,kn))*alpha0/g
-                Shear2(i,j,k)=max(1.e-13*L_mks2cgs**2,du2l(i,j,k))/(h*h)
+                Shear2(i,j,k)=max(1.e-13*A_mks2cgs,du2l(i,j,k))/(h*h)
                 Prod(i,j,k)=difdia(i,j,k)*Pr_t*Shear2(i,j,k)
               else
                 Buoy(i,j,k)=0.
@@ -2534,7 +2529,7 @@ c --- --- Monin-Obukhov length scale
      .                           -buoyfl(i,j,1)))
 c
 c --- --- Mixed layer thickness
-          h=(p(i,j,3)-p(i,j,1))/(onem/L_mks2cgs)
+          h=(p(i,j,3)-p(i,j,1))/(onem*iL_mks2cgs)
 c
 c --- --- Dimensionless vertical coordinate in the boundary layer
           sg=(p(i,j,2)-p(i,j,1))/(p(i,j,3)-p(i,j,1))

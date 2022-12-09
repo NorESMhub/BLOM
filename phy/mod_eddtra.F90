@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen
+! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,8 @@ module mod_eddtra
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsilp, onem, onecm, onemm, L_mks2cgs
+   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm, &
+                            L_mks2cgs
    use mod_time, only: delt1
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
@@ -36,9 +37,11 @@ module mod_eddtra
                             usfltd, vsfltd
    use mod_cmnfld, only: nslpx, nslpy, mlts
    use mod_checksum, only: csdiag, chksummsk
-      use mod_pointtest, only: itest, jtest, ptest
 
    implicit none
+
+   real(r8), parameter :: &
+      iL_mks2cgs = 1./L_mks2cgs
 
    private
 
@@ -150,11 +153,9 @@ contains
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: upsilon, mfl
       real(r8), dimension(kdm) :: dlm, dlp
-      real(r8) :: rho0, q, et2mf, kappa, fhi, flo
+      real(r8) :: q, et2mf, kappa, fhi, flo
       integer :: i, j, k, l, km, kn, kintr, kmax, kmin, niter, kdir
       logical :: changed
-
-      rho0 = 1._r8/alpha0
 
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
@@ -206,7 +207,8 @@ contains
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
+               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! ------------------------------------------------------------------
@@ -592,7 +594,8 @@ contains
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
+               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! ------------------------------------------------------------------
@@ -972,11 +975,9 @@ contains
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: mfl
       real(r8), dimension(kdm) :: puv, dlm, dlp
-      real(r8) :: rho0, q, et2mf, mlp, kappa
+      real(r8) :: q, et2mf, mlp, kappa
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
-
-      rho0 = 1._r8/alpha0
 
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
@@ -1029,13 +1030,13 @@ contains
             do k = 2, kk
                kn = k + nn
                puv(k) = puv(k - 1) + dpu(i, j, kn - 1)
-               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
+               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! Compute the eddy induced mass flux at layer interfaces below the
             ! mixed layer.
-            ! mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*onecm
-            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*(onem/L_mks2cgs)
+            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
             mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
@@ -1224,13 +1225,13 @@ contains
             do k = 2, kk
                kn = k + nn
                puv(k) = puv(k - 1) + dpv(i, j, kn - 1)
-               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
+               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! Compute the eddy induced mass flux at layer interfaces below the
             ! mixed layer.
-            ! mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*onecm
-            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*(onem/L_mks2cgs)
+            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
             mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
