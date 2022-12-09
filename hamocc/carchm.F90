@@ -94,13 +94,14 @@
 !     none.
 !
 !**********************************************************************
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
+                                pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
-                              & oxyco,tzero 
-      use mo_control_bgc, only: dtbgc 
+                              & oxyco,tzero
+      use mo_control_bgc, only: dtbgc
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
-                              & isco212,isilica  
-      use mo_vgrid,       only: dp_min,kbo,ptiestu
+                              & isco212,isilica
+      use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
 
 #ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
@@ -180,7 +181,11 @@
        co214fxd (:,:)=0.
        co214fxu (:,:)=0.
 #endif
-       pco2d    (:,:)=0. 
+       pco2d    (:,:)=0.
+       pco2m    (:,:)=0.
+       kwco2d   (:,:)=0.
+       co2sold  (:,:)=0.
+       co2solm  (:,:)=0.
        kwco2sol (:,:)=0.
        co2star(:,:,:)=0.
        co3    (:,:,:)=0.
@@ -390,8 +395,7 @@
        ta = ocetra(i,j,k,ialkali) / rrho
        CALL carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
                                Ksi,K1p,K2p,K3p,tc_sat,niter)
-       ocetra(i,j,k,  idicsat)=tc_sat * rrho ! convert mol/kg to kmol/m^3 
-       ocetra(i,j,k+1,idicsat)=tc_sat * rrho ! k+1 = the rest of the mixed layer
+       ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
 #ifdef cisonew 
 ! Ocean-Atmosphere fluxes for carbon isotopes
@@ -519,13 +523,17 @@
 
 ! Save pco2 w.r.t. dry air for output
        pco2d(i,j) = cu * 1.e6 / Khd
+       !pCO2 wrt moist air
+       pco2m(i,j) = cu * 1.e6 / Kh
 #ifdef natDIC
        natpco2d(i,j) = natcu * 1.e6 / Khd
 #endif
 
 ! Save product of piston velocity and solubility for output
-       kwco2sol(i,j) = kwco2*Kh*1e-6
-
+       kwco2sol(i,j) = kwco2*Kh*1e-6 !m/s mol/kg/muatm 
+       kwco2d(i,j)   = kwco2 ! m/s (incl. ice fraction!)
+       co2sold(i,j)  = Khd  ! mol/kg/atm
+       co2solm(i,j)  = Kh   ! mol/kg/atm
 
       endif ! k==1
 #ifdef BROMO

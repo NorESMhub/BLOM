@@ -27,6 +27,9 @@
       use netcdf,  only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_put_var
       use mod_xc,  only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
       use mod_dia, only: iotype      
+#ifdef PNETCDF
+      use mod_xc,  only: i0,ii,jj,j0,mproc,mpe_1,nproc,xcgetrow
+#endif
       implicit none
 #ifdef PNETCDF
 #  include <pnetcdf.inc>

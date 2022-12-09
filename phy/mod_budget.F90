@@ -39,12 +39,14 @@ module mod_budget
 
    private
 
+   ! Options with default values, modifiable by namelist.
+   logical :: &
+      cnsvdi = .false. ! Flag that indicates whether conservation diagnostics
+                       ! are written.
+
    ! Constants.
    integer, parameter :: &
       ncalls = 7       ! Number of calls after which budgets are computed.
-   logical :: &
-      cnsvdi = .true.  ! Flag that indicates whether conservation diagnostics
-                       ! are written.
 
    real(r8), dimension(ncalls, 2) :: &
       sdp, &           ! Global mass weighted sum of salinity.
