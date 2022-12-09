@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen
+! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_cmnfld_routines
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsilp, onem, onecm, onemm
+   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_grid, only: scuxi, scvyi
@@ -420,7 +420,7 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: rho0, pm, rho_x, phi_x, bfsqm, rho_y, phi_y
+      real(r8) :: pm, rho_x, phi_x, bfsqm, rho_y, phi_y
       integer :: i, j, k, l, kn, kintr, kmax, knnsl
 
       ! ------------------------------------------------------------------------
@@ -453,8 +453,6 @@ module mod_cmnfld_routines
       ! geopotential is expected to be influenced by the gradient of the
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
-
-      rho0 = 1._r8/alpha0
 
    !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_x, &
    !$omp                     phi_x, bfsqm)
@@ -653,7 +651,7 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: rho0, pm, rho_x, phi_x, bfsqm, rho_y, phi_y
+      real(r8) :: pm, rho_x, phi_x, bfsqm, rho_y, phi_y
       integer :: i, j, k, l, kn, kmax, knnsl
 
       ! ------------------------------------------------------------------------
@@ -686,8 +684,6 @@ module mod_cmnfld_routines
       ! geopotential is expected to be influenced by the gradient of the
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
-
-      rho0 = 1._r8/alpha0
 
    !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_x, phi_x, bfsqm)
       do j = - 1, jj + 2

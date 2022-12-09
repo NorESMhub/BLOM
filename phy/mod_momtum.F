@@ -1,6 +1,6 @@
 ! ------------------------------------------------------------------------------
 ! Copyright (C) 2000 HYCOM Consortium and contributors
-! Copyright (C) 2001-2020 Mats Bentsen, Lars Inge Enstad, Mehmet Ilicak
+! Copyright (C) 2001-2022 Mats Bentsen, Lars Inge Enstad, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -26,8 +26,8 @@ c --- integration of the baroclinic momentum equation.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: g, alpha0, spval, onem, onemm
-      use mod_constants, only: epsilp, epsilpl
+      use mod_constants, only: g, alpha0, epsilp, epsilpl, spval, 
+     .                         onem, onemm
       use mod_time, only: delt1, dlt
       use mod_xc
       use mod_grid, only: scqx, scqy, scpx, scpy, scux, scuy,
