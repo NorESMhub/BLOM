@@ -153,7 +153,7 @@ def buildcpp(case):
     if blom_unit == "mks":
         blom_cppdefs = blom_cppdefs + " -DMKS"
     else:
-        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(option))
+        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(blom_unit))
 
     blom_cppdefs = "-DMPI" + blom_cppdefs
 
