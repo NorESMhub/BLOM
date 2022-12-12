@@ -83,6 +83,7 @@ def buildcpp(case):
     tracers = case.get_value("BLOM_TRACER_MODULES")
     co2type = case.get_value("OCN_CO2_TYPE")
     hamocc_cfc = case.get_value("HAMOCC_CFC")
+    hamocc_debug = case.get_value("HAMOCC_DEBUG")
     hamocc_nattrc = case.get_value("HAMOCC_NATTRC")
     hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_ciso = case.get_value("HAMOCC_CISO")
@@ -129,6 +130,8 @@ def buildcpp(case):
                 blom_cppdefs = blom_cppdefs + " -DHAMOCC -DWLIN"
                 if hamocc_cfc:
                     blom_cppdefs = blom_cppdefs + " -DCFC"
+                if hamocc_debug:
+                    blom_cppdefs = blom_cppdefs + " -DPBGC_OCNP_TIMESTEP -DPBGC_CK_TIMESTEP"
                 if hamocc_nattrc:
                     blom_cppdefs = blom_cppdefs + " -DnatDIC"
                 if hamocc_sedbypass:
@@ -150,7 +153,7 @@ def buildcpp(case):
     if blom_unit == "mks":
         blom_cppdefs = blom_cppdefs + " -DMKS"
     else:
-        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(option))
+        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(blom_unit))
 
     blom_cppdefs = "-DMPI" + blom_cppdefs
 

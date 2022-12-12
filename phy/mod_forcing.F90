@@ -106,6 +106,10 @@ module mod_forcing
       ustarw, &       ! Friction velocity for open water [m s-1].
       slp, &          ! Sea-level pressure [kg m-1 s-2].
       abswnd, &       ! Wind speed at measurement height (zu) [m s-1].
+      lamult, &       ! Langmuir enhancement factor [].
+      lasl, &         ! Surface layer averaged Langmuir number [].
+      ustokes, &      ! u-component of surface Stokes drift [m s-1].
+      vstokes, &      ! v-component of surface Stokes drift [m s-1].
       atmco2, &       ! Atmospheric CO2 concentration [ppm].
       flxco2, &       ! Air-sea CO2 flux [kg m-2 s-1].
       flxdms, &       ! Sea-air DMS flux [kg m-2 s-1].
@@ -138,7 +142,8 @@ module mod_forcing
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
-             ustarw, slp, abswnd, atmco2, flxco2, flxdms, flxbrf, atmbrf, &
+             ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
+             atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, &
              inivar_forcing, fwbbal
@@ -172,6 +177,10 @@ contains
             ustarw(i, j) = spval
             slp(i, j) = spval
             abswnd(i, j) = spval
+            lamult(i, j) = spval
+            lasl(i, j) = spval
+            ustokes(i, j) = spval
+            vstokes(i, j) = spval
             atmco2(i, j) = spval
             flxco2(i, j) = spval
             flxdms(i, j) = spval
