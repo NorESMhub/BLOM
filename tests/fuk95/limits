@@ -79,6 +79,8 @@
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)
 ! JTEST    : Global j-index of point diagnostics (i)
+! CNSVDI   : Conservation diagnostics flag (l)
+! CSDIAG   : Checksum diagnostics flag (l)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -319,8 +321,6 @@
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
-!   MLDU     - mixed layer depth at u-point [m]
-!   MLDV     - mixed layer depth at v-point [m]
 !   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
 !   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
 !   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
@@ -332,8 +332,6 @@
 !   MTKEPE   - mixed layer TKE tendency related to pot. energy change [kg s-3]
 !   MTKEKE   - mixed layer TKE tendency related to kin. energy change [kg s-3]
 !   MTY      - wind stress y-component [N m-2]
-!   MXLU     - mixed layer velocity x-component [m s-1]
-!   MXLV     - mixed layer velocity y-component [m s-1]
 !   NSF      - non-solar heat flux [W m-2]
 !   PBOT     - bottom pressure [Pa]
 !   PSRF     - surface pressure [Pa]
@@ -368,7 +366,10 @@
 !   VICE     - ice velocity y-component [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
 !   BFSQ     - buoyancy frequency squared [s-1]
-!   DIFDIA   - diapycnal diffusivity [log10(m2 s-1)]
+!   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
+!   DIFVMO   - vertical momentum diffusivity [log10(m2 s-1)|m2 s-1]
+!   DIFVHO   - vertical heat diffusivity [log10(m2 s-1)|m2 s-1]
+!   DIFVSO   - vertical salt diffusivity [log10(m2 s-1)|m2 s-1]
 !   DIFINT   - layer interface diffusivity [log10(m2 s-1)]
 !   DIFISO   - isopycnal diffusivity [log10(m2 s-1)]
 !   DP       - layer pressure thickness [Pa]
@@ -441,8 +442,6 @@
   H2D_LIP      = 0,   0
   H2D_MAXMLD   = 4,   4
   H2D_MLD      = 0,   4
-  H2D_MLDU     = 0,   0
-  H2D_MLDV     = 0,   0
   H2D_MLTS     = 0,   4
   H2D_MLTSMN   = 0,   4
   H2D_MLTSMX   = 0,   4
@@ -454,8 +453,6 @@
   H2D_MTKEPE   = 0,   4
   H2D_MTKEKE   = 0,   4
   H2D_MTY      = 0,   0
-  H2D_MXLU     = 4,   4
-  H2D_MXLV     = 4,   4
   H2D_NSF      = 0,   0
   H2D_PBOT     = 0,   4
   H2D_PSRF     = 0,   0
@@ -491,6 +488,9 @@
   H2D_ZTX      = 0,   0
   LYR_BFSQ     = 0,   4
   LYR_DIFDIA   = 0,   4
+  LYR_DIFVMO   = 0,   4
+  LYR_DIFVHO   = 0,   4
+  LYR_DIFVSO   = 0,   0
   LYR_DIFINT   = 0,   0
   LYR_DIFISO   = 0,   0
   LYR_DP       = 0,   4
@@ -524,6 +524,9 @@
   LYR_IDLAGE   = 0,   4
   LVL_BFSQ     = 0,   4
   LVL_DIFDIA   = 0,   4
+  LVL_DIFVMO   = 0,   4
+  LVL_DIFVHO   = 0,   4
+  LVL_DIFVSO   = 0,   0
   LVL_DIFINT   = 0,   0
   LVL_DIFISO   = 0,   0
   LVL_DZ       = 0,   4

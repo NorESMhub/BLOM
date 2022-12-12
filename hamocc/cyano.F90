@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-       SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !**********************************************************************
 !
 !**** *CYANO* -  .
@@ -61,74 +61,69 @@
 !     .
 !**********************************************************************
 
-      use mo_carbch,     only: ocetra 
-      use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff 
-      use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen 
-      use mo_vgrid,      only: kmle
+  use mo_carbch,     only: ocetra
+  use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff
+  use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen
+  use mo_vgrid,      only: kmle
 #ifdef natDIC
-      use mo_param1_bgc, only: inatalkali
+  use mo_param1_bgc, only: inatalkali
 #endif
 
-      implicit none
+  implicit none
 
-      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
-      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-      REAL,    intent(in) :: omask(kpie,kpje)
-      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
+  REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+  REAL,    intent(in) :: omask(kpie,kpje)
+  REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
-      ! Local variables
-      INTEGER :: i,j,k
-      REAL :: oldocetra,dano3
-      REAL :: ttemp,nfixtfac
+  ! Local variables
+  INTEGER :: i,j,k
+  REAL :: oldocetra,dano3
+  REAL :: ttemp,nfixtfac
 
-      intnfix(:,:)=0.0
-      
+  intnfix(:,:)=0.0
+
 !
-! N-fixation by cyano bacteria (followed by remineralisation and nitrification), 
+! N-fixation by cyano bacteria (followed by remineralisation and nitrification),
 ! it is assumed here that this process is limited to the mixed layer
 !
-      DO k=1,kmle
-!$OMP PARALLEL DO PRIVATE(i,oldocetra,dano3,ttemp,nfixtfac) 
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j).gt.0.5) THEN
-          IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+  DO j=1,kpje
+  DO i=1,kpie
+  IF(omask(i,j).gt.0.5) THEN
+     DO k=1,kmle(i,j)
+     IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
-            oldocetra = ocetra(i,j,k,iano3)
-            ttemp = min(40.,max(-3.,ptho(i,j,k)))
+        oldocetra = ocetra(i,j,k,iano3)
+        ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
 ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
-            nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
+        nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
-            ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac) &
-     &                      +bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+        ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac)            &
+             &    + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
 
-            dano3=ocetra(i,j,k,iano3)-oldocetra
+        dano3=ocetra(i,j,k,iano3)-oldocetra
 
-            ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
+        ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
 
 ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
 ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
-            ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
+        ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
 
 ! Nitrogen fixation followed by remineralisation and nitrification decreases
 ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
-            ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
+        ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
 #ifdef natDIC
-            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
+        ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
 #endif
 
-            intnfix(i,j) = intnfix(i,j) +                          &
-     &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
+        intnfix(i,j) = intnfix(i,j) +                                           &
+             &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
 
-            ENDIF  
-         ENDIF  
-      ENDDO
-      ENDDO
-!$OMP END PARALLEL DO
-      ENDDO
+     ENDIF
+     ENDDO
+  ENDIF
+  ENDDO
+  ENDDO
 
-
-
-      RETURN
-      END
+END SUBROUTINE CYANO

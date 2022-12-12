@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen, Ping-Gin Chiu
+! Copyright (C) 2022 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -17,26 +17,9 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-module mod_config
+subroutine setlogunit
 ! ------------------------------------------------------------------------------
-! This module contains configuration variables.
+! Empty routine since log unit is set in routine InitializeAdvertise of the
+! module ocn_comp_nuopc.
 ! ------------------------------------------------------------------------------
-
-   implicit none
-
-   private
-
-   character(len = 256) :: &
-      expcnf, &           ! Experiment configuration.
-      runid               ! Experiment name.
-   character(len = 16) :: &
-      inst_name   = '', & ! Instance name.
-      inst_suffix = ''    ! Instance suffix.
-   integer :: &
-      inst_index = 0      ! Instance index.
-   logical :: &
-      resume_flag = .false.    ! resume flag, use at ocn_run_mct()
-
-   public ::  expcnf, runid, inst_name, inst_suffix, inst_index, resume_flag
-
-end module mod_config
+end subroutine setlogunit

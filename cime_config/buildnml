@@ -141,6 +141,8 @@ set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
 set ITEST    = 60
 set JTEST    = 60
+set CNSVDI   = .false.
+set CSDIAG   = .false.
 set RSTFRQ   =  1
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set RSTFMT   =  1
@@ -236,11 +238,11 @@ if ($BLOM_N_DEPOSITION == TRUE) then
     set NDEPFNAME = ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc
   else if( $BLOM_NDEP_SCENARIO == UNSET ) then
     set DO_NDEP   = .false.
-    set NDEPFNAME = ""
+    set NDEPFNAME = "''"
   endif
 else
   set DO_NDEP   = .false.
-  set NDEPFNAME = ""
+  set NDEPFNAME = "''"
 endif
 if ($HAMOCC_SEDSPINUP == TRUE) then
   set DO_SEDSPINUP = .true.
@@ -259,8 +261,16 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
+# For the following options, there are currently no switches in Case-XML files.
+# These options can be activated by expert users via user namelist.
+set DO_OALK = .false.
+set OALKSCEN = "''"
+set OALKFILE = "''"
 set WITH_DMSPH = .false.
-set PI_PH_FILE = ""
+set PI_PH_FILE = "''"
+set L_3DVARSEDPOR = .false.
+set SEDPORFILE = "''"
+
 
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
@@ -445,7 +455,11 @@ set SRF_EXPORT    = '0, 2, 2'
 set SRF_EXPOSI    = '0, 2, 2' 
 set SRF_EXPOCA    = '0, 2, 2' 
 set SRF_KWCO2     = '0, 2, 2' 
+set SRF_KWCO2KHM  = '0, 2, 2' 
+set SRF_CO2KH     = '0, 2, 2' 
+set SRF_CO2KHM    = '0, 2, 2' 
 set SRF_PCO2      = '0, 2, 2' 
+set SRF_PCO2M     = '0, 2, 2' 
 set SRF_CO2FXD    = '4, 2, 2' 
 set SRF_CO2FXU    = '4, 2, 2' 
 set SRF_OXFLUX    = '0, 2, 2' 
@@ -763,6 +777,7 @@ if      ($OCN_GRID == tnx2v1) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx2v1_20130927.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc'"
   else
@@ -783,6 +798,7 @@ else if ($OCN_GRID == tnx1v4) then
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
+  set SEDPORFILE = "''"
   if ($HAMOCC_VSLS == TRUE) then
     set SWACLIMFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc'"
   else
@@ -809,6 +825,7 @@ else if ($OCN_GRID == tnx0.25v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc'"
   else
@@ -830,6 +847,7 @@ else if ($OCN_GRID == tnx0.125v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20200722.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20200722.nc'"
   set SWACLIMFILE = "''"
+  set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20170821.nc'"
   else
@@ -947,6 +965,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 !            'ben02syn' (a)
 ! ITEST    : Global i-index of point diagnostics (i)
 ! JTEST    : Global j-index of point diagnostics (i)
+! CNSVDI   : Conservation diagnostics flag (l)
+! CSDIAG   : Checksum diagnostics flag (l)
 ! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
 ! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
@@ -1011,6 +1031,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   ATM_PATH = $ATM_PATH
   ITEST    = $ITEST
   JTEST    = $JTEST
+  CNSVDI   = $CNSVDI
+  CSDIAG   = $CSDIAG
   RSTFRQ   = $RSTFRQ
   RSTFMT   = $RSTFMT
   RSTCMP   = $RSTCMP
@@ -1502,6 +1524,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !                OXY, NO3, SIL, D13C, and D14C
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
 ! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
+! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
+! SEDPORFILE  : File name (incl. full path) for sediment porosity
 &BGCNML
   ATM_CO2      = $CCSM_CO2_PPMV
   FEDEPFILE    = $FEDEPFILE
@@ -1510,6 +1534,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
+  DO_OALK      = $DO_OALK
+  OALKSCEN     = $OALKSCEN
+  OALKFILE     = $OALKFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1524,6 +1551,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INID14C      = $INID14C
   WITH_DMSPH   = $WITH_DMSPH
   PI_PH_FILE   = $PI_PH_FILE
+  L_3DVARSEDPOR = $L_3DVARSEDPOR
+  SEDPORFILE   = $SEDPORFILE
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
@@ -1621,7 +1650,11 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
 !   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
 !   PCO2           - Surface PCO2 (spco2) [uatm]
-!   KWCO2          - kwco2 x solubility
+!   PCO2M          - Surface PCO2 under moist air assumption [uatm]
+!   KWCO2          - Piston velocity (kwco2)  [m s-1]
+!   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
+!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
+!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
 !   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
 !   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
 !   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
@@ -1701,7 +1734,11 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_EXPOSI    = $SRF_EXPOSI
   SRF_EXPOCA    = $SRF_EXPOCA
   SRF_KWCO2     = $SRF_KWCO2
+  SRF_KWCO2KHM  = $SRF_KWCO2KHM
+  SRF_CO2KH     = $SRF_CO2KH
+  SRF_CO2KHM    = $SRF_CO2KHM
   SRF_PCO2      = $SRF_PCO2
+  SRF_PCO2M     = $SRF_PCO2M
   SRF_CO2FXD    = $SRF_CO2FXD
   SRF_CO2FXU    = $SRF_CO2FXU
   SRF_OXFLUX    = $SRF_OXFLUX
@@ -1917,9 +1954,19 @@ cat >> $CASEBUILD/blom.input_data_list << EOF
 n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
+  if ($OALKFILE != "''") then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+oafx_file = `echo $OALKFILE | tr -d '"' | tr -d "'"`
+EOF
+  endif
   if ($HAMOCC_VSLS == TRUE) then
 cat >> $CASEBUILD/blom.input_data_list << EOF
 swa_clim_file = `echo $SWACLIMFILE | tr -d '"' | tr -d "'"`
+EOF
+  endif
+  if ($L_3DVARSEDPOR == TRUE) then
+cat >> $CASEBUILD/blom.input_data_list << EOF
+sed_porosity_file = `echo $SEDPORFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
 endif
