@@ -1238,11 +1238,11 @@ contains
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kk, 3, 3, halo_ps)
 
    !$omp parallel do private(k, kn, l, i)
-      do j = -2, jj+2
+      do j = -2, jj+3
          do k = 1, kk
             kn = k + nn
             do l = 1, isp(j)
-            do i = max(-2, ifp(j,l)), min(ii+2, ilp(j,l))
+            do i = max(-2, ifp(j,l)), min(ii+3, ilp(j,l))
                p(i,j,k+1) = p(i,j,k) + dp(i,j,kn)
             enddo
             enddo

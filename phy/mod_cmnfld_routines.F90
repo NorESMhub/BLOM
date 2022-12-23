@@ -365,6 +365,19 @@ module mod_cmnfld_routines
       real(r8) :: pup, tup, sup, plo, tlo, slo
       integer :: i, j, k, l, kn
 
+   !$omp parallel do private(k,kn,l,i)
+      do j = -2, jj+3
+         do k=1, kk
+            kn = k + nn
+            do l = 1, isp(j)
+            do i = max(-2, ifp(j,l)), min(ii+3, ilp(j,l))
+               p(i,j,k+1) = p(i,j,k) + dp(i,j,kn)
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
+
       bfsqi = 0.0_r8
    !$omp parallel do private(l, i, k, pup, tup, sup, kn, plo, tlo, slo)
       do j = 1, jj
