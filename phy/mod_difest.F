@@ -798,23 +798,6 @@ c
       call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
 c --- ------------------------------------------------------------------
-c --- Update layer interface pressure.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- ------------------------------------------------------------------
 c --- Estimate friction velocity cubed.
 c --- ------------------------------------------------------------------
 c
@@ -862,23 +845,6 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(u(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
       call xctilr(v(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
-c
-c --- ------------------------------------------------------------------
-c --- Update layer interface pressure.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
 c
 c --- Obtain common fields for the estimation of lateral and vertical
 c --- diffusivities diapycnal diffusivities.
