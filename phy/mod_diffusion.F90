@@ -120,10 +120,18 @@ module mod_diffusion
                 ! [g cm s-2].
       vmfltd, & ! v-component of horizontal mass flux due to thickness diffusion
                 ! [g cm s-2].
+      umflsm, & ! u-component of horizontal mass flux due to submesoscale
+                ! eddy-induced transport [g cm s-2].
+      vmflsm, & ! v-component of horizontal mass flux due to submesoscale
+                ! eddy-induced transport [g cm s-2].
       utfltd, & ! u-component of horizontal heat flux due to thickness diffusion
                 ! [K g cm s-2].
       vtfltd, & ! v-component of horizontal heat flux due to thickness diffusion
                 ! [K g cm s-2].
+      utflsm, & ! u-component of horizontal heat flux due to submesoscale
+                ! eddy-induced transport [K g cm s-2].
+      vtflsm, & ! v-component of horizontal heat flux due to submesoscale
+                ! eddy-induced transport [K g cm s-2].
       utflld, & ! u-component of horizontal heat flux due to lateral diffusion
                 ! [K g cm s-2].
       vtflld, & ! v-component of horizontal heat flux due to lateral diffusion
@@ -132,6 +140,10 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
       vsfltd, & ! v-component of horizontal salt flux due to thickness diffusion
                 ! [g2 cm kg-1 s-2].
+      usflsm, & ! u-component of horizontal salt flux due to submesoscale
+                ! eddy-induced transport [g2 cm kg-1 s-2].
+      vsflsm, & ! v-component of horizontal salt flux due to submesoscale
+                ! eddy-induced transport [g2 cm kg-1 s-2].
       usflld, & ! u-component of horizontal salt flux due to lateral diffusion
                 ! [g2 cm kg-1 s-2].
       vsflld    ! v-component of horizontal salt flux due to lateral diffusion
@@ -143,8 +155,9 @@ module mod_diffusion
              edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
-             umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
-             usfltd, vsfltd, usflld, vsflld, &
+             umfltd, vmfltd, umflsm, vmflsm, &
+             utfltd, vtfltd, utflsm, vtflsm, utflld, vtflld, &
+             usfltd, vsfltd, usflsm, vsflsm, usflld, vsflld, &
              Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nonloc, &
              readnml_diffusion, inivar_diffusion
 
@@ -308,12 +321,18 @@ contains
             do i = 1 - nbdy, ii + nbdy
                umfltd(i, j, k) = spval
                vmfltd(i, j, k) = spval
+               umflsm(i, j, k) = spval
+               vmflsm(i, j, k) = spval
                utfltd(i, j, k) = spval
                vtfltd(i, j, k) = spval
+               utflsm(i, j, k) = spval
+               vtflsm(i, j, k) = spval
                utflld(i, j, k) = spval
                vtflld(i, j, k) = spval
                usfltd(i, j, k) = spval
                vsfltd(i, j, k) = spval
+               usflsm(i, j, k) = spval
+               vsflsm(i, j, k) = spval
                usflld(i, j, k) = spval
                vsflld(i, j, k) = spval
             enddo
@@ -350,9 +369,12 @@ contains
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l) + 1)
                umfltd(i, j, k) = 0._r8
+               umflsm(i, j, k) = 0._r8
                utfltd(i, j, k) = 0._r8
+               utflsm(i, j, k) = 0._r8
                utflld(i, j, k) = 0._r8
                usfltd(i, j, k) = 0._r8
+               usflsm(i, j, k) = 0._r8
                usflld(i, j, k) = 0._r8
             enddo
             enddo
@@ -360,6 +382,7 @@ contains
       enddo
    !$omp end parallel do
       call xctilr(umfltd, 1, 2*kk, nbdy, nbdy, halo_us)
+      call xctilr(umflsm, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(utflld, 1, 2*kk, nbdy, nbdy, halo_us)
       call xctilr(usflld, 1, 2*kk, nbdy, nbdy, halo_us)
 
@@ -371,9 +394,12 @@ contains
             do l = 1, jsp(i)
             do j = max(1, jfp(i, l)), min(jj, jlp(i, l) + 1)
                vmfltd(i, j, k) = 0._r8
+               vmflsm(i, j, k) = 0._r8
                vtfltd(i, j, k) = 0._r8
+               vtflsm(i, j, k) = 0._r8
                vtflld(i, j, k) = 0._r8
                vsfltd(i, j, k) = 0._r8
+               vsflsm(i, j, k) = 0._r8
                vsflld(i, j, k) = 0._r8
             enddo
             enddo
@@ -381,6 +407,7 @@ contains
       enddo
    !$omp end parallel do
       call xctilr(vmfltd, 1, 2*kk, nbdy, nbdy, halo_vs)
+      call xctilr(vmflsm, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vtflld, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vsflld, 1, 2*kk, nbdy, nbdy, halo_vs)
 

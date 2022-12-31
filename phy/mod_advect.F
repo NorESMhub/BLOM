@@ -33,7 +33,7 @@ c
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
      .                     uflx, vflx, utflx, vtflx, usflx, vsflx,
      .                     p, pbu, pbv, ubflxs_p, vbflxs_p
-      use mod_diffusion, only: umfltd, vmfltd
+      use mod_diffusion, only: umfltd, vmfltd, umflsm, vmflsm
       use mod_remap, only: remap_eitvel, remap_eitflx
       use mod_utility, only: utotm, vtotm, umax, vmax
       use mod_checksum, only: csdiag, chksummsk
@@ -61,7 +61,8 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
       integer i,j,k,l,km,kn,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne
-      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: pbmin
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
+     .  pbmin,umflei,vmflei
 #ifdef TRC
       integer nt
 #endif
@@ -119,7 +120,8 @@ c
             do i=max(0,ifu(j,l)),min(ii+2,ilu(j,l))
               utotm(i,j)=u(i,j,km)
      .          +(ubflxs_p(i,j,m)*dlt/pbu(i,j,m)
-     .           +umfltd(i,j,km)/max(onemm,dpu(i,j,kn)))
+     .           +(umfltd(i,j,km)+umflsm(i,j,km))
+     .            /max(onemm,dpu(i,j,kn)))
      .           /(delt1*scuy(i,j))
               utotm(i,j)=max(-umax(i,j),min(umax(i,j),utotm(i,j)))
             enddo
@@ -130,7 +132,8 @@ c
             do i=max(-1,ifv(j,l)),min(ii+2,ilv(j,l))
               vtotm(i,j)=v(i,j,km)
      .          +(vbflxs_p(i,j,m)*dlt/pbv(i,j,m)
-     .           +vmfltd(i,j,km)/max(onemm,dpv(i,j,kn)))
+     .           +(vmfltd(i,j,km)+vmflsm(i,j,km))
+     .            /max(onemm,dpv(i,j,kn)))
      .           /(delt1*scvx(i,j))
               vtotm(i,j)=max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
             enddo
@@ -163,7 +166,8 @@ c$OMP+FIRSTPRIVATE(utotm,vtotm)
           km=k+mm
           kn=k+nn
 c
-c --- --- advective velocity at mid time level
+c --- --- advective velocity and total eddy-induced mass flux at mid
+c --- --- time level
 c
           do j=-1,jj+2
             do l=1,isu(j)
@@ -172,6 +176,7 @@ c
      .                  +dlt*ubflxs_p(i,j,m)
      .                   /(delt1*pbu(i,j,m)*scuy(i,j))
               utotm(i,j)=max(-umax(i,j),min(umax(i,j),utotm(i,j)))
+              umflei(i,j)=umfltd(i,j,km)+umflsm(i,j,km)
             enddo
             enddo
           enddo
@@ -182,6 +187,7 @@ c
      .                  +dlt*vbflxs_p(i,j,m)
      .                   /(delt1*pbv(i,j,m)*scvx(i,j))
               vtotm(i,j)=max(-vmax(i,j),min(vmax(i,j),vtotm(i,j)))
+              vmflei(i,j)=vmfltd(i,j,km)+vmflsm(i,j,km)
             enddo
             enddo
           enddo
@@ -189,8 +195,7 @@ c
           call remap_eitflx(scuy,scvx,scp2i,scp2,pbmin,
      .                      pbu(1-nbdy,1-nbdy,n),pbv(1-nbdy,1-nbdy,n),
      .                      p(1-nbdy,1-nbdy,k+1),utotm,vtotm,
-     .                      umfltd(1-nbdy,1-nbdy,km),
-     .                      vmfltd(1-nbdy,1-nbdy,km),
+     .                      umflei,vmflei,
      .                      delt1,1,
      .                      dp(1-nbdy,1-nbdy,kn),
      .                      temp(1-nbdy,1-nbdy,kn),
