@@ -359,18 +359,24 @@ set LYR_UFLX     =  '0,   4,   0'
 set LYR_UTFLX    =  '0,   4,   0'
 set LYR_USFLX    =  '0,   4,   0'
 set LYR_UMFLTD   =  '0,   0,   4'
+set LYR_UMFLSM   =  '0,   0,   4'
 set LYR_UTFLTD   =  '0,   0,   4'
+set LYR_UTFLSM   =  '0,   0,   4'
 set LYR_UTFLLD   =  '0,   0,   4'
 set LYR_USFLTD   =  '0,   0,   4'
+set LYR_USFLSM   =  '0,   0,   4'
 set LYR_USFLLD   =  '0,   0,   4'
 set LYR_UVEL     =  '0,   4,   0'
 set LYR_VFLX     =  '0,   4,   0'
 set LYR_VTFLX    =  '0,   4,   0'
 set LYR_VSFLX    =  '0,   4,   0'
 set LYR_VMFLTD   =  '0,   0,   4'
+set LYR_VMFLSM   =  '0,   0,   4'
 set LYR_VTFLTD   =  '0,   0,   4'
+set LYR_VTFLSM   =  '0,   0,   4'
 set LYR_VTFLLD   =  '0,   0,   4'
 set LYR_VSFLTD   =  '0,   0,   4'
+set LYR_VSFLSM   =  '0,   0,   4'
 set LYR_VSFLLD   =  '0,   0,   4'
 set LYR_VVEL     =  '0,   4,   0'
 set LYR_WFLX     =  '0,   4,   0'
@@ -394,18 +400,24 @@ set LVL_UFLX     =  '0,   4,   0'
 set LVL_UTFLX    =  '0,   4,   0'
 set LVL_USFLX    =  '0,   4,   0'
 set LVL_UMFLTD   =  '0,   0,   4'
+set LVL_UMFLSM   =  '0,   0,   4'
 set LVL_UTFLTD   =  '0,   0,   4'
+set LVL_UTFLSM   =  '0,   0,   4'
 set LVL_UTFLLD   =  '0,   0,   4'
 set LVL_USFLTD   =  '0,   0,   4'
+set LVL_USFLSM   =  '0,   0,   4'
 set LVL_USFLLD   =  '0,   0,   4'
 set LVL_UVEL     =  '0,   4,   0'
 set LVL_VFLX     =  '0,   4,   0'
 set LVL_VTFLX    =  '0,   4,   0'
 set LVL_VSFLX    =  '0,   4,   0'
 set LVL_VMFLTD   =  '0,   0,   4'
+set LVL_VMFLSM   =  '0,   0,   4'
 set LVL_VTFLTD   =  '0,   0,   4'
+set LVL_VTFLSM   =  '0,   0,   4'
 set LVL_VTFLLD   =  '0,   0,   4'
 set LVL_VSFLTD   =  '0,   0,   4'
+set LVL_VSFLSM   =  '0,   0,   4'
 set LVL_VSFLLD   =  '0,   0,   4'
 set LVL_VVEL     =  '0,   4,   0'
 set LVL_WFLX     =  '0,   4,   0'
@@ -417,12 +429,16 @@ set LVL_IDLAGE   =  '0,   4,   0'
 set MSC_MMFLXL   =  '0,   4,   0'
 set MSC_MMFLXD   =  '0,   4,   0'
 set MSC_MMFTDL   =  '0,   4,   0'
+set MSC_MMFSML   =  '0,   4,   0'
 set MSC_MMFTDD   =  '0,   4,   0'
+set MSC_MMFSMD   =  '0,   4,   0'
 set MSC_MHFLX    =  '0,   4,   0'
 set MSC_MHFTD    =  '0,   4,   0'
+set MSC_MHFSM    =  '0,   4,   0'
 set MSC_MHFLD    =  '0,   4,   0'
 set MSC_MSFLX    =  '0,   4,   0'
 set MSC_MSFTD    =  '0,   4,   0'
+set MSC_MSFSM    =  '0,   4,   0'
 set MSC_MSFLD    =  '0,   4,   0'
 set MSC_VOLTR    =  '0,   4,   0'
 set MSC_MASSGS   =  '0,   4,   0'
@@ -675,9 +691,11 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
     set BACLIN = 3600.
     set BATROP = 60.
     set CWBDTS = .75e-4
-    set CE     = .5
     set NIWGF  = .4
     set SMTFRC = .false.
+    if ($BLOM_VCOORD == isopyc_bulkml) then
+      set CE     = .5
+    endif
   else
     set BACLIN = 3200.
     set BATROP = 64.
@@ -718,7 +736,9 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   else
     set EGMXDF = 1500.
   endif
-  set CE     = 1.0
+  if ($BLOM_VCOORD == isopyc_bulkml) then
+    set CE     = 1.0
+  endif
 else if ($OCN_GRID == tnx0.125v4) then
   set BACLIN = 300.
   set BATROP = 6.
@@ -1305,18 +1325,24 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   UTFLX    - heat flux in x-direction [W]
 !   USFLX    - salt flux in x-direction [kg s-1]
 !   UMFLTD   - mass flux due to thickness diffusion in x-direction [kg s-1]
+!   UMFLSM   - mass flux due to submesoscale transport in x-direction [kg s-1]
 !   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
+!   UTFLSM   - heat flux due to submesoscale transport in x-direction [W]
 !   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
 !   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
+!   USFLSM   - salt flux due to submesoscale transport in x-direction [kg s-1]
 !   USFLLD   - salt flux due to lateral diffusion in x-direction [kg s-1]
 !   UVEL     - velocity x-component [m s-1]
 !   VFLX     - mass flux in y-direction [kg s-1]
 !   VTFLX    - heat flux in y-direction [W]
 !   VSFLX    - salt flux in y-direction [kg s-1]
 !   VMFLTD   - mass flux due to thickness diffusion in y-direction [kg s-1]
+!   VMFLSM   - mass flux due to submesoscale transport in y-direction [kg s-1]
 !   VTFLTD   - heat flux due to thickness diffusion in y-direction [W]
+!   VTFLSM   - heat flux due to submesoscale transport in y-direction [W]
 !   VTFLLD   - heat flux due to lateral diffusion in y-direction [W]
 !   VSFLTD   - salt flux due to thickness diffusion in y-direction [kg s-1]
+!   VSFLSM   - salt flux due to submesoscale transport in y-direction [kg s-1]
 !   VSFLLD   - salt flux due to lateral diffusion in y-direction [kg s-1]
 !   VVEL     - velocity x-component [m s-1]
 !   WFLX     - vertical mass flux [kg s-1]
@@ -1328,12 +1354,16 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
 !   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
+!   MMFSML   - MOC due to submesoscale transport on isopycnic layers [kg s-1]
 !   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
+!   MMFSMD   - MOC due to submesoscale transport on z-levels [kg s-1]
 !   MHFLX    - meridional heat flux [W]
 !   MHFTD    - meridional heat flux due to thickness diffusion [W]
+!   MHFSM    - meridional heat flux due to submesoscale transport [W]
 !   MHFLD    - meridional heat flux due to lateral diffusion [W]
 !   MSFLX    - meridional salt flux [kg s-1]
 !   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
+!   MSFSM    - meridional salt flux due to submesoscale transport [kg s-1]
 !   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
 !   VOLTR    - section transports [kg s-1]
 !   MASSGS   - global sum of mass [kg]
@@ -1426,18 +1456,24 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LYR_UTFLX    = $LYR_UTFLX
   LYR_USFLX    = $LYR_USFLX
   LYR_UMFLTD   = $LYR_UMFLTD
+  LYR_UMFLSM   = $LYR_UMFLSM
   LYR_UTFLTD   = $LYR_UTFLTD
+  LYR_UTFLSM   = $LYR_UTFLSM
   LYR_UTFLLD   = $LYR_UTFLLD
   LYR_USFLTD   = $LYR_USFLTD
+  LYR_USFLSM   = $LYR_USFLSM
   LYR_USFLLD   = $LYR_USFLLD
   LYR_UVEL     = $LYR_UVEL
   LYR_VFLX     = $LYR_VFLX
   LYR_VTFLX    = $LYR_VTFLX
   LYR_VSFLX    = $LYR_VSFLX
   LYR_VMFLTD   = $LYR_VMFLTD
+  LYR_VMFLSM   = $LYR_VMFLSM
   LYR_VTFLTD   = $LYR_VTFLTD
+  LYR_VTFLSM   = $LYR_VTFLSM
   LYR_VTFLLD   = $LYR_VTFLLD
   LYR_VSFLTD   = $LYR_VSFLTD
+  LYR_VSFLSM   = $LYR_VSFLSM
   LYR_VSFLLD   = $LYR_VSFLLD
   LYR_VVEL     = $LYR_VVEL
   LYR_WFLX     = $LYR_WFLX
@@ -1461,18 +1497,24 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   LVL_UTFLX    = $LVL_UTFLX
   LVL_USFLX    = $LVL_USFLX
   LVL_UMFLTD   = $LVL_UMFLTD
+  LVL_UMFLSM   = $LVL_UMFLSM
   LVL_UTFLTD   = $LVL_UTFLTD
+  LVL_UTFLSM   = $LVL_UTFLSM
   LVL_UTFLLD   = $LVL_UTFLLD
   LVL_USFLTD   = $LVL_USFLTD
+  LVL_USFLSM   = $LVL_USFLSM
   LVL_USFLLD   = $LVL_USFLLD
   LVL_UVEL     = $LVL_UVEL
   LVL_VFLX     = $LVL_VFLX
   LVL_VTFLX    = $LVL_VTFLX
   LVL_VSFLX    = $LVL_VSFLX
   LVL_VMFLTD   = $LVL_VMFLTD
+  LVL_VMFLSM   = $LVL_VMFLSM
   LVL_VTFLTD   = $LVL_VTFLTD
+  LVL_VTFLSM   = $LVL_VTFLSM
   LVL_VTFLLD   = $LVL_VTFLLD
   LVL_VSFLTD   = $LVL_VSFLTD
+  LVL_VSFLSM   = $LVL_VSFLSM
   LVL_VSFLLD   = $LVL_VSFLLD
   LVL_VVEL     = $LVL_VVEL
   LVL_WFLX     = $LVL_WFLX
@@ -1484,12 +1526,16 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   MSC_MMFLXL   = $MSC_MMFLXL
   MSC_MMFLXD   = $MSC_MMFLXD
   MSC_MMFTDL   = $MSC_MMFTDL
+  MSC_MMFSML   = $MSC_MMFSML
   MSC_MMFTDD   = $MSC_MMFTDD
+  MSC_MMFSMD   = $MSC_MMFSMD
   MSC_MHFLX    = $MSC_MHFLX
   MSC_MHFTD    = $MSC_MHFTD
+  MSC_MHFSM    = $MSC_MHFSM
   MSC_MHFLD    = $MSC_MHFLD
   MSC_MSFLX    = $MSC_MSFLX
   MSC_MSFTD    = $MSC_MSFTD
+  MSC_MSFSM    = $MSC_MSFSM
   MSC_MSFLD    = $MSC_MSFLD
   MSC_VOLTR    = $MSC_VOLTR
   MSC_MASSGS   = $MSC_MASSGS

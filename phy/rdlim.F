@@ -27,8 +27,7 @@ c
       use mod_config, only: expcnf, runid, inst_suffix
       use mod_constants, only: epsilt
       use mod_calendar, only: date_type, daynum_diff, calendar_errstr,
-     .                        calendar_noerr, operator(==), operator(<),
-     .                        operator(/=)
+     .                        operator(==), operator(<), operator(/=)
       use mod_time, only: date0, date, nday1, nday2, nstep0, nstep1,
      .                    nstep2, nstep, lstep, nstep_in_day, time0,
      .                    time, baclin, batrop, init_timevars,
@@ -271,6 +270,22 @@ c --- - variables set in namelists
             LYR_DIFVMO(1:nphy)=0
             LYR_DIFVHO(1:nphy)=0
             LYR_DIFVSO(1:nphy)=0
+            LYR_UMFLSM(1:nphy)=0
+            LYR_UTFLSM(1:nphy)=0
+            LYR_USFLSM(1:nphy)=0
+            LYR_VMFLSM(1:nphy)=0
+            LYR_VTFLSM(1:nphy)=0
+            LYR_VSFLSM(1:nphy)=0
+            LVL_UMFLSM(1:nphy)=0
+            LVL_UTFLSM(1:nphy)=0
+            LVL_USFLSM(1:nphy)=0
+            LVL_VMFLSM(1:nphy)=0
+            LVL_VTFLSM(1:nphy)=0
+            LVL_VSFLSM(1:nphy)=0
+            MSC_MMFSML(1:nphy)=0
+            MSC_MMFSMD(1:nphy)=0
+            MSC_MHFSM (1:nphy)=0
+            MSC_MSFSM (1:nphy)=0
             LVL_DIFVMO(1:nphy)=0
             LVL_DIFVHO(1:nphy)=0
             LVL_DIFVSO(1:nphy)=0
@@ -383,18 +398,24 @@ c --- - print diaphy namelist
         write (lp,*) 'LYR_UTFLX   ',LYR_UTFLX(1:nphy)
         write (lp,*) 'LYR_USFLX   ',LYR_USFLX(1:nphy)
         write (lp,*) 'LYR_UMFLTD  ',LYR_UMFLTD(1:nphy)
+        write (lp,*) 'LYR_UMFLSM  ',LYR_UMFLSM(1:nphy)
         write (lp,*) 'LYR_UTFLTD  ',LYR_UTFLTD(1:nphy)
+        write (lp,*) 'LYR_UTFLSM  ',LYR_UTFLSM(1:nphy)
         write (lp,*) 'LYR_UTFLLD  ',LYR_UTFLLD(1:nphy)
         write (lp,*) 'LYR_USFLTD  ',LYR_USFLTD(1:nphy)
+        write (lp,*) 'LYR_USFLSM  ',LYR_USFLSM(1:nphy)
         write (lp,*) 'LYR_USFLLD  ',LYR_USFLLD(1:nphy)
         write (lp,*) 'LYR_UVEL    ',LYR_UVEL(1:nphy)
         write (lp,*) 'LYR_VFLX    ',LYR_VFLX(1:nphy)
         write (lp,*) 'LYR_VTFLX   ',LYR_VTFLX(1:nphy)
         write (lp,*) 'LYR_VSFLX   ',LYR_VSFLX(1:nphy)
         write (lp,*) 'LYR_VMFLTD  ',LYR_VMFLTD(1:nphy)
+        write (lp,*) 'LYR_USFLSM  ',LYR_USFLSM(1:nphy)
         write (lp,*) 'LYR_VTFLTD  ',LYR_VTFLTD(1:nphy)
+        write (lp,*) 'LYR_VTFLSM  ',LYR_VTFLSM(1:nphy)
         write (lp,*) 'LYR_VTFLLD  ',LYR_VTFLLD(1:nphy)
         write (lp,*) 'LYR_VSFLTD  ',LYR_VSFLTD(1:nphy)
+        write (lp,*) 'LYR_VSFLSM  ',LYR_VSFLSM(1:nphy)
         write (lp,*) 'LYR_VSFLLD  ',LYR_VSFLLD(1:nphy)
         write (lp,*) 'LYR_VVEL    ',LYR_VVEL(1:nphy)
         write (lp,*) 'LYR_WFLX    ',LYR_WFLX(1:nphy)
@@ -419,18 +440,24 @@ c --- - print diaphy namelist
         write (lp,*) 'LVL_UTFLX   ',LVL_UTFLX(1:nphy)
         write (lp,*) 'LVL_USFLX   ',LVL_USFLX(1:nphy)
         write (lp,*) 'LVL_UMFLTD  ',LVL_UMFLTD(1:nphy)
+        write (lp,*) 'LVL_UMFLSM  ',LVL_UMFLSM(1:nphy)
         write (lp,*) 'LVL_UTFLTD  ',LVL_UTFLTD(1:nphy)
+        write (lp,*) 'LVL_UTFLSM  ',LVL_UTFLSM(1:nphy)
         write (lp,*) 'LVL_UTFLLD  ',LVL_UTFLLD(1:nphy)
         write (lp,*) 'LVL_USFLTD  ',LVL_USFLTD(1:nphy)
+        write (lp,*) 'LVL_USFLSM  ',LVL_USFLSM(1:nphy)
         write (lp,*) 'LVL_USFLLD  ',LVL_USFLLD(1:nphy)
         write (lp,*) 'LVL_UVEL    ',LVL_UVEL(1:nphy)
         write (lp,*) 'LVL_VFLX    ',LVL_VFLX(1:nphy)
         write (lp,*) 'LVL_VTFLX   ',LVL_VTFLX(1:nphy)
         write (lp,*) 'LVL_VSFLX   ',LVL_VSFLX(1:nphy)
         write (lp,*) 'LVL_VMFLTD  ',LVL_VMFLTD(1:nphy)
+        write (lp,*) 'LVL_VMFLSM  ',LVL_VMFLSM(1:nphy)
         write (lp,*) 'LVL_VTFLTD  ',LVL_VTFLTD(1:nphy)
+        write (lp,*) 'LVL_VTFLSM  ',LVL_VTFLSM(1:nphy)
         write (lp,*) 'LVL_VTFLLD  ',LVL_VTFLLD(1:nphy)
         write (lp,*) 'LVL_VSFLTD  ',LVL_VSFLTD(1:nphy)
+        write (lp,*) 'LVL_VSFLSM  ',LVL_VSFLSM(1:nphy)
         write (lp,*) 'LVL_VSFLLD  ',LVL_VSFLLD(1:nphy)
         write (lp,*) 'LVL_VVEL    ',LVL_VVEL(1:nphy)
         write (lp,*) 'LVL_WFLX    ',LVL_WFLX(1:nphy)
@@ -442,12 +469,16 @@ c --- - print diaphy namelist
         write (lp,*) 'MSC_MMFLXL  ',MSC_MMFLXL(1:nphy)
         write (lp,*) 'MSC_MMFLXD  ',MSC_MMFLXD(1:nphy)
         write (lp,*) 'MSC_MMFTDL  ',MSC_MMFTDL(1:nphy)
+        write (lp,*) 'MSC_MMFSML  ',MSC_MMFSML(1:nphy)
         write (lp,*) 'MSC_MMFTDD  ',MSC_MMFTDD(1:nphy)
+        write (lp,*) 'MSC_MMFSMD  ',MSC_MMFSMD(1:nphy)
         write (lp,*) 'MSC_MHFLX   ',MSC_MHFLX(1:nphy)
         write (lp,*) 'MSC_MHFTD   ',MSC_MHFTD(1:nphy)
+        write (lp,*) 'MSC_MHFSM   ',MSC_MHFSM(1:nphy)
         write (lp,*) 'MSC_MHFLD   ',MSC_MHFLD(1:nphy)
         write (lp,*) 'MSC_MSFLX   ',MSC_MSFLX(1:nphy)
         write (lp,*) 'MSC_MSFTD   ',MSC_MSFTD(1:nphy)
+        write (lp,*) 'MSC_MSFSM   ',MSC_MSFSM(1:nphy)
         write (lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
         write (lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
         write (lp,*) 'MSC_MASSGS  ',MSC_MASSGS(1:nphy)
@@ -541,18 +572,24 @@ c
       call xcbcst(LYR_UTFLX)
       call xcbcst(LYR_USFLX)
       call xcbcst(LYR_UMFLTD)
+      call xcbcst(LYR_UMFLSM)
       call xcbcst(LYR_UTFLTD)
+      call xcbcst(LYR_UTFLSM)
       call xcbcst(LYR_UTFLLD)
       call xcbcst(LYR_USFLTD)
+      call xcbcst(LYR_USFLSM)
       call xcbcst(LYR_USFLLD)
       call xcbcst(LYR_UVEL)
       call xcbcst(LYR_VFLX)
       call xcbcst(LYR_VTFLX)
       call xcbcst(LYR_VSFLX)
       call xcbcst(LYR_VMFLTD)
+      call xcbcst(LYR_VMFLSM)
       call xcbcst(LYR_VTFLTD)
+      call xcbcst(LYR_VTFLSM)
       call xcbcst(LYR_VTFLLD)
       call xcbcst(LYR_VSFLTD)
+      call xcbcst(LYR_VSFLSM)
       call xcbcst(LYR_VSFLLD)
       call xcbcst(LYR_VVEL)
       call xcbcst(LYR_WFLX)
@@ -576,18 +613,24 @@ c
       call xcbcst(LVL_UTFLX)
       call xcbcst(LVL_USFLX)
       call xcbcst(LVL_UMFLTD)
+      call xcbcst(LVL_UMFLSM)
       call xcbcst(LVL_UTFLTD)
+      call xcbcst(LVL_UTFLSM)
       call xcbcst(LVL_UTFLLD)
       call xcbcst(LVL_USFLTD)
+      call xcbcst(LVL_USFLSM)
       call xcbcst(LVL_USFLLD)
       call xcbcst(LVL_UVEL)
       call xcbcst(LVL_VFLX)
       call xcbcst(LVL_VTFLX)
       call xcbcst(LVL_VSFLX)
       call xcbcst(LVL_VMFLTD)
+      call xcbcst(LVL_VMFLSM)
       call xcbcst(LVL_VTFLTD)
+      call xcbcst(LVL_VTFLSM)
       call xcbcst(LVL_VTFLLD)
       call xcbcst(LVL_VSFLTD)
+      call xcbcst(LVL_VSFLSM)
       call xcbcst(LVL_VSFLLD)
       call xcbcst(LVL_VVEL)
       call xcbcst(LVL_WFLX)
@@ -599,12 +642,16 @@ c
       call xcbcst(MSC_MMFLXL)
       call xcbcst(MSC_MMFLXD)
       call xcbcst(MSC_MMFTDL)
+      call xcbcst(MSC_MMFSML)
       call xcbcst(MSC_MMFTDD)
+      call xcbcst(MSC_MMFSMD)
       call xcbcst(MSC_MHFLX)
       call xcbcst(MSC_MHFTD)
+      call xcbcst(MSC_MHFSM)
       call xcbcst(MSC_MHFLD)
       call xcbcst(MSC_MSFLX)
       call xcbcst(MSC_MSFTD)
+      call xcbcst(MSC_MSFSM)
       call xcbcst(MSC_MSFLD)
       call xcbcst(MSC_VOLTR)
       call xcbcst(MSC_MASSGS)
@@ -626,9 +673,10 @@ c
 c --- read merdia namelist if needed
 c
       if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
-     .       +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
-     .       +MSC_MHFLD(1:nphy)+MSC_MSFLX(1:nphy)+MSC_MSFTD(1:nphy)
-     .       +MSC_MSFLD(1:nphy)).ne.0) then
+     .       +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy)
+     .       +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy)
+     .       +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy)
+     .       +MSC_MSFSM (1:nphy)+MSC_MSFLD (1:nphy)).ne.0) then
 c
         if (mnproc.eq.1) then
 c
