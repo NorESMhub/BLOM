@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2023 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Ingo Bethke, Jerry Tjiputra, Ping-Gin Chiu,
 !                         Aleksi Nummelin, Jörg Schwinger
 !
@@ -47,7 +47,8 @@ c
      .                       flxco2, flxdms, ustarb, buoyfl,flxbrf
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
-      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s,
+     .                         t_ns_nonloc, s_nb_nonloc
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -299,6 +300,10 @@ c
         call wrtrst('dpv',trim(c5p)//' kk2 time',dpv,iv)
         call wrtrst('difiso',trim(c5p)//' kk time',difiso,ip)
         call wrtrst('OBLdepth',trim(c5p)//' time',OBLdepth,ip)
+        call wrtrst('t_ns_nonloc',trim(c5p)//' kkp1 time',
+     .              t_ns_nonloc,ip)
+        call wrtrst('s_nb_nonloc',trim(c5p)//' kkp1 time',
+     .              s_nb_nonloc,ip)
         call wrtrst('umflsm',trim(c5u)//' kk2 time',umflsm,iuu)
         call wrtrst('utflsm',trim(c5u)//' kk2 time',utflsm,iuu)
         call wrtrst('usflsm',trim(c5u)//' kk2 time',usflsm,iuu)
@@ -945,6 +950,8 @@ c
         call defvarrst('dpv',trim(c5p)//' kk2 time')
         call defvarrst('difiso',trim(c5p)//' kk time')
         call defvarrst('OBLdepth',trim(c5p)//' time')
+        call defvarrst('t_ns_nonloc',trim(c5p)//' kkp1 time')
+        call defvarrst('s_nb_nonloc',trim(c5p)//' kkp1 time')
         call defvarrst('umflsm',trim(c5u)//' kk2 time')
         call defvarrst('utflsm',trim(c5u)//' kk2 time')
         call defvarrst('usflsm',trim(c5u)//' kk2 time')

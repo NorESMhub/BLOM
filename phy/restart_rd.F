@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
+! Copyright (C) 2006-2023 Mats Bentsen, Mehmet Ilicak, Alok Kumar Gupta,
 !                         Jerry Tjiputra, Ping-Gin Chiu, Aleksi Nummelin,
 !                         Jörg Schwinger
 !
@@ -49,7 +49,8 @@ c
      .                       flxco2, flxdms, flxbrf, ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
-      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
+      use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s,
+     .                         t_ns_nonloc, s_nb_nonloc
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -523,6 +524,8 @@ c
         call ncread('dpv',dpv,iv,1,0.)
         call ncread('difiso',difiso,ip,1,0.)
         call ncread('OBLdepth',OBLdepth,ip,1,0.)
+        call ncread('t_ns_nonloc',t_ns_nonloc,ip,1,0.)
+        call ncread('s_nb_nonloc',s_nb_nonloc,ip,1,0.)
       endif
 c
       if (sprfac) then
