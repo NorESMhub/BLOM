@@ -59,8 +59,10 @@ module mod_diffusion
                 ! Brunt-Vaisala frequency, if bdmtyp = 2 the background
                 ! diffusivity is constant [].
    logical :: &
-      edsprs    ! If true, apply eddy mixing suppression away from steering
+      edsprs, & ! If true, apply eddy mixing suppression away from steering
                 ! level.
+      bdmldp    ! If true, make the background mixing latitude dependent
+                ! according to Gregg et al. (2003).
    character(len = 80) :: &
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
@@ -151,8 +153,8 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, eitmth_opt, eitmth_intdif, eitmth_gm, &
-             edritp_opt, edritp_shear, edritp_large_scale, &
+             tkepf, bdmtyp, edsprs, bdmldp, eitmth_opt, eitmth_intdif, &
+             eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
              edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
@@ -175,7 +177,7 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, tkepf, &
-         bdmtyp, edsprs, eitmth, edritp, edwmth, ltedtp
+         bdmtyp, edsprs, bdmldp, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -216,6 +218,7 @@ contains
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
         call xcbcst(edsprs)
+        call xcbcst(bdmldp)
         call xcbcst(eitmth)
         call xcbcst(edritp)
         call xcbcst(edwmth)
@@ -235,6 +238,7 @@ contains
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  edsprs = ', edsprs
+         write (lp,*) '  bdmldp = ', bdmldp
          write (lp,*) '  eitmth = ', trim(eitmth)
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)

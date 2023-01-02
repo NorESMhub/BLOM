@@ -202,8 +202,10 @@ else
 endif
 set TKEPF    = .006
 if ($BLOM_VCOORD == isopyc_bulkml) then
+  set BDMLDP   = .true.
   set LTEDTP   = "'layer'"
 else
+  set BDMLDP   = .false.
   set LTEDTP   = "'neutral'"
 endif
 
@@ -1124,6 +1126,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
 !            frequency (cm**2/s**2) (f)
 ! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
+! BDMLDP   : Make the background mixing latitude dependent according to
+!            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
@@ -1143,6 +1147,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   BDMTYP   = $BDMTYP
   BDMC1    = $BDMC1
   BDMC2    = $BDMC2
+  BDMLDP   = $BDMLDP
   TKEPF    = $TKEPF
   LTEDTP   = $LTEDTP
 /

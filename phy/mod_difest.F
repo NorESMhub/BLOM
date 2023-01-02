@@ -33,7 +33,7 @@ c
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp_opt, edritp_shear,
+     .                         edsprs, bdmldp, edritp_opt, edritp_shear,
      .                         edritp_large_scale, edwmth_opt,
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
@@ -115,8 +115,6 @@ c ---            iidtyp=1 the diffusivities are diffusive velocities
 c ---            multiplied by the local horizontal grid scale, if
 c ---            iidtyp=2 the diffusivities are parameterized according
 c ---            to Eden and Greatbatch (2008).
-c ---   bdmldp - If bdmldp=1, make the background mixing latitude
-c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
 c ---   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
 c ---            due to internal wave damping under sea-ice.
@@ -173,13 +171,13 @@ c ---  cpsemin - Lower bound of zonal eddy phase speed minus zonal
 c ---            barotropic velocity [cm/s].
 c ---  urmsemin- Lower bound of absolute value of RMS eddy velocity
 c ---            [cm/s].
-      integer iidtyp,bdmldp,tdmflg,iwdflg
+      integer iidtyp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,nuls0,
      .     iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,niwls,
      .     cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,dpnbav,ustmin,
      .     kappa,bfeps,sleps,zetas,as,cs,minOBLdepth,
      .     cpsemin,urmsemin
-      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=onem,
+      parameter (iidtyp=2,tdmflg=1,iwdflg=1,dptmin=onem,
      .           dpbmin=onecm,drhomn=6.e-3*R_mks2cgs,
      .           thkdff=5.e-3*L_mks2cgs,temdff=3.5e-3*L_mks2cgs,
      .           nu0=1.e-5*A_mks2cgs,
@@ -1073,6 +1071,13 @@ c --- --------- Type 2: Background diffusivity is a constant
              if (iwdflg.eq.1) then
                Kv_col=Kv_col*(1.+(iwdfac-1.)*ficem(i,j))
                Kd_col=Kd_col*(1.+(iwdfac-1.)*ficem(i,j))
+             endif
+c
+c --- ------ Latitude dependency of background diapycnal mixing
+             if (bdmldp) then
+               q=max(1.e-9,abs(coriop(i,j)))
+               Kv_col=Kv_col*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
+               Kd_col=Kd_col*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
              endif
 
 c --- ------ Tidally driven diapycnal mixing
@@ -2208,7 +2213,7 @@ c --- --------- Type 2: Background diffusivity is a constant
               endif
 c
 c --- ------- Latitude dependency of background diapycnal mixing
-              if (bdmldp.eq.1) then
+              if (bdmldp) then
                 q=max(1.e-9,abs(coriop(i,j)))
                 nub=nub*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
               endif
