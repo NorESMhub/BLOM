@@ -182,6 +182,8 @@
 ! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
 !            frequency (cm**2/s**2) (f)
 ! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
+! BDMLDP   : Make the background mixing latitude dependent according to
+!            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
@@ -201,6 +203,7 @@
   BDMTYP   = 2
   BDMC1    = 5.e-4
   BDMC2    = .15
+  BDMLDP   = .false.
   TKEPF    = 0.
   LTEDTP   = 'layer'
 /
