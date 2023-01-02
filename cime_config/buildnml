@@ -171,6 +171,8 @@ set VELOCITY_PC_LOWER_BNDR = .false.
 set DPMIN_SURFACE          = 2.5
 set DPMIN_INFLATION_FACTOR = 1.08
 set DPMIN_INTERIOR         = .1
+set DKTZU                  = 4
+set DKTZL                  = 1
 
 # set DIFFUSION defaults
 set EITMTH   = "'gm'"
@@ -651,7 +653,12 @@ set BUR_SSSTER    = '0, 0, 2'
 
 # if partial coupling, enable SSS relaxation
 if ($BLOM_COUPLING  =~ *partial*) then
-  set SRXDAY = 6.
+  if ($BLOM_VCOORD == isopyc_bulkml) then
+    set SRXDAY = 6.
+  else
+    set SRXDAY = 60.
+    set SRXDPT = 10.
+  endif
   set SPRFAC = .true.
   set SRXBAL = .true.
 endif
@@ -1078,6 +1085,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   DPMIN_SURFACE          = $DPMIN_SURFACE
   DPMIN_INFLATION_FACTOR = $DPMIN_INFLATION_FACTOR
   DPMIN_INTERIOR         = $DPMIN_INTERIOR
+  DKTZU                  = $DKTZU
+  DKTZL                  = $DKTZL
 /
 EOF
 endif

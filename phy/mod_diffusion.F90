@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2020-2023 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -107,8 +107,9 @@ module mod_diffusion
       Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
       t_ns_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-shortwave flux passing a layer interface [].
-      s_nonloc        ! Non-local transport term that is the fraction of
-                      ! material tracer flux passing a layer interface [].
+      s_nb_nonloc     ! Non-local transport term that is the fraction of
+                      ! non-brine material tracer flux passing a layer interface
+                      ! [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
@@ -158,7 +159,7 @@ module mod_diffusion
              umfltd, vmfltd, umflsm, vmflsm, &
              utfltd, vtfltd, utflsm, vtflsm, utflld, vtflld, &
              usfltd, vsfltd, usflsm, vsflsm, usflld, vsflld, &
-             Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nonloc, &
+             Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nb_nonloc, &
              readnml_diffusion, inivar_diffusion
 
 contains
@@ -342,6 +343,8 @@ contains
                Kvisc_m(i, j, k) = epsilk
                Kdiff_t(i, j, k) = epsilk
                Kdiff_s(i, j, k) = epsilk
+               t_ns_nonloc(i, j, k) = spval
+               s_nb_nonloc(i, j, k) = spval
             enddo
          enddo
       enddo
@@ -410,6 +413,26 @@ contains
       call xctilr(vmflsm, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vtflld, 1, 2*kk, nbdy, nbdy, halo_vs)
       call xctilr(vsflld, 1, 2*kk, nbdy, nbdy, halo_vs)
+
+      ! Initialize non-local transport.
+   !$omp parallel do private(k, l, i)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            t_ns_nonloc(i, j, 1) = 1._r8
+            s_nb_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
+         do k = 2, kk + 1
+            do l = 1, isp(j)
+            do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+               t_ns_nonloc(i, j, k) = 0._r8
+               s_nb_nonloc(i, j, k) = 0._r8
+            enddo
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
 
    end subroutine inivar_diffusion
 

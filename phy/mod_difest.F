@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2023 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -38,7 +38,7 @@ c
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
-     .                         t_ns_nonloc, s_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
       use mod_forcing, only: ustar, ustarb, ustar3, buoyfl, t_sw_nonloc
      .                       , surflx, sswflx, salflx
@@ -1219,7 +1219,7 @@ c ---- ccc -------
              Kdiff_t(i,j,:) = Kt_kpp(:)
              Kdiff_s(i,j,:) = Ks_kpp(:)
              t_ns_nonloc(i,j,:) = nonLocalTrans(:,1)
-             s_nonloc(i,j,:) = nonLocalTrans(:,2)
+             s_nb_nonloc(i,j,:) = nonLocalTrans(:,2)
              do k = 1, kk+1
                 t_sw_nonloc(i,j,k) = max(t_sw_nonloc(i,j,k),
      .                                   nonLocalTrans(k,1))
@@ -1238,6 +1238,8 @@ c
         call chksummsk(Kvisc_m,ip,kk+1,'Kvisc_m')
         call chksummsk(Kdiff_t,ip,kk+1,'Kdiff_t')
         call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
+        call chksummsk(t_ns_nonloc,ip,kk+1,'t_ns_nonloc')
+        call chksummsk(s_nb_nonloc,ip,kk+1,'s_nb_nonloc')
       endif
 c
       end subroutine difest_vertical_hyb
