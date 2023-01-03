@@ -26,7 +26,7 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
-        run: brew install netcdf open-mpi ninja
+        run: brew install netcdf-fortran open-mpi ninja
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
         if: runner.os == 'macOS'
