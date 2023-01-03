@@ -44,8 +44,8 @@ jobs:
 
       - name: Build
         env:
-          CC: gcc-10
-          FC: gfortran-10
+          CC: gcc-12
+          FC: gfortran-12
         run: |
           meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
           meson compile -C builddir
