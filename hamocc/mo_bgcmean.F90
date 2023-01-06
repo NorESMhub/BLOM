@@ -89,8 +89,9 @@
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
+     & SRF_PH        =0    ,                                            &
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
-     & SRF_NATCO2FX  =0    ,                                            &
+     & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
@@ -165,8 +166,9 @@
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
      & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
+     & SRF_PH            ,                                              &
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
-     & SRF_NATCO2FX      ,                                              &
+     & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
@@ -292,6 +294,7 @@
      &          jsrfsilica = 0 ,                                        &
      &          jsrfdic    = 0 ,                                        &
      &          jsrfphyto  = 0 ,                                        &
+     &          jsrfph     = 0 ,                                        &
      &          jintphosy  = 0 ,                                        &
      &          jintnfix   = 0 ,                                        &
      &          jintdnit   = 0 ,                                        &
@@ -327,7 +330,8 @@
      &          jsrfnatdic = 0 ,                                        &
      &          jsrfnatalk = 0 ,                                        &
      &          jnatpco2   = 0 ,                                        &
-     &          jnatco2fx  = 0
+     &          jnatco2fx  = 0 ,                                        &
+     &          jsrfnatph  = 0
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jbromofx   = 0 ,                                        &
@@ -620,6 +624,8 @@
         jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
         IF (SRF_PHYTO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfphyto(n)=i_bsc_m2d*min(1,SRF_PHYTO(n))
+        IF (SRF_PH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfph(n)=i_bsc_m2d*min(1,SRF_PH(n))
         IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
         IF (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -705,6 +711,8 @@
         jnatpco2(n)=i_bsc_m2d*min(1,SRF_NATPCO2(n))
         IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
+        IF (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfnatph(n)=i_bsc_m2d*min(1,SRF_NATPH(n))
 #endif
 #ifdef BROMO 
         IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
