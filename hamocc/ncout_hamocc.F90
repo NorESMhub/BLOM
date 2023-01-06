@@ -79,7 +79,7 @@ subroutine ncwrt_bgc(iogrp)
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
        &                    jsrfalkali,jsrfano3,jsrfdic,jsrfiron,               &
-       &                    jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,         &
+       &                    jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,  &
        &                    jwnos,jwphy,                                        &
        &                    lyr_dp,lyr_dic,lyr_alkali,lyr_phosph,               &
        &                    lyr_oxygen,lyr_ano3,lyr_silica,lyr_doc,             &
@@ -102,14 +102,14 @@ subroutine ncwrt_bgc(iogrp)
        &                    srf_dmsprod,srf_dms_bac,srf_dms_uv,                 &
        &                    srf_export,srf_exposi,srf_expoca,srf_dic,           &
        &                    srf_alkali,srf_phosph,srf_oxygen,srf_ano3,          &
-       &                    srf_silica,srf_iron,srf_phyto,                      &
+       &                    srf_silica,srf_iron,srf_phyto,srf_ph,               &
        &                    int_phosy,int_nfix,int_dnit,                        &
        &                    nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,          &
        &                    nbgcmax,glb_ncformat,glb_compflag,                  &
        &                    glb_fnametag,filefq_bgc,diagfq_bgc,                 &
-       &                    filemon_bgc,fileann_bgc,ip,wrtlyr,wrtlvl,           &
-       &                    loglyr,inilvl,inilyr,inisrf,loglvl,                 &
-       &                    msklvl,wrtsrf,msksrf,finlyr
+       &                    filemon_bgc,fileann_bgc,ip,wrtlyr,wrtlvl,wrtsrf,    &
+       &                    loglyr,loglvl,logsrf,inilvl,inilyr,inisrf,          &
+       &                    msklvl,msksrf,finlyr
 #ifdef AGG
   use mo_bgcmean, only: lyr_nos,lyr_wphy, lyr_wnos,lyr_eps,                     &
        &                lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,            &
@@ -143,14 +143,14 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 #ifdef natDIC
   use mo_bgcmean, only: jnatalkali,jnatdic,jnatcalc,jnatco3,jnatph,             &
-       &                jnatomegaa,jnatomegac,lyr_natph,jlvlnatph,              &
-       &                lvl_natph,jsrfnatdic,                                   &
-       &                jsrfnatalk,jnatpco2,jnatco2fx,lyr_natco3,               &
-       &                lyr_natalkali,lyr_natdic,lyr_natcalc,                   &
+       &                jnatomegaa,jnatomegac,jlvlnatph,                        &
+       &                jsrfnatdic,jsrfnatalk,jsrfnatph,                        &
+       &                jnatpco2,jnatco2fx,lyr_natco3,                          &
+       &                lyr_natalkali,lyr_natdic,lyr_natph,lyr_natcalc,         &
        &                lyr_natomegaa,lyr_natomegac,lvl_natco3,                 &
-       &                lvl_natalkali,lvl_natdic,lvl_natcalc,                   &
+       &                lvl_natalkali,lvl_natdic,lvl_natph,lvl_natcalc,         &
        &                lvl_natomegaa,lvl_natomegac,srf_natdic,                 &
-       &                srf_natalkali,srf_natpco2,srf_natco2fx
+       &                srf_natalkali,srf_natpco2,srf_natco2fx,srf_natph
 #endif
 #ifndef sedbypass
   use mo_bgcmean, only: jpowaic,jpowaal,jpowaph,jpowaox,jpown2,                 &
@@ -385,9 +385,11 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 
   ! --- Compute log10 of pH
+  if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0.)
   if (LYR_PH(iogrp).ne.0) call loglyr(jph(iogrp),1.,0.)
   if (LVL_PH(iogrp).ne.0) call loglvl(jlvlph(iogrp),rnacc,0.)
 #ifdef natDIC
+  if (SRF_NATPH(iogrp).ne.0) call logsrf(jsrfnatph(iogrp),rnacc,0.)
   if (LYR_NATPH(iogrp).ne.0) call loglyr(jnatph(iogrp),1.,0.)
   if (LVL_NATPH(iogrp).ne.0) call loglvl(jlvlnatph(iogrp),rnacc,0.)
 #endif
@@ -456,6 +458,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfphyto(iogrp),SRF_PHYTO(iogrp),                                &
        &   rnacc*1e3,0.,cmpflg,'srfphyc',                                       &
        &   'Surface phytoplankton',' ','mol P m-3')
+  call wrtsrf(jsrfph(iogrp),SRF_PH(iogrp),-1.,0.,                               &
+       &   cmpflg,'srfph','Surface pH',' ','-log10([h+])')
   call wrtsrf(jintphosy(iogrp),INT_PHOSY(iogrp),                                &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'ppint',                                   &
        &   'Integrated primary production',' ','mol C m-2 s-1')
@@ -571,6 +575,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jnatco2fx(iogrp),SRF_NATCO2FX(iogrp),                             &
        &   rnacc*12./dtbgc,0.,cmpflg,'natco2fx',                                &
        &   'Natural CO2 flux',' ','kg C m-2 s-1')
+  call wrtsrf(jsrfnatph(iogrp),SRF_NATPH(iogrp),-1.,0.,                         &
+       &   cmpflg,'srfnatph','Surface natural pH',' ','-log10([h+])')
 #endif
 #ifdef BROMO
   call wrtsrf(jbromofx(iogrp),SRF_BROMOFX(iogrp),rnacc*1e3/dtbgc,               &
@@ -914,6 +920,7 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jsrfsilica(iogrp),0.)
   call inisrf(jsrfiron(iogrp),0.)
   call inisrf(jsrfphyto(iogrp),0.)
+  call inisrf(jsrfph(iogrp),0.)
   call inisrf(jintphosy(iogrp),0.)
   call inisrf(jintnfix(iogrp),0.)
   call inisrf(jintdnit(iogrp),0.)
@@ -960,6 +967,7 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jsrfnatalk(iogrp),0.)
   call inisrf(jnatpco2(iogrp),0.)
   call inisrf(jnatco2fx(iogrp),0.)
+  call inisrf(jsrfnatph(iogrp),0.)
 #endif
 #ifdef BROMO
   call inisrf(jsrfbromo(iogrp),0.)
@@ -1138,7 +1146,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,srf_dmsprod,                &
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
-       &   srf_iron,srf_phyto,int_phosy,int_nfix,int_dnit,flx_car0100,          &
+       &   srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,flx_car0100,   &
        &   flx_car0500,flx_car1000,flx_car2000,flx_car4000,flx_car_bot,         &
        &   flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
        &   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
@@ -1180,7 +1188,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 #endif
 #ifdef natDIC
   use mo_bgcmean, only: srf_natdic,srf_natalkali,srf_natpco2,                   &
-       &   srf_natco2fx,lyr_natco3,lyr_natalkali,lyr_natdic,                    &
+       &   srf_natco2fx,srf_natph,lyr_natco3,lyr_natalkali,lyr_natdic,          &
        &   lyr_natcalc,lyr_natph,lyr_natomegaa,lyr_natomegac,                   &
        &   lvl_natalkali,lvl_natdic,lvl_natcalc,lvl_natph,                      &
        &   lvl_natomegaa,lvl_natomegac,lvl_natco3
@@ -1264,6 +1272,10 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'Surface dissolved iron',' ','mol Fe m-3',0)
   call ncdefvar3d(SRF_PHYTO(iogrp),cmpflg,'p','srfphyc',                        &
        &   'Surface phytoplankton',' ','mol P m-3',0)
+
+  call ncdefvar3d(SRF_PH(iogrp),cmpflg,'p','srfph',                             &
+       &   'Surface pH',' ','-log10([h+])',0)
+
   call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',                          &
        &   'Integrated primary production',' ','mol C m-2 s-1',0)
   call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',                         &
@@ -1358,6 +1370,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'natpco2','Surface natural PCO2',' ','uatm',0)
   call ncdefvar3d(SRF_NATCO2FX(iogrp),                                          &
        &   cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
+  call ncdefvar3d(SRF_NATPH(iogrp),cmpflg,'p','srfnatph',                       &
+       &   'Surface natural pH',' ','-log10([h+])',0)
 #endif
 #ifdef BROMO
   call ncdefvar3d(SRF_BROMO(iogrp),cmpflg,'p','srfbromo',                       &
