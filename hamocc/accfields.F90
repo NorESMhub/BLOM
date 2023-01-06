@@ -256,7 +256,7 @@
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
       call accsrf(jnatpco2,natpco2d,omask,0)
-      call accsrf(jsrfnatph,hi(1,1,1),omask,0)
+      call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
 #endif
 #ifdef BROMO
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
