@@ -459,7 +459,7 @@ subroutine ncwrt_bgc(iogrp)
        &   rnacc*1e3,0.,cmpflg,'srfphyc',                                       &
        &   'Surface phytoplankton',' ','mol P m-3')
   call wrtsrf(jsrfph(iogrp),SRF_PH(iogrp),-1.,0.,                               &
-       &   cmpflg,'srfph','Surface pH',' ','-log10([h+])')
+       &   cmpflg,'srfph','Surface pH',' ','-log10([H+])')
   call wrtsrf(jintphosy(iogrp),INT_PHOSY(iogrp),                                &
        &   rnacc*1e3/dtbgc,0.,cmpflg,'ppint',                                   &
        &   'Integrated primary production',' ','mol C m-2 s-1')
@@ -576,7 +576,7 @@ subroutine ncwrt_bgc(iogrp)
        &   rnacc*12./dtbgc,0.,cmpflg,'natco2fx',                                &
        &   'Natural CO2 flux',' ','kg C m-2 s-1')
   call wrtsrf(jsrfnatph(iogrp),SRF_NATPH(iogrp),-1.,0.,                         &
-       &   cmpflg,'srfnatph','Surface natural pH',' ','-log10([h+])')
+       &   cmpflg,'srfnatph','Surface natural pH',' ','-log10([H+])')
 #endif
 #ifdef BROMO
   call wrtsrf(jbromofx(iogrp),SRF_BROMOFX(iogrp),rnacc*1e3/dtbgc,               &
@@ -644,7 +644,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlyr(jco3(iogrp),LYR_CO3(iogrp),1e3,0.,cmpflg,                         &
        &   'co3','Carbonate ions',' ','mol C m-3')
   call wrtlyr(jph(iogrp),LYR_PH(iogrp),-1.,0.,cmpflg,                           &
-       &   'ph','pH',' ','-log10([h+])')
+       &   'ph','pH',' ','-log10([H+])')
   call wrtlyr(jomegaa(iogrp),LYR_OMEGAA(iogrp),1.,0.,cmpflg,                    &
        &   'omegaa','OmegaA',' ','-')
   call wrtlyr(jomegac(iogrp),LYR_OMEGAC(iogrp),1.,0.,cmpflg,                    &
@@ -716,7 +716,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlyr(jnatcalc(iogrp),LYR_NATCALC(iogrp),1e3,0.,cmpflg,                 &
        &   'natcalc','Natural CaCO3 shells',' ','mol C m-3')
   call wrtlyr(jnatph(iogrp),LYR_NATPH(iogrp),-1.,0.,cmpflg,                     &
-       &   'natph','Natural pH',' ','-log10([h+])')
+       &   'natph','Natural pH',' ','-log10([H+])')
   call wrtlyr(jnatomegaa(iogrp),LYR_NATOMEGAA(iogrp),1.,0.,cmpflg,              &
        &   'natomegaa','Natural OmegaA',' ','-')
   call wrtlyr(jnatomegac(iogrp),LYR_NATOMEGAC(iogrp),1.,0.,cmpflg,              &
@@ -759,7 +759,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlvl(jlvlco3(iogrp),LVL_CO3(iogrp),rnacc*1e3,0.,cmpflg,                &
        &   'co3lvl','Carbonate ions',' ','mol C m-3')
   call wrtlvl(jlvlph(iogrp),LVL_PH(iogrp),-1.,0.,cmpflg,                        &
-       &   'phlvl','pH',' ','-log10([h+])')
+       &   'phlvl','pH',' ','-log10([H+])')
   call wrtlvl(jlvlomegaa(iogrp),LVL_OMEGAA(iogrp),rnacc,0.,cmpflg,              &
        &   'omegaalvl','OmegaA',' ','-')
   call wrtlvl(jlvlomegac(iogrp),LVL_OMEGAC(iogrp),rnacc,0.,cmpflg,              &
@@ -840,7 +840,7 @@ subroutine ncwrt_bgc(iogrp)
        &   rnacc*1e3,0.,cmpflg,'natcalclvl',                                    &
        &   'Natural CaCO3 shells',' ','mol C m-3')
   call wrtlvl(jlvlnatph(iogrp),LVL_NATPH(iogrp),-1.,0.,cmpflg,                  &
-       &   'natphlvl','Natural pH',' ','-log10([h+])')
+       &   'natphlvl','Natural pH',' ','-log10([H+])')
   call wrtlvl(jlvlnatomegaa(iogrp),LVL_NATOMEGAA(iogrp),                        &
        &   rnacc,0.,cmpflg,'natomegaalvl',                                      &
        &   'Natural OmegaA',' ','-')
@@ -1273,7 +1273,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(SRF_PHYTO(iogrp),cmpflg,'p','srfphyc',                        &
        &   'Surface phytoplankton',' ','mol P m-3',0)
   call ncdefvar3d(SRF_PH(iogrp),cmpflg,'p','srfph',                             &
-       &   'Surface pH',' ','-log10([h+])',0)
+       &   'Surface pH',' ','-log10([H+])',0)
   call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',                          &
        &   'Integrated primary production',' ','mol C m-2 s-1',0)
   call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',                         &
@@ -1369,7 +1369,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(SRF_NATCO2FX(iogrp),                                          &
        &   cmpflg,'p','natco2fx','Natural CO2 flux',' ','kg C m-2 s-1',0)
   call ncdefvar3d(SRF_NATPH(iogrp),cmpflg,'p','srfnatph',                       &
-       &   'Surface natural pH',' ','-log10([h+])',0)
+       &   'Surface natural pH',' ','-log10([H+])',0)
 #endif
 #ifdef BROMO
   call ncdefvar3d(SRF_BROMO(iogrp),cmpflg,'p','srfbromo',                       &
@@ -1434,7 +1434,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LYR_CO3(iogrp),cmpflg,'p',                                    &
        &   'co3','Carbonate ions',' ','mol C m-3',1)
   call ncdefvar3d(LYR_PH(iogrp),cmpflg,'p',                                     &
-       &   'ph','pH',' ','-log10([h+])',1)
+       &   'ph','pH',' ','-log10([H+])',1)
   call ncdefvar3d(LYR_OMEGAA(iogrp),cmpflg,'p',                                 &
        &   'omegaa','OmegaA',' ','1',1)
   call ncdefvar3d(LYR_OMEGAC(iogrp),cmpflg,'p',                                 &
@@ -1505,7 +1505,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LYR_NATCALC(iogrp),cmpflg,'p','natcalc',                      &
        &   'Natural CaCO3',' ','mol C m-3',1)
   call ncdefvar3d(LYR_NATPH(iogrp),cmpflg,'p',                                  &
-       &   'natph','Natural pH',' ','-log10([h+])',1)
+       &   'natph','Natural pH',' ','-log10([H+])',1)
   call ncdefvar3d(LYR_NATOMEGAA(iogrp),cmpflg,'p','natomegaa',                  &
        &   'Natural OmegaA',' ','1',1)
   call ncdefvar3d(LYR_NATOMEGAC(iogrp),cmpflg,'p','natomegac',                  &
@@ -1548,7 +1548,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LVL_CO3(iogrp),cmpflg,'p',                                    &
        &   'co3lvl','Carbonate ions',' ','mol C m-3',2)
   call ncdefvar3d(LVL_PH(iogrp),cmpflg,'p',                                     &
-       &   'phlvl','pH',' ','-log10([h+])',2)
+       &   'phlvl','pH',' ','-log10([H+])',2)
   call ncdefvar3d(LVL_OMEGAA(iogrp),cmpflg,'p',                                 &
        &   'omegaalvl','OmegaA',' ','1',2)
   call ncdefvar3d(LVL_OMEGAC(iogrp),cmpflg,'p',                                 &
@@ -1619,7 +1619,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LVL_NATCALC(iogrp),cmpflg,'p',                                &
        &   'natcalclvl','Natural CaCO3 shells',' ','mol C m-3',2)
   call ncdefvar3d(LVL_NATPH(iogrp),cmpflg,'p',                                  &
-       &   'natphlvl','Natural pH',' ','-log10([h+])',2)
+       &   'natphlvl','Natural pH',' ','-log10([H+])',2)
   call ncdefvar3d(LVL_NATOMEGAA(iogrp),cmpflg,'p',                              &
        &   'natomegaalvl','Natural OmegaA',' ','1',2)
   call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',                              &
