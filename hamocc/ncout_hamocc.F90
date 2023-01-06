@@ -1272,10 +1272,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'Surface dissolved iron',' ','mol Fe m-3',0)
   call ncdefvar3d(SRF_PHYTO(iogrp),cmpflg,'p','srfphyc',                        &
        &   'Surface phytoplankton',' ','mol P m-3',0)
-
   call ncdefvar3d(SRF_PH(iogrp),cmpflg,'p','srfph',                             &
        &   'Surface pH',' ','-log10([h+])',0)
-
   call ncdefvar3d(INT_PHOSY(iogrp),cmpflg,'p','ppint',                          &
        &   'Integrated primary production',' ','mol C m-2 s-1',0)
   call ncdefvar3d(INT_NFIX(iogrp),cmpflg,'p','nfixint',                         &
