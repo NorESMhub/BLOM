@@ -55,7 +55,7 @@
 !**********************************************************************
       use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
       use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      use mod_nctools,    only:ncpack,nccomp,nccopa,ncwrtr
+      use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
       use netcdf,         only: nf90_fill_double
       use mo_param1_bgc,  only: ks
       use mo_control_bgc, only: get_bgc_namelist 
@@ -1616,8 +1616,7 @@
 
 
 
-      SUBROUTINE wrtsrf(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtsrf(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic 2d field to file  
@@ -1635,18 +1634,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1687,19 +1684,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtsrf
 
 
 
-      SUBROUTINE wrtlyr(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtlyr(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic layer field to file  
@@ -1717,18 +1706,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1769,19 +1756,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtlyr
 
 
 
-      SUBROUTINE wrtlvl(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtlvl(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic level field to file  
@@ -1799,18 +1778,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1851,19 +1828,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtlvl
 
 
 
-      SUBROUTINE wrtsdm(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtsdm(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic sediment field to file  
@@ -1881,18 +1850,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1933,19 +1900,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtsdm
 
 
 
-      SUBROUTINE wrtbur(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtbur(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic sediment burial field to file  
@@ -1963,18 +1922,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -2014,13 +1971,6 @@
       ELSE
         STOP 'unknown output format '
       ENDIF
-!
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtbur
 
