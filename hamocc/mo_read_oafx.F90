@@ -49,6 +49,11 @@ module mo_read_oafx
 !                     surface ocean between 60S and 70N (no input file needed)
 !    -'const_0p56':   constant alkalinity flux of 0.56 Pmol yr-1 applied to the 
 !                     surface ocean between 60S and 70N (no input file needed)
+!    -'ramp':         ramping-up alkalinity flux from 0 Pmol yr-1 in 2025 to
+!                     0.135 Pmol yr-1 in 2035 and onward, applied to the surface
+!                     ocean between 60S and 70N (no input file needed)
+!                     From G.Tran: 4279324154000 umol/s *3600 *24 *365 *1e-15
+!                     *1e-6 = 0.135 Pmol yr-1
 !
 !
 !  -subroutine ini_read_oafx
@@ -77,6 +82,9 @@ module mo_read_oafx
   !                surface ocean (assumed to be between 60S and 70N)
   !  const_0p56    Homogeneous addition of 0.56 Pmol ALK/yr-1 over the ice-free
   !                surface ocean (assumed to be between 60S and 70N)
+  !  ramp          Linear increase of homogeneous addition of 0 to 0.135 Pmol
+  !                ALK/yr-1 from 2025 to 2035 over the ice-free surface ocean  
+  !                (assumed to be between 60S and 70N)
   !
   real, parameter :: addalk_0p14   = 0.14  ! Pmol alkalinity/yr added in the
   real, parameter :: addalk_0p56   = 0.56  ! 'const_0p14' and 'const_0p56' 
@@ -84,6 +92,9 @@ module mo_read_oafx
   real, parameter :: cdrmip_latmax =  70.0 ! Min and max latitude where
   real, parameter :: cdrmip_latmin = -60.0 ! alkalinity is added according
                                            ! to the CDRMIP protocol
+  real, parameter :: addalk_ramp   = 0.135 ! Max Pmol alkalinity/yr added
+  integer, parameter :: ramp_start = 2025  ! in 2035 in the 'ramp' scenario,
+  integer, parameter :: ramp_end   = 2035  ! starting at 0 Pmol/yr in 2025.
 
   logical,   save :: lini = .false.
 
@@ -147,10 +158,8 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       write(io_stdo_bgc,*)' '
     endif
 
-    !--------------------------------
-    ! Scenarios of constant fluxes
-    !--------------------------------
-    if( trim(oalkscen)=='const_0p14' .or. trim(oalkscen)=='const_0p56' ) then
+    if( trim(oalkscen)=='const_0p14' .or. trim(oalkscen)=='const_0p56' .or.   &
+        trim(oalkscen)=='ramp' ) then
 
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)'Using alkalinization scenario ', trim(oalkscen)
@@ -183,8 +192,10 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       
       if( trim(oalkscen)=='const_0p14') then
         addalk_tot = addalk_0p14
-      else
+      else if( trim(oalkscen)=='const_0p56') then
         addalk_tot = addalk_0p56
+      else
+        addalk_tot = addalk_ramp
       endif
     
       ! Calculate alkalinity flux (kmol m^2 yr-1) to be applied
@@ -193,6 +204,9 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)' applying alkalinity flux of ', avflx, ' kmol m-2 yr-1'
         write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m2'
+        if( trim(oalkscen)=='ramp' ) then
+          write(io_stdo_bgc,*)'             ramping-up from ', ramp_start, ' to ', ramp_end
+        endif
       endif
 
       do j=1,kpje
@@ -248,14 +262,16 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
 !  *REAL*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
 !
 !******************************************************************************
-  use mod_xc,         only: xchalt
+  use mod_xc,         only: xchalt,mnproc
   use mo_control_bgc, only: io_stdo_bgc,do_oalk
+  use mod_time,       only: nday_of_year
 
   implicit none
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
   real,    intent(out) :: oafx(kpie,kpje)
+  integer              :: current_day
 
   ! local variables 
   integer :: i,j
@@ -271,6 +287,20 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   if( trim(oalkscen)=='const_0p14' .or. trim(oalkscen)=='const_0p56' ) then
       
     oafx(:,:) = oalkflx(:,:)
+
+  !--------------------------------
+  ! Scenario of ramping-up fluxes
+  !--------------------------------
+  elseif(trim(oalkscen)=='ramp' ) then
+
+    if(kplyear.lt.ramp_start ) then
+      oafx(:,:) = 0.0
+    elseif(kplyear.ge.ramp_end ) then
+      oafx(:,:) = oalkflx(:,:)
+    else
+      current_day = (kplyear-ramp_start)*365+nday_of_year
+      oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365)
+    endif
 
   else
     
