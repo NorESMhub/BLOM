@@ -58,7 +58,6 @@
       use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
       use netcdf,         only: nf90_fill_double
       use mo_param1_bgc,  only: ks
-      use mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
@@ -514,7 +513,7 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
+      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,get_bgc_namelist
 
       IMPLICIT NONE 
      
