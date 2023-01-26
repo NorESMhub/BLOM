@@ -1426,7 +1426,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 #endif
 #ifdef extNcycle
   use mo_bgcmean, only: janh4,jano2,jlvlanh4,jlvlano2,jsrfanh4,                 &
-       &                     jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,      &
+       &                     jsrfano2,janh3fx,srf_pnh3,srf_anh4,srf_ano2,       &
        &                     srf_anh3fx,lyr_anh4,lyr_ano2,lvl_anh4,             &
        &                     lvl_ano2,                                          &
        &                     LYR_nitr_NH4,LYR_nitr_NO2,LYR_nitr_N2O_prod,       &
