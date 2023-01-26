@@ -578,22 +578,15 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsediffn2(iogrp),    FLX_SEDIFFN2(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2')
   call wrtsrf(jsediffno3(iogrp),   FLX_SEDIFFNO3(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfno3')
   call wrtsrf(jsediffsi(iogrp),    FLX_SEDIFFSI(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'sedfsi')
-  call wrtsrf(jburflxsso12(iogrp),FLX_BURSSO12(iogrp),                          &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfsso12',' ',' ',' ')
-  call wrtsrf(jburflxsssc12(iogrp),FLX_BURSSSC12(iogrp),                        &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfsssc12',' ',' ',' ')
-  call wrtsrf(jburflxssssil(iogrp),FLX_BURSSSSIL(iogrp),                        &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfssssil',' ',' ',' ')
-  call wrtsrf(jburflxssster(iogrp),FLX_BURSSSTER(iogrp),                        &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'burfssster',' ',' ',' ')
+  call wrtsrf(jburflxsso12(iogrp), FLX_BURSSO12(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'burfsso12')
+  call wrtsrf(jburflxsssc12(iogrp),FLX_BURSSSC12(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'burfsssc12')
+  call wrtsrf(jburflxssssil(iogrp),FLX_BURSSSSIL(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'burfssssil')
+  call wrtsrf(jburflxssster(iogrp),FLX_BURSSSTER(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'burfssster')
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
-  call wrtsrf(jsediffnh4(iogrp),FLX_SEDIFFNH4(iogrp),                           &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfnh4',' ',' ',' ')
-  call wrtsrf(jsediffn2o(iogrp),FLX_SEDIFFN2O(iogrp),                           &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2o',' ',' ',' ')
-  call wrtsrf(jsediffno2(iogrp),FLX_SEDIFFNO2(iogrp),                           &
-       &   rnacc*1e3/dtbgc,0.,cmpflg,'sedfno2',' ',' ',' ')
+  call wrtsrf(jsediffnh4(iogrp),   FLX_SEDIFFNH4(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfnh4')
+  call wrtsrf(jsediffn2o(iogrp),   FLX_SEDIFFN2O(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfn2o')
+  call wrtsrf(jsediffno2(iogrp),   FLX_SEDIFFNO2(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'sedfno2')
 #endif
 #ifdef cisonew
   call wrtsrf(jco213fxd(iogrp),    SRF_CO213FXD(iogrp), rnacc*12./dtbgc,0.,cmpflg,'co213fxd')
@@ -627,19 +620,13 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 #ifdef cisonew
   call wrtsrf(jatmc13(iogrp),      SRF_ATMC13(iogrp),   rnacc,          0.,cmpflg,'atmc13')
-  call wrtsrf(jatmc14(iogrp),      SRF_ATMC14(iogrp),   rnacc,          0.,cmpflg,'atmc14)
+  call wrtsrf(jatmc14(iogrp),      SRF_ATMC14(iogrp),   rnacc,          0.,cmpflg,'atmc14')
 #endif
 #ifdef extNcycle
-  call wrtsrf(jsrfanh4(iogrp),SRF_ANH4(iogrp),                                  &
-       &  rnacc*1e3,0.,cmpflg,'srfnh4',                                         &
-       &  'Surface ammonium',' ','mol N m-3')
-  call wrtsrf(jsrfpnh3(iogrp),SRF_PNH3(iogrp),rnacc,0.,cmpflg,                  &
-       &   'pnh3','Surface pNH3',' ','natm')
-  call wrtsrf(jsrfano2(iogrp),SRF_ANO2(iogrp),                                  &
-       &  rnacc*1e3,0.,cmpflg,'srfno2',                                         &
-       &  'Surface nitrite',' ','mol N m-3')
-      call wrtsrf(janh3fx(iogrp),SRF_ANH3FX(iogrp),rnacc*1e3/dtbgc,0.,          &
-       &  cmpflg,'nh3flux','NH3 flux',' ','mol NH3 m-2 s-1')
+  call wrtsrf(jsrfanh4(iogrp),     SRF_ANH4(iogrp),     rnacc*1e3,      0.,cmpflg,'srfnh4')
+  call wrtsrf(jsrfpnh3(iogrp),     SRF_PNH3(iogrp),     rnacc,          0.,cmpflg,'pnh3')
+  call wrtsrf(jsrfano2(iogrp),     SRF_ANO2(iogrp),     rnacc*1e3,      0.,cmpflg,'srfno2')
+  call wrtsrf(janh3fx(iogrp),      SRF_ANH3FX(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'nh3flux')
 #endif
 
   ! --- Store 3d layer fields
@@ -706,84 +693,37 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlyr(jbromo(iogrp),       LYR_BROMO(iogrp),    1e3,            0.,cmpflg,'bromo')
 #endif
 #ifdef extNcycle
-  call wrtlyr(janh4(iogrp),LYR_ANH4(iogrp),1e3,0.,cmpflg,                       &         
-     &  'nh4','Ammonium',' ','mol N m-3')
-  call wrtlyr(jano2(iogrp),LYR_ANO2(iogrp),1e3,0.,cmpflg,                       &
-     &  'no2','Nitrite',' ','mol N m-3')
-  call wrtlyr(jnitr_NH4(iogrp),LYR_nitr_NH4(iogrp),1e3/dtbgc,0.,                &
-     &   cmpflg,                                                                &
-     &  'nh4nitr','NH4 nitrification rate',' ','mol N m-3 s-1')
-  call wrtlyr(jnitr_NO2(iogrp),LYR_nitr_NO2(iogrp),1e3/dtbgc,0.,                &
-     &   cmpflg,                                                                &
-     &  'no2nitr','NO2 nitrification rate',' ','mol N m-3 s-1')
-  call wrtlyr(jnitr_N2O_prod(iogrp),LYR_nitr_N2O_prod(iogrp),                   &
-     &  1e3/dtbgc,0.,cmpflg,                                                    &
-     &  'nitr_n2o','N2O prod during NH4 nitrification',' ',                     &
-     &  'mol N2O m-3 s-1')
-  call wrtlyr(jnitr_NH4_OM(iogrp),LYR_nitr_NH4_OM(iogrp),1e3/dtbgc,             &
-     &  0.,cmpflg,                                                              &
-     &  'nh4nitr_om','OM production during NH4 nitrification',' ',              &
-     &  'mol P m-3 s-1')
-  call wrtlyr(jnitr_NO2_OM(iogrp),LYR_nitr_NO2_OM(iogrp),1e3/dtbgc,             &
-     &  0.,cmpflg,                                                              &
-     &  'no2nitr_om','OM production during NO2 nitrification',' ',              &
-     &  'mol P m-3 s-1')
-  call wrtlyr(jdenit_NO3(iogrp),LYR_denit_NO3(iogrp),1e3/dtbgc,0.,              &
-     &  cmpflg,                                                                 &
-     &  'no3denit','NO3 denitrification rate',' ','mol N m-3 s-1') 
-  call wrtlyr(jdenit_NO2(iogrp),LYR_denit_NO2(iogrp),1e3/dtbgc,0.,              &
-     &  cmpflg,                                                                 &
-     &  'no2denit','NO2 denitrification rate',' ','mol N m-3 s-1')
-  call wrtlyr(jdenit_N2O(iogrp),LYR_denit_N2O(iogrp),1e3/dtbgc,0.,              &
-     &  cmpflg,                                                                 &
-     &  'n2odenit','N2O denitrification rate',' ','mol N2O m-3 s-1')
-  call wrtlyr(jDNRA_NO2(iogrp),LYR_DNRA_NO2(iogrp),1e3/dtbgc,0.,                &
-     &  cmpflg,                                                                 &
-     &  'no2dnra','NO2 DNRA rate',' ','mol N m-3 s-1')
-  call wrtlyr(janmx_N2_prod(iogrp),LYR_anmx_N2_prod(iogrp),                     &
-     &  1e3/dtbgc,0.,cmpflg,                                                    &
-     &  'anmx_n2','Anammox N2 production rate',' ','mol N2 m-3 s-1')
-  call wrtlyr(janmx_OM_prod(iogrp),LYR_anmx_OM_prod(iogrp),                     &
-     &  1e3/dtbgc,0.,cmpflg,                                                    &
-     &  'anmx_om','Anammox OM production rate',' ','mol P m-3 s-1')
-  call wrtlyr(jphosy_NH4(iogrp),LYR_phosy_NH4(iogrp),1e3/dtbgc,0.,              &
-     &  cmpflg,                                                                 &
-     &  'phosy_nh4','PP consumption rate of NH4',' ','mol N m-3 s-1')
-  call wrtlyr(jphosy_NO3(iogrp),LYR_phosy_NO3(iogrp),1e3/dtbgc,0.,              &
-     &  cmpflg,                                                                 &
-     &  'phosy_no3','PP consumption rate of NO3',' ','mol N m-3 s-1')
-  call wrtlyr(jremin_aerob(iogrp),LYR_remin_aerob(iogrp),1e3/dtbgc,             &
-     &  0.,cmpflg,                                                              &
-     &  'remina','Aerob remineralization rate',' ','mol N m-3 s-1')
-  call wrtlyr(jremin_sulf(iogrp),LYR_remin_sulf(iogrp),1e3/dtbgc,               &
-     &  0.,cmpflg,                                                              &
-     &  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1')
+  call wrtlyr(janh4(iogrp),        LYR_ANH4(iogrp),     1e3,            0.,cmpflg,'nh4')
+  call wrtlyr(jano2(iogrp),        LYR_ANO2(iogrp),     1e3,            0.,cmpflg,'no2')
+  call wrtlyr(jnitr_NH4(iogrp),    LYR_nitr_NH4(iogrp), 1e3/dtbgc,      0.,cmpflg,'nh4nitr')
+  call wrtlyr(jnitr_NO2(iogrp),    LYR_nitr_NO2(iogrp), 1e3/dtbgc,      0.,cmpflg,'no2nitr')
+  call wrtlyr(jnitr_N2O_prod(iogrp),LYR_nitr_N2O_prod(iogrp),1e3/dtbgc, 0.,cmpflg,'nitr_n2o')
+  call wrtlyr(jnitr_NH4_OM(iogrp), LYR_nitr_NH4_OM(iogrp),1e3/dtbgc,    0.,cmpflg,'nh4nitr_om')
+  call wrtlyr(jnitr_NO2_OM(iogrp), LYR_nitr_NO2_OM(iogrp),1e3/dtbgc,    0.,cmpflg,'no2nitr_om')
+  call wrtlyr(jdenit_NO3(iogrp),   LYR_denit_NO3(iogrp),1e3/dtbgc,      0.,cmpflg,'no3denit')
+  call wrtlyr(jdenit_NO2(iogrp),   LYR_denit_NO2(iogrp),1e3/dtbgc,      0.,cmpflg,'no2denit')
+  call wrtlyr(jdenit_N2O(iogrp),   LYR_denit_N2O(iogrp),1e3/dtbgc,      0.,cmpflg,'n2odenit')
+  call wrtlyr(jDNRA_NO2(iogrp),    LYR_DNRA_NO2(iogrp), 1e3/dtbgc,      0.,cmpflg,'no2dnra')
+  call wrtlyr(janmx_N2_prod(iogrp),LYR_anmx_N2_prod(iogrp),1e3/dtbgc,   0.,cmpflg,'anmx_n2')
+  call wrtlyr(janmx_OM_prod(iogrp),LYR_anmx_OM_prod(iogrp),1e3/dtbgc,   0.,cmpflg,'anmx_om')
+  call wrtlyr(jphosy_NH4(iogrp),   LYR_phosy_NH4(iogrp),1e3/dtbgc,      0.,cmpflg,'phosy_nh4')
+  call wrtlyr(jphosy_NO3(iogrp),   LYR_phosy_NO3(iogrp),1e3/dtbgc,      0.,cmpflg,'phosy_no3')
+  call wrtlyr(jremin_aerob(iogrp), LYR_remin_aerob(iogrp),1e3/dtbgc,    0.,cmpflg,'remina')
+  call wrtlyr(jremin_sulf(iogrp),  LYR_remin_sulf(iogrp),1e3/dtbgc,     0.,cmpflg,'remins')
 #endif
 !      M4AGO
-  call wrtlyr(jagg_ws(iogrp),LYR_agg_ws(iogrp),1.,0.,cmpflg,                    &         
-     &  'agg_ws','aggregate mean settling velocity',' ','m d-1')
-  call wrtlyr(jdynvis(iogrp),LYR_dynvis(iogrp),1.,0.,cmpflg,                    &
-     &  'dynvis','dynamic viscosity of sea water',' ','kg m-1 s-1')
-  call wrtlyr(jagg_stick(iogrp),LYR_agg_stick(iogrp),1.,0.,cmpflg,              &
-     &  'agg_stick','aggregate mean stickiness',' ','-')
-  call wrtlyr(jagg_stickf(iogrp),LYR_agg_stickf(iogrp),1.,0.,cmpflg,            &
-     &  'agg_stickf','opal frustule stickiness',' ','-')
-  call wrtlyr(jagg_dmax(iogrp),LYR_agg_dmax(iogrp),1.,0.,cmpflg,                &
-     &  'agg_dmax','aggregate maximum diameter',' ','m')
-  call wrtlyr(jagg_avdp(iogrp),LYR_agg_avdp(iogrp),1.,0.,cmpflg,                &
-     &  'agg_avdp','mean primary particle diameter',' ','m')
-  call wrtlyr(jagg_avrhop(iogrp),LYR_agg_avrhop(iogrp),1.,0.,cmpflg,            &
-     &  'agg_avrhop','mean primary particle density',' ','kg m-3')
-  call wrtlyr(jagg_avdC(iogrp),LYR_agg_avdC(iogrp),1.,0.,cmpflg,                &
-     &  'agg_avdC','Conc.-weighted mean aggregate diameter',' ','m')
-  call wrtlyr(jagg_df(iogrp),LYR_agg_df(iogrp),1.,0.,cmpflg,                    &
-     &  'agg_df','aggregate fractal dimension',' ','-')
-  call wrtlyr(jagg_b(iogrp),LYR_agg_b(iogrp),1.,0.,cmpflg,                      &
-     &  'agg_b','aggregate number distribution slope',' ','-')
-  call wrtlyr(jagg_Vrhof(iogrp),LYR_agg_Vrhof(iogrp),1.,0.,cmpflg,              &
-     &  'agg_Vrhof','V-weighted aggregate mean density',' ','kg m-3')
-  call wrtlyr(jagg_Vpor(iogrp),LYR_agg_Vpor(iogrp),1.,0.,cmpflg,                &
-     &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-')
+  call wrtlyr(jagg_ws(iogrp),      LYR_agg_ws(iogrp),   1.,             0.,cmpflg,'agg_ws')
+  call wrtlyr(jdynvis(iogrp),      LYR_dynvis(iogrp),   1.,             0.,cmpflg,'dynvis')
+  call wrtlyr(jagg_stick(iogrp),   LYR_agg_stick(iogrp),1.,             0.,cmpflg,'agg_stick')
+  call wrtlyr(jagg_stickf(iogrp),  LYR_agg_stickf(iogrp),1.,            0.,cmpflg,'agg_stickf')
+  call wrtlyr(jagg_dmax(iogrp),    LYR_agg_dmax(iogrp), 1.,             0.,cmpflg,'agg_dmax')
+  call wrtlyr(jagg_avdp(iogrp),    LYR_agg_avdp(iogrp), 1.,             0.,cmpflg,'agg_avdp')
+  call wrtlyr(jagg_avrhop(iogrp),  LYR_agg_avrhop(iogrp),1.,            0.,cmpflg,'agg_avrhop')
+  call wrtlyr(jagg_avdC(iogrp),    LYR_agg_avdC(iogrp), 1.,             0.,cmpflg,'agg_avdC')
+  call wrtlyr(jagg_df(iogrp),      LYR_agg_df(iogrp),   1.,             0.,cmpflg,'agg_df')
+  call wrtlyr(jagg_b(iogrp),       LYR_agg_b(iogrp),    1.,             0.,cmpflg,'agg_b')
+  call wrtlyr(jagg_Vrhof(iogrp),   LYR_agg_Vrhof(iogrp),1.,             0.,cmpflg,'agg_Vrhof')
+  call wrtlyr(jagg_Vpor(iogrp),    LYR_agg_Vpor(iogrp), 1.,             0.,cmpflg,'agg_Vpor')
 
   ! --- Store 3d level fields
   call wrtlvl(jlvldic(iogrp),      LVL_DIC(iogrp),      rnacc*1e3,      0.,cmpflg,'dissiclvl')
@@ -848,164 +788,75 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlvl(jlvlbromo(iogrp),    LVL_BROMO(iogrp),    rnacc*1e3,      0.,cmpflg,'bromolvl')
 #endif
 #ifdef extNcycle
-  call wrtlvl(jlvlanh4(iogrp),LVL_ANH4(iogrp),rnacc*1e3,0.,cmpflg,              &
-     &  'nh4lvl','Ammonium',' ','mol N m-3')
-  call wrtlvl(jlvlano2(iogrp),LVL_ANO2(iogrp),rnacc*1e3,0.,cmpflg,              &
-     &  'no2lvl','Nitrite',' ','mol N m-3')
-  call wrtlvl(jlvl_nitr_NH4(iogrp),LVL_nitr_NH4(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nh4nitrlvl','NH4 nitrification rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_nitr_NO2(iogrp),LVL_nitr_NO2(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2nitrlvl','NO2 nitrification rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_nitr_N2O_prod(iogrp),LVL_nitr_N2O_prod(iogrp),               &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nitr_n2olvl','N2O prod during NH4 nitrification',' ',                  &
-     &  'mol N2O m-3 s-1')
-  call wrtlvl(jlvl_nitr_NH4_OM(iogrp),LVL_nitr_NH4_OM(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nh4nitr_omlvl','OM production during NH4 nitrification',' ',           &
-     &  'mol P m-3 s-1')
-  call wrtlvl(jlvl_nitr_NO2_OM(iogrp),LVL_nitr_NO2_OM(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2nitr_omlvl','OM production during NO2 nitrification',' ',           &
-     &  'mol P m-3 s-1')
-  call wrtlvl(jlvl_denit_NO3(iogrp),LVL_denit_NO3(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no3denitlvl','NO3 denitrification rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_denit_NO2(iogrp),LVL_denit_NO2(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2denitlvl','NO2 denitrification rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_denit_N2O(iogrp),LVL_denit_N2O(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'n2odenitlvl','N2O denitrification rate',' ','mol N2O m-3 s-1')
-  call wrtlvl(jlvl_DNRA_NO2(iogrp),LVL_DNRA_NO2(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2dnralvl','NO2 DNRA rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_anmx_N2_prod(iogrp),LVL_anmx_N2_prod(iogrp),                 &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'anmx_n2lvl','Anammox N2 production rate',' ','mol N2 m-3 s-1')
-  call wrtlvl(jlvl_anmx_OM_prod(iogrp),LVL_anmx_OM_prod(iogrp),                 &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'anmx_omlvl','Anammox OM production rate',' ','mol P m-3 s-1')
-  call wrtlvl(jlvl_phosy_NH4(iogrp),LVL_phosy_NH4(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'phosy_nh4lvl','PP consumption rate of NH4',' ',                        &
-     &  'mol N m-3 s-1')
-  call wrtlvl(jlvl_phosy_NO3(iogrp),LVL_phosy_NO3(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'phosy_no3lvl','PP consumption rate of NO3',' ',                        &
-     &  'mol N m-3 s-1')
-  call wrtlvl(jlvl_remin_aerob(iogrp),LVL_remin_aerob(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'reminalvl','Aerob remineralization rate',' ','mol N m-3 s-1')
-  call wrtlvl(jlvl_remin_sulf(iogrp),LVL_remin_sulf(iogrp),                     &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'reminslvl','Sulfate remineralization rate',' ','mol P m-3 s-1')
+  call wrtlvl(jlvlanh4(iogrp),          LVL_ANH4(iogrp),         rnacc*1e3,      0.,cmpflg,'nh4lvl')
+  call wrtlvl(jlvlano2(iogrp),          LVL_ANO2(iogrp),         rnacc*1e3,      0.,cmpflg,'no2lvl')
+  call wrtlvl(jlvl_nitr_NH4(iogrp),     LVL_nitr_NH4(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nh4nitrlvl')
+  call wrtlvl(jlvl_nitr_NO2(iogrp),     LVL_nitr_NO2(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'no2nitrlvl')
+  call wrtlvl(jlvl_nitr_N2O_prod(iogrp),LVL_nitr_N2O_prod(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'nitr_n2olvl')
+  call wrtlvl(jlvl_nitr_NH4_OM(iogrp),  LVL_nitr_NH4_OM(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'nh4nitr_omlvl')
+  call wrtlvl(jlvl_nitr_NO2_OM(iogrp),  LVL_nitr_NO2_OM(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'no2nitr_omlvl')
+  call wrtlvl(jlvl_denit_NO3(iogrp),    LVL_denit_NO3(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'no3denitlvl')
+  call wrtlvl(jlvl_denit_NO2(iogrp),    LVL_denit_NO2(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'no2denitlvl')
+  call wrtlvl(jlvl_denit_N2O(iogrp),    LVL_denit_N2O(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'n2odenitlvl')
+  call wrtlvl(jlvl_DNRA_NO2(iogrp),     LVL_DNRA_NO2(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'no2dnralvl')
+  call wrtlvl(jlvl_anmx_N2_prod(iogrp), LVL_anmx_N2_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_n2lvl')
+  call wrtlvl(jlvl_anmx_OM_prod(iogrp), LVL_anmx_OM_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_omlvl')
+  call wrtlvl(jlvl_phosy_NH4(iogrp),    LVL_phosy_NH4(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'phosy_nh4lvl')
+  call wrtlvl(jlvl_phosy_NO3(iogrp),    LVL_phosy_NO3(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'phosy_no3lvl')
+  call wrtlvl(jlvl_remin_aerob(iogrp),  LVL_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminalvl')
+  call wrtlvl(jlvl_remin_sulf(iogrp),   LVL_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminslvl')
 #endif
 !      M4AGO
-  call wrtlvl(jlvl_agg_ws(iogrp),LVL_agg_ws(iogrp),rnacc,0.,cmpflg,             &
-     &  'agg_wslvl','aggregate mean settling velocity',' ','m d-1')
-  call wrtlvl(jlvl_dynvis(iogrp),LVL_dynvis(iogrp),rnacc,0.,cmpflg,             &
-     &  'dynvislvl','dynamic viscosity of sea water',' ','kg m-1 s-1')
-  call wrtlvl(jlvl_agg_stick(iogrp),LVL_agg_stick(iogrp),rnacc,0.,              &
-     &   cmpflg,                                                                &
-     &  'agg_sticklvl','aggregate mean stickiness',' ','-')
-  call wrtlvl(jlvl_agg_stickf(iogrp),LVL_agg_stickf(iogrp),rnacc,0.,            &
-     &   cmpflg,                                                                &
-     &  'agg_stickflvl','opal frustule stickiness',' ','-')
-  call wrtlvl(jlvl_agg_dmax(iogrp),LVL_agg_dmax(iogrp),rnacc,0.,                &
-     &   cmpflg,                                                                &
-     &  'agg_dmaxlvl','aggregate maximum diameter',' ','m')
-  call wrtlvl(jlvl_agg_avdp(iogrp),LVL_agg_avdp(iogrp),rnacc,0.,                &
-     &   cmpflg,                                                                &
-     &  'agg_avdplvl','mean primary particle diameter',' ','m')
-  call wrtlvl(jlvl_agg_avrhop(iogrp),LVL_agg_avrhop(iogrp),rnacc,0.,            &
-     &   cmpflg,                                                                &
-     &  'agg_avrhoplvl','mean primary particle density',' ','kg m-3')
-  call wrtlvl(jlvl_agg_avdC(iogrp),LVL_agg_avdC(iogrp),rnacc,0.,                &
-     &   cmpflg,                                                                &
-     &  'agg_avdClvl','Conc.-weighted mean aggregate diameter',' ','m')
-  call wrtlvl(jlvl_agg_df(iogrp),LVL_agg_df(iogrp),rnacc,0.,cmpflg,             &
-     &  'agg_dflvl','aggregate fractal dimension',' ','-')
-  call wrtlvl(jlvl_agg_b(iogrp),LVL_agg_b(iogrp),rnacc,0.,cmpflg,               &
-     &  'agg_blvl','aggregate number distribution slope',' ','-')
-  call wrtlvl(jlvl_agg_Vrhof(iogrp),LVL_agg_Vrhof(iogrp),rnacc,0.,              &
-     &   cmpflg,                                                                &
-     &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ','kg m-3')
-  call wrtlvl(jlvl_agg_Vpor(iogrp),LVL_agg_Vpor(iogrp),rnacc,0.,                &
-     &   cmpflg,                                                                &
-     &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-')
+  call wrtlvl(jlvl_agg_ws(iogrp),       LVL_agg_ws(iogrp),       rnacc,          0.,cmpflg,'agg_wslvl')
+  call wrtlvl(jlvl_dynvis(iogrp),       LVL_dynvis(iogrp),       rnacc,          0.,cmpflg,'dynvislvl')
+  call wrtlvl(jlvl_agg_stick(iogrp),    LVL_agg_stick(iogrp),    rnacc,          0.,cmpflg,'agg_sticklvl')
+  call wrtlvl(jlvl_agg_stickf(iogrp),   LVL_agg_stickf(iogrp),   rnacc,          0.,cmpflg,'agg_stickflvl')
+  call wrtlvl(jlvl_agg_dmax(iogrp),     LVL_agg_dmax(iogrp),     rnacc,          0.,cmpflg,'agg_dmaxlvl')
+  call wrtlvl(jlvl_agg_avdp(iogrp),     LVL_agg_avdp(iogrp),     rnacc,          0.,cmpflg,'agg_avdplvl')
+  call wrtlvl(jlvl_agg_avrhop(iogrp),   LVL_agg_avrhop(iogrp),   rnacc,          0.,cmpflg,'agg_avrhoplvl')
+  call wrtlvl(jlvl_agg_avdC(iogrp),     LVL_agg_avdC(iogrp),     rnacc,          0.,cmpflg,'agg_avdClvl')
+  call wrtlvl(jlvl_agg_df(iogrp),       LVL_agg_df(iogrp),       rnacc,          0.,cmpflg,'agg_dflvl')
+  call wrtlvl(jlvl_agg_b(iogrp),        LVL_agg_b(iogrp),        rnacc,          0.,cmpflg,'agg_blvl')
+  call wrtlvl(jlvl_agg_Vrhof(iogrp),    LVL_agg_Vrhof(iogrp),    rnacc,          0.,cmpflg,'agg_Vrhoflvl')
+  call wrtlvl(jlvl_agg_Vpor(iogrp),     LVL_agg_Vpor(iogrp),     rnacc,          0.,cmpflg,'agg_Vporlvl')
 
   ! --- Store sediment fields
 #ifndef sedbypass
-  call wrtsdm(jpowaic(iogrp),      SDM_POWAIC(iogrp),   rnacc*1e3,      0.,cmpflg,'powdic')
-  call wrtsdm(jpowaal(iogrp),      SDM_POWAAL(iogrp),   rnacc*1e3,      0.,cmpflg,'powalk')
-  call wrtsdm(jpowaph(iogrp),      SDM_POWAPH(iogrp),   rnacc*1e3,      0.,cmpflg,'powpho')
-  call wrtsdm(jpowaox(iogrp),      SDM_POWAOX(iogrp),   rnacc*1e3,      0.,cmpflg,'powox')
-  call wrtsdm(jpown2(iogrp),       SDM_POWN2(iogrp),    rnacc*1e3,      0.,cmpflg,'pown2')
-  call wrtsdm(jpowno3(iogrp),      SDM_POWNO3(iogrp),   rnacc*1e3,      0.,cmpflg,'powno3')
-  call wrtsdm(jpowasi(iogrp),      SDM_POWASI(iogrp),   rnacc*1e3,      0.,cmpflg,'powsi')
-  call wrtsdm(jssso12(iogrp),      SDM_SSSO12(iogrp),   rnacc*1e3,      0.,cmpflg,'ssso12')
-  call wrtsdm(jssssil(iogrp),      SDM_SSSSIL(iogrp),   rnacc*1e3,      0.,cmpflg,'ssssil')
-  call wrtsdm(jsssc12(iogrp),      SDM_SSSC12(iogrp),   rnacc*1e3,      0.,cmpflg,'sssc12')
-  call wrtsdm(jssster(iogrp),      SDM_SSSTER(iogrp),   rnacc,          0.,cmpflg,'ssster')
+  call wrtsdm(jpowaic(iogrp),           SDM_POWAIC(iogrp),       rnacc*1e3,      0.,cmpflg,'powdic')
+  call wrtsdm(jpowaal(iogrp),           SDM_POWAAL(iogrp),       rnacc*1e3,      0.,cmpflg,'powalk')
+  call wrtsdm(jpowaph(iogrp),           SDM_POWAPH(iogrp),       rnacc*1e3,      0.,cmpflg,'powpho')
+  call wrtsdm(jpowaox(iogrp),           SDM_POWAOX(iogrp),       rnacc*1e3,      0.,cmpflg,'powox')
+  call wrtsdm(jpown2(iogrp),            SDM_POWN2(iogrp),        rnacc*1e3,      0.,cmpflg,'pown2')
+  call wrtsdm(jpowno3(iogrp),           SDM_POWNO3(iogrp),       rnacc*1e3,      0.,cmpflg,'powno3')
+  call wrtsdm(jpowasi(iogrp),           SDM_POWASI(iogrp),       rnacc*1e3,      0.,cmpflg,'powsi')
+  call wrtsdm(jssso12(iogrp),           SDM_SSSO12(iogrp),       rnacc*1e3,      0.,cmpflg,'ssso12')
+  call wrtsdm(jssssil(iogrp),           SDM_SSSSIL(iogrp),       rnacc*1e3,      0.,cmpflg,'ssssil')
+  call wrtsdm(jsssc12(iogrp),           SDM_SSSC12(iogrp),       rnacc*1e3,      0.,cmpflg,'sssc12')
+  call wrtsdm(jssster(iogrp),           SDM_SSSTER(iogrp),       rnacc,          0.,cmpflg,'ssster')
 
   ! --- Store sediment burial fields
-  call wrtbur(jburssso12(iogrp),   BUR_SSSO12(iogrp),   rnacc*1e3,      0.,cmpflg,'buro12')
-  call wrtbur(jbursssc12(iogrp),   BUR_SSSC12(iogrp),   rnacc*1e3,      0.,cmpflg,'burc12')
-  call wrtbur(jburssssil(iogrp),   BUR_SSSSIL(iogrp),   rnacc*1e3,      0.,cmpflg,'bursil')
-  call wrtbur(jburssster(iogrp),   BUR_SSSTER(iogrp),   rnacc,          0.,cmpflg,'burter')
+  call wrtbur(jburssso12(iogrp),        BUR_SSSO12(iogrp),       rnacc*1e3,      0.,cmpflg,'buro12')
+  call wrtbur(jbursssc12(iogrp),        BUR_SSSC12(iogrp),       rnacc*1e3,      0.,cmpflg,'burc12')
+  call wrtbur(jburssssil(iogrp),        BUR_SSSSIL(iogrp),       rnacc*1e3,      0.,cmpflg,'bursil')
+  call wrtbur(jburssster(iogrp),        BUR_SSSTER(iogrp),       rnacc,          0.,cmpflg,'burter')
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
-  call wrtsdm(jpownh4(iogrp),SDM_POWNH4(iogrp),rnacc*1e3,0.,cmpflg,             &
-       &   'pownh4','PoWa ammonium',' ','mol N m-3')
-  call wrtsdm(jpown2o(iogrp),SDM_POWN2O(iogrp),rnacc*1e3,0.,cmpflg,             &
-       &   'pown2o','PoWa nitrous oxide',' ','mol N2O m-3')
-  call wrtsdm(jpowno2(iogrp),SDM_POWNO2(iogrp),rnacc*1e3,0.,cmpflg,             &
-       &   'powno2','PoWa nitrite',' ','mol N m-3')
-  call wrtsdm(jsdm_nitr_NH4(iogrp),sdm_nitr_NH4(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nh4nitrsdm','NH4 nitrification rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_nitr_NO2(iogrp),sdm_nitr_NO2(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2nitrsdm','NO2 nitrification rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_nitr_N2O_prod(iogrp),sdm_nitr_N2O_prod(iogrp),               &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nitr_n2osdm','N2O prod during NH4 nitrification sediment',' ',         &
-     &  'mol N2O m-3 s-1')
-  call wrtsdm(jsdm_nitr_NH4_OM(iogrp),sdm_nitr_NH4_OM(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'nh4nitr_omsdm','OM production during NH4 nitrification sediment',' ',  &
-     &  'mol P m-3 s-1')
-  call wrtsdm(jsdm_nitr_NO2_OM(iogrp),sdm_nitr_NO2_OM(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2nitr_omsdm','OM production during NO2 nitrification sediment',' ',  &
-     &  'mol P m-3 s-1')
-  call wrtsdm(jsdm_denit_NO3(iogrp),sdm_denit_NO3(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no3denitsdm','NO3 denitrification rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_denit_NO2(iogrp),sdm_denit_NO2(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2denitsdm','NO2 denitrification rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_denit_N2O(iogrp),sdm_denit_N2O(iogrp),                       &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'n2odenitsdm','N2O denitrification rate sediment',' ','mol N2O m-3 s-1')
-  call wrtsdm(jsdm_DNRA_NO2(iogrp),sdm_DNRA_NO2(iogrp),                         &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'no2dnrasdm','NO2 DNRA rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_anmx_N2_prod(iogrp),sdm_anmx_N2_prod(iogrp),                 &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'anmx_n2sdm','Anammox N2 production rate sediment',' ','mol N2 m-3 s-1')
-  call wrtsdm(jsdm_anmx_OM_prod(iogrp),sdm_anmx_OM_prod(iogrp),                 &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'anmx_omsdm','Anammox OM production rate sediment',' ','mol P m-3 s-1')
-  call wrtsdm(jsdm_remin_aerob(iogrp),sdm_remin_aerob(iogrp),                   &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'reminasdm','Aerob remineralization rate sediment',' ','mol N m-3 s-1')
-  call wrtsdm(jsdm_remin_sulf(iogrp),sdm_remin_sulf(iogrp),                     &
-     &  rnacc*1e3/dtbgc,0.,cmpflg,                                              &
-     &  'reminssdm','Sulfate remineralization rate sediment',' ','mol P m-3 s-1') 
+  call wrtsdm(jpownh4(iogrp),           SDM_POWNH4(iogrp),       rnacc*1e3,      0.,cmpflg,'pownh4')
+  call wrtsdm(jpown2o(iogrp),           SDM_POWN2O(iogrp),       rnacc*1e3,      0.,cmpflg,'pown2o')
+  call wrtsdm(jpowno2(iogrp),           SDM_POWNO2(iogrp),       rnacc*1e3,      0.,cmpflg,'powno2')
+  call wrtsdm(jsdm_nitr_NH4(iogrp),     sdm_nitr_NH4(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nh4nitrsdm')
+  call wrtsdm(jsdm_nitr_NO2(iogrp),     sdm_nitr_NO2(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'no2nitrsdm')
+  call wrtsdm(jsdm_nitr_N2O_prod(iogrp),sdm_nitr_N2O_prod(iogrp),rnacc*1e3/dtbgc,0.,cmpflg,'nitr_n2osdm')
+  call wrtsdm(jsdm_nitr_NH4_OM(iogrp),  sdm_nitr_NH4_OM(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'nh4nitr_omsdm')
+  call wrtsdm(jsdm_nitr_NO2_OM(iogrp),  sdm_nitr_NO2_OM(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'no2nitr_omsdm')
+  call wrtsdm(jsdm_denit_NO3(iogrp),    sdm_denit_NO3(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'no3denitsdm')
+  call wrtsdm(jsdm_denit_NO2(iogrp),    sdm_denit_NO2(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'no2denitsdm')
+  call wrtsdm(jsdm_denit_N2O(iogrp),    sdm_denit_N2O(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'n2odenitsdm')
+  call wrtsdm(jsdm_DNRA_NO2(iogrp),     sdm_DNRA_NO2(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'no2dnrasdm')
+  call wrtsdm(jsdm_anmx_N2_prod(iogrp), sdm_anmx_N2_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_n2sdm')
+  call wrtsdm(jsdm_anmx_OM_prod(iogrp), sdm_anmx_OM_prod(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'anmx_omsdm')
+  call wrtsdm(jsdm_remin_aerob(iogrp),  sdm_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminasdm')
+  call wrtsdm(jsdm_remin_sulf(iogrp),   sdm_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminssdm') 
 #endif
 
   ! --- close netcdf file
