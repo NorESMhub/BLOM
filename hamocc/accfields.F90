@@ -66,17 +66,16 @@
                               & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
                               & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
                               & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,  &
-                              & jco2kh,jph,jphosph,jphosy,jphyto,                                                                  & 
-                              & jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,   &
-                              & jsrfphosph,jsrfphyto,jsrfsilica,jwnos,jwphy,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,      &
-                              & acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2,                                                            & 
+                              & jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,       &
+                              & jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,           &
+                              & nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2,           & 
                               & jlvl_nitr_NH4, jsrfpn2om,                                                                          &
                               & jlvl_nitr_NO2,jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,jlvl_nitr_NO2_OM,jlvl_denit_NO3,jlvl_denit_NO2,  &
                               & jlvl_denit_N2O,jlvl_DNRA_NO2,jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,jlvl_phosy_NH4,jlvl_phosy_NO3,    &
                               & jlvl_remin_aerob,jlvl_remin_sulf,                                                                  &
                               & jagg_ws,jdynvis,jagg_stick,jagg_stickf,jagg_dmax,jagg_avdp,jagg_avrhop,jagg_avdC,jagg_df,jagg_b,   &
                               & jagg_Vrhof,jagg_Vpor,jlvl_agg_ws,jlvl_dynvis,jlvl_agg_stick,jlvl_agg_stickf,jlvl_agg_dmax,         &
-                              & jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor 
+                              & jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor
       use mo_control_bgc, only: io_stdo_bgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
@@ -109,7 +108,7 @@
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
       use mo_carbch,      only: natco3,nathi,natomegaa,natomegac,natpco2d
       use mo_bgcmean,     only: jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,jnatco3,jnatdic,jnatomegaa,jnatomegac,jnatpco2,jnatph,     &
-                              & jsrfnatalk,jsrfnatdic
+                              & jsrfnatalk,jsrfnatdic,jsrfnatph
 #endif
 #ifndef sedbypass
       use mo_param1_bgc, only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
@@ -271,6 +270,7 @@
       call accsrf(jsrfsilica,ocetra(1,1,1,isilica),omask,0)
       call accsrf(jsrfdic,ocetra(1,1,1,isco212),omask,0)
       call accsrf(jsrfphyto,ocetra(1,1,1,iphy),omask,0)
+      call accsrf(jsrfph,hi(1,1,1),omask,0)
       call accsrf(jdms,ocetra(1,1,1,idms),omask,0)
       call accsrf(jsrfpn2om,pn2om,omask,0)
       call accsrf(jexport,expoor,omask,0)      
@@ -286,6 +286,7 @@
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
       call accsrf(jnatpco2,natpco2d,omask,0)
+      call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
 #endif
 #ifdef BROMO
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)

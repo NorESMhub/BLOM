@@ -425,6 +425,7 @@ set SRF_ALKALI    = '4, 2, 2'
 set SRF_SILICA    = '0, 2, 2' 
 set SRF_DIC       = '4, 2, 2' 
 set SRF_PHYTO     = '4, 2, 2' 
+set SRF_PH        = '0, 2, 2' 
 set SRF_EXPORT    = '0, 2, 2' 
 set SRF_EXPOSI    = '0, 2, 2' 
 set SRF_EXPOCA    = '0, 2, 2' 
@@ -452,6 +453,7 @@ set SRF_ATMO2     = '0, 2, 2'
 set SRF_ATMN2     = '0, 2, 2' 
 set SRF_NATDIC    = '0, 2, 2'
 set SRF_NATALKALI = '0, 2, 2'
+set SRF_NATPH     = '0, 2, 2'
 set SRF_NATPCO2   = '0, 2, 2'
 set SRF_NATCO2FX  = '0, 2, 2'
 set SRF_CO213FXD  = '0, 2, 2' 
@@ -1626,8 +1628,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   IRON           - Dissolved iron (dfe) [mol Fe m-3]
 !   SILICA         - Silicate (si) [mol Si m-3]
 !   PHYTO          - Phytoplankton (phyc) [mol C m-3]
+!   PH             - pH (ph) [-log10([h+])]
 !   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
 !   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
+!   NATPH          - Natural pH (natph) [-log10([h+])]
 !
 ! Other 3d tracer or diagnostic variables (LYR or LVL)
 !   DP             - Layer thickness (pddpo) [m]
@@ -1672,14 +1676,12 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   AGG_B          - slope of aggregate number distribution [-]
 !   AGG_VRHOF      - Volume-weighted mean aggregate density [kg m-3]
 !   AGG_VPOR       - Volume weighted mean aggregate porosity [-]
-!   PH             - pH (ph) [-log10([h+])]
 !   OMEGAA         - Aragonite saturation state (omegaa) [1]
 !   OMEGAC         - Calcite saturation state (omegac) [1]
 !   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
 !   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
 !   NATCO3         - Natural carbonate ion concentration (natco3) [mol C m-3]
 !   NATCALC        - Natural CaCO3 shells (natcalc) [mol C m-3]
-!   NATPH          - Natural pH (natph) [-log10([h+])]
 !   NATOMEGAA      - Natural aragonite saturation state (natomegaa) [1]
 !   NATOMEGAC      - Natural calcite saturation state (natomegac) [1]
 !   DIC13          - Dissolved C13 (dissic13) [mol C m-3]
@@ -1816,6 +1818,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_SILICA    = $SRF_SILICA
   SRF_DIC       = $SRF_DIC
   SRF_PHYTO     = $SRF_PHYTO
+  SRF_PH        = $SRF_PH
   SRF_EXPORT    = $SRF_EXPORT
   SRF_EXPOSI    = $SRF_EXPOSI
   SRF_EXPOCA    = $SRF_EXPOCA
@@ -1843,6 +1846,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_ATMN2     = $SRF_ATMN2
   SRF_NATDIC    = $SRF_NATDIC
   SRF_NATALKALI = $SRF_NATALKALI
+  SRF_NATPH     = $SRF_NATPH
   SRF_NATPCO2   = $SRF_NATPCO2
   SRF_NATCO2FX  = $SRF_NATCO2FX
   SRF_CO213FXD  = $SRF_CO213FXD
