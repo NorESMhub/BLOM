@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2021 Mats Bentsen
+! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ c --- Remove static instabilitites between the mixed layer and interior
 c --- layers
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: epsil
+      use mod_constants, only: epsilp
       use mod_xc
       use mod_vcoord, only: sigmar
       use mod_eos, only: rho, sig, sofsig
@@ -84,7 +84,7 @@ c --- ------------------------------------------------------------------
 c
           k=3
           dps=0.
-          do while (delp(k).lt.epsil)
+          do while (delp(k).lt.epsilp)
             dps=dps+delp(k)
             delp(k)=0.
             k=k+1
@@ -212,7 +212,7 @@ c --- ------- interface
               k=kfpl
               do while (rho(dps,ttmp,stmp).gt.
      .                  rho(dps,ttem(k),ssal(k)).or.
-     .                  delp(k).lt.epsil)
+     .                  delp(k).lt.epsilp)
                 tdps=tdps+ttem(k)*delp(k)
                 sdps=sdps+ssal(k)*delp(k)
                 dps=dps+delp(k)

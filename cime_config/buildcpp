@@ -88,6 +88,7 @@ def buildcpp(case):
     hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_ciso = case.get_value("HAMOCC_CISO")
     hamocc_vsls = case.get_value("HAMOCC_VSLS")
+    blom_unit = case.get_value("BLOM_UNIT")
 
     expect(blom_vcoord != "cntiso_hybrid" or not turbclo, "BLOM_VCOORD == {} and BLOM_TURBULENT_CLOSURE == {} is not a valid combination".format(blom_vcoord, turbclo))
 
@@ -148,6 +149,11 @@ def buildcpp(case):
                     expect(False, "CO2 type {} is not recognized".format(co2type))
             else:
                 expect(False, "tracer module {} is not recognized".format(module))
+
+    if blom_unit == "mks":
+        blom_cppdefs = blom_cppdefs + " -DMKS"
+    else:
+        expect(blom_unit == "cgs", "Unit system {} is not recognized".format(blom_unit))
 
     blom_cppdefs = "-DMPI" + blom_cppdefs
 

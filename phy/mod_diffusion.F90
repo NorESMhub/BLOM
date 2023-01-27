@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2022 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_diffusion
 
    use mod_types, only: r8
    use mod_config, only: inst_suffix
-   use mod_constants, only: spval, epsil
+   use mod_constants, only: spval, epsilk
    use mod_xc
 
    implicit none
@@ -320,9 +320,9 @@ contains
          enddo
          do k = 1, kk+1
             do i = 1 - nbdy, ii + nbdy
-               Kvisc_m(i, j, k) = epsil
-               Kdiff_t(i, j, k) = epsil
-               Kdiff_s(i, j, k) = epsil
+               Kvisc_m(i, j, k) = epsilk
+               Kdiff_t(i, j, k) = epsilk
+               Kdiff_s(i, j, k) = epsilk
             enddo
          enddo
       enddo

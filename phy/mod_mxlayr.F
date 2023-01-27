@@ -25,8 +25,9 @@ c --- mixed layer model.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: g, spcifh, alpha0, epsil, spval, onem,
-     .                         tencm, onecm, onemm, onemu
+      use mod_constants, only: g, spcifh, alpha0, epsilp, spval, onem,
+     .                         tencm, onecm, onemm, onemu,
+     .                         L_mks2cgs, R_mks2cgs
       use mod_time, only: delt1
       use mod_xc
       use mod_vcoord, only: sigmar
@@ -89,6 +90,11 @@ c --- Diagnostic variables:
      .  mtkeke,         ! Mixed layer TKE tendency related to kin.
                         ! energy change [cm3 s-3].
      .  pbrnda          ! Brine plume pressure depth [g cm-1 s-2].
+c
+      real(r8), parameter ::
+     .  iL_mks2cgs = 1./L_mks2cgs,
+     .  A_cgs2mks  = 1./(L_mks2cgs*L_mks2cgs),
+     .  V_mks2cgs  = L_mks2cgs**3
 c
       public :: rm0,rm5,ce,mlrttp,mltmin,
      .          mtkeus,mtkeni,mtkebf,mtkers,mtkepe,mtkeke,pbrnda,
@@ -163,7 +169,8 @@ c ---   maxitr - maximum number of iterations allowed in the computation
 c ---            of TKE balance [].
       real kappa,mu,ustmin,mldjmp
       integer maxitr
-      parameter (kappa=.4,mu=2.,ustmin=.1,mldjmp=1.e-6,maxitr=20)
+      parameter (kappa=.4,mu=2.,ustmin=.001*L_mks2cgs,
+     .           mldjmp=1.e-3*R_mks2cgs,maxitr=20)
 c
 c --- Parameters for the parameterization of restratification by mixed
 c --- layer eddies by Fox-Kemper et al. (2008):
@@ -175,12 +182,12 @@ c ---            [1/cm].
 c ---   ci     - constant that appears when integrating the shape
 c ---            function over the mixed layer depth [].
       real rtau,cori20,rlf,ci,slbg0
-      parameter (rtau=1./86400.,cori20=4.9745e-5,rlf=1./5.e5,
-     .           ci=44./63.,slbg0=0.)
+      parameter (rtau=1./86400.,cori20=4.9745e-5,
+     .           rlf=1./(5.e3*L_mks2cgs),ci=44./63.,slbg0=0.)
 c
 c --- Parameters for brine plume parameterization:
 c ---   bpdrho - density contrast between surface and brine plume depth
-c ---            [g/cm/s**2].
+c ---            [g/cm**3].
 c ---   bpmndp - minimum distribution thickness of salt from sea-ice
 c ---            freezing [g/cm/s**2].
 c ---   bpmxdp - maximum distribution depth below the mixed layer base
@@ -190,8 +197,8 @@ c ---            is distributed over [g/cm/s**2].
 c ---   dsgmnr - minimum ratio of linearized density jump to target
 c ---            density jump across a layer interface [].
       real bpdrho,bpmndp,bpmxdp,bpdpmn,dsgmnr
-      parameter (bpdrho=.4e-3,bpmndp=10.*98060.,bpmxdp=500.*98060.,
-     .           bpdpmn=1.*98060.,dsgmnr=.1)
+      parameter (bpdrho=.4*R_mks2cgs,bpmndp=10.*onem,
+     .           bpmxdp=500.*onem,bpdpmn=1.*onem,dsgmnr=.1)
 c
 c --- ------------------------------------------------------------------
 c --- Resolve type of mixed layer restratification time scale.
@@ -418,7 +425,8 @@ c
               tkew=mtkeus(i,j)+mtkeni(i,j)+mtkebf(i,j)+mtkers(i,j)
               if (.not.(nitr.eq.1.and.pres(3)*lbi.gt.1.)) then
                 dtke=(tkew-tkeo)/dpmxl
-                if (abs(dtke)<(abs(tkew)+1.e-16)/(pres(3)-pres(1))) then
+                if (abs(dtke)<(abs(tkew)+1.e-22*V_mks2cgs)
+     .                        /(pres(3)-pres(1))) then
                   if (tkew.lt.0.) then
                     dpmxl=.5*(pres(1)-pmxl)
                   else
@@ -437,9 +445,9 @@ c
               write (lp,*) 'dpth=',pres(3)/onem,';'
               write (lp,*) 'pmxl=',pmxl/onem,';'
               write (lp,*) 'corio=',coriop(i,j),';'
-              write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
-              write (lp,*) 'bfltot=',bfltot*1.e-4,';'
-              write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
+              write (lp,*) 'ustar=',ustar(i,j)*iL_mks2cgs,';'
+              write (lp,*) 'bfltot=',bfltot*A_cgs2mks,';'
+              write (lp,*) 'bflpsw=',bflpsw*A_cgs2mks,';'
               write (lp,*) 'bg2=',util1(i,j),';'
               write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
               write (lp,*)
@@ -512,7 +520,7 @@ c --- ------------------------------------------------------------------
 c
             kmax=1
             do k=2,kk
-              if (delp(k).gt.epsil) kmax=k
+              if (delp(k).gt.epsilp) kmax=k
             enddo
             kfmax=0
 c
@@ -589,7 +597,7 @@ c --- ----- Apply brine forcing to the water column below surface layer
                   bc(k)=0.
                 endif
                 kfmax=k
-                if (bdpsum.le.epsil) then
+                if (bdpsum.le.epsilp) then
                   if (dpfsl.gt.onemu) then
                     bpmldp=min(bpmndp,dpfsl+delp(2))
                     q=brnflx(i,j)*delt1*g/bpmldp
@@ -730,7 +738,7 @@ c
                   endif
                 else
                   if (delp(k).gt.onemu.and.dens(k).gt.densr(k).and.
-     .                sigfsl.lt.densr(k)-1.e-9) then
+     .                sigfsl.lt.densr(k)-(1.e-6*R_mks2cgs)) then
                     dps=min(dpfsl,delp(k)*(dens(k)-densr(k))
      .                                   /(densr(k)-sigfsl))
                     q=1./(dps+delp(k))
@@ -857,7 +865,7 @@ c
               do
                 if (k.gt.kk) then
                   exit
-                elseif (delp(k).lt.epsil) then
+                elseif (delp(k).lt.epsilp) then
                   k=k+1
                 else
                   pmxl=pres(k+1)
@@ -929,7 +937,7 @@ c
                       endif
                       if (.not.chngd) then
                         if (abs(dtke).lt.
-     .                      (abs(tkew)+1.e-16)/delp(k)) then
+     .                    (abs(tkew)+1.e-22*V_mks2cgs)/delp(k)) then
                           if (tkew.lt.0.) then
                             dpmxl=.5*(pres(k)-pmxl)
                           else
@@ -952,9 +960,9 @@ c
                     write (lp,*) 'dpth=',pres(3)/onem,';'
                     write (lp,*) 'pmxl=',pmxl/onem,';'
                     write (lp,*) 'corio=',coriop(i,j),';'
-                    write (lp,*) 'ustar=',ustar(i,j)*1.e-2,';'
-                    write (lp,*) 'bfltot=',bfltot*1.e-4,';'
-                    write (lp,*) 'bflpsw=',bflpsw*1.e-4,';'
+                    write (lp,*) 'ustar=',ustar(i,j)*iL_mks2cgs,';'
+                    write (lp,*) 'bfltot=',bfltot*A_cgs2mks,';'
+                    write (lp,*) 'bflpsw=',bflpsw*A_cgs2mks,';'
                     write (lp,*) 'bg2=',util1(i,j),';'
                     write (lp,*) 'ce=',ce*sqrt(scp2(i,j))*rlf,';'
                     write (lp,*) 'pres(3)=',pres(3)/onem,';'
@@ -972,7 +980,7 @@ c
 c                   call xchalt('(mxlayr)')
 c                          stop '(mxlayr)'
                   endif
-                  if (pmxl.lt.pres(k+1)-epsil.and.nitr.lt.maxitr) then
+                  if (pmxl.lt.pres(k+1)-epsilp.and.nitr.lt.maxitr) then
                     tdps=tdps+ttem(k)*(pmxl-pres(k))
                     sdps=sdps+ssal(k)*(pmxl-pres(k))
 #ifdef TRC
@@ -1072,7 +1080,7 @@ c --- ------------------------------------------------------------------
 c
             kmax=1
             do k=2,kk
-              if (delp(k).gt.epsil) kmax=k
+              if (delp(k).gt.epsilp) kmax=k
             enddo
             kfmax=0
 c
@@ -1142,7 +1150,7 @@ c --- ----- Apply brine forcing to the water column below surface layer
                   bc(k)=0.
                 endif
                 kfmax=k
-                if (bdpsum.le.epsil) then
+                if (bdpsum.le.epsilp) then
                   ssal(2)=ssal(2)-brnflx(i,j)*delt1*g/delp(2)
                 else
                   if (bdpsum.lt.bpmndp) then
@@ -1206,7 +1214,7 @@ c
 c --- --- Define first physical layer.
           k=3
           dps=0.
-          do while (delp(k).lt.epsil)
+          do while (delp(k).lt.epsilp)
             dps=dps+delp(k)
             delp(k)=0.
             k=k+1
