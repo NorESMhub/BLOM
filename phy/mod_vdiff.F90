@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen
+! Copyright (C) 2021-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_vdiff
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, spcifh, alpha0
+  use mod_constants, only: g, spcifh, alpha0, onem
    use mod_time, only: delt1
    use mod_xc
    use mod_eos, only: sig
@@ -40,7 +40,7 @@ module mod_vdiff
    private
 
    real(r8), parameter :: &
-      dpmin_vdiff  = 0.1_r8*98060._r8
+      dpmin_vdiff  = 0.1_r8*onem
 
    public :: cntiso_hybrid_vdifft, cntiso_hybrid_vdiffm
 

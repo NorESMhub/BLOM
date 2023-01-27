@@ -27,7 +27,8 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_config, only: expcnf
-      use mod_constants, only: g, epsil, onem
+      use mod_constants, only: g, epsilp, onem,
+     .                         L_mks2cgs, M_mks2cgs, P_mks2cgs
       use mod_time, only: nstep, delt1, dlt
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
@@ -98,7 +99,7 @@ c
 c --- improve the accuracy of the pressure interface by an
 c --- iterative procedure
       q=1._r8
-      do while (abs(q).gt.1.e-4_r8)
+      do while (abs(q).gt.1.e-5_r8*P_mks2cgs)
         call delphi(pup,plo,th,s,dphi,alpu,alpl)
         q=(phil-phiu-dphi)/alpl
         plo=plo-q
@@ -121,6 +122,9 @@ c
       real dsig,a0,a1,a2
       integer, dimension(3) :: start,count
       integer i,j,kdmic,k,l,status,ncid,dimid,varid,kb
+      real iM_mks2cgs
+c
+      iM_mks2cgs = 1.0 / M_mks2cgs
 c
       if (mnproc.eq.1) then
         write (lp,'(2a)') ' reading initial condition from ',
@@ -344,7 +348,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c         z(i,j,1)=z(i,j,1)*1.e2
+c         z(i,j,1)=z(i,j,1)*L_mks2cgs
           z(i,j,1)=0.
         enddo
         enddo
@@ -355,7 +359,8 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         do k=1,kdmic
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            z(i,j,k+1)=min(depths(i,j)*1.e2,z(i,j,k)+dz(i,j,k)*1.e2)
+            z(i,j,k+1)=min(depths(i,j)*L_mks2cgs,
+     .                     z(i,j,k)+dz(i,j,k)*L_mks2cgs)
           enddo
           enddo
         enddo
@@ -369,20 +374,20 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
         do k=2,kk
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (z(i,j,kk+1)-z(i,j,k).lt.1.e-4)
-     .        z(i,j,k)=depths(i,j)*1.e2
+            if (z(i,j,kk+1)-z(i,j,k).lt.1.e-6*L_mks2cgs)
+     .        z(i,j,k)=depths(i,j)*L_mks2cgs
           enddo
           enddo
         enddo
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          z(i,j,kk+1)=depths(i,j)*1.e2
+          z(i,j,kk+1)=depths(i,j)*L_mks2cgs
         enddo
         enddo
         do k=1,kk
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
+            sigmar(i,j,k)=sigmar(i,j,k)*iM_mks2cgs
           enddo
           enddo
         enddo
@@ -876,7 +881,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,k,dps)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           k=3
           dps=0.
-          do while (dp(i,j,k).lt.epsil)
+          do while (dp(i,j,k).lt.epsilp)
             dps=dps+dp(i,j,k)
             dp(i,j,k)=0.
             dp(i,j,k+kk)=0.
@@ -920,7 +925,8 @@ c
         j=jtest
         write (lp,103) nstep,i0+i,j0+j,
      .    '  init.profile  temp    saln    dens   thkns    dpth',
-     .    (k,temp(i,j,k),saln(i,j,k),1000.*sig(temp(i,j,k),saln(i,j,k)),
+     .    (k,temp(i,j,k),saln(i,j,k),
+     .     M_mks2cgs*sig(temp(i,j,k),saln(i,j,k)),
      .    dp(i,j,k)/onem,p(i,j,k+1)/onem,k=1,kk)
  103    format (i9,2i5,a/(28x,i3,3f8.2,2f8.1))
       endif
