@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen
+! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_cmnfld_routines
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsil, onem, onecm, onemm
+   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_grid, only: scuxi, scvyi
@@ -125,7 +125,7 @@ module mod_cmnfld_routines
                sup = saln(i, j, 2 + nn)
                do k = kfpl, kk
                   kn = k + nn
-                  if (p(i, j, kk + 1) - p(i, j, k) < epsil) then
+                  if (p(i, j, kk + 1) - p(i, j, k) < epsilp) then
                      delp(k) = onemm
                      bfsqi(i, j, k) = bfsqi(i, j, k - 1)
                      bfsq(k) = bfsqmn
@@ -133,7 +133,7 @@ module mod_cmnfld_routines
                      q = max(sls0, delp(kfpl - 1)*slsmfq*q + sls0*(1._r8 - q))
                      sls2(k) = q*q
                   else
-                     if (p(i, j, kk + 1) - p(i, j, k + 1) < epsil) then
+                     if (p(i, j, kk + 1) - p(i, j, k + 1) < epsilp) then
                         plo = p(i, j, kk + 1)
                      else
                         plo = .5_r8*(p(i, j, k) + p(i, j, k + 1))
@@ -262,13 +262,13 @@ module mod_cmnfld_routines
             sup = saln(i, j, 1 + nn)
             do k = 2, kk
                kn = k + nn
-               if (p(i, j, kk + 1) - p(i, j, k) < epsil) then
+               if (p(i, j, kk + 1) - p(i, j, k) < epsilp) then
                   delp(k) = onemm
                   bfsqi(i, j, k) = bfsqi(i, j, k - 1)
                   bfsq(k) = bfsqmn
                   sls2(k) = sls0*sls0
                else
-                  if (p(i, j, kk + 1) - p(i, j, k + 1) < epsil) then
+                  if (p(i, j, kk + 1) - p(i, j, k + 1) < epsilp) then
                      plo = p(i, j, kk + 1)
                   else
                      plo = .5_r8*(p(i, j, k) + p(i, j, k + 1))
@@ -376,10 +376,10 @@ module mod_cmnfld_routines
             sup = saln(i, j, 1 + nn)
             do k = 2, kk
                kn = k + nn
-               if (p(i, j, kk + 1) - p(i, j, k) < epsil) then
+               if (p(i, j, kk + 1) - p(i, j, k) < epsilp) then
                   bfsqi(i, j, k) = bfsqi(i, j, k - 1)
                else
-                  if (p(i, j, kk + 1) - p(i, j, k + 1) < epsil) then
+                  if (p(i, j, kk + 1) - p(i, j, k + 1) < epsilp) then
                      plo = p(i, j, kk + 1)
                   else
                      plo = .5_r8*(p(i, j, k) + p(i, j, k + 1))
@@ -420,7 +420,7 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: rho0, pm, rho_x, phi_x, bfsqm, rho_y, phi_y
+      real(r8) :: pm, rho_x, phi_x, bfsqm, rho_y, phi_y
       integer :: i, j, k, l, kn, kintr, kmax, knnsl
 
       ! ------------------------------------------------------------------------
@@ -433,7 +433,7 @@ module mod_cmnfld_routines
             kn = k + nn
             do l = 1, isp(j)
             do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
-               if (dp(i, j, kn) < epsil) then
+               if (dp(i, j, kn) < epsilp) then
                   phi(i, j, k) = phi(i, j, k + 1)
                else
                   phi(i, j, k) = phi(i, j, k + 1) &
@@ -454,8 +454,6 @@ module mod_cmnfld_routines
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
 
-      rho0 = 1._r8/alpha0
-
    !$omp parallel do private(l, i, k, kmax, kn, kintr, knnsl, pm, rho_x, &
    !$omp                     phi_x, bfsqm)
       do j = - 1, jj + 2
@@ -475,7 +473,7 @@ module mod_cmnfld_routines
                kmax = 1
                do k = 3, kk
                   kn = k + nn
-                  if (dp(i - 1, j, kn) > epsil .or. dp(i, j, kn) > epsil) &
+                  if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
                      kmax = k
                enddo
 
@@ -564,7 +562,7 @@ module mod_cmnfld_routines
                kmax = 1
                do k = 3, kk
                   kn = k + nn
-                  if (dp(i, j - 1, kn) > epsil .or. dp(i, j, kn) > epsil) &
+                  if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
                      kmax = k
                enddo
 
@@ -653,7 +651,7 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: rho0, pm, rho_x, phi_x, bfsqm, rho_y, phi_y
+      real(r8) :: pm, rho_x, phi_x, bfsqm, rho_y, phi_y
       integer :: i, j, k, l, kn, kmax, knnsl
 
       ! ------------------------------------------------------------------------
@@ -666,7 +664,7 @@ module mod_cmnfld_routines
             kn = k + nn
             do l = 1, isp(j)
             do i = max(- 1, ifp(j, l)), min(ii + 2, ilp(j, l))
-               if (dp(i, j, kn) < epsil) then
+               if (dp(i, j, kn) < epsilp) then
                   phi(i, j, k) = phi(i, j, k + 1)
                else
                   phi(i, j, k) = phi(i, j, k + 1) &
@@ -687,8 +685,6 @@ module mod_cmnfld_routines
       ! bathymetry and in this case values are extrapolated from above.
       ! ------------------------------------------------------------------------
 
-      rho0 = 1._r8/alpha0
-
    !$omp parallel do private(l, i, k, kmax, kn, knnsl, pm, rho_x, phi_x, bfsqm)
       do j = - 1, jj + 2
          do l = 1, isu(j)
@@ -705,7 +701,7 @@ module mod_cmnfld_routines
             kmax = 1
             do k = 2, kk
                kn = k + nn
-               if (dp(i - 1, j, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
             enddo
 
             ! Index of last interface where slope vector times Brunt-Vaisala
@@ -758,7 +754,7 @@ module mod_cmnfld_routines
             kmax = 1
             do k = 2, kk
                kn = k + nn
-               if (dp(i, j - 1, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) kmax=k
             enddo
 
             ! Index of last interface where slope vector times Brunt-Vaisala
@@ -881,7 +877,7 @@ module mod_cmnfld_routines
             km = k + mm
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
-               if (dp(i, j, km) < epsil) then
+               if (dp(i, j, km) < epsilp) then
                   z(i, j, k) = z(i, j, k + 1)
                else
                   z(i, j, k) = z(i, j, k + 1) &
@@ -934,7 +930,7 @@ module mod_cmnfld_routines
                        zup = zlo
                        dbup = dblo
                     else
-                       dbup = min(dbup, dbcrit - epsil)
+                       dbup = min(dbup, dbcrit - epsilp)
                        mlts(i, j) = ( zup*(dblo - dbcrit) &
                                     + zlo*(dbcrit - dbup))/(dblo - dbup) &
                                   - z(i, j, 1)

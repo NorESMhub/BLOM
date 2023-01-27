@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2022 Mats Bentsen
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ c --- diffusion of tracers
 c --- ------------------------------------------------------------------
 c
       use mod_time, only: delt1
+      use mod_constants, only: P_mks2cgs
       use mod_xc
       use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi
       use mod_eos, only: sig
@@ -47,7 +48,7 @@ c
 #endif
 c
       real dpeps
-      parameter (dpeps=1.e-4)
+      parameter (dpeps=1.e-5*P_mks2cgs)
 c
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
       if (ltedtp_opt.eq.ltedtp_neutral) then
