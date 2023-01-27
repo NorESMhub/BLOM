@@ -485,7 +485,7 @@ subroutine ncwrt_bgc(iogrp)
 #endif
 #ifdef cisonew
   call wrtsrf(jatmc13(iogrp),      SRF_ATMC13(iogrp),   rnacc,          0.,cmpflg,'atmc13')
-  call wrtsrf(jatmc14(iogrp),      SRF_ATMC14(iogrp),   rnacc,          0.,cmpflg,'atmc14)
+  call wrtsrf(jatmc14(iogrp),      SRF_ATMC14(iogrp),   rnacc,          0.,cmpflg,'atmc14')
 #endif
 
   ! --- Store 3d layer fields
