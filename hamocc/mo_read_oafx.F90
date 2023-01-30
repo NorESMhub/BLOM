@@ -300,7 +300,7 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
     elseif(kplyear.ge.ramp_end ) then
       oafx(:,:) = oalkflx(:,:)
     else
-      current_day = (kplyear-ramp_start)*365.+nday_of_year
+      current_day = (kplyear-ramp_start)*365+nday_of_year
       oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
     endif
 
