@@ -49,7 +49,7 @@ module mo_intfcblom
 !   *bgc_dx*     *REAL*     - size of grid cell (longitudinal) [m].
 !   *bgc_dx*     *REAL*     - size of grid cell (latitudinal) [m].
 !   *bgc_dp*     *REAL*     - size of grid cell (depth) [m].
-!   *bgc_rho*    *REAL*     - sea water density [kg/m^3].
+!   *bgc_rho*    *REAL*     - sea water density [g/cm^3].
 !   *omask*      *REAL*     - land ocean mask.
 !
 ! The following arrays are used to keep a two time-level copy of sediment
