@@ -60,7 +60,7 @@
 !  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
 !  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
 !  *REAL*    *pddpo*      - size of grid cell (depth) [m].
-!  *REAL*    *prho*       - density [kg/m^3].
+!  *REAL*    *prho*       - density [g/cm^3].
 !  *REAL*    *pglat*      - latitude of grid cells [deg north].
 !  *REAL*    *omask*      - land/ocean mask.
 !  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
