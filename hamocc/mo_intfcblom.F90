@@ -243,7 +243,7 @@ subroutine blom2hamocc(m,n,mm,nn)
 !
 !******************************************************************************
 !
-  use mod_constants, only: onem
+  use mod_constants, only: onem, L_mks2cgs,rho0,M_mks2cgs
   use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
@@ -255,10 +255,6 @@ subroutine blom2hamocc(m,n,mm,nn)
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
   use mo_vgrid,      only: kmle, kmle_static
 
-!JM testing start
-  use mod_constants,  only: L_mks2cgs,rho0,M_mks2cgs
-  use mo_control_bgc, only: io_stdo_bgc
-!JM testing end
   implicit none
 
   integer, intent(in) :: m,n,mm,nn
@@ -296,11 +292,8 @@ subroutine blom2hamocc(m,n,mm,nn)
   do i=1,ii
 !
 ! --- - dimension of grid box in meters
-     bgc_dx(i,j) = scpx(i,j)/1.e2
-     bgc_dy(i,j) = scpy(i,j)/1.e2
-     write(io_stdo_bgc,*) 'scpx ',scpx(i,j)
-     write(io_stdo_bgc,*) 'bgc_dx ',bgc_dx(i,j)
-     write(io_stdo_bgc,*) 'bgc_dx new',scpx(i,j)/L_mks2cgs
+     bgc_dx(i,j) = scpx(i,j)/L_mks2cgs
+     bgc_dy(i,j) = scpy(i,j)/L_mks2cgs
 !
 ! --- - index of level above OBL depth
 ! ---   isopycninc coords: hOBL(i,j) = hOBL_static = 3.  =>  kmle(i,j) = 2
@@ -314,8 +307,6 @@ subroutine blom2hamocc(m,n,mm,nn)
 ! --- 3D fields
 ! --- ------------------------------------------------------------------
 
-  write(io_stdo_bgc,*) 'L_mks2cgs ',L_mks2cgs
-  write(io_stdo_bgc,*) 'onem ',onem
 !$OMP PARALLEL DO PRIVATE(k,kn,l,i,th,s,p1,p2,ldp,pa)
   do k=1,kk
      kn=k+nn
@@ -330,7 +321,7 @@ subroutine blom2hamocc(m,n,mm,nn)
         if(dp(i,j,kn) == 0.0) then
            ldp = 1.0
            pa  = ldp/rho(p1,th,s)
-        else if(dp(i,j,kn) <  1.0e-2) then
+        else if(dp(i,j,kn) <  1.0e-3*M_mks2cgs/L_mks2cgs) then
            ldp = dp(i,j,kn)
            pa  = ldp/rho(p1,th,s)
         else
@@ -340,19 +331,11 @@ subroutine blom2hamocc(m,n,mm,nn)
         end if
 !
 ! --- - density in g/cm^3
-        bgc_rho(i,j,k)=ldp/pa
+        bgc_rho(i,j,k)=ldp/(pa*rho0)
 !
 ! --- - layer thickness in meters
         bgc_dp(i,j,k) = 0.0
-        if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = pa / onem
-     
-     write(io_stdo_bgc,*) 'new if ',1.0e-3*M_mks2cgs/L_mks2cgs
-     write(io_stdo_bgc,*) 'rho ',rho(p1,th,s)
-     write(io_stdo_bgc,*) 'bgc_rho ',bgc_rho(i,j,k)
-     write(io_stdo_bgc,*) 'bgc_rho new',ldp/(pa*rho0)
-     write(io_stdo_bgc,*) 'dp  ',dp(i,j,kn)
-     write(io_stdo_bgc,*) 'bgc_dp  ',bgc_dp(i,j,k)
-     write(io_stdo_bgc,*) 'bgc_dp  new',rho0*bgc_dp(i,j,k)
+        if(dp(i,j,kn).ne.0.0) bgc_dp(i,j,k) = rho0*pa / onem
      enddo
      enddo
      enddo
