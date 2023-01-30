@@ -234,14 +234,14 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
 endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
-set DO_OALK = .false.
-set OALKSCEN = "''"
-set OALKFILE = "''"
-set ADDALK    = 0.135
-set CDRMIP_LATMAX = 70.0
-set CDRMIP_LATMIN = -60.0
-set RAMP_START    = 2025
-set RAMP_END      = 2035
+set BGCOAFX_DO_OALK = .false.
+set BGCOAFX_OALKSCEN = "''"
+set BGCOAFX_OALKFILE = "''"
+set BGCOAFX_ADDALK    = 0.135
+set BGCOAFX_CDRMIP_LATMAX = 70.0
+set BGCOAFX_CDRMIP_LATMIN = -60.0
+set BGCOAFX_RAMP_START    = 2025
+set BGCOAFX_RAMP_END      = 2035
 set WITH_DMSPH = .false.
 set PI_PH_FILE = "''"
 set L_3DVARSEDPOR = .false.
