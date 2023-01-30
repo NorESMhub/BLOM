@@ -82,7 +82,7 @@ module mo_read_oafx
   !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
   !
-  real, protected :: addalk    = 0.56  ! Pmol alkalinity/yr added in the
+  real, protected :: addalk        = 0.56  ! Pmol alkalinity/yr added in the
                                            ! scenarios. Read from namelist file
                                            ! to overwrite default value.
   real, protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
@@ -302,10 +302,6 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
     else
       current_day = (kplyear-ramp_start)*365.+nday_of_year
       oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
-    endif
-
-    if(mnproc.eq.138 ) then
-      write(io_stdo_bgc,*) 'get_oafx: oafx (kmol m-2 yr-1) ', oafx
     endif
 
   else
