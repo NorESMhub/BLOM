@@ -237,6 +237,11 @@ endif
 set DO_OALK = .false.
 set OALKSCEN = "''"
 set OALKFILE = "''"
+set ADDALK    = 0.135
+set CDRMIP_LATMAX = 70.0
+set CDRMIP_LATMIN = -60.0
+set RAMP_START    = 2025
+set RAMP_END      = 2035
 set WITH_DMSPH = .false.
 set PI_PH_FILE = "''"
 set L_3DVARSEDPOR = .false.
@@ -1474,9 +1479,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
-  DO_OALK      = $DO_OALK
-  OALKSCEN     = $OALKSCEN
-  OALKFILE     = $OALKFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1493,6 +1495,28 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   PI_PH_FILE   = $PI_PH_FILE
   L_3DVARSEDPOR = $L_3DVARSEDPOR
   SEDPORFILE   = $SEDPORFILE
+/
+
+! NAMELIST FOR ALKALINIZATION SCENARIO
+!
+! CONTENTS:
+!
+! ADDALK    : Pmol alkalinity/yr added in the scenarios.
+! CDRMIP_LATMAX : Max latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! CDRMIP_LATMIN : Min latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! RAMP_START    : Start year for ramp up in 'ramp' scenario
+! RAMP_END      : End year for 'ramp' scenario
+&BGCOAFX
+  DO_OALK       = $DO_OALK
+  OALKSCEN      = $OALKSCEN
+  OALKFILE      = $OALKFILE
+  ADDALK        = $ADDALK
+  CDRMIP_LATMAX = $CDRMIP_LATMAX
+  CDRMIP_LATMIN = $CDRMIP_LATMIN
+  RAMP_START    = $RAMP_START
+  RAMP_END      = $RAMP_END
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
