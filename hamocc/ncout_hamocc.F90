@@ -533,6 +533,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(joxflux(iogrp),      SRF_OXFLUX(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'fgo2')
   call wrtsrf(jniflux(iogrp),      SRF_NIFLUX(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'fgn2')
   call wrtsrf(jn2ofx(iogrp),       SRF_N2OFX(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'n2oflux')
+  call wrtsrf(jsrfpn2om(iogrp),    SRF_PN2OM(iogrp),    rnacc,          0.,cmpflg,'pn2om')
   call wrtsrf(jdms(iogrp),         SRF_DMS(iogrp),      rnacc,          0.,cmpflg,'dms')
   call wrtsrf(jdmsprod(iogrp),     SRF_DMSPROD(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dmsprod')
   call wrtsrf(jdms_bac(iogrp),     SRF_DMS_BAC(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'dms_bac')
@@ -1362,7 +1363,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(SRF_OXFLUX(iogrp),                                            &
        &   cmpflg,'p','fgo2','Oxygen flux',' ','mol O2 m-2 s-1',0)
   call ncdefvar3d(SRF_PN2OM(iogrp),cmpflg,'p',                                  &
-       &   'pn2om','Surface pN2O moist air',' ','uatm',0)
+       &   'pn2om','Surface pN2O moist air',' ','natm',0)
   call ncdefvar3d(SRF_NIFLUX(iogrp),                                            &
        &   cmpflg,'p','fgn2','Nitrogen flux',' ','mol N2 m-2 s-1',0)
   call ncdefvar3d(SRF_DMS(iogrp),cmpflg,'p',                                    &
