@@ -7,6 +7,7 @@
 set CASEROOT = `./xmlquery CASEROOT --value`
 set OCN_GRID = `./xmlquery OCN_GRID --value`
 set BLOM_VCOORD = `./xmlquery BLOM_VCOORD --value`
+set BLOM_UNIT = `./xmlquery BLOM_UNIT --value`
 set DIN_LOC_ROOT = `./xmlquery  DIN_LOC_ROOT --value`
 set RUN_TYPE = `./xmlquery RUN_TYPE --value`
 set CONTINUE_RUN = `./xmlquery CONTINUE_RUN --value`
@@ -74,20 +75,37 @@ set EXPCNF   = "'cesm'"
 set RUNTYP   = "'$RUN_TYPE'"
 set GRFILE   = "'unset'"
 set ICFILE   = "'unset'"
-set PREF     = 2000.e5
+if ($BLOM_UNIT == cgs) then
+  set PREF     = 2000.e5
+else
+  set PREF     = 2000.e4
+endif
 set BACLIN   = 1800.
 set BATROP   = 36.
-set MDV2HI   = 2.
-set MDV2LO   = .4
-set MDV4HI   = 0.
-set MDV4LO   = 0.
-set MDC2HI   = 5000.e4
-set MDC2LO   = 300.e4
+if ($BLOM_UNIT == cgs) then
+  set MDV2HI   = 2.
+  set MDV2LO   = .4
+  set MDV4HI   = 0.
+  set MDV4LO   = 0.
+  set MDC2HI   = 5000.e4
+  set MDC2LO   = 300.e4
+else
+  set MDV2HI   = .02
+  set MDV2LO   = .004
+  set MDV4HI   = 0.
+  set MDV4LO   = 0.
+  set MDC2HI   = 5000.
+  set MDC2LO   = 300.
+endif
 set VSC2HI   = .5
 set VSC2LO   = .5
 set VSC4HI   = 0.
 set VSC4LO   = 0.
-set CBAR     = 5.
+if ($BLOM_UNIT == cgs) then
+  set CBAR     = 5.
+else
+  set CBAR     = .05
+endif
 set CB       = .002
 set CWBDTS   = 5.e-5
 set CWBDLS   = 25.
@@ -161,14 +179,25 @@ set EDWMTH   = "'smooth'"
 set EDSPRS   = .true.
 set EGC      = 0.85
 set EGGAM    = 200.
-set EGLSMN   = 4000.e2
-set EGMNDF   = 100.e4
-set EGMXDF   = 1500.e4
+if ($BLOM_UNIT == cgs) then
+  set EGLSMN   = 4000.e2
+  set EGMNDF   = 100.e4
+  set EGMXDF   = 1500.e4
+else
+  set EGLSMN   = 4000.
+  set EGMNDF   = 100.
+  set EGMXDF   = 1500.
+endif
 set EGIDFQ   = 1.
 set RI0      = 1.2
 set BDMTYP   = 2
-set BDMC1    = 5.e-4
-set BDMC2    = .1
+if ($BLOM_UNIT == cgs) then
+  set BDMC1    = 5.e-4
+  set BDMC2    = .1
+else
+  set BDMC1    = 5.e-8
+  set BDMC2    = 1.e-5
+endif
 set TKEPF    = .006
 if ($BLOM_VCOORD == isopyc_bulkml) then
   set LTEDTP   = "'layer'"
@@ -234,10 +263,15 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
 endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
-set DO_OALK = .false.
 set LM4AGO = .false.
-set OALKSCEN = "''"
-set OALKFILE = "''"
+set BGCOAFX_DO_OALK = .false.
+set BGCOAFX_OALKSCEN = "''"
+set BGCOAFX_OALKFILE = "''"
+set BGCOAFX_ADDALK    = 0.135
+set BGCOAFX_CDRMIP_LATMAX = 70.0
+set BGCOAFX_CDRMIP_LATMIN = -60.0
+set BGCOAFX_RAMP_START    = 2025
+set BGCOAFX_RAMP_END      = 2035
 set WITH_DMSPH = .false.
 set PI_PH_FILE = "''"
 set L_3DVARSEDPOR = .false.
@@ -711,7 +745,11 @@ else if ($OCN_GRID == tnx2v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  set EGMXDF = 1000.e4
+  if ($BLOM_UNIT == cgs) then
+    set EGMXDF = 1000.e4
+  else
+    set EGMXDF = 1000.
+  endif
   set CWMTAG = "'Gibraltar','Gibraltar'"
   set CWMEDG = "        'u',        'u'"
   set CWMI   = "         53,         54"
@@ -721,7 +759,11 @@ else if ($OCN_GRID == tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  set EGMXDF = 1000.e4
+  if ($BLOM_UNIT == cgs) then
+    set EGMXDF = 1000.e4
+  else
+    set EGMXDF = 1000.
+  endif
 else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   if ($OCN_NCPL == 24) then
     set BACLIN = 3600.
@@ -742,33 +784,58 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
 else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
   set BACLIN = 900.
   set BATROP = 15.
-  set MDV2HI = .15
-  set MDV2LO = .15
+  if ($BLOM_UNIT == cgs) then
+    set MDV2HI = .15
+    set MDV2LO = .15
+    set MDV4HI = 0.
+    set MDV4LO = 0.
+    set MDC2HI = 300.e4
+    set MDC2LO = 300.e4
+  else
+    set MDV2HI = .0015
+    set MDV2LO = .0015
+    set MDV4HI = 0.
+    set MDV4LO = 0.
+    set MDC2HI = 300.
+    set MDC2LO = 300.
+  endif
   set VSC2HI = .15
   set VSC2LO = .15
   set VSC4HI = 0.0625
   set VSC4LO = 0.0625
-  set MDC2HI = 300.e4
   set CWBDTS = 0.75e-4
   set CWBDLS = 25.
   set EDWMTH = "'step'"
   set EGC    = 0.85
-  set EGMXDF = 1500.e4
+  if ($BLOM_UNIT == cgs) then
+    set EGMXDF = 1500.e4
+  else
+    set EGMXDF = 1500.
+  endif
   set CE     = 1.0
 else if ($OCN_GRID == tnx0.125v4) then
   set BACLIN = 300.
   set BATROP = 6.
-  set EGMNDF = 0.0
-  set EGMXDF = 0.0
+  set EGMNDF = 0.
+  set EGMXDF = 0.
   set EDWMTH = "'step'"
   set CWBDTS = .75e-4
   set CWBDLS = 25
-  set MDV2HI = .5
-  set MDV2LO = .1
-  set MDV4HI = 0.
-  set MDV4LO = 0.
-  set MDC2HI = 300.e4
-  set MDC2LO = 100.e4
+  if ($BLOM_UNIT == cgs) then
+    set MDV2HI = .5
+    set MDV2LO = .1
+    set MDV4HI = 0.
+    set MDV4LO = 0.
+    set MDC2HI = 300.e4
+    set MDC2LO = 100.e4
+  else
+    set MDV2HI = .005
+    set MDV2LO = .001
+    set MDV4HI = 0.
+    set MDV4LO = 0.
+    set MDC2HI = 300.
+    set MDC2LO = 100.
+  endif
   set VSC2HI = .5
   set VSC2LO = .5
   set VSC4HI = 0.0
@@ -1562,9 +1629,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
-  DO_OALK      = $DO_OALK
-  OALKSCEN     = $OALKSCEN
-  OALKFILE     = $OALKFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1582,6 +1646,28 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   PI_PH_FILE   = $PI_PH_FILE
   L_3DVARSEDPOR = $L_3DVARSEDPOR
   SEDPORFILE   = $SEDPORFILE
+/
+
+! NAMELIST FOR ALKALINIZATION SCENARIO
+!
+! CONTENTS:
+!
+! ADDALK    : Pmol alkalinity/yr added in the scenarios.
+! CDRMIP_LATMAX : Max latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! CDRMIP_LATMIN : Min latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! RAMP_START    : Start year for ramp up in 'ramp' scenario
+! RAMP_END      : End year for 'ramp' scenario
+&BGCOAFX
+  DO_OALK       = $BGCOAFX_DO_OALK
+  OALKSCEN      = $BGCOAFX_OALKSCEN
+  OALKFILE      = $BGCOAFX_OALKFILE
+  ADDALK        = $BGCOAFX_ADDALK
+  CDRMIP_LATMAX = $BGCOAFX_CDRMIP_LATMAX
+  CDRMIP_LATMIN = $BGCOAFX_CDRMIP_LATMIN
+  RAMP_START    = $BGCOAFX_RAMP_START
+  RAMP_END      = $BGCOAFX_RAMP_END
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
@@ -2128,9 +2214,9 @@ cat >> $CASEBUILD/blom.input_data_list << EOF
 n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
-  if ($OALKFILE != "''") then
+  if ($BGCOAFX_OALKFILE != "''") then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-oafx_file = `echo $OALKFILE | tr -d '"' | tr -d "'"`
+oafx_file = `echo $BGCOAFX_OALKFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($HAMOCC_VSLS == TRUE) then

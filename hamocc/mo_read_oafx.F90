@@ -45,11 +45,14 @@ module mo_read_oafx
 !  issued. The input data must be already pre-interpolated to the ocean grid.
 !
 !  Currently available ocean alkalinisation scenarios:
-!    -'const_0p14':   constant alkalinity flux of 0.14 Pmol yr-1 applied to the 
-!                     surface ocean between 60S and 70N (no input file needed)
-!    -'const_0p56':   constant alkalinity flux of 0.56 Pmol yr-1 applied to the 
-!                     surface ocean between 60S and 70N (no input file needed)
-!
+!  (no input file needed, flux and latitude range can be defined in the
+!   namelist, default values are defined):
+!    -'const':        constant alkalinity flux applied to the surface ocean 
+!                     between two latitudes.
+!    -'ramp':         ramping-up alkalinity flux from 0 Pmol yr-1 to a maximum
+!                     value between two specified years and kept constant
+!                     onward, applied to the surface ocean between two
+!                     latitudes.
 !
 !  -subroutine ini_read_oafx
 !     Initialise the module
@@ -66,24 +69,32 @@ module mo_read_oafx
 
   real,allocatable, save :: oalkflx(:,:)
    
-  character(len=128), save :: oalkscen=''
-  character(len=512), save :: oalkfile=''
+  character(len=128), save :: oalkscen   =''
+  character(len=512), save :: oalkfile   =''
   real, parameter          :: Pmol2kmol  = 1.0e12
   
   ! Parameter used in the definition of alkalinization scenarios. The following 
   ! scenarios are defined in this module:
   !
-  !  const_0p14    Homogeneous addition of 0.14 Pmol ALK/yr-1 over the ice-free
-  !                surface ocean (assumed to be between 60S and 70N)
-  !  const_0p56    Homogeneous addition of 0.56 Pmol ALK/yr-1 over the ice-free
-  !                surface ocean (assumed to be between 60S and 70N)
+  !  const         Constant homogeneous addition of alkalinity between latitude
+  !                cdrmip_latmin and latitude cdrmip_latmax
+  !  ramp          Linear increase of homogeneous addition from 0 to addalk
+  !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
+  !                latitude cdrmip_latmin and latitude cdrmip_latmax
   !
-  real, parameter :: addalk_0p14   = 0.14  ! Pmol alkalinity/yr added in the
-  real, parameter :: addalk_0p56   = 0.56  ! 'const_0p14' and 'const_0p56' 
-                                           ! scenarios
-  real, parameter :: cdrmip_latmax =  70.0 ! Min and max latitude where
-  real, parameter :: cdrmip_latmin = -60.0 ! alkalinity is added according
-                                           ! to the CDRMIP protocol
+  real, protected :: addalk        = 0.56  ! Pmol alkalinity/yr added in the
+                                           ! scenarios. Read from namelist file
+                                           ! to overwrite default value.
+  real, protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
+  real, protected :: cdrmip_latmin = -60.0 ! alkalinity is added according
+                                           ! to the CDRMIP protocol. Read from
+                                           ! namelist file to overwrite default
+                                           ! value.
+  integer, protected :: ramp_start = 2025  ! In 'ramp' scenario, start at
+  integer, protected :: ramp_end   = 2035  ! 0 Pmol/yr in ramp_start, and max
+                                           ! addalk Pmol/yr in ramp_end.
+                                           ! Read from namelist file to
+                                           ! overwrite default value.
 
   logical,   save :: lini = .false.
 
@@ -115,18 +126,29 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 !
 !******************************************************************************
   use mod_xc,         only: xcsum,xchalt,mnproc,nbdy,ips
-  use mo_control_bgc, only: io_stdo_bgc,do_oalk
+  use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
 
-  implicit none 
+  implicit none
 
   integer, intent(in) :: kpie,kpje
   real,    intent(in) :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
-  real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)  
+  real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
   real,    intent(in) :: omask(kpie,kpje)
 
   integer :: i,j,errstat
-  real    :: avflx,ztotarea,addalk_tot
+  integer :: iounit
+  real    :: avflx,ztotarea
   real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+
+  namelist /bgcoafx/ do_oalk,oalkscen,oalkfile,addalk,cdrmip_latmax,          &
+       &             cdrmip_latmin,ramp_start,ramp_end
+
+  ! Read parameters for alkalinization fluxes from namelist file
+  if(.not. allocated(bgc_namelist)) call get_bgc_namelist
+  open (newunit=iounit, file=bgc_namelist, status='old'                   &
+       &   ,action='read')
+  read (unit=iounit, nml=BGCOAFX)
+  close (unit=iounit)
 
   ! Return if alkalinization is turned off
   if (.not. do_oalk) then
@@ -147,17 +169,14 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       write(io_stdo_bgc,*)' '
     endif
 
-    !--------------------------------
-    ! Scenarios of constant fluxes
-    !--------------------------------
-    if( trim(oalkscen)=='const_0p14' .or. trim(oalkscen)=='const_0p56' ) then
+    if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' ) then
 
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)'Using alkalinization scenario ', trim(oalkscen)
         write(io_stdo_bgc,*)' '
       endif
 
-      ! Allocate field to hold constant alkalinization fluxes
+      ! Allocate field to hold alkalinization fluxes
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable oalkflx ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
@@ -181,18 +200,15 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 
       call xcsum(ztotarea,ztmp1,ips)
       
-      if( trim(oalkscen)=='const_0p14') then
-        addalk_tot = addalk_0p14
-      else
-        addalk_tot = addalk_0p56
-      endif
-    
       ! Calculate alkalinity flux (kmol m^2 yr-1) to be applied
-      avflx = addalk_tot/ztotarea*Pmol2kmol
+      avflx = addalk/ztotarea*Pmol2kmol
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)' applying alkalinity flux of ', avflx, ' kmol m-2 yr-1'
         write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m2'
+        if( trim(oalkscen)=='ramp' ) then
+          write(io_stdo_bgc,*)'             ramping-up from ', ramp_start, ' to ', ramp_end
+        endif
       endif
 
       do j=1,kpje
@@ -248,14 +264,16 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
 !  *REAL*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
 !
 !******************************************************************************
-  use mod_xc,         only: xchalt
+  use mod_xc,         only: xchalt,mnproc
   use mo_control_bgc, only: io_stdo_bgc,do_oalk
+  use mod_time,       only: nday_of_year
 
   implicit none
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
   real,    intent(out) :: oafx(kpie,kpje)
+  integer              :: current_day
 
   ! local variables 
   integer :: i,j
@@ -268,9 +286,23 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   !--------------------------------
   ! Scenarios of constant fluxes
   !--------------------------------
-  if( trim(oalkscen)=='const_0p14' .or. trim(oalkscen)=='const_0p56' ) then
+  if( trim(oalkscen)=='const' ) then
       
     oafx(:,:) = oalkflx(:,:)
+
+  !--------------------------------
+  ! Scenario of ramping-up fluxes
+  !--------------------------------
+  elseif(trim(oalkscen)=='ramp' ) then
+
+    if(kplyear.lt.ramp_start ) then
+      oafx(:,:) = 0.0
+    elseif(kplyear.ge.ramp_end ) then
+      oafx(:,:) = oalkflx(:,:)
+    else
+      current_day = (kplyear-ramp_start)*365+nday_of_year
+      oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
+    endif
 
   else
     
