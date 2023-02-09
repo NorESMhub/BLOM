@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen
+! Copyright (C) 2015-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,8 @@ module mod_eddtra
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsil, onecm, onemm
+   use mod_constants, only: g, alpha0, rho0, epsilp, onem, onecm, onemm, &
+                            L_mks2cgs
    use mod_time, only: delt1
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
@@ -38,6 +39,9 @@ module mod_eddtra
    use mod_checksum, only: csdiag, chksummsk
 
    implicit none
+
+   real(r8), parameter :: &
+      iL_mks2cgs = 1./L_mks2cgs
 
    private
 
@@ -149,11 +153,9 @@ contains
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: upsilon, mfl
       real(r8), dimension(kdm) :: dlm, dlp
-      real(r8) :: rho0, q, et2mf, kappa, fhi, flo
+      real(r8) :: q, et2mf, kappa, fhi, flo
       integer :: i, j, k, l, km, kn, kintr, kmax, kmin, niter, kdir
       logical :: changed
-
-      rho0 = 1._r8/alpha0
 
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
@@ -205,7 +207,8 @@ contains
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i - 1, j, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! ------------------------------------------------------------------
@@ -248,7 +251,7 @@ contains
                              temp(i - 1, j, kn), saln(i - 1, j, kn)) < &
                          rho(p(i    , j, 3), &
                              temp(i    , j, km), saln(i    , j, km)) .or. &
-                         dp(i - 1, j, kn) < epsil)
+                         dp(i - 1, j, kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -290,7 +293,7 @@ contains
                              temp(i    , j, kn), saln(i    , j, kn)) < &
                          rho(p(i - 1, j, 3), &
                              temp(i - 1, j, km), saln(i - 1, j, km)) .or. &
-                         dp(i    , j, kn) < epsil)
+                         dp(i    , j, kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -412,10 +415,10 @@ contains
             mfl(kmin + 1) = min(fhi, max(flo, mfl(kmin + 1)))
             do k = kmin + 1, kmax - 1
                if     (mfl(k + 1) - mfl(k) > &
-                        ffac*max(epsil, dlm(k))*scp2(i - 1, j)) then
+                        ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
                   mfl(k + 1) = mfl(k) + fface*dlm(k)*scp2(i - 1, j)
                elseif (mfl(k + 1) - mfl(k) < &
-                      - ffac*max(epsil, dlp(k))*scp2(i    , j)) then
+                      - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
                   mfl(k + 1) = mfl(k) - fface*dlp(k)*scp2(i    , j)
                else
                   exit
@@ -462,11 +465,11 @@ contains
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
                   if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsil*scu2(i, j), &
+                      1.e-14_r8*max(epsilp*scu2(i, j), &
                                     abs(mfl(k + 1) + mfl(k)))) then
 
                      if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsil, dlm(k))*scp2(i - 1, j)) then
+                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i - 1, j, k). Limit the
                         ! dominating interface flux.
@@ -488,7 +491,7 @@ contains
                         endif
                         changed = .true.
                      elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsil, dlp(k))*scp2(i    , j)) then
+                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j, k). Limit the
                         ! dominating interface flux.
@@ -522,7 +525,7 @@ contains
 
             k = kmin
             if (abs(mfl(k + 1) - mfl(k)) > &
-                1.e-14_r8*max(epsil*scu2(i, j), &
+                1.e-14_r8*max(epsilp*scu2(i, j), &
                               abs(mfl(k + 1) + mfl(k)))) then
                umfltd(i, j, 2 + mm) = mfl(k + 1) - mfl(k)
                umfltd(i, j, 1 + mm) = umfltd(i, j, 2 + mm) &
@@ -537,25 +540,25 @@ contains
             do k = kintr, kmax
                km = k + mm
                if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsil*scu2(i, j), &
+                   1.e-14_r8*max(epsilp*scu2(i, j), &
                                  abs(mfl(k + 1) + mfl(k)))) then
                   umfltd(i, j, km) = mfl(k + 1) - mfl(k)
                else
                   umfltd(i, j, km) = 0._r8
                endif
                if (umfltd(i, j, km) > &
-                    ffac*max(epsil, dlm(k))*scp2(i - 1, j)) then
+                    ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml u >', &
                               i + i0, j + j0, k, umfltd(i, j, km), &
-                              ffac*max(epsil, dlm(k))*scp2(i - 1, j)
+                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
                if (umfltd(i, j, km) < &
-                  - ffac*max(epsil, dlp(k))*scp2(i    , j)) then
+                  - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml u <', &
                               i + i0, j + j0, k, umfltd(i, j, km), &
-                            - ffac*max(epsil, dlp(k))*scp2(i    , j)
+                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -591,7 +594,8 @@ contains
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i, j - 1, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! ------------------------------------------------------------------
@@ -634,7 +638,7 @@ contains
                              temp(i, j - 1, kn), saln(i, j - 1, kn)) < &
                          rho(p(i, j    , 3), &
                              temp(i, j    , km), saln(i, j    , km)) .or. &
-                         dp(i, j - 1, kn) < epsil)
+                         dp(i, j - 1, kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -676,7 +680,7 @@ contains
                              temp(i, j    , kn), saln(i, j    , kn)) < &
                          rho(p(i, j - 1, 3), &
                              temp(i, j - 1, km), saln(i, j - 1, km)) .or. &
-                         dp(i, j    , kn) < epsil)
+                         dp(i, j    , kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -798,10 +802,10 @@ contains
             mfl(kmin + 1) = min(fhi, max(flo, mfl(kmin + 1)))
             do k = kmin + 1, kmax - 1
                if     (mfl(k + 1) - mfl(k) > &
-                        ffac*max(epsil, dlm(k))*scp2(i, j - 1)) then
+                        ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
                   mfl(k + 1) = mfl(k) + fface*dlm(k)*scp2(i, j - 1)
                elseif (mfl(k + 1) - mfl(k) < &
-                      - ffac*max(epsil, dlp(k))*scp2(i, j    )) then
+                      - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
                   mfl(k + 1) = mfl(k) - fface*dlp(k)*scp2(i, j    )
                else
                   exit
@@ -848,11 +852,11 @@ contains
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
                   if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsil*scv2(i, j), &
+                      1.e-14_r8*max(epsilp*scv2(i, j), &
                                     abs(mfl(k + 1) + mfl(k)))) then
 
                      if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsil, dlm(k))*scp2(i, j - 1)) then
+                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j - 1, k). Limit the
                         ! dominating interface flux.
@@ -874,7 +878,7 @@ contains
                         endif
                         changed = .true.
                      elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsil, dlp(k))*scp2(i, j    )) then
+                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j, k). Limit the
                         ! dominating interface flux.
@@ -908,7 +912,7 @@ contains
 
             k = kmin
             if (abs(mfl(k + 1) - mfl(k)) > &
-                1.e-14_r8*max(epsil*scv2(i, j), &
+                1.e-14_r8*max(epsilp*scv2(i, j), &
                               abs(mfl(k + 1) + mfl(k)))) then
                vmfltd(i, j, 2 + mm) = mfl(k + 1) - mfl(k)
                vmfltd(i, j, 1 + mm) = vmfltd(i, j, 2 + mm) &
@@ -923,25 +927,25 @@ contains
             do k = kintr, kmax
                km = k + mm
                if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsil*scv2(i, j), &
+                   1.e-14_r8*max(epsilp*scv2(i, j), &
                                  abs(mfl(k + 1) + mfl(k)))) then
                   vmfltd(i, j, km) = mfl(k + 1) - mfl(k)
                else
                   vmfltd(i, j, km) = 0._r8
                endif
                if (vmfltd(i, j, km) > &
-                    ffac*max(epsil, dlm(k))*scp2(i, j - 1)) then
+                    ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml v >', &
                               i + i0, j + j0, k, vmfltd(i, j, km), &
-                              ffac*max(epsil, dlm(k))*scp2(i, j - 1)
+                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
                if (vmfltd(i, j, km) < &
-                  - ffac*max(epsil, dlp(k))*scp2(i, j    )) then
+                  - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml v <', &
                               i + i0, j + j0, k, vmfltd(i, j, km), &
-                            - ffac*max(epsil, dlp(k))*scp2(i, j    )
+                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -971,11 +975,9 @@ contains
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: mfl
       real(r8), dimension(kdm) :: puv, dlm, dlp
-      real(r8) :: rho0, q, et2mf, mlp, kappa
+      real(r8) :: q, et2mf, mlp, kappa
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
-
-      rho0 = 1._r8/alpha0
 
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
@@ -1028,12 +1030,13 @@ contains
             do k = 2, kk
                kn = k + nn
                puv(k) = puv(k - 1) + dpu(i, j, kn - 1)
-               if (dp(i - 1, j, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! Compute the eddy induced mass flux at layer interfaces below the
             ! mixed layer.
-            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*onecm
+            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
             mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
@@ -1106,11 +1109,11 @@ contains
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
                   if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsil*scu2(i, j), &
+                      1.e-14_r8*max(epsilp*scu2(i, j), &
                                     abs(mfl(k + 1) + mfl(k)))) then
 
                      if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsil, dlm(k))*scp2(i - 1, j)) then
+                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i - 1, j, k). Limit the
                         ! dominating interface flux.
@@ -1132,7 +1135,7 @@ contains
                         endif
                         changed = .true.
                      elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsil, dlp(k))*scp2(i    , j)) then
+                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j, k). Limit the
                         ! dominating interface flux.
@@ -1167,25 +1170,25 @@ contains
             do k = 1, kmax
                km = k + mm
                if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsil*scu2(i, j), &
+                   1.e-14_r8*max(epsilp*scu2(i, j), &
                                  abs(mfl(k + 1) + mfl(k)))) then
                   umfltd(i, j, km) = mfl(k + 1) - mfl(k)
                else
                   umfltd(i, j, km) = 0._r8
                endif
                if (umfltd(i, j, km) > &
-                    ffac*max(epsil, dlm(k))*scp2(i - 1, j)) then
+                    ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
                   write(lp,*) 'eddtra_gm_cntiso_hybrid u >', &
                               i + i0, j + j0, k, umfltd(i, j, km), &
-                              ffac*max(epsil, dlm(k))*scp2(i - 1, j)
+                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)
                   call xchalt('(eddtra_gm_cntiso_hybrid)')
                          stop '(eddtra_gm_cntiso_hybrid)'
                endif
                if (umfltd(i, j, km) < &
-                  - ffac*max(epsil, dlp(k))*scp2(i    , j)) then
+                  - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
                   write(lp,*) 'eddtra_gm_cntiso_hybrid u <', &
                               i + i0, j + j0, k, umfltd(i, j, km), &
-                            - ffac*max(epsil, dlp(k))*scp2(i    , j)
+                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)
                   call xchalt('(eddtra_gm_cntiso_hybrid)')
                          stop '(eddtra_gm_cntiso_hybrid)'
                endif
@@ -1222,12 +1225,13 @@ contains
             do k = 2, kk
                kn = k + nn
                puv(k) = puv(k - 1) + dpv(i, j, kn - 1)
-               if (dp(i, j - 1, kn) > epsil .or. dp(i, j, kn) > epsil) kmax = k
+               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
+                  kmax = k
             enddo
 
             ! Compute the eddy induced mass flux at layer interfaces below the
             ! mixed layer.
-            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*onecm
+            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
             mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
@@ -1300,11 +1304,11 @@ contains
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
                   if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsil*scv2(i, j), &
+                      1.e-14_r8*max(epsilp*scv2(i, j), &
                                     abs(mfl(k + 1) + mfl(k)))) then
 
                      if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsil, dlm(k))*scp2(i, j - 1)) then
+                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j - 1, k). Limit the
                         ! dominating interface flux.
@@ -1326,7 +1330,7 @@ contains
                         endif
                         changed = .true.
                      elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsil, dlp(k))*scp2(i, j    )) then
+                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
                         ! In this case, the mass fluxes are removing too much
                         ! mass from the grid cell at (i, j, k). Limit the
                         ! dominating interface flux.
@@ -1361,25 +1365,25 @@ contains
             do k = 1, kmax
                km = k + mm
                if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsil*scv2(i, j), &
+                   1.e-14_r8*max(epsilp*scv2(i, j), &
                                  abs(mfl(k + 1) + mfl(k)))) then
                   vmfltd(i, j, km) = mfl(k + 1) - mfl(k)
                else
                   vmfltd(i, j, km) = 0._r8
                endif
                if (vmfltd(i, j, km) > &
-                    ffac*max(epsil, dlm(k))*scp2(i, j - 1)) then
+                    ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
                   write(lp,*) 'eddtra_gm_cntiso_hybrid v >', &
                               i + i0, j + j0, k, vmfltd(i, j, km), &
-                              ffac*max(epsil, dlm(k))*scp2(i, j - 1)
+                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)
                   call xchalt('(eddtra_gm_cntiso_hybrid)')
                          stop '(eddtra_gm_cntiso_hybrid)'
                endif
                if (vmfltd(i, j, km) < &
-                  - ffac*max(epsil, dlp(k))*scp2(i, j    )) then
+                  - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
                   write(lp,*) 'eddtra_gm_cntiso_hybrid v <', &
                               i + i0, j + j0, k, vmfltd(i, j, km), &
-                            - ffac*max(epsil, dlp(k))*scp2(i, j    )
+                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )
                   call xchalt('(eddtra_gm_cntiso_hybrid)')
                          stop '(eddtra_gm_cntiso_hybrid)'
                endif

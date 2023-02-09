@@ -27,6 +27,7 @@
       use mod_types, only: r8
       use mod_xc
       use mod_grid, only: scp2, plon, plat
+      use mod_constants, only: L_mks2cgs
 
       implicit none
 
@@ -105,7 +106,7 @@
       enddo
       call mct_gGrid_importRattr(dom_ocn, "lat", rdata, lsize) 
 
-      radius = SHR_CONST_REARTH*1.e2_r8 ! Earth's radius in cm
+      radius = SHR_CONST_REARTH*L_mks2cgs ! Earth's radius in cm 
       
       n = 0
       do j = 1, jjcpl

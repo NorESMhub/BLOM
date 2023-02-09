@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020 Mats Bentsen
+! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ subroutine numerical_bounds
 ! ---------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, spval
+   use mod_constants, only: g, spval, L_mks2cgs
    use mod_time, only: baclin
    use mod_xc
    use mod_grid, only: scqx, scqy, scpx, scpy, scuy, scvx, scp2, depths
@@ -61,8 +61,8 @@ subroutine numerical_bounds
       do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
          btdtmx = min(btdtmx, &
                       scpx(i, j)*scpy(i, j) &
-                      /sqrt(g*depths(i, j)*100._r8*( scpx(i, j)*scpx(i, j) &
-                                                   + scpy(i, j)*scpy(i, j))))
+                      /sqrt(g*depths(i, j)*L_mks2cgs*( scpx(i, j)*scpx(i, j) &
+                                                     + scpy(i, j)*scpy(i, j))))
       enddo
       enddo
    enddo
