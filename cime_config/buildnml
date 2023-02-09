@@ -263,9 +263,14 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
 endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
-set DO_OALK = .false.
-set OALKSCEN = "''"
-set OALKFILE = "''"
+set BGCOAFX_DO_OALK = .false.
+set BGCOAFX_OALKSCEN = "''"
+set BGCOAFX_OALKFILE = "''"
+set BGCOAFX_ADDALK    = 0.135
+set BGCOAFX_CDRMIP_LATMAX = 70.0
+set BGCOAFX_CDRMIP_LATMIN = -60.0
+set BGCOAFX_RAMP_START    = 2025
+set BGCOAFX_RAMP_END      = 2035
 set WITH_DMSPH = .false.
 set PI_PH_FILE = "''"
 set L_3DVARSEDPOR = .false.
@@ -1536,9 +1541,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
-  DO_OALK      = $DO_OALK
-  OALKSCEN     = $OALKSCEN
-  OALKFILE     = $OALKFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1555,6 +1557,28 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   PI_PH_FILE   = $PI_PH_FILE
   L_3DVARSEDPOR = $L_3DVARSEDPOR
   SEDPORFILE   = $SEDPORFILE
+/
+
+! NAMELIST FOR ALKALINIZATION SCENARIO
+!
+! CONTENTS:
+!
+! ADDALK    : Pmol alkalinity/yr added in the scenarios.
+! CDRMIP_LATMAX : Max latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! CDRMIP_LATMIN : Min latitude where alkalinity is added according to the
+!                   CDRMIP protocol
+! RAMP_START    : Start year for ramp up in 'ramp' scenario
+! RAMP_END      : End year for 'ramp' scenario
+&BGCOAFX
+  DO_OALK       = $BGCOAFX_DO_OALK
+  OALKSCEN      = $BGCOAFX_OALKSCEN
+  OALKFILE      = $BGCOAFX_OALKFILE
+  ADDALK        = $BGCOAFX_ADDALK
+  CDRMIP_LATMAX = $BGCOAFX_CDRMIP_LATMAX
+  CDRMIP_LATMIN = $BGCOAFX_CDRMIP_LATMIN
+  RAMP_START    = $BGCOAFX_RAMP_START
+  RAMP_END      = $BGCOAFX_RAMP_END
 /
 
 ! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
@@ -1958,9 +1982,9 @@ cat >> $CASEBUILD/blom.input_data_list << EOF
 n_deposition_file = `echo $NDEPFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
-  if ($OALKFILE != "''") then
+  if ($BGCOAFX_OALKFILE != "''") then
 cat >> $CASEBUILD/blom.input_data_list << EOF
-oafx_file = `echo $OALKFILE | tr -d '"' | tr -d "'"`
+oafx_file = `echo $BGCOAFX_OALKFILE | tr -d '"' | tr -d "'"`
 EOF
   endif
   if ($HAMOCC_VSLS == TRUE) then
