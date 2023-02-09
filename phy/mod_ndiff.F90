@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2022 Mats Bentsen
+! Copyright (C) 2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,7 +23,7 @@ module mod_ndiff
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
-   use mod_constants, only: g, alpha0, epsil, onemm
+   use mod_constants, only: g, alpha0, epsilp, onemm, P_mks2cgs, R_mks2cgs
    use mod_time, only: delt1
    use mod_xc
    use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi
@@ -42,8 +42,8 @@ module mod_ndiff
    private
 
    real(r8), parameter :: &
-      rhoeps  = 1.e-8_r8, &
-      dpeps = 1.e-4_r8
+      rhoeps  = 1.e-5_r8*R_mks2cgs, &
+      dpeps = 1.e-5_r8*P_mks2cgs
    integer, parameter :: &
       p_ord = 4, &
       it = 1, &
@@ -846,7 +846,7 @@ contains
                   flxconv_rs(kd_p,is,i_p,j_rs_p) - sflx
                   p_ni_up = .5_r8*(p_ni_m(nip) + p_ni_p(nip))
                   p_ni_lo = .5_r8*(p_ni_m(nic) + p_ni_p(nic))
-                  dp_ni_i = 1._r8/max(epsil, p_ni_lo - p_ni_up)
+                  dp_ni_i = 1._r8/max(epsilp, p_ni_lo - p_ni_up)
                   do while (kuv <= kk)
                     kuvm = kuv + mm
                     if (puv(i_p,j_p,kuv+1) < p_ni_lo) then
@@ -918,7 +918,7 @@ contains
                ks = ks + 1
             enddo
             q = (p_nslp_src(ks) - p_nslp_dst) &
-                /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsil)
+                /max(p_nslp_src(ks) - p_nslp_src(ks-1), epsilp)
             nslpxy(i_p,j_p,kd) = q*nslp_src(ks-1) + (1._r8 - q)*nslp_src(ks)
             kd = kd + 1
             if (kd > kk) exit

@@ -25,7 +25,7 @@ c --- integration of the baroclinic momentum equation.
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: g, epsil, spval
+      use mod_constants, only: g, epsilp, spval
       use mod_xc
       use mod_state, only: dp, dpu, dpv, temp, saln, p, pu, pv, phi,
      .                     pb_p, pbu_p, pbv_p, sealv
@@ -141,9 +141,6 @@ c --- ------------------------------------------------------------------
 c --- compute the pressure gradient force
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: g, epsil
-      use mod_xc
-c
       implicit none
 c
       integer m,n,mm,nn,k1m,k1n
@@ -206,7 +203,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,k,kn,dphi,alpu,alpl)
           kn=k+nn
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii,ilp(j,l))
-            if (dp(i,j,kn).lt.epsil) then
+            if (dp(i,j,kn).lt.epsilp) then
               phi (i,j,k)=phi (i,j,k+1)
               phip(i,j,k)=phip(i,j,k+1)
             else

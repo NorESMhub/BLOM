@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2013-2020 Mehmet Ilicak, Mats Bentsen
+! Copyright (C) 2013-2022 Mehmet Ilicak, Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ module mod_tke
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
+   use mod_constants, only: spval
    use mod_xc
    use mod_diffusion, only: difdia
    use mod_forcing, only: ustarb
@@ -34,10 +35,8 @@ module mod_tke
 
    real(r8), parameter :: &
       gls_cmu0 = .527_r8, &      ! cmu0
-      Pr_t = 1._r8, &            ! Turbulent Prandtl number [].
-      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [?].
+      Pr_t = 1._r8, &            ! Turbulent Prandtl number [non-dimensional].
       zos = .0002_r8, &          !
-      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [?].
       gls_p = 3._r8, &           !
       gls_m = 1.5_r8, &          !
       gls_n = -1._r8, &          !
@@ -56,8 +55,19 @@ module mod_tke
       gls_Gh0 = .0329_r8, &      !
       gls_Ghmin = -.28_r8, &     !
       gls_Ghcri = .03_r8, &      !
-      vonKar = .4_r8, &          !
-      Ls_unlmt_min = 1.e-6_r8    !
+      vonKar = .4_r8             !
+
+#ifdef MKS
+   real(r8), parameter :: &
+      tke_min = 7.6e-8_r8, &     ! Minimum TKE value [m2/s2].
+      gls_psi_min = 1.e-14_r8, & ! Minimum GLS value [m2/s3].
+      Ls_unlmt_min = 1.e-8_r8    ! [m]
+#else
+   real(r8), parameter :: &
+      tke_min = 7.6e-4_r8, &     ! Minimum TKE value [cm2/s2].
+      gls_psi_min = 1.e-10_r8, & ! Minimum GLS value [cm2/s3].
+      Ls_unlmt_min = 1.e-6_r8    ! [cm]
+#endif
 
    real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy, kdm) :: &
       Prod, &                    ! Shear production [?].
@@ -93,6 +103,18 @@ contains
 
       ! Initialize fields holding turbulent kinetic energy, generic length
       ! scale, and other fields used in the turbulence closure.
+   !$omp parallel do private(i, k)
+      do j = 1 - nbdy, jj + nbdy
+         do i = 1 - nbdy, ii + nbdy
+            do k = 1, kk
+               Prod(i ,j ,k) = spval
+               Buoy(i ,j ,k) = spval
+               Shear2(i ,j ,k) = spval
+               L_scale(i ,j ,k) = spval
+            enddo
+         enddo
+      enddo
+   !$omp end parallel do
    !$omp parallel do private(k, l, i)
       do j = 1 - nbdy, jj + nbdy
          do k = 1, 2*kdm

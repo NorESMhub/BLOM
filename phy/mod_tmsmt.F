@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2005-2022 Mats Bentsen
+! Copyright (C) 2005-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -27,7 +27,7 @@ c --- momtum of mod_momtum.F).
 c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
-      use mod_constants, only: epsil, spval
+      use mod_constants, only: epsilp, spval
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml
       use mod_state, only: dp, dpu, dpv, temp, saln, p, pb
@@ -265,7 +265,7 @@ c
 c
 c --- time smoothing of layer thickness, temperature and salinity
 c
-      use mod_constants, only: epsil
+      use mod_constants, only: epsilp
       use mod_xc
 c
       implicit none
@@ -318,23 +318,23 @@ c$OMP+ )
             pnew=max(0.,dp(i,j,kn)*pbfacn(i))
             dp(i,j,km)=wts1*pmid+wts2*(pold+pnew)
             dpold(i,j,km)=dp(i,j,km)
-            pold=pold+epsil
-            pmid=pmid+epsil
-            pnew=pnew+epsil
+            pold=pold+epsilp
+            pmid=pmid+epsilp
+            pnew=pnew+epsilp
             temp(i,j,km)=(wts1*pmid*temp(i,j,km)
      .                   +wts2*(pold*told(i,j,k)+pnew*temp(i,j,kn)))
-     .                   /(dp(i,j,km)+epsil)
+     .                   /(dp(i,j,km)+epsilp)
             told(i,j,k)=temp(i,j,km)
             saln(i,j,km)=(wts1*pmid*saln(i,j,km)
      .                   +wts2*(pold*sold(i,j,k)+pnew*saln(i,j,kn)))
-     .                   /(dp(i,j,km)+epsil)
+     .                   /(dp(i,j,km)+epsilp)
             sold(i,j,k)=saln(i,j,km)
 #ifdef TRC
             do nt=1,ntr
               trc(i,j,km,nt)=(wts1*pmid*trc(i,j,km,nt)
      .                       +wts2*(pold*trcold(i,j,k,nt)
      .                             +pnew*trc(i,j,kn,nt)))
-     .                       /(dp(i,j,km)+epsil)
+     .                       /(dp(i,j,km)+epsilp)
               trcold(i,j,k,nt)=trc(i,j,km,nt)
             enddo
 #endif

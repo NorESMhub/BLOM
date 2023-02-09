@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2020-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -24,7 +24,7 @@ module mod_time
 
    use mod_types, only: r8
    use mod_config, only: expcnf
-   use mod_constants, only: epsil
+   use mod_constants, only: epsilt
    use mod_calendar, only: date_type, daynum_diff, date_offset, &
                            calendar_noerr, calendar_errstr
    use mod_xc, only: lp, mnproc, xcstop
@@ -118,7 +118,7 @@ contains
       ! Get number of baroclinic time steps per day and verify that an integer
       ! number of steps fits in a day.
       nstep_in_day = nint(86400._r8/baclin)
-      if (abs(86400._r8/baclin - nstep_in_day) > epsil) then
+      if (abs(86400._r8/baclin - nstep_in_day) > epsilt) then
          if (mnproc == 1) then
             write (lp, *) &
                'init_timevars: '// &

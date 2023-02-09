@@ -24,7 +24,7 @@
       use mod_xc
       use mod_types, only: r8
       use mod_ben02, only: ntda
-      use mod_constants, only: spcifh, t0deg, epsil, onem
+      use mod_constants, only: spcifh, t0deg, epsilt, onem
       use mod_time, only: nday_in_year, nday_of_year, nstep,
      .                    nstep_in_day, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -217,7 +217,7 @@
           surrlx(i,j)=0._r8
 !
 ! --- --- If  trxday>0 , apply relaxation towards observed sst
-          if (trxday.gt.epsil) then
+          if (trxday.gt.epsilt) then
             sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
      .                  sstclm(i,j,l3mi),sstclm(i,j,l4mi),
      .                  sstclm(i,j,l5mi),xmi)
@@ -248,7 +248,7 @@
           salrlx(i,j)=0._r8
 !
 ! --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday.gt.epsil) then
+          if (srxday.gt.epsilt) then
             sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
@@ -319,7 +319,7 @@
 ! --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
 ! --- so the net input of salt in grid cells connected to the world
 ! --- ocean is zero
-      if (srxday.gt.epsil.and.srxbal) then
+      if (srxday.gt.epsilt.and.srxbal) then
         call xcsum(totsrp,util3,ipwocn)
         call xcsum(totsrn,util4,ipwocn)
         if (abs(totsrp).gt.abs(totsrn)) then
