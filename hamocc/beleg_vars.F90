@@ -218,7 +218,7 @@
 #ifdef extNcycle
          ocetra(i,j,k,iano2) =1.e-9   ! expecting fast cycling
          ocetra(i,j,k,ianh4) =0.5e-9  ! expecting fast cycling
-         ocetra(i,j,k,ian2o) =20.e-9  ! 20nmol/kg = ca. value deep ocean Toyoda et al. 2019
+         ocetra(i,j,k,ian2o) =6.e-9   ! 6 to 8 nmol/kg = ca. value in near surface regions Toyoda et al. 2019, prevent from too long outgassing
 #endif
 
         ENDIF ! omask > 0.5
