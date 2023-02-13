@@ -243,7 +243,7 @@ subroutine blom2hamocc(m,n,mm,nn)
 !
 !******************************************************************************
 !
-  use mod_constants, only: onem, L_mks2cgs,rho0,M_mks2cgs
+  use mod_constants, only: onem, L_mks2cgs,rho0,P_mks2cgs 
   use mod_xc,        only: ii,jdm,jj,kdm,kk,ifp,isp,ilp,idm
   use mod_grid,      only: scpx,scpy
   use mod_state,     only: dp,temp,saln
@@ -321,7 +321,7 @@ subroutine blom2hamocc(m,n,mm,nn)
         if(dp(i,j,kn) == 0.0) then
            ldp = 1.0
            pa  = ldp/rho(p1,th,s)
-        else if(dp(i,j,kn) <  1.0e-3*M_mks2cgs/L_mks2cgs) then
+        else if(dp(i,j,kn) <  1.0e-3*P_mks2cgs) then
            ldp = dp(i,j,kn)
            pa  = ldp/rho(p1,th,s)
         else
