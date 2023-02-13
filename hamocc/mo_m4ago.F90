@@ -334,16 +334,16 @@ MODULE mo_m4ago
      REAL, INTENT(in) :: pddpo(kpie,kpje,kpke) !< size of scalar grid cell (3rd dimension) [m]
      REAL, INTENT(in) :: omask(kpie,kpje) 
      REAL, INTENT(in) :: ppao (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) !< pressure at sea level [Pa].
-     REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< salinity [psu.].
+     REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< density [g/cm3]
 
      !$OMP PARALLEL DO PRIVATE(i,j,k)
      do j = 1,kpje
      do i = 1,kpie
         if(omask(i,j) > 0.5) then
-           m4ago_ppo(i,j,1) = ppao(i,j) + prho(i,j,1)*grav_acc_const*pddpo(i,j,1)   
+           m4ago_ppo(i,j,1) = ppao(i,j) + 1000.0*prho(i,j,1)*grav_acc_const*pddpo(i,j,1)   
            do k = 2,kpke
             if(pddpo(i,j,k) > dp_min) then
-               m4ago_ppo(i,j,k) = m4ago_ppo(i,j,k-1) + prho(i,j,k)*grav_acc_const*pddpo(i,j,k)  
+               m4ago_ppo(i,j,k) = m4ago_ppo(i,j,k-1) + 1000.0*prho(i,j,k)*grav_acc_const*pddpo(i,j,k)  
             endif
            enddo
         endif
@@ -371,7 +371,7 @@ MODULE mo_m4ago
      REAL, INTENT(in) :: ptho (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) !< potential temperature [deg C]
      REAL, INTENT(in) :: psao (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) !< salinity [psu.].
      REAL, INTENT(in) :: ppao (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) !< pressure at sea level [Pa].
-     REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< salinity [psu.].
+     REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< density [g/cm3]
 
      CALL calc_pressure(kpie, kpje, kpke,kbnd, pddpo, omask, ppao, prho)
 
@@ -701,14 +701,14 @@ MODULE mo_m4ago
     REAL :: nu_vis 
      
     nu_vis =  dyn_vis(i,j,k)/rho_aq 
-    get_ws_agg_integral = (4./3.*(av_rho_p(i,j,k) - rho_aq)/rho_aq &
-                     & *av_dp(i,j,k)**(3. - df_agg(i,j,k))*grav_acc_const  &
-                     & /(AJ*nu_vis**BJ))**(1./(2. - BJ)) &
-                     & *(upper_bound**(1. - b_agg(i,j,k) + df_agg(i,j,k)    &
-                     & + (BJ + df_agg(i,j,k) - 2.)/(2. - BJ)) &
-                     & /(1. - b_agg(i,j,k) + df_agg(i,j,k) + (BJ + df_agg(i,j,k) - 2.)/(2. - BJ)) &
+    get_ws_agg_integral = (4./3.*(av_rho_p(i,j,k) - rho_aq)/rho_aq                                     &
+                     & *av_dp(i,j,k)**(3. - df_agg(i,j,k))*grav_acc_const                              &
+                     & /(AJ*nu_vis**BJ))**(1./(2. - BJ))                                               &
+                     & *(upper_bound**(1. - b_agg(i,j,k) + df_agg(i,j,k)                               &
+                     & + (BJ + df_agg(i,j,k) - 2.)/(2. - BJ))                                          &
+                     & /(1. - b_agg(i,j,k) + df_agg(i,j,k) + (BJ + df_agg(i,j,k) - 2.)/(2. - BJ))      &
                      & - lower_bound**(1. - b_agg(i,j,k) + df_agg(i,j,k) + (BJ + df_agg(i,j,k) - 2.)   &
-                     & /(2. - BJ)) &
+                     & /(2. - BJ))                                                                     &
                      & /(1. - b_agg(i,j,k) + df_agg(i,j,k) + (BJ + df_agg(i,j,k) - 2.)/(2. - BJ)))
     
   END FUNCTION get_ws_agg_integral 
@@ -821,7 +821,7 @@ MODULE mo_m4ago
 
      nu_vis  =  dyn_vis(i,j,k)/rho_aq
      max_agg_diam_white = (agg_Re_crit*nu_vis)**((2. - BJ3)/df_agg(i,j,k))       &
-                         & /((4./3.)*(av_rho_p(i,j,k) - rho_aq)/rho_aq        &
+                         & /((4./3.)*(av_rho_p(i,j,k) - rho_aq)/rho_aq           &
                          & *av_dp(i,j,k)**(3. - df_agg(i,j,k))*grav_acc_const    &
                          & /(AJ3*nu_vis**BJ3))**(1./df_agg(i,j,k)) 
 
@@ -913,13 +913,13 @@ MODULE mo_m4ago
      
          ! molecular dynamic viscosity
          dyn_vis(i,j,k) = 0.1    & ! Unit: g / (cm*s) -> kg / (m*s)
-             &     *(1.79e-2                                                                &
+             &     *(1.79e-2                                                          &
              &     - 6.1299e-4*ptho_val + 1.4467e-5*ptho_val**2.                      &
-             &     - 1.6826e-7*ptho_val**3.                                              &
+             &     - 1.6826e-7*ptho_val**3.                                           &
              &     - 1.8266e-7*press_val  + 9.8972e-12*press_val**2.                  &
-             &     + 2.4727e-5*psao_val                                                     &
+             &     + 2.4727e-5*psao_val                                               &
              &     + psao_val*(4.8429e-7*ptho_val - 4.7172e-8*ptho_val**2.            &
-             &     + 7.5986e-10*ptho_val**3.)                                            &
+             &     + 7.5986e-10*ptho_val**3.)                                         &
              &     + press_val*(1.3817e-8*ptho_val - 2.6363e-10*ptho_val**2.)         &
              &     - press_val**2.*(6.3255e-13*ptho_val - 1.2116e-14*ptho_val**2.))
        END IF
