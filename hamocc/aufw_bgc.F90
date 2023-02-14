@@ -603,7 +603,7 @@
      &    rmissing,62,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdimst,ncvarid,          &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
+     &    9,'mol/kg',9 ,'Saturated oxygen',                             &
      &    rmissing,63,io_stdo_bgc)
 
 #ifdef natDIC
@@ -638,7 +638,7 @@
      &    rmissing,72,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',25,'Sediment accumulated clay',                 &
+     &    9,'kg/m**3',25,'Sediment accumulated clay',                   &
      &    rmissing,73,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdimst,ncvarid,          &
@@ -730,7 +730,7 @@
      &    rmissing,92,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,        &
-     &    9,'kmol/m**2',20,'Burial layer of clay',                      &
+     &    9,'kg/m**2',20,'Burial layer of clay',                      &
      &    rmissing,93,io_stdo_bgc)
 
 #endif /* sedbypass */
