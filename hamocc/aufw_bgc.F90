@@ -730,7 +730,7 @@
      &    rmissing,92,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,        &
-     &    9,'kg/m**2',20,'Burial layer of clay',                      &
+     &    9,'kg/m**2',20,'Burial layer of clay',                        &
      &    rmissing,93,io_stdo_bgc)
 
 #endif /* sedbypass */
