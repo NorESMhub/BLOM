@@ -44,22 +44,24 @@ module mo_read_oafx
 !
 !  Ocean alkalinization is activated through a logical switch 'do_oalk' read
 !  from HAMOCC's bgcnml namelist. If ocean alkalinization is activated, a valid
-!  name of an alkalinisation scenario (defined in this module, see below) OR 
-!  the file name (including the full path) of the corresponding OA-scenario 
-!  input file needs to be provided via HAMOCC's bgcnml namelist (variables 
-!  oalkscen and oalkfile). If the input file is not found or the scenario is
-!  invalid or if both are defined, an error will be issued. The input data must
-!  be already pre-interpolated to the ocean grid.
+!  name of an alkalinisation scenario (defined in this module, see below) needs
+!  to be provided via HAMOCC's bgcnml namelist (variable oalkscen). For the
+!  'file' scenario, the file name (including the full path) of the
+!  corresponding OA-scenario input file needs to be provided (variable
+!  oalkfile). If the input file is not found, an error will be issued. The
+!  input data must be already pre-interpolated to the ocean grid.
 !
 !  Currently available ocean alkalinisation scenarios:
-!  (no input file needed, parameters can be defined in the namelist, default
-!  values are defined):
-!    -'const':        constant alkalinity flux applied to the surface ocean 
-!                     between two latitudes.
+!  (for 'const' and 'ramp' scenarios, flux and latitude range can be defined in
+!  the namelist, default values are defined):
+!    -'const':        constant alkalinity flux applied to the surface ocean
+!                     between two latitudes. No input file needed.
 !    -'ramp':         ramping-up alkalinity flux from 0 Pmol yr-1 to a maximum
 !                     value between two specified years and kept constant
 !                     onward, applied to the surface ocean between two
-!                     latitudes.
+!                     latitudes. No input file needed.
+!    -'file':         Read monthly 2D field in kmol ALK m-2 yr-1 from a file
+!                     defined with the variable oalkfile.
 !
 !  -subroutine ini_read_oafx
 !     Initialise the module
@@ -81,8 +83,8 @@ module mo_read_oafx
 
   real, parameter          :: Pmol2kmol  = 1.0e12
   
-  ! Parameter used in the definition of alkalinization scenarios. The following 
-  ! scenarios are defined in this module:
+  ! Parameter used in the definition of alkalinization scenarios not based on
+  ! an input file. The following scenarios are defined in this module:
   !
   !  const         Constant homogeneous addition of alkalinity between latitude
   !                cdrmip_latmin and latitude cdrmip_latmax
@@ -90,7 +92,7 @@ module mo_read_oafx
   !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
   !
-  real, protected :: addalk        = 0.56  ! Pmol alkalinity/yr added in the
+  real, protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the
                                            ! scenarios. Read from namelist file
                                            ! to overwrite default value.
   real, protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
@@ -180,19 +182,18 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       write(io_stdo_bgc,*)' '
     endif
 
-    if( trim(oalkscen)=='const' .and. trim(oalkfile)=='' .or.                 &
-        trim(oalkscen)=='ramp'  .and. trim(oalkfile)=='' .or.                 &
-        trim(oalkfile)/='' .and. trim(oalkscen)=='' ) then
+    if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' .or.              &
+        trim(oalkscen)=='file' ) then
 
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)'Using alkalinization scenario ', trim(oalkscen)
-        if( trim(oalkfile)/='' ) then
+        if( trim(oalkscen)=='file' ) then
           write(io_stdo_bgc,*) 'from ', trim(oalkfile)
         endif
         write(io_stdo_bgc,*)' '
       endif
 
-      if( trim(oalkfile)/='' ) then
+      if( trim(oalkscen)=='file' ) then
         ! Check if OA file exists. If not, abort.
         inquire(file=oalkfile,exist=file_exists)
         if (.not. file_exists .and. mnproc.eq.1) then
@@ -214,7 +215,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       if(errstat.ne.0) stop 'not enough memory oalkflx'
       oalkflx(:,:) = 0.0
 
-      if( trim(oalkfile)/='' ) then
+      if( trim(oalkscen)=='file' ) then
 
         ! read start and end year of OA file
         call ncfopn(trim(oalkfile),'r',' ',1,iotype)
@@ -268,7 +269,6 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
     
       write(io_stdo_bgc,*) ''
       write(io_stdo_bgc,*) 'ini_read_oafx: invalid alkalinization scenario'
-      write(io_stdo_bgc,*) 'or oalkscen and oalkfile are both defined...'
       call xchalt('(ini_read_oafx)')
       stop '(ini_read_oafx)' 
       
@@ -328,14 +328,14 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   !--------------------------------
   ! Scenarios of constant fluxes
   !--------------------------------
-  if( trim(oalkscen)=='const' .and. trim(oalkfile)=='') then
+  if( trim(oalkscen)=='const' ) then
       
     oafx(:,:) = oalkflx(:,:)
 
   !--------------------------------
   ! Scenario of ramping-up fluxes
   !--------------------------------
-  elseif(trim(oalkscen)=='ramp' .and. trim(oalkfile)=='') then
+  elseif(trim(oalkscen)=='ramp' ) then
 
     if(kplyear.lt.ramp_start ) then
       oafx(:,:) = 0.0
@@ -349,7 +349,7 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   !--------------------------------
   ! Scenario from OA file
   !--------------------------------
-  elseif(trim(oalkfile)/=''  .and. trim(oalkscen)=='') then
+  elseif(trim(oalkscen)=='file' ) then
 
     ! read OA data from file
     if (kplmon.ne.oldmonth) then
