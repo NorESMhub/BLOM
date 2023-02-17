@@ -80,7 +80,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   real    :: sed_por(idm,jdm,ks) = 0.
 
   namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,    &
-       &   do_oalk,oalkscen,oalkfile,do_sedspinup,sedspin_yr_s,                 &
+       &   do_oalk,do_sedspinup,sedspin_yr_s,                 &
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
