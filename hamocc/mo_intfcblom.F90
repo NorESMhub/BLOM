@@ -269,8 +269,6 @@ subroutine blom2hamocc(m,n,mm,nn)
 
 ! --- calculate pressure at interfaces (necesarry since p has
 ! --- not been calculated at restart)
-
-!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
   do k=1,kk
      kn=k+nn
      do j=1,jj
@@ -281,7 +279,6 @@ subroutine blom2hamocc(m,n,mm,nn)
      enddo
   enddo
   enddo
-!$OMP END PARALLEL DO
 
 ! --- ------------------------------------------------------------------
 ! --- 2D fields
