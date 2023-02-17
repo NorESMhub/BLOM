@@ -56,7 +56,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mo_read_rivin,  only: ini_read_rivin,rivinfile
   use mo_read_fedep,  only: ini_read_fedep,fedepfile
   use mo_read_ndep,   only: ini_read_ndep,ndepfile
-  use mo_read_oafx,   only: ini_read_oafx,oalkfile,oalkscen
+  use mo_read_oafx,   only: ini_read_oafx
   use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
   use mo_read_sedpor, only: read_sedpor,sedporfile
   use mo_clim_swa,    only: ini_swa_clim,swaclimfile
