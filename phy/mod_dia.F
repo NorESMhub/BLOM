@@ -46,8 +46,10 @@ c
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difint, difiso, difdia,
      .                         Kvisc_m, Kdiff_t, Kdiff_s,
-     .                         umfltd, vmfltd, utfltd, vtfltd, utflld,
-     .                         vtflld, usfltd, vsfltd, usflld, vsflld
+     .                         umfltd, vmfltd, umflsm, vmflsm,
+     .                         utfltd, vtfltd, utflsm, vtflsm, 
+     .                         utflld, vtflld, usfltd, vsfltd, 
+     .                         usflsm, vsflsm, usflld, vsflld
       use mod_cmnfld, only: z, bfsql, dz, mlts
       use mod_seaice, only: ficem, hicem, hsnwm, uicem, vicem, iagem
       use mod_forcing, only: swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
@@ -155,9 +157,9 @@ c --- Meridional overturning and flux diagnostics
       real, save, dimension(ldm) :: mtlat
       real, save, dimension(kdm) :: sigmar1
       real, save, allocatable, dimension(:,:,:) ::
-     .  mmflxl,mmftdl,mmflxd,mmftdd
+     .  mmflxl,mmftdl,mmfsml,mmflxd,mmftdd,mmfsmd
       real, save, allocatable, dimension(:,:) ::
-     .  mhflx,mhftd,mhfld,msflx,msftd,msfld
+     .  mhflx,mhftd,mhfsm,mhfld,msflx,msftd,msfsm,msfld
 c
 c --- Section transports
       character(len=256), save :: sec_sifile
@@ -199,22 +201,26 @@ c --- Namelist
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
-     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UTFLTD ,LYR_UTFLLD ,
-     . LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,
-     . LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,LYR_VTFLLD ,LYR_VSFLTD ,
-     . LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,LYR_PV     ,
-     . LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UMFLSM ,LYR_UTFLTD ,
+     . LYR_UTFLSM ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLSM ,LYR_USFLLD ,
+     . LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,
+     . LYR_VMFLSM ,LYR_VTFLTD ,LYR_VTFLSM ,LYR_VTFLLD ,LYR_VSFLTD ,
+     . LYR_VSFLSM ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,
+     . LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO ,
      . LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   ,
      . LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD ,
-     . LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,LVL_USFLLD ,LVL_UVEL   ,
-     . LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,LVL_VMFLTD ,LVL_VTFLTD ,
-     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,LVL_VVEL   ,LVL_WFLX   ,
-     . LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,LVL_IDLAGE ,
-     . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
-     . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
-     . MSC_VOLTR  ,MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,
-     . MSC_SSSGA  ,MSC_SSTGA  ,
+     . LVL_UMFLSM ,LVL_UTFLTD ,LVL_UTFLSM ,LVL_UTFLLD ,LVL_USFLTD ,
+     . LVL_USFLSM ,LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,
+     . LVL_VSFLX  ,LVL_VMFLTD ,LVL_VMFLSM ,LVL_VTFLTD ,LVL_VTFLSM ,
+     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLSM ,LVL_VSFLLD ,LVL_VVEL   ,
+     . LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,
+     . LVL_IDLAGE ,
+     . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFTDD ,
+     . MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  ,
+     . MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  ,
+     . MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,MSC_SSSGA  ,
+     . MSC_SSTGA  ,
      . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT
       character(len=10), dimension(nphymax), save :: GLB_FNAMETAG
       integer, dimension(nphymax), save ::
@@ -234,22 +240,26 @@ c --- Namelist
      . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFVMO ,ACC_DIFVHO ,ACC_DIFVSO ,
      . ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,ACC_DPU    ,ACC_DPV    ,
      . ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,ACC_UFLX   ,ACC_UTFLX  ,
-     . ACC_USFLX  ,ACC_UMFLTD ,ACC_UTFLTD ,ACC_UTFLLD ,ACC_USFLTD ,
-     . ACC_USFLLD ,ACC_UVEL   ,ACC_VFLX   ,ACC_VTFLX  ,ACC_VSFLX  ,
-     . ACC_VMFLTD ,ACC_VTFLTD ,ACC_VTFLLD ,ACC_VSFLTD ,ACC_VSFLLD ,
-     . ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,ACC_AVDSG  ,ACC_DPVOR  ,
-     . ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR,
-     . ACC_BFSQLVL   ,ACC_DIFDIALVL,ACC_DIFVMOLVL,ACC_DIFVHOLVL,
-     . ACC_DIFVSOLVL ,ACC_DIFINTLVL,ACC_DIFISOLVL,ACC_DZLVL    ,
-     . ACC_SALNLVL   ,ACC_TEMPLVL  ,ACC_UFLXLVL  ,ACC_UTFLXLVL ,
-     . ACC_USFLXLVL  ,ACC_UMFLTDLVL,ACC_UTFLTDLVL,ACC_UTFLLDLVL,
-     . ACC_USFLTDLVL ,ACC_USFLLDLVL,ACC_UVELLVL  ,ACC_VFLXLVL  ,
-     . ACC_VTFLXLVL  ,ACC_VSFLXLVL ,ACC_VMFLTDLVL,ACC_VTFLTDLVL,
-     . ACC_VTFLLDLVL ,ACC_VSFLTDLVL,ACC_VSFLLDLVL,ACC_VVELLVL  ,
-     . ACC_WFLXLVL   ,ACC_WFLX2LVL ,ACC_PVLVL    ,ACC_TKELVL   ,
-     . ACC_GLS_PSILVL,ACC_UFLXOLD  ,ACC_VFLXOLD  ,ACC_UTILLVL  ,
-     . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFTDD,ACC_MHFLX,ACC_MHFTD,
-     . ACC_MHFLD ,ACC_MSFLX ,ACC_MSFTD ,ACC_MSFLD ,ACC_VOLTR
+     . ACC_USFLX  ,ACC_UMFLTD ,ACC_UMFLSM ,ACC_UTFLTD ,ACC_UTFLSM ,
+     . ACC_UTFLLD ,ACC_USFLTD ,ACC_USFLSM ,ACC_USFLLD ,ACC_UVEL   ,
+     . ACC_VFLX   ,ACC_VTFLX  ,ACC_VSFLX  ,ACC_VMFLTD ,ACC_VMFLSM ,
+     . ACC_VTFLTD ,ACC_VTFLSM ,ACC_VTFLLD ,ACC_VSFLTD ,ACC_VSFLSM ,
+     . ACC_VSFLLD ,ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,ACC_AVDSG  ,
+     . ACC_DPVOR  ,ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR,
+     . ACC_BFSQLVL   ,ACC_DIFDIALVL ,ACC_DIFVMOLVL ,ACC_DIFVHOLVL ,
+     . ACC_DIFVSOLVL ,ACC_DIFINTLVL ,ACC_DIFISOLVL ,ACC_DZLVL     ,
+     . ACC_SALNLVL   ,ACC_TEMPLVL   ,ACC_UFLXLVL   ,ACC_UTFLXLVL  ,
+     . ACC_USFLXLVL  ,ACC_UMFLTDLVL ,ACC_UMFLSMLVL ,ACC_UTFLTDLVL ,
+     . ACC_UTFLSMLVL ,ACC_UTFLLDLVL ,ACC_USFLTDLVL ,ACC_USFLSMLVL ,
+     . ACC_USFLLDLVL ,ACC_UVELLVL   ,ACC_VFLXLVL   ,ACC_VTFLXLVL  ,
+     . ACC_VSFLXLVL  ,ACC_VMFLTDLVL ,ACC_VMFLSMLVL ,ACC_VTFLTDLVL ,
+     . ACC_VTFLSMLVL ,ACC_VTFLLDLVL ,ACC_VSFLTDLVL ,ACC_VSFLSMLVL ,
+     . ACC_VSFLLDLVL ,ACC_VVELLVL   ,ACC_WFLXLVL   ,ACC_WFLX2LVL  ,
+     . ACC_PVLVL     ,ACC_TKELVL    ,ACC_GLS_PSILVL,ACC_UFLXOLD   ,
+     . ACC_VFLXOLD   ,ACC_UTILLVL   ,
+     . ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFSML,ACC_MMFTDD,
+     . ACC_MMFSMD,ACC_MHFLX ,ACC_MHFTD ,ACC_MHFSM ,ACC_MHFLD ,
+     . ACC_MSFLX ,ACC_MSFTD ,ACC_MSFSM ,ACC_MSFLD ,ACC_VOLTR
       namelist /MERDIA/
      . MER_ORFILE,MER_MIFILE,MER_REGNAM,MER_REGFLG,MER_MINLAT,MER_MAXLAT
       namelist /SECDIA/
@@ -271,22 +281,26 @@ c --- Namelist
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
-     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UTFLTD ,LYR_UTFLLD ,
-     . LYR_USFLTD ,LYR_USFLLD ,LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,
-     . LYR_VSFLX  ,LYR_VMFLTD ,LYR_VTFLTD ,LYR_VTFLLD ,LYR_VSFLTD ,
-     . LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,LYR_PV     ,
-     . LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
+     . LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UMFLSM ,LYR_UTFLTD ,
+     . LYR_UTFLSM ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLSM ,LYR_USFLLD ,
+     . LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD ,
+     . LYR_VMFLSM ,LYR_VTFLTD ,LYR_VTFLSM ,LYR_VTFLLD ,LYR_VSFLTD ,
+     . LYR_VSFLSM ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  ,
+     . LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE ,
      . LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO ,
      . LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   ,
      . LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD ,
-     . LVL_UTFLTD ,LVL_UTFLLD ,LVL_USFLTD ,LVL_USFLLD ,LVL_UVEL   ,
-     . LVL_VFLX   ,LVL_VTFLX  ,LVL_VSFLX  ,LVL_VMFLTD ,LVL_VTFLTD ,
-     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLLD ,LVL_VVEL   ,LVL_WFLX   ,
-     . LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,LVL_IDLAGE ,
-     . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFTDD ,MSC_MHFLX  ,
-     . MSC_MHFTD  ,MSC_MHFLD  ,MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFLD  ,
-     . MSC_VOLTR  ,MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,
-     . MSC_SSSGA  ,MSC_SSTGA  ,
+     . LVL_UMFLSM ,LVL_UTFLTD ,LVL_UTFLSM ,LVL_UTFLLD ,LVL_USFLTD ,
+     . LVL_USFLSM ,LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  ,
+     . LVL_VSFLX  ,LVL_VMFLTD ,LVL_VMFLSM ,LVL_VTFLTD ,LVL_VTFLSM ,
+     . LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLSM ,LVL_VSFLLD ,LVL_VVEL   ,
+     . LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI,
+     . LVL_IDLAGE ,
+     . MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFTDD ,
+     . MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  ,
+     . MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  ,
+     . MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,MSC_SSSGA  ,
+     . MSC_SSTGA  ,
      . GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT,
      . GLB_FNAMETAG
 
@@ -395,9 +409,10 @@ c --- Check existence of data files for meridional and section transport
 c --- diagnostics
       if (mnproc.eq.1) then
         if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy)
-     .         +MSC_MMFTDD(1:nphy)+MSC_MHFLX(1:nphy)+MSC_MHFTD(1:nphy)
-     .         +MSC_MHFLD(1:nphy)+MSC_MSFLX(1:nphy)+MSC_MSFTD(1:nphy)
-     .         +MSC_MSFLD(1:nphy)).ne.0) then
+     .         +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy)
+     .         +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy)
+     .         +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy)
+     .         +MSC_MSFSM (1:nphy)+MSC_MSFLD (1:nphy)).ne.0) then
           inquire(file=mer_orfile,exist=fexist)
           if (.not.fexist) then
             write (lp,'(3a)') ' Could not find file ',
@@ -477,6 +492,7 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_SLVSQ(n)    = H2D_SLVSQ(n)
         ACC_SFL(n)      = H2D_SFL(n)
         ACC_SIGMX(n)    = H2D_SIGMX(n)  + MSC_MMFLXL(n) + MSC_MMFTDL(n)
+     .                  + MSC_MMFSML(n)
         ACC_SOP(n)      = H2D_SOP(n)
         ACC_SSS(n)      = H2D_SSS(n)    + MSC_SSSGA(n)
         ACC_SSSSQ(n)    = H2D_SSSSQ(n)
@@ -539,13 +555,19 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_USFLX(n)    = LYR_USFLX(n)  + MSC_MSFLX(n)
         ACC_USFLXLVL(n) = LVL_USFLX(n)
         ACC_UMFLTD(n)   = LYR_UMFLTD(n) + MSC_MMFTDL(n)
+        ACC_UMFLSM(n)   = LYR_UMFLSM(n) + MSC_MMFSML(n)
         ACC_UMFLTDLVL(n)= LVL_UMFLTD(n) + MSC_MMFTDD(n)
+        ACC_UMFLSMLVL(n)= LVL_UMFLSM(n) + MSC_MMFSMD(n)
         ACC_UTFLTD(n)   = LYR_UTFLTD(n) + MSC_MHFTD(n)
+        ACC_UTFLSM(n)   = LYR_UTFLSM(n) + MSC_MHFSM(n)
         ACC_UTFLTDLVL(n)= LVL_UTFLTD(n)
+        ACC_UTFLSMLVL(n)= LVL_UTFLSM(n)
         ACC_UTFLLD(n)   = LYR_UTFLLD(n) + MSC_MHFLD(n)
         ACC_UTFLLDLVL(n)= LVL_UTFLLD(n)
         ACC_USFLTD(n)   = LYR_USFLTD(n) + MSC_MSFTD(n)
+        ACC_USFLSM(n)   = LYR_USFLSM(n) + MSC_MSFSM(n)
         ACC_USFLTDLVL(n)= LVL_USFLTD(n)
+        ACC_USFLSMLVL(n)= LVL_USFLSM(n)
         ACC_USFLLD(n)   = LYR_USFLLD(n) + MSC_MSFLD(n)
         ACC_USFLLDLVL(n)= LVL_USFLLD(n)
         ACC_UVEL(n)     = LYR_UVEL(n)
@@ -560,13 +582,19 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_VSFLX(n)    = LYR_VSFLX(n)  + MSC_MSFLX(n)
         ACC_VSFLXLVL(n) = LVL_VSFLX(n)
         ACC_VMFLTD(n)   = LYR_VMFLTD(n) + MSC_MMFTDL(n)
+        ACC_VMFLSM(n)   = LYR_VMFLSM(n) + MSC_MMFSML(n)
         ACC_VMFLTDLVL(n)= LVL_VMFLTD(n) + MSC_MMFTDD(n)
+        ACC_VMFLSMLVL(n)= LVL_VMFLSM(n) + MSC_MMFSMD(n)
         ACC_VTFLTD(n)   = LYR_VTFLTD(n) + MSC_MHFTD(n)
+        ACC_VTFLSM(n)   = LYR_VTFLSM(n) + MSC_MHFSM(n)
         ACC_VTFLTDLVL(n)= LVL_VTFLTD(n)
+        ACC_VTFLSMLVL(n)= LVL_VTFLSM(n)
         ACC_VTFLLD(n)   = LYR_VTFLLD(n) + MSC_MHFLD(n)
         ACC_VTFLLDLVL(n)= LVL_VTFLLD(n)
         ACC_VSFLTD(n)   = LYR_VSFLTD(n) + MSC_MSFTD(n)
+        ACC_VSFLSM(n)   = LYR_VSFLSM(n) + MSC_MSFSM(n)
         ACC_VSFLTDLVL(n)= LVL_VSFLTD(n)
+        ACC_VSFLSMLVL(n)= LVL_VSFLSM(n)
         ACC_VSFLLD(n)   = LYR_VSFLLD(n) + MSC_MSFLD(n)
         ACC_VSFLLDLVL(n)= LVL_VSFLLD(n)
         ACC_VVEL(n)     = LYR_VVEL(n)
@@ -589,12 +617,16 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_MMFLXL(n)   = MSC_MMFLXL(n)
         ACC_MMFLXD(n)   = MSC_MMFLXD(n)
         ACC_MMFTDL(n)   = MSC_MMFTDL(n)
+        ACC_MMFSML(n)   = MSC_MMFSML(n)
         ACC_MMFTDD(n)   = MSC_MMFTDD(n)
+        ACC_MMFSMD(n)   = MSC_MMFSMD(n)
         ACC_MHFLX(n)    = MSC_MHFLX(n)
         ACC_MHFTD(n)    = MSC_MHFTD(n)
+        ACC_MHFSM(n)    = MSC_MHFSM(n)
         ACC_MHFLD(n)    = MSC_MHFLD(n)
         ACC_MSFLX(n)    = MSC_MSFLX(n)
         ACC_MSFTD(n)    = MSC_MSFTD(n)
+        ACC_MSFSM(n)    = MSC_MSFSM(n)
         ACC_MSFLD(n)    = MSC_MSFLD(n)
         ACC_VOLTR(n)    = MSC_VOLTR(n)
 c
@@ -762,12 +794,18 @@ c
          ACC_USFLX(n)=nphylyr*min(1,ACC_USFLX(n))
         if (ACC_UMFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_UMFLTD(n)=nphylyr*min(1,ACC_UMFLTD(n))
+        if (ACC_UMFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_UMFLSM(n)=nphylyr*min(1,ACC_UMFLSM(n))
         if (ACC_UTFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_UTFLTD(n)=nphylyr*min(1,ACC_UTFLTD(n))
+        if (ACC_UTFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_UTFLSM(n)=nphylyr*min(1,ACC_UTFLSM(n))
         if (ACC_UTFLLD(n).ne.0) nphylyr=nphylyr+1
          ACC_UTFLLD(n)=nphylyr*min(1,ACC_UTFLLD(n))
         if (ACC_USFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_USFLTD(n)=nphylyr*min(1,ACC_USFLTD(n))
+        if (ACC_USFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_USFLSM(n)=nphylyr*min(1,ACC_USFLSM(n))
         if (ACC_USFLLD(n).ne.0) nphylyr=nphylyr+1
          ACC_USFLLD(n)=nphylyr*min(1,ACC_USFLLD(n))
         if (ACC_UVEL(n).ne.0) nphylyr=nphylyr+1
@@ -780,12 +818,18 @@ c
          ACC_VSFLX(n)=nphylyr*min(1,ACC_VSFLX(n))
         if (ACC_VMFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_VMFLTD(n)=nphylyr*min(1,ACC_VMFLTD(n))
+        if (ACC_VMFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_VMFLSM(n)=nphylyr*min(1,ACC_VMFLSM(n))
         if (ACC_VTFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_VTFLTD(n)=nphylyr*min(1,ACC_VTFLTD(n))
+        if (ACC_VTFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_VTFLSM(n)=nphylyr*min(1,ACC_VTFLSM(n))
         if (ACC_VTFLLD(n).ne.0) nphylyr=nphylyr+1
          ACC_VTFLLD(n)=nphylyr*min(1,ACC_VTFLLD(n))
         if (ACC_VSFLTD(n).ne.0) nphylyr=nphylyr+1
          ACC_VSFLTD(n)=nphylyr*min(1,ACC_VSFLTD(n))
+        if (ACC_VSFLSM(n).ne.0) nphylyr=nphylyr+1
+         ACC_VSFLSM(n)=nphylyr*min(1,ACC_VSFLSM(n))
         if (ACC_VSFLLD(n).ne.0) nphylyr=nphylyr+1
          ACC_VSFLLD(n)=nphylyr*min(1,ACC_VSFLLD(n))
         if (ACC_VVEL(n).ne.0) nphylyr=nphylyr+1
@@ -833,12 +877,18 @@ c
          ACC_USFLXLVL(n)=nphylvl*min(1,ACC_USFLXLVL(n))
         if (ACC_UMFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_UMFLTDLVL(n)=nphylvl*min(1,ACC_UMFLTDLVL(n))
+        if (ACC_UMFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_UMFLSMLVL(n)=nphylvl*min(1,ACC_UMFLSMLVL(n))
         if (ACC_UTFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_UTFLTDLVL(n)=nphylvl*min(1,ACC_UTFLTDLVL(n))
+        if (ACC_UTFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_UTFLSMLVL(n)=nphylvl*min(1,ACC_UTFLSMLVL(n))
         if (ACC_UTFLLDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_UTFLLDLVL(n)=nphylvl*min(1,ACC_UTFLLDLVL(n))
         if (ACC_USFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_USFLTDLVL(n)=nphylvl*min(1,ACC_USFLTDLVL(n))
+        if (ACC_USFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_USFLSMLVL(n)=nphylvl*min(1,ACC_USFLSMLVL(n))
         if (ACC_USFLLDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_USFLLDLVL(n)=nphylvl*min(1,ACC_USFLLDLVL(n))
         if (ACC_UVELLVL(n).ne.0) nphylvl=nphylvl+1
@@ -853,12 +903,18 @@ c
          ACC_VSFLXLVL(n)=nphylvl*min(1,ACC_VSFLXLVL(n))
         if (ACC_VMFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_VMFLTDLVL(n)=nphylvl*min(1,ACC_VMFLTDLVL(n))
+        if (ACC_VMFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_VMFLSMLVL(n)=nphylvl*min(1,ACC_VMFLSMLVL(n))
         if (ACC_VTFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_VTFLTDLVL(n)=nphylvl*min(1,ACC_VTFLTDLVL(n))
+        if (ACC_VTFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_VTFLSMLVL(n)=nphylvl*min(1,ACC_VTFLSMLVL(n))
         if (ACC_VTFLLDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_VTFLLDLVL(n)=nphylvl*min(1,ACC_VTFLLDLVL(n))
         if (ACC_VSFLTDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_VSFLTDLVL(n)=nphylvl*min(1,ACC_VSFLTDLVL(n))
+        if (ACC_VSFLSMLVL(n).ne.0) nphylvl=nphylvl+1
+         ACC_VSFLSMLVL(n)=nphylvl*min(1,ACC_VSFLSMLVL(n))
         if (ACC_VSFLLDLVL(n).ne.0) nphylvl=nphylvl+1
          ACC_VSFLLDLVL(n)=nphylvl*min(1,ACC_VSFLLDLVL(n))
         if (ACC_VVELLVL(n).ne.0) nphylvl=nphylvl+1
@@ -1443,14 +1499,23 @@ c
 c --- u-component of mass flux due to thickness diffusion [g*cm/s^2]
       call acclyr(ACC_UMFLTD,umfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
+c --- u-component of mass flux due to submesoscale transport [g*cm/s^2]
+      call acclyr(ACC_UMFLSM,umflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
+c
 c --- u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
       call acclyr(ACC_UTFLTD,utfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
+c
+c --- u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+      call acclyr(ACC_UTFLSM,utflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
 c --- u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
       call acclyr(ACC_UTFLLD,utflld(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
 c --- u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
       call acclyr(ACC_USFLTD,usfltd(1-nbdy,1-nbdy,k1n),dummy,0,'u')
+c
+c --- u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+      call acclyr(ACC_USFLSM,usflsm(1-nbdy,1-nbdy,k1n),dummy,0,'u')
 c
 c --- u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
       call acclyr(ACC_USFLLD,usflld(1-nbdy,1-nbdy,k1n),dummy,0,'u')
@@ -1473,14 +1538,23 @@ c
 c --- v-component of mass flux due to thickness diffusion [g*cm/s^2]
       call acclyr(ACC_VMFLTD,vmfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
+c --- v-component of mass flux due to submesoscale transport [g*cm/s^2]
+      call acclyr(ACC_VMFLSM,vmflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
+c
 c --- v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
       call acclyr(ACC_VTFLTD,vtfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
+c
+c --- v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+      call acclyr(ACC_VTFLSM,vtflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
 c --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
       call acclyr(ACC_VTFLLD,vtflld(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
 c --- v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
       call acclyr(ACC_VSFLTD,vsfltd(1-nbdy,1-nbdy,k1n),dummy,0,'v')
+c
+c --- v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+      call acclyr(ACC_VSFLSM,vsflsm(1-nbdy,1-nbdy,k1n),dummy,0,'v')
 c
 c --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
       call acclyr(ACC_VSFLLD,vsflld(1-nbdy,1-nbdy,k1n),dummy,0,'v')
@@ -1564,11 +1638,12 @@ c$OMP END PARALLEL DO
         endif
       enddo
 c
-      if (sum(ACC_UVELLVL(1:nphy)+ACC_UFLXLVL(1:nphy)+
-     .  ACC_UTFLXLVL(1:nphy)+ACC_USFLXLVL(1:nphy)+
-     .  ACC_UMFLTDLVL(1:nphy)+ACC_UTFLTDLVL(1:nphy)+
-     .  ACC_UTFLLDLVL(1:nphy)+ACC_USFLTDLVL(1:nphy)+
-     .  ACC_USFLLDLVL(1:nphy)).ne.0) then
+      if (sum(ACC_UVELLVL  (1:nphy)+ACC_UFLXLVL  (1:nphy)
+     .       +ACC_UTFLXLVL (1:nphy)+ACC_USFLXLVL (1:nphy)
+     .       +ACC_UMFLTDLVL(1:nphy)+ACC_UMFLSMLVL(1:nphy)
+     .       +ACC_UTFLTDLVL(1:nphy)+ACC_UTFLSMLVL(1:nphy)
+     .       +ACC_UTFLLDLVL(1:nphy)+ACC_USFLTDLVL(1:nphy)
+     .       +ACC_USFLSMLVL(1:nphy)+ACC_USFLLDLVL(1:nphy)).ne.0) then
         do k=1,kk
           call diazlv('u',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
@@ -1591,8 +1666,16 @@ c --- --- u-component of mass flux due to thickness diffusion [g*cm/s^2]
           call acclvl(ACC_UMFLTDLVL,umfltd(1-nbdy,1-nbdy,k1n),
      .                'u',k,ind1,ind2,wghtsflx)
 c
+c --- --- u-component of mass flux due to submesoscale transport [g*cm/s^2]
+          call acclvl(ACC_UMFLSMLVL,umflsm(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
+c
 c --- --- u-component of heat flux due to thickness diffusion [K*g*cm/s^2]
           call acclvl(ACC_UTFLTDLVL,utfltd(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
+c
+c --- --- u-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+          call acclvl(ACC_UTFLSMLVL,utflsm(1-nbdy,1-nbdy,k1n),
      .                'u',k,ind1,ind2,wghtsflx)
 c
 c --- --- u-component of heat flux due to lateral diffusion [K*g*cm/s^2]
@@ -1603,17 +1686,22 @@ c --- --- u-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
           call acclvl(ACC_USFLTDLVL,usfltd(1-nbdy,1-nbdy,k1n),
      .                'u',k,ind1,ind2,wghtsflx)
 c
+c --- --- u-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+          call acclvl(ACC_USFLSMLVL,usflsm(1-nbdy,1-nbdy,k1n),
+     .                'u',k,ind1,ind2,wghtsflx)
+c
 c --- --- u-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
           call acclvl(ACC_USFLLDLVL,usflld(1-nbdy,1-nbdy,k1n),
      .                'u',k,ind1,ind2,wghtsflx)
         enddo
       endif
 c
-      if (sum(ACC_VVELLVL(1:nphy)+ACC_VFLXLVL(1:nphy)+
-     .  ACC_VTFLXLVL(1:nphy)+ACC_VSFLXLVL(1:nphy)+
-     .  ACC_VMFLTDLVL(1:nphy)+ACC_VTFLTDLVL(1:nphy)+
-     .  ACC_VTFLLDLVL(1:nphy)+ACC_VSFLTDLVL(1:nphy)+
-     .  ACC_VSFLLDLVL(1:nphy)).ne.0) then
+      if (sum(ACC_VVELLVL  (1:nphy)+ACC_VFLXLVL  (1:nphy)
+     .       +ACC_VTFLXLVL (1:nphy)+ACC_VSFLXLVL (1:nphy)
+     .       +ACC_VMFLTDLVL(1:nphy)+ACC_VMFLSMLVL(1:nphy)
+     .       +ACC_VTFLTDLVL(1:nphy)+ACC_VTFLSMLVL(1:nphy)
+     .       +ACC_VTFLLDLVL(1:nphy)+ACC_VSFLTDLVL(1:nphy)
+     .       +ACC_VSFLSMLVL(1:nphy)+ACC_VSFLLDLVL(1:nphy)).ne.0) then
         do k=1,kk
           call diazlv('v',k,mm,nn,ind1,ind2,wghts,wghtsflx)
 c
@@ -1636,8 +1724,16 @@ c --- --- v-component of mass flux due to thickness diffusion [g*cm/s^2]
           call acclvl(ACC_VMFLTDLVL,vmfltd(1-nbdy,1-nbdy,k1n),
      .                'v',k,ind1,ind2,wghtsflx)
 c
+c --- --- v-component of mass flux due to submesoscale transport [g*cm/s^2]
+          call acclvl(ACC_VMFLSMLVL,vmflsm(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
+c
 c --- --- v-component of heat flux due to thickness diffusion [K*g*cm/s^2]
           call acclvl(ACC_VTFLTDLVL,vtfltd(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
+c
+c --- --- v-component of heat flux due to submesoscale transport [K*g*cm/s^2]
+          call acclvl(ACC_VTFLSMLVL,vtflsm(1-nbdy,1-nbdy,k1n),
      .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
@@ -1646,6 +1742,10 @@ c --- --- v-component of heat flux due to lateral diffusion [K*g*cm/s^2]
 c
 c --- --- v-component of salt flux due to thickness diffusion [g^2*cm/kg/s^2]
           call acclvl(ACC_VSFLTDLVL,vsfltd(1-nbdy,1-nbdy,k1n),
+     .                'v',k,ind1,ind2,wghtsflx)
+c
+c --- --- v-component of salt flux due to submesoscale transport [g^2*cm/kg/s^2]
+          call acclvl(ACC_VSFLSMLVL,vsflsm(1-nbdy,1-nbdy,k1n),
      .                'v',k,ind1,ind2,wghtsflx)
 c
 c --- --- v-component of salt flux due to lateral diffusion [g^2*cm/kg/s^2]
@@ -1769,9 +1869,10 @@ c
 c
 c --- compute meridional transports and transports through sections
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
-     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
-     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0) call diamer(iogrp)
+     .   +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp)
+     .   +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp)
+     .   +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp)
+     .   +ACC_MSFSM (iogrp) +ACC_MSFLD(iogrp).ne.0) call diamer(iogrp)
       if (ACC_VOLTR(iogrp).ne.0) call diasec(iogrp)
 c
 c --- compute barotropic mass streamfunction
@@ -2058,12 +2159,18 @@ c --- mask sea floor of level fields
       call msklvl(ACC_VSFLXLVL(iogrp),'v')
       call msklvl(ACC_UMFLTDLVL(iogrp),'u')
       call msklvl(ACC_VMFLTDLVL(iogrp),'v')
+      call msklvl(ACC_UMFLSMLVL(iogrp),'u')
+      call msklvl(ACC_VMFLSMLVL(iogrp),'v')
       call msklvl(ACC_UTFLTDLVL(iogrp),'u')
       call msklvl(ACC_VTFLTDLVL(iogrp),'v')
+      call msklvl(ACC_UTFLSMLVL(iogrp),'u')
+      call msklvl(ACC_VTFLSMLVL(iogrp),'v')
       call msklvl(ACC_UTFLLDLVL(iogrp),'u')
       call msklvl(ACC_VTFLLDLVL(iogrp),'v')
       call msklvl(ACC_USFLTDLVL(iogrp),'u')
       call msklvl(ACC_VSFLTDLVL(iogrp),'v')
+      call msklvl(ACC_USFLSMLVL(iogrp),'u')
+      call msklvl(ACC_VSFLSMLVL(iogrp),'v')
       call msklvl(ACC_USFLLDLVL(iogrp),'u')
       call msklvl(ACC_VSFLLDLVL(iogrp),'v')
       call msklvl(ACC_SALNLVL(iogrp),'p')
@@ -2164,16 +2271,17 @@ c --- define output dimensions
       call ncdims('time',0)
 c
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
-     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
-     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp)+MSC_VOLTR(iogrp).ne.0) then
-        call ncdims('slenmax',slenmax)
-      endif
+     .   +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp)
+     .   +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp)
+     .   +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp)
+     .   +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp)+MSC_VOLTR (iogrp).ne.0)
+     .  call ncdims('slenmax',slenmax)
 c
       if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp)
-     .   +ACC_MMFTDD(iogrp)+ACC_MHFLX(iogrp)+ACC_MHFTD(iogrp)
-     .   +ACC_MHFLD(iogrp)+ACC_MSFLX(iogrp)+ACC_MSFTD(iogrp)
-     .   +ACC_MSFLD(iogrp).ne.0) then
+     .   +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp)
+     .   +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp)
+     .   +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp)
+     .   +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp).ne.0) then
         if ((lmax.gt.0.and.lmax.le.ldm)) then
           call ncdims('lat',lmax)
           call ncdims('region',mer_nreg)
@@ -2217,9 +2325,10 @@ c --- zlevel
         call ncattr('bounds','depth_bnds')
         call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
-     .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp).ne.0) then
+     .     +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp)
+     .     +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp)
+     .     +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp)
+     .     +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp).ne.0) then
           call ncwrt1('lat','lat',mtlat)
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
@@ -2517,6 +2626,16 @@ c
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
+      call wrtlyr(ACC_UMFLSM(iogrp),LYR_UMFLSM(iogrp),
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','umflsm',
+     .  'Mass flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlyr(ACC_VMFLSM(iogrp),LYR_VMFLSM(iogrp),
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vmflsm',
+     .  'Mass flux due to submesoscale transport in y-direction',' ',
+     .  'kg s-1')
+c
       call wrtlyr(ACC_UTFLTD(iogrp),LYR_UTFLTD(iogrp),
      .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhfltd',
      .  'Heat flux due to thickness diffusion in x-direction',' ',
@@ -2525,6 +2644,16 @@ c
       call wrtlyr(ACC_VTFLTD(iogrp),LYR_VTFLTD(iogrp),
      .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhfltd',
      .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W')
+c
+      call wrtlyr(ACC_UTFLSM(iogrp),LYR_UTFLSM(iogrp),
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhflsm',
+     .  'Heat flux due to submesoscale transport in x-direction',' ',
+     .  'W')
+c
+      call wrtlyr(ACC_VTFLSM(iogrp),LYR_VTFLSM(iogrp),
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhflsm',
+     .  'Heat flux due to submesoscale transport in y-direction',' ',
      .  'W')
 c
       call wrtlyr(ACC_UTFLLD(iogrp),LYR_UTFLLD(iogrp),
@@ -2545,6 +2674,16 @@ c
       call wrtlyr(ACC_VSFLTD(iogrp),LYR_VSFLTD(iogrp),
      .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vsfltd',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlyr(ACC_USFLSM(iogrp),LYR_USFLSM(iogrp),
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','usflsm',
+     .  'Salt flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlyr(ACC_VSFLSM(iogrp),LYR_VSFLSM(iogrp),
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vsflsm',
+     .  'Salt flux due to submesoscale transport in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlyr(ACC_USFLLD(iogrp),LYR_USFLLD(iogrp),
@@ -2698,6 +2837,16 @@ c
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1')
 c
+      call wrtlvl(ACC_UMFLSMLVL(iogrp),LVL_UMFLSM(iogrp),
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,'u','umflsmlvl',
+     .  'Mass flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlvl(ACC_VMFLSMLVL(iogrp),LVL_VMFLSM(iogrp),
+     .  rnacc*0.5*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,'v','vmflsmlvl',
+     .  'Mass flux due to submesoscale transport in y-direction',' ',
+     .  'kg s-1')
+c
       call wrtlvl(ACC_UTFLTDLVL(iogrp),LVL_UTFLTD(iogrp),
      .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhfltdlvl',
      .  'Heat flux due to thickness diffusion in x-direction',' ',
@@ -2706,6 +2855,16 @@ c
       call wrtlvl(ACC_VTFLTDLVL(iogrp),LVL_VTFLTD(iogrp),
      .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhfltdlvl',
      .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W')
+c
+      call wrtlvl(ACC_UTFLSMLVL(iogrp),LVL_UTFLSM(iogrp),
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,iuu,'u','uhflsmlvl',
+     .  'Heat flux due to submesoscale transport in x-direction',' ',
+     .  'W')
+c
+      call wrtlvl(ACC_VTFLSMLVL(iogrp),LVL_VTFLSM(iogrp),
+     .  rnacc*spcifh*0.5/(g*baclin),0.,cmpflg,ivv,'v','vhflsmlvl',
+     .  'Heat flux due to submesoscale transport in y-direction',' ',
      .  'W')
 c
       call wrtlvl(ACC_UTFLLDLVL(iogrp),LVL_UTFLLD(iogrp),
@@ -2728,6 +2887,18 @@ c
      .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,
      .  'v','vsfltdlvl',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlvl(ACC_USFLSMLVL(iogrp),LVL_USFLSM(iogrp),
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,iuu,
+     .  'u','usflsmlvl',
+     .  'Salt flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1')
+c
+      call wrtlvl(ACC_VSFLSMLVL(iogrp),LVL_VSFLSM(iogrp),
+     .  rnacc*0.5*g2kg*M_cgs2mks/(g*baclin),0.,cmpflg,ivv,
+     .  'v','vsflsmlvl',
+     .  'Salt flux due to submesoscale transport in y-direction',' ',
      .  'kg s-1')
 c
       call wrtlvl(ACC_USFLLDLVL(iogrp),LVL_USFLLD(iogrp),
@@ -2849,10 +3020,24 @@ c --- store meridional transports
      .    'on isopycnic layers')
         call ncattr('units','kg s-1')
       endif
+      if (MSC_MMFSML(iogrp).ne.0) then
+        call ncwrt1('mmfsml','lat sigma region time',mmfsml)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to submesoscale transport '//
+     .    'on isopycnic layers')
+        call ncattr('units','kg s-1')
+      endif
       if (MSC_MMFTDD(iogrp).ne.0) then
         call ncwrt1('mmftdd','lat depth region time',mmftdd)
         call ncattr('long_name',
      .    'Overturning stream-function due to thickness diffusion '//
+     .    'on z-levels')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MMFSMD(iogrp).ne.0) then
+        call ncwrt1('mmfsmd','lat depth region time',mmfsmd)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to submesoscale transport '//
      .    'on z-levels')
         call ncattr('units','kg s-1')
       endif
@@ -2865,6 +3050,12 @@ c --- store meridional transports
         call ncwrt1('mhftd','lat region time',mhftd)
         call ncattr('long_name',
      .    'Meridional heat flux due to thickness diffusion')
+        call ncattr('units','W')
+      endif
+      if (MSC_MHFSM(iogrp).ne.0) then
+        call ncwrt1('mhfsm','lat region time',mhfsm)
+        call ncattr('long_name',
+     .    'Meridional heat flux due to submesoscale transport')
         call ncattr('units','W')
       endif
       if (MSC_MHFLD(iogrp).ne.0) then
@@ -2882,6 +3073,12 @@ c --- store meridional transports
         call ncwrt1('msftd','lat region time',msftd)
         call ncattr('long_name',
      .    'Meridional salt flux due to thickness diffusion')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MSFSM(iogrp).ne.0) then
+        call ncwrt1('msfsm','lat region time',msfsm)
+        call ncattr('long_name',
+     .    'Meridional salt flux due to submesoscale transport')
         call ncattr('units','kg s-1')
       endif
       if (MSC_MSFLD(iogrp).ne.0) then
@@ -3342,10 +3539,12 @@ c
 c
 c --- - Allocate arrays for meridional fluxes
         allocate(mmflxl(lmax,kdm,mer_nreg),mmftdl(lmax,kdm,mer_nreg),
-     .           mmflxd(lmax,ddm,mer_nreg),mmftdd(lmax,ddm,mer_nreg),
+     .           mmfsml(lmax,kdm,mer_nreg),mmflxd(lmax,ddm,mer_nreg),
+     .           mmftdd(lmax,ddm,mer_nreg),mmfsmd(lmax,ddm,mer_nreg),
      .           mhflx(lmax,mer_nreg),mhftd(lmax,mer_nreg),
-     .           mhfld(lmax,mer_nreg),msflx(lmax,mer_nreg),
-     .           msftd(lmax,mer_nreg),msfld(lmax,mer_nreg),
+     .           mhfsm(lmax,mer_nreg),mhfld(lmax,mer_nreg),
+     .           msflx(lmax,mer_nreg),msftd(lmax,mer_nreg),
+     .           msfsm(lmax,mer_nreg),msfld(lmax,mer_nreg),
      .           stat=istat)
         if (istat.ne.0) then
            write (lp,*) 'Cannot allocate enough memory!'
@@ -3366,35 +3565,45 @@ c$OMP PARALLEL DO PRIVATE(i)
       enddo
 c$OMP END PARALLEL DO
 c
-      do nfld=1,6
+      do nfld=1,8
 c
         if     (nfld.eq.1) then
-          if (ACC_MHFLX(iogrp).eq.0) exit
+          if (ACC_MHFLX(iogrp).eq.0) cycle
           ACC_UIND=ACC_UTFLX(iogrp)
           ACC_VIND=ACC_VTFLX(iogrp)
           r=spcifh*0.5/(g*baclin*nacc_phy(iogrp))
         elseif (nfld.eq.2) then
-          if (ACC_MHFTD(iogrp).eq.0) exit
+          if (ACC_MHFTD(iogrp).eq.0) cycle
           ACC_UIND=ACC_UTFLTD(iogrp)
           ACC_VIND=ACC_VTFLTD(iogrp)
           r=spcifh*0.5/(g*baclin*nacc_phy(iogrp))
         elseif (nfld.eq.3) then
-          if (ACC_MHFLD(iogrp).eq.0) exit
+          if (ACC_MHFSM(iogrp).eq.0) cycle
+          ACC_UIND=ACC_UTFLSM(iogrp)
+          ACC_VIND=ACC_VTFLSM(iogrp)
+          r=spcifh*0.5/(g*baclin*nacc_phy(iogrp))
+        elseif (nfld.eq.4) then
+          if (ACC_MHFLD(iogrp).eq.0) cycle
           ACC_UIND=ACC_UTFLLD(iogrp)
           ACC_VIND=ACC_VTFLLD(iogrp)
           r=spcifh*0.5/(g*baclin*nacc_phy(iogrp))
-        elseif (nfld.eq.4) then
-          if (ACC_MSFLX(iogrp).eq.0) exit
+        elseif (nfld.eq.5) then
+          if (ACC_MSFLX(iogrp).eq.0) cycle
           ACC_UIND=ACC_USFLX(iogrp)
           ACC_VIND=ACC_VSFLX(iogrp)
           r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
-        elseif (nfld.eq.5) then
-          if (ACC_MSFTD(iogrp).eq.0) exit
+        elseif (nfld.eq.6) then
+          if (ACC_MSFTD(iogrp).eq.0) cycle
           ACC_UIND=ACC_USFLTD(iogrp)
           ACC_VIND=ACC_VSFLTD(iogrp)
           r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
-        elseif (nfld.eq.6) then
-          if (ACC_MSFLD(iogrp).eq.0) exit
+        elseif (nfld.eq.7) then
+          if (ACC_MSFSM(iogrp).eq.0) cycle
+          ACC_UIND=ACC_USFLSM(iogrp)
+          ACC_VIND=ACC_VSFLSM(iogrp)
+          r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
+        elseif (nfld.eq.8) then
+          if (ACC_MSFLD(iogrp).eq.0) cycle
           ACC_UIND=ACC_USFLLD(iogrp)
           ACC_VIND=ACC_VSFLLD(iogrp)
           r=0.5*g2kg*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
@@ -3490,22 +3699,34 @@ c
           elseif (nfld.eq.3) then
             do l=1,lmax
               do m=1,mer_nreg
-                mhfld(l,m)=mflx_mr(l,m)
+                mhfsm(l,m)=mflx_mr(l,m)
               enddo
             enddo
           elseif (nfld.eq.4) then
             do l=1,lmax
               do m=1,mer_nreg
-                msflx(l,m)=mflx_mr(l,m)
+                mhfld(l,m)=mflx_mr(l,m)
               enddo
             enddo
           elseif (nfld.eq.5) then
             do l=1,lmax
               do m=1,mer_nreg
-                msftd(l,m)=mflx_mr(l,m)
+                msflx(l,m)=mflx_mr(l,m)
               enddo
             enddo
           elseif (nfld.eq.6) then
+            do l=1,lmax
+              do m=1,mer_nreg
+                msftd(l,m)=mflx_mr(l,m)
+              enddo
+            enddo
+          elseif (nfld.eq.7) then
+            do l=1,lmax
+              do m=1,mer_nreg
+                msfsm(l,m)=mflx_mr(l,m)
+              enddo
+            enddo
+          elseif (nfld.eq.8) then
             do l=1,lmax
               do m=1,mer_nreg
                 msfld(l,m)=mflx_mr(l,m)
@@ -3560,16 +3781,20 @@ c$OMP END PARALLEL DO
 c
       r=0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
 c
-      do nfld=1,2
+      do nfld=1,3
 c
         if     (nfld.eq.1) then
-          if (ACC_MMFLXL(iogrp).eq.0) exit
+          if (ACC_MMFLXL(iogrp).eq.0) cycle
           ACC_UIND=ACC_UFLX(iogrp)
           ACC_VIND=ACC_VFLX(iogrp)
         elseif (nfld.eq.2) then
-          if (ACC_MMFTDL(iogrp).eq.0) exit
+          if (ACC_MMFTDL(iogrp).eq.0) cycle
           ACC_UIND=ACC_UMFLTD(iogrp)
           ACC_VIND=ACC_VMFLTD(iogrp)
+        elseif (nfld.eq.3) then
+          if (ACC_MMFSML(iogrp).eq.0) cycle
+          ACC_UIND=ACC_UMFLSM(iogrp)
+          ACC_VIND=ACC_VMFLSM(iogrp)
         else
           write(lp,*) 'field index out of range'
           call xchalt('(diamer)')
@@ -3682,6 +3907,12 @@ c
                   mmftdl(l,k,m)=mflx_mr(l,m)
                 enddo
               enddo
+            elseif (nfld.eq.3) then
+              do l=1,lmax
+                do m=1,mer_nreg
+                  mmfsml(l,k,m)=mflx_mr(l,m)
+                enddo
+              enddo
             else
               write(lp,*) 'field index out of range'
               call xchalt('(diamer)')
@@ -3725,16 +3956,20 @@ c
 c
       r=0.5*M_cgs2mks/(g*baclin*nacc_phy(iogrp))
 c
-      do nfld=1,2
+      do nfld=1,3
 c
         if     (nfld.eq.1) then
-          if (ACC_MMFLXD(iogrp).eq.0) exit
+          if (ACC_MMFLXD(iogrp).eq.0) cycle
           ACC_UIND=ACC_UFLXLVL(iogrp)
           ACC_VIND=ACC_VFLXLVL(iogrp)
         elseif (nfld.eq.2) then
-          if (ACC_MMFTDD(iogrp).eq.0) exit
+          if (ACC_MMFTDD(iogrp).eq.0) cycle
           ACC_UIND=ACC_UMFLTDLVL(iogrp)
           ACC_VIND=ACC_VMFLTDLVL(iogrp)
+        elseif (nfld.eq.3) then
+          if (ACC_MMFSMD(iogrp).eq.0) cycle
+          ACC_UIND=ACC_UMFLSMLVL(iogrp)
+          ACC_VIND=ACC_VMFLSMLVL(iogrp)
         else
           write(lp,*) 'field index out of range'
           call xchalt('(diamer)')
@@ -3819,6 +4054,12 @@ c
               do l=1,lmax
                 do m=1,mer_nreg
                   mmftdd(l,k,m)=mflx_mr(l,m)
+                enddo
+              enddo
+            elseif (nfld.eq.3) then
+              do l=1,lmax
+                do m=1,mer_nreg
+                  mmfsmd(l,k,m)=mflx_mr(l,m)
                 enddo
               enddo
             else
@@ -5187,9 +5428,12 @@ c --- initialisation of 3d layer fields
       call inilyr(ACC_UTFLX(iogrp),'u',0.)
       call inilyr(ACC_USFLX(iogrp),'u',0.)
       call inilyr(ACC_UMFLTD(iogrp),'u',0.)
+      call inilyr(ACC_UMFLSM(iogrp),'u',0.)
       call inilyr(ACC_UTFLTD(iogrp),'u',0.)
+      call inilyr(ACC_UTFLSM(iogrp),'u',0.)
       call inilyr(ACC_UTFLLD(iogrp),'u',0.)
       call inilyr(ACC_USFLTD(iogrp),'u',0.)
+      call inilyr(ACC_USFLSM(iogrp),'u',0.)
       call inilyr(ACC_USFLLD(iogrp),'u',0.)
 c
       call inilyr(ACC_VVEL(iogrp),'v',0.)
@@ -5198,9 +5442,12 @@ c
       call inilyr(ACC_VTFLX(iogrp),'v',0.)
       call inilyr(ACC_VSFLX(iogrp),'v',0.)
       call inilyr(ACC_VMFLTD(iogrp),'v',0.)
+      call inilyr(ACC_VMFLSM(iogrp),'v',0.)
       call inilyr(ACC_VTFLTD(iogrp),'v',0.)
+      call inilyr(ACC_VTFLSM(iogrp),'v',0.)
       call inilyr(ACC_VTFLLD(iogrp),'v',0.)
       call inilyr(ACC_VSFLTD(iogrp),'v',0.)
+      call inilyr(ACC_VSFLSM(iogrp),'v',0.)
       call inilyr(ACC_VSFLLD(iogrp),'v',0.)
 c
       call inilyr(ACC_SALN(iogrp),'p',0.)
@@ -5229,9 +5476,12 @@ c --- initialsation of 3d level fields
       call inilvl(ACC_UTFLXLVL(iogrp),'u',0.)
       call inilvl(ACC_USFLXLVL(iogrp),'u',0.)
       call inilvl(ACC_UMFLTDLVL(iogrp),'u',0.)
+      call inilvl(ACC_UMFLSMLVL(iogrp),'u',0.)
       call inilvl(ACC_UTFLTDLVL(iogrp),'u',0.)
+      call inilvl(ACC_UTFLSMLVL(iogrp),'u',0.)
       call inilvl(ACC_UTFLLDLVL(iogrp),'u',0.)
       call inilvl(ACC_USFLTDLVL(iogrp),'u',0.)
+      call inilvl(ACC_USFLSMLVL(iogrp),'u',0.)
       call inilvl(ACC_USFLLDLVL(iogrp),'u',0.)
 c
       call inilvl(ACC_VVELLVL(iogrp),'v',0.)
@@ -5239,9 +5489,12 @@ c
       call inilvl(ACC_VTFLXLVL(iogrp),'v',0.)
       call inilvl(ACC_VSFLXLVL(iogrp),'v',0.)
       call inilvl(ACC_VMFLTDLVL(iogrp),'v',0.)
+      call inilvl(ACC_VMFLSMLVL(iogrp),'v',0.)
       call inilvl(ACC_VTFLTDLVL(iogrp),'v',0.)
+      call inilvl(ACC_VTFLSMLVL(iogrp),'v',0.)
       call inilvl(ACC_VTFLLDLVL(iogrp),'v',0.)
       call inilvl(ACC_VSFLTDLVL(iogrp),'v',0.)
+      call inilvl(ACC_VSFLSMLVL(iogrp),'v',0.)
       call inilvl(ACC_VSFLLDLVL(iogrp),'v',0.)
 c
       call inilvl(ACC_BFSQLVL(iogrp),'p',0.)
@@ -6035,9 +6288,10 @@ c --- - define zlevel
         call ncattr('bounds','depth_bnds')
         call ncdefvar('depth_bnds','bounds depth',ndouble,8)
         if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp)
-     .     +MSC_MMFTDD(iogrp)+MSC_MHFLX(iogrp)+MSC_MHFTD(iogrp)
-     .     +MSC_MHFLD(iogrp)+MSC_MSFLX(iogrp)+MSC_MSFTD(iogrp)
-     .     +MSC_MSFLD(iogrp).ne.0) then
+     .     +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp)
+     .     +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp)
+     .     +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp)
+     .     +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp).ne.0) then
           call ncdefvar('lat','lat',ndouble,8)
           call ncattr('long_name','Latitude')
           call ncattr('standard_name','latitude')
@@ -6293,12 +6547,28 @@ c
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1',1)
 c
+      call ncdefvar3d(LYR_UMFLSM(iogrp),cmpflg,'u','umflsm',
+     .  'Mass flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1',1)
+c
+      call ncdefvar3d(LYR_VMFLSM(iogrp),cmpflg,'v','vmflsm',
+     .  'Mass flux due to submesoscale transport in y-direction',' ',
+     .  'kg s-1',1)
+c
       call ncdefvar3d(LYR_UTFLTD(iogrp),cmpflg,'u','uhfltd',
      .  'Heat flux due to thickness diffusion in x-direction',' ',
      .  'W',1)
 c
       call ncdefvar3d(LYR_VTFLTD(iogrp),cmpflg,'v','vhfltd',
      .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_UTFLSM(iogrp),cmpflg,'u','uhflsm',
+     .  'Heat flux due to submesoscale transport in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VTFLSM(iogrp),cmpflg,'v','vhflsm',
+     .  'Heat flux due to submesoscale transport in y-direction',' ',
      .  'W',1)
 c
       call ncdefvar3d(LYR_UTFLLD(iogrp),cmpflg,'u','uhflld',
@@ -6315,6 +6585,14 @@ c
 c
       call ncdefvar3d(LYR_VSFLTD(iogrp),cmpflg,'v','vsfltd',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_USFLSM(iogrp),cmpflg,'u','usflsm',
+     .  'Salt flux due to submesoscale transport in x-direction',' ',
+     .  'W',1)
+c
+      call ncdefvar3d(LYR_VSFLSM(iogrp),cmpflg,'v','vsflsm',
+     .  'Salt flux due to submesoscale transport in y-direction',' ',
      .  'W',1)
 c
       call ncdefvar3d(LYR_USFLLD(iogrp),cmpflg,'u','usflld',
@@ -6436,12 +6714,28 @@ c
      .  'Mass flux due to thickness diffusion in y-direction',' ',
      .  'kg s-1',2)
 c
+      call ncdefvar3d(LVL_UMFLSM(iogrp),cmpflg,'u','umflsmlvl',
+     .  'Mass flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_VMFLSM(iogrp),cmpflg,'v','vmflsmlvl',
+     .  'Mass flux due to submesoscale transport in y-direction',' ',
+     .  'kg s-1',2)
+c
       call ncdefvar3d(LVL_UTFLTD(iogrp),cmpflg,'u','uhfltdlvl',
      .  'Heat flux due to thickness diffusion in x-direction',' ',
      .  'W',2)
 c
       call ncdefvar3d(LVL_VTFLTD(iogrp),cmpflg,'v','vhfltdlvl',
      .  'Heat flux due to thickness diffusion in y-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_UTFLSM(iogrp),cmpflg,'u','uhflsmlvl',
+     .  'Heat flux due to submesoscale transport in x-direction',' ',
+     .  'W',2)
+c
+      call ncdefvar3d(LVL_VTFLSM(iogrp),cmpflg,'v','vhflsmlvl',
+     .  'Heat flux due to submesoscale transport in y-direction',' ',
      .  'W',2)
 c
       call ncdefvar3d(LVL_UTFLLD(iogrp),cmpflg,'u','uhflldlvl',
@@ -6458,6 +6752,14 @@ c
 c
       call ncdefvar3d(LVL_VSFLTD(iogrp),cmpflg,'v','vsfltdlvl',
      .  'Salt flux due to thickness diffusion in y-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_USFLSM(iogrp),cmpflg,'u','usflsmlvl',
+     .  'Salt flux due to submesoscale transport in x-direction',' ',
+     .  'kg s-1',2)
+c
+      call ncdefvar3d(LVL_VSFLSM(iogrp),cmpflg,'v','vsflsmlvl',
+     .  'Salt flux due to submesoscale transport in y-direction',' ',
      .  'kg s-1',2)
 c
       call ncdefvar3d(LVL_USFLLD(iogrp),cmpflg,'u','usflldlvl',
@@ -6557,10 +6859,24 @@ c --- define meridional transports
      .    'on isopycnic layers')
         call ncattr('units','kg s-1')
       endif
+      if (MSC_MMFSML(iogrp).ne.0) then
+        call ncdefvar('mmfsml','lat sigma region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to submesoscale transport '//
+     .    'on isopycnic layers')
+        call ncattr('units','kg s-1')
+      endif
       if (MSC_MMFTDD(iogrp).ne.0) then
         call ncdefvar('mmftdd','lat depth region time',ndouble,8)
         call ncattr('long_name',
      .    'Overturning stream-function due to thickness diffusion '//
+     .    'on z-levels')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MMFSMD(iogrp).ne.0) then
+        call ncdefvar('mmfsmd','lat depth region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Overturning stream-function due to submesoscale transport '//
      .    'on z-levels')
         call ncattr('units','kg s-1')
       endif
@@ -6573,6 +6889,12 @@ c --- define meridional transports
         call ncdefvar('mhftd','lat region time',ndouble,8)
         call ncattr('long_name',
      .    'Meridional heat flux due to thickness diffusion')
+        call ncattr('units','W')
+      endif
+      if (MSC_MHFSM(iogrp).ne.0) then
+        call ncdefvar('mhfsm','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional heat flux due to submesoscale transport')
         call ncattr('units','W')
       endif
       if (MSC_MHFLD(iogrp).ne.0) then
@@ -6590,6 +6912,12 @@ c --- define meridional transports
         call ncdefvar('msftd','lat region time',ndouble,8)
         call ncattr('long_name',
      .    'Meridional salt flux due to thickness diffusion')
+        call ncattr('units','kg s-1')
+      endif
+      if (MSC_MSFSM(iogrp).ne.0) then
+        call ncdefvar('msfsm','lat region time',ndouble,8)
+        call ncattr('long_name',
+     .    'Meridional salt flux due to submesoscale transport')
         call ncattr('units','kg s-1')
       endif
       if (MSC_MSFLD(iogrp).ne.0) then

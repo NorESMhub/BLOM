@@ -29,13 +29,16 @@ module mod_eddtra
    use mod_time, only: delt1
    use mod_xc
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
-   use mod_grid, only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi
-   use mod_eos, only: rho
+   use mod_grid, only: scuy, scvx, scp2, scu2, scv2, scuxi, scvyi, coriop
+   use mod_eos, only: rho, sig0
    use mod_state, only: dp, dpu, dpv, temp, saln, p, pbu, pbv, kfpla
    use mod_diffusion, only: eitmth_opt, eitmth_intdif, eitmth_gm, &
-                            difint, umfltd, vmfltd, utfltd, vtfltd, &
-                            usfltd, vsfltd
-   use mod_cmnfld, only: nslpx, nslpy, mlts
+                            difint, umfltd, vmfltd, umflsm, vmflsm, &
+                            utfltd, vtfltd, utflsm, vtflsm, &
+                            usfltd, vsfltd, usflsm, vsflsm
+   use mod_cmnfld, only: dbcrit, nslpx, nslpy, mlts
+   use mod_mxlayr, only: ce
+   use mod_utility, only: util1
    use mod_checksum, only: csdiag, chksummsk
 
    implicit none
@@ -66,23 +69,23 @@ contains
       call xctilr(difint, 1,kk, 2,2, halo_ps)
 
    !$omp parallel do private(l, i)
-      do j = - 1, jj + 2
+      do j = -1, jj+2
          do l = 1, isu(j)
-         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
-            umfltd(i, j, 1 + mm) = 0._r8
-            umfltd(i, j, 2 + mm) = 0._r8
-            umfltd(i, j, 3 + mm) = 0._r8
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            umfltd(i,j,1+mm) = 0._r8
+            umfltd(i,j,2+mm) = 0._r8
+            umfltd(i,j,3+mm) = 0._r8
          enddo
          enddo
       enddo
    !$omp end parallel do
    !$omp parallel do private(l, i)
-      do j = 0, jj + 2
+      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
-            vmfltd(i, j, 1 + mm) = 0._r8
-            vmfltd(i, j, 2 + mm) = 0._r8
-            vmfltd(i, j, 3 + mm) = 0._r8
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            vmfltd(i,j,1+mm) = 0._r8
+            vmfltd(i,j,2+mm) = 0._r8
+            vmfltd(i,j,3+mm) = 0._r8
          enddo
          enddo
       enddo
@@ -93,40 +96,39 @@ contains
          kn = k + nn
 
       !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = - 1, jj + 2
+         do j = -1, jj+2
             do l = 1, isu(j)
-            do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
-               flxhi =   .125_r8*min(dp(i - 1, j, kn - 1)*scp2(i - 1, j), &
-                                     dp(i    , j, kn    )*scp2(i    , j))
-               flxlo = - .125_r8*min(dp(i    , j, kn - 1)*scp2(i    , j), &
-                                     dp(i - 1, j, kn    )*scp2(i - 1, j))
-               q = .25_r8*( difint(i - 1, j, k - 1) + difint(i, j, k - 1) &
-                          + difint(i - 1, j, k    ) + difint(i, j, k    ))
+            do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+               flxhi =   .125_r8*min(dp(i-1,j,kn-1)*scp2(i-1,j), &
+                                     dp(i  ,j,kn  )*scp2(i  ,j))
+               flxlo = - .125_r8*min(dp(i  ,j,kn-1)*scp2(i  ,j), &
+                                     dp(i-1,j,kn  )*scp2(i-1,j))
+               q = .25_r8*( difint(i-1,j,k-1) + difint(i,j,k-1) &
+                          + difint(i-1,j,k  ) + difint(i,j,k  ))
                q = min(flxhi, max(flxlo, &
-                       delt1*q*(p(i - 1, j, k) - p(i, j, k)) &
-                       *scuy(i, j)*scuxi(i, j)))
-               umfltd(i, j, km - 1) = umfltd(i, j, km - 1) + q
-               umfltd(i, j, km    ) = - q
+                       delt1*q*(p(i-1,j,k) - p(i,j,k))*scuy(i,j)*scuxi(i,j)))
+               umfltd(i,j,km-1) = umfltd(i,j,km-1) + q
+               umfltd(i,j,km  ) = - q
             enddo
             enddo
          enddo
       !$omp end parallel do
 
       !$omp parallel do private(l, i, flxhi, flxlo, q)
-         do j = 0, jj + 2
+         do j = 0, jj+2
             do l = 1, isv(j)
-            do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
-               flxhi =   .125_r8*min(dp(i, j - 1, kn - 1)*scp2(i, j - 1), &
-                                     dp(i, j    , kn    )*scp2(i, j    ))
-               flxlo = - .125_r8*min(dp(i, j    , kn - 1)*scp2(i, j    ), &
-                                     dp(i, j - 1, kn    )*scp2(i, j - 1))
-               q = .25_r8*( difint(i, j - 1, k - 1) + difint(i, j, k - 1) &
-                          + difint(i, j - 1, k    ) + difint(i, j, k    ))
+            do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+               flxhi =   .125_r8*min(dp(i,j-1,kn-1)*scp2(i,j-1), &
+                                     dp(i,j  ,kn  )*scp2(i,j  ))
+               flxlo = - .125_r8*min(dp(i,j  ,kn-1)*scp2(i,j  ), &
+                                     dp(i,j-1,kn  )*scp2(i,j-1))
+               q = .25_r8*( difint(i,j-1,k-1) + difint(i,j,k-1) &
+                          + difint(i,j-1,k  ) + difint(i,j,k  ))
                q = min(flxhi, max(flxlo, &
-                       delt1*q*(p(i, j - 1, k) - p(i, j, k)) &
-                       *scvx(i, j)*scvyi(i, j)))
-               vmfltd(i, j, km - 1) = vmfltd(i, j, km - 1) + q
-               vmfltd(i, j, km    ) = - q
+                       delt1*q*(p(i,j-1,k) - p(i,j,k)) &
+                       *scvx(i,j)*scvyi(i,j)))
+               vmfltd(i,j,km-1) = vmfltd(i,j,km-1) + q
+               vmfltd(i,j,km  ) = - q
             enddo
             enddo
          enddo
@@ -146,9 +148,10 @@ contains
 
       ! Parameters:
       real(r8), parameter :: &
-         ffac  = .0625_r8, & ! Fraction of the mass of a grid cell a mass flux
-                             ! is allowed to deplete [].
-         fface = .99_r8*ffac ! (1-epsilon)*ffac [].
+         ffac  = .0625_r8, &    ! Fraction of the mass of a grid cell a mass
+                                ! flux is allowed to deplete [].
+         fface = .99_r8*ffac, & ! (1-epsilon)*ffac [].
+         eps   = 1.e-14_r8      ! Small non-dimensional value [].
 
       real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
       real(r8), dimension(kdm+1) :: upsilon, mfl
@@ -164,19 +167,19 @@ contains
 
       ! Compute top pressure at velocity points.
    !$omp parallel do private(l, i)
-      do j= - 1, jj + 2
+      do j= -1, jj+2
          do l = 1, isu(j)
-         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
-            ptu(i, j) = max(p(i - 1, j, 1), p(i, j, 1))
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
       enddo
    !$omp end parallel do
    !$omp parallel do private(l, i)
-      do j = 0, jj + 2
+      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
-            ptv(i, j) = max(p(i, j - 1, 1), p(i, j, 1))
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
@@ -189,47 +192,46 @@ contains
    !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
    !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
    !$omp                     niter, kdir, q)
-      do j = - 1, jj + 2
+      do j = -1, jj+2
          do l = 1, isu(j)
-         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
                km = k + mm
-               umfltd(i, j, km) = 0._r8
+               umfltd(i,j,km) = 0._r8
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i, j)
+            et2mf = - g*rho0*delt1*scuy(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
-                  kmax = k
+               if (dp(i-1,j,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
             ! ------------------------------------------------------------------
             ! Proceed with mass flux computation if at least one of the adjacent
             ! scalar points to the velocity point has a mass containing interior
             ! layer. Mass fluxes will be assigned at layer interface
-            ! corresponding to the eddy induced transport. The final layer mass
+            ! corresponding to the eddy-induced transport. The final layer mass
             ! flux will be the lower minus the upper interface flux. The mass
             ! fluxes are limited to keep interfaces within the water column.
             ! There are 3 cases to consider:
             !   Case 1: The mixed layer extends to the bottom at both adjacent
             !           scalar points to the velocity point
             !   Case 2: The mixed layer extends to the bottom at scalar point
-            !           (i, j).
+            !           (i,j).
             !   Case 3: The mixed layer extends to the bottom at scalar point
-            !           (i - 1, j).
+            !           (i-1,j).
             !   Case 4: The mixed layer does not reach the bottom at neither of
             !           the scalar points adjacent to the velocity point.
             ! ------------------------------------------------------------------
 
-            if     (kfpla(i - 1, j, n) >  kk .and. kfpla(i, j, n) > kk) then
+            if     (kfpla(i-1,j,n) >  kk .and. kfpla(i,j,n) > kk) then
                ! ---------------------------------------------------------------
                ! Case 1:
                ! ---------------------------------------------------------------
@@ -237,21 +239,19 @@ contains
                ! Keep the initial zero mass fluxes for this column.
                cycle
 
-            elseif (kfpla(i - 1, j, n) <= kk .and. kfpla(i, j, n) > kk) then
+            elseif (kfpla(i-1,j,n) <= kk .and. kfpla(i,j,n) > kk) then
                ! ---------------------------------------------------------------
                ! Case 2:
                ! ---------------------------------------------------------------
 
-               ! Find the index of the first layer at (i - 1, j) that is
-               ! hydrostatically stable at the mixed layer base at (i, j).
+               ! Find the index of the first layer at (i-1,j) that is
+               ! hydrostatically stable at the mixed layer base at (i,j).
                km = 2 + nn
-               kintr = kfpla(i - 1, j, n)
+               kintr = kfpla(i-1,j,n)
                kn = kintr + nn
-               do while (rho(p(i    , j, 3), &
-                             temp(i - 1, j, kn), saln(i - 1, j, kn)) < &
-                         rho(p(i    , j, 3), &
-                             temp(i    , j, km), saln(i    , j, km)) .or. &
-                         dp(i - 1, j, kn) < epsilp)
+               do while (rho(p(i  ,j,3), temp(i-1,j,kn), saln(i-1,j,kn)) < &
+                         rho(p(i  ,j,3), temp(i  ,j,km), saln(i  ,j,km)) .or. &
+                         dp(i-1,j,kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -261,10 +261,10 @@ contains
                ! fluxes for this column.
                if (kintr == kmax + 1) cycle
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i - 1, j, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpx(i, j, 3)
+               kappa = .5_r8*(difint(i-1,j,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpx(i,j,3)
 
                ! If the eddy-induced transport at the base of the mixed layer
                ! would cause a negative mass flux below the mixed layer, keep
@@ -275,25 +275,23 @@ contains
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax + 1
+               do k = kintr+1, kmax+1
                   mfl(k) = 0._r8
                enddo
 
-            elseif (kfpla(i - 1, j, n) >  kk .and. kfpla(i, j, n) <= kk) then
+            elseif (kfpla(i-1,j,n) >  kk .and. kfpla(i,j,n) <= kk) then
                ! ---------------------------------------------------------------
                ! Case 3:
                ! ---------------------------------------------------------------
 
-               ! Find the index of the first layer at (i, j) that is
-               ! hydrostatically stable at the mixed layer base at (i - 1, j).
+               ! Find the index of the first layer at (i,j) that is
+               ! hydrostatically stable at the mixed layer base at (i-1,j).
                km = 2 + nn
-               kintr = kfpla(i    , j, n)
+               kintr = kfpla(i  ,j,n)
                kn = kintr + nn
-               do while (rho(p(i - 1, j, 3), &
-                             temp(i    , j, kn), saln(i    , j, kn)) < &
-                         rho(p(i - 1, j, 3), &
-                             temp(i - 1, j, km), saln(i - 1, j, km)) .or. &
-                         dp(i    , j, kn) < epsilp)
+               do while (rho(p(i-1,j,3), temp(i  ,j,kn), saln(i  ,j,kn)) < &
+                         rho(p(i-1,j,3), temp(i-1,j,km), saln(i-1,j,km)) .or. &
+                         dp(i  ,j,kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -303,10 +301,10 @@ contains
                ! fluxes for this column.
                if (kintr == kmax + 1) cycle
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i - 1, j, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpx(i, j, 3)
+               kappa = .5_r8*(difint(i-1,j,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpx(i,j,3)
 
                ! If the eddy-induced transport at the base of the mixed layer
                ! would cause a positive mass flux below the mixed layer, keep
@@ -317,7 +315,7 @@ contains
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax + 1
+               do k = kintr+1, kmax+1
                   mfl(k) = 0._r8
                enddo
 
@@ -326,59 +324,53 @@ contains
                ! Case 4:
                ! ---------------------------------------------------------------
 
-               ! The first interior interface where the eddy induced transport
+               ! The first interior interface where the eddy-induced transport
                ! is estimated is at index kintr + 1.
-               kintr = max(kfpla(i - 1, j, n), kfpla(i, j, n))
+               kintr = max(kfpla(i-1,j,n), kfpla(i,j,n))
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i - 1, j, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpx(i, j, 3)
+               kappa = .5_r8*(difint(i-1,j,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpx(i,j,3)
 
-               ! Compute the eddy induced transport at interior interfaces.
-               do k = kintr + 1, kmax
+               ! Compute the eddy-induced transport at interior interfaces.
+               do k = kintr+1, kmax
                   kn = k + nn
-                  kappa = .25_r8*( difint(i - 1, j, k - 1) &
-                                 + difint(i    , j, k - 1) &
-                                 + difint(i - 1, j, k    ) &
-                                 + difint(i    , j, k    ))
-                  upsilon(k) = - kappa*nslpx(i, j, k)
+                  kappa = .25_r8*( difint(i-1,j,k-1) + difint(i,j,k-1) &
+                                 + difint(i-1,j,k  ) + difint(i,j,k  ))
+                  upsilon(k) = - kappa*nslpx(i,j,k)
                enddo
-               upsilon(kmax + 1) = 0._r8
+               upsilon(kmax+1) = 0._r8
 
                ! If the layer kintr - 1 is a physical layer at either of the
                ! adjacent scalar points to the velocity point, then apply an
-               ! upper interface mass flux corresponding to the eddy induced
+               ! upper interface mass flux corresponding to the eddy-induced
                ! transport at the mixed layer base and a lower interface mass
-               ! flux corresponding to the eddy induced transport at the
+               ! flux corresponding to the eddy-induced transport at the
                ! kintr + 1 interface if this would lead to a hydrostatically
                ! stable layer arrangement.
                km = 2 + nn
                kn = kintr - 1 + nn
-               if ((kfpla(i - 1, j, n) < kintr .and. &
-                    upsilon(3) - upsilon(kintr + 1) > 0._r8 .and. &
-                    rho(p(i    , j, 3), &
-                        temp(i - 1, j, kn), saln(i - 1, j, kn)) > &
-                    rho(p(i    , j, 3), &
-                        temp(i    , j, km), saln(i    , j, km))) .or. &
-                   (kfpla(i    , j, n) < kintr .and. &
-                    upsilon(3) - upsilon(kintr + 1) < 0._r8 .and. &
-                    rho(p(i - 1, j, 3), &
-                        temp(i    , j, kn), saln(i    , j, kn)) > &
-                    rho(p(i - 1, j, 3), &
-                        temp(i - 1, j, km), saln(i - 1, j, km)))) then
+               if ((kfpla(i-1,j,n) < kintr .and. &
+                    upsilon(3) - upsilon(kintr+1) > 0._r8 .and. &
+                    rho(p(i  ,j,3), temp(i-1,j,kn), saln(i-1,j,kn)) > &
+                    rho(p(i  ,j,3), temp(i  ,j,km), saln(i  ,j,km))) .or. &
+                   (kfpla(i  ,j,n) < kintr .and. &
+                    upsilon(3) - upsilon(kintr+1) < 0._r8 .and. &
+                    rho(p(i-1,j,3), temp(i  ,j,kn), saln(i  ,j,kn)) > &
+                    rho(p(i-1,j,3), temp(i-1,j,km), saln(i-1,j,km)))) then
                   kintr = kintr - 1
-                  upsilon(kintr + 1) = upsilon(kintr + 2)
+                  upsilon(kintr+1) = upsilon(kintr+2)
                endif
 
                ! Assign interface mass fluxes.
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax
+               do k = kintr+1, kmax
                   mfl(k) = et2mf*upsilon(k)
                enddo
-               mfl(kmax + 1) = 0._r8
+               mfl(kmax+1) = 0._r8
 
             endif
 
@@ -390,36 +382,34 @@ contains
             ! fluxes at the scalar points adjacent to the velocity point. These
             ! bounded layer thicknesses are consistent with the transport
             ! algorithm.
-            dlm(kmin) = max(0._r8, min(p(i - 1, j, 3), pbu(i, j, n)) &
-                                 - max(p(i - 1, j, 1), ptu(i, j)))
-            dlp(kmin) = max(0._r8, min(p(i    , j, 3), pbu(i, j, n)) &
-                                 - max(p(i    , j, 1), ptu(i, j)))
+            dlm(kmin) = max(0._r8, min(p(i-1,j,3), pbu(i,j,n)) &
+                                 - max(p(i-1,j,1), ptu(i,j)))
+            dlp(kmin) = max(0._r8, min(p(i  ,j,3), pbu(i,j,n)) &
+                                 - max(p(i  ,j,1), ptu(i,j)))
             do k = kintr, kmax
-               dlm(k) = max(0._r8, min(p(i - 1, j, k + 1), pbu(i, j, n)) &
-                                 - max(p(i - 1, j, k    ), ptu(i, j)))
-               dlp(k) = max(0._r8, min(p(i    , j, k + 1), pbu(i, j, n)) &
-                                 - max(p(i    , j, k    ), ptu(i, j)))
+               dlm(k) = max(0._r8, min(p(i-1,j,k+1), pbu(i,j,n)) &
+                                 - max(p(i-1,j,k  ), ptu(i,j)))
+               dlp(k) = max(0._r8, min(p(i  ,j,k+1), pbu(i,j,n)) &
+                                 - max(p(i  ,j,k  ), ptu(i,j)))
             enddo
 
             ! If excessive depletion of layers occur beneath the mixed layer
             ! base, try to adjust interface fluxes other than the mixed layer
             ! base interface flux.
-            fhi =   fface*max(0._r8, min((p(i - 1, j, 3) - ptu(i, j)) &
-                                         *scp2(i - 1, j), &
-                                         (pbu(i, j, n) - p(i    , j, kintr)) &
-                                         *scp2(i    , j)))
-            flo = - fface*max(0._r8, min((p(i    , j, 3) - ptu(i, j)) &
-                                         *scp2(i    , j), &
-                                         (pbu(i, j, n) - p(i - 1, j, kintr)) &
-                                         *scp2(i - 1, j)))
-            mfl(kmin + 1) = min(fhi, max(flo, mfl(kmin + 1)))
-            do k = kmin + 1, kmax - 1
-               if     (mfl(k + 1) - mfl(k) > &
-                        ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
-                  mfl(k + 1) = mfl(k) + fface*dlm(k)*scp2(i - 1, j)
-               elseif (mfl(k + 1) - mfl(k) < &
-                      - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
-                  mfl(k + 1) = mfl(k) - fface*dlp(k)*scp2(i    , j)
+            fhi =   fface*max(0._r8, &
+                              min((p(i-1,j,3) - ptu(i,j)      )*scp2(i-1,j), &
+                                  (pbu(i,j,n) - p(i  ,j,kintr))*scp2(i  ,j)))
+            flo = - fface*max(0._r8, &
+                              min((p(i  ,j,3) - ptu(i,j)      )*scp2(i  ,j), &
+                                  (pbu(i,j,n) - p(i-1,j,kintr))*scp2(i-1,j)))
+            mfl(kmin+1) = min(fhi, max(flo, mfl(kmin+1)))
+            do k = kmin+1, kmax-1
+               if     (mfl(k+1) - mfl(k) > &
+                        ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
+                  mfl(k+1) = mfl(k) + fface*dlm(k)*scp2(i-1,j)
+               elseif (mfl(k+1) - mfl(k) < &
+                      - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
+                  mfl(k+1) = mfl(k) - fface*dlp(k)*scp2(i  ,j)
                else
                   exit
                endif
@@ -439,18 +429,18 @@ contains
                   k = kmin
                   write(lp,*)
                   write(lp,'(i3,3e16.8)') &
-                     1, mfl(k + 1), mfl(k), &
-                     (mfl(k + 1) - mfl(k)) &
-                     /(max(onemm, dpu(i, j, 1 + nn) + dpu(i, j, 2 + nn)) &
-                       *delt1*scuy(i, j))
+                     1, mfl(k+1), mfl(k), &
+                     (mfl(k+1) - mfl(k)) &
+                     /(max(onemm, dpu(i,j,1+nn) + dpu(i,j,2+nn)) &
+                       *delt1*scuy(i,j))
                   do k = kintr, kmax
                      kn = k + nn
                      write(lp,'(i3,3e16.8)') &
-                        k, mfl(k + 1), mfl(k), &
-                        (mfl(k + 1) - mfl(k)) &
-                        /(max(onemm, dpu(i, j, kn))*delt1*scuy(i, j))
+                        k, mfl(k+1), mfl(k), &
+                        (mfl(k+1) - mfl(k)) &
+                        /(max(onemm, dpu(i,j,kn))*delt1*scuy(i,j))
                   enddo
-                  write(lp,*) 'no convergence u', i + i0, j + j0
+                  write(lp,*) 'no convergence u', i+i0, j+j0
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -458,57 +448,56 @@ contains
                changed = .false.
                kdir = - kdir
 
-               do k = ((1 - kdir)*kmax + (1 + kdir)*kmin)/2, &
-                      ((1 - kdir)*kmin + (1 + kdir)*kmax)/2, kdir
+               do k = ((1-kdir)*kmax+(1+kdir)*kmin)/2, &
+                      ((1-kdir)*kmin+(1+kdir)*kmax)/2, kdir
 
                   ! Proceed with flux limiting of this layer if the mass flux
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
-                  if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsilp*scu2(i, j), &
-                                    abs(mfl(k + 1) + mfl(k)))) then
+                  if (abs(mfl(k+1) - mfl(k)) > &
+                      eps*max(epsilp*scu2(i,j), abs(mfl(k+1) + mfl(k)))) then
 
-                     if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
+                     if     (mfl(k+1) - mfl(k) > &
+                              ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i - 1, j, k). Limit the
+                        ! mass from the grid cell at (i-1,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlm(k)*scp2(i - 1, j)
-                        if (mfl(k + 1) > - mfl(k)) then
-                           if (mfl(k    ) > - .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) + q
+                        q = fface*dlm(k)*scp2(i-1,j)
+                        if (mfl(k+1) > - mfl(k)) then
+                           if (mfl(k  ) > - .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) + q
                            else
-                              mfl(k + 1) =   .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) =   .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) <   .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) - q
+                           if (mfl(k+1) <   .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) - q
                            else
-                              mfl(k    ) = - .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) = - .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
-                     elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
+                     elseif (mfl(k+1) - mfl(k) < &
+                            - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j, k). Limit the
+                        ! mass from the grid cell at (i,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlp(k)*scp2(i    , j)
-                        if (mfl(k + 1) < - mfl(k)) then
-                           if (mfl(k    ) <   .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) - q
+                        q = fface*dlp(k)*scp2(i  ,j)
+                        if (mfl(k+1) < - mfl(k)) then
+                           if (mfl(k  ) <   .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) - q
                            else
-                              mfl(k + 1) = - .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) = - .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) > - .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) + q
+                           if (mfl(k+1) > - .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) + q
                            else
-                              mfl(k    ) =   .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) =   .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
@@ -524,41 +513,37 @@ contains
             ! ------------------------------------------------------------------
 
             k = kmin
-            if (abs(mfl(k + 1) - mfl(k)) > &
-                1.e-14_r8*max(epsilp*scu2(i, j), &
-                              abs(mfl(k + 1) + mfl(k)))) then
-               umfltd(i, j, 2 + mm) = mfl(k + 1) - mfl(k)
-               umfltd(i, j, 1 + mm) = umfltd(i, j, 2 + mm) &
-                                      *dpu(i, j, 1 + nn)/( dpu(i, j, 1 + nn) &
-                                                         + dpu(i, j, 2 + nn))
-               umfltd(i, j, 2 + mm) = umfltd(i, j, 2 + mm) &
-                                    - umfltd(i, j, 1 + mm)
+            if (abs(mfl(k+1) - mfl(k)) > &
+                eps*max(epsilp*scu2(i,j), abs(mfl(k+1) + mfl(k)))) then
+               umfltd(i,j,2+mm) = mfl(k+1) - mfl(k)
+               umfltd(i,j,1+mm) = umfltd(i,j,2+mm)*dpu(i,j,1+nn) &
+                                  /(dpu(i,j,1+nn) + dpu(i,j,2+nn))
+               umfltd(i,j,2+mm) = umfltd(i,j,2+mm) - umfltd(i,j,1+mm)
             else
-               umfltd(i, j, 1 + mm) = 0._r8
-               umfltd(i, j, 2 + mm) = 0._r8
+               umfltd(i,j,1+mm) = 0._r8
+               umfltd(i,j,2+mm) = 0._r8
             endif
             do k = kintr, kmax
                km = k + mm
-               if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsilp*scu2(i, j), &
-                                 abs(mfl(k + 1) + mfl(k)))) then
-                  umfltd(i, j, km) = mfl(k + 1) - mfl(k)
+               if (abs(mfl(k+1) - mfl(k)) > &
+                   eps*max(epsilp*scu2(i,j), abs(mfl(k+1) + mfl(k)))) then
+                  umfltd(i,j,km) = mfl(k+1) - mfl(k)
                else
-                  umfltd(i, j, km) = 0._r8
+                  umfltd(i,j,km) = 0._r8
                endif
-               if (umfltd(i, j, km) > &
-                    ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
+               if (umfltd(i,j,km) > &
+                    ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml u >', &
-                              i + i0, j + j0, k, umfltd(i, j, km), &
-                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)
+                              i+i0, j+j0, k, umfltd(i,j,km), &
+                              ffac*max(epsilp, dlm(k))*scp2(i-1,j)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
-               if (umfltd(i, j, km) < &
-                  - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
+               if (umfltd(i,j,km) < &
+                  - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml u <', &
-                              i + i0, j + j0, k, umfltd(i, j, km), &
-                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)
+                              i+i0, j+j0, k, umfltd(i,j,km), &
+                            - ffac*max(epsilp, dlp(k))*scp2(i  ,j)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -576,47 +561,46 @@ contains
    !$omp parallel do private(l, i, k, km, et2mf, kmax, kn, kintr, kappa, &
    !$omp                     upsilon, kmin, mfl, dlm, dlp, fhi, flo, changed, &
    !$omp                     niter, kdir, q)
-      do j = 0, jj + 2
+      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
                km = k + mm
-               vmfltd(i, j, km) = 0._r8
+               vmfltd(i,j,km) = 0._r8
             enddo
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i, j)
+            et2mf = - g*rho0*delt1*scvx(i,j)
 
             ! Index of last layer containing mass at either of the scalar points
             ! adjacent to the velocity point.
             kmax = 1
             do k = 3, kk
                kn = k + nn
-               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
-                  kmax = k
+               if (dp(i,j-1,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
             ! ------------------------------------------------------------------
             ! Proceed with mass flux computation if at least one of the adjacent
             ! scalar points to the velocity point has a mass containing interior
             ! layer. Mass fluxes will be assigned at layer interface
-            ! corresponding to the eddy induced transport. The final layer mass
+            ! corresponding to the eddy-induced transport. The final layer mass
             ! flux will be the lower minus the upper interface flux. The mass
             ! fluxes are limited to keep interfaces within the water column.
             ! There are 3 cases to consider:
             !   Case 1: The mixed layer extends to the bottom at both adjacent
             !           scalar points to the velocity point
             !   Case 2: The mixed layer extends to the bottom at scalar point
-            !           (i, j).
+            !           (i,j).
             !   Case 3: The mixed layer extends to the bottom at scalar point
-            !           (i, j - 1).
+            !           (i,j-1).
             !   Case 4: The mixed layer does not reach the bottom at neither of
             !           the scalar points adjacent to the velocity point.
             ! ------------------------------------------------------------------
 
-            if     (kfpla(i, j - 1, n) > kk .and. kfpla(i, j, n) > kk) then
+            if     (kfpla(i,j-1,n) > kk .and. kfpla(i,j,n) > kk) then
                ! ---------------------------------------------------------------
                ! Case 1:
                ! ---------------------------------------------------------------
@@ -624,21 +608,19 @@ contains
                ! Keep the initial zero mass fluxes for this column.
                cycle
 
-            elseif (kfpla(i, j - 1, n) <= kk .and. kfpla(i, j, n) > kk) then
+            elseif (kfpla(i,j-1,n) <= kk .and. kfpla(i,j,n) > kk) then
                ! ---------------------------------------------------------------
                ! Case 2:
                ! ---------------------------------------------------------------
 
-               ! Find the index of the first layer at (i, j - 1) that is
-               ! hydrostatically stable at the mixed layer base at (i, j).
+               ! Find the index of the first layer at (i,j-1) that is
+               ! hydrostatically stable at the mixed layer base at (i,j).
                km = 2 + nn
-               kintr = kfpla(i, j - 1, n)
+               kintr = kfpla(i,j-1,n)
                kn = kintr + nn
-               do while (rho(p(i, j    , 3), &
-                             temp(i, j - 1, kn), saln(i, j - 1, kn)) < &
-                         rho(p(i, j    , 3), &
-                             temp(i, j    , km), saln(i, j    , km)) .or. &
-                         dp(i, j - 1, kn) < epsilp)
+               do while (rho(p(i,j  ,3), temp(i,j-1,kn), saln(i,j-1,kn)) < &
+                         rho(p(i,j  ,3), temp(i,j  ,km), saln(i,j  ,km)) .or. &
+                         dp(i,j-1,kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -648,10 +630,10 @@ contains
                ! fluxes for this column.
                if (kintr == kmax + 1) cycle
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i, j - 1, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpy(i, j, 3)
+               kappa = .5_r8*(difint(i,j-1,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpy(i,j,3)
 
                ! If the eddy-induced transport at the base of the mixed layer
                ! would cause a negative mass flux below the mixed layer, keep
@@ -662,25 +644,23 @@ contains
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax + 1
+               do k = kintr+1, kmax+1
                   mfl(k) = 0._r8
                enddo
 
-            elseif (kfpla(i, j - 1, n) > kk .and. kfpla(i, j, n) <= kk) then
+            elseif (kfpla(i,j-1,n) > kk .and. kfpla(i,j,n) <= kk) then
                ! ---------------------------------------------------------------
                ! Case 3:
                ! ---------------------------------------------------------------
 
-               ! Find the index of the first layer at (i, j) that is
-               ! hydrostatically stable at the mixed layer base at (i, j - 1).
+               ! Find the index of the first layer at (i,j) that is
+               ! hydrostatically stable at the mixed layer base at (i,j-1).
                km = 2 + nn
-               kintr = kfpla(i, j    , n)
+               kintr = kfpla(i,j  ,n)
                kn = kintr + nn
-               do while (rho(p(i, j - 1, 3), &
-                             temp(i, j    , kn), saln(i, j    , kn)) < &
-                         rho(p(i, j - 1, 3), &
-                             temp(i, j - 1, km), saln(i, j - 1, km)) .or. &
-                         dp(i, j    , kn) < epsilp)
+               do while (rho(p(i,j-1,3), temp(i,j  ,kn), saln(i,j  ,kn)) < &
+                         rho(p(i,j-1,3), temp(i,j-1,km), saln(i,j-1,km)) .or. &
+                         dp(i,j  ,kn) < epsilp)
                   kintr = kintr + 1
                   if (kintr == kmax + 1) exit
                   kn = kintr + nn
@@ -690,10 +670,10 @@ contains
                ! fluxes for this column.
                if (kintr == kmax + 1) cycle
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i, j - 1, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpy(i, j, 3)
+               kappa = .5_r8*(difint(i,j-1,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpy(i,j,3)
 
                ! If the eddy-induced transport at the base of the mixed layer
                ! would cause a positive mass flux below the mixed layer, keep
@@ -704,7 +684,7 @@ contains
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax + 1
+               do k = kintr+1, kmax+1
                   mfl(k) = 0._r8
                enddo
 
@@ -713,59 +693,53 @@ contains
                ! Case 4:
                ! ---------------------------------------------------------------
 
-               ! The first interior interface where the eddy induced transport
+               ! The first interior interface where the eddy-induced transport
                ! is estimated is at index kintr + 1.
-               kintr = max(kfpla(i, j - 1, n), kfpla(i, j, n))
+               kintr = max(kfpla(i,j-1,n), kfpla(i,j,n))
 
-               ! Compute the eddy induced transport (upsilon) at the mixed layer
+               ! Compute the eddy-induced transport (upsilon) at the mixed layer
                ! base.
-               kappa = .5_r8*(difint(i, j - 1, 2) + difint(i, j, 2))
-               upsilon(3) = - kappa*nslpy(i, j, 3)
+               kappa = .5_r8*(difint(i,j-1,2) + difint(i,j,2))
+               upsilon(3) = - kappa*nslpy(i,j,3)
 
-               ! Compute the eddy induced transport at interior interfaces.
-               do k = kintr + 1, kmax
+               ! Compute the eddy-induced transport at interior interfaces.
+               do k = kintr+1, kmax
                   kn = k + nn
-                  kappa = .25_r8*( difint(i, j - 1, k - 1) &
-                                 + difint(i, j    , k - 1) &
-                                 + difint(i, j - 1, k    ) &
-                                 + difint(i, j    , k    ))
-                  upsilon(k) = - kappa*nslpy(i, j, k)
+                  kappa = .25_r8*( difint(i,j-1,k-1) + difint(i,j,k-1) &
+                                 + difint(i,j-1,k  ) + difint(i,j,k  ))
+                  upsilon(k) = - kappa*nslpy(i,j,k)
                enddo
-               upsilon(kmax + 1) = 0._r8
+               upsilon(kmax+1) = 0._r8
 
                ! If the layer kintr - 1 is a physical layer at either of the
                ! adjacent scalar points to the velocity point, then apply an
-               ! upper interface mass flux corresponding to the eddy induced
+               ! upper interface mass flux corresponding to the eddy-induced
                ! transport at the mixed layer base and a lower interface mass
-               ! flux corresponding to the eddy induced transport at the
+               ! flux corresponding to the eddy-induced transport at the
                ! kintr + 1 interface if this would lead to a hydrostatically
                ! stable layer arrangement.
                km = 2 + nn
                kn = kintr - 1 + nn
-               if ((kfpla(i, j - 1, n) < kintr .and. &
-                    upsilon(3) - upsilon(kintr + 1) > 0._r8 .and. &
-                    rho(p(i, j    , 3), &
-                        temp(i, j - 1, kn), saln(i, j - 1, kn)) > &
-                    rho(p(i, j    , 3), &
-                        temp(i, j    , km), saln(i, j    , km))) .or. &
-                   (kfpla(i, j    , n) < kintr .and. &
-                    upsilon(3) - upsilon(kintr + 1) < 0._r8 .and. &
-                    rho(p(i, j - 1, 3), &
-                        temp(i, j    , kn), saln(i, j    , kn)) > &
-                    rho(p(i, j - 1, 3), &
-                        temp(i, j - 1, km), saln(i, j - 1, km)))) then
+               if ((kfpla(i,j-1,n) < kintr .and. &
+                    upsilon(3) - upsilon(kintr+1) > 0._r8 .and. &
+                    rho(p(i,j  ,3), temp(i,j-1,kn), saln(i,j-1,kn)) > &
+                    rho(p(i,j  ,3), temp(i,j  ,km), saln(i,j  ,km))) .or. &
+                   (kfpla(i,j  ,n) < kintr .and. &
+                    upsilon(3) - upsilon(kintr+1) < 0._r8 .and. &
+                    rho(p(i,j-1,3), temp(i,j  ,kn), saln(i,j  ,kn)) > &
+                    rho(p(i,j-1,3), temp(i,j-1,km), saln(i,j-1,km)))) then
                   kintr = kintr - 1
-                  upsilon(kintr + 1) = upsilon(kintr + 2)
+                  upsilon(kintr+1) = upsilon(kintr+2)
                endif
 
                ! Assign interface mass fluxes.
                kmin = kintr - 1
                mfl(kmin) = 0._r8
                mfl(kintr) = et2mf*upsilon(3)
-               do k = kintr + 1, kmax
+               do k = kintr+1, kmax
                   mfl(k) = et2mf*upsilon(k)
                enddo
-               mfl(kmax + 1) = 0._r8
+               mfl(kmax+1) = 0._r8
 
             endif
 
@@ -777,36 +751,34 @@ contains
             ! fluxes at the scalar points adjacent to the velocity point. These
             ! bounded layer thicknesses are consistent with the transport
             ! algorithm.
-            dlm(kmin) = max(0._r8, min(p(i, j - 1, 3), pbv(i, j, n)) &
-                                 - max(p(i, j - 1, 1), ptv(i, j)))
-            dlp(kmin) = max(0._r8, min(p(i, j    , 3), pbv(i, j, n)) &
-                                 - max(p(i, j    , 1), ptv(i, j)))
+            dlm(kmin) = max(0._r8, min(p(i,j-1,3), pbv(i,j,n)) &
+                                 - max(p(i,j-1,1), ptv(i,j)))
+            dlp(kmin) = max(0._r8, min(p(i,j  ,3), pbv(i,j,n)) &
+                                 - max(p(i,j  ,1), ptv(i,j)))
             do k = kintr, kmax
-               dlm(k) = max(0._r8, min(p(i, j - 1, k + 1), pbv(i, j, n)) &
-                                 - max(p(i, j - 1, k    ), ptv(i, j)))
-               dlp(k) = max(0._r8, min(p(i, j    , k + 1), pbv(i, j, n)) &
-                                 - max(p(i, j    , k    ), ptv(i, j)))
+               dlm(k) = max(0._r8, min(p(i,j-1,k+1), pbv(i,j,n)) &
+                                 - max(p(i,j-1,k  ), ptv(i,j)))
+               dlp(k) = max(0._r8, min(p(i,j  ,k+1), pbv(i,j,n)) &
+                                 - max(p(i,j  ,k  ), ptv(i,j)))
             enddo
 
             ! If excessive depletion of layers occur beneath the mixed layer
             ! base, try to adjust interface fluxes other than the mixed layer
             ! base interface flux.
-            fhi =   fface*max(0._r8, min((p(i, j - 1, 3) - ptv(i, j)) &
-                                         *scp2(i, j - 1), &
-                                         (pbv(i, j, n) - p(i, j    , kintr)) &
-                                         *scp2(i, j    )))
-            flo = - fface*max(0._r8, min((p(i, j   , 3) - ptv(i, j)) &
-                                         *scp2(i, j    ), &
-                                         (pbv(i, j, n) - p(i, j - 1, kintr)) &
-                                         *scp2(i, j - 1)))
-            mfl(kmin + 1) = min(fhi, max(flo, mfl(kmin + 1)))
-            do k = kmin + 1, kmax - 1
-               if     (mfl(k + 1) - mfl(k) > &
-                        ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
-                  mfl(k + 1) = mfl(k) + fface*dlm(k)*scp2(i, j - 1)
-               elseif (mfl(k + 1) - mfl(k) < &
-                      - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
-                  mfl(k + 1) = mfl(k) - fface*dlp(k)*scp2(i, j    )
+            fhi =   fface*max(0._r8, &
+                              min((p(i,j-1,3) - ptv(i,j)      )*scp2(i,j-1), &
+                                  (pbv(i,j,n) - p(i,j  ,kintr))*scp2(i,j  )))
+            flo = - fface*max(0._r8, &
+                              min((p(i,j  ,3) - ptv(i,j)      )*scp2(i,j  ), &
+                                  (pbv(i,j,n) - p(i,j-1,kintr))*scp2(i,j-1)))
+            mfl(kmin+1) = min(fhi, max(flo, mfl(kmin+1)))
+            do k = kmin+1, kmax-1
+               if     (mfl(k+1) - mfl(k) > &
+                        ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
+                  mfl(k+1) = mfl(k) + fface*dlm(k)*scp2(i,j-1)
+               elseif (mfl(k+1) - mfl(k) < &
+                      - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
+                  mfl(k+1) = mfl(k) - fface*dlp(k)*scp2(i,j  )
                else
                   exit
                endif
@@ -826,18 +798,18 @@ contains
                   k = kmin
                   write(lp,*)
                   write(lp,'(i3,3e16.8)') &
-                     1, mfl(k + 1), mfl(k), &
-                     (mfl(k + 1) - mfl(k)) &
-                     /(max(onemm, dpv(i, j, 1 + nn) + dpv(i, j, 2 + nn)) &
-                       *delt1*scvx(i, j))
+                     1, mfl(k+1), mfl(k), &
+                     (mfl(k+1) - mfl(k)) &
+                     /(max(onemm, dpv(i,j,1+nn) + dpv(i,j,2+nn)) &
+                       *delt1*scvx(i,j))
                   do k = kintr, kmax
                      kn = k + nn
                      write(lp,'(i3,3e16.8)') &
-                        k, mfl(k + 1), mfl(k), &
-                        (mfl(k + 1) - mfl(k)) &
-                        /(max(onemm, dpv(i, j, kn))*delt1*scvx(i, j))
+                        k, mfl(k+1), mfl(k), &
+                        (mfl(k+1) - mfl(k)) &
+                        /(max(onemm, dpv(i,j,kn))*delt1*scvx(i,j))
                   enddo
-                  write(lp,*) 'no convergence v', i + i0, j + j0
+                  write(lp,*) 'no convergence v', i+i0, j+j0
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -845,57 +817,56 @@ contains
                changed = .false.
                kdir = - kdir
 
-               do k = ((1 - kdir)*kmax + (1 + kdir)*kmin)/2, &
-                      ((1 - kdir)*kmin + (1 + kdir)*kmax)/2, kdir
+               do k = ((1-kdir)*kmax+(1+kdir)*kmin)/2, &
+                      ((1-kdir)*kmin+(1+kdir)*kmax)/2, kdir
 
                   ! Proceed with flux limiting of this layer if the mass flux
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
-                  if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsilp*scv2(i, j), &
-                                    abs(mfl(k + 1) + mfl(k)))) then
+                  if (abs(mfl(k+1) - mfl(k)) > &
+                      eps*max(epsilp*scv2(i,j), abs(mfl(k+1) + mfl(k)))) then
 
-                     if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
+                     if     (mfl(k+1) - mfl(k) > &
+                              ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j - 1, k). Limit the
+                        ! mass from the grid cell at (i,j-1,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlm(k)*scp2(i, j - 1)
-                        if (mfl(k + 1) > - mfl(k)) then
-                           if (mfl(k    ) > - .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) + q
+                        q = fface*dlm(k)*scp2(i,j-1)
+                        if (mfl(k+1) > - mfl(k)) then
+                           if (mfl(k  ) > - .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) + q
                            else
-                              mfl(k + 1) =   .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) =   .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) <   .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) - q
+                           if (mfl(k+1) <   .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) - q
                            else
-                              mfl(k    ) = - .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) = - .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
-                     elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
+                     elseif (mfl(k+1) - mfl(k) < &
+                            - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j, k). Limit the
+                        ! mass from the grid cell at (i,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlp(k)*scp2(i, j    )
-                        if (mfl(k + 1) < - mfl(k)) then
-                           if (mfl(k    ) <   .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) - q
+                        q = fface*dlp(k)*scp2(i,j  )
+                        if (mfl(k+1) < - mfl(k)) then
+                           if (mfl(k  ) <   .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) - q
                            else
-                              mfl(k + 1) = - .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) = - .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) > - .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) + q
+                           if (mfl(k+1) > - .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) + q
                            else
-                              mfl(k    ) =   .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) =   .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
@@ -911,41 +882,37 @@ contains
             ! ------------------------------------------------------------------
 
             k = kmin
-            if (abs(mfl(k + 1) - mfl(k)) > &
-                1.e-14_r8*max(epsilp*scv2(i, j), &
-                              abs(mfl(k + 1) + mfl(k)))) then
-               vmfltd(i, j, 2 + mm) = mfl(k + 1) - mfl(k)
-               vmfltd(i, j, 1 + mm) = vmfltd(i, j, 2 + mm) &
-                                      *dpv(i, j, 1 + nn)/( dpv(i, j, 1 + nn) &
-                                                         + dpv(i, j, 2 + nn))
-               vmfltd(i, j, 2 + mm) = vmfltd(i, j, 2 + mm) &
-                                    - vmfltd(i, j, 1 + mm)
+            if (abs(mfl(k+1) - mfl(k)) > &
+                eps*max(epsilp*scv2(i,j), abs(mfl(k+1) + mfl(k)))) then
+               vmfltd(i,j,2+mm) = mfl(k+1) - mfl(k)
+               vmfltd(i,j,1+mm) = vmfltd(i,j,2+mm)*dpv(i,j,1+nn) &
+                                  /(dpv(i,j,1+nn) + dpv(i,j,2+nn))
+               vmfltd(i,j,2+mm) = vmfltd(i,j,2+mm) - vmfltd(i,j,1+mm)
             else
-               vmfltd(i, j, 1 + mm) = 0._r8
-               vmfltd(i, j, 2 + mm) = 0._r8
+               vmfltd(i,j,1+mm) = 0._r8
+               vmfltd(i,j,2+mm) = 0._r8
             endif
             do k = kintr, kmax
                km = k + mm
-               if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsilp*scv2(i, j), &
-                                 abs(mfl(k + 1) + mfl(k)))) then
-                  vmfltd(i, j, km) = mfl(k + 1) - mfl(k)
+               if (abs(mfl(k+1) - mfl(k)) > &
+                   eps*max(epsilp*scv2(i,j), abs(mfl(k+1) + mfl(k)))) then
+                  vmfltd(i,j,km) = mfl(k+1) - mfl(k)
                else
-                  vmfltd(i, j, km) = 0._r8
+                  vmfltd(i,j,km) = 0._r8
                endif
-               if (vmfltd(i, j, km) > &
-                    ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
+               if (vmfltd(i,j,km) > &
+                    ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml v >', &
-                              i + i0, j + j0, k, vmfltd(i, j, km), &
-                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)
+                              i+i0, j+j0, k, vmfltd(i,j,km), &
+                              ffac*max(epsilp, dlm(k))*scp2(i,j-1)
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
-               if (vmfltd(i, j, km) < &
-                  - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
+               if (vmfltd(i,j,km) < &
+                  - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
                   write(lp,*) 'eddtra_gm_isopyc_bulkml v <', &
-                              i + i0, j + j0, k, vmfltd(i, j, km), &
-                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )
+                              i+i0, j+j0, k, vmfltd(i,j,km), &
+                            - ffac*max(epsilp, dlp(k))*scp2(i,j  )
                   call xchalt('(eddtra_gm_isopyc_bulkml)')
                          stop '(eddtra_gm_isopyc_bulkml)'
                endif
@@ -958,7 +925,7 @@ contains
 
    end subroutine eddtra_gm_isopyc_bulkml
 
-   subroutine eddtra_gm_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+   subroutine eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
    ! ---------------------------------------------------------------------------
    ! Estimate eddy-induced transport following the Gent-McWilliams
    ! parameterization.
@@ -968,37 +935,106 @@ contains
 
       ! Parameters:
       real(r8), parameter :: &
-         ffac  = .0625_r8, & ! Fraction of the mass of a grid cell a mass flux
-                             ! is allowed to deplete [].
-         fface = .99_r8*ffac ! (1-epsilon)*ffac [].
+         ffac  = .0625_r8, &    ! Fraction of the mass of a grid cell a mass
+                                ! flux is allowed to deplete [].
+         fface = .99_r8*ffac, & ! (1-epsilon)*ffac [].
+         eps   = 1.e-14_r8, &   ! Small non-dimensional value [].
+         rtau  = 1._r8/86400._r8, &
+         lfmin = 5.e3_r8*L_mks2cgs, &
+         c5_21 = 5._r8/21._r8
 
-      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ptu, ptv
-      real(r8), dimension(kdm+1) :: mfl
-      real(r8), dimension(kdm) :: puv, dlm, dlp
-      real(r8) :: q, et2mf, mlp, kappa
+      real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+         upssmx, upssmy, ptu, ptv
+      real(r8), dimension(kdm+1) :: puv, mflgm, mflsm, mfl
+      real(r8), dimension(kdm) :: dlm, dlp
+      real(r8) :: mlp, mldpi, tmldp, smldp, csm, f, absfi, lfi, &
+                  mfleps, et2mf, mldh, kappa, q
       integer :: i, j, k, l, km, kn, kmax, kml, niter, kdir
       logical :: changed
 
       call xctilr(difint, 1, kk, 2, 2, halo_ps)
       call xctilr(pbu, 1, 2, 2, 2, halo_us)
       call xctilr(pbv, 1, 2, 2, 2, halo_vs)
-      call xctilr(mlts, 1, 1, 1, 1, halo_ps)
+      call xctilr(mlts, 1, 1, 2, 2, halo_ps)
+
+      ! ------------------------------------------------------------------------
+      ! Compute the depth invariant lateral components of submesoscale eddy
+      ! transport (upsilon) according to Fox-Kemper et al. (2008).
+      ! ------------------------------------------------------------------------
+
+      ! Compute vertically averaged mixed layer density [g cm-3].
+   !$omp parallel do private(l, i, mlp, mldpi, tmldp, smldp, k, kn)
+      do j=1,jj
+         do l=1,isp(j)
+         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            mlp = min(p(i,j,1) + mlts(i,j)*(onem*iL_mks2cgs), p(i,j,kk+1))
+            mldpi = 1._r8/(mlp - p(i,j,1))
+            tmldp = 0._r8
+            smldp = 0._r8
+            do k = 1, kk
+               kn = k + nn
+               if (p(i,j,k+1) < mlp) then
+                  tmldp = tmldp + temp(i,j,kn)*dp(i,j,kn)
+                  smldp = smldp + saln(i,j,kn)*dp(i,j,kn)
+               else
+                  tmldp = tmldp + temp(i,j,kn)*(mlp - p(i,j,k))
+                  smldp = smldp + saln(i,j,kn)*(mlp - p(i,j,k))
+                  exit
+               endif
+            enddo
+            util1(i,j) = sig0(tmldp*mldpi, smldp*mldpi)
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+      call xctilr(util1, 1,1, 2,2, halo_ps)
+
+      ! Compute components of submesoscale eddy transport [cm2 s-1].
+      csm = g*alpha0*ce
+   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
+      do j = -1, jj+2
+         do l = 1, isu(j)
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            mldh = .5_r8*(mlts(i-1,j) + mlts(i,j))
+            f = .5_r8*(coriop(i-1,j) + coriop(i,j))
+            absfi = 1._r8/sqrt(f*f + rtau*rtau)
+            lfi = 1._r8/max(sqrt(dbcrit*mldh)*absfi, lfmin)
+!           lfi = 1._r8/lfmin
+            upssmx(i,j) = csm*mldh*mldh*(util1(i,j) - util1(i-1,j))*lfi*absfi
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
+   !$omp parallel do private(l, i, mldh, f, absfi, lfi)
+      do j = 0, jj+2
+         do l = 1, isv(j)
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            mldh = .5_r8*(mlts(i,j-1) + mlts(i,j))
+            f = .5_r8*(coriop(i,j-1) + coriop(i,j))
+            absfi = 1._r8/sqrt(f*f + rtau*rtau)
+            lfi = 1._r8/max(sqrt(dbcrit*mldh)*absfi, lfmin)
+!           lfi = 1._r8/lfmin
+            upssmy(i,j) = csm*mldh*mldh*(util1(i,j) - util1(i,j-1))*lfi*absfi
+         enddo
+         enddo
+      enddo
+   !$omp end parallel do
 
       ! Compute top pressure at velocity points.
    !$omp parallel do private(l, i)
-      do j= - 1, jj + 2
+      do j = -1, jj+2
          do l = 1, isu(j)
-         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
-            ptu(i, j) = max(p(i - 1, j, 1), p(i, j, 1))
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
+            ptu(i,j) = max(p(i-1,j,1), p(i,j,1))
          enddo
          enddo
       enddo
    !$omp end parallel do
    !$omp parallel do private(l, i)
-      do j = 0, jj + 2
+      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
-            ptv(i, j) = max(p(i, j - 1, 1), p(i, j, 1))
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
+            ptv(i,j) = max(p(i,j-1,1), p(i,j,1))
          enddo
          enddo
       enddo
@@ -1008,72 +1044,106 @@ contains
      ! Compute u-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, puv, kn, mlp, kml, &
-   !$omp                     kappa, mfl, dlm, dlp, changed, niter, kdir, q)
-      do j = - 1, jj + 2
+   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
+   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
+   !$omp                     dlm, dlp, changed, niter, kdir)
+      do j = -1, jj+2
          do l = 1, isu(j)
-         do i = max(0, ifu(j, l)), min(ii + 2, ilu(j, l))
+         do i = max(0, ifu(j,l)), min(ii+2, ilu(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
                km = k + mm
-               umfltd(i, j, km) = 0._r8
+               umfltd(i,j,km) = 0._r8
+               umflsm(i,j,km) = 0._r8
             enddo
+
+            ! Small value with the same dimension as eddy-induced mass flux.
+            mfleps = eps*epsilp*scu2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scuy(i, j)
+            et2mf = - g*rho0*delt1*scuy(i,j)
 
-            ! Find index of last layer containing mass at either of the scalar
-            ! points adjacent to the velocity point and pressure at interfaces.
+            ! Get interface pressures and find index of last layer containing
+            ! mass at either of the scalar points adjacent to the velocity point
+            ! and pressure at interfaces.
             kmax = 1
             puv(1) = ptu(i,j)
-            do k = 2, kk
+            do k = 1, kk
                kn = k + nn
-               puv(k) = puv(k - 1) + dpu(i, j, kn - 1)
-               if (dp(i - 1, j, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
-                  kmax = k
+               puv(k+1) = puv(k) + dpu(i,j,kn)
+               if (dp(i-1,j,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Compute the eddy induced mass flux at layer interfaces below the
+            ! Mixed layer thickness [cm].
+            mldh = .5_r8*(mlts(i-1,j) + mlts(i,j))
+
+            ! Pressure of mixed layer base [g cm-1 s-2].
+            mlp = min(puv(1) + mldh*(onem*iL_mks2cgs), puv(kmax+1))
+
+            ! Multiplicative inverse of mixed layer pressure thickness
+            ! [g cm-1 s-2].
+            mldpi = 1._r8/(mlp - puv(1))
+
+            ! Find index of first interface below the mixed layer base.
             ! mixed layer.
-            mlp = .5_r8*(mlts(i - 1, j) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
-            mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
                if (puv(k) > mlp) then
-                  kappa = .25_r8*( difint(i - 1, j, k - 1) &
-                                 + difint(i    , j, k - 1) &
-                                 + difint(i - 1, j, k    ) &
-                                 + difint(i    , j, k    ))
-                  mfl(k) = - kappa*nslpx(i, j, k)*et2mf
                   kml = k
                else
                   exit
                endif
             enddo
 
-            ! In the mixed layer, let the eddy induced mass flux change
+            ! Compute the GM eddy-induced mass flux at layer interfaces below
+            ! the mixed layer base.
+            do k = kml, kmax
+               kappa = .25_r8*( difint(i-1,j,k-1) + difint(i,j,k-1) &
+                              + difint(i-1,j,k  ) + difint(i,j,k  ))
+               mflgm(k) = - kappa*nslpx(i,j,k)*et2mf
+            enddo
+            mflgm(kmax+1) = 0._r8
+
+            ! In the mixed layer, let the GM eddy-induced mass flux change
             ! linearly, with respect to interface pressure, from zero at the
             ! surface to the mass flux below the mixed layer.
-            mfl(1) = 0._r8
-            q = 1._r8/(mlp - puv(1))
+            mflgm(1) = 0._r8
             do k = 2, kml - 1
-               mfl(k) = mfl(kml)*(puv(k) - puv(1))*q
+               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*mldpi
+            enddo
+
+            ! Using a prescibed vertical structure function, compute the
+            ! submesoscale eddy-induced mass flux at layer interfaces within the
+            ! mixed layer.
+            mflsm(1) = 0._r8
+            do k = 2, kml - 1
+               q = (2._r8*(puv(1) - puv(k))*mldpi + 1._r8)**2
+               mflsm(k) = - upssmx(i,j)*(1._r8 - q)*(1._r8 + c5_21*q)*et2mf
+            enddo
+            do k = kml, kmax+1
+               mflsm(k) = 0._r8
             enddo
 
             ! ------------------------------------------------------------------
             ! Ensure that mass fluxes do not create negative layer thicknesses.
             ! ------------------------------------------------------------------
 
+            ! Apply limiting on the sum of GM and submesoscale eddy-induced mass
+            ! fluxes.
+            do k = 1, kmax+1
+               mfl(k) = mflgm(k) + mflsm(k)
+            enddo
+
             ! Compute the layer thicknesses available to be depleted by mass
             ! fluxes at the scalar points adjacent to the velocity point. These
             ! bounded layer thicknesses are consistent with the transport
             ! algorithm.
             do k = 1, kmax
-               dlm(k) = max(0._r8, min(p(i - 1, j, k + 1), pbu(i, j, n)) &
-                                 - max(p(i - 1, j, k    ), ptu(i, j)))
-               dlp(k) = max(0._r8, min(p(i    , j, k + 1), pbu(i, j, n)) &
-                                 - max(p(i    , j, k    ), ptu(i, j)))
+               dlm(k) = max(0._r8, min(p(i-1,j,k+1), pbu(i,j,n)) &
+                                 - max(p(i-1,j,k  ), ptu(i,j)))
+               dlp(k) = max(0._r8, min(p(i  ,j,k+1), pbu(i,j,n)) &
+                                 - max(p(i  ,j,k  ), ptu(i,j)))
             enddo
 
             ! Apply an iterative procedure for flux limiting by alternate upward
@@ -1090,69 +1160,67 @@ contains
                   do k = 1, kmax
                      kn = k + nn
                      write(lp,'(i3,3e16.8)') &
-                        k, mfl(k + 1), mfl(k), &
-                        (mfl(k + 1) - mfl(k)) &
-                        /(max(onemm, dpu(i, j, kn))*delt1*scuy(i, j))
+                        k, mfl(k+1), mfl(k), &
+                        (mfl(k+1) - mfl(k)) &
+                        /(max(onemm, dpu(i,j,kn))*delt1*scuy(i,j))
                   enddo
-                  write(lp,*) 'no convergence u', i + i0, j + j0
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+                  write(lp,*) 'no convergence u', i+i0, j+j0
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
 
                changed = .false.
                kdir = - kdir
 
-               do k = (1 + kdir + (1 - kdir)*kmax)/2, &
-                      (1 - kdir + (1 + kdir)*kmax)/2, kdir
+               do k = (1+kdir+(1-kdir)*kmax)/2, (1-kdir+(1+kdir)*kmax)/2, kdir
 
                   ! Proceed with flux limiting of this layer if the mass flux
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
-                  if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsilp*scu2(i, j), &
-                                    abs(mfl(k + 1) + mfl(k)))) then
+                  if (abs(mfl(k+1) - mfl(k)) > &
+                      max(mfleps, eps*abs(mfl(k+1) + mfl(k)))) then
 
-                     if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
+                     if     (mfl(k+1) - mfl(k) > &
+                              ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i - 1, j, k). Limit the
+                        ! mass from the grid cell at (i-1,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlm(k)*scp2(i - 1, j)
-                        if (mfl(k + 1) > - mfl(k)) then
-                           if (mfl(k    ) > - .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) + q
+                        q = fface*dlm(k)*scp2(i-1,j)
+                        if (mfl(k+1) > - mfl(k)) then
+                           if (mfl(k  ) > - .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) + q
                            else
-                              mfl(k + 1) =   .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) =   .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) <   .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) - q
+                           if (mfl(k+1) <   .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) - q
                            else
-                              mfl(k    ) = - .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) = - .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
-                     elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
+                     elseif (mfl(k+1) - mfl(k) < &
+                            - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j, k). Limit the
+                        ! mass from the grid cell at (i,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlp(k)*scp2(i    , j)
-                        if (mfl(k + 1) < - mfl(k)) then
-                           if (mfl(k    ) <   .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) - q
+                        q = fface*dlp(k)*scp2(i  ,j)
+                        if (mfl(k+1) < - mfl(k)) then
+                           if (mfl(k  ) <   .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) - q
                            else
-                              mfl(k + 1) = - .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) = - .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) > - .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) + q
+                           if (mfl(k+1) > - .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) + q
                            else
-                              mfl(k    ) =   .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) =   .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
@@ -1163,34 +1231,77 @@ contains
 
             enddo
 
+            ! Adjust the GM and submesoscale eddy-induced mass fluxes so their
+            ! sum matches the limited total mass flux.
+            do k = 1, kmax+1
+               if (abs(mfl(k)) < mfleps) then
+                  mfl(k) = 0._r8
+                  mflgm(k) = 0._r8
+                  mflsm(k) = 0._r8
+               elseif (mfl(k) > 0._r8) then
+                  if (mflgm(k) > mflsm(k)) then
+                     if (mfl(k) > 2._r8*mflsm(k)) then
+                        mflgm(k) = mfl(k) - mflsm(k)
+                     else
+                        mflgm(k) = .5_r8*mfl(k)
+                        mflsm(k) = mflgm(k)
+                     endif
+                  else
+                     if (mfl(k) > 2._r8*mflgm(k)) then
+                        mflsm(k) = mfl(k) - mflgm(k)
+                     else
+                        mflsm(k) = .5_r8*mfl(k)
+                        mflgm(k) = mflsm(k)
+                     endif
+                  endif
+               else
+                  if (mflgm(k) < mflsm(k)) then
+                     if (mfl(k) < 2._r8*mflsm(k)) then
+                        mflgm(k) = mfl(k) - mflsm(k)
+                     else
+                        mflgm(k) = .5_r8*mfl(k)
+                        mflsm(k) = mflgm(k)
+                     endif
+                  else
+                     if (mfl(k) < 2._r8*mflgm(k)) then
+                        mflsm(k) = mfl(k) - mflgm(k)
+                     else
+                        mflsm(k) = .5_r8*mfl(k)
+                        mflgm(k) = mflsm(k)
+                     endif
+                  endif
+               endif
+            enddo
+
             ! ------------------------------------------------------------------
             ! Compute the final mass fluxes.
             ! ------------------------------------------------------------------
 
             do k = 1, kmax
                km = k + mm
-               if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsilp*scu2(i, j), &
-                                 abs(mfl(k + 1) + mfl(k)))) then
-                  umfltd(i, j, km) = mfl(k + 1) - mfl(k)
+               if (abs(mfl(k+1) - mfl(k)) > &
+                   max(mfleps, eps*abs(mfl(k+1) + mfl(k)))) then
+                  umfltd(i,j,km) = mflgm(k+1) - mflgm(k)
+                  umflsm(i,j,km) = mflsm(k+1) - mflsm(k)
                else
-                  umfltd(i, j, km) = 0._r8
+                  umfltd(i,j,km) = 0._r8
+                  umflsm(i,j,km) = 0._r8
                endif
-               if (umfltd(i, j, km) > &
-                    ffac*max(epsilp, dlm(k))*scp2(i - 1, j)) then
-                  write(lp,*) 'eddtra_gm_cntiso_hybrid u >', &
-                              i + i0, j + j0, k, umfltd(i, j, km), &
-                              ffac*max(epsilp, dlm(k))*scp2(i - 1, j)
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+               if (umfltd(i,j,km) + umflsm(i,j,km) > &
+                    ffac*max(epsilp, dlm(k))*scp2(i-1,j)) then
+                  write(lp,*) 'eddtra_cntiso_hybrid u >', &
+                              i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
+                              ffac*max(epsilp, dlm(k))*scp2(i-1,j)
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
-               if (umfltd(i, j, km) < &
-                  - ffac*max(epsilp, dlp(k))*scp2(i    , j)) then
-                  write(lp,*) 'eddtra_gm_cntiso_hybrid u <', &
-                              i + i0, j + j0, k, umfltd(i, j, km), &
-                            - ffac*max(epsilp, dlp(k))*scp2(i    , j)
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+               if (umfltd(i,j,km) + umflsm(i,j,km) < &
+                  - ffac*max(epsilp, dlp(k))*scp2(i  ,j)) then
+                  write(lp,*) 'eddtra_cntiso_hybrid u <', &
+                              i+i0, j+j0, k, umfltd(i,j,km) + umflsm(i,j,km), &
+                            - ffac*max(epsilp, dlp(k))*scp2(i  ,j)
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
             enddo
 
@@ -1203,72 +1314,106 @@ contains
      ! Compute v-component of eddy-induced mass fluxes.
      ! -------------------------------------------------------------------------
 
-   !$omp parallel do private(l, i, k, km, et2mf, kmax, puv, kn, mlp, kml, &
-   !$omp                     kappa, mfl, dlm, dlp, changed, niter, kdir, q)
-      do j = 0, jj + 2
+   !$omp parallel do private(l, i, k, km, mfleps, et2mf, kmax, puv, kn, mldh, &
+   !$omp                     mlp, mldpi, kml, kappa, mflgm, mflsm, q, mfl, &
+   !$omp                     dlm, dlp, changed, niter, kdir)
+      do j = 0, jj+2
          do l = 1, isv(j)
-         do i = max(- 1, ifv(j, l)), min(ii + 2, ilv(j, l))
+         do i = max(-1, ifv(j,l)), min(ii+2, ilv(j,l))
 
             ! Set eddy-induced mass fluxes to zero initially.
             do k = 1, kk
                km = k + mm
-               vmfltd(i, j, km) = 0._r8
+               vmfltd(i,j,km) = 0._r8
+               vmflsm(i,j,km) = 0._r8
             enddo
+
+            ! Small value with the same dimension as eddy-induced mass flux.
+            mfleps = eps*epsilp*scv2(i,j)
 
             ! Eddy transport to mass flux conversion factor.
-            et2mf = - g*rho0*delt1*scvx(i, j)
+            et2mf = - g*rho0*delt1*scvx(i,j)
 
-            ! Find index of last layer containing mass at either of the scalar
-            ! points adjacent to the velocity point and pressure at interfaces.
+            ! Get interface pressures and find index of last layer containing
+            ! mass at either of the scalar points adjacent to the velocity point
+            ! and pressure at interfaces.
             kmax = 1
             puv(1) = ptv(i,j)
-            do k = 2, kk
+            do k = 1, kk
                kn = k + nn
-               puv(k) = puv(k - 1) + dpv(i, j, kn - 1)
-               if (dp(i, j - 1, kn) > epsilp .or. dp(i, j, kn) > epsilp) &
-                  kmax = k
+               puv(k+1) = puv(k) + dpv(i,j,kn)
+               if (dp(i,j-1,kn) > epsilp .or. dp(i,j,kn) > epsilp) kmax = k
             enddo
 
-            ! Compute the eddy induced mass flux at layer interfaces below the
+            ! Mixed layer thickness [cm].
+            mldh = .5_r8*(mlts(i,j-1) + mlts(i,j))
+
+            ! Pressure of mixed layer base [g cm-1 s-2].
+            mlp = min(puv(1) + mldh*(onem*iL_mks2cgs), puv(kmax+1))
+
+            ! Multiplicative inverse of mixed layer pressure thickness
+            ! [g cm-1 s-2].
+            mldpi = 1._r8/(mlp - puv(1))
+
+            ! Find index of first interface below the mixed layer base.
             ! mixed layer.
-            mlp = .5_r8*(mlts(i, j - 1) + mlts(i, j))*(onem*iL_mks2cgs)
             kml = kmax + 1
-            mfl(kmax + 1) = 0._r8
             do k = kmax, 2, -1
                if (puv(k) > mlp) then
-                  kappa = .25_r8*( difint(i, j - 1, k - 1) &
-                                 + difint(i, j    , k - 1) &
-                                 + difint(i, j - 1, k    ) &
-                                 + difint(i, j    , k    ))
-                  mfl(k) = - kappa*nslpy(i, j, k)*et2mf
                   kml = k
                else
                   exit
                endif
             enddo
 
-            ! In the mixed layer, let the eddy induced mass flux change
+            ! Compute the GM eddy-induced mass flux at layer interfaces below
+            ! the mixed layer base.
+            do k = kml, kmax
+               kappa = .25_r8*( difint(i,j-1,k-1) + difint(i,j,k-1) &
+                              + difint(i,j-1,k  ) + difint(i,j,k  ))
+               mflgm(k) = - kappa*nslpy(i,j,k)*et2mf
+            enddo
+            mflgm(kmax+1) = 0._r8
+
+            ! In the mixed layer, let the GM eddy-induced mass flux change
             ! linearly, with respect to interface pressure, from zero at the
             ! surface to the mass flux below the mixed layer.
-            mfl(1) = 0._r8
-            q = 1._r8/(mlp - puv(1))
+            mflgm(1) = 0._r8
             do k = 2, kml - 1
-               mfl(k) = mfl(kml)*(puv(k) - puv(1))*q
+               mflgm(k) = mflgm(kml)*(puv(k) - puv(1))*mldpi
+            enddo
+
+            ! Using a prescibed vertical structure function, compute the
+            ! submesoscale eddy-induced mass flux at layer interfaces within the
+            ! mixed layer.
+            mflsm(1) = 0._r8
+            do k = 2, kml - 1
+               q = (2._r8*(puv(1) - puv(k))*mldpi + 1._r8)**2
+               mflsm(k) = - upssmy(i,j)*(1._r8 - q)*(1._r8 + c5_21*q)*et2mf
+            enddo
+            do k = kml, kmax+1
+               mflsm(k) = 0._r8
             enddo
 
             ! ------------------------------------------------------------------
             ! Ensure that mass fluxes do not create negative layer thicknesses.
             ! ------------------------------------------------------------------
 
+            ! Apply limiting on the sum of GM and submesoscale eddy-induced mass
+            ! fluxes.
+            do k = 1, kmax+1
+               mfl(k) = mflgm(k) + mflsm(k)
+            enddo
+
             ! Compute the layer thicknesses available to be depleted by mass
             ! fluxes at the scalar points adjacent to the velocity point. These
             ! bounded layer thicknesses are consistent with the transport
             ! algorithm.
             do k = 1, kmax
-               dlm(k) = max(0._r8, min(p(i, j - 1, k + 1), pbv(i, j, n)) &
-                                 - max(p(i, j - 1, k    ), ptv(i, j)))
-               dlp(k) = max(0._r8, min(p(i, j    , k + 1), pbv(i, j, n)) &
-                                 - max(p(i, j    , k    ), ptv(i, j)))
+               dlm(k) = max(0._r8, min(p(i,j-1,k+1), pbv(i,j,n)) &
+                                 - max(p(i,j-1,k  ), ptv(i,j)))
+               dlp(k) = max(0._r8, min(p(i,j  ,k+1), pbv(i,j,n)) &
+                                 - max(p(i,j  ,k  ), ptv(i,j)))
             enddo
 
             ! Apply an iterative procedure for flux limiting by alternate upward
@@ -1285,69 +1430,67 @@ contains
                   do k = 1, kmax
                      kn = k + nn
                      write(lp,'(i3,3e16.8)') &
-                        k, mfl(k + 1), mfl(k), &
-                        (mfl(k + 1) - mfl(k)) &
-                        /(max(onemm, dpv(i, j, kn))*delt1*scvx(i, j))
+                        k, mfl(k+1), mfl(k), &
+                        (mfl(k+1) - mfl(k)) &
+                        /(max(onemm, dpv(i,j,kn))*delt1*scvx(i,j))
                   enddo
-                  write(lp,*) 'no convergence v', i + i0, j + j0
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+                  write(lp,*) 'no convergence v', i+i0, j+j0
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
 
                changed = .false.
                kdir = - kdir
 
-               do k = (1 + kdir + (1 - kdir)*kmax)/2, &
-                      (1 - kdir + (1 + kdir)*kmax)/2, kdir
+               do k = (1+kdir+(1-kdir)*kmax)/2, (1-kdir+(1+kdir)*kmax)/2, kdir
 
                   ! Proceed with flux limiting of this layer if the mass flux
                   ! difference between lower and upper interface is beyond the
                   ! floating point accuracy limitation.
-                  if (abs(mfl(k + 1) - mfl(k)) > &
-                      1.e-14_r8*max(epsilp*scv2(i, j), &
-                                    abs(mfl(k + 1) + mfl(k)))) then
+                  if (abs(mfl(k+1) - mfl(k)) > &
+                      max(mfleps, eps*abs(mfl(k+1) + mfl(k)))) then
 
-                     if     (mfl(k + 1) - mfl(k) > &
-                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
+                     if     (mfl(k+1) - mfl(k) > &
+                              ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j - 1, k). Limit the
+                        ! mass from the grid cell at (i,j-1,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlm(k)*scp2(i, j - 1)
-                        if (mfl(k + 1) > - mfl(k)) then
-                           if (mfl(k    ) > - .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) + q
+                        q = fface*dlm(k)*scp2(i,j-1)
+                        if (mfl(k+1) > - mfl(k)) then
+                           if (mfl(k  ) > - .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) + q
                            else
-                              mfl(k + 1) =   .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) =   .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) <   .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) - q
+                           if (mfl(k+1) <   .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) - q
                            else
-                              mfl(k    ) = - .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) = - .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
-                     elseif (mfl(k + 1) - mfl(k) < &
-                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
+                     elseif (mfl(k+1) - mfl(k) < &
+                            - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
                         ! In this case, the mass fluxes are removing too much
-                        ! mass from the grid cell at (i, j, k). Limit the
+                        ! mass from the grid cell at (i,j,k). Limit the
                         ! dominating interface flux.
-                        q = fface*dlp(k)*scp2(i, j    )
-                        if (mfl(k + 1) < - mfl(k)) then
-                           if (mfl(k    ) <   .5_r8*q) then
-                              mfl(k + 1) =   mfl(k    ) - q
+                        q = fface*dlp(k)*scp2(i,j  )
+                        if (mfl(k+1) < - mfl(k)) then
+                           if (mfl(k  ) <   .5_r8*q) then
+                              mfl(k+1) =   mfl(k  ) - q
                            else
-                              mfl(k + 1) = - .5_r8*q
-                              mfl(k    ) = - mfl(k + 1)
+                              mfl(k+1) = - .5_r8*q
+                              mfl(k  ) = - mfl(k+1)
                            endif
                         else
-                           if (mfl(k + 1) > - .5_r8*q) then
-                              mfl(k    ) =   mfl(k + 1) + q
+                           if (mfl(k+1) > - .5_r8*q) then
+                              mfl(k  ) =   mfl(k+1) + q
                            else
-                              mfl(k    ) =   .5_r8*q
-                              mfl(k + 1) = - mfl(k    )
+                              mfl(k  ) =   .5_r8*q
+                              mfl(k+1) = - mfl(k  )
                            endif
                         endif
                         changed = .true.
@@ -1358,34 +1501,77 @@ contains
 
             enddo
 
+            ! Adjust the GM and submesoscale eddy-induced mass fluxes so their
+            ! sum matches the limited total mass flux.
+            do k = 1, kmax+1
+               if (abs(mfl(k)) < mfleps) then
+                  mfl(k) = 0._r8
+                  mflgm(k) = 0._r8
+                  mflsm(k) = 0._r8
+               elseif (mfl(k) > 0._r8) then
+                  if (mflgm(k) > mflsm(k)) then
+                     if (mfl(k) > 2._r8*mflsm(k)) then
+                        mflgm(k) = mfl(k) - mflsm(k)
+                     else
+                        mflgm(k) = .5_r8*mfl(k)
+                        mflsm(k) = mflgm(k)
+                     endif
+                  else
+                     if (mfl(k) > 2._r8*mflgm(k)) then
+                        mflsm(k) = mfl(k) - mflgm(k)
+                     else
+                        mflsm(k) = .5_r8*mfl(k)
+                        mflgm(k) = mflsm(k)
+                     endif
+                  endif
+               else
+                  if (mflgm(k) < mflsm(k)) then
+                     if (mfl(k) < 2._r8*mflsm(k)) then
+                        mflgm(k) = mfl(k) - mflsm(k)
+                     else
+                        mflgm(k) = .5_r8*mfl(k)
+                        mflsm(k) = mflgm(k)
+                     endif
+                  else
+                     if (mfl(k) < 2._r8*mflgm(k)) then
+                        mflsm(k) = mfl(k) - mflgm(k)
+                     else
+                        mflsm(k) = .5_r8*mfl(k)
+                        mflgm(k) = mflsm(k)
+                     endif
+                  endif
+               endif
+            enddo
+
             ! ------------------------------------------------------------------
             ! Compute the final mass fluxes.
             ! ------------------------------------------------------------------
 
             do k = 1, kmax
                km = k + mm
-               if (abs(mfl(k + 1) - mfl(k)) > &
-                   1.e-14_r8*max(epsilp*scv2(i, j), &
-                                 abs(mfl(k + 1) + mfl(k)))) then
-                  vmfltd(i, j, km) = mfl(k + 1) - mfl(k)
+               if (abs(mfl(k+1) - mfl(k)) > &
+                   max(mfleps, eps*abs(mfl(k+1) + mfl(k)))) then
+                  vmfltd(i,j,km) = mflgm(k+1) - mflgm(k)
+                  vmflsm(i,j,km) = mflsm(k+1) - mflsm(k)
                else
-                  vmfltd(i, j, km) = 0._r8
+                  vmfltd(i,j,km) = 0._r8
+                  vmflsm(i,j,km) = 0._r8
                endif
-               if (vmfltd(i, j, km) > &
-                    ffac*max(epsilp, dlm(k))*scp2(i, j - 1)) then
-                  write(lp,*) 'eddtra_gm_cntiso_hybrid v >', &
-                              i + i0, j + j0, k, vmfltd(i, j, km), &
-                              ffac*max(epsilp, dlm(k))*scp2(i, j - 1)
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+               if (vmfltd(i,j,km) + vmflsm(i,j,km) > &
+                    ffac*max(epsilp, dlm(k))*scp2(i,j-1)) then
+                  write(lp,*) 'eddtra_cntiso_hybrid v >', &
+                              i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
+                              ffac*max(epsilp, dlm(k))*scp2(i,j-1)
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
-               if (vmfltd(i, j, km) < &
-                  - ffac*max(epsilp, dlp(k))*scp2(i, j    )) then
-                  write(lp,*) 'eddtra_gm_cntiso_hybrid v <', &
-                              i + i0, j + j0, k, vmfltd(i, j, km), &
-                            - ffac*max(epsilp, dlp(k))*scp2(i, j    )
-                  call xchalt('(eddtra_gm_cntiso_hybrid)')
-                         stop '(eddtra_gm_cntiso_hybrid)'
+               if (vmfltd(i,j,km) + vmflsm(i,j,km) < &
+                  - ffac*max(epsilp, dlp(k))*scp2(i,j  )) then
+                  write(lp,*) 'eddtra_cntiso_hybrid v <', &
+                              i+i0, j+j0, k, vmfltd(i,j,km) + vmflsm(i,j,km), &
+                            - ffac*max(epsilp, dlp(k))*scp2(i,j  )
+                  call xchalt('(eddtra_cntiso_hybrid)')
+                         stop '(eddtra_cntiso_hybrid)'
                endif
             enddo
 
@@ -1394,7 +1580,7 @@ contains
       enddo
    !$omp end parallel do
 
-   end subroutine eddtra_gm_cntiso_hybrid
+   end subroutine eddtra_cntiso_hybrid
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
@@ -1407,10 +1593,12 @@ contains
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
+      real(r8) :: q
       integer :: i, j, k, l, km
 
-      ! Compute eddy-induced transport of mass.
       if (vcoord_type_tag == isopyc_bulkml) then
+
+         ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_intdif) then
             call eddtra_intdif_isopyc_bulkml(m, n, mm, nn, k1m, k1n)
          elseif (eitmth_opt == eitmth_gm) then
@@ -1424,9 +1612,37 @@ contains
             call xcstop('(eddtra)')
                    stop '(eddtra)'
          endif
+
+         ! Diagnose eddy-induced transport components of heat and salt.
+      !$omp parallel do private(k, km, l, i)
+         do j = 1, jj
+            do k = 1, kk
+               km = k + mm
+               do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+                  utfltd(i,j,km) = .5_r8*umfltd(i,j,km) &
+                                   *(temp(i-1,j,km) + temp(i,j,km))
+                  usfltd(i,j,km) = .5_r8*umfltd(i,j,km) &
+                                   *(saln(i-1,j,km) + saln(i,j,km))
+               enddo
+               enddo
+               do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+                  vtfltd(i,j,km) = .5_r8*vmfltd(i,j,km) &
+                                   *(temp(i,j-1,km) + temp(i,j,km))
+                  vsfltd(i,j,km) = .5_r8*vmfltd(i,j,km) &
+                                   *(saln(i,j-1,km) + saln(i,j,km))
+               enddo
+               enddo
+            enddo
+         enddo
+      !$omp end parallel do
+
       else
+
+         ! Compute eddy-induced transport of mass.
          if     (eitmth_opt == eitmth_gm) then
-            call eddtra_gm_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
+            call eddtra_cntiso_hybrid(m, n, mm, nn, k1m, k1n)
          else
             if (mnproc == 1) then
                write(lp,'(a,i1,2a)') &
@@ -1436,43 +1652,54 @@ contains
             call xcstop('(eddtra)')
                    stop '(eddtra)'
          endif
-      endif
 
-      ! Diagnose eddy-induced transport components of heat and salt.
-   !$omp parallel do private(k,km,l,i)
-      do j = 1, jj
-         do k = 1, kk
-            km = k + mm
-            do l = 1, isu(j)
-            do i = max(1, ifu(j, l)), min(ii, ilu(j, l))
-               utfltd(i, j, km) = .5_r8*umfltd(i, j, km) &
-                                  *(temp(i - 1, j, km) + temp(i, j, km))
-               usfltd(i, j, km) = .5_r8*umfltd(i, j, km) &
-                                  *(saln(i - 1, j, km) + saln(i, j, km))
-            enddo
-            enddo
-            do l = 1, isv(j)
-            do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
-               vtfltd(i, j, km) = .5_r8*vmfltd(i, j, km) &
-                                  *(temp(i, j - 1, km) + temp(i, j, km))
-               vsfltd(i, j, km) = .5_r8*vmfltd(i, j, km) &
-                                  *(saln(i, j - 1, km) + saln(i, j, km))
-            enddo
+         ! Diagnose eddy-induced transport components of heat and salt.
+      !$omp parallel do private(k, km, l, i, q)
+         do j = 1, jj
+            do k = 1, kk
+               km = k + mm
+               do l = 1, isu(j)
+               do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+                  q = .5_r8*(temp(i-1,j,km) + temp(i,j,km))
+                  utfltd(i,j,km) = umfltd(i,j,km)*q
+                  utflsm(i,j,km) = umflsm(i,j,km)*q
+                  q = .5_r8*(saln(i-1,j,km) + saln(i,j,km))
+                  usfltd(i,j,km) = umfltd(i,j,km)*q
+                  usflsm(i,j,km) = umflsm(i,j,km)*q
+               enddo
+               enddo
+               do l = 1, isv(j)
+               do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+                  q = .5_r8*(temp(i,j-1,km) + temp(i,j,km))
+                  vtfltd(i,j,km) = vmfltd(i,j,km)*q
+                  vtflsm(i,j,km) = vmflsm(i,j,km)*q
+                  q = .5_r8*(saln(i,j-1,km) + saln(i,j,km))
+                  vsfltd(i,j,km) = vmfltd(i,j,km)*q
+                  vsflsm(i,j,km) = vmflsm(i,j,km)*q
+               enddo
+               enddo
             enddo
          enddo
-      enddo
-   !$omp end parallel do
+      !$omp end parallel do
+
+      endif
 
       if (csdiag) then
          if (mnproc == 1) then
             write(lp,*) 'eddtra:'
          endif
-         call chksummsk(umfltd(1 - nbdy, 1 - nbdy, k1m), iu, kk, 'umfltd')
-         call chksummsk(vmfltd(1 - nbdy, 1 - nbdy, k1m), iv, kk, 'vmfltd')
-         call chksummsk(utfltd(1 - nbdy, 1 - nbdy, k1m), iu, kk, 'utfltd')
-         call chksummsk(vtfltd(1 - nbdy, 1 - nbdy, k1m), iv, kk, 'vtfltd')
-         call chksummsk(usfltd(1 - nbdy, 1 - nbdy, k1m), iu, kk, 'usfltd')
-         call chksummsk(vsfltd(1 - nbdy, 1 - nbdy, k1m), iv, kk, 'vsfltd')
+         call chksummsk(umfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'umfltd')
+         call chksummsk(vmfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vmfltd')
+         call chksummsk(umflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'umflsm')
+         call chksummsk(vmflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vmflsm')
+         call chksummsk(utfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'utfltd')
+         call chksummsk(vtfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vtfltd')
+         call chksummsk(utflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'utflsm')
+         call chksummsk(vtflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vtflsm')
+         call chksummsk(usfltd(1-nbdy, 1-nbdy, k1m), iu, kk, 'usfltd')
+         call chksummsk(vsfltd(1-nbdy, 1-nbdy, k1m), iv, kk, 'vsfltd')
+         call chksummsk(usflsm(1-nbdy, 1-nbdy, k1m), iu, kk, 'usflsm')
+         call chksummsk(vsflsm(1-nbdy, 1-nbdy, k1m), iv, kk, 'vsflsm')
       endif
 
    end subroutine eddtra
