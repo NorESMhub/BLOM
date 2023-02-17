@@ -1564,6 +1564,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! CONTENTS:
 !
+! OALKSCEN      : Name of alkalinization scenario.
+! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'.
 ! ADDALK    : Pmol alkalinity/yr added in the scenarios.
 ! CDRMIP_LATMAX : Max latitude where alkalinity is added according to the
 !                   CDRMIP protocol
