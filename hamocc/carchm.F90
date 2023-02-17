@@ -206,7 +206,7 @@
 !$OMP  ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol              &
 #ifdef CFC
 !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
-!$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6                       &
+!$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6,fact                  &
 #endif
 #ifdef natDIC
 !$OMP  ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega          &
@@ -219,7 +219,7 @@
 #ifdef BROMO
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 #endif
-!$OMP  ,j,i)
+!$OMP  ,k,j,i,rrho,scn2,scn2o,kwn2,kwn2o)
       DO k=1,kpke
       DO j=1,kpje
       DO i=1,kpie
@@ -625,7 +625,7 @@
 #ifdef cisonew
 #ifndef sedbypass
         do k=1,ks
-!$OMP PARALLEL DO PRIVATE(i)
+!$OMP PARALLEL DO PRIVATE(i,j)
         do j=1,kpje
         do i=1,kpie
         if(omask(i,j).gt.0.5) then
