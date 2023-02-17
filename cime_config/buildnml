@@ -263,7 +263,7 @@ if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
 endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
-set BGCOAFX_DO_OALK = .false.
+set DO_OALK = .false.
 set BGCOAFX_OALKSCEN = "''"
 set BGCOAFX_OALKFILE = "''"
 set BGCOAFX_ADDALK    = 0.135
@@ -1541,6 +1541,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   NDEPFILE     = $NDEPFILE
+  DO_OALK      = $DO_OALK
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S
   SEDSPIN_YR_E = $SEDSPIN_YR_E
@@ -1571,7 +1572,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! RAMP_START    : Start year for ramp up in 'ramp' scenario
 ! RAMP_END      : End year for 'ramp' scenario
 &BGCOAFX
-  DO_OALK       = $BGCOAFX_DO_OALK
   OALKSCEN      = $BGCOAFX_OALKSCEN
   OALKFILE      = $BGCOAFX_OALKFILE
   ADDALK        = $BGCOAFX_ADDALK

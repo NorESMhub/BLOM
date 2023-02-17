@@ -153,8 +153,8 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
   real    :: avflx,ztotarea
   real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
 
-  namelist /bgcoafx/ do_oalk,oalkscen,oalkfile,addalk,cdrmip_latmax,          &
-       &             cdrmip_latmin,ramp_start,ramp_end
+  namelist /bgcoafx/ oalkscen,oalkfile,addalk,cdrmip_latmax,cdrmip_latmin,    &
+       &             ramp_start,ramp_end
 
   ! Read parameters for alkalinization fluxes from namelist file
   if(.not. allocated(bgc_namelist)) call get_bgc_namelist
@@ -314,10 +314,9 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
   real,    intent(out) :: oafx(kpie,kpje)
-  integer              :: current_day
 
   ! local variables
-  integer              :: month_in_file,ncstat,ncid
+  integer              :: month_in_file,ncstat,ncid,current_day
   integer, save        :: oldmonth=0 
 
   if (.not. do_oalk) then
