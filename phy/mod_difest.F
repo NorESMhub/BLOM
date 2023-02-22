@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2023 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -33,12 +33,12 @@ c
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp_opt, edritp_shear,
+     .                         edsprs, bdmldp, edritp_opt, edritp_shear,
      .                         edritp_large_scale, edwmth_opt,
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
-     .                         t_ns_nonloc, s_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
       use mod_forcing, only: ustar, ustarb, ustar3, buoyfl, t_sw_nonloc
      .                       , surflx, sswflx, salflx
@@ -115,8 +115,6 @@ c ---            iidtyp=1 the diffusivities are diffusive velocities
 c ---            multiplied by the local horizontal grid scale, if
 c ---            iidtyp=2 the diffusivities are parameterized according
 c ---            to Eden and Greatbatch (2008).
-c ---   bdmldp - If bdmldp=1, make the background mixing latitude
-c ---            dependent according to Gregg et al. (2003).
 c ---   tdmflg - If tdmflg=1, apply tidally driven diapycnal mixing.
 c ---   iwdflg - If iwdflg=1, reduce background diapycnal diffusivity
 c ---            due to internal wave damping under sea-ice.
@@ -173,13 +171,13 @@ c ---  cpsemin - Lower bound of zonal eddy phase speed minus zonal
 c ---            barotropic velocity [cm/s].
 c ---  urmsemin- Lower bound of absolute value of RMS eddy velocity
 c ---            [cm/s].
-      integer iidtyp,bdmldp,tdmflg,iwdflg
+      integer iidtyp,tdmflg,iwdflg
       real dptmin,dpbmin,drhomn,thkdff,temdff,nu0,nus0,nug0,drho0,nuls0,
      .     iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,niwls,
      .     cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,dpnbav,ustmin,
      .     kappa,bfeps,sleps,zetas,as,cs,minOBLdepth,
      .     cpsemin,urmsemin
-      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=onem,
+      parameter (iidtyp=2,tdmflg=1,iwdflg=1,dptmin=onem,
      .           dpbmin=onecm,drhomn=6.e-3*R_mks2cgs,
      .           thkdff=5.e-3*L_mks2cgs,temdff=3.5e-3*L_mks2cgs,
      .           nu0=1.e-5*A_mks2cgs,
@@ -267,20 +265,20 @@ c --- ------ convert nuls0 to m2/s
      .                           KPP_Ri_zero=ri0,
      .                           KPP_exp=3.0)
          !  CVmix_kpp_params_in => CVmix_kpp_params_user
-          call CVMix_init_kpp(Ri_crit=0.3,
-     .          minOBLdepth=minOBLdepth,
-     .          minVtsqr=1e-10,
-     .          vonKarman=0.4,
-     .          surf_layer_ext=0.1,
-     .          interp_type='quadratic',
-     .          interp_type2='LMD94',
-     .          lEkman=.false.,
-     .          lMonOb=.false.,
-     .          MatchTechnique='SimpleShapes',
-     .          lenhanced_diff=.true.,
-     .          lnonzero_surf_nonlocal=.false.  ,
-     .          lnoDGat1=.true.                 ,
-     .          CVMix_kpp_params_user=KPP_params )
+c         call CVMix_init_kpp(Ri_crit=0.3,
+c    .          minOBLdepth=minOBLdepth,
+c    .          minVtsqr=1e-10,
+c    .          vonKarman=0.4,
+c    .          surf_layer_ext=0.1,
+c    .          interp_type='quadratic',
+c    .          interp_type2='LMD94',
+c    .          lEkman=.false.,
+c    .          lMonOb=.false.,
+c    .          MatchTechnique='SimpleShapes',
+c    .          lenhanced_diff=.true.,
+c    .          lnonzero_surf_nonlocal=.false.  ,
+c    .          lnoDGat1=.true.                 ,
+c    .          CVMix_kpp_params_user=KPP_params )
 c         call CVMix_init_kpp(Ri_crit=0.3,
 c    .          minOBLdepth=minOBLdepth,
 c    .          minVtsqr=1e-10,
@@ -295,20 +293,20 @@ c    .          lenhanced_diff=.true.,
 c    .          lnonzero_surf_nonlocal=.false.  ,
 c    .          lnoDGat1=.false.                 ,
 c    .          CVMix_kpp_params_user=KPP_params )
-c         call CVMix_init_kpp(Ri_crit=0.3,
-c    .          minOBLdepth=minOBLdepth,
-c    .          minVtsqr=1e-10,
-c    .          vonKarman=0.4,
-c    .          surf_layer_ext=0.1,
-c    .          interp_type='quadratic',
-c    .          interp_type2='LMD94',
-c    .          lEkman=.false.,
-c    .          lMonOb=.false.,
-c    .          MatchTechnique='ParabolicNonLocal',
-c    .          lenhanced_diff=.true.,
-c    .          lnonzero_surf_nonlocal=.true.  ,
-c    .          lnoDGat1=.true.                 ,
-c    .          CVMix_kpp_params_user=KPP_params )
+          call CVMix_init_kpp(Ri_crit=0.3,
+     .          minOBLdepth=minOBLdepth,
+     .          minVtsqr=1e-10,
+     .          vonKarman=0.4,
+     .          surf_layer_ext=0.1,
+     .          interp_type='quadratic',
+     .          interp_type2='LMD94',
+     .          lEkman=.false.,
+     .          lMonOb=.false.,
+     .          MatchTechnique='ParabolicNonLocal',
+     .          lenhanced_diff=.true.,
+     .          lnonzero_surf_nonlocal=.true.  ,
+     .          lnoDGat1=.true.                 ,
+     .          CVMix_kpp_params_user=KPP_params )
 c
 c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
@@ -798,23 +796,6 @@ c
       call xctilr(pbv, 1,2, 2,2, halo_vs)
 c
 c --- ------------------------------------------------------------------
-c --- Update layer interface pressure.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
-c
-c --- ------------------------------------------------------------------
 c --- Estimate friction velocity cubed.
 c --- ------------------------------------------------------------------
 c
@@ -862,23 +843,6 @@ c --- ------------------------------------------------------------------
 c
       call xctilr(u(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_uv)
       call xctilr(v(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_vv)
-c
-c --- ------------------------------------------------------------------
-c --- Update layer interface pressure.
-c --- ------------------------------------------------------------------
-c
-c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-      do j=-2,jj+3
-        do k=1,kk
-          kn=k+nn
-          do l=1,isp(j)
-          do i=max(-2,ifp(j,l)),min(ii+3,ilp(j,l))
-            p(i,j,k+1)=p(i,j,k)+dp(i,j,kn)
-          enddo
-          enddo
-        enddo
-      enddo
-c$OMP END PARALLEL DO
 c
 c --- Obtain common fields for the estimation of lateral and vertical
 c --- diffusivities diapycnal diffusivities.
@@ -1108,6 +1072,13 @@ c --- --------- Type 2: Background diffusivity is a constant
                Kv_col=Kv_col*(1.+(iwdfac-1.)*ficem(i,j))
                Kd_col=Kd_col*(1.+(iwdfac-1.)*ficem(i,j))
              endif
+c
+c --- ------ Latitude dependency of background diapycnal mixing
+             if (bdmldp) then
+               q=max(1.e-9,abs(coriop(i,j)))
+               Kv_col=Kv_col*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
+               Kd_col=Kd_col*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
+             endif
 
 c --- ------ Tidally driven diapycnal mixing
 c
@@ -1253,7 +1224,7 @@ c ---- ccc -------
              Kdiff_t(i,j,:) = Kt_kpp(:)
              Kdiff_s(i,j,:) = Ks_kpp(:)
              t_ns_nonloc(i,j,:) = nonLocalTrans(:,1)
-             s_nonloc(i,j,:) = nonLocalTrans(:,2)
+             s_nb_nonloc(i,j,:) = nonLocalTrans(:,2)
              do k = 1, kk+1
                 t_sw_nonloc(i,j,k) = max(t_sw_nonloc(i,j,k),
      .                                   nonLocalTrans(k,1))
@@ -1272,6 +1243,8 @@ c
         call chksummsk(Kvisc_m,ip,kk+1,'Kvisc_m')
         call chksummsk(Kdiff_t,ip,kk+1,'Kdiff_t')
         call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
+        call chksummsk(t_ns_nonloc,ip,kk+1,'t_ns_nonloc')
+        call chksummsk(s_nb_nonloc,ip,kk+1,'s_nb_nonloc')
       endif
 c
       end subroutine difest_vertical_hyb
@@ -2240,7 +2213,7 @@ c --- --------- Type 2: Background diffusivity is a constant
               endif
 c
 c --- ------- Latitude dependency of background diapycnal mixing
-              if (bdmldp.eq.1) then
+              if (bdmldp) then
                 q=max(1.e-9,abs(coriop(i,j)))
                 nub=nub*q/cori30*log(2.*bvf0/q)/log(2.*bvf0/cori30)
               endif
