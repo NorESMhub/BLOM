@@ -129,7 +129,7 @@
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
 #endif
 #ifdef extNcycle 
-      use mo_param1_bgc,  only: ianh4,iano2
+      use mo_param1_bgc,  only: ianh4,iano2,ipownh4,ipown2o,ipowno2
 #endif
 
  
@@ -705,6 +705,17 @@
      &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
      &    rmasks,86,io_stdo_bgc)
 #endif
+#ifdef extNcycle
+      CALL NETCDF_DEF_VARDB(ncid,6,'pownh4',3,ncdimst,ncvarid,          &
+     &    9,'kmol/m**3',34,'Sediment pore water ammonium (NH4)',        &
+     &    rmissing,79,io_stdo_bgc)
+      CALL NETCDF_DEF_VARDB(ncid,6,'pown2o',3,ncdimst,ncvarid,          &
+     &    9,'kmol/m**3',39,'Sediment pore water nitrous oxide (N2O)',   &
+     &    rmissing,79,io_stdo_bgc)
+      CALL NETCDF_DEF_VARDB(ncid,6,'powno2',3,ncdimst,ncvarid,          &
+     &    9,'kmol/m**3',33,'Sediment pore water nitrite (NO2)',         &
+     &    rmissing,79,io_stdo_bgc)
+#endif
 
       IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
         ncdimst(1) = nclonid
@@ -914,6 +925,11 @@
       CALL write_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0)
       CALL write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
       CALL write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
+#endif
+#ifdef extNcycle
+      CALL write_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0)
+      CALL write_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0)
+      CALL write_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0)
 #endif
 #endif
 !
