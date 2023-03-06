@@ -23,6 +23,12 @@ module mo_read_oafx
 !
 ! Modified
 ! --------
+!  T. Bourgeois,     *NORCE climate, Bergen*   2023-01-31
+!  - add ramping-up scenario
+!  - add ability to define parameters from BLOM namelist
+!
+!  T. Bourgeois,     *NORCE climate, Bergen*   2023-02-09
+!  - add ability to use an OA input file
 !
 ! Purpose
 ! -------
@@ -31,28 +37,31 @@ module mo_read_oafx
 !
 ! Description:
 ! ------------
-!  The routine get_oafx reads a fluxs of alkalinity from file (or, for simple
+!  The routine get_oafx reads a flux of alkalinity from file (or, for simple
 !  cases, constructs an alkalinity flux field from scratch). The alkalinity
 !  flux is then passed to hamocc4bcm where it is applied to the top-most model 
 !  layer by a call to apply_oafx (mo_apply_oafx).
 !
-!  Ocean alkalinization is activated through a logical switch 'do_oalk' read from
-!  HAMOCC's bgcnml namelist. If ocean alkalinization is acitvated, a valid 
-!  name of an alkalinisation scenario (defined in this module, see below) and 
-!  the file name (including the full path) of the corresponding OA-scenario 
-!  input file needs to be provided via HAMOCC's bgcnml namelist (variables 
-!  oascenario and oafxfile). If the input file is not found, an error will be 
-!  issued. The input data must be already pre-interpolated to the ocean grid.
+!  Ocean alkalinization is activated through a logical switch 'do_oalk' read
+!  from HAMOCC's bgcnml namelist. If ocean alkalinization is activated, a valid
+!  name of an alkalinisation scenario (defined in this module, see below) needs
+!  to be provided via HAMOCC's bgcnml namelist (variable oalkscen). For the
+!  'file' scenario, the file name (including the full path) of the
+!  corresponding OA-scenario input file needs to be provided (variable
+!  oalkfile). If the input file is not found, an error will be issued. The
+!  input data must be already pre-interpolated to the ocean grid.
 !
 !  Currently available ocean alkalinisation scenarios:
-!  (no input file needed, flux and latitude range can be defined in the
-!   namelist, default values are defined):
-!    -'const':        constant alkalinity flux applied to the surface ocean 
-!                     between two latitudes.
+!  (for 'const' and 'ramp' scenarios, flux and latitude range can be defined in
+!  the namelist, default values are defined):
+!    -'const':        constant alkalinity flux applied to the surface ocean
+!                     between two latitudes. No input file needed.
 !    -'ramp':         ramping-up alkalinity flux from 0 Pmol yr-1 to a maximum
 !                     value between two specified years and kept constant
 !                     onward, applied to the surface ocean between two
-!                     latitudes.
+!                     latitudes. No input file needed.
+!    -'file':         Read monthly 2D field in kmol ALK m-2 yr-1 from a file
+!                     defined with the variable oalkfile.
 !
 !  -subroutine ini_read_oafx
 !     Initialise the module
@@ -66,15 +75,16 @@ module mo_read_oafx
 
   private
   public :: ini_read_oafx,get_oafx,oalkscen,oalkfile
-
-  real,allocatable, save :: oalkflx(:,:)
-   
+ 
   character(len=128), save :: oalkscen   =''
   character(len=512), save :: oalkfile   =''
+  real,allocatable,   save :: oalkflx(:,:)
+  integer,            save :: startyear,endyear
+
   real, parameter          :: Pmol2kmol  = 1.0e12
   
-  ! Parameter used in the definition of alkalinization scenarios. The following 
-  ! scenarios are defined in this module:
+  ! Parameter used in the definition of alkalinization scenarios not based on
+  ! an input file. The following scenarios are defined in this module:
   !
   !  const         Constant homogeneous addition of alkalinity between latitude
   !                cdrmip_latmin and latitude cdrmip_latmax
@@ -82,7 +92,7 @@ module mo_read_oafx
   !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
   !
-  real, protected :: addalk        = 0.56  ! Pmol alkalinity/yr added in the
+  real, protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the
                                            ! scenarios. Read from namelist file
                                            ! to overwrite default value.
   real, protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
@@ -127,6 +137,8 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 !******************************************************************************
   use mod_xc,         only: xcsum,xchalt,mnproc,nbdy,ips
   use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
+  use mod_dia,        only: iotype
+  use mod_nctools,    only: ncfopn,ncgeti,ncfcls
 
   implicit none
 
@@ -136,12 +148,13 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
   real,    intent(in) :: omask(kpie,kpje)
 
   integer :: i,j,errstat
+  logical :: file_exists=.false.
   integer :: iounit
   real    :: avflx,ztotarea
   real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
 
-  namelist /bgcoafx/ do_oalk,oalkscen,oalkfile,addalk,cdrmip_latmax,          &
-       &             cdrmip_latmin,ramp_start,ramp_end
+  namelist /bgcoafx/ oalkscen,oalkfile,addalk,cdrmip_latmax,cdrmip_latmin,    &
+       &             ramp_start,ramp_end
 
   ! Read parameters for alkalinization fluxes from namelist file
   if(.not. allocated(bgc_namelist)) call get_bgc_namelist
@@ -169,11 +182,26 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       write(io_stdo_bgc,*)' '
     endif
 
-    if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' ) then
+    if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' .or.              &
+        trim(oalkscen)=='file' ) then
 
       if(mnproc.eq.1) then
         write(io_stdo_bgc,*)'Using alkalinization scenario ', trim(oalkscen)
+        if( trim(oalkscen)=='file' ) then
+          write(io_stdo_bgc,*) 'from ', trim(oalkfile)
+        endif
         write(io_stdo_bgc,*)' '
+      endif
+
+      if( trim(oalkscen)=='file' ) then
+        ! Check if OA file exists. If not, abort.
+        inquire(file=oalkfile,exist=file_exists)
+        if (.not. file_exists .and. mnproc.eq.1) then
+          write(io_stdo_bgc,*) ''
+          write(io_stdo_bgc,*) 'ini_read_oafx: Cannot find ocean alkalinization file... '
+          call xchalt('(ini_read_oafx)')
+          stop '(ini_read_oafx)'
+        endif
       endif
 
       ! Allocate field to hold alkalinization fluxes
@@ -187,38 +215,50 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       if(errstat.ne.0) stop 'not enough memory oalkflx'
       oalkflx(:,:) = 0.0
 
-      ! Calculate total ocean area 
-      ztmp1(:,:)=0.0
-      do j=1,kpje
-      do i=1,kpie
-        if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
-                              .and. pglat(i,j)>cdrmip_latmin ) then
-          ztmp1(i,j)=ztmp1(i,j)+pdlxp(i,j)*pdlyp(i,j)
-        endif
-      enddo
-      enddo
+      if( trim(oalkscen)=='file' ) then
 
-      call xcsum(ztotarea,ztmp1,ips)
-      
-      ! Calculate alkalinity flux (kmol m^2 yr-1) to be applied
-      avflx = addalk/ztotarea*Pmol2kmol
-      if(mnproc.eq.1) then
-        write(io_stdo_bgc,*)' '
-        write(io_stdo_bgc,*)' applying alkalinity flux of ', avflx, ' kmol m-2 yr-1'
-        write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m2'
-        if( trim(oalkscen)=='ramp' ) then
-          write(io_stdo_bgc,*)'             ramping-up from ', ramp_start, ' to ', ramp_end
+        ! read start and end year of OA file
+        call ncfopn(trim(oalkfile),'r',' ',1,iotype)
+        call ncgeti('startyear',startyear)
+        call ncgeti('endyear',endyear)
+        call ncfcls
+    
+      else
+
+        ! Calculate total ocean area 
+        ztmp1(:,:)=0.0
+        do j=1,kpje
+        do i=1,kpie
+          if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
+                                .and. pglat(i,j)>cdrmip_latmin ) then
+            ztmp1(i,j)=ztmp1(i,j)+pdlxp(i,j)*pdlyp(i,j)
+          endif
+        enddo
+        enddo
+  
+        call xcsum(ztotarea,ztmp1,ips)
+        
+        ! Calculate alkalinity flux (kmol m^2 yr-1) to be applied
+        avflx = addalk/ztotarea*Pmol2kmol
+        if(mnproc.eq.1) then
+          write(io_stdo_bgc,*)' '
+          write(io_stdo_bgc,*)' applying alkalinity flux of ', avflx, ' kmol m-2 yr-1'
+          write(io_stdo_bgc,*)'             over an area of ', ztotarea , ' m2'
+          if( trim(oalkscen)=='ramp' ) then
+            write(io_stdo_bgc,*)'             ramping-up from ', ramp_start, ' to ', ramp_end
+          endif
         endif
+  
+        do j=1,kpje
+        do i=1,kpie
+          if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
+                                .and. pglat(i,j)>cdrmip_latmin ) then
+            oalkflx(i,j) = avflx
+          endif
+        enddo
+        enddo
+
       endif
-
-      do j=1,kpje
-      do i=1,kpie
-        if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
-                              .and. pglat(i,j)>cdrmip_latmin ) then
-          oalkflx(i,j) = avflx
-        endif
-      enddo
-      enddo
 
       lini=.true.
 
@@ -228,7 +268,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
     else
     
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_read_oafx: invalid alkalinization scenario... '
+      write(io_stdo_bgc,*) 'ini_read_oafx: invalid alkalinization scenario'
       call xchalt('(ini_read_oafx)')
       stop '(ini_read_oafx)' 
       
@@ -265,6 +305,7 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
 !
 !******************************************************************************
   use mod_xc,         only: xchalt,mnproc
+  use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
   use mo_control_bgc, only: io_stdo_bgc,do_oalk
   use mod_time,       only: nday_of_year
 
@@ -273,10 +314,10 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
   real,    intent(out) :: oafx(kpie,kpje)
-  integer              :: current_day
 
-  ! local variables 
-  integer :: i,j
+  ! local variables
+  integer              :: month_in_file,ncstat,ncid,current_day
+  integer, save        :: oldmonth=0 
 
   if (.not. do_oalk) then
     oafx(:,:) = 0.0
@@ -303,6 +344,25 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
       current_day = (kplyear-ramp_start)*365+nday_of_year
       oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
     endif
+
+  !--------------------------------
+  ! Scenario from OA file
+  !--------------------------------
+  elseif(trim(oalkscen)=='file' ) then
+
+    ! read OA data from file
+    if (kplmon.ne.oldmonth) then
+      month_in_file=(max(startyear,min(endyear,kplyear))-startyear)*12+kplmon
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*) 'Read OA month ',month_in_file, &
+                             'from file ',trim(oalkfile)
+      endif
+      ncstat=nf90_open(trim(oalkfile),nf90_nowrite,ncid)
+      call read_netcdf_var(ncid,'oafx',oalkflx,1,month_in_file,0)
+      ncstat=nf90_close(ncid)
+      oldmonth=kplmon
+    endif
+    oafx(:,:) = oalkflx
 
   else
     
