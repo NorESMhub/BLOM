@@ -70,7 +70,7 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 !
 !******************************************************************************
   use mo_control_bgc, only: dtb,do_oalk
-  use mo_carbch,      only: ocetra
+  use mo_carbch,      only: ocetra,oalkflx
   use mo_param1_bgc,  only: ialkali
 
   implicit none
@@ -83,13 +83,18 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   ! local variables 
   integer :: i,j
 
+  ! oalkflx stores the applied alaklinity flux for inventory calculations 
+  ! and output
+  oalkflx(:,:)=0.0
+  
   if (.not. do_oalk) return 
 
   ! alkalinization in topmost layer 
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+oafx(i,j)*dtb/365./pddpo(i,j,1)
+      oalkflx(i,j) = oafx(i,j)*dtb/365.
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+oalkflx(i,j)/pddpo(i,j,1)
     endif
   enddo
   enddo
