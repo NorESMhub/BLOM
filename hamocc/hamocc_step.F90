@@ -80,7 +80,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   !
   ! --- accumulate fields and write output
   !
-  call accfields(idm,jdm,kdm,bgc_dx,bgc_dy,bgc_dp,omask,ndep,oafx)
+  call accfields(idm,jdm,kdm,bgc_dx,bgc_dy,bgc_dp,omask)
 
   call hamocc2blom(m,n,mm,nn)
 
