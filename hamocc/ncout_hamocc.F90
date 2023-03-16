@@ -35,6 +35,7 @@ subroutine ncwrt_bgc(iogrp)
   use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,                 &
        &                    ncdimc
   use mo_bgcmean,     only: domassfluxes,                                       &
+       &                    flx_ndep,flx_oalk,                                  &
        &                    flx_cal0100,flx_cal0500,flx_cal1000,                &
        &                    flx_cal2000,flx_cal4000,flx_cal_bot,                &
        &                    flx_car0100,flx_car0500,flx_car1000,                &
@@ -53,12 +54,11 @@ subroutine ncwrt_bgc(iogrp)
        &                    jcalflx2000,jcalflx4000,jcalflx_bot,                &
        &                    jcarflx0100,jcarflx0500,jcarflx1000,                &
        &                    jcarflx2000,jcarflx4000,jcarflx_bot,                &
-       &                    jco2flux,jco2fxd,jco2fxu,jco3,jdic,jdicsat,         &
+       &                    jco2fxd,jco2fxu,jco3,jdic,jdicsat,                  &
        &                    jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,            &
        &                    jdoc,jdp,jeps,jexpoca,jexport,jexposi,              &
        &                    jgrazer,                                            &
-       &                    jintdnit,jintnfix,jintphosy,jiralk,jirdet,          &
-       &                    jirdin,jirdip,jirdoc,jiriron,jiron,jirsi,           &
+       &                    jintdnit,jintnfix,jintphosy,jiron,jirsi,            &
        &                    jkwco2,jlvlalkali,jlvlano3,jlvlasize,               &
        &                    jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,          &
        &                    jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,               &
@@ -72,9 +72,9 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,            &
        &                    jlvlpoc13,jlvlprefalk,jlvlprefdic,                  &
        &                    jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,          &
-       &                    jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,            &
-       &                    jn2ofx,jndep,jniflux,jnos,jo2flux,jo2sat,           &
-       &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
+       &                    jlvlwnos,jlvlwphy,jn2o,                             &
+       &                    jn2ofx,jndepfx,jniflux,jnos,joalkfx,                &
+       &                    jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2, &
        &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
@@ -426,6 +426,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jintphosy(iogrp),    INT_PHOSY(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'ppint')
   call wrtsrf(jintnfix(iogrp),     INT_NFIX(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nfixint')
   call wrtsrf(jintdnit(iogrp),     INT_DNIT(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'dnitint')
+  call wrtsrf(jndepfx(iogrp),      FLX_NDEP(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'ndep')
+  call wrtsrf(joalkfx(iogrp),      FLX_OALK(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'oalkfx')
   call wrtsrf(jcarflx0100(iogrp),  FLX_CAR0100(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100')
   call wrtsrf(jcarflx0500(iogrp),  FLX_CAR0500(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500')
   call wrtsrf(jcarflx1000(iogrp),  FLX_CAR1000(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx1000')
@@ -671,6 +673,8 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jintphosy(iogrp),0.)
   call inisrf(jintnfix(iogrp),0.)
   call inisrf(jintdnit(iogrp),0.)
+  call inisrf(jndepfx(iogrp),0.)
+  call inisrf(joalkfx(iogrp),0.)
   call inisrf(jcarflx0100(iogrp),0.)
   call inisrf(jcarflx0500(iogrp),0.)
   call inisrf(jcarflx1000(iogrp),0.)
@@ -893,8 +897,9 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   srf_co2fxu,srf_oxflux,srf_niflux,srf_dms,srf_dmsprod,                &
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
-       &   srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,flx_car0100,   &
-       &   flx_car0500,flx_car1000,flx_car2000,flx_car4000,flx_car_bot,         &
+       &   srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
+       &   flx_ndep,flx_oalk,flx_car0100,flx_car0500,                           &
+       &   flx_car1000,flx_car2000,flx_car4000,flx_car_bot,                     &
        &   flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
        &   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
        &   flx_cal4000,flx_cal_bot,flx_sediffic,flx_sediffal,                   &
@@ -1027,6 +1032,10 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'Integrated nitrogen fixation',' ','mol N m-2 s-1',0)
   call ncdefvar3d(INT_DNIT(iogrp),cmpflg,'p','dnitint',                         &
        &   'Integrated denitrification',' ','mol N m-2 s-1',0)
+  call ncdefvar3d(FLX_NDEP(iogrp),cmpflg,'p','ndep',                            &
+       &   'Nitrogen deposition flux',' ','mol N m-2 s-1',0)
+  call ncdefvar3d(FLX_OALK(iogrp),cmpflg,'p','oalkfx',                          &
+       &   'Alkalinity flux due to OA',' ','mol TA m-2 s-1',0)
   call ncdefvar3d(FLX_CAR0100(iogrp),cmpflg,'p','carflx0100',                   &
        &   'C flux at 100m',' ','mol C m-2 s-1',0)
   call ncdefvar3d(FLX_CAR0500(iogrp),cmpflg,'p','carflx0500',                   &

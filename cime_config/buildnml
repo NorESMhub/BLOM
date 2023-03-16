@@ -518,6 +518,12 @@ set INT_BROMOUV   = '0, 2, 2'
 set INT_PHOSY     = '4, 2, 2' 
 set INT_NFIX      = '0, 2, 2' 
 set INT_DNIT      = '0, 2, 2' 
+if ($BLOM_N_DEPOSITION == TRUE) then
+set FLX_NDEP      = '0, 2, 2'
+else
+set FLX_NDEP      = '0, 0, 0'
+endif
+set FLX_OALK      = '0, 0, 0'
 set FLX_CAR0100   = '0, 2, 2'
 set FLX_CAR0500   = '0, 2, 2'
 set FLX_CAR1000   = '0, 2, 2'
@@ -1624,15 +1630,13 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! CONTENTS:
 !
-! OALKSCEN      : Name of alkalinization scenario.
-! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'.
-! ADDALK    : Pmol alkalinity/yr added in the scenarios.
-! CDRMIP_LATMAX : Max latitude where alkalinity is added according to the
-!                   CDRMIP protocol
-! CDRMIP_LATMIN : Min latitude where alkalinity is added according to the
-!                   CDRMIP protocol
+! OALKSCEN      : Name of alkalinization scenario ('const', 'ramp', or 'file') 
+! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'
+! ADDALK        : Pmol alkalinity/yr added in 'const' or 'ramp' scenarios
+! CDRMIP_LATMAX : Max latitude where alkalinity is added in 'const' or 'ramp' scenarios
+! CDRMIP_LATMIN : Min latitude where alkalinity is added in 'const' or 'ramp' scenarios
 ! RAMP_START    : Start year for ramp up in 'ramp' scenario
-! RAMP_END      : End year for 'ramp' scenario
+! RAMP_END      : End   year for ramp up in 'ramp' scenario
 &BGCOAFX
   OALKSCEN      = $BGCOAFX_OALKSCEN
   OALKFILE      = $BGCOAFX_OALKFILE
@@ -1771,8 +1775,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   NFIX           - Vertically integrated nitrogen fixation
 !   DNIT           - Vertically integrated denitrification
 !
-! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT) 
-! and diffusive fluxes at the sediment - water-column interface (SEDIFF*)
+! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
+! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
+!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
+!   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
 !   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
@@ -1860,6 +1866,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INT_PHOSY     = $INT_PHOSY
   INT_NFIX      = $INT_NFIX
   INT_DNIT      = $INT_DNIT
+  FLX_NDEP      = $FLX_NDEP
+  FLX_OALK      = $FLX_OALK
   FLX_CAR0100   = $FLX_CAR0100
   FLX_CAR0500   = $FLX_CAR0500
   FLX_CAR1000   = $FLX_CAR1000
