@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen
+! Copyright (C) 2006-2021 Mats Bentsen
 !
 ! This file is part of BLOM.
 !
@@ -26,16 +26,55 @@ module mod_checksum
 
    private
 
-   ! Constants.
+   ! Options with default values, modifiable by namelist.
    logical :: &
       csdiag = .false. ! Flag that indicates whether checksums are written.
 
-   integer :: crcfast
-   external :: crcfast
+   interface crc32
+      module procedure crc32_1d_integer, crc32_2d_r8
+   end interface crc32
 
    public :: csdiag, chksum, chksummsk
 
 contains
+
+   ! ---------------------------------------------------------------------------
+   ! Private procedures.
+   ! ---------------------------------------------------------------------------
+
+   function crc32_1d_integer(iarr)
+
+      integer, dimension(:), intent(in) :: iarr
+
+      integer :: crc32_1d_integer
+
+      integer :: crcfast
+      external :: crcfast
+
+      real(r8), dimension((size(iarr) + 1)/2) :: rarr
+
+      rarr = transfer(iarr, rarr)
+
+      crc32_1d_integer = crcfast(rarr, size(iarr)*4)
+
+   end function crc32_1d_integer
+
+   function crc32_2d_r8(rarr)
+
+      real(r8), dimension(:,:), intent(in) :: rarr
+
+      integer :: crc32_2d_r8
+
+      integer :: crcfast
+      external :: crcfast
+
+      crc32_2d_r8 = crcfast(rarr, size(rarr)*8)
+
+   end function crc32_2d_r8
+
+   ! ---------------------------------------------------------------------------
+   ! Public procedures.
+   ! ---------------------------------------------------------------------------
 
    subroutine chksum(a, kcsd, text)
    ! ---------------------------------------------------------------------------
@@ -47,16 +86,21 @@ contains
          intent(in) :: a
       character(len = *), intent(in) :: text
 
-      real(r8), dimension(itdm, jtdm, kcsd) :: aa
+      real(r8), dimension(itdm, jtdm) :: aa
+      integer, dimension(kcsd) :: cslist
       integer :: kcs
 
       do kcs = 1, kcsd
-        call xcaget(aa(1, 1, kcs), a(1 - nbdy, 1 - nbdy, kcs), 1)
+         call xcaget(aa, a(1 - nbdy, 1 - nbdy, kcs), 1)
+         cslist(kcs) = crc32(aa)
       enddo
 
       if (mnproc == 1) then
-         write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-            crcfast(aa, itdm*jtdm*kcsd*8)
+         if (kcsd == 1) then
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
+         else
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', crc32(cslist)
+         endif
       endif
 
    end subroutine chksum
@@ -73,34 +117,33 @@ contains
          intent(in) :: msk
       character(len = *), intent(in) :: text
 
-      real(r8), dimension(itdm, jtdm, kcsd) :: aa
-      real(r8), dimension(itdm, jtdm) :: rrmsk
-      real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: rmsk
+      real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: amsk
+      real(r8), dimension(itdm, jtdm) :: aa
+      integer, dimension(kcsd) :: cslist
       integer :: ics, jcs, kcs
 
-      do jcs = 1, jj
-         do ics = 1, ii
-            rmsk(ics, jcs) = msk(ics, jcs)
-         enddo
-      enddo
-
       do kcs = 1, kcsd
-         call xcaget(aa(1 , 1, kcs), a(1 - nbdy, 1 - nbdy, kcs), 1)
-      enddo
-      call xcaget(rrmsk, rmsk, 1)
-
-      if (mnproc == 1) then
-         do kcs = 1, kcsd
-            do jcs = 1, jtdm
-              do ics = 1, itdm
-                 if (rrmsk(ics, jcs) < .5_r8) then
-                    aa(ics, jcs, kcs) = 0._r8
-                 endif
-               enddo
+      !$omp parallel do private(ics)
+         do jcs = 1, jj
+            do ics = 1, ii
+               if (msk(ics, jcs) == 0) then
+                  amsk(ics, jcs) = 0._r8
+               else
+                  amsk(ics, jcs) = a(ics, jcs, kcs)
+               endif
             enddo
          enddo
-         write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', &
-            crcfast(aa, itdm*jtdm*kcsd*8)
+      !$omp end parallel do
+         call xcaget(aa, amsk, 1)
+         cslist(kcs) = crc32(aa)
+      enddo
+
+      if (mnproc == 1) then
+         if (kcsd == 1) then
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', cslist(1)
+         else
+            write (lp,'(3a,z8.8)') ' chksum: ', text, ': 0x', crc32(cslist)
+         endif
       endif
 
    end subroutine chksummsk

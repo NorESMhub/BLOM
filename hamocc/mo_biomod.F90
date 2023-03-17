@@ -92,19 +92,16 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_prod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_uv
 #endif
-#ifdef extNcycle
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: nitr_NH4,nitr_NO2,nitr_N2O_prod,nitr_NH4_OM,nitr_NO2_OM,denit_NO3,denit_NO2,         &
                                             & denit_N2O,DNRA_NO2,anmx_N2_prod,anmx_OM_prod,phosy_NH4,phosy_NO3,remin_aerob,        &
                                             & remin_sulf                                        
-#endif
-
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
       REAL :: ro2ut,rcar,rnit,rnoi,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
       REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal
       REAL :: wpoc,wcal,wopal
-      REAL :: drempoc,dremopal,dremn2o,dremsul
+      REAL :: drempoc,dremopal,dremn2o,dremsul,drempoc_anaerob,bkox_drempoc
       REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
       REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
 #ifdef cisonew

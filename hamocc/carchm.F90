@@ -94,13 +94,14 @@
 !     none.
 !
 !**********************************************************************
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
+                                pco2m,kwco2d,co2sold,co2solm,pn2om
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
-                              & oxyco,tzero 
-      use mo_control_bgc, only: dtbgc 
+                              & oxyco,tzero
+      use mo_control_bgc, only: dtbgc
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
-                              & isco212,isilica  
-      use mo_vgrid,       only: dp_min,kbo,ptiestu
+                              & isco212,isilica
+      use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
 
 #ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
@@ -118,6 +119,7 @@
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
 #ifdef extNcycle
+      use mo_carbch,      only: pnh3
       use mo_param1_bgc,  only: iatmnh3,ianh4
       use mo_chemcon,     only: SV0_air,SV1_air,SV2_air,SV3_air,SV4_air,SD0_air,SD1_air,SD2_air,SD3_air,Vb_nh3,M_nh3,kappa
 #endif
@@ -189,18 +191,26 @@
        co214fxd (:,:)=0.
        co214fxu (:,:)=0.
 #endif
-       pco2d    (:,:)=0. 
+       pco2d    (:,:)=0.
+       pco2m    (:,:)=0.
+       kwco2d   (:,:)=0.
+       co2sold  (:,:)=0.
+       co2solm  (:,:)=0.
        kwco2sol (:,:)=0.
        co2star(:,:,:)=0.
        co3    (:,:,:)=0.
        satoxy (:,:,:)=0.
        omegaA (:,:,:)=0.
        omegaC (:,:,:)=0.
+       pn2om    (:,:)=0.
 #ifdef natDIC
        natpco2d   (:,:)=0. 
        natco3   (:,:,:)=0.
        natomegaA(:,:,:)=0.
        natomegaC(:,:,:)=0.
+#endif
+#ifdef extNcycle
+       pnh3       (:,:)=0.
 #endif
 
 !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
@@ -463,8 +473,7 @@
        ta = ocetra(i,j,k,ialkali) / rrho
        CALL carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
                                Ksi,K1p,K2p,K3p,tc_sat,niter)
-       ocetra(i,j,k,  idicsat)=tc_sat * rrho ! convert mol/kg to kmol/m^3 
-       ocetra(i,j,k+1,idicsat)=tc_sat * rrho ! k+1 = the rest of the mixed layer
+       ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
 #ifdef cisonew 
 ! Ocean-Atmosphere fluxes for carbon isotopes
@@ -501,7 +510,9 @@
        niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
        ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
 ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*rpp0) 
+       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*rpp0)
+       ! pN2O under moist air assumption at normal pressure
+       pn2om(i,j) = 1e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
        ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
 #ifdef CFC
 ! Surface fluxes for CFC: eqn. (1a) in ocmip2 howto doc(hyc)
@@ -560,6 +571,9 @@
       ! surface flux NH3: STILL REQUIRES TO CHECK CONVERSION FACTOR FOR atNH3 (currently assumed atNH3 in pptv)     
       flx_nh3 =  Kh_nh3*dtbgc*(atnh3*1e-12*ppao(i,j)*1e-5/(tk*0.08314510) - hstar_nh3*ocetra(i,j,1,ianh4)) 
       ocetra(i,j,1,ianh4) = ocetra(i,j,1,ianh4) + flx_nh3/pddpo(i,j,1)
+    
+      ! pNH3 in natm 
+      pnh3(i,j) =  hstar_nh3*ocetra(i,j,1,ianh4)  * 8.20573660809596e-5 * (t+273.15) * 1e12 
 #endif
 
 ! Save surface fluxes 
@@ -599,13 +613,17 @@
 
 ! Save pco2 w.r.t. dry air for output
        pco2d(i,j) = cu * 1.e6 / Khd
+       !pCO2 wrt moist air
+       pco2m(i,j) = cu * 1.e6 / Kh
 #ifdef natDIC
        natpco2d(i,j) = natcu * 1.e6 / Khd
 #endif
 
 ! Save product of piston velocity and solubility for output
-       kwco2sol(i,j) = kwco2*Kh*1e-6
-
+       kwco2sol(i,j) = kwco2*Kh*1e-6 !m/s mol/kg/muatm 
+       kwco2d(i,j)   = kwco2 ! m/s (incl. ice fraction!)
+       co2sold(i,j)  = Khd  ! mol/kg/atm
+       co2solm(i,j)  = Kh   ! mol/kg/atm
 
       endif ! k==1
 #ifdef BROMO

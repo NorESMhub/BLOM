@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -24,12 +24,14 @@ c --- diffusion of tracers
 c --- ------------------------------------------------------------------
 c
       use mod_time, only: delt1
+      use mod_constants, only: P_mks2cgs
       use mod_xc
       use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi
       use mod_eos, only: sig
       use mod_state, only:  dp, temp, saln, sigma,
      .                      utflx, vtflx, usflx, vsflx
-      use mod_diffusion, only: difiso, utflld, vtflld, usflld, vsflld
+      use mod_diffusion, only: ltedtp_opt, ltedtp_neutral, difiso,
+     .                         utflld, vtflld, usflld, vsflld
       use mod_checksum, only: csdiag, chksummsk
 #ifdef TRC
       use mod_tracers, only: ntr, itrtke, itrgls, trc, uflxtr, vflxtr
@@ -46,20 +48,34 @@ c
 #endif
 c
       real dpeps
-      parameter (dpeps=1.e-4)
+      parameter (dpeps=1.e-5*P_mks2cgs)
 c
-      call xctilr(dp  (1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
-      call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
-      call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+      call xctilr(dp(1-nbdy,1-nbdy,k1n), 1,kk, 3,3, halo_ps)
+      if (ltedtp_opt.eq.ltedtp_neutral) then
+        call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_ps)
+        call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 1,1, halo_ps)
 #ifdef TRC
-      do nt=1,ntr
+        do nt=1,ntr
 #  if defined(TKE) && !defined(TKEIDF)
-        if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+          if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
 #  endif
-        call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
-      enddo
+          call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 1,1, halo_ps)
+        enddo
 #endif
-      call xctilr(difiso, 1,kk, 2,2, halo_ps)
+        return
+      else
+        call xctilr(temp(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+        call xctilr(saln(1-nbdy,1-nbdy,k1n), 1,kk, 2,2, halo_ps)
+#ifdef TRC
+        do nt=1,ntr
+#  if defined(TKE) && !defined(TKEIDF)
+          if (nt.eq.itrtke.or.nt.eq.itrgls) cycle
+#  endif
+          call xctilr(trc(1-nbdy,1-nbdy,k1n,nt), 1,kk, 2,2, halo_ps)
+        enddo
+#endif
+        call xctilr(difiso, 1,kk, 2,2, halo_ps)
+      endif
 c
       do k=1,kk
         kn=k+nn

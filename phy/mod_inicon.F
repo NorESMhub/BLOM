@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -27,10 +27,15 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_config, only: expcnf
-      use mod_constants, only: g, epsil, onem
+      use mod_constants, only: g, epsilp, onem,
+     .                         L_mks2cgs, M_mks2cgs, P_mks2cgs
       use mod_time, only: nstep, delt1, dlt
       use mod_xc
-      use mod_grid, only: sigmar, scuy, scvx, scuyi, scvxi, depths,
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
+     .                      cntiso_hybrid, sigmar,
+     .                      cntiso_hybrid_regrid_direct_remap, 
+     .                      remap_velocity
+      use mod_grid, only: scuy, scvx, scuyi, scvxi, depths,
      .                    corioq
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu,
      .                     pv, phi, ubflxs, vbflxs, ub, vb, pb, pbu,
@@ -94,7 +99,7 @@ c
 c --- improve the accuracy of the pressure interface by an
 c --- iterative procedure
       q=1._r8
-      do while (abs(q).gt.1.e-4_r8)
+      do while (abs(q).gt.1.e-5_r8*P_mks2cgs)
         call delphi(pup,plo,th,s,dphi,alpu,alpl)
         q=(phil-phiu-dphi)/alpl
         plo=plo-q
@@ -114,8 +119,12 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: dz
       real, dimension(itdm,jtdm) :: tmp2d
+      real dsig,a0,a1,a2
       integer, dimension(3) :: start,count
-      integer i,j,k,l,status,ncid,dimid,varid
+      integer i,j,kdmic,k,l,status,ncid,dimid,varid,kb
+      real iM_mks2cgs
+c
+      iM_mks2cgs = 1.0 / M_mks2cgs
 c
       if (mnproc.eq.1) then
         write (lp,'(2a)') ' reading initial condition from ',
@@ -158,13 +167,30 @@ c --- - Check dimensions
           call xchalt('(ictsz_file)')
                  stop '(ictsz_file)'
         endif
-        if (i.ne.itdm.or.j.ne.jtdm) then
+        status=nf90_inq_dimid(ncid,'z',dimid)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') ' nf90_inq_dimid: z: ',nf90_strerror(status)
+          call xchalt('(ictsz_file)')
+                 stop '(ictsz_file)'
+        endif
+        status=nf90_inquire_dimension(ncid,dimid,len=kdmic)
+        if (status.ne.nf90_noerr) then
+          write(lp,'(2a)') ' nf90_inquire_dimension: z: ',
+     .                     nf90_strerror(status)
+          call xchalt('(ictsz_file)')
+                 stop '(ictsz_file)'
+        endif
+        if (i.ne.itdm.or.j.ne.jtdm.or.
+     .      (kdmic.ne.kdm.and.vcoord_type_tag.ne.cntiso_hybrid).or.
+     .      (kdmic.gt.kdm.and.vcoord_type_tag.eq.cntiso_hybrid)) then
           write (lp,*) 'wrong dimensions in '//trim(icfile)
           call xchalt('(ictsz_file)')
                  stop '(ictsz_file)'
         endif
 c
       endif
+c
+      call xcbcst(kdmic)
 c
       start(1)=1
       start(2)=1
@@ -182,7 +208,7 @@ c --- Read reference potential density
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -206,7 +232,7 @@ c --- Read potential temperature
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -230,7 +256,7 @@ c --- Read salinity
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -253,7 +279,7 @@ c --- Read layer thickness
                  stop '(ictsz_file)'
         endif
       endif
-      do k=1,kk
+      do k=1,kdmic
         if (mnproc.eq.1) then
           start(3)=k
           status=nf90_get_var(ncid,varid,tmp2d,start,count)
@@ -276,6 +302,45 @@ c
         endif
       endif
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+c$OMP PARALLEL DO PRIVATE(l,i,k,kb,dsig,a0,a1,a2)
+        do j=1,jj
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+              write(lp,*)
+     .'Layer reference potential densities from initial condition:'
+              do k=1,kdmic
+                write(lp,*) k,sigmar(i,j,k)
+              enddo
+            endif
+            do k=kdmic,2,-1
+              sigmar(i,j,k+kk-kdmic)=.5_r8*(sigmar(i,j,k-1)
+     .                                     +sigmar(i,j,k  ))
+            enddo
+            kb=kk-kdmic+2
+            dsig=sigmar(i,j,kb+1)-sigmar(i,j,kb)
+            a0=1./(kb-1)**2
+            a1=(dsig+(2.*sigmar(i,j,kb)-dsig*kb)*kb)*a0
+            a2=(dsig*(kb-1)-sigmar(i,j,kb))*a0
+            a0=-a1-a2
+            do k=1,kb-1
+              sigmar(i,j,k)=a0+(a1+a2*k)*k
+            enddo
+            if (mnproc.eq.ptest.and.i.eq.itest.and.j.eq.jtest) then
+              write(lp,*)
+     .'Generated interface reference potential densities:'
+              do k=1,kk
+                write(lp,*) k,sigmar(i,j,k)
+              enddo
+            endif
+          enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+        
+      endif
+c
 c --- Construct interface depths [cm] from layer thicknesses [m] and
 c --- convert unit of reference potential density from [kg/m^3] to
 c --- [g/cm^3]
@@ -283,38 +348,48 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-c         z(i,j,1)=z(i,j,1)*1.e2
+c         z(i,j,1)=z(i,j,1)*L_mks2cgs
           z(i,j,1)=0.
         enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
-      do k=1,kk
-c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
+c$OMP PARALLEL DO PRIVATE(k,l,i)
+      do j=1,jj
+        do k=1,kdmic
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            z(i,j,k+1)=min(depths(i,j)*1.e2,z(i,j,k)+dz(i,j,k)*1.e2)
-            sigmar(i,j,k)=sigmar(i,j,k)*1.e-3
+            z(i,j,k+1)=min(depths(i,j)*L_mks2cgs,
+     .                     z(i,j,k)+dz(i,j,k)*L_mks2cgs)
           enddo
           enddo
         enddo
-c$OMP END PARALLEL DO
-      enddo
-c$OMP PARALLEL DO PRIVATE(k,l,i)
-      do j=1,jj
+        do k=kdmic+1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            z(i,j,k+1)=z(i,j,kdmic+1)
+          enddo
+          enddo
+        enddo
         do k=2,kk
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (z(i,j,kk+1)-z(i,j,k).lt.1.e-4)
-     .        z(i,j,k)=depths(i,j)*1.e2
+            if (z(i,j,kk+1)-z(i,j,k).lt.1.e-6*L_mks2cgs)
+     .        z(i,j,k)=depths(i,j)*L_mks2cgs
           enddo
           enddo
         enddo
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          z(i,j,kk+1)=depths(i,j)*1.e2
+          z(i,j,kk+1)=depths(i,j)*L_mks2cgs
         enddo
+        enddo
+        do k=1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            sigmar(i,j,k)=sigmar(i,j,k)*iM_mks2cgs
+          enddo
+          enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
@@ -396,39 +471,63 @@ c --- bound and make temperature, salinity, and potential density
 c --- variables consistent.
 c --- ------------------------------------------------------------------
 c
-      do k=1,2
-        tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+      select case (vcoord_type_tag)
+
+        case (isopyc_bulkml)
+
+          do k=1,2
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
-          enddo
-        enddo
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
 c$OMP END PARALLEL DO
-      enddo
-      do k=3,kk
-        tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+          enddo
+          do k=3,kk
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
 c$OMP PARALLEL DO PRIVATE(l,i)
-        do j=1,jj
-          do l=1,isp(j)
-          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
-            saln(i,j,k)=sofsig(sigmar(i,j,k),temp(i,j,k))
-            temp(i,j,k+kk)=temp(i,j,k)
-            saln(i,j,k+kk)=saln(i,j,k)
-            sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
-            sigma(i,j,k+kk)=sigma(i,j,k)
-          enddo
-          enddo
-        enddo
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                saln(i,j,k)=sofsig(sigmar(i,j,k),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
 c$OMP END PARALLEL DO
-      enddo
+          enddo
+
+        case (cntiso_hybrid)
+
+          do k=1,kk
+            tfrz(1:ii,1:jj)=swtfrz(p(1:ii,1:jj,1),saln(1:ii,1:jj,k))
+c$OMP PARALLEL DO PRIVATE(l,i)
+            do j=1,jj
+              do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                temp(i,j,k)=max(tfrz(i,j),temp(i,j,k))
+                sigma(i,j,k)=sig(temp(i,j,k),saln(i,j,k))
+              enddo
+              enddo
+            enddo
+c$OMP END PARALLEL DO
+          enddo
+
+        case default
+
+          if (mnproc.eq.1) then
+             write (lp,*) 'inicon: unsupported vertical coordinate!'
+          endif
+          call xcstop('(inicon)')
+                 stop '(inicon)'
+
+      end select
 c
       if (mnproc.eq.ptest) then
         write (lp,'('' sigmar(k)    :'',7f9.5/(15x,7f9.5))')
@@ -459,8 +558,6 @@ c$OMP END PARALLEL DO
 c
       call xctilr(p, 1,kk+1, 2,2, halo_ps)
       call xctilr(phi(1-nbdy,1-nbdy,kk+1), 1,1, 1,1, halo_ps)
-      call xctilr(temp, 1,kk, 1,1, halo_ps)
-      call xctilr(saln, 1,kk, 1,1, halo_ps)
 c
 c --- ------------------------------------------------------------------
 c --- Set layer thickness and bottom pressure
@@ -472,7 +569,6 @@ c$OMP PARALLEL DO PRIVATE(k,l,i)
           do l=1,isp(j)
           do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
             dp(i,j,k)=p(i,j,k+1)-p(i,j,k)
-            dp(i,j,k+kk)=dp(i,j,k)
           enddo
           enddo
         enddo
@@ -533,6 +629,7 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,q)
             dpu(i,j,k)=
      .        .5*((min(q,p(i-1,j,k+1))-min(q,p(i-1,j,k)))
      .           +(min(q,p(i  ,j,k+1))-min(q,p(i  ,j,k))))
+            pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,k)
           enddo
           enddo
           do l=1,isv(j)
@@ -541,25 +638,39 @@ c$OMP PARALLEL DO PRIVATE(k,l,i,q)
             dpv(i,j,k)=
      .        .5*((min(q,p(i,j-1,k+1))-min(q,p(i,j-1,k)))
      .           +(min(q,p(i,j  ,k+1))-min(q,p(i,j  ,k))))
+            pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,k)
           enddo
           enddo
         enddo
       enddo
 c$OMP END PARALLEL DO
 c
+      if (vcoord_type_tag.eq.cntiso_hybrid) then
+        call cntiso_hybrid_regrid_direct_remap(2,1,kk,0,kk+1,1)
+        call remap_velocity(2,1,kk,0,kk+1,1)
+      endif
+      call xctilr(temp, 1,kk, 1,1, halo_ps)
+      call xctilr(saln, 1,kk, 1,1, halo_ps)
+c
 c$OMP PARALLEL DO PRIVATE(k,l,i)
       do j=1,jj
         do k=1,kk
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            temp(i,j,k+kk)=temp(i,j,k)
+            saln(i,j,k+kk)=saln(i,j,k)
+            sigma(i,j,k+kk)=sigma(i,j,k)
+            dp(i,j,k+kk)=dp(i,j,k)
+          enddo
+          enddo
           do l=1,isu(j)
           do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
             dpu(i,j,k+kk)=dpu(i,j,k)
-            pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,k)
           enddo
           enddo
           do l=1,isv(j)
           do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
             dpv(i,j,k+kk)=dpv(i,j,k)
-            pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,k)
           enddo
           enddo
         enddo
@@ -770,7 +881,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,k,dps)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           k=3
           dps=0.
-          do while (dp(i,j,k).lt.epsil)
+          do while (dp(i,j,k).lt.epsilp)
             dps=dps+dp(i,j,k)
             dp(i,j,k)=0.
             dp(i,j,k+kk)=0.
@@ -814,7 +925,8 @@ c
         j=jtest
         write (lp,103) nstep,i0+i,j0+j,
      .    '  init.profile  temp    saln    dens   thkns    dpth',
-     .    (k,temp(i,j,k),saln(i,j,k),1000.*sig(temp(i,j,k),saln(i,j,k)),
+     .    (k,temp(i,j,k),saln(i,j,k),
+     .     M_mks2cgs*sig(temp(i,j,k),saln(i,j,k)),
      .    dp(i,j,k)/onem,p(i,j,k+1)/onem,k=1,kk)
  103    format (i9,2i5,a/(28x,i3,3f8.2,2f8.1))
       endif

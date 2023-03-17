@@ -68,7 +68,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc,  only: ianh4,iano2,iatmnh3
+      use mo_param1_bgc,  only: ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
       use mo_bgcmean,     only: jnh3flux
 #endif
 
@@ -147,7 +147,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO j=1,kpje
         DO i=1,kpie
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
-                &       *dlxp(i,j)*dlyp(i,j)*porwat(k)
+                &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
         ENDDO
      ENDDO
   ENDDO
@@ -159,7 +159,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(k)
+              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
               ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -178,7 +178,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+              vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
            ENDDO
         ENDDO
@@ -191,7 +191,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   DO k=1,ks
      DO j=1,kpje
         DO i=1,kpie
-           vol = porsol(k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+           vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
            ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
         ENDDO
      ENDDO
@@ -383,6 +383,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zprorca*rnit                                                        &
 #ifdef extNcycle
        &  +zocetratot(ianh4)+zocetratot(iano2)+snh3flux                        &
+       &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)       & 
 #endif
 #if defined(BOXATM)
        &  +zatmn2*ppm2con*2
@@ -416,6 +417,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zprorca*(-24.)+zprcaca                                              &
 #ifdef extNcycle
       &  +zocetratot(iano2)                                                    &
+      &  +zpowtratot(ipown2o)*0.5+zpowtratot(ipowno2)                          & 
 #endif
 #if defined(BOXATM)
        &  +zatmo2*ppm2con+zatmco2*ppm2con
@@ -696,7 +698,7 @@ subroutine write_netcdf(iogrp)
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
 #endif
 #ifdef extNcycle
-  use mo_param1_bgc, only: ianh4
+  use mo_param1_bgc, only: ianh4,iano2
 #endif
 
 
@@ -800,6 +802,7 @@ subroutine write_netcdf(iogrp)
 #endif
 #ifdef extNcycle
   integer :: zt_nh4_varid,       zc_nh4_varid         ! Ammonium (NH4+) 
+  integer :: zt_ano2_varid,      zc_ano2_varid        ! Nitrite (NO2-) 
 #endif
   !--- sum of inventory
   integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
@@ -1451,8 +1454,19 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'long_name',               &
           &    'Mean ammonium concentration') )
      call nccheck( NF90_PUT_ATT(ncid, zc_nh4_varid, 'units', 'kmol/m^3') )
-#endif
+     
+     call nccheck( NF90_DEF_VAR(ncid, 'zt_ano2', NF90_DOUBLE,                  &
+          &    time_dimid, zt_ano2_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'long_name',              &
+          &    'Total nitrite tracer') )
+     call nccheck( NF90_PUT_ATT(ncid, zt_ano2_varid, 'units', 'kmol') )
 
+     call nccheck( NF90_DEF_VAR(ncid, 'zc_ano2', NF90_DOUBLE,                  &
+          &    time_dimid, zc_ano2_varid) )
+     call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'long_name',              &
+          &    'Mean nitrite concentration') )
+     call nccheck( NF90_PUT_ATT(ncid, zc_ano2_varid, 'units', 'kmol/m^3') )
+#endif
 
      !--- Define variables : sum of inventory
      call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
@@ -1649,6 +1663,8 @@ subroutine write_netcdf(iogrp)
 #ifdef extNcycle
      call nccheck( NF90_INQ_VARID(ncid, "zt_nh4", zt_nh4_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_nh4", zc_nh4_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, "zt_ano2", zt_ano2_varid) )
+     call nccheck( NF90_INQ_VARID(ncid, "zc_ano2", zc_ano2_varid) )
 #endif
      !--- Inquire varid : sum of inventory
      call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
@@ -1880,10 +1896,14 @@ subroutine write_netcdf(iogrp)
        &    zocetratoc(ibromo), start = wrstart) )
 #endif
 #ifdef extNcycle
-  call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                             &
+  call nccheck( NF90_PUT_VAR(ncid, zt_nh4_varid,                               &
        &    zocetratot(ianh4), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                             &
+  call nccheck( NF90_PUT_VAR(ncid, zc_nh4_varid,                               &
        &    zocetratoc(ianh4), start = wrstart) )
+  call nccheck( NF90_PUT_VAR(ncid, zt_ano2_varid,                              &
+       &    zocetratot(iano2), start = wrstart) )
+  call nccheck( NF90_PUT_VAR(ncid, zc_ano2_varid,                              &
+       &    zocetratoc(iano2), start = wrstart) )
 #endif
   !--- Write data : sum of inventory
   call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &

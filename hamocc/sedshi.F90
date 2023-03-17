@@ -53,7 +53,8 @@
 
       use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu 
       use mo_biomod,     only: rcar 
-      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra 
+      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra
+      use mo_carbch,     only: sedfluxb 
 #ifdef cisonew
       use mo_param1_bgc, only: isssc13,isssc14,issso13,issso14 
 #endif
@@ -65,6 +66,8 @@
       REAL :: sedlo,uebers,seddef,spresent,buried
       REAL :: refill,frac
 
+
+      sedfluxb(:,:,:) = 0.
 ! DOWNWARD SHIFTING	 
 ! shift solid sediment sediment downwards, if layer is full, i.e., if 
 ! the volume filled by the four constituents poc, opal, caco3, clay
@@ -100,7 +103,7 @@
             uebers=wsed(i,j)*sedlay(i,j,k,iv)
             sedlay(i,j,k  ,iv)=sedlay(i,j,k  ,iv)-uebers
             sedlay(i,j,k+1,iv)=sedlay(i,j,k+1,iv)+uebers               &
-     &        *(seddw(k)*porsol(k))/(seddw(k+1)*porsol(k+1))
+     &        *(seddw(k)*porsol(i,j,k))/(seddw(k+1)*porsol(i,j,k+1))
           endif
         enddo !end i-loop
         enddo !end j-loop
@@ -138,9 +141,10 @@
       do i=1,kpie
           if(omask(i,j).gt.0.5) then
 !ka          if(bolay(i,j).gt.0.) then
-            uebers=wsed(i,j)*sedlay(i,j,k,iv)
+            uebers=wsed(i,j)*sedlay(i,j,ks,iv)
             sedlay(i,j,ks ,iv)=sedlay(i,j,ks ,iv)-uebers
-            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(k)*porsol(k)
+            burial(i,j,iv)=burial(i,j,iv)+uebers*seddw(ks)*porsol(i,j,ks)
+            sedfluxb(i,j,iv) = uebers*seddw(ks)*porsol(i,j,ks) 
           endif
       enddo !end i-loop
       enddo !end j-loop
@@ -178,7 +182,7 @@
      &         +calfa*sedlay(i,j,k,isssc12)                            &
      &         +oplfa*sedlay(i,j,k,issssil)                            &
      &         +clafa*sedlay(i,j,k,issster)
-          fulsed(i,j)=fulsed(i,j)+porsol(k)*seddw(k)*sedlo
+          fulsed(i,j)=fulsed(i,j)+porsol(i,j,k)*seddw(k)*sedlo
         endif
       enddo !end i-loop
       enddo !end j-loop
@@ -197,7 +201,7 @@
 ! deficiency to fully loaded sediment packed in sedlay(i,j,ks)
 ! this is the volume required from the buried layer
 
-        seddef=solfu-fulsed(i,j)
+        seddef=solfu(i,j)-fulsed(i,j)
 
 ! total volume of solid constituents in buried layer
         spresent=orgfa*rcar*burial(i,j,issso12)                        &
@@ -219,7 +223,7 @@
 
 ! fill the last active layer
         refill=seddef/(buried+1.e-10) 
-        frac = porsol(ks)*seddw(ks) !changed k to ks, ik
+        frac = porsol(i,j,ks)*seddw(ks)
         
         sedlay(i,j,ks,issso12)=sedlay(i,j,ks,issso12)                  &
      &                        +refill*burial(i,j,issso12)/frac
@@ -239,6 +243,13 @@
      &                      - refill*burial(i,j,issssil)
         burial(i,j,issster) = burial(i,j,issster)                      &
      &                      - refill*burial(i,j,issster)
+
+! account for refluxes to get net-burial fluxes: 
+! note that this (and before) assumes no reflux of isotopes! - up to change?
+        sedfluxb(i,j,issso12) = sedfluxb(i,j,issso12) - refill*burial(i,j,issso12) 
+        sedfluxb(i,j,isssc12) = sedfluxb(i,j,isssc12) - refill*burial(i,j,isssc12) 
+        sedfluxb(i,j,issssil) = sedfluxb(i,j,issssil) - refill*burial(i,j,issssil) 
+        sedfluxb(i,j,issster) = sedfluxb(i,j,issster) - refill*burial(i,j,issster) 
 
       endif
       enddo !end i-loop
@@ -269,7 +280,7 @@
         if(omask(i,j).gt.0.5) then
 !ka        if(bolay(i,j).gt.0.) then
           uebers=sedlay(i,j,k,iv)*wsed(i,j)
-          frac=porsol(k)*seddw(k)/(porsol(k-1)*seddw(k-1))
+          frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
           sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
           sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
 #ifdef cisonew

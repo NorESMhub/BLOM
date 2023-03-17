@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, ppao, prho)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -78,6 +78,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !     *REAL*    *omask*   - land/ocean mask (1=ocean)
 !     *REAL*    *ptho*    - potential temperature [deg C].
+!     *REAL*    *pi_ph*   - 
+!     *REAL*    *psao*    - salinity [psu].
+!     *REAL*    *ppao*    - sea level pressure [Pascal].  
+!     *REAL*    *prho*    - density [kg/m^3].
 !
 !******************************************************************************
   use mo_carbch,      only: dmspar,ocetra,satoxy,hi
@@ -87,15 +91,16 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                           & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
                           & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
                           & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
-                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
+                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
-  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
+  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph,lm4ago
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
+  use mo_m4ago,       only: mean_aggregate_sinking_speed,ws_agg,POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref 
 
 #ifdef AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
                           & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
   use mo_param1_bgc,  only: iadust,inos
   use mo_vgrid,       only: kmle
@@ -136,6 +141,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real,    intent(in) :: omask(kpie,kpje)
   real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
   real,    intent(in) :: pi_ph(kpie,kpje)
+  real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+  real,    intent(in) :: prho(kpie,kpje,kpke)
 
   ! Local varaibles
   integer :: i,j,k,l
@@ -156,7 +164,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
-  real :: wpocd,wcald,wopald,dagg
+  real :: wpocd,wcald,wopald,wdustd,dagg
+  real :: o2lim ! O2 limitation of ammonification (POC remin) 
 #ifdef sedbypass
   real :: florca,flcaca,flsil
 #endif
@@ -202,7 +211,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #endif
 #ifdef extNcycle
   character(len=:), allocatable :: inv_message
-  real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac  
+  real :: ano3up_inh,nutlim,anh4lim,nlim,grlim,nh4uptfrac 
 #endif
 
 
@@ -316,11 +325,16 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   enddo
 !$OMP END PARALLEL DO
 
+  if (lm4ago) then
+    ! even though we loose detritus, etc. we call the calculation for settling velocity by M4AGO here 
+    ! to enable further future development... - assuming that the operator splitting decently functions 
+    call mean_aggregate_sinking_speed(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, ppao, prho)
+  endif
 
 !$OMP PARALLEL DO PRIVATE(avphy,avgra,avsil,avanut,avanfe,pho,xa,xn   &
 !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
 !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
-!$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
+!$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz,opalrem    &
 # ifdef AGG
 !$OMP  ,avmass,avnos,zmornos                                          &
 # endif
@@ -531,8 +545,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
         ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
 #endif
-        ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal)
-        ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
+        if(lm4ago)then
+           opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+        else
+           opalrem = dremopal*ocetra(i,j,k,iopal)
+        endif 
+        ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
+        ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
 #ifdef BROMO
@@ -616,7 +635,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #endif
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
-!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
+!$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz,o2lim       &
 # ifdef AGG
 !$OMP  ,avmass,avnos,zmornos                                          &
 # endif
@@ -665,12 +684,25 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #endif
 
         if(ocetra(i,j,k,ioxygen) > 5.e-8) then
+           if(lm4ago) then
 #ifndef extNcycle
-           pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
+              ! M4AGO comes with O2-lim
+              o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+              pocrem = o2lim*drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
+#else
+              ! nitrogen always accounts for O2-lim - see below 
+              pocrem = drempoc*POM_remin_q10**((ptho(i,j,k)-POM_remin_Tref)/10.)*ocetra(i,j,k,idet)
+#endif
+           else
+              pocrem = drempoc*ocetra(i,j,k,idet)
+           endif 
+#ifndef extNcycle
+           pocrem = MIN(pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2ut)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2ut)
 #else
-           pocrem = MIN(drempoc*ocetra(i,j,k,idet),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
+           o2lim  = ocetra(i,j,k,ioxygen)/(ocetra(i,j,k,ioxygen) + bkox_drempoc)
+           pocrem = MIN(o2lim*pocrem,0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
            docrem = MIN( remido*ocetra(i,j,k,idoc),0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
            phyrem = MIN(0.5*dyphy*phythresh,       0.33*ocetra(i,j,k,ioxygen)/ro2utammo)
 #endif
@@ -737,7 +769,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! so the expression dremopal*(Si(OH)4sat-Si(OH)4) would change the
 ! rate only from 0 to 100%
 !***********************************************************************
-        opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
+        if(lm4ago)then
+           opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
+        else
+           opalrem = dremopal*0.1*(temp+3.)*ocetra(i,j,k,iopal)
+        endif 
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)-opalrem
         ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+opalrem
 
@@ -814,7 +850,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
 #endif /*AGG*/
 
-           remin   = 0.05 * drempoc * MIN(ocetra(i,j,k,idet),           &
+           remin   = drempoc_anaerob * MIN(ocetra(i,j,k,idet),           &
                 &    0.5 * ocetra(i,j,k,iano3) / rdnit1)
            remin2o = dremn2o * MIN(ocetra(i,j,k,idet),                  &
                 &    0.003 * ocetra(i,j,k,ian2o) / rdn2o1)
@@ -1028,7 +1064,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! Set minimum particle number to nmldmin in the mixed layer. This is to prevent
 ! very small values of nos (and asscociated high sinking speed if there is mass)
 ! in high latitudes during winter
-           if ( k <= kmle ) then
+           if ( k <= kmle(i,j) ) then
               ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos))
            endif
 
@@ -1064,7 +1100,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 ! As a first step, assume that shear in the mixed layer is high and
 ! zero below.
-           if ( k <= kmle ) then
+           if ( k <= kmle(i,j) ) then
               fshear = fsh
            else
               fshear = 0.
@@ -1139,7 +1175,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
+!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd   &
 #if defined(AGG)
 !$OMP ,wnos,wnosd,dagg                                                &
 #endif
@@ -1189,29 +1225,48 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wnos   = wnumb(i,j,k)
               wnosd  = wnumb(i,j,kdonor)
               wdust  = dustsink
+              wdustd = dustsink
               dagg   = dustagg(i,j,k)
 #elif defined(WLIN)
               wpoc   = min(wmin+wlin*ptiestu(i,j,k),     wmax)
               wpocd  = min(wmin+wlin*ptiestu(i,j,kdonor),wmax)
               wcald  = wcal
               wopald = wopal
+              wdustd = wdust
               dagg   = 0.0
 #else
               wpocd  = wpoc
               wcald  = wcal
               wopald = wopal
+              wdustd = wdust
               dagg   = 0.0
 #endif
+              if(lm4ago)then ! superseding every other method
+                wpoc   = ws_agg(i,j,k)
+                wpocd  = ws_agg(i,j,kdonor)
+                wcal   = ws_agg(i,j,k)
+                wcald  = ws_agg(i,j,kdonor)
+                wopal  = ws_agg(i,j,k)
+                wopald = ws_agg(i,j,kdonor)
+                wdust  = ws_agg(i,j,k)
+                wdustd = ws_agg(i,j,kdonor)
+                dagg   = 0.0
+              endif
 
               if( k == 1 ) then
                  wpocd  = 0.0
                  wcald  = 0.0
                  wopald = 0.0
+                 wdustd = 0.0
 #if defined(AGG)
                  wnosd  = 0.0
 #elif defined(WLIN)
-                 wpoc   = wmin
-#endif
+                 if (lm4ago)then
+                   wpoc = ws_agg(i,j,k) 
+                 else
+                   wpoc = wmin
+                 endif
+#endif          
               endif
 
               ocetra(i,j,k,idet)    = (ocetra(i,j,k   ,idet) * pddpo(i,j,k)     &
@@ -1243,7 +1298,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                    &                 + ocetra(i,j,kdonor,iopal)*wopald)/        &
                    &                 (pddpo(i,j,k)+wopal)
               ocetra(i,j,k,ifdust) = (ocetra(i,j,k    ,ifdust) * pddpo(i,j,k)   &
-                   &                 + ocetra(i,j,kdonor,ifdust)*wdust)/        &
+                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/        &
                    &                 (pddpo(i,j,k)+wdust) - dagg
 #ifdef AGG
               ocetra(i,j,k,iphy)   = (ocetra(i,j,k    ,iphy) * pddpo(i,j,k)     &
@@ -1412,7 +1467,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
 #endif
-
+           if(lm4ago)then
+                wpoc   = ws_agg(i,j,k)
+                wcal   = ws_agg(i,j,k)
+                wopal  = ws_agg(i,j,k)
+           endif
 #if defined(AGG)
            carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
@@ -1432,7 +1491,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
 #endif
-
+           if(lm4ago)then
+                wpoc   = ws_agg(i,j,k)
+                wcal   = ws_agg(i,j,k)
+                wopal  = ws_agg(i,j,k)
+           endif
 #if defined(AGG)
            carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
@@ -1452,7 +1515,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
 #endif
-
+           if(lm4ago)then
+                wpoc   = ws_agg(i,j,k)
+                wcal   = ws_agg(i,j,k)
+                wopal  = ws_agg(i,j,k)
+           endif
 #if defined(AGG)
            carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
@@ -1472,7 +1539,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
 #endif
-
+           if(lm4ago)then
+                wpoc   = ws_agg(i,j,k)
+                wcal   = ws_agg(i,j,k)
+                wopal  = ws_agg(i,j,k)
+           endif
 #if defined(AGG)
            carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else
@@ -1492,7 +1563,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
            wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
 #endif
-
+           if(lm4ago)then
+                wpoc   = ws_agg(i,j,k)
+                wcal   = ws_agg(i,j,k)
+                wopal  = ws_agg(i,j,k)
+           endif
 #if defined(AGG)
            carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
 #else

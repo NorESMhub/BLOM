@@ -22,10 +22,14 @@ module mo_read_fedep
 ! MODULE mo_read_fedep - routines for reading iron deposition data
 !
 !
-!  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-27
+!  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-27
 !
 !  Modified
 !  --------
+!  J. Schwinger,     *NORCE climate, Bergen*   2022-06-02
+!  -revise structure of this module, split into a module for reading the 
+!   data (mo_read_fedep) and a module that applies the fluxes in core 
+!   hamocc (mo_apply_fedep)
 !
 !  Purpose
 !  -------
@@ -36,8 +40,8 @@ module mo_read_fedep
 !  ------------
 !  Public routines and variable of this module:
 !
-!  -subroutine ini_fedep
-!     Initialise the iron deposition module.
+!  -subroutine ini_read_fedep
+!     Initialise the module for reading iron deposition data
 !
 !  -subroutine get_fedep
 !     Get the iron (dust) deposition for a given month

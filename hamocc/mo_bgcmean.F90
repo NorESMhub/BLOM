@@ -55,10 +55,9 @@
 !**********************************************************************
       use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
       use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
-      use mod_nctools,    only:ncpack,nccomp,nccopa,ncwrtr
+      use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
       use netcdf,         only: nf90_fill_double
       use mo_param1_bgc,  only: ks
-      use mo_control_bgc, only: get_bgc_namelist 
 
       IMPLICIT NONE
 
@@ -76,6 +75,8 @@
 ! --- Namelist for diagnostic output 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
+     & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
+     & SRF_PCO2M     =0    ,                                            &
      & SRF_CO2FXD    =0    ,SRF_CO2FXU    =0    ,SRF_CO213FXD  =0    ,  &
      & SRF_CO213FXU  =0    ,SRF_CO214FXD  =0    ,SRF_CO214FXU  =0    ,  &
      & SRF_OXFLUX    =0    ,SRF_NIFLUX    =0    ,SRF_DMS       =0    ,  &
@@ -87,10 +88,12 @@
      & SRF_SF6       =0    ,SRF_PHOSPH    =0    ,SRF_OXYGEN    =0    ,  &
      & SRF_IRON      =0    ,SRF_ANO3      =0    ,SRF_ALKALI    =0    ,  &
      & SRF_SILICA    =0    ,SRF_DIC       =0    ,SRF_PHYTO     =0    ,  &
+     & SRF_PH        =0    ,                                            &
      & SRF_NATDIC    =0    ,SRF_NATALKALI =0    ,SRF_NATPCO2   =0    ,  &
-     & SRF_NATCO2FX  =0    ,                                            &
+     & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
      & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
+     & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,                       &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -101,7 +104,10 @@
      & FLX_CAL2000   =0    ,FLX_CAL4000   =0    ,FLX_CAL_BOT   =0    ,  &
      & FLX_SEDIFFIC  =0    ,FLX_SEDIFFAL  =0    ,FLX_SEDIFFPH  =0    ,  &
      & FLX_SEDIFFOX  =0    ,FLX_SEDIFFN2  =0    ,FLX_SEDIFFNO3 =0    ,  &
-     & FLX_SEDIFFSI  =0    ,                                            &   
+     & FLX_SEDIFFSI  =0    ,FLX_SEDIFFNH4 =0    ,FLX_SEDIFFN2O =0    ,  &
+     & FLX_SEDIFFNO2 =0    ,                                            &
+     & FLX_BURSSO12  =0    ,FLX_BURSSSC12 =0    ,FLX_BURSSSSIL =0    ,  &
+     & FLX_BURSSSTER =0    ,                                            &   
      & LYR_PHYTO     =0    ,LYR_GRAZER    =0    ,LYR_DOC       =0    ,  &
      & LYR_PHOSY     =0    ,LYR_PHOSPH    =0    ,LYR_OXYGEN    =0    ,  &
      & LYR_IRON      =0    ,LYR_ANO3      =0    ,LYR_ALKALI    =0    ,  &
@@ -127,7 +133,13 @@
      & LYR_nitr_NH4_OM =0  ,LYR_nitr_NO2_OM =0  ,LYR_denit_NO3     =0,  &
      & LYR_denit_NO2 = 0   ,LYR_denit_N2O = 0   ,LYR_DNRA_NO2      =0,  &
      & LYR_anmx_N2_prod=0  ,LYR_anmx_OM_prod=0  ,LYR_phosy_NH4     =0,  &
-     & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  & 
+     & LYR_phosy_NO3 = 0   ,LYR_remin_aerob =0  ,LYR_remin_sulf    =0,  &
+     ! M4AGO LYR
+     & LYR_agg_ws    =0    ,LYR_dynvis    =0    ,LYR_agg_stick =0    ,  &
+     & LYR_agg_stickf=0    ,LYR_agg_dmax  =0    ,LYR_agg_avdp  =0    ,  &
+     & LYR_agg_avrhop=0    ,LYR_agg_avdC  =0    ,LYR_agg_df    =0    ,  &
+     & LYR_agg_b     =0    ,LYR_agg_Vrhof =0    ,LYR_agg_Vpor  =0    ,  &        
+     !========== LVLs 
      & LVL_PHYTO     =0    ,LVL_GRAZER    =0    ,LVL_DOC       =0    ,  &
      & LVL_PHOSY     =0    ,LVL_PHOSPH    =0    ,LVL_OXYGEN    =0    ,  &
      & LVL_IRON      =0    ,LVL_ANO3      =0    ,LVL_ALKALI    =0    ,  &
@@ -154,10 +166,22 @@
      & LVL_denit_NO2 = 0   ,LVL_denit_N2O = 0   ,LVL_DNRA_NO2      =0,  &
      & LVL_anmx_N2_prod=0  ,LVL_anmx_OM_prod=0  ,LVL_phosy_NH4     =0,  &
      & LVL_phosy_NO3 = 0   ,LVL_remin_aerob =0  ,LVL_remin_sulf    =0,  & 
+     ! M4AGO LVL
+     & LVL_agg_ws    =0    ,LVL_dynvis    =0    ,LVL_agg_stick =0    ,  &
+     & LVL_agg_stickf=0    ,LVL_agg_dmax  =0    ,LVL_agg_avdp  =0    ,  &
+     & LVL_agg_avrhop=0    ,LVL_agg_avdC  =0    ,LVL_agg_df    =0    ,  &
+     & LVL_agg_b     =0    ,LVL_agg_Vrhof =0    ,LVL_agg_Vpor  =0    ,  &        
      & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0    ,  &
      & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0    ,  &
      & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0    ,  &
      & SDM_SSSC12    =0    ,SDM_SSSTER    =0                         ,  &
+     !extNcycle
+     & SDM_POWNH4    =0    ,SDM_POWN2O    =0    ,SDM_POWNO2    =0    ,  &
+     & SDM_nitr_NH4  =0    ,SDM_nitr_NO2  =0    ,SDM_nitr_N2O_prod =0,  &
+     & SDM_nitr_NH4_OM =0  ,SDM_nitr_NO2_OM =0  ,SDM_denit_NO3     =0,  &
+     & SDM_denit_NO2 = 0   ,SDM_denit_N2O = 0   ,SDM_DNRA_NO2      =0,  &
+     & SDM_anmx_N2_prod=0  ,SDM_anmx_OM_prod=0  ,SDM_remin_aerob =0  ,  &
+     & SDM_remin_sulf  =0  ,                                            & 
      & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0    ,  &
      & BUR_SSSTER    =0                                              ,  &
      & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
@@ -165,6 +189,8 @@
       CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
+     & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
+     & SRF_PCO2M         ,                                              &
      & SRF_CO2FXD        ,SRF_CO2FXU        ,SRF_CO213FXD      ,        &
      & SRF_CO213FXU      ,SRF_CO214FXD      ,SRF_CO214FXU      ,        &
      & SRF_OXFLUX        ,SRF_NIFLUX        ,SRF_DMS           ,        &
@@ -176,10 +202,12 @@
      & SRF_SF6           ,SRF_PHOSPH        ,SRF_OXYGEN        ,        &
      & SRF_IRON          ,SRF_ANO3          ,SRF_ALKALI        ,        &
      & SRF_SILICA        ,SRF_DIC           ,SRF_PHYTO         ,        &
+     & SRF_PH            ,                                              &
      & SRF_NATDIC        ,SRF_NATALKALI     ,SRF_NATPCO2       ,        &
-     & SRF_NATCO2FX      ,                                              &
+     & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
      & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
+     & SRF_PN2OM         ,SRF_PNH3          ,                           &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -190,7 +218,10 @@
      & FLX_CAL2000       ,FLX_CAL4000       ,FLX_CAL_BOT       ,        &
      & FLX_SEDIFFIC      ,FLX_SEDIFFAL      ,FLX_SEDIFFPH      ,        &
      & FLX_SEDIFFOX      ,FLX_SEDIFFN2      ,FLX_SEDIFFNO3     ,        &
-     & FLX_SEDIFFSI      ,                                              &   
+     & FLX_SEDIFFSI      ,FLX_SEDIFFNH4     ,FLX_SEDIFFN2O     ,        &
+     & FLX_SEDIFFNO2     ,                                              &   
+     & FLX_BURSSO12      ,FLX_BURSSSC12     ,FLX_BURSSSSIL     ,        &
+     & FLX_BURSSSTER     ,                                              &   
      & LYR_PHYTO         ,LYR_GRAZER        ,LYR_DOC           ,        &
      & LYR_PHOSY         ,LYR_PHOSPH        ,LYR_OXYGEN        ,        &
      & LYR_IRON          ,LYR_ANO3          ,LYR_ALKALI        ,        &
@@ -216,6 +247,10 @@
      & LYR_denit_NO2     ,LYR_denit_N2O     ,LYR_DNRA_NO2      ,        &
      & LYR_anmx_N2_prod  ,LYR_anmx_OM_prod  ,LYR_phosy_NH4     ,        &
      & LYR_phosy_NO3     ,LYR_remin_aerob   ,LYR_remin_sulf    ,        & 
+     & LYR_agg_ws        ,LYR_dynvis        ,LYR_agg_stick     ,        &
+     & LYR_agg_stickf    ,LYR_agg_dmax      ,LYR_agg_avdp      ,        &
+     & LYR_agg_avrhop    ,LYR_agg_avdC      ,LYR_agg_df        ,        &
+     & LYR_agg_b         ,LYR_agg_Vrhof     ,LYR_agg_Vpor      ,        &        
      & LVL_PHYTO         ,LVL_GRAZER        ,LVL_DOC           ,        &
      & LVL_PHOSY         ,LVL_PHOSPH        ,LVL_OXYGEN        ,        &
      & LVL_IRON          ,LVL_ANO3          ,LVL_ALKALI        ,        &
@@ -241,10 +276,20 @@
      & LVL_denit_NO2     ,LVL_denit_N2O     ,LVL_DNRA_NO2      ,        &
      & LVL_anmx_N2_prod  ,LVL_anmx_OM_prod  ,LVL_phosy_NH4     ,        &
      & LVL_phosy_NO3     ,LVL_remin_aerob   ,LVL_remin_sulf    ,        & 
+     & LVL_agg_ws        ,LVL_dynvis        ,LVL_agg_stick     ,        &
+     & LVL_agg_stickf    ,LVL_agg_dmax      ,LVL_agg_avdp      ,        &
+     & LVL_agg_avrhop    ,LVL_agg_avdC      ,LVL_agg_df        ,        &
+     & LVL_agg_b         ,LVL_agg_Vrhof     ,LVL_agg_Vpor      ,        &        
      & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,        &
      & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,        &
      & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,        &
      & SDM_SSSC12        ,SDM_SSSTER                           ,        &
+     & SDM_POWNH4        ,SDM_POWN2O        ,SDM_POWNO2        ,        &
+     & SDM_nitr_NH4      ,SDM_nitr_NO2      ,SDM_nitr_N2O_prod ,        &
+     & SDM_nitr_NH4_OM   ,SDM_nitr_NO2_OM   ,SDM_denit_NO3     ,        &
+     & SDM_denit_NO2     ,SDM_denit_N2O     ,SDM_DNRA_NO2      ,        &
+     & SDM_anmx_N2_prod  ,SDM_anmx_OM_prod  ,SDM_remin_aerob   ,        &
+     & SDM_remin_sulf    ,                                              & 
      & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,        &
      & BUR_SSSTER                                              ,        &
      & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,        &
@@ -284,7 +329,11 @@
       INTEGER, SAVE :: i_bsc_m2d 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jkwco2     = 0 ,                                        &
+     &          jkwco2khm  = 0 ,                                        &
+     &          jco2kh     = 0 ,                                        &
+     &          jco2khm    = 0 ,                                        &
      &          jpco2      = 0 ,                                        &
+     &          jpco2m     = 0 ,                                        &
      &          jdmsflux   = 0 ,                                        &
      &          jco2fxd    = 0 ,                                        &
      &          jco2fxu    = 0 ,                                        &
@@ -313,6 +362,7 @@
      &          jsrfsilica = 0 ,                                        &
      &          jsrfdic    = 0 ,                                        &
      &          jsrfphyto  = 0 ,                                        &
+     &          jsrfph     = 0 ,                                        &
      &          jintphosy  = 0 ,                                        &
      &          jintnfix   = 0 ,                                        &
      &          jintdnit   = 0 ,                                        &
@@ -342,13 +392,21 @@
      &          jsediffox  = 0 ,                                        &
      &          jsediffn2  = 0 ,                                        &
      &          jsediffno3 = 0 ,                                        &
-                jsediffsi  = 0
+     &          jsediffsi  = 0 ,                                        &
+     &          jsediffnh4 = 0 ,                                        &
+     &          jsediffn2o = 0 ,                                        &
+     &          jsediffno2 = 0 ,                                        &
+     &          jburflxsso12  = 0 ,                                     &
+     &          jburflxsssc12 = 0 ,                                     &
+     &          jburflxssssil = 0 ,                                     &
+     &          jburflxssster = 0     
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jsrfnatdic = 0 ,                                        &
      &          jsrfnatalk = 0 ,                                        &
      &          jnatpco2   = 0 ,                                        &
-     &          jnatco2fx  = 0
+     &          jnatco2fx  = 0 ,                                        &
+     &          jsrfnatph  = 0
 
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          jbromofx   = 0 ,                                        &
@@ -359,7 +417,9 @@
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
      &          janh3fx    = 0 ,                                        &
      &          jsrfanh4   = 0 ,                                        &
-     &          jsrfano2
+     &          jsrfano2   = 0 ,                                        &
+     &          jsrfpn2om  = 0 ,                                        &
+     &          jsrfpnh3   = 0
  
       INTEGER, SAVE :: i_atm_m2d  
       INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
@@ -506,7 +566,19 @@
      &          jphosy_NH4         = 0 ,                                &
      &          jphosy_NO3         = 0 ,                                &
      &          jremin_aerob       = 0 ,                                &
-     &          jremin_sulf        = 0,                                 & 
+     &          jremin_sulf        = 0 ,                                & 
+     &          jagg_ws            = 0 ,                                &
+     &          jdynvis            = 0 ,                                &
+     &          jagg_stick         = 0 ,                                &
+     &          jagg_stickf        = 0 ,                                &
+     &          jagg_dmax          = 0 ,                                &
+     &          jagg_avdp          = 0 ,                                &
+     &          jagg_avrhop        = 0 ,                                &
+     &          jagg_avdC          = 0 ,                                &
+     &          jagg_df            = 0 ,                                &
+     &          jagg_b             = 0 ,                                &
+     &          jagg_Vrhof         = 0 ,                                &
+     &          jagg_Vpor          = 0 ,                                &        
      &          jlvlanh4   = 0 ,                                        &
      &          jlvlano2   = 0 ,                                        &  
      &          jlvl_nitr_NH4      = 0 ,                                &
@@ -523,8 +595,19 @@
      &          jlvl_phosy_NH4     = 0 ,                                &
      &          jlvl_phosy_NO3     = 0 ,                                &
      &          jlvl_remin_aerob   = 0 ,                                &
-     &          jlvl_remin_sulf    = 0 
-
+     &          jlvl_remin_sulf    = 0 ,                                &
+     &          jlvl_agg_ws        = 0 ,                                &
+     &          jlvl_dynvis        = 0 ,                                &
+     &          jlvl_agg_stick     = 0 ,                                &
+     &          jlvl_agg_stickf    = 0 ,                                &
+     &          jlvl_agg_dmax      = 0 ,                                &
+     &          jlvl_agg_avdp      = 0 ,                                &
+     &          jlvl_agg_avrhop    = 0 ,                                &
+     &          jlvl_agg_avdC      = 0 ,                                &
+     &          jlvl_agg_df        = 0 ,                                &
+     &          jlvl_agg_b         = 0 ,                                &
+     &          jlvl_agg_Vrhof     = 0 ,                                &
+     &          jlvl_agg_Vpor      = 0  
       INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
 
 !----------------------------------------------------------------
@@ -541,7 +624,23 @@
      &          jssso12 = 0 ,                                           &
      &          jssssil = 0 ,                                           &
      &          jsssc12 = 0 ,                                           &
-     &          jssster = 0              
+     &          jssster = 0 ,                                           &
+     &          jpownh4 = 0 ,                                           &
+     &          jpown2o = 0 ,                                           &
+     &          jpowno2 = 0 ,                                           &             
+     &          jsdm_nitr_NH4      = 0 ,                                &
+     &          jsdm_nitr_NO2      = 0 ,                                &
+     &          jsdm_nitr_N2O_prod = 0 ,                                &
+     &          jsdm_nitr_NH4_OM   = 0 ,                                &
+     &          jsdm_nitr_NO2_OM   = 0 ,                                &
+     &          jsdm_denit_NO3     = 0 ,                                &
+     &          jsdm_denit_NO2     = 0 ,                                &
+     &          jsdm_denit_N2O     = 0 ,                                &
+     &          jsdm_DNRA_NO2      = 0 ,                                &
+     &          jsdm_anmx_N2_prod  = 0 ,                                &
+     &          jsdm_anmx_OM_prod  = 0 ,                                &
+     &          jsdm_remin_aerob   = 0 ,                                &
+     &          jsdm_remin_sulf    = 0 
 
 
       INTEGER, SAVE :: nbgct_sed    
@@ -572,7 +671,7 @@
 
       SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
-      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
+      use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,get_bgc_namelist
 
       IMPLICIT NONE 
      
@@ -630,8 +729,16 @@
       DO n=1,nbgc  
         IF (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
+        IF (SRF_KWCO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
+        IF (SRF_CO2KH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
+        IF (SRF_CO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
         IF (SRF_PCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
+        IF (SRF_PCO2M(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jpco2m(n)=i_bsc_m2d*min(1,SRF_PCO2M(n))
         IF (SRF_DMSFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdmsflux(n)=i_bsc_m2d*min(1,SRF_DMSFLUX(n))
         IF (SRF_CO2FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
@@ -658,6 +765,8 @@
         jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
         IF (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
+        IF (SRF_PN2OM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfpn2om(n)=i_bsc_m2d*min(1,SRF_PN2OM(n))
         IF (SRF_PHOSPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfphosph(n)=i_bsc_m2d*min(1,SRF_PHOSPH(n))
         IF (SRF_OXYGEN(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -674,6 +783,8 @@
         jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
         IF (SRF_PHYTO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfphyto(n)=i_bsc_m2d*min(1,SRF_PHYTO(n))
+        IF (SRF_PH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        jsrfph(n)=i_bsc_m2d*min(1,SRF_PH(n))
         IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
         IF (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -731,6 +842,22 @@
         jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
         IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
+        IF (FLX_BURSSO12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxsso12(n)=i_bsc_m2d*min(1,FLX_BURSSO12(n))
+        IF (FLX_BURSSSC12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxsssc12(n)=i_bsc_m2d*min(1,FLX_BURSSSC12(n))
+        IF (FLX_BURSSSSIL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxssssil(n)=i_bsc_m2d*min(1,FLX_BURSSSSIL(n))
+        IF (FLX_BURSSSTER(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jburflxssster(n)=i_bsc_m2d*min(1,FLX_BURSSSTER(n))
+#endif
+#if defined (extNcycle) && ! defined(sedbypass)
+        IF (FLX_SEDIFFNH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffnh4(n)=i_bsc_m2d*min(1,FLX_SEDIFFNH4(n))
+        IF (FLX_SEDIFFN2O(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
+        IF (FLX_SEDIFFNO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
 #endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
@@ -759,6 +886,8 @@
         jnatpco2(n)=i_bsc_m2d*min(1,SRF_NATPCO2(n))
         IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
+        IF (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfnatph(n)=i_bsc_m2d*min(1,SRF_NATPH(n))
 #endif
 #ifdef BROMO 
         IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -773,6 +902,8 @@
 #ifdef extNcycle
         IF (SRF_ANH3FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         janh3fx(n)=i_bsc_m2d*min(1,SRF_ANH3FX(n))
+        IF (SRF_PNH3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jsrfpnh3(n)=i_bsc_m2d*min(1,SRF_PNH3(n))
         IF (SRF_ANH4(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
         IF (SRF_ANO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -966,6 +1097,32 @@
         IF (LYR_remin_sulf(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jremin_sulf(n)=i_bsc_m3d*min(1,LYR_remin_sulf(n))
 #endif
+        ! M4AGO
+        IF (LYR_agg_ws(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_ws(n)=i_bsc_m3d*min(1,LYR_agg_ws(n))
+        IF (LYR_dynvis(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jdynvis(n)=i_bsc_m3d*min(1,LYR_dynvis(n))
+        IF (LYR_agg_stick(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stick(n)=i_bsc_m3d*min(1,LYR_agg_stick(n))
+        IF (LYR_agg_stickf(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_stickf(n)=i_bsc_m3d*min(1,LYR_agg_stickf(n))
+        IF (LYR_agg_dmax(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_dmax(n)=i_bsc_m3d*min(1,LYR_agg_dmax(n))
+        IF (LYR_agg_avdp(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdp(n)=i_bsc_m3d*min(1,LYR_agg_avdp(n))
+        IF (LYR_agg_avrhop(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avrhop(n)=i_bsc_m3d*min(1,LYR_agg_avrhop(n))
+        IF (LYR_agg_avdC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_avdC(n)=i_bsc_m3d*min(1,LYR_agg_avdC(n))
+        IF (LYR_agg_df(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_df(n)=i_bsc_m3d*min(1,LYR_agg_df(n))
+        IF (LYR_agg_b(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_b(n)=i_bsc_m3d*min(1,LYR_agg_b(n))
+        IF (LYR_agg_Vrhof(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vrhof(n)=i_bsc_m3d*min(1,LYR_agg_Vrhof(n))
+        IF (LYR_agg_Vpor(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jagg_Vpor(n)=i_bsc_m3d*min(1,LYR_agg_Vpor(n))
+
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -1115,6 +1272,31 @@
         IF (LVL_remin_sulf(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvl_remin_sulf(n)=ilvl_bsc_m3d*min(1,LVL_remin_sulf(n))
 #endif
+        ! M4AGO
+        IF (LVL_agg_ws(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_ws(n)=ilvl_bsc_m3d*min(1,LVL_agg_ws(n))
+        IF (LVL_dynvis(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_dynvis(n)=ilvl_bsc_m3d*min(1,LVL_dynvis(n))
+        IF (LVL_agg_stick(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stick(n)=ilvl_bsc_m3d*min(1,LVL_agg_stick(n))
+        IF (LVL_agg_stickf(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_stickf(n)=ilvl_bsc_m3d*min(1,LVL_agg_stickf(n))
+        IF (LVL_agg_dmax(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_dmax(n)=ilvl_bsc_m3d*min(1,LVL_agg_dmax(n))
+        IF (LVL_agg_avdp(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdp(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdp(n))
+        IF (LVL_agg_avrhop(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avrhop(n)=ilvl_bsc_m3d*min(1,LVL_agg_avrhop(n))
+        IF (LVL_agg_avdC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_avdC(n)=ilvl_bsc_m3d*min(1,LVL_agg_avdC(n))
+        IF (LVL_agg_df(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_df(n)=ilvl_bsc_m3d*min(1,LVL_agg_df(n))
+        IF (LVL_agg_b(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_b(n)=ilvl_bsc_m3d*min(1,LVL_agg_b(n))
+        IF (LVL_agg_Vrhof(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vrhof(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vrhof(n))
+        IF (LVL_agg_Vpor(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvl_agg_Vpor(n)=ilvl_bsc_m3d*min(1,LVL_agg_Vpor(n))
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 
@@ -1167,6 +1349,43 @@
         jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
       ENDDO
 #endif
+#if defined(extNcycle) && ! defined(sedbypass)
+      DO n=1,nbgc
+        IF (SDM_POWNH4(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpownh4(n)=i_bsc_sed*min(1,SDM_POWNH4(n))
+        IF (SDM_POWN2O(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpown2o(n)=i_bsc_sed*min(1,SDM_POWN2O(n))
+        IF (SDM_POWNO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jpowno2(n)=i_bsc_sed*min(1,SDM_POWNO2(n))
+        IF (SDM_nitr_NH4(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NH4(n)=i_bsc_sed*min(1,SDM_nitr_NH4(n))
+        IF (SDM_nitr_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NO2(n)=i_bsc_sed*min(1,SDM_nitr_NO2(n))
+        IF (SDM_nitr_N2O_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_N2O_prod(n)=i_bsc_sed*min(1,SDM_nitr_N2O_prod(n))
+        IF (SDM_nitr_NH4_OM(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NH4_OM(n)=i_bsc_sed*min(1,SDM_nitr_NH4_OM(n))
+        IF (SDM_nitr_NO2_OM(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_nitr_NO2_OM(n)=i_bsc_sed*min(1,SDM_nitr_NO2_OM(n))
+        IF (SDM_denit_NO3(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_NO3(n)=i_bsc_sed*min(1,SDM_denit_NO3(n))
+        IF (SDM_denit_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_NO2(n)=i_bsc_sed*min(1,SDM_denit_NO2(n))
+        IF (SDM_denit_N2O(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_denit_N2O(n)=i_bsc_sed*min(1,SDM_denit_N2O(n))
+        IF (SDM_DNRA_NO2(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_DNRA_NO2(n)=i_bsc_sed*min(1,SDM_DNRA_NO2(n))
+        IF (SDM_anmx_N2_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_anmx_N2_prod(n)=i_bsc_sed*min(1,SDM_anmx_N2_prod(n))
+        IF (SDM_anmx_OM_prod(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_anmx_OM_prod(n)=i_bsc_sed*min(1,SDM_anmx_OM_prod(n))
+        IF (SDM_remin_aerob(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_remin_aerob(n)=i_bsc_sed*min(1,SDM_remin_aerob(n))
+        IF (SDM_remin_sulf(n).GT.0) i_bsc_sed=i_bsc_sed+1
+        jsdm_remin_sulf(n)=i_bsc_sed*min(1,SDM_remin_sulf(n))
+      ENDDO
+#endif
+
          
       nbgcm2d    = i_bsc_m2d+i_atm_m2d
       nbgcm3d    = i_bsc_m3d
@@ -1742,8 +1961,7 @@
 
 
 
-      SUBROUTINE wrtsrf(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtsrf(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic 2d field to file  
@@ -1761,18 +1979,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1813,19 +2029,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtsrf
 
 
 
-      SUBROUTINE wrtlyr(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtlyr(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic layer field to file  
@@ -1843,18 +2051,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1895,19 +2101,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtlyr
 
 
 
-      SUBROUTINE wrtlvl(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtlvl(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic level field to file  
@@ -1925,18 +2123,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1977,19 +2173,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtlvl
 
 
 
-      SUBROUTINE wrtsdm(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtsdm(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic sediment field to file  
@@ -2007,18 +2195,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -2059,19 +2245,11 @@
         STOP 'unknown output format '
       ENDIF
 !
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
-!
       END SUBROUTINE wrtsdm
 
 
 
-      SUBROUTINE wrtbur(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,    &
-     &  vunits)
+      SUBROUTINE wrtbur(pos,frmt,sfac,offs,cmpflg,vnm)
 !
 ! --- ------------------------------------------------------------------
 ! --- Description: writes diagnostic sediment burial field to file  
@@ -2089,18 +2267,16 @@
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
 ! ---                            written IF flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
-! ---   char vlngnm   (in)     : variable long name (skipped IF ' ') 
-! ---   char vstdnm   (in)     : variable standard name (skipped IF ' ') 
-! ---   char vunits   (in)     : variable units (skipped IF ' ') 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: frmt,cmpflg,pos,n
-      CHARACTER(LEN=*) :: vnm,vlngnm,vstdnm,vunits
+      REAL,            intent(in) :: sfac,offs
+      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      CHARACTER(LEN=*),intent(in) :: vnm
 !
-      CHARACTER(LEN=100) :: dims
+      INTEGER                     :: n
+      CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -2140,13 +2316,6 @@
       ELSE
         STOP 'unknown output format '
       ENDIF
-!
-! --- Def.NE.attributes
-!      IF (len(trim(vunits)).NE.0) CALL ncattr('units',vunits)
-!      IF (len(trim(vlngnm)).NE.0) CALL ncattr('long_name',vlngnm)
-!      IF (len(trim(vstdnm)).NE.0) CALL ncattr('standard_name',vstdnm)
-!      CALL ncattr('coordinates','plon plat')
-!      CALL ncattr('cell_measures','area: parea')
 !
       END SUBROUTINE wrtbur
 

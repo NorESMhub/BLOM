@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2007-2021 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
+! Copyright (C) 2007-2022 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -24,6 +24,7 @@ module mod_eos
 ! ------------------------------------------------------------------------------
 
    use mod_types, only: r8
+   use mod_constants, only: alpha0
    use mod_config, only: expcnf
    use mod_xc, only: mnproc, lp, xcstop
 
@@ -32,6 +33,27 @@ module mod_eos
    private
 
    ! Coefficients for the functional fit of in situ density.
+#ifdef MKS
+   real(r8), parameter :: &
+      a11 =  9.9985372432159340e+02_r8, &
+      a12 =  1.0380621928183473e+01_r8, &
+      a13 =  1.7073577195684715e+00_r8, &
+      a14 = -3.6570490496333680e-02_r8, &
+      a15 = -7.3677944503527477e-03_r8, &
+      a16 = -3.5529175999643348e-03_r8, &
+      b11 =  1.7083494994335439e-06_r8, &
+      b12 =  7.1567921402953455e-09_r8, &
+      b13 =  1.2821026080049485e-09_r8, &
+      a21 =  1.0_r8                   , &
+      a22 =  1.0316374535350838e-02_r8, &
+      a23 =  8.9521792365142522e-04_r8, &
+      a24 = -2.8438341552142710e-05_r8, &
+      a25 = -1.1887778959461776e-05_r8, &
+      a26 = -4.0163964812921489e-06_r8, &
+      b21 =  1.1995545126831476e-09_r8, &
+      b22 =  5.5234008384648383e-12_r8, &
+      b23 =  8.4310335919950873e-13_r8
+#else
    real(r8), parameter :: &
       a11 =  9.9985372432159340e-01_r8, &
       a12 =  1.0380621928183473e-02_r8, &
@@ -51,6 +73,7 @@ module mod_eos
       b21 =  1.1995545126831476e-10_r8, &
       b22 =  5.5234008384648383e-13_r8, &
       b23 =  8.4310335919950873e-14_r8
+#endif
 
    ! Reference pressure [g cm-1 s-2].
    real(r8) :: pref
@@ -72,7 +95,8 @@ module mod_eos
              ap11, ap12, ap13, ap14, ap15, ap16, &
              ap21, ap22, ap23, ap24, ap25, ap26, &
              atf, btf, ctf, &
-             inieos, rho, alp, sig, sig0, dsigdt, dsigdt0, dsigds, dsigds0, &
+             inieos, rho, alp, sig, sig0, &
+             drhodt, dsigdt, dsigdt0, drhods, dsigds, dsigds0, &
              tofsig, sofsig, p_alpha, p_p_alpha, delphi
 
 contains
@@ -105,12 +129,12 @@ contains
       ap24 = a24
       ap25 = a25
       ap26 = a26
-      ap11 = a11 + b11*pref - ap21
-      ap12 = a12 + b12*pref - ap22
-      ap13 = a13 + b13*pref - ap23
-      ap14 = a14 - ap24
-      ap15 = a15 - ap25
-      ap16 = a16 - ap26
+      ap11 = a11 + b11*pref - ap21/alpha0
+      ap12 = a12 + b12*pref - ap22/alpha0
+      ap13 = a13 + b13*pref - ap23/alpha0
+      ap14 = a14 - ap24/alpha0
+      ap15 = a15 - ap25/alpha0
+      ap16 = a16 - ap26/alpha0
 
       ap210 = a21
       ap220 = a22
@@ -118,12 +142,12 @@ contains
       ap240 = a24
       ap250 = a25
       ap260 = a26
-      ap110 = a11 - ap210
-      ap120 = a12 - ap220
-      ap130 = a13 - ap230
-      ap140 = a14 - ap240
-      ap150 = a15 - ap250
-      ap160 = a16 - ap260
+      ap110 = a11 - ap210/alpha0
+      ap120 = a12 - ap220/alpha0
+      ap130 = a13 - ap230/alpha0
+      ap140 = a14 - ap240/alpha0
+      ap150 = a15 - ap250/alpha0
+      ap160 = a16 - ap260/alpha0
 
       ! Coefficients for freezing temperature.
       select case (trim(expcnf))
@@ -213,6 +237,29 @@ contains
 
    end function sig0
 
+   pure real(r8) function drhodt(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of in situ density with respect to potential temperature
+   ! [g cm-3 K-1].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+         + (b11 + b12*th + b13*s)*p
+      r2i = 1._r8/( a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+                  + (b21 + b22*th + b23*s)*p)
+
+      drhodt = ( a12 + 2._r8*a14*th + a15*s + b12*p &
+               - (a22 + 2._r8*a24*th + a25*s + b22*p)*r1*r2i)*r2i
+
+   end function drhodt
+
    pure real(r8) function dsigdt(th, s)
    ! ---------------------------------------------------------------------------
    ! Derivative of potential density with respect to potential temperature
@@ -253,6 +300,28 @@ contains
                 - (ap220 + 2._r8*ap240*th + ap250*s)*r1*r2i)*r2i
 
    end function dsigdt0
+
+   pure real(r8) function drhods(p, th, s)
+   ! ---------------------------------------------------------------------------
+   ! Derivative of in situ density with respect to salinity [kg cm-3].
+   ! ---------------------------------------------------------------------------
+
+      real(r8), intent(in) :: &
+         p,    & ! Pressure [g cm-1 s-2].
+         th,   & ! Potental temperature [deg C].
+         s       ! Salinity [g kg-1].
+
+      real(r8) :: r1, r2i
+
+      r1 = a11 + (a12 + a14*th + a15*s)*th + (a13 + a16*s)*s &
+         + (b11 + b12*th + b13*s)*p
+      r2i = 1._r8/( a21 + (a22 + a24*th + a25*s)*th + (a23 + a26*s)*s &
+                  + (b21 + b22*th + b23*s)*p)
+
+      drhods = ( a13 + a15*th + 2._r8*a16*s + b13*p &
+               - (a23 + a25*th + 2._r8*a26*s + b23*p)*r1*r2i)*r2i
+
+   end function drhods
 
    pure real(r8) function dsigds(th, s)
    ! ---------------------------------------------------------------------------

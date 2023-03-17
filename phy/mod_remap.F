@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2006-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2006-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -26,6 +26,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_types, only: r8
       use mod_xc
+      use mod_constants, only: P_mks2cgs
 #ifdef TRC
       use mod_tracers, only: ntr, itrtke, itrgls
 #endif
@@ -36,8 +37,8 @@ c
 c
 c --- Parameters:
       real(r8), parameter ::
-     .  dpeps = 1.e-11_r8 ! Small layer pressure thickness (equivalent
-                          ! to approximately 10-16 m) [g cm-1 s-2].
+     .  dpeps = 1.e-12_r8*P_mks2cgs ! Small layer pressure thickness (equivalent
+                                    ! to approximately 10-16 m) [g cm-1 s-2].
 #if defined(TRC) && defined(ATRC)
       real(r8), parameter ::
      .  treps = 1.e-14_r8 ! Small tracer concentration.
@@ -1085,9 +1086,9 @@ c
           endif
 c
 c --- --- u-component of mass, heat and salt flux.
-          uflx(i,j)=fdu(i,j)
-          utflx(i,j)=ftu(i,j)
-          usflx(i,j)=fsu(i,j)
+          uflx(i,j)=uflx(i,j)+fdu(i,j)
+          utflx(i,j)=utflx(i,j)+ftu(i,j)
+          usflx(i,j)=usflx(i,j)+fsu(i,j)
 c
         enddo
         enddo
@@ -2549,9 +2550,9 @@ c
           endif
 c
 c --- --- u-component of mass, heat and salt flux.
-          uflx(i,j)=fdu(i,j)
-          utflx(i,j)=ftu(i,j)
-          usflx(i,j)=fsu(i,j)
+          uflx(i,j)=uflx(i,j)+fdu(i,j)
+          utflx(i,j)=utflx(i,j)+ftu(i,j)
+          usflx(i,j)=usflx(i,j)+fsu(i,j)
 c
         enddo
         enddo

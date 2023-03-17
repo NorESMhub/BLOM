@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2020 Mats Bentsen
+! Copyright (C) 2002-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -21,7 +21,8 @@
 c
 c --- NERSC version of thermf. 
 c
-      use mod_constants, only: spcifh, t0deg, epsil, onem
+      use mod_constants, only: spcifh, t0deg, alpha0, epsilt, onem,
+     .                         g2kg, kg2g, L_mks2cgs, M_mks2cgs
       use mod_time, only: nday_in_year, nday_of_year, nstep,
      .                    nstep_in_day, baclin,
      .                    xmi, l1mi, l2mi, l3mi, l4mi, l5mi
@@ -71,7 +72,7 @@ c
      .     fice,hice,hsnw,tsrf,fice0,hice0,hsnw0,qsww,qnsw,tice,albi,
      .     tsmlt,albi_h,qswi,dh,qsnwf,fcond,qdamp,qsmlt,qo2i,qbot,swfac,
      .     dtml,q,volice,df,dvi,dvs,fwflx,sstc,rice,trxflx,sssc,srxflx,
-     .     totsfl,totwfl,sflxc,totsrp,totsrn
+     .     totsfl,totwfl,sflxc,totsrp,totsrn,A_cgs2mks
 #ifdef TRC
       integer nt
       real, dimension(ntr,1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
@@ -83,9 +84,11 @@ c
       real intp1d
       external intp1d
 c
+      A_cgs2mks=1./(L_mks2cgs**2)
+c
 c --- Due to conservation, the ratio of ice and snow density must be
 c --- equal to the ratio of ice and snow heat of fusion
-      if (abs(fuss/fusi-rhosnw/rhoice).gt.epsil) then
+      if (abs(fuss/fusi-rhosnw/rhoice).gt.epsilt) then
         if (mnproc.eq.1) then
           write (lp,*)
      .      'thermf: check consistency between snow/ice densities'
@@ -97,7 +100,7 @@ c --- equal to the ratio of ice and snow heat of fusion
 c
 c --- Set various constants
       dt=baclin                         ! Time step
-      cpsw=spcifh*1.e3                  ! Specific heat of seawater
+      cpsw=spcifh*M_mks2cgs                  ! Specific heat of seawater
       rnf_fac=baclin/real(nrfets*86400) ! Runoff reservoar detrainment rate
       sag_fac=exp(-sagets*dt)            ! Snow aging rate
 c
@@ -326,7 +329,7 @@ c
 c --- ----- Ice volume that has to freeze to balance the heat budget
             volice=-(qsww+qnsw-q)*(1.-fice)*dt/fusi
 c
-            if (volice.gt.epsil) then
+            if (volice.gt.epsilt) then
 c
 c --- ------- New ice in the lead is formed with a specified thickness.
 c --- ------- Estimate the change in ice fraction
@@ -344,7 +347,7 @@ c
 c --- ----- If the lead is warming, let the fraction  (1 - fice)  go to
 c --- ----- warm the lead, and the fraction  fice  to melt ice laterally
             fice=fice-(swfac*qsww+qnsw)*fice*dt
-     .                /max(hice*fusi+hsnw*fuss,epsil)
+     .                /max(hice*fusi+hsnw*fuss,epsilt)
             if (fice.lt.0.) then
               fice=0.
               hice=0.
@@ -398,14 +401,14 @@ c --- --- Fresh water flux [kg m-2 s-1] (positive downwards)
           fwflx=eva(i,j)+lip(i,j)+sop(i,j)+rnf(i,j)+rfi(i,j)+fmltfz(i,j)
 c
 c --- --- Salt flux [kg m-2 s-1] (positive downwards)
-          sfl(i,j)=-sice*dvi*rhoice/dt*1.e-3
+          sfl(i,j)=-sice*dvi*rhoice/dt*g2kg
 c
 c --- --- Salt flux due to brine rejection of freezing sea
 c --- --- ice [kg m-2 m-1] (positive downwards)
-          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*1.e-3+sfl(i,j))
+          brnflx(i,j)=max(0.,-sotl*fmltfz(i,j)*g2kg+sfl(i,j))
 c
 c --- --- Virtual salt flux [kg m-2 s-1] (positive downwards)
-          vrtsfl(i,j)=-sotl*fwflx*1.e-3
+          vrtsfl(i,j)=-sotl*fwflx*g2kg
 c
 c --- --- Store area weighted virtual salt flux and fresh water flux
           util1(i,j)=vrtsfl(i,j)*scp2(i,j)
@@ -415,11 +418,11 @@ c --- --- Heat flux due to melting/freezing [W m-2] (positive downwards)
           hmltfz(i,j)=(dvi*fusi+dvs*fuss)/dt
 c
 c --- --- Total heat flux in BLOM units [W cm-2] (positive upwards)
-          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*1.e-4
+          surflx(i,j)=-(swa(i,j)+nsf(i,j)+hmltfz(i,j))*A_cgs2mks
 c
 c --- --- Short-wave heat flux in BLOM units [W cm-2] (positive
 c --- --- upwards)
-          sswflx(i,j)=-qsww*(1.-fice0)*1.e-4
+          sswflx(i,j)=-qsww*(1.-fice0)*A_cgs2mks
 c
 #ifdef TRC
 c --- ------------------------------------------------------------------
@@ -452,7 +455,7 @@ c
             endif
 #    endif
 #  endif
-            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*1.e-3
+            trflx(nt,i,j)=-trc(i,j,k1n,nt)*fwflx*g2kg
             ttrsf(nt,i,j)=trflx(nt,i,j)*scp2(i,j)
             ttrav(nt,i,j)=trc(i,j,k1n,nt)*scp2(i,j)
           enddo
@@ -465,7 +468,7 @@ c
           surrlx(i,j)=0.
 c
 c --- --- If  trxday>0 , apply relaxation towards observed sst
-          if (trxday.gt.epsil) then
+          if (trxday.gt.epsilt) then
             sstc=intp1d(sstclm(i,j,l1mi),sstclm(i,j,l2mi),
      .                  sstclm(i,j,l3mi),sstclm(i,j,l4mi),
      .                  sstclm(i,j,l5mi),xmi)
@@ -473,8 +476,8 @@ c --- --- If  trxday>0 , apply relaxation towards observed sst
      .                  ricclm(i,j,l3mi),ricclm(i,j,l4mi),
      .                  ricclm(i,j,l5mi),xmi)
             sstc=(1.-rice)*max(sstc,tice_f)+rice*tice_f
-            trxflx=spcifh*100.*min(hmxl,trxdpt)/(trxday*86400.)
-     .                        *min(trxlim,max(-trxlim,sstc-tmxl))
+            trxflx=spcifh*L_mks2cgs*min(hmxl,trxdpt)/(trxday*86400.)
+     .             *min(trxlim,max(-trxlim,sstc-tmxl))/alpha0
             surrlx(i,j)=-trxflx
           else
             trxflx=0.
@@ -496,12 +499,12 @@ c
           salrlx(i,j)=0.
 c
 c --- --- if  srxday>0 , apply relaxation towards observed sss
-          if (srxday.gt.epsil) then
+          if (srxday.gt.epsilt) then
             sssc=intp1d(sssclm(i,j,l1mi),sssclm(i,j,l2mi),
      .                  sssclm(i,j,l3mi),sssclm(i,j,l4mi),
      .                  sssclm(i,j,l5mi),xmi)
-            srxflx=100.*min(hmxl,srxdpt)/(srxday*86400.)
-     .                 *min(srxlim,max(-srxlim,sssc-smxl))
+            srxflx=L_mks2cgs*min(hmxl,srxdpt)/(srxday*86400.)
+     .             *min(srxlim,max(-srxlim,sssc-smxl))/alpha0
             salrlx(i,j)=-srxflx
             util3(i,j)=max(0.,salrlx(i,j))*scp2(i,j)
             util4(i,j)=min(0.,salrlx(i,j))*scp2(i,j)
@@ -538,7 +541,7 @@ c --- --- Compute friction velocity (cm/s)
 c --- -------------------------------------------------------------------
 c
           ustar(i,j)=(min(ustari(i,j),.8e-2)*fice0
-     .               +ustarw(i,j)*(1.-fice0))*1.e2
+     .               +ustarw(i,j)*(1.-fice0))*L_mks2cgs
 c
         enddo
         enddo
@@ -556,7 +559,7 @@ c
       call xcsum(totwfl,util2,ips)
 c
 c --- Correction for the virtual salt flux [kg m-2 s-1]
-      sflxc=(-sref*totwfl*1.e-3-totsfl)/area
+      sflxc=(-sref*totwfl*g2kg-totsfl)/area
       if (mnproc.eq.1) then
         write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
       endif
@@ -567,8 +570,10 @@ c$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))*1.e2
-          brnflx(i,j)=-brnflx(i,j)*1.e2
+          salflx(i,j)=-(vrtsfl(i,j)+sflxc+sfl(i,j))
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
+          brnflx(i,j)=-brnflx(i,j)
+     .                 *(kg2g*(M_mks2cgs/L_mks2cgs**2))
         enddo
         enddo
       enddo
@@ -577,7 +582,7 @@ c
 c --- if  srxday>0  and  srxbal=.true. , balance the sss relaxation flux
 c --- so the net input of salt in grid cells connected to the world
 c --- ocean is zero
-      if (srxday.gt.epsil.and.srxbal) then
+      if (srxday.gt.epsilt.and.srxbal) then
         call xcsum(totsrp,util3,ipwocn)
         call xcsum(totsrn,util4,ipwocn)
         if (abs(totsrp).gt.abs(totsrn)) then
@@ -632,14 +637,14 @@ cc
 c        tottrav=tottrav/area
 cc
 c        trflxc=(-tottrsf)/area
-c        trflxc=(-tottrav*totwfl*1.e-3-tottrsf)/area
+c        trflxc=(-tottrav*totwfl*g2kg-tottrsf)/area
         trflxc=0.
 c
 c$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*1.e2
+            trflx(nt,i,j)=-(trflx(nt,i,j)+trflxc)*L_mks2cgs
           enddo
           enddo
         enddo

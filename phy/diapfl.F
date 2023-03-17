@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2020 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2022 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -23,10 +23,11 @@ c --- ------------------------------------------------------------------
 c --- Diapycnal mixing
 c --- ------------------------------------------------------------------
 c
-      use mod_constants, only: g, alpha0, spval, epsil, onem
+      use mod_constants, only: g, alpha0, spval, epsilp, onem, L_mks2cgs
       use mod_time, only: delt1
       use mod_xc
-      use mod_grid, only: sigmar, coriop
+      use mod_vcoord, only: sigmar
+      use mod_grid, only: coriop
       use mod_eos, only: sig, dsigdt, dsigds, sofsig
       use mod_temmin, only: temmin
       use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma,
@@ -63,7 +64,7 @@ c ---   ustmin - minimum value of ustar used in computing the length
 c ---            scale bottom boundary layer mixing [cm/s]
       real dsgmnr,fcmxr,dsgcr0,dfeps,gbbl,kappa,ustmin
       parameter (dsgmnr=.1,fcmxr=.25,dsgcr0=.25,dfeps=1.e-12,gbbl=.2,
-     .           kappa=.4,ustmin=.01)
+     .           kappa=.4,ustmin=.0001*L_mks2cgs)
 c
       real, save, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  fpug=spval,fplg=spval
@@ -132,7 +133,7 @@ c --- --- Locate range of physical layers.
           kmin=kfpl-2
           kmax=1
           do k=2,kk
-            if (delp(k).gt.epsil) kmax=k
+            if (delp(k).gt.epsilp) kmax=k
           enddo
 c
           if (kmin.lt.kmax) then
@@ -313,7 +314,7 @@ c --- ------- fluid domain.
      .              i+i0,j+j0
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
+                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')
@@ -333,7 +334,7 @@ c --- ------- boundary conditions
                 f(k)=min(fmax(k),
      .                   .5*sqrt(c*nu(k)*dsg(k)
      .                           *(dsgui(k)+dsgli(k)))*dsghm(k),
-     .                   c*nu(k)*dsg(k)/max(epsil,delp(k)))
+     .                   c*nu(k)*dsg(k)/max(epsilp,delp(k)))
                 fold(k)=f(k)
                 h(k)=fcu(k  )*dsgui(k  )-fcl(k  )*dsgli(k  )
      .              +fcl(k-1)*dsgli(k-1)-fcu(k+1)*dsgui(k+1)
@@ -518,7 +519,7 @@ c --- --------- iteration.
      .          i+i0,j+j0,maxdf,dflim
                   open (10,file='diapfl.uf',form='unformatted')
                   write (10) kk,kfpl
-                  write (10) g,alpha0,epsil,onem,delt1,dsgmnr,q,q
+                  write (10) g,alpha0,epsilp,onem,delt1,dsgmnr,q,q
                   write (10) ttem0,ssal0,delp0,dens0,sigr0,nu0
                   close (10)
                   call xchalt('(diapfl)')

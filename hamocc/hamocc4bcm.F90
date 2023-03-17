@@ -19,7 +19,7 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,pi_ph,                            &
+                            dust,rivin,ndep,oafx,pi_ph,                            &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 !******************************************************************************
@@ -64,8 +64,9 @@
 !  *REAL*    *pglat*      - latitude of grid cells [deg north].
 !  *REAL*    *omask*      - land/ocean mask.
 !  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
-!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-2].
-!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-2].
+!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-1].
+!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-1].
+!  *REAL*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-1]
 !  *REAL*    *pfswr*      - solar radiation [W/m**2].
 !  *REAL*    *psicomo*    - sea ice concentration
 !  *REAL*    *ppao*       - sea level pressure [Pascal].
@@ -91,6 +92,7 @@
       use mo_apply_fedep, only: apply_fedep
       use mo_apply_rivin, only: apply_rivin
       use mo_apply_ndep,  only: apply_ndep
+      use mo_apply_oafx,  only: apply_oafx
 #if defined(BOXATM)
       use mo_boxatm,      only: update_boxatm
 #endif
@@ -113,6 +115,7 @@
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
       REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(in)  :: oafx   (kpie,kpje)
       REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -219,7 +222,7 @@
       ! the model
       CALL apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph,psao,ppao,prho)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -298,6 +301,17 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
+      ! Apply alkalinity flux due to ocean alkalinization
+      call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
+
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
+
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
       CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)
@@ -342,7 +356,7 @@
           lspin=.false.      
         endif
 
-        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+        call POWACH(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 
       enddo
 

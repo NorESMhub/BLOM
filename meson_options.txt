@@ -6,10 +6,15 @@ option('grid', type: 'combo',
                  'tnx0.25v4', 'tnx1.5v1', 'tnx1v1', 'tnx1v3', 'tnx1v4',
                  'tnx2v1', 'MNP2', 'fuk95', 'single_column','channel'],
        description: 'Grid name', value: 'fuk95')
+option('vcoord', type: 'combo',
+       choices: ['isopyc_bulkml', 'cntiso_hybrid'],
+       description: 'Vertical coordinate', value: 'isopyc_bulkml')
 # Which executable driver should be built
 option('driver', type: 'combo',
        choices: ['nocoupler', 'noforc'], value: 'nocoupler')
 # List of BLOM options
+option('mks', type: 'boolean',
+       description: 'Enable MKS units', value: false)
 option('turbclo', type: 'array',
        choices: ['oneeq', 'twoeq', 'advection', 'isodif'],
        description: 'Turbulent closure options', value: ['oneeq', 'advection'])

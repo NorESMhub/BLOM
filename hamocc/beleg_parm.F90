@@ -45,12 +45,12 @@
       use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,        &
                               & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,     &
                               & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,      &
-                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
+                              & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc 
       use mo_sedmnt,      only: claydens,o2ut,rno3
-      use mo_control_bgc, only: dtb,io_stdo_bgc
+      use mo_control_bgc, only: dtb,io_stdo_bgc,lm4ago
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
       use mod_xc,         only: mnproc
-
+      use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
 #ifdef AGG
       use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,        &
                               & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
@@ -73,6 +73,7 @@
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 3e-7
       use mo_extNbioproc, only: extNbioparam_init
+      use mo_extNsediment,only: extNsediment_param_init
 #endif
 
       implicit none      
@@ -216,7 +217,8 @@
       dremopal = 0.003*dtb    !1/d
       dremn2o  = 0.01*dtb     !1/d
       dremsul  = 0.005*dtb    ! remineralization rate for sulphate reduction 
-      
+      drempoc_anaerob = 0.05*drempoc ! remin in sub-/anoxic environm. - not be overwritten by lm4ago 
+      bkox_drempoc = 1e-7 ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
 
 ! nirogen fixation by blue green algae
       bluefix=0.005*dtb       !1/d
@@ -253,10 +255,6 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
-#ifdef extNcycle
-      ! initialize the extended nitrogen cycle parameters
-      call extNbioparam_init()
-#endif
 
 #ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
@@ -278,6 +276,23 @@
 #else
       rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
       ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
+#endif
+
+      ! M4AGO parameters - requires ropal, opalwei, claydens and calcdens to be set
+      call init_m4ago_nml_params
+      call init_m4ago_params
+      if(lm4ago)then
+        ! reset drempoc and dremopal for T-dep remin/dissolution
+        drempoc  = 0.12*dtb
+        dremopal = 0.023*dtb
+      endif
+
+#ifdef extNcycle
+      ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
+      ! since sediment relies on water column parameters for the extended nitrogen cycle 
+      ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
+      call extNbioparam_init()
+      call extNsediment_param_init()
 #endif
 
 ! parameters for sw-radiation attenuation
