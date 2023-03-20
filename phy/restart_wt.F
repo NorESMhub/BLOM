@@ -44,7 +44,8 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, ustarb, buoyfl,flxbrf
+     .                       flxco2, flxdms,flxbrf,flxn2o,flxnh3,
+     .                       ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
@@ -358,6 +359,10 @@ c
         call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
 #ifdef BROMO
         call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+#endif
+#ifdef extNcycle
+        call wrtrst('flxn2o',trim(c5p)//' time',flxn2o,ip)
+        call wrtrst('flxnh3',trim(c5p)//' time',flxnh3,ip)
 #endif
       endif
 c

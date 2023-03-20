@@ -46,7 +46,8 @@ c
       use mod_forcing, only: ditflx, disflx, sprfac,
      .                       tflxdi, sflxdi, nflxdi,
      .                       prfac, eiacc, pracc,
-     .                       flxco2, flxdms, flxbrf, ustarb, buoyfl
+     .                       flxco2, flxdms, flxbrf,flxn2o,flxnh3, 
+     .                       ustarb, buoyfl
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s
@@ -571,6 +572,26 @@ c
         elseif (mnproc.eq.1) then
           write (lp,*)
      .     'Warning: bromoform flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        vexist=ncinqv('flxn2o')
+!        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxn2o',flxn2o,ip,1,0.)
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: N2O flux is not read from restart file and'
+          write (lp,*)
+     .     'will be initialized to zero.'
+        endif
+        vexist=ncinqv('flxnh3')
+!        call xcbcst(vexist)
+        if (vexist) then
+          call ncread('flxnh3',flxnh3,ip,1,0.)
+        elseif (mnproc.eq.1) then
+          write (lp,*)
+     .     'Warning: Ammonia flux is not read from restart file and'
           write (lp,*)
      .     'will be initialized to zero.'
         endif
