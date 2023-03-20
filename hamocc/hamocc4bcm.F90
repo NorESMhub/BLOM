@@ -19,9 +19,10 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,oafx,pi_ph,                            &
+                            dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,      &
+                            patmn2o,pflxn2o,patmnh3,pflxnh3)
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -80,6 +81,12 @@
 !  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
 !                           fully coupled mode.
 !  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
+!  *REAL*    *patmn2o*    - atmospheric nitrous oxide concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxn2o*    - Nitrous oxide flux [kg N2O /m^2/s].
+!  *REAL*    *patmnh3*    - atmospheric ammonia concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxnh3*    - Ammonia flux [kg NH3 /m^2/s].
 !
 !******************************************************************************
       use mod_xc,         only: mnproc
@@ -101,6 +108,9 @@
 #endif
 #ifdef CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
+#endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: iatmn2o,iatmnh3
 #endif
       implicit none
 
@@ -128,6 +138,10 @@
       REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
@@ -194,6 +208,24 @@
 !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
 #endif
+
+#ifdef extNcycle
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+        IF (patmn2o(i,j).gt.0.) THEN
+         atm(i,j,iatmn2o)=patmn2o(i,j)
+        ENDIF
+        IF (patmnh3(i,j).gt.0.) THEN
+         atm(i,j,iatmnh3)=patmnh3(i,j)
+        ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 from atm'
+#endif
+
+
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -422,6 +454,22 @@
         if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
 #else
         if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+#endif
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+!--------------------------------------------------------------------
+! Pass nitrous oxide and ammonia fluxes. Convert unit from kmol N2O (NH3)/m2/Delta t to kg/m2/s
+! negative values to the atmosphere 
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+#ifdef extNcycle
+        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-44.013*atmflx(i,j,iatmn2o)/dtbgc  ! CONVERSION factor digits ??????
+        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-17.031*atmflx(i,j,iatmnh3)/dtbgc  ! CONVERSION factor digits ??????
+#else
+        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=0.0
+        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=0.0
 #endif
       ENDDO
       ENDDO

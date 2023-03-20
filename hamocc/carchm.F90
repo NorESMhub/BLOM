@@ -580,7 +580,7 @@
        atmflx(i,j,iatmco2)=fluxu-fluxd
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
-       atmflx(i,j,iatmn2o)=n2oflux
+       atmflx(i,j,iatmn2o)=n2oflux ! positive to atmosphere [kmol N2O m-2 timestep-1] 
        atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
@@ -598,7 +598,7 @@
        atmflx(i,j,iatmbromo)=-flx_bromo
 #endif
 #ifdef extNcycle
-       atmflx(i,j,iatmnh3)=-flx_nh3 
+       atmflx(i,j,iatmnh3)=-flx_nh3 ! positive to atmosphere [kmol NH3 m-2 timestep-1] 
 #endif
 
 ! Save up- and downward components of carbon fluxes for output
