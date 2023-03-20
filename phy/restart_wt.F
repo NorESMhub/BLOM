@@ -53,6 +53,7 @@ c
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
      .                    slp_da, abswnd_da, atmco2_da, atmbrf_da,
+     .                    atmn2o_da, atmnh3_da,
      .                    ficem_da, l2ci
       use mod_ben02, only: cd_d, ch_d, ce_d, wg2_d, cd_m, ch_m, ce_m,
      .                     wg2_m, rhoa, tsi_tda, tml_tda, sml_tda,
@@ -353,6 +354,8 @@ c
         call wrtrst('abswnd_da',trim(c5p)//' k2 time',abswnd_da,ip)
         call wrtrst('atmco2_da',trim(c5p)//' k2 time',atmco2_da,ip)
         call wrtrst('atmbrf_da',trim(c5p)//' k2 time',atmbrf_da,ip)  ! not read in restart_rd, necesarry?
+        call wrtrst('atmn2o_da',trim(c5p)//' k2 time',atmn2o_da,ip)  ! not read in restart_rd, necesarry?
+        call wrtrst('atmnh3_da',trim(c5p)//' k2 time',atmnh3_da,ip)  ! not read in restart_rd, necesarry?
         call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
@@ -961,12 +964,18 @@ c
         call defvarrst('abswnd_da',trim(c5p)//' k2 time')
         call defvarrst('atmco2_da',trim(c5p)//' k2 time')
         call defvarrst('atmbrf_da',trim(c5p)//' k2 time')
+        call defvarrst('atmn2o_da',trim(c5p)//' k2 time')
+        call defvarrst('atmnh3_da',trim(c5p)//' k2 time')
         call defvarrst('frzpot',trim(c5p)//' time')
         call defvarrst('mltpot',trim(c5p)//' time')
         call defvarrst('flxco2',trim(c5p)//' time')
         call defvarrst('flxdms',trim(c5p)//' time')
 #ifdef BROMO
         call defvarrst('flxbrf',trim(c5p)//' time')
+#endif
+#ifdef extNcycle
+        call defvarrst('flxn2o',trim(c5p)//' time')
+        call defvarrst('flxnh3',trim(c5p)//' time')
 #endif
       endif
 c
