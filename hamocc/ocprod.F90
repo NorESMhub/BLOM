@@ -100,7 +100,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   use mo_m4ago,       only: mean_aggregate_sinking_speed,ws_agg,POM_remin_q10,POM_remin_Tref,opal_remin_q10,opal_remin_Tref 
 
 #ifdef AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
                           & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
   use mo_param1_bgc,  only: iadust,inos
   use mo_vgrid,       only: kmle
@@ -899,7 +899,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   enddo
   enddo loop3
 !$OMP END PARALLEL DO
-
 
 #ifdef PBGC_OCNP_TIMESTEP
   if (mnproc == 1) then

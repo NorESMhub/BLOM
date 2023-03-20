@@ -273,10 +273,10 @@
      &                      ipowno2 = -1
 #endif
       INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew + i_pow_extNcycle
-      
+
      ! Mapping between pore water and ocean tracers needed for pore water diffusion
       INTEGER, SAVE      :: map_por2octra(npowtra)
-   
+
       contains
 
       subroutine init_por2octra_mapping()
