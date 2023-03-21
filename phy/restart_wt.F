@@ -504,6 +504,14 @@ c --- write accumulated fields
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip)
           if (ACC_MTKEKE(n) .ne.0) call wrtrst('mtkeke_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip)
+          if (ACC_LAMULT(n) .ne.0) call wrtrst('lamult_phy'//c2,
+     .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_LAMULT(n)),ip)
+          if (ACC_LASL(n) .ne.0) call wrtrst('lasl_phy'//c2,
+     .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_LASL(n)),ip)
+          if (ACC_USTOKES(n) .ne.0) call wrtrst('ustokes_phy'//c2,
+     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_USTOKES(n)),iuu)
+          if (ACC_VSTOKES(n) .ne.0) call wrtrst('vstokes_phy'//c2,
+     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_VSTOKES(n)),ivv)
           if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
           if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
@@ -1149,6 +1157,14 @@ c --- write accumulated fields
      .      trim(c5p)//' time')
           if (ACC_MTKEKE(n) .ne.0) call defvarrst('mtkeke_phy'//c2,
      .      trim(c5p)//' time')
+          if (ACC_LAMULT(n) .ne.0) call defvarrst('lamult_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_LASL(n) .ne.0) call defvarrst('lasl_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_USTOKES(n) .ne.0) call defvarrst('ustokes_phy'//c2,
+     .      trim(c5u)//' time')
+          if (ACC_VSTOKES(n) .ne.0) call defvarrst('vstokes_phy'//c2,
+     .      trim(c5v)//' time')
           if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_HMLTFZ(n)   .ne.0) call defvarrst('hmltfz_phy'//c2,

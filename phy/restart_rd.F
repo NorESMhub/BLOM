@@ -842,6 +842,14 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
             if (ACC_MTKEKE(n).ne.0) call ncread('mtkeke_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
+            if (ACC_LAMULT(n).ne.0) call ncread('lamult_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_LAMULT(n)),ip,1,0.)
+            if (ACC_LASL(n).ne.0) call ncread('lasl_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_LASL(n)),ip,1,0.)
+            if (ACC_USTOKES(n).ne.0) call ncread('ustokes_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_USTOKES(n)),iuu,1,0.)
+            if (ACC_VSTOKES(n).ne.0) call ncread('vstokes_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_VSTOKES(n)),ivv,1,0.)
             if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
             if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,

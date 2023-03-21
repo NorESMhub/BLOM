@@ -245,20 +245,28 @@ c
 c
       select case (lngmtp)
         case ('none')
-          write (lp,'(a38)') 'no Langmuir turbulence parameterization'
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'no Langmuir turbulence parameterization'
+          endif
           langmuir_mixing_opt      = 'NONE'
           langmuir_entrainment_opt = 'NONE'
         case ('vr12-ma')
-          write (lp,'(a38)') 'Langmuir param. type: vr12-ma    '
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'Langmuir param. type: vr12-ma    '
+          endif
           langmuir_mixing_opt      = 'LWF16'
           langmuir_entrainment_opt = 'LWF16'
         case ('lf17')
-          write (lp,'(a38)') 'Langmuir param. type: lf17       '
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'Langmuir param. type: lf17       '
+          endif
           langmuir_mixing_opt      = 'LWF16'
           langmuir_entrainment_opt = 'LF17'
         case default
-          write (lp,'(3a)') "Error: '", trim(lngmtp),
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') "Error: '", trim(lngmtp),
      ."' is not a valid type of Langmuir turbulence parameterization"
+          endif
           call xcstop('(init_difest)')
                  stop '(init_difest)'
       end select

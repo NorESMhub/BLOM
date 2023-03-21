@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2023 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin
 !
 ! This file is part of BLOM.
@@ -333,6 +333,8 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_HSNW    ',H2D_HSNW(1:nphy)
         write (lp,*) 'H2D_IAGE    ',H2D_IAGE(1:nphy)
         write (lp,*) 'H2D_IDKEDT  ',H2D_IDKEDT(1:nphy)
+        write (lp,*) 'H2D_LAMULT  ',H2D_LAMULT(1:nphy)
+        write (lp,*) 'H2D_LASL    ',H2D_LASL(1:nphy)
         write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
         write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
         write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
@@ -377,8 +379,10 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_UICE    ',H2D_UICE(1:nphy)
         write (lp,*) 'H2D_USTAR   ',H2D_USTAR(1:nphy)
         write (lp,*) 'H2D_USTAR3  ',H2D_USTAR3(1:nphy)
+        write (lp,*) 'H2D_USTOKES ',H2D_USTOKES(1:nphy)
         write (lp,*) 'H2D_VB      ',H2D_VB(1:nphy)
         write (lp,*) 'H2D_VICE    ',H2D_VICE(1:nphy)
+        write (lp,*) 'H2D_VSTOKES ',H2D_VSTOKES(1:nphy)
         write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
         write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
         write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
@@ -507,6 +511,8 @@ c
       call xcbcst(H2D_HSNW)
       call xcbcst(H2D_IAGE)
       call xcbcst(H2D_IDKEDT)
+      call xcbcst(H2D_LAMULT)
+      call xcbcst(H2D_LASL)
       call xcbcst(H2D_LIP)
       call xcbcst(H2D_MAXMLD)
       call xcbcst(H2D_MLD)
@@ -551,8 +557,10 @@ c
       call xcbcst(H2D_UICE)
       call xcbcst(H2D_USTAR)
       call xcbcst(H2D_USTAR3)
+      call xcbcst(H2D_USTOKES)
       call xcbcst(H2D_VB)
       call xcbcst(H2D_VICE)
+      call xcbcst(H2D_VSTOKES)
       call xcbcst(H2D_ZTX)
       call xcbcst(LYR_BFSQ)
       call xcbcst(LYR_DIFDIA)
