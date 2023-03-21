@@ -169,6 +169,43 @@
      .     write (lp,*) 'export_mct: bromoform flux not sent to coupler'
       endif
 
+      ! ----------------------------------------------------------------
+      ! Pack nitrous oxide flux (kg N2O/m^2/s), if requested
+      ! ----------------------------------------------------------------
+
+      if (index_o2x_Faoo_fn2o_ocn > 0) then
+        n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               o2x_o%rAttr(index_o2x_Faoo_fn2o_ocn,n) =
+     .            sbuff(i,j,index_o2x_Faoo_fn2o_ocn)*tfac
+            enddo
+         enddo
+      else
+         if (mnproc.eq.1)
+     .     write (lp,*) 'export_mct: nitrous oxide flux not sent to coupler'
+      endif
+
+      ! ----------------------------------------------------------------
+      ! Pack ammonia flux (kg NH3/m^2/s), if requested
+      ! ----------------------------------------------------------------
+
+      if (index_o2x_Faoo_fnh3_ocn > 0) then
+        n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               o2x_o%rAttr(index_o2x_Faoo_fnh3_ocn,n) =
+     .            sbuff(i,j,index_o2x_Faoo_fnh3_ocn)*tfac
+            enddo
+         enddo
+      else
+         if (mnproc.eq.1)
+     .     write (lp,*) 'export_mct: ammonia flux not sent to coupler'
+      endif
+
+
       tlast_coupled = 0._r8
 
       !-----------------------------------------------------------------
