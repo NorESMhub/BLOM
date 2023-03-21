@@ -33,15 +33,15 @@ c
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, bdmldp, edritp_opt, edritp_shear,
-     .                         edritp_large_scale, edwmth_opt,
-     .                         edwmth_smooth, edwmth_step,
+     .                         bdmldp, lngmtp, edsprs, edritp_opt,
+     .                         edritp_shear, edritp_large_scale,
+     .                         edwmth_opt, edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
      .                         t_ns_nonloc, s_nb_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
-      use mod_forcing, only: ustar, ustarb, ustar3, buoyfl, t_sw_nonloc
-     .                       , surflx, sswflx, salflx
+      use mod_forcing, only: lamult, lasl, ustar, ustarb, ustar3,
+     .                       buoyfl, t_sw_nonloc, surflx, sswflx, salflx
       use mod_tidaldissip, only: twedon
       use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
       use mod_seaice, only: ficem
@@ -195,6 +195,9 @@ c ---            [cm/s].
      .           cpsemin=-0.2*L_mks2cgs,urmsemin=0.05*L_mks2cgs,
      .           as=-28.86,cs=98.96,minOBLdepth=1.0)
 c
+      character(len = 16) ::
+     .  langmuir_mixing_opt, langmuir_entrainment_opt
+c
       public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
      .          difest_lateral_hybrid, difest_vertical_hybrid, hOBL
 c
@@ -240,6 +243,26 @@ c --- ------------------------------------------------------------------
 c
       integer :: i,j,l
 c
+      select case (lngmtp)
+        case ('none')
+          write (lp,'(a38)') 'no Langmuir turbulence parameterization'
+          langmuir_mixing_opt      = 'NONE'
+          langmuir_entrainment_opt = 'NONE'
+        case ('vr12-ma')
+          write (lp,'(a38)') 'Langmuir param. type: vr12-ma    '
+          langmuir_mixing_opt      = 'LWF16'
+          langmuir_entrainment_opt = 'LWF16'
+        case ('lf17')
+          write (lp,'(a38)') 'Langmuir param. type: lf17       '
+          langmuir_mixing_opt      = 'LWF16'
+          langmuir_entrainment_opt = 'LF17'
+        case default
+          write (lp,'(3a)') "Error: '", trim(lngmtp),
+     ."' is not a valid type of Langmuir turbulence parameterization"
+          call xcstop('(init_difest)')
+                 stop '(init_difest)'
+      end select
+c
 c -- ------- Background diapycnal mixing.
 c         The Bryan-Lewis parameterization is based on the following:
 c         \begin{eqnarray*}
@@ -278,6 +301,8 @@ c    .          MatchTechnique='SimpleShapes',
 c    .          lenhanced_diff=.true.,
 c    .          lnonzero_surf_nonlocal=.false.  ,
 c    .          lnoDGat1=.true.                 ,
+c    .          Langmuir_mixing_str=Langmuir_mixing_str,
+c    .          Langmuir_entrainment_str=Langmuir_entrainment_str,
 c    .          CVMix_kpp_params_user=KPP_params )
 c         call CVMix_init_kpp(Ri_crit=0.3,
 c    .          minOBLdepth=minOBLdepth,
@@ -292,6 +317,8 @@ c    .          MatchTechnique='MatchGradient',
 c    .          lenhanced_diff=.true.,
 c    .          lnonzero_surf_nonlocal=.false.  ,
 c    .          lnoDGat1=.false.                 ,
+c    .          Langmuir_mixing_str=Langmuir_mixing_str,
+c    .          Langmuir_entrainment_str=Langmuir_entrainment_str,
 c    .          CVMix_kpp_params_user=KPP_params )
           call CVMix_init_kpp(Ri_crit=0.3,
      .          minOBLdepth=minOBLdepth,
@@ -306,6 +333,8 @@ c    .          CVMix_kpp_params_user=KPP_params )
      .          lenhanced_diff=.true.,
      .          lnonzero_surf_nonlocal=.true.  ,
      .          lnoDGat1=.true.                 ,
+     .          Langmuir_mixing_str=langmuir_mixing_opt,
+     .          Langmuir_entrainment_str=langmuir_entrainment_opt,
      .          CVMix_kpp_params_user=KPP_params )
 c
 c$OMP PARALLEL DO PRIVATE(l,i)
@@ -1131,6 +1160,10 @@ c --- ------ centers.
      .                 zt_cntr=cellHeight,   ! Depth ofcell center [m]
      .                 ws_cntr=Ws_1d,        ! Turbulent velocity scale profile, at centers [m s-1]
      .                 N_iface=bvf_i,        ! Buoyancy frequency at the interface [s-1]
+     .                 EFactor=lamult(i,j),  ! Langmuir enhancement factor []
+     .                 LaSL=lasl(i,j),       ! Surface layer averaged Langmuir number []
+     .                 bfsfc=surfBuoyFlux,   ! Surface buoyancy flux [m2 s-3]
+     .                 ustar=surfFricVel,    ! Friction velocity []
      .                 CVMix_kpp_params_user=KPP_params)
 
              ! Calculate Bulk Richardson number from eq (21) of LMD94
@@ -1210,6 +1243,7 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              surfBuoyFlux,                      ! (in) Buoyancy flux at surface [m2 s-3]
      .              kk,                                ! (in) Number of levels to compute coeffs for
      .              kk,                                ! (in) Number of levels in array shape
+     .              lamult(i,j),                       ! (in) Langmuir enhancement factor []
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
 
 c ---- ccc -------

@@ -59,11 +59,13 @@ module mod_diffusion
                 ! Brunt-Vaisala frequency, if bdmtyp = 2 the background
                 ! diffusivity is constant [].
    logical :: &
-      edsprs, & ! If true, apply eddy mixing suppression away from steering
-                ! level.
-      bdmldp    ! If true, make the background mixing latitude dependent
+      bdmldp, & ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
+      edsprs    ! If true, apply eddy mixing suppression away from steering
+                ! level.
    character(len = 80) :: &
+      lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:
+                ! 'none', 'vr12-ma', 'lf17'
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
       edritp, & ! Type of Richardson number used in eddy diffusivity
@@ -153,7 +155,7 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, bdmldp, eitmth_opt, eitmth_intdif, &
+             tkepf, bdmtyp, bdmldp, lngmtp, edsprs, eitmth_opt, eitmth_intdif, &
              eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
              edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
@@ -177,7 +179,7 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, tkepf, &
-         bdmtyp, edsprs, bdmldp, eitmth, edritp, edwmth, ltedtp
+         bdmtyp, bdmldp, lngmtp, edsprs, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -217,8 +219,9 @@ contains
         call xcbcst(bdmc2)
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
-        call xcbcst(edsprs)
         call xcbcst(bdmldp)
+        call xcbcst(lngmtp)
+        call xcbcst(edsprs)
         call xcbcst(eitmth)
         call xcbcst(edritp)
         call xcbcst(edwmth)
@@ -237,8 +240,9 @@ contains
          write (lp,*) '  bdmc2  = ', bdmc2
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp
-         write (lp,*) '  edsprs = ', edsprs
          write (lp,*) '  bdmldp = ', bdmldp
+         write (lp,*) '  lngmtp = ', trim(lngmtp)
+         write (lp,*) '  edsprs = ', edsprs
          write (lp,*) '  eitmth = ', trim(eitmth)
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)

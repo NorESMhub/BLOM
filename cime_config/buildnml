@@ -201,6 +201,7 @@ else
   set BDMC2    = 1.e-5
 endif
 set TKEPF    = .006
+set LNGMTP   = "'none'"
 if ($BLOM_VCOORD == isopyc_bulkml) then
   set BDMLDP   = .true.
   set LTEDTP   = "'layer'"
@@ -1143,6 +1144,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! LNGMTP   : Type of Langmuir turbulence parameterization. Valid types:
+!            'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
 &DIFFUSION
@@ -1162,6 +1165,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   BDMC2    = $BDMC2
   BDMLDP   = $BDMLDP
   TKEPF    = $TKEPF
+  LNGMTP   = $LNGMTP
   LTEDTP   = $LTEDTP
 /
 EOF
