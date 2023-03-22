@@ -465,8 +465,8 @@
       DO  j=1,kpje
       DO  i=1,kpie
 #ifdef extNcycle
-        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-44.013*atmflx(i,j,iatmn2o)/dtbgc  ! CONVERSION factor digits ??????
-        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-17.031*atmflx(i,j,iatmnh3)/dtbgc  ! CONVERSION factor digits ??????
+        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-44.012880*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM 
+        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-17.028940*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
 #else
         if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=0.0
         if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=0.0
