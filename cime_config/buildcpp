@@ -84,6 +84,8 @@ def buildcpp(case):
     co2type = case.get_value("OCN_CO2_TYPE")
     hamocc_cfc = case.get_value("HAMOCC_CFC")
     hamocc_extNcycle = case.get_value("HAMOCC_EXTNCYCLE")
+    hamocc_N2OC = case.get_value("HAMOCC_N2OC")
+    hamocc_NH3C = case.get_value("HAMOCC_NH3C")
     hamocc_debug = case.get_value("HAMOCC_DEBUG")
     hamocc_nattrc = case.get_value("HAMOCC_NATTRC")
     hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
@@ -132,6 +134,10 @@ def buildcpp(case):
                 if hamocc_cfc:
                     blom_cppdefs = blom_cppdefs + " -DCFC"
                 if hamocc_extNcycle:
+                    blom_cppdefs = blom_cppdefs + " -DextNcycle"
+                if hamocc_N2OC:
+                    blom_cppdefs = blom_cppdefs + " -DextNcycle"
+                if hamocc_NH3C:
                     blom_cppdefs = blom_cppdefs + " -DextNcycle"
                 if hamocc_debug:
                     blom_cppdefs = blom_cppdefs + " -DPBGC_OCNP_TIMESTEP -DPBGC_CK_TIMESTEP"
