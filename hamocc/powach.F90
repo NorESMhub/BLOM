@@ -155,7 +155,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
         anaerob(i,k)= 0.
 #else
         ex_ddic(i,k)=0.
-        ex_dalk(i,j)=0.
+        ex_dalk(i,k)=0.
 #endif
         aerob(i,k)  = 0.
         sulf(i,k)   = 0.
