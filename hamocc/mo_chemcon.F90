@@ -170,9 +170,9 @@
 
 
 !     -----------------------------------------------------------------
-!     Atmospheric mixing ratio of N2O around 1980 300 ppb
+!     Atmospheric mixing ratio of N2O around 1980 300 ppb, here provided in ppt
 !
-      real, parameter :: atn2o=3.e-7
+      real, parameter :: atn2o=300e3
 
 #ifdef extNcycle
       ! Tsilingiris 2008
