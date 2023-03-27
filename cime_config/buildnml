@@ -477,6 +477,8 @@ set SRF_PN2OM     = '0, 2, 2'
 set SRF_N2OFX     = '0, 0, 2' 
 set SRF_PNH3      = '0, 2, 2' 
 set SRF_ANH3FX    = '0, 0, 2' 
+set SRF_ATMNH3    = '0, 2, 2' 
+set SRF_ATMN2O    = '0, 2, 2' 
 set SRF_DMSFLUX   = '0, 2, 2' 
 set SRF_DMS       = '0, 2, 2' 
 set SRF_DMSPROD   = '0, 2, 2' 
@@ -498,6 +500,7 @@ set SRF_CFC11     = '0, 2, 2'
 set SRF_CFC12     = '0, 2, 2' 
 set SRF_SF6       = '0, 2, 2' 
 set SRF_BROMO     = '0, 2, 2'
+set SRF_ATMBROMO  = '0, 0, 2'
 set SRF_BROMOFX   = '0, 2, 2'
 set INT_BROMOPRO  = '0, 2, 2'
 set INT_BROMOUV   = '0, 2, 2'
@@ -1807,6 +1810,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
 !   PNH3           - Surface pNH3 under moist air [natm]
 !   ANH3FX         - Ammonia flux [mol NH3 m-2 s-1]
+!   ATMNH3         - Atmospheric NH3 [ppt]
+!   ATMN2O         - Atmospheric N2O [ppt]
+!   ATMBROMO       - Atmospheric bromoform [ppt]
 !   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
 !   DMS            - surface DMS concentration (dms) [mol DMS m-3]
 !   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
@@ -1922,6 +1928,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SRF_N2OFX     = $SRF_N2OFX
   SRF_PNH3      = $SRF_PNH3
   SRF_ANH3FX    = $SRF_ANH3FX
+  SRF_ATMNH3    = $SRF_ATMNH3
+  SRF_ATMN2O    = $SRF_ATMN2O
+  SRF_ATMBROMO  = $SRF_ATMBROMO
   SRF_DMSFLUX   = $SRF_DMSFLUX
   SRF_DMS       = $SRF_DMS
   SRF_DMSPROD   = $SRF_DMSPROD

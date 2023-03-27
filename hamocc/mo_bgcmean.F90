@@ -93,7 +93,8 @@
      & SRF_NATCO2FX  =0    ,SRF_NATPH     =0    ,                       &
      & SRF_ATMBROMO  =0    ,SRF_BROMO     =0    ,SRF_BROMOFX   =0    ,  &
      & SRF_ANH4      =0    ,SRF_ANO2      =0    ,SRF_ANH3FX    =0    ,  &
-     & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,                       &
+     & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,SRF_ATMNH3    =0    ,  &
+     & SRF_ATMN2O    =0    ,                                            &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
@@ -207,7 +208,8 @@
      & SRF_NATCO2FX      ,SRF_NATPH         ,                           &
      & SRF_ATMBROMO      ,SRF_BROMO         ,SRF_BROMOFX       ,        &
      & SRF_ANH4          ,SRF_ANO2          ,SRF_ANH3FX        ,        &
-     & SRF_PN2OM         ,SRF_PNH3          ,                           &
+     & SRF_PN2OM         ,SRF_PNH3          ,SRF_ATMNH3        ,        &
+     & SRF_ATMN2O        ,                                              &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
@@ -428,7 +430,9 @@
      &          jatmn2   = 0 ,                                          &
      &          jatmc13  = 0 ,                                          &
      &          jatmc14  = 0 ,                                          &
-     &          jatmbromo= 0  
+     &          jatmbromo= 0 ,                                          &
+     &          jatmnh3  = 0 ,                                          &
+     &          jatmn2o  = 0 
 
       INTEGER, SAVE :: nbgcm2d 
 
@@ -938,6 +942,12 @@
 #if defined(BROMO) 
         IF (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
+#endif
+#ifdef extNcycle
+        IF (SRF_ATMNH3(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmnh3(n)=i_atm_m2d*min(1,SRF_ATMNH3(n))
+        IF (SRF_ATMN2O(n).GT.0) i_atm_m2d=i_atm_m2d+1
+        jatmn2o(n)=i_atm_m2d*min(1,SRF_ATMN2O(n))
 #endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d

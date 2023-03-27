@@ -210,7 +210,8 @@ subroutine ncwrt_bgc(iogrp)
        &                jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,            &
        &                jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,                    &
        &                jlvl_phosy_NH4,jlvl_phosy_NO3,                          &
-       &                jlvl_remin_aerob,jlvl_remin_sulf  
+       &                jlvl_remin_aerob,jlvl_remin_sulf,jatmnh3,jatmn2o,       &
+       &                srf_atmnh3,srf_atmn2o  
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
@@ -628,6 +629,8 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfpnh3(iogrp),     SRF_PNH3(iogrp),     rnacc,          0.,cmpflg,'pnh3')
   call wrtsrf(jsrfano2(iogrp),     SRF_ANO2(iogrp),     rnacc*1e3,      0.,cmpflg,'srfno2')
   call wrtsrf(janh3fx(iogrp),      SRF_ANH3FX(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'nh3flux')
+  call wrtsrf(jatmnh3(iogrp),      SRF_ATMNH3(iogrp),   rnacc,          0.,cmpflg,'atmnh3')
+  call wrtsrf(jatmn2o(iogrp),      SRF_ATMN2O(iogrp),   rnacc,          0.,cmpflg,'atmn2o')
 #endif
 
   ! --- Store 3d layer fields
@@ -968,6 +971,8 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jsrfpnh3(iogrp),0.)
   call inisrf(jsrfano2(iogrp),0.)
   call inisrf(janh3fx(iogrp),0.)
+  call inisrf(jatmnh3(iogrp),0.)
+  call inisrf(jatmn2o(iogrp),0.)
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   call inisrf(jsediffnh4(iogrp),0.)
@@ -1304,7 +1309,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &                     jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,       &
        &                     jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,               &
        &                     jlvl_phosy_NH4,jlvl_phosy_NO3,                     &
-       &                     jlvl_remin_aerob,jlvl_remin_sulf      
+       &                     jlvl_remin_aerob,jlvl_remin_sulf,srf_atmnh3,       &
+       &                     srf_atmn2o      
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
@@ -1556,6 +1562,10 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
      &  'Surface nitrite',' ','mol N m-3',0)
   call ncdefvar3d(SRF_ANH3FX(iogrp),cmpflg,'p','nh3flux',                       &
      &  'NH3 flux',' ','mol NH3 m-2 s-1',0)
+  call ncdefvar3d(SRF_ATMNH3(iogrp),cmpflg,'p',                                 &
+       &   'atmnh3','Atmospheric ammonia',' ','ppt',0)
+  call ncdefvar3d(SRF_ATMN2O(iogrp),cmpflg,'p',                                 &
+       &   'atmn2o','Atmospheric nitrous oxide',' ','ppt',0)
 #endif
   ! --- define 3d layer fields
   call ncdefvar3d(LYR_DP(iogrp),cmpflg,'p',                                     &
