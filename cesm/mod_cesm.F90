@@ -30,7 +30,7 @@ module mod_cesm
    use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
                           fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
                           lamult, lasl, ustokes, vstokes, atmco2, atmbrf,    &
-                          atmn2o,atmnh3
+                          atmn2o,atmnh3,atmnhxdep,atmnoydep
    use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
@@ -79,7 +79,9 @@ module mod_cesm
       atmco2_da, &       ! Atmospheric CO2 concentration [ppm].
       atmbrf_da, &       ! Atmospheric bromoform concentration [ppt].
       atmn2o_da, &       ! Atmospheric nitrous oxide concentration [ppt].
-      atmnh3_da          ! Atmopsheric ammonia concentration [ppt]
+      atmnh3_da, &       ! Atmopsheric ammonia concentration [ppt].
+      atmnhxdep_da, &    ! Atmospheric nhx deposition field [kgN/m2/s]. 
+      atmnoydep_da       ! Atmospheric noy deposition field [kgN/m2/s]. 
 
    logical :: &
       smtfrc             ! If true, time smooth CESM forcing fields.
@@ -92,6 +94,7 @@ module mod_cesm
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
              slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, &
              ustokes_da, vstokes_da, atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,&
+             atmnhxdep_da,atmnoydep_da, &
              smtfrc, l1ci, l2ci,inicon_cesm, inifrc_cesm, getfrc_cesm
 
 contains
@@ -194,6 +197,8 @@ contains
            atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
            atmn2o(i, j)  = w1*atmn2o_da(i, j, l1ci)  + w2*atmn2o_da(i, j, l2ci)
            atmnh3(i, j)  = w1*atmnh3_da(i, j, l1ci)  + w2*atmnh3_da(i, j, l2ci)
+           atmnhxdep(i, j)  = w1*atmnhxdep_da(i, j, l1ci)  + w2*atmnhxdep_da(i, j, l2ci)
+           atmnoydep(i, j)  = w1*atmnoydep_da(i, j, l1ci)  + w2*atmnoydep_da(i, j, l2ci)
         enddo
         enddo
         do l = 1, isu(j)
@@ -235,6 +240,8 @@ contains
       call ncdefvar('atmbrf_da', 'x y', ndouble, 8)
       call ncdefvar('atmn2o_da', 'x y', ndouble, 8)
       call ncdefvar('atmnh3_da', 'x y', ndouble, 8)
+      call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
+      call ncdefvar('atmnoydep_da', 'x y', ndouble, 8)
       call ncdefvar('ztx_da', 'x y', ndouble, 8)
       call ncdefvar('mty_da', 'x y', ndouble, 8)
       call ncedef
@@ -283,6 +290,10 @@ contains
                   ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('atmnh3_da', 'x y', atmnh3_da(1 - nbdy, 1 - nbdy, l2ci), &
                   ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('atmnhxdep_da', 'x y', atmnhxdep_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
+      call ncwrtr('atmnoydep_da', 'x y', atmnoydep_da(1 - nbdy, 1 - nbdy, l2ci), &
+                  ip, 1, 1._r8, 0._r8, 8)
       call ncwrtr('ztx_da', 'x y', ztx_da(1 - nbdy, 1 - nbdy, l2ci), &
                   iu, 1, 1._r8, 0._r8, 8)
       call ncwrtr('mty_da', 'x y', mty_da(1 - nbdy, 1 - nbdy, l2ci), &
@@ -320,6 +331,8 @@ contains
          call chksummsk(atmbrf, ip, 1, 'atmbrf')
          call chksummsk(atmn2o, ip, 1, 'atmn2o')
          call chksummsk(atmnh3, ip, 1, 'atmnh3')
+         call chksummsk(atmnhxdep, ip, 1, 'atmnhxdep')
+         call chksummsk(atmnoydep, ip, 1, 'atmnoydep')
       endif
 
    end subroutine getfrc_cesm

@@ -30,7 +30,8 @@
       use mod_cesm, only: swa_da, nsf_da, hmlt_da, lip_da, sop_da,
      .                    eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da,
      .                    ztx_da, mty_da, ustarw_da, slp_da, abswnd_da,
-     .                    atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da, 
+     .                    atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,
+     .                    atmnhxdep_da,atmnoydep_da 
      .                    ficem_da, l1ci, l2ci
       use mod_utility, only: util1, util2
       use mod_checksum, only: csdiag, chksummsk
@@ -413,6 +414,72 @@
          if (mnproc.eq.1)
      .   write (lp,*) 'import_mct: prog. atmospheric ammonia not read'
       endif
+      if (index_x2o_Faxa_nhx > 0) then
+         n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               if     (ip(i,j) == 0) then
+                  atmnhxdep_da(i,j,l2ci) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  atmnhxdep_da(i,j,l2ci) = fval
+               else
+                  ! Atmospheric nhx deposition [kgN/m2/sec]
+                  atmnhxdep_da(i,j,l2ci) =
+     .               x2o_o%rAttr(index_x2o_Faxa_nhx,n)
+               endif
+            enddo
+         enddo
+         call fill_global(mval, fval, halo_ps,
+     .                    atmnhxdep_da(1-nbdy,1-nbdy,l2ci))
+         if (mnproc.eq.1)
+     .      write (lp,*) 'import_mct: atmospheric nhx deposition read'
+      else
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  atmnhxdep_da(i,j,l2ci) = mval
+               else
+                  atmnhxdep_da(i,j,l2ci) = -1
+               endif
+            enddo
+         enddo
+         if (mnproc.eq.1)
+     .   write (lp,*) 'import_mct: atmospheric nhx deposition not read'
+      endif
+      if (index_x2o_Faxa_noy > 0) then
+         n = 0
+         do j = 1, jjcpl
+            do i = 1, ii
+               n = n + 1
+               if     (ip(i,j) == 0) then
+                  atmnoydep_da(i,j,l2ci) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  atmnoydep_da(i,j,l2ci) = fval
+               else
+                  ! Atmospheric noy deposition [kgN/m2/sec]
+                  atmnoydep_da(i,j,l2ci) =
+     .               x2o_o%rAttr(index_x2o_Faxa_noy,n)
+               endif
+            enddo
+         enddo
+         call fill_global(mval, fval, halo_ps,
+     .                    atmnoydep_da(1-nbdy,1-nbdy,l2ci))
+         if (mnproc.eq.1)
+     .      write (lp,*) 'import_mct: atmospheric noy deposition read'
+      else
+         do j = 1, jj
+            do i = 1, ii
+               if (ip(i,j) == 0) then
+                  atmnoydep_da(i,j,l2ci) = mval
+               else
+                  atmnoydep_da(i,j,l2ci) = -1
+               endif
+            enddo
+         enddo
+         if (mnproc.eq.1)
+     .   write (lp,*) 'import_mct: atmospheric noy deposition not read'
+      endif
 
 
       if (csdiag) then
@@ -439,6 +506,8 @@
          call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
          call chksummsk(atmn2o_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmn2o')
          call chksummsk(atmnh3_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnh3')
+         call chksummsk(atmnhxdep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnhxdep')
+         call chksummsk(atmnoydep_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmnoydep')
       endif
 
       end subroutine import_mct
