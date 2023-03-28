@@ -19,6 +19,7 @@ set RUNDIR = `./xmlquery RUNDIR --value`
 set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
 set BLOM_RIVER_NUTRIENTS = `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
+set ATM_N_DEPOSITION = `./xmlquery HAMOCC_ATMNDEPC --value`
 set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
 set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
@@ -244,6 +245,15 @@ else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
 endif
+
+if (ATM_N_DEPOSITION == TRUE) then
+  set DO_NDEP   = .true.
+  set DO_NDEP_COUPLED = .true.
+  set NDEPFNAME = "''"
+else
+  set DO_NDEP_COUPLED = .false.
+endif
+
 if ($HAMOCC_SEDSPINUP == TRUE) then
   set DO_SEDSPINUP = .true.
   set SEDSPIN_YR_S = $HAMOCC_SEDSPINUP_YR_START
@@ -1611,7 +1621,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !                if bromoform scheme is activated)
 ! DO_RIVINPT  : Logical switch to activate riverine input
 ! RIVINFILE   : File name (incl. full path) for riverine input data
-! DO_NDEP     : Logical switch to activate N-deposition
+! DO_NDEP     : Logical switch to activate N-deposition (climatological or atm)
+! DO_NDEP_COUPLED: Logical to apply N-deposition fluxes received from the atmosphere (true=atm, false=clim)
 ! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
 ! DO_SEDSPINUP: Logical switch to activate sediment spin-up
 ! SEDSPIN_YR_S: Start year for sediment spinup
@@ -1631,6 +1642,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   DO_RIVINPT   = $DO_RIVINPT
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
+  DO_NDEP_COUPLED = $DO_NDEP_COUPLED
   NDEPFILE     = $NDEPFILE
   DO_SEDSPINUP = $DO_SEDSPINUP
   SEDSPIN_YR_S = $SEDSPIN_YR_S

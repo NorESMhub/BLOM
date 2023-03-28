@@ -228,6 +228,18 @@
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the NH3 coupling code. Requires module ecosys and EXTNCYCLE</desc>
   </entry>
+  <entry id="HAMOCC_ATMNDEPC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="%ATMNDEPC">TRUE</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set namelist do_ndep_coupled to true for depoistion from atm. Requires module ecosys and EXTNCYCLE</desc>
+  </entry>
+
  
   <entry id="HAMOCC_DEBUG">
     <type>logical</type>
