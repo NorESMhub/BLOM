@@ -53,11 +53,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !
 !**********************************************************************
       use mod_xc,         only: mnproc,ips,nbdy,xcsum    
-      use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
+      use mo_carbch,      only: atm,atmflx,co3,hi,ndepnoyflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
       use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
       use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
-      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
+      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndepnoy,jndepnhx,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax, &
+                              & glb_inventory 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
                               & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
                               & irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
@@ -68,6 +69,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
 #endif
 #ifdef extNcycle
+      use mo_carbch,      only: ndepnhxflx
       use mo_param1_bgc,  only: ianh4,iano2,iatmnh3,ipownh4,ipown2o,ipowno2
       use mo_bgcmean,     only: jnh3flux
 #endif
@@ -116,7 +118,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   !--- river fluxes
   real :: srivflux(nriv)           ! sum of riverfluxes
   !--- atmosphere flux and atmospheric CO2
-  real :: sndepflux                ! sum of N dep fluxes
+  real :: sndepnoyflux                ! sum of N dep fluxes
+  real :: sndepnhxflux                ! sum of N dep fluxes
   real :: zatmco2,zatmo2,zatmn2
   real :: co2flux,so2flux,sn2flux,sn2oflux,snh3flux
   real :: zprorca,zprcaca,zsilpro
@@ -288,7 +291,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   sn2flux  =0.
   sn2oflux =0.
   snh3flux =0.
-  sndepflux=0.
+  sndepnoyflux=0.
+  sndepnhxflux=0.
   srivflux =0.
   zatmco2  =0.
   zatmo2   =0.
@@ -314,7 +318,10 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ! nitrogen deposition
   if(do_ndep) then
-     sndepflux = sum2d(ndepflx)
+     sndepnoyflux = sum2d(ndepnoyflx)
+#ifdef extNcycle
+     sndepnhxflux = sum2d(ndepnhxflx)
+#endif
   endif
 
   ! river fluxes
@@ -333,7 +340,10 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ! nitrogen deposition fluxes
   if(do_ndep) then
-     sndepflux = sum2d(bgct2d(:,:,jndep))
+     sndepnoyflux = sum2d(bgct2d(:,:,jndepnoy))
+#ifdef extNcycle
+     sndepnhxflux = sum2d(bgct2d(:,:,jndepnhx))
+#endif
   endif
 
   ! River fluxes
@@ -379,10 +389,11 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
        &  +zpowtratot(ipowno3)+zpowtratot(ipown2)*2                            &
        &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
        &  +zocetratot(ian2o)*2                                                 &
-       &  - sndepflux                                                          &
+       &  - sndepnoyflux                                                       &
        &  +zprorca*rnit                                                        &
 #ifdef extNcycle
        &  +zocetratot(ianh4)+zocetratot(iano2)+snh3flux                        &
+       &  - sndepnhxflux                                                       &
        &  +zpowtratot(ipownh4)+zpowtratot(ipown2o)*2+zpowtratot(ipowno2)       & 
 #endif
 #if defined(BOXATM)
@@ -413,7 +424,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !       &  +zburial(issso12)*(-24.)   +   zburial(isssc12)                      &
        &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
        &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
-       &  - sndepflux*1.5                                                      &
+       &  - sndepnoyflux*1.5                                                      &
        &  +zprorca*(-24.)+zprcaca                                              &
 #ifdef extNcycle
       &  +zocetratot(iano2)                                                    &
@@ -617,7 +628,12 @@ subroutine write_stdout
   !      &               zprorca, zprcaca, zsilpro
   ! WRITE(io_stdo_bgc,*) ' '
 
-  IF(do_ndep) WRITE(io_stdo_bgc,*) 'NdepFlux :',sndepflux
+  IF(do_ndep) THEN
+     WRITE(io_stdo_bgc,*) 'NdepNOyFlux :',sndepnoyflux
+#ifdef extNcycle
+     WRITE(io_stdo_bgc,*) 'NdepNHxFlux :',sndepnhxflux
+#endif
+  ENDIF
 
   ! riverine fluxes
   !------------------------------------------------------------------

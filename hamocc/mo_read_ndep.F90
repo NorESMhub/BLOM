@@ -198,16 +198,16 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
-  real,    intent(out) :: ndep(kpie,kpje)
+  real,    intent(out) :: ndep(kpie,kpje,2)
 
   ! local variables 
-  integer              :: month_in_file,ncstat,ncid
+  integer              :: month_in_file,ncstat,ncid,i,j
   integer, save        :: oldmonth=0 
 
 
   ! if N-deposition is switched off set ndep to zero and return
   if (.not. do_ndep) then
-    ndep(:,:) = 0.0
+    ndep(:,:,:) = 0.0
     return 
   endif
 
@@ -225,7 +225,16 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
     oldmonth=kplmon 
   endif
 
-  ndep(:,:) = ndepread
+!$OMP PARALLEL DO PRIVATE(i)
+  ! 1 = NO3; 2 = NH4
+  ! needs further preparation (split of climatological input data + sep. reading)
+  DO  j=1,kpje
+  DO  i=1,kpie
+        ndep(i,j,1) = ndepread(i,j)  
+        ndep(i,j,2) = 0.
+  ENDDO
+  ENDDO
+!$OMP END PARALLEL DO 
 
 !******************************************************************************
 end subroutine get_ndep

@@ -22,7 +22,7 @@
                             dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,      &
-                            patmn2o,pflxn2o,patmnh3,pflxnh3)
+                            patmn2o,pflxn2o,patmnh3,pflxnh3,patmnhxdep,patmnoydep)
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -87,13 +87,16 @@
 !  *REAL*    *patmnh3*    - atmospheric ammonia concentration [ppt] used in 
 !                           fully coupled mode.
 !  *REAL*    *pflxnh3*    - Ammonia flux [kg NH3 /m^2/s].
+!  *REAL*    *patmnhxdep* - Atmospheric NHx deposition kgN/m2/s
+!  *REAL*    *patmnoydep* - Atmospheric NOy deposition kgN/m2/s
 !
 !******************************************************************************
       use mod_xc,         only: mnproc
       use mo_carbch,      only: atmflx,ocetra,atm
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
-                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,&
+                                do_ndep_coupled
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
@@ -124,7 +127,7 @@
       REAL,    intent(in)  :: omask  (kpie,kpje)
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
-      REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(inout):: ndep   (kpie,kpje,2)
       REAL,    intent(in)  :: oafx   (kpie,kpje)
       REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -142,10 +145,13 @@
       REAL,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
       LOGICAL :: lspin
+      REAL    :: fatmndep
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -222,10 +228,27 @@
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO
-      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 from atm'
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+      
+      IF(do_ndep_coupled) THEN
+        fatmndep = 365.*86400./14.00674
+        ndep(:,:,:) = 0.
+!$OMP PARALLEL DO PRIVATE(i)
+        DO  j=1,kpje
+        DO  i=1,kpie
+          ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr 
+          IF (patmnoydep(i,j).gt.0.) THEN
+            ndep(i,j,1) = patmnoydep(i,j)*fatmndep
+          ENDIF
+          IF (patmnhxdep(i,j).gt.0.) THEN
+            ndep(i,j,2) = patmnhxdep(i,j)*fatmndep
+          ENDIF
+        ENDDO
+        ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
+      ENDIF
 #endif
-
-
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations

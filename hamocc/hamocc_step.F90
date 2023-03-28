@@ -27,7 +27,8 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mod_grid,       only: plat
   use mod_state,      only: temp,saln
   use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,                &
-       &                    atmbrf,flxbrf,atmn2o,flxn2o,atmnh3,flxnh3
+       &                    atmbrf,flxbrf,atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,&
+       &                    atmnoydep      
   use mod_seaice,     only: ficem
   use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,                &
        &                    diagann_bgc
@@ -38,14 +39,14 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mo_read_ndep,   only: get_ndep
   use mo_read_oafx,   only: get_oafx
   use mo_read_pi_ph,  only: get_pi_ph,pi_ph
-  use mo_control_bgc, only: with_dmsph
+  use mo_control_bgc, only: with_dmsph,do_ndep_coupled
 
   implicit none
 
   integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
   integer :: l,ldtday
-  real    :: ndep(idm,jdm)
+  real    :: ndep(idm,jdm,2) ! 1=NO3, 2=NH4 (in case of extNcycle)
   real    :: dust(idm,jdm)
   real    :: oafx(idm,jdm)      
 
@@ -65,7 +66,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   enddo
 
   call get_fedep(idm,jdm,date%month,dust)
-  call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
+  if (.not. do_ndep_coupled) call get_ndep(idm,jdm,date%year,date%month,omask,ndep)
   call get_oafx(idm,jdm,date%year,date%month,omask,oafx)
   if(with_dmsph) call get_pi_ph(idm,jdm,date%month)
 
@@ -76,7 +77,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
        &   swa,ficem,slp,abswnd,                                                &
        &   temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                   &
        &   atmco2,flxco2,flxdms,atmbrf,flxbrf,                                  &
-       &   atmn2o,flxn2o,atmnh3,flxnh3)
+       &   atmn2o,flxn2o,atmnh3,flxnh3,atmnhxdep,atmnoydep)
 
   !
   ! --- accumulate fields and write output

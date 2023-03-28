@@ -86,15 +86,19 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 !******************************************************************************
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
-  use mo_carbch,      only: ocetra,ndepflx
+  use mo_carbch,      only: ocetra,ndepnoyflx
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
+#ifdef extNcycle
+  use mo_carbch,      only: ndepnhxflx
+  use mo_param1_bgc,  only: ianh4
+#endif
 
   implicit none
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
-  real,    intent(in) :: ndep(kpie,kpje)
+  real,    intent(in) :: ndep(kpie,kpje,2)
 
   ! local variables 
   integer :: i,j
@@ -102,19 +106,27 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 
   ! ndepflx stores the applied n-deposition flux for inventory calculations 
   ! and output
-  ndepflx(:,:)=0.0
-
+  ndepnoyflx(:,:)=0.0
+#ifdef extNcycle
+  ndepnhxflx(:,:)=0.0
+#endif
   if (.not. do_ndep) return 
 
   ! deposite N in topmost layer 
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
-      ndepflx(i,j) = ndep(i,j)*dtb/365.
-      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepflx(i,j)/pddpo(i,j,1)
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepflx(i,j)/pddpo(i,j,1)
+      ndepnoyflx(i,j) = ndep(i,j,1)*dtb/365.
+      ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepnoyflx(i,j)/pddpo(i,j,1)
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
 #ifdef natDIC
-      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepflx(i,j)/pddpo(i,j,1)
+      ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
+#endif
+#ifdef extNcycle
+      ndepnhxflx(i,j) = ndep(i,j,2)*dtb/365.
+      ocetra(i,j,1,ianh4)=ocetra(i,j,1,iano3)+ndepnhxflx(i,j)/pddpo(i,j,1)
+      ! correct????????
+      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+ndepnhxflx(i,j)/pddpo(i,j,1)
 #endif
     endif
   enddo

@@ -316,7 +316,7 @@
      &          jpodin2   =12,                                          &
      &          jpodino3  =13,                                          &
      &          jpodisi   =14,                                          &
-     &          jndep     =15,                                          &
+     &          jndepnoy  =15,                                          &
      &          jirdin    =16,                                          &
      &          jirdip    =17,                                          &
      &          jirsi     =18,                                          &
@@ -325,7 +325,8 @@
      &          jirdoc    =21,                                          &
      &          jirdet    =22,                                          & 
      &          jnh3flux  =23,                                          &
-     &          nbgct2d   =23
+     &          jndepnhx  =24,                                          &
+     &          nbgct2d   =24
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 

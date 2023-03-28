@@ -46,7 +46,7 @@
 !**********************************************************************
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,       &
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepnoyflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,    &
                               & sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
@@ -64,7 +64,7 @@
                               & jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,jlvlopal,jlvloxygen,&
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
                               & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
-                              & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,            &
+                              & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndepnoy,jndepnhx,&
                               & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,  &
                               & jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,       &
                               & jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,           &
@@ -117,7 +117,7 @@
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
 #endif
 #ifdef extNcycle
-      use mo_carbch,     only: pnh3
+      use mo_carbch,     only: pnh3,ndepnhxflx
       use mo_param1_bgc, only: iatmnh3,ianh4,iano2,ipownh4,ipown2o,ipowno2
       use mo_bgcmean,    only: jnh3flux,janh3fx,janh4,jano2,jsrfanh4,jsrfano2,jsrfpnh3,                                           &
                              & jnitr_NH4,jnitr_NO2,jnitr_N2O_prod,jnitr_NH4_OM,jnitr_NO2_OM,jdenit_NO3,jdenit_NO2,jdenit_N2O,      &
@@ -185,6 +185,7 @@
         bgct2d(i,j,jn2oflux) = bgct2d(i,j,jn2oflux) + atmflx(i,j,iatmn2o)/2.0
 #ifdef extNcycle
         bgct2d(i,j,jnh3flux) = bgct2d(i,j,jnh3flux) + atmflx(i,j,iatmnh3)/2.0
+        bgct2d(i,j,jndepnhx) = bgct2d(i,j,jndepnhx) + ndepnhxflx(i,j)/2.0
 #endif
         ! Particle fluxes between water-column and sediment
         bgct2d(i,j,jprorca)  = bgct2d(i,j,jprorca)  + carflx_bot(i,j)/2.0
@@ -201,7 +202,7 @@
         bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
 #endif
         ! N-deposition and riverine input fluxes
-        bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
+        bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0
         bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
         bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
         bgct2d(i,j,jirsi)    = bgct2d(i,j,jirsi)    + rivinflx(i,j,irsi)/2.0
@@ -612,8 +613,11 @@
       ENDDO
 
       atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
-      ndepflx=0.
+      ndepnoyflx=0.
       rivinflx=0.
+#ifdef extNcycle
+      ndepnhxflx=0.
+#endif
 
      RETURN
      END

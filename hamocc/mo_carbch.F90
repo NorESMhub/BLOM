@@ -58,7 +58,8 @@
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepflx
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnoyflx
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnhxflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: rivinflx 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
@@ -333,15 +334,15 @@
 
       ! Allocate field to hold N-deposition fluxes per timestep for inventory caluclations
       IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepnoyflx ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
       !WRITE(io_stdo_bgc,*)'Third dimension    : ',natm
       ENDIF
 
-      ALLOCATE (ndepflx(kpie,kpje),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory ndepflx'
-      ndepflx(:,:) = 0.0
+      ALLOCATE (ndepnoyflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepnoyflx'
+      ndepnoyflx(:,:) = 0.0
 
       ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
       IF (mnproc.eq.1) THEN
@@ -455,6 +456,17 @@
       ALLOCATE (pnh3(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory pnh3'
       pnh3(:,:) = 0.0
+      
+      ! Allocate field to hold N-deposition NHx fluxes per timestep for inventory caluclations
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepnhxflx ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      ENDIF
+
+      ALLOCATE (ndepnhxflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory ndepnhxflx'
+      ndepnhxflx(:,:) = 0.0
 #endif
 
 !******************************************************************************

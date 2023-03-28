@@ -61,6 +61,7 @@
 ! Logical switches set via namelist
       LOGICAL, save :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
       LOGICAL, save :: do_ndep     =.true.   ! apply n-deposition
+      LOGICAL, save :: do_ndep_coupled = .false. ! for coupled simulations, use field provided by atmosphere
       LOGICAL, save :: do_rivinpt  =.true.   ! apply riverine input
       LOGICAL, save :: do_sedspinup=.false.  ! apply sediment spin-up
       LOGICAL, save :: do_oalk     =.false.  ! apply ocean alkalinization
