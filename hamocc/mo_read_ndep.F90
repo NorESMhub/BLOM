@@ -100,7 +100,7 @@ subroutine ini_read_ndep(kpie,kpje)
 !
 !******************************************************************************
   use mod_xc,         only: mnproc,xchalt
-  use mo_control_bgc, only: io_stdo_bgc,do_ndep
+  use mo_control_bgc, only: io_stdo_bgc,do_ndep,do_ndep_coupled
   use mod_dia,        only: iotype
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
 
@@ -117,6 +117,13 @@ subroutine ini_read_ndep(kpie,kpje)
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
       write(io_stdo_bgc,*) 'ini_read_ndep: N deposition is not activated.'
+    endif
+    return
+  end if
+  if (do_ndep_coupled) then
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*) ''
+      write(io_stdo_bgc,*) 'ini_read_ndep: N deposition in interactive mode.'
     endif
     return
   end if
