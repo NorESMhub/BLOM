@@ -246,7 +246,7 @@ else
   set NDEPFNAME = "''"
 endif
 
-if (ATM_N_DEPOSITION == TRUE) then
+if ($ATM_N_DEPOSITION == TRUE) then
   set DO_NDEP   = .true.
   set DO_NDEP_COUPLED = .true.
   set NDEPFNAME = "''"
