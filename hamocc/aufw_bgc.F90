@@ -614,7 +614,7 @@
      &    rmissing,62,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdimst,ncvarid,          &
-     &    9,'xxxxxxxxx',9 ,'xxxxxxxxx',  &
+     &    6,'mol/kg',16 ,'Saturated oxygen',                            &
      &    rmissing,63,io_stdo_bgc)
 
 #ifdef natDIC
@@ -637,19 +637,19 @@
       ENDIF
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',35,'Sediment accumulated organic carbon',       &
+     &    9,'kmol/m**3',35,'Sediment accumulated organic carbon',       &
      &    rmissing,70,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sssc12',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',38,'Sediment accumulated calcium carbonate',    &
+     &    9,'kmol/m**3',38,'Sediment accumulated calcium carbonate',    &
      &    rmissing,71,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssssil',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',25,'Sediment accumulated opal',                 &
+     &    9,'kmol/m**3',25,'Sediment accumulated opal',                 &
      &    rmissing,72,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',25,'Sediment accumulated clay',                 &
+     &    7,'kg/m**3',25,'Sediment accumulated clay',                   &
      &    rmissing,73,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdimst,ncvarid,          &
@@ -682,19 +682,19 @@
 
 #ifdef cisonew
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',37,'Sediment accumulated organic carbon13',     &
+     &    9,'kmol/m**3',37,'Sediment accumulated organic carbon13',     &
      &    rmasks,81,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',37,'Sediment accumulated organic carbon14',     &
+     &    9,'kmol/m**3',37,'Sediment accumulated organic carbon14',     &
      &    rmasks,82,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',40,'Sediment accumulated calcium carbonate13',  &
+     &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate13',  &
      &    rmasks,83,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,          &
-     &    9,'kmol/m**2',40,'Sediment accumulated calcium carbonate14',  &
+     &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate14',  &
      &    rmasks,84,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,          &
@@ -752,7 +752,7 @@
      &    rmissing,92,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,        &
-     &    9,'kmol/m**2',20,'Burial layer of clay',                      &
+     &    7,'kg/m**2',20,'Burial layer of clay',                        &
      &    rmissing,93,io_stdo_bgc)
 
 #endif /* sedbypass */

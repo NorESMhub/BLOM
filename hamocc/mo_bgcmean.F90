@@ -96,6 +96,7 @@
      & SRF_PN2OM     =0    ,SRF_PNH3      =0    ,                       &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
+     & FLX_NDEP      =0    ,FLX_OALK      =0    ,                       &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
      & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
@@ -210,6 +211,7 @@
      & SRF_PN2OM         ,SRF_PNH3          ,                           &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
+     & FLX_NDEP          ,FLX_OALK          ,                           &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
      & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
@@ -315,15 +317,16 @@
      &          jpodino3  =13,                                          &
      &          jpodisi   =14,                                          &
      &          jndep     =15,                                          &
-     &          jirdin    =16,                                          &
-     &          jirdip    =17,                                          &
-     &          jirsi     =18,                                          &
-     &          jiralk    =19,                                          &
-     &          jiriron   =20,                                          &
-     &          jirdoc    =21,                                          &
-     &          jirdet    =22,                                          & 
-     &          jnh3flux  =23,                                          &
-     &          nbgct2d   =23
+     &          joalk     =16,                                          &
+     &          jirdin    =17,                                          &
+     &          jirdip    =18,                                          &
+     &          jirsi     =19,                                          &
+     &          jiralk    =20,                                          &
+     &          jiriron   =21,                                          &
+     &          jirdoc    =22,                                          &
+     &          jirdet    =23,
+     &          jnh3flux  =24,                                          &
+     &          nbgct2d   =24
       
 !----------------------------------------------------------------      
       INTEGER, SAVE :: i_bsc_m2d 
@@ -366,6 +369,8 @@
      &          jintphosy  = 0 ,                                        &
      &          jintnfix   = 0 ,                                        &
      &          jintdnit   = 0 ,                                        &
+     &          jndepfx    = 0 ,                                        &
+     &          joalkfx    = 0 ,                                        &
      &          jcarflx0100= 0 ,                                        &
      &          jcarflx0500= 0 ,                                        &
      &          jcarflx1000= 0 ,                                        &
@@ -791,6 +796,10 @@
         jintnfix(n)=i_bsc_m2d*min(1,INT_NFIX(n))
         IF (INT_DNIT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
+        IF (FLX_NDEP(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jndepfx(n)=i_bsc_m2d*min(1,FLX_NDEP(n))
+        IF (FLX_OALK(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        joalkfx(n)=i_bsc_m2d*min(1,FLX_OALK(n))
         IF (FLX_CAR0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx0100(n)=i_bsc_m2d*min(1,FLX_CAR0100(n))
         IF (FLX_CAR0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 

@@ -182,6 +182,8 @@
 ! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
 !            frequency (cm**2/s**2) (f)
 ! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
+! BDMLDP   : Make the background mixing latitude dependent according to
+!            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
@@ -201,6 +203,7 @@
   BDMTYP   = 2
   BDMC1    = 5.e-4
   BDMC2    = .15
+  BDMLDP   = .false.
   TKEPF    = 0.
   LTEDTP   = 'layer'
 /
@@ -384,15 +387,19 @@
 !   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
 !   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
 !   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
+!   USFLSM   - salt flux due to submesoscale transport in x-direction [kg s-1]
 !   USFLLD   - salt flux due to lateral diffusion in x-direction [kg s-1]
 !   UVEL     - velocity x-component [m s-1]
 !   VFLX     - mass flux in y-direction [kg s-1]
 !   VTFLX    - heat flux in y-direction [W]
 !   VSFLX    - salt flux in y-direction [kg s-1]
 !   VMFLTD   - mass flux due to thickness diffusion in y-direction [kg s-1]
+!   VMFLSM   - mass flux due to submesoscale transport in y-direction [kg s-1]
 !   VTFLTD   - heat flux due to thickness diffusion in y-direction [W]
+!   VTFLSM   - heat flux due to submesoscale transport in y-direction [W]
 !   VTFLLD   - heat flux due to lateral diffusion in y-direction [W]
 !   VSFLTD   - salt flux due to thickness diffusion in y-direction [kg s-1]
+!   VSFLSM   - salt flux due to submesoscale transport in y-direction [kg s-1]
 !   VSFLLD   - salt flux due to lateral diffusion in y-direction [kg s-1]
 !   VVEL     - velocity x-component [m s-1]
 !   WFLX     - vertical mass flux [kg s-1]
@@ -404,12 +411,16 @@
 !   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
 !   MMFLXD   - MOC on z-levels [kg s-1]
 !   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
+!   MMFSML   - MOC due to submesoscale transport on isopycnic layers [kg s-1]
 !   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
+!   MMFSMD   - MOC due to submesoscale transport on z-levels [kg s-1]
 !   MHFLX    - meridional heat flux [W]
 !   MHFTD    - meridional heat flux due to thickness diffusion [W]
+!   MHFSM    - meridional heat flux due to submesoscale transport [W]
 !   MHFLD    - meridional heat flux due to lateral diffusion [W]
 !   MSFLX    - meridional salt flux [kg s-1]
 !   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
+!   MSFSM    - meridional salt flux due to submesoscale transport [kg s-1]
 !   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
 !   VOLTR    - section transports [kg s-1]
 !   MASSGS   - global sum of mass [kg]
@@ -502,18 +513,24 @@
   LYR_UTFLX    = 0,   4
   LYR_USFLX    = 0,   4
   LYR_UMFLTD   = 0,   0
+  LYR_UMFLSM   = 0,   0
   LYR_UTFLTD   = 0,   0
+  LYR_UTFLSM   = 0,   0
   LYR_UTFLLD   = 0,   0
   LYR_USFLTD   = 0,   0
+  LYR_USFLSM   = 0,   0
   LYR_USFLLD   = 0,   0
   LYR_UVEL     = 0,   4
   LYR_VFLX     = 0,   4
   LYR_VTFLX    = 0,   4
   LYR_VSFLX    = 0,   4
   LYR_VMFLTD   = 0,   0
+  LYR_VMFLSM   = 0,   0
   LYR_VTFLTD   = 0,   0
+  LYR_VTFLSM   = 0,   0
   LYR_VTFLLD   = 0,   0
   LYR_VSFLTD   = 0,   0
+  LYR_VSFLSM   = 0,   0
   LYR_VSFLLD   = 0,   0
   LYR_VVEL     = 0,   4
   LYR_WFLX     = 0,   4
@@ -537,18 +554,24 @@
   LVL_UTFLX    = 0,   4
   LVL_USFLX    = 0,   4
   LVL_UMFLTD   = 0,   0
+  LVL_UMFLSM   = 0,   0
   LVL_UTFLTD   = 0,   0
+  LVL_UTFLSM   = 0,   0
   LVL_UTFLLD   = 0,   0
   LVL_USFLTD   = 0,   0
+  LVL_USFLSM   = 0,   0
   LVL_USFLLD   = 0,   0
   LVL_UVEL     = 0,   4
   LVL_VFLX     = 0,   4
   LVL_VTFLX    = 0,   4
   LVL_VSFLX    = 0,   4
   LVL_VMFLTD   = 0,   0
+  LVL_VMFLSM   = 0,   0
   LVL_VTFLTD   = 0,   0
+  LVL_VTFLSM   = 0,   0
   LVL_VTFLLD   = 0,   0
   LVL_VSFLTD   = 0,   0
+  LVL_VSFLSM   = 0,   0
   LVL_VSFLLD   = 0,   0
   LVL_VVEL     = 0,   4
   LVL_WFLX     = 0,   4
@@ -560,12 +583,16 @@
   MSC_MMFLXL   = 0,   0
   MSC_MMFLXD   = 0,   0
   MSC_MMFTDL   = 0,   0
+  MSC_MMFSML   = 0,   0
   MSC_MMFTDD   = 0,   0
+  MSC_MMFSMD   = 0,   0
   MSC_MHFLX    = 0,   0
   MSC_MHFTD    = 0,   0
+  MSC_MHFSM    = 0,   0
   MSC_MHFLD    = 0,   0
   MSC_MSFLX    = 0,   0
   MSC_MSFTD    = 0,   0
+  MSC_MSFSM    = 0,   0
   MSC_MSFLD    = 0,   0
   MSC_VOLTR    = 0,   0
   MSC_MASSGS   = 4,   0

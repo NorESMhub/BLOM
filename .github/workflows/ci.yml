@@ -26,7 +26,7 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Install dependencies - macOS
-        run: brew install netcdf open-mpi ninja
+        run: brew install netcdf-fortran open-mpi ninja
         env:
           HOMEBREW_NO_INSTALL_CLEANUP: 1
         if: runner.os == 'macOS'
@@ -44,8 +44,8 @@ jobs:
 
       - name: Build
         env:
-          CC: gcc-10
-          FC: gfortran-10
+          CC: gcc-12
+          FC: gfortran-12
         run: |
           meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
           meson compile -C builddir
