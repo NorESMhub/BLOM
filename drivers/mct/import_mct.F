@@ -31,7 +31,7 @@
      .                    eva_da, rnf_da, rfi_da, fmltfz_da, sfl_da,
      .                    ztx_da, mty_da, ustarw_da, slp_da, abswnd_da,
      .                    atmco2_da, atmbrf_da,atmn2o_da,atmnh3_da,
-     .                    atmnhxdep_da,atmnoydep_da 
+     .                    atmnhxdep_da,atmnoydep_da, 
      .                    ficem_da, l1ci, l2ci
       use mod_utility, only: util1, util2
       use mod_checksum, only: csdiag, chksummsk
