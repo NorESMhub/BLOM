@@ -16,8 +16,8 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE ACCFIELDS(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)       
-!**********************************************************************
+      SUBROUTINE ACCFIELDS(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
+!*******************************************************************************
 !
 !**** *ACCFIELDS* - .
 !
@@ -35,19 +35,19 @@
 !**** Parameter list:
 !     ---------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-!     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *omask*   - land/ocean mask
+!  *INTEGER* *kpie*    - 1st dimension of model grid.
+!  *INTEGER* *kpje*    - 2nd dimension of model grid.
+!  *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
+!  *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
+!  *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
+!  *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!  *REAL*    *omask*   - land/ocean mask
 !
 !**********************************************************************
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
-      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepnoyflx,rivinflx,ocetra,omegaa,omegac,pco2d,satoxy,    &
-                              & sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om
+      use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,   &
+                              & satoxy,sedfluxo,sedfluxb,pco2m,kwco2d,co2sold,co2solm,pn2om
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                               & calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                               & expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d
@@ -65,9 +65,10 @@
                               & jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
                               & jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
                               & jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndepnoy,jndepnhx,&
+                              & joalk,joalkfx,                                                                                     &
                               & jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,  &
                               & jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,       &
-                              & jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,           &
+                              & jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,&
                               & nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,acclyr,accsrf,bgczlv,jlvlanh4,jlvlano2,           & 
                               & jlvl_nitr_NH4, jsrfpn2om,                                                                          &
                               & jlvl_nitr_NO2,jlvl_nitr_N2O_prod,jlvl_nitr_NH4_OM,jlvl_nitr_NO2_OM,jlvl_denit_NO3,jlvl_denit_NO2,  &
@@ -201,8 +202,9 @@
         bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
         bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
 #endif
-        ! N-deposition and riverine input fluxes
+        ! N-deposition, ocean alkalinization, and riverine input fluxes
         bgct2d(i,j,jndepnoy) = bgct2d(i,j,jndepnoy) + ndepnoyflx(i,j)/2.0
+        bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0
         bgct2d(i,j,jirdin)   = bgct2d(i,j,jirdin)   + rivinflx(i,j,irdin)/2.0
         bgct2d(i,j,jirdip)   = bgct2d(i,j,jirdip)   + rivinflx(i,j,irdip)/2.0
         bgct2d(i,j,jirsi)    = bgct2d(i,j,jirsi)    + rivinflx(i,j,irsi)/2.0
@@ -296,6 +298,11 @@
       call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
 #endif
+
+! Accumulate fluxes due to N-deposition, ocean alkalinization
+      call accsrf(jndepnoyfx,ndepnoyflx,omask,0)    
+      call accsrf(joalkfx,oalkflx,omask,0)
+
 #ifdef extNcycle
       call accsrf(jsrfanh4,ocetra(1,1,1,ianh4),omask,0)
       call accsrf(jsrfpnh3,pnh3,omask,0)
@@ -614,6 +621,7 @@
 
       atmflx=0. ! nullifying atm flux here to have zero fluxes for stepwise inventory fluxes
       ndepnoyflx=0.
+      oalkflx=0.
       rivinflx=0.
 #ifdef extNcycle
       ndepnhxflx=0.

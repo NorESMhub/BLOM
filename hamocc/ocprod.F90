@@ -549,7 +549,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
            opalrem = dremopal*opal_remin_q10**((ptho(i,j,k)-opal_remin_Tref)/10.)*ocetra(i,j,k,iopal)
         else
            opalrem = dremopal*ocetra(i,j,k,iopal)
-        endif 
+        endif
         ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+opalrem
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-opalrem
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
@@ -1298,7 +1298,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
                    &                 + ocetra(i,j,kdonor,iopal)*wopald)/        &
                    &                 (pddpo(i,j,k)+wopal)
               ocetra(i,j,k,ifdust) = (ocetra(i,j,k    ,ifdust) * pddpo(i,j,k)   &
-                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/        &
+                   &                 + ocetra(i,j,kdonor,ifdust)*wdustd)/       &
                    &                 (pddpo(i,j,k)+wdust) - dagg
 #ifdef AGG
               ocetra(i,j,k,iphy)   = (ocetra(i,j,k    ,iphy) * pddpo(i,j,k)     &

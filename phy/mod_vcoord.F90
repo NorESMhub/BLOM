@@ -69,6 +69,9 @@ module mod_vcoord
       dpmin_inflation_factor = 1._r8, &
       dpmin_interior         = .1_r8, &
       regrid_nudge_factor    = .1_r8
+   integer :: &
+      dktzu = 4, &
+      dktzl = 1
 
    ! Options derived from string options.
    integer :: &
@@ -533,9 +536,12 @@ contains
       integer, dimension(1-nbdy:idm+nbdy) :: ksmx, kdmx
 
       real(r8), dimension(kdm+1) :: sigmar_1d, pmin, sig_pmin
-      real(r8) :: sig_max, dpmin_sfc, dsig, dsigdx, q
-      integer :: l, i, nt, k, kr, kl, klastok, kt, errstat
-      logical :: ok
+      real(r8) :: dpmin_inflation_factor_i, sig_max, dpmin_sfc, dsig, dsigdx, &
+                  ckt, a, p1, dp0, b, c, q, d, rk
+      integer :: l, i, nt, k, kt, kl, ktzmin, ktzmax, klastok, errstat
+      logical :: tzfound, ok
+
+      dpmin_inflation_factor_i = 1._r8/dpmin_inflation_factor
 
       do l = 1, isp(j)
       do i = max(i_lb, ifp(j, l)), min(i_ub, ilp(j, l))
@@ -590,6 +596,7 @@ contains
             p_dst(k,i) = p_src(kk+1,i)
          enddo
 
+         ! Set minimum interface pressure.
          dpmin_sfc = dpmin_surface
          pmin(1) = p_src(1,i)
          do k = 1, kk
@@ -598,23 +605,37 @@ contains
          enddo
          p_dst(1,i) = pmin(1)
 
+         ! Find the index of the first interface with potential density at
+         ! minimum interface pressure smaller than the reference potential
+         ! density of that interface. This transition interface is the first
+         ! interface below layers with prescribed minimum thickness.
          sig_pmin(1) = sig_srcdi(1,1)
-         kr = 2
+         kt = 2
          kl = 1
-         do while (kr <= kdmx(i))
-            do while (p_src(kl+1,i) < pmin(kr))
+         tzfound = .false.
+         do while (kt <= kdmx(i))
+            do while (p_src(kl+1,i) < pmin(kt))
                kl = kl + 1
             enddo
-            sig_pmin(kr) = ( (p_src(kl+1,i) - pmin(kr))*sig_srcdi(1,kl) &
-                           + (pmin(kr) - p_src(kl,i))*sig_srcdi(2,kl)) &
+            sig_pmin(kt) = ( (p_src(kl+1,i) - pmin(kt))*sig_srcdi(1,kl) &
+                           + (pmin(kt) - p_src(kl,i))*sig_srcdi(2,kl)) &
                            /(p_src(kl+1,i) - p_src(kl,i))
-            if (sigmar_1d(kr) > sig_pmin(kr)) exit
-            p_dst(kr,i) = pmin(kr)
-            kr = kr + 1
+            if (sigmar_1d(kt) > sig_pmin(kt)) then
+               ktzmin = max(2, kt - dktzu)
+               ktzmax = min(ksmx(i), kdmx(i), kt + dktzl)
+               if (ktzmin < kt .and. ktzmax - ktzmin > 1) tzfound = .true.
+               exit
+            endif
+            p_dst(kt,i) = pmin(kt)
+            kt = kt + 1
          enddo
 
-         klastok = kr - 1
-         do k = kr, min(ksmx(i), kdmx(i))
+         ! Starting at the transition interface, nudge the interface pressures
+         ! to reduce the deviation from the interface reference potential
+         ! density.
+
+         klastok = kt - 1
+         do k = kt, min(ksmx(i), kdmx(i))
             ok = .true.
             if      (sigmar_1d(k) < sig_srcdi(2,k-1) .and. &
                      sigmar_1d(k) < sig_srcdi(1,k  )) then
@@ -652,8 +673,8 @@ contains
                       p_src(kk+1,i))
                if (k - klastok > 1) then
                   q = (p_dst(k,i) - p_dst(klastok,i))/(k - klastok)
-                  do kt = klastok+1, k-1
-                     p_dst(kt,i) = min(max(p_dst(kt-1,i) + q, pmin(kt)), &
+                  do kl = klastok+1, k-1
+                     p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
                                        p_src(kk+1,i))
                   enddo
                endif
@@ -661,7 +682,7 @@ contains
             endif
          enddo
 
-         do k = max(kr, min(ksmx(i), kdmx(i))) + 1, kdmx(i)
+         do k = max(kt, min(ksmx(i), kdmx(i))) + 1, kdmx(i)
             ok = .true.
             if (sigmar_1d(k) < sig_srcdi(2,ksmx(i))) then
                dsig = (sigmar_1d(k) - sig_srcdi(2,ksmx(i)))*regrid_nudge_factor
@@ -688,8 +709,8 @@ contains
                       p_src(kk+1,i))
                if (k - klastok > 1) then
                   q = (p_dst(k,i) - p_dst(klastok,i))/(k - klastok)
-                  do kt = klastok+1, k-1
-                     p_dst(kt,i) = min(max(p_dst(kt-1,i) + q, pmin(kt)), &
+                  do kl = klastok+1, k-1
+                     p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
                                        p_src(kk+1,i))
                   enddo
                endif
@@ -699,10 +720,37 @@ contains
 
          if (kdmx(i) - klastok > 0) then
             q = (p_dst(kdmx(i)+1,i) - p_dst(klastok,i))/(kdmx(i) + 1 - klastok)
-            do kt = klastok+1, kdmx(i)
-               p_dst(kt,i) = min(max(p_dst(kt-1,i) + q, pmin(kt)), &
+            do kl = klastok+1, kdmx(i)
+               p_dst(kl,i) = min(max(p_dst(kl-1,i) + q, pmin(kl)), &
                                  p_src(kk+1,i))
             enddo
+         endif
+
+         ! Enforce a gradual change of layer thickness in a transition zone that
+         ! is defined by prescribed layer range above and below the transition
+         ! interface.
+         if (tzfound) then
+            ckt = (sigmar_1d(kt) - sig_pmin(kt)) &
+                  /( sigmar_1d(kt) - sigmar_1d(kt-1) &
+                   - sig_pmin (kt) + sig_pmin (kt-1))
+            a  = p_dst(ktzmin-1,i)*ckt + p_dst(ktzmin,i)*(1 - ckt)
+            p1 = p_dst(ktzmax-1,i)*ckt + p_dst(ktzmax,i)*(1 - ckt)
+            dp0 = p_dst(ktzmin,i) - p_dst(ktzmin-1,i)
+            if (ckt > .5_r8) then
+               b = dp0*((ckt - .5_r8)*dpmin_inflation_factor_i + 1.5_r8 - ckt)
+            else
+               b = dp0*(ckt + .5_r8 + dpmin_inflation_factor*(.5_r8 - ckt))
+            endif
+            c = .5_r8*dp0*(dpmin_inflation_factor - 1._r8) &
+                *(ckt*dpmin_inflation_factor_i + 1._r8 - ckt)
+            q = 1._r8/(ktzmax - ktzmin)
+            d = (((p1 - a)*q - b)*q - c)*q
+            if (d > 0._r8) then
+               do k = ktzmin, ktzmax-1
+                  rk = k - ktzmin + ckt
+                  p_dst(k,i) = a + rk*(b + rk*(c + rk*d))
+               enddo
+            endif
          endif
 
       enddo
@@ -756,7 +804,7 @@ contains
          tracer_pc_upper_bndr, tracer_pc_lower_bndr, &
          velocity_pc_upper_bndr, velocity_pc_lower_bndr, &
          dpmin_surface, dpmin_inflation_factor, dpmin_interior, &
-         regrid_nudge_factor
+         regrid_nudge_factor, dktzu, dktzl
 
       ! Read variables in the namelist group 'vcoord'.
       if (mnproc == 1) then
@@ -800,6 +848,8 @@ contains
         call xcbcst(dpmin_inflation_factor)
         call xcbcst(dpmin_interior)
         call xcbcst(regrid_nudge_factor)
+        call xcbcst(dktzu)
+        call xcbcst(dktzl)
       endif
       if (mnproc == 1) then
          write (lp,*) 'readnml_vcoord: vertical coordinate variables:'
@@ -823,6 +873,8 @@ contains
          write (lp,*) '  dpmin_inflation_factor = ', dpmin_inflation_factor
          write (lp,*) '  dpmin_interior =         ', dpmin_interior
          write (lp,*) '  regrid_nudge_factor =    ', regrid_nudge_factor
+         write (lp,*) '  dktzu =                  ', dktzu
+         write (lp,*) '  dktzl =                  ', dktzl
       endif
 
       ! Resolve options.
@@ -1238,11 +1290,11 @@ contains
       call xctilr(dp(1-nbdy,1-nbdy,k1n), 1, kk, 3, 3, halo_ps)
 
    !$omp parallel do private(k, kn, l, i)
-      do j = -2, jj+2
+      do j = -2, jj+3
          do k = 1, kk
             kn = k + nn
             do l = 1, isp(j)
-            do i = max(-2, ifp(j,l)), min(ii+2, ilp(j,l))
+            do i = max(-2, ifp(j,l)), min(ii+3, ilp(j,l))
                p(i,j,k+1) = p(i,j,k) + dp(i,j,kn)
             enddo
             enddo

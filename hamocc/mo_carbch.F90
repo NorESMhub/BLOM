@@ -60,6 +60,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnoyflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnhxflx
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: oalkflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: rivinflx 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
@@ -332,19 +333,29 @@
       if(errstat.ne.0) stop 'not enough memory atmflx'
       atmflx(:,:,:) = 0.0
 
-      ! Allocate field to hold N-deposition fluxes per timestep for inventory caluclations
+      ! Allocate field to hold N-deposition fluxes per timestep for inventory calculations and output
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepnoyflx ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      !WRITE(io_stdo_bgc,*)'Third dimension    : ',natm
       ENDIF
 
       ALLOCATE (ndepnoyflx(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory ndepnoyflx'
       ndepnoyflx(:,:) = 0.0
 
-      ! Allocate field to hold riverine fluxes per timestep for inventory caluclations
+      ! Allocate field to hold OA alkalinity fluxes per timestep for inventory calculations and output
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable oalkflx ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      ENDIF
+
+      ALLOCATE (oalkflx(kpie,kpje),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory oalkflx'
+      oalkflx(:,:) = 0.0
+
+      ! Allocate field to hold riverine fluxes per timestep for inventory calculations
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
