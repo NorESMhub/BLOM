@@ -324,7 +324,7 @@
      &          jiralk    =20,                                          &
      &          jiriron   =21,                                          &
      &          jirdoc    =22,                                          &
-     &          jirdet    =23,
+     &          jirdet    =23,                                          &
      &          jnh3flux  =24,                                          &
      &          nbgct2d   =24
       
