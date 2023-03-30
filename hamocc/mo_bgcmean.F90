@@ -97,7 +97,7 @@
      & SRF_ATMN2O    =0    ,                                            &
      & INT_BROMOPRO  =0    ,INT_BROMOUV   =0    ,                       &
      & INT_PHOSY     =0    ,INT_NFIX      =0    ,INT_DNIT      =0    ,  &
-     & FLX_NDEPNOY   =0    ,FLX_OALK      =0    ,                       &
+     & FLX_NDEPNOY   =0    ,FLX_NDEPNHX   =0    ,FLX_OALK      =0    ,  &
      & FLX_CAR0100   =0    ,FLX_CAR0500   =0    ,FLX_CAR1000   =0    ,  &
      & FLX_CAR2000   =0    ,FLX_CAR4000   =0    ,FLX_CAR_BOT   =0    ,  &
      & FLX_BSI0100   =0    ,FLX_BSI0500   =0    ,FLX_BSI1000   =0    ,  &
@@ -213,7 +213,7 @@
      & SRF_ATMN2O        ,                                              &
      & INT_BROMOPRO      ,INT_BROMOUV       ,                           &
      & INT_PHOSY         ,INT_NFIX          ,INT_DNIT          ,        &
-     & FLX_NDEPNOY       ,FLX_OALK          ,                           &
+     & FLX_NDEPNOY       ,FLX_NDEPNHX       ,FLX_OALK          ,        &
      & FLX_CAR0100       ,FLX_CAR0500       ,FLX_CAR1000       ,        &
      & FLX_CAR2000       ,FLX_CAR4000       ,FLX_CAR_BOT       ,        &
      & FLX_BSI0100       ,FLX_BSI0500       ,FLX_BSI1000       ,        &
@@ -373,6 +373,7 @@
      &          jintnfix   = 0 ,                                        &
      &          jintdnit   = 0 ,                                        &
      &          jndepnoyfx = 0 ,                                        &
+     &          jndepnhxfx = 0 ,                                        &
      &          joalkfx    = 0 ,                                        &
      &          jcarflx0100= 0 ,                                        &
      &          jcarflx0500= 0 ,                                        &
@@ -872,6 +873,8 @@
         jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
         IF (FLX_SEDIFFNO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
+        IF (FLX_NDEPNHX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
 #endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 

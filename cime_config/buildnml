@@ -542,6 +542,7 @@ set FLX_NDEPNOY   = '0, 2, 2'
 else
 set FLX_NDEPNOY   = '0, 0, 0'
 endif
+set FLX_NDEPNHX   = '0, 2, 2'
 set FLX_OALK      = '0, 0, 0'
 set FLX_CAR0100   = '0, 2, 2'
 set FLX_CAR0500   = '0, 2, 2'
@@ -1916,7 +1917,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !
 ! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
 ! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
-!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
+!   NDEPNOY        - Nitrogen NOy deposition flux [mol N m-2 s-1]
+!   NDEPNHx        - Nitrogen NHx deposition flux [mol N m-2 s-1]
 !   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
 !   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
 !   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
@@ -2039,6 +2041,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   INT_NFIX      = $INT_NFIX
   INT_DNIT      = $INT_DNIT
   FLX_NDEPNOY   = $FLX_NDEPNOY
+  FLX_NDEPNHX   = $FLX_NDEPNHX
   FLX_OALK      = $FLX_OALK
   FLX_CAR0100   = $FLX_CAR0100
   FLX_CAR0500   = $FLX_CAR0500
