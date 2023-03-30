@@ -873,8 +873,6 @@
         jsediffn2o(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2O(n))
         IF (FLX_SEDIFFNO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsediffno2(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO2(n))
-        IF (FLX_NDEPNHX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
-        jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
 #endif
 #ifdef cisonew
         IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
@@ -925,6 +923,8 @@
         jsrfanh4(n)=i_bsc_m2d*min(1,SRF_ANH4(n))
         IF (SRF_ANO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfano2(n)=i_bsc_m2d*min(1,SRF_ANO2(n))
+        IF (FLX_NDEPNHX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        jndepnhxfx(n)=i_bsc_m2d*min(1,FLX_NDEPNHX(n))
 #endif
       ENDDO 
 
