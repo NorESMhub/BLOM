@@ -85,7 +85,8 @@
 
   !===================================================================================== m4ago_init_params
   SUBROUTINE init_m4ago_nml_params
-
+      POM_remin_q10     = 2.1 ! Bidle et al. 2002: Regulation of Oceanic Silicon...
+      POM_remin_Tref    = 10.
   END SUBROUTINE init_m4ago_nml_params
 
   SUBROUTINE init_m4ago_params
