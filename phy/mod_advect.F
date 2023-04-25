@@ -93,10 +93,6 @@ c$OMP+  l,i,iw,ie,js,jn,isw,jsw,ise,jse,inw,jnw,ine,jne)
       enddo
 c$OMP END PARALLEL DO
 c
-      call xctilr(ubflxs_p, 1,2, 2,2, halo_uv)
-      call xctilr(vbflxs_p, 1,2, 2,2, halo_vv)
-      call xctilr(pbu, 1,2, 2,2, halo_us)
-      call xctilr(pbv, 1,2, 2,2, halo_vs)
 #ifdef TRC
       do nt=1,ntr
 #  if defined(TKE) && !defined(TKEADV)
