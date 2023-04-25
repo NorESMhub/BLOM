@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2020 Mats Bentsen
+! Copyright (C) 2015-2023 Mats Bentsen, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -28,8 +28,8 @@ c
      .                    vclon, vclat, scqx, scqy, scpx, scpy, scux,
      .                    scuy, scvx, scvy, scq2, scp2, scu2, scv2,
      .                    qlon, qlat, plon, plat, ulon, ulat, vlon,
-     .                    vlat, depths, corioq, coriop, betafp, angle,
-     .                    cosang, sinang, nwp
+     .                    vlat, depths, corioq, coriop, betafp, betatp,
+     .                    angle, cosang, sinang, hangle, nwp
 c
       implicit none
 c
@@ -67,8 +67,10 @@ c
       corioq=0.
       coriop=0.
       betafp=0.
+      betatp=0.
       cosang=0.
       sinang=0.
+      hangle=0.
 c
       return
       end
