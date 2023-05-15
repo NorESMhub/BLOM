@@ -1481,7 +1481,13 @@ c --- --- Eady growth rate.
                     egrup(i)=egrlo
                     if (edsprs.or.edanis) then
                       if (eddf2d) then
-                        q=max(0.,p(i,j,k+1)-p(i,j,k))
+                        if (p(i,j,k+1).gt.
+     .                      min(p(i-1,j,kk+1),p(i+1,j,kk+1),
+     .                          p(i,j-1,kk+1),p(i,j+1,kk+1))) then
+                          q=0.
+                        else
+                          q=max(0.,p(i,j,k+1)-p(i,j,k))
+                        endif
                       else
                         q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
      .                               p(i,j,k+1))-p(i,j,k))
@@ -1590,7 +1596,13 @@ c --- --------- Accumulate diffusivities and estimate and accumulate
 c --- --------- anisotrophy if requested.
 c
                 if (eddf2d) then
-                  q=max(0.,p(i,j,k+1)-p(i,j,k))
+                  if (p(i,j,k+1).gt.
+     .                min(p(i-1,j,kk+1),p(i+1,j,kk+1),
+     .                    p(i,j-1,kk+1),p(i,j+1,kk+1))) then
+                    q=0.
+                  else
+                    q=max(0.,p(i,j,k+1)-p(i,j,k))
+                  endif
                 else
 c
 c --- ----------- Only consider a region below the first physical layer
