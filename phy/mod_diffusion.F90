@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2020-2023 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2020-2023 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -46,6 +46,7 @@ module mod_diffusion
       egidfq, & ! Factor relating the isopycnal diffusivity to the layer
                 ! interface diffusivity in the Eden and Greatbatch (2008)
                 ! parameterization (egidfq = difint/difiso) [].
+      rhiscf, & ! Linear scaling parameter for topographic rhines scale [].
       ri0, &    ! Critical gradient richardson number for shear driven vertical
                 ! mixing [].
       bdmc1, &  ! Background diapycnal diffusivity times buoyancy frequency
@@ -59,10 +60,18 @@ module mod_diffusion
                 ! Brunt-Vaisala frequency, if bdmtyp = 2 the background
                 ! diffusivity is constant [].
    logical :: &
+      eddf2d, & ! If true, eddy diffusivity has a 2d structure.
       edsprs, & ! If true, apply eddy mixing suppression away from steering
                 ! level.
+      edanis, & ! If true, apply anisotropy correction to diffusivity.
+      redi3d, & ! If true, then isopycnal/neutral diffusion will have 3D
+                ! structure based in the 3D structure of anisotropy.
+      rhsctp, & ! If true, use the minimum of planetary and topographic beta
+                ! to define the Rhines scale.
       bdmldp    ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
+   character(len = 256) :: &
+      tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
@@ -152,17 +161,18 @@ module mod_diffusion
       vsflld    ! v-component of horizontal salt flux due to lateral diffusion
                 ! [g2 cm kg-1 s-2].
 
-   public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, bdmldp, eitmth_opt, eitmth_intdif, &
-             eitmth_gm, edritp_opt, edritp_shear, edritp_large_scale, &
-             edwmth_opt, edwmth_smooth, edwmth_step, &
+   public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
+             rhiscf, ri0, bdmc1, bdmc2, tkepf, bdmtyp, &
+             eddf2d, edsprs, edanis, redi3d, rhsctp, bdmldp, tbfile, &
+             eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
+             edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
-             umfltd, vmfltd, umflsm, vmflsm, &
-             utfltd, vtfltd, utflsm, vtflsm, utflld, vtflld, &
-             usfltd, vsfltd, usflsm, vsflsm, usflld, vsflld, &
-             Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nb_nonloc, &
-             readnml_diffusion, inivar_diffusion
+             umfltd, vmfltd, umflsm, vmflsm, utfltd, vtfltd, &
+             utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
+             usflsm, vsflsm, usflld, vsflld, &
+             Kvisc_m, Kdiff_t, Kdiff_s, &
+             t_ns_nonloc, s_nb_nonloc, readnml_diffusion, inivar_diffusion
 
 contains
 
@@ -176,8 +186,9 @@ contains
       logical :: fexist
 
       namelist /diffusion/ &
-         egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, tkepf, &
-         bdmtyp, edsprs, bdmldp, eitmth, edritp, edwmth, ltedtp
+         egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
+         bdmc1, bdmc2, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, &
+         bdmldp, tbfile, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -212,13 +223,19 @@ contains
         call xcbcst(egmndf)
         call xcbcst(egmxdf)
         call xcbcst(egidfq)
+        call xcbcst(rhiscf)
         call xcbcst(ri0)
         call xcbcst(bdmc1)
         call xcbcst(bdmc2)
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
+        call xcbcst(eddf2d)
         call xcbcst(edsprs)
+        call xcbcst(edanis)
+        call xcbcst(redi3d)
+        call xcbcst(rhsctp)
         call xcbcst(bdmldp)
+        call xcbcst(tbfile)
         call xcbcst(eitmth)
         call xcbcst(edritp)
         call xcbcst(edwmth)
@@ -232,13 +249,19 @@ contains
          write (lp,*) '  egmndf = ', egmndf
          write (lp,*) '  egmxdf = ', egmxdf
          write (lp,*) '  egidfq = ', egidfq
+         write (lp,*) '  rhiscf = ', rhiscf
          write (lp,*) '  ri0    = ', ri0
          write (lp,*) '  bdmc1  = ', bdmc1
          write (lp,*) '  bdmc2  = ', bdmc2
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp
+         write (lp,*) '  eddf2d = ', eddf2d
          write (lp,*) '  edsprs = ', edsprs
+         write (lp,*) '  edanis = ', edanis
+         write (lp,*) '  redi3d = ', redi3d
+         write (lp,*) '  rhsctp = ', rhsctp
          write (lp,*) '  bdmldp = ', bdmldp
+         write (lp,*) '  tbfile = ', trim(tbfile)
          write (lp,*) '  eitmth = ', trim(eitmth)
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)

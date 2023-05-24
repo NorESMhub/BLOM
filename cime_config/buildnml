@@ -178,6 +178,7 @@ set DKTZL                  = 1
 set EITMTH   = "'gm'"
 set EDRITP   = "'large scale'"
 set EDWMTH   = "'smooth'"
+set EDDF2D   = .false.
 set EDSPRS   = .true.
 set EGC      = 0.85
 set EGGAM    = 200.
@@ -191,6 +192,11 @@ else
   set EGMXDF   = 1500.
 endif
 set EGIDFQ   = 1.
+set TBFILE   = "'unset'"
+set RHISCF   = 0.
+set EDANIS   = .false.
+set REDI3D   = .false.
+set RHSCTP   = .false.
 set RI0      = 1.2
 set BDMTYP   = 2
 if ($BLOM_UNIT == cgs) then
@@ -1121,6 +1127,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
+! EDDF2D   : If true, eddy diffusivity has a 2d structure (l)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
@@ -1130,6 +1137,13 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
 !            interface diffusivity in the Eden and Greatbatch (2008)
 !            parameterization. egidfq=difint/difiso () (f)
+! TBFILE   : Name of file containing topographic beta parameter (a)
+! RHISCF   : Linear scaling parameter for topographic rhines scale () (f)
+! EDANIS   : If true, apply anisotropy correction to eddy diffusivity (l)
+! REDI3D   : If true, then isopycnal/neutral diffusion will have 3D
+!            structure based in the 3D structure of anisotropy (l)
+! RHSCTP   : If true, use the minimum of planetary and topographic beta
+!            to define the Rhines scale (l)
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
 ! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
@@ -1149,6 +1163,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   EITMTH   = $EITMTH
   EDRITP   = $EDRITP
   EDWMTH   = $EDWMTH
+  EDDF2D   = $EDDF2D
   EDSPRS   = $EDSPRS
   EGC      = $EGC
   EGGAM    = $EGGAM
@@ -1156,6 +1171,11 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   EGMNDF   = $EGMNDF
   EGMXDF   = $EGMXDF
   EGIDFQ   = $EGIDFQ
+  TBFILE   = $TBFILE
+  RHISCF   = $RHISCF
+  EDANIS   = $EDANIS
+  REDI3D   = $REDI3D
+  RHSCTP   = $RHSCTP
   RI0      = $RI0
   BDMTYP   = $BDMTYP
   BDMC1    = $BDMC1

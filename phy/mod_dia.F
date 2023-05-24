@@ -1096,7 +1096,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_MLD(1:nphy)).ne.0) then
+      if (sum(ACC_MLD(1:nphy)+ACC_MAXMLD(1:nphy)).ne.0) then
         select case (vcoord_type_tag)
           case (isopyc_bulkml)
 c$OMP PARALLEL DO PRIVATE(l,i)
