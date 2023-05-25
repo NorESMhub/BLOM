@@ -207,6 +207,7 @@ else
   set BDMC2    = 1.e-5
 endif
 set TKEPF    = .006
+set LNGMTP   = "'none'"
 if ($BLOM_VCOORD == isopyc_bulkml) then
   set BDMLDP   = .true.
   set LTEDTP   = "'layer'"
@@ -311,6 +312,8 @@ set H2D_HMLTFZ   =  '0,   4,   0'
 set H2D_HSNW     =  '0,   0,   0'
 set H2D_IAGE     =  '0,   0,   0'
 set H2D_IDKEDT   =  '0,   4,   0'
+set H2D_LAMULT   =  '0,   0,   0'
+set H2D_LASL     =  '0,   0,   0'
 set H2D_LIP      =  '0,   4,   0'
 set H2D_MAXMLD   =  '4,   4,   0'
 set H2D_MLD      =  '0,   4,   0'
@@ -355,8 +358,10 @@ set H2D_UB       =  '0,   4,   0'
 set H2D_UICE     =  '0,   0,   0'
 set H2D_USTAR    =  '0,   4,   0'
 set H2D_USTAR3   =  '0,   4,   0'
+set H2D_USTOKES  =  '0,   0,   0'
 set H2D_VB       =  '0,   4,   0'
 set H2D_VICE     =  '0,   0,   0'
+set H2D_VSTOKES  =  '0,   0,   0'
 set H2D_ZTX      =  '0,   4,   0'
 set LYR_BFSQ     =  '0,   4,   0'
 set LYR_DIFDIA   =  '0,   4,   0'
@@ -1157,6 +1162,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! LNGMTP   : Type of Langmuir turbulence parameterization. Valid types:
+!            'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
 &DIFFUSION
@@ -1182,6 +1189,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   BDMC2    = $BDMC2
   BDMLDP   = $BDMLDP
   TKEPF    = $TKEPF
+  LNGMTP   = $LNGMTP
   LTEDTP   = $LTEDTP
 /
 EOF
@@ -1309,6 +1317,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
 !   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
+!   LAMULT   - Langmuir enhancement factor []
+!   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
@@ -1353,8 +1363,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !   UICE     - ice velocity x-component [m s-1]
 !   USTAR    - friction velocity [m s-1]
 !   USTAR3   - friction velocity cubed [m3 s-3]
+!   USTOKES  - surface Stokes drift x-componen [m s-1]
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
+!   VSTOKES  - surface Stokes drift y-componen [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
 !   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
@@ -1440,6 +1452,8 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   H2D_HSNW     = $H2D_HSNW
   H2D_IAGE     = $H2D_IAGE
   H2D_IDKEDT   = $H2D_IDKEDT
+  H2D_LAMULT   = $H2D_LAMULT
+  H2D_LASL     = $H2D_LASL
   H2D_LIP      = $H2D_LIP
   H2D_MAXMLD   = $H2D_MAXMLD
   H2D_MLD      = $H2D_MLD
@@ -1484,8 +1498,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   H2D_UICE     = $H2D_UICE
   H2D_USTAR    = $H2D_USTAR
   H2D_USTAR3   = $H2D_USTAR3
+  H2D_USTOKES  = $H2D_USTOKES
   H2D_VB       = $H2D_VB
   H2D_VICE     = $H2D_VICE
+  H2D_VSTOKES  = $H2D_VSTOKES
   H2D_ZTX      = $H2D_ZTX
   LYR_BFSQ     = $LYR_BFSQ
   LYR_DIFDIA   = $LYR_DIFDIA

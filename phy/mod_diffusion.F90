@@ -73,6 +73,8 @@ module mod_diffusion
    character(len = 256) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
+      lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:
+                ! 'none', 'vr12-ma', 'lf17'
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
       edritp, & ! Type of Richardson number used in eddy diffusivity
@@ -163,7 +165,7 @@ module mod_diffusion
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
              rhiscf, ri0, bdmc1, bdmc2, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, bdmldp, tbfile, &
+             eddf2d, edsprs, edanis, redi3d, rhsctp, bdmldp, tbfile, lngmtp, &
              eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
              edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
@@ -188,7 +190,7 @@ contains
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
          bdmc1, bdmc2, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, &
-         bdmldp, tbfile, eitmth, edritp, edwmth, ltedtp
+         bdmldp, tbfile, lngmtp, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -236,6 +238,7 @@ contains
         call xcbcst(rhsctp)
         call xcbcst(bdmldp)
         call xcbcst(tbfile)
+        call xcbcst(lngmtp)
         call xcbcst(eitmth)
         call xcbcst(edritp)
         call xcbcst(edwmth)
@@ -262,6 +265,7 @@ contains
          write (lp,*) '  rhsctp = ', rhsctp
          write (lp,*) '  bdmldp = ', bdmldp
          write (lp,*) '  tbfile = ', trim(tbfile)
+         write (lp,*) '  lngmtp = ', trim(lngmtp)
          write (lp,*) '  eitmth = ', trim(eitmth)
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)
