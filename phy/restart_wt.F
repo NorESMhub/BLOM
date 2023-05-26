@@ -620,6 +620,15 @@ c --- write accumulated fields
           if (ACC_DIFDIA(n).ne.0) call wrtrst('difdia_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),
      .      ip)
+          if (ACC_DIFVMO(n).ne.0) call wrtrst('difvmo_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVMO(n)),
+     .      ip)
+          if (ACC_DIFVHO(n).ne.0) call wrtrst('difvho_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVHO(n)),
+     .      ip)
+          if (ACC_DIFVSO(n).ne.0) call wrtrst('difvso_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVSO(n)),
+     .      ip)
           if (ACC_DIFINT(n).ne.0) call wrtrst('difint_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),
      .      ip)
@@ -733,6 +742,15 @@ c --- write accumulated fields
           if (ACC_DIFDIALVL(n).ne.0) call wrtrst('difdialvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_DIFDIALVL(n)),ip)
+          if (ACC_DIFVMOLVL(n).ne.0) call wrtrst('difvmolvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVMOLVL(n)),ip)
+          if (ACC_DIFVHOLVL(n).ne.0) call wrtrst('difvholvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVHOLVL(n)),ip)
+          if (ACC_DIFVSOLVL(n).ne.0) call wrtrst('difvsolvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVSOLVL(n)),ip)
           if (ACC_DIFINTLVL(n).ne.0) call wrtrst('difintlvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_DIFINTLVL(n)),ip)
@@ -1243,6 +1261,12 @@ c --- write accumulated fields
      .      trim(c5p)//' kk time')
           if (ACC_DIFDIA(n).ne.0) call defvarrst('difdia_phy'//c2,
      .      trim(c5p)//' kk time')
+          if (ACC_DIFVMO(n).ne.0) call defvarrst('difvmo_phy'//c2,
+     .      trim(c5p)//' kk time')
+          if (ACC_DIFVHO(n).ne.0) call defvarrst('difvho_phy'//c2,
+     .      trim(c5p)//' kk time')
+          if (ACC_DIFVSO(n).ne.0) call defvarrst('difvso_phy'//c2,
+     .      trim(c5p)//' kk time')
           if (ACC_DIFINT(n).ne.0) call defvarrst('difint_phy'//c2,
      .      trim(c5p)//' kk time')
           if (ACC_DIFISO(n).ne.0) call defvarrst('difiso_phy'//c2,
@@ -1318,6 +1342,12 @@ c --- write accumulated fields
           if (ACC_BFSQLVL(n).ne.0) call defvarrst('bfsqlvl_phy'//c2,
      .      trim(c5p)//' plev time')
           if (ACC_DIFDIALVL(n).ne.0) call defvarrst('difdialvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVMOLVL(n).ne.0) call defvarrst('difvmolvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVHOLVL(n).ne.0) call defvarrst('difvholvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVSOLVL(n).ne.0) call defvarrst('difvsolvl_phy'//c2,
      .      trim(c5p)//' plev time')
           if (ACC_DIFINTLVL(n).ne.0) call defvarrst('difintlvl_phy'//c2,
      .      trim(c5p)//' plev time')

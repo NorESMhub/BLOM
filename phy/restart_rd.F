@@ -928,6 +928,12 @@ c --- read accumulated fields
      .        phylyr(1-nbdy,1-nbdy,1,ACC_BFSQ(n)),ip,1,0.)
             if (ACC_DIFDIA(n).ne.0) call ncread('difdia_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),ip,1,0.)
+            if (ACC_DIFVMO(n).ne.0) call ncread('difvmo_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVMO(n)),ip,1,0.)
+            if (ACC_DIFVHO(n).ne.0) call ncread('difvho_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVHO(n)),ip,1,0.)
+            if (ACC_DIFVSO(n).ne.0) call ncread('difvso_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVSO(n)),ip,1,0.)
             if (ACC_DIFINT(n).ne.0) call ncread('difint_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),ip,1,0.)
             if (ACC_DIFISO(n).ne.0) call ncread('difiso_phy'//c2,
@@ -1014,6 +1020,12 @@ c --- read accumulated fields
      .        phylvl(1-nbdy,1-nbdy,1,ACC_BFSQLVL(n)),ip,1,0.)
             if (ACC_DIFDIALVL(n).ne.0) call ncread('difdialvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFDIALVL(n)),ip,1,0.)
+            if (ACC_DIFVMOLVL(n).ne.0) call ncread('difvmolvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVMOLVL(n)),ip,1,0.)
+            if (ACC_DIFVHOLVL(n).ne.0) call ncread('difvholvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVHOLVL(n)),ip,1,0.)
+            if (ACC_DIFVSOLVL(n).ne.0) call ncread('difvsolvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVSOLVL(n)),ip,1,0.)
             if (ACC_DIFINTLVL(n).ne.0) call ncread('difintlvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFINTLVL(n)),ip,1,0.)
             if (ACC_DIFISOLVL(n).ne.0) call ncread('difisolvl_phy'//c2,

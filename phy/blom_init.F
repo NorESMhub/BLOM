@@ -30,7 +30,7 @@ c
       use mod_xc
       use mod_pointtest, only: init_ptest
       use mod_inicon, only: icfile
-      use mod_state, only: dp, dpu, dpv, uflx, vflx, p, phi
+      use mod_state, only: dp, dpu, dpv, uflx, vflx, p, pu, pv, phi
       use mod_barotp, only: pvtrop
       use mod_pgforc, only: pgfxm, pgfym, xixp, xixm, xiyp, xiym
       use mod_niw, only: uml, vml, umlres, vmlres
@@ -49,7 +49,7 @@ c
 c
       implicit none
 c
-      integer istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,km
+      integer istat,ncid,varid,i,j,k,l,m,n,mm,nn,k1m,k1n,mt,mmt,kn,km
       real q
       logical icrest,fexist
 c
@@ -274,12 +274,31 @@ c
         call xctilr(dpu, 1,2*kk, 3,3, halo_us)
         call xctilr(dpv, 1,2*kk, 3,3, halo_vs)
 c
-c$OMP PARALLEL DO PRIVATE(k,l,i)
+c$OMP PARALLEL DO PRIVATE(k,km,l,i)
         do j=-2,jj+2
           do k=1,kk
+            km=k+mm
             do l=1,isp(j)
             do i=max(-2,ifp(j,l)),min(ii+2,ilp(j,l))
-              p(i,j,k+1)=p(i,j,k)+dp(i,j,k+mm)
+              p(i,j,k+1)=p(i,j,k)+dp(i,j,km)
+            enddo
+            enddo
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+c
+c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+        do j=1,jj
+          do k=1,kk
+            kn=k+nn
+            do l=1,isu(j)
+            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+              pu(i,j,k+1)=pu(i,j,k)+dpu(i,j,kn)
+            enddo
+            enddo
+            do l=1,isv(j)
+            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+              pv(i,j,k+1)=pv(i,j,k)+dpv(i,j,kn)
             enddo
             enddo
           enddo
