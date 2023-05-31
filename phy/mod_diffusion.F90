@@ -68,8 +68,10 @@ module mod_diffusion
                 ! structure based in the 3D structure of anisotropy.
       rhsctp, & ! If true, use the minimum of planetary and topographic beta
                 ! to define the Rhines scale.
-      bdmldp    ! If true, make the background mixing latitude dependent
+      bdmldp, & ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
+      smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
+                ! layer depth.
    character(len = 256) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
@@ -164,8 +166,8 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
-             rhiscf, ri0, bdmc1, bdmc2, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, bdmldp, tbfile, lngmtp, &
+             rhiscf, ri0, bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, &
+             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, smobld, lngmtp, &
              eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
              edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
@@ -189,8 +191,8 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, &
-         bdmldp, tbfile, lngmtp, eitmth, edritp, edwmth, ltedtp
+         bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+         rhsctp, tbfile, smobld, lngmtp, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -229,6 +231,7 @@ contains
         call xcbcst(ri0)
         call xcbcst(bdmc1)
         call xcbcst(bdmc2)
+        call xcbcst(bdmldp)
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
         call xcbcst(eddf2d)
@@ -236,8 +239,8 @@ contains
         call xcbcst(edanis)
         call xcbcst(redi3d)
         call xcbcst(rhsctp)
-        call xcbcst(bdmldp)
         call xcbcst(tbfile)
+        call xcbcst(smobld)
         call xcbcst(lngmtp)
         call xcbcst(eitmth)
         call xcbcst(edritp)
@@ -256,6 +259,7 @@ contains
          write (lp,*) '  ri0    = ', ri0
          write (lp,*) '  bdmc1  = ', bdmc1
          write (lp,*) '  bdmc2  = ', bdmc2
+         write (lp,*) '  bdmldp = ', bdmldp
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  eddf2d = ', eddf2d
@@ -263,7 +267,7 @@ contains
          write (lp,*) '  edanis = ', edanis
          write (lp,*) '  redi3d = ', redi3d
          write (lp,*) '  rhsctp = ', rhsctp
-         write (lp,*) '  bdmldp = ', bdmldp
+         write (lp,*) '  smobld = ', smobld
          write (lp,*) '  tbfile = ', trim(tbfile)
          write (lp,*) '  lngmtp = ', trim(lngmtp)
          write (lp,*) '  eitmth = ', trim(eitmth)

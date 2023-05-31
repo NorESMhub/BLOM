@@ -207,6 +207,7 @@ else
   set BDMC2    = 1.e-5
 endif
 set TKEPF    = .006
+set SMOBLD   = .true.
 set LNGMTP   = "'none'"
 if ($BLOM_VCOORD == isopyc_bulkml) then
   set BDMLDP   = .true.
@@ -1162,8 +1163,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 !            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
-! LNGMTP   : Type of Langmuir turbulence parameterization. Valid types:
-!            'none', 'vr12-ma', 'lf17'
+! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
+!            boundary layer depth (l)
+! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
+!            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
 &DIFFUSION
@@ -1189,6 +1192,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   BDMC2    = $BDMC2
   BDMLDP   = $BDMLDP
   TKEPF    = $TKEPF
+  SMOBLD   = $SMOBLD
   LNGMTP   = $LNGMTP
   LTEDTP   = $LTEDTP
 /
