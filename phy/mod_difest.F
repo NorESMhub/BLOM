@@ -989,7 +989,7 @@ c
              ! convert cm/s to m/s
              surfFricVel = ustar(i,j) * iL_mks2cgs
              ! convert cm2/s3 to m2/s3
-             surfBuoyFlux = - buoyfl(i,j,1) * A_cgs2mks
+             surfBuoyFlux = (buoyfl(i,j,2) - buoyfl(i,j,1)) * A_cgs2mks
              do k=1,kk
                 kn = k + nn
                 kn1 = max(nn+1,kn-1)
