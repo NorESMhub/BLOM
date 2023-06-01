@@ -40,7 +40,8 @@ c
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
-     .                         t_ns_nonloc, s_nb_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc,
+     .                         mu_nonloc, mv_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
       use mod_forcing, only: lamult, lasl, ustar, ustarb, ustar3,
      .                       buoyfl, t_sw_nonloc, surflx, sswflx, salflx
@@ -625,6 +626,9 @@ c$OMP PARALLEL DO PRIVATE(l,i,klpl,k,kn,q)
           enddo
           enddo
         enddo
+        do i=1,ii
+          mskv(i,j,1)=iv(i,j)
+        enddo
         do k=2,kk
           do i=1,ii
             dv2(i,j,k)=0.
@@ -660,6 +664,9 @@ c ----- Compute squared vertical velocity difference of u-component
             if (dpu(i,j,kn).gt.dpbmin) klpl(i)=k
           enddo
           enddo
+        enddo
+        do i=1,ii+1
+          msku(i,j,1)=iu(i,j)
         enddo
         do k=2,kk
           do i=1,ii+1
@@ -1353,6 +1360,37 @@ c end of single column
 c
       enddo ! j-index
 c
+      do j = 1, jj
+        do l = 1, isu(j)
+        do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+          dps = 0.
+          do k = 2, kk+1
+            dps = dps + dpu(i,j,k-1+mm)
+            q = 2.*dps/((OBLdepth(i-1,j) + OBLdepth(i,j))*onem)
+            if (q.lt.1.) then
+              mu_nonloc(i,j,k) = (1. - q)**2
+            else
+              mu_nonloc(i,j,k) = 0.
+            endif
+          enddo
+        enddo
+        enddo
+        do l = 1, isv(j)
+        do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+          dps = 0.
+          do k = 2, kk+1
+            dps = dps + dpv(i,j,k-1+mm)
+            q = 2.*dps/((OBLdepth(i,j-1) + OBLdepth(i,j))*onem)
+            if (q.lt.1.) then
+              mv_nonloc(i,j,k) = (1. - q)**2
+            else
+              mv_nonloc(i,j,k) = 0.
+            endif
+          enddo
+        enddo
+        enddo
+      enddo
+c
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'difest_vertical_hyb:'
@@ -1362,6 +1400,8 @@ c
         call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
         call chksummsk(t_ns_nonloc,ip,kk+1,'t_ns_nonloc')
         call chksummsk(s_nb_nonloc,ip,kk+1,'s_nb_nonloc')
+        call chksummsk(mu_nonloc,iu,kk+1,'mu_nonloc')
+        call chksummsk(mv_nonloc,iv,kk+1,'mv_nonloc')
       endif
 c
       end subroutine difest_vertical_hyb

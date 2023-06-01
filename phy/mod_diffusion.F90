@@ -122,9 +122,13 @@ module mod_diffusion
       Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
       t_ns_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-shortwave flux passing a layer interface [].
-      s_nb_nonloc     ! Non-local transport term that is the fraction of
+      s_nb_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-brine material tracer flux passing a layer interface
                       ! [].
+      mu_nonloc, &    ! Non-local transport term that is the fraction of
+                      ! u-component momentum flux passing a layer interface [].
+      mv_nonloc       ! Non-local transport term that is the fraction of
+                      ! u-component momentum flux passing a layer interface [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
@@ -176,7 +180,8 @@ module mod_diffusion
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
              usflsm, vsflsm, usflld, vsflld, &
              Kvisc_m, Kdiff_t, Kdiff_s, &
-             t_ns_nonloc, s_nb_nonloc, readnml_diffusion, inivar_diffusion
+             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, &
+             readnml_diffusion, inivar_diffusion
 
 contains
 
@@ -380,6 +385,8 @@ contains
                Kdiff_s(i, j, k) = epsilk
                t_ns_nonloc(i, j, k) = spval
                s_nb_nonloc(i, j, k) = spval
+               mu_nonloc(i, j, k) = spval
+               mv_nonloc(i, j, k) = spval
             enddo
          enddo
       enddo
@@ -458,11 +465,31 @@ contains
             s_nb_nonloc(i, j, 1) = 1._r8
          enddo
          enddo
+         do l = 1, isu(j)
+         do i = max(1, ifu(j, l)), min(ii, ilu(j, l))
+            mu_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
+         do l = 1, isv(j)
+         do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
+            mv_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
          do k = 2, kk + 1
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                t_ns_nonloc(i, j, k) = 0._r8
                s_nb_nonloc(i, j, k) = 0._r8
+            enddo
+            enddo
+            do l = 1, isu(j)
+            do i = max(1, ifu(j, l)), min(ii, ilu(j, l))
+               mu_nonloc(i, j, k) = 0._r8
+            enddo
+            enddo
+            do l = 1, isv(j)
+            do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
+               mv_nonloc(i, j, k) = 0._r8
             enddo
             enddo
          enddo

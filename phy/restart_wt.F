@@ -48,7 +48,8 @@ c
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s,
-     .                         t_ns_nonloc, s_nb_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc,
+     .                         mu_nonloc, mv_nonloc
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -304,6 +305,8 @@ c
      .              t_ns_nonloc,ip)
         call wrtrst('s_nb_nonloc',trim(c5p)//' kkp1 time',
      .              s_nb_nonloc,ip)
+        call wrtrst('mu_nonloc',trim(c5u)//' kkp1 time',mu_nonloc,iu)
+        call wrtrst('mv_nonloc',trim(c5v)//' kkp1 time',mv_nonloc,iv)
         call wrtrst('umflsm',trim(c5u)//' kk2 time',umflsm,iuu)
         call wrtrst('utflsm',trim(c5u)//' kk2 time',utflsm,iuu)
         call wrtrst('usflsm',trim(c5u)//' kk2 time',usflsm,iuu)
@@ -978,6 +981,8 @@ c
         call defvarrst('OBLdepth',trim(c5p)//' time')
         call defvarrst('t_ns_nonloc',trim(c5p)//' kkp1 time')
         call defvarrst('s_nb_nonloc',trim(c5p)//' kkp1 time')
+        call defvarrst('mu_nonloc',trim(c5u)//' kkp1 time')
+        call defvarrst('mv_nonloc',trim(c5v)//' kkp1 time')
         call defvarrst('umflsm',trim(c5u)//' kk2 time')
         call defvarrst('utflsm',trim(c5u)//' kk2 time')
         call defvarrst('usflsm',trim(c5u)//' kk2 time')
