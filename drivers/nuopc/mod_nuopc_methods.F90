@@ -42,6 +42,8 @@ module mod_nuopc_methods
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
+   use mo_carbch, only: ocetra
+   use mo_param1_bgc, only: idms
 
    implicit none
 
@@ -481,6 +483,7 @@ contains
          index_Fioi_flxdst = - 1, &
          index_Foxx_rofl   = - 1, &
          index_Foxx_rofi   = - 1, &
+         index_Faox_dms    = - 1, &
          index_So_duu10n   = - 1, &
          index_Foxx_tauy   = - 1, &
          index_Foxx_taux   = - 1, &
@@ -928,8 +931,9 @@ contains
          index_So_t          = - 1, &
          index_So_s          = - 1, &
          index_So_bldepth    = - 1, &
+         index_So_dms        = - 1, &
          index_Fioo_q        = - 1, &
-         index_Faoo_fdms_ocn = - 1, &
+         index_Faoo_dms      = - 1, &
          index_Faoo_fco2_ocn = - 1, &
          index_Faoo_fbrf_ocn = - 1
 
@@ -1020,18 +1024,19 @@ contains
       ! Provide DMS flux [kmol DMS m-2 s-1], if requested.
       ! ------------------------------------------------------------------------
 
-      call getfldindex(fldlist_num, fldlist, 'Faoo_fdms_ocn', &
-                       index_Faoo_fdms_ocn)
+      call getfldindex(fldlist_num, fldlist, 'Faoo_dms', &
+                       index_Faoo_dms)
 
-      if (fbrf_requested .and. index_Faoo_fdms_ocn > 0) then
-         fldlist(index_Faoo_fdms_ocn)%dataptr(:) = 0._r8
+      if (fdms_requested .and. index_Faoo_dms > 0) then
+         fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
+
       !$omp parallel do private(l, i, n)
          do j = 1, jjcpl
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                n = (j - 1)*ii + i
-               fldlist(index_Faoo_fdms_ocn)%dataptr(n) = &
-                  acc_fbrf(i,j)*tfac*mod2med_areacor(n)
+               fldlist(index_Faoo_dms)%dataptr(n) = &
+                  acc_fdms(i,j)*tfac*mod2med_areacor(n)
             enddo
             enddo
          enddo
@@ -1040,6 +1045,24 @@ contains
          if (mnproc == 1) &
             write(lp,*) subname//': dms flux not sent to coupler'
       endif
+
+      call getfldindex(fldlist_num, fldlist, 'So_dms', &
+                       index_So_dms)
+
+      if (fdms_requested .and. index_So_dms > 0) then
+         fldlist(index_So_dms)%dataptr(:) = 0._r8
+
+      !$omp parallel do private(l, i, n)
+         do j = 1, jjcpl
+            do l = 1, isp(j)
+            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+               n = (j - 1)*ii + i
+               fldlist(index_So_dms)%dataptr(n) = ocetra(i,j,1,idms)
+            enddo
+            enddo
+         enddo
+      !$omp end parallel do
+      end if
 
       ! ------------------------------------------------------------------------
       ! Provide CO2 flux [kg CO2 m-2 s-1], if requested.

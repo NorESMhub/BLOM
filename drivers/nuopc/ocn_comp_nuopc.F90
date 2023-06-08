@@ -74,10 +74,10 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
 
-   logical              :: ldriver_has_atm_co2_diag, ldriver_has_atm_co2_prog, &
-                           ocn2glc_coupling
+   logical              :: ldriver_has_atm_co2_diag, ldriver_has_atm_co2_prog
+   logical              :: ocn2glc_coupling, flds_dms_med, flds_dms_ocn
 
-   integer :: dbug = 0
+   integer :: dbug = 10
    logical :: profile_memory = .false.
 
    public :: SetServices, SetVM
@@ -521,6 +521,17 @@ contains
                             trim(cvalue), ESMF_LOGMSG_INFO)
       endif
 
+      ! Determine if dms will be sent to mediator (currently both flux and concentration)
+      call NUOPC_CompAttributeGet(gcomp, name='flds_dms_ocn', value=cvalue, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      read(cvalue,*) flds_dms_ocn
+      call blom_logwrite(subname//': flds_dms_ocn = '//trim(cvalue))
+
+      call NUOPC_CompAttributeGet(gcomp, name='flds_dms_med', value=cvalue, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      read(cvalue,*) flds_dms_med
+      call blom_logwrite(subname//': flds_dms_med = '//trim(cvalue))
+
       ! ------------------------------------------------------------------------
       ! Advertise import fields.
       ! ------------------------------------------------------------------------
@@ -589,6 +600,10 @@ contains
          ldriver_has_atm_co2_diag = .false.
       endif
 
+      if (flds_dms_med) then
+         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms')
+      end if
+
       !TODO Determine if will get nitrogen deposition from atm
 
       do n = 1,fldsToOcn_num
@@ -627,6 +642,13 @@ contains
       call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth')
       call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q')
       call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn')
+
+      if (flds_dms_med) then
+         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms')
+      end if
+      if (flds_dms_ocn) then
+         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms')
+      end if
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
@@ -730,15 +752,18 @@ contains
       ! Realize the actively coupled fields.
       ! ------------------------------------------------------------------------
 
+      write(6,*)'DEBUG: here1'
       call fldlist_realize(state=importState, &
                            fldlist_num=fldsToOcn_num, fldlist=fldsToOcn, &
                            tag=subname//':BLOM_Import', mesh=EMesh, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
 
+      write(6,*)'DEBUG: here2'
       call fldlist_realize(state=exportState, &
                            fldlist_num=fldsFrOcn_num, fldlist=fldsFrOcn, &
                            tag=subname//':BLOM_Export', mesh=EMesh, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      write(6,*)'DEBUG: here3'
 
       ! ------------------------------------------------------------------------
       ! Set scalar data in export state.
@@ -793,7 +818,7 @@ contains
       call ESMF_StateGet(exportState, 'Faoo_fco2_ocn', itemType)
       fco2_requested = (itemType /= ESMF_STATEITEM_NOTFOUND)
 
-      call ESMF_StateGet(exportState, 'Faoo_fdms_ocn', itemType)
+      call ESMF_StateGet(exportState, 'Faoo_dms', itemType)
       fdms_requested = (itemType /= ESMF_STATEITEM_NOTFOUND)
 
       call ESMF_StateGet(exportState, 'Faoo_fbrf_ocn', itemType)
