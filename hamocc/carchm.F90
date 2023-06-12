@@ -118,6 +118,8 @@
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
+      use mod_cesm, only : get_flxdms_from_med
+      use mod_forcing, only : flxdms
 
       implicit none
 
@@ -474,8 +476,13 @@
 #endif
 
 ! Surface flux of dms
-       dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
-       ocetra(i,j,1,idms)=ocetra(i,j,1,idms)-dmsflux/pddpo(i,j,1)
+      if (get_flxdms_from_med) then
+         ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - flxdms(i,j)/pddpo(i,j,1)
+      else
+         dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
+         ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
+      end if
+       
 #ifdef BROMO
 ! Quack and Wallace (2003) eq. 1
 ! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
@@ -494,7 +501,11 @@
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
        atmflx(i,j,iatmn2o)=n2oflux
-       atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
+       if (get_flxdms_from_med) then
+          atmflx(i,j,iatmdms)=flxdms(i,j) ! positive to atmosphere [kmol dms m-2 timestep-1]
+       else
+          atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
+       end if
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
        atmflx(i,j,iatmc14)=flux14u-flux14d

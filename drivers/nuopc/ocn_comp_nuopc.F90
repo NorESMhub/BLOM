@@ -51,7 +51,7 @@ module ocn_comp_nuopc
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
-   use mo_control_bgc, only : do_dmsflux_med
+   use mod_cesm, only : get_flxdms_from_med
 
    implicit none
 
@@ -74,7 +74,7 @@ module ocn_comp_nuopc
    integer              :: flds_scalar_index_ny = 0
    integer              :: flds_scalar_index_precip_factor = 0
 
-   logical              :: ocn2glc_coupling, flds_dms_med, flds_dms_ocn
+   logical              :: ocn2glc_coupling, flds_dms_med
 
    integer :: dbug = 10
    logical :: profile_memory = .false.
@@ -486,19 +486,14 @@ contains
       endif
 
       ! Determine if dms will be sent to mediator (currently both flux and concentration)
-      call NUOPC_CompAttributeGet(gcomp, name='flds_dms_ocn', value=cvalue, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      read(cvalue,*) flds_dms_ocn
-      call blom_logwrite(subname//': flds_dms_ocn = '//trim(cvalue))
-
       call NUOPC_CompAttributeGet(gcomp, name='flds_dms_med', value=cvalue, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       read(cvalue,*) flds_dms_med
       call blom_logwrite(subname//': flds_dms_med = '//trim(cvalue))
       if (flds_dms_med) then
-         do_dmsflux_med = .true.
+         get_flxdms_from_med = .true.
       else
-         do_dmsflux_med = .false.
+         get_flxdms_from_med = .false.
       end if
 
       ! ------------------------------------------------------------------------
@@ -516,7 +511,7 @@ contains
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
 
       call blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-           flds_co2a, flds_co2c, flds_dms_med, flds_dms_ocn)
+           flds_co2a, flds_co2c)
 
       do n = 1,fldsToOcn_num
          call NUOPC_Advertise(importState, standardName=fldsToOcn(n)%stdname, &
@@ -543,8 +538,7 @@ contains
          return
       endif
 
-      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
-           flds_dms_med, flds_dms_ocn)
+      call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
 
       !TODO Determine if will get nitrogen deposition from atm
 

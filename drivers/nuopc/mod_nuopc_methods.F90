@@ -38,14 +38,12 @@ module mod_nuopc_methods
                        rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                        ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                        lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
-                       l1ci, l2ci
+                       flxdms_da, get_flxdms_from_med, l1ci, l2ci
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms
-   use mo_intfcblom, only: bgc_dp, omask
-   use mo_vgrid, only : dp_min
 
    implicit none
 
@@ -196,7 +194,7 @@ contains
    ! ---------------------------------------------------------------------------
 
    subroutine blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
-        flds_co2a, flds_co2c, flds_dms_med, flds_dms_ocn)
+        flds_co2a, flds_co2c)
 
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for import fields
@@ -207,8 +205,6 @@ contains
      type(fldlist_type) , intent(inout), dimension(:) :: fldsToOcn
      logical            , intent(in)                  :: flds_co2a
      logical            , intent(in)                  :: flds_co2c
-     logical            , intent(in)                  :: flds_dms_med
-     logical            , intent(in)                  :: flds_dms_ocn
 
      integer :: index_scalar
 
@@ -236,7 +232,7 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
-     if (flds_dms_med) then
+     if (get_flxdms_from_med) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
        !call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
      end if
@@ -262,8 +258,7 @@ contains
 
    end subroutine blom_advertise_imports
 
-   subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
-        flds_dms_med, flds_dms_ocn)
+   subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
 
      ! -------------------------------------------------------------------
      ! Determine fldsToOcn for export fields
@@ -272,8 +267,6 @@ contains
      character(len=*)                 , intent(in)    :: flds_scalar_name
      integer                          , intent(inout) :: fldsFrOcn_num
      type(fldlist_type), dimension(:) , intent(inout) :: fldsFrOcn
-     logical                          , intent(in)    :: flds_dms_med
-     logical                          , intent(in)    :: flds_dms_ocn
 
      integer :: index_scalar
 
@@ -289,10 +282,8 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
-     if (flds_dms_med) then
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
-     end if
-     if (flds_dms_ocn) then
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'        , index_So_dms)
+     if (.not. get_flxdms_from_med) then
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms', index_Faoo_dms)
      end if
      ! if (flds_brf_med) then
@@ -613,17 +604,19 @@ contains
       !$omp end parallel do
       endif
 
-      if (index_Faoo_dms > 0) then
-      !$omp parallel do private(l, i)
-         do j = 1, jj
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               acc_fdms(i,j) = acc_fdms(i,j) + flxdms(i,j)*baclin
+      if (.not. get_flxdms_from_med) then
+         if (index_Faoo_dms > 0) then
+         !$omp parallel do private(l, i)
+            do j = 1, jj
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     acc_fdms(i,j) = acc_fdms(i,j) + flxdms(i,j)*baclin
+                  enddo
+               enddo
             enddo
-            enddo
-         enddo
-      !$omp end parallel do
-      endif
+         !$omp end parallel do
+         endif
+      end if
 
       if (index_Faoo_brf) then
       !$omp parallel do private(l, i)
@@ -662,7 +655,6 @@ contains
          fval = - 1.e13_r8
 
       ! Local variables.
-      real(r8) :: flxdms_med
       real(r8) :: afac, utmp, vtmp
       integer :: n, i, j, l
 
@@ -1012,29 +1004,31 @@ contains
             write(lp,*) subname//': prog. atmospheric bromoform not read'
       endif
 
-      if (index_Faox_dms > 0) then
-         if (associated(fldlist(index_Faox_dms)%dataptr)) then
-         !$omp parallel do private(i, n, afac)
-            do j = 1, jjcpl
-               do i = 1, ii
-                  n = (j - 1)*ii + i
-                  afac = med2mod_areacor(n)
-                  if     (ip(i,j) == 0) then
-                     flxdms_med = 0._r8
-                  elseif (cplmsk(i,j) == 0) then
-                     flxdms_med = 0._r8
-                  else
-                     flxdms_med = fldlist(index_Faox_dms)%dataptr(n)*afac
-                  end if
+
+      if (get_flxdms_from_med) then
+         if (index_Faox_dms > 0) then
+            if (associated(fldlist(index_Faox_dms)%dataptr)) then
+            !$omp parallel do private(i, n, afac)
+               do j = 1, jjcpl
+                  do i = 1, ii
+                     n = (j - 1)*ii + i
+                     afac = med2mod_areacor(n)
+                     if     (ip(i,j) == 0) then
+                        flxdms_da(i,j,l2ci) = mval
+                     elseif (cplmsk(i,j) == 0) then
+                        flxdms_da(i,j,l2ci) = 0._r8
+                     else
+                        flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac
+                     end if
+                  end do
                end do
-               ! size of scalar grid cell [m].
-               if (omask(i,j) > 0.5.and. bgc_dp(i,j,1) > dp_min) then
-                  ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - flxdms_med/bgc_dp(i,j,1)
-               end if
-            end do
-         !$omp end parallel do
-            if (mnproc == 1) &
-                 write(lp,*) subname//': prog. dms flux obtained from mediator'
+            !$omp end parallel do
+               if (mnproc == 1) &
+                    write(lp,*) subname//': prog. dms flux obtained from mediator'
+            end if
+            if (nreg == 2) then
+               call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+            end if
          end if
       end if
 
@@ -1060,6 +1054,9 @@ contains
          call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
          call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
+         if (get_flxdms_from_med .and. index_Faox_dms > 0) then
+            call chksummsk(flxdms_da(1-nbdy,1-nbdy,l2ci),ip,1,'flxdms_da')
+         end if
       endif
 
    end subroutine blom_importflds
