@@ -44,6 +44,8 @@ module mod_nuopc_methods
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms
+   use mo_intfcblom, only: bgc_dp, omask
+   use mo_vgrid, only : dp_min
 
    implicit none
 
@@ -58,6 +60,7 @@ module mod_nuopc_methods
       integer :: ungridded_ubound = 0
       real(r8), dimension(:), pointer :: dataptr
    end type fldlist_type
+   integer, parameter :: fldsMax = 100
 
    real(r8), dimension(:), allocatable :: mod2med_areacor, med2mod_areacor
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
@@ -65,19 +68,103 @@ module mod_nuopc_methods
       acc_fco2, acc_fdms, acc_fbrf
    real(r8) :: tlast_coupled
    integer :: jjcpl
-   logical :: fco2_requested, fdms_requested, fbrf_requested
 
-   public :: fldlist_type, tlast_coupled, &
-             fco2_requested, fdms_requested, fbrf_requested, &
+   public :: fldlist_type, fldsmax, tlast_coupled, &
              blom_logwrite, blom_getgindex, blom_checkmesh, blom_setareacor, &
              blom_getglobdim, blom_getprecipfact, blom_accflds, &
+             blom_advertise_imports, blom_advertise_exports, &
              blom_importflds, blom_exportflds
+
+   integer :: &
+        index_Si_ifrac    = - 1, &
+        index_Fioi_melth  = - 1, &
+        index_Fioi_meltw  = - 1, &
+        index_Fioi_salt   = - 1, &
+        index_Fioi_bcpho  = - 1, &
+        index_Fioi_bcphi  = - 1, &
+        index_Fioi_flxdst = - 1, &
+        index_Foxx_rofl   = - 1, &
+        index_Foxx_rofi   = - 1, &
+        index_Faox_dms    = - 1, &
+        index_Faox_brf    = - 1, &
+        index_So_duu10n   = - 1, &
+        index_Foxx_tauy   = - 1, &
+        index_Foxx_taux   = - 1, &
+        index_Foxx_lat    = - 1, &
+        index_Foxx_sen    = - 1, &
+        index_Foxx_lwup   = - 1, &
+        index_Foxx_evap   = - 1, &
+        index_Foxx_swnet  = - 1, &
+        index_Sw_lamult   = - 1, &
+        index_Sw_ustokes  = - 1, &
+        index_Sw_vstokes  = - 1, &
+        index_Sw_hstokes  = - 1, &
+        index_Faxa_lwdn   = - 1, &
+        index_Faxa_snow   = - 1, &
+        index_Faxa_rain   = - 1, &
+        index_Sa_pslv     = - 1, &
+        index_Sa_co2diag  = - 1, &
+        index_Sa_co2prog  = - 1, &
+        index_Sa_brfprog  = - 1
+
+   integer  :: &
+        index_So_omask   = - 1, &
+        index_So_u       = - 1, &
+        index_So_v       = - 1, &
+        index_So_dhdx    = - 1, &
+        index_So_dhdy    = - 1, &
+        index_So_t       = - 1, &
+        index_So_s       = - 1, &
+        index_So_bldepth = - 1, &
+        index_So_dms     = - 1, &
+        index_So_brf     = - 1, &
+        index_Fioo_q     = - 1, &
+        index_Faoo_dms   = - 1, &
+        index_Faoo_brf   = - 1, &
+        index_Faoo_fco2_ocn = - 1
 
 contains
 
    ! ---------------------------------------------------------------------------
    ! Private procedures.
    ! ---------------------------------------------------------------------------
+
+   subroutine fldlist_add(num, fldlist, stdname, index, ungridded_lbound, ungridded_ubound)
+   ! ---------------------------------------------------------------------------
+   ! Add to list of field information.
+   ! ---------------------------------------------------------------------------
+
+      ! Input/output arguments.
+      integer           , intent(inout) :: num
+      type(fldlist_type), intent(inout) :: fldlist(:)
+      character(len=*)  , intent(in)    :: stdname
+      integer           , intent(out)   :: index 
+      integer, optional , intent(in)    :: ungridded_lbound, ungridded_ubound
+
+      ! Local parameters.
+      character(len=*), parameter :: &
+         subname = modname//':(fldlist_add)'
+
+      ! Local variables.
+      integer :: rc
+
+      num = num + 1
+      if (num > fldsMax) then
+         write(lp,'(a,3i6,2(f21.13,3x),d21.5)') subname// &
+              ': BLOM ERROR: number of fields exceeds fldsMax for '//trim(stdname)
+               call xchalt(subname)
+                      stop subname
+      endif
+      fldlist(num)%stdname = trim(stdname)
+
+      index = num
+
+      if (present(ungridded_lbound) .and. present(ungridded_ubound)) then
+         fldlist(num)%ungridded_lbound = ungridded_lbound
+         fldlist(num)%ungridded_ubound = ungridded_ubound
+      endif
+
+   end subroutine fldlist_add
 
    subroutine getfldindex(fldlist_num, fldlist, stdname, fldindex)
    ! ---------------------------------------------------------------------------
@@ -95,10 +182,6 @@ contains
       ! Local variables.
       integer :: n
 
-      if (fldindex >= 0) return
-
-      fldindex = 0
-
       do n = 1, fldlist_num
          if (fldlist(n)%stdname == stdname) then
             if (associated(fldlist(n)%dataptr)) fldindex = n
@@ -111,6 +194,114 @@ contains
    ! ---------------------------------------------------------------------------
    ! Public procedures.
    ! ---------------------------------------------------------------------------
+
+   subroutine blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
+        flds_co2a, flds_co2c, flds_dms_med, flds_dms_ocn)
+
+     ! -------------------------------------------------------------------
+     ! Determine fldsToOcn for import fields
+     ! -------------------------------------------------------------------
+
+     character(len=*)   , intent(in)                  :: flds_scalar_name
+     integer            , intent(inout)               :: fldsToOcn_num
+     type(fldlist_type) , intent(inout), dimension(:) :: fldsToOcn
+     logical            , intent(in)                  :: flds_co2a
+     logical            , intent(in)                  :: flds_co2c
+     logical            , intent(in)                  :: flds_dms_med
+     logical            , intent(in)                  :: flds_dms_ocn
+
+     integer :: index_scalar
+
+     call fldlist_add(fldsToOcn_num, fldsToOcn, trim(flds_scalar_name), index_scalar)
+
+     ! From ice:
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Si_ifrac'   , index_Si_ifrac )
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_melth' , index_Fioi_melth)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_meltw' , index_Fioi_meltw)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_salt'  , index_Fioi_salt)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_bcpho' , index_Fioi_bcpho)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_bcphi' , index_Fioi_bcphi)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Fioi_flxdst', index_Fioi_flxdst)
+
+     ! From river:
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl', index_Foxx_rofl)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi', index_Foxx_rofi)
+
+     ! From mediator:
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n'  , index_So_duu10n)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_tauy'  , index_Foxx_tauy)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_taux'  , index_Foxx_taux)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lat'   , index_Foxx_lat)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_sen'   , index_Foxx_sen)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
+     if (flds_dms_med) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
+       !call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
+     end if
+
+     ! From wave:
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult'  , index_Sw_lamult)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_ustokes' , index_Sw_ustokes)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_vstokes' , index_Sw_vstokes)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_hstokes' , index_Sw_hstokes)
+
+     ! From atmosphere:
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_pslv'   , index_Sa_pslv  )
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_lwdn' , index_Faxa_lwdn)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_snow' , index_Faxa_snow)
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faxa_rain' , index_Faxa_rain)
+
+     ! From atm co2 fields:
+     if (flds_co2a .or. flds_co2c) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
+     endif
+     !call getfldindex(num_imp, fldlist_imp, 'Sa_brfprog' , index_Sa_brfprog)
+
+   end subroutine blom_advertise_imports
+
+   subroutine blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn, &
+        flds_dms_med, flds_dms_ocn)
+
+     ! -------------------------------------------------------------------
+     ! Determine fldsToOcn for export fields
+     ! -------------------------------------------------------------------
+
+     character(len=*)                 , intent(in)    :: flds_scalar_name
+     integer                          , intent(inout) :: fldsFrOcn_num
+     type(fldlist_type), dimension(:) , intent(inout) :: fldsFrOcn
+     logical                          , intent(in)    :: flds_dms_med
+     logical                          , intent(in)    :: flds_dms_ocn
+
+     integer :: index_scalar
+
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, trim(flds_scalar_name), index_scalar)
+
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_omask'      , index_So_omask)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_t'          , index_So_t)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_u'          , index_So_u)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_v'          , index_So_v)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_s'          , index_So_s)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dhdx'       , index_So_dhdx)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dhdy'       , index_So_dhdy)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
+     if (flds_dms_med) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
+     end if
+     if (flds_dms_ocn) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms', index_Faoo_dms)
+     end if
+     ! if (flds_brf_med) then
+     !    call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
+     ! end if
+     ! if (flds_brf_ocn) then
+     !    call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_brf', index_Faoo_brf)
+     ! end if
+   end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
    ! ---------------------------------------------------------------------------
@@ -348,7 +539,7 @@ contains
       k1n = 1 + nn
 
       call xctilr(sealv, 1,1, 1,1, halo_ps)
-      
+
    !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isu(j)
@@ -410,7 +601,7 @@ contains
                    stop subname
       end select
 
-      if (fco2_requested) then
+      if (index_Faoo_fco2_ocn > 0) then
       !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -422,7 +613,7 @@ contains
       !$omp end parallel do
       endif
 
-      if (fdms_requested) then
+      if (index_Faoo_dms > 0) then
       !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -434,7 +625,7 @@ contains
       !$omp end parallel do
       endif
 
-      if (fbrf_requested) then
+      if (index_Faoo_brf) then
       !$omp parallel do private(l, i)
          do j = 1, jj
             do l = 1, isp(j)
@@ -471,38 +662,9 @@ contains
          fval = - 1.e13_r8
 
       ! Local variables.
+      real(r8) :: flxdms_med
       real(r8) :: afac, utmp, vtmp
       integer :: n, i, j, l
-      integer, save :: &
-         index_Si_ifrac    = - 1, &
-         index_Fioi_melth  = - 1, &
-         index_Fioi_meltw  = - 1, &
-         index_Fioi_salt   = - 1, &
-         index_Fioi_bcpho  = - 1, &
-         index_Fioi_bcphi  = - 1, &
-         index_Fioi_flxdst = - 1, &
-         index_Foxx_rofl   = - 1, &
-         index_Foxx_rofi   = - 1, &
-         index_Faox_dms    = - 1, &
-         index_So_duu10n   = - 1, &
-         index_Foxx_tauy   = - 1, &
-         index_Foxx_taux   = - 1, &
-         index_Foxx_lat    = - 1, &
-         index_Foxx_sen    = - 1, &
-         index_Foxx_lwup   = - 1, &
-         index_Foxx_evap   = - 1, &
-         index_Foxx_swnet  = - 1, &
-         index_Sw_lamult   = - 1, &
-         index_Sw_ustokes  = - 1, &
-         index_Sw_vstokes  = - 1, &
-         index_Sw_hstokes  = - 1, &
-         index_Faxa_lwdn   = - 1, &
-         index_Faxa_snow   = - 1, &
-         index_Faxa_rain   = - 1, &
-         index_Sa_pslv     = - 1, &
-         index_Sa_co2diag  = - 1, &
-         index_Sa_co2prog  = - 1, &
-         index_Sa_brfprog  = - 1
 
       ! Update time level indices.
       if (l1ci == 1 .and. l2ci == 1) then
@@ -512,9 +674,6 @@ contains
          l1ci = l2ci
          l2ci = 3 - l2ci
       endif
-
-      call getfldindex(fldlist_num, fldlist, 'Foxx_taux', index_Foxx_taux)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_tauy', index_Foxx_tauy)
 
    !$omp parallel do private(i, n, afac, utmp, vtmp)
       do j = 1, jjcpl
@@ -567,23 +726,6 @@ contains
          enddo
       enddo
    !$omp end parallel do
-
-      call getfldindex(fldlist_num, fldlist, 'Faxa_rain', index_Faxa_rain)
-      call getfldindex(fldlist_num, fldlist, 'Faxa_snow', index_Faxa_snow)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_evap', index_Foxx_evap)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_rofl', index_Foxx_rofl)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_rofi', index_Foxx_rofi)
-      call getfldindex(fldlist_num, fldlist, 'Fioi_meltw', index_Fioi_meltw)
-      call getfldindex(fldlist_num, fldlist, 'Fioi_salt', index_Fioi_salt)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_swnet', index_Foxx_swnet)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_lat', index_Foxx_lat)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_sen', index_Foxx_sen)
-      call getfldindex(fldlist_num, fldlist, 'Foxx_lwup', index_Foxx_lwup)
-      call getfldindex(fldlist_num, fldlist, 'Faxa_lwdn', index_Faxa_lwdn)
-      call getfldindex(fldlist_num, fldlist, 'Fioi_melth', index_Fioi_melth)
-      call getfldindex(fldlist_num, fldlist, 'Sa_pslv', index_Sa_pslv)
-      call getfldindex(fldlist_num, fldlist, 'So_duu10n', index_So_duu10n)
-      call getfldindex(fldlist_num, fldlist, 'Si_ifrac', index_Si_ifrac)
 
    !$omp parallel do private(i, n, afac)
       do j = 1, jjcpl
@@ -690,11 +832,6 @@ contains
       call fill_global(mval, fval, halo_ps, abswnd_da(1-nbdy,1-nbdy,l2ci))
       call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
 
-      call getfldindex(fldlist_num, fldlist, 'Sw_lamult', index_Sw_lamult)
-      call getfldindex(fldlist_num, fldlist, 'Sw_ustokes', index_Sw_ustokes)
-      call getfldindex(fldlist_num, fldlist, 'Sw_vstokes', index_Sw_vstokes)
-      call getfldindex(fldlist_num, fldlist, 'Sw_hstokes', index_Sw_hstokes)
-
    !$omp parallel do private(i, n, utmp, vtmp)
       do j = 1, jjcpl
          do i = 1, ii
@@ -753,8 +890,6 @@ contains
    !$omp end parallel do
 
 #ifdef PROGCO2
-      call getfldindex(fldlist_num, fldlist, 'Sa_co2prog', index_Sa_co2prog)
-
       if (index_Sa_co2prog > 0) then
       !$omp parallel do private(i, n)
          do j = 1, jjcpl
@@ -791,7 +926,6 @@ contains
       endif
 
 #elif defined(DIAGCO2)
-      call getfldindex(fldlist_num, fldlist, 'Sa_co2diag', index_Sa_co2diag)
 
       if (index_Sa_co2diag > 0) then
       !$omp parallel do private(i, n)
@@ -841,9 +975,7 @@ contains
    !$omp end parallel do
       if (mnproc == 1) &
          write(lp,*) subname//': atmospheric co2 not read'
-#endif      
-
-      call getfldindex(fldlist_num, fldlist, 'Sa_brfprog', index_Sa_brfprog)
+#endif
 
       if (index_Sa_brfprog > 0) then
       !$omp parallel do private(i, n)
@@ -879,6 +1011,32 @@ contains
          if (mnproc == 1) &
             write(lp,*) subname//': prog. atmospheric bromoform not read'
       endif
+
+      if (index_Faox_dms > 0) then
+         if (associated(fldlist(index_Faox_dms)%dataptr)) then
+         !$omp parallel do private(i, n, afac)
+            do j = 1, jjcpl
+               do i = 1, ii
+                  n = (j - 1)*ii + i
+                  afac = med2mod_areacor(n)
+                  if     (ip(i,j) == 0) then
+                     flxdms_med = 0._r8
+                  elseif (cplmsk(i,j) == 0) then
+                     flxdms_med = 0._r8
+                  else
+                     flxdms_med = fldlist(index_Faox_dms)%dataptr(n)*afac
+                  end if
+               end do
+               ! size of scalar grid cell [m].
+               if (omask(i,j) > 0.5.and. bgc_dp(i,j,1) > dp_min) then
+                  ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - flxdms_med/bgc_dp(i,j,1)
+               end if
+            end do
+         !$omp end parallel do
+            if (mnproc == 1) &
+                 write(lp,*) subname//': prog. dms flux obtained from mediator'
+         end if
+      end if
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -922,20 +1080,6 @@ contains
       ! Local variables.
       real(r8) :: tfac, utmp, vtmp
       integer :: n, l, i, j
-      integer, save :: &
-         index_So_omask      = - 1, &
-         index_So_u          = - 1, &
-         index_So_v          = - 1, &
-         index_So_dhdx       = - 1, &
-         index_So_dhdy       = - 1, &
-         index_So_t          = - 1, &
-         index_So_s          = - 1, &
-         index_So_bldepth    = - 1, &
-         index_So_dms        = - 1, &
-         index_Fioo_q        = - 1, &
-         index_Faoo_dms      = - 1, &
-         index_Faoo_fco2_ocn = - 1, &
-         index_Faoo_fbrf_ocn = - 1
 
       tfac = 1._r8/tlast_coupled
 
@@ -947,16 +1091,6 @@ contains
       call xctilr(acc_v,    1,1, 1,1, halo_vv)
       call xctilr(acc_dhdx, 1,1, 1,1, halo_uv)
       call xctilr(acc_dhdy, 1,1, 1,1, halo_vv)
-
-      call getfldindex(fldlist_num, fldlist, 'So_omask', index_So_omask)
-      call getfldindex(fldlist_num, fldlist, 'So_u', index_So_u)
-      call getfldindex(fldlist_num, fldlist, 'So_v', index_So_v)
-      call getfldindex(fldlist_num, fldlist, 'So_dhdx', index_So_dhdx)
-      call getfldindex(fldlist_num, fldlist, 'So_dhdy', index_So_dhdy)
-      call getfldindex(fldlist_num, fldlist, 'So_t', index_So_t)
-      call getfldindex(fldlist_num, fldlist, 'So_s', index_So_s)
-      call getfldindex(fldlist_num, fldlist, 'So_bldepth', index_So_bldepth)
-      call getfldindex(fldlist_num, fldlist, 'Fioo_q', index_Fioo_q)
 
       fldlist(index_So_omask)%dataptr(:) = 0._r8
       fldlist(index_So_u)%dataptr(:) = 0._r8
@@ -1024,95 +1158,90 @@ contains
       ! Provide DMS flux [kmol DMS m-2 s-1], if requested.
       ! ------------------------------------------------------------------------
 
-      call getfldindex(fldlist_num, fldlist, 'Faoo_dms', &
-                       index_Faoo_dms)
+      if (index_Faoo_dms > 0) then
+         if (associated(fldlist(index_Faoo_dms)%dataptr)) then
+            fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
 
-      if (fdms_requested .and. index_Faoo_dms > 0) then
-         fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
-
-      !$omp parallel do private(l, i, n)
-         do j = 1, jjcpl
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               n = (j - 1)*ii + i
-               fldlist(index_Faoo_dms)%dataptr(n) = &
-                  acc_fdms(i,j)*tfac*mod2med_areacor(n)
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_Faoo_dms)%dataptr(n) = &
+                          acc_fdms(i,j)*tfac*mod2med_areacor(n)
+                  enddo
+               enddo
             enddo
-            enddo
-         enddo
-      !$omp end parallel do
-      else
-         if (mnproc == 1) &
-            write(lp,*) subname//': dms flux not sent to coupler'
-      endif
+         !$omp end parallel do
+         else
+            if (mnproc == 1) &
+                 write(lp,*) subname//': dms flux not sent to coupler'
+         endif
+      end if
 
-      call getfldindex(fldlist_num, fldlist, 'So_dms', &
-                       index_So_dms)
-
-      if (fdms_requested .and. index_So_dms > 0) then
-         fldlist(index_So_dms)%dataptr(:) = 0._r8
-
-      !$omp parallel do private(l, i, n)
-         do j = 1, jjcpl
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               n = (j - 1)*ii + i
-               fldlist(index_So_dms)%dataptr(n) = ocetra(i,j,1,idms)
+      if (index_So_dms > 0) then
+         if (associated(fldlist(index_So_dms)%dataptr)) then 
+            fldlist(index_So_dms)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_So_dms)%dataptr(n) = ocetra(i,j,1,idms)
+                  enddo
+               enddo
             enddo
-            enddo
-         enddo
-      !$omp end parallel do
+         !$omp end parallel do
+         end if
       end if
 
       ! ------------------------------------------------------------------------
       ! Provide CO2 flux [kg CO2 m-2 s-1], if requested.
       ! ------------------------------------------------------------------------
 
-      call getfldindex(fldlist_num, fldlist, 'Faoo_fco2_ocn', &
-                       index_Faoo_fco2_ocn)
-
-      if (fco2_requested .and. index_Faoo_fco2_ocn > 0) then
-         fldlist(index_Faoo_fco2_ocn)%dataptr(:) = 0._r8
-      !$omp parallel do private(l, i, n)
-         do j = 1, jjcpl
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               n = (j - 1)*ii + i
-               fldlist(index_Faoo_fco2_ocn)%dataptr(n) = &
-                  acc_fco2(i,j)*tfac*mod2med_areacor(n)
+      if (index_Faoo_fco2_ocn > 0) then
+         if (associated(fldlist(index_Faoo_fco2_ocn)%dataptr)) then
+            fldlist(index_Faoo_fco2_ocn)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_Faoo_fco2_ocn)%dataptr(n) = &
+                          acc_fco2(i,j)*tfac*mod2med_areacor(n)
+                  enddo
+               enddo
             enddo
-            enddo
-         enddo
-      !$omp end parallel do
-      else
-         if (mnproc == 1) &
-            write(lp,*) subname//': co2 flux not sent to coupler'
-      endif
+         !$omp end parallel do
+         else
+            if (mnproc == 1) &
+                 write(lp,*) subname//': co2 flux not sent to coupler'
+         endif
+      end if
 
       ! ------------------------------------------------------------------------
       ! Provide bromoform flux [kg CHBr3 m-2 s-1], if requested.
       ! ------------------------------------------------------------------------
 
-      call getfldindex(fldlist_num, fldlist, 'Faoo_fbrf_ocn', &
-                       index_Faoo_fbrf_ocn)
-
-      if (fbrf_requested .and. index_Faoo_fbrf_ocn > 0) then
-         fldlist(index_Faoo_fbrf_ocn)%dataptr(:) = 0._r8
-      !$omp parallel do private(l, i, n)
-         do j = 1, jjcpl
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               n = (j - 1)*ii + i
-               fldlist(index_Faoo_fbrf_ocn)%dataptr(n) = &
-                  acc_fbrf(i,j)*tfac*mod2med_areacor(n)
+      if (index_Faoo_brf > 0) then
+         if (associated(fldlist(index_Faoo_brf)%dataptr)) then
+            fldlist(index_Faoo_brf)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_Faoo_brf)%dataptr(n) = &
+                          acc_fbrf(i,j)*tfac*mod2med_areacor(n)
+                  enddo
+               enddo
             enddo
-            enddo
-         enddo
-      !$omp end parallel do
-      else
-         if (mnproc == 1) &
-            write(lp,*) subname//': bromoform flux not sent to coupler'
-      endif
+         !$omp end parallel do
+         else
+            if (mnproc == 1) &
+                 write(lp,*) subname//': bromoform flux not sent to coupler'
+         endif
+      end if
 
       tlast_coupled = 0._r8
 

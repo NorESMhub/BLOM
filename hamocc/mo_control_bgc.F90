@@ -66,6 +66,8 @@
       LOGICAL, save :: do_oalk     =.false.  ! apply ocean alkalinization
       logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
 
+      logical, save :: do_dmsflux_med = .false. ! If dms flux is sent back from mediator, this will be set to .true.
+
     contains
 
       subroutine get_bgc_namelist

@@ -261,8 +261,10 @@
         map_por2octra(ipowasi) = isilica 
        
         ! if statements for non-base tracers 
+#ifdef cisonew
         if(ipowc13 > 0) map_por2octra(ipowc13) = isco213 
         if(ipowc14 > 0) map_por2octra(ipowc14) = isco214
+#endif
       
       end subroutine init_por2octra_mapping
 
