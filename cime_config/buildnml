@@ -234,7 +234,7 @@ if ($BLOM_N_DEPOSITION == TRUE) then
   else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
   else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.125v4) then
-    set NDEPFNAME = ndep_1850_CMIP6_tnx0.125v4_20190912.nc
+    set NDEPFNAME = ndep_1850_CMIP6_tnx0.125v4_20221013.nc
   else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
   else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
@@ -783,24 +783,25 @@ else if ($OCN_GRID == tnx0.125v4) then
   set CWBDTS = .75e-4
   set CWBDLS = 25
   if ($BLOM_UNIT == cgs) then
-    set MDV2HI = .5
+    set MDV2HI = .1
     set MDV2LO = .1
     set MDV4HI = 0.
     set MDV4LO = 0.
     set MDC2HI = 300.e4
     set MDC2LO = 100.e4
   else
-    set MDV2HI = .005
+    set MDV2HI = .001
     set MDV2LO = .001
     set MDV4HI = 0.
     set MDV4LO = 0.
     set MDC2HI = 300.
     set MDC2LO = 100.
   endif
-  set VSC2HI = .5
-  set VSC2LO = .5
-  set VSC4HI = 0.0
-  set VSC4LO = 0.0
+  set VSC2HI = 0.
+  set VSC2LO = 0.
+  set VSC4HI = .06
+  set VSC4LO = .06
+  set LTEDTP = "'layer'"
 else
   echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
   exit -1
@@ -892,19 +893,19 @@ else if ($OCN_GRID == tnx0.25v4) then
     set NDEPFILE  = "''"
   endif
 else if ($OCN_GRID == tnx0.125v4) then
-  set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20200722.nc'"
-  set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20200728.nc'"
-  set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20200722.nc'"
-  set MER_ORFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20200722.nc'"
-  set MER_MIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20200722.dat'"
-  set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20200722.dat'"
-  set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20200722.nc'"
-  set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20200722.nc'"
-  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20200722.nc'"
+  set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc'"
+  set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc'"
+  set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc'"
+  set MER_ORFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc'"
+  set MER_MIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat'"
+  set SEC_SIFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat'"
+  set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc'"
+  set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc'"
+  set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
-    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20170821.nc'"
+    set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc'"
   else
     set RIVINFILE = "''"
   endif
