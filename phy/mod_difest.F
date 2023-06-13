@@ -43,7 +43,9 @@ c
      .                         t_ns_nonloc, s_nb_nonloc,
      .                         mu_nonloc, mv_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
-      use mod_forcing, only: lamult, lasl, ustar, ustarb, ustar3,
+      use mod_forcing, only: wavsrc_opt, wavsrc_param,
+     .                       abswnd, lamult, lasl,
+     .                       ustar, ustarb, ustar3,
      .                       buoyfl, t_sw_nonloc, surflx, sswflx, salflx
       use mod_tidaldissip, only: twedon
       use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
@@ -56,6 +58,7 @@ c
       use CVMix_kpp, only : CVMix_kpp_compute_OBL_depth
       use CVMix_kpp, only : CVmix_kpp_compute_unresolved_shear
       use CVMix_kpp, only : CVMix_kpp_compute_kOBL_depth
+      use CVMix_kpp, only : cvmix_kpp_EFactor_model
       use CVMix_shear, only : CVMix_init_shear, CVMix_coeffs_shear
       use CVMix_background, only : CVMix_init_bkgnd, CVMix_coeffs_bkgnd
       use CVMix_convection, only : CVMix_init_conv, CVMix_coeffs_conv
@@ -294,6 +297,7 @@ c --- ------ convert nuls0 to m2/s
           call CVMix_put(CVMix_glb_params,'Prandtl',1.0)
           call CVMix_put(CVMix_glb_params,'FreshWaterDensity',1000.0)
           call CVMix_put(CVMix_glb_params,'SaltWaterDensity',1025.0)
+          call CVMix_put(CVMix_glb_params,'Gravity',g*iL_mks2cgs)
           call cvmix_init_shear(mix_scheme='KPP',
      .                           KPP_nu_zero=nus0*A_cgs2mks,
      .                           KPP_Ri_zero=ri0,
@@ -1079,6 +1083,15 @@ c --- ------ centers.
      .              surfFricVel,       ! (in)  Turbulent friction  velocity at surface [m s-1]
      .              w_s=Ws_1d(:),      ! (out) Turbulent velocity scale profile [m s-1]
      .              CVMix_kpp_params_user=KPP_params)
+
+             if (wavsrc_opt == wavsrc_param) then
+               lamult(i,j) = cvmix_kpp_EFactor_model(
+     .                         abswnd(i,j),
+     .                         surfFricVel,
+     .                         OBLdepth(i,j),
+     .                         CVMix_glb_params)
+               lamult(i,j) = lamult(i,j)*(1. - ficem(i,j)) + ficem(i,j)
+             endif
 
              ! Compute unresolved shear for CVMix
              VT2(:) = CVmix_kpp_compute_unresolved_shear(

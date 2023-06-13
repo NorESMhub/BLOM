@@ -136,6 +136,7 @@ set DITFLX   = .false.
 set DISFLX   = .false.
 set SRXBAL   = .false.
 set SCFILE   = "'unset'"
+set WAVSRC   = "'none'"
 set SMTFRC   = .true.
 set SPRFAC   = .false.
 set ATM_PATH = "'unset'"
@@ -313,8 +314,8 @@ set H2D_HMLTFZ   =  '0,   4,   0'
 set H2D_HSNW     =  '0,   0,   0'
 set H2D_IAGE     =  '0,   0,   0'
 set H2D_IDKEDT   =  '0,   4,   0'
-set H2D_LAMULT   =  '0,   0,   0'
-set H2D_LASL     =  '0,   0,   0'
+set H2D_LAMULT   =  '0,   4,   0'
+set H2D_LASL     =  '0,   4,   0'
 set H2D_LIP      =  '0,   4,   0'
 set H2D_MAXMLD   =  '4,   4,   0'
 set H2D_MLD      =  '0,   4,   0'
@@ -1013,6 +1014,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 ! DISFLX   : Diagnose freshwater flux flag (l)
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
+! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
 ! SMTFRC   : Smooth CESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
@@ -1080,6 +1082,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   DISFLX   = $DISFLX
   SRXBAL   = $SRXBAL
   SCFILE   = $SCFILE
+  WAVSRC   = $WAVSRC
   SMTFRC   = $SMTFRC
   SPRFAC   = $SPRFAC
   ATM_PATH = $ATM_PATH

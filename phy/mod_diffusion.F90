@@ -26,6 +26,7 @@ module mod_diffusion
    use mod_config, only: inst_suffix
    use mod_constants, only: spval, epsilk
    use mod_xc
+   use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
 
    implicit none
 
@@ -330,6 +331,34 @@ contains
             if (mnproc == 1) &
                write (lp,'(3a)') &
                   ' readnml_diffusion: ltedtp = ', trim(ltedtp), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
+      select case (trim(lngmtp))
+         case ('none')
+         case ('vr12-ma')
+            if (wavsrc_opt == wavsrc_none) then
+               if (mnproc == 1) &
+                  write (lp,'(3a)') &
+                     ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
+                     ' requires wavsrc = param or wavsrc = extern!'
+               call xcstop('(readnml_diffusion)')
+                      stop '(readnml_diffusion)'
+            endif
+         case ('lf17')
+            if (wavsrc_opt /= wavsrc_extern) then
+               if (mnproc == 1) &
+                  write (lp,'(3a)') &
+                     ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
+                     ' requires wavsrc = extern!'
+               call xcstop('(readnml_diffusion)')
+                      stop '(readnml_diffusion)'
+            endif
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
                   ' is unsupported!'
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
