@@ -477,11 +477,14 @@
 
 ! Surface flux of dms
       if (get_flxdms_from_med) then
-         ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - flxdms(i,j)/pddpo(i,j,1)
+         ! Note that flux from mediator is downwards positive, whereas dms flux computed above
+         ! is upwards positive - so need a different sign 
+         dmsflux = -dtbgc*flxdms(i,j)
       else
+         ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
-         ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
       end if
+      ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
        
 #ifdef BROMO
 ! Quack and Wallace (2003) eq. 1
@@ -501,11 +504,7 @@
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
        atmflx(i,j,iatmn2o)=n2oflux
-       if (get_flxdms_from_med) then
-          atmflx(i,j,iatmdms)=flxdms(i,j) ! positive to atmosphere [kmol dms m-2 timestep-1]
-       else
-          atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
-       end if
+       atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
        atmflx(i,j,iatmc14)=flux14u-flux14d

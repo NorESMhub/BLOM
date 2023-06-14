@@ -42,8 +42,10 @@ module mod_nuopc_methods
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
+#ifdef HAMOCC
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms
+#endif
 
    implicit none
 
@@ -232,10 +234,11 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
+#ifdef HAMOCC
      if (get_flxdms_from_med) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-       !call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
      end if
+#endif
 
      ! From wave:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult'  , index_Sw_lamult)
@@ -282,16 +285,13 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
-     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'        , index_So_dms)
-     if (.not. get_flxdms_from_med) then
+#ifdef HAMOCC
+     if (get_flxdms_from_med) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'  , index_So_dms)
+     else
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms', index_Faoo_dms)
      end if
-     ! if (flds_brf_med) then
-     !    call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
-     ! end if
-     ! if (flds_brf_ocn) then
-     !    call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_brf', index_Faoo_brf)
-     ! end if
+#endif
    end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
@@ -604,6 +604,7 @@ contains
       !$omp end parallel do
       endif
 
+#ifdef HAMOCC
       if (.not. get_flxdms_from_med) then
          if (index_Faoo_dms > 0) then
          !$omp parallel do private(l, i)
@@ -617,6 +618,7 @@ contains
          !$omp end parallel do
          endif
       end if
+#endif
 
       if (index_Faoo_brf) then
       !$omp parallel do private(l, i)
@@ -1004,7 +1006,7 @@ contains
             write(lp,*) subname//': prog. atmospheric bromoform not read'
       endif
 
-
+#ifdef HAMOCC
       if (get_flxdms_from_med) then
          if (index_Faox_dms > 0) then
             if (associated(fldlist(index_Faox_dms)%dataptr)) then
@@ -1018,7 +1020,8 @@ contains
                      elseif (cplmsk(i,j) == 0) then
                         flxdms_da(i,j,l2ci) = 0._r8
                      else
-                        flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac
+                        write(6,'(a,i8,2x,i8,2x,d13.5)')'DEBUG: i,j,afac = ',i,j,afac
+                        flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
                      end if
                   end do
                end do
@@ -1031,6 +1034,7 @@ contains
             end if
          end if
       end if
+#endif
 
       if (csdiag) then
          if (mnproc == 1) then
@@ -1155,10 +1159,10 @@ contains
       ! Provide DMS flux [kmol DMS m-2 s-1], if requested.
       ! ------------------------------------------------------------------------
 
+#ifdef HAMOCC
       if (index_Faoo_dms > 0) then
          if (associated(fldlist(index_Faoo_dms)%dataptr)) then
             fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
-
          !$omp parallel do private(l, i, n)
             do j = 1, jjcpl
                do l = 1, isp(j)
@@ -1191,6 +1195,7 @@ contains
          !$omp end parallel do
          end if
       end if
+#endif
 
       ! ------------------------------------------------------------------------
       ! Provide CO2 flux [kg CO2 m-2 s-1], if requested.

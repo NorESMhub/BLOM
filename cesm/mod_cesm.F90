@@ -85,7 +85,7 @@ module mod_cesm
    integer :: &
       l1ci, l2ci         ! Time-level indices for time smoothing of CESM fields.
 
-   logical :: get_flxdms_from_med
+   logical :: get_flxdms_from_med = .false. ! This ensures backwards compatiblity
 
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
