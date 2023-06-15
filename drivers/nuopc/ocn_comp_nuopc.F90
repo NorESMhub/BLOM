@@ -485,21 +485,23 @@ contains
                             trim(cvalue), ESMF_LOGMSG_INFO)
       endif
 
-      ! Determine if dms will be sent to mediator (currently both flux and concentration)
-      call NUOPC_CompAttributeGet(gcomp, name='flds_dms_med', value=cvalue, rc=rc)
+      ! Determine if dms flux will be computed in mediator and sent to BLOM
+      call NUOPC_CompAttributeGet(gcomp, name='flds_dms_med', value=cvalue, &
+           isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      read(cvalue,*) flds_dms_med
-      call blom_logwrite(subname//': flds_dms_med = '//trim(cvalue))
-      if (flds_dms_med) then
-         get_flxdms_from_med = .true.
-      else
+      if (.not. isPresent .and. .not. isSet) then
          get_flxdms_from_med = .false.
+      else
+         read(cvalue,*) flds_dms_med
+         call blom_logwrite(subname//': flds_dms_med = '//trim(cvalue))
+         if (flds_dms_med) then
+            get_flxdms_from_med = .true.
+         else
+            get_flxdms_from_med = .false.
+         end if
       end if
 
-      ! ------------------------------------------------------------------------
-      ! Advertise import fields.
-      ! ------------------------------------------------------------------------
-
+      ! Determine if co2 will be imported from mediator
       call NUOPC_CompAttributeGet(gcomp, name='flds_co2a', value=cvalue, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       read(cvalue,*) flds_co2a
@@ -509,6 +511,27 @@ contains
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
       read(cvalue,*) flds_co2c
       call blom_logwrite(subname//': flds_co2c = '//trim(cvalue))
+
+      ! Determine if ocn is sending temperature and salinity data to glc
+      ! If data is sent to glc will need to determine number of ocean
+      ! levels and ocean level indices
+      call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_coupling", value=cvalue, rc=rc)
+      if (ChkErr(rc, __LINE__, u_FILE_u)) return
+      read(cvalue,*) ocn2glc_coupling
+      write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
+      call blom_logwrite(msg)
+      if (ocn2glc_coupling) then
+         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
+            msg=subname//": ocn2glc coupling not implemented", &
+            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
+         return
+      endif
+
+      !NOTE: Nitrogen deposition is always sent from atm now (either CAM or DATM)
+
+      ! ------------------------------------------------------------------------
+      ! Advertise import fields.
+      ! ------------------------------------------------------------------------
 
       call blom_advertise_imports(flds_scalar_name, fldsToOcn_num, fldsToOcn, &
            flds_co2a, flds_co2c)
@@ -523,24 +546,7 @@ contains
       ! Advertise export fields.
       ! ------------------------------------------------------------------------
 
-      ! Determine if ocn is sending temperature and salinity data to glc
-      call NUOPC_CompAttributeGet(gcomp, name="ocn2glc_coupling", value=cvalue, rc=rc)
-      if (ChkErr(rc, __LINE__, u_FILE_u)) return
-      read(cvalue,*) ocn2glc_coupling
-      write(msg,'(a,l1)') subname//': ocn2glc coupling is ', ocn2glc_coupling
-      call blom_logwrite(msg)
-
-      ! Determine number of ocean levels and ocean level indices
-      if (ocn2glc_coupling) then
-         call ESMF_LogSetError(ESMF_RC_NOT_IMPL, &
-            msg=subname//": ocn2glc coupling not implemented", &
-            line=__LINE__, file=u_FILE_u, rcToReturn=rc)
-         return
-      endif
-
       call blom_advertise_exports(flds_scalar_name, fldsFrOcn_num, fldsFrOcn)
-
-      !TODO Determine if will get nitrogen deposition from atm
 
       do n = 1,fldsFrOcn_num
          call NUOPC_Advertise(exportState, standardName=fldsFrOcn(n)%stdname, &
