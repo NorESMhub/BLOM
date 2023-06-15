@@ -498,6 +498,7 @@ contains
       ! Local variables.
       real(r8) :: q
       integer m, n, mm, nn, k1m, k1n, i, j, l
+      logical :: first_call = .true.
 
       ! ------------------------------------------------------------------------
       ! Set accumulation arrays to zero if this is the first call after a
@@ -586,7 +587,7 @@ contains
             enddo
          !$omp end parallel do
          case default
-            if (mnproc == 1) &
+            if (mnproc == 1.and. first_call) &
                write(lp,*) subname//': unsupported vertical coordinate!'
             call xcstop(subname)
                    stop subname
@@ -638,6 +639,10 @@ contains
 
       tlast_coupled = tlast_coupled + baclin
 
+      if (first_call) then
+         first_call = .false.
+      end if
+
    end subroutine blom_accflds
 
    subroutine blom_importflds(fldlist_num, fldlist)
@@ -655,6 +660,7 @@ contains
       real(r8), parameter :: &
          mval = - 1.e12_r8, &
          fval = - 1.e13_r8
+      logical :: first_call = .true.
 
       ! Local variables.
       real(r8) :: afac, utmp, vtmp
@@ -901,7 +907,7 @@ contains
          enddo
       !$omp end parallel do
          call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': prog. atmospheric co2 read'
       else
       !$omp parallel do private(i)
@@ -915,7 +921,7 @@ contains
             enddo
          enddo
       !$omp end parallel do
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': prog. atmospheric co2 not read'
       endif
 
@@ -938,7 +944,7 @@ contains
          enddo
       !$omp end parallel do
          call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': diag. atmospheric co2 read'
       else
       !$omp parallel do private(i)
@@ -952,7 +958,7 @@ contains
             enddo
          enddo
       !$omp end parallel do
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': diag. atmospheric co2 not read'
       endif
 #else
@@ -967,7 +973,7 @@ contains
          enddo
       enddo
    !$omp end parallel do
-      if (mnproc == 1) &
+      if (mnproc == 1 .and. first_call) &
          write(lp,*) subname//': atmospheric co2 not read'
 #endif
 
@@ -988,7 +994,7 @@ contains
          enddo
       !$omp end parallel do
          call fill_global(mval, fval, halo_ps, atmbrf_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': prog. atmospheric bromoform read'
       else
       !$omp parallel do private(i)
@@ -1002,7 +1008,7 @@ contains
             enddo
          enddo
       !$omp end parallel do
-         if (mnproc == 1) &
+         if (mnproc == 1 .and. first_call) &
             write(lp,*) subname//': prog. atmospheric bromoform not read'
       endif
 
@@ -1020,13 +1026,12 @@ contains
                      elseif (cplmsk(i,j) == 0) then
                         flxdms_da(i,j,l2ci) = 0._r8
                      else
-                        write(6,'(a,i8,2x,i8,2x,d13.5)')'DEBUG: i,j,afac = ',i,j,afac
                         flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
                      end if
                   end do
                end do
             !$omp end parallel do
-               if (mnproc == 1) &
+               if (mnproc == 1 .and. first_call) &
                     write(lp,*) subname//': prog. dms flux obtained from mediator'
             end if
             if (nreg == 2) then
@@ -1037,7 +1042,7 @@ contains
 #endif
 
       if (csdiag) then
-         if (mnproc == 1) then
+         if (mnproc == 1 .and. first_call) then
             write(lp,*) subname//':'
          endif
          call chksummsk(ustarw_da(1-nbdy,1-nbdy,l2ci),ip,1,'ustarw')
@@ -1063,6 +1068,10 @@ contains
          end if
       endif
 
+      if (first_call) then
+         first_call = .false.
+      end if
+
    end subroutine blom_importflds
 
    subroutine blom_exportflds(fldlist_num, fldlist)
@@ -1081,6 +1090,7 @@ contains
       ! Local variables.
       real(r8) :: tfac, utmp, vtmp
       integer :: n, l, i, j
+      logical, save :: first_call = .true.
 
       tfac = 1._r8/tlast_coupled
 
@@ -1175,7 +1185,7 @@ contains
             enddo
          !$omp end parallel do
          else
-            if (mnproc == 1) &
+            if (mnproc == 1 .and. first_call) &
                  write(lp,*) subname//': dms flux not sent to coupler'
          endif
       end if
@@ -1216,7 +1226,7 @@ contains
             enddo
          !$omp end parallel do
          else
-            if (mnproc == 1) &
+            if (mnproc == 1 .and. first_call) &
                  write(lp,*) subname//': co2 flux not sent to coupler'
          endif
       end if
@@ -1240,9 +1250,13 @@ contains
             enddo
          !$omp end parallel do
          else
-            if (mnproc == 1) &
+            if (mnproc == 1 .and. first_call) &
                  write(lp,*) subname//': bromoform flux not sent to coupler'
          endif
+      end if
+
+      if (first_call) then
+         first_call = .false.
       end if
 
       tlast_coupled = 0._r8

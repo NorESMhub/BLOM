@@ -465,7 +465,11 @@ set MSC_SSTGA    =  '0,   4,   0'
 # set DIABGC defaults
 set BGC_FNAMETAG  = "'hbgcd','hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '1,30,365'
-set BGC_FILEFREQ  = '30,30,365'
+if ($TEST == TRUE) then
+   set BGC_FILEFREQ  = ' 1,30,365'
+else
+   set BGC_FILEFREQ  = '30,30,365'
+endif
 set BGC_COMPFLAG  = '0, 0, 0'
 if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
   set BGC_NCFORMAT  = '1, 1, 1'
