@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2009-2023 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2009-2023 Mats Bentsen, Mehmet Ilicak, Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -22,18 +22,19 @@ c
       use mod_types, only: r8
       use mod_constants, only: g, alpha0, pi, epsilp, spval, onem,
      .                         onecm, L_mks2cgs, M_mks2cgs, R_mks2cgs
-      use mod_time, only: delt1
+      use mod_time, only: delt1, dlt
       use mod_xc
       use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml,
      .                      cntiso_hybrid, sigmar
-      use mod_grid, only: scpx, scpy, scp2,
-     .                    plat, coriop, betafp, cosang, sinang
+      use mod_grid, only: scpx, scpy, scp2, scuyi, scvxi, plat, 
+     .                    coriop, betafp, betatp, cosang, sinang, hangle
       use mod_eos, only: rho
       use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
-     .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, bdmldp, edritp_opt, edritp_shear,
+     .                         egidfq, rhiscf, ri0, bdmc1, bdmc2, tkepf,
+     .                         bdmtyp, eddf2d, edsprs, edanis, redi3d,
+     .                         rhsctp, bdmldp, edritp_opt, edritp_shear,
      .                         edritp_large_scale, edwmth_opt,
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
@@ -1259,12 +1260,13 @@ c
       integer m,n,mm,nn,k1m,k1n
 c
 c
-      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr,anisok
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,udps,vdps,
-     .  umlzon,urmse,cpse
+     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,anisos,ubt,vbt,
+     .  umls,vmls,urmse,cpse
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac
+      real q,plo,tlo,slo,tsfac,rhisc,ubc,vbc,speed,rhisct,falign,
+     .     els,egrlo,umnsc,esfac
 c
 c --- Locate the range of layers to be considered in the computation of
 c --- diffusivities.
@@ -1294,9 +1296,9 @@ c --- diffusivities.
       enddo
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,dps,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,udps,vdps,umlzon,urmse,cpse,umnsc,esfac)
+c$OMP+ l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,dps,egrs,egr,
+c$OMP+ egrup,egrlo,dfints,anisos,ubt,vbt,rhisc,ubc,vbc,speed,rhisct,
+c$OMP+ falign,els,anisok,umls,vmls,urmse,cpse,umnsc,esfac)
       do j=1,jj
 c
 c ----- Compute the first baroclinic rossby radius of deformation using
@@ -1393,10 +1395,12 @@ c
         else
 c
 c --- --- Type 2: Diffusivities are parameterized according to Eden and
-c --- --- Greatbatch (2008).
+c --- --- Greatbatch (2008), extended with options for vertically averaged
+c --- --- diffusivities and various eddy supression approaches.
+c
 c
 c --- --- Eady growth rate.
-          if (edsprs) then
+          if (edsprs.or.edanis) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               egrs(i)=0.
@@ -1412,9 +1416,13 @@ c --- --- Eady growth rate.
      .              kmax(i,j)-kfil(i,j).ge.1) then
                   egr(i,k)=afeql(i)
      .                     /sqrt(.5*(rig(i,j,k)+rig(i,j,k+1))+eggam)
-                  if (edsprs) then
-                    q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
-     .                           p(i,j,k+1))-p(i,j,k))
+                  if (edsprs.or.edanis) then
+                    if (eddf2d) then
+                      q=max(0.,p(i,j,k+1)-p(i,j,k))
+                    else
+                      q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+     .                             p(i,j,k+1))-p(i,j,k))
+                    endif
                     dps(i)=dps(i)+q
                     egrs(i)=egrs(i)+egr(i,k)*q
                   endif
@@ -1471,9 +1479,19 @@ c --- --- Eady growth rate.
                     egrlo=sqrt(q)
                     egr(i,k)=.5*(egrup(i)+egrlo)
                     egrup(i)=egrlo
-                    if (edsprs) then
-                      q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
-     .                             p(i,j,k+1))-p(i,j,k))
+                    if (edsprs.or.edanis) then
+                      if (eddf2d) then
+                        if (p(i,j,k+1).gt.
+     .                      min(p(i-1,j,kk+1),p(i+1,j,kk+1),
+     .                          p(i,j-1,kk+1),p(i,j+1,kk+1))) then
+                          q=0.
+                        else
+                          q=max(0.,p(i,j,k+1)-p(i,j,k))
+                        endif
+                      else
+                        q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+     .                               p(i,j,k+1))-p(i,j,k))
+                      endif
                       dps(i)=dps(i)+q
                       egrs(i)=egrs(i)+egr(i,k)*q
                     endif
@@ -1485,7 +1503,7 @@ c --- --- Eady growth rate.
               enddo
             enddo
           endif
-          if (edsprs) then
+          if (edsprs.or.edanis) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (dps(i).gt.0.) then
@@ -1502,16 +1520,71 @@ c
             difint(i,j,1)=egmndf
             dfints(i)=0.
             dps(i)=0.
+            anisos(i)=0.
           enddo
           enddo
+c
+          if (rhsctp) then
+c
+c --- ----- Obtain barotropic velocities at p-points. TODO: check if
+c --- ----- weighting by bottom pressure is appropriate.
+            tsfac=dlt/delt1
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              ubt(i)=(ubflxs_p(i  ,j,n)*scuyi(i  ,j)
+     .               +ubflxs_p(i+1,j,n)*scuyi(i+1,j))*tsfac
+     .               /max(epsilp,pbu(i,j,n)+pbu(i+1,j,n))
+              vbt(i)=(vbflxs_p(i,j  ,n)*scvxi(i,j  )
+     .               +vbflxs_p(i,j+1,n)*scvxi(i,j+1))*tsfac
+     .               /max(epsilp,pbv(i,j,n)+pbv(i,j+1,n))
+            enddo
+            enddo
+          endif
+c
           do k=2,kk
+            kn=k+nn
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
-c --- --------- Rhines scale.
+c --- --------- Planetary Rhines scale.
                 rhisc=egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+c
+                if (edanis.or.rhsctp) then
+c
+c --- ----------- Baroclinic velocities at p-points. TODO: check if
+c --- ----------- weighting by layer thickness is appropriate.
+                  ubc=(u(i,j,kn)*dpu(i,j,kn)+u(i+1,j,kn)*dpu(i+1,j,kn))
+     .                /max(epsilp,dpu(i,j,kn)+dpu(i+1,j,kn))
+                  vbc=(v(i,j,kn)*dpv(i,j,kn)+v(i,j+1,kn)*dpv(i,j+1,kn))
+     .                /max(epsilp,dpv(i,j,kn)+dpv(i,j+1,kn))
+c
+c --- ----------- Current speed.
+                  speed=max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
+c
+                  if (rhsctp) then
+c
+c --- ---- -------- Topographic Rhines scale.
+                    rhisct=egr(i,k)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+c
+c --- ---- --- ---- Mask rhsctp if flow is not along bottom topography
+c                   1) option 1 with cosine to power of 10 will be >10
+c                      from +/- 35 degrees if rhiscf=1.
+c                   2) option 2 with hyberpolic tangent to power of
+c                      will be >10 from +/- 22.5 degrees if rhiscf=0.1
+c                      falign=1.
+                    falign=1./max(sin(atan2(vbc+vbt(i),ubc+ubt(i))
+     .                               -hangle(i,j))**10,1.e-10)
+c                   falign=1./max((1.-tanh(abs(
+c     .                    abs(atan((vbc+vbt(i))/(ubc+ubt(i)))-hangle(i,j))
+c     .                    -pi/2.)))**6,1.e-24)
+c
+                    rhisc=min(rhisc,falign*rhiscf*rhisct)
+c
+                  endif
+c
+                endif
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
@@ -1519,12 +1592,33 @@ c
 c --- --------- Temporary layer interface diffusivity.
                 difint(i,j,k)=egc*egr(i,k)*els*els
 c
-c --- --------- Accumulate diffusivities in a region below the first
-c --- --------- physical layer.
-                q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
-     .                       p(i,j,k+1))-p(i,j,k))
+c --- --------- Accumulate diffusivities and estimate and accumulate
+c --- --------- anisotrophy if requested.
+c
+                if (eddf2d) then
+                  if (p(i,j,k+1).gt.
+     .                min(p(i-1,j,kk+1),p(i+1,j,kk+1),
+     .                    p(i,j-1,kk+1),p(i,j+1,kk+1))) then
+                    q=0.
+                  else
+                    q=max(0.,p(i,j,k+1)-p(i,j,k))
+                  endif
+                else
+c
+c --- ----------- Only consider a region below the first physical layer
+c --- ----------- with 3d structure of diffusivity.
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                endif
+c
                 dps(i)=dps(i)+q
                 dfints(i)=dfints(i)+difint(i,j,k)*q
+c
+                if (edanis) then
+                  anisok(i,k)=1./(1.+(speed/max(1.e-22*iL_mks2cgs,
+     .                                          egr(i,k)*els))**2)
+                  anisos(i)=anisos(i)+anisok(i,k)*q
+                endif
 c
               else
                 difint(i,j,k)=difint(i,j,k-1)
@@ -1534,34 +1628,35 @@ c
           enddo
 c
 c --- --- Apply eddy diffusivity limiting, suppression when the Rossby
-c --- --- radius is resolved by the grid, and suppression away from
-c --- --- steering levels if requested.
+c --- --- radius is resolved by the grid, and suppression due to
+c --- --- anisotropy or away from steering levels.
 c
 c --- --- Eddy diffusivity modification of surface non-isopycnic
 c --- --- layers.
 c
-          if (edsprs) then
+          if (edsprs.or.edanis) then
 c
-c --- ----- Zonal mixed layer velocity.
+c --- ----- Mixed layer velocity.
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              udps(i)=0.
-              vdps(i)=0.
+              umls(i)=0.
+              vmls(i)=0.
             enddo
             enddo
             do k=1,kk
               do l=1,isp(j)
               do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 q=max(0.,min(p(i,j,k+1),OBLdepth(i,j)*onem)-p(i,j,k))
-                udps(i)=udps(i)+up(i,j,k)*q
-                vdps(i)=vdps(i)+vp(i,j,k)*q
+                umls(i)=umls(i)+up(i,j,k)*q
+                vmls(i)=vmls(i)+vp(i,j,k)*q
               enddo
               enddo
             enddo
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              umlzon(i)=(udps(i)*cosang(i,j)-vdps(i)*sinang(i,j))
-     .                  /(OBLdepth(i,j)*onem)
+              q=1./(OBLdepth(i,j)*onem)
+              umls(i)=umls(i)*q
+              vmls(i)=vmls(i)*q
             enddo
             enddo
           endif
@@ -1569,22 +1664,42 @@ c
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-            if (edsprs) then
+            if (edsprs.or.edanis) then
 c
-c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
-c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
-c --- ------- Abernathey, 2014).
+c --- ------- Rhines scale using vertically averaged Eady growth rate.
+c
+c --- ------- Planetary Rhines scale.
               rhisc=egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
-              els=max(eglsmn,min(bcrrd(i),rhisc))
-              urmse(i)=2.86*egc*egrs(i)*els
 c
-c --- ------- Zonal eddy phase speed minus zonal barotropic velocity
-c --- ------- with a lower bound of -20 cm s-1.
-              cpse(i)=max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
+              if (rhsctp) then
+c
+c --- --------- Topographic Rhines scale.
+                rhisct=egrs(i)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                rhisc=min(rhisc,rhiscf*rhisct)
+c
+              endif
+c
+c --- ------- Eddy length scale.
+              els=max(eglsmn,min(bcrrd(i),rhisc))
+c
+              if (edsprs) then
+c
+c --- --------- RMS eddy velocity estimated from K = Gamma*u_rms*L,
+c --- --------- where a mixing efficiency of Gamma = 0.35 is used
+c --- --------- (Klocker and Abernathey, 2014). Note that 1/0.35 = 2.86.
+                urmse(i)=2.86*egc*egrs(i)*els
+c
+c --- --------- Zonal eddy phase speed minus zonal barotropic velocity
+c --- --------- with a lower bound of -20 cm s-1.
+                cpse(i)=max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
+c
+              endif
 c
             endif
 c
             if (dps(i).gt.0.) then
+c
+              dfints(i)=dfints(i)/dps(i)
 c
               if (edsprs) then
 c
@@ -1592,25 +1707,57 @@ c --- --------- Zonal mixed layer velocity minus eddy phase speed. Note
 c --- --------- that only the baroclinic component is used since the
 c --- --------- barotropic velocity is subtracted from the estimate of
 c --- --------- eddy phase speed.
-                umnsc=umlzon(i)-cpse(i)
+                umnsc=umls(i)*cosang(i,j)-vmls(i)*sinang(i,j)-cpse(i)
 c
 c --- --------- Eddy mixing suppresion factor where lower bounds of
 c --- --------- zonal velocity minus eddy phase speed and absolute value
 c --- --------- of RMS eddy velocity is set to -20 cm s-1 and 5 cm s-1,
 c --- --------- respectively.
-                esfac=1./
-     .             (1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
+                esfac=1./(1.+4.*(umnsc/max(urmsemin,
+     .                                     abs(urmse(i))))**2)
 c
+              elseif (edanis) then
+                anisos(i)=anisos(i)/dps(i)
+                speed=max(1.e-22*iL_mks2cgs,
+     .                    sqrt(umls(i)*umls(i)+vmls(i)*vmls(i)))
+                esfac=1./(1.+(speed/max(1.e-22*iL_mks2cgs,
+     .                                  egrs(i)*els))**2)
               else
                 esfac=1.
               endif
 c
-              dfints(i)=dfints(i)/dps(i)
-              dfints(i)=
+              if (eddf2d) then
+c
+c --- --------- GM is always 2D, will feel the influence of mean
+c --- --------- anisotropy.
+                if (edanis) then
+                  difint(i,j,1)=anisos(i)*dfints(i)*difwgt(i,j)
+                else
+                  difint(i,j,1)=dfints(i)*difwgt(i,j)
+                endif
+                if (redi3d) then
+c
+c --- ----------- Allow Redi diffusivity to have a 3D profile.
+                  difiso(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,esfac*dfints(i)*egidfq*difwgt(i,j)))
+                else
+                  difiso(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,difint(i,j,1)*egidfq))
+                endif
+                difint(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,max(egmndf,difint(i,j,1)))
+              else
+                difint(i,j,1)=
      .            min(difmxp(i,j),egmxdf,
      .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
+                difiso(i,j,1)=difint(i,j,1)*egidfq
+              endif
+c
             else
               dfints(i)=egmndf
+              difiso(i,j,1)=difint(i,j,1)*egidfq
             endif
           enddo
           enddo
@@ -1633,29 +1780,38 @@ c --- ----------- Eddy mixing suppresion factor.
                   esfac=1./
      .              (1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
 c
+                elseif (edanis) then
+                  esfac=anisok(i,k)
                 else
                   esfac=1.
                 endif
 c
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+                if (eddf2d) then
+c
+c --- ----------- GM is always 2D, will feel the influence of mean
+c --- ----------- anisotropy.
+                  difint(i,j,k)=difint(i,j,1)
+c
+                  if (redi3d) then
+c
+c --- ------------- Allow Redi diffusivity to have a 3D profile.
+                    difiso(i,j,k)=
+     .                min(difmxp(i,j),egmxdf,
+     .                    max(egmndf,esfac*dfints(i)*egidfq
+     .                               *difwgt(i,j)))
+                  else
+                    difiso(i,j,k)=difiso(i,j,1)
+                  endif
+                else
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+                  difiso(i,j,k)=difint(i,j,k)*egidfq
+                endif
               else
                 difint(i,j,k)=difint(i,j,k-1)
+                difiso(i,j,k)=difiso(i,j,k-1)
               endif
-            enddo
-            enddo
-          enddo
-c
-c --- --- Set isopycnal tracer diffusivity proportional to the layer
-c --- --- interface diffusivity by the factor EGIDFQ.
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.lt.kfil(i,j)) then
-                difint(i,j,k)=dfints(i)
-              endif
-              difiso(i,j,k)=difint(i,j,k)*egidfq
             enddo
             enddo
           enddo
@@ -1683,16 +1839,18 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c
-      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr
+      real, dimension(1-nbdy:idm+nbdy,kdm) :: egr,anisok
       real, dimension(1-nbdy:idm+nbdy) ::
-     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,urmse,cpse
+     .  tup,pup,sup,cr,bcrrd,afeql,dps,egrs,egrup,dfints,anisos,ubt,vbt,
+     .  urmse,cpse
       integer i,j,k,l,kn
-      real q,plo,tlo,slo,rhisc,els,egrlo,umnsc,esfac
+      real q,plo,tlo,slo,tsfac,rhisc,ubc,vbc,speed,rhisct,falign,
+     .     els,egrlo,umnsc,esfac
 c
 c$OMP PARALLEL DO PRIVATE(
-c$OMP+ l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,
-c$OMP+ afeql,dps,egrs,egr,egrup,egrlo,dfints,
-c$OMP+ rhisc,els,urmse,cpse,umnsc,esfac)
+c$OMP+ l,i,k,kn,q,tup,pup,sup,cr,plo,tlo,slo,bcrrd,afeql,dps,egrs,egr,
+c$OMP+ egrup,egrlo,dfints,anisos,ubt,vbt,rhisc,ubc,vbc,speed,rhisct,
+c$OMP+ falign,els,anisok,urmse,cpse,umnsc,esfac)
       do j=1,jj
 c
 c ----- Compute the first baroclinic rossby radius of deformation using
@@ -1792,10 +1950,11 @@ c
         else
 c
 c --- --- Type 2: Diffusivities are parameterized according to Eden and
-c --- --- Greatbatch (2008).
+c --- --- Greatbatch (2008), extended with options for vertically averaged
+c --- --- diffusivities and various eddy supression approaches.
 c
 c --- --- Eady growth rate.
-          if (edsprs) then
+          if (edsprs.or.edanis) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               egrs(i)=0.
@@ -1810,9 +1969,13 @@ c --- --- Eady growth rate.
                 if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .              kmax(i,j)-kfil(i,j).ge.1) then
                   egr(i,k)=afeql(i)/sqrt(rig(i,j,k)+eggam)
-                  if (edsprs) then
-                    q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
-     .                           p(i,j,k+1))-p(i,j,k))
+                  if (edsprs.or.edanis) then
+                    if (eddf2d) then
+                      q=max(0.,p(i,j,k+1)-p(i,j,k))
+                    else
+                      q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+     .                             p(i,j,k+1))-p(i,j,k))
+                    endif
                     dps(i)=dps(i)+q
                     egrs(i)=egrs(i)+egr(i,k)*q
                   endif
@@ -1869,9 +2032,13 @@ c --- --- Eady growth rate.
                     egrlo=sqrt(q)
                     egr(i,k)=.5*(egrup(i)+egrlo)
                     egrup(i)=egrlo
-                    if (edsprs) then
-                      q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
-     .                             p(i,j,k+1))-p(i,j,k))
+                    if (edsprs.or.edanis) then
+                      if (eddf2d) then
+                        q=max(0.,p(i,j,k+1)-p(i,j,k))
+                      else
+                        q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+     .                               p(i,j,k+1))-p(i,j,k))
+                      endif
                       dps(i)=dps(i)+q
                       egrs(i)=egrs(i)+egr(i,k)*q
                     endif
@@ -1883,7 +2050,7 @@ c --- --- Eady growth rate.
               enddo
             enddo
           endif
-          if (edsprs) then
+          if (edsprs.or.edanis) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (dps(i).gt.0.) then
@@ -1900,16 +2067,71 @@ c
             difint(i,j,1)=egmndf
             dfints(i)=0.
             dps(i)=0.
+            anisos(i)=0.
           enddo
           enddo
+c
+          if (rhsctp) then
+c
+c --- ----- Obtain barotropic velocities at p-points. TODO: check if
+c --- ----- weighting by bottom pressure is appropriate.
+            tsfac=dlt/delt1
+            do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              ubt(i)=(ubflxs_p(i  ,j,n)*scuyi(i  ,j)
+     .               +ubflxs_p(i+1,j,n)*scuyi(i+1,j))*tsfac
+     .               /max(epsilp,pbu(i,j,n)+pbu(i+1,j,n))
+              vbt(i)=(vbflxs_p(i,j  ,n)*scvxi(i,j  )
+     .               +vbflxs_p(i,j+1,n)*scvxi(i,j+1))*tsfac
+     .               /max(epsilp,pbv(i,j,n)+pbv(i,j+1,n))
+            enddo
+            enddo
+          endif
+c
           do k=2,kk
+            kn=k+nn
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
-c --- --------- Rhines scale.
+c --- --------- Planetary Rhines scale.
                 rhisc=egr(i,k)/max(1.e-22*iL_mks2cgs,betafp(i,j))
+c
+                if (edanis.or.rhsctp) then
+c
+c --- ----------- Baroclinic velocities at p-points. TODO: check if
+c --- ----------- weighting by layer thickness is appropriate.
+                  ubc=(u(i,j,kn)*dpu(i,j,kn)+u(i+1,j,kn)*dpu(i+1,j,kn))
+     .                /max(epsilp,dpu(i,j,kn)+dpu(i+1,j,kn))
+                  vbc=(v(i,j,kn)*dpv(i,j,kn)+v(i,j+1,kn)*dpv(i,j+1,kn))
+     .                /max(epsilp,dpv(i,j,kn)+dpv(i,j+1,kn))
+c
+c --- ----------- Current speed.
+                  speed=max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
+c
+                  if (rhsctp) then
+c
+c --- ---- -------- Topographic Rhines scale.
+                    rhisct=egr(i,k)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+c
+c --- ---- --- ---- Mask rhsctp if flow is not along bottom topography
+c                   1) option 1 with cosine to power of 10 will be >10
+c                      from +/- 35 degrees if rhiscf=1.
+c                   2) option 2 with hyberpolic tangent to power of
+c                      will be >10 from +/- 22.5 degrees if rhiscf=0.1
+c                      falign=1.
+                    falign=1./max(sin(atan2(vbc+vbt(i),ubc+ubt(i))
+     .                               -hangle(i,j))**10,1.e-10)
+c                   falign=1./max((1.-tanh(abs(
+c     .                    abs(atan((vbc+vbt(i))/(ubc+ubt(i)))-hangle(i,j))
+c     .                    -pi/2.)))**6,1.e-24)
+c
+                    rhisc=min(rhisc,falign*rhiscf*rhisct)
+c
+                  endif
+c
+                endif
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
@@ -1917,12 +2139,27 @@ c
 c --- --------- Temporary layer interface diffusivity.
                 difint(i,j,k)=egc*egr(i,k)*els*els
 c
-c --- --------- Accumulate diffusivities in a region below the first
-c --- --------- physical layer.
-                q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
-     .                       p(i,j,k+1))-p(i,j,k))
+c --- --------- Accumulate diffusivities and estimate and accumulate
+c --- --------- anisotrophy if requested.
+c
+                if (eddf2d) then
+                  q=max(0.,p(i,j,k+1)-p(i,j,k))
+                else
+c
+c --- ----------- Only consider a region below the first physical layer
+c --- ----------- with 3d structure of diffusivity.
+                  q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+     .                         p(i,j,k+1))-p(i,j,k))
+                endif
+c
                 dps(i)=dps(i)+q
                 dfints(i)=dfints(i)+difint(i,j,k)*q
+c
+                if (edanis) then
+                  anisok(i,k)=1./(1.+(speed/max(1.e-22*iL_mks2cgs,
+     .                                          egr(i,k)*els))**2)
+                  anisos(i)=anisos(i)+anisok(i,k)*q
+                endif
 c
               else
                 difint(i,j,k)=difint(i,j,k-1)
@@ -1932,93 +2169,149 @@ c
           enddo
 c
 c --- --- Apply eddy diffusivity limiting, suppression when the Rossby
-c --- --- radius is resolved by the grid, and suppression away from
-c --- --- steering levels if requested.
+c --- --- radius is resolved by the grid, and suppression due to
+c --- --- anisotropy or away from steering levels.
 c
 c --- --- Eddy diffusivity modification of surface non-isopycnic
 c --- --- layers.
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
 c
-            if (edsprs) then
+            if (edsprs.or.edanis) then
 c
-c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
-c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
-c --- ------- Abernathey, 2014).
+c --- ------- Rhines scale using vertically averaged Eady growth rate.
+c
+c --- ------- Planetary Rhines scale.
               rhisc=egrs(i)/max(1.e-22*iL_mks2cgs,betafp(i,j))
-              els=max(eglsmn,min(bcrrd(i),rhisc))
-              urmse(i)=2.86*egc*egrs(i)*els
 c
-c --- ------- Zonal eddy phase speed minus zonal barotropic velocity
-c --- ------- with a lower bound of -20 cm s-1.
-              cpse(i)=max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
+              if (rhsctp) then
+c
+c --- --------- Topographic Rhines scale.
+                rhisct=egrs(i)/max(1.e-22*iL_mks2cgs,betatp(i,j))
+                rhisc=min(rhisc,rhiscf*rhisct)
+c
+              endif
+c
+c --- ------- Eddy length scale.
+              els=max(eglsmn,min(bcrrd(i),rhisc))
+c
+              if (edsprs) then
+c
+c --- --------- RMS eddy velocity estimated from K = Gamma*u_rms*L,
+c --- --------- where a mixing efficiency of Gamma = 0.35 is used
+c --- --------- (Klocker and Abernathey, 2014). Note that 1/0.35 = 2.86.
+                urmse(i)=2.86*egc*egrs(i)*els
+c
+c --- --------- Zonal eddy phase speed minus zonal barotropic velocity
+c --- --------- with a lower bound of -20 cm s-1.
+                cpse(i)=max(cpsemin,-betafp(i,j)*bcrrd(i)**2)
+c
+              endif
 c
             endif
 c
             if (dps(i).gt.0.) then
 c
-              if (edsprs) then
+              dfints(i)=dfints(i)/dps(i)
 c
-c --- --------- Zonal mixed layer velocity minus eddy phase speed. Note
-c --- --------- that only the baroclinic component is used since the
-c --- --------- barotropic velocity is subtracted from the estimate of
-c --- --------- eddy phase speed.
+              if (edsprs.or.edanis) then
+c
+c --- --------- Baroclinic velocities at p-points.
                 if     (ip(i-1,j)+ip(i+1,j).eq.2) then
-                  q=.5*((u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
-     .                  +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
-     .                  /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
-     .                 +(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
-     .                  +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
-     .                  /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn)))
+                  ubc=.5*((u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
+     .                    +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
+     .                    /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
+     .                   +(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
+     .                    +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
+     .                    /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn)))
                 elseif (ip(i-1,j).eq.1) then
-                  q=(u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
-     .              +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
-     .              /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
+                  ubc=(u(i  ,j,1+nn)*dpu(i  ,j,1+nn)
+     .                +u(i  ,j,2+nn)*dpu(i  ,j,2+nn))
+     .                /(dpu(i  ,j,1+nn)+dpu(i  ,j,2+nn))
                 elseif (ip(i+1,j).eq.1) then
-                  q=(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
-     .              +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
-     .              /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn))
+                  ubc=(u(i+1,j,1+nn)*dpu(i+1,j,1+nn)
+     .                +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
+     .                /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn))
                 else
-                  q=0.
+                  ubc=0.
                 endif
-                umnsc=q*cosang(i,j)
                 if     (ip(i,j-1)+ip(i,j+1).eq.2) then
-                  q=.5*((v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
-     .                  +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
-     .                  /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
-     .                 +(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
-     .                  +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
-     .                  /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn)))
+                  vbc=.5*((v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
+     .                    +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
+     .                    /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
+     .                   +(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
+     .                    +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
+     .                    /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn)))
                 elseif (ip(i,j-1).eq.1) then
-                  q=(v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
-     .              +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
-     .              /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
+                  vbc=(v(i,j  ,1+nn)*dpv(i,j  ,1+nn)
+     .                +v(i,j  ,2+nn)*dpv(i,j  ,2+nn))
+     .                /(dpv(i,j  ,1+nn)+dpv(i,j  ,2+nn))
                 elseif (ip(i,j+1).eq.1) then
-                  q=(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
-     .              +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
-     .              /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn))
+                  vbc=(v(i,j+1,1+nn)*dpv(i,j+1,1+nn)
+     .                +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
+     .                /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn))
                 else
-                  q=0.
+                  vbc=0.
                 endif
-                umnsc=umnsc-q*sinang(i,j)-cpse(i)
 c
-c --- --------- Eddy mixing suppresion factor where lower bounds of
-c --- --------- zonal velocity minus eddy phase speed and absolute value
-c --- --------- of RMS eddy velocity is set to -20 cm s-1 and 5 cm s-1,
-c --- --------- respectively.
-                esfac=1./
-     .             (1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
+                if (edanis) then
+                  anisos(i)=anisos(i)/dps(i)
+                  speed=max(1.e-22*iL_mks2cgs,sqrt(ubc*ubc+vbc*vbc))
+                  esfac=1./(1.+(speed/max(1.e-22*iL_mks2cgs,
+     .                                    egrs(i)*els))**2)
+                else
+c
+c --- ----------- Zonal mixed layer velocity minus eddy phase speed.
+c --- ----------- Note that only the baroclinic component is used since
+c --- ----------- the barotropic velocity is subtracted from the
+c --- ----------- estimate of eddy phase speed.
+                  umnsc=ubc*cosang(i,j)
+                  umnsc=umnsc-vbc*sinang(i,j)-cpse(i)
+c
+c --- ----------- Eddy mixing suppression factor where lower bounds of
+c --- ----------- zonal velocity minus eddy phase speed and absolute
+c --- ----------- value of RMS eddy velocity is set to -20 cm s-1 and
+c --- ----------- 5 cm s-1, respectively.
+                  esfac=1./(1.+4.*(umnsc/max(urmsemin,
+     .                                       abs(urmse(i))))**2)
+                endif
 c
               else
                 esfac=1.
               endif
 c
-              dfints(i)=dfints(i)/dps(i)
-              dfints(i)=
+              if (eddf2d) then
+c
+c --- --------- GM is always 2D, will feel the influence of mean
+c --- --------- anisotropy.
+                if (edanis) then
+                  difint(i,j,1)=anisos(i)*dfints(i)*difwgt(i,j)
+                else
+                  difint(i,j,1)=dfints(i)*difwgt(i,j)
+                endif
+                if (redi3d) then
+c
+c --- ----------- Allow Redi diffusivity to have a 3D profile.
+                  difiso(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,esfac*dfints(i)*egidfq*difwgt(i,j)))
+                else
+                  difiso(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,difint(i,j,1)*egidfq))
+                endif
+                difint(i,j,1)=
+     .              min(difmxp(i,j),egmxdf,max(egmndf,difint(i,j,1)))
+              else
+                difint(i,j,1)=
      .            min(difmxp(i,j),egmxdf,
      .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
+                difiso(i,j,1)=difint(i,j,1)*egidfq
+              endif
+c
             else
               dfints(i)=egmndf
+              difiso(i,j,1)=difint(i,j,1)*egidfq
             endif
           enddo
           enddo
@@ -2041,33 +2334,42 @@ c --- ----------- Zonal velocity minus eddy phase speed.
      .              /max(1,mskv(i,j,k)+mskv(i,j+1,k))*sinang(i,j)
      .             -cpse(i)
 c
-c --- ----------- Eddy mixing suppresion factor.
-                  esfac=
-     .              1./(1.+4.*(umnsc/max(urmsemin,abs(urmse(i))))**2)
+c --- ----------- Eddy mixing suppression factor.
+                  esfac=1./(1.+4.*(umnsc/max(urmsemin,
+     .                                       abs(urmse(i))))**2)
 c
+                elseif (edanis) then
+                  esfac=anisok(i,k)
                 else
                   esfac=1.
                 endif
 c
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+                if (eddf2d) then
+c
+c --- ----------- GM is always 2D, will feel the influence of mean
+c --- ----------- anisotropy.
+                  difint(i,j,k)=difint(i,j,1)
+c
+                  if (redi3d) then
+c
+c --- ------------- Allow Redi diffusivity to have a 3D profile.
+                    difiso(i,j,k)=
+     .                min(difmxp(i,j),egmxdf,
+     .                    max(egmndf,esfac*dfints(i)*egidfq
+     .                               *difwgt(i,j)))
+                  else
+                    difiso(i,j,k)=difiso(i,j,1)
+                  endif
+                else
+                  difint(i,j,k)=
+     .              min(difmxp(i,j),egmxdf,
+     .                  max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+                  difiso(i,j,k)=difint(i,j,k)*egidfq
+                endif
               else
                 difint(i,j,k)=difint(i,j,k-1)
+                difiso(i,j,k)=difiso(i,j,k-1)
               endif
-            enddo
-            enddo
-          enddo
-c
-c --- --- Set isopycnal tracer diffusivity proportional to the layer
-c --- --- interface diffusivity by the factor EGIDFQ.
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.lt.kfil(i,j)) then
-                difint(i,j,k)=dfints(i)
-              endif
-              difiso(i,j,k)=difint(i,j,k)*egidfq
             enddo
             enddo
           enddo

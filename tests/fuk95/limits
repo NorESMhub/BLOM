@@ -164,6 +164,7 @@
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
+! EDDF2D   : If true, eddy diffusivity has a 2d structure (l)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
@@ -173,6 +174,13 @@
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
 !            interface diffusivity in the Eden and Greatbatch (2008)
 !            parameterization. egidfq=difint/difiso () (f)
+! TBFILE   : Name of file containing topographic beta parameter (a)
+! RHISCF   : Linear scaling parameter for topographic rhines scale () (f)
+! EDANIS   : If true, apply anisotropy correction to eddy diffusivity (l)
+! REDI3D   : If true, then isopycnal/neutral diffusion will have 3D
+!            structure based in the 3D structure of anisotropy (l)
+! RHSCTP   : If true, use the minimum of planetary and topographic beta
+!            to define the Rhines scale (l)
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
 ! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
@@ -192,6 +200,7 @@
   EITMTH   = 'gm'
   EDRITP   = 'large scale'
   EDWMTH   = 'smooth'
+  EDDF2D   = .false.
   EDSPRS   = .true.
   EGC      = 0.
   EGGAM    = 200.
@@ -199,6 +208,11 @@
   EGMNDF   = 0.
   EGMXDF   = 1500.e4
   EGIDFQ   = 1.
+  TBFILE   = 'unset'
+  RHISCF   = .5
+  EDANIS   = .false.
+  REDI3D   = .false.
+  RHSCTP   = .false.
   RI0      = 1.2
   BDMTYP   = 2
   BDMC1    = 5.e-4
@@ -384,7 +398,9 @@
 !   UTFLX    - heat flux in x-direction [W]
 !   USFLX    - salt flux in x-direction [kg s-1]
 !   UMFLTD   - mass flux due to thickness diffusion in x-direction [kg s-1]
+!   UMFLSM   - mass flux due to submesoscale transport in x-direction [kg s-1]
 !   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
+!   UTFLSM   - heat flux due to submesoscale transport in x-direction [W]
 !   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
 !   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
 !   USFLSM   - salt flux due to submesoscale transport in x-direction [kg s-1]

@@ -102,7 +102,7 @@
 #ifdef cisonew
 ! set standard carbon isotope ratios
       re1312=0.0112372
-      re14to=1.176e-12
+      re14to=1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
 ! set preindustr. d13c and bigd14C in atmosphere
       prei13  = -6.5
       prei14  = 0.
@@ -174,8 +174,8 @@
       bifr13=0.98
       bifr14=bifr13**2
 ! Decay parameter for sco214, HalfLive = 5730 years
-      c14_t_half=5730.*365.                ! Half life of 14C [days]	
-      c14dec=1.-(log(2.)/c14_t_half)*dtb   ! labda [1/day]; c14dec[-]
+      c14_t_half=5700.*365.                ! Half life of 14C [days]	
+      c14dec=1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
 #endif
 
 ! half sat. constants, note that the units are kmol/m3 !
