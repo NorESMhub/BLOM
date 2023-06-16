@@ -76,7 +76,7 @@ module ocn_comp_nuopc
 
    logical              :: ocn2glc_coupling, flds_dms_med
 
-   integer :: dbug = 10
+   integer :: dbug = 0
    logical :: profile_memory = .false.
 
    public :: SetServices, SetVM

@@ -478,14 +478,14 @@
 ! Surface flux of dms
       if (get_flxdms_from_med) then
          ! Note that flux from mediator is downwards positive, whereas dms flux computed above
-         ! is upwards positive - so need a different sign 
+         ! is upwards positive - so need a different sign
          dmsflux = -dtbgc*flxdms(i,j)
       else
          ! Note that kwdms already has the open ocean fraction in the term
-         dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)  
+         dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
       end if
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
-       
+
 #ifdef BROMO
 ! Quack and Wallace (2003) eq. 1
 ! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
