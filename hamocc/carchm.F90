@@ -20,7 +20,8 @@
 
       SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
-                        psicomo,ppao,pfu10,ptho,psao)
+                        psicomo,ppao,pfu10,ptho,psao,                         &
+                        pflxdms,compute_flxdms)
 !******************************************************************************
 !
 !**** *CARCHM* - .
@@ -88,6 +89,7 @@
 !     *REAL*    *pfu10*   - forcing field wind speed.
 !     *REAL*    *ptho*    - potential temperature.
 !     *REAL*    *psao*    - salinity [psu].
+!     *REAL*    *pflxdms* - input dms flux that is already computed 
 !
 !     Externals
 !     ---------
@@ -118,9 +120,6 @@
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
-      use mod_cesm, only : get_flxdms_from_med
-      use mod_forcing, only : flxdms
-
       implicit none
 
       INTEGER, intent(in) :: kpie,kpje,kpke,kbnd     
@@ -135,6 +134,8 @@
       REAL,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      REAL,    intent(in) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      LOGICAL, intent(in) :: compute_flxdms
 
       ! Local variables
       INTEGER :: i,j,k,l,js
@@ -476,10 +477,10 @@
 #endif
 
 ! Surface flux of dms
-      if (get_flxdms_from_med) then
+      if (compute_flxdms) then
          ! Note that flux from mediator is downwards positive, whereas dms flux computed above
          ! is upwards positive - so need a different sign
-         dmsflux = -dtbgc*flxdms(i,j)
+         dmsflux = -dtbgc*pflxdms(i,j)
       else
          ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)

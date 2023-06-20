@@ -143,6 +143,8 @@ module mod_forcing
       s_rs_nonloc     ! Non-local transport term that is the fraction of
                       ! restoring salt flux passing a layer interface [].
 
+   logical :: compute_flxdms = .true. ! this ensures backwards compatibility
+
    public :: aptflx, apsflx, ditflx, disflx, srxbal, sprfac, &
              trxday, srxday, trxdpt, srxdpt, trxlim, srxlim, scfile, &
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
@@ -152,7 +154,8 @@ module mod_forcing
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
              ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
-             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal
+             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal, &
+             compute_flxdms
 
 contains
 

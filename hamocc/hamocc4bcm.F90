@@ -19,9 +19,10 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,oafx,pi_ph,                            &
+                            dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo, &
+                            compute_flxdms)
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -125,9 +126,16 @@
       REAL,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      logical, intent(in)  :: compute_flxdms
+
+      ! NOTE:
+      ! If compute_flxdms is .true. then pflxdms will be computed in
+      ! carch.F90 and will be intent(out)
+      ! If compute_flxdms is .false. then pflxdms is obtained
+      ! externally to blom and therefore will be intent(in)  
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
@@ -266,9 +274,9 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-
       CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
-                  psicomo,ppao,pfu10,ptho,psao)
+                  psicomo,ppao,pfu10,ptho,psao,&
+                  pflxdms,compute_flxdms)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -404,13 +412,15 @@
 !--------------------------------------------------------------------
 ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
+      if (compute_flxdms) then
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
-      ENDDO
-      ENDDO
+         DO  j=1,kpje
+         DO  i=1,kpie
+           if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
+         ENDDO
+         ENDDO
 !$OMP END PARALLEL DO
+      end if
 
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.

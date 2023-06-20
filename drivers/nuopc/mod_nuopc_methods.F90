@@ -30,7 +30,7 @@ module mod_nuopc_methods
    use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, &
                        cosang, sinang
    use mod_state, only: u, v, dp, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
-   use mod_forcing, only: sprfac, prfac, flxco2, flxdms, flxbrf
+   use mod_forcing, only: sprfac, prfac, flxco2, flxdms, flxbrf, compute_flxdms
    use mod_difest, only: obldepth
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_cesm, only: frzpot, mltpot, &
@@ -38,7 +38,7 @@ module mod_nuopc_methods
                        rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                        ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                        lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
-                       flxdms_da, get_flxdms_from_med, l1ci, l2ci
+                       flxdms_da, l1ci, l2ci
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
@@ -69,11 +69,13 @@ module mod_nuopc_methods
    real(r8) :: tlast_coupled
    integer :: jjcpl
 
+   logical :: get_flxdms_from_med
+
    public :: fldlist_type, fldsmax, tlast_coupled, &
              blom_logwrite, blom_getgindex, blom_checkmesh, blom_setareacor, &
              blom_getglobdim, blom_getprecipfact, blom_accflds, &
              blom_advertise_imports, blom_advertise_exports, &
-             blom_importflds, blom_exportflds
+             blom_importflds, blom_exportflds, get_flxdms_from_med
 
    integer :: &
         index_Si_ifrac    = - 1, &

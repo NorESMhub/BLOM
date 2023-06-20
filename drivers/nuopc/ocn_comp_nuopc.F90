@@ -46,12 +46,13 @@ module ocn_comp_nuopc
                                 blom_setareacor, blom_getglobdim, &
                                 blom_getprecipfact, blom_accflds, &
                                 blom_importflds, blom_exportflds, &
-                                blom_advertise_imports, blom_advertise_exports
+                                blom_advertise_imports, blom_advertise_exports, &
+                                get_flxdms_from_med
    use mod_xc, only: mpicom_external, lp, nfu
    use mod_cesm, only: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm
    use mod_config, only: inst_index, inst_name, inst_suffix
    use mod_time, only: blom_time
-   use mod_cesm, only : get_flxdms_from_med
+   use mod_forcing, only : compute_flxdms
 
    implicit none
 
@@ -489,6 +490,8 @@ contains
       call NUOPC_CompAttributeGet(gcomp, name='flds_dms_med', value=cvalue, &
            isPresent=isPresent, isSet=isSet, rc=rc)
       if (ChkErr(rc, __LINE__, u_FILE_u)) return
+
+      ! Set the logical flag get_flxdms_from_med in mod_nuopc_methods module
       if (.not. isPresent .and. .not. isSet) then
          get_flxdms_from_med = .false.
       else
@@ -499,6 +502,13 @@ contains
          else
             get_flxdms_from_med = .false.
          end if
+      end if
+
+      ! Set the logical flag compute_flxdms in mod_forcing module
+      if (get_flxdms_from_med) then
+         compute_flxdms = .false.
+      else
+         compute_flxdms = .true.
       end if
 
       ! Determine if co2 will be imported from mediator
