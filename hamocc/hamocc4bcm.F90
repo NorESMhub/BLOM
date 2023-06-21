@@ -412,15 +412,13 @@
 !--------------------------------------------------------------------
 ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
-      if (compute_flxdms) then
 !$OMP PARALLEL DO PRIVATE(i)
-         DO  j=1,kpje
-         DO  i=1,kpie
-           if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
-         ENDDO
-         ENDDO
+      DO  j=1,kpje
+      DO  i=1,kpie
+        if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
+      ENDDO
+      ENDDO
 !$OMP END PARALLEL DO
-      end if
 
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.

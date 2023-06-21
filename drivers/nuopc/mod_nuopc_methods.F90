@@ -69,13 +69,11 @@ module mod_nuopc_methods
    real(r8) :: tlast_coupled
    integer :: jjcpl
 
-   logical :: get_flxdms_from_med
-
    public :: fldlist_type, fldsmax, tlast_coupled, &
              blom_logwrite, blom_getgindex, blom_checkmesh, blom_setareacor, &
              blom_getglobdim, blom_getprecipfact, blom_accflds, &
              blom_advertise_imports, blom_advertise_exports, &
-             blom_importflds, blom_exportflds, get_flxdms_from_med
+             blom_importflds, blom_exportflds
 
    integer :: &
         index_Si_ifrac    = - 1, &
@@ -121,7 +119,6 @@ module mod_nuopc_methods
         index_So_dms     = - 1, &
         index_So_brf     = - 1, &
         index_Fioo_q     = - 1, &
-        index_Faoo_dms   = - 1, &
         index_Faoo_brf   = - 1, &
         index_Faoo_fco2_ocn = - 1
 
@@ -165,6 +162,9 @@ contains
          fldlist(num)%ungridded_lbound = ungridded_lbound
          fldlist(num)%ungridded_ubound = ungridded_ubound
       endif
+
+      ! Set the logical flag compute_flxdms in mod_forcing module
+      compute_flxdms = .false.
 
    end subroutine fldlist_add
 
@@ -237,9 +237,7 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
 #ifdef HAMOCC
-     if (get_flxdms_from_med) then
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-     end if
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
 #endif
 
      ! From wave:
@@ -288,11 +286,7 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
 #ifdef HAMOCC
-     if (get_flxdms_from_med) then
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'  , index_So_dms)
-     else
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms', index_Faoo_dms)
-     end if
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'  , index_So_dms)
 #endif
    end subroutine blom_advertise_exports
 
@@ -606,22 +600,6 @@ contains
          enddo
       !$omp end parallel do
       endif
-
-#ifdef HAMOCC
-      if (.not. get_flxdms_from_med) then
-         if (index_Faoo_dms > 0) then
-         !$omp parallel do private(l, i)
-            do j = 1, jj
-               do l = 1, isp(j)
-                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                     acc_fdms(i,j) = acc_fdms(i,j) + flxdms(i,j)*baclin
-                  enddo
-               enddo
-            enddo
-         !$omp end parallel do
-         endif
-      end if
-#endif
 
       if (index_Faoo_brf) then
       !$omp parallel do private(l, i)
@@ -1015,30 +993,28 @@ contains
       endif
 
 #ifdef HAMOCC
-      if (get_flxdms_from_med) then
-         if (index_Faox_dms > 0) then
-            if (associated(fldlist(index_Faox_dms)%dataptr)) then
-            !$omp parallel do private(i, n, afac)
-               do j = 1, jjcpl
-                  do i = 1, ii
-                     n = (j - 1)*ii + i
-                     afac = med2mod_areacor(n)
-                     if     (ip(i,j) == 0) then
-                        flxdms_da(i,j,l2ci) = mval
-                     elseif (cplmsk(i,j) == 0) then
-                        flxdms_da(i,j,l2ci) = 0._r8
-                     else
-                        flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
-                     end if
-                  end do
+      if (index_Faox_dms > 0) then
+         if (associated(fldlist(index_Faox_dms)%dataptr)) then
+         !$omp parallel do private(i, n, afac)
+            do j = 1, jjcpl
+               do i = 1, ii
+                  n = (j - 1)*ii + i
+                  afac = med2mod_areacor(n)
+                  if     (ip(i,j) == 0) then
+                     flxdms_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     flxdms_da(i,j,l2ci) = 0._r8
+                  else
+                     flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
+                  end if
                end do
+            end do
             !$omp end parallel do
-               if (mnproc == 1 .and. first_call) &
-                    write(lp,*) subname//': prog. dms flux obtained from mediator'
-            end if
-            if (nreg == 2) then
-               call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
-            end if
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': prog. dms flux obtained from mediator'
+         end if
+         if (nreg == 2) then
+            call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          end if
       end if
 #endif
@@ -1065,7 +1041,7 @@ contains
          call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
          call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
-         if (get_flxdms_from_med .and. index_Faox_dms > 0) then
+         if (index_Faox_dms > 0) then
             call chksummsk(flxdms_da(1-nbdy,1-nbdy,l2ci),ip,1,'flxdms_da')
          end if
       endif
@@ -1167,31 +1143,7 @@ contains
       enddo
    !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Provide DMS flux [kmol DMS m-2 s-1], if requested.
-      ! ------------------------------------------------------------------------
-
 #ifdef HAMOCC
-      if (index_Faoo_dms > 0) then
-         if (associated(fldlist(index_Faoo_dms)%dataptr)) then
-            fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
-         !$omp parallel do private(l, i, n)
-            do j = 1, jjcpl
-               do l = 1, isp(j)
-                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                     n = (j - 1)*ii + i
-                     fldlist(index_Faoo_dms)%dataptr(n) = &
-                          acc_fdms(i,j)*tfac*mod2med_areacor(n)
-                  enddo
-               enddo
-            enddo
-         !$omp end parallel do
-         else
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': dms flux not sent to coupler'
-         endif
-      end if
-
       if (index_So_dms > 0) then
          if (associated(fldlist(index_So_dms)%dataptr)) then 
             fldlist(index_So_dms)%dataptr(:) = 0._r8
