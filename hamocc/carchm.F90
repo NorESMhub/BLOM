@@ -478,12 +478,13 @@
 
 ! Surface flux of dms
       if (compute_flxdms) then
-         ! Note that flux from mediator is downwards positive, whereas dms flux computed above
-         ! is upwards positive - so need a different sign
-         dmsflux = -dtbgc*pflxdms(i,j)
-      else
          ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
+      else
+         ! Note that computed flux passed in is assumed to be
+         ! downwards positive, whereas dms flux computed above is
+         ! upwards positive - so need a different sign
+         dmsflux = -dtbgc*pflxdms(i,j)
       end if
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
 

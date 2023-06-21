@@ -510,6 +510,7 @@ contains
       else
          compute_flxdms = .true.
       end if
+      write(6,*)'DEBUG: compute_flxdms = ',compute_flxdms
 
       ! Determine if co2 will be imported from mediator
       call NUOPC_CompAttributeGet(gcomp, name='flds_co2a', value=cvalue, rc=rc)
