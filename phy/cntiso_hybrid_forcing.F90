@@ -31,7 +31,6 @@ subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
    use mod_swabs, only: swbgal, swbgfc, swamxd
    use mod_forcing, only: surflx, sswflx, salflx, brnflx, buoyfl, &
                           t_sw_nonloc, s_br_nonloc
-   use mod_diffusion, only: t_ns_nonloc, s_nb_nonloc
    use mod_cmnfld, only: mlts
    use mod_checksum, only: csdiag, chksummsk
 
@@ -184,10 +183,8 @@ subroutine cntiso_hybrid_forcing(m, n, mm, nn, k1m, k1n)
 
          ! Buoyancy flux at subsurface layer interfaces [cm2 s-3].
          do k = 2, kk+1
-            buoyfl(i,j,k) = - ( dsgdt*( t_ns_nonloc(i,j,k)*hfns &
-                                      + t_sw_nonloc(i,j,k)*hfsw)*cpi &
-                              + dsgds*( s_nb_nonloc(i,j,k)*sfnb &
-                                      + s_br_nonloc(i,j,k)*sfbr))*gaa
+            buoyfl(i,j,k) = - ( dsgdt*t_sw_nonloc(i,j,k)*hfsw*cpi &
+                              + dsgds*s_br_nonloc(i,j,k)*sfbr)*gaa
          enddo
 
       enddo

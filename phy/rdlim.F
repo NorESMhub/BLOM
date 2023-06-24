@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2008-2022 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
+! Copyright (C) 2008-2023 Mats Bentsen, Mehmet Ilicak, Ingo Bethke,
 !                         Ping-Gin Chiu, Aleksi Nummelin
 !
 ! This file is part of BLOM.
@@ -42,7 +42,10 @@ c
      .                      mdc2lo, vsc2hi, vsc2lo, vsc4hi, vsc4lo,
      .                      cbar, cb, mommth
       use mod_barotp, only: cwbdts, cwbdls
-      use mod_forcing, only: aptflx, apsflx, ditflx, disflx, scfile,
+      use mod_forcing, only: aptflx, apsflx, ditflx, disflx,
+     .                       scfile, 
+     .                       wavsrc, wavsrc_opt, wavsrc_none,
+     .                       wavsrc_param, wavsrc_extern,
      .                       trxday, srxday, trxdpt, srxdpt, trxlim,
      .                       srxlim, srxbal, sprfac
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
@@ -75,7 +78,8 @@ c
      .  rm0,rm5,ce,tdfile,niwgf,niwbf,niwlf,
      .  swamth,jwtype,chlopt,ccfile,
      .  trxday,srxday,trxdpt,srxdpt,trxlim,srxlim,
-     .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,smtfrc,sprfac,
+     .  aptflx,apsflx,ditflx,disflx,srxbal,scfile,
+     .  wavsrc,smtfrc,sprfac,
      .  atm_path,
      .  itest,jtest,
      .  cnsvdi,
@@ -160,6 +164,7 @@ c --- - print limits namelist to stdout
         write (lp,*) 'DISFLX',DISFLX
         write (lp,*) 'SRXBAL',SRXBAL
         write (lp,*) 'SCFILE ',trim(SCFILE)
+        write (lp,*) 'WAVSRC ',trim(WAVSRC)
         write (lp,*) 'SMTFRC',SMTFRC
         write (lp,*) 'SPRFAC',SPRFAC
         write (lp,*) 'ATM_PATH ',trim(ATM_PATH)
@@ -230,6 +235,7 @@ c
       call xcbcst(disflx)
       call xcbcst(srxbal)
       call xcbcst(scfile)
+      call xcbcst(wavsrc)
       call xcbcst(smtfrc)
       call xcbcst(sprfac)
       call xcbcst(atm_path)
@@ -241,6 +247,31 @@ c
       call xcbcst(rstfmt)
       call xcbcst(rstcmp)
       call xcbcst(iotype)
+c
+c --- resolve options
+      select case (trim(wavsrc))
+         case ('none')
+            wavsrc_opt = wavsrc_none
+         case ('param')
+            wavsrc_opt = wavsrc_param
+         case ('extern')
+            if (expcnf.ne.'cesm') then
+              if (mnproc == 1)
+     .           write (lp,'(3a)')
+     .              ' rdlim: wavsrc = ', trim(wavsrc),
+     .              ' is only supported for expcnf = cesm!'
+              call xcstop('(rdlim)')
+                     stop '(rdlim)'
+            endif
+            wavsrc_opt = wavsrc_extern
+         case default
+            if (mnproc == 1)
+     .         write (lp,'(3a)')
+     .            ' rdlim: wavsrc = ', trim(wavsrc),
+     .            ' is unsupported!'
+            call xcstop('(rdlim)')
+                   stop '(rdlim)'
+      end select
 c
 c --- read vertical coordinate namelist variables
       call readnml_vcoord
@@ -310,6 +341,20 @@ c --- - variables set in namelists
         if (srxday.eq.0.) then
           H2D_SALRLX(1:nphy)=0
         endif
+        select case (wavsrc_opt)
+          case (wavsrc_none)
+            H2D_LAMULT(1:nphy)=0
+            H2D_LASL(1:nphy)=0
+            H2D_USTOKES(1:nphy)=0
+            H2D_VSTOKES(1:nphy)=0
+          case (wavsrc_param)
+            if (vcoord_type_tag /= cntiso_hybrid) then
+              H2D_LAMULT(1:nphy)=0
+            endif
+            H2D_LASL(1:nphy)=0
+            H2D_USTOKES(1:nphy)=0
+            H2D_VSTOKES(1:nphy)=0
+        end select
 c
 c --- - print diaphy namelist
         write (lp,*)
@@ -333,6 +378,8 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_HSNW    ',H2D_HSNW(1:nphy)
         write (lp,*) 'H2D_IAGE    ',H2D_IAGE(1:nphy)
         write (lp,*) 'H2D_IDKEDT  ',H2D_IDKEDT(1:nphy)
+        write (lp,*) 'H2D_LAMULT  ',H2D_LAMULT(1:nphy)
+        write (lp,*) 'H2D_LASL    ',H2D_LASL(1:nphy)
         write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
         write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
         write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
@@ -377,8 +424,10 @@ c --- - print diaphy namelist
         write (lp,*) 'H2D_UICE    ',H2D_UICE(1:nphy)
         write (lp,*) 'H2D_USTAR   ',H2D_USTAR(1:nphy)
         write (lp,*) 'H2D_USTAR3  ',H2D_USTAR3(1:nphy)
+        write (lp,*) 'H2D_USTOKES ',H2D_USTOKES(1:nphy)
         write (lp,*) 'H2D_VB      ',H2D_VB(1:nphy)
         write (lp,*) 'H2D_VICE    ',H2D_VICE(1:nphy)
+        write (lp,*) 'H2D_VSTOKES ',H2D_VSTOKES(1:nphy)
         write (lp,*) 'H2D_ZTX     ',H2D_ZTX(1:nphy)
         write (lp,*) 'LYR_BFSQ    ',LYR_BFSQ(1:nphy)
         write (lp,*) 'LYR_DIFDIA  ',LYR_DIFDIA(1:nphy)
@@ -507,6 +556,8 @@ c
       call xcbcst(H2D_HSNW)
       call xcbcst(H2D_IAGE)
       call xcbcst(H2D_IDKEDT)
+      call xcbcst(H2D_LAMULT)
+      call xcbcst(H2D_LASL)
       call xcbcst(H2D_LIP)
       call xcbcst(H2D_MAXMLD)
       call xcbcst(H2D_MLD)
@@ -551,8 +602,10 @@ c
       call xcbcst(H2D_UICE)
       call xcbcst(H2D_USTAR)
       call xcbcst(H2D_USTAR3)
+      call xcbcst(H2D_USTOKES)
       call xcbcst(H2D_VB)
       call xcbcst(H2D_VICE)
+      call xcbcst(H2D_VSTOKES)
       call xcbcst(H2D_ZTX)
       call xcbcst(LYR_BFSQ)
       call xcbcst(LYR_DIFDIA)

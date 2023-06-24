@@ -73,6 +73,7 @@
 ! DISFLX   : Diagnose freshwater flux flag (l)
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
+! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
 ! SMTFRC   : Smooth CESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
@@ -140,11 +141,14 @@
   DISFLX   = .false.
   SRXBAL   = .false.
   SCFILE   = 'unset'
+  WAVSRC   = 'none'
   SMTFRC   = .false.
   SPRFAC   = .false.
   ATM_PATH = 'unset'
   ITEST    = 78
   JTEST    = 16
+  CNSVDI   = .false.
+  CSDIAG   = .false.
   RSTFRQ   = 1
   RSTFMT   = 1
   RSTCMP   = 1
@@ -194,6 +198,10 @@
 !            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
+!            boundary layer depth (l)
+! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
+!            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
 &DIFFUSION
@@ -219,6 +227,8 @@
   BDMC2    = .15
   BDMLDP   = .false.
   TKEPF    = 0.
+  SMOBLD   = .true.
+  LNGMTP   = 'none'
   LTEDTP   = 'layer'
 /
 
@@ -335,6 +345,8 @@
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
 !   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
+!   LAMULT   - Langmuir enhancement factor []
+!   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
@@ -379,8 +391,10 @@
 !   UICE     - ice velocity x-component [m s-1]
 !   USTAR    - friction velocity [m s-1]
 !   USTAR3   - friction velocity cubed [m3 s-3]
+!   USTOKES  - surface Stokes drift x-componen [m s-1]
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
+!   VSTOKES  - surface Stokes drift y-componen [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
 !   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
@@ -466,6 +480,8 @@
   H2D_HSNW     = 0,   0
   H2D_IAGE     = 0,   0
   H2D_IDKEDT   = 0,   4
+  H2D_LAMULT   = 0,   4
+  H2D_LASL     = 0,   4
   H2D_LIP      = 0,   0
   H2D_MAXMLD   = 4,   4
   H2D_MLD      = 0,   4
@@ -510,8 +526,10 @@
   H2D_UICE     = 0,   0
   H2D_USTAR    = 0,   0
   H2D_USTAR3   = 0,   0
+  H2D_USTOKES  = 0,   0
   H2D_VB       = 4,   4
   H2D_VICE     = 0,   0
+  H2D_VSTOKES  = 0,   0
   H2D_ZTX      = 0,   0
   LYR_BFSQ     = 0,   4
   LYR_DIFDIA   = 0,   4

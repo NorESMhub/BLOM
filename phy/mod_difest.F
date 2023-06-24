@@ -32,17 +32,21 @@ c
       use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
-     .                         egidfq, rhiscf, ri0, bdmc1, bdmc2, tkepf,
-     .                         bdmtyp, eddf2d, edsprs, edanis, redi3d,
-     .                         rhsctp, bdmldp, edritp_opt, edritp_shear,
+     .                         egidfq, rhiscf, ri0, bdmc1, bdmc2,
+     .                         bdmldp, tkepf, bdmtyp, eddf2d, edsprs,
+     .                         edanis, redi3d, rhsctp, smobld, lngmtp,
+     .                         edritp_opt, edritp_shear,
      .                         edritp_large_scale, edwmth_opt,
      .                         edwmth_smooth, edwmth_step,
      .                         difint, difiso, difdia, difmxp, difwgt,
      .                         Kvisc_m, Kdiff_t, Kdiff_s, 
-     .                         t_ns_nonloc, s_nb_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc,
+     .                         mu_nonloc, mv_nonloc
       use mod_cmnfld, only: bfsqi, nnslpx, nnslpy, mlts
-      use mod_forcing, only: ustar, ustarb, ustar3, buoyfl, t_sw_nonloc
-     .                       , surflx, sswflx, salflx
+      use mod_forcing, only: wavsrc_opt, wavsrc_param,
+     .                       abswnd, lamult, lasl,
+     .                       ustar, ustarb, ustar3,
+     .                       buoyfl, t_sw_nonloc, surflx, sswflx, salflx
       use mod_tidaldissip, only: twedon
       use mod_niw, only: niwgf, niwbf, niwlf, idkedt, niw_ke_tendency
       use mod_seaice, only: ficem
@@ -54,6 +58,7 @@ c
       use CVMix_kpp, only : CVMix_kpp_compute_OBL_depth
       use CVMix_kpp, only : CVmix_kpp_compute_unresolved_shear
       use CVMix_kpp, only : CVMix_kpp_compute_kOBL_depth
+      use CVMix_kpp, only : cvmix_kpp_EFactor_model
       use CVMix_shear, only : CVMix_init_shear, CVMix_coeffs_shear
       use CVMix_background, only : CVMix_init_bkgnd, CVMix_coeffs_bkgnd
       use CVMix_convection, only : CVMix_init_conv, CVMix_coeffs_conv
@@ -196,6 +201,9 @@ c ---            [cm/s].
      .           cpsemin=-0.2*L_mks2cgs,urmsemin=0.05*L_mks2cgs,
      .           as=-28.86,cs=98.96,minOBLdepth=1.0)
 c
+      character(len = 16) ::
+     .  langmuir_mixing_opt, langmuir_entrainment_opt
+c
       public :: OBLdepth, inivar_difest, init_difest, difest_isobml,
      .          difest_lateral_hybrid, difest_vertical_hybrid, hOBL
 c
@@ -241,6 +249,34 @@ c --- ------------------------------------------------------------------
 c
       integer :: i,j,l
 c
+      select case (lngmtp)
+        case ('none')
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'no Langmuir turbulence parameterization'
+          endif
+          langmuir_mixing_opt      = 'NONE'
+          langmuir_entrainment_opt = 'NONE'
+        case ('vr12-ma')
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'Langmuir param. type: vr12-ma    '
+          endif
+          langmuir_mixing_opt      = 'LWF16'
+          langmuir_entrainment_opt = 'LWF16'
+        case ('lf17')
+          if (mnproc.eq.1) then
+            write (lp,'(a38)') 'Langmuir param. type: lf17       '
+          endif
+          langmuir_mixing_opt      = 'LWF16'
+          langmuir_entrainment_opt = 'LF17'
+        case default
+          if (mnproc.eq.1) then
+            write (lp,'(3a)') "Error: '", trim(lngmtp),
+     ."' is not a valid type of Langmuir turbulence parameterization"
+          endif
+          call xcstop('(init_difest)')
+                 stop '(init_difest)'
+      end select
+c
 c -- ------- Background diapycnal mixing.
 c         The Bryan-Lewis parameterization is based on the following:
 c         \begin{eqnarray*}
@@ -261,6 +297,7 @@ c --- ------ convert nuls0 to m2/s
           call CVMix_put(CVMix_glb_params,'Prandtl',1.0)
           call CVMix_put(CVMix_glb_params,'FreshWaterDensity',1000.0)
           call CVMix_put(CVMix_glb_params,'SaltWaterDensity',1025.0)
+          call CVMix_put(CVMix_glb_params,'Gravity',g*iL_mks2cgs)
           call cvmix_init_shear(mix_scheme='KPP',
      .                           KPP_nu_zero=nus0*A_cgs2mks,
      .                           KPP_Ri_zero=ri0,
@@ -279,6 +316,8 @@ c    .          MatchTechnique='SimpleShapes',
 c    .          lenhanced_diff=.true.,
 c    .          lnonzero_surf_nonlocal=.false.  ,
 c    .          lnoDGat1=.true.                 ,
+c    .          Langmuir_mixing_str=Langmuir_mixing_str,
+c    .          Langmuir_entrainment_str=Langmuir_entrainment_str,
 c    .          CVMix_kpp_params_user=KPP_params )
 c         call CVMix_init_kpp(Ri_crit=0.3,
 c    .          minOBLdepth=minOBLdepth,
@@ -293,6 +332,8 @@ c    .          MatchTechnique='MatchGradient',
 c    .          lenhanced_diff=.true.,
 c    .          lnonzero_surf_nonlocal=.false.  ,
 c    .          lnoDGat1=.false.                 ,
+c    .          Langmuir_mixing_str=Langmuir_mixing_str,
+c    .          Langmuir_entrainment_str=Langmuir_entrainment_str,
 c    .          CVMix_kpp_params_user=KPP_params )
           call CVMix_init_kpp(Ri_crit=0.3,
      .          minOBLdepth=minOBLdepth,
@@ -307,6 +348,8 @@ c    .          CVMix_kpp_params_user=KPP_params )
      .          lenhanced_diff=.true.,
      .          lnonzero_surf_nonlocal=.true.  ,
      .          lnoDGat1=.true.                 ,
+     .          Langmuir_mixing_str=langmuir_mixing_opt,
+     .          Langmuir_entrainment_str=langmuir_entrainment_opt,
      .          CVMix_kpp_params_user=KPP_params )
 c
 c$OMP PARALLEL DO PRIVATE(l,i)
@@ -587,6 +630,9 @@ c$OMP PARALLEL DO PRIVATE(l,i,klpl,k,kn,q)
           enddo
           enddo
         enddo
+        do i=1,ii
+          mskv(i,j,1)=iv(i,j)
+        enddo
         do k=2,kk
           do i=1,ii
             dv2(i,j,k)=0.
@@ -622,6 +668,9 @@ c ----- Compute squared vertical velocity difference of u-component
             if (dpu(i,j,kn).gt.dpbmin) klpl(i)=k
           enddo
           enddo
+        enddo
+        do i=1,ii+1
+          msku(i,j,1)=iu(i,j)
         enddo
         do k=2,kk
           do i=1,ii+1
@@ -836,8 +885,6 @@ c --- ------------------------------------------------------------------
 c
       integer m,n,mm,nn,k1m,k1n
 c
-      integer i,j,k,l,kn
-c
 c --- ------------------------------------------------------------------
 c --- update halos of various fields
 c --- ------------------------------------------------------------------
@@ -874,6 +921,8 @@ c
       real q
 c
       type(CVMix_tidal_params_type)   :: CVMix_tidal_params
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z_int
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: z_mid
       real, dimension(kdm+1) :: depth_int
       real, dimension(kdm+1) :: Kv_col, Kd_col ! background visc/diff
       real, dimension(kdm+1) :: Kv_shr, Kd_shr ! shear driven visc/diff
@@ -905,6 +954,7 @@ c
       real :: SLdepth_0d, hTot
       real :: Simmons_coeff, zBottomMinusOffset
       real :: bl1, bl2, bl3, bl4
+      real :: ws, ww, we, wn, wc
       integer ki, ksfc, ktmp, kOBL, kn1
 c
       surf_layer_ext = 0.1
@@ -912,6 +962,25 @@ c
       bl2 = 1.05e-4
       bl3 = 4.5e-3
       bl4 = 2500.0
+
+c --- Obtain interface and cell heights.
+      do j=0,jj+1
+        do l=1,isp(j)
+        do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+          z_int(i,j,1) = -p(i,j,1)/onem
+          hcorr = 0.
+          do k=1,kk
+            kn = k + nn
+            dh = dp(i,j,kn)/onem
+            dh = dh + hcorr ! Take away the accumulated error (could temporarily make dh<0)
+            hcorr = min(dh - 1e-10, 0.) ! If inflating then hcorr<0
+            dh = max(dh, 1e-10) ! Limit increment  dh>=min_thicknes
+            z_mid(i,j,k) = z_int(i,j,k) - 0.5 * dh
+            z_int(i,j,k+1) = z_int(i,j,k) - dh
+          enddo
+        enddo
+        enddo
+      enddo
 c
 c single column diffusivity
       do j=1,jj
@@ -920,60 +989,23 @@ c single column diffusivity
 c
 c -- ------- CVMix variables computed below
 c
-             surfBuoyFlux2 = 0.0
+             surfBuoyFlux2(:) = 0.0
              surfBuoyFlux = 0.0
-c             Ws_1d = 0.0
-             bvfbot    = 0.
-             dps       = 0.
-             depth_int = 0.
-             hcorr     = 0.
-             Kv_col    = 0.
-             Kd_col    = 0.
-             vert_dep  = 0.
-             Kv_tidal  = 0.
-             Kd_tidal  = 0.
-             Kv_conv   = 0.
-             Kd_conv   = 0.
-             Kv_shr    = 0.
-             Kd_shr    = 0.
-             iFaceHeight = 0.
-             cellHeight = 0.
-             bvfsq_i   = 0.
-             rho_lwr(:)= drho0
-             rho_zeros(:)= 0.
-             rho_1d    = 0.
-             nonLocalTrans(:,:) = 0.0
-             rig_i = 1.e8 !Initialize w/ large Richardson value
-             Kv_kpp = 0.0
-             Kt_kpp = 0.0
-             Ks_kpp = 0.0
-             do k=1,kk+1
-                 Kv_kpp(k) = Kvisc_m(i,j,k)*A_cgs2mks
-                 Kt_kpp(k) = Kdiff_t(i,j,k)*A_cgs2mks
-                 Ks_kpp(k) = Kdiff_s(i,j,k)*A_cgs2mks
-             enddo
-             depth_int(1) = p(i,j,1)/onem
-             iFaceHeight(1) = -depth_int(1)
+             iFaceHeight(:) = 0.
+             cellHeight(:) = 0.
+             rho_1d(:)    = 0.
+             rig_i(:) = 1.e8 !Initialize w/ large Richardson value
+
+             iFaceHeight(1) = z_int(i,j,1)
              ! convert cm/s to m/s
              surfFricVel = ustar(i,j) * iL_mks2cgs
              ! convert cm2/s3 to m2/s3
-             surfBuoyFlux = - buoyfl(i,j,1) * A_cgs2mks
+             surfBuoyFlux = (buoyfl(i,j,2) - buoyfl(i,j,1)) * A_cgs2mks
              do k=1,kk
                 kn = k + nn
                 kn1 = max(nn+1,kn-1)
-                ! Old method to compute interface location, thicknesses
-c                depth_int(k+1) = p(i,j,k+1)/onem
-c                iFaceHeight(k+1) = -depth_int(k+1)
-c                cellHeight(k) = 0.5*(iFaceHeight(k+1) +
-c     .                                  iFaceHeight(k))
-                ! New method to compute interface location, thicknesses
-                dh = dp(i,j,kn)/onem
-                dh = dh + hcorr ! Take away the accumulated error (could temporarily make dh<0)
-                hcorr = min(dh - 1e-10, 0.) ! If inflating then hcorr<0
-                dh = max(dh, 1e-10) ! Limit increment  dh>=min_thicknes
-                cellHeight(k) = iFaceHeight(k) - 0.5 * dh
-                iFaceHeight(k+1) = iFaceHeight(k) - dh
-                depth_int(k+1) = -iFaceHeight(k+1)
+                cellHeight(k) = z_mid(i,j,k)
+                iFaceHeight(k+1) = z_int(i,j,k+1)
 
                 ! compute rho_1d at the interfaces
                 rho_1d(k)=rho(p(i,j,k),temp(i,j,kn),saln(i,j,kn))
@@ -1026,6 +1058,161 @@ c     .                                  iFaceHeight(k))
 
                 ! XXX: Temporary de-scaling of N2_int(i,:) into a
                 ! temporary variable
+                bvf_i(k) = sqrt( max( bfsqi(i,j,k), 0.) )
+
+c --- ------- Local gradient Richardson number
+                rig_i(k)=rig(i,j,k)
+
+                surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) 
+     .                             - buoyfl(i,j,1  )) * A_cgs2mks
+c
+             enddo  ! k
+             ! convert cm2/s2 to m2/s2
+             deltaU2 = deltaU2*A_cgs2mks
+
+             ! bottom values for the Ri and N
+             rig_i(kk+1) = rig_i(kk)
+             bvf_i(kk+1) = sqrt( max( bfsqi(i,j,kk+1), 0.) )
+
+c --- ------ turbulent velocity scales w_s and w_m computed at the cell
+c --- ------ centers.
+             call CVMix_kpp_compute_turbulent_scales(
+     .              surf_layer_ext, ! (in)  Normalized surface layer Cdepth; sigma = CS%surf_layer_ext
+     .              -cellHeight(:),    ! (in)  Assume here that OBL depth [m] = -cellHeight(k)
+     .              surfBuoyFlux2(:),  ! (in)  Buoyancy flux at surface [m2 s-3]
+     .              surfFricVel,       ! (in)  Turbulent friction  velocity at surface [m s-1]
+     .              w_s=Ws_1d(:),      ! (out) Turbulent velocity scale profile [m s-1]
+     .              CVMix_kpp_params_user=KPP_params)
+
+             if (wavsrc_opt == wavsrc_param) then
+               lamult(i,j) = cvmix_kpp_EFactor_model(
+     .                         abswnd(i,j),
+     .                         surfFricVel,
+     .                         OBLdepth(i,j),
+     .                         CVMix_glb_params)
+               lamult(i,j) = lamult(i,j)*(1. - ficem(i,j)) + ficem(i,j)
+             endif
+
+             ! Compute unresolved shear for CVMix
+             VT2(:) = CVmix_kpp_compute_unresolved_shear(
+     .                 zt_cntr=cellHeight(:),! Depth ofcell center [m]
+     .                 ws_cntr=Ws_1d(:),     ! Turbulent velocity scale profile, at centers [m s-1]
+     .                 N_iface=bvf_i(:),     ! Buoyancy frequency at the interface [s-1]
+     .                 EFactor=lamult(i,j),  ! Langmuir enhancement factor []
+     .                 LaSL=lasl(i,j),       ! Surface layer averaged Langmuir number []
+     .                 bfsfc=surfBuoyFlux,   ! Surface buoyancy flux [m2 s-3]
+     .                 ustar=surfFricVel,    ! Friction velocity []
+     .                 CVMix_kpp_params_user=KPP_params)
+
+             ! Calculate Bulk Richardson number from eq (21) of LMD94
+             BulkRi_1d(:) = CVmix_kpp_compute_bulk_Richardson(
+     .              zt_cntr = cellHeight(:),                 ! Depth of cell  center [m]
+     .              delta_buoy_cntr=g*alpha0*deltaRho(:)*iL_mks2cgs,  ! Bulk buoyancy difference, Br-B(z) [m s-2]
+     .              delta_Vsqr_cntr=deltaU2(:),              ! Square of resolved velocity difference [m2 s-2]
+     .              Vt_sqr_cntr=VT2(:),                      ! Unresolved shear [m2 s-2]
+     .              ws_cntr=Ws_1d(:),                        ! Turbulent velocity scale profile [m s-1]
+     .              N_iface=bvf_i(:),                        ! Buoyancy frequency at the interface [s-1]
+     .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
+
+             ! Compute OBL depth for KPP
+             call CVMix_kpp_compute_OBL_depth(
+     .              BulkRi_1d(:),           ! (in) Bulk Richardson number
+     .              iFaceHeight(:),         ! (in)  Height of interfaces [m]
+     .              OBLdepth(i,j),          ! (out) OBL depth [m]
+     .              hOBL(i,j),              ! (out) level (+fraction) of OBL extent
+     .              zt_cntr = cellHeight(:),! Depth of cell  center [m]
+     .              surf_fric=surfFricVel,  ! (in)  Turbulent friction  velocity at surface [m s-1]
+     .              surf_buoy=surfBuoyFlux, ! (in) Buoyancy flux at surface [m2 s-3]
+     .              Coriolis=coriop(i,j),   ! (in) Coriolis parameter [s-1]
+     .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
+
+             ! Avoid KPP reaching bottom
+             zBottomMinusOffset = iFaceHeight(kk+1)
+     .                          + min(1.0,-0.1*iFaceHeight(kk+1))
+             OBLdepth(i,j) = min(OBLdepth(i,j), -zBottomMinusOffset)
+             ! no shallower than top layer
+             OBLdepth(i,j) = max(OBLdepth(i,j), -iFaceHeight(2))
+             ! no deeper than bottom
+             OBLdepth(i,j) = min(OBLdepth(i,j), -iFaceHeight(kk+1))
+
+        enddo
+        enddo
+      enddo
+c
+      if (smobld) then
+c
+c --- -- Smooth OBLdepth
+        call xctilr(OBLdepth, 1,1, 2,2, halo_ps)
+        util1(:,:) = OBLdepth(:,:)
+        do j=0,jj+1
+          do l=1,isp(j)
+          do i=max(0,ifp(j,l)),min(ii+1,ilp(j,l))
+            ws = .125*ip(i  ,j-1)
+            ww = .125*ip(i-1,j  )
+            we = .125*ip(i+1,j  )
+            wn = .125*ip(i  ,j+1)
+            wc = 1. - (ws + ww + we + wn)
+            OBLdepth(i,j) = ws*util1(i  ,j-1)
+     .                    + ww*util1(i-1,j  )
+     .                    + wc*util1(i  ,j  )
+     .                    + we*util1(i+1,j  )
+     .                    + wn*util1(i  ,j+1)
+            OBLdepth(i,j) = min(OBLdepth(i,j), -z_int(i,j,kk+1))
+          enddo
+          enddo
+        enddo
+      else
+        call xctilr(OBLdepth, 1,1, 1,1, halo_ps)
+      endif
+c
+      do j=1,jj
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+c
+c -- ------- CVMix variables computed below
+c
+             surfBuoyFlux = 0.0
+             bvfbot    = 0.
+             dps       = 0.
+             depth_int(:) = 0.
+             Kv_col(:)    = 0.
+             Kd_col(:)    = 0.
+             vert_dep(:)  = 0.
+             Kv_tidal(:)  = 0.
+             Kd_tidal(:)  = 0.
+             Kv_conv(:)   = 0.
+             Kd_conv(:)   = 0.
+             Kv_shr(:)    = 0.
+             Kd_shr(:)    = 0.
+             iFaceHeight(:) = 0.
+             cellHeight(:) = 0.
+             bvfsq_i(:)   = 0.
+             rho_lwr(:)= drho0
+             rho_zeros(:)= 0.
+             nonLocalTrans(:,:) = 0.0
+             rig_i(:) = 1.e8 !Initialize w/ large Richardson value
+             Kv_kpp(:) = 0.0
+             Kt_kpp(:) = 0.0
+             Ks_kpp(:) = 0.0
+             do k=1,kk+1
+                 Kv_kpp(k) = Kvisc_m(i,j,k)*A_cgs2mks
+                 Kt_kpp(k) = Kdiff_t(i,j,k)*A_cgs2mks
+                 Ks_kpp(k) = Kdiff_s(i,j,k)*A_cgs2mks
+             enddo
+             iFaceHeight(1) = z_int(i,j,1)
+             ! convert cm/s to m/s
+             depth_int(1) = -iFaceHeight(1)
+             surfFricVel = ustar(i,j) * iL_mks2cgs
+             ! convert cm2/s3 to m2/s3
+
+             do k=1,kk
+                kn=k+nn
+                cellHeight(k) = z_mid(i,j,k)
+                iFaceHeight(k+1) = z_int(i,j,k+1)
+                depth_int(k+1) = -iFaceHeight(k+1)
+
+                ! XXX: Temporary de-scaling of N2_int(i,:) into a
+                ! temporary variable
                 bvfsq_i(k) = bfsqi(i,j,k)
                 bvf_i(k) = sqrt( max( bvfsq_i(k), 0.) )
 c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
@@ -1039,18 +1226,17 @@ c --- ------- bottom
 c --- ------- Local gradient Richardson number
                 rig_i(k)=rig(i,j,k)
 
-                surfBuoyFlux2(k) = ( buoyfl(i,j,k+1) 
-     .                             - buoyfl(i,j,1  )) * A_cgs2mks
-c
              enddo  ! k
-             if(dps.gt.0.) bvfbot=bvfbot/dps
-             ! convert cm2/s2 to m2/s2
-             deltaU2 = deltaU2*A_cgs2mks
 
-             ! bottom values for the Ri, N2, and N
+             if(dps.gt.0.) bvfbot=bvfbot/dps
+
+             ! bottom values for the Ri and N2
              rig_i(kk+1) = rig_i(kk)
              bvfsq_i(kk+1) = bfsqi(i,j,kk+1)
-             bvf_i(kk+1) = sqrt( max( bvfsq_i(kk+1), 0.) )
+
+             ! gets index of the level and interface above hbl
+             hOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight(:),
+     .                               cellHeight(:),OBLdepth(i,j))
 
 c -- ------- Background diapycnal mixing.
              if (bdmtyp.eq.1) then
@@ -1058,8 +1244,8 @@ c zw interface depths relative to the surface in m, must be positive.
                call CVMix_init_bkgnd(max_nlev=kk, zw = depth_int(:),
      .                   bl1 = bl1, bl2 = bl2, bl3 = bl3, bl4 = bl4,
      .                   prandtl = CVMix_glb_params%Prandtl)
-               call CVMix_coeffs_bkgnd(Mdiff_out=Kv_col,
-     .                          Tdiff_out=Kd_col, nlev=kk, max_nlev=kk)
+               call CVMix_coeffs_bkgnd(Mdiff_out=Kv_col(:),
+     .                   Tdiff_out=Kd_col(:), nlev=kk, max_nlev=kk)
              elseif (bdmtyp.eq.2) then
 c --- --------- Type 2: Background diffusivity is a constant
              ! convert cm2/s2 to m2/s2
@@ -1092,21 +1278,22 @@ c
                call CVMix_compute_Simmons_invariant(nlev=kk,
      .                energy_flux=twedon(i,j)*bvfbot*iM_mks2cgs,
      .                rho=CVMix_glb_params%FreshWaterDensity,
-     .                SimmonsCoeff = Simmons_coeff, VertDep = vert_dep,
-     .                zw = iFaceHeight, zt = cellHeight,
+     .                SimmonsCoeff = Simmons_coeff,
+     .                VertDep = vert_dep(:),
+     .                zw = iFaceHeight(:), zt = cellHeight(:),
      .                CVmix_tidal_params_user=CVMix_tidal_params)
 
 
-               call CVMix_coeffs_tidal(Mdiff_out=Kv_tidal,
-     .                Tdiff_out=Kd_tidal, Nsqr = bvfsq_i,
+               call CVMix_coeffs_tidal(Mdiff_out=Kv_tidal(:),
+     .                Tdiff_out=Kd_tidal(:), Nsqr = bvfsq_i(:),
      .                OceanDepth = -iFaceHeight(kk+1),
      .                SimmonsCoeff = Simmons_coeff,
-     .                vert_dep = vert_dep,
+     .                vert_dep = vert_dep(:),
      .                nlev=kk, max_nlev=kk,
      .                cvmix_params = CVMix_glb_params,
      .                CVmix_tidal_params_user=CVMix_tidal_params)
              else
-               Kd_tidal=0.
+               Kd_tidal(:)=0.
              endif
 
 ! Call to CVMix wrapper for computing interior mixing coefficients.
@@ -1116,67 +1303,15 @@ c
      .                                nlev=kk,
      .                                max_nlev=kk)
 
-
-c --- ------ turbulent velocity scales w_s and w_m computed at the cell
-c --- ------ centers.
-             call CVMix_kpp_compute_turbulent_scales(
-     .              surf_layer_ext, ! (in)  Normalized surface layer Cdepth; sigma = CS%surf_layer_ext
-     .              -cellHeight,       ! (in)  Assume here that OBL depth [m] = -cellHeight(k)
-     .              surfBuoyFlux2,     ! (in)  Buoyancy flux at surface [m2 s-3]
-     .              surfFricVel,       ! (in)  Turbulent friction  velocity at surface [m s-1]
-     .              w_s=Ws_1d,         ! (out) Turbulent velocity scale profile [m s-1]
-     .              CVMix_kpp_params_user=KPP_params)
-
-             ! Compute unresolved shear for CVMix
-             VT2(:) = CVmix_kpp_compute_unresolved_shear(
-     .                 zt_cntr=cellHeight,   ! Depth ofcell center [m]
-     .                 ws_cntr=Ws_1d,        ! Turbulent velocity scale profile, at centers [m s-1]
-     .                 N_iface=bvf_i,        ! Buoyancy frequency at the interface [s-1]
-     .                 CVMix_kpp_params_user=KPP_params)
-
-             ! Calculate Bulk Richardson number from eq (21) of LMD94
-             BulkRi_1d = CVmix_kpp_compute_bulk_Richardson(
-     .              zt_cntr = cellHeight,                    ! Depth of cell  center [m]
-     .              delta_buoy_cntr=g*alpha0*deltaRho*iL_mks2cgs,  ! Bulk buoyancy difference, Br-B(z) [m s-2]
-     .              delta_Vsqr_cntr=deltaU2,                 ! Square of resolved velocity difference [m2 s-2]
-     .              Vt_sqr_cntr=VT2(:),                      ! Unresolved shear [m2 s-2]
-     .              ws_cntr=Ws_1d,                           ! Turbulent velocity scale profile [m s-1]
-     .              N_iface=bvf_i,                           ! Buoyancy frequency at the interface [s-1]
-     .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
-
-             ! Compute OBL depth for KPP
-             call CVMix_kpp_compute_OBL_depth(
-     .              BulkRi_1d,              ! (in) Bulk Richardson number
-     .              iFaceHeight,            ! (in)  Height of interfaces [m]
-     .              OBLdepth(i,j),          ! (out) OBL depth [m]
-     .              hOBL(i,j),              ! (out) level (+fraction) of OBL extent
-     .              zt_cntr = cellHeight,   ! Depth of cell  center [m]
-     .              surf_fric=surfFricVel,  ! (in)  Turbulent friction  velocity at surface [m s-1]
-     .              surf_buoy=surfBuoyFlux, ! (in) Buoyancy flux at surface [m2 s-3]
-     .              Coriolis=coriop(i,j),   ! (in) Coriolis parameter [s-1]
-     .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
-
-             ! Avoid KPP reaching bottom
-             zBottomMinusOffset = iFaceHeight(kk+1)
-     .                          + min(1.0,-0.1*iFaceHeight(kk+1))
-             OBLdepth(i,j) = min(OBLdepth(i,j), -zBottomMinusOffset)
-             ! no shallower than top layer
-             OBLdepth(i,j) = max(OBLdepth(i,j), -iFaceHeight(2))
-             ! no deeper than bottom
-             OBLdepth(i,j) = min(OBLdepth(i,j), -iFaceHeight(kk+1))
-             ! gets index of the level and interface above hbl
-             hOBL(i,j) = CVMix_kpp_compute_kOBL_depth(iFaceHeight,
-     .                               cellHeight,OBLdepth(i,j))
-
              ! gets index of the level and interface above hbl
              kOBL = int(hOBL(i,j))    ! index of interface above OBL depth
 
 c --- ------ Diapycnal mixing when local stability is weak
 c --- ------ convection routine based on N2 not rho
 c --- ------ make sure it is in metrics if stability depends on rho
-             call CVMix_coeffs_conv(Mdiff_out=Kv_conv,
-     .                        Tdiff_out=Kd_conv, Nsqr = bvfsq_i,
-     .                        dens=rho_zeros,dens_lwr=rho_lwr,
+             call CVMix_coeffs_conv(Mdiff_out=Kv_conv(:),
+     .                        Tdiff_out=Kd_conv(:), Nsqr = bvfsq_i(:),
+     .                        dens=rho_zeros(:),dens_lwr=rho_lwr(:),
      .                        nlev=kk, max_nlev=kk,
      .                        OBL_ind=kOBL)
              ! Do not apply mixing due to convection within the boundary layer
@@ -1198,8 +1333,8 @@ c --- ------ make sure it is in metrics if stability depends on rho
              call CVMix_coeffs_kpp(Kv_kpp(:),          ! (inout) Total viscosity [m2 s-1]
      .              Kt_kpp(:),                         ! (inout) Total temp diffusivity [m2 s-1]
      .              Ks_kpp(:),                         ! (inout) Total salt  diffusivity [m2 s-1]
-     .              iFaceHeight,                       ! (in)  Height of interfaces [m]
-     .              cellHeight,                        ! (in)   Height of level centers [m]
+     .              iFaceHeight(:),                    ! (in)  Height of interfaces [m]
+     .              cellHeight(:),                     ! (in)   Height of level centers [m]
      .              Kv_kpp(:),                         ! (in) Original viscosity [m2 s-1]
      .              Kt_kpp(:),                         ! (in) Original temp diffusivity [m2 s-1]
      .              Ks_kpp(:),                         ! (in) Original salt  diffusivity [m2 s-1]
@@ -1211,6 +1346,7 @@ c --- ------ make sure it is in metrics if stability depends on rho
      .              surfBuoyFlux,                      ! (in) Buoyancy flux at surface [m2 s-3]
      .              kk,                                ! (in) Number of levels to compute coeffs for
      .              kk,                                ! (in) Number of levels in array shape
+     .              lamult(i,j),                       ! (in) Langmuir enhancement factor []
      .              CVMix_kpp_params_user=KPP_params ) ! KPP parameters
 
 c ---- ccc -------
@@ -1237,6 +1373,37 @@ c end of single column
 c
       enddo ! j-index
 c
+      do j = 1, jj
+        do l = 1, isu(j)
+        do i = max(1, ifu(j,l)), min(ii, ilu(j,l))
+          dps = 0.
+          do k = 2, kk+1
+            dps = dps + dpu(i,j,k-1+mm)
+            q = 2.*dps/((OBLdepth(i-1,j) + OBLdepth(i,j))*onem)
+            if (q.lt.1.) then
+              mu_nonloc(i,j,k) = (1. - q)**2
+            else
+              mu_nonloc(i,j,k) = 0.
+            endif
+          enddo
+        enddo
+        enddo
+        do l = 1, isv(j)
+        do i = max(1, ifv(j,l)), min(ii, ilv(j,l))
+          dps = 0.
+          do k = 2, kk+1
+            dps = dps + dpv(i,j,k-1+mm)
+            q = 2.*dps/((OBLdepth(i,j-1) + OBLdepth(i,j))*onem)
+            if (q.lt.1.) then
+              mv_nonloc(i,j,k) = (1. - q)**2
+            else
+              mv_nonloc(i,j,k) = 0.
+            endif
+          enddo
+        enddo
+        enddo
+      enddo
+c
       if (csdiag) then
         if (mnproc.eq.1) then
           write (lp,*) 'difest_vertical_hyb:'
@@ -1246,6 +1413,8 @@ c
         call chksummsk(Kdiff_s,ip,kk+1,'Kdiff_s')
         call chksummsk(t_ns_nonloc,ip,kk+1,'t_ns_nonloc')
         call chksummsk(s_nb_nonloc,ip,kk+1,'s_nb_nonloc')
+        call chksummsk(mu_nonloc,iu,kk+1,'mu_nonloc')
+        call chksummsk(mv_nonloc,iv,kk+1,'mv_nonloc')
       endif
 c
       end subroutine difest_vertical_hyb
