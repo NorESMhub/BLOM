@@ -21,8 +21,8 @@
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
                             dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo, &
-                            compute_flxdms)
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -129,13 +129,8 @@
       REAL,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      logical, intent(in)  :: compute_flxdms
 
-      ! NOTE:
-      ! If compute_flxdms is .true. then pflxdms will be computed in
-      ! carch.F90 and will be intent(out)
-      ! If compute_flxdms is .false. then pflxdms is obtained
-      ! externally to blom and therefore will be intent(in)  
+      ! If pflxdms is obtained externally to blom and therefore will be intent(in)  
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
@@ -276,7 +271,7 @@
 
       CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
                   psicomo,ppao,pfu10,ptho,psao,&
-                  pflxdms,compute_flxdms)
+                  pflxdms)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN

@@ -27,7 +27,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mod_grid,       only: plat
   use mod_state,      only: temp,saln
   use mod_forcing,    only: swa,slp,abswnd,atmco2,flxco2,flxdms,                &
-       &                    atmbrf,flxbrf,compute_flxdms 
+       &                    atmbrf,flxbrf
   use mod_seaice,     only: ficem
   use mo_bgcmean,     only: nbgc,bgcwrt, diagfq_bgc,diagmon_bgc,                &
        &                    diagann_bgc
@@ -75,7 +75,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
        &   dust,rivflx,ndep,oafx,pi_ph,                                         &
        &   swa,ficem,slp,abswnd,                                                &
        &   temp(1-nbdy,1-nbdy,1+nn),saln(1-nbdy,1-nbdy,1+nn),                   &
-       &   atmco2,flxco2,flxdms,atmbrf,flxbrf,compute_flxdms)
+       &   atmco2,flxco2,flxdms,atmbrf,flxbrf)
 
   !
   ! --- accumulate fields and write output

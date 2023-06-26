@@ -21,7 +21,7 @@
       SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
                         psicomo,ppao,pfu10,ptho,psao,                         &
-                        pflxdms,compute_flxdms)
+                        pflxdms)
 !******************************************************************************
 !
 !**** *CARCHM* - .
@@ -100,7 +100,7 @@
                                 pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
                               & oxyco,tzero
-      use mo_control_bgc, only: dtbgc
+      use mo_control_bgc, only: dtbgc, do_bgc_aofluxes
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
                               & isco212,isilica
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
@@ -135,7 +135,6 @@
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      LOGICAL, intent(in) :: compute_flxdms
 
       ! Local variables
       INTEGER :: i,j,k,l,js
@@ -477,7 +476,7 @@
 #endif
 
 ! Surface flux of dms
-      if (compute_flxdms) then
+      if (do_bgc_aofluxes) then
          ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
       else
