@@ -78,11 +78,9 @@
       use mo_param1_bgc,  only: inos
       use mo_control_bgc, only: dtb
 #endif
-#ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
       use mo_biomod,      only: int_chbr3_prod,int_chbr3_uv
       use mo_bgcmean,     only: jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo
-#endif
 #ifdef CFC
       use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
       use mo_bgcmean,     only: jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx
@@ -208,10 +206,8 @@
 #ifdef natDIC
       call accsrf(jnatco2fx,atmflx(1,1,iatmnco2),omask,0)
 #endif
-#ifdef BROMO
       call accsrf(jatmbromo,atm(1,1,iatmbromo),omask,0)
       call accsrf(jbromofx,atmflx(1,1,iatmbromo),omask,0)
-#endif
 #ifdef cisonew
       call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
       call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
@@ -259,11 +255,9 @@
       call accsrf(jnatpco2,natpco2d,omask,0)
       call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
 #endif
-#ifdef BROMO
       call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
       call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
       call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
-#endif
 
 ! Accumulate fluxes due to N-deposition, ocean alkalinization
       call accsrf(jndepfx,ndepflx,omask,0)    
@@ -362,9 +356,7 @@
       call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
       call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
 #endif
-#ifdef BROMO
       call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
-#endif
 
 
 ! Accumulate level diagnostics
@@ -437,9 +429,7 @@
           call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
           call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
 #endif
-#ifdef BROMO
           call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
-#endif
         ENDDO
       ENDIF
 

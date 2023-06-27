@@ -112,9 +112,7 @@
 #ifdef BOXATM
       use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
 #endif
-#ifdef BROMO
       use mo_param1_bgc,  only: ibromo
-#endif
 #ifdef CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
@@ -574,10 +572,8 @@
      &    6,'mol/kg',25,'Natural calcium carbonate',                    &
      &    rmissing,52,io_stdo_bgc)
 #endif
-#ifdef BROMO
       CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
-#endif
 
 !
 ! Define variables : diagnostic ocean fields
@@ -858,9 +854,7 @@
       CALL write_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0)
       CALL write_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0)
 #endif
-#ifdef BROMO
       CALL write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
-#endif
 
 !
 ! Write restart data : diagtnostic ocean fields
