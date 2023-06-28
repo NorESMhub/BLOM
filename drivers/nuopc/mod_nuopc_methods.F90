@@ -44,7 +44,7 @@ module mod_nuopc_methods
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
 #ifdef HAMOCC
    use mo_carbch, only: ocetra
-   use mo_param1_bgc, only: idms
+   use mo_param1_bgc, only: idms, ibromo
    use mo_control_bgc, only: do_bgc_aofluxes
 #endif
 
@@ -1107,6 +1107,22 @@ contains
                   do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                      n = (j - 1)*ii + i
                      fldlist(index_So_dms)%dataptr(n) = ocetra(i,j,1,idms)
+                  enddo
+               enddo
+            enddo
+         !$omp end parallel do
+         end if
+      end if
+
+      if (index_So_brf > 0) then
+         if (associated(fldlist(index_So_brf)%dataptr)) then 
+            fldlist(index_So_brf)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_So_brf)%dataptr(n) = ocetra(i,j,1,ibromo)
                   enddo
                enddo
             enddo
