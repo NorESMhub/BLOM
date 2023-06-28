@@ -20,7 +20,8 @@
 
       SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
-                        psicomo,ppao,pfu10,ptho,psao)
+                        psicomo,ppao,pfu10,ptho,psao,                         &
+                        pflxdms)
 !******************************************************************************
 !
 !**** *CARCHM* - .
@@ -88,6 +89,7 @@
 !     *REAL*    *pfu10*   - forcing field wind speed.
 !     *REAL*    *ptho*    - potential temperature.
 !     *REAL*    *psao*    - salinity [psu].
+!     *REAL*    *pflxdms* - input dms flux that is already computed 
 !
 !     Externals
 !     ---------
@@ -98,14 +100,12 @@
                                 pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
                               & oxyco,tzero
-      use mo_control_bgc, only: dtbgc
+      use mo_control_bgc, only: dtbgc, do_bgc_aofluxes
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
                               & isco212,isilica
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
 
-#ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
-#endif
 #ifdef CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
       use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
@@ -118,9 +118,6 @@
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
 #endif
-      use mod_cesm, only : get_flxdms_from_med
-      use mod_forcing, only : flxdms
-
       implicit none
 
       INTEGER, intent(in) :: kpie,kpje,kpke,kbnd     
@@ -135,6 +132,7 @@
       REAL,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      REAL,    intent(in) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       ! Local variables
       INTEGER :: i,j,k,l,js
@@ -169,9 +167,7 @@
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
 #endif
-#ifdef BROMO
       REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
-#endif
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -218,9 +214,7 @@
 !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 #endif
-#ifdef BROMO
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
-#endif
 !$OMP  ,j,i)
       DO k=1,kpke
       DO j=1,kpje
@@ -310,11 +304,9 @@
       sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
       sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
 #endif
-#ifdef BROMO
 ! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
 ! (2003; GBC)
       sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
-#endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -343,10 +335,8 @@
       a_12 = 1e-12 * a_12
       a_sf = 1e-12 * a_sf
 #endif
-#ifdef BROMO
 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
       a_bromo = exp(13.16 - 4973*(1/tk))
-#endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
        Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
@@ -360,12 +350,10 @@
        kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
        kw_sf = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_sf)**0.5
 #endif
-#ifdef BROMO
 ! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
 !  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
        kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
      &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
-#endif
 
        atco2 = atm(i,j,iatmco2)
        ato2  = atm(i,j,iatmo2)
@@ -374,9 +362,7 @@
        atco213 = atm(i,j,iatmc13)
        atco214 = atm(i,j,iatmc14)
 #endif
-#ifdef BROMO
        atbrf = atm(i,j,iatmbromo)
-#endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
 ! used in all surface flux calculations where atmospheric concentration is given as a
@@ -476,17 +462,17 @@
 #endif
 
 ! Surface flux of dms
-      if (get_flxdms_from_med) then
-         ! Note that flux from mediator is downwards positive, whereas dms flux computed above
-         ! is upwards positive - so need a different sign
-         dmsflux = -dtbgc*flxdms(i,j)
-      else
+      if (do_bgc_aofluxes) then
          ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
+      else
+         ! Note that computed flux passed in is assumed to be
+         ! downwards positive, whereas dms flux computed above is
+         ! upwards positive - so need a different sign
+         dmsflux = -dtbgc*pflxdms(i,j)
       end if
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
 
-#ifdef BROMO
 ! Quack and Wallace (2003) eq. 1
 ! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
 ! Convert Ca(atbrf) from 
@@ -496,8 +482,6 @@
       flx_bromo=kw_bromo*dtbgc*                                         &
      & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
       ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
-#endif
-
 
 ! Save surface fluxes 
        atmflx(i,j,iatmco2)=fluxu-fluxd
@@ -517,9 +501,7 @@
 #ifdef natDIC
        atmflx(i,j,iatmnco2)=natfluxu-natfluxd
 #endif
-#ifdef BROMO
        atmflx(i,j,iatmbromo)=-flx_bromo
-#endif
 
 ! Save up- and downward components of carbon fluxes for output
        co2fxd(i,j)  = fluxd 
@@ -546,7 +528,6 @@
        co2solm(i,j)  = Kh   ! mol/kg/atm
 
       endif ! k==1
-#ifdef BROMO
 ! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
 ! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1 
        Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
@@ -554,7 +535,6 @@
 ! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
        lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
        ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
-#endif
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 

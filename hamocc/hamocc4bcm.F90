@@ -19,9 +19,10 @@
 
       SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
-                            dust,rivin,ndep,oafx,pi_ph,                            &
+                            dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                             patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -96,9 +97,7 @@
 #if defined(BOXATM)
       use mo_boxatm,      only: update_boxatm
 #endif
-#ifdef BROMO
       use mo_param1_bgc,  only: iatmbromo
-#endif
 #ifdef CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
 #endif
@@ -125,9 +124,11 @@
       REAL,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+
+      ! If pflxdms is obtained externally to blom and therefore will be intent(in)  
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
@@ -182,7 +183,6 @@
       !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
 #endif
 
-#ifdef BROMO
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
@@ -193,7 +193,6 @@
       ENDDO
 !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
-#endif
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -266,9 +265,9 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
 
-
       CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
-                  psicomo,ppao,pfu10,ptho,psao)
+                  psicomo,ppao,pfu10,ptho,psao,&
+                  pflxdms)
 
 #ifdef PBGC_CK_TIMESTEP   
       IF (mnproc.eq.1) THEN
@@ -418,11 +417,7 @@
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
-#ifdef BROMO
         if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
-#else
-        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
-#endif
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO

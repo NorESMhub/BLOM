@@ -119,9 +119,7 @@
       use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
       use mo_carbch,      only: atm
 #endif
-#ifdef BROMO
       use mo_param1_bgc,  only: ibromo
-#endif
 #ifdef CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
@@ -341,7 +339,6 @@
 #endif
 
 ! Find out whether to restart Bromoform
-#ifdef BROMO
       lread_bro=.true.
       IF(IOTYPE==0) THEN
         if(mnproc==1) ncstat=nf90_inq_varid(ncid,'bromo',ncvarid)
@@ -358,7 +355,6 @@
         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: Bromoform tracer not in restart file, '
         WRITE(io_stdo_bgc,*) 'Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
       ENDIF
-#endif
 
 ! Find out whether to restart atmosphere
 #if defined(BOXATM)
@@ -446,11 +442,9 @@
       CALL read_netcdf_var(ncid,'hi',nathi(1,1,1),kpke,0,iotype)
       ENDIF
 #endif
-#ifdef BROMO
       IF(lread_bro) THEN
       CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
       ENDIF
-#endif
 
 !
 ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)

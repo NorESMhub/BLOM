@@ -128,13 +128,8 @@
      &                      inatalkali = -1,                            &
      &                      inatcalc   = -1
 #endif
-#ifdef BROMO
       INTEGER, PARAMETER :: i_bromo=1,                                  &
      &                      ibromo=i_base+i_iso+i_cfc+i_agg+i_nat_dic+1
-#else 
-      INTEGER, PARAMETER :: i_bromo=0,                                  &
-     &                      ibromo=-1
-#endif
 
 ! total number of advected tracers
       INTEGER, PARAMETER :: nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic  &
@@ -178,14 +173,9 @@
       INTEGER, PARAMETER :: i_ndic_atm = 0,                             &
      &                      iatmnco2 = -1
 #endif
-#ifdef BROMO
       INTEGER, PARAMETER :: i_bromo_atm=1,                              &
      &                      iatmbromo=i_base_atm+i_iso_atm+i_cfc_atm+   &
      &                                i_ndic_atm+1
-#else 
-      INTEGER, PARAMETER :: i_bromo_atm=0,                              &
-     &                      iatmbromo=-1
-#endif
 
 ! total number of atmosphere tracers
       INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm

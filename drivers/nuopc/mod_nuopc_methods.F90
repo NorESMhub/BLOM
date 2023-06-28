@@ -38,13 +38,14 @@ module mod_nuopc_methods
                        rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                        ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                        lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
-                       flxdms_da, get_flxdms_from_med, l1ci, l2ci
+                       flxdms_da, l1ci, l2ci
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
 #ifdef HAMOCC
    use mo_carbch, only: ocetra
-   use mo_param1_bgc, only: idms
+   use mo_param1_bgc, only: idms, ibromo
+   use mo_control_bgc, only: do_bgc_aofluxes
 #endif
 
    implicit none
@@ -75,8 +76,10 @@ module mod_nuopc_methods
              blom_advertise_imports, blom_advertise_exports, &
              blom_importflds, blom_exportflds
 
+   ! Indices for import fields
    integer :: &
         index_Si_ifrac    = - 1, &
+        index_So_duu10n   = - 1, &
         index_Fioi_melth  = - 1, &
         index_Fioi_meltw  = - 1, &
         index_Fioi_salt   = - 1, &
@@ -87,7 +90,6 @@ module mod_nuopc_methods
         index_Foxx_rofi   = - 1, &
         index_Faox_dms    = - 1, &
         index_Faox_brf    = - 1, &
-        index_So_duu10n   = - 1, &
         index_Foxx_tauy   = - 1, &
         index_Foxx_taux   = - 1, &
         index_Foxx_lat    = - 1, &
@@ -104,9 +106,9 @@ module mod_nuopc_methods
         index_Faxa_rain   = - 1, &
         index_Sa_pslv     = - 1, &
         index_Sa_co2diag  = - 1, &
-        index_Sa_co2prog  = - 1, &
-        index_Sa_brfprog  = - 1
+        index_Sa_co2prog  = - 1
 
+   ! Indices for export fields
    integer  :: &
         index_So_omask   = - 1, &
         index_So_u       = - 1, &
@@ -119,8 +121,6 @@ module mod_nuopc_methods
         index_So_dms     = - 1, &
         index_So_brf     = - 1, &
         index_Fioo_q     = - 1, &
-        index_Faoo_dms   = - 1, &
-        index_Faoo_brf   = - 1, &
         index_Faoo_fco2_ocn = - 1
 
 contains
@@ -210,6 +210,11 @@ contains
 
      integer :: index_scalar
 
+     ! Set the logical flag do_bgc_aofluxes to true in mo_control_bgc
+#ifdef HAMOCC
+     do_bgc_aofluxes = .false.
+#endif
+
      call fldlist_add(fldsToOcn_num, fldsToOcn, trim(flds_scalar_name), index_scalar)
 
      ! From ice:
@@ -234,11 +239,10 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
-#ifdef HAMOCC
-     if (get_flxdms_from_med) then
+     if (.not. do_bgc_aofluxes) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
      end if
-#endif
 
      ! From wave:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult'  , index_Sw_lamult)
@@ -257,7 +261,6 @@ contains
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2diag' ,index_Sa_co2diag)
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_co2prog', index_Sa_co2prog)
      endif
-     !call getfldindex(num_imp, fldlist_imp, 'Sa_brfprog' , index_Sa_brfprog)
 
    end subroutine blom_advertise_imports
 
@@ -285,13 +288,10 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
-#ifdef HAMOCC
-     if (get_flxdms_from_med) then
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms'  , index_So_dms)
-     else
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_dms', index_Faoo_dms)
+     if (.not. do_bgc_aofluxes) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
      end if
-#endif
    end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
@@ -599,34 +599,6 @@ contains
             do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
                acc_fco2(i,j) = acc_fco2(i,j) + flxco2(i,j)*baclin
-            enddo
-            enddo
-         enddo
-      !$omp end parallel do
-      endif
-
-#ifdef HAMOCC
-      if (.not. get_flxdms_from_med) then
-         if (index_Faoo_dms > 0) then
-         !$omp parallel do private(l, i)
-            do j = 1, jj
-               do l = 1, isp(j)
-                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                     acc_fdms(i,j) = acc_fdms(i,j) + flxdms(i,j)*baclin
-                  enddo
-               enddo
-            enddo
-         !$omp end parallel do
-         endif
-      end if
-#endif
-
-      if (index_Faoo_brf) then
-      !$omp parallel do private(l, i)
-         do j = 1, jj
-            do l = 1, isp(j)
-            do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-               acc_fbrf(i,j) = acc_fbrf(i,j) + flxbrf(i,j)*baclin
             enddo
             enddo
          enddo
@@ -977,69 +949,30 @@ contains
          write(lp,*) subname//': atmospheric co2 not read'
 #endif
 
-      if (index_Sa_brfprog > 0) then
-      !$omp parallel do private(i, n)
-         do j = 1, jjcpl
-            do i = 1, ii
-               if     (ip(i,j) == 0) then
-                  atmbrf_da(i,j,l2ci) = mval
-               elseif (cplmsk(i,j) == 0) then
-                  atmbrf_da(i,j,l2ci) = fval
-               else
+      if (index_Faox_dms > 0) then
+         if (associated(fldlist(index_Faox_dms)%dataptr)) then
+         !$omp parallel do private(i, n, afac)
+            do j = 1, jjcpl
+               do i = 1, ii
                   n = (j - 1)*ii + i
-                  ! Atmospheric bromoform concentration [ppt]
-                  atmbrf_da(i,j,l2ci) = fldlist(index_Sa_brfprog)%dataptr(n)
-               endif
-            enddo
-         enddo
-      !$omp end parallel do
-         call fill_global(mval, fval, halo_ps, atmbrf_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': prog. atmospheric bromoform read'
-      else
-      !$omp parallel do private(i)
-         do j = 1, jj
-            do i = 1, ii
-               if (ip(i,j) == 0) then
-                  atmbrf_da(i,j,l2ci) = mval
-               else
-                  atmbrf_da(i,j,l2ci) = -1
-               endif
-            enddo
-         enddo
-      !$omp end parallel do
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': prog. atmospheric bromoform not read'
-      endif
-
-#ifdef HAMOCC
-      if (get_flxdms_from_med) then
-         if (index_Faox_dms > 0) then
-            if (associated(fldlist(index_Faox_dms)%dataptr)) then
-            !$omp parallel do private(i, n, afac)
-               do j = 1, jjcpl
-                  do i = 1, ii
-                     n = (j - 1)*ii + i
-                     afac = med2mod_areacor(n)
-                     if     (ip(i,j) == 0) then
-                        flxdms_da(i,j,l2ci) = mval
-                     elseif (cplmsk(i,j) == 0) then
-                        flxdms_da(i,j,l2ci) = 0._r8
-                     else
-                        flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
-                     end if
-                  end do
+                  afac = med2mod_areacor(n)
+                  if     (ip(i,j) == 0) then
+                     flxdms_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     flxdms_da(i,j,l2ci) = 0._r8
+                  else
+                     flxdms_da(i,j,l2ci) = fldlist(index_Faox_dms)%dataptr(n)*afac/62.13
+                  end if
                end do
+            end do
             !$omp end parallel do
-               if (mnproc == 1 .and. first_call) &
-                    write(lp,*) subname//': prog. dms flux obtained from mediator'
-            end if
-            if (nreg == 2) then
-               call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
-            end if
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': prog. dms flux obtained from mediator'
+         end if
+         if (nreg == 2) then
+            call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          end if
       end if
-#endif
 
       if (csdiag) then
          if (mnproc == 1 .and. first_call) then
@@ -1063,7 +996,7 @@ contains
          call chksummsk(ficem_da(1-nbdy,1-nbdy,l2ci),ip,1,'ficem')
          call chksummsk(atmco2_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmco2')
          call chksummsk(atmbrf_da(1-nbdy,1-nbdy,l2ci),ip,1,'atmbrf')
-         if (get_flxdms_from_med .and. index_Faox_dms > 0) then
+         if (index_Faox_dms > 0) then
             call chksummsk(flxdms_da(1-nbdy,1-nbdy,l2ci),ip,1,'flxdms_da')
          end if
       endif
@@ -1165,31 +1098,6 @@ contains
       enddo
    !$omp end parallel do
 
-      ! ------------------------------------------------------------------------
-      ! Provide DMS flux [kmol DMS m-2 s-1], if requested.
-      ! ------------------------------------------------------------------------
-
-#ifdef HAMOCC
-      if (index_Faoo_dms > 0) then
-         if (associated(fldlist(index_Faoo_dms)%dataptr)) then
-            fldlist(index_Faoo_dms)%dataptr(:) = 0._r8
-         !$omp parallel do private(l, i, n)
-            do j = 1, jjcpl
-               do l = 1, isp(j)
-                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                     n = (j - 1)*ii + i
-                     fldlist(index_Faoo_dms)%dataptr(n) = &
-                          acc_fdms(i,j)*tfac*mod2med_areacor(n)
-                  enddo
-               enddo
-            enddo
-         !$omp end parallel do
-         else
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': dms flux not sent to coupler'
-         endif
-      end if
-
       if (index_So_dms > 0) then
          if (associated(fldlist(index_So_dms)%dataptr)) then 
             fldlist(index_So_dms)%dataptr(:) = 0._r8
@@ -1205,7 +1113,22 @@ contains
          !$omp end parallel do
          end if
       end if
-#endif
+
+      if (index_So_brf > 0) then
+         if (associated(fldlist(index_So_brf)%dataptr)) then 
+            fldlist(index_So_brf)%dataptr(:) = 0._r8
+         !$omp parallel do private(l, i, n)
+            do j = 1, jjcpl
+               do l = 1, isp(j)
+                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
+                     n = (j - 1)*ii + i
+                     fldlist(index_So_brf)%dataptr(n) = ocetra(i,j,1,ibromo)
+                  enddo
+               enddo
+            enddo
+         !$omp end parallel do
+         end if
+      end if
 
       ! ------------------------------------------------------------------------
       ! Provide CO2 flux [kg CO2 m-2 s-1], if requested.
@@ -1226,32 +1149,10 @@ contains
             enddo
          !$omp end parallel do
          else
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': co2 flux not sent to coupler'
-         endif
-      end if
-
-      ! ------------------------------------------------------------------------
-      ! Provide bromoform flux [kg CHBr3 m-2 s-1], if requested.
-      ! ------------------------------------------------------------------------
-
-      if (index_Faoo_brf > 0) then
-         if (associated(fldlist(index_Faoo_brf)%dataptr)) then
-            fldlist(index_Faoo_brf)%dataptr(:) = 0._r8
-         !$omp parallel do private(l, i, n)
-            do j = 1, jjcpl
-               do l = 1, isp(j)
-                  do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
-                     n = (j - 1)*ii + i
-                     fldlist(index_Faoo_brf)%dataptr(n) = &
-                          acc_fbrf(i,j)*tfac*mod2med_areacor(n)
-                  enddo
-               enddo
-            enddo
-         !$omp end parallel do
-         else
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': bromoform flux not sent to coupler'
+            if (first_call) then
+               if (mnproc == 1 .and. first_call) &
+                    write(lp,*) subname//': co2 flux not sent to coupler'
+            end if
          endif
       end if
 

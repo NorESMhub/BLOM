@@ -102,12 +102,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #elif defined(WLIN)
   use mo_biomod,      only: wmin,wmax,wlin
 #endif
-#ifdef BROMO
   use mo_param1_bgc,  only: ibromo
   use mo_biomod,      only: int_chbr3_prod,int_chbr3_uv,rbro
   use mo_carbch,      only: fbro1,fbro2
   use mo_clim_swa,    only: swa_clim
-#endif
 #ifdef cisonew
   use mo_biomod,      only: bifr13,bifr13_perm,bifr14,growth_co2
   use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
@@ -190,10 +188,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
   real :: wnos,wnosd
 #endif
-#ifdef BROMO
   real :: bro_beta,bro_uv
   real :: abs_uv(kpie,kpje,kpke)
-#endif
 
 
 ! set variables for diagnostic output to zero
@@ -221,10 +217,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   intdms_bac(:,:) = 0.
   intdms_uv (:,:) = 0.
   phosy3d (:,:,:) = 0.
-#ifdef BROMO
   int_chbr3_uv (:,:) = 0.
   int_chbr3_prod (:,:) = 0.
-#endif
 #ifdef AGG
   eps3d(:,:,:)    = 0.
   asize3d(:,:,:)  = 0.
@@ -251,9 +245,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! Calculate swr absorption by water and phytoplankton
 
   abs_bgc(:,:,:) = 0.
-#ifdef BROMO
   abs_uv(:,:,:) = 0.
-#endif
 #ifdef FB_BGC_OCE
   abs_oce(:,:,:) = 0.
   abs_oce(:,:,1) = 1.
@@ -277,9 +269,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               ! Average light intensity in layer k
               atten = atten_w + atten_c * max(0.,ocetra(i,j,k,iphy))
               abs_bgc(i,j,k) = ((absorption/atten)*      (1.-exp(-atten*dz)))/dz
-#ifdef BROMO
               abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
-#endif
 #ifdef FB_BGC_OCE
               abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
               if (k == 2) then
@@ -315,9 +305,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
 !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
 # endif
-# ifdef BROMO
 !$OMP  ,bro_beta,bro_uv                                               &
-# endif
 !$OMP  ,i,k)
 
   loop1: do j = 1,kpje
@@ -484,7 +472,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
-#ifdef BROMO
 ! Bromo source from phytoplankton production and sink to photolysis
 ! Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
 ! sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
@@ -499,7 +486,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
          bro_uv = 0.0
         endif
         ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
-#endif
 
 #ifdef AGG
 !***********************************************************************
@@ -541,10 +527,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
         intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
         intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
-#ifdef BROMO
         int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
         int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
-#endif
         intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
         phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 

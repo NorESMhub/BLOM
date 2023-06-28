@@ -196,9 +196,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   CALL ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
 
-#ifdef BROMO
   CALL ini_swa_clim(idm,jdm,omask)
-#endif
 
   call ini_pi_ph(idm,jdm,omask)
   !

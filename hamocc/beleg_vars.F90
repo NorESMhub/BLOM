@@ -63,9 +63,7 @@
       use mo_biomod,      only: cellmass,fractdim
       use mo_param1_bgc,  only: iadust,inos
 #endif
-#ifdef BROMO
       use mo_param1_bgc,  only: ibromo
-#endif
 #ifdef CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
@@ -209,10 +207,8 @@
           ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
           ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
 #endif
-#ifdef BROMO
 ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
          ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
-#endif
         ENDIF ! omask > 0.5
       ENDDO
       ENDDO

@@ -33,6 +33,7 @@ module mod_cesm
    use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
+   use mo_control_bgc, only: do_bgc_aofluxes
 
    implicit none
 
@@ -85,14 +86,12 @@ module mod_cesm
    integer :: &
       l1ci, l2ci         ! Time-level indices for time smoothing of CESM fields.
 
-   logical :: get_flxdms_from_med = .false. ! This ensures backwards compatiblity
-
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
              slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, &
              ustokes_da, vstokes_da, atmco2_da, atmbrf_da, smtfrc, l1ci, l2ci, &
-             inicon_cesm, inifrc_cesm, getfrc_cesm, get_flxdms_from_med
+             inicon_cesm, inifrc_cesm, getfrc_cesm
 contains
 
    subroutine inicon_cesm
@@ -191,7 +190,8 @@ contains
            vstokes(i, j) = w1*vstokes_da(i, j, l1ci) + w2*vstokes_da(i, j, l2ci)
            atmco2(i, j)  = w1*atmco2_da(i, j, l1ci)  + w2*atmco2_da(i, j, l2ci)
            atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
-           if (get_flxdms_from_med) then
+           if (.not. do_bgc_aofluxes) then
+              ! flxdms is obtained from the mediator
               flxdms(i, j)  = w1*flxdms_da(i, j, l1ci)  + w2*flxdms_da(i, j, l2ci) 
            end if
         enddo
