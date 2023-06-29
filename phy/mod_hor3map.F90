@@ -31,8 +31,8 @@ module mod_hor3map
 ! desired grid cell edge data values.
 ! ------------------------------------------------------------------------------
 
-#undef DEBUG
 #define DEBUG
+#undef DEBUG
 
    use, intrinsic :: iso_fortran_env, only: real64
 #ifdef DEBUG
