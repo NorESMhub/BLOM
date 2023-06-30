@@ -21,7 +21,7 @@
       SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
                         psicomo,ppao,pfu10,ptho,psao,                         &
-                        pflxdms)
+                        pflxdms,pflxbromo)
 !******************************************************************************
 !
 !**** *CARCHM* - .
@@ -90,6 +90,7 @@
 !     *REAL*    *ptho*    - potential temperature.
 !     *REAL*    *psao*    - salinity [psu].
 !     *REAL*    *pflxdms* - input dms flux that is already computed 
+!     *REAL*    *pflxbromo* - input bromo flux that is already computed 
 !
 !     Externals
 !     ---------
@@ -133,6 +134,7 @@
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       ! Local variables
       INTEGER :: i,j,k,l,js
@@ -466,12 +468,10 @@
          ! Note that kwdms already has the open ocean fraction in the term
          dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
       else
-         ! Note that computed flux passed in is assumed to be
-         ! downwards positive, whereas dms flux computed above is
-         ! upwards positive - so need a different sign
          dmsflux = -dtbgc*pflxdms(i,j)
       end if
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
+      atmflx(i,j,iatmdms) = dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 
 ! Quack and Wallace (2003) eq. 1
 ! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
@@ -479,16 +479,25 @@
 !  [pptv]    to [ppp]      by multiplying with 1e-12 (ppp = parts per part, dimensionless)
 !  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
 !  [mol L-1] to [kmol m-3] by multiplying with 1 
-      flx_bromo=kw_bromo*dtbgc*                                         &
-     & (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
-      ocetra(i,j,1,ibromo)=ocetra(i,j,1,ibromo)+flx_bromo/pddpo(i,j,1)
+
+      if (do_bgc_aofluxes) then
+         flx_bromo = kw_bromo*dtbgc* &
+              (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+      else
+         ! Note that the external computation of fluxes is -flx_bromo/dtbgc
+         ! using above computation of flx_bromo
+         ! So need to divide by 252.7 and multiply by -dtbgc and in order to use this
+         ! for the tendency in the tracer update
+         flx_bromo = dtbgc*pflxbromo(i,j)
+      end if
+      ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
+      atmflx(i,j,iatmbromo) = -flx_bromo
 
 ! Save surface fluxes 
        atmflx(i,j,iatmco2)=fluxu-fluxd
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
        atmflx(i,j,iatmn2o)=n2oflux
-       atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
        atmflx(i,j,iatmc14)=flux14u-flux14d
@@ -501,7 +510,6 @@
 #ifdef natDIC
        atmflx(i,j,iatmnco2)=natfluxu-natfluxd
 #endif
-       atmflx(i,j,iatmbromo)=-flx_bromo
 
 ! Save up- and downward components of carbon fluxes for output
        co2fxd(i,j)  = fluxd 
@@ -528,13 +536,16 @@
        co2solm(i,j)  = Kh   ! mol/kg/atm
 
       endif ! k==1
+
 ! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
 ! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1 
        Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
        ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
+
 ! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
        lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
        ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
+
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 

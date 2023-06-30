@@ -38,7 +38,7 @@ module mod_nuopc_methods
                        rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, &
                        ustarw_da, slp_da, abswnd_da, ficem_da, lamult_da, &
                        lasl_da, ustokes_da, vstokes_da, atmco2_da, atmbrf_da, &
-                       flxdms_da, l1ci, l2ci
+                       flxdms_da, flxbrf_da, l1ci, l2ci
    use mod_utility, only: util1, util2
    use mod_checksum, only: csdiag, chksummsk
    use shr_const_mod, only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
@@ -951,7 +951,7 @@ contains
 
       if (index_Faox_dms > 0) then
          if (associated(fldlist(index_Faox_dms)%dataptr)) then
-         !$omp parallel do private(i, n, afac)
+            !$omp parallel do private(i, n, afac)
             do j = 1, jjcpl
                do i = 1, ii
                   n = (j - 1)*ii + i
@@ -971,6 +971,31 @@ contains
          end if
          if (nreg == 2) then
             call xctilr(flxdms_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
+         end if
+      end if
+
+      if (index_Faox_brf > 0) then
+         if (associated(fldlist(index_Faox_brf)%dataptr)) then
+            !$omp parallel do private(i, n, afac)
+            do j = 1, jjcpl
+               do i = 1, ii
+                  n = (j - 1)*ii + i
+                  afac = med2mod_areacor(n)
+                  if     (ip(i,j) == 0) then
+                     flxbrf_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     flxbrf_da(i,j,l2ci) = 0._r8
+                  else
+                     flxbrf_da(i,j,l2ci) = fldlist(index_Faox_brf)%dataptr(n)*afac/252.7
+                  end if
+               end do
+            end do
+            !$omp end parallel do
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': prog. brf flux obtained from mediator'
+         end if
+         if (nreg == 2) then
+            call xctilr(flxbrf_da(1-nbdy,1-nbdy,l2ci), 1,1, 0,0, halo_ps)
          end if
       end if
 
