@@ -17,6 +17,15 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
+module mo_parambgc_ini
+
+      implicit none
+
+      private
+   
+      public :: beleg_parm
+
+      contains
 
       SUBROUTINE BELEG_PARM(kpie,kpje)
 !******************************************************************************
@@ -499,3 +508,5 @@
 
       RETURN
       END
+
+end module mo_parambgc_ini
