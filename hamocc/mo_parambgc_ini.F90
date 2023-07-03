@@ -81,8 +81,10 @@ module mo_parambgc_ini
 #ifndef AGG
   REAL :: dustd1, dustd2, dustsink
 #endif
+
   contains
 
+  !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_parambgc(kpie,kpje)
     ! initialze parameters of individual components with default values 
 
@@ -97,15 +99,14 @@ module mo_parambgc_ini
     call ini_aggregation()   ! Initialize aggregation module of Iris Kriest (no NML read thus far)
 #endif
 
-
-    ! READ NML HERE or put other calls below into NML call
+    ! READ NML  (or put other calls below into NML call)
+    call read_bgcnamelist()
 
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
     call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values 
-
     call convert_2_timestep()      ! Converting rates from /d... to /dtb
-    call write_parambgc()            ! write out used parameters and calculate back rates from /dtb to /d..
 
+    call write_parambgc()            ! write out used parameters and calculate back rates from /dtb to /d..
 ! OLD, to be deleted:   
 !    call beleg_parm(kpie,kpje)
   end subroutine
@@ -159,7 +160,7 @@ module mo_parambgc_ini
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_fields_atm(kpie,kpje)
-    ! Initialise atmosphere fields. We use a 2D representation of atmospheric
+    ! AFTER having read the nml: Initialise atmosphere fields. We use a 2D representation of atmospheric
     ! fields for simplicity, even for cases where actually only a scalar value 
     ! is used. The overhead of this is small. If an atm-field is present in
     ! restart file (if BOXATM is activated), this will be overwritten later.
@@ -357,6 +358,11 @@ module mo_parambgc_ini
     wdust = dustsink
 #endif    
   end subroutine
+
+  !---------------------------------------------------------------------------------------------------------------------------------
+  subroutine read_bgcnamelist()
+
+  end subroutine  
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine convert_2_timestep()
