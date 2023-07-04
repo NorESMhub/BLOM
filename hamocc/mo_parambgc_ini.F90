@@ -81,6 +81,9 @@ module mo_parambgc_ini
 #ifndef AGG
   REAL :: dustd1, dustd2, dustsink
 #endif
+#ifdef cisonew 
+  REAL :: beta13, alpha14, d14cat, d13c_atm  
+#endif
 
   contains
 
