@@ -110,8 +110,8 @@ module mo_parambgc_ini
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
     call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values 
-    call rates_2_timestep()      ! Converting rates from /d... to /dtb
-    ! potentially readjust namlist parameter-dependent parameters
+    call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
+    call rates_2_timestep()        ! Converting rates from /d... to /dtb
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine
@@ -386,7 +386,8 @@ module mo_parambgc_ini
 
     integer  :: iounit
 
-    namelist /bgcparams/ drempoc
+    namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal,              &
+                       & remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -399,7 +400,17 @@ module mo_parambgc_ini
       write(io_stdo_bgc,*) '------------------------------------------'
     endif
 
-  end subroutine  
+  end subroutine 
+ 
+  !---------------------------------------------------------------------------------------------------------------------------------
+  subroutine readjust_param()
+    !
+    !  AFTER reading the namelist:
+    ! re-adjust parameters that depend on tuning parameters
+    !
+    perc_diron = fetune * 0.035 * 0.01 / 55.85
+
+  end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine rates_2_timestep()
@@ -434,7 +445,7 @@ module mo_parambgc_ini
     !     Remineralization and dissolution parameters 
     !********************************************************************
     remido   = remido*dtb     !1/d -remineralization rate (of DOM)
-    ! deep see remineralisation constants
+    ! deep sea remineralisation constants
     drempoc  = drempoc*dtb    !1/d  Aerob remineralization rate of detritus
     dremopal = dremopal*dtb   !1/d  Dissolution rate of opal 
     dremn2o  = dremn2o*dtb    !1/d  Remineralization rate of detritus on N2O
@@ -443,23 +454,22 @@ module mo_parambgc_ini
     !********************************************************************
     !     Dust deposition and iron solubility parameters
     !********************************************************************
-    ! iron complexation 
-    relaxfe = relaxfe*dtb
+    relaxfe = relaxfe*dtb     !1/d  iron complexation rate
+
     
     !********************************************************************
     !     Sinking parameters
     !********************************************************************
-    wpoc  = wpoc*dtb       !m/d  iris : 5.
-    wcal  = wcal*dtb       !m/d 
-    wopal = wopal*dtb      !m/d  iris : 60
+    wpoc  = wpoc*dtb       !m/d  Sinking speed detritusiris : 5.
+    wcal  = wcal*dtb       !m/d  Sinking speed CaCO3
+    wopal = wopal*dtb      !m/d  Sinking speed opal iris : 60
 #if defined(WLIN) && ! defined(AGG)
     wmin  = wmin*dtb       !m/d   minimum sinking speed
     wmax  = wmax*dtb       !m/d   maximum sinking speed
     wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
 #endif
 #ifndef AGG
-    ! dust sinking speed
-    wdust = wdust*dtb
+    wdust = wdust*dtb      !m/d   dust sinking speed
 #endif 
   end subroutine
 
