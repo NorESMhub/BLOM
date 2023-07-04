@@ -545,7 +545,33 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              d13C_atm     = ',d13C_atm    
       WRITE(io_stdo_bgc,*)                                             &
-     &'*                              atm_c14      = ',atm_c14      
+     &'*                              atm_c14      = ',atm_c14  
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              bifr13       = ',bifr13 
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              bifr14       = ',bifr14
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              c14fac       = ',c14fac
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              prei13       = ',prei13
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              prei14       = ',prei14
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              re1312       = ',re1312
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              re14to       = ',re14to
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              c14_t_half   = ',c14_t_half
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              c14dec       = ',c14dec
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              beta13       = ',beta13
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              alpha14      = ',alpha14
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              d14cat       = ',d14cat
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              c14fac       = ',c14fac
 #endif
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_o2       = ',atm_o2           
@@ -574,6 +600,8 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              ecan         = ',ecan    
       WRITE(io_stdo_bgc,*)                                             &
+     &'*                              pi_alpha     = ',pi_alpha
+      WRITE(io_stdo_bgc,*)                                             &
      &'*                              bkphy        = ',bkphy
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              bkzoo        = ',bkzoo    
@@ -596,6 +624,14 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              bluefix      = ',bluefix*dtbinv   
       WRITE(io_stdo_bgc,*)                                             &
+     &'*                              tf0          = ',tf0   
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              tf1          = ',tf1   
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              tf2          = ',tf2   
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              tff          = ',tff   
+      WRITE(io_stdo_bgc,*)                                             &
      &'*                              ro2ut        = ',ro2ut   
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rcar         = ',rcar 
@@ -604,9 +640,15 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rnoi         = ',rnoi
       WRITE(io_stdo_bgc,*)                                             &
+     &'*                              rdnit0       = ',rdnit0
+      WRITE(io_stdo_bgc,*)                                             &
      &'*                              rdnit1       = ',rdnit1
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rdnit2       = ',rdnit2
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              rdn2o1       = ',rdn2o1
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              rdn2o2       = ',rdn2o2
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rcalc        = ',rcalc
       WRITE(io_stdo_bgc,*)                                             &
@@ -620,9 +662,13 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atten_f      = ',atten_f
       WRITE(io_stdo_bgc,*)                                             &
+     &'*                              atten_uv     = ',atten_uv
+      WRITE(io_stdo_bgc,*)                                             &
      &'*                              o2ut         = ',o2ut
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              rno3         = ',rno3
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              fetune       = ',fetune
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              perc_diron   = ',perc_diron
       WRITE(io_stdo_bgc,*)                                             &
@@ -641,6 +687,25 @@ module mo_parambgc_ini
      &'*                              dmspar(4)    = ',dmspar(4)
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dmspar(5)    = ',dmspar(5)
+#ifdef BROMO
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              rbro         = ',rbro
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              atm_bromo    = ',atm_bromo
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              fbro1        = ',fbro1
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              fbro2        = ',fbro2
+
+#endif
+#ifdef WLIN
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              wmin         = ',wmin
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              wmax         = ',wmax
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              wlin         = ',wlin
+#endif 
 #ifndef AGG
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              dustd1       = ',dustd1
@@ -654,7 +719,32 @@ module mo_parambgc_ini
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*)                                             &
      &'****************************************************************'
-      write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
+      write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:' 
+      write(io_stdo_bgc,*) '        alar1      = ',alar1
+      write(io_stdo_bgc,*) '        alar2      = ',alar2
+      write(io_stdo_bgc,*) '        alar3      = ',alar3
+      write(io_stdo_bgc,*) '        alow1      = ',alow1
+      write(io_stdo_bgc,*) '        alow2      = ',alow2
+      write(io_stdo_bgc,*) '        alow3      = ',alow3
+      write(io_stdo_bgc,*) '        calmax     = ',calmax
+      write(io_stdo_bgc,*) '        cellmass   = ',cellmass
+      write(io_stdo_bgc,*) '        cellsink   = ',cellsink
+      write(io_stdo_bgc,*) '        dustd1     = ',dustd1
+      write(io_stdo_bgc,*) '        dustd2     = ',dustd2
+      write(io_stdo_bgc,*) '        dustd3     = ',dustd3
+      write(io_stdo_bgc,*) '        fractdim   = ',fractdim
+      write(io_stdo_bgc,*) '        fse        = ',fse
+      write(io_stdo_bgc,*) '        fsh        = ',fsh
+      write(io_stdo_bgc,*) '        nmldmin    = ',nmldmin
+      write(io_stdo_bgc,*) '        plower     = ',plower
+      write(io_stdo_bgc,*) '        pupper     = ',pupper
+      write(io_stdo_bgc,*) '        safe       = ',safe
+      write(io_stdo_bgc,*) '        sinkexp    = ',sinkexp
+      write(io_stdo_bgc,*) '        stick      = ',stick
+      write(io_stdo_bgc,*) '        tmfac      = ',tmfac
+      write(io_stdo_bgc,*) '        tsfac      = ',tsfac
+      write(io_stdo_bgc,*) '        vsmall     = ',vsmall
+      write(io_stdo_bgc,*) '        zdis       = ',zdis
       write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
       write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
       write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
@@ -663,6 +753,8 @@ module mo_parambgc_ini
       write(io_stdo_bgc,*)                                             &
      &'****************************************************************'
 #endif 
+      WRITE(io_stdo_bgc,*)                                             &
+     &'*                              claydens        = ',claydens
       WRITE(io_stdo_bgc,*)                                             &
      &'****************************************************************'
       ENDIF
