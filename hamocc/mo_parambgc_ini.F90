@@ -699,9 +699,8 @@ module mo_parambgc_ini
      &'*                              fbro1        = ',fbro1
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              fbro2        = ',fbro2
-
 #endif
-#ifdef WLIN
+#if defined(WLIN) && ! defined(AGG)
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              wmin         = ',wmin
       WRITE(io_stdo_bgc,*)                                             &
