@@ -49,7 +49,7 @@ module mo_parambgc_ini
                           & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,      &
                           & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
   use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
@@ -77,7 +77,7 @@ module mo_parambgc_ini
    
   public :: ini_parambgc
 
-  ! Module-wide parameters
+  ! Module-wide parameters (used in more than one subroutine)
 #ifndef AGG
   REAL :: dustd1, dustd2, dustsink
 #endif
@@ -115,7 +115,7 @@ module mo_parambgc_ini
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_param_atm()
     !
-    ! Atmospheric concentrations (atm_co2 is set via namelist).
+    ! Atmospheric concentrations (atm_co2 is set via BGCNML namelist).
     !
     atm_o2  = 196800.
     atm_n2  = 802000.
@@ -361,6 +361,25 @@ module mo_parambgc_ini
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine read_bgcnamelist()
+    !
+    ! Read the bgcparams namelist for parameter tuning.
+    ! Note that afterward, i) rates need to be adjusted for timestep
+    ! and some depending parameters need re-calculation
+    !
+
+    integer  :: iounit
+    namelist /bgcparams/ drempoc
+    open (newunit=iounit, file=bgc_namelist, status='old',action='read')
+    read (unit=iounit, nml=BGCPARAMS)
+    close (unit=iounit)
+
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*) '------------------------------------------'
+      write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
+      write(io_stdo_bgc,nml=BGCPARAMS)
+      write(io_stdo_bgc,*) '------------------------------------------'
+    endif
+
 
   end subroutine  
 
