@@ -156,7 +156,7 @@
       INTEGER   :: idate(5),i,j,k
       logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
 #ifdef cisonew
-      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+      REAL :: rco213,rco214,alpha14,beta13,beta14,d14cat
 #endif
       INTEGER ncid,ncstat,ncvarid
 
