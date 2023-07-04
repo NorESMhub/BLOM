@@ -1,5 +1,6 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2015-2022 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak
+! Copyright (C) 2015-2023 Mats Bentsen, Ping-Gin Chiu, Mehmet Ilicak,
+!                         Aleksi Nummelin
 !
 ! This file is part of BLOM.
 !
@@ -27,12 +28,13 @@ c
       use mod_config, only: inst_suffix
       use mod_constants, only: rearth, pi, radian, L_mks2cgs
       use mod_xc
+      use mod_diffusion, only: rhsctp, tbfile
       use mod_grid, only: grfile, qclon, qclat, pclon, pclat, uclon,
      .                    uclat, vclon, vclat, scqx, scqy, scpx, scpy,
      .                    scux, scuy, scvx, scvy, scq2, scp2, scu2,
      .                    scv2, qlon, qlat, plon, plat, ulon, ulat,
      .                    vlon, vlat, depths, corioq, coriop, betafp,
-     .                    angle, cosang, sinang, nwp
+     .                    betatp, angle, cosang, sinang, hangle, nwp
       use netcdf
 c
       implicit none
@@ -49,6 +51,9 @@ c
       integer, dimension(3) :: start,count
       integer i,j,k,status,ncid,dimid,varid,ios,ncwm,l
       logical fexist
+c
+      real, parameter ::
+     .  iL_mks2cgs = 1./L_mks2cgs
 c
       namelist /cwmod/ cwmtag,cwmedg,cwmi,cwmj,cwmwth
 c
@@ -700,6 +705,69 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
+c --- read topographic beta if needed
+c --- ------------------------------------------------------------------
+c
+      if (rhsctp) then
+c
+        if (mnproc.eq.1) then
+          write (lp,'(2a)') ' reading topographic beta from ',
+     .                      trim(tbfile)
+          call flush(lp)
+          status=nf90_open(tbfile,nf90_nowrite,ncid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(4a)') ' nf90_open: ',trim(tbfile),': ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+          status=nf90_inq_varid(ncid,'topo_beta',varid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_inq_varid: topo_beta: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+          status=nf90_get_var(ncid,varid,tmpg)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_get_var: topo_beta: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        call xcaput(tmpg,betatp,1)
+c
+        if (mnproc.eq.1) then
+          status=nf90_inq_varid(ncid,'hangle',varid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_inq_varid: hangle: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+          status=nf90_get_var(ncid,varid,tmpg)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_get_var: hangle: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        call xcaput(tmpg,hangle,1)
+c
+        if (mnproc.eq.1) then
+          status=nf90_close(ncid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(4a)') ' nf90_close: ',trim(tbfile),': ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+c
+      endif
+c --- ------------------------------------------------------------------
 c --- Apply channel width modifications if specified in namelist
 c --- ------------------------------------------------------------------
 c
@@ -788,9 +856,9 @@ c
       endif
 c
 c --- ------------------------------------------------------------------
-c --- Get correct units of scale factors, precompute cosine and sine of
-c --- local angle of i-direction and with eastward direction, and
-c --- compute Coriolis and beta plane parameter
+c --- Get correct units of scale factors and topographic beta,
+c --- precompute cosine and sine of local angle of i-direction and with
+c --- eastward direction, and compute Coriolis and beta plane parameter
 c --- ------------------------------------------------------------------
 c
 c$OMP PARALLEL DO PRIVATE(i)
@@ -820,6 +888,16 @@ c
         enddo
       enddo
 c$OMP END PARALLEL DO
+c
+      if (rhsctp) then
+c$OMP PARALLEL DO PRIVATE(i)
+        do j=1,jj
+          do i=1,ii
+            betatp(i,j)=betatp(i,j)*iL_mks2cgs
+          enddo
+        enddo
+c$OMP END PARALLEL DO
+      endif
 c
       return
       end

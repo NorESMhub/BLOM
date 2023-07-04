@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2021-2022 Mats Bentsen, Mehmet Ilicak
+! Copyright (C) 2021-2023 Mats Bentsen, Mehmet Ilicak
 !
 ! This file is part of BLOM.
 !
@@ -29,8 +29,9 @@ module mod_vdiff
    use mod_eos, only: sig
    use mod_state, only: u, v, dp, dpu, dpv, temp, saln, sigma
    use mod_checksum, only: csdiag, chksummsk
-   use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nonloc
-   use mod_forcing, only: surflx, sswflx, surrlx, salflx, salrlx, t_sw_nonloc
+   use mod_diffusion, only: Kvisc_m, Kdiff_t, Kdiff_s, t_ns_nonloc, s_nb_nonloc
+   use mod_forcing, only: surflx, sswflx, surrlx, salflx, brnflx, salrlx, &
+                          t_sw_nonloc, t_rs_nonloc, s_br_nonloc, s_rs_nonloc
 #ifdef TRC
    use mod_tracers, only: ntr, trc, trflx
 #endif
@@ -53,7 +54,7 @@ contains
       real(r8), dimension(kdm) :: dp_1d, temp_1d, saln_1d, &
                                   nut_1d, nus_1d, nutrc_1d
       real(r8), dimension(2:kdm) :: fpbase, fp, gam
-      real(r8) :: cpi, dtg, c, bei, rhs
+      real(r8) :: cpi, dtg, c, hfsw, hfns, hfrs, sfbr, sfnb, sfrs, bei, rhs
       integer :: i, j, k, l, kn, nt
 #ifdef TRC
       real(r8), dimension(kdm, ntr) :: trc_1d
@@ -83,6 +84,16 @@ contains
 #endif
             enddo
 
+            ! Surface heat fluxes.
+            hfsw = sswflx(i,j)        ! Shortwave.
+            hfns = surflx(i,j) - hfsw ! Non-shortwave.
+            hfrs = surrlx(i,j)        ! Restoring.
+
+            ! Surface salt fluxes.
+            sfbr = brnflx(i,j)        ! Brine.
+            sfnb = salflx(i,j) - sfbr ! Non-brine.
+            sfrs = salrlx(i,j)        ! Restoring.
+
             ! Vertical diffusion equations are solved by backward integration
             ! forming a tridiagonal set of equations:
             !
@@ -104,27 +115,25 @@ contains
             enddo
             bei = 1._r8/(dp_1d(1) + fp(2))
             rhs = dp_1d(1)*temp_1d(1) &
-                - ( (1._r8 - t_ns_nonloc(i,j,2))*(surflx(i,j) - sswflx(i,j)) &
-                  + (1._r8 - t_sw_nonloc(i,j,2))*sswflx(i,j) &
-                  + surrlx(i,j))*dtg*cpi
+                - ( (1._r8 - t_ns_nonloc(i,j,2))*hfns &
+                  + (1._r8 - t_sw_nonloc(i,j,2))*hfsw &
+                  + (1._r8 - t_rs_nonloc(i,j,2))*hfrs)*dtg*cpi
             temp_1d(1) = rhs*bei
             do k = 2, kk - 1
                gam(k) = - fp(k)*bei
                bei = 1._r8/(dp_1d(k) + fp(k)*(1._r8 + gam(k)) + fp(k + 1))
                rhs = dp_1d(k)*temp_1d(k) &
-                   - ( (t_ns_nonloc(i,j,k) - t_ns_nonloc(i,j,k+1)) &
-                       *(surflx(i,j) - sswflx(i,j)) &
-                     + (t_sw_nonloc(i,j,k) - t_sw_nonloc(i,j,k+1)) &
-                       *sswflx(i,j))*dtg*cpi
+                   - ( (t_ns_nonloc(i,j,k) - t_ns_nonloc(i,j,k+1))*hfns &
+                     + (t_sw_nonloc(i,j,k) - t_sw_nonloc(i,j,k+1))*hfsw &
+                     + (t_rs_nonloc(i,j,k) - t_rs_nonloc(i,j,k+1))*hfrs)*dtg*cpi
                temp_1d(k) = (rhs + fp(k)*temp_1d(k - 1))*bei
             enddo
             gam(kk) = - fp(kk)*bei
             bei = 1._r8/(dp_1d(kk) + fp(kk)*(1._r8 + gam(kk)))
             rhs = dp_1d(kk)*temp_1d(kk) &
-                - ( (t_ns_nonloc(i,j,kk) - t_ns_nonloc(i,j,kk+1)) &
-                    *(surflx(i,j) - sswflx(i,j)) &
-                  + (t_sw_nonloc(i,j,kk) - t_sw_nonloc(i,j,kk+1)) &
-                    *sswflx(i,j))*dtg*cpi
+                - ( (t_ns_nonloc(i,j,kk) - t_ns_nonloc(i,j,kk+1))*hfns &
+                  + (t_sw_nonloc(i,j,kk) - t_sw_nonloc(i,j,kk+1))*hfsw &
+                  + (t_rs_nonloc(i,j,kk) - t_rs_nonloc(i,j,kk+1))*hfrs)*dtg*cpi
             temp_1d(kk) = (rhs + fp(kk)*temp_1d(kk - 1))*bei
             do k = kk - 1, 1, - 1
                temp_1d(k) = temp_1d(k) - gam(k + 1)*temp_1d(k + 1)
@@ -136,20 +145,25 @@ contains
             enddo
             bei = 1._r8/(dp_1d(1) + fp(2))
             rhs = dp_1d(1)*saln_1d(1) &
-                - ((1._r8 - s_nonloc(i,j,2))*salflx(i,j) &
-                  + salrlx(i,j))*dtg
+                - ( (1._r8 - s_nb_nonloc(i,j,2))*sfnb &
+                  + (1._r8 - s_br_nonloc(i,j,2))*sfbr &
+                  + (1._r8 - s_rs_nonloc(i,j,2))*sfrs)*dtg
             saln_1d(1) = rhs*bei
             do k = 2, kk - 1
                gam(k) = - fp(k)*bei
                bei = 1._r8/(dp_1d(k) + fp(k)*(1._r8 + gam(k)) + fp(k + 1))
                rhs = dp_1d(k)*saln_1d(k) &
-                   - (s_nonloc(i,j,k) - s_nonloc(i,j,k+1))*salflx(i,j)*dtg
+                   - ( (s_nb_nonloc(i,j,k) - s_nb_nonloc(i,j,k+1))*sfnb &
+                     + (s_br_nonloc(i,j,k) - s_br_nonloc(i,j,k+1))*sfbr &
+                     + (s_rs_nonloc(i,j,k) - s_rs_nonloc(i,j,k+1))*sfrs)*dtg
                saln_1d(k) = (rhs + fp(k)*saln_1d(k - 1))*bei
             enddo
             gam(kk) = - fp(kk)*bei
             bei = 1._r8/(dp_1d(kk) + fp(kk)*(1._r8 + gam(kk)))
             rhs = dp_1d(kk)*saln_1d(kk) &
-                - (s_nonloc(i,j,kk) - s_nonloc(i,j,kk+1))*salflx(i,j)*dtg
+                - ( (s_nb_nonloc(i,j,kk) - s_nb_nonloc(i,j,kk+1))*sfnb &
+                  + (s_br_nonloc(i,j,kk) - s_br_nonloc(i,j,kk+1))*sfbr &
+                  + (s_rs_nonloc(i,j,kk) - s_rs_nonloc(i,j,kk+1))*sfrs)*dtg
             saln_1d(kk) = (rhs + fp(kk)*saln_1d(kk - 1))*bei
             do k = kk - 1, 1, - 1
                saln_1d(k) = saln_1d(k) - gam(k + 1)*saln_1d(k + 1)
@@ -163,7 +177,7 @@ contains
             bei = 1._r8/(dp_1d(1) + fp(2))
             do nt = 1, ntr
                rhs = dp_1d(1)*trc_1d(1,nt) &
-                   - (1._r8 - s_nonloc(i,j,2))*trflx(nt,i,j)*dtg
+                   - (1._r8 - s_nb_nonloc(i,j,2))*trflx(nt,i,j)*dtg
                trc_1d(1, nt) = rhs*bei
             enddo
             do k = 2, kk - 1
@@ -171,7 +185,8 @@ contains
                bei = 1._r8/(dp_1d(k) + fp(k)*(1._r8 + gam(k)) + fp(k + 1))
                do nt = 1, ntr
                   rhs = dp_1d(k)*trc_1d(k,nt) &
-                      - (s_nonloc(i,j,k) - s_nonloc(i,j,k+1))*trflx(nt,i,j)*dtg
+                      - (s_nb_nonloc(i,j,k) - s_nb_nonloc(i,j,k+1)) &
+                        *trflx(nt,i,j)*dtg
                   trc_1d(k, nt) = (rhs + fp(k)*trc_1d(k - 1, nt))*bei
                enddo
             enddo
@@ -179,7 +194,8 @@ contains
             bei = 1._r8/(dp_1d(kk) + fp(kk)*(1._r8 + gam(kk)))
             do nt = 1, ntr
                rhs = dp_1d(kk)*trc_1d(kk,nt) &
-                   - (s_nonloc(i,j,kk) - s_nonloc(i,j,kk+1))*trflx(nt,i,j)*dtg
+                   - (s_nb_nonloc(i,j,kk) - s_nb_nonloc(i,j,kk+1)) &
+                     *trflx(nt,i,j)*dtg
                trc_1d(kk, nt) = (rhs + fp(kk)*trc_1d(kk - 1, nt))*bei
             enddo
             do k = kk - 1, 1, - 1

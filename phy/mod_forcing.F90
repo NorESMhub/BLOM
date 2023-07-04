@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2002-2022 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
+! Copyright (C) 2002-2023 Mats Bentsen, Jerry Tjiputra, Jörg Schwinger
 !
 ! This file is part of BLOM.
 !
@@ -55,8 +55,20 @@ module mod_forcing
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
    character(len = 256) :: &
-      scfile          ! Name of file containing monthly SSS climatology.
+      scfile, &       ! Name of file containing monthly SSS climatology.
+      wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
+                      ! 'extern'.
 
+   ! Options derived from string options.
+   integer :: &
+      wavsrc_opt
+
+   ! Parameters:
+   integer, parameter :: &
+      ! Wave source options:
+      wavsrc_none        = 0, & ! No wave fields.
+      wavsrc_param       = 1, & ! Parameterized wave fields.
+      wavsrc_extern      = 2    ! Receive external wave fields.
 
    ! Constants used in forcing computations.
    real(r8) :: &
@@ -116,7 +128,6 @@ module mod_forcing
       flxbrf, &       ! sea-air bromoform flux
       atmbrf          ! atmospheric bromoform concentration
 
-
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       surflx, &       ! Surface thermal energy flux [W cm-2].
       surrlx, &       ! Surface relaxation thermal energy flux [W cm-2].
@@ -134,19 +145,26 @@ module mod_forcing
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy, kk + 1) :: &
       buoyfl, &       ! Buoyancy flux [cm2 s-3].
-      t_sw_nonloc     ! Non-local transport term that is the fraction of
+      t_sw_nonloc, &  ! Non-local transport term that is the fraction of
                       ! shortwave flux passing a layer interface [].
+      t_rs_nonloc, &  ! Non-local transport term that is the fraction of
+                      ! restoring heat flux passing a layer interface [].
+      s_br_nonloc, &  ! Non-local transport term that is the fraction of
+                      ! brine flux passing a layer interface [].
+      s_rs_nonloc     ! Non-local transport term that is the fraction of
+                      ! restoring salt flux passing a layer interface [].
 
    public :: aptflx, apsflx, ditflx, disflx, srxbal, sprfac, &
              trxday, srxday, trxdpt, srxdpt, trxlim, srxlim, scfile, &
+             wavsrc, wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern, &
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
              ustarw, slp, abswnd, lamult, lasl, ustokes, vstokes, &
              atmco2, flxco2, flxdms, flxbrf, atmbrf, &
              surflx, surrlx, sswflx, salflx, brnflx, salrlx, taux, tauy, &
-             ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, &
-             inivar_forcing, fwbbal
+             ustar, ustarb, ustar3, buoyfl, t_sw_nonloc, t_rs_nonloc, &
+             s_br_nonloc, s_rs_nonloc, inivar_forcing, fwbbal
 
 contains
 
@@ -206,11 +224,33 @@ contains
          do k = 1, kk + 1
             do i = 1 - nbdy, ii + nbdy
                buoyfl(i, j, k) = spval
+               t_sw_nonloc(i, j, k) = spval
+               t_rs_nonloc(i, j, k) = spval
+               s_br_nonloc(i, j, k) = spval
+               s_rs_nonloc(i, j, k) = spval
             enddo
          enddo
       enddo
    !$omp end parallel do
 
+   !$omp parallel do private(l, i, k)
+      do j = 1, jj
+         do l = 1, isp(j)
+         do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+            t_rs_nonloc(i, j, 1) = 1._r8
+            s_rs_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
+         do k = 2, kk+1
+           do l = 1, isp(j)
+           do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
+              t_rs_nonloc(i, j, k) = 0._r8
+              s_rs_nonloc(i, j, k) = 0._r8
+           enddo
+           enddo
+         enddo
+      enddo
+   !$omp end parallel do
    !$omp parallel do private(l, i)
       do j = 1, jj
          do l = 1, isp(j)
