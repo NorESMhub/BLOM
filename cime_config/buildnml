@@ -30,6 +30,7 @@ set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
 set NINST_OCN = `./xmlquery NINST_OCN --value`
+set TEST=`./xmlquery TEST --value`
 
 #------------------------------------------------------------------------------
 # Check if HAMOCC is requested
@@ -49,7 +50,7 @@ endif
 # Set RUN_TYPE to 'continue' if CONTINUE_RUN equals TRUE
 #------------------------------------------------------------------------------
 
-if ($CONTINUE_RUN == TRUE) then
+if ("$CONTINUE_RUN" == TRUE) then
   set RUN_TYPE = continue
 endif
 
@@ -75,14 +76,14 @@ set EXPCNF   = "'cesm'"
 set RUNTYP   = "'$RUN_TYPE'"
 set GRFILE   = "'unset'"
 set ICFILE   = "'unset'"
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set PREF     = 2000.e5
 else
   set PREF     = 2000.e4
 endif
 set BACLIN   = 1800.
 set BATROP   = 36.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set MDV2HI   = 2.
   set MDV2LO   = .4
   set MDV4HI   = 0.
@@ -101,7 +102,7 @@ set VSC2HI   = .5
 set VSC2LO   = .5
 set VSC4HI   = 0.
 set VSC4LO   = 0.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set CBAR     = 5.
 else
   set CBAR     = .05
@@ -145,13 +146,13 @@ set JTEST    = 60
 set CNSVDI   = .false.
 set CSDIAG   = .false.
 set RSTFRQ   =  1
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set RSTFMT   =  1
 else
   set RSTFMT   =  0
 endif
 set RSTCMP   =  0 
-if ($PIO_TYPENAME_OCN == pnetcdf) then
+if ("$PIO_TYPENAME_OCN" == pnetcdf) then
   set IOTYPE =  1 
 else
   set IOTYPE =  0 
@@ -183,7 +184,7 @@ set EDDF2D   = .false.
 set EDSPRS   = .true.
 set EGC      = 0.85
 set EGGAM    = 200.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set EGLSMN   = 4000.e2
   set EGMNDF   = 100.e4
   set EGMXDF   = 1500.e4
@@ -200,7 +201,7 @@ set REDI3D   = .false.
 set RHSCTP   = .false.
 set RI0      = 1.2
 set BDMTYP   = 2
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set BDMC1    = 5.e-4
   set BDMC2    = .1
 else
@@ -210,7 +211,7 @@ endif
 set TKEPF    = .006
 set SMOBLD   = .true.
 set LNGMTP   = "'none'"
-if ($BLOM_VCOORD == isopyc_bulkml) then
+if ("$BLOM_VCOORD" == isopyc_bulkml) then
   set BDMLDP   = .true.
   set LTEDTP   = "'layer'"
 else
@@ -219,37 +220,37 @@ else
 endif
 
 # set BGCNML defaults
-set ATM_CO2  = $CCSM_CO2_PPMV
-if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+set ATM_CO2  = "$CCSM_CO2_PPMV"
+if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
   set DO_RIVINPT = .true.
 else
   set DO_RIVINPT = .false.
 endif
-if ($BLOM_N_DEPOSITION == TRUE) then
+if ("$BLOM_N_DEPOSITION" == TRUE) then
   set DO_NDEP   = .true.
-  if(      $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx2v1) then
+  if(      "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx2v1_20180321.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.125v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx0.125v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.125v4_20221013.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx1v4_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx0.25v4_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx2v1) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_185001-201412_tnx2v1_20190702.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_185001-201412_tnx1v4_20180613.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_185001-201412_tnx0.25v4_20190705.nc
-  else if( `echo $BLOM_NDEP_SCENARIO | cut -c1-3` == ssp && $OCN_GRID == tnx1v4) then
+  else if( `echo $BLOM_NDEP_SCENARIO | cut -c1-3` == ssp && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc
-  else if( $BLOM_NDEP_SCENARIO == UNSET ) then
+  else if( "$BLOM_NDEP_SCENARIO" == UNSET ) then
     set DO_NDEP   = .false.
     set NDEPFNAME = "''"
   endif
@@ -257,7 +258,7 @@ else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
 endif
-if ($HAMOCC_SEDSPINUP == TRUE) then
+if ("$HAMOCC_SEDSPINUP" == TRUE) then
   set DO_SEDSPINUP = .true.
   set SEDSPIN_YR_S = $HAMOCC_SEDSPINUP_YR_START
   set SEDSPIN_YR_E = $HAMOCC_SEDSPINUP_YR_END
@@ -270,7 +271,7 @@ else
 endif
 # VSLS is currently only available for the tnx1v4 grid, since a climatlogy file for 
 # short wave radiation is needed. 
-if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
+if ("$HAMOCC_VSLS" == TRUE && "$OCN_GRID" != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
@@ -293,9 +294,13 @@ set SEDPORFILE = "''"
 # set DIAPHY defaults 
 set GLB_FNAMETAG = "'hd','hm','hy'"  
 set GLB_AVEPERIO =  '1,  30, 365'
-set GLB_FILEFREQ = '30,  30, 365'
+if ("$TEST" == TRUE) then
+   set GLB_FILEFREQ =  '1,  30, 365'
+else
+   set GLB_FILEFREQ = '30,  30, 365'
+endif
 set GLB_COMPFLAG =  '0,   0,   0'
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set GLB_NCFORMAT =  '1,   1,   1'
 else
   set GLB_NCFORMAT =  '0,   0,   0'
@@ -474,8 +479,13 @@ set MSC_SSTGA    =  '0,   4,   0'
 set BGC_FNAMETAG  = "'hbgcd','hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '1,30,365'
 set BGC_FILEFREQ  = '30,30,365'
+if ("$TEST" == TRUE) then
+   set BGC_FILEFREQ  = ' 1,30,365'
+else
+   set BGC_FILEFREQ  = '30,30,365'
+endif
 set BGC_COMPFLAG  = '0, 0, 0'
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set BGC_NCFORMAT  = '1, 1, 1'
 else
   set BGC_NCFORMAT  = '0, 0, 0'
@@ -531,7 +541,7 @@ set INT_BROMOUV   = '0, 2, 2'
 set INT_PHOSY     = '4, 2, 2' 
 set INT_NFIX      = '0, 2, 2' 
 set INT_DNIT      = '0, 2, 2' 
-if ($BLOM_N_DEPOSITION == TRUE) then
+if ("$BLOM_N_DEPOSITION" == TRUE) then
 set FLX_NDEP      = '0, 2, 2'
 else
 set FLX_NDEP      = '0, 0, 0'
@@ -680,8 +690,8 @@ set BUR_SSSC12    = '0, 0, 2'
 set BUR_SSSTER    = '0, 0, 2'
 
 # if partial coupling, enable SSS relaxation
-if ($BLOM_COUPLING  =~ *partial*) then
-  if ($BLOM_VCOORD == isopyc_bulkml) then
+if ("$BLOM_COUPLING"  =~ *partial*) then
+  if ("$BLOM_VCOORD" == isopyc_bulkml) then
     set SRXDAY = 6.
   else
     set SRXDAY = 60.
@@ -692,17 +702,17 @@ if ($BLOM_COUPLING  =~ *partial*) then
 endif
 
 # set grid dependent parameters
-if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
+if ("$OCN_GRID" == gx1v5 || "$OCN_GRID" == gx1v6) then
   set BACLIN = 1800.
   set BATROP = 36.
-else if ($OCN_GRID == gx3v7) then
+else if ("$OCN_GRID" == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ($OCN_GRID == tnx2v1 ) then
+else if ("$OCN_GRID" == tnx2v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1000.e4
   else
     set EGMXDF = 1000.
@@ -712,23 +722,23 @@ else if ($OCN_GRID == tnx2v1 ) then
   set CWMI   = "         53,         54"
   set CWMJ   = "        137,        137"
   set CWMWTH = "      30.e3,      30.e3"
-else if ($OCN_GRID == tnx1.5v1 ) then
+else if ("$OCN_GRID" ==  tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1000.e4
   else
     set EGMXDF = 1000.
   endif
-else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
-  if ($OCN_NCPL == 24) then
+else if ("$OCN_GRID" == tnx1v1 || "$OCN_GRID" == tnx1v3 || "$OCN_GRID" == tnx1v4) then
+  if ("$OCN_NCPL" == 24) then
     set BACLIN = 3600.
     set BATROP = 60.
     set CWBDTS = .75e-4
     set NIWGF  = .4
     set SMTFRC = .false.
-    if ($BLOM_VCOORD == isopyc_bulkml) then
+    if ("$BLOM_VCOORD" == isopyc_bulkml) then
       set CE     = .5
     endif
   else
@@ -740,10 +750,10 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set CWMI   = "        105,        106"
   set CWMJ   = "        273,        273"
   set CWMWTH = "      30.e3,      30.e3"
-else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
+else if ("$OCN_GRID" == tnx0.25v1 || "$OCN_GRID" == tnx0.25v3 || "$OCN_GRID" == tnx0.25v4) then
   set BACLIN = 900.
   set BATROP = 15.
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set MDV2HI = .15
     set MDV2LO = .15
     set MDV4HI = 0.
@@ -766,15 +776,15 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set CWBDLS = 25.
   set EDWMTH = "'step'"
   set EGC    = 0.85
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1500.e4
   else
     set EGMXDF = 1500.
   endif
-  if ($BLOM_VCOORD == isopyc_bulkml) then
+  if ("$BLOM_VCOORD" == isopyc_bulkml) then
     set CE     = 1.0
   endif
-else if ($OCN_GRID == tnx0.125v4) then
+else if ("$OCN_GRID" == tnx0.125v4) then
   set BACLIN = 300.
   set BATROP = 6.
   set EGMNDF = 0.
@@ -782,7 +792,7 @@ else if ($OCN_GRID == tnx0.125v4) then
   set EDWMTH = "'step'"
   set CWBDTS = .75e-4
   set CWBDLS = 25
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set MDV2HI = .1
     set MDV2LO = .1
     set MDV4HI = 0.
@@ -803,7 +813,8 @@ else if ($OCN_GRID == tnx0.125v4) then
   set VSC4LO = .06
   set LTEDTP = "'layer'"
 else
-  echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
+  echo "OCN_GRID is $OCN_GRID \n"    
+  echo "$0 ERROR: Cannot deal with GRID equal to $OCN_GRID "
   exit -1
 endif
 
@@ -814,7 +825,7 @@ set INIPO4 = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_phosphate_OMIPinit_20171107.n
 set INIOXY = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_oxygen_OMIPinit_20171107.nc'"
 set ININO3 = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_nitrate_OMIPinit_20171107.nc'"
 set INISIL = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_silicate_OMIPinit_20171107.nc'"
-if ($HAMOCC_CISO == TRUE) then
+if ("$HAMOCC_CISO" == TRUE) then
 set INID13C = "'$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc'"
 set INID14C = "'$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc'"
 else
@@ -823,7 +834,7 @@ set INID14C = "''"
 endif
 
 # set grid dependent input files
-if      ($OCN_GRID == tnx2v1) then
+if      ("$OCN_GRID" == tnx2v1) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc'"
@@ -834,17 +845,17 @@ if      ($OCN_GRID == tnx2v1) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx1v4) then
+else if ("$OCN_GRID" == tnx1v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc'"
@@ -855,22 +866,22 @@ else if ($OCN_GRID == tnx1v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
   set SEDPORFILE = "''"
-  if ($HAMOCC_VSLS == TRUE) then
+  if ("$HAMOCC_VSLS" == TRUE) then
     set SWACLIMFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc'"
   else
     set SWACLIMFILE = "''"
   endif
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx0.25v4) then
+else if ("$OCN_GRID" == tnx0.25v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc'"
@@ -882,17 +893,17 @@ else if ($OCN_GRID == tnx0.25v4) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx0.125v4) then
+else if ("$OCN_GRID" == tnx0.125v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc'"
@@ -904,12 +915,12 @@ else if ($OCN_GRID == tnx0.125v4) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
@@ -1098,7 +1109,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 /
 EOF
 
-if ($BLOM_VCOORD == cntiso_hybrid) then
+if ("$BLOM_VCOORD" == cntiso_hybrid) then
 cat >>! $RUNDIR/ocn_in$inststr << EOF
 
 &VCOORD
@@ -1618,7 +1629,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 /
 EOF
 
-if ($ecosys == TRUE) then
+if ("$ecosys" == TRUE) then
 cat >>! $RUNDIR/ocn_in$inststr << EOF
 
 ! NAMELIST FOR iHAMOCC OPTIONS
