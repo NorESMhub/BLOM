@@ -68,6 +68,9 @@ c
       use mod_tke, only: L_scale
 #  endif
 #endif
+#ifdef HAMOCC
+      use mo_control_bgc, only: do_bromo
+#endif
 c
       implicit none
 c

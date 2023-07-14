@@ -86,7 +86,8 @@
       use mo_carbch,      only: atmflx,ocetra,atm
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
-                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc, &
+                                do_bromo 
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
@@ -184,6 +185,7 @@
       !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
 #endif
 
+      if (do_bromo) then
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
@@ -194,6 +196,7 @@
       ENDDO
 !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
+      endif
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -418,7 +421,13 @@
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
-        if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+        if(omask(i,j) .gt. 0.5) then
+           if (do_bromo) then
+              pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
+           else
+              pflxbromo(i,j)=0.0
+           end if
+         endif
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO

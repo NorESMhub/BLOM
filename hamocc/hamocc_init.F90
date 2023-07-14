@@ -46,7 +46,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
-       &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor
+       &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,do_bromo
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
   use mo_biomod,      only: alloc_mem_biomod
@@ -196,7 +196,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   CALL ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
 
+  if (do_bromo) then
   CALL ini_swa_clim(idm,jdm,omask)
+  endif 
 
   call ini_pi_ph(idm,jdm,omask)
   !

@@ -123,7 +123,7 @@
 ! ALLOC_MEM_BIOMOD - Allocate variables in this module
 !******************************************************************************
       use mod_xc,         only: mnproc
-      use mo_control_bgc, only: io_stdo_bgc
+      use mo_control_bgc, only: io_stdo_bgc,do_bromo 
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
@@ -367,17 +367,19 @@
       asize3d(:,:,:) = 0.0
 #endif
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable int_chbr3_prod, int_chbr3_uv ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      if (do_bromo) then
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable int_chbr3_prod, int_chbr3_uv ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         ENDIF
 
-      ALLOCATE (int_chbr3_prod(kpie,kpje),stat=errstat)
-      ALLOCATE (int_chbr3_uv(kpie,kpje),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
-      int_chbr3_prod(:,:) = 0.0
-      int_chbr3_uv(:,:) = 0.0
+         ALLOCATE (int_chbr3_prod(kpie,kpje),stat=errstat)
+         ALLOCATE (int_chbr3_uv(kpie,kpje),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
+         int_chbr3_prod(:,:) = 0.0
+         int_chbr3_uv(:,:) = 0.0
+      end if
 
 !******************************************************************************
      END SUBROUTINE ALLOC_MEM_BIOMOD

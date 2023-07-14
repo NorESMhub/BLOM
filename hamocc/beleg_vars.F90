@@ -54,7 +54,7 @@
 
       use mo_carbch,      only: co2star,co3,hi,ocetra 
       use mo_biomod,      only: fesoly 
-      use mo_control_bgc, only: rmasks
+      use mo_control_bgc, only: rmasks,do_bromo
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
                               & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
       use mo_vgrid,       only: kmle,kbo
@@ -207,8 +207,10 @@
           ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
           ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
 #endif
+         if (do_bromo) then
 ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
          ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
+         endif
         ENDIF ! omask > 0.5
       ENDDO
       ENDDO

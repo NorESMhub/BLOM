@@ -65,6 +65,9 @@ c
       use mod_tke, only: L_scale
 #  endif
 #endif
+#ifdef HAMOCC
+      use mo_control_bgc, only: do_bromo
+#endif
 c
       implicit none
 c
@@ -366,8 +369,12 @@ c
         call wrtrst('frzpot',trim(c5p)//' time',frzpot,ip)
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
+#ifdef HAMOCC
         call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
-        call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+        if (do_bromo) then
+           call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+        end if
+#endif
       endif
 c
 #ifdef TRC
@@ -870,6 +877,9 @@ c
 c --- ------------------------------------------------------------------
       use mod_dia
       use mod_forcing, only: sprfac
+#ifdef HAMOCC
+      use mo_control_bgc, only: do_bromo
+#endif
 c
       implicit none
 c
@@ -1012,8 +1022,12 @@ c
         call defvarrst('frzpot',trim(c5p)//' time')
         call defvarrst('mltpot',trim(c5p)//' time')
         call defvarrst('flxco2',trim(c5p)//' time')
+#ifdef HAMOCC
         call defvarrst('flxdms',trim(c5p)//' time')
-        call defvarrst('flxbrf',trim(c5p)//' time')
+        if (do_bromo) then
+           call defvarrst('flxbrf',trim(c5p)//' time')
+        end if
+#endif
       endif
 c
 #ifdef TRC

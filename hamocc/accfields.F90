@@ -68,10 +68,10 @@
                               & jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,       &
                               & jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepfx,   &
                               & joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,acclyr,accsrf,bgczlv
-      use mo_control_bgc, only: io_stdo_bgc
+      use mo_control_bgc, only: io_stdo_bgc,do_bromo 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
-                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet
+                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet                                                         
 
 #ifdef AGG
       use mo_biomod,      only: asize3d,eps3d,wnumb,wmass
@@ -206,8 +206,10 @@
 #ifdef natDIC
       call accsrf(jnatco2fx,atmflx(1,1,iatmnco2),omask,0)
 #endif
-      call accsrf(jatmbromo,atm(1,1,iatmbromo),omask,0)
-      call accsrf(jbromofx,atmflx(1,1,iatmbromo),omask,0)
+      if (do_bromo) then
+         call accsrf(jatmbromo,atm(1,1,iatmbromo),omask,0)
+         call accsrf(jbromofx,atmflx(1,1,iatmbromo),omask,0)
+      endif
 #ifdef cisonew
       call accsrf(jatmc13,atm(1,1,iatmc13),omask,0)
       call accsrf(jatmc14,atm(1,1,iatmc14),omask,0)
@@ -255,9 +257,11 @@
       call accsrf(jnatpco2,natpco2d,omask,0)
       call accsrf(jsrfnatph,nathi(1,1,1),omask,0)
 #endif
-      call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
-      call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
-      call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
+      if (do_bromo) then
+         call accsrf(jsrfbromo,ocetra(1,1,1,ibromo),omask,0)
+         call accsrf(jbromo_prod,int_chbr3_prod,omask,0)     
+         call accsrf(jbromo_uv,int_chbr3_uv,omask,0)     
+      end if
 
 ! Accumulate fluxes due to N-deposition, ocean alkalinization
       call accsrf(jndepfx,ndepflx,omask,0)    
@@ -356,8 +360,9 @@
       call acclyr(jcfc12,ocetra(1,1,1,icfc12),pddpo,1)
       call acclyr(jsf6,ocetra(1,1,1,isf6),pddpo,1)
 #endif
-      call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
-
+      if (do_bromo) then
+         call acclyr(jbromo,ocetra(1,1,1,ibromo),pddpo,1)
+      end if
 
 ! Accumulate level diagnostics
       IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
@@ -429,7 +434,9 @@
           call acclvl(jlvlcfc12,ocetra(1,1,1,icfc12),k,ind1,ind2,wghts)
           call acclvl(jlvlsf6,ocetra(1,1,1,isf6),k,ind1,ind2,wghts)
 #endif
-          call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
+          if (do_bromo) then
+             call acclvl(jlvlbromo,ocetra(1,1,1,ibromo),k,ind1,ind2,wghts)
+          end if
         ENDDO
       ENDIF
 

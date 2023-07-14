@@ -90,7 +90,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                           & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
-  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
+  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph,do_bromo 
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
 
@@ -217,8 +217,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   intdms_bac(:,:) = 0.
   intdms_uv (:,:) = 0.
   phosy3d (:,:,:) = 0.
+  if (do_bromo) then
   int_chbr3_uv (:,:) = 0.
   int_chbr3_prod (:,:) = 0.
+  end if
 #ifdef AGG
   eps3d(:,:,:)    = 0.
   asize3d(:,:,:)  = 0.
@@ -245,7 +247,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! Calculate swr absorption by water and phytoplankton
 
   abs_bgc(:,:,:) = 0.
+  if (do_bromo) then
   abs_uv(:,:,:) = 0.
+  end if
 #ifdef FB_BGC_OCE
   abs_oce(:,:,:) = 0.
   abs_oce(:,:,1) = 1.
@@ -269,7 +273,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               ! Average light intensity in layer k
               atten = atten_w + atten_c * max(0.,ocetra(i,j,k,iphy))
               abs_bgc(i,j,k) = ((absorption/atten)*      (1.-exp(-atten*dz)))/dz
-              abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
+              if (do_bromo) then
+                 abs_uv(i,j,k)  = ((absorption_uv/atten_uv)*(1.-exp(-atten_uv*dz)))/dz
+              end if
 #ifdef FB_BGC_OCE
               abs_oce(i,j,k) = abs_oce(i,j,k) * absorption
               if (k == 2) then
@@ -472,6 +478,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
              &                - relaxfe*MAX(ocetra(i,j,k,iiron)-fesoly,0.)
+
 ! Bromo source from phytoplankton production and sink to photolysis
 ! Hense and Quack (200) Pg537 Decay time scale is 30days =0.0333/day
 ! sinks owing to degradation by nitrifiers (Pg 538 of Hense and Quack,
@@ -479,13 +486,15 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! than sink through halide substitution & hydrolysis (Fig. 3)
 ! Assume that only 30% of incoming radiation are UV (i.e. 50% of non-PAR
 ! radiation; PAR radiationis assume to be 40% of incoming radiation)
+        if (do_bromo) then
         bro_beta = rbro*(fbro1*avsil/(avsil+bkopal)+fbro2*bkopal/(avsil+bkopal))
         if (swa_clim(i,j,1) > 0.) then
-         bro_uv = 0.0333*dtb*0.3*(strahl(i,j)/swa_clim(i,j,1))*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
+           bro_uv = 0.0333*dtb*0.3*(strahl(i,j)/swa_clim(i,j,1))*abs_uv(i,j,k)*ocetra(i,j,k,ibromo)
         else
-         bro_uv = 0.0
+           bro_uv = 0.0
         endif
         ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
+        end if
 
 #ifdef AGG
 !***********************************************************************
@@ -527,8 +536,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         intdmsprod(i,j) = intdmsprod(i,j)+dmsprod*dz
         intdms_bac(i,j) = intdms_bac(i,j)+dms_bac*dz
         intdms_uv(i,j)  = intdms_uv (i,j)+dms_uv*dz
+        if (do_bromo) then
         int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
         int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
+        end if
         intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
         phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
 
