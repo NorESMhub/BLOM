@@ -38,53 +38,104 @@ def _create_namelists(case, confdir, infile, nmlgen):
     The `confdir` argument is used to specify the directory  in which output files will be placed.
     """
 
-    CASEROOT                  = case.get_value("CASEROOT")
-    OCN_GRID                  = case.get_value("OCN_GRID")
-    BLOM_VCOORD               = case.get_value("BLOM_VCOORD")
-    BLOM_UNIT                 = case.get_value("BLOM_UNIT")
-    DIN_LOC_ROOT              = case.get_value("DIN_LOC_ROOT")
-    RUN_TYPE                  = case.get_value("RUN_TYPE")
-    CONTINUE_RUN              = case.get_value("CONTINUE_RUN")
-    CASEBUILD                 = case.get_value("CASEBUILD")
-    CCSM_CO2_PPMV             = case.get_value("CCSM_CO2_PPMV")
-    OCN_NCPL                  = case.get_value("OCN_NCPL")
-    BLOM_COUPLING             = case.get_value("BLOM_COUPLING")
-    RUNDIR                    = case.get_value("RUNDIR")
-    BLOM_TRACER_MODULES       = case.get_value("BLOM_TRACER_MODULES")
-    BLOM_RIVER_NUTRIENTS      = case.get_value("BLOM_RIVER_NUTRIENTS")
-    BLOM_N_DEPOSITION         = case.get_value("BLOM_N_DEPOSITION")
-    BLOM_NDEP_SCENARIO        = case.get_value("BLOM_NDEP_SCENARIO")
-    HAMOCC_VSLS               = case.get_value("HAMOCC_VSLS")
-    HAMOCC_CISO               = case.get_value("HAMOCC_CISO")
-    HAMOCC_SEDSPINUP          = case.get_value("HAMOCC_SEDSPINUP")
-    HAMOCC_SEDSPINUP_YR_START = case.get_value("HAMOCC_SEDSPINUP_YR_START")
-    HAMOCC_SEDSPINUP_YR_END   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
-    HAMOCC_SEDSPINUP_NCYCLE   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
-    RUN_STARTDATE             = case.get_value("RUN_STARTDATE")
-    PIO_TYPENAME_OCN          = case.get_value("PIO_TYPENAME_OCN")
-    PIO_NETCDF_FORMAT_OCN     = case.get_value("PIO_NETCDF_FORMAT_OCN")
-    NINST_OCN                 = case.get_value("NINST_OCN")
-    TEST                      = case.get_value("TEST")
+    CASEROOT      = case.get_value("CASEROOT")
+    RUN_TYPE      = case.get_value("RUN_TYPE")
+    CONTINUE_RUN  = case.get_value("CONTINUE_RUN")
+    CASEBUILD     = case.get_value("CASEBUILD")
+    CCSM_CO2_PPMV = case.get_value("CCSM_CO2_PPMV")
+    NINST_OCN     = case.get_value("NINST_OCN")
 
-    config['ocn_comp'] = case.get_value("COMP_OCN")
+    ocn_grid = case.get_value("OCN_GRID")
+    ocn_ncpl = case.get_value("OCN_NCPL")
+    blom_unit = case.get_value("BLOM_UNIT")
+    blom_vcoord = case.get_value("BLOM_VCOORD")
+    pio_typename_ocn = case.get_value("PIO_TYPENAME_OCN")
+    pio_netcdf_format_ocn = case.get_value("PIO_NETCDF_FORMAT_OCN")
+    is_test =  case.get_value("TEST")
+    blom_river_nutrients = case.get_value("BLOM_RIVER_NUTRIENTS")
+    blom_n_deposition = case.get_value("BLOM_N_DEPOSITION")
+    blom_ndep_scenario = case.get_value("BLOM_NDEP_SCENARIO")
+    blom_coupling = case.get_value("BLOM_COUPLING")
+    blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
+    hamocc_vsls = case.get_value("HAMOCC_VSLS")
+    hamocc_ciso = case.get_value("HAMOCC_CISO")
+    hamocc_sedspinup = case.get_value("HAMOCC_SEDSPINUP")
+    hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
+    hamocc_sedspinup_yr_end = case.get_value("HAMOCC_SEDSPINUP_YR_END")
+    hamocc_sedspinup_ncycle = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
 
-    YEAR0   = `echo $RUN_STARTDATE | cut -c1-4 `
-    MONTH0  = `echo $RUN_STARTDATE | cut -c6-7 `
-    DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
+    config = {}
+    config['ocn_grid'] = ocn_grid
+    config['ocn_ncpl'] = str(ocn_ncpl)
+    print (f"DEBUG: ocn_ncpl is {ocn_ncpl}")
+    config['pio_typename_ocn'] = pio_typename_ocn
+    config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
+    config["is_test"] = "yes" if is_test else "no"
+
+    config['blom_unit'] = blom_unit if blom_unit else "unset"
+    config['blom_vcoord'] = blom_vcoord
+    config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
+    config["blom_ndep_scenario"] = "ssp" if "ssp" in blom_ndep_scenario else blom_ndep_scenario
+    config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
+    config["blom_coupling"] = blom_coupling
+    config["blom_tracer_modules"] = blom_tracer_modules
+
+    config["hamocc_vsls"] = "yes" if hamocc_vsls else "no"
+    config["hamocc_ciso"] = "yes" if hamocc_ciso else "no" 
+    config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
+    config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
+    config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
+    config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
 
     #----------------------------------------------------
-    # Initialize namelist defaults
+    # initialize namelist defaults
     #----------------------------------------------------
     nmlgen.init_defaults(infile, config)
+
+    if nmlgen.get_value('SWACLIMFILE') == 'UNSET':
+        nmlgen.set_value('SWACLIMFILE', value="")
+
+    run_startdate = case.get_value("RUN_STARTDATE")
+    idate = run_startdate.replace('-','')
+    nmlgen.set_value("IDATE", idate)
+    nmlgen.set_value("IDATE0", idate)
 
     #----------------------------------------------------
     # Write out namelist groups
     #----------------------------------------------------
-    groups=['limit']
+    groups=['limits','diffusion']
+
+    cwmtag = nmlgen.get_default('CWMTAG', config=config)
+    if cwmtag != 'UNSET':
+        groups.append('cwmod')
+
+    groups.append('merdia')
+    groups.append('secdia')
+    groups.append('diaphy')
+
+    if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
+        groups.append('vcoord')
+
+    blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
+    ecosys_on = "ecosys" in blom_tracer_modules
+    print (f"DEBUG: ecosos is {ecosys_on}")
+    groups.append("bgcnml")
+
+    data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
+    if os.path.exists(data_list_path):
+        os.remove(data_list_path)
 
     namelist_file = os.path.join(confdir, "ocn_in")
     nmlgen.write_output_file(namelist_file, data_list_path, groups=groups, sorted_groups=False)
 
+    # replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax
+    from pathlib import Path
+    file = Path(namelist_file)
+    file.write_text(file.read_text().replace('MER_REGFLG1','MER_REGFLG(1,:)'))
+    file.write_text(file.read_text().replace('MER_REGFLG2','MER_REGFLG(2,:)'))
+    file.write_text(file.read_text().replace('MER_REGFLG3','MER_REGFLG(3,:)'))
+    file.write_text(file.read_text().replace('MER_REGFLG4','MER_REGFLG(4,:)'))
+    
     #logger.debug("blom: grid is %s" %(hgrid))
     #logger.debug("blom: physics is %s "%phys)
 
@@ -100,6 +151,11 @@ def buildnml(case, caseroot, compname):
     srcroot = case.get_value("SRCROOT")
     rundir = case.get_value("RUNDIR")
     ninst = case.get_value("NINST_OCN")
+
+    # determine the confdir directory
+    confdir = os.path.join(caseroot,"Buildconf","blomconf")
+    if not os.path.isdir(confdir):
+        os.makedirs(confdir)
 
     #----------------------------------------------------
     # Construct the namelist generator
@@ -156,8 +212,8 @@ def buildnml(case, caseroot, compname):
 
         # copy namelist files to rundir
         if os.path.isdir(rundir):
-            file1  = os.path.join(confdir, "ice_in")
-            file2 = os.path.join(rundir, "ice_in")
+            file1  = os.path.join(confdir, "ocn_in")
+            file2 = os.path.join(rundir, "ocn_in")
             if inst_string:
                 file2 += inst_string
             logger.debug("BLOM namelist copy: file1 %s file2 %s " %(file1, file2))

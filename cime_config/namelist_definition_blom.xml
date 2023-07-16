@@ -5,28 +5,44 @@
 <entry_id version="2.0">
 
   <!-- Each namelist variable is defined in an <entry> element.  The
-     content of the element is the documentation of how the variable is
-     used.  Other elements  are:
-     id
-          The variable's name.  *** N.B. *** The name must be lower case.
-          The module convert all namelist variable names to lower case
-          since Fortran is case insensitive.
-     type
-          An abbreviation of the fortran declaration for the variable.
-	  Valid declarations are:
-             char, integer, logical, real
-	  Any of these types may be followed by a comma separated list of
-	  integers enclosed in parenthesis to indicate an array.
-	  The current namelist validation code only distinquishes between
-	  string and non-string types.
-     category
-          A category assigned for organizing the documentation.
-     group
-          The namelist group that the variable is declared in.
-     valid_values
-          This is an optional attribute that is mainly useful for variables
-          that have only a small number of allowed values.
+       content of the element is the documentation of how the variable is
+       used.  Other elements  are:
+       id
+       The variable's name.  *** N.B. *** The name must be lower case.
+       The module convert all namelist variable names to lower case
+       since Fortran is case insensitive.
+       type
+       An abbreviation of the fortran declaration for the variable.
+       Valid declarations are:
+       char, integer, logical, real
+       Any of these types may be followed by a comma separated list of
+       integers enclosed in parenthesis to indicate an array.
+       The current namelist validation code only distinquishes between
+       string and non-string types.
+       category
+       A category assigned for organizing the documentation.
+       group
+       The namelist group that the variable is declared in.
+       valid_values
+       This is an optional attribute that is mainly useful for variables
+       that have only a small number of allowed values.
   -->
+
+  <!-- &LIMITS -->
+  <!-- &VCOORD -->
+  <!-- &DIFFUSION -->
+  <!-- &CWMOD -->
+  <!-- &MERDIA -->
+  <!-- &SECDIA -->
+  <!-- &DIAPHY -->
+
+  <!-- &BGCNML -->
+  <!-- &BGCOAFX -->
+  <!-- &DIABGC -->
+
+  <!-- ========================= -->
+  <!-- namelist group: limits -->
+  <!-- ========================= -->
 
   <entry id="NDAY1">
     <type>integer</type>
@@ -103,8 +119,13 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
+    <input_pathname>abs</input_pathname>
     <desc></desc>
   </entry>
 
@@ -113,8 +134,13 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
+    <input_pathname>abs</input_pathname>
     <desc></desc>
   </entry>
 
@@ -135,6 +161,11 @@
     <group>limits</group>
     <values>
       <value>1800.</value>
+      <value ocn_grid="gx3v7">3600.</value>
+      <value ocn_grid="tnx2v1">4800.</value>
+      <value ocn_grid="tnx1.5v1">4800.</value>
+      <value ocn_grid="tnx1v">3200.</value>
+      <value ocn_grid="tnx1v" ocn_ncpl="24">3600.</value>
     </values>
     <desc></desc>
   </entry>
@@ -145,6 +176,12 @@
     <group>limits</group>
     <values>
       <value>36.</value>
+      <value ocn_grid="gx3v7">72.</value>
+      <value ocn_grid="tnx2v1">96.</value>
+      <value ocn_grid="tnx1.5v1">96.</value>
+      <value ocn_grid="tnx1v">64.</value>
+      <value ocn_grid="tnx0.25v">900.</value>
+      <value ocn_grid="tnx1v" ocn_ncpl="24">60.</value>
     </values>
     <desc></desc>
   </entry>
@@ -371,8 +408,13 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
+    <input_pathname>abs</input_pathname>
     <desc></desc>
   </entry>
 
@@ -441,8 +483,12 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
+    <input_pathname>abs</input_pathname>
     <desc></desc>
   </entry>
 
@@ -561,8 +607,13 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx2v1_20130927.nc</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
+    <input_pathname>abs</input_pathname>
     <desc></desc>
   </entry>
 
@@ -686,6 +737,2469 @@
       <value pio_typename_ocn="pnetcdf">1</value>
     </values>
     <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: vcoord -->
+  <!-- ========================= -->
+
+  <!-- <category>vcoord</category> -->
+  <!-- <group>vcoord</group> -->
+  <!-- <values> -->
+  <!--   <value></value> -->
+  <!-- </values> -->
+  <!-- <desc></desc> -->
+
+  <entry id="VCOORD_TYPE" modify_via_xml="BLOM_VCOORD">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>$BLOM_VCOORD</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="RECONSTRUCTION_METHOD">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>ppm</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DENSITY_LIMITING">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>monotonic</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="TRACER_LIMITING">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="VELOCITY_LIMITING">
+    <type>char</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>non_oscillatory</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DENSITY_PC_UPPER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DENSITY_PC_LOWER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="TRACER_PC_UPPER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="TRACER_PC_LOWER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="VELOCITY_PC_UPPER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="VELOCITY_PC_LOWER_BNDR">
+    <type>logical</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DPMIN_SURFACE">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>2.5</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DPMIN_INFLATION_FACTOR">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>1.08</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DPMIN_INTERIOR">
+    <type>real</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>.1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DKTZU">
+    <type>integer</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DKTZL">
+    <type>integer</type>
+    <category>vcoord</category>
+    <group>vcoord</group>
+    <values>
+      <value>1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: diffusion -->
+  <!-- ========================= -->
+
+  <entry id="EITMTH">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>gm</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EDRITP">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>"large scale"</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EDWMTH">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>smooth</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EDDF2D">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EDSPRS">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGC">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>0.85</value>
+      <value ocn_grid="tnx2v1">0.5</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGGAM">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>200.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGLSMN">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>4000.</value>
+      <value blom_unit="cgs">4000.e2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGMNDF">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>100.</value>
+      <value blom_unit="cgs">100.e4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGMXDF">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1500.</value>
+      <value ocn_grid="tnx2v1">1000.</value>
+      <value ocn_grid="tnx2v1" blom_unit="cgs">1000.e4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EGIDFQ">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="TBFILE">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>UNSET</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="RHISCF">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>0.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="EDANIS">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="REDI3D">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="RHSCTP">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="RI0">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value></value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BDMTYP">
+    <type>integer</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BDMC1">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>5.e-8</value>
+      <value blom_unit="cgs">5.e-4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BDMC2">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>1.e-5</value>
+      <value blom_unit="cgs">.1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BDMLDP">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.false.</value>
+      <value blom_vcoord="isopyc_bulkml">.true.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="TKEPF">
+    <type>real</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.006</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SMOBLD">
+    <type>logical</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LNGMTP">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>none</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LTEDTP">
+    <type>char</type>
+    <category>diffusion</category>
+    <group>diffusion</group>
+    <values>
+      <value>layer</value>
+      <value blom_vcoord="isopyc_bulkml">neutral</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: cwmod -->
+  <!-- ========================= -->
+
+  <entry id="CWMTAG">
+    <type>char(2)</type>
+    <category>cwmod</category>
+    <group>cwmod</group>
+    <values>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
+      <value ocn_grid="tnx1v1">'Gibraltar','Gibraltar'</value>
+      <value ocn_grid="tnx1v3">'Gibraltar','Gibraltar'</value>
+      <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="CWMEDG">
+    <type>char(2)</type>
+    <category>cwmod</category>
+    <group>cwmod</group>
+    <values>
+      <value>'u','u'</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="CWMI">
+    <type>integer(2)</type>
+    <category>cwmod</category>
+    <group>cwmod</group>
+    <values>
+      <value>53,54</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="CWMJ">
+    <type>integer(2)</type>
+    <category>cwmod</category>
+    <group>cwmod</group>
+    <values>
+      <value>137,137</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="CWMWTH">
+    <type>real(2)</type>
+    <category>cwmod</category>
+    <group>cwmod</group>
+    <values>
+      <value>30.e3,30.e3</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: secdia -->
+  <!-- ========================= -->
+
+  <entry id="SEC_SIFILE">
+    <type>char</type>
+    <category>secdia</category>
+    <group>secdia</group>
+    <values>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx2v1_20190826.dat</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx1v4_20190611.dat</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: diaphy -->
+  <!-- (IO-NAMELIST FOR DIAGNOSTIC OUTPUT) -->
+  <!-- ========================= -->
+
+  <entry id="GLB_FNAMETAG">
+    <type>char(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>'hd','hm','hy'</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="GLB_AVEPERIO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>1,30,365</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="GLB_FILEFREQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>30,30,365</value>
+      <value is_test="yes">1,30,365</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="GLB_COMPFLAG">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="GLB_NCFORMAT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_ABSWND">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_ALB">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_BTMSTR">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_BRNFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_BRNPD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_DFL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_EVA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_FICE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_FMLTFZ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_HICE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_HMLTFZ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_HSNW">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_IAGE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_IDKEDT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_LAMULT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_LASL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_LIP">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MAXMLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MLTS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MLTSMN">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MLTSMX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MLTSSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKEUS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKENI">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKEBF">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKERS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKEPE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTKEKE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_MTY">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_NSF">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_PBOT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_PSRF">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_RFIFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_RNFFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SALFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SALRLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SBOT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SEALV">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SLVSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SFL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SOP">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SIGMX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SSS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SSSSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SST">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SSTSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SURFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SURRLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_SWA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_T20D">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_TAUX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_TAUY">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_TBOT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_TICE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_TSRF">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_UB">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_UICE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_USTAR">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_USTAR3">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_USTOKES">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_VB">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_VICE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_VSTOKES">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="H2D_ZTX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_BFSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFDIA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFVMO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFVHO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFVSO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFINT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIFISO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DP">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DZ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_SALN">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_TEMP">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_TRC">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UTFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_USFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UMFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UMFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UTFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UTFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UTFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_USFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_USFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_USFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_UVEL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VTFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VSFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VMFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VMFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VTFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VTFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VTFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VSFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VSFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VSFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_VVEL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_WFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_WFLX2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PV">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_TKE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_GLS_PSI">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_IDLAGE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_BFSQ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFDIA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFVMO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFVHO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFVSO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFINT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIFISO">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DZ">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_SALN">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_TEMP">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_TRC">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UTFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_USFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UMFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UMFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UTFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UTFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UTFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_USFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_USFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_USFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_UVEL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VTFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VSFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VMFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VMFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VTFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VTFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VTFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VSFLTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VSFLSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VSFLLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_VVEL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_WFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_WFLX2">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PV">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_TKE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_GLS_PSI">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_IDLAGE">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFLXL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFLXD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFTDL">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFSML">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFTDD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MMFSMD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MHFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MHFTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MHFSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MHFLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MSFLX">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MSFTD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MSFSM">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MSFLD">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_VOLTR">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_MASSGS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_VOLGS">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_SALNGA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_TEMPGA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_SSSGA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MSC_SSTGA">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: merdia -->
+  <!-- ========================= -->
+
+  <!-- TODO: put in check in buildnml to fail if file values are UNSET -->
+  <entry id="MER_ORFILE">
+    <type>char</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx2v1_20190826.nc</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="MER_MIFILE">
+    <type>char</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>UNSET</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx2v1_20190826.dat</value>
+      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
+      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="MER_REGNAME">
+    <type>char(4)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>'atlantic_arctic_ocean','atlantic_arctic_extended_ocean','indian_pacific_ocean','global_ocean'</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="MER_REGFLG1">
+    <type>integer(20)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>2, 4</value>
+    </values>
+    <desc>Array of mask flags in ocean regions file to be included for region (1)</desc>
+  </entry>
+  <entry id="MER_REGFLG2">
+    <type>integer(20)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>2,4,6,7,8,9</value>
+    </values>
+    <desc>Array of mask flags in ocean regions file to be included for region (2)</desc>
+  </entry>
+  <entry id="MER_REGFLG3">
+    <type>integer(20)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>3,5</value>
+    </values>
+    <desc>Array of mask flags in ocean regions file to be included for region (3)</desc>
+  </entry>
+  <entry id="MER_REGFLG4">
+    <type>integer(20)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>0</value>
+    </values>
+    <desc>Array of mask flags in ocean regions file to be included for region (4)</desc>
+  </entry>
+
+  <entry id="MER_MINLAT">
+    <type>real(4)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>-34.,-34.,-34.,-90.</value>
+    </values>
+    <desc>Minimum latitude to be considered for each region (f)</desc>
+  </entry>
+
+  <entry id="MER_MAXLAT">
+    <type>real(4)</type>
+    <category>merdia</category>
+    <group>merdia</group>
+    <values>
+      <value>90.,90.,90.,90.</value>
+    </values>
+    <desc>Maximum latitude to be considered for each region (f)</desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: bgcnml -->
+  <!-- ========================= -->
+
+  <entry id="ATM_CO2" modify_via_xml="CCSM_CO2_PPMV">
+    <type>real</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$CCSM_CO2_PPMV</value>
+    </values>
+    <desc>Atmospheric CO2 concentration [ppmv]</desc>
+  </entry>
+
+  <entry id="FEDEPFILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>' '</value>
+      <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
+      <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
+  </entry>
+
+  <entry id="SWACLIMFILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>UNSET</value>
+      <value hamocc_vsls="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
+  </entry>
+
+  <entry id="DO_RIVINPT">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value blom_river_nutrients="yes">.true.</value>
+    </values>
+    <desc>Logical switch to activate riverine input</desc>
+  </entry>
+
+  <entry id="RIVINFILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>' '</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
+      <value blom_river_nutrients="yes" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc>File name (incl. full path) for riverine input data</desc>
+  </entry>
+
+  <!-- works till here -->
+
+  <entry id="DO_NDEP">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value blom_n_deposition="yes">.true.</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="UNSET">.false.</value>
+    </values>
+    <desc>Logical switch to activate N-deposition</desc>
+  </entry>
+
+  <entry id="NDEPFILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value blom_n_deposition="no">' '</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx2v1_20180321.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx1v4_20171106.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.25v4_20190912.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.125v4_20221013.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx2v1_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx1v4_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx0.25v4_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
 </entry_id>
