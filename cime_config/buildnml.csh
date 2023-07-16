@@ -316,25 +316,37 @@ else
   set GLB_NCFORMAT =  '0,   0,   0'
 endif
 set H2D_ABSWND   =  '0,   4,   0'
+
 set H2D_ALB      =  '0,   0,   0'
+
 set H2D_BTMSTR   =  '0,   4,   0'
 set H2D_BRNFLX   =  '0,   4,   0'
 set H2D_BRNPD    =  '0,   4,   0'
+
 set H2D_DFL      =  '0,   0,   0'
+
 set H2D_EVA      =  '0,   4,   0'
 set H2D_FICE     =  '0,   4,   0'
 set H2D_FMLTFZ   =  '0,   4,   0'
+
 set H2D_HICE     =  '0,   0,   0'
+
 set H2D_HMLTFZ   =  '0,   4,   0'
+
 set H2D_HSNW     =  '0,   0,   0'
 set H2D_IAGE     =  '0,   0,   0'
+
 set H2D_IDKEDT   =  '0,   4,   0'
 set H2D_LAMULT   =  '0,   4,   0'
 set H2D_LASL     =  '0,   4,   0'
 set H2D_LIP      =  '0,   4,   0'
+
 set H2D_MAXMLD   =  '4,   4,   0'
+
 set H2D_MLD      =  '0,   4,   0'
+
 set H2D_MLTS     =  '4,   4,   0'
+
 set H2D_MLTSMN   =  '0,   4,   0'
 set H2D_MLTSMX   =  '0,   4,   0'
 set H2D_MLTSSQ   =  '0,   4,   0'
@@ -353,32 +365,46 @@ set H2D_RNFFLX   =  '0,   4,   0'
 set H2D_SALFLX   =  '0,   4,   0'
 set H2D_SALRLX   =  '0,   4,   0'
 set H2D_SBOT     =  '0,   4,   0'
+
 set H2D_SEALV    =  '4,   4,   0'
+
 set H2D_SLVSQ    =  '0,   4,   0'
 set H2D_SFL      =  '0,   4,   0'
 set H2D_SOP      =  '0,   4,   0'
 set H2D_SIGMX    =  '0,   4,   0'
+
 set H2D_SSS      =  '4,   4,   0'
 set H2D_SSSSQ    =  '4,   4,   0'
 set H2D_SST      =  '4,   4,   0'
 set H2D_SSTSQ    =  '4,   4,   0'
+
 set H2D_SURFLX   =  '0,   4,   0'
 set H2D_SURRLX   =  '0,   4,   0'
 set H2D_SWA      =  '0,   4,   0'
+
 set H2D_T20D     =  '4,   4,   0'
+
 set H2D_TAUX     =  '0,   4,   0'
 set H2D_TAUY     =  '0,   4,   0'
 set H2D_TBOT     =  '0,   4,   0'
+
 set H2D_TICE     =  '0,   0,   0'
 set H2D_TSRF     =  '0,   0,   0'
+
 set H2D_UB       =  '0,   4,   0'
+
 set H2D_UICE     =  '0,   0,   0'
+
 set H2D_USTAR    =  '0,   4,   0'
 set H2D_USTAR3   =  '0,   4,   0'
+
 set H2D_USTOKES  =  '0,   0,   0'
+
 set H2D_VB       =  '0,   4,   0'
+
 set H2D_VICE     =  '0,   0,   0'
 set H2D_VSTOKES  =  '0,   0,   0'
+
 set H2D_ZTX      =  '0,   4,   0'
 set LYR_BFSQ     =  '0,   4,   0'
 set LYR_DIFDIA   =  '0,   4,   0'
@@ -391,10 +417,13 @@ set LYR_DP       =  '0,   4,   0'
 set LYR_DZ       =  '0,   4,   0'
 set LYR_SALN     =  '0,   4,   0'
 set LYR_TEMP     =  '0,   4,   0'
+
 set LYR_TRC      =  '0,   0,   0'
+
 set LYR_UFLX     =  '0,   4,   0'
 set LYR_UTFLX    =  '0,   4,   0'
 set LYR_USFLX    =  '0,   4,   0'
+
 set LYR_UMFLTD   =  '0,   0,   4'
 set LYR_UMFLSM   =  '0,   0,   4'
 set LYR_UTFLTD   =  '0,   0,   4'
@@ -403,10 +432,12 @@ set LYR_UTFLLD   =  '0,   0,   4'
 set LYR_USFLTD   =  '0,   0,   4'
 set LYR_USFLSM   =  '0,   0,   4'
 set LYR_USFLLD   =  '0,   0,   4'
+
 set LYR_UVEL     =  '0,   4,   0'
 set LYR_VFLX     =  '0,   4,   0'
 set LYR_VTFLX    =  '0,   4,   0'
 set LYR_VSFLX    =  '0,   4,   0'
+
 set LYR_VMFLTD   =  '0,   0,   4'
 set LYR_VMFLSM   =  '0,   0,   4'
 set LYR_VTFLTD   =  '0,   0,   4'
@@ -415,6 +446,7 @@ set LYR_VTFLLD   =  '0,   0,   4'
 set LYR_VSFLTD   =  '0,   0,   4'
 set LYR_VSFLSM   =  '0,   0,   4'
 set LYR_VSFLLD   =  '0,   0,   4'
+
 set LYR_VVEL     =  '0,   4,   0'
 set LYR_WFLX     =  '0,   4,   0'
 set LYR_WFLX2    =  '0,   4,   0'
@@ -432,10 +464,13 @@ set LVL_DIFISO   =  '0,   4,   0'
 set LVL_DZ       =  '0,   4,   0'
 set LVL_SALN     =  '0,   4,   0'
 set LVL_TEMP     =  '0,   4,   0'
+
 set LVL_TRC      =  '0,   0,   0'
+
 set LVL_UFLX     =  '0,   4,   0'
 set LVL_UTFLX    =  '0,   4,   0'
 set LVL_USFLX    =  '0,   4,   0'
+
 set LVL_UMFLTD   =  '0,   0,   4'
 set LVL_UMFLSM   =  '0,   0,   4'
 set LVL_UTFLTD   =  '0,   0,   4'
@@ -444,10 +479,12 @@ set LVL_UTFLLD   =  '0,   0,   4'
 set LVL_USFLTD   =  '0,   0,   4'
 set LVL_USFLSM   =  '0,   0,   4'
 set LVL_USFLLD   =  '0,   0,   4'
+
 set LVL_UVEL     =  '0,   4,   0'
 set LVL_VFLX     =  '0,   4,   0'
 set LVL_VTFLX    =  '0,   4,   0'
 set LVL_VSFLX    =  '0,   4,   0'
+
 set LVL_VMFLTD   =  '0,   0,   4'
 set LVL_VMFLSM   =  '0,   0,   4'
 set LVL_VTFLTD   =  '0,   0,   4'
@@ -456,6 +493,7 @@ set LVL_VTFLLD   =  '0,   0,   4'
 set LVL_VSFLTD   =  '0,   0,   4'
 set LVL_VSFLSM   =  '0,   0,   4'
 set LVL_VSFLLD   =  '0,   0,   4'
+
 set LVL_VVEL     =  '0,   4,   0'
 set LVL_WFLX     =  '0,   4,   0'
 set LVL_WFLX2    =  '0,   4,   0'
