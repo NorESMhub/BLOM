@@ -121,8 +121,8 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -136,8 +136,8 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -161,11 +161,11 @@
     <group>limits</group>
     <values>
       <value>1800.</value>
-      <value ocn_grid="gx3v7">3600.</value>
       <value ocn_grid="tnx2v1">4800.</value>
       <value ocn_grid="tnx1.5v1">4800.</value>
-      <value ocn_grid="tnx1v">3200.</value>
-      <value ocn_grid="tnx1v" ocn_ncpl="24">3600.</value>
+      <value ocn_grid="tnx1v4">3200.</value>
+      <value ocn_grid="tnx0.25v4">900.</value>
+      <value ocn_grid="tnx0.125v4">300.</value>
     </values>
     <desc></desc>
   </entry>
@@ -176,12 +176,12 @@
     <group>limits</group>
     <values>
       <value>36.</value>
-      <value ocn_grid="gx3v7">72.</value>
       <value ocn_grid="tnx2v1">96.</value>
       <value ocn_grid="tnx1.5v1">96.</value>
-      <value ocn_grid="tnx1v">64.</value>
-      <value ocn_grid="tnx0.25v">900.</value>
-      <value ocn_grid="tnx1v" ocn_ncpl="24">60.</value>
+      <value ocn_grid="tnx1v4">64.</value>
+      <value ocn_grid="tnx1v4" ocn_ncpl="24">60.</value>
+      <value ocn_grid="tnx0.25v4">15.</value>
+      <value ocn_grid="tnx0.125v4">6.</value>
     </values>
     <desc></desc>
   </entry>
@@ -193,6 +193,10 @@
     <values>
       <value>.02</value>
       <value blom_unit="cgs">2.</value>
+      <value ocn_grid="tnx0.25v4">.0015</value>
+      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.15</value>
+      <value ocn_grid="tnx0.25v4">.001</value>
+      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.1</value>
     </values>
     <desc></desc>
   </entry>
@@ -204,6 +208,10 @@
     <values>
       <value>.004</value>
       <value blom_unit="cgs">.4</value>
+      <value ocn_grid="tnx0.25v4">.0015</value>
+      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.15</value>
+      <value ocn_grid="tnx0.125v4">.001</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
     </values>
     <desc></desc>
   </entry>
@@ -214,7 +222,6 @@
     <group>limits</group>
     <values>
       <value>0.</value>
-      <value blom_unit="cgs">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -225,7 +232,6 @@
     <group>limits</group>
     <values>
       <value>0.</value>
-      <value blom_unit="cgs">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -237,6 +243,8 @@
     <values>
       <value>5000.</value>
       <value blom_unit="cgs">5000.e4</value>
+      <value ocn_grid="tnx0.25v4">300.</value>
+      <value ocn_grid="tnx0.25v4" blom_unit="cgs">300.e4</value>
     </values>
     <desc></desc>
   </entry>
@@ -248,6 +256,8 @@
     <values>
       <value>300.</value>
       <value blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.25v4">300.</value>
+      <value ocn_grid="tnx0.25v4" blom_unit="cgs">300.e4</value>
     </values>
     <desc></desc>
   </entry>
@@ -258,6 +268,8 @@
     <group>limits</group>
     <values>
       <value>.5</value>
+      <value ocn_grid="tnx0.25v4">.15</value>
+      <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -268,6 +280,8 @@
     <group>limits</group>
     <values>
       <value>.5</value>
+      <value ocn_grid="tnx0.25v4">.15</value>
+      <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -278,6 +292,8 @@
     <group>limits</group>
     <values>
       <value>0.</value>
+      <value ocn_grid="tnx0.25v4">0.0625</value>
+      <value ocn_grid="tnx0.125v4">0.06</value>
     </values>
     <desc></desc>
   </entry>
@@ -288,6 +304,8 @@
     <group>limits</group>
     <values>
       <value>0.</value>
+      <value ocn_grid="tnx0.25v4">0.0625</value>
+      <value ocn_grid="tnx0.125v4">0.06</value>
     </values>
     <desc></desc>
   </entry>
@@ -319,6 +337,9 @@
     <group>limits</group>
     <values>
       <value>5.e-5</value>
+      <value ocn_grid="tnx1v4">0.75e-4</value>
+      <value ocn_grid="tnx0.25v4">0.75e-4</value>
+      <value ocn_grid="tnx0.125v4">0.75e-4</value>
     </values>
     <desc></desc>
   </entry>
@@ -399,6 +420,8 @@
     <group>limits</group>
     <values>
       <value>.06</value>
+      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulknml">.5</value>
+      <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulknml">1.0</value>
     </values>
     <desc></desc>
   </entry>
@@ -410,8 +433,8 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -424,6 +447,7 @@
     <group>limits</group>
     <values>
       <value>0.</value>
+      <value ocn_grid="tnx1v4">.4</value>
     </values>
     <desc></desc>
   </entry>
@@ -483,9 +507,9 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>UNSET</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
+      <value>unset</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -607,10 +631,10 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx2v1_20130927.nc</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -633,6 +657,7 @@
     <group>limits</group>
     <values>
       <value>.true.</value>
+      <value ocn_grid="tnx1v4">.false.</value>
     </values>
     <desc></desc>
   </entry>
@@ -940,6 +965,8 @@
     <group>diffusion</group>
     <values>
       <value>smooth</value>
+      <value ocn_grid="tnx0.25v4">step</value>
+      <value ocn_grid="tnx0.125v4">step</value>
     </values>
     <desc></desc>
   </entry>
@@ -971,6 +998,7 @@
     <values>
       <value>0.85</value>
       <value ocn_grid="tnx2v1">0.5</value>
+      <value ocn_grid="tnx1.5v1">0.5</value>
     </values>
     <desc></desc>
   </entry>
@@ -1003,6 +1031,7 @@
     <values>
       <value>100.</value>
       <value blom_unit="cgs">100.e4</value>
+      <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -1013,8 +1042,12 @@
     <group>diffusion</group>
     <values>
       <value>1500.</value>
+      <value blom_unit="cgs">1500.e4</value>
       <value ocn_grid="tnx2v1">1000.</value>
       <value ocn_grid="tnx2v1" blom_unit="cgs">1000.e4</value>
+      <value ocn_grid="tnx1.5v1">1000.</value>
+      <value ocn_grid="tnx1.5v1" blom_unit="cgs">1000.e4</value>
+      <value ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -1167,8 +1200,10 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>layer</value>
-      <value blom_vcoord="isopyc_bulkml">neutral</value>
+      <value>neutral</value>
+      <value blom_vcoord="isopyc_bulkml">layer</value>
+      <value blom_vcoord="isopyc_bulkml" ocn_grid="0.125v4">layer</value>
+      <value blom_vcoord="cntiso_hybrid" ocn_grid="0.125v4">layer</value>
     </values>
     <desc></desc>
   </entry>
@@ -1184,8 +1219,6 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
-      <value ocn_grid="tnx1v1">'Gibraltar','Gibraltar'</value>
-      <value ocn_grid="tnx1v3">'Gibraltar','Gibraltar'</value>
       <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
     </values>
     <desc></desc>
@@ -1196,7 +1229,8 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>'u','u'</value>
+      <value ocn_grid="tnx2v1">'u','u'</value>
+      <value ocn_grid="tnx1v4">'u','u'</value>
     </values>
     <desc></desc>
   </entry>
@@ -1206,7 +1240,8 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>53,54</value>
+      <value ocn_grid="tnx2v1">53,54</value>
+      <value ocn_grid="tnx1v4">105,106</value>
     </values>
     <desc></desc>
   </entry>
@@ -1216,7 +1251,8 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>137,137</value>
+      <value ocn_grid="tnx2v1">137,137</value>
+      <value ocn_grid="tnx1v4">273,273</value>
     </values>
     <desc></desc>
   </entry>
@@ -1226,7 +1262,9 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>30.e3,30.e3</value>
+      <value ocn_grid="tnx2v1">30.e3,30.e3</value>
+      <value ocn_grid="tnx1v4">30.e3,30.e3</value>
+      <value></value>
     </values>
     <desc></desc>
   </entry>
@@ -1240,10 +1278,10 @@
     <category>secdia</category>
     <group>secdia</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx2v1_20190826.dat</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx1v4_20190611.dat</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx1v4_20190611.dat</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -3009,8 +3047,8 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx2v1_20190826.nc</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx1v4_20190729.nc</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -3024,8 +3062,8 @@
     <values>
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx2v1_20190826.dat</value>
-      <value ocn_grid="tnx2v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
-      <value ocn_grid="tn0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
+      <value ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -3188,16 +3226,16 @@
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx1v4_20171106.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.125v4_20221013.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx2v1_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx1v4_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx2v1_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx1v4_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx0.25v4_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
+   <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
   <entry id="DO_OALK">
