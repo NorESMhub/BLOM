@@ -64,6 +64,10 @@ def _create_namelists(case, confdir, infile, nmlgen):
     hamocc_sedspinup_yr_end = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
 
+    if hamocc_vsls and ocn_grid != "tnx1v4":
+        expect(False, 
+               "HAMOCC_VSLS is not supported at this grid resolution (no swa-climatology available)")
+
     config = {}
     config['ocn_grid'] = ocn_grid
     config['ocn_ncpl'] = str(ocn_ncpl)
