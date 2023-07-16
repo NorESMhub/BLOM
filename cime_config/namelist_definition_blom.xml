@@ -3166,8 +3166,6 @@
     <desc>File name (incl. full path) for riverine input data</desc>
   </entry>
 
-  <!-- works till here -->
-
   <entry id="DO_NDEP">
     <type>logical</type>
     <category>bgcnml</category>
@@ -3200,6 +3198,189 @@
     </values>
     <input_pathname>abs</input_pathname>
     <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
+  </entry>
+
+  <entry id="DO_OALK">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="DO_SEDSPINUP">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+      <value hamocc_sedspinup="yes">.true.</value>
+    </values>
+    <desc>Logical switch to activate sediment spin-up</desc>
+  </entry>
+
+  <entry id="SEDSPIN_YR_S" modify_via_xml="HAMOCC_SEDSPINUP_YR_START">
+    <type>integer</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>-1</value>
+      <value hamocc_sedspinup="yes">$HAMOCC_SEDSPINUP_YR_START</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SEDSPIN_YR_E" modify_via_xml="HAMOCC_SEDSPINUP_YR_END">
+    <type>integer</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>-1</value>
+      <value hamocc_sedspinup="yes">$HAMOCC_SEDSPINUP_YR_END</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SEDSPIN_NCYC">
+    <type>integer</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>-1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INIDIC">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_Ct_preind_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INIALK">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_At_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INIPO4">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_phosphate_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INIOXY">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_oxygen_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="ININO3">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_nitrate_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INISIL">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_silicate_OMIPinit_20171107.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INID13C">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>UNSET</value> 
+      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="INID14C">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>UNSET</value>
+      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
+    </values>
+    <input_pathname>abs</input_pathname>
+    <desc></desc>
+  </entry>
+
+  <entry id="WITH_DMSPH">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="PI_PH_FILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>' '</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="L_3DVARSEDPOR">
+    <type>logical</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SEDPORFILE">
+    <type>char</type>
+    <category>bgcnml</category>
+    <group>bgcnml</group>
+    <values>
+      <value>' '</value>
+    </values>
+    <desc></desc>
   </entry>
 
 </entry_id>
