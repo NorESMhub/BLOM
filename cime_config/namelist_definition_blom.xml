@@ -532,6 +532,8 @@
     <group>limits</group>
     <values>
       <value>0.</value>
+      <value blom_coupling="partial">60.</value>
+      <value blom_coupling="partial" blom_vcoord="isopyc_bulkml">6.</value>
     </values>
     <desc></desc>
   </entry>
@@ -552,6 +554,8 @@
     <group>limits</group>
     <values>
       <value>1.</value>
+      <value blom_coupling="partial" blom_vcoord="isopyc_bulkml">1.</value>
+      <value blom_coupling="partial" blom_vcoord="cntiso_hybrid">10.</value>
     </values>
     <desc></desc>
   </entry>
@@ -622,6 +626,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
+      <value blom_coupling="partial">.true.</value>
     </values>
     <desc></desc>
   </entry>
@@ -668,6 +673,7 @@
     <group>limits</group>
     <values>
       <value>.false.</value>
+      <value blom_coupling="partial">.true.</value>
     </values>
     <desc></desc>
   </entry>
@@ -3362,7 +3368,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value> 
+      <value>UNSET</value>
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -3417,6 +3423,2067 @@
     <group>bgcnml</group>
     <values>
       <value>' '</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: bgcoafx -->
+  <!-- ========================= -->
+
+  <entry id="BGCOAFX_OALKSCEN">
+    <type>char</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>' '</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_OALKFILE">
+    <type>char</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>' '</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_ADDALK">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>0.135</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_CDRMIP_LATMAX">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>70.0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_CDRMIP_LATMIN">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>-60.0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_RAMP_START">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>2025</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGCOAFX_RAMP_END">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>2035</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <!-- ========================= -->
+  <!-- namelist group: diabgc -->
+  <!-- ========================= -->
+
+  <entry id="BGC_FNAMETAG">
+    <type>char(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>'hbgcd','hbgcm','hbgcy'</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGC_FILEFREQ">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>30,30,365</value>
+      <value is_test="yes">1,30,365</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGC_COMPFLAG">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGC_NCFORMAT">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+      <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGC_INVENTORY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 1, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_PHOSPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_OXYGEN">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_IRON">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_ANO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_ALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_SILICA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_PHYTO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_PH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_EXPORT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_EXPOSI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_EXPOCA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_KWCO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_KWCO2KHM">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO2KH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO2KHM">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_PCO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_PCO2M">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO2FXD">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO2FXU">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_OXFLUX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NIFLUX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_N2OFX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DMSFLUX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DMS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DMSPROD">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DMS_BAC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_DMS_UV">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_ATMCO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_ATMO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_ATMN2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NATDIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NATALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NATPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NATPCO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_NATCO2FX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO213FXD">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO213FXU">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO214FXD">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CO214FXU">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CFC11">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_CFC12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_SF6">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_BROMO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SRF_BROMOFX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INT_BROMOPRO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INT_BROMOUV">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INT_PHOSY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>4, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INT_NFIX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="INT_DNIT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_NDEP">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0,0,0</value>
+      <value blom_n_deposition="yes">0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_OALK">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR0100">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR0500">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR1000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR2000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR4000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAR_BOT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI0100">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI0500">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI1000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI2000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI4000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_BSI_BOT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL0100">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL0500">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL1000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL2000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL4000">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_CAL_BOT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PHYTO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_GRAZER">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DOC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PHOSY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PHOSPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_OXYGEN">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_IRON">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_ANO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_ALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_SILICA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_POC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_CALC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_OPAL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_CO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_N2O">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_OMEGAC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_OMEGAA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PREFO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_O2SAT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PREFPO4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PREFALK">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PREFDIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DICSAT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATDIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATCO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATCALC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATOMEGAC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NATOMEGAA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DIC14">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_D13C">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_D14C">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_BIGD14C">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_POC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_DOC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_CALC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_PHYTO13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_GRAZER13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_CFC11">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_CFC12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_SF6">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_NOS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_WPHY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_WNOS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_EPS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_ASIZE">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LYR_BROMO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BGC_DP">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PHYTO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_GRAZER">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DOC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PHOSY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PHOSPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_OXYGEN">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 4, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_IRON">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_ANO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_ALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_SILICA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_POC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_CALC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_OPAL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_CO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_N2O">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_OMEGAC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_OMEGAA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PREFO2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 4, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_O2SAT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 4, 4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PREFPO4">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PREFALK">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PREFDIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DICSAT">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATDIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATALKALI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATCO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATCALC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATOMEGAC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NATOMEGAA">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DIC14">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_D13C">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_POC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_DOC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_CALC13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_PHYTO13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_GRAZER13">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_CFC11">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_CFC12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_SF6">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_NOS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_WPHY">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_WNOS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_EPS">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_ASIZE">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="LVL_BROMO">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 2, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFAL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFOX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFN2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFNO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="FLX_SEDIFFSI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWAIC">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWAAL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWAPH">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWAOX">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWN2">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWNO3">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_POWASI">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_SSSO12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_SSSSIL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_SSSC12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="SDM_SSSTER">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BUR_SSSO12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BUR_SSSSIL">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BUR_SSSC12">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="BUR_SSSTER">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>0, 0, 2</value>
     </values>
     <desc></desc>
   </entry>

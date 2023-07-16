@@ -127,8 +127,13 @@ def _create_namelists(case, confdir, infile, nmlgen):
 
     blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
     ecosys_on = "ecosys" in blom_tracer_modules
-    print (f"DEBUG: ecosos is {ecosys_on}")
-    groups.append("bgcnml")
+    # DEBUG
+    ecosys_on = True
+    # DEBUG
+    if ecosys_on:
+        groups.append("bgcnml")
+        groups.append("bgcoafx")
+        groups.append("diabgc")
 
     data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
     if os.path.exists(data_list_path):
@@ -145,8 +150,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     file.write_text(file.read_text().replace('MER_REGFLG3','MER_REGFLG(3,:)'))
     file.write_text(file.read_text().replace('MER_REGFLG4','MER_REGFLG(4,:)'))
     
-    #logger.debug("blom: grid is %s" %(hgrid))
-    #logger.debug("blom: physics is %s "%phys)
+    logger.debug(f"blom: grid is {ocn_grid}")
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
