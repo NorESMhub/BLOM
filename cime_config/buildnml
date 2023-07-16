@@ -109,6 +109,12 @@ def _create_namelists(case, confdir, infile, nmlgen):
     if nmlgen.get_value('inid14c') == 'UNSET':
         nmlgen.set_value('inid14c', value="")
 
+    if nmlgen.get_value('INID13C') == 'UNSET':
+        nmlgen.set_value('INID13C', value="")
+
+    if nmlgen.get_value('INID14C') == 'UNSET':
+        nmlgen.set_value('INID14C', value="")
+
     run_startdate = case.get_value("RUN_STARTDATE")
     idate = run_startdate.replace('-','')
     nmlgen.set_value("idate", idate)
