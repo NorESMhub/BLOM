@@ -67,7 +67,6 @@ def _create_namelists(case, confdir, infile, nmlgen):
     config = {}
     config['ocn_grid'] = ocn_grid
     config['ocn_ncpl'] = str(ocn_ncpl)
-    print (f"DEBUG: ocn_ncpl is {ocn_ncpl}")
     config['pio_typename_ocn'] = pio_typename_ocn
     config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
     config["is_test"] = "yes" if is_test else "no"
