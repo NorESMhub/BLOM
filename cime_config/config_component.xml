@@ -205,7 +205,42 @@
     <file>env_build.xml</file>
     <desc>Set preprocessor option to activate the extended nitrogen cycle code. Requires module ecosys</desc>
   </entry>
-  
+ 
+  <entry id="HAMOCC_N2OC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="%N2OC">TRUE</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the N2O coupling code. Requires module ecosys and EXTNCYCLE</desc>
+  </entry>
+  <entry id="HAMOCC_NH3C">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="%NH3C">TRUE</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set preprocessor option to activate the NH3 coupling code. Requires module ecosys and EXTNCYCLE</desc>
+  </entry>
+  <entry id="HAMOCC_ATMNDEPC">
+    <type>logical</type>
+    <valid_values>TRUE,FALSE</valid_values>
+    <default_value>FALSE</default_value>
+    <values>
+      <value compset="%ATMNDEPC">TRUE</value>
+    </values>
+    <group>build_component_blom</group>
+    <file>env_build.xml</file>
+    <desc>Set namelist do_ndep_coupled to true for depoistion from atm. Requires module ecosys and EXTNCYCLE</desc>
+  </entry>
+
+ 
   <entry id="HAMOCC_DEBUG">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>

@@ -510,7 +510,7 @@
        niflux=kwn2*dtbgc*(ocetra(i,j,1,igasnit)-anisa*(atn2/802000)*rpp0) 
        ocetra(i,j,1,igasnit)=ocetra(i,j,1,igasnit)-niflux/pddpo(i,j,1)
 ! Surface flux of laughing gas (same piston velocity as for O2 and N2)
-       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*rpp0)
+       n2oflux=kwn2o*dtbgc*(ocetra(i,j,1,ian2o)-satn2o(i,j)*atn2ov*1e-12*rpp0)
        ! pN2O under moist air assumption at normal pressure
        pn2om(i,j) = 1e9 * ocetra(i,j,1,ian2o)/satn2o(i,j)
        ocetra(i,j,1,ian2o)=ocetra(i,j,1,ian2o)-n2oflux/pddpo(i,j,1)
@@ -580,7 +580,7 @@
        atmflx(i,j,iatmco2)=fluxu-fluxd
        atmflx(i,j,iatmo2)=oxflux
        atmflx(i,j,iatmn2)=niflux
-       atmflx(i,j,iatmn2o)=n2oflux
+       atmflx(i,j,iatmn2o)=n2oflux ! positive to atmosphere [kmol N2O m-2 timestep-1] 
        atmflx(i,j,iatmdms)=dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 #ifdef cisonew
        atmflx(i,j,iatmc13)=flux13u-flux13d
@@ -598,7 +598,7 @@
        atmflx(i,j,iatmbromo)=-flx_bromo
 #endif
 #ifdef extNcycle
-       atmflx(i,j,iatmnh3)=-flx_nh3 
+       atmflx(i,j,iatmnh3)=-flx_nh3 ! positive to atmosphere [kmol NH3 m-2 timestep-1] 
 #endif
 
 ! Save up- and downward components of carbon fluxes for output

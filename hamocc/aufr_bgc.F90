@@ -521,9 +521,11 @@
       ENDIF
 #endif
 #ifdef extNcycle
+      IF(lread_extn) THEN
       CALL read_netcdf_var(ncid,'pownh4',powtra2(1,1,1,ipownh4),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'pown2o',powtra2(1,1,1,ipown2o),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'powno2',powtra2(1,1,1,ipowno2),2*ks,0,iotype)
+      ENDIF
 #endif
 #endif
 

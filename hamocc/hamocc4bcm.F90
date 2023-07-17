@@ -21,7 +21,8 @@
                             pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
                             dust,rivin,ndep,oafx,pi_ph,                       &
                             pfswr,psicomo,ppao,pfu10,ptho,psao,               &
-                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
+                            patmco2,pflxco2,pflxdms,patmbromo,pflxbromo,      &
+                            patmn2o,pflxn2o,patmnh3,pflxnh3,patmnhxdep,patmnoydep)
 !******************************************************************************
 !
 ! HAMOCC4BGC - main routine of iHAMOCC.
@@ -80,13 +81,22 @@
 !  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
 !                           fully coupled mode.
 !  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
+!  *REAL*    *patmn2o*    - atmospheric nitrous oxide concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxn2o*    - Nitrous oxide flux [kg N2O /m^2/s].
+!  *REAL*    *patmnh3*    - atmospheric ammonia concentration [ppt] used in 
+!                           fully coupled mode.
+!  *REAL*    *pflxnh3*    - Ammonia flux [kg NH3 /m^2/s].
+!  *REAL*    *patmnhxdep* - Atmospheric NHx deposition kgN/m2/s
+!  *REAL*    *patmnoydep* - Atmospheric NOy deposition kgN/m2/s
 !
 !******************************************************************************
       use mod_xc,         only: mnproc
       use mo_carbch,      only: atmflx,ocetra,atm
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
-                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,&
+                                do_ndep_coupled
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
@@ -102,6 +112,9 @@
 #ifdef CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
 #endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: iatmn2o,iatmnh3
+#endif
       implicit none
 
       INTEGER, intent(in)  :: kpie,kpje,kpke,kbnd
@@ -114,7 +127,7 @@
       REAL,    intent(in)  :: omask  (kpie,kpje)
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
-      REAL,    intent(in)  :: ndep   (kpie,kpje)
+      REAL,    intent(inout):: ndep   (kpie,kpje,2)
       REAL,    intent(in)  :: oafx   (kpie,kpje)
       REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -128,10 +141,17 @@
       REAL,    intent(out) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in)  :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(out) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxn2o(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(out) :: pflxnh3(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnhxdep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      REAL,    intent(in)  :: patmnoydep(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
       LOGICAL :: lspin
+      REAL    :: fatmndep
 
       IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
@@ -193,6 +213,41 @@
       ENDDO
 !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
+#endif
+
+#ifdef extNcycle
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+        IF (patmn2o(i,j).gt.0.) THEN
+         atm(i,j,iatmn2o)=patmn2o(i,j)
+        ENDIF
+        IF (patmnh3(i,j).gt.0.) THEN
+         atm(i,j,iatmnh3)=patmnh3(i,j)
+        ENDIF
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+      
+      IF(do_ndep_coupled) THEN
+        fatmndep = 365.*86400./14.00674
+        ndep(:,:,:) = 0.
+!$OMP PARALLEL DO PRIVATE(i)
+        DO  j=1,kpje
+        DO  i=1,kpie
+          ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr 
+          IF (patmnoydep(i,j).gt.0.) THEN
+            ndep(i,j,1) = patmnoydep(i,j)*fatmndep
+          ENDIF
+          IF (patmnhxdep(i,j).gt.0.) THEN
+            ndep(i,j,2) = patmnhxdep(i,j)*fatmndep
+          ENDIF
+        ENDDO
+        ENDDO
+!$OMP END PARALLEL DO
+      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting NOy and NHx deposition from atm'
+      ENDIF
 #endif
 
 !--------------------------------------------------------------------
@@ -422,6 +477,22 @@
         if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
 #else
         if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
+#endif
+      ENDDO
+      ENDDO
+!$OMP END PARALLEL DO
+!--------------------------------------------------------------------
+! Pass nitrous oxide and ammonia fluxes. Convert unit from kmol N2O (NH3)/m2/Delta t to kg/m2/s
+! negative values to the atmosphere 
+!$OMP PARALLEL DO PRIVATE(i)
+      DO  j=1,kpje
+      DO  i=1,kpie
+#ifdef extNcycle
+        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-44.012880*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM 
+        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-17.028940*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+#else
+        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=0.0
+        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=0.0
 #endif
       ENDDO
       ENDDO

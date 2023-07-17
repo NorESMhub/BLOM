@@ -35,7 +35,7 @@ subroutine ncwrt_bgc(iogrp)
   use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,                 &
        &                    ncdimc
   use mo_bgcmean,     only: domassfluxes,                                       &
-       &                    flx_ndep,flx_oalk,                                  &
+       &                    flx_ndepnoy,flx_oalk,                               &
        &                    flx_cal0100,flx_cal0500,flx_cal1000,                &
        &                    flx_cal2000,flx_cal4000,flx_cal_bot,                &
        &                    flx_car0100,flx_car0500,flx_car1000,                &
@@ -77,8 +77,8 @@ subroutine ncwrt_bgc(iogrp)
        &                    jlvlpoc13,jlvlprefalk,jlvlprefdic,                  &
        &                    jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,          &
        &                    jlvlwnos,jlvlwphy,jn2o,jsrfpn2om,                   &
-       &                    jn2ofx,jndepfx,jniflux,jnos,joalkfx,                &
-       &                    jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2, &
+       &                    jn2ofx,jndepnoyfx,jniflux,jnos,joalkfx,jo2sat,      &
+       &                    jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,        &
        &                    jpco2m,jkwco2khm,jco2kh,jco2khm,                    &
        &                    jph,jphosph,jphosy,jphyto,jpoc,jprefalk,            &
        &                    jprefdic,jprefo2,jprefpo4,jsilica,                  &
@@ -210,7 +210,8 @@ subroutine ncwrt_bgc(iogrp)
        &                jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,            &
        &                jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,                    &
        &                jlvl_phosy_NH4,jlvl_phosy_NO3,                          &
-       &                jlvl_remin_aerob,jlvl_remin_sulf  
+       &                jlvl_remin_aerob,jlvl_remin_sulf,jatmnh3,jatmn2o,       &
+       &                srf_atmnh3,srf_atmn2o,flx_ndepnhx,jndepnhxfx  
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
@@ -553,7 +554,7 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jintphosy(iogrp),    INT_PHOSY(iogrp),    rnacc*1e3/dtbgc,0.,cmpflg,'ppint')
   call wrtsrf(jintnfix(iogrp),     INT_NFIX(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'nfixint')
   call wrtsrf(jintdnit(iogrp),     INT_DNIT(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'dnitint')
-  call wrtsrf(jndepfx(iogrp),      FLX_NDEP(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'ndep')
+  call wrtsrf(jndepnoyfx(iogrp),   FLX_NDEPNOY(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnoy')
   call wrtsrf(joalkfx(iogrp),      FLX_OALK(iogrp),     rnacc*1e3/dtbgc,0.,cmpflg,'oalkfx')
   call wrtsrf(jcarflx0100(iogrp),  FLX_CAR0100(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0100')
   call wrtsrf(jcarflx0500(iogrp),  FLX_CAR0500(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'carflx0500')
@@ -630,6 +631,9 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jsrfpnh3(iogrp),     SRF_PNH3(iogrp),     rnacc,          0.,cmpflg,'pnh3')
   call wrtsrf(jsrfano2(iogrp),     SRF_ANO2(iogrp),     rnacc*1e3,      0.,cmpflg,'srfno2')
   call wrtsrf(janh3fx(iogrp),      SRF_ANH3FX(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'nh3flux')
+  call wrtsrf(jatmnh3(iogrp),      SRF_ATMNH3(iogrp),   rnacc,          0.,cmpflg,'atmnh3')
+  call wrtsrf(jatmn2o(iogrp),      SRF_ATMN2O(iogrp),   rnacc,          0.,cmpflg,'atmn2o')
+  call wrtsrf(jndepnhxfx(iogrp),   FLX_NDEPNHX(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'ndepnhx')
 #endif
 
   ! --- Store 3d layer fields
@@ -898,7 +902,7 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jintphosy(iogrp),0.)
   call inisrf(jintnfix(iogrp),0.)
   call inisrf(jintdnit(iogrp),0.)
-  call inisrf(jndepfx(iogrp),0.)
+  call inisrf(jndepnoyfx(iogrp),0.)
   call inisrf(joalkfx(iogrp),0.)
   call inisrf(jcarflx0100(iogrp),0.)
   call inisrf(jcarflx0500(iogrp),0.)
@@ -972,6 +976,9 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jsrfpnh3(iogrp),0.)
   call inisrf(jsrfano2(iogrp),0.)
   call inisrf(janh3fx(iogrp),0.)
+  call inisrf(jatmnh3(iogrp),0.)
+  call inisrf(jatmn2o(iogrp),0.)
+  call inisrf(jndepnhxfx(iogrp),0.)
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   call inisrf(jsediffnh4(iogrp),0.)
@@ -1219,7 +1226,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   srf_dms_bac,srf_dms_uv,srf_export,srf_exposi,srf_expoca,             &
        &   srf_dic,srf_alkali,srf_phosph,srf_oxygen,srf_ano3,srf_silica,        &
        &   srf_iron,srf_phyto,srf_ph,int_phosy,int_nfix,int_dnit,               &
-       &   flx_ndep,flx_oalk,flx_car0100,flx_car0500,                           &
+       &   flx_ndepnoy,flx_oalk,flx_car0100,flx_car0500,                        &
        &   flx_car1000,flx_car2000,flx_car4000,flx_car_bot,                     &
        &   flx_bsi0100,flx_bsi0500,flx_bsi1000,flx_bsi2000,flx_bsi4000,         &
        &   flx_bsi_bot,flx_cal0100,flx_cal0500,flx_cal1000,flx_cal2000,         &
@@ -1309,7 +1316,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &                     jlvl_denit_NO2,jlvl_denit_N2O,jlvl_DNRA_NO2,       &
        &                     jlvl_anmx_N2_prod,jlvl_anmx_OM_prod,               &
        &                     jlvl_phosy_NH4,jlvl_phosy_NO3,                     &
-       &                     jlvl_remin_aerob,jlvl_remin_sulf      
+       &                     jlvl_remin_aerob,jlvl_remin_sulf,srf_atmnh3,       &
+       &                     srf_atmn2o,flx_ndepnhx      
 #endif
 #if defined(extNcycle) && ! defined(sedbypass)
   use mo_bgcmean, only: jpownh4,jpown2o,jpowno2,jsdm_nitr_NH4,jsdm_nitr_NO2,    &
@@ -1410,8 +1418,8 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'Integrated nitrogen fixation',' ','mol N m-2 s-1',0)
   call ncdefvar3d(INT_DNIT(iogrp),cmpflg,'p','dnitint',                         &
        &   'Integrated denitrification',' ','mol N m-2 s-1',0)
-  call ncdefvar3d(FLX_NDEP(iogrp),cmpflg,'p','ndep',                            &
-       &   'Nitrogen deposition flux',' ','mol N m-2 s-1',0)
+  call ncdefvar3d(FLX_NDEPNOY(iogrp),cmpflg,'p','ndepnoy',                      &
+       &   'Nitrogen NOy deposition flux',' ','mol N m-2 s-1',0)
   call ncdefvar3d(FLX_OALK(iogrp),cmpflg,'p','oalkfx',                          &
        &   'Alkalinity flux due to OA',' ','mol TA m-2 s-1',0)
   call ncdefvar3d(FLX_CAR0100(iogrp),cmpflg,'p','carflx0100',                   &
@@ -1565,6 +1573,12 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
      &  'Surface nitrite',' ','mol N m-3',0)
   call ncdefvar3d(SRF_ANH3FX(iogrp),cmpflg,'p','nh3flux',                       &
      &  'NH3 flux',' ','mol NH3 m-2 s-1',0)
+  call ncdefvar3d(SRF_ATMNH3(iogrp),cmpflg,'p',                                 &
+       &   'atmnh3','Atmospheric ammonia',' ','ppt',0)
+  call ncdefvar3d(SRF_ATMN2O(iogrp),cmpflg,'p',                                 &
+       &   'atmn2o','Atmospheric nitrous oxide',' ','ppt',0)
+  call ncdefvar3d(FLX_NDEPNHX(iogrp),cmpflg,'p','ndepnhx',                      &
+       &   'Nitrogen NHx deposition flux',' ','mol N m-2 s-1',0)
 #endif
 
   ! --- define 3d layer fields
