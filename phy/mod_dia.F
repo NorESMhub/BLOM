@@ -1,5 +1,5 @@
 ! ------------------------------------------------------------------------------
-! Copyright (C) 2010-2022 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
+! Copyright (C) 2010-2023 Ingo Bethke, Mats Bentsen, Mehmet Ilicak,
 !                         Alok Kumar Gupta, Jörg Schwinger, Ping-Gin Chiu
 !
 ! This file is part of BLOM.
@@ -53,7 +53,8 @@ c
       use mod_cmnfld, only: z, bfsql, dz, mlts
       use mod_seaice, only: ficem, hicem, hsnwm, uicem, vicem, iagem
       use mod_forcing, only: swa, nsf, hmltfz, lip, sop, eva, rnf, rfi,
-     .                       fmltfz, sfl, ztx, mty, abswnd, surflx,
+     .                       fmltfz, sfl, ztx, mty, abswnd, 
+     .                       lamult, lasl, ustokes, vstokes, surflx,
      .                       surrlx, salflx, brnflx, salrlx, taux, tauy,
      .                       ustar, ustar3
       use mod_niw, only: idkedt
@@ -187,17 +188,17 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  ,
      . H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   ,
-     . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LIP    ,
-     . H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,H2D_MLTSMN ,H2D_MLTSMX ,
-     . H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,H2D_MTKEBF ,H2D_MTKERS ,
-     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_NSF    ,H2D_PBOT   ,
-     . H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,
-     . H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,
-     . H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,
-     . H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,
-     . H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,
-     . H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,
-     . H2D_ZTX    ,
+     . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT ,
+     . H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,
+     . H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,
+     . H2D_MTKEBF ,H2D_MTKERS ,H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,
+     . H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,
+     . H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,
+     . H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,
+     . H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,
+     . H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,
+     . H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,
+     . H2D_USTOKES,H2D_VB     ,H2D_VICE   ,H2D_VSTOKES,H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
@@ -226,17 +227,18 @@ c --- Namelist
       integer, dimension(nphymax), save ::
      . ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    ,
      . ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMLTFZ ,
-     . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LIP    ,ACC_MAXMLD ,
-     . ACC_MLD    ,ACC_MLTS   ,ACC_MLTSMN ,ACC_MLTSMX ,ACC_MLTSSQ ,
-     . ACC_MTKEUS ,ACC_MTKENI ,ACC_MTKEBF ,ACC_MTKERS ,ACC_MTKEPE ,
-     . ACC_MTKEKE ,ACC_MTY    ,ACC_NSF    ,ACC_PBOT   ,ACC_PSRF   ,
-     . ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,ACC_SALRLX ,ACC_SBOT   ,
-     . ACC_SEALV  ,ACC_SLVSQ  ,ACC_SFL    ,ACC_SOP    ,ACC_SIGMX  ,
-     . ACC_SSS    ,ACC_SSSSQ  ,ACC_SST    ,ACC_SSTSQ  ,ACC_SURFLX ,
-     . ACC_SURRLX ,ACC_SWA    ,ACC_T20D   ,ACC_TAUX   ,ACC_TAUY   ,
-     . ACC_TBOT   ,ACC_TICE   ,ACC_TSRF   ,ACC_UB     ,ACC_UBFLXS ,
-     . ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,ACC_VB     ,ACC_VBFLXS ,
-     . ACC_VICE   ,ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
+     . ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LAMULT ,ACC_LASL   ,
+     . ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,ACC_MLTS   ,ACC_MLTSMN ,
+     . ACC_MLTSMX ,ACC_MLTSSQ ,ACC_MTKEUS ,ACC_MTKENI ,ACC_MTKEBF ,
+     . ACC_MTKERS ,ACC_MTKEPE ,ACC_MTKEKE ,ACC_MTY    ,ACC_NSF    ,
+     . ACC_PBOT   ,ACC_PSRF   ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX ,
+     . ACC_SALRLX ,ACC_SBOT   ,ACC_SEALV  ,ACC_SLVSQ  ,ACC_SFL    ,
+     . ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SSSSQ  ,ACC_SST    ,
+     . ACC_SSTSQ  ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_T20D   ,
+     . ACC_TAUX   ,ACC_TAUY   ,ACC_TBOT   ,ACC_TICE   ,ACC_TSRF   ,
+     . ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 ,
+     . ACC_USTOKES,ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,ACC_VSTOKES,
+     . ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D,
      . ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFVMO ,ACC_DIFVHO ,ACC_DIFVSO ,
      . ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,ACC_DPU    ,ACC_DPV    ,
      . ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,ACC_UFLX   ,ACC_UTFLX  ,
@@ -267,17 +269,17 @@ c --- Namelist
       namelist /DIAPHY/
      . H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  ,
      . H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   ,
-     . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LIP    ,
-     . H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,H2D_MLTSMN ,H2D_MLTSMX ,
-     . H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,H2D_MTKEBF ,H2D_MTKERS ,
-     . H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,H2D_NSF    ,H2D_PBOT   ,
-     . H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,H2D_SALFLX ,H2D_SALRLX ,
-     . H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,H2D_SFL    ,H2D_SOP    ,
-     . H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,H2D_SST    ,H2D_SSTSQ  ,
-     . H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,H2D_T20D   ,H2D_TAUX   ,
-     . H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,H2D_TSRF   ,H2D_UB     ,
-     . H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,H2D_VB     ,H2D_VICE   ,
-     . H2D_ZTX    ,
+     . H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT ,
+     . H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   ,
+     . H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI ,
+     . H2D_MTKEBF ,H2D_MTKERS ,H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    ,
+     . H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX ,
+     . H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  ,
+     . H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  ,
+     . H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    ,
+     . H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   ,
+     . H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 ,
+     . H2D_USTOKES,H2D_VB     ,H2D_VICE   ,H2D_VSTOKES,H2D_ZTX    ,
      . LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO ,
      . LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    ,
      . LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   ,
@@ -464,6 +466,8 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_IDKEDT(n)   = H2D_IDKEDT(n)
         ACC_IVOLU(n)    = H2D_UICE(n)
         ACC_IVOLV(n)    = H2D_VICE(n)
+        ACC_LAMULT(n)   = H2D_LAMULT(n)
+        ACC_LASL(n)     = H2D_LASL(n)
         ACC_LIP(n)      = H2D_LIP(n)
         ACC_MAXMLD(n)   = H2D_MAXMLD(n)
         ACC_MLD(n)      = H2D_MLD(n)
@@ -510,9 +514,11 @@ c --- - Solve dependencies for diagnostic variables (0=skipped)
         ACC_UICE(n)     = H2D_UICE(n)
         ACC_USTAR(n)    = H2D_USTAR(n)
         ACC_USTAR3(n)   = H2D_USTAR3(n)
+        ACC_USTOKES(n)  = H2D_USTOKES(n)
         ACC_VB(n)       = H2D_VB(n)
         ACC_VBFLXS(n)   = H2D_BTMSTR(n)
         ACC_VICE(n)     = H2D_VICE(n)
+        ACC_VSTOKES(n)  = H2D_VSTOKES(n)
         ACC_ZTX(n)      = H2D_ZTX(n)
         ACC_BFSQ(n)     = LYR_BFSQ(n)
         ACC_BFSQLVL(n)  = LVL_BFSQ(n)
@@ -661,6 +667,10 @@ c --- - Determine position in buffer
          ACC_IVOLU(n)=nphyh2d*min(1,ACC_IVOLU(n))
         if (ACC_IVOLV(n).ne.0) nphyh2d=nphyh2d+1
          ACC_IVOLV(n)=nphyh2d*min(1,ACC_IVOLV(n))
+        if (ACC_LAMULT(n).ne.0) nphyh2d=nphyh2d+1
+         ACC_LAMULT(n)=nphyh2d*min(1,ACC_LAMULT(n))
+        if (ACC_LASL(n).ne.0) nphyh2d=nphyh2d+1
+         ACC_LASL(n)=nphyh2d*min(1,ACC_LASL(n))
         if (ACC_LIP(n).ne.0) nphyh2d=nphyh2d+1
          ACC_LIP(n)=nphyh2d*min(1,ACC_LIP(n))
         if (ACC_MAXMLD(n).ne.0) nphyh2d=nphyh2d+1
@@ -751,12 +761,16 @@ c --- - Determine position in buffer
          ACC_USTAR(n)=nphyh2d*min(1,ACC_USTAR(n))
         if (ACC_USTAR3(n).ne.0) nphyh2d=nphyh2d+1
          ACC_USTAR3(n)=nphyh2d*min(1,ACC_USTAR3(n))
+        if (ACC_USTOKES(n).ne.0) nphyh2d=nphyh2d+1
+         ACC_USTOKES(n)=nphyh2d*min(1,ACC_USTOKES(n))
         if (ACC_VB(n).ne.0) nphyh2d=nphyh2d+1
          ACC_VB(n)=nphyh2d*min(1,ACC_VB(n))
         if (ACC_VBFLXS(n).ne.0) nphyh2d=nphyh2d+1
          ACC_VBFLXS(n)=nphyh2d*min(1,ACC_VBFLXS(n))
         if (ACC_VICE(n).ne.0) nphyh2d=nphyh2d+1
          ACC_VICE(n)=nphyh2d*min(1,ACC_VICE(n))
+        if (ACC_VSTOKES(n).ne.0) nphyh2d=nphyh2d+1
+         ACC_VSTOKES(n)=nphyh2d*min(1,ACC_VSTOKES(n))
         if (ACC_ZTX(n).ne.0) nphyh2d=nphyh2d+1
          ACC_ZTX(n)=nphyh2d*min(1,ACC_ZTX(n))
 c
@@ -1096,7 +1110,7 @@ c$OMP PARALLEL DO PRIVATE(l,i)
 c$OMP END PARALLEL DO
       endif
 c
-      if (sum(ACC_MLD(1:nphy)).ne.0) then
+      if (sum(ACC_MLD(1:nphy)+ACC_MAXMLD(1:nphy)).ne.0) then
         select case (vcoord_type_tag)
           case (isopyc_bulkml)
 c$OMP PARALLEL DO PRIVATE(l,i)
@@ -1295,6 +1309,9 @@ c
 c --- weighted u-component of ice velocity [m^2/s]
       call acch2d(ACC_UICE,uicem,util1,1,'u')
 c
+c --- u-component of surface Stokes drift [m/s]
+      call acch2d(ACC_USTOKES,ustokes,dummy,0,'u')
+c
 c --- v-component of barotropic velocity [cm/s]
       call acch2d(ACC_VB,vb(1-nbdy,1-nbdy,m),dummy,0,'v')
 c
@@ -1309,6 +1326,9 @@ c --- v-component of momentum flux received by the ocean [dyn/cm^2]
 c
 c --- weighted v-component of ice velocity [m^2/s]
       call acch2d(ACC_VICE,vicem,util3,1,'v')
+c
+c --- v-component of surface Stokes drift [m/s]
+      call acch2d(ACC_VSTOKES,vstokes,dummy,0,'v')
 c
 c --- surface pressure [g/cm/s^2]
       call acch2d(ACC_PSRF,p(1-nbdy,1-nbdy,1),dummy,0,'p')
@@ -1408,6 +1428,12 @@ c --- mixed layer TKE tendency related to potential energy change [cm3 s-3]
 c
 c --- mixed layer TKE tendency related to kinetic energy change [cm3 s-3]
       call acch2d(ACC_MTKEKE,mtkeke,dummy,0,'p')
+c
+c --- Langmuir enhancement factor []
+      call acch2d(ACC_LAMULT,lamult,dummy,0,'p')
+c
+c --- Surface layer averaged Langmuir number []
+      call acch2d(ACC_LASL,lasl,dummy,0,'p')
 c
 c --- sea surface salinity [g kg-1]
       call acch2d(ACC_SSS,saln(1-nbdy,1-nbdy,k1m),dummy,0,'p')
@@ -2516,6 +2542,21 @@ c
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to kinetic energy change',
      .  ' ','kg s-3')
+c
+      call wrth2d(ACC_LAMULT(iogrp),H2D_LAMULT(iogrp),rnacc,0.,
+     .  cmpflg,ip,'p','lamult','Langmuir enhancement factor',' ','1')
+c
+      call wrth2d(ACC_LASL(iogrp),H2D_LASL(iogrp),rnacc,0.,
+     .  cmpflg,ip,'p','lasl','Surface layer averaged Langmuir number',
+     .  ' ','1')
+c
+      call wrth2d(ACC_USTOKES(iogrp),H2D_USTOKES(iogrp),rnacc,0.,
+     .  cmpflg,iuu,'u','ustokes','Surface Stokes drift x-component',' ',
+     .  'm s-1')
+c
+      call wrth2d(ACC_VSTOKES(iogrp),H2D_VSTOKES(iogrp),rnacc,0.,
+     .  cmpflg,ivv,'v','vstokes','Surface Stokes drift y-component',' ',
+     .  'm s-1')
 c
       call wrth2d(ACC_SFL(iogrp),H2D_SFL(iogrp),rnacc,0.,
      .  cmpflg,ip,'p','sfl','Salt flux',' ','kg m-2 s-1')
@@ -5361,6 +5402,7 @@ c --- initialisation of 2d fields
       call inih2d(ACC_TAUX(iogrp),'u',0.)
       call inih2d(ACC_UICE(iogrp),'u',0.)
       call inih2d(ACC_IVOLU(iogrp),'u',0.)
+      call inih2d(ACC_USTOKES(iogrp),'u',0.)
 c
       call inih2d(ACC_VB(iogrp),'v',0.)
       call inih2d(ACC_VBFLXS(iogrp),'v',0.)
@@ -5368,6 +5410,7 @@ c
       call inih2d(ACC_TAUY(iogrp),'v',0.)
       call inih2d(ACC_VICE(iogrp),'v',0.)
       call inih2d(ACC_IVOLV(iogrp),'v',0.)
+      call inih2d(ACC_VSTOKES(iogrp),'v',0.)
 c
       call inih2d(ACC_PSRF(iogrp),'p',0.)
       call inih2d(ACC_PBOT(iogrp),'p',0.)
@@ -5413,6 +5456,8 @@ c
       call inih2d(ACC_MTKERS(iogrp),'p',0.)
       call inih2d(ACC_MTKEPE(iogrp),'p',0.)
       call inih2d(ACC_MTKEKE(iogrp),'p',0.)
+      call inih2d(ACC_LAMULT(iogrp),'p',0.)
+      call inih2d(ACC_LASL(iogrp),'p',0.)
       call inih2d(ACC_FMLTFZ(iogrp),'p',0.)
       call inih2d(ACC_HMLTFZ(iogrp),'p',0.)
       call inih2d(ACC_HICE(iogrp),'p',0.)
@@ -6452,6 +6497,18 @@ c
      .  'Mixed layer turbulent kinetic energy tendency '//
      .  'per unit area related to kinetic energy change',
      .  ' ','kg s-3',0)
+c
+      call ncdefvar3d(H2D_LAMULT(iogrp),cmpflg,'p','lamult',
+     .  'Langmuir enhancement factor',' ','1',0)
+c
+      call ncdefvar3d(H2D_LASL(iogrp),cmpflg,'p','lasl',
+     .  'Surface layer averaged Langmuir number',' ','1',0)
+c
+      call ncdefvar3d(H2D_USTOKES(iogrp),cmpflg,'u','ustokes',
+     .  'Surface Stokes drift x-component',' ','m s-1',0)
+c
+      call ncdefvar3d(H2D_VSTOKES(iogrp),cmpflg,'v','vstokes',
+     .  'Surface Stokes drift y-component',' ','m s-1',0)
 c
       call ncdefvar3d(H2D_SFL(iogrp),cmpflg,'p','sfl',
      .  'Salt flux',' ','kg m-2 s-1',0)

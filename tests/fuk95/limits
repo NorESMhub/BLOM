@@ -73,6 +73,7 @@
 ! DISFLX   : Diagnose freshwater flux flag (l)
 ! SRXBAL   : Balance the SSS relaxation (l)
 ! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
+! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
 ! SMTFRC   : Smooth CESM forcing (l)
 ! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
 ! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
@@ -140,11 +141,14 @@
   DISFLX   = .false.
   SRXBAL   = .false.
   SCFILE   = 'unset'
+  WAVSRC   = 'none'
   SMTFRC   = .false.
   SPRFAC   = .false.
   ATM_PATH = 'unset'
   ITEST    = 78
   JTEST    = 16
+  CNSVDI   = .false.
+  CSDIAG   = .false.
   RSTFRQ   = 1
   RSTFMT   = 1
   RSTCMP   = 1
@@ -164,6 +168,7 @@
 !            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
 ! MLRTTP   : Type of mixed layer restratification time scale. Valid
 !            types: 'variable', 'constant', 'limited' (a)
+! EDDF2D   : If true, eddy diffusivity has a 2d structure (l)
 ! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
 ! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
 ! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
@@ -173,6 +178,13 @@
 ! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
 !            interface diffusivity in the Eden and Greatbatch (2008)
 !            parameterization. egidfq=difint/difiso () (f)
+! TBFILE   : Name of file containing topographic beta parameter (a)
+! RHISCF   : Linear scaling parameter for topographic rhines scale () (f)
+! EDANIS   : If true, apply anisotropy correction to eddy diffusivity (l)
+! REDI3D   : If true, then isopycnal/neutral diffusion will have 3D
+!            structure based in the 3D structure of anisotropy (l)
+! RHSCTP   : If true, use the minimum of planetary and topographic beta
+!            to define the Rhines scale (l)
 ! RI0      : Critical gradient richardson number for shear driven
 !            vertical mixing () (f)
 ! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
@@ -186,12 +198,17 @@
 !            Gregg et al. (2003) (l)
 ! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
 !            () (f)
+! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
+!            boundary layer depth (l)
+! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
+!            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
 &DIFFUSION
   EITMTH   = 'gm'
   EDRITP   = 'large scale'
   EDWMTH   = 'smooth'
+  EDDF2D   = .false.
   EDSPRS   = .true.
   EGC      = 0.
   EGGAM    = 200.
@@ -199,12 +216,19 @@
   EGMNDF   = 0.
   EGMXDF   = 1500.e4
   EGIDFQ   = 1.
+  TBFILE   = 'unset'
+  RHISCF   = .5
+  EDANIS   = .false.
+  REDI3D   = .false.
+  RHSCTP   = .false.
   RI0      = 1.2
   BDMTYP   = 2
   BDMC1    = 5.e-4
   BDMC2    = .15
   BDMLDP   = .false.
   TKEPF    = 0.
+  SMOBLD   = .true.
+  LNGMTP   = 'none'
   LTEDTP   = 'layer'
 /
 
@@ -321,6 +345,8 @@
 !   HSNW     - snow depth [m]
 !   IAGE     - ice age [d]
 !   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
+!   LAMULT   - Langmuir enhancement factor []
+!   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
 !   MAXMLD   - maximum mixed layer depth [m]
 !   MLD      - mixed layer depth [m]
@@ -365,8 +391,10 @@
 !   UICE     - ice velocity x-component [m s-1]
 !   USTAR    - friction velocity [m s-1]
 !   USTAR3   - friction velocity cubed [m3 s-3]
+!   USTOKES  - surface Stokes drift x-componen [m s-1]
 !   VB       - barotropic velocity y-component [m s-1]
 !   VICE     - ice velocity y-component [m s-1]
+!   VSTOKES  - surface Stokes drift y-componen [m s-1]
 !   ZTX      - wind stress x-component [N m-2]
 !   BFSQ     - buoyancy frequency squared [s-1]
 !   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
@@ -384,7 +412,9 @@
 !   UTFLX    - heat flux in x-direction [W]
 !   USFLX    - salt flux in x-direction [kg s-1]
 !   UMFLTD   - mass flux due to thickness diffusion in x-direction [kg s-1]
+!   UMFLSM   - mass flux due to submesoscale transport in x-direction [kg s-1]
 !   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
+!   UTFLSM   - heat flux due to submesoscale transport in x-direction [W]
 !   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
 !   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
 !   USFLSM   - salt flux due to submesoscale transport in x-direction [kg s-1]
@@ -450,6 +480,8 @@
   H2D_HSNW     = 0,   0
   H2D_IAGE     = 0,   0
   H2D_IDKEDT   = 0,   4
+  H2D_LAMULT   = 0,   4
+  H2D_LASL     = 0,   4
   H2D_LIP      = 0,   0
   H2D_MAXMLD   = 4,   4
   H2D_MLD      = 0,   4
@@ -494,8 +526,10 @@
   H2D_UICE     = 0,   0
   H2D_USTAR    = 0,   0
   H2D_USTAR3   = 0,   0
+  H2D_USTOKES  = 0,   0
   H2D_VB       = 4,   4
   H2D_VICE     = 0,   0
+  H2D_VSTOKES  = 0,   0
   H2D_ZTX      = 0,   0
   LYR_BFSQ     = 0,   4
   LYR_DIFDIA   = 0,   4

@@ -92,10 +92,14 @@ def buildcpp(case):
     hamocc_ciso = case.get_value("HAMOCC_CISO")
     hamocc_vsls = case.get_value("HAMOCC_VSLS")
     blom_unit = case.get_value("BLOM_UNIT")
+    pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
 
     expect(blom_vcoord != "cntiso_hybrid" or not turbclo, "BLOM_VCOORD == {} and BLOM_TURBULENT_CLOSURE == {} is not a valid combination".format(blom_vcoord, turbclo))
 
     blom_cppdefs = ""
+
+    if pio_typename == "pnetcdf":
+        blom_cppdefs = blom_cppdefs + " -DPNETCDF"
 
     if ocn_grid in ["tnx2v1", "tnx1.5v1", "tnx1v1", "tnx1v3", "tnx1v4", "tnx0.25v1", "tnx0.25v3", "tnx0.25v4", "tnx0.125v4"]:
         blom_cppdefs = blom_cppdefs + " -DARCTIC"

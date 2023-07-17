@@ -367,6 +367,17 @@
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif	 
 
+      ! Apply alkalinity flux due to ocean alkalinization
+      call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
+
+#ifdef PBGC_CK_TIMESTEP 
+      IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)' '
+      WRITE(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
+      ENDIF
+      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+#endif	 
+
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
       CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)

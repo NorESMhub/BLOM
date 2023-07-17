@@ -43,7 +43,7 @@
 !  *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !  *REAL*    *omask*   - land/ocean mask
 !
-!**********************************************************************
+!*******************************************************************************
       use mod_xc,         only: mnproc
       use mod_dia,        only: ddm
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepnoyflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,   &
@@ -332,7 +332,7 @@
         call accsrf(jbsiflx_bot,bsiflx_bot,omask,0)    
         call accsrf(jcalflx_bot,calflx_bot,omask,0)    
       ENDIF
-
+      
 #ifndef sedbypass
 ! Accumulate diffusive fluxes between water column and sediment
       call accsrf(jsediffic,sedfluxo(1,1,ipowaic),omask,0)    

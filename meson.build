@@ -29,7 +29,7 @@ elif fcc.get_id() == 'intel'
                           language: 'fortran')
   endif
   if get_option('buildtype') == 'release'
-    add_project_arguments('-fp-model precise'.split(),language: 'fortran')
+    add_project_arguments('-O2 -fp-model precise'.split(),language: 'fortran')
   endif
   if get_option('processors') == 1 and get_option('grid') == 'channel'
     add_project_arguments('-mcmodel=medium', language: 'fortran')

@@ -392,7 +392,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 ! Calculate nitrate reduction under anaerobic conditions explicitely
 !*******************************************************************
 #ifndef extNcycle
-  ! Denitrification rate constant of POP (disso) [1/sec]
+  ! Denitrification rate constant of POP (disso) [1/sec]*dtbgc
   denit = sed_denit
 
   ! Store flux in array anaerob, for later computation of DIC and alkalinity.

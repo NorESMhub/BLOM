@@ -55,8 +55,20 @@ module mod_forcing
       srxlim          ! Maximum absolute value of SSS difference in relaxation
                       ! [g kg-1].
    character(len = 256) :: &
-      scfile          ! Name of file containing monthly SSS climatology.
+      scfile, &       ! Name of file containing monthly SSS climatology.
+      wavsrc          ! Source of wave fields. Valid source: 'none', 'param',
+                      ! 'extern'.
 
+   ! Options derived from string options.
+   integer :: &
+      wavsrc_opt
+
+   ! Parameters:
+   integer, parameter :: &
+      ! Wave source options:
+      wavsrc_none        = 0, & ! No wave fields.
+      wavsrc_param       = 1, & ! Parameterized wave fields.
+      wavsrc_extern      = 2    ! Receive external wave fields.
 
    ! Constants used in forcing computations.
    real(r8) :: &
@@ -150,6 +162,7 @@ module mod_forcing
 
    public :: aptflx, apsflx, ditflx, disflx, srxbal, sprfac, &
              trxday, srxday, trxdpt, srxdpt, trxlim, srxlim, scfile, &
+             wavsrc, wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern, &
              sref, tflxap, sflxap, tflxdi, sflxdi, nflxdi, &
              sstclm, ricclm, sssclm, prfac, eiacc, pracc, &
              swa, nsf, hmltfz, lip, sop, eva, rnf, rfi, fmltfz, sfl, ztx, mty, &
