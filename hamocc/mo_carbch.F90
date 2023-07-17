@@ -61,7 +61,6 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnoyflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepnhxflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: oalkflx
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: oalkflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: rivinflx 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
