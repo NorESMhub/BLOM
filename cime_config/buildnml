@@ -148,19 +148,15 @@ def _create_namelists(case, confdir, infile, nmlgen):
     file.write_text(file.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
     
     namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
-    fread = open(namelist_file, "r")
-    fwrite = open(namelist_file_temp, "w")
-    for line in fread:
-        if '=' in line:
-            x = line.split()
-            x[0] = x[0].upper()
-            line = "  " + ' '.join(x) + '\n'
-        elif '&' in line or '/' in line:
-            x = line.split()
-            line = x[0].upper() + '\n'
-        fwrite.write(line)  
-    fread.close()
-    fwrite.close()
+    with open(namelist_file, "r") as fread:
+        with open(namelist_file_temp, "w") as fwrite:
+            for line in fread:
+                tokens = line.split('=',maxsplit=1)
+                if len(tokens) == 2:
+                    fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
+                else:
+                    fwrite.write(line)
+
     shutil.move(namelist_file_temp, namelist_file)
 
     src_filename = os.path.join(srcroot,"components","blom","cime_config","ocn_in.readme")
@@ -169,7 +165,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     if not os.path.exists(dst_filename):
         shutil.copy(src_filename, dst_filename)
 
-    #logger.debug(f"blom: grid is {ocn_grid}")
+    logger.debug(f"blom: grid is {ocn_grid}")
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
@@ -250,14 +246,6 @@ def buildnml(case, caseroot, compname):
                 file2 += inst_string
             logger.debug("BLOM namelist copy: file1 %s file2 %s " %(file1, file2))
             shutil.copy2(file1, file2)
-
-def _strip_comments(fh, token="!"):
-    ''' strip anything after token in each line of fh '''
-    for line in fh:
-        s = line.split(token, 1)[0].strip()
-        if s:
-            yield s
-
 
 ###############################################################################
 def _main_func():
