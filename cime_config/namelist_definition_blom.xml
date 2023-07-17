@@ -28,23 +28,11 @@
        that have only a small number of allowed values.
   -->
 
-  <!-- &LIMITS -->
-  <!-- &VCOORD -->
-  <!-- &DIFFUSION -->
-  <!-- &CWMOD -->
-  <!-- &MERDIA -->
-  <!-- &SECDIA -->
-  <!-- &DIAPHY -->
-
-  <!-- &BGCNML -->
-  <!-- &BGCOAFX -->
-  <!-- &DIABGC -->
-
   <!-- ========================= -->
   <!-- namelist group: limits -->
   <!-- ========================= -->
 
-  <entry id="NDAY1">
+  <entry id="nday1">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -54,7 +42,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="NDAY2">
+  <entry id="nday2">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -64,7 +52,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="IDATE">
+  <entry id="idate">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -74,7 +62,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="IDATE0">
+  <entry id="idate0">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -84,7 +72,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RUNID">
+  <entry id="runid">
     <category>limits</category>
     <group>limits</group>
     <values>
@@ -94,7 +82,7 @@
     <type>char</type>
   </entry>
 
-  <entry id="EXPCNF">
+  <entry id="expcnf">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -104,17 +92,18 @@
     <desc></desc>
   </entry>
 
-  <entry id="RUNTYP">
+  <entry id="runtyp" modify_via_xml="RUN_TYPE">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>initial</value>
+      <value>$RUN_TYPE</value>
+      <value continue_run="yes">continue</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="GRFILE">
+  <entry id="grfile">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -129,7 +118,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="ICFILE">
+  <entry id="icfile">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -144,7 +133,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="PREF">
+  <entry id="pref">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -155,7 +144,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BACLIN">
+  <entry id="baclin">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -164,13 +153,14 @@
       <value ocn_grid="tnx2v1">4800.</value>
       <value ocn_grid="tnx1.5v1">4800.</value>
       <value ocn_grid="tnx1v4">3200.</value>
+      <value ocn_grid="tnx1v4" ocn_ncpl="24">3600.</value>
       <value ocn_grid="tnx0.25v4">900.</value>
       <value ocn_grid="tnx0.125v4">300.</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="BATROP">
+  <entry id="batrop">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -186,7 +176,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDV2HI">
+  <entry id="mdv2hi">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -201,7 +191,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDV2LO">
+  <entry id="mdv2lo">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -216,7 +206,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDV4HI">
+  <entry id="mdv4hi">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -226,7 +216,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDV4LO">
+  <entry id="mdv4lo">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -236,7 +226,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDC2HI">
+  <entry id="mdc2hi">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -249,7 +239,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MDC2LO">
+  <entry id="mdc2lo">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -262,7 +252,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VSC2HI">
+  <entry id="vsc2hi">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -274,7 +264,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VSC2LO">
+  <entry id="vsc2lo">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -286,7 +276,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VSC4HI">
+  <entry id="vsc4hi">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -298,7 +288,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VSC4LO">
+  <entry id="vsc4lo">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -310,7 +300,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CBAR">
+  <entry id="cbar">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -321,7 +311,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CB">
+  <entry id="cb">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -331,20 +321,20 @@
     <desc></desc>
   </entry>
 
-  <entry id="CWBDTS">
+  <entry id="cwbdts">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
     <values>
       <value>5.e-5</value>
-      <value ocn_grid="tnx1v4">0.75e-4</value>
+      <value ocn_grid="tnx1v4">.75e-4</value>
       <value ocn_grid="tnx0.25v4">0.75e-4</value>
       <value ocn_grid="tnx0.125v4">0.75e-4</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="CWBDLS">
+  <entry id="cwbdls">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -354,7 +344,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MOMMTH">
+  <entry id="mommth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -364,7 +354,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BMCMTH">
+  <entry id="bmcmth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -374,7 +364,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RMPMTH">
+  <entry id="rmpmth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -384,7 +374,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MLRTTP">
+  <entry id="mlrttp">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -394,7 +384,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RM0">
+  <entry id="rm0">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -404,7 +394,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RM5">
+  <entry id="rm5">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -414,19 +404,19 @@
     <desc></desc>
   </entry>
 
-  <entry id="CE">
+  <entry id="ce">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
     <values>
       <value>.06</value>
-      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulknml">.5</value>
-      <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulknml">1.0</value>
+      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulkml">.5</value>
+      <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="TDFILE">
+  <entry id="tdfile">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -441,7 +431,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="NIWGF">
+  <entry id="niwgf">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -452,7 +442,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="NIWBF">
+  <entry id="niwbf">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -462,7 +452,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="NIWLF">
+  <entry id="niwlf">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -472,7 +462,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SWAMTH">
+  <entry id="swamth">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -482,7 +472,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="JWTYPE">
+  <entry id="jwtype">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -492,7 +482,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CHLOPT">
+  <entry id="chlopt">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -502,7 +492,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CCFILE">
+  <entry id="ccfile">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -516,7 +506,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRXDAY">
+  <entry id="trxday">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -526,7 +516,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRXDAY">
+  <entry id="srxday">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -538,7 +528,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRXDPT">
+  <entry id="trxdpt">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -548,7 +538,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRXDPT">
+  <entry id="srxdpt">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -560,7 +550,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRXLIM">
+  <entry id="trxlim">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -570,7 +560,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRXLIM">
+  <entry id="srxlim">
     <type>real</type>
     <category>limits</category>
     <group>limits</group>
@@ -580,7 +570,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="APTFLX">
+  <entry id="aptflx">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -590,7 +580,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="APSFLX">
+  <entry id="apsflx">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -600,7 +590,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DITFLX">
+  <entry id="ditflx">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -610,7 +600,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DISFLX">
+  <entry id="disflx">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -620,7 +610,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRXBAL">
+  <entry id="srxbal">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -631,7 +621,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SCFILE">
+  <entry id="scfile">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -646,7 +636,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="WAVSRC">
+  <entry id="wavsrc">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -656,7 +646,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SMTFRC">
+  <entry id="smtfrc">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -667,7 +657,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SPRFAC">
+  <entry id="sprfac">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -678,7 +668,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="ATM_PATH">
+  <entry id="atm_PATH">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -688,7 +678,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="ITEST">
+  <entry id="itest">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -698,7 +688,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="JTEST">
+  <entry id="jtest">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -708,7 +698,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CNSVDI">
+  <entry id="cnsvdi">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -718,7 +708,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CSDIAG">
+  <entry id="csdiag">
     <type>logical</type>
     <category>limits</category>
     <group>limits</group>
@@ -728,7 +718,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RSTFRQ">
+  <entry id="rstfrq">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -738,7 +728,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RSTFMT">
+  <entry id="rstfmt">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -749,7 +739,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RSTCMP">
+  <entry id="rstcmp">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -759,7 +749,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="IOTYPE">
+  <entry id="iotype">
     <type>integer</type>
     <category>limits</category>
     <group>limits</group>
@@ -781,7 +771,7 @@
   <!-- </values> -->
   <!-- <desc></desc> -->
 
-  <entry id="VCOORD_TYPE" modify_via_xml="BLOM_VCOORD">
+  <entry id="vcoord_type" modify_via_xml="BLOM_VCOORD">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -791,7 +781,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RECONSTRUCTION_METHOD">
+  <entry id="reconstruction_method">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -801,7 +791,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DENSITY_LIMITING">
+  <entry id="density_limiting">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -811,7 +801,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRACER_LIMITING">
+  <entry id="tracer_limiting">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -821,7 +811,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VELOCITY_LIMITING">
+  <entry id="velocity_limiting">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -831,7 +821,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DENSITY_PC_UPPER_BNDR">
+  <entry id="density_pc_upper_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -841,7 +831,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DENSITY_PC_LOWER_BNDR">
+  <entry id="density_pc_lower_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -851,7 +841,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRACER_PC_UPPER_BNDR">
+  <entry id="tracer_pc_upper_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -861,7 +851,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TRACER_PC_LOWER_BNDR">
+  <entry id="tracer_pc_lower_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -871,7 +861,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VELOCITY_PC_UPPER_BNDR">
+  <entry id="velocity_pc_upper_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -881,7 +871,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="VELOCITY_PC_LOWER_BNDR">
+  <entry id="velocity_pc_lower_bndr">
     <type>logical</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -891,7 +881,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DPMIN_SURFACE">
+  <entry id="dpmin_surface">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -901,7 +891,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DPMIN_INFLATION_FACTOR">
+  <entry id="dpmin_inflation_factor">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -911,7 +901,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DPMIN_INTERIOR">
+  <entry id="dpmin_interior">
     <type>real</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -921,7 +911,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DKTZU">
+  <entry id="dktzu">
     <type>integer</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -931,7 +921,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DKTZL">
+  <entry id="dktzl">
     <type>integer</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -945,7 +935,7 @@
   <!-- namelist group: diffusion -->
   <!-- ========================= -->
 
-  <entry id="EITMTH">
+  <entry id="eitmth">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -955,7 +945,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EDRITP">
+  <entry id="edritp">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -965,7 +955,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EDWMTH">
+  <entry id="edwmth">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -977,7 +967,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EDDF2D">
+  <entry id="eddf2d">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -987,7 +977,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EDSPRS">
+  <entry id="edsprs">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -997,7 +987,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGC">
+  <entry id="egc">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1009,7 +999,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGGAM">
+  <entry id="eggam">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1019,7 +1009,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGLSMN">
+  <entry id="eglsmn">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1030,7 +1020,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGMNDF">
+  <entry id="egmndf">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1042,7 +1032,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGMXDF">
+  <entry id="egmxdf">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1058,7 +1048,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EGIDFQ">
+  <entry id="egidfq">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1068,17 +1058,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="TBFILE">
+  <entry id="tbfile">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="RHISCF">
+  <entry id="rhiscf">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1088,7 +1078,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="EDANIS">
+  <entry id="edanis">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1098,7 +1088,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="REDI3D">
+  <entry id="redi3d">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1108,7 +1098,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="RHSCTP">
+  <entry id="rhsctp">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1118,17 +1108,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="RI0">
+  <entry id="ri0">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value></value>
+      <value>1.2</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="BDMTYP">
+  <entry id="bdmtyp">
     <type>integer</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1138,7 +1128,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BDMC1">
+  <entry id="bdmc1">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1149,7 +1139,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BDMC2">
+  <entry id="bdmc2">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1160,7 +1150,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BDMLDP">
+  <entry id="bdmldp">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1171,7 +1161,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="TKEPF">
+  <entry id="tkepf">
     <type>real</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1181,7 +1171,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SMOBLD">
+  <entry id="smobld">
     <type>logical</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1191,7 +1181,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LNGMTP">
+  <entry id="lngmtp">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1201,7 +1191,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LTEDTP">
+  <entry id="ltedtp">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
@@ -1218,7 +1208,7 @@
   <!-- namelist group: cwmod -->
   <!-- ========================= -->
 
-  <entry id="CWMTAG">
+  <entry id="cwmtag">
     <type>char(2)</type>
     <category>cwmod</category>
     <group>cwmod</group>
@@ -1230,7 +1220,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CWMEDG">
+  <entry id="cwmedg">
     <type>char(2)</type>
     <category>cwmod</category>
     <group>cwmod</group>
@@ -1241,7 +1231,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CWMI">
+  <entry id="cwmi">
     <type>integer(2)</type>
     <category>cwmod</category>
     <group>cwmod</group>
@@ -1252,7 +1242,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CWMJ">
+  <entry id="cwmj">
     <type>integer(2)</type>
     <category>cwmod</category>
     <group>cwmod</group>
@@ -1263,7 +1253,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="CWMWTH">
+  <entry id="cwmwth">
     <type>real(2)</type>
     <category>cwmod</category>
     <group>cwmod</group>
@@ -1279,7 +1269,7 @@
   <!-- namelist group: secdia -->
   <!-- ========================= -->
 
-  <entry id="SEC_SIFILE">
+  <entry id="sec_sifile">
     <type>char</type>
     <category>secdia</category>
     <group>secdia</group>
@@ -1299,7 +1289,7 @@
   <!-- (IO-NAMELIST FOR DIAGNOSTIC OUTPUT) -->
   <!-- ========================= -->
 
-  <entry id="GLB_FNAMETAG">
+  <entry id="glb_fnametag@diaphy">
     <type>char(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1309,7 +1299,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="GLB_AVEPERIO">
+  <entry id="glb_aveperio@diaphy">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1319,7 +1309,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="GLB_FILEFREQ">
+  <entry id="glb_filefreq@diaphy">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1330,7 +1320,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="GLB_COMPFLAG">
+  <entry id="glb_compflag@diaphy">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1340,7 +1330,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="GLB_NCFORMAT">
+  <entry id="glb_ncformat@diaphy">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1351,7 +1341,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_ABSWND">
+  <entry id="h2d_abswnd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1361,7 +1351,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_ALB">
+  <entry id="h2d_alb">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1371,7 +1361,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_BTMSTR">
+  <entry id="h2d_btmstr">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1381,7 +1371,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_BRNFLX">
+  <entry id="h2d_brnflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1391,7 +1381,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_BRNPD">
+  <entry id="h2d_brnpd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1401,7 +1391,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_DFL">
+  <entry id="h2d_dfl">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1411,7 +1401,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_EVA">
+  <entry id="h2d_eva">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1421,7 +1411,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_FICE">
+  <entry id="h2d_fice">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1431,7 +1421,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_FMLTFZ">
+  <entry id="h2d_fmltfz">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1441,7 +1431,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_HICE">
+  <entry id="h2d_hice">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1451,7 +1441,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_HMLTFZ">
+  <entry id="h2d_hmltfz">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1461,7 +1451,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_HSNW">
+  <entry id="h2d_hsnw">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1471,7 +1461,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_IAGE">
+  <entry id="h2d_iage">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1481,7 +1471,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_IDKEDT">
+  <entry id="h2d_idkedt">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1491,7 +1481,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_LAMULT">
+  <entry id="h2d_lamult">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1501,7 +1491,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_LASL">
+  <entry id="h2d_lasl">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1511,7 +1501,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_LIP">
+  <entry id="h2d_lip">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1521,7 +1511,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_MAXMLD">
+  <entry id="h2d_maxmld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1531,7 +1521,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_MLD">
+  <entry id="h2d_mld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1541,197 +1531,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_MLTS">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>4,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MLTSMN">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MLTSMX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MLTSSQ">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKEUS">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKENI">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKEBF">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKERS">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKEPE">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTKEKE">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_MTY">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_NSF">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_PBOT">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_PSRF">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_RFIFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_RNFFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SALFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SALRLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SBOT">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SEALV">
+  <entry id="h2d_mlts">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1741,7 +1541,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SLVSQ">
+  <entry id="h2d_mltsmn">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1751,7 +1551,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SFL">
+  <entry id="h2d_mltsmx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1761,7 +1561,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SOP">
+  <entry id="h2d_mltssq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1771,7 +1571,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SIGMX">
+  <entry id="h2d_mtkeus">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1781,7 +1581,147 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SSS">
+  <entry id="h2d_mtkeni">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_mtkebf">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_mtkers">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_mtkepe">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_mtkeke">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_mty">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_nsf">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_pbot">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_psrf">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_rfiflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_rnfflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_salflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_salrlx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sbot">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sealv">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1791,7 +1731,47 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SSSSQ">
+  <entry id="h2d_slvsq">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sfl">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sop">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sigmx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_sss">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1801,7 +1781,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SST">
+  <entry id="h2d_ssssq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1811,7 +1791,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SSTSQ">
+  <entry id="h2d_sst">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1821,37 +1801,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_SURFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SURRLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_SWA">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_T20D">
+  <entry id="h2d_sstsq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1861,7 +1811,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_TAUX">
+  <entry id="h2d_surflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1871,7 +1821,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_TAUY">
+  <entry id="h2d_surrlx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1881,7 +1831,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_TBOT">
+  <entry id="h2d_swa">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1891,27 +1841,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_TICE">
+  <entry id="h2d_t20d">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
     <values>
-      <value>0,0,0</value>
+      <value>4,4,0</value>
     </values>
     <desc></desc>
   </entry>
 
-  <entry id="H2D_TSRF">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_UB">
+  <entry id="h2d_taux">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1921,17 +1861,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_UICE">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_USTAR">
+  <entry id="h2d_tauy">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1941,7 +1871,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_USTAR3">
+  <entry id="h2d_tbot">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1951,7 +1881,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_USTOKES">
+  <entry id="h2d_tice">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1961,17 +1891,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_VB">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="H2D_VICE">
+  <entry id="h2d_tsrf">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1981,7 +1901,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_VSTOKES">
+  <entry id="h2d_ub">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_uice">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -1991,7 +1921,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="H2D_ZTX">
+  <entry id="h2d_ustar">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2001,7 +1931,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_BFSQ">
+  <entry id="h2d_ustar3">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2011,107 +1941,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DIFDIA">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DIFVMO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DIFVHO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DIFVSO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DIFINT">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DIFISO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DP">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_DZ">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_SALN">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_TEMP">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_TRC">
+  <entry id="h2d_ustokes">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2121,7 +1951,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_UFLX">
+  <entry id="h2d_vb">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2131,397 +1961,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_UTFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_USFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UMFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UMFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UTFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UTFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UTFLLD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_USFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_USFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_USFLLD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_UVEL">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VTFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VSFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VMFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VMFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VTFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VTFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VTFLLD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VSFLTD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VSFLSM">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VSFLLD">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,0,4</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_VVEL">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_WFLX">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_WFLX2">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_PV">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_TKE">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_GLS_PSI">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LYR_IDLAGE">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_BFSQ">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFDIA">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFVMO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFVHO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFVSO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFINT">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DIFISO">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_DZ">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_SALN">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_TEMP">
-    <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
-    <values>
-      <value>0,4,0</value>
-    </values>
-    <desc></desc>
-  </entry>
-
-  <entry id="LVL_TRC">
+  <entry id="h2d_vice">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2531,7 +1971,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UFLX">
+  <entry id="h2d_vstokes">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="h2d_ztx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2541,7 +1991,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UTFLX">
+  <entry id="lyr_bfsq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2551,7 +2001,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_USFLX">
+  <entry id="lyr_difdia">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2561,7 +2011,137 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UMFLTD">
+  <entry id="lyr_difvmo">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_difvho">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_difvso">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_difint">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_difiso">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_dp@diaphy">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_dz">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_saln">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_temp">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_trc">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_uflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_utflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_usflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lyr_umfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2571,7 +2151,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UMFLSM">
+  <entry id="lyr_umflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2581,7 +2161,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UTFLTD">
+  <entry id="lyr_utfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2591,7 +2171,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UTFLSM">
+  <entry id="lyr_utflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2601,7 +2181,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UTFLLD">
+  <entry id="lyr_utflld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2611,7 +2191,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_USFLTD">
+  <entry id="lyr_usfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2621,7 +2201,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_USFLSM">
+  <entry id="lyr_usflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2631,7 +2211,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_USFLLD">
+  <entry id="lyr_usflld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2641,7 +2221,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_UVEL">
+  <entry id="lyr_uvel">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2651,7 +2231,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VFLX">
+  <entry id="lyr_vflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2661,7 +2241,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VTFLX">
+  <entry id="lyr_vtflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2671,7 +2251,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VSFLX">
+  <entry id="lyr_vsflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2681,7 +2261,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VMFLTD">
+  <entry id="lyr_vmfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2691,7 +2271,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VMFLSM">
+  <entry id="lyr_vmflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2701,7 +2281,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VTFLTD">
+  <entry id="lyr_vtfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2711,7 +2291,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VTFLSM">
+  <entry id="lyr_vtflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2721,7 +2301,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VTFLLD">
+  <entry id="lyr_vtflld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2731,7 +2311,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VSFLTD">
+  <entry id="lyr_vsfltd">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2741,7 +2321,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VSFLSM">
+  <entry id="lyr_vsflsm">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2751,7 +2331,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VSFLLD">
+  <entry id="lyr_vsflld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2761,7 +2341,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_VVEL">
+  <entry id="lyr_vvel">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2771,7 +2351,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_WFLX">
+  <entry id="lyr_wflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2781,7 +2361,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_WFLX2">
+  <entry id="lyr_wflx2">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2791,7 +2371,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PV">
+  <entry id="lyr_pv">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2801,7 +2381,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_TKE">
+  <entry id="lyr_tke">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2811,7 +2391,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_GLS_PSI">
+  <entry id="lyr_gls_psi">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2821,7 +2401,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_IDLAGE">
+  <entry id="lyr_idlage">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2831,7 +2411,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFLXL">
+  <entry id="lvl_bfsq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2841,7 +2421,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFLXD">
+  <entry id="lvl_difdia">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2851,7 +2431,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFTDL">
+  <entry id="lvl_difvmo">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2861,7 +2441,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFSML">
+  <entry id="lvl_difvho">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2871,7 +2451,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFTDD">
+  <entry id="lvl_difvso">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2881,7 +2461,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MMFSMD">
+  <entry id="lvl_difint">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2891,7 +2471,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MHFLX">
+  <entry id="lvl_difiso">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2901,7 +2481,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MHFTD">
+  <entry id="lvl_dz">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2911,7 +2491,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MHFSM">
+  <entry id="lvl_saln">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2921,7 +2501,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MHFLD">
+  <entry id="lvl_temp">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2931,7 +2511,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MSFLX">
+  <entry id="lvl_trc">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_uflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2941,7 +2531,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MSFTD">
+  <entry id="lvl_utflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2951,7 +2541,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MSFSM">
+  <entry id="lvl_usflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2961,7 +2551,87 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MSFLD">
+  <entry id="lvl_umfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_umflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_utfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_utflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_utflld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_usfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_usflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_usflld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_uvel">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2971,7 +2641,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_VOLTR">
+  <entry id="lvl_vflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2981,7 +2651,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_MASSGS">
+  <entry id="lvl_vtflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2991,7 +2661,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_VOLGS">
+  <entry id="lvl_vsflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -3001,7 +2671,87 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_SALNGA">
+  <entry id="lvl_vmfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vmflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vtfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vtflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vtflld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vsfltd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vsflsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vsflld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,0,4</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_vvel">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -3011,7 +2761,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_TEMPGA">
+  <entry id="lvl_wflx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -3021,7 +2771,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_SSSGA">
+  <entry id="lvl_wflx2">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -3031,7 +2781,247 @@
     <desc></desc>
   </entry>
 
-  <entry id="MSC_SSTGA">
+  <entry id="lvl_pv">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_tke">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_gls_psi">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="lvl_idlage">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmflxl">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmflxd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmftdl">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmfsml">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmftdd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mmfsmd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mhflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mhftd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mhfsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_mhfld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_msflx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_msftd">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_msfsm">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_msfld">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_voltr">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_massgs">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_volgs">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_salnga">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_tempga">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_sssga">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="msc_sstga">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -3046,7 +3036,7 @@
   <!-- ========================= -->
 
   <!-- TODO: put in check in buildnml to fail if file values are UNSET -->
-  <entry id="MER_ORFILE">
+  <entry id="mer_orfile">
     <type>char</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3061,7 +3051,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MER_MIFILE">
+  <entry id="mer_mifile">
     <type>char</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3076,7 +3066,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MER_REGNAME">
+  <entry id="mer_regnam">
     <type>char(4)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3086,7 +3076,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="MER_REGFLG1">
+  <entry id="mer_regflg1">
     <type>integer(20)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3095,7 +3085,7 @@
     </values>
     <desc>Array of mask flags in ocean regions file to be included for region (1)</desc>
   </entry>
-  <entry id="MER_REGFLG2">
+  <entry id="mer_regflg2">
     <type>integer(20)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3104,7 +3094,7 @@
     </values>
     <desc>Array of mask flags in ocean regions file to be included for region (2)</desc>
   </entry>
-  <entry id="MER_REGFLG3">
+  <entry id="mer_regflg3">
     <type>integer(20)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3113,7 +3103,7 @@
     </values>
     <desc>Array of mask flags in ocean regions file to be included for region (3)</desc>
   </entry>
-  <entry id="MER_REGFLG4">
+  <entry id="mer_regflg4">
     <type>integer(20)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3123,7 +3113,7 @@
     <desc>Array of mask flags in ocean regions file to be included for region (4)</desc>
   </entry>
 
-  <entry id="MER_MINLAT">
+  <entry id="mer_minlat">
     <type>real(4)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3133,7 +3123,7 @@
     <desc>Minimum latitude to be considered for each region (f)</desc>
   </entry>
 
-  <entry id="MER_MAXLAT">
+  <entry id="mer_maxlat">
     <type>real(4)</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3147,7 +3137,7 @@
   <!-- namelist group: bgcnml -->
   <!-- ========================= -->
 
-  <entry id="ATM_CO2" modify_via_xml="CCSM_CO2_PPMV">
+  <entry id="atm_co2" modify_via_xml="CCSM_CO2_PPMV">
     <type>real</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3157,7 +3147,7 @@
     <desc>Atmospheric CO2 concentration [ppmv]</desc>
   </entry>
 
-  <entry id="FEDEPFILE">
+  <entry id="fedepfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3172,7 +3162,7 @@
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>
 
-  <entry id="SWACLIMFILE">
+  <entry id="swaclimfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3184,7 +3174,7 @@
     <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
   </entry>
 
-  <entry id="DO_RIVINPT">
+  <entry id="do_rivinpt">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3195,7 +3185,7 @@
     <desc>Logical switch to activate riverine input</desc>
   </entry>
 
-  <entry id="RIVINFILE">
+  <entry id="rivinfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3210,7 +3200,7 @@
     <desc>File name (incl. full path) for riverine input data</desc>
   </entry>
 
-  <entry id="DO_NDEP">
+  <entry id="do_ndep">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3222,14 +3212,14 @@
     <desc>Logical switch to activate N-deposition</desc>
   </entry>
 
-  <entry id="NDEPFILE">
+  <entry id="ndepfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value blom_n_deposition="no">' '</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx2v1_20180321.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx1v4_20171106.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx1v4_20171106.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.25v4_20190912.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.125v4_20221013.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx2v1_20200826.nc</value>
@@ -3244,7 +3234,7 @@
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
-  <entry id="DO_OALK">
+  <entry id="do_oalk">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3254,7 +3244,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="DO_SEDSPINUP">
+  <entry id="do_sedspinup">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3265,7 +3255,7 @@
     <desc>Logical switch to activate sediment spin-up</desc>
   </entry>
 
-  <entry id="SEDSPIN_YR_S" modify_via_xml="HAMOCC_SEDSPINUP_YR_START">
+  <entry id="sedspin_yr_s" modify_via_xml="HAMOCC_SEDSPINUP_YR_START">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3276,7 +3266,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SEDSPIN_YR_E" modify_via_xml="HAMOCC_SEDSPINUP_YR_END">
+  <entry id="sedspin_yr_e" modify_via_xml="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3287,7 +3277,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SEDSPIN_NCYC">
+  <entry id="sedspin_ncyc">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3297,7 +3287,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INIDIC">
+  <entry id="inidic">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3308,7 +3298,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INIALK">
+  <entry id="inialk">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3319,7 +3309,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INIPO4">
+  <entry id="inipo4">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3330,7 +3320,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INIOXY">
+  <entry id="inioxy">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3341,7 +3331,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="ININO3">
+  <entry id="inino3">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3352,7 +3342,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INISIL">
+  <entry id="inisil">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3363,7 +3353,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INID13C">
+  <entry id="inid13c">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3375,7 +3365,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INID14C">
+  <entry id="inid14c">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3387,7 +3377,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="WITH_DMSPH">
+  <entry id="with_dmsph">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3397,7 +3387,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="PI_PH_FILE">
+  <entry id="pi_ph_file">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3407,7 +3397,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="L_3DVARSEDPOR">
+  <entry id="l_3dvarsedpor">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3417,7 +3407,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SEDPORFILE">
+  <entry id="sedporfile">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3431,7 +3421,7 @@
   <!-- namelist group: bgcoafx -->
   <!-- ========================= -->
 
-  <entry id="BGCOAFX_OALKSCEN">
+  <entry id="oalkscen">
     <type>char</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3441,7 +3431,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_OALKFILE">
+  <entry id="oalkfile">
     <type>char</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3451,7 +3441,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_ADDALK">
+  <entry id="addalk">
     <type>real</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3461,7 +3451,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_CDRMIP_LATMAX">
+  <entry id="cdrmip_latmax">
     <type>real</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3471,7 +3461,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_CDRMIP_LATMIN">
+  <entry id="cdrmip_latmin">
     <type>real</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3481,7 +3471,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_RAMP_START">
+  <entry id="ramp_start">
     <type>real</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3491,7 +3481,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGCOAFX_RAMP_END">
+  <entry id="ramp_end">
     <type>real</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
@@ -3505,7 +3495,7 @@
   <!-- namelist group: diabgc -->
   <!-- ========================= -->
 
-  <entry id="BGC_FNAMETAG">
+  <entry id="glb_fnametag@diabgc">
     <type>char(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3515,7 +3505,17 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGC_FILEFREQ">
+  <entry id="glb_aveperio@diabgc">
+    <type>integer(3)</type>
+    <category>diabgc</category>
+    <group>diabgc</group>
+    <values>
+      <value>1,30,365</value>
+    </values>
+    <desc></desc>
+  </entry>
+
+  <entry id="glb_filefreq@diabgc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3526,7 +3526,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGC_COMPFLAG">
+  <entry id="glb_compflag@diabgc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3536,10 +3536,10 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGC_NCFORMAT">
+  <entry id="glb_ncformat@diabgc">
     <type>integer(3)</type>
-    <category>diaphy</category>
-    <group>diaphy</group>
+    <category>diabgc</category>
+    <group>diabgc</group>
     <values>
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
@@ -3547,7 +3547,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGC_INVENTORY">
+  <entry id="glb_inventory">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3557,7 +3557,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_PHOSPH">
+  <entry id="srf_phosph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3567,7 +3567,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_OXYGEN">
+  <entry id="srf_oxygen">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3577,7 +3577,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_IRON">
+  <entry id="srf_iron">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3587,7 +3587,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_ANO3">
+  <entry id="srf_ano3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3597,7 +3597,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_ALKALI">
+  <entry id="srf_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3607,7 +3607,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_SILICA">
+  <entry id="srf_silica">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3617,7 +3617,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DIC">
+  <entry id="srf_dic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3627,7 +3627,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_PHYTO">
+  <entry id="srf_phyto">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3637,7 +3637,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_PH">
+  <entry id="srf_ph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3647,7 +3647,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_EXPORT">
+  <entry id="srf_export">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3657,7 +3657,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_EXPOSI">
+  <entry id="srf_exposi">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3667,7 +3667,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_EXPOCA">
+  <entry id="srf_expoca">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3677,7 +3677,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_KWCO2">
+  <entry id="srf_kwco2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3687,7 +3687,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_KWCO2KHM">
+  <entry id="srf_kwco2khm">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3697,7 +3697,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO2KH">
+  <entry id="srf_co2kh">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3707,7 +3707,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO2KHM">
+  <entry id="srf_co2khm">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3717,7 +3717,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_PCO2">
+  <entry id="srf_pco2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3727,7 +3727,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_PCO2M">
+  <entry id="srf_pco2m">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3737,7 +3737,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO2FXD">
+  <entry id="srf_co2fxd">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3747,7 +3747,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO2FXU">
+  <entry id="srf_co2fxu">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3757,7 +3757,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_OXFLUX">
+  <entry id="srf_oxflux">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3767,7 +3767,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NIFLUX">
+  <entry id="srf_niflux">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3777,7 +3777,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_N2OFX">
+  <entry id="srf_n2ofx">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3787,7 +3787,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DMSFLUX">
+  <entry id="srf_dmsflux">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3797,7 +3797,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DMS">
+  <entry id="srf_dms">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3807,7 +3807,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DMSPROD">
+  <entry id="srf_dmsprod">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3817,7 +3817,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DMS_BAC">
+  <entry id="srf_dms_bac">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3827,7 +3827,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_DMS_UV">
+  <entry id="srf_dms_uv">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3837,7 +3837,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_ATMCO2">
+  <entry id="srf_atmco2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3847,7 +3847,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_ATMO2">
+  <entry id="srf_atmo2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3857,7 +3857,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_ATMN2">
+  <entry id="srf_atmn2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3867,7 +3867,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NATDIC">
+  <entry id="srf_natdic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3877,7 +3877,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NATALKALI">
+  <entry id="srf_natalkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3887,7 +3887,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NATPH">
+  <entry id="srf_natph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3897,7 +3897,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NATPCO2">
+  <entry id="srf_natpco2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3907,7 +3907,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_NATCO2FX">
+  <entry id="srf_natco2fx">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3917,7 +3917,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO213FXD">
+  <entry id="srf_co213fxd">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3927,7 +3927,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO213FXU">
+  <entry id="srf_co213fxu">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3937,7 +3937,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO214FXD">
+  <entry id="srf_co214fxd">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3947,7 +3947,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CO214FXU">
+  <entry id="srf_co214fxu">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3957,7 +3957,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CFC11">
+  <entry id="srf_cfc11">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3967,7 +3967,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_CFC12">
+  <entry id="srf_cfc12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3977,7 +3977,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_SF6">
+  <entry id="srf_sf6">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3987,7 +3987,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_BROMO">
+  <entry id="srf_bromo">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -3997,7 +3997,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SRF_BROMOFX">
+  <entry id="srf_bromofx">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4007,7 +4007,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INT_BROMOPRO">
+  <entry id="int_bromopro">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4017,7 +4017,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INT_BROMOUV">
+  <entry id="int_bromouv">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4027,7 +4027,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INT_PHOSY">
+  <entry id="int_phosy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4037,7 +4037,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INT_NFIX">
+  <entry id="int_nfix">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4047,7 +4047,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="INT_DNIT">
+  <entry id="int_dnit">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4057,7 +4057,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_NDEP">
+  <entry id="flx_ndep">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4068,7 +4068,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_OALK">
+  <entry id="flx_oalk">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4078,7 +4078,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR0100">
+  <entry id="flx_car0100">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4088,7 +4088,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR0500">
+  <entry id="flx_car0500">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4098,7 +4098,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR1000">
+  <entry id="flx_car1000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4108,7 +4108,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR2000">
+  <entry id="flx_car2000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4118,7 +4118,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR4000">
+  <entry id="flx_car4000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4128,7 +4128,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAR_BOT">
+  <entry id="flx_car_bot">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4138,7 +4138,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI0100">
+  <entry id="flx_bsi0100">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4148,7 +4148,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI0500">
+  <entry id="flx_bsi0500">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4158,7 +4158,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI1000">
+  <entry id="flx_bsi1000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4168,7 +4168,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI2000">
+  <entry id="flx_bsi2000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4178,7 +4178,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI4000">
+  <entry id="flx_bsi4000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4188,7 +4188,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_BSI_BOT">
+  <entry id="flx_bsi_bot">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4198,7 +4198,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL0100">
+  <entry id="flx_cal0100">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4208,7 +4208,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL0500">
+  <entry id="flx_cal0500">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4218,7 +4218,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL1000">
+  <entry id="flx_cal1000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4228,7 +4228,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL2000">
+  <entry id="flx_cal2000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4238,7 +4238,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL4000">
+  <entry id="flx_cal4000">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4248,7 +4248,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_CAL_BOT">
+  <entry id="flx_cal_bot">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4258,7 +4258,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PHYTO">
+  <entry id="lyr_phyto">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4268,7 +4268,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_GRAZER">
+  <entry id="lyr_grazer">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4278,7 +4278,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DOC">
+  <entry id="lyr_doc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4288,7 +4288,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PHOSY">
+  <entry id="lyr_phosy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4298,7 +4298,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PHOSPH">
+  <entry id="lyr_phosph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4308,7 +4308,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_OXYGEN">
+  <entry id="lyr_oxygen">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4318,7 +4318,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_IRON">
+  <entry id="lyr_iron">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4328,7 +4328,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_ANO3">
+  <entry id="lyr_ano3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4338,7 +4338,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_ALKALI">
+  <entry id="lyr_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4348,7 +4348,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_SILICA">
+  <entry id="lyr_silica">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4358,7 +4358,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DIC">
+  <entry id="lyr_dic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4368,7 +4368,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_POC">
+  <entry id="lyr_poc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4378,7 +4378,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_CALC">
+  <entry id="lyr_calc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4388,7 +4388,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_OPAL">
+  <entry id="lyr_opal">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4398,7 +4398,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_CO3">
+  <entry id="lyr_co3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4408,7 +4408,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_N2O">
+  <entry id="lyr_n2o">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4418,7 +4418,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PH">
+  <entry id="lyr_ph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4428,7 +4428,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_OMEGAC">
+  <entry id="lyr_omegac">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4438,7 +4438,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_OMEGAA">
+  <entry id="lyr_omegaa">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4448,7 +4448,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PREFO2">
+  <entry id="lyr_prefo2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4458,7 +4458,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_O2SAT">
+  <entry id="lyr_o2sat">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4468,7 +4468,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PREFPO4">
+  <entry id="lyr_prefpo4">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4478,7 +4478,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PREFALK">
+  <entry id="lyr_prefalk">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4488,7 +4488,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PREFDIC">
+  <entry id="lyr_prefdic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4498,7 +4498,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DICSAT">
+  <entry id="lyr_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4508,7 +4508,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATDIC">
+  <entry id="lyr_natdic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4518,7 +4518,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATALKALI">
+  <entry id="lyr_natalkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4528,7 +4528,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATCO3">
+  <entry id="lyr_natco3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4538,7 +4538,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATCALC">
+  <entry id="lyr_natcalc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4548,7 +4548,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATPH">
+  <entry id="lyr_natph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4558,7 +4558,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATOMEGAC">
+  <entry id="lyr_natomegac">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4568,7 +4568,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NATOMEGAA">
+  <entry id="lyr_natomegaa">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4578,7 +4578,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DIC13">
+  <entry id="lyr_dic13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4588,7 +4588,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DIC14">
+  <entry id="lyr_dic14">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4598,7 +4598,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_D13C">
+  <entry id="lyr_d13c">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4608,7 +4608,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_D14C">
+  <entry id="lyr_d14c">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4618,7 +4618,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_BIGD14C">
+  <entry id="lyr_bigd14c">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4628,7 +4628,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_POC13">
+  <entry id="lyr_poc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4638,7 +4638,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_DOC13">
+  <entry id="lyr_doc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4648,7 +4648,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_CALC13">
+  <entry id="lyr_calc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4658,7 +4658,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_PHYTO13">
+  <entry id="lyr_phyto13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4668,7 +4668,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_GRAZER13">
+  <entry id="lyr_grazer13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4678,7 +4678,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_CFC11">
+  <entry id="lyr_cfc11">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4688,7 +4688,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_CFC12">
+  <entry id="lyr_cfc12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4698,7 +4698,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_SF6">
+  <entry id="lyr_sf6">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4708,7 +4708,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_NOS">
+  <entry id="lyr_nos">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4718,7 +4718,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_WPHY">
+  <entry id="lyr_wphy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4728,7 +4728,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_WNOS">
+  <entry id="lyr_wnos">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4738,7 +4738,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_EPS">
+  <entry id="lyr_eps">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4748,7 +4748,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_ASIZE">
+  <entry id="lyr_asize">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4758,7 +4758,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LYR_BROMO">
+  <entry id="lyr_bromo">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4768,7 +4768,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BGC_DP">
+  <entry id="lyr_dp@diabgc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4778,7 +4778,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PHYTO">
+  <entry id="lvl_phyto">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4788,7 +4788,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_GRAZER">
+  <entry id="lvl_grazer">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4798,7 +4798,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DOC">
+  <entry id="lvl_doc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4808,7 +4808,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PHOSY">
+  <entry id="lvl_phosy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4818,7 +4818,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PHOSPH">
+  <entry id="lvl_phosph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4828,7 +4828,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_OXYGEN">
+  <entry id="lvl_oxygen">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4838,7 +4838,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_IRON">
+  <entry id="lvl_iron">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4848,7 +4848,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_ANO3">
+  <entry id="lvl_ano3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4858,7 +4858,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_ALKALI">
+  <entry id="lvl_alkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4868,7 +4868,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_SILICA">
+  <entry id="lvl_silica">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4878,7 +4878,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DIC">
+  <entry id="lvl_dic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4888,7 +4888,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_POC">
+  <entry id="lvl_poc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4898,7 +4898,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_CALC">
+  <entry id="lvl_calc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4908,7 +4908,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_OPAL">
+  <entry id="lvl_opal">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4918,7 +4918,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_CO3">
+  <entry id="lvl_co3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4928,7 +4928,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_N2O">
+  <entry id="lvl_n2o">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4938,7 +4938,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PH">
+  <entry id="lvl_ph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4948,7 +4948,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_OMEGAC">
+  <entry id="lvl_omegac">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4958,7 +4958,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_OMEGAA">
+  <entry id="lvl_omegaa">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4968,7 +4968,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PREFO2">
+  <entry id="lvl_prefo2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4978,7 +4978,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_O2SAT">
+  <entry id="lvl_o2sat">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4988,7 +4988,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PREFPO4">
+  <entry id="lvl_prefpo4">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -4998,7 +4998,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PREFALK">
+  <entry id="lvl_prefalk">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5008,7 +5008,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PREFDIC">
+  <entry id="lvl_prefdic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5018,7 +5018,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DICSAT">
+  <entry id="lvl_dicsat">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5028,7 +5028,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATDIC">
+  <entry id="lvl_natdic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5038,7 +5038,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATALKALI">
+  <entry id="lvl_natalkali">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5048,7 +5048,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATCO3">
+  <entry id="lvl_natco3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5058,7 +5058,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATCALC">
+  <entry id="lvl_natcalc">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5068,7 +5068,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATPH">
+  <entry id="lvl_natph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5078,7 +5078,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATOMEGAC">
+  <entry id="lvl_natomegac">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5088,7 +5088,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NATOMEGAA">
+  <entry id="lvl_natomegaa">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5098,7 +5098,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DIC13">
+  <entry id="lvl_dic13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5108,7 +5108,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DIC14">
+  <entry id="lvl_dic14">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5118,7 +5118,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_D13C">
+  <entry id="lvl_d13c">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5128,7 +5128,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_POC13">
+  <entry id="lvl_poc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5138,7 +5138,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_DOC13">
+  <entry id="lvl_doc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5148,7 +5148,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_CALC13">
+  <entry id="lvl_calc13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5158,7 +5158,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_PHYTO13">
+  <entry id="lvl_phyto13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5168,7 +5168,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_GRAZER13">
+  <entry id="lvl_grazer13">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5178,7 +5178,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_CFC11">
+  <entry id="lvl_cfc11">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5188,7 +5188,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_CFC12">
+  <entry id="lvl_cfc12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5198,7 +5198,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_SF6">
+  <entry id="lvl_sf6">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5208,7 +5208,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_NOS">
+  <entry id="lvl_nos">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5218,7 +5218,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_WPHY">
+  <entry id="lvl_wphy">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5228,7 +5228,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_WNOS">
+  <entry id="lvl_wnos">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5238,7 +5238,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_EPS">
+  <entry id="lvl_eps">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5248,7 +5248,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_ASIZE">
+  <entry id="lvl_asize">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5258,7 +5258,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="LVL_BROMO">
+  <entry id="lvl_bromo">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5268,7 +5268,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFIC">
+  <entry id="flx_sediffic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5278,7 +5278,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFAL">
+  <entry id="flx_sediffal">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5288,7 +5288,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFPH">
+  <entry id="flx_sediffph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5298,7 +5298,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFOX">
+  <entry id="flx_sediffox">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5308,7 +5308,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFN2">
+  <entry id="flx_sediffn2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5318,7 +5318,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFNO3">
+  <entry id="flx_sediffno3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5328,7 +5328,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="FLX_SEDIFFSI">
+  <entry id="flx_sediffsi">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5338,7 +5338,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWAIC">
+  <entry id="sdm_powaic">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5348,7 +5348,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWAAL">
+  <entry id="sdm_powaal">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5358,7 +5358,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWAPH">
+  <entry id="sdm_powaph">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5368,7 +5368,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWAOX">
+  <entry id="sdm_powaox">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5378,7 +5378,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWN2">
+  <entry id="sdm_pown2">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5388,7 +5388,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWNO3">
+  <entry id="sdm_powno3">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5398,7 +5398,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_POWASI">
+  <entry id="sdm_powasi">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5408,7 +5408,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_SSSO12">
+  <entry id="sdm_ssso12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5418,7 +5418,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_SSSSIL">
+  <entry id="sdm_ssssil">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5428,7 +5428,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_SSSC12">
+  <entry id="sdm_sssc12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5438,7 +5438,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="SDM_SSSTER">
+  <entry id="sdm_ssster">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5448,7 +5448,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BUR_SSSO12">
+  <entry id="bur_ssso12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5458,7 +5458,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BUR_SSSSIL">
+  <entry id="bur_ssssil">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5468,7 +5468,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BUR_SSSC12">
+  <entry id="bur_sssc12">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>
@@ -5478,7 +5478,7 @@
     <desc></desc>
   </entry>
 
-  <entry id="BUR_SSSTER">
+  <entry id="bur_ssster">
     <type>integer(3)</type>
     <category>diabgc</category>
     <group>diabgc</group>

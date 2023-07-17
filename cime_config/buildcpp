@@ -91,7 +91,8 @@ def buildcpp(case):
     blom_unit = case.get_value("BLOM_UNIT")
     pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
 
-    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, "BLOM_VCOORD == {} and BLOM_TURBULENT_CLOSURE == {} is not a valid combination".format(blom_vcoord, turbclo))
+    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, 
+           f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turblo} is not a valid combination")
 
     blom_cppdefs = ""
 

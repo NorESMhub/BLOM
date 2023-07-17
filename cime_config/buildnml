@@ -37,14 +37,10 @@ def _create_namelists(case, confdir, infile, nmlgen):
     Most arguments are the same as those for `NamelistGenerator`.
     The `confdir` argument is used to specify the directory  in which output files will be placed.
     """
-
-    CASEROOT      = case.get_value("CASEROOT")
-    RUN_TYPE      = case.get_value("RUN_TYPE")
-    CONTINUE_RUN  = case.get_value("CONTINUE_RUN")
-    CASEBUILD     = case.get_value("CASEBUILD")
-    CCSM_CO2_PPMV = case.get_value("CCSM_CO2_PPMV")
-    NINST_OCN     = case.get_value("NINST_OCN")
-
+    rundir = case.get_value("RUNDIR")
+    srcroot = case.get_value("SRCROOT")
+    caseroot = case.get_value("CASEROOT")
+    continue_run = case.get_value("CONTINUE_RUN")
     ocn_grid = case.get_value("OCN_GRID")
     ocn_ncpl = case.get_value("OCN_NCPL")
     blom_unit = case.get_value("BLOM_UNIT")
@@ -64,15 +60,19 @@ def _create_namelists(case, confdir, infile, nmlgen):
     hamocc_sedspinup_yr_end = case.get_value("HAMOCC_SEDSPINUP_YR_END")
     hamocc_sedspinup_ncycle = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
 
+    # error checks
     if hamocc_vsls and ocn_grid != "tnx1v4":
         expect(False, 
                "HAMOCC_VSLS is not supported at this grid resolution (no swa-climatology available)")
 
+    # create config dictionary - used in namelist_definition_blom.xml
     config = {}
+
     config['ocn_grid'] = ocn_grid
     config['ocn_ncpl'] = str(ocn_ncpl)
     config['pio_typename_ocn'] = pio_typename_ocn
     config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
+    config["continue_run"] = "yes" if continue_run else "no"
     config["is_test"] = "yes" if is_test else "no"
 
     config['blom_unit'] = blom_unit if blom_unit else "unset"
@@ -95,26 +95,26 @@ def _create_namelists(case, confdir, infile, nmlgen):
     #----------------------------------------------------
     nmlgen.init_defaults(infile, config)
 
-    if nmlgen.get_value('SWACLIMFILE') == 'UNSET':
-        nmlgen.set_value('SWACLIMFILE', value="")
+    if nmlgen.get_value('swaclimfile') == 'UNSET':
+        nmlgen.set_value('swaclimfile', value="")
 
-    if nmlgen.get_value('INID13C') == 'UNSET':
-        nmlgen.set_value('INID13C', value="")
+    if nmlgen.get_value('inid13c') == 'UNSET':
+        nmlgen.set_value('inid13c', value="")
 
-    if nmlgen.get_value('INID14C') == 'UNSET':
-        nmlgen.set_value('INID14C', value="")
+    if nmlgen.get_value('inid14c') == 'UNSET':
+        nmlgen.set_value('inid14c', value="")
 
     run_startdate = case.get_value("RUN_STARTDATE")
     idate = run_startdate.replace('-','')
-    nmlgen.set_value("IDATE", idate)
-    nmlgen.set_value("IDATE0", idate)
+    nmlgen.set_value("idate", idate)
+    nmlgen.set_value("idate0", idate)
 
     #----------------------------------------------------
     # Write out namelist groups
     #----------------------------------------------------
     groups=['limits','diffusion']
 
-    cwmtag = nmlgen.get_default('CWMTAG', config=config)
+    cwmtag = nmlgen.get_default('cwmtag', config=config)
     if cwmtag != 'UNSET':
         groups.append('cwmod')
 
@@ -127,9 +127,6 @@ def _create_namelists(case, confdir, infile, nmlgen):
 
     blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
     ecosys_on = "ecosys" in blom_tracer_modules
-    # DEBUG
-    ecosys_on = True
-    # DEBUG
     if ecosys_on:
         groups.append("bgcnml")
         groups.append("bgcoafx")
@@ -145,12 +142,34 @@ def _create_namelists(case, confdir, infile, nmlgen):
     # replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax
     from pathlib import Path
     file = Path(namelist_file)
-    file.write_text(file.read_text().replace('MER_REGFLG1','MER_REGFLG(1,:)'))
-    file.write_text(file.read_text().replace('MER_REGFLG2','MER_REGFLG(2,:)'))
-    file.write_text(file.read_text().replace('MER_REGFLG3','MER_REGFLG(3,:)'))
-    file.write_text(file.read_text().replace('MER_REGFLG4','MER_REGFLG(4,:)'))
+    file.write_text(file.read_text().replace('mer_regflg1','mer_regflg(1,:)'))
+    file.write_text(file.read_text().replace('mer_regflg2','mer_regflg(2,:)'))
+    file.write_text(file.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
+    file.write_text(file.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
     
-    logger.debug(f"blom: grid is {ocn_grid}")
+    namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
+    fread = open(namelist_file, "r")
+    fwrite = open(namelist_file_temp, "w")
+    for line in fread:
+        if '=' in line:
+            x = line.split()
+            x[0] = x[0].upper()
+            line = "  " + ' '.join(x) + '\n'
+        elif '&' in line or '/' in line:
+            x = line.split()
+            line = x[0].upper() + '\n'
+        fwrite.write(line)  
+    fread.close()
+    fwrite.close()
+    shutil.move(namelist_file_temp, namelist_file)
+
+    src_filename = os.path.join(srcroot,"components","blom","cime_config","ocn_in.readme")
+    dst_filename = os.path.join(rundir,"ocn_in.readme")
+
+    if not os.path.exists(dst_filename):
+        shutil.copy(src_filename, dst_filename)
+
+    #logger.debug(f"blom: grid is {ocn_grid}")
 
 ###############################################################################
 def buildnml(case, caseroot, compname):
