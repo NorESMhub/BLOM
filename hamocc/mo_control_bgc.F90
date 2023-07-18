@@ -67,6 +67,7 @@
       LOGICAL, save :: do_oalk     =.false.  ! apply ocean alkalinization
       logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
       LOGICAL, save :: lm4ago      =.false.  ! run with M4AGO settling scheme
+      LOGICAL, save :: leuphotic_cya=.false. ! allow cyanobacteria to grow only in euphotic zone 
     contains
 
       subroutine get_bgc_namelist

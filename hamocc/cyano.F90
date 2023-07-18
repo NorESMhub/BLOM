@@ -64,7 +64,8 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   use mo_carbch,     only: ocetra
   use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff
   use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen
-  use mo_vgrid,      only: kmle
+  use mo_vgrid,      only: kmle,kwrbioz
+  use mo_control_bgc,only: leuphotic_cya
 #ifdef natDIC
   use mo_param1_bgc, only: inatalkali
 #endif
@@ -94,7 +95,7 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   DO j=1,kpje
   DO i=1,kpie
   IF(omask(i,j).gt.0.5) THEN
-     DO k=1,kmle(i,j)
+     DO k=1,merge(kwrbioz(i,j),kmle(i,j),leuphotic_cya) ! if leuphotic_cya=.true., do bluefix only in euphotic zone
 #ifdef extNcycle
         ! assuming nitrate and ammonium required for cyanobacteria growth (as bulk PP)
         anavail = ocetra(i,j,k,iano3)+ocetra(i,j,k,ianh4)
