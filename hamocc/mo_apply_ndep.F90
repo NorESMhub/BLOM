@@ -123,10 +123,9 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
       ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
 #endif
 #ifdef extNcycle
-      ndepnhxflx(i,j) = ndep(i,j,2)*dtb/365.
-      ocetra(i,j,1,ianh4)=ocetra(i,j,1,iano3)+ndepnhxflx(i,j)/pddpo(i,j,1)
-      ! correct????????
-      ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+ndepnhxflx(i,j)/pddpo(i,j,1)
+      ndepnhxflx(i,j)       = ndep(i,j,2)*dtb/365.
+      ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
+      ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
 #endif
     endif
   enddo
