@@ -108,7 +108,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
@@ -123,7 +123,7 @@
     <category>limits</category>
     <group>limits</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
@@ -183,10 +183,10 @@
     <values>
       <value>.02</value>
       <value blom_unit="cgs">2.</value>
-      <value ocn_grid="tnx0.25v4">.0015</value>
-      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.25v4">.001</value>
-      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.1</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
     </values>
     <desc></desc>
   </entry>
@@ -198,10 +198,10 @@
     <values>
       <value>.004</value>
       <value blom_unit="cgs">.4</value>
-      <value ocn_grid="tnx0.25v4">.0015</value>
-      <value ocn_grid="tnx0.25v4" blom_unit="cgs">.15</value>
-      <value ocn_grid="tnx0.125v4">.001</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">.15</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">.0015</value>
       <value ocn_grid="tnx0.125v4" blom_unit="cgs">.1</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">.001</value>
     </values>
     <desc></desc>
   </entry>
@@ -233,8 +233,10 @@
     <values>
       <value>5000.</value>
       <value blom_unit="cgs">5000.e4</value>
-      <value ocn_grid="tnx0.25v4">300.</value>
-      <value ocn_grid="tnx0.25v4" blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">300.</value>
     </values>
     <desc></desc>
   </entry>
@@ -246,8 +248,10 @@
     <values>
       <value>300.</value>
       <value blom_unit="cgs">300.e4</value>
-      <value ocn_grid="tnx0.25v4">300.</value>
-      <value ocn_grid="tnx0.25v4" blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="cgs">300.e4</value>
+      <value ocn_grid="tnx0.25v4"  blom_unit="mks">300.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">100.e4</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">100.</value>
     </values>
     <desc></desc>
   </entry>
@@ -327,9 +331,9 @@
     <group>limits</group>
     <values>
       <value>5.e-5</value>
-      <value ocn_grid="tnx1v4">.75e-4</value>
-      <value ocn_grid="tnx0.25v4">0.75e-4</value>
-      <value ocn_grid="tnx0.125v4">0.75e-4</value>
+      <value ocn_grid="tnx1v4" ocn_ncpl="24">.75e-4</value>
+      <value ocn_grid="tnx0.25v4" >0.75e-4</value>
+      <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
     <desc></desc>
   </entry>
@@ -410,7 +414,7 @@
     <group>limits</group>
     <values>
       <value>.06</value>
-      <value ocn_grid="tnx1v4" blom_vcoord="isopyc_bulkml">.5</value>
+      <value ocn_grid="tnx1v4"    blom_vcoord="isopyc_bulkml" ocn_ncpl="24">.5</value>
       <value ocn_grid="tnx0.25v4" blom_vcoord="isopyc_bulkml">1.0</value>
     </values>
     <desc></desc>
@@ -437,7 +441,7 @@
     <group>limits</group>
     <values>
       <value>0.</value>
-      <value ocn_grid="tnx1v4">.4</value>
+      <value ocn_grid="tnx1v4" ocn_ncpl="24">.4</value>
     </values>
     <desc></desc>
   </entry>
@@ -652,7 +656,7 @@
     <group>limits</group>
     <values>
       <value>.true.</value>
-      <value ocn_grid="tnx1v4">.false.</value>
+      <value ocn_grid="tnx1v4" ocn_ncpl="24">.false.</value>
     </values>
     <desc></desc>
   </entry>
@@ -1027,7 +1031,8 @@
     <values>
       <value>100.</value>
       <value blom_unit="cgs">100.e4</value>
-      <value ocn_grid="tnx0.125v4">0.</value>
+      <value blom_unit="cgs" ocn_grid="tnx0.125v4">0.</value>
+      <value blom_unit="mks" ocn_grid="tnx0.125v4">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -1043,7 +1048,8 @@
       <value ocn_grid="tnx2v1" blom_unit="cgs">1000.e4</value>
       <value ocn_grid="tnx1.5v1">1000.</value>
       <value ocn_grid="tnx1.5v1" blom_unit="cgs">1000.e4</value>
-      <value ocn_grid="tnx0.125v4">0.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="cgs">0.</value>
+      <value ocn_grid="tnx0.125v4" blom_unit="mks">0.</value>
     </values>
     <desc></desc>
   </entry>
@@ -1213,7 +1219,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
       <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
       <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
     </values>
@@ -1225,8 +1231,10 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
+      <value>'unset','unset'</value>
       <value ocn_grid="tnx2v1">'u','u'</value>
       <value ocn_grid="tnx1v4">'u','u'</value>
+      <value></value>
     </values>
     <desc></desc>
   </entry>
@@ -1236,6 +1244,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
+      <value>-999,-999</value> 
       <value ocn_grid="tnx2v1">53,54</value>
       <value ocn_grid="tnx1v4">105,106</value>
     </values>
@@ -1247,6 +1256,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
+      <value>-999,-999</value>
       <value ocn_grid="tnx2v1">137,137</value>
       <value ocn_grid="tnx1v4">273,273</value>
     </values>
@@ -1258,6 +1268,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
+      <value>1.e36,1.e36</value>
       <value ocn_grid="tnx2v1">30.e3,30.e3</value>
       <value ocn_grid="tnx1v4">30.e3,30.e3</value>
       <value></value>
@@ -3059,7 +3070,7 @@
       <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx2v1_20190826.dat</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx1v4_20190615.dat</value>
-      <value ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
+      <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
     </values>
     <input_pathname>abs</input_pathname>
@@ -3218,17 +3229,17 @@
     <group>bgcnml</group>
     <values>
       <value blom_n_deposition="no">' '</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx2v1_20180321.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx1v4_20171106.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.25v4_20190912.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_cmip6_tnx0.125v4_20221013.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx2v1_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx1v4_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_cmip6_tnx0.25v4_20200826.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx025v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
-      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4"  >$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx1v4_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx1v4_20180613.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="ssp"  ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.25v4_20190912.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx0.25v4_20200826.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
+      <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
