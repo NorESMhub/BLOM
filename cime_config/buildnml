@@ -39,6 +39,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     """
     rundir = case.get_value("RUNDIR")
     srcroot = case.get_value("SRCROOT")
+    din_loc_root = case.get_value("DIN_LOC_ROOT")
     caseroot = case.get_value("CASEROOT")
     continue_run = case.get_value("CONTINUE_RUN")
     ocn_grid = case.get_value("OCN_GRID")
@@ -125,9 +126,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
         groups.append('vcoord')
 
-    blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
-    ecosys_on = "ecosys" in blom_tracer_modules
-    if ecosys_on:
+    if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
         groups.append("bgcnml")
         groups.append("bgcoafx")
         groups.append("diabgc")
@@ -136,10 +135,11 @@ def _create_namelists(case, confdir, infile, nmlgen):
     if os.path.exists(data_list_path):
         os.remove(data_list_path)
 
+    # Create initial ocn_in
     namelist_file = os.path.join(confdir, "ocn_in")
     nmlgen.write_output_file(namelist_file, data_list_path, groups=groups, sorted_groups=False)
 
-    # replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax
+    # Replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax in ocn_in
     from pathlib import Path
     file = Path(namelist_file)
     file.write_text(file.read_text().replace('mer_regflg1','mer_regflg(1,:)'))
@@ -147,6 +147,9 @@ def _create_namelists(case, confdir, infile, nmlgen):
     file.write_text(file.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
     file.write_text(file.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
     
+    # To compare with previous namelist generation, make namelist variable uppercase and
+    # use single quotes instead of back quotes and make sure that file variables set to UNSET
+    # get changed to blank quotes
     namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
     with open(namelist_file, "r") as fread:
         with open(namelist_file_temp, "w") as fwrite:
@@ -157,12 +160,15 @@ def _create_namelists(case, confdir, infile, nmlgen):
                 # make all namelists upper case to generate same namelist as using csh buildnml
                 tokens = line.split('=',maxsplit=1)
                 if len(tokens) == 2:
+                    # Change UNSET values for files to lower case
+                    if 'UNSET' in tokens[1]:
+                        tokens[1] = "'unset'"
                     fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
                 else:
                     fwrite.write(line)
-
     shutil.move(namelist_file_temp, namelist_file)
 
+    # Copy ocn_in.readme to $RUNDIR
     src_filename = os.path.join(srcroot,"components","blom","cime_config","ocn_in.readme")
     dst_filename = os.path.join(rundir,"ocn_in.readme")
 
