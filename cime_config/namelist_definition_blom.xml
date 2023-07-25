@@ -115,7 +115,7 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>Name of file containing grid specification</desc>
   </entry>
 
   <entry id="icfile">
@@ -130,7 +130,11 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>
+      Name of file containing initial conditions, that is either a
+      valid restart file or 'inicon.nc' if climatological based
+      initial conditions are desired.
+    </desc>
   </entry>
 
   <entry id="pref">
@@ -432,7 +436,10 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>
+      Name of file containing tidal wave energy dissipation divided by
+      by bottom buoyancy frequency
+    </desc>
   </entry>
 
   <entry id="niwgf">
@@ -507,7 +514,9 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>
+      Name of file containing chlorophyll concentration climatology
+    </desc>
   </entry>
 
   <entry id="trxday">
@@ -637,7 +646,9 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>
+      Name of file containing SSS climatology used for relaxation
+    </desc>
   </entry>
 
   <entry id="wavsrc">
@@ -1069,9 +1080,10 @@
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>unset</value>
+      <value>UNSET</value>
     </values>
-    <desc></desc>
+    <input_pathname>abs</input_pathname>
+    <desc>Name of file containing topographic beta parameter</desc>
   </entry>
 
   <entry id="rhiscf">
@@ -1292,7 +1304,10 @@
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
     </values>
     <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>
+      Name of file containing section specification for section
+      transport computation
+    </desc>
   </entry>
 
   <!-- ========================= -->
@@ -3046,7 +3061,6 @@
   <!-- namelist group: merdia -->
   <!-- ========================= -->
 
-  <!-- TODO: put in check in buildnml to fail if file values are UNSET -->
   <entry id="mer_orfile">
     <type>char</type>
     <category>merdia</category>
@@ -3163,7 +3177,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
       <value ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc</value>
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
@@ -3201,7 +3215,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
@@ -3228,7 +3242,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value blom_n_deposition="no">' '</value>
+      <value blom_n_deposition="no">UNSET</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
@@ -3403,9 +3417,12 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
     </values>
-    <desc></desc>
+    <input_pathname>abs</input_pathname>
+    <desc>
+      File name (incl. full path) for surface PI pH input data.
+    </desc>
   </entry>
 
   <entry id="l_3dvarsedpor">
@@ -3423,13 +3440,17 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
     </values>
-    <desc></desc>
+    <input_pathname>abs</input_pathname>
+    <desc>
+      File name (incl. full path) for sediment porosity
+    </desc>
   </entry>
 
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
+  <!-- These options can be activated by expert users via user namelist. -->
   <!-- ========================= -->
 
   <entry id="oalkscen">
@@ -3437,7 +3458,7 @@
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
     </values>
     <desc></desc>
   </entry>
@@ -3447,9 +3468,12 @@
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>' '</value>
+      <value>UNSET</value>
     </values>
-    <desc></desc>
+    <input_pathname>abs</input_pathname>
+    <desc>
+      Full path of the input file for the alkalinization scenario 'file'
+    </desc>
   </entry>
 
   <entry id="addalk">
