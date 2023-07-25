@@ -115,7 +115,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     groups=['limits','diffusion']
 
     cwmtag = nmlgen.get_default('cwmtag', config=config)
-    if cwmtag != 'UNSET':
+    if cwmtag[0] != 'unset':
         groups.append('cwmod')
 
     groups.append('merdia')
