@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <testlist version="2.0">
-  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINYC">
+  <test name="SMS_D_Ld1" grid="T62_tn14" compset="NOINYOC">
+    <machines>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
+    </machines>
+  </test>
+  <test name="ERS_Ld5" grid="T62_tn14" compset="NOINYOC">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
