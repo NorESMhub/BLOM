@@ -2,22 +2,22 @@
 <testlist version="2.0">
   <test name="ERS_Ld5" grid="T62_tn14" compset="NOINYC">
     <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom"/>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
   <test name="ERS_Ld5" grid="T62_tn14" compset="NOINY">
     <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom"/>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
   <test name="ERS_Ld5" grid="T62_tn14_wtn14nw" compset="NOINY_WW3">
     <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom"/>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
   <test name="ERS_Ld5" grid="T62_tn14_wtn14nw" compset="NOINY_WW3" testmods="blom/wavice">
     <machines>
-      <machine name="betzy" compiler="intel" category="aux_blom"/>
+      <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
 </testlist>
