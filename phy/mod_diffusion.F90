@@ -26,6 +26,7 @@ module mod_diffusion
    use mod_config, only: inst_suffix
    use mod_constants, only: spval, epsilk
    use mod_xc
+   use mod_forcing, only: wavsrc_opt, wavsrc_none, wavsrc_param, wavsrc_extern
 
    implicit none
 
@@ -68,11 +69,15 @@ module mod_diffusion
                 ! structure based in the 3D structure of anisotropy.
       rhsctp, & ! If true, use the minimum of planetary and topographic beta
                 ! to define the Rhines scale.
-      bdmldp    ! If true, make the background mixing latitude dependent
+      bdmldp, & ! If true, make the background mixing latitude dependent
                 ! according to Gregg et al. (2003).
+      smobld    ! If true, apply lateral smoothing of CVMix estimated boundary
+                ! layer depth.
    character(len = 256) :: &
       tbfile    ! Name of file containing topographic beta parameter.
    character(len = 80) :: &
+      lngmtp, & ! Type of Langmuir turbulence parameterization. Valid types:
+                ! 'none', 'vr12-ma', 'lf17'
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
       edritp, & ! Type of Richardson number used in eddy diffusivity
@@ -118,9 +123,13 @@ module mod_diffusion
       Kdiff_s, &      ! salinity eddy  diffusivity [cm2 s-1].
       t_ns_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-shortwave flux passing a layer interface [].
-      s_nb_nonloc     ! Non-local transport term that is the fraction of
+      s_nb_nonloc, &  ! Non-local transport term that is the fraction of
                       ! non-brine material tracer flux passing a layer interface
                       ! [].
+      mu_nonloc, &    ! Non-local transport term that is the fraction of
+                      ! u-component momentum flux passing a layer interface [].
+      mv_nonloc       ! Non-local transport term that is the fraction of
+                      ! u-component momentum flux passing a layer interface [].
 
    real(r8), dimension(1 - nbdy:idm + nbdy,1 - nbdy:jdm + nbdy) :: &
       difmxp, & ! Maximum lateral diffusivity at p-points [cm2 s-1].
@@ -162,8 +171,8 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, &
-             rhiscf, ri0, bdmc1, bdmc2, tkepf, bdmtyp, &
-             eddf2d, edsprs, edanis, redi3d, rhsctp, bdmldp, tbfile, &
+             rhiscf, ri0, bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, &
+             eddf2d, edsprs, edanis, redi3d, rhsctp, tbfile, smobld, lngmtp, &
              eitmth_opt, eitmth_intdif, eitmth_gm, edritp_opt, edritp_shear, &
              edritp_large_scale, edwmth_opt, edwmth_smooth, edwmth_step, &
              ltedtp_opt, ltedtp_layer, ltedtp_neutral, &
@@ -172,7 +181,8 @@ module mod_diffusion
              utflsm, vtflsm, utflld, vtflld, usfltd, vsfltd, &
              usflsm, vsflsm, usflld, vsflld, &
              Kvisc_m, Kdiff_t, Kdiff_s, &
-             t_ns_nonloc, s_nb_nonloc, readnml_diffusion, inivar_diffusion
+             t_ns_nonloc, s_nb_nonloc, mu_nonloc, mv_nonloc, &
+             readnml_diffusion, inivar_diffusion
 
 contains
 
@@ -187,8 +197,8 @@ contains
 
       namelist /diffusion/ &
          egc, eggam, eglsmn, egmndf, egmxdf, egidfq, rhiscf, ri0, &
-         bdmc1, bdmc2, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, rhsctp, &
-         bdmldp, tbfile, eitmth, edritp, edwmth, ltedtp
+         bdmc1, bdmc2, bdmldp, tkepf, bdmtyp, eddf2d, edsprs, edanis, redi3d, &
+         rhsctp, tbfile, smobld, lngmtp, eitmth, edritp, edwmth, ltedtp
 
       ! Read variables in the namelist group 'diffusion'.
       if (mnproc == 1) then
@@ -227,6 +237,7 @@ contains
         call xcbcst(ri0)
         call xcbcst(bdmc1)
         call xcbcst(bdmc2)
+        call xcbcst(bdmldp)
         call xcbcst(tkepf)
         call xcbcst(bdmtyp)
         call xcbcst(eddf2d)
@@ -234,8 +245,9 @@ contains
         call xcbcst(edanis)
         call xcbcst(redi3d)
         call xcbcst(rhsctp)
-        call xcbcst(bdmldp)
         call xcbcst(tbfile)
+        call xcbcst(smobld)
+        call xcbcst(lngmtp)
         call xcbcst(eitmth)
         call xcbcst(edritp)
         call xcbcst(edwmth)
@@ -253,6 +265,7 @@ contains
          write (lp,*) '  ri0    = ', ri0
          write (lp,*) '  bdmc1  = ', bdmc1
          write (lp,*) '  bdmc2  = ', bdmc2
+         write (lp,*) '  bdmldp = ', bdmldp
          write (lp,*) '  tkepf  = ', tkepf
          write (lp,*) '  bdmtyp = ', bdmtyp
          write (lp,*) '  eddf2d = ', eddf2d
@@ -260,8 +273,9 @@ contains
          write (lp,*) '  edanis = ', edanis
          write (lp,*) '  redi3d = ', redi3d
          write (lp,*) '  rhsctp = ', rhsctp
-         write (lp,*) '  bdmldp = ', bdmldp
+         write (lp,*) '  smobld = ', smobld
          write (lp,*) '  tbfile = ', trim(tbfile)
+         write (lp,*) '  lngmtp = ', trim(lngmtp)
          write (lp,*) '  eitmth = ', trim(eitmth)
          write (lp,*) '  edritp = ', trim(edritp)
          write (lp,*) '  edwmth = ', trim(edwmth)
@@ -321,6 +335,34 @@ contains
             call xcstop('(readnml_diffusion)')
                    stop '(readnml_diffusion)'
       end select
+      select case (trim(lngmtp))
+         case ('none')
+         case ('vr12-ma')
+            if (wavsrc_opt == wavsrc_none) then
+               if (mnproc == 1) &
+                  write (lp,'(3a)') &
+                     ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
+                     ' requires wavsrc = param or wavsrc = extern!'
+               call xcstop('(readnml_diffusion)')
+                      stop '(readnml_diffusion)'
+            endif
+         case ('lf17')
+            if (wavsrc_opt /= wavsrc_extern) then
+               if (mnproc == 1) &
+                  write (lp,'(3a)') &
+                     ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
+                     ' requires wavsrc = extern!'
+               call xcstop('(readnml_diffusion)')
+                      stop '(readnml_diffusion)'
+            endif
+         case default
+            if (mnproc == 1) &
+               write (lp,'(3a)') &
+                  ' readnml_diffusion: lngmtp = ', trim(lngmtp), &
+                  ' is unsupported!'
+            call xcstop('(readnml_diffusion)')
+                   stop '(readnml_diffusion)'
+      end select
 
    end subroutine readnml_diffusion
 
@@ -372,6 +414,8 @@ contains
                Kdiff_s(i, j, k) = epsilk
                t_ns_nonloc(i, j, k) = spval
                s_nb_nonloc(i, j, k) = spval
+               mu_nonloc(i, j, k) = spval
+               mv_nonloc(i, j, k) = spval
             enddo
          enddo
       enddo
@@ -450,11 +494,31 @@ contains
             s_nb_nonloc(i, j, 1) = 1._r8
          enddo
          enddo
+         do l = 1, isu(j)
+         do i = max(1, ifu(j, l)), min(ii, ilu(j, l))
+            mu_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
+         do l = 1, isv(j)
+         do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
+            mv_nonloc(i, j, 1) = 1._r8
+         enddo
+         enddo
          do k = 2, kk + 1
             do l = 1, isp(j)
             do i = max(1, ifp(j, l)), min(ii, ilp(j, l))
                t_ns_nonloc(i, j, k) = 0._r8
                s_nb_nonloc(i, j, k) = 0._r8
+            enddo
+            enddo
+            do l = 1, isu(j)
+            do i = max(1, ifu(j, l)), min(ii, ilu(j, l))
+               mu_nonloc(i, j, k) = 0._r8
+            enddo
+            enddo
+            do l = 1, isv(j)
+            do i = max(1, ifv(j, l)), min(ii, ilv(j, l))
+               mv_nonloc(i, j, k) = 0._r8
             enddo
             enddo
          enddo

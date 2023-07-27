@@ -1,3 +1,4 @@
+!===========================================================================
 ! LIMITS NAMELIST
 !
 ! CONTENTS:
@@ -87,74 +88,8 @@
 !            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
 ! RSTCMP   : Compression flag for restart file (i)
 ! IOTYPE   : 0 = netcdf, 1 = pnetcdf
-&LIMITS
-  NDAY1    = 0
-  NDAY2    = 1
-  IDATE    = 20000101
-  IDATE0   = 20000101
-  RUNID    = 'BLOM_fuk95'
-  EXPCNF   = 'fuk95'
-  RUNTYP   = 'unset'
-  GRFILE   = 'unset'
-  ICFILE   = 'unset'
-  PREF     = 0.
-  BACLIN   = 180.
-  BATROP   = 6.
-  MDV2HI   = 0.
-  MDV2LO   = 0.
-  MDV4HI   = 0.
-  MDV4LO   = 0.
-  MDC2HI   = 0.
-  MDC2LO   = 0.
-  VSC2HI   = .2
-  VSC2LO   = .2
-  VSC4HI   = 0.
-  VSC4LO   = 0.
-  CBAR     = 5.
-  CB       = .002
-  CWBDTS   = 0.
-  CWBDLS   = 25.
-  MOMMTH   = 'enscon'
-  BMCMTH   = 'uc'
-  RMPMTH   = 'eitvel'
-  MLRTTP   = 'constant'
-  RM0      = 1.2
-  RM5      = 0.
-  CE       = 0.
-  TDFILE   = 'unset'
-  NIWGF    = 0.
-  NIWBF    = .35
-  NIWLF    = .5
-  SWAMTH   = 'jerlov'
-  JWTYPE   = 3
-  CHLOPT   = 'climatology'
-  CCFILE   = 'unset'
-  TRXDAY   = 0.
-  SRXDAY   = 0.
-  TRXDPT   = 1.
-  SRXDPT   = 1.
-  TRXLIM   = 1.5
-  SRXLIM   = .5
-  APTFLX   = .false.
-  APSFLX   = .false.
-  DITFLX   = .false.
-  DISFLX   = .false.
-  SRXBAL   = .false.
-  SCFILE   = 'unset'
-  WAVSRC   = 'none'
-  SMTFRC   = .false.
-  SPRFAC   = .false.
-  ATM_PATH = 'unset'
-  ITEST    = 78
-  JTEST    = 16
-  CNSVDI   = .false.
-  CSDIAG   = .false.
-  RSTFRQ   = 1
-  RSTFMT   = 1
-  RSTCMP   = 1
-  IOTYPE   = 0
-/
- 
+
+!===========================================================================
 ! NAMELIST FOR DIFFUSION PARAMETERS
 !
 ! CONTENTS:
@@ -204,34 +139,8 @@
 !            types: 'none', 'vr12-ma', 'lf17'
 ! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
 !            'layer', 'neutral'.
-&DIFFUSION
-  EITMTH   = 'gm'
-  EDRITP   = 'large scale'
-  EDWMTH   = 'smooth'
-  EDDF2D   = .false.
-  EDSPRS   = .true.
-  EGC      = 0.
-  EGGAM    = 200.
-  EGLSMN   = 4000.e2
-  EGMNDF   = 0.
-  EGMXDF   = 1500.e4
-  EGIDFQ   = 1.
-  TBFILE   = 'unset'
-  RHISCF   = .5
-  EDANIS   = .false.
-  REDI3D   = .false.
-  RHSCTP   = .false.
-  RI0      = 1.2
-  BDMTYP   = 2
-  BDMC1    = 5.e-4
-  BDMC2    = .15
-  BDMLDP   = .false.
-  TKEPF    = 0.
-  SMOBLD   = .true.
-  LNGMTP   = 'none'
-  LTEDTP   = 'layer'
-/
 
+!===========================================================================
 ! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
 !
 ! CONTENTS:
@@ -243,14 +152,7 @@
 ! CWMJ     : Array of grid cell j-indices (i)
 ! CWMWTH   : Array of modified grid cell widths (m) (f)
 ! 
-!&CWMOD
-!  CWMTAG = 
-!  CWMEDG = 
-!  CWMI   = 
-!  CWMJ   = 
-!  CWMWTH = 
-!/
-
+!===========================================================================
 ! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX DIAGNOSTICS
 !
 ! CONTENTS:
@@ -265,15 +167,7 @@
 ! MER_MINLAT : Minimum latitude to be considered for each region (f)
 ! MER_MAXLAT : Maximum latitude to be considered for each region (f)
 ! 
-!&MERDIA
-!  MER_ORFILE = 
-!  MER_MIFILE = 
-!  MER_REGNAM = 
-!  MER_REGFLG(1,:) = 
-!  MER_MINLAT = 
-!  MER_MAXLAT = 
-!/
-
+!===========================================================================
 ! NAMELIST FOR SECTION TRANSPORT DIAGNOSTICS
 !
 ! CONTENTS:
@@ -281,10 +175,7 @@
 ! SEC_SIFILE : Name of file containing section specification for section
 !              transport computation (a)
 ! 
-!&SECDIA
-!  SEC_SIFILE = 
-!/
-
+!===========================================================================
 ! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
 !
 ! Description:
@@ -460,179 +351,204 @@
 !   SSSGA    - global average sea surface salinity [g kg-1]
 !   SSTGA    - global average sea surface temperature [degC]
 !
-&DIAPHY
-  GLB_FNAMETAG = 'hd','hm'
-  GLB_AVEPERIO =-8,  -8
-  GLB_FILEFREQ =-8,  -8
-  GLB_COMPFLAG = 0,   0
-  GLB_NCFORMAT = 0,   0
-  H2D_ABSWND   = 0,   0
-  H2D_ALB      = 0,   0
-  H2D_BTMSTR   = 0,   4
-  H2D_BRNFLX   = 0,   0
-  H2D_BRNPD    = 0,   0
-  H2D_DFL      = 0,   0
-  H2D_EVA      = 0,   0
-  H2D_FICE     = 0,   0
-  H2D_FMLTFZ   = 0,   0
-  H2D_HICE     = 0,   0
-  H2D_HMLTFZ   = 0,   0
-  H2D_HSNW     = 0,   0
-  H2D_IAGE     = 0,   0
-  H2D_IDKEDT   = 0,   4
-  H2D_LAMULT   = 0,   4
-  H2D_LASL     = 0,   4
-  H2D_LIP      = 0,   0
-  H2D_MAXMLD   = 4,   4
-  H2D_MLD      = 0,   4
-  H2D_MLTS     = 0,   4
-  H2D_MLTSMN   = 0,   4
-  H2D_MLTSMX   = 0,   4
-  H2D_MLTSSQ   = 0,   4
-  H2D_MTKEUS   = 0,   0
-  H2D_MTKENI   = 0,   0
-  H2D_MTKEBF   = 0,   0
-  H2D_MTKERS   = 0,   0
-  H2D_MTKEPE   = 0,   4
-  H2D_MTKEKE   = 0,   4
-  H2D_MTY      = 0,   0
-  H2D_NSF      = 0,   0
-  H2D_PBOT     = 0,   4
-  H2D_PSRF     = 0,   0
-  H2D_RFIFLX   = 0,   0
-  H2D_RNFFLX   = 0,   0
-  H2D_SALFLX   = 0,   0
-  H2D_SALRLX   = 0,   0
-  H2D_SBOT     = 0,   4
-  H2D_SEALV    = 4,   4
-  H2D_SLVSQ    = 0,   4
-  H2D_SFL      = 0,   4
-  H2D_SOP      = 0,   4
-  H2D_SIGMX    = 0,   4
-  H2D_SSS      = 0,   4
-  H2D_SSSSQ    = 0,   4
-  H2D_SST      = 4,   4
-  H2D_SSTSQ    = 4,   4
-  H2D_SURFLX   = 0,   0
-  H2D_SURRLX   = 0,   0
-  H2D_SWA      = 0,   0
-  H2D_T20D     = 0,   0
-  H2D_TAUX     = 0,   0
-  H2D_TAUY     = 0,   0
-  H2D_TBOT     = 0,   4
-  H2D_TICE     = 0,   0
-  H2D_TSRF     = 0,   0
-  H2D_UB       = 4,   4
-  H2D_UICE     = 0,   0
-  H2D_USTAR    = 0,   0
-  H2D_USTAR3   = 0,   0
-  H2D_USTOKES  = 0,   0
-  H2D_VB       = 4,   4
-  H2D_VICE     = 0,   0
-  H2D_VSTOKES  = 0,   0
-  H2D_ZTX      = 0,   0
-  LYR_BFSQ     = 0,   4
-  LYR_DIFDIA   = 0,   4
-  LYR_DIFVMO   = 0,   4
-  LYR_DIFVHO   = 0,   4
-  LYR_DIFVSO   = 0,   0
-  LYR_DIFINT   = 0,   0
-  LYR_DIFISO   = 0,   0
-  LYR_DP       = 0,   4
-  LYR_DZ       = 0,   4
-  LYR_SALN     = 0,   4
-  LYR_TEMP     = 0,   4
-  LYR_TRC      = 0,   4
-  LYR_UFLX     = 0,   4
-  LYR_UTFLX    = 0,   4
-  LYR_USFLX    = 0,   4
-  LYR_UMFLTD   = 0,   0
-  LYR_UMFLSM   = 0,   0
-  LYR_UTFLTD   = 0,   0
-  LYR_UTFLSM   = 0,   0
-  LYR_UTFLLD   = 0,   0
-  LYR_USFLTD   = 0,   0
-  LYR_USFLSM   = 0,   0
-  LYR_USFLLD   = 0,   0
-  LYR_UVEL     = 0,   4
-  LYR_VFLX     = 0,   4
-  LYR_VTFLX    = 0,   4
-  LYR_VSFLX    = 0,   4
-  LYR_VMFLTD   = 0,   0
-  LYR_VMFLSM   = 0,   0
-  LYR_VTFLTD   = 0,   0
-  LYR_VTFLSM   = 0,   0
-  LYR_VTFLLD   = 0,   0
-  LYR_VSFLTD   = 0,   0
-  LYR_VSFLSM   = 0,   0
-  LYR_VSFLLD   = 0,   0
-  LYR_VVEL     = 0,   4
-  LYR_WFLX     = 0,   4
-  LYR_WFLX2    = 0,   4
-  LYR_PV       = 0,   4
-  LYR_TKE      = 0,   0
-  LYR_GLS_PSI  = 0,   0
-  LYR_IDLAGE   = 0,   4
-  LVL_BFSQ     = 0,   4
-  LVL_DIFDIA   = 0,   4
-  LVL_DIFVMO   = 0,   4
-  LVL_DIFVHO   = 0,   4
-  LVL_DIFVSO   = 0,   0
-  LVL_DIFINT   = 0,   0
-  LVL_DIFISO   = 0,   0
-  LVL_DZ       = 0,   4
-  LVL_SALN     = 0,   4
-  LVL_TEMP     = 0,   4
-  LVL_TRC      = 0,   4
-  LVL_UFLX     = 0,   4
-  LVL_UTFLX    = 0,   4
-  LVL_USFLX    = 0,   4
-  LVL_UMFLTD   = 0,   0
-  LVL_UMFLSM   = 0,   0
-  LVL_UTFLTD   = 0,   0
-  LVL_UTFLSM   = 0,   0
-  LVL_UTFLLD   = 0,   0
-  LVL_USFLTD   = 0,   0
-  LVL_USFLSM   = 0,   0
-  LVL_USFLLD   = 0,   0
-  LVL_UVEL     = 0,   4
-  LVL_VFLX     = 0,   4
-  LVL_VTFLX    = 0,   4
-  LVL_VSFLX    = 0,   4
-  LVL_VMFLTD   = 0,   0
-  LVL_VMFLSM   = 0,   0
-  LVL_VTFLTD   = 0,   0
-  LVL_VTFLSM   = 0,   0
-  LVL_VTFLLD   = 0,   0
-  LVL_VSFLTD   = 0,   0
-  LVL_VSFLSM   = 0,   0
-  LVL_VSFLLD   = 0,   0
-  LVL_VVEL     = 0,   4
-  LVL_WFLX     = 0,   4
-  LVL_WFLX2    = 0,   4
-  LVL_PV       = 0,   4
-  LVL_TKE      = 0,   0
-  LVL_GLS_PSI  = 0,   0
-  LVL_IDLAGE   = 0,   4
-  MSC_MMFLXL   = 0,   0
-  MSC_MMFLXD   = 0,   0
-  MSC_MMFTDL   = 0,   0
-  MSC_MMFSML   = 0,   0
-  MSC_MMFTDD   = 0,   0
-  MSC_MMFSMD   = 0,   0
-  MSC_MHFLX    = 0,   0
-  MSC_MHFTD    = 0,   0
-  MSC_MHFSM    = 0,   0
-  MSC_MHFLD    = 0,   0
-  MSC_MSFLX    = 0,   0
-  MSC_MSFTD    = 0,   0
-  MSC_MSFSM    = 0,   0
-  MSC_MSFLD    = 0,   0
-  MSC_VOLTR    = 0,   0
-  MSC_MASSGS   = 4,   0
-  MSC_VOLGS    = 4,   0
-  MSC_SALNGA   = 4,   0
-  MSC_TEMPGA   = 4,   0
-  MSC_SSSGA    = 4,   0
-  MSC_SSTGA    = 4,   0
-/
+!===========================================================================
+! NAMELIST FOR iHAMOCC OPTIONS
+!
+! CONTENTS:
+!
+! ATM_CO2     : Atmospheric CO2 concentration [ppmv]
+! FEDEPFILE   : File name (incl. full path) for iron (dust) deposition data
+! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed 
+!                if bromoform scheme is activated)
+! DO_RIVINPT  : Logical switch to activate riverine input
+! RIVINFILE   : File name (incl. full path) for riverine input data
+! DO_NDEP     : Logical switch to activate N-deposition
+! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
+! DO_SEDSPINUP: Logical switch to activate sediment spin-up
+! SEDSPIN_YR_S: Start year for sediment spinup
+! SEDSPIN_YR_E: End   year for sediment spinup
+! SEDSPIN_NCYC: Number of subcyles per time-step for sediment spinup
+! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
+!                OXY, NO3, SIL, D13C, and D14C
+! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
+! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
+! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
+! SEDPORFILE  : File name (incl. full path) for sediment porosity
+!
+!===========================================================================
+! NAMELIST FOR ALKALINIZATION SCENARIO
+!
+! CONTENTS:
+!
+! OALKSCEN      : Name of alkalinization scenario ('const', 'ramp', or 'file') 
+! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'
+! ADDALK        : Pmol alkalinity/yr added in 'const' or 'ramp' scenarios
+! CDRMIP_LATMAX : Max latitude where alkalinity is added in 'const' or 'ramp' scenarios
+! CDRMIP_LATMIN : Min latitude where alkalinity is added in 'const' or 'ramp' scenarios
+! RAMP_START    : Start year for ramp up in 'ramp' scenario
+! RAMP_END      : End   year for ramp up in 'ramp' scenario
+!
+!===========================================================================
+! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
+!
+! Namelist acronyms:
+!   GLB_     - global parameters i.e. valid for entire output group
+!   SRF_     - surface variables (includes some non-surface 2d fields)
+!   FLX_     - interior ocean particle fuxes at different depth (2d)
+!   INT_     - vertically integrated fields (2d)
+!   LYR_     - 3d fields with sigma layers as vertical coordinate
+!   LVL_     - 3d fields with levitus levels as vertical coordinate
+!   SDM_     - 3d sediment fields
+!   BUR_     - 2d fields of sediment burial
+!
+! Global parameters:
+!   FNAMETAG - tag used in file name (c10) 
+!   AVEPERIO - average period in days (i) 
+!   FILEFREQ - how often to start a new file in days (i) 
+!   COMPFLAG - switch for compressed/uncompressed output (i) 
+!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
+!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
+!   INVENTORY- how often to write an inventory of tracers to ocean
+!              output file:
+!              0 : no output
+!              1 : write inventory to standard output (log file)
+!              2 : write output to inventory netCDF file
+!
+! Arguments for diagnostic variables:
+!   0        - variable is not written
+!   2        - variable is written as int2 with scale factor and offset
+!   4        - variable is written as real4
+!   8        - variable is written as real8
+!
+! Output variables:
+!
+! Main BGC tracer fields (SFR, LYR or LVL)
+!   DIC            - Dissolved carbon (dissic) [mol C m-3]
+!   ALKALI         - Alkalinity (talk) [eq m-3]
+!   OXYGEN         - Oxygen (o2) [mol O2 m-3]
+!   ANO3           - Nitrate (no3) [mol N m-3]
+!   PHOSPH         - Phosphorus (po4) [mol P m-3]
+!   IRON           - Dissolved iron (dfe) [mol Fe m-3]
+!   SILICA         - Silicate (si) [mol Si m-3]
+!   PHYTO          - Phytoplankton (phyc) [mol C m-3]
+!   PH             - pH (ph) [-log10([h+])]
+!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
+!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
+!   NATPH          - Natural pH (natph) [-log10([h+])]
+!
+! Other 3d tracer or diagnostic variables (LYR or LVL)
+!   DP             - Layer thickness (pddpo) [m]
+!   PREFO2         - preformed oxygen (p_o2) [mol O2 m-3]
+!   O2SAT          - Saturated oxygen (satoxy) [mol O2 m-3]
+!   PREFPO4        - preformed phosphate (p_po4) [mol PO4 m-3]
+!   PREFALK        - preformed alkalinity (p_talk) [eq m-3]
+!   PREFDIC        - preformed DIC (p_dic) [mol C m-3]
+!   DICSAT         - saturated DIC (dic_sat) [mol C m-3]
+!   POC            - Detrius (detoc) [mol C m-3]
+!   CALC           - CaCO3 shells (calc) [mol C m-3]
+!   OPAL           - Opal shells (opal) [mol Si m-3]
+!   DOC            - Dissolved organic carbon (dissoc) [mol C m-3]
+!   GRAZER         - Zooplankton (zooc) [mol C m-3]
+!   PHOSY          - Primary production (pp) [mol C m-3 s-1]
+!   CO3            - Carbonate ions (co3) [mol C m-3]
+!   N2O            - Nitrous oxide concentration [mol N2O m-3]
+!   OMEGAA         - Aragonite saturation state (omegaa) [1]
+!   OMEGAC         - Calcite saturation state (omegac) [1]
+!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
+!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
+!   NATCO3         - Natural carbonate ion concentration (natco3) [mol C m-3]
+!   NATCALC        - Natural CaCO3 shells (natcalc) [mol C m-3]
+!   NATOMEGAA      - Natural aragonite saturation state (natomegaa) [1]
+!   NATOMEGAC      - Natural calcite saturation state (natomegac) [1]
+!   DIC13          - Dissolved C13 (dissic13) [mol C m-3]
+!   DIC14          - Dissolved C14 (dissic14) [mol C m-3]
+!   D13C           - delta 13C of DIC [1]
+!   D14C           - delta 14C of DIC [1]
+!   BIGD14C        - Delta 14C of DIC [1]
+!   POC13          - Particulate organic carbon 13 (detoc13) [mol C m-3]
+!   DOC13          - Dissolved organic carbon 13 (dissoc13) [mol C m-3]
+!   CALC13         - Particulate inorganic carbon 13 (calc13) [mol C m-3]
+!   PHYTO13        - 13C of phytoplankton biomass (phyc13) [mol C m-3]
+!   GRAZER13       - 13C of zootoplankton biomass (zooc13) [mol C m-3]
+!   CFC11          - CFC11 concentration [mol CFC11 m-3]
+!   CFC12          - CFC12 concentration [mol CFC12 m-3]
+!   SF6            - SF6 concentration [mol SF6 m-3]
+!   NOS            - Number of sinking particles (aggregate scheme, nos) [cm-3]
+!   WPHY           - Mass sinking velocity (aggregate scheme) [m d-1]
+!   WNOS           - Number sinking velocity (aggregate scheme) [m d-1]
+!   EPS            - Epsilon exponent (aggregate scheme) [1]
+!   ASIZE          - Average particle size (aggregate scheme)
+!
+! 2d-fields (SFR)
+!   EXPORT         - Export production (epc100) [mol C m-2 s-1]
+!   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
+!   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
+!   PCO2           - Surface PCO2 (spco2) [uatm]
+!   PCO2M          - Surface PCO2 under moist air assumption [uatm]
+!   KWCO2          - Piston velocity (kwco2)  [m s-1]
+!   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
+!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
+!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
+!   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
+!   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
+!   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
+!   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
+!   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
+!   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
+!   DMS            - surface DMS concentration (dms) [mol DMS m-3]
+!   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
+!   DMS_BAC        - DMS bacterial consuption (dms_bac) [mol DMS m-2 s-1]
+!   DMS_UV         - DMS decomposition by UV (dms_uv) [mol DMS m-2 s-1]
+!   ATMCO2         - Atmospheric CO2 (atmco2) [ppm]
+!   ATMO2          - Atmospheric O2 (atmo2) [ppm]
+!   ATMN2          - Atmospheric N2 (atmn2) [ppm]
+!   NATPCO2        - Natural surface PCO2 (spco2) [uatm]
+!   NATCO2FX       - Natural net CO2 flux (natco2fx) [kg C m-2 s-1]
+!   CO213FXD       - Downward 13CO2 flux (co213fxd) [kg C m-2 s-1]
+!   CO213FXU       - Upward 13CO2 flux (co213fxu) [kg C m-2 s-1]
+!   CO214FXD       - Downward 14CO2 flux (co214fxd) [kg C m-2 s-1]
+!   CO214FXU       - Upward 14CO2 flux (co214fxu) [kg C m-2 s-1]
+!   CFC11          - CFC11 flux [mol CFC11 m-2 s-1]
+!   CFC12          - CFC12 flux [mol CFC12 m-2 s-1]
+!   SF6            - SF6 flux [mol SF6 m-2 s-1]
+!
+! Vertically integrated fields (INT)
+!   PHOSY          - Vertically integrated primary production [mol C m-3 s-1]
+!   NFIX           - Vertically integrated nitrogen fixation
+!   DNIT           - Vertically integrated denitrification
+!
+! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
+! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
+!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
+!   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
+!   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
+!   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
+!   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
+!   SEDIFFIC       - sediment - water-column diffusive flux of DIC [mol C m-2 s-1]
+!   SEDIFFAL       - sediment - water-column diffusive flux of alkalinity [mol m-2 s-1]
+!   SEDIFFPH       - sediment - water-column diffusive flux of phosphate [mol PO3 m-2 s-1]
+!   SEDIFFOX       - sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]
+!   SEDIFFN2       - sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]
+!   SEDIFFNO3      - sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]
+!   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
+!   
+! Sediment fields (SDM)
+!   POWAIC         - (powdic) [mol C m-3]
+!   POWAAL         - (powalk) [eq m-3]
+!   POWAPH         - (powpho) [eq m-3]
+!   POWAOX         - (powox) [mol O2 m-3]
+!   POWN2          - (pown2) [mol N2 m-3]
+!   POWNO3         - (powno3)[mol N m-3]
+!   POWASI         - (powsi) [mol Si m-3]
+!   SSSO12         - (ssso12) [mol m-3]
+!   SSSSIL         - (ssssil) [mol Si m-3]
+!   SSSC12         - (sssc12) [mol C m-3]
+!   SSSTER         - (ssster) [mol m-3]
+!
+! Burial fields (BUR)
+!   SSSO12         - Solid sediment organic carbon [mol P m-2]
+!   SSSSIL         - Solid sediment silica [mol Si m-2]
+!   SSSC12         - Solid sediment inorganic carbon [mol C m-2]
+!   SSSTER         - 
+!
+!===========================================================================

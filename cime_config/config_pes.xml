@@ -118,14 +118,14 @@
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
         <comment>none</comment>
         <ntasks>
-          <ntasks_atm>158</ntasks_atm>
-          <ntasks_rof>158</ntasks_rof>
-          <ntasks_ice>158</ntasks_ice>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>128</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>354</ntasks_ocn>
-          <ntasks_cpl>158</ntasks_cpl>
-          <ntasks_lnd>1</ntasks_lnd>
-          <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_cpl>128</ntasks_cpl>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -142,7 +142,7 @@
           <rootpe_lnd>0</rootpe_lnd>
           <rootpe_rof>0</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>158</rootpe_ocn>
+          <rootpe_ocn>128</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
@@ -155,14 +155,14 @@
       <pes pesize="M" compset="_DATM.*_BLOM%ECO">
         <comment>none</comment>
         <ntasks>
-          <ntasks_atm>158</ntasks_atm>
-          <ntasks_rof>158</ntasks_rof>
-          <ntasks_ice>158</ntasks_ice>
+          <ntasks_atm>128</ntasks_atm>
+          <ntasks_rof>128</ntasks_rof>
+          <ntasks_ice>128</ntasks_ice>
           <ntasks_ocn>354</ntasks_ocn>
-          <ntasks_cpl>158</ntasks_cpl>
-          <ntasks_lnd>1</ntasks_lnd>
-          <ntasks_glc>1</ntasks_glc>
-          <ntasks_wav>1</ntasks_wav>
+          <ntasks_cpl>128</ntasks_cpl>
+          <ntasks_lnd>128</ntasks_lnd>
+          <ntasks_glc>128</ntasks_glc>
+          <ntasks_wav>128</ntasks_wav>
         </ntasks>
         <nthrds>
           <nthrds_atm>1</nthrds_atm>
@@ -179,7 +179,7 @@
           <rootpe_lnd>0</rootpe_lnd>
           <rootpe_rof>0</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>158</rootpe_ocn>
+          <rootpe_ocn>128</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>
@@ -194,9 +194,9 @@
       <pes pesize="L" compset="_DATM.*_BLOM">
 	      <comment>Large pe-layout with 512 pes in total</comment>
 	      <ntasks>
-	        <ntasks_atm>158</ntasks_atm>
-	        <ntasks_rof>158</ntasks_rof>
-	        <ntasks_ice>158</ntasks_ice>
+	        <ntasks_atm>1</ntasks_atm>
+	        <ntasks_rof>1</ntasks_rof>
+	        <ntasks_ice>154</ntasks_ice>
 	        <ntasks_ocn>354</ntasks_ocn>
 	        <ntasks_cpl>158</ntasks_cpl>
 	        <ntasks_lnd>1</ntasks_lnd>
@@ -214,9 +214,9 @@
 	        <nthrds_cpl>1</nthrds_cpl>
 	      </nthrds>
 	      <rootpe>
-	        <rootpe_atm>0</rootpe_atm>
-	        <rootpe_lnd>0</rootpe_lnd>
-	        <rootpe_rof>0</rootpe_rof>
+	        <rootpe_atm>155</rootpe_atm>
+	        <rootpe_lnd>156</rootpe_lnd>
+	        <rootpe_rof>157</rootpe_rof>
 	        <rootpe_ice>0</rootpe_ice>
 	        <rootpe_ocn>158</rootpe_ocn>
 	        <rootpe_glc>0</rootpe_glc>
@@ -232,11 +232,11 @@
       <pes pesize="M" compset="_DATM%CPLHIST.*_BLOM">
         <comment>none</comment>
         <ntasks>
-          <ntasks_atm>158</ntasks_atm>
-          <ntasks_rof>158</ntasks_rof>
-          <ntasks_ice>158</ntasks_ice>
+          <ntasks_atm>1</ntasks_atm>
+          <ntasks_rof>1</ntasks_rof>
+          <ntasks_ice>96</ntasks_ice>
           <ntasks_ocn>354</ntasks_ocn>
-          <ntasks_cpl>158</ntasks_cpl>
+          <ntasks_cpl>126</ntasks_cpl>
           <ntasks_lnd>1</ntasks_lnd>
           <ntasks_glc>1</ntasks_glc>
           <ntasks_wav>1</ntasks_wav>
@@ -252,11 +252,11 @@
           <nthrds_cpl>1</nthrds_cpl>
         </nthrds>
         <rootpe>
-          <rootpe_atm>0</rootpe_atm>
-          <rootpe_lnd>0</rootpe_lnd>
-          <rootpe_rof>0</rootpe_rof>
+          <rootpe_atm>96</rootpe_atm>
+          <rootpe_lnd>97</rootpe_lnd>
+          <rootpe_rof>98</rootpe_rof>
           <rootpe_ice>0</rootpe_ice>
-          <rootpe_ocn>158</rootpe_ocn>
+          <rootpe_ocn>126</rootpe_ocn>
           <rootpe_glc>0</rootpe_glc>
           <rootpe_wav>0</rootpe_wav>
           <rootpe_cpl>0</rootpe_cpl>

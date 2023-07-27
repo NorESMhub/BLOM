@@ -48,7 +48,8 @@ c
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s,
-     .                         t_ns_nonloc, s_nb_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc,
+     .                         mu_nonloc, mv_nonloc
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -307,6 +308,8 @@ c
      .              t_ns_nonloc,ip)
         call wrtrst('s_nb_nonloc',trim(c5p)//' kkp1 time',
      .              s_nb_nonloc,ip)
+        call wrtrst('mu_nonloc',trim(c5u)//' kkp1 time',mu_nonloc,iu)
+        call wrtrst('mv_nonloc',trim(c5v)//' kkp1 time',mv_nonloc,iv)
         call wrtrst('umflsm',trim(c5u)//' kk2 time',umflsm,iuu)
         call wrtrst('utflsm',trim(c5u)//' kk2 time',utflsm,iuu)
         call wrtrst('usflsm',trim(c5u)//' kk2 time',usflsm,iuu)
@@ -509,6 +512,14 @@ c --- write accumulated fields
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip)
           if (ACC_MTKEKE(n) .ne.0) call wrtrst('mtkeke_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip)
+          if (ACC_LAMULT(n) .ne.0) call wrtrst('lamult_phy'//c2,
+     .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_LAMULT(n)),ip)
+          if (ACC_LASL(n) .ne.0) call wrtrst('lasl_phy'//c2,
+     .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_LASL(n)),ip)
+          if (ACC_USTOKES(n) .ne.0) call wrtrst('ustokes_phy'//c2,
+     .      trim(c5u)//' time',phyh2d(1-nbdy,1-nbdy,ACC_USTOKES(n)),iuu)
+          if (ACC_VSTOKES(n) .ne.0) call wrtrst('vstokes_phy'//c2,
+     .      trim(c5v)//' time',phyh2d(1-nbdy,1-nbdy,ACC_VSTOKES(n)),ivv)
           if (ACC_FMLTFZ(n)   .ne.0) call wrtrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time',phyh2d(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip)
           if (ACC_HMLTFZ(n)   .ne.0) call wrtrst('hmltfz_phy'//c2,
@@ -616,6 +627,15 @@ c --- write accumulated fields
      .      ip)
           if (ACC_DIFDIA(n).ne.0) call wrtrst('difdia_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),
+     .      ip)
+          if (ACC_DIFVMO(n).ne.0) call wrtrst('difvmo_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVMO(n)),
+     .      ip)
+          if (ACC_DIFVHO(n).ne.0) call wrtrst('difvho_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVHO(n)),
+     .      ip)
+          if (ACC_DIFVSO(n).ne.0) call wrtrst('difvso_phy'//c2,
+     .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFVSO(n)),
      .      ip)
           if (ACC_DIFINT(n).ne.0) call wrtrst('difint_phy'//c2,
      .      trim(c5p)//' kk time',phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),
@@ -730,6 +750,15 @@ c --- write accumulated fields
           if (ACC_DIFDIALVL(n).ne.0) call wrtrst('difdialvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_DIFDIALVL(n)),ip)
+          if (ACC_DIFVMOLVL(n).ne.0) call wrtrst('difvmolvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVMOLVL(n)),ip)
+          if (ACC_DIFVHOLVL(n).ne.0) call wrtrst('difvholvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVHOLVL(n)),ip)
+          if (ACC_DIFVSOLVL(n).ne.0) call wrtrst('difvsolvl_phy'//c2,
+     .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
+     .      ACC_DIFVSOLVL(n)),ip)
           if (ACC_DIFINTLVL(n).ne.0) call wrtrst('difintlvl_phy'//c2,
      .      trim(c5p)//' plev time',phylvl(1-nbdy,1-nbdy,1,
      .      ACC_DIFINTLVL(n)),ip)
@@ -960,6 +989,8 @@ c
         call defvarrst('OBLdepth',trim(c5p)//' time')
         call defvarrst('t_ns_nonloc',trim(c5p)//' kkp1 time')
         call defvarrst('s_nb_nonloc',trim(c5p)//' kkp1 time')
+        call defvarrst('mu_nonloc',trim(c5u)//' kkp1 time')
+        call defvarrst('mv_nonloc',trim(c5v)//' kkp1 time')
         call defvarrst('umflsm',trim(c5u)//' kk2 time')
         call defvarrst('utflsm',trim(c5u)//' kk2 time')
         call defvarrst('usflsm',trim(c5u)//' kk2 time')
@@ -1159,6 +1190,14 @@ c --- write accumulated fields
      .      trim(c5p)//' time')
           if (ACC_MTKEKE(n) .ne.0) call defvarrst('mtkeke_phy'//c2,
      .      trim(c5p)//' time')
+          if (ACC_LAMULT(n) .ne.0) call defvarrst('lamult_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_LASL(n) .ne.0) call defvarrst('lasl_phy'//c2,
+     .      trim(c5p)//' time')
+          if (ACC_USTOKES(n) .ne.0) call defvarrst('ustokes_phy'//c2,
+     .      trim(c5u)//' time')
+          if (ACC_VSTOKES(n) .ne.0) call defvarrst('vstokes_phy'//c2,
+     .      trim(c5v)//' time')
           if (ACC_FMLTFZ(n)   .ne.0) call defvarrst('fmltfz_phy'//c2,
      .      trim(c5p)//' time')
           if (ACC_HMLTFZ(n)   .ne.0) call defvarrst('hmltfz_phy'//c2,
@@ -1237,6 +1276,12 @@ c --- write accumulated fields
      .      trim(c5p)//' kk time')
           if (ACC_DIFDIA(n).ne.0) call defvarrst('difdia_phy'//c2,
      .      trim(c5p)//' kk time')
+          if (ACC_DIFVMO(n).ne.0) call defvarrst('difvmo_phy'//c2,
+     .      trim(c5p)//' kk time')
+          if (ACC_DIFVHO(n).ne.0) call defvarrst('difvho_phy'//c2,
+     .      trim(c5p)//' kk time')
+          if (ACC_DIFVSO(n).ne.0) call defvarrst('difvso_phy'//c2,
+     .      trim(c5p)//' kk time')
           if (ACC_DIFINT(n).ne.0) call defvarrst('difint_phy'//c2,
      .      trim(c5p)//' kk time')
           if (ACC_DIFISO(n).ne.0) call defvarrst('difiso_phy'//c2,
@@ -1312,6 +1357,12 @@ c --- write accumulated fields
           if (ACC_BFSQLVL(n).ne.0) call defvarrst('bfsqlvl_phy'//c2,
      .      trim(c5p)//' plev time')
           if (ACC_DIFDIALVL(n).ne.0) call defvarrst('difdialvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVMOLVL(n).ne.0) call defvarrst('difvmolvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVHOLVL(n).ne.0) call defvarrst('difvholvl_phy'//c2,
+     .      trim(c5p)//' plev time')
+          if (ACC_DIFVSOLVL(n).ne.0) call defvarrst('difvsolvl_phy'//c2,
      .      trim(c5p)//' plev time')
           if (ACC_DIFINTLVL(n).ne.0) call defvarrst('difintlvl_phy'//c2,
      .      trim(c5p)//' plev time')

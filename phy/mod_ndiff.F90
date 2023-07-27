@@ -777,9 +777,23 @@ contains
             advance_src_p = .true.
 
          else
+            open(nfu, file='ndiff.uf', form='unformatted')
+            write(nfu) i_m, j_m, i_p, j_p, kk, ntr_loc, p_ord
+            write(nfu) p_srcdi_m, t_srcdi_m, tpc_src_m, &
+                       drhodt_srcdi_m, drhods_srcdi_m, &
+                       p_dst_m, ksmx_m, kdmx_m, &
+                       p_srcdi_p, t_srcdi_p, tpc_src_p, &
+                       drhodt_srcdi_p, drhods_srcdi_p, &
+                       p_dst_p, ksmx_p, kdmx_p
+            close(nfu)
             write(lp,*) 'Unexpected case_m == 2 and case_p == 2!'
-            call xchalt('(ndiff_flx)')
-                   stop '(ndiff_flx)'
+            write(lp,*) 'case_m', case_m, 'case_p', case_p
+            write(lp,*) 'i_p', i0 + i_p, 'j_p', j0 + j_p
+            write(lp,*) 'is_m', is_m, 'ks_m', ks_m
+            write(lp,*) 'is_p', is_p, 'ks_p', ks_p
+            write(lp,*) 'kd_m', kd_m, 'kd_p', kd_p
+            advance_src_m = .true.
+            advance_src_p = .true.
          endif
 
          if (found_ni) then

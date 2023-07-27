@@ -50,7 +50,8 @@ c
       use mod_niw, only: uml, vml, umlres, vmlres
       use mod_difest, only: OBLdepth
       use mod_diffusion, only: difiso, Kvisc_m, Kdiff_t, Kdiff_s,
-     .                         t_ns_nonloc, s_nb_nonloc
+     .                         t_ns_nonloc, s_nb_nonloc,
+     .                         mu_nonloc, mv_nonloc
       use mod_cesm, only: frzpot, mltpot, swa_da, nsf_da, hmlt_da,
      .                    lip_da, sop_da, eva_da, rnf_da, rfi_da,
      .                    fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da,
@@ -529,6 +530,8 @@ c
         call ncread('OBLdepth',OBLdepth,ip,1,0.)
         call ncread('t_ns_nonloc',t_ns_nonloc,ip,1,0.)
         call ncread('s_nb_nonloc',s_nb_nonloc,ip,1,0.)
+        call ncread('mu_nonloc',mu_nonloc,iu,1,0.)
+        call ncread('mv_nonloc',mv_nonloc,iv,1,0.)
       endif
 c
       if (sprfac) then
@@ -845,6 +848,14 @@ c --- read accumulated fields
      .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEPE(n)),ip,1,0.)
             if (ACC_MTKEKE(n).ne.0) call ncread('mtkeke_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_MTKEKE(n)),ip,1,0.)
+            if (ACC_LAMULT(n).ne.0) call ncread('lamult_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_LAMULT(n)),ip,1,0.)
+            if (ACC_LASL(n).ne.0) call ncread('lasl_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_LASL(n)),ip,1,0.)
+            if (ACC_USTOKES(n).ne.0) call ncread('ustokes_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_USTOKES(n)),iuu,1,0.)
+            if (ACC_VSTOKES(n).ne.0) call ncread('vstokes_phy'//c2,
+     .        phyh2d(1-nbdy,1-nbdy,ACC_VSTOKES(n)),ivv,1,0.)
             if (ACC_FMLTFZ(n).ne.0) call ncread('fmltfz_phy'//c2,
      .        phyh2d(1-nbdy,1-nbdy,ACC_FMLTFZ(n)),ip,1,0.)
             if (ACC_HMLTFZ(n).ne.0) call ncread('hmltfz_phy'//c2,
@@ -923,6 +934,12 @@ c --- read accumulated fields
      .        phylyr(1-nbdy,1-nbdy,1,ACC_BFSQ(n)),ip,1,0.)
             if (ACC_DIFDIA(n).ne.0) call ncread('difdia_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFDIA(n)),ip,1,0.)
+            if (ACC_DIFVMO(n).ne.0) call ncread('difvmo_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVMO(n)),ip,1,0.)
+            if (ACC_DIFVHO(n).ne.0) call ncread('difvho_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVHO(n)),ip,1,0.)
+            if (ACC_DIFVSO(n).ne.0) call ncread('difvso_phy'//c2,
+     .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFVSO(n)),ip,1,0.)
             if (ACC_DIFINT(n).ne.0) call ncread('difint_phy'//c2,
      .        phylyr(1-nbdy,1-nbdy,1,ACC_DIFINT(n)),ip,1,0.)
             if (ACC_DIFISO(n).ne.0) call ncread('difiso_phy'//c2,
@@ -1009,6 +1026,12 @@ c --- read accumulated fields
      .        phylvl(1-nbdy,1-nbdy,1,ACC_BFSQLVL(n)),ip,1,0.)
             if (ACC_DIFDIALVL(n).ne.0) call ncread('difdialvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFDIALVL(n)),ip,1,0.)
+            if (ACC_DIFVMOLVL(n).ne.0) call ncread('difvmolvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVMOLVL(n)),ip,1,0.)
+            if (ACC_DIFVHOLVL(n).ne.0) call ncread('difvholvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVHOLVL(n)),ip,1,0.)
+            if (ACC_DIFVSOLVL(n).ne.0) call ncread('difvsolvl_phy'//c2,
+     .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFVSOLVL(n)),ip,1,0.)
             if (ACC_DIFINTLVL(n).ne.0) call ncread('difintlvl_phy'//c2,
      .        phylvl(1-nbdy,1-nbdy,1,ACC_DIFINTLVL(n)),ip,1,0.)
             if (ACC_DIFISOLVL(n).ne.0) call ncread('difisolvl_phy'//c2,

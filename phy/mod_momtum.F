@@ -30,6 +30,7 @@ c
      .                         onem, onemm
       use mod_time, only: delt1, dlt
       use mod_xc
+      use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml
       use mod_grid, only: scqx, scqy, scpx, scpy, scux, scuy,
      .                    scvx, scvy, scp2, scu2, scv2, scq2i, scp2i,
      .                    scuxi, scvyi, corioq
@@ -38,7 +39,8 @@ c
      .                     pbu_p, pbv_p, ubcors_p, vbcors_p
       use mod_pgforc, only: wpgf, pgfx, pgfy, pgfxo, pgfyo
       use mod_tmsmt, only: wuv1, wuv2, dpuold, dpvold
-      use mod_diffusion, only: difmxp, difmxq, difwgt
+      use mod_diffusion, only: difmxp, difmxq, difwgt,
+     .                         mu_nonloc, mv_nonloc
       use mod_forcing, only: taux, tauy, ustarb
       use mod_utility, only: utotm, vtotm, utotn, vtotn, uflux, vflux,
      .                       uflux2, vflux2, uflux3, vflux3,
@@ -926,23 +928,33 @@ c
           enddo
         enddo
 c
-        if (k.eq.1) then
-c
 c --- --- store wind forcing in -stress-
 c
-          do j=1,jj
-            do l=1,isu(j)
-            do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-              stress(i,j)=-2.*taux(i,j)*g*scux(i,j)
-     .                     /(p(i,j,2)+p(i-1,j,2))
+        if (vcoord_type_tag.eq.isopyc_bulkml) then
+          if (k.eq.1) then
+            do j=1,jj
+              do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                stress(i,j)=-2.*taux(i,j)*g*scux(i,j)
+     .                       /(p(i,j,2)+p(i-1,j,2))
+              enddo
+              enddo
             enddo
+          else
+            do j=1,jj
+              do l=1,isu(j)
+              do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
+                stress(i,j)=0.
+              enddo
+              enddo
             enddo
-          enddo
+          endif
         else
           do j=1,jj
             do l=1,isu(j)
             do i=max(1,ifu(j,l)),min(ii,ilu(j,l))
-              stress(i,j)=0.
+              stress(i,j)=-(mu_nonloc(i,j,k)-mu_nonloc(i,j,k+1))
+     .                     *taux(i,j)*g*scux(i,j)/max(onemm,dpu(i,j,km))
             enddo
             enddo
           enddo
@@ -1079,23 +1091,33 @@ c
           enddo
         enddo
 c
-        if (k.eq.1) then
-c
 c --- - store wind forcing in -stress-
 c
-          do j=1,jj
-            do l=1,isv(j)
-            do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              stress(i,j)=-2.*tauy(i,j)*g*scvy(i,j)
-     .                     /(p(i,j,2)+p(i,j-1,2))
+        if (vcoord_type_tag.eq.isopyc_bulkml) then
+          if (k.eq.1) then
+            do j=1,jj
+              do l=1,isv(j)
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                stress(i,j)=-2.*tauy(i,j)*g*scvy(i,j)
+     .                       /(p(i,j,2)+p(i,j-1,2))
+              enddo
+              enddo
             enddo
+          else
+            do j=1,jj
+              do l=1,isv(j)
+              do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
+                stress(i,j)=0.
+              enddo
+              enddo
             enddo
-          enddo
+          endif
         else
           do j=1,jj
             do l=1,isv(j)
             do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-              stress(i,j)=0.
+              stress(i,j)=-(mv_nonloc(i,j,k)-mv_nonloc(i,j,k+1))
+     .                     *tauy(i,j)*g*scvy(i,j)/max(onemm,dpv(i,j,km))
             enddo
             enddo
           enddo
