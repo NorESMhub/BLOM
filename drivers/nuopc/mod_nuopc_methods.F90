@@ -30,7 +30,8 @@ module mod_nuopc_methods
    use mod_grid, only: scuy, scvx, scp2, scuxi, scvyi, plon, plat, &
                        cosang, sinang
    use mod_state, only: u, v, dp, temp, saln, pbu, pbv, ubflxs, vbflxs, sealv
-   use mod_forcing, only: sprfac, prfac, flxco2, flxdms, flxbrf
+   use mod_forcing, only: wavsrc_opt, wavsrc_extern, sprfac, prfac, flxco2, &
+                          flxdms, flxbrf
    use mod_difest, only: obldepth
    use mod_vcoord, only: vcoord_type_tag, isopyc_bulkml, cntiso_hybrid
    use mod_cesm, only: frzpot, mltpot, &
@@ -122,6 +123,17 @@ module mod_nuopc_methods
         index_So_brf     = - 1, &
         index_Fioo_q     = - 1, &
         index_Faoo_fco2_ocn = - 1
+
+#ifdef PROGCO2
+   logical :: progco2 = .true.
+#else
+   logical :: progco2 = .false.
+#endif
+#ifdef DIAGCO2
+   logical :: diagco2 = .true.
+#else
+   logical :: diagco2 = .false.
+#endif
 
 contains
 
@@ -245,10 +257,12 @@ contains
      end if
 
      ! From wave:
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult'  , index_Sw_lamult)
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_ustokes' , index_Sw_ustokes)
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_vstokes' , index_Sw_vstokes)
-     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_hstokes' , index_Sw_hstokes)
+     if (wavsrc_opt == wavsrc_extern) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_lamult'  , index_Sw_lamult)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_ustokes' , index_Sw_ustokes)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_vstokes' , index_Sw_vstokes)
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sw_hstokes' , index_Sw_hstokes)
+     end if
 
      ! From atmosphere:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Sa_pslv'   , index_Sa_pslv  )
@@ -804,85 +818,142 @@ contains
       call fill_global(mval, fval, halo_ps, abswnd_da(1-nbdy,1-nbdy,l2ci))
       call fill_global(mval, fval, halo_ps, ficem_da(1-nbdy,1-nbdy,l2ci))
 
-   !$omp parallel do private(i, n, utmp, vtmp)
-      do j = 1, jjcpl
-         do i = 1, ii
-            if     (ip(i,j) == 0) then
-               util1(i,j) = mval
-               util2(i,j) = mval
-               lamult_da(i,j,l2ci) = mval
-               lasl_da(i,j,l2ci) = mval
-            elseif (cplmsk(i,j) == 0) then
-               util1(i,j) = fval
-               util2(i,j) = fval
-               lamult_da(i,j,l2ci) = fval
-               lasl_da(i,j,l2ci) = fval
-            else
-               n = (j - 1)*ii + i
-
-               utmp = fldlist(index_Sw_ustokes)%dataptr(n)
-               vtmp = fldlist(index_Sw_vstokes)%dataptr(n)
-               util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
-               util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
-
-               ! Langmuir enhancement factor [].
-               lamult_da(i,j,l2ci) = fldlist(index_Sw_lamult)%dataptr(n)
-
-               ! Surface layer averaged Langmuir number [].
-               lasl_da(i,j,l2ci) = fldlist(index_Sw_hstokes)%dataptr(n)
-
-            endif
-         enddo
-      enddo
-   !$omp end parallel do
-
-      call fill_global(mval, fval, halo_pv, util1)
-      call fill_global(mval, fval, halo_pv, util2)
-      call fill_global(mval, fval, halo_ps, lamult_da(1-nbdy,1-nbdy,l2ci))
-      call fill_global(mval, fval, halo_ps, lasl_da(1-nbdy,1-nbdy,l2ci))
-
-      call xctilr(util1, 1,1, 1,1, halo_pv)
-      call xctilr(util2, 1,1, 1,1, halo_pv)
-
-   !$omp parallel do private(l, i)
-      do j = 1, jj
-         do l = 1, isu(j)
-         do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
-            ! x-component of surface Stokes drift [m s-1].
-            ustokes_da(i,j,l2ci) = .5_r8*(util1(i-1,j) + util1(i,j))
-         enddo
-         enddo
-         do l = 1,isv(j)
-         do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
-            ! y-component of surface Stokes drift [m s-1].
-            vstokes_da(i,j,l2ci) = .5_r8*(util2(i,j-1) + util2(i,j))
-         enddo
-         enddo
-      enddo
-   !$omp end parallel do
-
-#ifdef PROGCO2
-      if (index_Sa_co2prog > 0) then
-      !$omp parallel do private(i, n)
+      if (wavsrc_opt == wavsrc_extern) then
+      !$omp parallel do private(i, n, utmp, vtmp)
          do j = 1, jjcpl
             do i = 1, ii
                if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
+                  util1(i,j) = mval
+                  util2(i,j) = mval
+                  lamult_da(i,j,l2ci) = mval
+                  lasl_da(i,j,l2ci) = mval
                elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = fval
+                  util1(i,j) = fval
+                  util2(i,j) = fval
+                  lamult_da(i,j,l2ci) = fval
+                  lasl_da(i,j,l2ci) = fval
                else
                   n = (j - 1)*ii + i
-                  ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2prog)%dataptr(n)
+                  
+                  utmp = fldlist(index_Sw_ustokes)%dataptr(n)
+                  vtmp = fldlist(index_Sw_vstokes)%dataptr(n)
+                  util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
+                  util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
+                  
+                  ! Langmuir enhancement factor [].
+                  lamult_da(i,j,l2ci) = fldlist(index_Sw_lamult)%dataptr(n)
+                  
+                  ! Surface layer averaged Langmuir number [].
+                  lasl_da(i,j,l2ci) = fldlist(index_Sw_hstokes)%dataptr(n)
+                  
                endif
             enddo
          enddo
-      !$omp end parallel do
-         call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': prog. atmospheric co2 read'
+         !$omp end parallel do
+
+         call fill_global(mval, fval, halo_pv, util1)
+         call fill_global(mval, fval, halo_pv, util2)
+         call fill_global(mval, fval, halo_ps, lamult_da(1-nbdy,1-nbdy,l2ci))
+         call fill_global(mval, fval, halo_ps, lasl_da(1-nbdy,1-nbdy,l2ci))
+         
+         call xctilr(util1, 1,1, 1,1, halo_pv)
+         call xctilr(util2, 1,1, 1,1, halo_pv)
+
+         !$omp parallel do private(l, i)
+         do j = 1, jj
+            do l = 1, isu(j)
+               do i = max(1,ifu(j,l)), min(ii,ilu(j,l))
+                  ! x-component of surface Stokes drift [m s-1].
+                  ustokes_da(i,j,l2ci) = .5_r8*(util1(i-1,j) + util1(i,j))
+               enddo
+            enddo
+            do l = 1,isv(j)
+               do i = max(1,ifv(j,l)), min(ii,ilv(j,l))
+                  ! y-component of surface Stokes drift [m s-1].
+                  vstokes_da(i,j,l2ci) = .5_r8*(util2(i,j-1) + util2(i,j))
+               enddo
+            enddo
+         enddo
+         !$omp end parallel do
+
+      end if
+
+      ! CO2 flux
+
+      if (progco2) then
+         if (index_Sa_co2prog > 0) then
+            !$omp parallel do private(i, n)
+            do j = 1, jjcpl
+               do i = 1, ii
+                  if     (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = fval
+                  else
+                     n = (j - 1)*ii + i
+                     ! Atmospheric co2 concentration [ppmv?]
+                     atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2prog)%dataptr(n)
+                  endif
+               enddo
+            enddo
+            !$omp end parallel do
+            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': prog. atmospheric co2 read'
+         else
+            !$omp parallel do private(i)
+            do j = 1, jj
+               do i = 1, ii
+                  if (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  else
+                     atmco2_da(i,j,l2ci) = -1
+                  endif
+               enddo
+            enddo
+            !$omp end parallel do
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': prog. atmospheric co2 not read'
+         endif
+
+      else if (diagco2) then
+
+         if (index_Sa_co2diag > 0) then
+            !$omp parallel do private(i, n)
+            do j = 1, jjcpl
+               do i = 1, ii
+                  if     (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  elseif (cplmsk(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = fval
+                  else
+                     n = (j - 1)*ii + i
+                     ! Atmospheric co2 concentration [ppmv?]
+                     atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2diag)%dataptr(n)
+                  endif
+               enddo
+            enddo
+            !$omp end parallel do
+            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': diag. atmospheric co2 read'
+         else
+            !$omp parallel do private(i)
+            do j = 1, jj
+               do i = 1, ii
+                  if (ip(i,j) == 0) then
+                     atmco2_da(i,j,l2ci) = mval
+                  else
+                     atmco2_da(i,j,l2ci) = -1
+                  endif
+               enddo
+            enddo
+            !$omp end parallel do
+            if (mnproc == 1 .and. first_call) &
+                 write(lp,*) subname//': diag. atmospheric co2 not read'
+         endif
       else
-      !$omp parallel do private(i)
+         !$omp parallel do private(i)
          do j = 1, jj
             do i = 1, ii
                if (ip(i,j) == 0) then
@@ -892,62 +963,13 @@ contains
                endif
             enddo
          enddo
-      !$omp end parallel do
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': prog. atmospheric co2 not read'
-      endif
+         !$omp end parallel do
+         if (mnproc == 1 .and. first_call) then
+            write(lp,*) subname//': atmospheric co2 not read'
+         end if
+      end if
 
-#elif defined(DIAGCO2)
-
-      if (index_Sa_co2diag > 0) then
-      !$omp parallel do private(i, n)
-         do j = 1, jjcpl
-            do i = 1, ii
-               if     (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
-               elseif (cplmsk(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = fval
-               else
-                  n = (j - 1)*ii + i
-                  ! Atmospheric co2 concentration [ppmv?]
-                  atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2diag)%dataptr(n)
-               endif
-            enddo
-         enddo
-      !$omp end parallel do
-         call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': diag. atmospheric co2 read'
-      else
-      !$omp parallel do private(i)
-         do j = 1, jj
-            do i = 1, ii
-               if (ip(i,j) == 0) then
-                  atmco2_da(i,j,l2ci) = mval
-               else
-                  atmco2_da(i,j,l2ci) = -1
-               endif
-            enddo
-         enddo
-      !$omp end parallel do
-         if (mnproc == 1 .and. first_call) &
-            write(lp,*) subname//': diag. atmospheric co2 not read'
-      endif
-#else
-   !$omp parallel do private(i)
-      do j = 1, jj
-         do i = 1, ii
-            if (ip(i,j) == 0) then
-               atmco2_da(i,j,l2ci) = mval
-            else
-               atmco2_da(i,j,l2ci) = -1
-            endif
-         enddo
-      enddo
-   !$omp end parallel do
-      if (mnproc == 1 .and. first_call) &
-         write(lp,*) subname//': atmospheric co2 not read'
-#endif
+      ! DMS flux
 
       if (index_Faox_dms > 0) then
          if (associated(fldlist(index_Faox_dms)%dataptr)) then
