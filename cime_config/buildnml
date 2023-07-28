@@ -75,6 +75,9 @@ def _create_namelists(case, confdir, infile, nmlgen):
     config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
     config["continue_run"] = "yes" if continue_run else "no"
     config["is_test"] = "yes" if is_test else "no"
+    if is_test:
+        testcase = case.get_value("TESTCASE")
+        config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
 
     config['blom_unit'] = blom_unit if blom_unit else "unset"
     config['blom_vcoord'] = blom_vcoord
