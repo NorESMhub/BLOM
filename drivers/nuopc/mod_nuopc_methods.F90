@@ -124,6 +124,18 @@ module mod_nuopc_methods
         index_Fioo_q     = - 1, &
         index_Faoo_fco2_ocn = - 1
 
+
+   ! Set logicals for CPP variables
+#ifdef HAMOCC
+   ! Set the logical flag do_bgc_aofluxes to true in mo_control_bgc
+   logical :: do_bgc_aofluxes = .false.
+  !logical :: do_bgc_aofluxes = .true.   !DEBUG
+#endif
+#ifdef BROMO
+   logical :: do_bromo = .true.
+#else
+   logical :: do_bromo = .false.
+#endif
 #ifdef PROGCO2
    logical :: progco2 = .true.
 #else
@@ -165,7 +177,7 @@ contains
          write(lp,'(a,3i6,2(f21.13,3x),d21.5)') subname// &
               ': BLOM ERROR: number of fields exceeds fldsMax for '//trim(stdname)
                call xchalt(subname)
-                      stop subname
+               stop subname
       endif
       fldlist(num)%stdname = trim(stdname)
 
@@ -177,31 +189,6 @@ contains
       endif
 
    end subroutine fldlist_add
-
-   subroutine getfldindex(fldlist_num, fldlist, stdname, fldindex)
-   ! ---------------------------------------------------------------------------
-   ! Get index of field with given standard name. If no field has a matching
-   ! name or a field with matching name has an unassociated data pointer, set
-   ! index to zero.
-   ! ---------------------------------------------------------------------------
-
-      ! Input/output arguments.
-      integer, intent(in) :: fldlist_num
-      type(fldlist_type), dimension(:), intent(in) :: fldlist
-      character(len=*), intent(in) :: stdname
-      integer, intent(inout) :: fldindex
-
-      ! Local variables.
-      integer :: n
-
-      do n = 1, fldlist_num
-         if (fldlist(n)%stdname == stdname) then
-            if (associated(fldlist(n)%dataptr)) fldindex = n
-            return
-         endif
-      enddo
-
-   end subroutine getfldindex
 
    ! ---------------------------------------------------------------------------
    ! Public procedures.
@@ -222,11 +209,6 @@ contains
 
      integer :: index_scalar
 
-     ! Set the logical flag do_bgc_aofluxes to true in mo_control_bgc
-#ifdef HAMOCC
-     do_bgc_aofluxes = .false.
-#endif
-
      call fldlist_add(fldsToOcn_num, fldsToOcn, trim(flds_scalar_name), index_scalar)
 
      ! From ice:
@@ -242,7 +224,7 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofl', index_Foxx_rofl)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_rofi', index_Foxx_rofi)
 
-     ! From mediator:
+     ! From fields computed mediator:
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'So_duu10n'  , index_So_duu10n)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_tauy'  , index_Foxx_tauy)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_taux'  , index_Foxx_taux)
@@ -253,7 +235,9 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
      if (.not. do_bgc_aofluxes) then
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
+        if (do_bromo) then
+           call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
+        end if
      end if
 
      ! From wave:
@@ -304,7 +288,9 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
      if (.not. do_bgc_aofluxes) then
         call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
+        if (do_bromo) then
+           call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
+        end if
      end if
    end subroutine blom_advertise_exports
 
@@ -651,6 +637,7 @@ contains
       ! Local variables.
       real(r8) :: afac, utmp, vtmp
       integer :: n, i, j, l
+      integer :: index_co2
 
       ! Update time level indices.
       if (l1ci == 1 .and. l2ci == 1) then
@@ -880,78 +867,34 @@ contains
 
       ! CO2 flux
 
-      if (progco2) then
-         if (index_Sa_co2prog > 0) then
-            !$omp parallel do private(i, n)
-            do j = 1, jjcpl
-               do i = 1, ii
-                  if     (ip(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = mval
-                  elseif (cplmsk(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = fval
-                  else
-                     n = (j - 1)*ii + i
-                     ! Atmospheric co2 concentration [ppmv?]
-                     atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2prog)%dataptr(n)
-                  endif
-               enddo
-            enddo
-            !$omp end parallel do
-            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': prog. atmospheric co2 read'
-         else
-            !$omp parallel do private(i)
-            do j = 1, jj
-               do i = 1, ii
-                  if (ip(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = mval
-                  else
-                     atmco2_da(i,j,l2ci) = -1
-                  endif
-               enddo
-            enddo
-            !$omp end parallel do
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': prog. atmospheric co2 not read'
-         endif
+      if (diagco2 .and. index_Sa_co2diag > 0) then
+         index_co2 = index_Sa_co2diag
+      else if (progco2 .and. index_Sa_co2prog > 0) then
+         index_co2 = index_Sa_co2prog
+      else
+         index_co2 = -1
+      end if
 
-      else if (diagco2) then
-
-         if (index_Sa_co2diag > 0) then
-            !$omp parallel do private(i, n)
-            do j = 1, jjcpl
-               do i = 1, ii
-                  if     (ip(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = mval
-                  elseif (cplmsk(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = fval
-                  else
-                     n = (j - 1)*ii + i
-                     ! Atmospheric co2 concentration [ppmv?]
-                     atmco2_da(i,j,l2ci) = fldlist(index_Sa_co2diag)%dataptr(n)
-                  endif
-               enddo
+      if (index_co2 > 0) then 
+         !$omp parallel do private(i, n)
+         do j = 1, jjcpl
+            do i = 1, ii
+               if     (ip(i,j) == 0) then
+                  atmco2_da(i,j,l2ci) = mval
+               elseif (cplmsk(i,j) == 0) then
+                  atmco2_da(i,j,l2ci) = fval
+               else
+                  n = (j - 1)*ii + i
+                  ! Atmospheric co2 concentration [ppmv?]
+                  atmco2_da(i,j,l2ci) = fldlist(index_co2)%dataptr(n)
+               endif
             enddo
-            !$omp end parallel do
-            call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': diag. atmospheric co2 read'
-         else
-            !$omp parallel do private(i)
-            do j = 1, jj
-               do i = 1, ii
-                  if (ip(i,j) == 0) then
-                     atmco2_da(i,j,l2ci) = mval
-                  else
-                     atmco2_da(i,j,l2ci) = -1
-                  endif
-               enddo
-            enddo
-            !$omp end parallel do
-            if (mnproc == 1 .and. first_call) &
-                 write(lp,*) subname//': diag. atmospheric co2 not read'
-         endif
+         enddo
+         !$omp end parallel do
+         call fill_global(mval, fval, halo_ps, atmco2_da(1-nbdy,1-nbdy,l2ci))
+         if (mnproc == 1 .and. first_call) then
+            write(lp,*) subname//': atmospheric co2 obtained from mediator'
+         end if
       else
          !$omp parallel do private(i)
          do j = 1, jj
@@ -964,9 +907,9 @@ contains
             enddo
          enddo
          !$omp end parallel do
-         if (mnproc == 1 .and. first_call) then
-            write(lp,*) subname//': atmospheric co2 not read'
-         end if
+         if (mnproc == 1 .and. first_call)  then
+            write(lp,*) subname//': atmospheric co2 not obtained from mediator'
+         endif
       end if
 
       ! DMS flux

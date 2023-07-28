@@ -120,6 +120,9 @@ if get_option('ecosys')
   if get_option('hamocc_boxatm')
     add_project_arguments('-DBOXATM', language: 'fortran')
   endif
+  if get_option('hamocc_bromo')
+    add_project_arguments('-DBROMO', language: 'fortran')
+  endif
   if get_option('hamocc_cfc')
     add_project_arguments('-DCFC', language: 'fortran')
   endif

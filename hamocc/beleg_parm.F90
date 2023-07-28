@@ -57,8 +57,10 @@
 #elif defined(WLIN)
       use mo_biomod,      only: wmin,wmax,wlin
 #endif
+#ifdef BROMO
       use mo_biomod,      only: rbro
       use mo_carbch,      only: atm_bromo,fbro1,fbro2
+#endif
 #ifdef cisonew
       use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
       use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
@@ -91,9 +93,11 @@
 #ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
 #endif
+#ifdef BROMO
 !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
 !BE UPDATED WITH Ziska et al. (2013) climatology database
       atm_bromo = 3.4
+#endif
 
 #ifdef cisonew
 ! set standard carbon isotope ratios
@@ -131,7 +135,9 @@
         atm(i,j,iatmc13)  = atm_c13
         atm(i,j,iatmc14)  = atm_c14/c14fac
 #endif
+#ifdef BROMO
         atm(i,j,iatmbromo)= atm_bromo
+#endif
       ENDDO
       ENDDO
 
@@ -230,6 +236,7 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
+#ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
 !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
 !      rbro=2.*6.72e-7*rnit
@@ -237,6 +244,7 @@
       rbro=2.4e-6*rnit
       fbro1=1.0
       fbro2=1.0
+#endif
 
 #ifdef AGG
       rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio

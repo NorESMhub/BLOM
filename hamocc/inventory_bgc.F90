@@ -56,15 +56,15 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
       use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
-      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc,do_bromo 
+      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
       use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
                               & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
                               & irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
       use mo_vgrid,       only: dp_min
   
+# ifndef sedbypass
       use mo_param1_bgc,  only: ks
-#ifndef sedbypass
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
 #endif
 
@@ -662,7 +662,9 @@ subroutine write_netcdf(iogrp)
 #ifdef AGG
   use mo_param1_bgc, only: iadust,inos
 #endif
+#ifdef BROMO
   use mo_param1_bgc, only: ibromo
+#endif
 #ifdef CFC
   use mo_param1_bgc, only: icfc11,icfc12,isf6
 #endif
@@ -770,7 +772,9 @@ subroutine write_netcdf(iogrp)
   integer :: zt_natalkali_varid, zc_natalkali_varid   ! Natural alkalinity
   integer :: zt_natcalciu_varid, zc_natcalciu_varid   ! Natural calcium carbonate
 #endif
+#ifdef BROMO
   integer :: zt_bromo_varid,     zc_bromo_varid       ! Bromoform
+#endif
   !--- sum of inventory
   integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
   integer :: totoxyg_varid
@@ -1396,7 +1400,7 @@ subroutine write_netcdf(iogrp)
           &    'kmol/m^3') )
 #endif
 
-     if (do_bromo) then
+#ifdef BROMO
      call nccheck( NF90_DEF_VAR(ncid, 'zt_bromo', NF90_DOUBLE,                 &
           &    time_dimid, zt_bromo_varid) )
      call nccheck( NF90_PUT_ATT(ncid, zt_bromo_varid, 'long_name',             &
@@ -1408,7 +1412,7 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'long_name',             &
           &    'Mean bromoform concentration') )
      call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
-     end if
+#endif
 
      !--- Define variables : sum of inventory
      call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
@@ -1598,11 +1602,10 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_INQ_VARID(ncid, "zt_natcalciu", zt_natcalciu_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_natcalciu", zc_natcalciu_varid) )
 #endif
-     if (do_bromo) then
+#ifdef BROMO
      call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
-     end if
-
+#endif
      !--- Inquire varid : sum of inventory
      call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "totphos", totphos_varid) )
@@ -1826,12 +1829,12 @@ subroutine write_netcdf(iogrp)
   call nccheck( NF90_PUT_VAR(ncid, zc_natcalciu_varid,                         &
        &    zocetratoc(inatcalc), start = wrstart) )
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call nccheck( NF90_PUT_VAR(ncid, zt_bromo_varid,                             &
        &    zocetratot(ibromo), start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
        &    zocetratoc(ibromo), start = wrstart) )
-  endif
+#endif
   !--- Write data : sum of inventory
   call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
        &    start = wrstart) )

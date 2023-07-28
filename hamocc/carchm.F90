@@ -101,7 +101,7 @@
                                 pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
                               & oxyco,tzero
-      use mo_control_bgc, only: dtbgc,do_bgc_aofluxes,do_bromo 
+      use mo_control_bgc, only: dtbgc,do_bgc_aofluxes
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
                               & isco212,isilica
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
@@ -306,11 +306,11 @@
       sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
       sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
 #endif
+#ifdef BROMO
 ! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
 ! (2003; GBC)
-      if (do_bromo) then
-         sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
-      end if
+      sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
+#endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -339,10 +339,10 @@
       a_12 = 1e-12 * a_12
       a_sf = 1e-12 * a_sf
 #endif
+#ifdef BROMO
 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
-      if (do_bromo) then
-         a_bromo = exp(13.16 - 4973*(1/tk))
-      end if
+      a_bromo = exp(13.16 - 4973*(1/tk))
+#endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
        Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
@@ -356,12 +356,12 @@
        kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
        kw_sf = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_sf)**0.5
 #endif
+#ifdef BROMO
 ! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
 !  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
-       if (do_bromo) then
-          kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
-               &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
-       end if
+       kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
+            &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
+#endif
 
        atco2 = atm(i,j,iatmco2)
        ato2  = atm(i,j,iatmo2)
@@ -370,9 +370,9 @@
        atco213 = atm(i,j,iatmc13)
        atco214 = atm(i,j,iatmc14)
 #endif
-       if (do_bromo) then
-          atbrf = atm(i,j,iatmbromo)
-       end if
+#ifdef BROMO
+       atbrf = atm(i,j,iatmbromo)
+#endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
 ! used in all surface flux calculations where atmospheric concentration is given as a
@@ -481,6 +481,7 @@
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
       atmflx(i,j,iatmdms) = dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 
+#ifdef BROMO
 ! Quack and Wallace (2003) eq. 1
 ! flux = kw*(Cw - Ca/H) ; kw[m s-1]; Cw[kmol m-3]; 
 ! Convert Ca(atbrf) from 
@@ -488,20 +489,19 @@
 !  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
 !  [mol L-1] to [kmol m-3] by multiplying with 1 
 
-      if (do_bromo) then
-         if (do_bgc_aofluxes) then
-            flx_bromo = kw_bromo*dtbgc* &
-                 (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
-         else
-            ! Note that the external computation of fluxes is -flx_bromo/dtbgc
-            ! using above computation of flx_bromo
-            ! So need to divide by 252.7 and multiply by -dtbgc and in order to use this
-            ! for the tendency in the tracer update
-            flx_bromo = dtbgc*pflxbromo(i,j)
-         end if
-         ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
-         atmflx(i,j,iatmbromo) = -flx_bromo
+      if (do_bgc_aofluxes) then
+         flx_bromo = kw_bromo*dtbgc* &
+              (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+      else
+         ! Note that the external computation of fluxes is -flx_bromo/dtbgc
+         ! using above computation of flx_bromo
+         ! So need to divide by 252.7 and multiply by -dtbgc and in order to use this
+         ! for the tendency in the tracer update
+         flx_bromo = dtbgc*pflxbromo(i,j)
       end if
+      ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
+      atmflx(i,j,iatmbromo) = -flx_bromo
+#endif
 
 ! Save surface fluxes 
        atmflx(i,j,iatmco2)=fluxu-fluxd
@@ -547,17 +547,15 @@
 
       endif ! k==1
 
+#ifdef BROMO
 ! Degradation to hydrolysis (Eq. 2-4 of Stemmler et al., 2015)
 ! A1=1.23e17 mol min-1 => 2.05e12 kmol sec-1 
-      if (do_bromo) then
-         Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
-         ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
-      end if
-
+      Kb1=2.05e12*exp(-1.073e5/(8.314*tk))*dtbgc
+      ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-(Kb1*Kw/ah1))
 ! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
        lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
        ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
-
+#endif
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 

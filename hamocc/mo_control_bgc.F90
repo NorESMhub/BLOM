@@ -66,10 +66,7 @@
       LOGICAL, save :: do_oalk     =.false.  ! apply ocean alkalinization
       logical, save :: with_dmsph  =.false.  ! apply DMS with pH dependence
 
-      logical, save :: do_bgc_aofluxes = .true. ! If true, atm/ocn bgc fluxes are computed within HAMOCC 
-#ifdef BROMO
-      logical, save :: do_bromo = .true.
-#endif
+      logical, save :: do_bgc_aofluxes = .true. ! If true, atm/ocn bgc fluxes are computed within HAMOCC
 
     contains
 

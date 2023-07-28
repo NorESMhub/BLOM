@@ -29,7 +29,7 @@ subroutine ncwrt_bgc(iogrp)
   use mod_grid,       only: depths
   use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,                &
        &                    depthslev_bnds
-  use mo_control_bgc, only: dtbgc,do_bromo 
+  use mo_control_bgc, only: dtbgc
   use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
   use mo_param1_bgc,  only: ks
   use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,                 &
@@ -115,10 +115,12 @@ subroutine ncwrt_bgc(iogrp)
        &                lyr_asize,lvl_nos,lvl_wphy,lvl_wnos,lvl_eps,            &
        &                lvl_asize
 #endif
+#ifdef BROMO
   use mo_bgcmean, only: jbromo,jbromofx,jsrfbromo,jbromo_prod,                  &
        &                jbromo_uv,jatmbromo,lvl_bromo,srf_bromofx,              &
        &                srf_bromo,int_bromopro,int_bromouv,                     &
        &                srf_atmbromo,lyr_bromo
+#endif
 #ifdef CFC
   use mo_bgcmean,only: jcfc11,jcfc12,jsf6,jcfc11fx,jcfc12fx,jsf6fx,             &
        &               lvl_cfc11,lvl_cfc12,lvl_sf6,srf_cfc11,                   &
@@ -298,9 +300,9 @@ subroutine ncwrt_bgc(iogrp)
   call finlyr(jnatomegaa(iogrp),jdp(iogrp))
   call finlyr(jnatomegac(iogrp),jdp(iogrp))
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call finlyr(jbromo(iogrp),jdp(iogrp))
-  end if
+#endif
 
   ! --- Mask sea floor in mass fluxes
   call msksrf(jcarflx0100(iogrp),k0100)
@@ -378,9 +380,9 @@ subroutine ncwrt_bgc(iogrp)
   call msklvl(jlvlnatomegaa(iogrp),depths)
   call msklvl(jlvlnatomegac(iogrp),depths)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call msklvl(jlvlbromo(iogrp),depths)
-  end if
+#endif
 
   ! --- Compute log10 of pH
   if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0.)
@@ -471,13 +473,13 @@ subroutine ncwrt_bgc(iogrp)
   call wrtsrf(jnatco2fx(iogrp),    SRF_NATCO2FX(iogrp), rnacc*12./dtbgc,0.,cmpflg,'natco2fx')
   call wrtsrf(jsrfnatph(iogrp),    SRF_NATPH(iogrp),    -1.,            0.,cmpflg,'srfnatph')
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call wrtsrf(jbromofx(iogrp),     SRF_BROMOFX(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'bromofx')
   call wrtsrf(jsrfbromo(iogrp),    SRF_BROMO(iogrp),    rnacc*1e3,      0.,cmpflg,'srfbromo')
   call wrtsrf(jbromo_prod(iogrp),  INT_BROMOPRO(iogrp), rnacc*1e3/dtbgc,0.,cmpflg,'intbromoprod')
   call wrtsrf(jbromo_uv(iogrp),    INT_BROMOUV(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'intbromouv')
   call wrtsrf(jatmbromo(iogrp),    SRF_ATMBROMO(iogrp), rnacc,          0.,cmpflg,'atmbromo')
-  end if
+#endif
   call wrtsrf(jatmco2(iogrp),      SRF_ATMCO2(iogrp),   rnacc,          0.,cmpflg,'atmco2')
 #if defined(BOXATM)
   call wrtsrf(jatmo2(iogrp),       SRF_ATMO2(iogrp),    rnacc,          0.,cmpflg,'atmo2')
@@ -548,9 +550,9 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlyr(jnatomegaa(iogrp),   LYR_NATOMEGAA(iogrp),1.,             0.,cmpflg,'natomegaa')
   call wrtlyr(jnatomegac(iogrp),   LYR_NATOMEGAC(iogrp),1.,             0.,cmpflg,'natomegac')
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call wrtlyr(jbromo(iogrp),       LYR_BROMO(iogrp),    1e3,            0.,cmpflg,'bromo')
-  end if
+#endif
 
   ! --- Store 3d level fields
   call wrtlvl(jlvldic(iogrp),      LVL_DIC(iogrp),      rnacc*1e3,      0.,cmpflg,'dissiclvl')
@@ -611,9 +613,9 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlvl(jlvlnatomegaa(iogrp),LVL_NATOMEGAA(iogrp),rnacc,          0.,cmpflg,'natomegaalvl')
   call wrtlvl(jlvlnatomegac(iogrp),LVL_NATOMEGAC(iogrp),rnacc,          0.,cmpflg,'natomegaclvl')
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call wrtlvl(jlvlbromo(iogrp),    LVL_BROMO(iogrp),    rnacc*1e3,      0.,cmpflg,'bromolvl')
-  end if
+#endif
 
   ! --- Store sediment fields
 #ifndef sedbypass
@@ -718,13 +720,13 @@ subroutine ncwrt_bgc(iogrp)
   call inisrf(jnatco2fx(iogrp),0.)
   call inisrf(jsrfnatph(iogrp),0.)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call inisrf(jsrfbromo(iogrp),0.)
   call inisrf(jbromofx(iogrp),0.)
   call inisrf(jbromo_prod(iogrp),0.)
   call inisrf(jbromo_uv(iogrp),0.)
   call inisrf(jatmbromo(iogrp),0.)
-  end if
+#endif
 
 
   call inisrf(jatmco2(iogrp),0.)
@@ -796,9 +798,9 @@ subroutine ncwrt_bgc(iogrp)
   call inilyr(jnatomegaa(iogrp),0.)
   call inilyr(jnatomegac(iogrp),0.)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call inilyr(jbromo(iogrp),0.)
-  end if
+#endif
 
   call inilvl(jlvldic(iogrp),0.)
   call inilvl(jlvlalkali(iogrp),0.)
@@ -858,9 +860,9 @@ subroutine ncwrt_bgc(iogrp)
   call inilvl(jlvlnatomegaa(iogrp),0.)
   call inilvl(jlvlnatomegac(iogrp),0.)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call inilvl(jlvlbromo(iogrp),0.)
-  end if
+#endif
 
 #ifndef sedbypass
   call inisdm(jpowaic(iogrp),0.)
@@ -919,8 +921,11 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 #if defined(BOXATM)
   use mo_bgcmean, only: srf_atmo2,srf_atmn2
 #endif
+
+#ifdef BROMO
   use mo_bgcmean, only:srf_bromo,srf_bromofx,int_bromopro,                      &
        &   int_bromouv,srf_atmbromo,lyr_bromo,lvl_bromo
+#endif
 #ifdef CFC
   use mo_bgcmean, only: srf_cfc11,srf_cfc12,srf_sf6,lyr_cfc11,                  &
        &   lyr_cfc12,lyr_sf6,lvl_cfc11,lvl_cfc12,lvl_sf6
@@ -946,7 +951,6 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,              &
        &   bur_ssster
 #endif
-  use mo_control_bgc, only: do_bromo 
   implicit none
 
   integer iogrp,cmpflg
@@ -1123,7 +1127,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(SRF_NATPH(iogrp),cmpflg,'p','srfnatph',                       &
        &   'Surface natural pH',' ','-log10([H+])',0)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call ncdefvar3d(SRF_BROMO(iogrp),cmpflg,'p','srfbromo',                       &
        &   'Surface bromoform',' ','mol CHBr3 m-3',0)
   call ncdefvar3d(SRF_BROMOfx(iogrp),cmpflg,'p','bromofx',                      &
@@ -1135,7 +1139,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   'mol CHBr3 m-2 s-1',0)
   call ncdefvar3d(SRF_ATMBROMO(iogrp),cmpflg,'p',                               &
        &   'atmbromo','Atmospheric bromoform',' ','ppt',0)
-  end if
+#endif
 
   call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',                                 &
        &   'atmco2','Atmospheric CO2',' ','ppm',0)
@@ -1263,10 +1267,10 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LYR_NATOMEGAC(iogrp),cmpflg,'p','natomegac',                  &
        &   'Natural OmegaC',' ','1',1)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call ncdefvar3d(LYR_BROMO(iogrp),cmpflg,'p',                                  &
        &   'bromo','Bromoform',' ','mol CHBr3 m-3',1)
-  end if
+#endif
 
   ! --- define 3d level fields
   call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',                                    &
@@ -1377,10 +1381,10 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',                              &
        &   'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif
-  if (do_bromo) then
+#ifdef BROMO
   call ncdefvar3d(LVL_BROMO(iogrp),cmpflg,'p',                                  &
        &   'bromolvl','Bromoform',' ','mol CHBr3 m-3',2)
-  end if
+#endif
 
   ! --- define sediment fields
 #ifndef sedbypass

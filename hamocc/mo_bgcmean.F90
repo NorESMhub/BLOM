@@ -58,7 +58,6 @@
       use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
       use netcdf,         only: nf90_fill_double
       use mo_param1_bgc,  only: ks
-      use mo_control_bgc, only: do_bromo 
 
       IMPLICIT NONE
 
@@ -723,7 +722,7 @@
         IF (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jsrfnatph(n)=i_bsc_m2d*min(1,SRF_NATPH(n))
 #endif
-        if (do_bromo) then
+#ifdef BROMO 
         IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
         IF (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -732,7 +731,7 @@
         jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
         IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
-        end if
+#endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -881,10 +880,10 @@
         IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
 #endif
-        if (do_bromo) then
+#ifdef BROMO
         IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
-        end if
+#endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -994,10 +993,10 @@
         IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
 #endif
-        if (do_bromo) then
+#ifdef BROMO
         IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
-        end if
+#endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 

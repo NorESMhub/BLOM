@@ -369,7 +369,7 @@ c
      .      date_tmp%year,sep2,date_tmp%month,'.nc'
         else
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .      trim(runid),sep1,trim(ctag),sep1,
+     .      trim(prefix),sep1,trim(ctag),sep1,
      .      date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,'.nc'
           endif
       else
@@ -386,7 +386,7 @@ c
         endif
         ns=86400*(mod(nstep-1,nstep_in_day)+1)/nstep_in_day
         write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
-     .    trim(runid),sep1,trim(ctag),sep1,
+     .    trim(prefix),sep1,trim(ctag),sep1,
      .    date_tmp%year,sep2,date_tmp%month,sep2,date_tmp%day,sep2,ns,
      .    '.nc'
       endif

@@ -99,7 +99,7 @@
       use netcdf,         only: nf90_64bit_offset,nf90_global,nf90_noerr,nf90_nofill,nf90_def_dim,nf90_enddef,nf90_close,          &
                               & nf90_create,nf90_put_att,nf90_set_fill 
       use mo_carbch,      only: co2star,co3, hi,satoxy
-      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko,do_bromo
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko
       use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
                               & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,ks,nocetra
       use mo_sedmnt,      only: sedhpl
@@ -112,7 +112,9 @@
 #ifdef BOXATM
       use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
 #endif
+#ifdef BROMO
       use mo_param1_bgc,  only: ibromo
+#endif
 #ifdef CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
 #endif
@@ -572,10 +574,10 @@
      &    6,'mol/kg',25,'Natural calcium carbonate',                    &
      &    rmissing,52,io_stdo_bgc)
 #endif
-      if (do_bromo) then
+#ifdef BROMO
       CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,           &
      &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
-      endif
+#endif
 
 !
 ! Define variables : diagnostic ocean fields
@@ -856,9 +858,9 @@
       CALL write_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0)
       CALL write_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0)
 #endif
-      if (do_bromo) then
+#ifdef BROMO
       CALL write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
-      endif
+#endif
 
 !
 ! Write restart data : diagtnostic ocean fields
