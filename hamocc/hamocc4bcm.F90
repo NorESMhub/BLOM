@@ -197,7 +197,6 @@
       ENDDO
 !$OMP END PARALLEL DO
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
-      endif
 #endif
 
 !--------------------------------------------------------------------

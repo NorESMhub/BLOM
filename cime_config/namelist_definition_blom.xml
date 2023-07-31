@@ -3442,7 +3442,7 @@
     <category>merdia</category>
     <group>merdia</group>
     <values>
-      <value>2, 4</value>
+      <value>2,4</value>
     </values>
     <desc>Array of mask flags in ocean regions file to be included for region (1)</desc>
   </entry>
@@ -3529,7 +3529,7 @@
     <group>bgcnml</group>
     <values>
       <value>UNSET</value>
-      <value hamocc_vsls="yes" ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
+      <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
     </values>
     <input_pathname>abs</input_pathname>
     <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
@@ -3924,7 +3924,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 1, 0</value>
+      <value>0,1,0</value>
     </values>
     <desc></desc>
   </entry>
@@ -3934,8 +3934,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
@@ -3946,8 +3946,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
@@ -3958,8 +3958,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved iron (dfe) [mol Fe m-3]</desc>
@@ -3970,8 +3970,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrate (no3) [mol N m-3]</desc>
@@ -3982,8 +3982,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">4, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
@@ -3994,8 +3994,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4006,8 +4006,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">4, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
@@ -4018,8 +4018,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">4, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
@@ -4030,8 +4030,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>pH (ph) [-log10([h+])]</desc>
@@ -4042,8 +4042,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Export production (epc100) [mol C m-2 s-1]</desc>
@@ -4054,8 +4054,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Si export production (epsi100) [mol Si m-2 s-1]</desc>
@@ -4066,8 +4066,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Ca export production (epcalc100) [mol Ca m-2 s-1]</desc>
@@ -4078,8 +4078,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Piston velocity (kwco2)  [m s-1]</desc>
@@ -4090,8 +4090,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]</desc>
@@ -4102,8 +4102,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]</desc>
@@ -4114,8 +4114,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] </desc>
@@ -4126,8 +4126,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural surface PCO2 (spco2) [uatm]</desc>
@@ -4138,8 +4138,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Surface PCO2 under moist air assumption [uatm]</desc>
@@ -4150,8 +4150,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Downward CO2 flux (co2fxd) [kg C m-2 s-1]</desc>
@@ -4162,8 +4162,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Upward CO2 flux (co2fxu) [kg C m-2 s-1]</desc>
@@ -4174,8 +4174,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Oxygen flux (fgo2) [mol O2 m-2 s-1]</desc>
@@ -4186,8 +4186,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrogen flux (fgn2) [mol N2 m-2 s-1]</desc>
@@ -4198,8 +4198,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrous oxide flux [mol N2O m-2 s-1]</desc>
@@ -4210,8 +4210,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>DMS flux (dmsflux) [mol DMS m-2 s-1]</desc>
@@ -4222,8 +4222,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>surface DMS concentration (dms) [mol DMS m-3]</desc>
@@ -4234,8 +4234,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>DMS production (dmsprod) [mol DMS m-2 s-1]</desc>
@@ -4246,8 +4246,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>DMS bacterial consuption (dms_bac) [mol DMS m-2 s-1]</desc>
@@ -4258,8 +4258,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>DMS decomposition by UV (dms_uv) [mol DMS m-2 s-1]</desc>
@@ -4270,8 +4270,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric CO2 (atmco2) [ppm]</desc>
@@ -4282,8 +4282,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric O2 (atmo2) [ppm]</desc>
@@ -4294,8 +4294,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Atmospheric N2 (atmn2) [ppm]</desc>
@@ -4306,8 +4306,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
@@ -4318,8 +4318,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
@@ -4330,8 +4330,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
@@ -4342,8 +4342,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural surface PCO2 (spco2) [uatm]</desc>
@@ -4354,8 +4354,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural net CO2 flux (natco2fx) [kg C m-2 s-1]</desc>
@@ -4366,8 +4366,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Downward 13CO2 flux (co213fxd) [kg C m-2 s-1]</desc>
@@ -4378,8 +4378,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Upward 13CO2 flux (co213fxu) [kg C m-2 s-1]</desc>
@@ -4390,8 +4390,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Downward 14CO2 flux (co214fxd) [kg C m-2 s-1]</desc>
@@ -4402,8 +4402,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Upward 14CO2 flux (co214fxu) [kg C m-2 s-1]</desc>
@@ -4414,8 +4414,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC11 flux [mol CFC11 m-2 s-1]</desc>
@@ -4426,8 +4426,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC12 flux [mol CFC12 m-2 s-1]</desc>
@@ -4438,8 +4438,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>SF6 flux [mol SF6 m-2 s-1]</desc>
@@ -4450,8 +4450,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4462,8 +4462,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4474,8 +4474,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4486,8 +4486,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4498,8 +4498,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>4, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>4,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Primary production (pp) [mol C m-3 s-1]</desc>
@@ -4510,8 +4510,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Vertically integrated nitrogen fixation</desc>
@@ -4522,8 +4522,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Vertically integrated denitrification</desc>
@@ -4535,8 +4535,8 @@
     <group>diabgc</group>
     <values>
       <value>0,0,0</value>
-      <value blom_n_deposition="yes">0, 2, 2</value>
-      <value blom_n_deposition="yes" is_test="yes">2, 2, 2</value>
+      <value blom_n_deposition="yes">0,2,2</value>
+      <value blom_n_deposition="yes" is_test="yes">4,2,2</value>
     </values>
     <desc>Nitrogen deposition flux [mol N m-2 s-1]</desc>
   </entry>
@@ -4546,8 +4546,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>AMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT</desc>
@@ -4558,8 +4558,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4570,8 +4570,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4582,8 +4582,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4594,8 +4594,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4606,8 +4606,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4618,8 +4618,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4630,8 +4630,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4642,8 +4642,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4654,8 +4654,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4666,8 +4666,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4678,8 +4678,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4690,8 +4690,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4702,8 +4702,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4714,8 +4714,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4726,8 +4726,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4738,8 +4738,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4750,8 +4750,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4762,8 +4762,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4774,8 +4774,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4786,8 +4786,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4798,8 +4798,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4810,8 +4810,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4822,8 +4822,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
@@ -4834,8 +4834,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 4</value>
-      <value is_test="yes">4, 0, 4</value>
+      <value>0,0,4</value>
+      <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
@@ -4846,8 +4846,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved iron (dfe) [mol Fe m-3]</desc>
@@ -4858,8 +4858,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4870,8 +4870,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4882,8 +4882,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4894,8 +4894,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4906,8 +4906,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4918,8 +4918,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CaCO3 shells (calc) [mol C m-3]</desc>
@@ -4930,8 +4930,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Opal shells (opal) [mol Si m-3]</desc>
@@ -4942,8 +4942,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Carbonate ions (co3) [mol C m-3]</desc>
@@ -4954,8 +4954,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrous oxide concentration [mol N2O m-3]</desc>
@@ -4966,8 +4966,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -4978,8 +4978,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Calcite saturation state (omegac) [1]</desc>
@@ -4990,8 +4990,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
@@ -5002,8 +5002,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 4</value>
-      <value is_test="yes">4, 0, 4</value>
+      <value>0,0,4</value>
+      <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed oxygen (p_o2) [mol O2 m-3]</desc>
@@ -5014,8 +5014,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 4</value>
-      <value is_test="yes">4, 0, 4</value>
+      <value>0,0,4</value>
+      <value is_test="yes">4,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Saturated oxygen (satoxy) [mol O2 m-3]</desc>
@@ -5026,8 +5026,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -5038,8 +5038,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed alkalinity (p_talk) [eq m-3]</desc>
@@ -5050,8 +5050,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
@@ -5062,8 +5062,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>saturated DIC (dic_sat) [mol C m-3]</desc>
@@ -5074,8 +5074,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
@@ -5086,8 +5086,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
@@ -5098,8 +5098,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural carbonate ion concentration (natco3) [mol C m-3]</desc>
@@ -5110,8 +5110,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural CaCO3 shells (natcalc) [mol C m-3]</desc>
@@ -5122,8 +5122,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
@@ -5134,8 +5134,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural calcite saturation state (natomegac) [1]</desc>
@@ -5146,8 +5146,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
@@ -5158,8 +5158,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved C13 (dissic13) [mol C m-3]</desc>
@@ -5170,8 +5170,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved C14 (dissic14) [mol C m-3]</desc>
@@ -5182,8 +5182,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>at-depth variable sediment porosity (as opposed to default: only depth) </desc>
@@ -5194,8 +5194,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>delta 14C of DIC [1]</desc>
@@ -5206,8 +5206,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Delta 14C of DIC [1]</desc>
@@ -5218,8 +5218,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
@@ -5230,8 +5230,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
@@ -5242,8 +5242,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Particulate inorganic carbon 13 (calc13) [mol C m-3]</desc>
@@ -5254,8 +5254,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
@@ -5266,8 +5266,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
@@ -5278,8 +5278,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC11 concentration [mol CFC11 m-3]</desc>
@@ -5290,8 +5290,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC12 concentration [mol CFC12 m-3]</desc>
@@ -5302,8 +5302,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>SF6 concentration [mol SF6 m-3]</desc>
@@ -5314,11 +5314,11 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>ndex of point diagnostics (i)</desc>
+    <desc>index of point diagnostics (i)</desc>
   </entry>
 
   <entry id="lyr_wphy">
@@ -5326,8 +5326,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Mass sinking velocity (aggregate scheme) [m d-1]</desc>
@@ -5338,8 +5338,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">0,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Number sinking velocity (aggregate scheme) [m d-1]</desc>
@@ -5350,8 +5350,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Epsilon exponent (aggregate scheme) [1]</desc>
@@ -5362,8 +5362,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Average particle size (aggregate scheme)</desc>
@@ -5374,7 +5374,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
+      <value>0,0,2</value>
     </values>
     <desc></desc>
   </entry>
@@ -5384,8 +5384,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -5396,8 +5396,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Phytoplankton (phyc) [mol C m-3]</desc>
@@ -5408,8 +5408,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Zooplankton (zooc) [mol C m-3]</desc>
@@ -5420,8 +5420,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved organic carbon (dissoc) [mol C m-3]</desc>
@@ -5432,8 +5432,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Primary production (pp) [mol C m-3 s-1]</desc>
@@ -5444,8 +5444,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Phosphorus (po4) [mol P m-3]</desc>
@@ -5456,8 +5456,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 4, 4</value>
-      <value is_test="yes">4, 4, 4</value>
+      <value>0,4,4</value>
+      <value is_test="yes">4,4,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Oxygen (o2) [mol O2 m-3]</desc>
@@ -5468,8 +5468,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>eposition</desc>
@@ -5480,8 +5480,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrate (no3) [mol N m-3]</desc>
@@ -5492,8 +5492,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Alkalinity (talk) [eq m-3]</desc>
@@ -5504,8 +5504,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Silicate (si) [mol Si m-3]</desc>
@@ -5516,8 +5516,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved carbon (dissic) [mol C m-3]</desc>
@@ -5528,8 +5528,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Detrius (detoc) [mol C m-3]</desc>
@@ -5540,8 +5540,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CaCO3 shells (calc) [mol C m-3]</desc>
@@ -5552,8 +5552,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Opal shells (opal) [mol Si m-3]</desc>
@@ -5564,8 +5564,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>]</desc>
@@ -5576,8 +5576,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Nitrous oxide concentration [mol N2O m-3]</desc>
@@ -5588,8 +5588,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -5600,8 +5600,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Calcite saturation state (omegac) [1]</desc>
@@ -5612,8 +5612,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Aragonite saturation state (omegaa) [1]</desc>
@@ -5624,8 +5624,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 4, 4</value>
-      <value is_test="yes">4, 4, 4</value>
+      <value>0,4,4</value>
+      <value is_test="yes">4,4,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed oxygen (p_o2) [mol O2 m-3]</desc>
@@ -5636,7 +5636,7 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 4, 4</value>
+      <value>0,4,4</value>
     </values>
     <desc>Saturated oxygen (satoxy) [mol O2 m-3]</desc>
   </entry>
@@ -5646,8 +5646,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed phosphate (p_po4) [mol PO4 m-3]</desc>
@@ -5658,8 +5658,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed alkalinity (p_talk) [eq m-3]</desc>
@@ -5670,8 +5670,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>preformed DIC (p_dic) [mol C m-3]</desc>
@@ -5682,8 +5682,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>saturated DIC (dic_sat) [mol C m-3]</desc>
@@ -5694,8 +5694,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural dissolved carbon (natdissic) [mol C m-3]</desc>
@@ -5706,8 +5706,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural alkalinity (nattalk) [eq m-3]</desc>
@@ -5718,8 +5718,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural carbonate ion concentration (natco3) [mol C m-3]</desc>
@@ -5730,8 +5730,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural CaCO3 shells (natcalc) [mol C m-3]</desc>
@@ -5742,8 +5742,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural pH (natph) [-log10([h+])]</desc>
@@ -5754,8 +5754,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural calcite saturation state (natomegac) [1]</desc>
@@ -5766,8 +5766,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Natural aragonite saturation state (natomegaa) [1]</desc>
@@ -5778,8 +5778,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved C13 (dissic13) [mol C m-3]</desc>
@@ -5790,8 +5790,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved C14 (dissic14) [mol C m-3]</desc>
@@ -5802,8 +5802,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>delta 13C of DIC [1]</desc>
@@ -5814,8 +5814,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Particulate organic carbon 13 (detoc13) [mol C m-3]</desc>
@@ -5826,8 +5826,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Dissolved organic carbon 13 (dissoc13) [mol C m-3]</desc>
@@ -5838,8 +5838,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Particulate inorganic carbon 13 (calc13) [mol C m-3]</desc>
@@ -5850,8 +5850,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>13C of phytoplankton biomass (phyc13) [mol C m-3]</desc>
@@ -5862,8 +5862,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>13C of zootoplankton biomass (zooc13) [mol C m-3]</desc>
@@ -5874,8 +5874,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC11 concentration [mol CFC11 m-3]</desc>
@@ -5886,8 +5886,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>CFC12 concentration [mol CFC12 m-3]</desc>
@@ -5898,8 +5898,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>SF6 concentration [mol SF6 m-3]</desc>
@@ -5910,11 +5910,11 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc>Number of sinking particles (aggregate scheme, nos) [cm-3]</desc>
+    <desc>Number of sinking particles (aggregate scheme,nos) [cm-3]</desc>
   </entry>
 
   <entry id="lvl_wphy">
@@ -5922,8 +5922,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Mass sinking velocity (aggregate scheme) [m d-1]</desc>
@@ -5934,8 +5934,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Number sinking velocity (aggregate scheme) [m d-1]</desc>
@@ -5946,8 +5946,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Epsilon exponent (aggregate scheme) [1]</desc>
@@ -5958,8 +5958,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 0</value>
-      <value is_test="yes">0, 0, 0</value>
+      <value>0,0,0</value>
+      <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>Average particle size (aggregate scheme)</desc>
@@ -5970,8 +5970,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 2, 2</value>
-      <value is_test="yes">2, 2, 2</value>
+      <value>0,2,2</value>
+      <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -5982,8 +5982,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -5994,8 +5994,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -6006,8 +6006,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc></desc>
@@ -6018,8 +6018,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]</desc>
@@ -6030,8 +6030,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]</desc>
@@ -6042,8 +6042,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]</desc>
@@ -6054,8 +6054,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>sediment - water-column diffusive flux of silica [mol Si m-2 s-1]</desc>
@@ -6066,8 +6066,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powdic) [mol C m-3]</desc>
@@ -6078,8 +6078,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powalk) [eq m-3]</desc>
@@ -6090,8 +6090,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powpho) [eq m-3]</desc>
@@ -6102,8 +6102,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powox) [mol O2 m-3]</desc>
@@ -6114,8 +6114,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(pown2) [mol N2 m-3]</desc>
@@ -6126,8 +6126,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powno3)[mol N m-3]</desc>
@@ -6138,8 +6138,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(powsi) [mol Si m-3]</desc>
@@ -6150,8 +6150,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssso12) [mol m-3]</desc>
@@ -6162,8 +6162,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssssil) [mol Si m-3]</desc>
@@ -6174,8 +6174,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(sssc12) [mol C m-3]</desc>
@@ -6186,8 +6186,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>
@@ -6198,8 +6198,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssso12) [mol m-3]</desc>
@@ -6210,8 +6210,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssssil) [mol Si m-3]</desc>
@@ -6222,8 +6222,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(sssc12) [mol C m-3]</desc>
@@ -6234,8 +6234,8 @@
     <category>diabgc</category>
     <group>diabgc</group>
     <values>
-      <value>0, 0, 2</value>
-      <value is_test="yes">2, 0, 2</value>
+      <value>0,0,2</value>
+      <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
     <desc>(ssster) [mol m-3]</desc>

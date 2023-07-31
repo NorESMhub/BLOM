@@ -141,10 +141,10 @@ def buildcpp(case):
                 if hamocc_sedbypass:
                     blom_cppdefs = blom_cppdefs + " -Dsedbypass"
                 if hamocc_ciso:
-                    expect(hamocc_sedbypass, 
-                           "HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE")
+                    expect(hamocc_sedbypass, "HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE")
                     blom_cppdefs = blom_cppdefs + " -Dcisonew"
-                if hamocc_vsls:
+                if ocn_grid in ["tnx1v4"]:
+                    # HAMOCC will always compute bromoform flux and dms flux and send to the mediator
                     blom_cppdefs = blom_cppdefs + " -DBROMO"
                 if co2type == "prognostic":
                     blom_cppdefs = blom_cppdefs + " -DPROGCO2"
@@ -163,7 +163,7 @@ def buildcpp(case):
     blom_cppdefs = "-DMPI" + blom_cppdefs
 
     # update the xml variable BLOM_CPPDEFS with the above definition
-    # case.set_value("BLOM_CPPDEFS", blom_cppdefs)
+    #case.set_value("BLOM_CPPDEFS", blom_cppdefs)
 
     return blom_cppdefs
 
