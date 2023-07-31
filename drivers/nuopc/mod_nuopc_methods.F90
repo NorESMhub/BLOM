@@ -126,11 +126,6 @@ module mod_nuopc_methods
 
 
    ! Set logicals for CPP variables
-#ifdef HAMOCC
-   ! Set the logical flag do_bgc_aofluxes to true in mo_control_bgc
-   logical :: do_bgc_aofluxes = .false.
-  !logical :: do_bgc_aofluxes = .true.   !DEBUG
-#endif
 #ifdef BROMO
    logical :: do_bromo = .true.
 #else
@@ -171,6 +166,12 @@ contains
 
       ! Local variables.
       integer :: rc
+
+#ifdef HAMOCC
+      ! Set the logical flag do_bgc_aofluxes to false in mo_control_bgc since
+      ! for nuopc/cmeps the dms and bromo fluxes will be computed in the mediator 
+      do_bgc_aofluxes = .false.
+#endif
 
       num = num + 1
       if (num > fldsMax) then
