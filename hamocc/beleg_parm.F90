@@ -51,23 +51,25 @@
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
       use mod_xc,         only: mnproc
 
-#ifdef AGG
+      ! AGG
       use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,        &
                               & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
-#elif defined(WLIN)
+
+      ! WLIN
       use mo_biomod,      only: wmin,wmax,wlin
-#endif
-#ifdef BROMO
+
+      ! BROMO
       use mo_biomod,      only: rbro
       use mo_carbch,      only: atm_bromo,fbro1,fbro2
-#endif
-#ifdef cisonew
+
+      ! cisonew
       use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
       use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
-#endif
-#ifdef natDIC
+
+      ! natDI 
       use mo_carbch,      only: atm_co2_nat
-#endif
+
+      use mo_ifdefs
 
       implicit none      
 
@@ -75,31 +77,18 @@
 
       ! local variables
       INTEGER :: i,j
-#ifdef cisonew
       REAL :: alpha14,beta13,beta14,d13C_atm,d14cat
-#endif
-#ifdef AGG
       REAL :: shear
-#else
-      REAL :: dustd1, dustd2, dustsink
-#endif
-
-
 !
 ! Atmospheric concentrations (atm_co2 is set via namelist).
 !
       atm_o2  = 196800.
       atm_n2  = 802000.
-#ifdef natDIC
       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-#endif
-#ifdef BROMO
 !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
 !BE UPDATED WITH Ziska et al. (2013) climatology database
       atm_bromo = 3.4
-#endif
 
-#ifdef cisonew
 ! set standard carbon isotope ratios
       re1312=0.0112372
       re14to=1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
@@ -116,8 +105,6 @@
       atm_c14  = ((d14cat/1000.)+1.)*re14to*atm_co2
 ! factor for normalizing 14C tracers (~1e-12)
       c14fac   = atm_c14/atm_co2
-#endif
-
 
 ! Initialise atmosphere fields. We use a 2D representation of atmospheric
 ! fields for simplicity, even for cases where actually only a scalar value 
@@ -128,16 +115,16 @@
         atm(i,j,iatmco2)  = atm_co2
         atm(i,j,iatmo2)   = atm_o2
         atm(i,j,iatmn2)   = atm_n2
-#ifdef natDIC
-        atm(i,j,iatmnco2) = atm_co2_nat
-#endif   
-#ifdef cisonew
-        atm(i,j,iatmc13)  = atm_c13
-        atm(i,j,iatmc14)  = atm_c14/c14fac
-#endif
-#ifdef BROMO
-        atm(i,j,iatmbromo)= atm_bromo
-#endif
+        if (use_natDIC) then
+           atm(i,j,iatmnco2) = atm_co2_nat
+        end if
+        if (use_cisonew) then
+           atm(i,j,iatmc13)  = atm_c13
+           atm(i,j,iatmc14)  = atm_c14/c14fac
+        end if
+        if (use_BROMO) then
+           atm(i,j,iatmbromo)= atm_bromo
+        end if
       ENDDO
       ENDDO
 
@@ -158,25 +145,23 @@
       gammaz=0.06*dtb       !1/d -excretion rate
       ecan=0.95             ! fraction of mortality as PO_4
       pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
-#ifdef AGG
-      zinges = 0.5          !dimensionless fraction -assimilation efficiency
-      epsher = 0.9          !dimensionless fraction -fraction of grazing egested
-#elif defined(WLIN)
-      zinges = 0.7          !dimensionless fraction -assimilation efficiency
-      epsher = 0.85         !dimensionless fraction -fraction of grazing egested
-#else
-      zinges = 0.6          !dimensionless fraction -assimilation efficiency
-      epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
-#endif
+      if (use_agg) then
+         zinges = 0.5          !dimensionless fraction -assimilation efficiency
+         epsher = 0.9          !dimensionless fraction -fraction of grazing egested
+      else if (use_wlin) then
+         zinges = 0.7          !dimensionless fraction -assimilation efficiency
+         epsher = 0.85         !dimensionless fraction -fraction of grazing egested
+      else
+         zinges = 0.6          !dimensionless fraction -assimilation efficiency
+         epsher = 0.8          !dimensionless fraction -fraction of grazing egest      
+      end if
 
-#ifdef cisonew
 ! Initial fractionation during photosynthesis
       bifr13=0.98
       bifr14=bifr13**2
 ! Decay parameter for sco214, HalfLive = 5730 years
       c14_t_half=5700.*365.                ! Half life of 14C [days]	
       c14dec=1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
-#endif
 
 ! half sat. constants, note that the units are kmol/m3 !
       bkphy  = 4.e-8    !i.e. 0.04 mmol P/m3
@@ -188,11 +173,10 @@
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
 
-#if defined(WLIN) && ! defined(AGG)
+! for use_wlin and use_agg
       wmin  =  1.*dtb       !m/d   minimum sinking speed
       wmax  = 60.*dtb       !m/d   maximum sinking speed
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
-#endif
 
 ! deep see remineralisation constants
       drempoc  = 0.025*dtb    !1/d
@@ -236,7 +220,6 @@
       rdn2o1=2*ro2ut-2.5*rnit    ! moles N2O used for remineralisation of 1 mole P
       rdn2o2=2*ro2ut-2*rnit      ! moles N2 released  for remineralisation of 1 mole P
 
-#ifdef BROMO
 !Bromoform to phosphate ratio (Hense and Quack, 2009)
 !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
 !      rbro=2.*6.72e-7*rnit
@@ -244,19 +227,18 @@
       rbro=2.4e-6*rnit
       fbro1=1.0
       fbro2=1.0
-#endif
 
-#ifdef AGG
-      rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio
-      ropal = 10.5 ! opal to organic phosphorous production ratio      
-      calmax= 0.20
-#elif defined(WLIN)
-      rcalc = 33.  ! calcium carbonate to organic phosphorous production ratio
-      ropal = 45.  ! opal to organic phosphorous production ratio      
-#else
-      rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
-      ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
-#endif
+      if (use_agg) then
+         rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio
+         ropal = 10.5 ! opal to organic phosphorous production ratio      
+         calmax= 0.20
+      else if (use_wlin) then
+         rcalc = 33.  ! calcium carbonate to organic phosphorous production ratio
+         ropal = 45.  ! opal to organic phosphorous production ratio      
+      else
+         rcalc = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
+         ropal = 30.  ! iris 25 !opal to organic phosphorous production ratio      
+      end if
 
 ! parameters for sw-radiation attenuation
 ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
@@ -302,14 +284,14 @@
      &'* Values of BELEG_BGC variables : '
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_co2      = ',atm_co2      
-#ifdef cisonew
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              atm_c13      = ',atm_c13      
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              d13C_atm     = ',d13C_atm    
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              atm_c14      = ',atm_c14      
-#endif
+      if (use_cisonew) then
+         WRITE(io_stdo_bgc,*)                                             &
+              &'*                              atm_c13      = ',atm_c13      
+         WRITE(io_stdo_bgc,*)                                             &
+              &'*                              d13C_atm     = ',d13C_atm    
+         WRITE(io_stdo_bgc,*)                                             &
+              &'*                              atm_c14      = ',atm_c14      
+      end if
       WRITE(io_stdo_bgc,*)                                             &
      &'*                              atm_o2       = ',atm_o2           
       WRITE(io_stdo_bgc,*)                                             &
@@ -402,100 +384,98 @@
      &'*                              dmspar(5)    = ',dmspar(5)
       ENDIF
 
-#ifndef AGG
-      dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
-      dustd2=dustd1*dustd1
-      dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
-     &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)*dtb
-      wdust = dustsink
+      if (.not. use_agg) then
+         dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
+         dustd2=dustd1*dustd1
+         dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
+              &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+              &         * dustd2 * 1.e-4)*dtb
+         wdust = dustsink
+
+         IF (mnproc.eq.1) THEN
+            WRITE(io_stdo_bgc,*)                                             &
+                 &'*                              dustd1       = ',dustd1
+            WRITE(io_stdo_bgc,*)                                             &
+                 &'*                              dustd2       = ',dustd2
+            WRITE(io_stdo_bgc,*)                                             &
+                 &'*                              dustsink     = ',dustsink
+            WRITE(io_stdo_bgc,*)                                             &
+                 &'*                              wdust        = ',wdust
+         ENDIF
+      end if
 
       IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustd1       = ',dustd1
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustd2       = ',dustd2
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              dustsink     = ',dustsink
-      WRITE(io_stdo_bgc,*)                                             &
-     &'*                              wdust        = ',wdust
+         WRITE(io_stdo_bgc,*)                                             &
+              &'****************************************************************'
       ENDIF
-#endif
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)                                             &
-     &'****************************************************************'
-      ENDIF
-
-#ifdef AGG
-! parameters needed for the aggregation module
-
-      SinkExp = 0.62
-      FractDim = 1.62
-!      Stick = 0.40
-!      Stick = 0.25
-      Stick = 0.15
-      cellmass = 0.012 / rnit ![nmol P]
-!ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
-      cellsink = 1.40 *dtb! [m/d]
-!ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
-!      shear = 86400. !shear in the mixed layer,   1.0  d-1
-!      shear = 64800. !shear in the mixed layer,   0.75 d-1
-      shear = 43200. !shear in the mixed layer,   0.5  d-1
-      fsh = 0.163 * shear *dtb
-      fse = 0.125 * 3.1415927 * cellsink * 100.
-      alow1 = 0.002 !diameter of smallest particle [cm]
-!ik      alow1 = 0.001 !diameter of smallest particle [cm]
-      alow2 = alow1 * alow1
-      alow3 = alow2 * alow1
-!      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
-!      alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
-      alar1 = 0.5 !diameter of largest particle for size dependend aggregation and sinking [cm]
-      vsmall = 1.e-9 
-      safe = 1.e-6     
-      pupper = safe/((FractDim+safe)*cellmass)
-      plower = 1./(1.1*cellmass)
-      zdis = 0.01 / ((FractDim + 0.01)*cellmass)
-      nmldmin = 0.1 ! minimum particle number in mixed layer
-
-! Determine maximum sinking speed
-      IF (mnproc.eq.1) THEN
-      write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*)                                             &
-     &'****************************************************************'
-      write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
-      write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
-      write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
-      write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
-      endif
-
-      alar2 = alar1 * alar1
-      alar3 = alar2 * alar1
-      TSFac = (alar1/alow1)**SinkExp
-      TMFac = (alar1/alow1)**FractDim
-
-! for shear aggregation of dust:
-      dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
-      dustd2=dustd1*dustd1
-      dustd3=dustd2*dustd1
-      dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.                 
-     &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)*dtb
-      IF (mnproc.eq.1) THEN
-      write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
-      write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
-      if(dustsink.gt.cellsink) then 
-        write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
-        dustsink=cellsink
-        write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
-      endif
-      write(io_stdo_bgc,*)                                             &
-     &'****************************************************************'
-      endif
-
-#endif /*AGG*/  
-
-
+      if (use_agg) then
+         ! parameters needed for the aggregation module
+         
+         SinkExp = 0.62
+         FractDim = 1.62
+         !      Stick = 0.40
+         !      Stick = 0.25
+         Stick = 0.15
+         cellmass = 0.012 / rnit ![nmol P]
+         !ik      cellmass = 0.0039/ rnit ![nmol P] for a 10 um diameter
+         cellsink = 1.40 *dtb! [m/d]
+         !ik      cellsink = 0.911 *dtb! [m/d]  for a 10 um diameter
+         !      shear = 86400. !shear in the mixed layer,   1.0  d-1
+         !      shear = 64800. !shear in the mixed layer,   0.75 d-1
+         shear = 43200. !shear in the mixed layer,   0.5  d-1
+         fsh = 0.163 * shear *dtb
+         fse = 0.125 * 3.1415927 * cellsink * 100.
+         alow1 = 0.002 !diameter of smallest particle [cm]
+         !ik      alow1 = 0.001 !diameter of smallest particle [cm]
+         alow2 = alow1 * alow1
+         alow3 = alow2 * alow1
+         !      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
+         !      alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
+         alar1 = 0.5 !diameter of largest particle for size dependend aggregation and sinking [cm]
+         vsmall = 1.e-9 
+         safe = 1.e-6     
+         pupper = safe/((FractDim+safe)*cellmass)
+         plower = 1./(1.1*cellmass)
+         zdis = 0.01 / ((FractDim + 0.01)*cellmass)
+         nmldmin = 0.1 ! minimum particle number in mixed layer
+         
+         ! Determine maximum sinking speed
+         IF (mnproc.eq.1) THEN
+            write(io_stdo_bgc,*)
+            write(io_stdo_bgc,*)                                             &
+                 &'****************************************************************'
+            write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
+            write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
+            write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
+            write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
+         endif
+         
+         alar2 = alar1 * alar1
+         alar3 = alar2 * alar1
+         TSFac = (alar1/alow1)**SinkExp
+         TMFac = (alar1/alow1)**FractDim
+         
+         ! for shear aggregation of dust:
+         dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
+         dustd2=dustd1*dustd1
+         dustd3=dustd2*dustd1
+         dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.                 
+              &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
+              &         * dustd2 * 1.e-4)*dtb
+         IF (mnproc.eq.1) THEN
+            write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
+            write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
+            if(dustsink.gt.cellsink) then 
+               write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
+               dustsink=cellsink
+               write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
+            endif
+            write(io_stdo_bgc,*)                                             &
+                 &'****************************************************************'
+         endif
+         
+      end if
 
       RETURN
-      END
+    END SUBROUTINE BELEG_PARM

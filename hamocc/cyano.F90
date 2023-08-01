@@ -65,9 +65,9 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff
   use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen
   use mo_vgrid,      only: kmle
-#ifdef natDIC
+  ! natDIC
   use mo_param1_bgc, only: inatalkali
-#endif
+  use mo_ifdefs
 
   implicit none
 
@@ -113,9 +113,9 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 ! Nitrogen fixation followed by remineralisation and nitrification decreases
 ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
         ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
-#ifdef natDIC
-        ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
-#endif
+        if (use_natDIC) then
+           ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
+        end if
 
         intnfix(i,j) = intnfix(i,j) +                                           &
              &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)

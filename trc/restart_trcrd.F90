@@ -32,8 +32,12 @@ subroutine restart_trcrd(rstfnm_ocn)
 
   logical :: error
   character(len=256) :: rstfnm_ocntrc
-#ifdef HAMOCC
+  ! HAMOCC
   character(len=256) :: rstfnm_hamocc
+#ifdef HAMOCC
+  logical :: use_hamocc = .true.
+#else
+  logical :: use_hamocc = .false.
 #endif
 !
 ! --- ------------------------------------------------------------------
@@ -48,14 +52,14 @@ subroutine restart_trcrd(rstfnm_ocn)
            call xcstop('(restat_trcrd)')
            stop '(restart_trcrd)'
         endif
-#ifdef HAMOCC
-        call restart_getfile(rstfnm_ocn, 'rbgc', rstfnm_hamocc, error)
-        if (error) then
-           write(lp,*) 'restart_trcrd: could not generate rstfnm_hamocc file!'
-           call xcstop('(restat_trcrd)')
-           stop '(restart_trcrd)'
-        endif
-#endif
+        if (use_HAMOCC) then
+           call restart_getfile(rstfnm_ocn, 'rbgc', rstfnm_hamocc, error)
+           if (error) then
+              write(lp,*) 'restart_trcrd: could not generate rstfnm_hamocc file!'
+              call xcstop('(restat_trcrd)')
+              stop '(restart_trcrd)'
+           endif
+        end if
      else
         call restart_getfile(rstfnm_ocn, 'resttrc', rstfnm_ocntrc, error)
         if (error) then
@@ -63,21 +67,21 @@ subroutine restart_trcrd(rstfnm_ocn)
            call xcstop('(restat_trcrd)')
            stop '(restart_trcrd)'
         endif
-#ifdef HAMOCC
-        call restart_getfile(rstfnm_ocn, 'restbgc', rstfnm_hamocc, error)
-        if (error) then
-           write(lp,*) 'restart_trcrd: could not generate rstfnm_hamocc file!'
-           call xcstop('(restat_trcrd)')
-           stop '(restart_trcrd)'
-        endif
-#endif
+        if (use_HAMOCC) then
+           call restart_getfile(rstfnm_ocn, 'restbgc', rstfnm_hamocc, error)
+           if (error) then
+              write(lp,*) 'restart_trcrd: could not generate rstfnm_hamocc file!'
+              call xcstop('(restat_trcrd)')
+              stop '(restart_trcrd)'
+           endif
+        end if
      endif
   endif
 
   call xcbcst(rstfnm_ocntrc)
-#ifdef HAMOCC
-  call xcbcst(rstfnm_hamocc)
-#endif
+  if (use_HAMOCC) then
+     call xcbcst(rstfnm_hamocc)
+  end if
 
 !
 ! --- ------------------------------------------------------------------
@@ -86,9 +90,9 @@ subroutine restart_trcrd(rstfnm_ocn)
 !
   call restart_ocntrcrd(rstfnm_ocntrc)
 
-#ifdef HAMOCC
-  call hamocc_init(1,rstfnm_hamocc)
-#endif
+  if (use_HAMOCC) then
+     call hamocc_init(1,rstfnm_hamocc)
+  end if
 
   return
 end subroutine restart_trcrd

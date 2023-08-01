@@ -54,9 +54,10 @@
       use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu 
       use mo_biomod,     only: rcar 
       use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra 
-#ifdef cisonew
+      ! cisonew
       use mo_param1_bgc, only: isssc13,isssc14,issso13,issso14 
-#endif
+      use mo_ifdefs
+
       implicit none
 
       INTEGER :: kpie,kpje,i,j,k,l,iv
@@ -272,20 +273,20 @@
           frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
           sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
           sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
-#ifdef cisonew
-          if(iv.eq.issso12)then
-            sedlay(i,j,k,issso13)  =sedlay(i,j,k,issso13)-uebers
-            sedlay(i,j,k-1,issso13)=sedlay(i,j,k-1,issso13)+uebers*frac
-            sedlay(i,j,k,issso14)  =sedlay(i,j,k,issso14)-uebers
-            sedlay(i,j,k-1,issso14)=sedlay(i,j,k-1,issso14)+uebers*frac
-          endif
-          if(iv.eq.isssc12)then
-            sedlay(i,j,k,isssc13)  =sedlay(i,j,k,isssc13)-uebers
-            sedlay(i,j,k-1,isssc13)=sedlay(i,j,k-1,isssc13)+uebers*frac
-            sedlay(i,j,k,isssc14)  =sedlay(i,j,k,isssc14)-uebers
-            sedlay(i,j,k-1,isssc14)=sedlay(i,j,k-1,isssc14)+uebers*frac
-          endif
-#endif
+          if (use_cisonew) then
+             if(iv.eq.issso12)then
+                sedlay(i,j,k,issso13)  =sedlay(i,j,k,issso13)-uebers
+                sedlay(i,j,k-1,issso13)=sedlay(i,j,k-1,issso13)+uebers*frac
+                sedlay(i,j,k,issso14)  =sedlay(i,j,k,issso14)-uebers
+                sedlay(i,j,k-1,issso14)=sedlay(i,j,k-1,issso14)+uebers*frac
+             endif
+             if(iv.eq.isssc12)then
+                sedlay(i,j,k,isssc13)  =sedlay(i,j,k,isssc13)-uebers
+                sedlay(i,j,k-1,isssc13)=sedlay(i,j,k-1,isssc13)+uebers*frac
+                sedlay(i,j,k,isssc14)  =sedlay(i,j,k,isssc14)-uebers
+                sedlay(i,j,k-1,isssc14)=sedlay(i,j,k-1,isssc14)+uebers*frac
+             endif
+          end if
         endif
       enddo !end i-loop
       enddo !end j-loop
@@ -296,4 +297,4 @@
 
 
       RETURN
-      END
+    END SUBROUTINE SEDSHI

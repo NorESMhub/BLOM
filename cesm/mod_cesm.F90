@@ -36,6 +36,7 @@ module mod_cesm
    use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
    use mo_control_bgc, only: do_bgc_aofluxes
+   use mo_ifdefs, only: use_bromo
 #endif
 
    implicit none
@@ -89,12 +90,6 @@ module mod_cesm
 
    integer :: &
       l1ci, l2ci         ! Time-level indices for time smoothing of CESM fields.
-
-#ifdef BROMO
-   logical :: do_bromo = .true.
-#else
-   logical :: do_bromo = .false.
-#endif
 
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
@@ -204,7 +199,7 @@ contains
            if (.not. do_bgc_aofluxes) then
               ! flxdms is obtained from the mediator
               flxdms(i, j) = w1*flxdms_da(i, j, l1ci)  + w2*flxdms_da(i, j, l2ci)
-              if (do_bromo) then
+              if (use_bromo) then
                  ! flxbrf is obtained from the mediator
                  flxbrf(i, j) = w1*flxbrf_da(i, j, l1ci)  + w2*flxbrf_da(i, j, l2ci)
               end if

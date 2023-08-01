@@ -47,6 +47,7 @@ module mod_nuopc_methods
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms, ibromo
    use mo_control_bgc, only: do_bgc_aofluxes
+   use mo_ifdefs
 #endif
 
    implicit none
@@ -126,21 +127,7 @@ module mod_nuopc_methods
 
 
    ! Set logicals for CPP variables
-#ifdef BROMO
-   logical :: do_bromo = .true.
-#else
-   logical :: do_bromo = .false.
-#endif
-#ifdef PROGCO2
-   logical :: progco2 = .true.
-#else
-   logical :: progco2 = .false.
-#endif
-#ifdef DIAGCO2
-   logical :: diagco2 = .true.
-#else
-   logical :: diagco2 = .false.
-#endif
+
 
 contains
 
@@ -234,12 +221,13 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
-     if (.not. do_bgc_aofluxes) then
+#ifdef HAMOCC
         call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-        if (do_bromo) then
+        if (use_BROMO) then
            call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
         end if
      end if
+#endif
 
      ! From wave:
      if (wavsrc_opt == wavsrc_extern) then
@@ -287,12 +275,12 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
-     if (.not. do_bgc_aofluxes) then
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
-        if (do_bromo) then
-           call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
-        end if
+#ifdef HAMOCC
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
+     if (use_BROMO) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
      end if
+#endif
    end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
@@ -868,9 +856,9 @@ contains
 
       ! CO2 flux
 
-      if (diagco2 .and. index_Sa_co2diag > 0) then
+      if (use_DIAGCO2 .and. index_Sa_co2diag > 0) then
          index_co2 = index_Sa_co2diag
-      else if (progco2 .and. index_Sa_co2prog > 0) then
+      else if (use_PROGCO2 .and. index_Sa_co2prog > 0) then
          index_co2 = index_Sa_co2prog
       else
          index_co2 = -1

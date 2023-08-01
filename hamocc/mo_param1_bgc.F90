@@ -38,6 +38,7 @@
 !  - definition of indices in tracer arrays
 !
 !******************************************************************************
+      use mo_ifdefs
       implicit none
       
       INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
@@ -246,7 +247,7 @@
       INTEGER, PARAMETER :: npowtra = i_pow_base + i_pow_cisonew
       
      ! Mapping between pore water and ocean tracers needed for pore water diffusion
-      INTEGER, SAVE      :: map_por2octra(npowtra)
+      INTEGER, SAVE      :: map_por2octra(-1:npowtra)
    
       contains
 
@@ -259,10 +260,10 @@
         map_por2octra(ipown2)  = igasnit 
         map_por2octra(ipowno3) = iano3 
         map_por2octra(ipowasi) = isilica 
-#ifdef cisonew
-        map_por2octra(ipowc13) = isco213 
-        map_por2octra(ipowc14) = isco214
-#endif
+        if (use_cisonew) then
+           map_por2octra(ipowc13) = isco213 
+           map_por2octra(ipowc14) = isco214
+        end if
       
       end subroutine init_por2octra_mapping
 

@@ -92,6 +92,7 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
                             ialkali,inatsco212,inatalkali
   use mo_vgrid,       only: kmle
   use mo_carbch,      only: ocetra,rivinflx
+  use mo_ifdefs
 
   implicit none
 
@@ -133,12 +134,12 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
                                                                     + rivin(i,j,irdin)*fdt/volij  &
                                                                     + rivin(i,j,irdip)*fdt/volij
       ocetra(i,j,1:kmle(i,j),ialkali)    = ocetra(i,j,1:kmle(i,j),ialkali)    + rivin(i,j,iralk)*fdt/volij
-#ifdef natDIC
-      ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212) + rivin(i,j,iralk)*fdt/volij  &
-                                                                    + rivin(i,j,irdin)*fdt/volij  &
-                                                                    + rivin(i,j,irdip)*fdt/volij
-      ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali) + rivin(i,j,iralk)*fdt/volij
-#endif
+      if (use_natDIC) then
+         ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212) + rivin(i,j,iralk)*fdt/volij  &
+              + rivin(i,j,irdin)*fdt/volij  &
+              + rivin(i,j,irdip)*fdt/volij
+         ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali) + rivin(i,j,iralk)*fdt/volij
+      end if
       ocetra(i,j,1:kmle(i,j),iiron)      = ocetra(i,j,1:kmle(i,j),iiron)      + rivin(i,j,iriron)*fdt/volij*dFe_frac
       ocetra(i,j,1:kmle(i,j),idoc)       = ocetra(i,j,1:kmle(i,j),idoc)       + rivin(i,j,irdoc)*fdt/volij
       ocetra(i,j,1:kmle(i,j),idet)       = ocetra(i,j,1:kmle(i,j),idet)       + rivin(i,j,irdet)*fdt/volij

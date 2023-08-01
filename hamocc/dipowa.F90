@@ -59,12 +59,11 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   use mo_sedmnt,     only: powtra,porwat,porwah,sedict,seddw,seddzi,zcoefsu,zcoeflo 
   use mo_param1_bgc, only: ks,npowtra,map_por2octra
   use mo_vgrid,      only: kbo,bolay
-#ifdef cisonew
+  ! cisonew
   use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
-#endif
-#ifdef natDIC
+  ! natDIC
   use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
-#endif
+  use mo_ifdefs
 
   implicit none
 
@@ -190,15 +189,15 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
            ! diffusive fluxes (positive downward)
            sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
                 &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
-#ifdef natDIC
-           ! workaround as long as natDIC is not implemented throughout the sediment module 
-           if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =               &
-                &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
-                &  ocetra(i,j,kbo(i,j),isco212) - aprior
-           if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =               &
-                &  ocetra(i,j,kbo(i,j),inatalkali) +                           &
-                &  ocetra(i,j,kbo(i,j),ialkali) - aprior
-#endif
+           if (use_natDIC) then
+              ! workaround as long as natDIC is not implemented throughout the sediment module 
+              if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =               &
+                   &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
+                   &  ocetra(i,j,kbo(i,j),isco212) - aprior
+              if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =               &
+                   &  ocetra(i,j,kbo(i,j),inatalkali) +                           &
+                   &  ocetra(i,j,kbo(i,j),ialkali) - aprior
+           end if
         endif
      enddo
   enddo
