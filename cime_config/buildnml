@@ -78,6 +78,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     if is_test:
         testcase = case.get_value("TESTCASE")
         config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
+        config["empty_hist"] = "yes" if testcase == "PFS" else "no"
 
     config['blom_unit'] = blom_unit if blom_unit else "unset"
     config['blom_vcoord'] = blom_vcoord

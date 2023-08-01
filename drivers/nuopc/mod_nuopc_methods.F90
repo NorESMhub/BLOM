@@ -127,9 +127,9 @@ module mod_nuopc_methods
 
    ! Set logicals for CPP variables
 #ifdef BROMO
-   logical :: do_bromo = .true.
+   logical :: use_bromo = .true.
 #else
-   logical :: do_bromo = .false.
+   logical :: use_bromo = .false.
 #endif
 #ifdef PROGCO2
    logical :: progco2 = .true.
@@ -234,12 +234,12 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_lwup'  , index_Foxx_lwup)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
-     if (.not. do_bgc_aofluxes) then
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-        if (do_bromo) then
-           call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
-        end if
+#ifdef HAMOCC
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
+     if (use_bromo) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
      end if
+#endif
 
      ! From wave:
      if (wavsrc_opt == wavsrc_extern) then
@@ -287,12 +287,12 @@ contains
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_bldepth'    , index_So_bldepth)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Fioo_q'        , index_Fioo_q)
      call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'Faoo_fco2_ocn' , index_Faoo_fco2_ocn)
-     if (.not. do_bgc_aofluxes) then
-        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
-        if (do_bromo) then
-           call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
-        end if
+#ifdef HAMOCC
+     call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_dms', index_So_dms)
+     if (use_bromo) then
+        call fldlist_add(fldsFrOcn_num, fldsFrOcn, 'So_brf', index_So_brf)
      end if
+#endif
    end subroutine blom_advertise_exports
 
    subroutine blom_logwrite(msg)
@@ -1089,6 +1089,7 @@ contains
       enddo
    !$omp end parallel do
 
+#ifdef HAMOCC
       if (index_So_dms > 0) then
          if (associated(fldlist(index_So_dms)%dataptr)) then 
             fldlist(index_So_dms)%dataptr(:) = 0._r8
@@ -1120,6 +1121,7 @@ contains
          !$omp end parallel do
          end if
       end if
+#endif
 
       ! ------------------------------------------------------------------------
       ! Provide CO2 flux [kg CO2 m-2 s-1], if requested.
