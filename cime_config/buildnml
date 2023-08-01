@@ -30,6 +30,7 @@ set RUN_STARTDATE = `./xmlquery RUN_STARTDATE --value`
 set PIO_TYPENAME_OCN = `./xmlquery PIO_TYPENAME_OCN --value`
 set PIO_NETCDF_FORMAT_OCN = `./xmlquery PIO_NETCDF_FORMAT_OCN --value`
 set NINST_OCN = `./xmlquery NINST_OCN --value`
+set TEST=`./xmlquery TEST --value`
 
 #------------------------------------------------------------------------------
 # Check if HAMOCC is requested
@@ -49,7 +50,7 @@ endif
 # Set RUN_TYPE to 'continue' if CONTINUE_RUN equals TRUE
 #------------------------------------------------------------------------------
 
-if ($CONTINUE_RUN == TRUE) then
+if ("$CONTINUE_RUN" == TRUE) then
   set RUN_TYPE = continue
 endif
 
@@ -65,7 +66,9 @@ set DAY0    = `echo $RUN_STARTDATE | cut -c9-10`
 # Set namelist variables
 #------------------------------------------------------------------------------
 
+#------------------------------
 # set LIMITS defaults
+#------------------------------
 set NDAY1    = 0
 set NDAY2    = 0
 set IDATE    = $YEAR0$MONTH0$DAY0
@@ -75,14 +78,14 @@ set EXPCNF   = "'cesm'"
 set RUNTYP   = "'$RUN_TYPE'"
 set GRFILE   = "'unset'"
 set ICFILE   = "'unset'"
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set PREF     = 2000.e5
 else
   set PREF     = 2000.e4
 endif
 set BACLIN   = 1800.
 set BATROP   = 36.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set MDV2HI   = 2.
   set MDV2LO   = .4
   set MDV4HI   = 0.
@@ -101,7 +104,7 @@ set VSC2HI   = .5
 set VSC2LO   = .5
 set VSC4HI   = 0.
 set VSC4LO   = 0.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set CBAR     = 5.
 else
   set CBAR     = .05
@@ -145,19 +148,21 @@ set JTEST    = 60
 set CNSVDI   = .false.
 set CSDIAG   = .false.
 set RSTFRQ   =  1
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set RSTFMT   =  1
 else
   set RSTFMT   =  0
 endif
 set RSTCMP   =  0 
-if ($PIO_TYPENAME_OCN == pnetcdf) then
+if ("$PIO_TYPENAME_OCN" == pnetcdf) then
   set IOTYPE =  1 
 else
   set IOTYPE =  0 
 endif
 
+#------------------------------
 # set VCOORD defaults
+#------------------------------
 set VCOORD_TYPE            = "'$BLOM_VCOORD'"
 set RECONSTRUCTION_METHOD  = "'ppm'"
 set DENSITY_LIMITING       = "'monotonic'"
@@ -175,7 +180,9 @@ set DPMIN_INTERIOR         = .1
 set DKTZU                  = 4
 set DKTZL                  = 1
 
+#------------------------------
 # set DIFFUSION defaults
+#------------------------------
 set EITMTH   = "'gm'"
 set EDRITP   = "'large scale'"
 set EDWMTH   = "'smooth'"
@@ -183,7 +190,7 @@ set EDDF2D   = .false.
 set EDSPRS   = .true.
 set EGC      = 0.85
 set EGGAM    = 200.
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set EGLSMN   = 4000.e2
   set EGMNDF   = 100.e4
   set EGMXDF   = 1500.e4
@@ -200,7 +207,7 @@ set REDI3D   = .false.
 set RHSCTP   = .false.
 set RI0      = 1.2
 set BDMTYP   = 2
-if ($BLOM_UNIT == cgs) then
+if ("$BLOM_UNIT" == cgs) then
   set BDMC1    = 5.e-4
   set BDMC2    = .1
 else
@@ -210,7 +217,7 @@ endif
 set TKEPF    = .006
 set SMOBLD   = .true.
 set LNGMTP   = "'none'"
-if ($BLOM_VCOORD == isopyc_bulkml) then
+if ("$BLOM_VCOORD" == isopyc_bulkml) then
   set BDMLDP   = .true.
   set LTEDTP   = "'layer'"
 else
@@ -218,38 +225,40 @@ else
   set LTEDTP   = "'neutral'"
 endif
 
+#------------------------------
 # set BGCNML defaults
-set ATM_CO2  = $CCSM_CO2_PPMV
-if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+#------------------------------
+set ATM_CO2  = "$CCSM_CO2_PPMV"
+if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
   set DO_RIVINPT = .true.
 else
   set DO_RIVINPT = .false.
 endif
-if ($BLOM_N_DEPOSITION == TRUE) then
+if ("$BLOM_N_DEPOSITION" == TRUE) then
   set DO_NDEP   = .true.
-  if(      $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx2v1) then
+  if(      "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx2v1_20180321.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx1v4_20171106.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.25v4_20190912.nc
-  else if( $BLOM_NDEP_SCENARIO == 1850 && $OCN_GRID == tnx0.125v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 1850 && "$OCN_GRID" == tnx0.125v4) then
     set NDEPFNAME = ndep_1850_CMIP6_tnx0.125v4_20221013.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx2v1) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx2v1_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx1v4_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == 2000 && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == 2000 && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_2000_CMIP6_tnx0.25v4_20200826.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx2v1) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx2v1) then
     set NDEPFNAME = ndep_185001-201412_tnx2v1_20190702.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx1v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_185001-201412_tnx1v4_20180613.nc
-  else if( $BLOM_NDEP_SCENARIO == hist && $OCN_GRID == tnx0.25v4) then
+  else if( "$BLOM_NDEP_SCENARIO" == hist && "$OCN_GRID" == tnx0.25v4) then
     set NDEPFNAME = ndep_185001-201412_tnx0.25v4_20190705.nc
-  else if( `echo $BLOM_NDEP_SCENARIO | cut -c1-3` == ssp && $OCN_GRID == tnx1v4) then
+  else if( `echo $BLOM_NDEP_SCENARIO | cut -c1-3` == ssp && "$OCN_GRID" == tnx1v4) then
     set NDEPFNAME = ndep_201501-210012-${BLOM_NDEP_SCENARIO}_tnx1v4_20191112.nc
-  else if( $BLOM_NDEP_SCENARIO == UNSET ) then
+  else if( "$BLOM_NDEP_SCENARIO" == UNSET ) then
     set DO_NDEP   = .false.
     set NDEPFNAME = "''"
   endif
@@ -257,7 +266,7 @@ else
   set DO_NDEP   = .false.
   set NDEPFNAME = "''"
 endif
-if ($HAMOCC_SEDSPINUP == TRUE) then
+if ("$HAMOCC_SEDSPINUP" == TRUE) then
   set DO_SEDSPINUP = .true.
   set SEDSPIN_YR_S = $HAMOCC_SEDSPINUP_YR_START
   set SEDSPIN_YR_E = $HAMOCC_SEDSPINUP_YR_END
@@ -270,7 +279,7 @@ else
 endif
 # VSLS is currently only available for the tnx1v4 grid, since a climatlogy file for 
 # short wave radiation is needed. 
-if ($HAMOCC_VSLS == TRUE && $OCN_GRID != tnx1v4) then
+if ("$HAMOCC_VSLS" == TRUE && "$OCN_GRID" != tnx1v4) then
   echo "$0 ERROR: HAMOCC_VSLS == TRUE not possible with this grid resolution (no swa-climatology available) "
   exit -1
 endif
@@ -290,36 +299,54 @@ set L_3DVARSEDPOR = .false.
 set SEDPORFILE = "''"
 
 
+#------------------------------
 # set DIAPHY defaults 
+#------------------------------
 set GLB_FNAMETAG = "'hd','hm','hy'"  
 set GLB_AVEPERIO =  '1,  30, 365'
-set GLB_FILEFREQ = '30,  30, 365'
+if ("$TEST" == TRUE) then
+   set GLB_FILEFREQ =  '1,  30, 365'
+else
+   set GLB_FILEFREQ = '30,  30, 365'
+endif
 set GLB_COMPFLAG =  '0,   0,   0'
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set GLB_NCFORMAT =  '1,   1,   1'
 else
   set GLB_NCFORMAT =  '0,   0,   0'
 endif
 set H2D_ABSWND   =  '0,   4,   0'
+
 set H2D_ALB      =  '0,   0,   0'
+
 set H2D_BTMSTR   =  '0,   4,   0'
 set H2D_BRNFLX   =  '0,   4,   0'
 set H2D_BRNPD    =  '0,   4,   0'
+
 set H2D_DFL      =  '0,   0,   0'
+
 set H2D_EVA      =  '0,   4,   0'
 set H2D_FICE     =  '0,   4,   0'
 set H2D_FMLTFZ   =  '0,   4,   0'
+
 set H2D_HICE     =  '0,   0,   0'
+
 set H2D_HMLTFZ   =  '0,   4,   0'
+
 set H2D_HSNW     =  '0,   0,   0'
 set H2D_IAGE     =  '0,   0,   0'
+
 set H2D_IDKEDT   =  '0,   4,   0'
 set H2D_LAMULT   =  '0,   4,   0'
 set H2D_LASL     =  '0,   4,   0'
 set H2D_LIP      =  '0,   4,   0'
+
 set H2D_MAXMLD   =  '4,   4,   0'
+
 set H2D_MLD      =  '0,   4,   0'
+
 set H2D_MLTS     =  '4,   4,   0'
+
 set H2D_MLTSMN   =  '0,   4,   0'
 set H2D_MLTSMX   =  '0,   4,   0'
 set H2D_MLTSSQ   =  '0,   4,   0'
@@ -338,32 +365,46 @@ set H2D_RNFFLX   =  '0,   4,   0'
 set H2D_SALFLX   =  '0,   4,   0'
 set H2D_SALRLX   =  '0,   4,   0'
 set H2D_SBOT     =  '0,   4,   0'
+
 set H2D_SEALV    =  '4,   4,   0'
+
 set H2D_SLVSQ    =  '0,   4,   0'
 set H2D_SFL      =  '0,   4,   0'
 set H2D_SOP      =  '0,   4,   0'
 set H2D_SIGMX    =  '0,   4,   0'
+
 set H2D_SSS      =  '4,   4,   0'
 set H2D_SSSSQ    =  '4,   4,   0'
 set H2D_SST      =  '4,   4,   0'
 set H2D_SSTSQ    =  '4,   4,   0'
+
 set H2D_SURFLX   =  '0,   4,   0'
 set H2D_SURRLX   =  '0,   4,   0'
 set H2D_SWA      =  '0,   4,   0'
+
 set H2D_T20D     =  '4,   4,   0'
+
 set H2D_TAUX     =  '0,   4,   0'
 set H2D_TAUY     =  '0,   4,   0'
 set H2D_TBOT     =  '0,   4,   0'
+
 set H2D_TICE     =  '0,   0,   0'
 set H2D_TSRF     =  '0,   0,   0'
+
 set H2D_UB       =  '0,   4,   0'
+
 set H2D_UICE     =  '0,   0,   0'
+
 set H2D_USTAR    =  '0,   4,   0'
 set H2D_USTAR3   =  '0,   4,   0'
+
 set H2D_USTOKES  =  '0,   0,   0'
+
 set H2D_VB       =  '0,   4,   0'
+
 set H2D_VICE     =  '0,   0,   0'
 set H2D_VSTOKES  =  '0,   0,   0'
+
 set H2D_ZTX      =  '0,   4,   0'
 set LYR_BFSQ     =  '0,   4,   0'
 set LYR_DIFDIA   =  '0,   4,   0'
@@ -376,10 +417,13 @@ set LYR_DP       =  '0,   4,   0'
 set LYR_DZ       =  '0,   4,   0'
 set LYR_SALN     =  '0,   4,   0'
 set LYR_TEMP     =  '0,   4,   0'
+
 set LYR_TRC      =  '0,   0,   0'
+
 set LYR_UFLX     =  '0,   4,   0'
 set LYR_UTFLX    =  '0,   4,   0'
 set LYR_USFLX    =  '0,   4,   0'
+
 set LYR_UMFLTD   =  '0,   0,   4'
 set LYR_UMFLSM   =  '0,   0,   4'
 set LYR_UTFLTD   =  '0,   0,   4'
@@ -388,10 +432,12 @@ set LYR_UTFLLD   =  '0,   0,   4'
 set LYR_USFLTD   =  '0,   0,   4'
 set LYR_USFLSM   =  '0,   0,   4'
 set LYR_USFLLD   =  '0,   0,   4'
+
 set LYR_UVEL     =  '0,   4,   0'
 set LYR_VFLX     =  '0,   4,   0'
 set LYR_VTFLX    =  '0,   4,   0'
 set LYR_VSFLX    =  '0,   4,   0'
+
 set LYR_VMFLTD   =  '0,   0,   4'
 set LYR_VMFLSM   =  '0,   0,   4'
 set LYR_VTFLTD   =  '0,   0,   4'
@@ -400,6 +446,7 @@ set LYR_VTFLLD   =  '0,   0,   4'
 set LYR_VSFLTD   =  '0,   0,   4'
 set LYR_VSFLSM   =  '0,   0,   4'
 set LYR_VSFLLD   =  '0,   0,   4'
+
 set LYR_VVEL     =  '0,   4,   0'
 set LYR_WFLX     =  '0,   4,   0'
 set LYR_WFLX2    =  '0,   4,   0'
@@ -417,10 +464,13 @@ set LVL_DIFISO   =  '0,   4,   0'
 set LVL_DZ       =  '0,   4,   0'
 set LVL_SALN     =  '0,   4,   0'
 set LVL_TEMP     =  '0,   4,   0'
+
 set LVL_TRC      =  '0,   0,   0'
+
 set LVL_UFLX     =  '0,   4,   0'
 set LVL_UTFLX    =  '0,   4,   0'
 set LVL_USFLX    =  '0,   4,   0'
+
 set LVL_UMFLTD   =  '0,   0,   4'
 set LVL_UMFLSM   =  '0,   0,   4'
 set LVL_UTFLTD   =  '0,   0,   4'
@@ -429,10 +479,12 @@ set LVL_UTFLLD   =  '0,   0,   4'
 set LVL_USFLTD   =  '0,   0,   4'
 set LVL_USFLSM   =  '0,   0,   4'
 set LVL_USFLLD   =  '0,   0,   4'
+
 set LVL_UVEL     =  '0,   4,   0'
 set LVL_VFLX     =  '0,   4,   0'
 set LVL_VTFLX    =  '0,   4,   0'
 set LVL_VSFLX    =  '0,   4,   0'
+
 set LVL_VMFLTD   =  '0,   0,   4'
 set LVL_VMFLSM   =  '0,   0,   4'
 set LVL_VTFLTD   =  '0,   0,   4'
@@ -441,6 +493,7 @@ set LVL_VTFLLD   =  '0,   0,   4'
 set LVL_VSFLTD   =  '0,   0,   4'
 set LVL_VSFLSM   =  '0,   0,   4'
 set LVL_VSFLLD   =  '0,   0,   4'
+
 set LVL_VVEL     =  '0,   4,   0'
 set LVL_WFLX     =  '0,   4,   0'
 set LVL_WFLX2    =  '0,   4,   0'
@@ -470,12 +523,19 @@ set MSC_TEMPGA   =  '0,   4,   0'
 set MSC_SSSGA    =  '0,   4,   0'
 set MSC_SSTGA    =  '0,   4,   0'
 
+#------------------------------
 # set DIABGC defaults
+#------------------------------
 set BGC_FNAMETAG  = "'hbgcd','hbgcm','hbgcy'"
 set BGC_AVEPERIO  = '1,30,365'
 set BGC_FILEFREQ  = '30,30,365'
+if ("$TEST" == TRUE) then
+   set BGC_FILEFREQ  = ' 1,30,365'
+else
+   set BGC_FILEFREQ  = '30,30,365'
+endif
 set BGC_COMPFLAG  = '0, 0, 0'
-if ($PIO_NETCDF_FORMAT_OCN == 64bit_offset) then
+if ("$PIO_NETCDF_FORMAT_OCN" == 64bit_offset) then
   set BGC_NCFORMAT  = '1, 1, 1'
 else
   set BGC_NCFORMAT  = '0, 0, 0'
@@ -531,7 +591,7 @@ set INT_BROMOUV   = '0, 2, 2'
 set INT_PHOSY     = '4, 2, 2' 
 set INT_NFIX      = '0, 2, 2' 
 set INT_DNIT      = '0, 2, 2' 
-if ($BLOM_N_DEPOSITION == TRUE) then
+if ("$BLOM_N_DEPOSITION" == TRUE) then
 set FLX_NDEP      = '0, 2, 2'
 else
 set FLX_NDEP      = '0, 0, 0'
@@ -680,8 +740,8 @@ set BUR_SSSC12    = '0, 0, 2'
 set BUR_SSSTER    = '0, 0, 2'
 
 # if partial coupling, enable SSS relaxation
-if ($BLOM_COUPLING  =~ *partial*) then
-  if ($BLOM_VCOORD == isopyc_bulkml) then
+if ("$BLOM_COUPLING"  =~ *partial*) then
+  if ("$BLOM_VCOORD" == isopyc_bulkml) then
     set SRXDAY = 6.
   else
     set SRXDAY = 60.
@@ -692,17 +752,17 @@ if ($BLOM_COUPLING  =~ *partial*) then
 endif
 
 # set grid dependent parameters
-if ($OCN_GRID == gx1v5 || $OCN_GRID == gx1v6) then
+if ("$OCN_GRID" == gx1v5 || "$OCN_GRID" == gx1v6) then
   set BACLIN = 1800.
   set BATROP = 36.
-else if ($OCN_GRID == gx3v7) then
+else if ("$OCN_GRID" == gx3v7) then
   set BACLIN = 3600.
   set BATROP = 72.
-else if ($OCN_GRID == tnx2v1 ) then
+else if ("$OCN_GRID" == tnx2v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1000.e4
   else
     set EGMXDF = 1000.
@@ -712,23 +772,23 @@ else if ($OCN_GRID == tnx2v1 ) then
   set CWMI   = "         53,         54"
   set CWMJ   = "        137,        137"
   set CWMWTH = "      30.e3,      30.e3"
-else if ($OCN_GRID == tnx1.5v1 ) then
+else if ("$OCN_GRID" ==  tnx1.5v1 ) then
   set BACLIN = 4800.
   set BATROP = 96.
   set EGC    = 0.5
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1000.e4
   else
     set EGMXDF = 1000.
   endif
-else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
-  if ($OCN_NCPL == 24) then
+else if ("$OCN_GRID" == tnx1v1 || "$OCN_GRID" == tnx1v3 || "$OCN_GRID" == tnx1v4) then
+  if ("$OCN_NCPL" == 24) then
     set BACLIN = 3600.
     set BATROP = 60.
     set CWBDTS = .75e-4
     set NIWGF  = .4
     set SMTFRC = .false.
-    if ($BLOM_VCOORD == isopyc_bulkml) then
+    if ("$BLOM_VCOORD" == isopyc_bulkml) then
       set CE     = .5
     endif
   else
@@ -740,10 +800,10 @@ else if ($OCN_GRID == tnx1v1 || $OCN_GRID == tnx1v3 || $OCN_GRID == tnx1v4) then
   set CWMI   = "        105,        106"
   set CWMJ   = "        273,        273"
   set CWMWTH = "      30.e3,      30.e3"
-else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.25v4) then
+else if ("$OCN_GRID" == tnx0.25v1 || "$OCN_GRID" == tnx0.25v3 || "$OCN_GRID" == tnx0.25v4) then
   set BACLIN = 900.
   set BATROP = 15.
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set MDV2HI = .15
     set MDV2LO = .15
     set MDV4HI = 0.
@@ -766,15 +826,15 @@ else if ($OCN_GRID == tnx0.25v1 || $OCN_GRID == tnx0.25v3 || $OCN_GRID == tnx0.2
   set CWBDLS = 25.
   set EDWMTH = "'step'"
   set EGC    = 0.85
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set EGMXDF = 1500.e4
   else
     set EGMXDF = 1500.
   endif
-  if ($BLOM_VCOORD == isopyc_bulkml) then
+  if ("$BLOM_VCOORD" == isopyc_bulkml) then
     set CE     = 1.0
   endif
-else if ($OCN_GRID == tnx0.125v4) then
+else if ("$OCN_GRID" == tnx0.125v4) then
   set BACLIN = 300.
   set BATROP = 6.
   set EGMNDF = 0.
@@ -782,7 +842,7 @@ else if ($OCN_GRID == tnx0.125v4) then
   set EDWMTH = "'step'"
   set CWBDTS = .75e-4
   set CWBDLS = 25
-  if ($BLOM_UNIT == cgs) then
+  if ("$BLOM_UNIT" == cgs) then
     set MDV2HI = .1
     set MDV2LO = .1
     set MDV4HI = 0.
@@ -803,7 +863,8 @@ else if ($OCN_GRID == tnx0.125v4) then
   set VSC4LO = .06
   set LTEDTP = "'layer'"
 else
-  echo "$0 ERROR: Cannot deal with GRID = $OCN_GRID "
+  echo "OCN_GRID is $OCN_GRID \n"    
+  echo "$0 ERROR: Cannot deal with GRID equal to $OCN_GRID "
   exit -1
 endif
 
@@ -814,7 +875,7 @@ set INIPO4 = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_phosphate_OMIPinit_20171107.n
 set INIOXY = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_oxygen_OMIPinit_20171107.nc'"
 set ININO3 = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_nitrate_OMIPinit_20171107.nc'"
 set INISIL = "'$DIN_LOC_ROOT/ocn/blom/inicon/woa13_silicate_OMIPinit_20171107.nc'"
-if ($HAMOCC_CISO == TRUE) then
+if ("$HAMOCC_CISO" == TRUE) then
 set INID13C = "'$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc'"
 set INID14C = "'$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc'"
 else
@@ -823,7 +884,7 @@ set INID14C = "''"
 endif
 
 # set grid dependent input files
-if      ($OCN_GRID == tnx2v1) then
+if      ("$OCN_GRID" == tnx2v1) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx2v1_20130206.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx2v1_20130419.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx2v1_20130419.nc'"
@@ -834,17 +895,17 @@ if      ($OCN_GRID == tnx2v1) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx2v1_20130506.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx2v1_20170915.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx1v4) then
+else if ("$OCN_GRID" == tnx1v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx1v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx1v4_20170622.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx1v4_20170605.nc'"
@@ -855,22 +916,22 @@ else if ($OCN_GRID == tnx1v4) then
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
   set SEDPORFILE = "''"
-  if ($HAMOCC_VSLS == TRUE) then
+  if ("$HAMOCC_VSLS" == TRUE) then
     set SWACLIMFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc'"
   else
     set SWACLIMFILE = "''"
   endif
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx0.25v4) then
+else if ("$OCN_GRID" == tnx0.25v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc'"
@@ -882,17 +943,17 @@ else if ($OCN_GRID == tnx0.25v4) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
   endif
-else if ($OCN_GRID == tnx0.125v4) then
+else if ("$OCN_GRID" == tnx0.125v4) then
   set GRFILE = "'$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc'"
   set ICFILE = "'$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc'"
   set TDFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc'"
@@ -904,12 +965,12 @@ else if ($OCN_GRID == tnx0.125v4) then
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc'"
   set SWACLIMFILE = "''"
   set SEDPORFILE = "''"
-  if ($BLOM_RIVER_NUTRIENTS == TRUE) then
+  if ("$BLOM_RIVER_NUTRIENTS" == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc'"
   else
     set RIVINFILE = "''"
   endif
-  if ($BLOM_N_DEPOSITION == TRUE) then
+  if ("$BLOM_N_DEPOSITION" == TRUE) then
     set NDEPFILE  = "'$DIN_LOC_ROOT/ocn/blom/bndcon/$NDEPFNAME'"
   else
     set NDEPFILE  = "''"
@@ -939,96 +1000,9 @@ foreach mem ("`seq $NINST_OCN`")
     endif
   end
 
+cp ocn_in.readme $RUNDIR/.
+
 cat >! $RUNDIR/ocn_in$inststr << EOF
-! LIMITS NAMELIST
-!
-! CONTENTS:
-!
-! NDAY1    : First day of integration (i)
-! NDAY2    : Last day of integration (i)
-! IDATE    : Model date in YYYYMMDD (i)
-! IDATE0   : Initial experiment date in YYYYMMDD (i)
-! RUNID    : Experiment name (a)
-! EXPCNF   : Experiment configuration (a)
-! RUNTYP   : CESM run type (a)
-! GRFILE   : Name of file containing grid specification (a)
-! ICFILE   : Name of file containing initial conditions, that is either
-!            a valid restart file or 'inicon.nc' if climatological based
-!            initial conditions are desired (a)
-! PREF     : Reference pressure for potential density (g/cm/s2) (f)
-! BACLIN   : Baroclinic time step (sec) (f)
-! BATROP   : Barotropic time step (sec) (f)
-! MDV2HI   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
-! MDV2LO   : Laplacian diffusion velocity for momentum dissipation (cm/s) (f)
-! MDV4HI   : Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)
-! MDV4LO   : Biharmonic diffusion velocity for momentum dissipation (cm/s) (f)
-! MDC2HI   : Laplacian diffusivity for momentum dissipation (cm**2/s) (f)
-! MDC2LO   : Laplacian diffusivity for momentum dissipation (cm**2/s) (f)
-! VSC2HI   : Parameter in deformation-dependent Laplacian viscosity (f)
-! VSC2LO   : Parameter in deformation-dependent Laplacian viscosity (f)
-! VSC4HI   : Parameter in deformation-dependent Biharmonic viscosity (f)
-! VSC4LO   : Parameter in deformation-dependent Biharmonic viscosity (f)
-! CBAR     : rms flow speed for linear bottom friction law (cm/s) (f)
-! CB       : Nondiemnsional coefficient of quadratic bottom friction (f)
-! CWBDTS   : Coastal wave breaking damping resiprocal time scale (1/s) (f)
-! CWBDLS   : Coastal wave breaking damping length scale (m) (f)
-! MOMMTH   : Momentum equation discretization method. Valid methods:
-!            'enscon' (Sadourny (1975) enstrophy conserving), 'enecon'
-!            (Sadourny (1975) energy conserving), 'enedis' (Sadourny
-!            (1975) energy conserving with some dissipation) (a)
-! BMCMTH   : Baroclinic mass flux correction method. Valid methods:
-!            'uc' (upstream column), 'dluc' (depth limited upstream
-!            column) (a)
-! RMPMTH   : Method of applying eddy-induced transport in the remap
-!            transport algorithm. Valid methods: 'eitvel', 'eitflx' (a)
-! MLRTTP   : Type of mixed layer restratification time scale. Valid
-!            types: 'variable', 'constant', 'limited' (a)
-! RM0      : Efficiency factor of wind TKE generation in the Oberhuber
-!            (1993) TKE closure () (f)
-! RM5      : Efficiency factor of TKE generation by momentum
-!            entrainment in the Oberhuber (1993) TKE closure () (f)
-! CE       : Efficiency factor for the restratification by mixed layer
-!            eddies (Fox-Kemper et al., 2008) () (f)
-! TDFILE   : Name of file containing tidal wave energy dissipation
-!            divided by by bottom buoyancy frequency (a)
-! NIWGF    : Global factor applied to the energy input by near-intertial
-!            motions () (f)
-! NIWBF    : Fraction of near-inertial energy dissipated in the boundary
-!            layer () (f)
-! NIWLF    : Fraction of near-inertial energy dissipated locally beneath
-!            the boundary layer () (f)
-! SWAMTH   : Shortwave radiation absorption method. Valid methods:
-!            'top-layer', 'jerlov', 'chlorophyll' (a)
-! JWTYPE   : Number indicating the Jerlov (1968) water type (i)
-! CHLOPT   : Chlorophyll concentration option. Valid options:
-!            'climatology' (a)
-! CCFILE   : Name of file containing chlorophyll concentration climatology (a)
-! TRXDAY   : e-folding time scale (days) for SST relax., if 0 no relax. (f)
-! SRXDAY   : e-folding time scale (days) for SSS relax., if 0 no relax. (f)
-! TRXDPT   : Maximum mixed layer depth for e-folding SST relaxation (m) (f)
-! SRXDPT   : Maximum mixed layer depth for e-folding SSS relaxation (m) (f)
-! TRXLIM   : Max. absolute value of SST difference in relaxation (degC) (f)
-! SRXLIM   : Max. absolute value of SSS difference in relaxation (psu) (f)
-! APTFLX   : Apply diagnosed heat flux flag (l)
-! APSFLX   : Apply diagnosed freshwater flux flag (l)
-! DITFLX   : Diagnose heat flux flag (l)
-! DISFLX   : Diagnose freshwater flux flag (l)
-! SRXBAL   : Balance the SSS relaxation (l)
-! SCFILE   : Name of file containing SSS climatology used for relaxation (a)
-! WAVSRC   : Source of wave fields. Valid source: 'none', 'param', 'extern' (a)
-! SMTFRC   : Smooth CESM forcing (l)
-! SPRFAC   : Send precipitation/runoff factor to CESM coupler (l)
-! ATM_PATH : Path to forcing fields in case of EXPCNF 'ben02clim' or
-!            'ben02syn' (a)
-! ITEST    : Global i-index of point diagnostics (i)
-! JTEST    : Global j-index of point diagnostics (i)
-! CNSVDI   : Conservation diagnostics flag (l)
-! CSDIAG   : Checksum diagnostics flag (l)
-! RSTFRQ   : Restart frequency in days (30=1month,365=1year) (i)
-! RSTFMT   : Format of restart file (valid arguments are 0 for classic,
-!            1 for 64-bit offset and 2 for netcdf4/hdf5 format) (i)
-! RSTCMP   : Compression flag for restart file (i)
-! IOTYPE   : 0 = netcdf, 1 = pnetcdf
 &LIMITS
   NDAY1    = $NDAY1
   NDAY2    = $NDAY2
@@ -1098,7 +1072,7 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
 /
 EOF
 
-if ($BLOM_VCOORD == cntiso_hybrid) then
+if ("$BLOM_VCOORD" == cntiso_hybrid) then
 cat >>! $RUNDIR/ocn_in$inststr << EOF
 
 &VCOORD
@@ -1124,55 +1098,6 @@ endif
 
 cat >>! $RUNDIR/ocn_in$inststr << EOF
  
-! NAMELIST FOR DIFFUSION PARAMETERS
-!
-! CONTENTS:
-!
-! EITMTH   : Eddy-induced transport parameterization method. Valid
-!            methods: 'intdif', 'gm' (a)
-! EDRITP   : Type of Richardson number used in eddy diffusivity
-!            computation. Valid types: 'shear', 'large scale' (a)
-! EDWMTH   : Method to estimate eddy diffusivity weight as a function of
-!            the ration of Rossby radius of deformation to the
-!            horizontal grid spacing. Valid methods: 'smooth', 'step' (a)
-! MLRTTP   : Type of mixed layer restratification time scale. Valid
-!            types: 'variable', 'constant', 'limited' (a)
-! EDDF2D   : If true, eddy diffusivity has a 2d structure (l)
-! EDSPRS   : Apply eddy mixing suppression away from steering level (l)
-! EGC      : Parameter c in Eden and Greatbatch (2008) parameterization (f)
-! EGGAM    : Parameter gamma in E. & G. (2008) param. (f)
-! EGLSMN   : Minimum eddy length scale in  E. & G. (2008) param. (cm) (f)
-! EGMNDF   : Minimum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
-! EGMXDF   : Maximum diffusivity in E. & G. (2008) param. (cm**2/s) (f)
-! EGIDFQ   : Factor relating the isopycnal diffusivity to the layer
-!            interface diffusivity in the Eden and Greatbatch (2008)
-!            parameterization. egidfq=difint/difiso () (f)
-! TBFILE   : Name of file containing topographic beta parameter (a)
-! RHISCF   : Linear scaling parameter for topographic rhines scale () (f)
-! EDANIS   : If true, apply anisotropy correction to eddy diffusivity (l)
-! REDI3D   : If true, then isopycnal/neutral diffusion will have 3D
-!            structure based in the 3D structure of anisotropy (l)
-! RHSCTP   : If true, use the minimum of planetary and topographic beta
-!            to define the Rhines scale (l)
-! RI0      : Critical gradient richardson number for shear driven
-!            vertical mixing () (f)
-! BDMTYP   : Type of background diapycnal mixing. If bdmtyp=1 the
-!            background diffusivity is a constant divided by the
-!            Brunt-Vaisala frequency, if bdmtyp=2 the background
-!            diffusivity is constant () (i)
-! BDMC1    : Background diapycnal diffusivity times buoyancy frequency
-!            frequency (cm**2/s**2) (f)
-! BDMC2    : Background diapycnal diffusivity (cm**2/s) (f)
-! BDMLDP   : Make the background mixing latitude dependent according to
-!            Gregg et al. (2003) (l)
-! TKEPF    : Fraction of surface TKE that penetrates beneath mixed layer
-!            () (f)
-! SMOBLD   : If true, apply lateral smoothing of CVMix estimated
-!            boundary layer depth (l)
-! LNGMTP   : Type of CVMix Langmuir turbulence parameterization. Valid
-!            types: 'none', 'vr12-ma', 'lf17'
-! LTEDTP   : Type of lateral tracer eddy diffusion: Valid methods:
-!            'layer', 'neutral'.
 &DIFFUSION
   EITMTH   = $EITMTH
   EDRITP   = $EDRITP
@@ -1205,17 +1130,6 @@ EOF
 if ($?CWMTAG) then
 cat >>! $RUNDIR/ocn_in$inststr << EOF
  
-! NAMELIST FOR CHANNEL WIDTH MODIFICATIONS
-!
-! CONTENTS:
-!
-! CWMTAG   : Array of geographical names of channels to be modified (a)
-! CWMEDG   : Array of C grid cell edges to be modified. Valid options:
-!            'u' or 'v' (a)
-! CWMI     : Array of grid cell i-indices (i)
-! CWMJ     : Array of grid cell j-indices (i)
-! CWMWTH   : Array of modified grid cell widths (m) (f)
-! 
 &CWMOD
   CWMTAG = $CWMTAG
   CWMEDG = $CWMEDG
@@ -1228,20 +1142,6 @@ endif
 
 cat >>! $RUNDIR/ocn_in$inststr << EOF
 
-! NAMELIST FOR MERIDIONAL OVERTURNING AND FLUX DIAGNOSTICS
-!
-! CONTENTS:
-!
-! MER_ORFILE : Name of file containing ocean region specification (a)
-! MER_MIFILE : Name of file containing zonal section specification for
-!              meridional transport computation (a)
-! MER_REGNAM : Array of region names for meridional overturning and flux
-!              diagnostics (a)
-! MER_REGFLG : Array of mask flags in ocean regions file to be included
-!              for each region (i)
-! MER_MINLAT : Minimum latitude to be considered for each region (f)
-! MER_MAXLAT : Maximum latitude to be considered for each region (f)
-! 
 &MERDIA
   MER_ORFILE = $MER_ORFILE
   MER_MIFILE = $MER_MIFILE
@@ -1254,192 +1154,10 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   MER_MAXLAT =  90.,  90.,  90.,  90.
 /
 
-! NAMELIST FOR SECTION TRANSPORT DIAGNOSTICS
-!
-! CONTENTS:
-!
-! SEC_SIFILE : Name of file containing section specification for section
-!              transport computation (a)
-! 
 &SECDIA
   SEC_SIFILE = $SEC_SIFILE
 /
 
-! IO-NAMELIST FOR DIAGNOSTIC OUTPUT
-!
-! Description:
-!   BLOM supports multiple output groups for its diagnostic output.
-!   Each output group is represented by one column in the namlist and may
-!   have its own output format, averaging period, and file frequency.
-!   The maximum number of output groups is currently limited to 10 but
-!   can be changed easily in mod_dia.F.
-!
-!   The output precision can be choosen on a per-variable basis.
-!
-!   Multiple time-slices can be written to the same output file
-!   provided that no variable is written in packed data format
-!   (i.e. as int2 with scale factor and offset).
-!
-!   Compression of the output (i.e. storage of only wet points)
-!   and the file format can be choosen on a per-file basis.
-!
-!   All time periods are specified in number of days for positive
-!   integer values and fraction of day for negative integer values.
-!   The length of the actual calendar month is used if 30 is written.
-!   The length of the actual calendar year is used if 365 is written.
-!   A variable is not written when 0 is specified.
-!
-! Namelist acronyms:
-!   GLB_     - global parameters i.e. valid for entire output group
-!   H2D_     - 2d fields with the horizontal dimensions
-!   LYR_     - 3d fields with sigma layers as vertical coordinate
-!   LVL_     - 3d fields with levitus leves as vertical coordinate
-!   MSC_     - miscellanous, non-gridded fields
-!
-! Global parameters:
-!   FNAMETAG - tag used in file name (c10) 
-!   AVEPERIO - average period in days (i) 
-!   FILEFREQ - how often to start a new file in days (i) 
-!   COMPFLAG - switch for compressed/uncompressed output (i) 
-!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
-!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
-!
-! Arguments for diagnostic variables:
-!   0        - variable is not written
-!   2        - variable is written as int2 with scale factor and offset
-!   4        - variable is written as real4
-!   8        - variable is written as real8
-!
-! Output variables:
-!   ABSWND   - absolute wind speed [m s-1]
-!   ALB      - surface albedo []
-!   BTMSTR   - Barotropic mass streamfunction [kg s-1]
-!   BRNFLX   - brine flux [kg m-2 s-1]
-!   BRNPD    - brine plume depth [m]
-!   DFL      - non-solar heat flux derivative [W m-2 K-1]
-!   EVA      - evaporation [kg m-2 s-1]
-!   FICE     - ice concentration [%]
-!   FMLTFZ   - fresh water flux due to melting/freezing [kg m-2 s-1]
-!   HICE     - ice thickness [m]
-!   HMLTFZ   - heat flux due to melting/freezing [W m-2]
-!   HSNW     - snow depth [m]
-!   IAGE     - ice age [d]
-!   IDKEDT   - mixed layer inertial kinetic energy tendency [kg s-3]
-!   LAMULT   - Langmuir enhancement factor []
-!   LASL     - Surface layer averaged Langmuir number []
-!   LIP      - liquid precipitation [kg m-2 s-1]
-!   MAXMLD   - maximum mixed layer depth [m]
-!   MLD      - mixed layer depth [m]
-!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
-!   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
-!   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
-!   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]
-!   MTKERS   - mixed layer TKE tendency related to eddy restrat. [kg s-3]
-!   MTKEPE   - mixed layer TKE tendency related to pot. energy change [kg s-3]
-!   MTKEKE   - mixed layer TKE tendency related to kin. energy change [kg s-3]
-!   MTY      - wind stress y-component [N m-2]
-!   NSF      - non-solar heat flux [W m-2]
-!   PBOT     - bottom pressure [Pa]
-!   PSRF     - surface pressure [Pa]
-!   RFIFLX   - frozen runoff [kg m-2 s-1]
-!   RNFFLX   - liquid runoff [kg m-2 s-1]
-!   SALFLX   - salt flux received by ocean [kg m-2 s-1]
-!   SALRLX   - restoring salt flux received by ocean [kg m-2 s-1]
-!   SBOT     - bottom salinity [g kg-1]
-!   SEALV    - sea level [m]
-!   SLVSQ    - sea level squared [m2]
-!   SFL      - salt flux [kg m-2 s-1]
-!   SOP      - solid precipitation [kg m-2 s-1]
-!   SIGMX    - mixed layer density [kg m-3]
-!   SSS      - ocean surface salinity [g kg-1]
-!   SSSSQ    - ocean surface salinity squared [g2 kg-2]
-!   SST      - ocean surface temperature [degC]
-!   SSTSQ    - ocean surface temperature squared [degC2]
-!   SURFLX   - heat flux received by ocean [W m-2]
-!   SURRLX   - restoring heat flux received by ocean [W m-2]
-!   SWA      - short-wave heat flux [W m-2]
-!   T20D     - 20C isoterm depth [m]
-!   TAUX     - momentum flux received by ocean x-component [N m-2]
-!   TAUY     - momentum flux received by ocean y-component [N m-2]
-!   TBOT     - bottom temperature [degC]
-!   TICE     - ice temperature [degC]
-!   TSRF     - surface temperature [degC]
-!   UB       - barotropic velocity x-component [m s-1]
-!   UICE     - ice velocity x-component [m s-1]
-!   USTAR    - friction velocity [m s-1]
-!   USTAR3   - friction velocity cubed [m3 s-3]
-!   USTOKES  - surface Stokes drift x-componen [m s-1]
-!   VB       - barotropic velocity y-component [m s-1]
-!   VICE     - ice velocity y-component [m s-1]
-!   VSTOKES  - surface Stokes drift y-componen [m s-1]
-!   ZTX      - wind stress x-component [N m-2]
-!   BFSQ     - buoyancy frequency squared [s-1]
-!   DIFDIA   - vertical diffusivity [log10(m2 s-1)|m2 s-1]
-!   DIFVMO   - vertical momentum diffusivity [log10(m2 s-1)|m2 s-1]
-!   DIFVHO   - vertical heat diffusivity [log10(m2 s-1)|m2 s-1]
-!   DIFVSO   - vertical salt diffusivity [log10(m2 s-1)|m2 s-1]
-!   DIFINT   - layer interface diffusivity [log10(m2 s-1)]
-!   DIFISO   - isopycnal diffusivity [log10(m2 s-1)]
-!   DP       - layer pressure thickness [Pa]
-!   DZ       - layer thickness [m]
-!   SALN     - salinity [g kg-1]
-!   TEMP     - temperature [degC]
-!   TRC      - tracer []
-!   UFLX     - mass flux in x-direction [kg s-1]
-!   UTFLX    - heat flux in x-direction [W]
-!   USFLX    - salt flux in x-direction [kg s-1]
-!   UMFLTD   - mass flux due to thickness diffusion in x-direction [kg s-1]
-!   UMFLSM   - mass flux due to submesoscale transport in x-direction [kg s-1]
-!   UTFLTD   - heat flux due to thickness diffusion in x-direction [W]
-!   UTFLSM   - heat flux due to submesoscale transport in x-direction [W]
-!   UTFLLD   - heat flux due to lateral diffusion in x-direction [W]
-!   USFLTD   - salt flux due to thickness diffusion in x-direction [kg s-1]
-!   USFLSM   - salt flux due to submesoscale transport in x-direction [kg s-1]
-!   USFLLD   - salt flux due to lateral diffusion in x-direction [kg s-1]
-!   UVEL     - velocity x-component [m s-1]
-!   VFLX     - mass flux in y-direction [kg s-1]
-!   VTFLX    - heat flux in y-direction [W]
-!   VSFLX    - salt flux in y-direction [kg s-1]
-!   VMFLTD   - mass flux due to thickness diffusion in y-direction [kg s-1]
-!   VMFLSM   - mass flux due to submesoscale transport in y-direction [kg s-1]
-!   VTFLTD   - heat flux due to thickness diffusion in y-direction [W]
-!   VTFLSM   - heat flux due to submesoscale transport in y-direction [W]
-!   VTFLLD   - heat flux due to lateral diffusion in y-direction [W]
-!   VSFLTD   - salt flux due to thickness diffusion in y-direction [kg s-1]
-!   VSFLSM   - salt flux due to submesoscale transport in y-direction [kg s-1]
-!   VSFLLD   - salt flux due to lateral diffusion in y-direction [kg s-1]
-!   VVEL     - velocity x-component [m s-1]
-!   WFLX     - vertical mass flux [kg s-1]
-!   WFLX2    - vertical mass flux squared [kg2 s-2]
-!   PV       - potential vorticity [m-1 s-1]
-!   TKE      - turbulent kinetic energy [m2 s-2]
-!   GLS_PSI  - generic length scale [m2 s-3]
-!   IDLAGE   - ideal age [year]
-!   MMFLXL   - meridional overturning circ. (MOC) on isopycnic layers [kg s-1]
-!   MMFLXD   - MOC on z-levels [kg s-1]
-!   MMFTDL   - MOC due to thickness diffusion on isopycnic layers [kg s-1]
-!   MMFSML   - MOC due to submesoscale transport on isopycnic layers [kg s-1]
-!   MMFTDD   - MOC due to thickness diffusion on z-levels [kg s-1]
-!   MMFSMD   - MOC due to submesoscale transport on z-levels [kg s-1]
-!   MHFLX    - meridional heat flux [W]
-!   MHFTD    - meridional heat flux due to thickness diffusion [W]
-!   MHFSM    - meridional heat flux due to submesoscale transport [W]
-!   MHFLD    - meridional heat flux due to lateral diffusion [W]
-!   MSFLX    - meridional salt flux [kg s-1]
-!   MSFTD    - meridional salt flux due to thickness diffusion [kg s-1]
-!   MSFSM    - meridional salt flux due to submesoscale transport [kg s-1]
-!   MSFLD    - meridional salt flux due to lateral diffusion [kg s-1]
-!   VOLTR    - section transports [kg s-1]
-!   MASSGS   - global sum of mass [kg]
-!   VOLGS    - global sum of volume [m3]
-!   SALNGA   - global average temperature [degC]
-!   TEMPGA   - global average temperature [degC]
-!   SSSGA    - global average sea surface salinity [g kg-1]
-!   SSTGA    - global average sea surface temperature [degC]
-!
 &DIAPHY
   GLB_FNAMETAG = $GLB_FNAMETAG
   GLB_AVEPERIO = $GLB_AVEPERIO
@@ -1618,31 +1336,9 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
 /
 EOF
 
-if ($ecosys == TRUE) then
+if ("$ecosys" == TRUE) then
 cat >>! $RUNDIR/ocn_in$inststr << EOF
 
-! NAMELIST FOR iHAMOCC OPTIONS
-!
-! CONTENTS:
-!
-! ATM_CO2     : Atmospheric CO2 concentration [ppmv]
-! FEDEPFILE   : File name (incl. full path) for iron (dust) deposition data
-! SWACLIMFILE : File name (incl. full path) for swa climatology field (needed 
-!                if bromoform scheme is activated)
-! DO_RIVINPT  : Logical switch to activate riverine input
-! RIVINFILE   : File name (incl. full path) for riverine input data
-! DO_NDEP     : Logical switch to activate N-deposition
-! NDEPFILE    : File name (incl. full path) for atmopheric N-deposition data
-! DO_SEDSPINUP: Logical switch to activate sediment spin-up
-! SEDSPIN_YR_S: Start year for sediment spinup
-! SEDSPIN_YR_E: End   year for sediment spinup
-! SEDSPIN_NCYC: Number of subcyles per time-step for sediment spinup
-! INIXXX      : Initial condition file for iHAMOCC, where XXX=DIC, ALK, PO4,
-!                OXY, NO3, SIL, D13C, and D14C
-! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
-! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
-! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
-! SEDPORFILE  : File name (incl. full path) for sediment porosity
 &BGCNML
   ATM_CO2      = $CCSM_CO2_PPMV
   FEDEPFILE    = $FEDEPFILE
@@ -1670,17 +1366,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SEDPORFILE   = $SEDPORFILE
 /
 
-! NAMELIST FOR ALKALINIZATION SCENARIO
-!
-! CONTENTS:
-!
-! OALKSCEN      : Name of alkalinization scenario ('const', 'ramp', or 'file') 
-! OALKFILE      : Full path of the input file for the alkalinization scenario 'file'
-! ADDALK        : Pmol alkalinity/yr added in 'const' or 'ramp' scenarios
-! CDRMIP_LATMAX : Max latitude where alkalinity is added in 'const' or 'ramp' scenarios
-! CDRMIP_LATMIN : Min latitude where alkalinity is added in 'const' or 'ramp' scenarios
-! RAMP_START    : Start year for ramp up in 'ramp' scenario
-! RAMP_END      : End   year for ramp up in 'ramp' scenario
 &BGCOAFX
   OALKSCEN      = $BGCOAFX_OALKSCEN
   OALKFILE      = $BGCOAFX_OALKFILE
@@ -1691,168 +1376,6 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RAMP_END      = $BGCOAFX_RAMP_END
 /
 
-! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
-!
-! Namelist acronyms:
-!   GLB_     - global parameters i.e. valid for entire output group
-!   SRF_     - surface variables (includes some non-surface 2d fields)
-!   FLX_     - interior ocean particle fuxes at different depth (2d)
-!   INT_     - vertically integrated fields (2d)
-!   LYR_     - 3d fields with sigma layers as vertical coordinate
-!   LVL_     - 3d fields with levitus levels as vertical coordinate
-!   SDM_     - 3d sediment fields
-!   BUR_     - 2d fields of sediment burial
-!
-! Global parameters:
-!   FNAMETAG - tag used in file name (c10) 
-!   AVEPERIO - average period in days (i) 
-!   FILEFREQ - how often to start a new file in days (i) 
-!   COMPFLAG - switch for compressed/uncompressed output (i) 
-!   NCFORMAT - netcdf format (valid arguments are 0 for classic,
-!              1 for 64-bit offset and 2 for netcdf4/hdf5 format)
-!   INVENTORY- how often to write an inventory of tracers to ocean
-!              output file:
-!              0 : no output
-!              1 : write inventory to standard output (log file)
-!              2 : write output to inventory netCDF file
-!
-! Arguments for diagnostic variables:
-!   0        - variable is not written
-!   2        - variable is written as int2 with scale factor and offset
-!   4        - variable is written as real4
-!   8        - variable is written as real8
-!
-! Output variables:
-!
-! Main BGC tracer fields (SFR, LYR or LVL)
-!   DIC            - Dissolved carbon (dissic) [mol C m-3]
-!   ALKALI         - Alkalinity (talk) [eq m-3]
-!   OXYGEN         - Oxygen (o2) [mol O2 m-3]
-!   ANO3           - Nitrate (no3) [mol N m-3]
-!   PHOSPH         - Phosphorus (po4) [mol P m-3]
-!   IRON           - Dissolved iron (dfe) [mol Fe m-3]
-!   SILICA         - Silicate (si) [mol Si m-3]
-!   PHYTO          - Phytoplankton (phyc) [mol C m-3]
-!   PH             - pH (ph) [-log10([h+])]
-!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
-!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
-!   NATPH          - Natural pH (natph) [-log10([h+])]
-!
-! Other 3d tracer or diagnostic variables (LYR or LVL)
-!   DP             - Layer thickness (pddpo) [m]
-!   PREFO2         - preformed oxygen (p_o2) [mol O2 m-3]
-!   O2SAT          - Saturated oxygen (satoxy) [mol O2 m-3]
-!   PREFPO4        - preformed phosphate (p_po4) [mol PO4 m-3]
-!   PREFALK        - preformed alkalinity (p_talk) [eq m-3]
-!   PREFDIC        - preformed DIC (p_dic) [mol C m-3]
-!   DICSAT         - saturated DIC (dic_sat) [mol C m-3]
-!   POC            - Detrius (detoc) [mol C m-3]
-!   CALC           - CaCO3 shells (calc) [mol C m-3]
-!   OPAL           - Opal shells (opal) [mol Si m-3]
-!   DOC            - Dissolved organic carbon (dissoc) [mol C m-3]
-!   GRAZER         - Zooplankton (zooc) [mol C m-3]
-!   PHOSY          - Primary production (pp) [mol C m-3 s-1]
-!   CO3            - Carbonate ions (co3) [mol C m-3]
-!   N2O            - Nitrous oxide concentration [mol N2O m-3]
-!   OMEGAA         - Aragonite saturation state (omegaa) [1]
-!   OMEGAC         - Calcite saturation state (omegac) [1]
-!   NATDIC         - Natural dissolved carbon (natdissic) [mol C m-3]
-!   NATALKALI      - Natural alkalinity (nattalk) [eq m-3]
-!   NATCO3         - Natural carbonate ion concentration (natco3) [mol C m-3]
-!   NATCALC        - Natural CaCO3 shells (natcalc) [mol C m-3]
-!   NATOMEGAA      - Natural aragonite saturation state (natomegaa) [1]
-!   NATOMEGAC      - Natural calcite saturation state (natomegac) [1]
-!   DIC13          - Dissolved C13 (dissic13) [mol C m-3]
-!   DIC14          - Dissolved C14 (dissic14) [mol C m-3]
-!   D13C           - delta 13C of DIC [1]
-!   D14C           - delta 14C of DIC [1]
-!   BIGD14C        - Delta 14C of DIC [1]
-!   POC13          - Particulate organic carbon 13 (detoc13) [mol C m-3]
-!   DOC13          - Dissolved organic carbon 13 (dissoc13) [mol C m-3]
-!   CALC13         - Particulate inorganic carbon 13 (calc13) [mol C m-3]
-!   PHYTO13        - 13C of phytoplankton biomass (phyc13) [mol C m-3]
-!   GRAZER13       - 13C of zootoplankton biomass (zooc13) [mol C m-3]
-!   CFC11          - CFC11 concentration [mol CFC11 m-3]
-!   CFC12          - CFC12 concentration [mol CFC12 m-3]
-!   SF6            - SF6 concentration [mol SF6 m-3]
-!   NOS            - Number of sinking particles (aggregate scheme, nos) [cm-3]
-!   WPHY           - Mass sinking velocity (aggregate scheme) [m d-1]
-!   WNOS           - Number sinking velocity (aggregate scheme) [m d-1]
-!   EPS            - Epsilon exponent (aggregate scheme) [1]
-!   ASIZE          - Average particle size (aggregate scheme)
-!
-! 2d-fields (SFR)
-!   EXPORT         - Export production (epc100) [mol C m-2 s-1]
-!   EXPOCA         - Ca export production (epcalc100) [mol Ca m-2 s-1]
-!   EXPOSI         - Si export production (epsi100) [mol Si m-2 s-1]
-!   PCO2           - Surface PCO2 (spco2) [uatm]
-!   PCO2M          - Surface PCO2 under moist air assumption [uatm]
-!   KWCO2          - Piston velocity (kwco2)  [m s-1]
-!   KWCO2KHM       - Piston velocity times solubility (kwco2*kh; moist air) [m s-1 mol kg-1 uatm-1]
-!   CO2KH          - CO2 solubility under dry air assumption (khd) [mol kg-1 atm-1] 
-!   CO2KHM         - CO2 solubility under moist air assumption (kh) [mol kg-1 atm-1] 
-!   CO2FXD         - Downward CO2 flux (co2fxd) [kg C m-2 s-1]
-!   CO2FXU         - Upward CO2 flux (co2fxu) [kg C m-2 s-1]
-!   NIFLUX         - Nitrogen flux (fgn2) [mol N2 m-2 s-1]
-!   OXFLUX         - Oxygen flux (fgo2) [mol O2 m-2 s-1]
-!   N2OFX          - Nitrous oxide flux [mol N2O m-2 s-1]
-!   DMSFLUX        - DMS flux (dmsflux) [mol DMS m-2 s-1]
-!   DMS            - surface DMS concentration (dms) [mol DMS m-3]
-!   DMSPROD        - DMS production (dmsprod) [mol DMS m-2 s-1]
-!   DMS_BAC        - DMS bacterial consuption (dms_bac) [mol DMS m-2 s-1]
-!   DMS_UV         - DMS decomposition by UV (dms_uv) [mol DMS m-2 s-1]
-!   ATMCO2         - Atmospheric CO2 (atmco2) [ppm]
-!   ATMO2          - Atmospheric O2 (atmo2) [ppm]
-!   ATMN2          - Atmospheric N2 (atmn2) [ppm]
-!   NATPCO2        - Natural surface PCO2 (spco2) [uatm]
-!   NATCO2FX       - Natural net CO2 flux (natco2fx) [kg C m-2 s-1]
-!   CO213FXD       - Downward 13CO2 flux (co213fxd) [kg C m-2 s-1]
-!   CO213FXU       - Upward 13CO2 flux (co213fxu) [kg C m-2 s-1]
-!   CO214FXD       - Downward 14CO2 flux (co214fxd) [kg C m-2 s-1]
-!   CO214FXU       - Upward 14CO2 flux (co214fxu) [kg C m-2 s-1]
-!   CFC11          - CFC11 flux [mol CFC11 m-2 s-1]
-!   CFC12          - CFC12 flux [mol CFC12 m-2 s-1]
-!   SF6            - SF6 flux [mol SF6 m-2 s-1]
-!
-! Vertically integrated fields (INT)
-!   PHOSY          - Vertically integrated primary production [mol C m-3 s-1]
-!   NFIX           - Vertically integrated nitrogen fixation
-!   DNIT           - Vertically integrated denitrification
-!
-! Particle fluxes (FLX, e.g CARFLX****, where ****=0100,0500,1000,2000,4000, or _BOT),
-! diffusive fluxes at the sediment - water-column interface (SEDIFF*), and other fluxes
-!   NDEP           - Nitrogen deposition flux [mol N m-2 s-1]
-!   OALK           - Flux of alkalinity due to ocean alkalinization [mol N m-2 s-1]
-!   CARFLX****     - POC flux at **** metres depth [mol C m-2 s-1]
-!   BSIFLX****     - Biogenic silica flux at **** metres depth [mol Si m-2 s-1]
-!   CALFLX****     - Calcium carbonate flux at **** metres depth [mol C m-2 s-1]
-!   SEDIFFIC       - sediment - water-column diffusive flux of DIC [mol C m-2 s-1]
-!   SEDIFFAL       - sediment - water-column diffusive flux of alkalinity [mol m-2 s-1]
-!   SEDIFFPH       - sediment - water-column diffusive flux of phosphate [mol PO3 m-2 s-1]
-!   SEDIFFOX       - sediment - water-column diffusive flux of oxygen [mol O2 m-2 s-1]
-!   SEDIFFN2       - sediment - water-column diffusive flux of N2 [mol N2 m-2 s-1]
-!   SEDIFFNO3      - sediment - water-column diffusive flux of nitrate [mol NO3 m-2 s-1]
-!   SEDIFFSI       - sediment - water-column diffusive flux of silica [mol Si m-2 s-1]
-!   
-! Sediment fields (SDM)
-!   POWAIC         - (powdic) [mol C m-3]
-!   POWAAL         - (powalk) [eq m-3]
-!   POWAPH         - (powpho) [eq m-3]
-!   POWAOX         - (powox) [mol O2 m-3]
-!   POWN2          - (pown2) [mol N2 m-3]
-!   POWNO3         - (powno3)[mol N m-3]
-!   POWASI         - (powsi) [mol Si m-3]
-!   SSSO12         - (ssso12) [mol m-3]
-!   SSSSIL         - (ssssil) [mol Si m-3]
-!   SSSC12         - (sssc12) [mol C m-3]
-!   SSSTER         - (ssster) [mol m-3]
-!
-! Burial fields (BUR)
-!   SSSO12         - Solid sediment organic carbon [mol P m-2]
-!   SSSSIL         - Solid sediment silica [mol Si m-2]
-!   SSSC12         - Solid sediment inorganic carbon [mol C m-2]
-!   SSSTER         - 
-!
 &DIABGC
   GLB_FNAMETAG  = $BGC_FNAMETAG
   GLB_AVEPERIO  = $BGC_AVEPERIO
