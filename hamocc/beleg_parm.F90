@@ -50,26 +50,20 @@
       use mo_control_bgc, only: dtb,io_stdo_bgc
       use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
       use mod_xc,         only: mnproc
-
       ! AGG
       use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,        &
                               & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
-
       ! WLIN
       use mo_biomod,      only: wmin,wmax,wlin
-
       ! BROMO
       use mo_biomod,      only: rbro
       use mo_carbch,      only: atm_bromo,fbro1,fbro2
-
       ! cisonew
       use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
       use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
-
       ! natDI 
       use mo_carbch,      only: atm_co2_nat
-
-      use mo_ifdefs
+      use mo_control_bgc, only: use_natDIC, use_cisonew, use_BROMO, use_AGG, use_WLIN 
 
       implicit none      
 
@@ -145,10 +139,10 @@
       gammaz=0.06*dtb       !1/d -excretion rate
       ecan=0.95             ! fraction of mortality as PO_4
       pi_alpha=0.02*0.4     ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
-      if (use_agg) then
+      if (use_AGG) then
          zinges = 0.5          !dimensionless fraction -assimilation efficiency
          epsher = 0.9          !dimensionless fraction -fraction of grazing egested
-      else if (use_wlin) then
+      else if (use_WLIN) then
          zinges = 0.7          !dimensionless fraction -assimilation efficiency
          epsher = 0.85         !dimensionless fraction -fraction of grazing egested
       else
@@ -173,7 +167,7 @@
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
 
-! for use_wlin and use_agg
+! for use_WLIN and use_AGG
       wmin  =  1.*dtb       !m/d   minimum sinking speed
       wmax  = 60.*dtb       !m/d   maximum sinking speed
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
@@ -228,11 +222,11 @@
       fbro1=1.0
       fbro2=1.0
 
-      if (use_agg) then
+      if (use_AGG) then
          rcalc = 14.  ! calcium carbonate to organic phosphorous production ratio
          ropal = 10.5 ! opal to organic phosphorous production ratio      
          calmax= 0.20
-      else if (use_wlin) then
+      else if (use_WLIN) then
          rcalc = 33.  ! calcium carbonate to organic phosphorous production ratio
          ropal = 45.  ! opal to organic phosphorous production ratio      
       else
@@ -384,7 +378,7 @@
      &'*                              dmspar(5)    = ',dmspar(5)
       ENDIF
 
-      if (.not. use_agg) then
+      if (.not. use_AGG) then
          dustd1 = 0.0001 !cm = 1 um, boundary between clay and silt
          dustd2=dustd1*dustd1
          dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
@@ -409,7 +403,7 @@
               &'****************************************************************'
       ENDIF
 
-      if (use_agg) then
+      if (use_AGG) then
          ! parameters needed for the aggregation module
          
          SinkExp = 0.62

@@ -92,7 +92,7 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
                             ialkali,inatsco212,inatalkali
   use mo_vgrid,       only: kmle
   use mo_carbch,      only: ocetra,rivinflx
-  use mo_ifdefs
+  use mo_control_bgc, only: use_natDIC
 
   implicit none
 

@@ -35,8 +35,7 @@ module mod_cesm
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
-   use mo_control_bgc, only: do_bgc_aofluxes
-   use mo_ifdefs, only: use_bromo
+   use mo_control_bgc, only: do_bgc_aofluxes, use_bromo
 #endif
 
    implicit none

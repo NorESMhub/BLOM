@@ -72,7 +72,7 @@
  use mo_param1_bgc, only: ks,ksp,nsedtra,npowtra
  use mo_control_bgc, only: io_stdo_bgc
  use mod_xc,         only: mnproc
- use mo_ifdefs
+ use mo_control_bgc, only: use_sedbypass,use_cisonew
 
       implicit none
 

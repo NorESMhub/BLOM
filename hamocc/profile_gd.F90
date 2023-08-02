@@ -48,10 +48,10 @@ use mo_control_bgc,  only: io_stdo_bgc
 use mo_vgrid,        only: ptiestw
 use mo_param1_bgc,   only: ialkali,iano3,ioxygen,iphosph,isco212,isilica  
 ! cisonew
-use mo_param1_bgc, only: isco213,isco214
+use mo_param1_bgc,   only: isco213,isco214
 ! natDIC
-use mo_param1_bgc, only: inatalkali,inatsco212
-use mo_ifdefs
+use mo_param1_bgc,   only: inatalkali,inatsco212
+use mo_control_bgc,  only: use_natDIC,use_cisonew
 
 implicit none
 

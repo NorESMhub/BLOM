@@ -120,8 +120,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
   ! FB_BGC_OCE
   use mo_biomod,      only: abs_oce,atten_f
-
-  use mo_ifdefs
+  use mo_control_bgc, only: use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,use_AGG,use_cisonew,use_natDIC,&
+                          & use_WLIN,use_sedbypass
 
   implicit none
 

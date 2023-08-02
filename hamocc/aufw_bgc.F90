@@ -108,30 +108,23 @@
       use mod_dia,        only: iotype
       ! AGG
       use mo_param1_bgc,  only: iadust, inos
-
       ! BOXATM
       use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
-
       ! BROMO
       use mo_param1_bgc,  only: ibromo
-
       ! CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
-
       ! cisonew
       use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14, &
                               & issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14,                         &
                               & iatmnco2,issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14
       use mo_control_bgc, only: rmasks
-
       ! natDIC
       use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
       use mo_carbch,      only: nathi
-
       ! NOT sedbypass
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
-
-      use mo_ifdefs
+      use mo_control_bgc, only: use_cisonew, use_AGG, use_BOXATM, use_BROMO, use_CFC, use_natDIC, use_sedbypass
 
       implicit none
 
@@ -143,7 +136,8 @@
 
       ! Local variables
       INTEGER             :: i,j
-      REAL                :: locetra(kpie,kpje,2*kpke,-1:nocetra)
+      REAL, allocatable   :: locetra(:,:,:,:) ! local array for writing
+      INTEGER             :: errstat
 
       ! Variables for netcdf
       INTEGER             :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)
@@ -170,7 +164,12 @@
 !--------------------------------------------------------------------
 !
       testio=0
-      locetra(:,:,:,1:)=trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
+!
+! Allocate and initialize local array for writing (locetra)
+!
+      allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
+      if(errstat.ne.0) stop('not enough memory for locetra allocation')
+      locetra(:,:,:,1:) = trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
 
       idate(1) = kplyear
       idate(2) = kplmon
@@ -943,6 +942,8 @@
       WRITE(io_stdo_bgc,*) 'End of AUFW_BGC'
       WRITE(io_stdo_bgc,*) '***************'
       ENDIF
+
+      deallocate(locetra)
 
       RETURN
     END SUBROUTINE AUFW_BGC

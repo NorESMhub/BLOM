@@ -66,7 +66,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       ! NOT sedbypass
       use mo_param1_bgc,  only: ks
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
-      use mo_ifdefs
+      use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
   implicit none
 
@@ -697,7 +697,7 @@ subroutine write_netcdf(iogrp)
                          & iphy13,iphy14,isco213,isco214,izoo13,izoo14
   ! natDIC
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
-  use mo_ifdefs
+  use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
   implicit none
 

@@ -67,7 +67,7 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   use mo_vgrid,      only: kmle
   ! natDIC
   use mo_param1_bgc, only: inatalkali
-  use mo_ifdefs
+  use mo_control_bgc, only : use_natDIC
 
   implicit none
 

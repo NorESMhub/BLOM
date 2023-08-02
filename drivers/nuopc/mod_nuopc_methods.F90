@@ -46,8 +46,7 @@ module mod_nuopc_methods
 #ifdef HAMOCC
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms, ibromo
-   use mo_control_bgc, only: do_bgc_aofluxes
-   use mo_ifdefs
+   use mo_control_bgc, only: do_bgc_aofluxes, use_BROMO, use_DIAGCO2, use_PROGCO2
 #endif
 
    implicit none
@@ -144,7 +143,7 @@ contains
       integer           , intent(inout) :: num
       type(fldlist_type), intent(inout) :: fldlist(:)
       character(len=*)  , intent(in)    :: stdname
-      integer           , intent(out)   :: index 
+      integer           , intent(out)   :: index
       integer, optional , intent(in)    :: ungridded_lbound, ungridded_ubound
 
       ! Local parameters.
@@ -156,7 +155,7 @@ contains
 
 #ifdef HAMOCC
       ! Set the logical flag do_bgc_aofluxes to false in mo_control_bgc since
-      ! for nuopc/cmeps the dms and bromo fluxes will be computed in the mediator 
+      ! for nuopc/cmeps the dms and bromo fluxes will be computed in the mediator
       do_bgc_aofluxes = .false.
 #endif
 
@@ -222,10 +221,9 @@ contains
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_evap'  , index_Foxx_evap)
      call fldlist_add(fldsToOcn_num, fldsToOcn, 'Foxx_swnet' , index_Foxx_swnet)
 #ifdef HAMOCC
-        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
-        if (use_BROMO) then
-           call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
-        end if
+     call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_dms', index_Faox_dms)
+     if (use_BROMO) then
+        call fldlist_add(fldsToOcn_num, fldsToOcn, 'Faox_brf', index_Faox_brf)
      end if
 #endif
 
@@ -810,18 +808,18 @@ contains
                   lasl_da(i,j,l2ci) = fval
                else
                   n = (j - 1)*ii + i
-                  
+
                   utmp = fldlist(index_Sw_ustokes)%dataptr(n)
                   vtmp = fldlist(index_Sw_vstokes)%dataptr(n)
                   util1(i,j) =   utmp*cosang(i,j) + vtmp*sinang(i,j)
                   util2(i,j) = - utmp*sinang(i,j) + vtmp*cosang(i,j)
-                  
+
                   ! Langmuir enhancement factor [].
                   lamult_da(i,j,l2ci) = fldlist(index_Sw_lamult)%dataptr(n)
-                  
+
                   ! Surface layer averaged Langmuir number [].
                   lasl_da(i,j,l2ci) = fldlist(index_Sw_hstokes)%dataptr(n)
-                  
+
                endif
             enddo
          enddo
@@ -831,7 +829,7 @@ contains
          call fill_global(mval, fval, halo_pv, util2)
          call fill_global(mval, fval, halo_ps, lamult_da(1-nbdy,1-nbdy,l2ci))
          call fill_global(mval, fval, halo_ps, lasl_da(1-nbdy,1-nbdy,l2ci))
-         
+
          call xctilr(util1, 1,1, 1,1, halo_pv)
          call xctilr(util2, 1,1, 1,1, halo_pv)
 
@@ -864,7 +862,7 @@ contains
          index_co2 = -1
       end if
 
-      if (index_co2 > 0) then 
+      if (index_co2 > 0) then
          !$omp parallel do private(i, n)
          do j = 1, jjcpl
             do i = 1, ii
@@ -1078,7 +1076,7 @@ contains
    !$omp end parallel do
 
       if (index_So_dms > 0) then
-         if (associated(fldlist(index_So_dms)%dataptr)) then 
+         if (associated(fldlist(index_So_dms)%dataptr)) then
             fldlist(index_So_dms)%dataptr(:) = 0._r8
          !$omp parallel do private(l, i, n)
             do j = 1, jjcpl
@@ -1094,7 +1092,7 @@ contains
       end if
 
       if (index_So_brf > 0) then
-         if (associated(fldlist(index_So_brf)%dataptr)) then 
+         if (associated(fldlist(index_So_brf)%dataptr)) then
             fldlist(index_So_brf)%dataptr(:) = 0._r8
          !$omp parallel do private(l, i, n)
             do j = 1, jjcpl

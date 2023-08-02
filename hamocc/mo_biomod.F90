@@ -127,7 +127,7 @@
 !******************************************************************************
       use mod_xc,         only: mnproc
       use mo_control_bgc, only: io_stdo_bgc
-      use mo_ifdefs
+      use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat

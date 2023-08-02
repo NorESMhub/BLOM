@@ -99,7 +99,7 @@
       use mo_param1_bgc,  only: iatmbromo
       !CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
-      use mo_ifdefs
+      use mo_control_bgc, only: use_PROGCO2,use_DIAGCO2,use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,use_BOXATM, use_sedbypass
 
       implicit none
 

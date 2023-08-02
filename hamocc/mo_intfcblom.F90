@@ -63,7 +63,8 @@ module mo_intfcblom
 !   *atm2*       *REAL*     - two time-level copy of atm
 !
 !******************************************************************************
-  use mo_ifdefs
+  use mo_control_bgc, only: use_sedbypass,use_BOXATM
+
   implicit none
 
   integer, parameter      :: nphys=2

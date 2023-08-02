@@ -110,7 +110,7 @@
       use mod_xc,         only: mnproc
       use mo_control_bgc, only: io_stdo_bgc
       use mo_param1_bgc,  only: nocetra,npowtra,natm,nriv
-      use mo_ifdefs
+      use mo_control_bgc, only: use_natDIC,use_cisonew
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat

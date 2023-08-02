@@ -58,7 +58,7 @@
       use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
       use netcdf,         only: nf90_fill_double
       use mo_param1_bgc,  only: ks
-      use mo_ifdefs
+      use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,use_AGG
 
       IMPLICIT NONE
 

@@ -63,7 +63,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
   ! natDIC
   use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
-  use mo_ifdefs
+  use mo_control_bgc, only: use_natDIC
 
   implicit none
 

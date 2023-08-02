@@ -68,7 +68,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    blom2hamocc
   ! BOXATM
   use mo_intfcblom,   only: atm2
-  use mo_ifdefs
+  use mo_control_bgc, only: use_BROMO,use_sedbypass,use_BOXATM
 
   implicit none
 

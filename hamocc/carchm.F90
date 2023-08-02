@@ -110,20 +110,16 @@
       ! CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
       use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
-
       ! cisonew
       use mo_carbch,      only: co213fxd,co213fxu,co214fxd,co214fxu,c14dec
       use mo_param1_bgc,  only: iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv
-
       ! natDIC
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
-
       ! sedbypass
       use mo_sedmnt,      only: sedlay,powtra
       use mo_param1_bgc,  only: issso14,isssc14,ipowc14
-
-      use mo_ifdefs
+      use mo_control_bgc, only: use_cisonew,use_natDIC,use_CFC,use_BROMO,use_cisonew,use_sedbypass
 
       implicit none
 
@@ -172,7 +168,7 @@
       REAL    :: flux14d,flux14u,flux13d,flux13u
       REAL    :: atco213,atco214,pco213,pco214      
       REAL    :: frac_k,frac_aqg,frac_dicg
-      ! bromo
+      ! BROMO
       REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
 
 ! set variables for diagnostic output to zero
@@ -495,10 +491,6 @@
             flx_bromo = kw_bromo*dtbgc* &
                  (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
          else
-            ! Note that the external computation of fluxes is -flx_bromo/dtbgc
-            ! using above computation of flx_bromo
-            ! So need to divide by 252.7 and multiply by -dtbgc and in order to use this
-            ! for the tendency in the tracer update
             flx_bromo = dtbgc*pflxbromo(i,j)
          end if
          ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)

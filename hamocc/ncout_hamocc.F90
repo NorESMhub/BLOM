@@ -159,8 +159,7 @@ subroutine ncwrt_bgc(iogrp)
        &                inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur
   ! BOXATM
   use mo_bgcmean, only: jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2
-
-  use mo_ifdefs
+  use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,use_sedbypass,use_BOXATM
 
   implicit none
 
@@ -944,8 +943,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &   sdm_pown2,sdm_powno3,sdm_powasi,sdm_ssso12,sdm_ssssil,               &
        &   sdm_sssc12,sdm_ssster,bur_ssso12,bur_sssc12,bur_ssssil,              &
        &   bur_ssster
-
-  use mo_ifdefs
+  use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,use_sedbypass,use_BOXATM
 
   implicit none
 

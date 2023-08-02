@@ -68,10 +68,10 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
                           & issster, ks 
   use mo_vgrid,       only: kbo,bolay
-
   ! cisonew
   use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
   use mo_sedmnt,      only: pror13,pror14,prca13,prca14
+  use mo_control_bgc, only: use_cisonew
 
   implicit none
 

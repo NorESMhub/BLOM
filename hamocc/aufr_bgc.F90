@@ -114,52 +114,45 @@
       use mod_dia,        only: iotype
       ! AGG
       use mo_param1_bgc,  only: iadust,inos
-
       ! BOXATM
       use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
       use mo_carbch,      only: atm
-
       ! BROMO
       use mo_param1_bgc,  only: ibromo
-
       ! CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
-
       ! cisonew
       use mo_carbch,      only: ocetra
       use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
       use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, & 
                               & issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14
       use mo_bgcmean,     only: jatmo2,jatmn2
-
       ! natDIC
       use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212,iatmnco2
       use mo_carbch,      only: nathi
-
       ! NOT sedbypass
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
+      use mo_control_bgc, only: use_cisonew, use_AGG, use_BOXATM, use_BROMO, use_CFC, use_natDIC, use_sedbypass
 
-      use mo_ifdefs    , only : use_CFC, use_natDIC, use_cisonew, use_BROMO, use_BOXATM, use_AGG, use_sedbypass
       implicit none
 
-      INTEGER          :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
-      REAL             :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
-      REAL             :: omask(kpie,kpje)
-      INTEGER          :: kplyear,kplmon,kplday
-      character(len=*) :: rstfnm
+      INTEGER,          intent(in)    :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
+      REAL,             intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)
+      REAL,             intent(in)    :: omask(kpie,kpje)
+      INTEGER,          intent(in)    :: kplyear,kplmon,kplday
+      character(len=*), intent(in)    :: rstfnm
 
       ! Local variables
-      REAL      :: locetra(kpie,kpje,2*kpke,-1:nocetra) ! local array for reading
+      REAL, allocatable :: locetra(:,:,:,:) ! local array for reading
+      INTEGER   :: errstat
       INTEGER   :: restyear                          !  year of restart file
       INTEGER   :: restmonth                         !  month of restart file
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
       logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
-      ! cisonew
-      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
-
-      INTEGER ncid,ncstat,ncvarid
+      REAL      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat ! cisonew
+      INTEGER   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF
 #     include <pnetcdf.inc>
@@ -174,7 +167,11 @@
       character(len=9) :: stripestr2
       integer :: ierr,testio
       INTEGER :: leninrstfn
-
+!
+! Allocate and initialize local array for reading (locetra)
+!
+      allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
+      if(errstat.ne.0) stop 'not enough memory for locetra allocation'
       locetra(:,:,:,:) = 0.0
 !
 ! Open netCDF data file
@@ -590,12 +587,12 @@
                   IF(omask(i,j) .GT. 0.5) THEN
                      rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
                      rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-                     powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowc13)*rco213*bifr13
-                     powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowc14)*rco214*bifr14
-                     sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso13)*rco213*bifr13
-                     sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso14)*rco214*bifr14
-                     sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc13)*rco213
-                     sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc14)*rco214
+                     powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213*bifr13
+                     powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214*bifr14
+                     sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
+                     sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
+                     sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
+                     sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc12)*rco214
                   ENDIF
                ENDDO
                ENDDO
@@ -610,7 +607,7 @@
 !--------------------------------------------------------------------
 !
       trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)
-
+      deallocate(locetra)
 
       RETURN
     END SUBROUTINE AUFR_BGC

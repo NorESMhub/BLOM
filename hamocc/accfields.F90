@@ -72,21 +72,17 @@
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
                               & irdin,irdip,irsi,iralk,iriron,irdoc,irdet
-
       ! AGG
       use mo_biomod,      only: asize3d,eps3d,wnumb,wmass
       use mo_param1_bgc,  only: inos
       use mo_control_bgc, only: dtb
-
       ! BROMO
       use mo_param1_bgc,  only: iatmbromo,ibromo
       use mo_biomod,      only: int_chbr3_prod,int_chbr3_uv
       use mo_bgcmean,     only: jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo
-
       ! CFC
       use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
       use mo_bgcmean,     only: jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx
-
       ! cisonew
       use mo_carbch,      only: co213fxd,co213fxu,co214fxd,co214fxu 
       use mo_biomod,      only: c14fac,re1312,re14to
@@ -94,7 +90,6 @@
       use mo_param1_bgc,  only: iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,izoo13,safediv
       use mo_bgcmean,     only: jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,jco213fxu,jco214fxd,jco214fxu,jd13c,jd14c,jdic13,jdic14,&
                               & jdoc13,jgrazer13,jphyto13,jpoc13
-
       ! natDIC
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
       use mo_carbch,      only: natco3,nathi,natomegaa,natomegac,natpco2d
@@ -105,18 +100,17 @@
       use mo_sedmnt,     only: powtra,sedlay,burial
       use mo_bgcmean,    only: jbursssc12,jburssso12,jburssssil,jburssster,jpowaal,jpowaic,jpowaox,jpowaph,jpowaph,jpowasi,jpown2, &
                              & jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm
-
       ! BOXATM
-      use mo_bgcmean, only: jatmco2,jatmn2,jatmo2
+      use mo_bgcmean,     only: jatmco2,jatmn2,jatmo2
+      use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC, use_sedbypass, use_cisonew, use_BOXATM 
 
-      use mo_ifdefs,     only : use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC, use_sedbypass, &
-                              & use_cisonew, use_BOXATM 
       implicit none
-      INTEGER :: kpie,kpje,kpke
-      REAL    :: pdlxp(kpie,kpje)
-      REAL    :: pdlyp(kpie,kpje)
-      REAL    :: pddpo(kpie,kpje,kpke)
-      REAL    :: omask(kpie,kpje)
+
+      INTEGER , intent(in) :: kpie,kpje,kpke
+      REAL    , intent(in) :: pdlxp(kpie,kpje)
+      REAL    , intent(in) :: pdlyp(kpie,kpje)
+      REAL    , intent(in) :: pddpo(kpie,kpje,kpke)
+      REAL    , intent(in) :: omask(kpie,kpje)
 
 ! Local variables
       INTEGER :: i,j,k,l

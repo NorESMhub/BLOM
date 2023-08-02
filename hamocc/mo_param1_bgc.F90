@@ -38,7 +38,8 @@
 !  - definition of indices in tracer arrays
 !
 !******************************************************************************
-      use mo_ifdefs
+      use mo_control_bgc, only: use_cisonew
+
       implicit none
       
       INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
