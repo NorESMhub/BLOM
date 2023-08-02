@@ -66,6 +66,9 @@ c
       use mod_tke, only: L_scale
 #  endif
 #endif
+#ifdef HAMOCC
+      use mo_control_bgc, only : use_BROMO
+#endif
 c
       implicit none
 c
@@ -370,8 +373,10 @@ c
         call wrtrst('mltpot',trim(c5p)//' time',mltpot,ip)
         call wrtrst('flxco2',trim(c5p)//' time',flxco2,ip)
         call wrtrst('flxdms',trim(c5p)//' time',flxdms,ip)
-#ifdef BROMO
-        call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+#ifdef HAMOCC
+        if (use_BROMO) then
+           call wrtrst('flxbrf',trim(c5p)//' time',flxbrf,ip)
+        end if
 #endif
       endif
 c
@@ -1046,8 +1051,10 @@ c
         call defvarrst('mltpot',trim(c5p)//' time')
         call defvarrst('flxco2',trim(c5p)//' time')
         call defvarrst('flxdms',trim(c5p)//' time')
-#ifdef BROMO
-        call defvarrst('flxbrf',trim(c5p)//' time')
+#ifdef HAMOCC
+        if (use_BROMO) then
+           call defvarrst('flxbrf',trim(c5p)//' time')
+        end if
 #endif
       endif
 c
