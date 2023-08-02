@@ -369,7 +369,7 @@ module mo_parambgc_ini
 #ifndef AGG
     dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
     dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                  &  ! g * sec per day / 18.
+    dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
      &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
      &         * dustd2 * 1.e-4)
     wdust = dustsink
@@ -387,7 +387,11 @@ module mo_parambgc_ini
     integer  :: iounit
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal,              &
-                       & remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,wcal,wopal
+                       & remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,                                              &
+#if defined(WLIN) && ! defined(AGG)
+                       & wmin,wmax,wlin,                                                                                           &
+#endif        
+                       & wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
