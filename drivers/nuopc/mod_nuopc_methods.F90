@@ -168,9 +168,12 @@ contains
       integer :: rc
 
 #ifdef HAMOCC
-      ! Set the logical flag do_bgc_aofluxes to false in mo_control_bgc since
-      ! for nuopc/cmeps the dms and bromo fluxes will be computed in the mediator 
-      do_bgc_aofluxes = .false.
+      ! Setting the logical flag do_bgc_aofluxes will change the default value of 
+      ! false in mo_control_bgc and will result in then 
+      ! dms and bromo fluxes to be computed in the mediator and used in BLOM
+      ! For now this flag will be hard-wired to .true. to permit bit-for-bit
+      ! results. Moving forwards this flag will be moved into a namelist.
+      do_bgc_aofluxes = .true.
 #endif
 
       num = num + 1
