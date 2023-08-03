@@ -163,11 +163,12 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
   ENDDO
 
   IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
     WRITE(io_stdo_bgc,*) ' '
-    WRITE(io_stdo_bgc,*) 'co213flux_ppm: ',co213flux_ppm
-    WRITE(io_stdo_bgc,*) 'co214flux_ppm: ',co214flux_ppm
-    WRITE(io_stdo_bgc,*) 'totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
+    WRITE(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
+    WRITE(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm
+    WRITE(io_stdo_bgc,*) ' co214flux_ppm: ',co214flux_ppm
+    WRITE(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
+    WRITE(io_stdo_bgc,*) ' '
   ENDIF
 #endif /* cisonew */
 
