@@ -22,6 +22,7 @@ sources += files(
   'mo_apply_oafx.F90',
   'mo_bgcmean.F90',
   'mo_biomod.F90',
+  'mo_boxatm.F90',
   'mo_carbch.F90',
   'mo_chemcon.F90',
   'mo_clim_swa.F90',

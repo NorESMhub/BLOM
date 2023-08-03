@@ -94,10 +94,10 @@
       use mo_apply_ndep,  only: apply_ndep
       use mo_apply_oafx,  only: apply_oafx
       ! BOXATM
-      ! use mo_boxatm,      only: update_boxatm ERROR: there is no mo_boxatm
+      use mo_boxatm,      only: update_boxatm
       ! BROMO
       use mo_param1_bgc,  only: iatmbromo
-      !CFC
+      ! CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
       use mo_control_bgc, only: use_PROGCO2,use_DIAGCO2,use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,use_BOXATM, use_sedbypass
 
@@ -316,10 +316,9 @@
       end if
 
       ! Update atmospheric pCO2 [ppm]
-      ! ERROR - there is no module that contains update_boxatm
-      ! if (use_BOXATM) then
-      !    CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)
-      ! end if
+      if (use_BOXATM) then
+         CALL update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
+      end if
 
       if (use_PBGC_CK_TIMESTEP ) then
          IF (mnproc.eq.1) THEN
