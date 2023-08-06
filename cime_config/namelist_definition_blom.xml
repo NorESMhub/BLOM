@@ -90,7 +90,7 @@
     <desc>Experiment configuration (a)</desc>
   </entry>
 
-  <entry id="runtyp" >
+  <entry id="runtyp" modify_via_xml="RUN_TYPE">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -772,7 +772,7 @@
   <!-- namelist group: vcoord -->
   <!-- ========================= -->
 
-  <entry id="vcoord_type">
+  <entry id="vcoord_type" modify_via_xml="BLOM_VCOORD">
     <type>char</type>
     <category>vcoord</category>
     <group>vcoord</group>
@@ -1216,7 +1216,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>unset</value>
+      <value>'',''</value>
       <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
       <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
     </values>
@@ -3485,7 +3485,7 @@
   <!-- namelist group: bgcnml -->
   <!-- ========================= -->
 
-  <entry id="atm_co2" >
+  <entry id="atm_co2" modify_via_xml="CCSM_CO2_PPMV">
     <type>real</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3599,7 +3599,7 @@
     <desc>Logical switch to activate sediment spin-upLogical switch to activate sediment spin-up</desc>
   </entry>
 
-  <entry id="sedspin_yr_s" >
+  <entry id="sedspin_yr_s" modify_via_xml="HAMOCC_SEDSPINUP_YR_START">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3610,7 +3610,7 @@
     <desc>Start year for sediment spinup</desc>
   </entry>
 
-  <entry id="sedspin_yr_e" >
+  <entry id="sedspin_yr_e" modify_via_xml="HAMOCC_SEDSPINUP_YR_END">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>

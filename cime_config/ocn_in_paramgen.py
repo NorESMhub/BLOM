@@ -915,7 +915,7 @@ class OcnInParamGen(ParamGen):
 
         """
         Function that checks if certain namelist definition
-        file elements/tags that are optional for ParamGen 
+        file elements/tags that are optional for ParamGen
         but required are present
         """
 
@@ -1023,7 +1023,7 @@ class OcnInParamGen(ParamGen):
         self.__nml_def_vars.update(ocn_pg_obj.__nml_def_vars)
 
         #Also combine PG object var-group dictionary needed for
-        #appending "user_nl_cam":
+        #appending "user_nl_blom":
         self.__var_group_dict.update(ocn_pg_obj.__var_group_dict)
 
         #Append input PG object to this object:
@@ -1072,7 +1072,7 @@ class OcnInParamGen(ParamGen):
         #End if
 
         #Check that variable actually exists in ParamGen object:
-        
+
         if var_name in self.__var_group_dict:
             #Extract namelist group list for variable:
             data_group = self.__var_group_dict[var_name]
@@ -1081,7 +1081,7 @@ class OcnInParamGen(ParamGen):
             #Raise error that namelist variable isn't listed in
             #anywhere in a definition file:
             emsg = f"Variable '{var_name}' not found in any namelist definition files."
-            emsg += " Please double-check 'user_nl_cam'."
+            emsg += " Please double-check 'user_nl_blom'."
             raise OcnInParamGenError(emsg)
         #End if
 
@@ -1094,7 +1094,7 @@ class OcnInParamGen(ParamGen):
         #Determine if variable is actually an array or not:
         is_array = bool(array_type_dims)
 
-        #Exit function here if no array indices were used in user_nl_cam file:
+        #Exit function here if no array indices were used in user_nl_blom file:
         if not array_syntax_match:
 
             #No parantheses used, so no indices need to be checked:
@@ -1102,10 +1102,10 @@ class OcnInParamGen(ParamGen):
         #End if
 
         #If variable is not an array, but array indices are being
-        #used in user_nl_cam, then throw an error:
+        #used in user_nl_blom, then throw an error:
         if not is_array:
             emsg = f"Variable '{var_name}' is not an array, but array"
-            emsg += " dimensions are being specified in 'user_nl_cam'."
+            emsg += " dimensions are being specified in 'user_nl_blom'."
             raise OcnInParamGenError(emsg)
         #End if
 
@@ -1153,7 +1153,7 @@ class OcnInParamGen(ParamGen):
 
             #Raise error with proper message:
             emsg = f"Variable '{var_name}' has {num_user_dims}"
-            emsg += f" {user_dim_str} used in 'user_nl_cam', but is defined"
+            emsg += f" {user_dim_str} used in 'user_nl_blom', but is defined"
             emsg += f" to have {num_arr_dims} {array_dim_str}"
             raise OcnInParamGenError(emsg)
         #End if
@@ -1290,15 +1290,15 @@ class OcnInParamGen(ParamGen):
 
     def append_user_nl_file(self, user_nl_file):
         """
-        Reads in user_nl_cam files and converts
+        Reads in user_nl_blom files and converts
         them to the proper ParamGen syntax.
         ----------
-        user_nl_file -> Path (str) to user_nl_cam file.
+        user_nl_file -> Path (str) to user_nl_blom file.
 
         """
 
         #Create ordered dictionary to store namelist groups,
-        #variables, and values from user_nl_cam file:
+        #variables, and values from user_nl_blom file:
         _data = OrderedDict()
 
         #Initialize flag preventing duplicate namelist entries:
@@ -1310,7 +1310,7 @@ class OcnInParamGen(ParamGen):
         #Initialize flag to mark whether the line is an array continuation line:
         is_continue_line = False
 
-        #Open user_nl_cam file:
+        #Open user_nl_blom file:
         with open(user_nl_file,'r', encoding='utf-8') as user_file:
             for line_num, line in enumerate(user_file):
                 if len(line)>1:
@@ -1354,7 +1354,7 @@ class OcnInParamGen(ParamGen):
                                 #in-between. Technically this is allowed,
                                 #but in practice it is VERY likely a mistake,
                                 #so raise an error here:
-                                emsg = f"Line number {line_num+1} in 'user_nl_cam'"
+                                emsg = f"Line number {line_num+1} in 'user_nl_blom'"
                                 emsg += " starts with a comma (,) but the"
                                 emsg += " previous line ended with a comma."
                                 emsg += "\nPlease remove one of the commas."
@@ -1365,7 +1365,7 @@ class OcnInParamGen(ParamGen):
                             is_continue_line = True
                         else:
                             #The previous variable is not an array, so throw an error:
-                            emsg  = f"Line number {line_num+1} in 'user_nl_cam'"
+                            emsg  = f"Line number {line_num+1} in 'user_nl_blom'"
                             emsg += " starts with a comma (,) but the"
                             emsg += " associated namelist variable is not an array."
                             raise OcnInParamGenError(emsg)
@@ -1383,6 +1383,15 @@ class OcnInParamGen(ParamGen):
                         #are being specified, and what namelist (data) group it belongs to:
                         is_array, var_name, arr_indxs, data_group = \
                             self.get_user_nl_var_array_info(var_str)
+
+                        #Check if variable can actually be set in user_nl_blom - or must be specified
+                        #only via xmlchange
+                        user_only_modify_via_xml = self._data[data_group][var_str]["modify_via_xml"] != 'unset'
+                        if user_only_modify_via_xml:
+                            xml_var = self._data[data_group][var_str]["modify_via_xml"]
+                            emsg  = f"Cannot change {var_str} in user_nl_blom file,"
+                            emsg += f" can only set {var_str} via xmlchange to {xml_var.upper()} \n"
+                            raise OcnInParamGenError(emsg)
 
                         #Are there array indices specified:
                         if arr_indxs:
@@ -1438,7 +1447,7 @@ class OcnInParamGen(ParamGen):
                         if len(no_equals_line) != len(line):
                             #This looks like the start of a new namelist entry without the
                             #proper ending of the previous entry.  So raise an error here:
-                            emsg = f"Line number {line_num+1} in 'user_nl_cam' appears"
+                            emsg = f"Line number {line_num+1} in 'user_nl_blom' appears"
                             emsg += " to be starting a new namelist entry,\nbut"
                             emsg += " the previous entry has a trailing comma (,).  Please fix."
                             raise OcnInParamGenError(emsg)
@@ -1462,29 +1471,60 @@ class OcnInParamGen(ParamGen):
             #End for
         #End with
 
-        #Check if any user_nl_cam data is present:
+        #Check if any user_nl_blom data is present:
         if _data:
             #If so, then create new ParamGen object:
             pg_user = ParamGen(_data)
 
-            #Append new user_nl_cam object to main ocn_in namelist object:
+            #Append new user_nl_blom object to main ocn_in namelist object:
             self.append(pg_user)
         #End if
     ####
 
-    def write_nmlfile(self, output_path, groups):
+    def set_value(self, variable, value):
+        """
+        Reset value of namelist variable
+        ----------
+        """
 
+        #Loop through namelist groups in alphabetical order:
+        for nml_group in sorted(self._data):
+            #Create function to properly sort variables with array indices:
+            var_sort_key = lambda var : var[:var.index("(")] if "(" in var else var
+            # Change value of variable
+            for var in sorted(self._data[nml_group], key=var_sort_key):
+                if var == variable:
+                    self._data[nml_group][var]["values"] = value
+                    break
+
+    def get_value(self, variable):
+        """
+        Get value of namelist variable
+        ----------
+        """
+
+        #Loop through namelist groups in alphabetical order:
+        for nml_group in sorted(self._data):
+            #Create function to properly sort variables with array indices:
+            var_sort_key = lambda var : var[:var.index("(")] if "(" in var else var
+            # Change value of variable
+            for var in sorted(self._data[nml_group], key=var_sort_key):
+                if var == variable:
+                    value = self._data[nml_group][var]["values"]
+                    break
+        return value
+
+    def write_nmlfile(self, output_path, groups):
         """
         Write data to Fortran namelist file.
         ----------
         output_path   -> path (str) to Fortran namelist (ocn_in) file
-
         """
 
         # Make sure ParamGen object has been reduced:
         if not self.reduced:
             emsg = "ParamGen object for ocn_in must be reduced before being "
-            emsg += "written to file. Please check CAM's buildnml script."
+            emsg += "written to file. Please check BLOM's buildnml script."
             raise OcnInParamGenError(emsg)
         #End if
 
@@ -1610,7 +1650,6 @@ class OcnInParamGen(ParamGen):
 
 
     def reduce_ocn_in(self, case, ocn_attr_dict):
-
         """
         Reduce XML namelist attributes
         (i.e. replace attribute/guard dictionary with value)

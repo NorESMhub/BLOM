@@ -46,24 +46,41 @@ def buildnml(case, caseroot, compname):
         emsg = "BLOM buildnml called with model={}"
         raise AttributeError(emsg.format(compname))
     # End if
-    srcroot             = case.get_value("SRCROOT")
-    rundir              = case.get_value("RUNDIR")
-    ninst_ocn           = case.get_value("NINST_OCN")
-    run_type            = case.get_value("RUN_TYPE")
-    run_startdate       = case.get_value("RUN_STARTDATE")
-    run_refcase         = case.get_value("RUN_REFCASE")
-    run_refdate         = case.get_value("RUN_REFDATE")
-    run_reftod          = case.get_value("RUN_REFTOD")
 
-    testsrc = os.path.join(srcroot, "components", "blom")
-    if os.path.exists(testsrc):
-        srcroot = testsrc
+    srcroot                   = case.get_value("SRCROOT")
+    din_loc_root              = case.get_value("DIN_LOC_ROOT")
+    caseroot                  = case.get_value("CASEROOT")
+    rundir                    = case.get_value("RUNDIR")
+    continue_run              = case.get_value("CONTINUE_RUN")
+    ninst_ocn                 = case.get_value("NINST_OCN")
+    run_type                  = case.get_value("RUN_TYPE")
+    run_startdate             = case.get_value("RUN_STARTDATE")
+    run_refcase               = case.get_value("RUN_REFCASE")
+    run_refdate               = case.get_value("RUN_REFDATE")
+    run_reftod                = case.get_value("RUN_REFTOD")
+    ocn_grid                  = case.get_value("OCN_GRID")
+    ocn_ncpl                  = case.get_value("OCN_NCPL")
+    pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
+    pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
+    blom_unit                 = case.get_value("BLOM_UNIT")
+    blom_vcoord               = case.get_value("BLOM_VCOORD")
+    blom_river_nutrients      = case.get_value("BLOM_RIVER_NUTRIENTS")
+    blom_n_deposition         = case.get_value("BLOM_N_DEPOSITION")
+    blom_ndep_scenario        = case.get_value("BLOM_NDEP_SCENARIO")
+    blom_coupling             = case.get_value("BLOM_COUPLING")
+    blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
+    hamocc_ciso               = case.get_value("HAMOCC_CISO")
+    hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
+    hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
+    hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
+    hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
+    is_test                   = case.get_value("TEST")
 
     #--------------------------
     # Construct ParamGen objects:
     #--------------------------
 
-    xml_fil = os.path.join(srcroot,"cime_config","namelist_definition_blom.xml")
+    xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
     pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
 
     #------------------------
@@ -135,49 +152,13 @@ def buildnml(case, caseroot, compname):
         # Create config dictionary
         #-------------------------------------------------
 
-        rundir = case.get_value("RUNDIR")
-        srcroot = case.get_value("SRCROOT")
-        din_loc_root = case.get_value("DIN_LOC_ROOT")
-        caseroot = case.get_value("CASEROOT")
-        continue_run = case.get_value("CONTINUE_RUN")
-        ocn_grid = case.get_value("OCN_GRID")
-        ocn_ncpl = case.get_value("OCN_NCPL")
-        blom_unit = case.get_value("BLOM_UNIT")
-        blom_vcoord = case.get_value("BLOM_VCOORD")
-        pio_typename_ocn = case.get_value("PIO_TYPENAME_OCN")
-        pio_netcdf_format_ocn = case.get_value("PIO_NETCDF_FORMAT_OCN")
-        is_test =  case.get_value("TEST")
-        blom_river_nutrients = case.get_value("BLOM_RIVER_NUTRIENTS")
-        blom_n_deposition = case.get_value("BLOM_N_DEPOSITION")
-        blom_ndep_scenario = case.get_value("BLOM_NDEP_SCENARIO")
-        blom_coupling = case.get_value("BLOM_COUPLING")
-        blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
-        hamocc_vsls = case.get_value("HAMOCC_VSLS")
-        hamocc_ciso = case.get_value("HAMOCC_CISO")
-        hamocc_sedspinup = case.get_value("HAMOCC_SEDSPINUP")
-        hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
-        hamocc_sedspinup_yr_end = case.get_value("HAMOCC_SEDSPINUP_YR_END")
-        hamocc_sedspinup_ncycle = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
-
-        # error checks
-        if hamocc_vsls and ocn_grid != "tnx1v4":
-            expect(False, 
-                   "HAMOCC_VSLS is not supported at this grid resolution (no swa-climatology available)")
-
         # create config dictionary - used in namelist_definition_blom.xml
         config = {}
-
         config['ocn_grid'] = ocn_grid
         config['ocn_ncpl'] = str(ocn_ncpl)
         config['pio_typename_ocn'] = pio_typename_ocn
         config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
         config["continue_run"] = "yes" if continue_run else "no"
-        config["is_test"] = "yes" if is_test else "no"
-        if is_test:
-            testcase = case.get_value("TESTCASE")
-            config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
-            config["empty_hist"] = "yes" if testcase == "PFS" else "no"
-
         config['blom_unit'] = blom_unit if blom_unit else "unset"
         config['blom_vcoord'] = blom_vcoord
         config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
@@ -185,19 +166,40 @@ def buildnml(case, caseroot, compname):
         config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
         config["blom_coupling"] = blom_coupling
         config["blom_tracer_modules"] = blom_tracer_modules
-
-        config["hamocc_vsls"] = "yes" if hamocc_vsls else "no"
-        config["hamocc_ciso"] = "yes" if hamocc_ciso else "no" 
+        config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
         config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
         config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
+        config["is_test"] = "yes" if is_test else "no"
+        if is_test:
+            testcase = case.get_value("TESTCASE")
+            config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
+            config["empty_hist"] = "yes" if testcase == "PFS" else "no"
 
         #---------------------------------
         # Set all ParamGen namelist values:
         #---------------------------------
 
         pg_blom.reduce_ocn_in(case, config)
+
+        #----------------------------------------------------
+        # Reset values of some variables
+        #----------------------------------------------------
+
+        run_startdate = case.get_value("RUN_STARTDATE")
+        idate = run_startdate.replace('-','')
+        pg_blom.set_value("idate", idate)
+        pg_blom.set_value("idate0", idate)
+
+        if pg_blom.get_value('swaclimfile') == 'UNSET':
+            pg_blom.set_value('swaclimfile', value='')
+
+        if pg_blom.get_value('inid13c') == 'UNSET':
+            pg_blom.set_value('inid13c', value='')
+
+        if pg_blom.get_value('inid14c') == 'UNSET':
+            pg_blom.set_value('inid14c', value='')
 
         #---------------------------
         # Write out Fortran namelist:
@@ -211,6 +213,8 @@ def buildnml(case, caseroot, compname):
 
         # Create BLOM namelist
         groups=['limits','diffusion','merdia','secdia','diaphy']
+
+        groups.append('cwmod')
 
         if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
             groups.append('vcoord')
@@ -230,13 +234,32 @@ def buildnml(case, caseroot, compname):
         filename.write_text(filename.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
         filename.write_text(filename.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
 
-
         # Write out blom.input_data_list
         data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
         if os.path.exists(data_list_path):
             os.remove(data_list_path)
         pg_blom.write_inputdata(data_list_path, groups)
 
+    # To compare with previous namelist generation, make namelist variable uppercase and
+    # use single quotes instead of back quotes and make sure that file variables set to UNSET
+    # get changed to blank quotes
+    namelist_file_temp = os.path.join(confdir, "ocn_in_temp")
+    with open(namelist_file, "r") as fread:
+        with open(namelist_file_temp, "w") as fwrite:
+            for line_read in fread:
+                # replace single quote with double quote to generate same namelist as using
+                # csh buildnml
+                line = line_read.replace('"',"'")
+                # make all namelists upper case to generate same namelist as using csh buildnml
+                tokens = line.split('=',maxsplit=1)
+                if len(tokens) == 2:
+                    # Change UNSET values for files to lower case
+                    if 'UNSET' in tokens[1]:
+                        tokens[1] = "'unset'"
+                    fwrite.write(f"  {tokens[0].upper().strip()} = {tokens[1].strip()}\n")
+                else:
+                    fwrite.write(line)
+    shutil.move(namelist_file_temp, namelist_file)
 
 ###############################################################################
 def _main_func():
