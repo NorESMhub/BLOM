@@ -1,8 +1,6 @@
 """
-Wrapper-class for the ParamGen
-CIME tool, and associated methods
-needed to generated the "ocn_in"
-Fortran namelist file.
+Wrapper-class for the BLOM ParamGen tool, and associated methods
+needed to generated the "ocn_in" Fortran namelist file.
 
 To run doctests on this file: python -m doctest ocn_in_paramgen.py
 """
@@ -21,17 +19,10 @@ from collections import OrderedDict
 # Import ParamGen
 #----------------
 
-_CIME_ROOT = os.environ.get("CIMEROOT")
-if _CIME_ROOT is None:
-    raise SystemExit("ERROR: must set CIMEROOT environment variable")
-sys.path.append(os.path.join(_CIME_ROOT, "CIME", "Tools"))
-
-#_PARAMGEN_ROOT = os.path.join(_CIME_ROOT, "CIME", "ParamGen")
-# if not os.path.exists(_PARAMGEN_ROOT):
-#     _EMSG = f"ERROR: Cannot find '{_PARAMGEN_ROOT}' directory.  Did you run checkout_externals?"
-#     raise SystemExit(_EMSG)
-#End if
-#sys.path.append(_PARAMGEN_ROOT)
+file_path = os.path.abspath(__file__)
+directory = os.path.dirname(file_path)
+print (f"DEBUG: directory dir is {directory}")
+sys.path.append(os.path.join(directory, "ParamGen"))
 #pylint: disable=wrong-import-position
 from paramgen import ParamGen
 #pylint: enable=wrong-import-position
@@ -1662,7 +1653,7 @@ class OcnInParamGen(ParamGen):
         Reduce XML namelist attributes
         (i.e. replace attribute/guard dictionary with value)
         ----------
-        case          -> CIME case object
+        case          -> dictionary replicating a case object
         ocn_attr_dict -> dictionary containing attribute values
 
         """
@@ -1684,7 +1675,7 @@ class OcnInParamGen(ParamGen):
         their associated values.
         """
 
-        #Check if varname matches a CIME case variable:
+        #Check if varname matches a case dictionary variable:
         val = self.__case.get_value(varname)
 
         #If not, then attempt to extract variable from
