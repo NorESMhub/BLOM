@@ -230,6 +230,16 @@
         sedlay(i,j,ks,issster)=sedlay(i,j,ks,issster)                  &
      &                        +refill*burial(i,j,issster)/frac
 
+#ifdef cisonew
+        sedlay(i,j,ks,issso13)=sedlay(i,j,ks,issso13)                  &
+     &                        +refill*burial(i,j,issso13)/frac
+        sedlay(i,j,ks,isssc13)=sedlay(i,j,ks,isssc13)                  &
+     &                        +refill*burial(i,j,isssc13)/frac
+        sedlay(i,j,ks,issso14)=sedlay(i,j,ks,issso14)                  &
+     &                        +refill*burial(i,j,issso14)/frac
+        sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)                  &
+     &                        +refill*burial(i,j,isssc14)/frac
+#endif
 ! account for losses in buried sediment
         burial(i,j,issso12) = burial(i,j,issso12)                      &
      &                      - refill*burial(i,j,issso12)
@@ -239,7 +249,16 @@
      &                      - refill*burial(i,j,issssil)
         burial(i,j,issster) = burial(i,j,issster)                      &
      &                      - refill*burial(i,j,issster)
-
+#ifdef cisonew
+        burial(i,j,issso13) = burial(i,j,issso13)                      &
+     &                      - refill*burial(i,j,issso13)
+        burial(i,j,isssc13) = burial(i,j,isssc13)                      &
+     &                      - refill*burial(i,j,isssc13)
+        burial(i,j,issso14) = burial(i,j,issso14)                      &
+     &                      - refill*burial(i,j,issso14)
+        burial(i,j,isssc14) = burial(i,j,isssc14)                      &
+     &                      - refill*burial(i,j,isssc14)
+#endif
       endif
       enddo !end i-loop
       enddo !end j-loop
@@ -262,7 +281,7 @@
       enddo !end j-loop
 !$OMP END PARALLEL DO
 
-      do iv=1,4
+      do iv=1,nsedtra
 !$OMP PARALLEL DO PRIVATE(i,uebers,frac)
       do j=1,kpje
       do i=1,kpie
@@ -272,20 +291,6 @@
           frac=porsol(i,j,k)*seddw(k)/(porsol(i,j,k-1)*seddw(k-1))
           sedlay(i,j,k,iv)=sedlay(i,j,k,iv)-uebers
           sedlay(i,j,k-1,iv)=sedlay(i,j,k-1,iv)+uebers*frac
-#ifdef cisonew
-          if(iv.eq.issso12)then
-            sedlay(i,j,k,issso13)  =sedlay(i,j,k,issso13)-uebers
-            sedlay(i,j,k-1,issso13)=sedlay(i,j,k-1,issso13)+uebers*frac
-            sedlay(i,j,k,issso14)  =sedlay(i,j,k,issso14)-uebers
-            sedlay(i,j,k-1,issso14)=sedlay(i,j,k-1,issso14)+uebers*frac
-          endif
-          if(iv.eq.isssc12)then
-            sedlay(i,j,k,isssc13)  =sedlay(i,j,k,isssc13)-uebers
-            sedlay(i,j,k-1,isssc13)=sedlay(i,j,k-1,isssc13)+uebers*frac
-            sedlay(i,j,k,isssc14)  =sedlay(i,j,k,isssc14)-uebers
-            sedlay(i,j,k-1,isssc14)=sedlay(i,j,k-1,isssc14)+uebers*frac
-          endif
-#endif
         endif
       enddo !end i-loop
       enddo !end j-loop

@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 
-<?xml-stylesheet type="text/xsl" href="http://www.cgd.ucar.edu/~cam/namelist/namelist_definition_CICE.xsl"?>
-
-<entry_id version="2.0">
+<entry_id_pg version="0.1">
 
   <!-- Each namelist variable is defined in an <entry> element.  The
        content of the element is the documentation of how the variable is
@@ -103,7 +101,7 @@
     <desc>run type (a)</desc>
   </entry>
 
-  <entry id="grfile">
+  <entry id="grfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -114,11 +112,10 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.25v4_20170622.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/grid_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>Name of file containing grid specification (a)Name of file containing grid specification</desc>
   </entry>
 
-  <entry id="icfile">
+  <entry id="icfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -129,7 +126,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/inicon/inicon_tnx0.125v4_20230318.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       Name of file containing initial conditions, that is either a
       valid restart file or 'inicon.nc' if climatological based
@@ -424,7 +420,7 @@
     <desc>Efficiency factor for the restratification by mixed layer</desc>
   </entry>
 
-  <entry id="tdfile">
+  <entry id="tdfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -435,7 +431,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.25v4_20170626.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/tidal_dissipation_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       Name of file containing tidal wave energy dissipation divided by
       by bottom buoyancy frequency
@@ -503,7 +498,7 @@
     <desc>Chlorophyll concentration option. Valid options:</desc>
   </entry>
 
-  <entry id="ccfile">
+  <entry id="ccfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -513,7 +508,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       Name of file containing chlorophyll concentration climatology
     </desc>
@@ -634,7 +628,7 @@
     <desc>Balance the SSS relaxation (l)</desc>
   </entry>
 
-  <entry id="scfile">
+  <entry id="scfile" is_inputdata="yes">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -645,7 +639,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.25v4_20170623.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>Name of file containing SSS climatology used for relaxation (a)
       Name of file containing SSS climatology used for relaxation
     </desc>
@@ -683,7 +676,7 @@
     <desc>Send precipitation/runoff factor to NorESM coupler (l)</desc>
   </entry>
 
-  <entry id="atm_PATH">
+  <entry id="atm_path">
     <type>char</type>
     <category>limits</category>
     <group>limits</group>
@@ -786,7 +779,7 @@
     <values>
       <value>$BLOM_VCOORD</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="reconstruction_method">
@@ -796,7 +789,7 @@
     <values>
       <value>ppm</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="density_limiting">
@@ -806,7 +799,7 @@
     <values>
       <value>monotonic</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="tracer_limiting">
@@ -816,7 +809,7 @@
     <values>
       <value>non_oscillatory</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="velocity_limiting">
@@ -826,7 +819,7 @@
     <values>
       <value>non_oscillatory</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="density_pc_upper_bndr">
@@ -836,7 +829,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="density_pc_lower_bndr">
@@ -846,7 +839,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="tracer_pc_upper_bndr">
@@ -856,7 +849,7 @@
     <values>
       <value>.true.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="tracer_pc_lower_bndr">
@@ -866,7 +859,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="velocity_pc_upper_bndr">
@@ -876,7 +869,7 @@
     <values>
       <value>.true.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="velocity_pc_lower_bndr">
@@ -886,7 +879,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="dpmin_surface">
@@ -896,7 +889,7 @@
     <values>
       <value>2.5</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="dpmin_inflation_factor">
@@ -906,7 +899,7 @@
     <values>
       <value>1.08</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="dpmin_interior">
@@ -916,7 +909,7 @@
     <values>
       <value>.1</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="dktzu">
@@ -926,7 +919,7 @@
     <values>
       <value>4</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="dktzl">
@@ -936,7 +929,7 @@
     <values>
       <value>1</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <!-- ========================= -->
@@ -1068,14 +1061,13 @@
     <desc>Factor relating the isopycnal diffusivity to the layer</desc>
   </entry>
 
-  <entry id="tbfile">
+  <entry id="tbfile" is_inputdata="yes">
     <type>char</type>
     <category>diffusion</category>
     <group>diffusion</group>
     <values>
-      <value>UNSET</value>
+      <value>unset</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>Name of file containing topographic beta parameter (a)Name of file containing topographic beta parameter</desc>
   </entry>
 
@@ -1224,7 +1216,7 @@
     <category>cwmod</category>
     <group>cwmod</group>
     <values>
-      <value>unset</value>
+      <value>'',''</value>
       <value ocn_grid="tnx2v1">'Gibraltar','Gibraltar'</value>
       <value ocn_grid="tnx1v4">'Gibraltar','Gibraltar'</value>
     </values>
@@ -1239,7 +1231,6 @@
       <value>'unset','unset'</value>
       <value ocn_grid="tnx2v1">'u','u'</value>
       <value ocn_grid="tnx1v4">'u','u'</value>
-      <value></value>
     </values>
     <desc>Array of C grid cell edges to be modified. Valid options:</desc>
   </entry>
@@ -1276,7 +1267,6 @@
       <value>1.e36,1.e36</value>
       <value ocn_grid="tnx2v1">30.e3,30.e3</value>
       <value ocn_grid="tnx1v4">30.e3,30.e3</value>
-      <value></value>
     </values>
     <desc>Array of modified grid cell widths (m) (f)</desc>
   </entry>
@@ -1285,7 +1275,7 @@
   <!-- namelist group: secdia -->
   <!-- ========================= -->
 
-  <entry id="sec_sifile">
+  <entry id="sec_sifile" is_inputdata="yes">
     <type>char</type>
     <category>secdia</category>
     <group>secdia</group>
@@ -1296,7 +1286,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.25v4_20190612.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/section_index_tnx0.125v4_20221013.dat</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       Name of file containing section specification for section
       transport computation
@@ -2236,7 +2225,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_dz">
@@ -2248,7 +2237,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_saln">
@@ -2260,7 +2249,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_temp">
@@ -2272,7 +2261,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_trc">
@@ -2284,7 +2273,7 @@
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_uflx">
@@ -2296,7 +2285,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_utflx">
@@ -2308,7 +2297,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_usflx">
@@ -2320,7 +2309,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_umfltd">
@@ -2332,7 +2321,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_umflsm">
@@ -2344,7 +2333,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_utfltd">
@@ -2356,7 +2345,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_utflsm">
@@ -2368,7 +2357,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_utflld">
@@ -2380,7 +2369,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_usfltd">
@@ -2392,7 +2381,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_usflsm">
@@ -2404,7 +2393,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_usflld">
@@ -2416,7 +2405,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_uvel">
@@ -2428,7 +2417,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vflx">
@@ -2440,7 +2429,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vtflx">
@@ -2452,7 +2441,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vsflx">
@@ -2464,7 +2453,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vmfltd">
@@ -2476,7 +2465,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vmflsm">
@@ -2488,7 +2477,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vtfltd">
@@ -2500,7 +2489,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vtflsm">
@@ -2512,7 +2501,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vtflld">
@@ -2524,7 +2513,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vsfltd">
@@ -2536,7 +2525,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vsflsm">
@@ -2548,7 +2537,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vsflld">
@@ -2560,7 +2549,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_vvel">
@@ -2572,7 +2561,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_wflx">
@@ -2584,7 +2573,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_wflx2">
@@ -2596,7 +2585,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_pv">
@@ -2608,7 +2597,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_tke">
@@ -2620,7 +2609,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_gls_psi">
@@ -2632,7 +2621,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_idlage">
@@ -2644,7 +2633,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_bfsq">
@@ -2656,7 +2645,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difdia">
@@ -2668,7 +2657,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difvmo">
@@ -2680,7 +2669,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difvho">
@@ -2692,7 +2681,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difvso">
@@ -2704,7 +2693,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difint">
@@ -2716,7 +2705,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_difiso">
@@ -2728,7 +2717,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_dz">
@@ -2740,7 +2729,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_saln">
@@ -2752,7 +2741,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_temp">
@@ -2764,7 +2753,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_trc">
@@ -2776,7 +2765,7 @@
       <value is_test="yes">0,0,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_uflx">
@@ -2788,7 +2777,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_utflx">
@@ -2800,7 +2789,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_usflx">
@@ -2812,7 +2801,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_umfltd">
@@ -2824,7 +2813,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_umflsm">
@@ -2836,7 +2825,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_utfltd">
@@ -2848,7 +2837,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_utflsm">
@@ -2860,7 +2849,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_utflld">
@@ -2872,7 +2861,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_usfltd">
@@ -2884,7 +2873,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_usflsm">
@@ -2896,7 +2885,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_usflld">
@@ -2908,7 +2897,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_uvel">
@@ -2920,7 +2909,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vflx">
@@ -2932,7 +2921,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vtflx">
@@ -2946,7 +2935,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vsflx">
@@ -2958,7 +2947,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vmfltd">
@@ -2970,7 +2959,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vmflsm">
@@ -2982,7 +2971,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vtfltd">
@@ -2994,7 +2983,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vtflsm">
@@ -3006,7 +2995,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vtflld">
@@ -3018,7 +3007,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vsfltd">
@@ -3030,7 +3019,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vsflsm">
@@ -3042,7 +3031,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vsflld">
@@ -3054,7 +3043,7 @@
       <value is_test="yes">0,0,4</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_vvel">
@@ -3066,7 +3055,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_wflx">
@@ -3078,7 +3067,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_wflx2">
@@ -3090,7 +3079,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_pv">
@@ -3102,7 +3091,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_tke">
@@ -3114,7 +3103,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_gls_psi">
@@ -3126,7 +3115,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_idlage">
@@ -3138,7 +3127,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmflxl">
@@ -3150,7 +3139,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmflxd">
@@ -3162,7 +3151,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmftdl">
@@ -3174,7 +3163,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmfsml">
@@ -3186,7 +3175,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmftdd">
@@ -3198,7 +3187,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mmfsmd">
@@ -3210,7 +3199,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mhflx">
@@ -3222,7 +3211,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mhftd">
@@ -3234,7 +3223,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mhfsm">
@@ -3246,7 +3235,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_mhfld">
@@ -3258,7 +3247,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_msflx">
@@ -3270,7 +3259,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_msftd">
@@ -3282,7 +3271,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_msfsm">
@@ -3294,7 +3283,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_msfld">
@@ -3306,7 +3295,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_voltr">
@@ -3318,7 +3307,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_massgs">
@@ -3330,7 +3319,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_volgs">
@@ -3342,7 +3331,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_salnga">
@@ -3354,7 +3343,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_tempga">
@@ -3366,7 +3355,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_sssga">
@@ -3378,7 +3367,7 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="msc_sstga">
@@ -3390,14 +3379,14 @@
       <value is_test="yes">4,4,0</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <!-- ========================= -->
   <!-- namelist group: merdia -->
   <!-- ========================= -->
 
-  <entry id="mer_orfile">
+  <entry id="mer_orfile" is_inputdata="yes">
     <type>char</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3408,11 +3397,10 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.25v4_20190612.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/ocean_regions_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>Name of file containing ocean region specification (a)</desc>
   </entry>
 
-  <entry id="mer_mifile">
+  <entry id="mer_mifile" is_inputdata="yes">
     <type>char</type>
     <category>merdia</category>
     <group>merdia</group>
@@ -3423,7 +3411,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.25v4_20190701.dat</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/grid/mertra_index_tnx0.125v4_20221013.dat</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>Name of file containing zonal section specification for</desc>
   </entry>
 
@@ -3519,7 +3506,6 @@
       <value ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.25v4_20181004.nc</value>
       <value ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>
 
@@ -3531,7 +3517,6 @@
       <value>UNSET</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
   </entry>
 
@@ -3557,7 +3542,6 @@
       <value blom_river_nutrients="yes" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.25v4_20170821.nc</value>
       <value blom_river_nutrients="yes" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>File name (incl. full path) for riverine input data</desc>
   </entry>
 
@@ -3578,7 +3562,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value blom_n_deposition="no">UNSET</value>
+      <value blom_n_deposition="no">''</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
@@ -3591,7 +3575,6 @@
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx0.25v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx0.25v4_20190705.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx0.125v4">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx0.125v4_20221013.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
    <desc>File name (incl. full path) for atmopheric N-deposition data</desc>
   </entry>
 
@@ -3602,7 +3585,7 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="do_sedspinup">
@@ -3655,8 +3638,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_Ct_preind_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="inialk">
@@ -3666,8 +3648,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/glodapv2_At_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="inipo4">
@@ -3677,8 +3658,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_phosphate_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="inioxy">
@@ -3688,8 +3668,7 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_oxygen_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="inino3">
@@ -3699,43 +3678,39 @@
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_nitrate_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
-  <entry id="inisil">
+  <entry id="inisil" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
       <value>$DIN_LOC_ROOT/ocn/blom/inicon/woa13_silicate_OMIPinit_20171107.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
-  <entry id="inid13c">
+  <entry id="inid13c" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
-  <entry id="inid14c">
+  <entry id="inid14c" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
-    <input_pathname>abs</input_pathname>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="with_dmsph">
@@ -3745,17 +3720,16 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
-  <entry id="pi_ph_file">
+  <entry id="pi_ph_file" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       File name (incl. full path) for surface PI pH input data.
     </desc>
@@ -3768,17 +3742,16 @@
     <values>
       <value>.false.</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
-  <entry id="sedporfile">
+  <entry id="sedporfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       File name (incl. full path) for sediment porosity
     </desc>
@@ -3794,19 +3767,18 @@
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
     <desc>Name of alkalinization scenario ('const', 'ramp', or 'file') </desc>
   </entry>
 
-  <entry id="oalkfile">
+  <entry id="oalkfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
-    <input_pathname>abs</input_pathname>
     <desc>
       Full path of the input file for the alkalinization scenario 'file'
     </desc>
@@ -3873,7 +3845,7 @@
     <values>
       <value>'hbgcd','hbgcm','hbgcy'</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="glb_aveperio@diabgc">
@@ -3883,7 +3855,7 @@
     <values>
       <value>1,30,365</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="glb_filefreq@diabgc">
@@ -3895,7 +3867,7 @@
       <value is_test="yes">1,30,365</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="glb_compflag@diabgc">
@@ -3905,7 +3877,7 @@
     <values>
       <value>0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="glb_ncformat@diabgc">
@@ -3916,7 +3888,7 @@
       <value>0,0,0</value>
       <value pio_netcdf_format_ocn="64bit_offset">1,1,1</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="glb_inventory">
@@ -3926,7 +3898,7 @@
     <values>
       <value>0,1,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="srf_phosph">
@@ -3998,7 +3970,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="srf_dic">
@@ -4454,7 +4426,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="srf_bromofx">
@@ -4466,7 +4438,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="int_bromopro">
@@ -4478,7 +4450,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="int_bromouv">
@@ -4490,7 +4462,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="int_phosy">
@@ -4562,7 +4534,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_car0500">
@@ -4574,7 +4546,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_car1000">
@@ -4586,7 +4558,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_car2000">
@@ -4598,7 +4570,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_car4000">
@@ -4610,7 +4582,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_car_bot">
@@ -4622,7 +4594,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi0100">
@@ -4634,7 +4606,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi0500">
@@ -4646,7 +4618,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi1000">
@@ -4658,7 +4630,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi2000">
@@ -4670,7 +4642,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi4000">
@@ -4682,7 +4654,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_bsi_bot">
@@ -4694,7 +4666,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal0100">
@@ -4706,7 +4678,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal0500">
@@ -4718,7 +4690,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal1000">
@@ -4730,7 +4702,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal2000">
@@ -4742,7 +4714,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal4000">
@@ -4754,7 +4726,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_cal_bot">
@@ -4766,7 +4738,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_phyto">
@@ -4778,7 +4750,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_grazer">
@@ -4790,7 +4762,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_doc">
@@ -4802,7 +4774,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_phosy">
@@ -4814,7 +4786,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_phosph">
@@ -4862,7 +4834,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_alkali">
@@ -4874,7 +4846,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_silica">
@@ -4886,7 +4858,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_dic">
@@ -4898,7 +4870,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_poc">
@@ -4910,7 +4882,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_calc">
@@ -4970,7 +4942,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_omegac">
@@ -5030,7 +5002,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_prefalk">
@@ -5376,7 +5348,7 @@
     <values>
       <value>0,0,2</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lyr_dp@diabgc">
@@ -5388,7 +5360,7 @@
       <value is_test="yes">0,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_phyto">
@@ -5592,7 +5564,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="lvl_omegac">
@@ -5974,7 +5946,7 @@
       <value is_test="yes">4,2,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_sediffic">
@@ -5986,7 +5958,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_sediffal">
@@ -5998,7 +5970,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_sediffph">
@@ -6010,7 +5982,7 @@
       <value is_test="yes">2,0,2</value>
       <value is_test="yes" empty_hist="yes">0,0,0</value>
     </values>
-    <desc></desc>
+    <desc>add desc</desc>
   </entry>
 
   <entry id="flx_sediffox">
@@ -6241,4 +6213,4 @@
     <desc>(ssster) [mol m-3]</desc>
   </entry>
 
-</entry_id>
+</entry_id_pg>
