@@ -26,13 +26,12 @@ if _CIME_ROOT is None:
     raise SystemExit("ERROR: must set CIMEROOT environment variable")
 sys.path.append(os.path.join(_CIME_ROOT, "CIME", "Tools"))
 
-_PARAMGEN_ROOT = os.path.join(_CIME_ROOT, "CIME", "ParamGen")
-
-if not os.path.exists(_PARAMGEN_ROOT):
-    _EMSG = f"ERROR: Cannot find '{_PARAMGEN_ROOT}' directory.  Did you run checkout_externals?"
-    raise SystemExit(_EMSG)
+#_PARAMGEN_ROOT = os.path.join(_CIME_ROOT, "CIME", "ParamGen")
+# if not os.path.exists(_PARAMGEN_ROOT):
+#     _EMSG = f"ERROR: Cannot find '{_PARAMGEN_ROOT}' directory.  Did you run checkout_externals?"
+#     raise SystemExit(_EMSG)
 #End if
-sys.path.append(_PARAMGEN_ROOT)
+#sys.path.append(_PARAMGEN_ROOT)
 #pylint: disable=wrong-import-position
 from paramgen import ParamGen
 #pylint: enable=wrong-import-position
@@ -641,6 +640,10 @@ def _check_string_quotes(var_name, var_val):
 
     #Make sure variable has been stripped:
     var_val_strip = var_val.strip()
+
+    # If string is empty, just return
+    if var_val_strip is '':
+        return True
 
     #Set error message (just in case):
     emsg = f"Namelist entry '{var_name}' is of type character"
@@ -1644,8 +1647,13 @@ class OcnInParamGen(ParamGen):
 
                         if self._data[nml_group][var]["is_inputdata"] == 'yes':
                             val = self._data[nml_group][var]["values"].strip()
-                            val = val.replace('"','')
-                            if 'unset' not in val and 'UNSET' not in val:
+                            val = val.replace('"',"'")
+                            write_val = True
+                            if val == "''":
+                                write_val = False
+                            elif 'unset' in val or 'UNSET' in val:
+                                write_val = False
+                            if write_val:
                                 ocn_in_fil.write(f"{var} = {val} \n")
 
 

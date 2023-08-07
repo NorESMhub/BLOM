@@ -22,6 +22,7 @@ from CIME.XML.standard_module_setup   import *
 from CIME.buildnml                    import create_namelist_infile, parse_input
 from CIME.case                        import Case
 from CIME.utils                       import expect
+from case_dict                        import CaseDict
 
 # Save local (cime_config) directory path:
 _CIME_CONFIG_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -181,7 +182,15 @@ def buildnml(case, caseroot, compname):
         # Set all ParamGen namelist values:
         #---------------------------------
 
-        pg_blom.reduce_ocn_in(case, config)
+        case_dict = CaseDict()
+        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD', 
+                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START', 
+                    'HAMOCC_SEDSPINUP_YR_END')
+
+        for item in var_list:
+            case_dict[item] = case.get_value(item)
+
+        pg_blom.reduce_ocn_in(case_dict, config)
 
         #----------------------------------------------------
         # Reset values of some variables

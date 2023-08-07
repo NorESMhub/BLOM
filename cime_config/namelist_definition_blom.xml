@@ -3562,7 +3562,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value blom_n_deposition="no">UNSET</value>
+      <value blom_n_deposition="no">''</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="1850" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_1850_CMIP6_tnx2v1_20180321.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="2000" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_2000_CMIP6_tnx2v1_20200826.nc</value>
       <value blom_n_deposition="yes" blom_ndep_scenario="hist" ocn_grid="tnx2v1">$DIN_LOC_ROOT/ocn/blom/bndcon/ndep_185001-201412_tnx2v1_20190702.nc</value>
@@ -3696,7 +3696,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
@@ -3707,7 +3707,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
@@ -3728,7 +3728,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
     <desc>
       File name (incl. full path) for surface PI pH input data.
@@ -3750,7 +3750,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
     <desc>
       File name (incl. full path) for sediment porosity
@@ -3767,7 +3767,7 @@
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
     <desc>Name of alkalinization scenario ('const', 'ramp', or 'file') </desc>
   </entry>
@@ -3777,7 +3777,7 @@
     <category>bgcoafx</category>
     <group>bgcoafx</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
     </values>
     <desc>
       Full path of the input file for the alkalinization scenario 'file'
