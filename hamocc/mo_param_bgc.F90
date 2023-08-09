@@ -17,10 +17,10 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-module mo_parambgc_ini
+module mo_param_bgc
 !******************************************************************************
 !
-! BELEG_PARM - now mo_parambgc_ini - initialize bgc parameters.
+! BELEG_PARM - now mo_param_bgc - initialize bgc parameters.
 !
 !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
 !
@@ -29,7 +29,7 @@ module mo_parambgc_ini
 !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
 !   -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
 !  jmaerz 
-!   - rename beleg_parm to mo_parambgc_ini 
+!   - rename beleg_parm to mo_param_bgc 
 !
 !  Purpose
 !  -------
@@ -550,7 +550,7 @@ module mo_parambgc_ini
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
       WRITE(io_stdo_bgc,*) '* '
-      WRITE(io_stdo_bgc,*) '* Values of MO_PARAMBGC_INI variables : '
+      WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
       WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2      
 #ifdef cisonew
       WRITE(io_stdo_bgc,*) '*          atm_c13      = ',atm_c13      
@@ -683,4 +683,4 @@ module mo_parambgc_ini
       WRITE(io_stdo_bgc,*) '****************************************************************'
       ENDIF
   end subroutine
-end module mo_parambgc_ini
+end module mo_param_bgc

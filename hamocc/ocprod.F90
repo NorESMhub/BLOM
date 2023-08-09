@@ -86,7 +86,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                           & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
                           & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
                           & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
-                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
+                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,                 &
                           & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
@@ -95,7 +95,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   use mod_xc,         only: mnproc
 
 #ifdef AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
                           & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
   use mo_param1_bgc,  only: iadust,inos
   use mo_vgrid,       only: kmle
@@ -230,7 +230,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   asize3d(:,:,:)  = 0.
 #endif
 
-! parameter for DMS scheme (dmspar defined in MO_PARAMBGC_INI)
+! parameter for DMS scheme (dmspar defined in MO_PARAM_BGC)
   dmsp6 = dmspar(6)
   dmsp5 = dmspar(5)
   dmsp4 = dmspar(4)
@@ -926,9 +926,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !  is supposed to happen only due to numerical errors such as truncation or
 !  overshoots during advection)
 ! (1) avnos<<avmass, such that eps = FractDim + 1: increase numbers
-!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in MO_PARAMBGC_INI)
+!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in MO_PARAM_BGC)
 ! (2) avnos>>avmass, such that  Nbar (=Mass/Nos/cellmass) <=1: decrease numbers
-!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in MO_PARAMBGC_INI)
+!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in MO_PARAM_BGC)
 !************************************************************************
         avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
         snow  = avmass*1.e+6

@@ -48,7 +48,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
-  use mo_parambgc_ini,only: ini_parambgc
+  use mo_param_bgc,   only: ini_parambgc
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
   use mo_biomod,      only: alloc_mem_biomod
   use mo_sedmnt,      only: alloc_mem_sedmnt,sedlay,powtra,burial,ini_sedmnt
