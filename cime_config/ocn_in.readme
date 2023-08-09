@@ -352,7 +352,7 @@
 !   SSTGA    - global average sea surface temperature [degC]
 !
 !===========================================================================
-! NAMELIST FOR iHAMOCC OPTIONS
+! NAMELIST BGCNML FOR iHAMOCC OPTIONS
 !
 ! CONTENTS:
 !
@@ -376,7 +376,13 @@
 ! SEDPORFILE  : File name (incl. full path) for sediment porosity
 !
 !===========================================================================
-! NAMELIST FOR ALKALINIZATION SCENARIO
+! NAMELIST BGCPARAMS FOR iHAMOCC-BGC PARAMETERS (DEVELOPERS ONLY)
+! 
+! CONTENTS: EMPTY BY DEFAULT
+!           FOR ADJUSTABLE PARAMETERS, SEE CODE
+! 
+!===========================================================================
+! NAMELIST BGCOAFX FOR ALKALINIZATION SCENARIO
 !
 ! CONTENTS:
 !
@@ -389,7 +395,7 @@
 ! RAMP_END      : End   year for ramp up in 'ramp' scenario
 !
 !===========================================================================
-! IO-NAMELIST FOR DIAGNOSTIC iHAMOCC OUTPUT
+! IO-NAMELIST DIABGC FOR DIAGNOSTIC iHAMOCC OUTPUT
 !
 ! Namelist acronyms:
 !   GLB_     - global parameters i.e. valid for entire output group
