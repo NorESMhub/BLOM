@@ -1507,7 +1507,7 @@ class OcnInParamGen(ParamGen):
                     break
         return value
 
-    def write_nmlfile(self, output_path, groups):
+    def write_nmlfile(self, output_path, groups, empty_namelists=None):
         """
         Write data to Fortran namelist file.
         ----------
@@ -1602,6 +1602,10 @@ class OcnInParamGen(ParamGen):
                     # Add space for next namelist group:
                     ocn_in_fil.write('/\n\n')
                 #End for (namelist groups)
+                if empty_namelists is not None:
+                    for empty_namelist in empty_namelists:
+                        ocn_in_fil.write("&"+empty_namelist+"\n")
+                        ocn_in_fil.write('/\n\n')
             #End with (open ocn_in file)
 
     ####

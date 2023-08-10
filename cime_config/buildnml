@@ -239,9 +239,12 @@ def buildnml(case, caseroot, compname):
             groups.append("bgcnml")
             groups.append("bgcoafx")
             groups.append("diabgc")
-            groups.append("bgcparams")
 
-        pg_blom.write_nmlfile(namelist_file, groups)
+        # for now don't write out bgcparams - just create an empty namelist
+        # if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
+        #     groups.append("bgcparams")
+
+        pg_blom.write_nmlfile(namelist_file, groups, empty_namelists=["bgcparams"])
 
         # Replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax in ocn_in
         from pathlib import Path
