@@ -1644,7 +1644,6 @@ class OcnInParamGen(ParamGen):
                             elif 'unset' in val or 'UNSET' in val:
                                 write_val = False
                             if write_val:
-                                val = "'" + val + "'"
                                 ocn_in_fil.write(f"{var} = {val} \n")
 
 
