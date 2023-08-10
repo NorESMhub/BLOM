@@ -1637,13 +1637,14 @@ class OcnInParamGen(ParamGen):
 
                         if self._data[nml_group][var]["is_inputdata"] == 'yes':
                             val = self._data[nml_group][var]["values"].strip()
-                            val = val.replace('"',"'")
+                            val = val.replace('"','')
                             write_val = True
                             if val == "''":
                                 write_val = False
                             elif 'unset' in val or 'UNSET' in val:
                                 write_val = False
                             if write_val:
+                                val = "'" + val + "'"
                                 ocn_in_fil.write(f"{var} = {val} \n")
 
 
