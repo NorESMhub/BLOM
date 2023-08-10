@@ -173,10 +173,17 @@ def buildnml(case, caseroot, compname):
         config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
         config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
         config["is_test"] = "yes" if is_test else "no"
+
+        # TODO: the following needs to have new ways to turn this to "yes"
+        config["use_agg"] = "no"
+        config["use_wlin"] = "yes"
+
         if is_test:
             testcase = case.get_value("TESTCASE")
             config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
             config["empty_hist"] = "yes" if testcase == "PFS" else "no"
+
+
 
         #---------------------------------
         # Set all ParamGen namelist values:
@@ -232,6 +239,7 @@ def buildnml(case, caseroot, compname):
             groups.append("bgcnml")
             groups.append("bgcoafx")
             groups.append("diabgc")
+            groups.append("bgcparams")
 
         pg_blom.write_nmlfile(namelist_file, groups)
 

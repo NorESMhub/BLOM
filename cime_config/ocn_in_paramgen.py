@@ -21,7 +21,6 @@ from collections import OrderedDict
 
 file_path = os.path.abspath(__file__)
 directory = os.path.dirname(file_path)
-print (f"DEBUG: directory dir is {directory}")
 sys.path.append(os.path.join(directory, "ParamGen"))
 #pylint: disable=wrong-import-position
 from paramgen import ParamGen
