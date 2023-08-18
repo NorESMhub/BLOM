@@ -151,6 +151,7 @@
     <values>
       <value>1800.</value>
       <value ocn_grid="tnx2v1">4800.</value>
+      <value ocn_grid="tnx2v1" ocn_ncpl="24">3600.</value>
       <value ocn_grid="tnx1.5v1">4800.</value>
       <value ocn_grid="tnx1v4">3200.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">3600.</value>
@@ -167,6 +168,7 @@
     <values>
       <value>36.</value>
       <value ocn_grid="tnx2v1">96.</value>
+      <value ocn_grid="tnx2v1" ocn_ncpl="24">60.</value>
       <value ocn_grid="tnx1.5v1">96.</value>
       <value ocn_grid="tnx1v4">64.</value>
       <value ocn_grid="tnx1v4" ocn_ncpl="24">60.</value>
