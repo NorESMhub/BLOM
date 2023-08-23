@@ -14,11 +14,10 @@ if _CIMEROOT is None:
     raise SystemExit("ERROR: must set CIMEROOT environment variable")
 
 _LIBDIR = os.path.join(_CIMEROOT, "CIME", "Tools")
+
 sys.path.append(_LIBDIR)
 # pylint: disable=wildcard-import, wrong-import-position
 # pylint: disable=unused-wildcard-import
-from CIME.Tools.standard_script_setup import *
-from CIME.XML.standard_module_setup   import *
 from CIME.buildnml                    import create_namelist_infile, parse_input
 from CIME.case                        import Case
 from CIME.utils                       import expect
@@ -182,8 +181,6 @@ def buildnml(case, caseroot, compname):
             testcase = case.get_value("TESTCASE")
             config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
             config["empty_hist"] = "yes" if testcase == "PFS" else "no"
-
-
 
         #---------------------------------
         # Set all ParamGen namelist values:
