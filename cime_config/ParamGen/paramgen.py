@@ -16,6 +16,9 @@ except ModuleNotFoundError:
     )
     from CIME.ParamGen.paramgen_utils import eval_formula
 
+#print (f"sys.version_info.major is {sys.version_info.major}")
+#print (f"sys.version_info.minor is {sys.version_info.minor}")
+
 assert (
     sys.version_info.major == 3 and sys.version_info.minor >= 6
 ), "ParamGen requires Python 3.6 or later."
@@ -150,14 +153,13 @@ class ParamGen:
             xmllint_cmd = "{} --xinclude --noout --schema {} {}".format(
                 xmllint, schema_path, input_path
             )
+
             stat = subprocess.run(
-                xmllint_cmd, shell=True, capture_output=True, text=True, check=True
+                xmllint_cmd, shell=True, check=True
             )
             assert (
                 stat.returncode == 0
-            ), "While checking file {} against nml schema, received following errmsg: {}".format(
-                input_path, stat.stderr
-            )
+            ), f"While checking file {input_path} against nml schema, run xmllint by hand using command\n{xmllint_cmd}"
 
         import xml.etree.ElementTree as ET
 

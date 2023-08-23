@@ -14,13 +14,14 @@ if _CIMEROOT is None:
     raise SystemExit("ERROR: must set CIMEROOT environment variable")
 
 _LIBDIR = os.path.join(_CIMEROOT, "CIME", "Tools")
+if os.path.exists(_LIBDIR):
+    sys.path.append(_LIBDIR)
+else:
+    _LIBDIR = os.path.join(_CIMEROOT,"scripts","lib","CIME")
+    sys.path.append(os.path.join(_CIMEROOT, "scripts", "Tools"))
 
-sys.path.append(_LIBDIR)
-# pylint: disable=wildcard-import, wrong-import-position
-# pylint: disable=unused-wildcard-import
-from CIME.buildnml import create_namelist_infile, parse_input
-from CIME.case     import Case
-from CIME.utils    import expect
+if not os.path.exists(_LIBDIR):
+    raise SystemExit("ERROR: _LIBDIR does not exist")
 
 # Save local (cime_config) directory path:
 _CIME_CONFIG_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -29,9 +30,15 @@ _CIME_CONFIG_PATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(_CIME_CONFIG_PATH)
 
 # Add ability to handle using a case as a dictionary rather a CIME case object
-from case_dict import CaseDict
+# pylint: disable=wildcard-import, wrong-import-position
+# pylint: disable=unused-wildcard-import
+from standard_script_setup import *
+from CIME.buildnml import create_namelist_infile, parse_input
+from CIME.case     import Case
+from CIME.utils    import expect
+from case_dict     import CaseDict
 
-#Import BLOM's ParamGen class:
+# Import BLOM's ParamGen class:
 from ocn_in_paramgen import OcnInParamGen
 
 # Open CIME case log:
@@ -189,8 +196,8 @@ def buildnml(case, caseroot, compname):
         #---------------------------------
 
         case_dict = CaseDict()
-        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD', 
-                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START', 
+        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD',
+                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START',
                     'HAMOCC_SEDSPINUP_YR_END')
 
         for item in var_list:
