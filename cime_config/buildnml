@@ -18,16 +18,18 @@ _LIBDIR = os.path.join(_CIMEROOT, "CIME", "Tools")
 sys.path.append(_LIBDIR)
 # pylint: disable=wildcard-import, wrong-import-position
 # pylint: disable=unused-wildcard-import
-from CIME.buildnml                    import create_namelist_infile, parse_input
-from CIME.case                        import Case
-from CIME.utils                       import expect
-from case_dict                        import CaseDict
+from CIME.buildnml import create_namelist_infile, parse_input
+from CIME.case     import Case
+from CIME.utils    import expect
 
 # Save local (cime_config) directory path:
 _CIME_CONFIG_PATH = os.path.dirname(os.path.abspath(__file__))
 
 # Add local (cime_config) directory to python path:
 sys.path.append(_CIME_CONFIG_PATH)
+
+# Add ability to handle using a case as a dictionary rather a CIME case object
+from case_dict import CaseDict
 
 #Import BLOM's ParamGen class:
 from ocn_in_paramgen import OcnInParamGen
