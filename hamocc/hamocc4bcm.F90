@@ -314,7 +314,7 @@
 
       ! Update atmospheric pCO2 [ppm]
 #if defined(BOXATM)
-      CALL update_boxatm(kpie,kpje,pdlxp,pdlyp)
+      CALL update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 #endif	 
 
 #ifdef PBGC_CK_TIMESTEP 

@@ -156,7 +156,7 @@
       INTEGER   :: idate(5),i,j,k
       logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
 #ifdef cisonew
-      REAL :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
+      REAL :: rco213,rco214,alpha14,beta13,beta14,d14cat
 #endif
       INTEGER ncid,ncstat,ncvarid
 
@@ -482,11 +482,14 @@
       CALL read_netcdf_var(ncid,'powasi',powtra2(1,1,1,ipowasi),2*ks,0,iotype)
 #ifdef cisonew
       IF(lread_iso) THEN
-      ! Burial fields for c-isotopes still missing
       CALL read_netcdf_var(ncid,'ssso13',sedlay2(1,1,1,issso13),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0,iotype)
+      CALL read_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0,iotype)
+      CALL read_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0,iotype)
+      CALL read_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0,iotype)
+      CALL read_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0,iotype)
       CALL read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
       CALL read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
       ENDIF
@@ -586,18 +589,34 @@
       ENDDO
 #ifndef sedbypass
       ! Burial fields for c-isotopes still missing
+      !JT added burial loop below 20.06.2023
       DO  k=1,2*ks
       DO  j=1,kpje
       DO  i=1,kpie 
         IF(omask(i,j) .GT. 0.5) THEN
         rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
         rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-        powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowc)*rco213*bifr13
-        powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowc)*rco214*bifr14
-        sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso)*rco213*bifr13
-        sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso)*rco214*bifr14
-        sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc)*rco213
-        sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc)*rco214
+        powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
+        powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
+        sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
+        sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
+        sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
+        sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc12)*rco214
+        ENDIF
+      ENDDO
+      ENDDO
+      ENDDO
+
+      DO  k=1,2
+      DO  j=1,kpje
+      DO  i=1,kpie 
+        IF(omask(i,j) .GT. 0.5) THEN
+        rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+        rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+        burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
+        burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
+        burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
+        burial2(i,j,k,isssc14)=burial2(i,j,k,isssc12)*rco214
         ENDIF
       ENDDO
       ENDDO

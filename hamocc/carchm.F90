@@ -637,6 +637,17 @@
         enddo
 !$OMP END PARALLEL DO
         enddo
+
+!$OMP PARALLEL DO PRIVATE(i)
+        do j=1,kpje
+        do i=1,kpie
+        if(omask(i,j).gt.0.5) then
+        burial(i,j,issso14) = burial(i,j,issso14)*c14dec
+        burial(i,j,isssc14) = burial(i,j,isssc14)*c14dec
+        endif
+        enddo
+        enddo
+!$OMP END PARALLEL DO
 #endif
 #endif
 
