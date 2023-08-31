@@ -47,12 +47,12 @@ module mo_param_bgc
   use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,            &
                           & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
                           & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
-                          & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
+                          & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc 
   use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,lm4ago
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
-
+  use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
 #ifdef AGG
   use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
                           & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
@@ -69,6 +69,13 @@ module mo_param_bgc
 #endif
 #ifdef natDIC
   use mo_carbch,      only: atm_co2_nat
+#endif
+#ifdef extNcycle
+      use mo_param1_bgc,  only: iatmnh3,iatmn2o
+      use mo_carbch,      only: atm_nh3,atm_n2o
+      use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
+      use mo_extNbioproc, only: extNbioparam_init
+      use mo_extNsediment,only: extNsediment_param_init
 #endif
 
   implicit none
@@ -112,6 +119,7 @@ module mo_param_bgc
     call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values 
     call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()        ! Converting rates from /d... to /dtb
+    call init_m4ago_params()       ! Initialize M4AGO parameters relying on nml parameters
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine
@@ -141,6 +149,13 @@ module mo_param_bgc
     prei13      = -6.5
     prei14      =  0.
 #endif cisonew
+#ifdef extNcycle
+      ! Six & Mikolajewicz 2022: less than 1nmol m¿3
+      atm_nh3 = 0.
+      ! for now initializing the atmosphereic mixing ratio for N2O with fixed value 
+      ! - later to be revereted to namelist parameter
+      atm_n2o = atn2o
+#endif
   end subroutine
   
 
@@ -191,6 +206,10 @@ module mo_param_bgc
 #endif
 #ifdef BROMO
       atm(i,j,iatmbromo)= atm_bromo
+#endif
+#ifdef extNcycle
+        atm(i,j,iatmnh3)  = atm_nh3
+        atm(i,j,iatmn2o)  = atm_n2o
 #endif
     ENDDO
     ENDDO
@@ -318,10 +337,26 @@ module mo_param_bgc
     remido   = 0.004    !1/d -remineralization rate (of DOM)
     ! deep sea remineralisation constants
     drempoc  = 0.025    !1/d Aerob remineralization rate detritus
+    drempoc_anaerob = 0.05*drempoc ! remin in sub-/anoxic environm. - not be overwritten by lm4ago
+    bkox_drempoc = 1e-7 ! half-saturation constant for oxygen for ammonification (aerobic remin via drempoc)
     dremopal = 0.003    !1/d Dissolution rate for opal 
     dremn2o  = 0.01     !1/d Remineralization rate of detritus on N2O
     dremsul  = 0.005    !1/d Remineralization rate for sulphate reduction 
-    
+    if(lm4ago)then
+        ! reset drempoc and dremopal for T-dep remin/dissolution
+        drempoc  = 0.12
+        dremopal = 0.023
+    endif
+
+    ! M4AGO parameters
+    call init_m4ago_nml_params()
+#ifdef extNcycle
+    ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
+    ! since sediment relies on water column parameters for the extended nitrogen cycle 
+    ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
+    call extNbioparam_init()
+    call extNsediment_param_init()
+#endif   
     ! Set constants for calculation of dms ( mo_carbch )
     ! Parameters are a result from kettle optimisation 02.03.04
     dmspar(6)=0.100000000E-07  !0 half saturation microbial
@@ -358,6 +393,7 @@ module mo_param_bgc
     !********************************************************************
     !     Sinking parameters
     !********************************************************************
+
     wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
     wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
     wopal  = 30.       !m/d   Sinking speed of opal iris : 60
@@ -451,6 +487,7 @@ module mo_param_bgc
     remido   = remido*dtb     !1/d -remineralization rate (of DOM)
     ! deep sea remineralisation constants
     drempoc  = drempoc*dtb    !1/d  Aerob remineralization rate of detritus
+    drempoc_anaerob = drempoc_anaerob*dtb ! 1/d Anaerob remin rate of detritus
     dremopal = dremopal*dtb   !1/d  Dissolution rate of opal 
     dremn2o  = dremn2o*dtb    !1/d  Remineralization rate of detritus on N2O
     dremsul  = dremsul*dtb    !1/d  Remineralization rate for sulphate reduction 
@@ -571,7 +608,10 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
 #endif
       WRITE(io_stdo_bgc,*) '*          atm_o2       = ',atm_o2           
-      WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2 
+      WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2
+#ifdef extNcycle
+      WRITE(io_stdo_bgc,*) '*          atm_nh3      = ',atm_nh3
+#endif
       WRITE(io_stdo_bgc,*) '*          phytomi      = ',phytomi
       WRITE(io_stdo_bgc,*) '*          grami        = ',grami
       WRITE(io_stdo_bgc,*) '*          remido       = ',remido*dtbinv
