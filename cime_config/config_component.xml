@@ -255,7 +255,7 @@
     <valid_values>TRUE,FALSE</valid_values>
     <default_value>FALSE</default_value>
     <values>
-      <value compset="%VSLSC">TRUE</value>
+      <value compset="BGC%.*BRF.*">TRUE</value>
     </values>
     <group>build_component_blom</group>
     <file>env_build.xml</file>

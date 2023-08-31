@@ -755,6 +755,23 @@
      &    7,'kg/m**2',20,'Burial layer of clay',                        &
      &    rmissing,93,io_stdo_bgc)
 
+#ifdef cisonew
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_o13',3,ncdimst,ncvarid,         &
+     &    9,'kmol/m**2',27,'Burial layer of organic 13C',               &
+     &    rmissing,94,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_o14',3,ncdimst,ncvarid,         &
+     &    9,'kmol/m**2',27,'Burial layer of organic 14C',               &
+     &    rmissing,95,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_c13',3,ncdimst,ncvarid,         &
+     &    9,'kmol/m**2',23,'Burial layer of Ca13CO3',                   &
+     &    rmissing,96,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,         &
+     &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',                   &
+     &    rmissing,97,io_stdo_bgc)
+#endif
 #endif /* sedbypass */
 
 !
@@ -923,6 +940,10 @@
       CALL write_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0)
       CALL write_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0)
       CALL write_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0)
+      CALL write_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0)
+      CALL write_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0)
+      CALL write_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0)
+      CALL write_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0)
       CALL write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
       CALL write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
 #endif

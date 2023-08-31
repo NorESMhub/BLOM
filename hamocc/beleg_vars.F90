@@ -28,7 +28,7 @@
 !  Modified
 !  --------
 !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-!   -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
+!   -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
 !
 !
 !  Purpose

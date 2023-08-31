@@ -90,7 +90,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
                           & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
                           & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
                           & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
-                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,      &
+                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,                 &
                           & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                           & isilica,izoo
@@ -255,7 +255,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   remin_sulf(:,:,:)  = 0.
 #endif
 
-! parameter for DMS scheme (dmspar defined in BELEG_PARM)
+! parameter for DMS scheme (dmspar defined in MO_PARAM_BGC)
   dmsp6 = dmspar(6)
   dmsp5 = dmspar(5)
   dmsp4 = dmspar(4)
@@ -900,6 +900,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   enddo loop3
 !$OMP END PARALLEL DO
 
+
 #ifdef PBGC_OCNP_TIMESTEP
   if (mnproc == 1) then
      write(io_stdo_bgc,*)' '
@@ -1052,9 +1053,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 !  is supposed to happen only due to numerical errors such as truncation or
 !  overshoots during advection)
 ! (1) avnos<<avmass, such that eps = FractDim + 1: increase numbers
-!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in BELEG_PARM)
+!     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in MO_PARAM_BGC)
 ! (2) avnos>>avmass, such that  Nbar (=Mass/Nos/cellmass) <=1: decrease numbers
-!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in BELEG_PARM)
+!     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in MO_PARAM_BGC)
 !************************************************************************
         avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
         snow  = avmass*1.e+6
