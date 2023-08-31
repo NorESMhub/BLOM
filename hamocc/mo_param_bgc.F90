@@ -150,7 +150,7 @@ module mo_param_bgc
     prei14      =  0.
 #endif cisonew
 #ifdef extNcycle
-      ! Six & Mikolajewicz 2022: less than 1nmol m¿3
+      ! Six & Mikolajewicz 2022: less than 1nmol m-3
       atm_nh3 = 0.
       ! for now initializing the atmosphereic mixing ratio for N2O with fixed value 
       ! - later to be revereted to namelist parameter
