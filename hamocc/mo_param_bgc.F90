@@ -76,7 +76,9 @@ module mo_param_bgc
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
       use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
                                 rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr
-      use mo_extNsediment,only: extNsediment_param_init
+      use mo_extNsediment,only: extNsediment_param_init,extNsediment_param_update,extNsediment_param_write,                        &
+                                rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed
+
 #endif
 
   implicit none
@@ -430,6 +432,7 @@ module mo_param_bgc
 #endif 
 #ifdef extNcycle
                        & rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr,                                     &
+                       & rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed,         &
 
 #endif
                        & wcal,wopal
@@ -519,6 +522,7 @@ module mo_param_bgc
 #endif 
 #ifdef extNcycle
     call extNwatercol_param_update()
+    call extNsediment_param_update()
 #endif
 
   end subroutine
@@ -729,10 +733,11 @@ module mo_param_bgc
       write(io_stdo_bgc,*) '****************************************************************'
 #endif 
       WRITE(io_stdo_bgc,*) '*          claydens     = ',claydens
-      WRITE(io_stdo_bgc,*) '****************************************************************'      
 #ifdef extNcycle
     call extNwatercol_param_write()
+    call extNsediment_param_write()
 #endif
+      WRITE(io_stdo_bgc,*) '****************************************************************'
       ENDIF
   end subroutine
 end module mo_param_bgc
