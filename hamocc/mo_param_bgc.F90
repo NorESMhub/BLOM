@@ -74,7 +74,7 @@ module mo_param_bgc
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
-      use mo_extNwatercol,only: extNbioparam_init
+      use mo_extNwatercol,only: extNwatercol_param_init
       use mo_extNsediment,only: extNsediment_param_init
 #endif
 
@@ -354,7 +354,7 @@ module mo_param_bgc
     ! initialize the extended nitrogen cycle parameters - first water column, then sediment, 
     ! since sediment relies on water column parameters for the extended nitrogen cycle 
     ! Sediment also relies on M4AGO being initialized (POM_remin_q10 and POM_remin_Tref)
-    call extNbioparam_init()
+    call extNwatercol_param_init()
     call extNsediment_param_init()
 #endif   
     ! Set constants for calculation of dms ( mo_carbch )

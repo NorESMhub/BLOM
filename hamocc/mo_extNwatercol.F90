@@ -62,7 +62,7 @@
       private
 
       ! public functions
-      public :: extNbioparam_init,nitrification,denit_NO3_to_NO2,&
+      public :: extNwatercol_param_init,nitrification,denit_NO3_to_NO2,&
               & anammox,denit_dnra,extN_inv_check
 
       ! public parameters for primary production
@@ -102,7 +102,7 @@
       CONTAINS
 
 !==================================================================================================================================      
-      subroutine extNbioparam_init()
+      subroutine extNwatercol_param_init()
       !===========================================================================
       ! Initialization of model parameters for the extended nitrogen cycle
       rc2n          = rcar/rnit       ! iHAMOCC C:N ratio
@@ -204,8 +204,7 @@
       ran2odenit    = 0.0012*dtb ! Maximum growth rate denitrification on N2O at reference T (1/d -> 1/dt)
       rdnra         = 0.001*dtb  ! Maximum growth rate DNRA on NO2 at reference T (1/d -> 1/dt)
 
-      end subroutine extNbioparam_init
-     
+      end subroutine extNwatercol_param_init
 !==================================================================================================================================      
       subroutine nitrification(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
       ! Nitrification processes (NH4 -> NO2, NO2 -> NO3) accompanied
