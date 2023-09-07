@@ -225,8 +225,7 @@
           REAL :: dtbinv
           dtbinv = 1./dtb
           WRITE(io_stdo_bgc,*) '****************************************************************'
-          WRITE(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle
-parameters water column:' 
+          WRITE(io_stdo_bgc,*) '* HAMOCC extended nitrogen cycle parameters water column:' 
           WRITE(io_stdo_bgc,*) '*          rc2n          = ',rc2n
           WRITE(io_stdo_bgc,*) '*          ro2utammo     = ',ro2utammo          
           WRITE(io_stdo_bgc,*) '*          ro2nnit       = ',ro2nnit
