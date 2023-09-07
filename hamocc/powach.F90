@@ -76,7 +76,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,ptho,lspin)
 #endif
 #ifdef extNcycle
   use mo_param1_bgc,   only: ipownh4
-  use mo_extNbioproc,  only: ro2utammo
+  use mo_extNwatercol, only: ro2utammo
   use mo_extNsediment, only: extNsediment_param_init,sed_nitrification,sed_denit_NO3_to_NO2,sed_anammox,sed_denit_DNRA,            &
                            & extNsed_diagnostics,ised_remin_aerob,ised_remin_sulf,POM_remin_q10_sed,POM_remin_Tref_sed,           &
                            & bkox_drempoc_sed

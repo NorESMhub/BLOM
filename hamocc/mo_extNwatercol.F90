@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-      MODULE mo_extNbioproc
+      MODULE mo_extNwatercol
       !****************************************************************
       !
       ! MODULE mo_extNbioproc - (microbial) biological processes of the

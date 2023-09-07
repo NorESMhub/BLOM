@@ -74,7 +74,7 @@ module mo_param_bgc
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
-      use mo_extNbioproc, only: extNbioparam_init
+      use mo_extNwatercol,only: extNbioparam_init
       use mo_extNsediment,only: extNsediment_param_init
 #endif
 

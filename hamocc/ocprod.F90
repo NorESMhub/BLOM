@@ -126,8 +126,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   use mo_biomod,      only: abs_oce,atten_f
 #endif
 #ifdef extNcycle
-  use mo_extNbioproc, only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
-  use mo_extNbioproc, only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
+  use mo_extNwatercol,only: nitrification,denit_NO3_to_NO2,anammox,denit_dnra,extN_inv_check
+  use mo_extNwatercol,only: bkphyanh4,bkphyano3,bkphosph,bkiron,ro2utammo
   use mo_param1_bgc,  only: ianh4
   use mo_biomod,      only: phosy_NH4, phosy_NO3, remin_aerob,remin_sulf
 #endif

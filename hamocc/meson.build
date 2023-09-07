@@ -49,6 +49,6 @@ sources += files(
   'sedshi.F90',
   'trc_limitc.F90',
   'write_netcdf_var.F90',
-  'mo_extNbioproc.F90',
+  'mo_extNwatercol.F90',
   'mo_extNsediment.F90',
   'mo_m4ago.F90')
