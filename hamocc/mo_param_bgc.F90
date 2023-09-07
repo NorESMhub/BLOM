@@ -74,7 +74,8 @@ module mo_param_bgc
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
       use mo_carbch,      only: atm_nh3,atm_n2o
       use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
-      use mo_extNwatercol,only: extNwatercol_param_init
+      use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
+                                rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr
       use mo_extNsediment,only: extNsediment_param_init
 #endif
 
@@ -118,7 +119,7 @@ module mo_param_bgc
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
     call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values 
     call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
-    call rates_2_timestep()        ! Converting rates from /d... to /dtb
+    call rates_2_timestep()        ! Converting rates from /d... to /dtb    
     call init_m4ago_params()       ! Initialize M4AGO parameters relying on nml parameters
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
@@ -426,7 +427,11 @@ module mo_param_bgc
                        & remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,                                              &
 #if defined(WLIN) && ! defined(AGG)
                        & wmin,wmax,wlin,                                                                                           &
-#endif        
+#endif 
+#ifdef extNcycle
+                       & rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr,                                     &
+
+#endif
                        & wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
@@ -512,6 +517,10 @@ module mo_param_bgc
 #ifndef AGG
     wdust = wdust*dtb      !m/d   dust sinking speed
 #endif 
+#ifdef extNcycle
+    call extNwatercol_param_update()
+#endif
+
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -720,7 +729,10 @@ module mo_param_bgc
       write(io_stdo_bgc,*) '****************************************************************'
 #endif 
       WRITE(io_stdo_bgc,*) '*          claydens     = ',claydens
-      WRITE(io_stdo_bgc,*) '****************************************************************'
+      WRITE(io_stdo_bgc,*) '****************************************************************'      
+#ifdef extNcycle
+    call extNwatercol_param_write()
+#endif
       ENDIF
   end subroutine
 end module mo_param_bgc
