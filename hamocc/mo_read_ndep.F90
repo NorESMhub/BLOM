@@ -225,12 +225,16 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
   use mod_xc,         only: mnproc
   use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
   use mo_control_bgc, only: io_stdo_bgc,do_ndep
+  use mo_param1_bgc,  only: nndep,idepnoy
+#ifdef extNcycle
+  use mo_param1_bgc, only: idepnhx
+#endif  
 
   implicit none
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
-  real,    intent(out) :: ndep(kpie,kpje,2)
+  real,    intent(out) :: ndep(kpie,kpje,nndep)
 
   ! local variables 
   integer              :: month_in_file,ncstat,ncid,i,j
@@ -267,11 +271,10 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
   DO  j=1,kpje
   DO  i=1,kpie
 #ifdef extNcycle
-        ndep(i,j,1) = noydepread(i,j)  
-        ndep(i,j,2) = nhxdepread(i,j)
+        ndep(i,j,idepnoy) = noydepread(i,j)  
+        ndep(i,j,idepnhx) = nhxdepread(i,j)
 #else
-        ndep(i,j,1) = ndepread(i,j)  
-        ndep(i,j,2) = 0.
+        ndep(i,j,idepnoy) = ndepread(i,j)  
 #endif
   ENDDO
   ENDDO

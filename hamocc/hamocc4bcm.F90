@@ -97,7 +97,7 @@
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,&
                                 do_ndep_coupled
-      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
+      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv,nndep,idepnoy
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
       use mo_apply_rivin, only: apply_rivin
@@ -113,7 +113,7 @@
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
 #endif
 #ifdef extNcycle
-      use mo_param1_bgc,  only: iatmn2o,iatmnh3
+      use mo_param1_bgc,  only: iatmn2o,iatmnh3,idepnhx
 #endif
       implicit none
 
@@ -127,7 +127,7 @@
       REAL,    intent(in)  :: omask  (kpie,kpje)
       REAL,    intent(in)  :: dust   (kpie,kpje)
       REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
-      REAL,    intent(inout):: ndep   (kpie,kpje,2)
+      REAL,    intent(inout):: ndep   (kpie,kpje,nndep)
       REAL,    intent(in)  :: oafx   (kpie,kpje)
       REAL,    intent(in)  :: pi_ph  (kpie,kpje)
       REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
@@ -238,10 +238,10 @@
         DO  i=1,kpie
           ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr 
           IF (patmnoydep(i,j).gt.0.) THEN
-            ndep(i,j,1) = patmnoydep(i,j)*fatmndep
+            ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
           ENDIF
           IF (patmnhxdep(i,j).gt.0.) THEN
-            ndep(i,j,2) = patmnhxdep(i,j)*fatmndep
+            ndep(i,j,idepnhx) = patmnhxdep(i,j)*fatmndep
           ENDIF
         ENDDO
         ENDDO

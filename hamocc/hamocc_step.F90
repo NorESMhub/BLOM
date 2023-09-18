@@ -40,13 +40,14 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mo_read_oafx,   only: get_oafx
   use mo_read_pi_ph,  only: get_pi_ph,pi_ph
   use mo_control_bgc, only: with_dmsph,do_ndep_coupled
+  use mo_param1_bgc,  only: nndep
 
   implicit none
 
   integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
   integer :: l,ldtday
-  real    :: ndep(idm,jdm,2) ! 1=NO3, 2=NH4 (in case of extNcycle)
+  real    :: ndep(idm,jdm,nndep)
   real    :: dust(idm,jdm)
   real    :: oafx(idm,jdm)      
 

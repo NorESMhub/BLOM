@@ -208,6 +208,15 @@
 ! total number of atmosphere tracers
       INTEGER, PARAMETER :: natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm+i_nh3_atm
 
+! N-deposition
+#ifdef extNcycle
+      integer, parameter :: nndep   = 2                                   ! size of N-deposition input field 
+      integer, parameter :: idepnoy = 1,                                & ! index for NOy deposition 
+                            idepnhx = 2                                   ! index for NHx deposition
+#else      
+      integer, parameter :: nndep   = 1      
+      integer, parameter :: idepnoy = 1 
+#endif
 
 ! rivers
       integer, parameter :: nriv   =7                                     ! size of river input field

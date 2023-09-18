@@ -87,10 +87,10 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
   use mo_carbch,      only: ocetra,ndepnoyflx
-  use mo_param1_bgc,  only: iano3,ialkali,inatalkali
+  use mo_param1_bgc,  only: iano3,ialkali,inatalkali,nndep,idepnoy
 #ifdef extNcycle
   use mo_carbch,      only: ndepnhxflx
-  use mo_param1_bgc,  only: ianh4
+  use mo_param1_bgc,  only: ianh4,idepnhx
 #endif
 
   implicit none
@@ -98,7 +98,7 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
   real,    intent(in) :: omask(kpie,kpje)
-  real,    intent(in) :: ndep(kpie,kpje,2)
+  real,    intent(in) :: ndep(kpie,kpje,nndep)
 
   ! local variables 
   integer :: i,j
@@ -112,18 +112,18 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 #endif
   if (.not. do_ndep) return 
 
-  ! deposite N in topmost layer 
+  ! deposit N in topmost layer 
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
-      ndepnoyflx(i,j) = ndep(i,j,1)*dtb/365.
+      ndepnoyflx(i,j) = ndep(i,j,idepnoy)*dtb/365.
       ocetra(i,j,1,iano3)=ocetra(i,j,1,iano3)+ndepnoyflx(i,j)/pddpo(i,j,1)
       ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
 #ifdef natDIC
       ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepnoyflx(i,j)/pddpo(i,j,1)
 #endif
 #ifdef extNcycle
-      ndepnhxflx(i,j)       = ndep(i,j,2)*dtb/365.
+      ndepnhxflx(i,j)       = ndep(i,j,idepnhx)*dtb/365.
       ocetra(i,j,1,ianh4)   = ocetra(i,j,1,ianh4)   + ndepnhxflx(i,j)/pddpo(i,j,1)
       ocetra(i,j,1,ialkali) = ocetra(i,j,1,ialkali) + ndepnhxflx(i,j)/pddpo(i,j,1)
 #endif
