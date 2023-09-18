@@ -72,6 +72,8 @@ module mo_read_ndep
 
   character(len=512), save :: ndepfile=''
   real,  allocatable, save :: ndepread(:,:)
+  real,  allocatable, save :: noydepread(:,:)
+  real,  allocatable, save :: nhxdepread(:,:)
   integer,            save :: startyear,endyear  
   logical,            save :: lini = .false.
 
@@ -147,6 +149,28 @@ subroutine ini_read_ndep(kpie,kpje)
       stop '(ini_read_ndep)' 
     endif 
 
+#ifdef extNcycle
+    ! Allocate field to hold N-deposition fluxes
+    IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable nhxdepread ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+    ENDIF
+   
+    ALLOCATE (nhxdepread(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory nhxdepread'
+    nhxdepread(:,:) = 0.0
+
+    IF (mnproc.eq.1) THEN
+      WRITE(io_stdo_bgc,*)'Memory allocation for variable noydepread ...'
+      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+    ENDIF
+   
+    ALLOCATE (noydepread(kpie,kpje),stat=errstat)
+    if(errstat.ne.0) stop 'not enough memory noydepread'
+    noydepread(:,:) = 0.0
+#else
     ! Allocate field to hold N-deposition fluxes
     IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
@@ -157,6 +181,7 @@ subroutine ini_read_ndep(kpie,kpje)
     ALLOCATE (ndepread(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ndep'
     ndepread(:,:) = 0.0
+#endif
 
     ! read start and end year of n-deposition file
     call ncfopn(trim(ndepfile),'r',' ',1,iotype)
@@ -227,18 +252,27 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
                            ' from file ',trim(ndepfile) 
     endif 
     ncstat=nf90_open(trim(ndepfile),nf90_nowrite,ncid)
+#ifdef extNcycle
+    call read_netcdf_var(ncid,'nhxdep',nhxdepread,1,month_in_file,0) 
+    call read_netcdf_var(ncid,'noydep',noydepread,1,month_in_file,0) 
+#else
     call read_netcdf_var(ncid,'ndep',ndepread,1,month_in_file,0) 
+#endif
     ncstat=nf90_close(ncid)   
     oldmonth=kplmon 
   endif
 
 !$OMP PARALLEL DO PRIVATE(i)
   ! 1 = NO3; 2 = NH4
-  ! needs further preparation (split of climatological input data + sep. reading)
   DO  j=1,kpje
   DO  i=1,kpie
+#ifdef extNcycle
+        ndep(i,j,1) = noydepread(i,j)  
+        ndep(i,j,2) = nhxdepread(i,j)
+#else
         ndep(i,j,1) = ndepread(i,j)  
         ndep(i,j,2) = 0.
+#endif
   ENDDO
   ENDDO
 !$OMP END PARALLEL DO 
