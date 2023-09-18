@@ -196,6 +196,8 @@
       real, parameter :: Vb_nh3  = 20.7  ! Johnson 2010
       real, parameter :: M_nh3   =  (1./Ma_air + 1./Mb_nh3)**0.5 / (Va_air**(1./3.)+Vb_nh3**(1./3.))**2.
       real, parameter :: kappa   = 0.4   ! von Karman constant
+
+      real, parameter :: mw_nitrogen = 14.00674 ! [g/mol N] nitrogen mol-weight as defined by CAM
 #endif
 
 

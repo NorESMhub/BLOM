@@ -114,6 +114,7 @@
 #endif
 #ifdef extNcycle
       use mo_param1_bgc,  only: iatmn2o,iatmnh3,idepnhx
+      use mo_chemcon,     only: mw_nitrogen
 #endif
       implicit none
 
@@ -231,7 +232,7 @@
       if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
       
       IF(do_ndep_coupled) THEN
-        fatmndep = 365.*86400./14.00674
+        fatmndep = 365.*86400./mw_nitrogen 
         ndep(:,:,:) = 0.
 !$OMP PARALLEL DO PRIVATE(i)
         DO  j=1,kpje
