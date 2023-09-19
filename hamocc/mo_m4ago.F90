@@ -124,7 +124,7 @@ MODULE mo_m4ago
                        &  N_agg(:,:,:),              &  ! Number of aggregates            
                        &  av_d_C(:,:,:),             &  ! concentration-weighted mean diameter of aggs
                        &  dyn_vis(:,:,:),            &  ! molecular dynamic viscosity
-                       &  m4ago_ppo(:,:,:)              ! in situ pressure - potentially to replace by BLOM pressure
+                       &  m4ago_ppo(:,:,:)              ! pressure
 
      INTEGER, PARAMETER :: &
        kav_dp               =  1, & 
@@ -324,29 +324,27 @@ MODULE mo_m4ago
   END SUBROUTINE cleanup_mem_m4ago
 
   !===================================================================================== pressure
-  SUBROUTINE calc_pressure(kpie, kpje, kpke,kbnd, pddpo,omask, ppao, prho)
+  SUBROUTINE calc_pressure(kpie, kpje, kpke,kbnd, pddpo,omask)
+
+     use mo_vgrid, only: ptiestu
+
      IMPLICIT NONE
 
      INTEGER, INTENT(in)  :: kpie                  !< 1st REAL of model grid.
      INTEGER, INTENT(in)  :: kpje                  !< 2nd REAL of model grid.
      INTEGER, INTENT(in)  :: kpke                  !< 3rd (vertical) REAL of model grid.
      INTEGER, INTENT(in)  :: kbnd
-     REAL, INTENT(in) :: pddpo(kpie,kpje,kpke) !< size of scalar grid cell (3rd dimension) [m]
-     REAL, INTENT(in) :: omask(kpie,kpje) 
-     REAL, INTENT(in) :: ppao (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) !< pressure at sea level [Pa].
-     REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< density [g/cm3]
+     REAL, INTENT(in) :: pddpo(kpie,kpje,kpke)     !< size of scalar grid cell (3rd dimension) [m]
+     REAL, INTENT(in) :: omask(kpie,kpje)          !< mask
 
      !$OMP PARALLEL DO PRIVATE(i,j,k)
+     do k = 1,kpke
      do j = 1,kpje
      do i = 1,kpie
-        if(omask(i,j) > 0.5) then
-           m4ago_ppo(i,j,1) = ppao(i,j) + 1000.0*prho(i,j,1)*grav_acc_const*pddpo(i,j,1)   
-           do k = 2,kpke
-            if(pddpo(i,j,k) > dp_min) then
-               m4ago_ppo(i,j,k) = m4ago_ppo(i,j,k-1) + 1000.0*prho(i,j,k)*grav_acc_const*pddpo(i,j,k)  
-            endif
-           enddo
+        if(omask(i,j) > 0.5 .and. pddpo(i,j,k).gt.dp_min) then
+            m4ago_ppo(i,j,k) = 1e5 * ptiestu(i,j,k)*98060.*1.027e-6 ! pressure in unit Pa, 98060 = onem
         endif
+      enddo
       enddo
       enddo 
       !$OMP END PARALLEL DO
@@ -373,7 +371,7 @@ MODULE mo_m4ago
      REAL, INTENT(in) :: ppao (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) !< pressure at sea level [Pa].
      REAL, INTENT(in) :: prho (kpie,kpje,kpke) !< density [g/cm3]
 
-     CALL calc_pressure(kpie, kpje, kpke,kbnd, pddpo, omask, ppao, prho)
+     CALL calc_pressure(kpie, kpje, kpke,kbnd, pddpo, omask)
 
      ! molecular dynamic viscosity 
      CALL dynvis(kpie, kpje, kpke, kbnd, pddpo, omask, ptho, psao, m4ago_ppo)
