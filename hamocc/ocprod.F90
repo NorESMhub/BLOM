@@ -1439,7 +1439,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 #ifdef cisonew
 !$OMP ,flor13,flor14,flca13,flca14                                      &
 #endif
-!$OMP ,i,k)
+!$OMP ,i,k) ORDERED
   do j=1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -1447,9 +1447,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         ! calculate depth of water column
         dz = 0.0
         do k = 1,kpke
-
+           !$OMP ORDERED
            if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
-
+           !$OMP END ORDERED
         enddo
 
         florca = prorca(i,j)/dz
