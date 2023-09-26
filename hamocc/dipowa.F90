@@ -84,8 +84,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !ik needed for boundary layer ventilation in fast sediment routine
   real :: bolven(kpie)                 ! bottom layer ventilation rate
 
-!$OMP PARALLEL DO                            &
-!$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
+!$OMP PARALLEL DO PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
   j_loop: do j=1,kpje
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange
@@ -206,5 +205,5 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   endif ! .not. lspin
   
   enddo j_loop
-
+!$OMP END PARALLEL DO
 end subroutine dipowa

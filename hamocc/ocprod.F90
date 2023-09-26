@@ -145,7 +145,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
   real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
   real,    intent(in) :: prho(kpie,kpje,kpke)
 
-  ! Local varaibles
+  ! Local variables
   integer :: i,j,k,l
   integer :: is,kdonor
   integer, parameter :: nsinkmax = 12
@@ -1176,11 +1176,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
-!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd   &
+!$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald,wdust,wdustd,tco,tcn,q    &
 #if defined(AGG)
-!$OMP ,wnos,wnosd,dagg                                                &
+!$OMP ,wnos,wnosd,dagg                                                                        &
 #endif
-!$OMP ,i,k)
+!$OMP ,i,k) ORDERED
   do j = 1,kpje
   do i = 1,kpie
 
@@ -1191,7 +1191,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 
         kdonor = 1
         do k = 1,kpke
-
+           !$OMP ORDERED
            ! Sum up total column inventory before sinking scheme
            if( pddpo(i,j,k) > dp_min ) then
               tco( 1) = tco( 1) + ocetra(i,j,k,idet  )*pddpo(i,j,k)
@@ -1359,7 +1359,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
               tcn(12) = tcn(12) + ocetra(i,j,k,icalc14)*pddpo(i,j,k)
 #endif
            endif
-
+           !$OMP END ORDERED
         enddo  ! loop k=1,kpke
 
 
@@ -1601,7 +1601,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
 #ifdef cisonew
 !$OMP ,flor13,flor14,flca13,flca14                                      &
 #endif
-!$OMP ,i,k)
+!$OMP ,i,k) ORDERED
   do j=1,kpje
   do i = 1,kpie
      if(omask(i,j) > 0.5) then
@@ -1609,9 +1609,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph, psao, 
         ! calculate depth of water column
         dz = 0.0
         do k = 1,kpke
-
+           !$OMP ORDERED
            if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
-
+           !$OMP END ORDERED
         enddo
 
         florca = prorca(i,j)/dz
