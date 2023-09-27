@@ -72,6 +72,9 @@
 #ifdef cisonew
       use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
       use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
+#ifndef sedbypass
+      use mo_param1_bgc,  only: ipowc13,ipowc14,issso13,issso14,isssc13,isssc14
+#endif
 #endif
 #ifdef natDIC
       use mo_param1_bgc,  only: inatcalc

@@ -62,7 +62,7 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
   use mo_carbch,      only: c14dec, ocetra
   use mo_biomod,      only: rcar
 #ifndef sedbypass
-  use mo_sedmnt,      only: seddw,porwat,porsol
+  use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 #endif
 #endif
 
@@ -141,9 +141,9 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
     ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,iphy14) *vol*(1.0-c14dec)*rcar
     ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,izoo14) *vol*(1.0-c14dec)*rcar
 #ifndef sedbypass
-    vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porwat(k)*omask(i,j) ! porewater volume
+    vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porwat(i,j,k)*omask(i,j) ! porewater volume
     ztmp1(i,j) = ztmp1(i,j)+powtra(i,j,k,ipowc14) *vol*(1.0-c14dec)
-    vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(k)*omask(i,j) ! sediment volume
+    vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(i,j,k)*omask(i,j) ! sediment volume
     ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
     ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
 #endif
