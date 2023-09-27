@@ -95,8 +95,8 @@
 !
 !**********************************************************************
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
-                                pco2m,kwco2d,co2sold,co2solm,pn2om
-      use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
+                                pco2m,kwco2d,co2sold,co2solm,pn2om,atm_n2o
+      use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,        &
                               & oxyco,tzero
       use mo_control_bgc, only: dtbgc
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
@@ -448,10 +448,10 @@
        atbrf = atm(i,j,iatmbromo)
 #endif
 #ifdef extNcycle
-       atnh3 = atm(i,j,iatmnh3)
+       atnh3  = atm(i,j,iatmnh3)
        atn2ov = atm(i,j,iatmn2o)
 #else
-       atn2ov = atn2o
+       atn2ov = atm_n2o
 #endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is

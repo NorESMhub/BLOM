@@ -43,7 +43,7 @@ module mo_param_bgc
 !
 !******************************************************************************
 
-  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar 
+  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_n2o,atm_o2,dmspar
   use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,            &
                           & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
                           & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
@@ -72,13 +72,11 @@ module mo_param_bgc
 #endif
 #ifdef extNcycle
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
-      use mo_carbch,      only: atm_nh3,atm_n2o
-      use mo_chemcon,     only: atn2o  !fixed mixing ratio of N2O at 1980, 300ppb = 300e3ppt = 3e-7 mol/mol
+      use mo_carbch,      only: atm_nh3
       use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
                                 rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr
       use mo_extNsediment,only: extNsediment_param_init,extNsediment_param_update,extNsediment_param_write,                        &
                                 rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed
-
 #endif
 
   implicit none
@@ -135,6 +133,7 @@ module mo_param_bgc
     !
     atm_o2      = 196800.
     atm_n2      = 802000.
+    atm_n2o     = 300e3   !Atmospheric mixing ratio of N2O around 1980 300 ppb,provided in ppt,300ppb = 300e3ppt = 3e-7 mol/mol
 
 #ifdef natDIC
     atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
@@ -155,9 +154,6 @@ module mo_param_bgc
 #ifdef extNcycle
       ! Six & Mikolajewicz 2022: less than 1nmol m-3
       atm_nh3 = 0.
-      ! for now initializing the atmosphereic mixing ratio for N2O with fixed value 
-      ! - later to be revereted to namelist parameter
-      atm_n2o = atn2o
 #endif
   end subroutine
   
@@ -433,9 +429,9 @@ module mo_param_bgc
 #ifdef extNcycle
                        & rano3denit,rano2anmx,rano2denit,ran2odenit,rdnra,ranh4nitr,rano2nitr,                                     &
                        & rano3denit_sed,rano2anmx_sed,rano2denit_sed,ran2odenit_sed,rdnra_sed,ranh4nitr_sed,rano2nitr_sed,         &
-
+                       & atm_nh3,                                                                                                  &
 #endif
-                       & wcal,wopal
+                       & wcal,wopal,atm_n2o
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -625,6 +621,7 @@ module mo_param_bgc
 #ifdef extNcycle
       WRITE(io_stdo_bgc,*) '*          atm_nh3      = ',atm_nh3
 #endif
+      WRITE(io_stdo_bgc,*) '*          atm_n2o      = ',atm_n2o
       WRITE(io_stdo_bgc,*) '*          phytomi      = ',phytomi
       WRITE(io_stdo_bgc,*) '*          grami        = ',grami
       WRITE(io_stdo_bgc,*) '*          remido       = ',remido*dtbinv

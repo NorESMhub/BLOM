@@ -100,7 +100,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
 #endif
-      REAL :: atm_co2, atm_o2, atm_n2 
+      REAL :: atm_co2, atm_o2, atm_n2, atm_n2o
       REAL :: atm_c13, atm_c14  
 #ifdef cisonew
       REAL :: c14_t_half, c14dec
@@ -115,7 +115,7 @@
 #endif
 #ifdef extNcycle
       REAL, DIMENSION (:,:),     ALLOCATABLE :: pnh3
-      REAL :: atm_nh3,atm_n2o
+      REAL :: atm_nh3
 #endif
 
       CONTAINS
@@ -130,7 +130,7 @@
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
-      
+
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)' '
@@ -277,7 +277,7 @@
       ALLOCATE (satn2o(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory satn2o'
       satn2o(:,:) = 0.0
-      
+
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable pn2om ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
