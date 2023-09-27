@@ -3516,7 +3516,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>UNSET</value>
+      <value>''</value>
       <value ocn_grid="tnx1v4">$DIN_LOC_ROOT/ocn/blom/bndcon/Annual_clim_swa_tnx1v4_20210415.nc</value>
     </values>
     <desc>File name (incl. full path) for swa climatology field (needed if bromoform scheme is activated)</desc>
