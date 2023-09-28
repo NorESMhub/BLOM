@@ -374,6 +374,7 @@
 ! WITH_DMSPH  : Logical switch to activate DMS calculation as function of pH
 ! PI_PH_FILE  : File name (incl. full path) for surface PI pH input data.
 ! LM4AGO      : Switch for M4AGO settling scheme
+! LEUPHOTIC_CYA : Switch to perform bluefix (cyanobacteria) only in the euphotic zone
 ! L_3DVARSEDPOR : Logical switch to enable lon-lat-depth variable sediment porosity (as opposed to default: only depth) 
 ! SEDPORFILE  : File name (incl. full path) for sediment porosity
 !

@@ -296,6 +296,7 @@ endif
 # For the following options, there are currently no switches in Case-XML files.
 # These options can be activated by expert users via user namelist.
 set LM4AGO = .false.
+set LEUPHOTIC_CYA = .false.
 set DO_OALK = .false.
 set BGCOAFX_OALKSCEN = "''"
 set BGCOAFX_OALKFILE = "''"
@@ -1455,6 +1456,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   SEDSPIN_YR_E = $SEDSPIN_YR_E
   SEDSPIN_NCYC = $SEDSPIN_NCYC
   LM4AGO       = $LM4AGO
+  LEUPHOTIC_CYA = $LEUPHOTIC_CYA
   INIDIC       = $INIDIC
   INIALK       = $INIALK
   INIPO4       = $INIPO4
