@@ -120,6 +120,9 @@
 #endif
 #ifdef cisonew
       use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14
+#ifndef sedbypass
+      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14
+#endif
 #endif
 #ifdef natDIC
       use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
@@ -672,27 +675,27 @@
 #ifdef cisonew
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',37,'Sediment accumulated organic carbon13',     &
-     &    rmasks,81,io_stdo_bgc)
+     &    rmissing,81,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',37,'Sediment accumulated organic carbon14',     &
-     &    rmasks,82,io_stdo_bgc)
+     &    rmissing,82,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate13',  &
-     &    rmasks,83,io_stdo_bgc)
+     &    rmissing,83,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate14',  &
-     &    rmasks,84,io_stdo_bgc)
+     &    rmissing,84,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',25,'Sediment pore water DIC13',                 &
-     &    rmasks,85,io_stdo_bgc)
+     &    rmissing,85,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
      &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
-     &    rmasks,86,io_stdo_bgc)
+     &    rmissing,86,io_stdo_bgc)
 #endif
 
       IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
