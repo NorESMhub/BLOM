@@ -20,6 +20,7 @@ set BLOM_TRACER_MODULES = `./xmlquery BLOM_TRACER_MODULES --value`
 set BLOM_RIVER_NUTRIENTS = `./xmlquery BLOM_RIVER_NUTRIENTS --value`
 set BLOM_N_DEPOSITION = `./xmlquery BLOM_N_DEPOSITION --value`
 set ATM_N_DEPOSITION = `./xmlquery HAMOCC_ATMNDEPC --value`
+set ATM_N2ONH3_COUPLED = `./xmlquery HAMOCC_N2OC --value`
 set BLOM_NDEP_SCENARIO = `./xmlquery BLOM_NDEP_SCENARIO --value`
 set HAMOCC_VSLS = `./xmlquery HAMOCC_VSLS --value`
 set HAMOCC_CISO = `./xmlquery HAMOCC_CISO --value`
@@ -274,6 +275,12 @@ if ("$ATM_N_DEPOSITION" == TRUE) then
   set NDEPFNAME = "''"
 else
   set DO_NDEP_COUPLED = .false.
+endif
+
+if ("ATM_N2ONH3_COUPLED" == TRUE) then
+  set DO_N2ONH3_COUPLED = .true.
+else 
+  set DO_N2ONH3_COUPLED = .false.
 endif
 
 if ("$HAMOCC_SEDSPINUP" == TRUE) then
@@ -1449,6 +1456,7 @@ cat >>! $RUNDIR/ocn_in$inststr << EOF
   RIVINFILE    = $RIVINFILE 
   DO_NDEP      = $DO_NDEP
   DO_NDEP_COUPLED = $DO_NDEP_COUPLED
+  DO_N2ONH3_COUPLED = $DO_N2ONH3_COUPLED 
   NDEPFILE     = $NDEPFILE
   DO_OALK      = $DO_OALK
   DO_SEDSPINUP = $DO_SEDSPINUP

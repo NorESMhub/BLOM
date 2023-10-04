@@ -47,7 +47,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,lm4ago,&
-       &                    do_ndep_coupled,leuphotic_cya 
+       &                    do_ndep_coupled,leuphotic_cya,do_n2onh3_coupled
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_param_bgc,   only: ini_parambgc
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -91,7 +91,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
        &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,lm4ago,leuphotic_cya, &
-       &   do_ndep_coupled
+       &   do_ndep_coupled,do_n2onh3_coupled
   !
   ! --- Set io units and some control parameters
   !

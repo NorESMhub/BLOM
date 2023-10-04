@@ -96,7 +96,7 @@
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,&
-                                do_ndep_coupled
+                                do_ndep_coupled,do_n2onh3_coupled
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv,nndep,idepnoy
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
@@ -218,19 +218,21 @@
 
 #ifdef extNcycle
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
-        IF (patmn2o(i,j).gt.0.) THEN
-         atm(i,j,iatmn2o)=patmn2o(i,j)
-        ENDIF
-        IF (patmnh3(i,j).gt.0.) THEN
-         atm(i,j,iatmnh3)=patmnh3(i,j)
-        ENDIF
-      ENDDO
-      ENDDO
+      IF(do_n2onh3_coupled) THEN
+        DO  j=1,kpje
+        DO  i=1,kpie
+          IF (patmn2o(i,j).gt.0.) THEN
+           atm(i,j,iatmn2o)=patmn2o(i,j)
+          ENDIF
+          IF (patmnh3(i,j).gt.0.) THEN
+           atm(i,j,iatmnh3)=patmnh3(i,j)
+          ENDIF
+        ENDDO
+        ENDDO
 !$OMP END PARALLEL DO
-      if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
-      
+        if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting N2O and NH3 conc. from atm'
+      ENDIF
+
       IF(do_ndep_coupled) THEN
         fatmndep = 365.*86400./mw_nitrogen 
         ndep(:,:,:) = 0.
