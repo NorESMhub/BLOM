@@ -46,7 +46,7 @@ module mod_nuopc_methods
 #ifdef HAMOCC
    use mo_carbch, only: ocetra
    use mo_param1_bgc, only: idms, ibromo
-   use mo_control_bgc, only: do_bgc_aofluxes, use_BROMO, use_DIAGCO2, use_PROGCO2
+   use mo_control_bgc, only: use_BROMO, use_DIAGCO2, use_PROGCO2
 #endif
 
    implicit none
@@ -152,12 +152,6 @@ contains
 
       ! Local variables.
       integer :: rc
-
-#ifdef HAMOCC
-      ! Set the logical flag do_bgc_aofluxes to false in mo_control_bgc since
-      ! for nuopc/cmeps the dms and bromo fluxes will be computed in the mediator
-      do_bgc_aofluxes = .false.
-#endif
 
       num = num + 1
       if (num > fldsMax) then

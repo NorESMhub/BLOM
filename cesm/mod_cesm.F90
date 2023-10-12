@@ -35,7 +35,7 @@ module mod_cesm
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
 #ifdef HAMOCC
-   use mo_control_bgc, only: do_bgc_aofluxes, use_bromo
+   use mo_control_bgc, only: use_bromo
 #endif
 
    implicit none
@@ -194,16 +194,6 @@ contains
            vstokes(i, j) = w1*vstokes_da(i, j, l1ci) + w2*vstokes_da(i, j, l2ci)
            atmco2(i, j)  = w1*atmco2_da(i, j, l1ci)  + w2*atmco2_da(i, j, l2ci)
            atmbrf(i, j)  = w1*atmbrf_da(i, j, l1ci)  + w2*atmbrf_da(i, j, l2ci)
-#ifdef HAMOCC
-           if (.not. do_bgc_aofluxes) then
-              ! flxdms is obtained from the mediator
-              flxdms(i, j) = w1*flxdms_da(i, j, l1ci)  + w2*flxdms_da(i, j, l2ci)
-              if (use_bromo) then
-                 ! flxbrf is obtained from the mediator
-                 flxbrf(i, j) = w1*flxbrf_da(i, j, l1ci)  + w2*flxbrf_da(i, j, l2ci)
-              end if
-           end if
-#endif
         enddo
         enddo
         do l = 1, isu(j)

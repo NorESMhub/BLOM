@@ -128,10 +128,6 @@
       REAL,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
-      ! NOTE - why are some arguments intent(inout)?
-      ! If do_bgc_aofluxes is .true. then pflxdms will be computed in carchm.F90 (as before)
-      ! If do_bgc_aofluxes is .false. then pflxdms is obtained external to blom
-
       INTEGER :: i,j,k,l
       INTEGER :: nspin,it
       LOGICAL :: lspin

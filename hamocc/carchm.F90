@@ -101,7 +101,7 @@
                                 pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
                               & oxyco,tzero
-      use mo_control_bgc, only: dtbgc,do_bgc_aofluxes
+      use mo_control_bgc, only: dtbgc
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
                               & isco212,isilica
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
@@ -470,12 +470,8 @@
        end if
 
 ! Surface flux of dms
-      if (do_bgc_aofluxes) then
-         ! Note that kwdms already has the open ocean fraction in the term
-         dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
-      else
-         dmsflux = -dtbgc*pflxdms(i,j)
-      end if
+      ! Note that kwdms already has the open ocean fraction in the term
+      dmsflux = kwdms*dtbgc*ocetra(i,j,1,idms)
       ocetra(i,j,1,idms) = ocetra(i,j,1,idms) - dmsflux/pddpo(i,j,1)
       atmflx(i,j,iatmdms) = dmsflux ! positive to atmosphere [kmol dms m-2 timestep-1]
 
@@ -487,12 +483,8 @@
 !  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
 !  [mol L-1] to [kmol m-3] by multiplying with 1 
          
-         if (do_bgc_aofluxes) then
-            flx_bromo = kw_bromo*dtbgc* &
-                 (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
-         else
-            flx_bromo = dtbgc*pflxbromo(i,j)
-         end if
+         flx_bromo = kw_bromo*dtbgc* &
+              (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
          ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
          atmflx(i,j,iatmbromo) = -flx_bromo
       end if

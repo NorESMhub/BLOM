@@ -65,8 +65,6 @@ MODULE mo_control_bgc
   LOGICAL :: do_oalk     =.false.     ! apply ocean alkalinization
   logical :: with_dmsph  =.false.     ! apply DMS with pH dependence
 
-  logical :: do_bgc_aofluxes = .true. ! If true, atm/ocn bgc fluxes are computed within HAMOCC
-
 #ifdef BROMO
   logical, parameter :: use_BROMO = .true.
 #else
