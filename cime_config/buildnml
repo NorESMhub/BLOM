@@ -1,155 +1,271 @@
 #!/usr/bin/env python3
 
-"""BLOM namelist creator
 """
+BLOM namelist creator
+"""
+import sys
+import os
+import shutil
+import logging
+import glob
 
-# Typically ignore this.
-# pylint: disable=invalid-name
-
-# Disable these because this is our standard setup
-# pylint: disable=wildcard-import,unused-wildcard-import,wrong-import-position
-
-import os, shutil, sys, glob, filecmp, imp, re
-
-CIMEROOT = os.environ.get("CIMEROOT")
-if CIMEROOT is None:
+_CIMEROOT = os.environ.get("CIMEROOT")
+if _CIMEROOT is None:
     raise SystemExit("ERROR: must set CIMEROOT environment variable")
-sys.path.append(os.path.join(CIMEROOT, "CIME", "Tools"))
 
+_LIBDIR = os.path.join(_CIMEROOT, "CIME", "Tools")
+if os.path.exists(_LIBDIR):
+    sys.path.append(_LIBDIR)
+else:
+    _LIBDIR = os.path.join(_CIMEROOT,"scripts","lib","CIME")
+    sys.path.append(os.path.join(_CIMEROOT, "scripts", "Tools"))
+
+if not os.path.exists(_LIBDIR):
+    raise SystemExit("ERROR: _LIBDIR does not exist")
+
+# Save local (cime_config) directory path:
+_CIME_CONFIG_PATH = os.path.dirname(os.path.abspath(__file__))
+
+# Add local (cime_config) directory to python path:
+sys.path.append(_CIME_CONFIG_PATH)
+
+# Add ability to handle using a case as a dictionary rather a CIME case object
+# pylint: disable=wildcard-import, wrong-import-position
+# pylint: disable=unused-wildcard-import
 from standard_script_setup import *
-from CIME.case import Case
-from CIME.nmlgen import NamelistGenerator
-from CIME.utils import expect
-from CIME.utils import run_cmd_no_fail, expect
-from CIME.utils import run_cmd
 from CIME.buildnml import create_namelist_infile, parse_input
+from CIME.case     import Case
+from CIME.utils    import expect
+from case_dict     import CaseDict
 
-import glob, shutil
-logger = logging.getLogger(__name__)
+# Import BLOM's ParamGen class:
+from ocn_in_paramgen import OcnInParamGen
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-####################################################################################
-def _create_namelists(case, confdir, infile, nmlgen):
-####################################################################################
+# Open CIME case log:
+_LOGGER = logging.getLogger(__name__)
 
-    """Write out the namelist for this component.
+###############################################################################
+def buildnml(case, caseroot, compname):
+###############################################################################
+    # pylint: disable=too-many-locals
+    """Build the blom namelist """
 
-    Most arguments are the same as those for `NamelistGenerator`.
-    The `confdir` argument is used to specify the directory  in which output files will be placed.
-    """
-    rundir = case.get_value("RUNDIR")
-    srcroot = case.get_value("SRCROOT")
-    din_loc_root = case.get_value("DIN_LOC_ROOT")
-    caseroot = case.get_value("CASEROOT")
-    continue_run = case.get_value("CONTINUE_RUN")
-    ocn_grid = case.get_value("OCN_GRID")
-    ocn_ncpl = case.get_value("OCN_NCPL")
-    blom_unit = case.get_value("BLOM_UNIT")
-    blom_vcoord = case.get_value("BLOM_VCOORD")
-    pio_typename_ocn = case.get_value("PIO_TYPENAME_OCN")
-    pio_netcdf_format_ocn = case.get_value("PIO_NETCDF_FORMAT_OCN")
-    is_test =  case.get_value("TEST")
-    blom_river_nutrients = case.get_value("BLOM_RIVER_NUTRIENTS")
-    blom_n_deposition = case.get_value("BLOM_N_DEPOSITION")
-    blom_ndep_scenario = case.get_value("BLOM_NDEP_SCENARIO")
-    blom_coupling = case.get_value("BLOM_COUPLING")
-    blom_tracer_modules = case.get_value("BLOM_TRACER_MODULES")
-    hamocc_vsls = case.get_value("HAMOCC_VSLS")
-    hamocc_ciso = case.get_value("HAMOCC_CISO")
-    hamocc_sedspinup = case.get_value("HAMOCC_SEDSPINUP")
+    # Build the component namelist
+    if compname != "blom":
+        emsg = "BLOM buildnml called with model={}"
+        raise AttributeError(emsg.format(compname))
+    # End if
+
+    srcroot                   = case.get_value("SRCROOT")
+    din_loc_root              = case.get_value("DIN_LOC_ROOT")
+    caseroot                  = case.get_value("CASEROOT")
+    rundir                    = case.get_value("RUNDIR")
+    continue_run              = case.get_value("CONTINUE_RUN")
+    ninst_ocn                 = case.get_value("NINST_OCN")
+    run_type                  = case.get_value("RUN_TYPE")
+    run_startdate             = case.get_value("RUN_STARTDATE")
+    run_refcase               = case.get_value("RUN_REFCASE")
+    run_refdate               = case.get_value("RUN_REFDATE")
+    run_reftod                = case.get_value("RUN_REFTOD")
+    ocn_grid                  = case.get_value("OCN_GRID")
+    ocn_ncpl                  = case.get_value("OCN_NCPL")
+    pio_typename_ocn          = case.get_value("PIO_TYPENAME_OCN")
+    pio_netcdf_format_ocn     = case.get_value("PIO_NETCDF_FORMAT_OCN")
+    blom_unit                 = case.get_value("BLOM_UNIT")
+    blom_vcoord               = case.get_value("BLOM_VCOORD")
+    blom_river_nutrients      = case.get_value("BLOM_RIVER_NUTRIENTS")
+    blom_n_deposition         = case.get_value("BLOM_N_DEPOSITION")
+    blom_ndep_scenario        = case.get_value("BLOM_NDEP_SCENARIO")
+    blom_coupling             = case.get_value("BLOM_COUPLING")
+    blom_tracer_modules       = case.get_value("BLOM_TRACER_MODULES")
+    hamocc_ciso               = case.get_value("HAMOCC_CISO")
+    hamocc_sedspinup          = case.get_value("HAMOCC_SEDSPINUP")
     hamocc_sedspinup_yr_start = case.get_value("HAMOCC_SEDSPINUP_YR_START")
-    hamocc_sedspinup_yr_end = case.get_value("HAMOCC_SEDSPINUP_YR_END")
-    hamocc_sedspinup_ncycle = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
+    hamocc_sedspinup_yr_end   = case.get_value("HAMOCC_SEDSPINUP_YR_END")
+    hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
+    is_test                   = case.get_value("TEST")
 
-    # error checks
-    if hamocc_vsls and ocn_grid != "tnx1v4":
-        expect(False, 
-               "HAMOCC_VSLS is not supported at this grid resolution (no swa-climatology available)")
+    #--------------------------
+    # Construct ParamGen objects:
+    #--------------------------
 
-    # create config dictionary - used in namelist_definition_blom.xml
-    config = {}
+    xml_fil = os.path.join(srcroot,"components","blom","cime_config","namelist_definition_blom.xml")
+    pg_blom = OcnInParamGen.from_namelist_xml(xml_fil)
 
-    config['ocn_grid'] = ocn_grid
-    config['ocn_ncpl'] = str(ocn_ncpl)
-    config['pio_typename_ocn'] = pio_typename_ocn
-    config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
-    config["continue_run"] = "yes" if continue_run else "no"
-    config["is_test"] = "yes" if is_test else "no"
-    if is_test:
-        testcase = case.get_value("TESTCASE")
-        config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
+    #------------------------
+    # Loop over all instances:
+    #------------------------
 
-    config['blom_unit'] = blom_unit if blom_unit else "unset"
-    config['blom_vcoord'] = blom_vcoord
-    config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
-    config["blom_ndep_scenario"] = "ssp" if "ssp" in blom_ndep_scenario else blom_ndep_scenario
-    config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
-    config["blom_coupling"] = blom_coupling
-    config["blom_tracer_modules"] = blom_tracer_modules
+    # Set input data list file name:
+    input_data_list = os.path.join(caseroot, "Buildconf", "blom.input_data_list")
 
-    config["hamocc_vsls"] = "yes" if hamocc_vsls else "no"
-    config["hamocc_ciso"] = "yes" if hamocc_ciso else "no" 
-    config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
-    config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
-    config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
-    config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
+    # Convert instance number to integer:
+    ninst = int(ninst_ocn)
 
-    #----------------------------------------------------
-    # initialize namelist defaults
-    #----------------------------------------------------
-    nmlgen.init_defaults(infile, config)
+    for inst_counter in range(1, ninst+1):
 
-    if nmlgen.get_value('swaclimfile') == 'UNSET':
-        nmlgen.set_value('swaclimfile', value="")
+        #----------------------
+        # Remove old input data:
+        #----------------------
 
-    if nmlgen.get_value('inid13c') == 'UNSET':
-        nmlgen.set_value('inid13c', value="")
+        if os.path.isfile(input_data_list):
+            os.remove(input_data_list)
 
-    if nmlgen.get_value('inid14c') == 'UNSET':
-        nmlgen.set_value('inid14c', value="")
+        # -----------------------------------------------------
+        # Determine instance string
+        # -----------------------------------------------------
 
-    run_startdate = case.get_value("RUN_STARTDATE")
-    idate = run_startdate.replace('-','')
-    nmlgen.set_value("idate", idate)
-    nmlgen.set_value("idate0", idate)
+        inst_string = ""
+        if ninst > 1:
+            single_case_rpointer = os.path.join(rundir, "rpointer.ocn")
+            inst_string = '_%04d' % inst_counter
+            instance_rpointer = os.path.join(rundir, "rpointer.ocn"+inst_string)
 
-    #----------------------------------------------------
-    # Write out namelist groups
-    #----------------------------------------------------
-    groups=['limits','diffusion']
+            # If multi-instance case does not have restart file, use
+            # single-case restart for each instance
 
-    cwmtag = nmlgen.get_default('cwmtag', config=config)
-    if cwmtag[0] != 'unset':
+            if os.path.isfile(single_case_rpointer) and \
+               not os.path.isfile(instance_rpointer):
+                shutil.copy(single_case_rpointer, instance_rpointer)
+            # End if
+        # End if
+
+        # -----------------------------------------------------
+        # Create blomconf/namelist
+        # -----------------------------------------------------
+
+        infile_lines = []
+
+        # Determine location and name of "user_nl_blom" files:
+        user_nl_file = os.path.join(caseroot, "user_nl_blom" + inst_string)
+
+        # Determine location and name of namelist input file:
+        confdir = os.path.join(caseroot,"Buildconf","blomconf")
+        if not os.path.isdir(confdir):
+            os.makedirs(confdir)
+        namelist_infile = os.path.join(confdir, "namelist_infile")
+
+        #--------------------------------
+        # Create CIME namelist input file:
+        #--------------------------------
+        create_namelist_infile(case, user_nl_file, namelist_infile,
+                               "\n".join(infile_lines))
+
+        #-------------------------------------------
+        # Add user_nl_blom entries to ParamGen object:
+        #-------------------------------------------
+
+        pg_blom.append_user_nl_file(user_nl_file)
+
+        #-------------------------------------------------
+        # Create config dictionary
+        #-------------------------------------------------
+
+        # create config dictionary - used in namelist_definition_blom.xml
+        config = {}
+        config['ocn_grid'] = ocn_grid
+        config['ocn_ncpl'] = str(ocn_ncpl)
+        config['pio_typename_ocn'] = pio_typename_ocn
+        config['pio_netcdf_format_ocn'] = pio_netcdf_format_ocn
+        config["continue_run"] = "yes" if continue_run else "no"
+        config['blom_unit'] = blom_unit if blom_unit else "unset"
+        config['blom_vcoord'] = blom_vcoord
+        config["blom_river_nutrients"] = "yes" if blom_river_nutrients else "no"
+        config["blom_ndep_scenario"] = "ssp" if "ssp" in blom_ndep_scenario else blom_ndep_scenario
+        config["blom_n_deposition"] = "yes" if blom_n_deposition else "no"
+        config["blom_coupling"] = blom_coupling
+        config["blom_tracer_modules"] = blom_tracer_modules
+        config["hamocc_ciso"] = "yes" if hamocc_ciso else "no"
+        config["hamocc_sedspinup"] = "yes" if hamocc_sedspinup else "no"
+        config["hamocc_sedspinup_yr_start"] = hamocc_sedspinup_yr_start
+        config["hamocc_sedspinup_yr_end"] = hamocc_sedspinup_yr_end
+        config["hamocc_sedspinup_ncycle"] = hamocc_sedspinup_ncycle
+        config["is_test"] = "yes" if is_test else "no"
+
+        # TODO: the following needs to have new ways to turn this to "yes"
+        config["use_agg"] = "no"
+        config["use_wlin"] = "yes"
+
+        if is_test:
+            testcase = case.get_value("TESTCASE")
+            config["is_test_pfs"] = "yes" if testcase == "PFS" else "no"
+            config["empty_hist"] = "yes" if testcase == "PFS" else "no"
+
+        #---------------------------------
+        # Set all ParamGen namelist values:
+        #---------------------------------
+
+        case_dict = CaseDict()
+        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD',
+                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START',
+                    'HAMOCC_SEDSPINUP_YR_END')
+
+        for item in var_list:
+            case_dict[item] = case.get_value(item)
+
+        pg_blom.reduce_ocn_in(case_dict, config)
+
+        #----------------------------------------------------
+        # Reset values of some variables
+        #----------------------------------------------------
+
+        run_startdate = case.get_value("RUN_STARTDATE")
+        idate = run_startdate.replace('-','')
+        pg_blom.set_value("idate", idate)
+        pg_blom.set_value("idate0", idate)
+
+        if pg_blom.get_value('swaclimfile') == 'UNSET':
+            pg_blom.set_value('swaclimfile', value='')
+
+        if pg_blom.get_value('inid13c') == 'UNSET':
+            pg_blom.set_value('inid13c', value='')
+
+        if pg_blom.get_value('inid14c') == 'UNSET':
+            pg_blom.set_value('inid14c', value='')
+
+        #---------------------------
+        # Write out Fortran namelist:
+        #---------------------------
+
+        # Create resolved BLOM namelist file name:
+        namelist_file = os.path.join(rundir, "ocn_in")
+
+        # Change namelist file name depending on instance:
+        namelist_file += inst_string
+
+        # Create BLOM namelist
+        groups=['limits','diffusion','merdia','secdia','diaphy']
+
         groups.append('cwmod')
 
-    groups.append('merdia')
-    groups.append('secdia')
-    groups.append('diaphy')
+        if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
+            groups.append('vcoord')
 
-    if case.get_value("BLOM_VCOORD") == "cntiso_hybrid":
-        groups.append('vcoord')
+        if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
+            groups.append("bgcnml")
+            groups.append("bgcoafx")
+            groups.append("diabgc")
 
-    if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
-        groups.append("bgcnml")
-        groups.append("bgcoafx")
-        groups.append("diabgc")
+        # for now don't write out bgcparams - just create an empty namelist
+        # if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):
+        #     groups.append("bgcparams")
 
-    data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
-    if os.path.exists(data_list_path):
-        os.remove(data_list_path)
+        pg_blom.write_nmlfile(namelist_file, groups, empty_namelists=["bgcparams"])
 
-    # Create initial ocn_in
-    namelist_file = os.path.join(confdir, "ocn_in")
-    nmlgen.write_output_file(namelist_file, data_list_path, groups=groups, sorted_groups=False)
+        # Replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax in ocn_in
+        from pathlib import Path
+        filename = Path(namelist_file)
+        filename.write_text(filename.read_text().replace('mer_regflg1','mer_regflg(1,:)'))
+        filename.write_text(filename.read_text().replace('mer_regflg2','mer_regflg(2,:)'))
+        filename.write_text(filename.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
+        filename.write_text(filename.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
 
-    # Replace MER_REGFLAG1 -> MER_REGFLAG4 with array syntax in ocn_in
-    from pathlib import Path
-    file = Path(namelist_file)
-    file.write_text(file.read_text().replace('mer_regflg1','mer_regflg(1,:)'))
-    file.write_text(file.read_text().replace('mer_regflg2','mer_regflg(2,:)'))
-    file.write_text(file.read_text().replace('mer_regflg3','mer_regflg(3,:)'))
-    file.write_text(file.read_text().replace('mer_regflg4','mer_regflg(4,:)'))
-    
+        # Write out blom.input_data_list
+        data_list_path = os.path.join(case.get_case_root(), "Buildconf", "blom.input_data_list")
+        if os.path.exists(data_list_path):
+            os.remove(data_list_path)
+        pg_blom.write_inputdata(data_list_path, groups)
+
     # To compare with previous namelist generation, make namelist variable uppercase and
     # use single quotes instead of back quotes and make sure that file variables set to UNSET
     # get changed to blank quotes
@@ -157,7 +273,7 @@ def _create_namelists(case, confdir, infile, nmlgen):
     with open(namelist_file, "r") as fread:
         with open(namelist_file_temp, "w") as fwrite:
             for line_read in fread:
-                # replace single quote with double quote to generate same namelist as using 
+                # replace single quote with double quote to generate same namelist as using
                 # csh buildnml
                 line = line_read.replace('"',"'")
                 # make all namelists upper case to generate same namelist as using csh buildnml
@@ -171,101 +287,13 @@ def _create_namelists(case, confdir, infile, nmlgen):
                     fwrite.write(line)
     shutil.move(namelist_file_temp, namelist_file)
 
-    # Copy ocn_in.readme to $RUNDIR
-    src_filename = os.path.join(srcroot,"components","blom","cime_config","ocn_in.readme")
-    dst_filename = os.path.join(rundir,"ocn_in.readme")
-
-    if not os.path.exists(dst_filename):
-        shutil.copy(src_filename, dst_filename)
-
-    logger.debug(f"blom: grid is {ocn_grid}")
-
-###############################################################################
-def buildnml(case, caseroot, compname):
-###############################################################################
-    """Build the blom namelist """
-
-    # Build the component namelist
-    if compname != "blom":
-        raise AttributeError
-    comp_root_dir_ocn = case.get_value("COMP_ROOT_DIR_OCN")
-    srcroot = case.get_value("SRCROOT")
-    rundir = case.get_value("RUNDIR")
-    ninst = case.get_value("NINST_OCN")
-
-    # determine the confdir directory
-    confdir = os.path.join(caseroot,"Buildconf","blomconf")
-    if not os.path.isdir(confdir):
-        os.makedirs(confdir)
-
-    #----------------------------------------------------
-    # Construct the namelist generator
-    #----------------------------------------------------
-    # determine directory for user modified namelist_definitions.xml and namelist_defaults.xml
-    user_xml_dir = os.path.join(caseroot, "SourceMods", "src.blom")
-    expect (os.path.isdir(user_xml_dir),
-            "user_xml_dir %s does not exist " %user_xml_dir)
-
-    # user definition *replaces* existing definition.
-    namelist_xml_dir = os.path.join(comp_root_dir_ocn, "cime_config")
-    definition_file = [os.path.join(namelist_xml_dir, "namelist_definition_blom.xml")]
-    user_definition = os.path.join(user_xml_dir, "namelist_definition_blom.xml")
-    if os.path.isfile(user_definition):
-        definition_file = [user_definition]
-    for file_ in definition_file:
-        expect(os.path.isfile(file_), "Namelist XML file %s not found!" % file_)
-
-    # Create the namelist generator object - independent of instance
-    nmlgen = NamelistGenerator(case, definition_file)
-
-    #----------------------------------------------------
-    # Loop over instances
-    #----------------------------------------------------
-    for inst_counter in range(1, ninst+1):
-
-        # determine instance string
-        inst_string = ""
-        if ninst > 1:
-            inst_string = '_' + '%04d' % inst_counter
-
-        # If multi-instance case does not have restart file, use
-        # single-case restart for each instance
-        rpointer = "rpointer.ice"
-        if (os.path.isfile(os.path.join(rundir,rpointer)) and
-            (not os.path.isfile(os.path.join(rundir,rpointer + inst_string)))):
-            shutil.copy(os.path.join(rundir, rpointer),
-                        os.path.join(rundir, rpointer + inst_string))
-
-        inst_string_label = inst_string
-        if not inst_string_label:
-            inst_string_label = "\"\""
-
-        # create namelist_infile using user_nl_file as input
-        user_nl_file = os.path.join(caseroot, "user_nl_blom" + inst_string)
-        expect(os.path.isfile(user_nl_file),
-               "Missing required user_nl_file %s " %(user_nl_file))
-        infile = os.path.join(confdir, "namelist_infile")
-        create_namelist_infile(case, user_nl_file, infile)
-        namelist_infile = [infile]
-
-        # create namelist
-        _create_namelists(case, confdir, namelist_infile, nmlgen)
-
-        # copy namelist files to rundir
-        if os.path.isdir(rundir):
-            file1  = os.path.join(confdir, "ocn_in")
-            file2 = os.path.join(rundir, "ocn_in")
-            if inst_string:
-                file2 += inst_string
-            logger.debug("BLOM namelist copy: file1 %s file2 %s " %(file1, file2))
-            shutil.copy2(file1, file2)
-
 ###############################################################################
 def _main_func():
 
     caseroot = parse_input(sys.argv)
-    with Case(caseroot, read_only=False) as case:
+    with Case(caseroot) as case:
         buildnml(case, caseroot, "blom")
+    # End with
 
 if __name__ == "__main__":
     _main_func()

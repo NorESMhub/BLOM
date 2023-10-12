@@ -28,7 +28,7 @@
 !  Modified
 !  --------
 !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-!   -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
+!   -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
 !
 !
 !  Purpose
@@ -74,7 +74,6 @@
       ! sedbypass
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
                               & ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
-
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
       ! FB_BGC_OCE
       use mo_biomod,      only: abs_oce

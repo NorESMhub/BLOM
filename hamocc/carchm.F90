@@ -616,27 +616,33 @@
       ENDDO
 !$OMP END PARALLEL DO
 
-
-
-! C14 decay in the sediment (could be moved to sediment part)
-      if (use_cisonew) then
-         if (.not. use_sedbypass) then
-            do k=1,ks
-               !$OMP PARALLEL DO PRIVATE(i)
-               do j=1,kpje
-                  do i=1,kpie
-                     if(omask(i,j).gt.0.5) then
-                        sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)*c14dec
-                        sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc14)*c14dec
-                        powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)*c14dec
-                     endif
-                  enddo
-               enddo
-               !$OMP END PARALLEL DO
+      ! C14 decay in the sediment (could be moved to sediment part)
+      if (use_cisonew .and. .not. use_sedbypass) then
+         do k=1,ks
+            !$OMP PARALLEL DO PRIVATE(i)
+            do j=1,kpje
+            do i=1,kpie
+               if(omask(i,j).gt.0.5) then
+                  sedlay(i,j,k,issso14)=sedlay(i,j,k,issso14)*c14dec
+                  sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc14)*c14dec
+                  powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowc14)*c14dec
+               endif
             enddo
-         end if
-      end if
+            enddo
+            !$OMP END PARALLEL DO
+         enddo
 
+         !$OMP PARALLEL DO PRIVATE(i)
+         do j=1,kpje
+         do i=1,kpie
+            if(omask(i,j).gt.0.5) then
+               burial(i,j,issso14) = burial(i,j,issso14)*c14dec
+               burial(i,j,isssc14) = burial(i,j,isssc14)*c14dec
+            endif
+         enddo
+         enddo
+         !$OMP END PARALLEL DO
+      end if ! end of use_cisonew and not use_sedbypass
 
       RETURN
     END SUBROUTINE CARCHM

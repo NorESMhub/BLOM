@@ -115,9 +115,9 @@
       ! CFC
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
       ! cisonew
-      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14, &
-                              & issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14,                         &
-                              & iatmnco2,issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14
+      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14 
+      use mo_param1_bgc,  only: iatmnco2,iatmc13,iatmc14
       use mo_control_bgc, only: rmasks
       ! natDIC
       use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
@@ -136,7 +136,7 @@
 
       ! Local variables
       INTEGER             :: i,j
-      REAL, allocatable   :: locetra(:,:,:,:) ! local array for writing
+      REAL                :: locetra(kpie,kpje,2*kpke,nocetra)
       INTEGER             :: errstat
 
       ! Variables for netcdf
@@ -167,9 +167,8 @@
 !
 ! Allocate and initialize local array for writing (locetra)
 !
-      allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
-      if(errstat.ne.0) stop('not enough memory for locetra allocation')
-      locetra(:,:,:,1:) = trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
+      locetra(:,:,:,:) = trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)  ! TODO - is this right?
+      !locetra(:,:,:,1:) = trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)
 
       idate(1) = kplyear
       idate(2) = kplmon
@@ -613,12 +612,10 @@
               &    6,'mol/kg',34,'Natural hydrogen ion concentration',           &
               &    rmissing,64,io_stdo_bgc)
       end if
-
-
-!
-! Define variables : sediment
-! ----------------------------------------------------------------------
-!
+      !
+      ! Define variables : sediment
+      ! ----------------------------------------------------------------------
+      !
       if (.not. use_sedbypass) then
 
          IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
@@ -675,23 +672,27 @@
          if (use_cisonew) then
             CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',37,'Sediment accumulated organic carbon13',     &
-                 &    rmasks,81,io_stdo_bgc)
+                 &    rmissing,81,io_stdo_bgc)
 
             CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',37,'Sediment accumulated organic carbon14',     &
-                 &    rmasks,82,io_stdo_bgc)
+                 &    rmissing,82,io_stdo_bgc)
 
             CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate13',  &
-                 &    rmasks,83,io_stdo_bgc)
+                 &    rmissing,83,io_stdo_bgc)
 
             CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate14',  &
-                 &    rmasks,84,io_stdo_bgc)
+                 &    rmissing,84,io_stdo_bgc)
 
             CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',25,'Sediment pore water DIC13',                 &
-                 &    rmasks,85,io_stdo_bgc)
+                 &    rmissing,85,io_stdo_bgc)
+
+            CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
+                 &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
+                 &    rmissing,86,io_stdo_bgc)
 
             CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
                  &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
@@ -708,7 +709,6 @@
          CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdimst,ncvarid,          &
               &    9,'kmol/m**2',34,'Sediment accumulated hydrogen ions',        &
               &    rmissing,87,io_stdo_bgc)
-
          !
          ! Define variables : sediment burial
          ! ----------------------------------------------------------------------
@@ -736,12 +736,29 @@
               &    7,'kg/m**2',20,'Burial layer of clay',                        &
               &    rmissing,93,io_stdo_bgc)
 
-      end if ! not sedbypass
+         if (use_cisonew) then
+            CALL NETCDF_DEF_VARDB(ncid,8,'bur_o13',3,ncdimst,ncvarid,         &
+                 &    9,'kmol/m**2',27,'Burial layer of organic 13C',               &
+                 &    rmissing,94,io_stdo_bgc)
 
-!
-! Define variables: atmosphere
-! ----------------------------------------------------------------------
-!
+            CALL NETCDF_DEF_VARDB(ncid,8,'bur_o14',3,ncdimst,ncvarid,         &
+                 &    9,'kmol/m**2',27,'Burial layer of organic 14C',               &
+                 &    rmissing,95,io_stdo_bgc)
+
+            CALL NETCDF_DEF_VARDB(ncid,8,'bur_c13',3,ncdimst,ncvarid,         &
+                 &    9,'kmol/m**2',23,'Burial layer of Ca13CO3',                   &
+                 &    rmissing,96,io_stdo_bgc)
+
+            CALL NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,         &
+                 &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',                   &
+                 &    rmissing,97,io_stdo_bgc)
+         end if
+
+      end if ! not sedbypass
+      !
+      ! Define variables: atmosphere
+      ! ----------------------------------------------------------------------
+      !
       if (use_BOXATM) then
          IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
             ncdimst(1) = nclonid
@@ -901,6 +918,10 @@
             CALL write_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0)
             CALL write_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0)
             CALL write_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0)
+            CALL write_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0)
+            CALL write_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0)
+            CALL write_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0)
+            CALL write_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0)
             CALL write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
             CALL write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
          end if
@@ -942,8 +963,6 @@
       WRITE(io_stdo_bgc,*) 'End of AUFW_BGC'
       WRITE(io_stdo_bgc,*) '***************'
       ENDIF
-
-      deallocate(locetra)
 
       RETURN
     END SUBROUTINE AUFW_BGC

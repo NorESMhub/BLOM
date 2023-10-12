@@ -124,11 +124,11 @@
       ! cisonew
       use mo_carbch,      only: ocetra
       use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
-      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, & 
-                              & issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,iatmc13,iatmc14
+      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
+      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14
       use mo_bgcmean,     only: jatmo2,jatmn2
       ! natDIC
-      use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212,iatmnco2
+      use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
       use mo_carbch,      only: nathi
       ! NOT sedbypass
       use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
@@ -483,6 +483,10 @@
                CALL read_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0,iotype)
                CALL read_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0,iotype)
                CALL read_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0,iotype)
+               CALL read_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0,iotype)
+               CALL read_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0,iotype)
+               CALL read_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0,iotype)
+               CALL read_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0,iotype)
                CALL read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
                CALL read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
             ENDIF
@@ -573,7 +577,6 @@
                   locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14
                   locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
                   locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
-                  
                ENDIF
             ENDDO
             ENDDO
@@ -587,8 +590,8 @@
                   IF(omask(i,j) .GT. 0.5) THEN
                      rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
                      rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-                     powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213*bifr13
-                     powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214*bifr14
+                     powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
+                     powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
                      sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
                      sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
                      sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
