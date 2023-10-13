@@ -116,7 +116,7 @@
       use mo_param1_bgc,  only: icfc11,icfc12,isf6
       ! cisonew
       use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14
-      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14 
+      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14
       use mo_param1_bgc,  only: iatmnco2,iatmc13,iatmc14
       use mo_control_bgc, only: rmasks
       ! natDIC
@@ -852,18 +852,18 @@
       CALL write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
       CALL write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)
       if (use_cisonew) then
-         CALL write_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0)
-         CALL write_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0)
-         CALL write_netcdf_var(ncid,'doc13',locetra(1,1,1,idoc13),2*kpke,0)
-         CALL write_netcdf_var(ncid,'doc14',locetra(1,1,1,idoc14),2*kpke,0)
-         CALL write_netcdf_var(ncid,'poc13',locetra(1,1,1,idet13),2*kpke,0)
-         CALL write_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0)
-         CALL write_netcdf_var(ncid,'phyto13',locetra(1,1,1,iphy13),2*kpke,0)
-         CALL write_netcdf_var(ncid,'phyto14',locetra(1,1,1,iphy14),2*kpke,0)
-         CALL write_netcdf_var(ncid,'grazer13',locetra(1,1,1,izoo13),2*kpke,0)
-         CALL write_netcdf_var(ncid,'grazer14',locetra(1,1,1,izoo14),2*kpke,0)
-         CALL write_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0)
-         CALL write_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0)
+         CALL write_netcdf_var(ncid,'sco213'   ,locetra(1,1,1,isco213) ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'sco214'   ,locetra(1,1,1,isco214) ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'doc13'    ,locetra(1,1,1,idoc13)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'doc14'    ,locetra(1,1,1,idoc14)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'poc13'    ,locetra(1,1,1,idet13)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'poc14'    ,locetra(1,1,1,idet14)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'phyto13'  ,locetra(1,1,1,iphy13)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'phyto14'  ,locetra(1,1,1,iphy14)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'grazer13' ,locetra(1,1,1,izoo13)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'grazer14' ,locetra(1,1,1,izoo14)  ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'calciu13' ,locetra(1,1,1,icalc13) ,2*kpke,0)
+         CALL write_netcdf_var(ncid,'calciu14' ,locetra(1,1,1,icalc14) ,2*kpke,0)
       end if
       if (use_AGG) then
          CALL write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)

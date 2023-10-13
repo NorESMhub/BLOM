@@ -50,7 +50,7 @@ module mo_param_bgc
                           & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges
   use mo_sedmnt,      only: claydens,o2ut,rno3
   use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
-  use mo_control_bgc, only: use_AGG, use_natDIC, use_BROMO, use_cisonew
+  use mo_control_bgc, only: use_AGG, use_natDIC, use_BROMO, use_cisonew, use_WLIN
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
   ! agg
@@ -352,7 +352,7 @@ module mo_param_bgc
     wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
     wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
     wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-    if (use_WLIN .and. use_AGG) then
+    if (use_WLIN .and. .not. use_AGG) then
        wmin   =  1.       !m/d   minimum sinking speed
        wmax   = 60.       !m/d   maximum sinking speed
        wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
@@ -456,7 +456,7 @@ module mo_param_bgc
     wpoc  = wpoc*dtb       !m/d  Sinking speed detritusiris : 5.
     wcal  = wcal*dtb       !m/d  Sinking speed CaCO3
     wopal = wopal*dtb      !m/d  Sinking speed opal iris : 60
-    if (use_WLIN .and. use_AGG) then
+    if (use_WLIN .and. .not. use_AGG) then
        wmin  = wmin*dtb       !m/d   minimum sinking speed
        wmax  = wmax*dtb       !m/d   maximum sinking speed
        wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
@@ -620,7 +620,7 @@ module mo_param_bgc
          WRITE(io_stdo_bgc,*) '*          fbro1        = ',fbro1
          WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
       end if
-      if (use_WLIN .and. use_AGG) then
+      if (use_WLIN .and. .not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin
          WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax
          WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin

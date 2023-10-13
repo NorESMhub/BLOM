@@ -106,16 +106,13 @@
       REAL :: c14fac
       REAL :: re1312,re14to,prei13,prei14
       REAL :: bifr13,bifr14,growth_co2,bifr13_perm
-
       ! AGG
       REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
       REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
       REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
       REAL :: dustd1,dustd2,dustd3,dustsink,calmax
-
       ! WLIN
       REAL :: wmin,wmax,wlin
-
       ! BROMO
       REAL :: rbro
 
