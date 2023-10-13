@@ -856,14 +856,14 @@ contains
 
       ! CO2 flux
 
+      index_co2 = -1
+#ifdef HAMOCC
       if (use_DIAGCO2 .and. index_Sa_co2diag > 0) then
          index_co2 = index_Sa_co2diag
       else if (use_PROGCO2 .and. index_Sa_co2prog > 0) then
          index_co2 = index_Sa_co2prog
-      else
-         index_co2 = -1
       end if
-
+#endif
       if (index_co2 > 0) then
          !$omp parallel do private(i, n)
          do j = 1, jjcpl
