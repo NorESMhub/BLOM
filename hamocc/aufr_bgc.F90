@@ -5,16 +5,16 @@
 ! This file is part of BLOM/iHAMOCC.
 !
 ! BLOM is free software: you can redistribute it and/or modify it under the
-! terms of the GNU Lesser General Public License as published by the Free 
-! Software Foundation, either version 3 of the License, or (at your option) 
-! any later version. 
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
 !
-! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
-! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-! more details. 
+! more details.
 !
-! You should have received a copy of the GNU Lesser General Public License 
+! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
@@ -43,7 +43,7 @@
 !       and "NOMPI"
 !
 !     J.Schwinger,      *GFI, Bergen*     2014-05-21
-!     - adapted code for writing of two time level tracer 
+!     - adapted code for writing of two time level tracer
 !       and sediment fields
 !
 !     A.Moree,          *GFI, Bergen*   2018-04-12
@@ -57,7 +57,7 @@
 !       observed d13C and d14C). This is used if c-isotope fields are
 !       not found in the restart file.
 !     - consistently organised restart of CFC and natural tracers
-!       from scratch, i.e. for the case that CFC and natural tracers are 
+!       from scratch, i.e. for the case that CFC and natural tracers are
 !       not found in the restart file.
 !     - removed satn2o which is not needed to restart the model
 !     - added sediment bypass preprocessor option
@@ -76,9 +76,9 @@
 !     -------
 !     The bgc data are read from an extra file, other than the ocean data.
 !     The time stamp of the bgc restart file (idate) is specified from the
-!     ocean time stamp through the SBR parameter list of AUFW_BGC. The only 
-!     time control variable proper to the bgc is the time step number 
-!     (idate(5)). It can differ from that of the ocean (idate(4)) by the 
+!     ocean time stamp through the SBR parameter list of AUFW_BGC. The only
+!     time control variable proper to the bgc is the time step number
+!     (idate(5)). It can differ from that of the ocean (idate(4)) by the
 !     difference of the offsets of restart files.
 !
 !
@@ -91,7 +91,7 @@
 !     *INTEGER* *ntr*        - number of tracers in tracer field
 !     *INTEGER* *ntrbgc*     - number of biogechemical tracers in tracer field
 !     *INTEGER* *itrbgc*     - start index for biogeochemical tracers in tracer field
-!     *REAL*    *trc*        - initial/restart tracer field to be passed to the 
+!     *REAL*    *trc*        - initial/restart tracer field to be passed to the
 !                              ocean model [mol/kg]
 !     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmon*     - month in ocean restart date
@@ -102,7 +102,7 @@
 !
 !**************************************************************************
 
-      use netcdf,         only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,nf90_open,nf90_get_att,nf90_inq_varid 
+      use netcdf,         only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,nf90_open,nf90_get_att,nf90_inq_varid
       use mo_carbch,      only: co2star,co3,hi,satoxy
       use mo_control_bgc, only: io_stdo_bgc,ldtbgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,&
@@ -276,7 +276,7 @@
      &      ,kplday,'/',restday,' !!!'
          ENDIF
 
-      ENDIF 
+      ENDIF
 
 ! Find out whether to restart CFCs
       if (use_CFC) then
@@ -380,7 +380,7 @@
       end if
 !
 ! Read restart data : ocean aquateous tracer
-!                
+!
       CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,isco212),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,ialkali),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'phosph',locetra(1,1,1,iphosph),2*kpke,0,iotype)
@@ -558,12 +558,12 @@
                   ! 13C is read in as delta13C, convert to 13C using model restart total C
                   beta13=locetra(i,j,k,isco213)/1000.+1.
                   locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
-                  
-                  ! 14C is read in as delta14C, convert to 14C using model restart total C, 
+
+                  ! 14C is read in as delta14C, convert to 14C using model restart total C,
                   ! normalize 14C by c14fac to prevent numerical errors
                   beta14=locetra(i,j,k,isco214)/1000.+1.
                   locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
-                  
+
                   ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
                   rco213=locetra(i,j,k,isco213)/(locetra(i,j,k,isco212)+safediv)
                   rco214=locetra(i,j,k,isco214)/(locetra(i,j,k,isco212)+safediv)
@@ -581,12 +581,12 @@
             ENDDO
             ENDDO
             ENDDO
-            
+
             if (.not. use_sedbypass) then
                ! Burial fields for c-isotopes still missing
                DO  k=1,2*ks
                DO  j=1,kpje
-               DO  i=1,kpie 
+               DO  i=1,kpie
                   IF(omask(i,j) .GT. 0.5) THEN
                      rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
                      rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
@@ -600,13 +600,29 @@
                ENDDO
                ENDDO
                ENDDO
-            end if
+
+               DO  k=1,2
+               DO  j=1,kpje
+               DO  i=1,kpie
+                  IF(omask(i,j) .GT. 0.5) THEN
+                     rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                     rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                     burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
+                     burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
+                     burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
+                     burial2(i,j,k,isssc14)=burial2(i,j,k,isssc12)*rco214
+                  ENDIF
+               ENDDO
+               ENDDO
+               ENDDO
+
+            end if  ! .NOT. use_sedbypass
          ENDIF ! .NOT. lread_iso
-      end if
+      end if ! use_cisonew
 
 ! return tracer fields to ocean model (both timelevels); No unit
-! conversion here, since tracers in the restart file are in 
-! BLOM units (mol/kg) 
+! conversion here, since tracers in the restart file are in
+! BLOM units (mol/kg)
 !--------------------------------------------------------------------
 !
       trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)
