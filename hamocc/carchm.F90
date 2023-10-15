@@ -118,7 +118,7 @@
       use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
       ! sedbypass
       use mo_sedmnt,      only: sedlay,powtra,burial
-      use mo_param1_bgc,  only: issso14,isssc14,ipowc14
+      use mo_param1_bgc,  only: ks,issso14,isssc14,ipowc14
       use mo_control_bgc, only: use_cisonew,use_natDIC,use_CFC,use_BROMO,use_cisonew,use_sedbypass
 
       implicit none
@@ -139,7 +139,7 @@
       REAL,    intent(in) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       ! Local variables
-      INTEGER :: i,j,k,l,js,ks
+      INTEGER :: i,j,k,l,js
       INTEGER, parameter :: niter=20
 
       REAL    :: supsat, undsa, dissol
