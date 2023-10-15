@@ -85,6 +85,11 @@ def buildnml(case, caseroot, compname):
     hamocc_sedspinup_ncycle   = case.get_value("HAMOCC_SEDSPINUP_NCYCLE")
     is_test                   = case.get_value("TEST")
 
+    blom_vcoord = case.get_value("BLOM_VCOORD")
+    turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
+    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, 
+           f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
+
     #--------------------------
     # Construct ParamGen objects:
     #--------------------------
@@ -223,6 +228,11 @@ def buildnml(case, caseroot, compname):
         if pg_blom.get_value('inid14c') == 'UNSET':
             pg_blom.set_value('inid14c', value='')
 
+        if pg_blom.get_value('use_cisonew') == ".true.":
+            if pg_blom.bet_value("use_SEDBYPASS") == ".false.":
+                expect(False,
+                       "HAMOCC C-isotopes currently not supported in the sediment module. Set use_SEDBYPASS to .true.")
+
         #---------------------------
         # Write out Fortran namelist:
         #---------------------------
@@ -245,6 +255,7 @@ def buildnml(case, caseroot, compname):
             groups.append("bgcnml")
             groups.append("bgcoafx")
             groups.append("diabgc")
+            groups.append("bgc_config")
 
         # for now don't write out bgcparams - just create an empty namelist
         # if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):

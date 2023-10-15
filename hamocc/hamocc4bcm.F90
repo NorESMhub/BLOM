@@ -99,7 +99,7 @@
       use mo_param1_bgc,  only: iatmbromo
       ! CFC
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
-      use mo_control_bgc, only: use_PROGCO2,use_DIAGCO2,use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,use_BOXATM, use_sedbypass
+      use mo_control_bgc, only: ocn_co2_type, use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,use_BOXATM, use_sedbypass
 
       implicit none
 
@@ -170,7 +170,7 @@
 !--------------------------------------------------------------------
 ! Pass atmospheric co2 if coupled to an active atmosphere model
 !
-      if (use_PROGCO2 .or. use_DIAGCO2) then
+      if (trim(ocn_co2_type) == 'diagnostic' .or. trim(ocn_co2_type) == 'prognostic') then
          !$OMP PARALLEL DO PRIVATE(i)
          DO  j=1,kpje
             DO  i=1,kpie
