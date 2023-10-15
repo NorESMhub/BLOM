@@ -3774,7 +3774,7 @@
   <entry id="use_WLIN">
     <type>logical</type>
     <category>config_bgc</category>
-    <group>configbgc</group>
+    <group>config_bgc</group>
     <values>
       <value>.true.</value>
     </values>

@@ -35,7 +35,7 @@
       use mod_checksum, only: csdiag, chksummsk
       use blom_cpl_indices
 #ifdef HAMOCC
-      use mo_control_bgc, only: use_BROMO, use_DIAGCO2, use_PROGCO2
+      use mo_control_bgc, only: ocn_co2_type
 #endif
 
       implicit none
@@ -230,7 +230,7 @@
       call fill_global(mval, fval, halo_ps,
      .                 abswnd_da(1-nbdy,1-nbdy,l2ci))
 
-      if (use_PROGCO2) then
+      if (ocn_co2_type == 'prognostic') then
          if (index_x2o_Sa_co2prog > 0) then
             n = 0
             do j = 1, jjcpl
@@ -260,7 +260,7 @@
             enddo
             if (mnproc.eq.1) write (lp,*) 'import_mct: prog. atmospheric co2 not read'
          endif
-      else if (use_DIAGCO2) then
+      else if (ocn_co2_type == 'diagnostic') then
          if (index_x2o_Sa_co2diag > 0) then
             n = 0
             do j = 1, jjcpl
