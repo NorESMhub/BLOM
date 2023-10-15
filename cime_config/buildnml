@@ -203,7 +203,7 @@ def buildnml(case, caseroot, compname):
         case_dict = CaseDict()
         var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD',
                     'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START',
-                    'HAMOCC_SEDSPINUP_YR_END')
+                    'HAMOCC_SEDSPINUP_YR_END', 'OCN_CO2_TYPE')
 
         for item in var_list:
             case_dict[item] = case.get_value(item)
@@ -255,7 +255,7 @@ def buildnml(case, caseroot, compname):
             groups.append("bgcnml")
             groups.append("bgcoafx")
             groups.append("diabgc")
-            groups.append("bgc_config")
+            groups.append("config_bgc")
 
         # for now don't write out bgcparams - just create an empty namelist
         # if "ecosys" in case.get_value("BLOM_TRACER_MODULES"):

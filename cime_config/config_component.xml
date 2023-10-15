@@ -24,7 +24,7 @@
       <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
       <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
     </values>
-    <group>build_component_blom</group>
+    <group>run_component_blom</group>
     <file>env_run.xml</file>
     <desc>Determines provenance of atmospheric CO2 for gas flux computation.
       This option is used in the BLOM ecosystem model.

@@ -47,10 +47,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
        &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
        &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,       &
-       &                    use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,  &
-       &                    use_cisonew, use_sedbypass,                         &
-       &                    use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,       &
-       &                    use_FB_BGC_OCE, use_BOXATM, ocn_co2_type
+       &                    ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
   use mo_param1_bgc,  only: ks,init_por2octra_mapping,init_indices 
   use mo_param_bgc,   only: ini_parambgc
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -88,9 +85,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
        &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,                      &
-       &   use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC, use_cisonew,      &
-       &   use_sedbypass, use_PBGC_OCNP_TIMESTEP,                               &
-       &   use_PBGC_CK_TIMESTEP, use_FB_BGC_OCE, use_BOXATM, ocn_co2_type
+       &   ocn_co2_type
   !
   ! --- Set io units and some control parameters
   !

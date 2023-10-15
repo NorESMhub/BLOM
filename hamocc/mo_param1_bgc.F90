@@ -39,7 +39,7 @@
 !
 !******************************************************************************
      !use mo_control_bgc, only: use_cisonew
-      use mo_control_bgc
+     use mo_control_bgc ! TODO: fix this to have only clauses
 
       implicit none
       public
@@ -171,6 +171,7 @@
 
     contains
 
+      ! ===========================================================================
       subroutine init_por2octra_mapping()
         map_por2octra(ipowaic) = isco212
         map_por2octra(ipowaal) = ialkali
@@ -185,7 +186,33 @@
         end if
       end subroutine init_por2octra_mapping
 
+      ! ===========================================================================
       subroutine init_indices()
+
+        use mod_xc        , only: lp, mnproc
+        use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
+        use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,  &
+                                  use_cisonew, use_sedbypass,                         &
+                                  use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP,       &
+                                  use_FB_BGC_OCE, use_BOXATM
+        integer :: iounit
+
+        namelist / config_bgc / use_BROMO, use_AGG, use_WLIN, &
+             use_natDIC, use_CFC, use_cisonew, use_sedbypass, use_PBGC_OCNP_TIMESTEP, &
+             use_PBGC_CK_TIMESTEP, use_FB_BGC_OCE, use_BOXATM
+
+        io_stdo_bgc = lp              !  standard out.
+
+        if(.not. allocated(bgc_namelist)) call get_bgc_namelist()
+        open (newunit=iounit, file=bgc_namelist, status='old', action='read')
+        read (unit=iounit, nml=config_bgc)
+        close (unit=iounit)
+
+        IF (mnproc.eq.1) THEN
+           write(io_stdo_bgc,*)
+           write(io_stdo_bgc,*) 'iHAMOCC: reading namelist CONFIG_BGC'
+           write(io_stdo_bgc,nml=config_bgc)
+        end IF
 
         ! Tracer indices
         i_base   = 22

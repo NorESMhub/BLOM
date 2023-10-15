@@ -3759,20 +3759,32 @@
     </desc>
   </entry>
 
+  <entry id="ocn_co2_type" modify_via_xml="OCN_CO2_TYPE">
+    <type>char</type>
+    <category>config_bgc</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$OCN_CO2_TYPE</value>
+    </values>
+    <desc>Determines provenance of atmospheric CO2 for gas flux computation.</desc>
+  </entry>
+
+  <!-- hamocc configuration -->
+
   <entry id="use_WLIN">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>configbgc</group>
     <values>
       <value>.true.</value>
     </values>
     <desc>add desc</desc>
   </entry>
 
-  <entry id="use_CFC" modify_via_xml="HAMOCC_CFC">
+  <entry id="use_CFC">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">.true.</value>
@@ -3783,8 +3795,8 @@
 
   <entry id="use_natDIC">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value compset="HIST_CAM60%NORESM.*">.true.</value>
@@ -3795,8 +3807,8 @@
 
   <entry id="use_PBGC_OCNP_TIMESTEP">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3805,8 +3817,8 @@
 
   <entry id="use_PBGC_CK_TIMESTEP">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3815,8 +3827,8 @@
 
   <entry id="use_BROMO">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
       <value ocn_grid="tnx1v4"> .true.</value>
@@ -3826,8 +3838,8 @@
 
   <entry id="use_SEDBYPASS">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
     </values>
@@ -3836,23 +3848,12 @@
 
   <entry id="use_cisonew">
     <type>logical</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
     <values>
       <value>.false.</value>
     </values>
     <desc>activate the HAMOCC carbon isotope code</desc>
-  </entry>
-
-  <entry id="ocn_co2_type" modify_via_xml="OCN_CO2_TYPE">
-    <type>char</type>
-    <category>bgcnml</category>
-    <group>bgcnml</group>
-    <valid_values>constant,prognostic,diagnostic</valid_values>
-    <values>
-      <value>$OCN_CO2_TYPE</value>
-    </values>
-    <desc>Determines provenance of atmospheric CO2 for gas flux computation.</desc>
   </entry>
 
   <!-- ========================= -->
