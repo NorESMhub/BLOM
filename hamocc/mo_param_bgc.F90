@@ -43,29 +43,19 @@ module mo_param_bgc
 !
 !******************************************************************************
 
-  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar
+  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar,                                                                      &
+                            atm_bromo,fbro1,fbro2,atm_c13, atm_c14,c14_t_half,c14dec,atm_co2_nat
   use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,            &
-                          & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
-                          & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
-                          & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges
+                            drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
+                            pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
+                            ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,                                             &
+                            alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
+                            fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmin,wmax,wlin,rbro, &
+                            bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
   use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
-  use mo_control_bgc, only: use_AGG, use_natDIC, use_BROMO, use_cisonew, use_WLIN
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
-  ! agg
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
-                          & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
-  ! wlin
-  use mo_biomod,      only: wmin,wmax,wlin
-  ! bromo
-  use mo_biomod,      only: rbro
-  use mo_carbch,      only: atm_bromo,fbro1,fbro2
-  ! cisonew
-  use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
-  use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
-  ! natDIC
-  use mo_carbch,      only: atm_co2_nat
 
   implicit none
 
@@ -107,7 +97,6 @@ module mo_param_bgc
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine
-
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_param_atm()
@@ -374,7 +363,6 @@ module mo_param_bgc
     ! Note that afterward, i) rates need to be adjusted for timestep
     ! and some depending parameters need re-calculation
     !
-
     integer  :: iounit
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal, &
