@@ -54,30 +54,18 @@
 
       use mo_carbch,      only: co2star,co3,hi,ocetra 
       use mo_biomod,      only: fesoly 
-      use mo_control_bgc, only: rmasks
+      use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
+                                iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, & 
+                                iadust,inos,ibromo,icfc11,icfc12,isf6, & 
+                                icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, & 
+                                inatcalc, & 
+                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
+                                ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
       use mo_vgrid,       only: kmle,kbo
-      ! AGG
-      use mo_biomod,      only: cellmass,fractdim
-      use mo_param1_bgc,  only: iadust,inos
-      ! BROMO
-      use mo_param1_bgc,  only: ibromo
-      ! CFC
-      use mo_param1_bgc,  only: icfc11,icfc12,isf6
-      ! cisonew
-      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
-      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
-      ! natDIC
-      use mo_param1_bgc,  only: inatcalc
+      use mo_biomod,      only: cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to,abs_oce
       use mo_carbch,      only: nathi,natco3
-      ! sedbypass
-      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
-                              & ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
-      ! FB_BGC_OCE
-      use mo_biomod,      only: abs_oce
-      use mo_control_bgc, only: use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
 
       implicit none
 
@@ -90,10 +78,8 @@
 
       ! local variables
       INTEGER :: i,j,k,l
-      ! cisonew
-      REAL :: rco213,rco214,beta13,beta14
-      ! AGG
-      REAL :: snow
+      REAL :: rco213,rco214,beta13,beta14 ! cisonew
+      REAL :: snow ! AGG
 
       if (use_FB_BGC_OCE) then
          DO k=1,kpke

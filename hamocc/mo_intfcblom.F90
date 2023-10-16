@@ -67,21 +67,21 @@ module mo_intfcblom
 
   implicit none
 
-  integer, parameter      :: nphys=2
+  integer, parameter :: nphys=2
 
-  real, allocatable, save :: bgc_dx(:,:),bgc_dy(:,:)
-  real, allocatable, save :: bgc_dp(:,:,:)
-  real, allocatable, save :: bgc_rho(:,:,:)
-  real, allocatable, save :: omask(:,:)
+  real, allocatable :: bgc_dx(:,:),bgc_dy(:,:)
+  real, allocatable :: bgc_dp(:,:,:)
+  real, allocatable :: bgc_rho(:,:,:)
+  real, allocatable :: omask(:,:)
 
   ! Two time-level copy of sediment fields
-  real, allocatable, save :: sedlay2(:,:,:,:)
-  real, allocatable, save :: powtra2(:,:,:,:)
-  real, allocatable, save :: burial2(:,:,:,:)
+  real, allocatable :: sedlay2(:,:,:,:)
+  real, allocatable :: powtra2(:,:,:,:)
+  real, allocatable :: burial2(:,:,:,:)
 
   ! Two time level copy of prognostic atmosphere field
   ! used if BOXATM is activated
-  real, allocatable, save :: atm2(:,:,:,:)
+  real, allocatable :: atm2(:,:,:,:)
 
 contains
 !******************************************************************************

@@ -32,14 +32,15 @@
 !  - To facilitate easier use of 'only-lists' in use statements, make indices
 !    always defined also in case they are inside a #ifdef directive.
 !
-!
 !  Purpose
 !  -------
 !  - definition of indices in tracer arrays
 !
 !******************************************************************************
-     !use mo_control_bgc, only: use_cisonew
-      use mo_control_bgc
+      use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,         &
+                                use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP, &
+                                use_FB_BGC_OCE, use_BOXATM, use_sedbypass,                 &
+                                use_PROGCO2, use_DIAGCO2
 
       implicit none
       public
@@ -47,127 +48,153 @@
       INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
       REAL,    PARAMETER :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
 
+      ! ------------------
       ! Tracer indices
+      ! ------------------
+
       integer :: i_base
-      integer :: isco212
-      integer :: ialkali
-      integer :: iphosph
-      integer :: ioxygen
-      integer :: igasnit
-      integer :: iano3
-      integer :: isilica
-      integer :: idoc
-      integer :: iphy
-      integer :: izoo
-      integer :: idet
-      integer :: icalc
-      integer :: iopal
-      integer :: ian2o
-      integer :: idms
-      integer :: iiron
-      integer :: ifdust
-      integer :: iprefo2
-      integer :: iprefpo4
-      integer :: iprefalk
-      integer :: iprefdic
-      integer :: idicsat
+      integer, protected :: isco212
+      integer, protected :: ialkali
+      integer, protected :: iphosph
+      integer, protected :: ioxygen
+      integer, protected :: igasnit
+      integer, protected :: iano3
+      integer, protected :: isilica
+      integer, protected :: idoc
+      integer, protected :: iphy
+      integer, protected :: izoo
+      integer, protected :: idet
+      integer, protected :: icalc
+      integer, protected :: iopal
+      integer, protected :: ian2o
+      integer, protected :: idms
+      integer, protected :: iiron
+      integer, protected :: ifdust
+      integer, protected :: iprefo2
+      integer, protected :: iprefpo4
+      integer, protected :: iprefalk
+      integer, protected :: iprefdic
+      integer, protected :: idicsat
 
-      integer :: i_iso
-      integer :: isco213
-      integer :: isco214
-      integer :: idoc13
-      integer :: idoc14
-      integer :: iphy13
-      integer :: iphy14
-      integer :: izoo13
-      integer :: izoo14
-      integer :: idet13
-      integer :: idet14
-      integer :: icalc13
-      integer :: icalc14
+      ! cisonew
+      integer, protected :: i_iso
+      integer, protected :: isco213
+      integer, protected :: isco214
+      integer, protected :: idoc13
+      integer, protected :: idoc14
+      integer, protected :: iphy13
+      integer, protected :: iphy14
+      integer, protected :: izoo13
+      integer, protected :: izoo14
+      integer, protected :: idet13
+      integer, protected :: idet14
+      integer, protected :: icalc13
+      integer, protected :: icalc14
 
-      integer :: i_cfc
-      integer :: icfc11
-      integer :: icfc12
-      integer :: isf6
+      !CFC
+      integer, protected :: i_cfc
+      integer, protected :: icfc11
+      integer, protected :: icfc12
+      integer, protected :: isf6
 
-      integer :: i_agg
-      integer :: inos
-      integer :: iadust
+      ! AGG
+      integer, protected :: i_agg
+      integer, protected :: inos
+      integer, protected :: iadust
 
-      integer :: i_nat_dic
-      integer :: inatsco212
-      integer :: inatalkali
-      integer :: inatcalc
+      ! natDIC
+      integer, protected :: i_nat_dic
+      integer, protected :: inatsco212
+      integer, protected :: inatalkali
+      integer, protected :: inatcalc
 
-      integer :: i_bromo
-      integer :: ibromo
+      ! BROMO
+      integer, protected :: i_bromo
+      integer, protected :: ibromo
 
-      ! total number of advected tracers
+      ! total number of advected tracers(set by allocate_tracers in mod_tracers.F90)
       integer :: nocetra
 
+      ! ------------------
       ! atmosphere
-      integer :: i_base_atm
-      integer :: iatmco2
-      integer :: iatmo2
-      integer :: iatmn2
-      integer :: iatmn2o
-      integer :: iatmdms
+      ! ------------------
 
-      integer :: i_iso_atm
-      integer :: iatmc13
-      integer :: iatmc14
-      integer :: i_cfc_atm
-      integer :: iatmf11
-      integer :: iatmf12
-      integer :: iatmsf6
-      integer :: i_ndic_atm
-      integer :: iatmnco2
-      integer :: i_bromo_atm
-      integer :: iatmbromo
-      integer :: natm ! total number of atmosphere tracers
+      integer, protected :: i_base_atm
+      integer, protected :: iatmco2
+      integer, protected :: iatmo2
+      integer, protected :: iatmn2
+      integer, protected :: iatmn2o
+      integer, protected :: iatmdms
 
+      ! cisonew atm
+      integer, protected :: i_iso_atm
+      integer, protected :: iatmc13
+      integer, protected :: iatmc14
+
+      ! CFC atm
+      integer, protected :: i_cfc_atm
+      integer, protected :: iatmf11
+      integer, protected :: iatmf12
+      integer, protected :: iatmsf6
+
+      ! natDIC atm
+      integer, protected :: i_ndic_atm
+      integer, protected :: iatmnco2
+
+      ! BROMO atm
+      integer, protected :: i_bromo_atm
+      integer, protected :: iatmbromo
+
+      integer, protected :: natm ! total number of atmosphere tracers
+
+      ! ------------------
       ! rivers
-      integer :: nriv   ! size of river input field
-      integer :: irdin  ! dissolved inorganic nitrogen
-      integer :: irdip  ! dissolved inorganic phosphorous
-      integer :: irsi   ! dissolved silicate
-      integer :: iralk  ! alkalinity
-      integer :: iriron ! dissolved bioavailable iron
-      integer :: irdoc  ! dissolved organic carbon
-      integer :: irdet  ! particulate carbon
+      ! ------------------
 
-      ! ---  sediment
+      integer, protected :: nriv   ! size of river input field
+      integer, protected :: irdin  ! dissolved inorganic nitrogen
+      integer, protected :: irdip  ! dissolved inorganic phosphorous
+      integer, protected :: irsi   ! dissolved silicate
+      integer, protected :: iralk  ! alkalinity
+      integer, protected :: iriron ! dissolved bioavailable iron
+      integer, protected :: irdoc  ! dissolved organic carbon
+      integer, protected :: irdet  ! particulate carbon
+
+      ! ------------------
+      ! sediment
+      ! ------------------
       ! sediment solid components
-      integer :: i_sed_base
-      integer :: issso12
-      integer :: isssc12
-      integer :: issssil
-      integer :: issster
+      integer, protected :: i_sed_base
+      integer, protected :: issso12
+      integer, protected :: isssc12
+      integer, protected :: issssil
+      integer, protected :: issster
 
-      integer :: i_sed_cisonew
-      integer :: issso13
-      integer :: issso14
-      integer :: isssc13
-      integer :: isssc14
-      integer :: nsedtra
+      ! ciso sediment
+      integer, protected :: i_sed_cisonew
+      integer, protected :: issso13
+      integer, protected :: issso14
+      integer, protected :: isssc13
+      integer, protected :: isssc14
+      integer, protected :: nsedtra
 
       ! sediment pore water components
-      integer :: i_pow_base
-      integer :: ipowaic
-      integer :: ipowaal
-      integer :: ipowaph
-      integer :: ipowaox
-      integer :: ipown2
-      integer :: ipowno3
-      integer :: ipowasi
-      integer :: i_pow_cisonew
-      integer :: ipowc13
-      integer :: ipowc14
-      integer :: npowtra
+      integer, protected :: i_pow_base
+      integer, protected :: ipowaic
+      integer, protected :: ipowaal
+      integer, protected :: ipowaph
+      integer, protected :: ipowaox
+      integer, protected :: ipown2
+      integer, protected :: ipowno3
+      integer, protected :: ipowasi
+      integer, protected :: i_pow_cisonew
+      integer, protected :: ipowc13
+      integer, protected :: ipowc14
+      integer, protected :: npowtra ! computed in init_indices
 
-      ! Mapping between pore water and ocean tracers needed for pore water diffusion
-      integer, allocatable :: map_por2octra(:)
+      ! Mapping between pore water and ocean tracers needed for pore
+      ! water diffusion
+      integer, protected, allocatable :: map_por2octra(:)
 
     contains
 

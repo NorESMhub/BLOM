@@ -62,16 +62,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
-                          & sed_denit,disso_caco3
+                            sed_denit,disso_caco3,pror13,pror14,prca13,prca14
   use mo_biomod,      only: rnit,ro2ut
-  use mo_control_bgc, only: dtbgc 
+  use mo_control_bgc, only: dtbgc,use_cisonew
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
-                          & issster, ks 
+                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv 
   use mo_vgrid,       only: kbo,bolay
-  ! cisonew
-  use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
-  use mo_sedmnt,      only: pror13,pror14,prca13,prca14
-  use mo_control_bgc, only: use_cisonew
 
   implicit none
 
@@ -83,22 +79,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
   ! Local variables
   integer :: i,j,k,l
-
   real :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
   real :: solrat(kpie,ks),powcar(kpie,ks)
   real :: aerob(kpie,ks),anaerob(kpie,ks)
-  ! cisonew
-  real :: aerob13(kpie,ks),anaerob13(kpie,ks)
-  real :: aerob14(kpie,ks),anaerob14(kpie,ks)
-  !
+  real :: aerob13(kpie,ks),anaerob13(kpie,ks) ! cisonew
+  real :: aerob14(kpie,ks),anaerob14(kpie,ks) ! cisonew
   real :: dissot, undsa, posol
   real :: umfa, denit, saln, rrho, alk, c, sit, pt
   real :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
   real :: ah1, ac, cu, cb, cc, satlev
   real :: ratc13, ratc14, rato13, rato14, poso13, poso14
-
-  ! number of iterations for carchm_solve
-  integer, parameter :: niter = 5
+  integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
 !******************************************************************************
 ! accelerated sediment

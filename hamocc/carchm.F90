@@ -20,8 +20,8 @@
 
       SUBROUTINE CARCHM(kpie,kpje,kpke,kbnd,                                  &
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,                   &
-                        psicomo,ppao,pfu10,ptho,psao,                         &
-                        pflxdms,pflxbromo)
+                        psicomo,ppao,pfu10,ptho,psao)
+
 !******************************************************************************
 !
 !**** *CARCHM* - .
@@ -89,8 +89,6 @@
 !     *REAL*    *pfu10*   - forcing field wind speed.
 !     *REAL*    *ptho*    - potential temperature.
 !     *REAL*    *psao*    - salinity [psu].
-!     *REAL*    *pflxdms* - input dms flux that is already computed 
-!     *REAL*    *pflxbromo* - input bromo flux that is already computed 
 !
 !     Externals
 !     ---------
@@ -100,26 +98,20 @@
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
                                 pco2m,kwco2d,co2sold,co2solm
       use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
-                              & oxyco,tzero
-      use mo_control_bgc, only: dtbgc
+                                oxyco,tzero
+      use mo_control_bgc, only: dtbgc,use_cisonew,use_natDIC,use_CFC,use_BROMO,use_cisonew,use_sedbypass
       use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
-                              & isco212,isilica
+                                isco212,isilica, &
+                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6, &
+                                iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv, &
+                                iatmnco2,inatalkali,inatcalc,inatsco212, &
+                                ks,issso14,isssc14,ipowc14, &
+                                iatmbromo,ibromo
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
-
-      use mo_param1_bgc,  only: iatmbromo,ibromo
-      ! CFC
-      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
-      use mo_param1_bgc,  only: iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6
-      ! cisonew
-      use mo_carbch,      only: co213fxd,co213fxu,co214fxd,co214fxu,c14dec
-      use mo_param1_bgc,  only: iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv
-      ! natDIC
-      use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
-      use mo_param1_bgc,  only: iatmnco2,inatalkali,inatcalc,inatsco212
-      ! sedbypass
+      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh, &
+                                co213fxd,co213fxu,co214fxd,co214fxu,c14dec, &
+                                atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_sedmnt,      only: sedlay,powtra,burial
-      use mo_param1_bgc,  only: ks,issso14,isssc14,ipowc14
-      use mo_control_bgc, only: use_cisonew,use_natDIC,use_CFC,use_BROMO,use_cisonew,use_sedbypass
 
       implicit none
 
@@ -135,13 +127,10 @@
       REAL,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
       REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
       REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-      REAL,    intent(in) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       ! Local variables
       INTEGER :: i,j,k,l,js
       INTEGER, parameter :: niter=20
-
       REAL    :: supsat, undsa, dissol
       REAL    :: rpp0,fluxd,fluxu
       REAL    :: kwco2,kwo2,kwn2,kwdms,kwn2o
@@ -154,22 +143,18 @@
       REAL    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
       REAL    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc,tc_sat
       REAL    :: omega
-      ! CFC
-      REAL    :: atm_cfc11,atm_cfc12,atm_sf6,fact
-      REAL    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf
-      REAL    :: flx11,flx12,flxsf,a_11,a_12,a_sf
-      ! natDIC
-      REAL    :: natcu,natcb,natcc
-      REAL    :: natpco2,natfluxd,natfluxu,natomega
-      REAL    :: natsupsat,natundsa,natdissol
-      ! cisonew
-      REAL    :: rco213,rco214
-      REAL    :: dissol13,dissol14
-      REAL    :: flux14d,flux14u,flux13d,flux13u
-      REAL    :: atco213,atco214,pco213,pco214      
-      REAL    :: frac_k,frac_aqg,frac_dicg
-      ! BROMO
-      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub
+      REAL    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
+      REAL    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf              ! CFC
+      REAL    :: flx11,flx12,flxsf,a_11,a_12,a_sf                    ! CFC
+      REAL    :: natcu,natcb,natcc                                   ! natDIC
+      REAL    :: natpco2,natfluxd,natfluxu,natomega                  ! natDIC
+      REAL    :: natsupsat,natundsa,natdissol                        ! natDIC
+      REAL    :: rco213,rco214                                       ! cisonew
+      REAL    :: dissol13,dissol14                                   ! cisonew
+      REAL    :: flux14d,flux14u,flux13d,flux13u                     ! cisonew
+      REAL    :: atco213,atco214,pco213,pco214                       ! cisonew
+      REAL    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
+      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -204,16 +189,12 @@
 !$OMP  ,cu,cb,cc,pco2,rpp0,scco2,scdms,sco2,oxy,ani,anisa,Xconvxa     &
 !$OMP  ,kwco2,kwdms,kwo2,atco2,ato2,atn2,fluxd,fluxu,oxflux,tc_sat    &
 !$OMP  ,niflux,n2oflux,dmsflux,omega,supsat,undsa,dissol              &
-! CFC
 !$OMP  ,sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf,a_11,a_12,a_sf,flx11   &
 !$OMP  ,flx12,flxsf,atm_cfc11,atm_cfc12,atm_sf6                       &
-! natDIC
 !$OMP  ,natcu,natcb,natcc,natpco2,natfluxd,natfluxu,natomega          &
 !$OMP  ,natsupsat,natundsa,natdissol                                  &
-! cisonew
 !$OMP  ,atco213,atco214,rco213,rco214,pco213,pco214,frac_aqg          &
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
-!
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 !$OMP  ,j,i)
       DO k=1,kpke

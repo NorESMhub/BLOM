@@ -104,36 +104,25 @@
 
       use netcdf,         only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,nf90_open,nf90_get_att,nf90_inq_varid
       use mo_carbch,      only: co2star,co3,hi,satoxy
-      use mo_control_bgc, only: io_stdo_bgc,ldtbgc
+      use mo_carbch,      only: ocetra
+      use mo_carbch,      only: atm
+      use mo_carbch,      only: nathi
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,&
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra
+                                iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra
       use mo_vgrid,       only: kbo
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mod_xc,         only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
       use mod_dia,        only: iotype
-      ! AGG
-      use mo_param1_bgc,  only: iadust,inos
-      ! BOXATM
-      use mo_param1_bgc,  only: iatmco2,iatmn2,iatmo2
-      use mo_carbch,      only: atm
-      ! BROMO
-      use mo_param1_bgc,  only: ibromo
-      ! CFC
-      use mo_param1_bgc,  only: icfc11,icfc12,isf6
-      ! cisonew
-      use mo_carbch,      only: ocetra
-      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
-      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
-      use mo_param1_bgc,  only: issso13,issso14,isssc13,isssc14,ipowc13,ipowc14
-      use mo_param1_bgc,  only: iatmc13,iatmc14,iatmnco2
       use mo_bgcmean,     only: jatmo2,jatmn2
-      ! natDIC
-      use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
-      use mo_carbch,      only: nathi
-      ! NOT sedbypass
-      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
-      use mo_control_bgc, only: use_cisonew, use_AGG, use_BOXATM, use_BROMO, use_CFC, use_natDIC, use_sedbypass
+      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
+      use mo_param1_bgc,  only: iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,                                     &
+                                icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
+                                issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                                                 &
+                                iatmc13,iatmc14,iatmnco2,                                                                        &
+                                inatalkali,inatcalc,inatsco212,                                                                  &
+                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
 
       implicit none
 
@@ -168,15 +157,15 @@
       character(len=9) :: stripestr2
       integer :: ierr,testio
       INTEGER :: leninrstfn
-!
-! Allocate and initialize local array for reading (locetra)
-!
+      !
+      ! Allocate and initialize local array for reading (locetra)
+      !
       allocate(locetra(kpie,kpje,2*kpke,nocetra),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory for locetra allocation'
       locetra(:,:,:,:) = 0.0
-!
-! Open netCDF data file
-!
+      !
+      ! Open netCDF data file
+      !
       testio=0
       IF(mnproc==1 .AND. IOTYPE==0) THEN
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
@@ -184,14 +173,13 @@
              CALL xchalt('(AUFR: Problem with netCDF1)')
                     stop '(AUFR: Problem with netCDF1)'
         ENDIF
-
-!
-! Read restart data : date
-!
+        !
+        ! Read restart data : date
+        !
         ncstat = NF90_GET_ATT(ncid, NF90_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF90_NOERR ) THEN
           CALL xchalt('(AUFR: Problem reading date of restart file)')
-                 stop '(AUFR: Problem reading date of restart file)'
+          stop '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -223,13 +211,13 @@
                     stop '(AUFR: Problem with netCDF1)'
         ENDIF
 
-!
-! Read restart data : date
-!
+        !
+        ! Read restart data : date
+        !
         ncstat = NFMPI_GET_ATT_INT(ncid, NF_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF_NOERR ) THEN
           CALL xchalt('(AUFR: Problem reading date of restart file)')
-                 stop '(AUFR: Problem reading date of restart file)'
+          stop '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -253,9 +241,9 @@
       endif
       ENDIF
 
-!
-! Compare with date read from ocean restart file
-!
+      !
+      ! Compare with date read from ocean restart file
+      !
       IF (mnproc.eq.1) THEN
 
          IF ( kplyear  .NE. restyear  ) THEN
@@ -278,7 +266,7 @@
 
       ENDIF
 
-! Find out whether to restart CFCs
+      ! Find out whether to restart CFCs
       if (use_CFC) then
          lread_cfc=.true.
          IF(IOTYPE==0) THEN
@@ -298,7 +286,7 @@
          ENDIF
       end if
 
-! Find out whether to restart natural tracers
+      ! Find out whether to restart natural tracers
       if (use_natDIC) then
          lread_nat=.true.
          IF(IOTYPE==0) THEN
@@ -319,7 +307,7 @@
          ENDIF
       end if
 
-! Find out whether to restart marine carbon isotopes
+      ! Find out whether to restart marine carbon isotopes
       if (use_cisonew) then
          lread_iso=.true.
          IF(IOTYPE==0) THEN
@@ -339,7 +327,7 @@
          ENDIF
       end if
 
-! Find out whether to restart Bromoform
+      ! Find out whether to restart Bromoform
       if (use_BROMO) then
          lread_bro=.true.
          IF(IOTYPE==0) THEN
@@ -359,7 +347,7 @@
          ENDIF
       end if
 
-! Find out whether to restart atmosphere
+      ! Find out whether to restart atmosphere
       if (use_BOXATM) then
          lread_atm=.true.
          IF(IOTYPE==0) THEN
@@ -378,9 +366,9 @@
          WRITE(io_stdo_bgc,*) ' Initialising atmosphere from scratch '
          ENDIF
       end if
-!
-! Read restart data : ocean aquateous tracer
-!
+      !
+      ! Read restart data : ocean aquateous tracer
+      !
       CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,isco212),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,ialkali),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'phosph',locetra(1,1,1,iphosph),2*kpke,0,iotype)
@@ -449,17 +437,16 @@
             CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
          ENDIF
       end if
-!
-! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
-!
+      !
+      ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
+      !
       CALL read_netcdf_var(ncid,'hi',hi(1,1,1),kpke,0,iotype)
       CALL read_netcdf_var(ncid,'co3',co3(1,1,1),kpke,0,iotype)
       CALL read_netcdf_var(ncid,'co2star',co2star(1,1,1),kpke,0,iotype)
       CALL read_netcdf_var(ncid,'satoxy',satoxy(1,1,1),kpke,0,iotype)
-
-!
-! Read restart data : sediment variables.
-!
+      !
+      ! Read restart data : sediment variables.
+      !
       if (.not. use_sedbypass) then
          CALL read_netcdf_var(ncid,'ssso12',sedlay2(1,1,1,issso12),2*ks,0,iotype)
          CALL read_netcdf_var(ncid,'sssc12',sedlay2(1,1,1,isssc12),2*ks,0,iotype)
@@ -492,9 +479,9 @@
             ENDIF
          endif
       end if
-!
-! Read restart data: atmosphere
-!
+      !
+      ! Read restart data: atmosphere
+      !
       if (use_BOXATM) then
          IF(lread_atm) THEN
             CALL read_netcdf_var(ncid,'atmco2',atm2(1,1,1,iatmco2),2,0,iotype)
@@ -620,11 +607,11 @@
          ENDIF ! .NOT. lread_iso
       end if ! use_cisonew
 
-! return tracer fields to ocean model (both timelevels); No unit
-! conversion here, since tracers in the restart file are in
-! BLOM units (mol/kg)
-!--------------------------------------------------------------------
-!
+      ! return tracer fields to ocean model (both timelevels); No unit
+      ! conversion here, since tracers in the restart file are in
+      ! BLOM units (mol/kg)
+      !--------------------------------------------------------------------
+      !
       trc(1:kpie,1:kpje,:,itrbgc:itrbgc+ntrbgc-1)=locetra(:,:,:,:)
       deallocate(locetra)
 

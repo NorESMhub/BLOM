@@ -80,42 +80,28 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch,      only: dmspar,ocetra,satoxy,hi
-  use mo_sedmnt,      only: prcaca,produs,prorca,silpro
+  use mo_carbch,      only: dmspar,ocetra,satoxy,hi,fbro1,fbro2,co2star
+  use mo_sedmnt,      only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
   use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
-                          & bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
-                          & carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
-                          & gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
-                          & phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,                 &
-                          & riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
+                            bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
+                            carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
+                            gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
+                            phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,                 &
+                            riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
-                          & isilica,izoo
-  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph
+                            isilica,izoo,iadust,inos,ibromo,                                                                       &
+                            icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,       &
+                            inatalkali,inatcalc,inatsco212
+  use mo_control_bgc, only: dtb,io_stdo_bgc,with_dmsph,                                                                            &
+                            use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,use_AGG,use_cisonew,use_natDIC,                &
+                            use_WLIN,use_sedbypass
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
-  ! AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,   &
-                          & eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb
-  use mo_param1_bgc,  only: iadust,inos
+  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
+                            eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb,        &
+                            wmin,wmax,wlin,int_chbr3_prod,int_chbr3_uv,rbro,bifr13,bifr13_perm,bifr14,growth_co2,abs_oce,atten_f
   use mo_vgrid,       only: kmle
-  ! WLIN
-  use mo_biomod,      only: wmin,wmax,wlin
-  ! BROMO
-  use mo_param1_bgc,  only: ibromo
-  use mo_biomod,      only: int_chbr3_prod,int_chbr3_uv,rbro
-  use mo_carbch,      only: fbro1,fbro2
   use mo_clim_swa,    only: swa_clim
-  ! CISONEW
-  use mo_biomod,      only: bifr13,bifr13_perm,bifr14,growth_co2
-  use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
-  use mo_sedmnt,      only: pror13,pror14,prca13,prca14
-  use mo_carbch,      only: co2star
-  ! natDIC
-  use mo_param1_bgc,  only: inatalkali,inatcalc,inatsco212
-  ! FB_BGC_OCE
-  use mo_biomod,      only: abs_oce,atten_f
-  use mo_control_bgc, only: use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,use_AGG,use_cisonew,use_natDIC,&
-                          & use_WLIN,use_sedbypass
 
   implicit none
 
@@ -127,29 +113,26 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real,    intent(in) :: pi_ph(kpie,kpje)
 
   ! Local varaibles
+  integer, parameter :: nsinkmax = 12
+  real   , parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   integer :: i,j,k,l
   integer :: is,kdonor
-  integer, parameter :: nsinkmax = 12
-  real, parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
   real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
-  real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy,              &
-     &        avgra,grazing,avsil,avdic,graton,                         &
-     &        gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud,           &
-     &        export, delsil, delcar, sterph, sterzo, remin,            &
-     &        docrem, opalrem, remin2o, aou,refra,pocrem,phyrem
-
+  real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
+  real :: avgra,grazing,avsil,avdic,graton
+  real :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
+  real :: export, delsil, delcar, sterph, sterzo, remin
+  real :: docrem, opalrem, remin2o, aou,refra,pocrem,phyrem
   real :: zoothresh,phythresh
   real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
   real :: absorption,absorption_uv
   real :: dmsprod,dms_bac,dms_uv
   real :: dtr,dz
   real :: wpocd,wcald,wopald,dagg
-
   ! sedbypass
   real :: florca,flcaca,flsil
-
   ! cisonew
   real :: phygrowth
   real :: phosy13,phosy14
@@ -173,10 +156,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: rem13,rem14
   real :: rco213,rco214,rdoc13,rdoc14,rdet13,rdet14
   real :: rphy13,rphy14,rzoo13,rzoo14
-
   ! sedbypass
   real :: flor13,flor14,flca13,flca14
-
   ! AGG
   real :: aggregate(kpie,kpje,kpke)
   real :: dustagg(kpie,kpje,kpke)
@@ -185,7 +166,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: TopM,TopF, snow,fshear,sagg1,sagg2,sagg4
   real :: sett_agg,shear_agg,effsti,dfirst,dshagg,dsett
   real :: wnos,wnosd
-
   ! BROMO
   real :: bro_beta,bro_uv
   real :: abs_uv(kpie,kpje,kpke)
@@ -299,15 +279,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !$OMP  ,phosy,ya,yn,grazing,graton,gratpoc,grawa,bacfra,phymor        &
 !$OMP  ,zoomor,excdoc,exud,export,delsil,delcar,dmsprod               &
 !$OMP  ,dms_bac,dms_uv,dtr,phofa,temfa,zoothresh,dms_ph,dz            &
-! use_AGG
 !$OMP  ,avmass,avnos,zmornos                                          &
-! use_cisonew
 !$OMP  ,rco213,rco214,rphy13,rphy14,rzoo13,rzoo14,grazing13,grazing14 &
 !$OMP  ,graton13,graton14,gratpoc13,gratpoc14,grawa13,grawa14         &
 !$OMP  ,phosy13,phosy14,bacfra13,bacfra14,phymor13,phymor14,zoomor13  &
 !$OMP  ,zoomor14,excdoc13,excdoc14,exud13,exud14,export13,export14    &
 !$OMP  ,delcar13,delcar14,dtr13,dtr14,bifr13,bifr14                   &
-! use_BROMO
 !$OMP  ,bro_beta,bro_uv                                               &
 !$OMP  ,i,k)
 
@@ -378,37 +355,37 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            rphy14 = ocetra(i,j,k,iphy14)/(ocetra(i,j,k,iphy)+safediv)
            rzoo13 = ocetra(i,j,k,izoo13)/(ocetra(i,j,k,izoo)+safediv)
            rzoo14 = ocetra(i,j,k,izoo14)/(ocetra(i,j,k,izoo)+safediv)
-           
+
            phosy13 = phosy*bifr13*rco213
            phosy14 = phosy*bifr14*rco214
-           
+
            grazing13 = grazing*rphy13
            grazing14 = grazing*rphy14
-           
+
            graton13 = epsher*(1.-zinges)*grazing13
            graton14 = epsher*(1.-zinges)*grazing14
-           
+
            gratpoc13 = (1.-epsher)*grazing13
            gratpoc14 = (1.-epsher)*grazing14
-           
+
            grawa13 = epsher*zinges*grazing13
            grawa14 = epsher*zinges*grazing14
-           
+
            bacfra13 = remido*ocetra(i,j,k,idoc13)
            bacfra14 = remido*ocetra(i,j,k,idoc14)
-           
+
            phymor13 = phymor*rphy13
            phymor14 = phymor*rphy14
-           
+
            zoomor13 = zoomor*rzoo13
            zoomor14 = zoomor*rzoo14
-           
+
            excdoc13 = excdoc*rzoo13
            excdoc14 = excdoc*rzoo14
-           
+
            exud13 = exud*rphy13
            exud14 = exud*rphy14
-           
+
            export13 = zoomor13*(1.-ecan) + phymor13 + gratpoc13
            export14 = zoomor14*(1.-ecan) + phymor14 + gratpoc14
         end if
@@ -453,7 +430,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         if (use_cisonew) then
            dtr13 = bacfra13-phosy13+graton13+ecan*zoomor13
            dtr14 = bacfra14-phosy14+graton14+ecan*zoomor14
-           
+
            ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)+export13
            ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)+export14
            ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)-delcar13+rcar*dtr13
@@ -519,7 +496,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            ! this flow even takes place if there is neither nos nor mass
            ! NOTE: zoomor is in kmol/m3!! Thus multiply flow by 1.e+6
            !***********************************************************************
-           
+
            zmornos = zoomor * (1.-ecan) * zdis * 1.e+6
            ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
         end if
@@ -560,13 +537,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
 !$OMP  ,opalrem,aou,refra,dms_bac,pocrem,docrem,phyrem,dz             &
-! use_AGG
 !$OMP  ,avmass,avnos,zmornos                                          &
-! use_cisonew
 !$OMP  ,rphy13,rphy14,rzoo13,rzoo14,rdet13,rdet14,rdoc13,rdoc14       &
 !$OMP  ,sterph13,sterph14,sterzo13,sterzo14,pocrem13,pocrem14         &
 !$OMP  ,docrem13,docrem14,phyrem13,phyrem14                           &
-!
 !$OMP  ,i,k)
 
   loop2: do j = 1,kpje
@@ -720,9 +694,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   endif
 
 !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
-! use_AGG
 !$OMP  ,avmass,avnos                                                  &
-! use_cisonew
 !$OMP  ,rem13,rem14                                                   &
 !$OMP  ,i,k)
   loop3: do j = 1,kpje
@@ -730,8 +702,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   do k = kwrbioz(i,j)+1,kpke
      if(omask(i,j) > 0.5) then
         if(ocetra(i,j,k,ioxygen) < 5.e-7 .and. pddpo(i,j,k) > dp_min) then
-
-
            if (use_AGG) then
               avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
            endif
@@ -805,9 +775,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !                      does it make sense to check for oxygen and nitrate deficit?
 
 !$OMP PARALLEL DO PRIVATE(remin                                       &
-! use_AGG
 !$OMP  ,avmass,avnos                                                  &
-! use_cisonew
 !$OMP  ,rem13,rem14                                                   &
 !$OMP  ,i,k)
   loop4: do j = 1,kpje
@@ -1039,7 +1007,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! sedimentation=w*dt*C(ks,T+dt)
 !
 !$OMP PARALLEL DO PRIVATE(kdonor,wpoc,wpocd,wcal,wcald,wopal,wopald   &
-! use_AGG
 !$OMP ,wnos,wnosd,dagg                                                &
 !$OMP ,i,k)
   do j = 1,kpje
@@ -1419,7 +1386,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
      !$OMP PARALLEL DO PRIVATE(                                              &
      !$OMP  dz,florca,flcaca,flsil                                           &
-     ! use_cisonew
      !$OMP ,flor13,flor14,flca13,flca14                                      &
      !$OMP ,i,k)
      do j=1,kpje
@@ -1429,11 +1395,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               ! calculate depth of water column
               dz = 0.0
               do k = 1,kpke
-                 
+
                  if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
-                 
+
               enddo
-              
+
               florca = prorca(i,j)/dz
               flcaca = prcaca(i,j)/dz
               flsil = silpro(i,j)/dz
@@ -1453,7 +1419,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
               do k = 1,kpke
                  if( pddpo(i,j,k) <= dp_min ) cycle
-                 
+
                  ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+florca
                  ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+2.*flcaca
                  ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+flcaca
