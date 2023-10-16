@@ -191,7 +191,9 @@
       real, parameter :: M_nh3   =  (1./Ma_air + 1./Mb_nh3)**0.5 / (Va_air**(1./3.)+Vb_nh3**(1./3.))**2.
       real, parameter :: kappa   = 0.4   ! von Karman constant
 
-      real, parameter :: mw_nitrogen = 14.00674 ! [g/mol N] nitrogen mol-weight as defined by CAM
+      real, parameter :: mw_nitrogen = 14.00674  ! [g/mol N]   nitrogen mol-weight as defined by CAM
+      real, parameter :: mw_nh3      = 17.028940 ! [g/mol NH3] ammonia mol-weight as defined by CAM
+      real, parameter :: mw_n2o      = 44.012880 ! [g/mol N2O] nitrous oxide mol-weight as defined by CAM
 #endif
 
 

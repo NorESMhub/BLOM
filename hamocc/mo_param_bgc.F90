@@ -49,7 +49,8 @@ module mo_param_bgc
                           & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
                           & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,drempoc_anaerob,bkox_drempoc 
   use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,lm4ago
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,lm4ago,l_3Dvarsedpor,do_ndep,do_rivinpt,do_sedspinup,do_oalk,with_dmsph,      &
+                          & leuphotic_cya
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
   use mo_m4ago,       only: init_m4ago_nml_params, init_m4ago_params
@@ -71,6 +72,7 @@ module mo_param_bgc
   use mo_carbch,      only: atm_co2_nat
 #endif
 #ifdef extNcycle
+      use mo_control_bgc, only: do_ndep_coupled,do_n2onh3_coupled
       use mo_param1_bgc,  only: iatmnh3,iatmn2o
       use mo_carbch,      only: atm_nh3
       use mo_extNwatercol,only: extNwatercol_param_init,extNwatercol_param_update,extNwatercol_param_write,                        &
@@ -596,7 +598,16 @@ module mo_param_bgc
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
       WRITE(io_stdo_bgc,*) '* '
-      WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
+      WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables and switches: '
+      WRITE(io_stdo_bgc,*) '*          do_rivinpt   = ',do_rivinpt
+      WRITE(io_stdo_bgc,*) '*          do_sedspinup = ',do_sedspinup
+      WRITE(io_stdo_bgc,*) '*          do_oalk      = ',do_oalk
+      WRITE(io_stdo_bgc,*) '*          with_dmsph   = ',with_dmsph
+      WRITE(io_stdo_bgc,*) '*          leuphotic_cya= ',leuphotic_cya
+      WRITE(io_stdo_bgc,*) '*          do_ndep      = ',do_ndep
+      WRITE(io_stdo_bgc,*) '*          l_3Dvarsedpor= ',l_3Dvarsedpor
+      WRITE(io_stdo_bgc,*) '*          lm4ago       = ',lm4ago
+      WRITE(io_stdo_bgc,*) '*---------------------------------------------------------------'
       WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2      
 #ifdef cisonew
       WRITE(io_stdo_bgc,*) '*          atm_c13      = ',atm_c13      
@@ -620,6 +631,8 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2
 #ifdef extNcycle
       WRITE(io_stdo_bgc,*) '*          atm_nh3      = ',atm_nh3
+      WRITE(io_stdo_bgc,*) '*          do_ndep_coupled = ',do_ndep_coupled
+      WRITE(io_stdo_bgc,*) '*          do_n2onh3_coupled = ',do_n2onh3_coupled
 #endif
       WRITE(io_stdo_bgc,*) '*          atm_n2o      = ',atm_n2o
       WRITE(io_stdo_bgc,*) '*          phytomi      = ',phytomi

@@ -114,7 +114,7 @@
 #endif
 #ifdef extNcycle
       use mo_param1_bgc,  only: iatmn2o,iatmnh3,idepnhx
-      use mo_chemcon,     only: mw_nitrogen
+      use mo_chemcon,     only: mw_nitrogen,mw_nh3,mw_n2o
 #endif
       implicit none
 
@@ -234,12 +234,12 @@
       ENDIF
 
       IF(do_ndep_coupled) THEN
-        fatmndep = 365.*86400./mw_nitrogen 
+        fatmndep = 365.*86400./mw_nitrogen
         ndep(:,:,:) = 0.
 !$OMP PARALLEL DO PRIVATE(i)
         DO  j=1,kpje
         DO  i=1,kpie
-          ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr 
+          ! convert from kgN/m2/s to climatological input file units: kmolN/m2/yr
           IF (patmnoydep(i,j).gt.0.) THEN
             ndep(i,j,idepnoy) = patmnoydep(i,j)*fatmndep
           ENDIF
@@ -497,13 +497,18 @@
 !$OMP END PARALLEL DO
 !--------------------------------------------------------------------
 ! Pass nitrous oxide and ammonia fluxes. Convert unit from kmol N2O (NH3)/m2/Delta t to kg/m2/s
-! negative values to the atmosphere 
+! negative values to the atmosphere
 !$OMP PARALLEL DO PRIVATE(i)
       DO  j=1,kpje
       DO  i=1,kpie
 #ifdef extNcycle
-        if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-44.012880*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM 
-        if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-17.028940*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+        if (do_n2onh3_coupled) then
+            if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=-mw_n2o*atmflx(i,j,iatmn2o)/dtbgc  ! conversion factor checked against CAM
+            if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=-mw_nh3*atmflx(i,j,iatmnh3)/dtbgc  ! conversion factor checked against CAM
+        else
+            if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=0.0
+            if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=0.0
+        endif
 #else
         if(omask(i,j) .gt. 0.5) pflxn2o(i,j)=0.0
         if(omask(i,j) .gt. 0.5) pflxnh3(i,j)=0.0
