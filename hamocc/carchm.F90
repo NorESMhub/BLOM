@@ -113,6 +113,10 @@
 #ifdef cisonew
       use mo_carbch,      only: co213fxd,co213fxu,co214fxd,co214fxu,c14dec
       use mo_param1_bgc,  only: iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv
+#ifndef sedbypass
+      use mo_param1_bgc,  only: ks,issso14,isssc14,ipowc14
+      use mo_sedmnt,      only: sedlay,powtra,burial
+#endif
 #endif
 #ifdef natDIC
       use mo_carbch,      only: atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac

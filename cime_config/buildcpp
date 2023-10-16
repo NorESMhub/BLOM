@@ -87,7 +87,6 @@ def buildcpp(case):
     hamocc_nattrc = case.get_value("HAMOCC_NATTRC")
     hamocc_sedbypass = case.get_value("HAMOCC_SEDBYPASS")
     hamocc_ciso = case.get_value("HAMOCC_CISO")
-    hamocc_vsls = case.get_value("HAMOCC_VSLS")
     blom_unit = case.get_value("BLOM_UNIT")
     pio_typename = case.get_value("PIO_TYPENAME", subgroup="OCN")
 
@@ -143,7 +142,9 @@ def buildcpp(case):
                 if hamocc_ciso:
                     expect(hamocc_sedbypass, "HAMOCC C-isotopes currently not supported in the sediment module. Use HAMOCC_SEDBYPASS=TRUE")
                     blom_cppdefs = blom_cppdefs + " -Dcisonew"
-                if hamocc_vsls:
+                if ocn_grid in ["tnx1v4"]:
+                    # HAMOCC bromoform scheme currently only supported on the tnx1v4 grid 
+                    # (no swa-climatology has been created for other grid configurations)"
                     blom_cppdefs = blom_cppdefs + " -DBROMO"
                 if co2type == "prognostic":
                     blom_cppdefs = blom_cppdefs + " -DPROGCO2"

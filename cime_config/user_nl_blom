@@ -1,7 +1,34 @@
-#----------------------------------------------------------------------------------
-# Users should add all user specific namelist changes below in the form of 
-#   namelist_var = new_namelist_value 
-# Note - that it does not matter what namelist group the namelist_var belongs to
-#----------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------
+! Users should add all user specific namelist changes below in the form of 
+!   namelist_var = new_namelist_value 
+!
+! NOTE: that it does not matter what namelist group the namelist_var belongs to
+! EXCEPT for when a variable appears in more than one namelist
+! There are a few history variables that have the same name in both diaphy and diabgc
+! For those variables an @diaphy or @diabgc  to be appendend for the namelist_var
+!
+!  GLB_FNAMETAG@diaphy
+!  GLB_AVEPERIO@diaphy
+!  GLB_FILEFREQ@diaphy
+!  GLB_COMPFLAG@diaphy
+!  GLB_NCFORMAT@diaphy
+!  LYR_DP@diaphy">
+!  GLB_FNAMETAG@diabgc
+!  GLB_AVEPERIO@diabgc
+!  GLB_FILEFREQ@diabgc
+!  GLB_COMPFLAG@diabgc
+!  GLB_NCFORMAT@diabgc
+!  LYR_DP@diabgc">
+!
+! For example: 
+! GLB_FNAMETAG@diaphy = 'hd','hd','hd'
+! 
+! NOTE: the array sections for MER_REGFLG must be entered as 
+!   MER_REGFLG1 - sets MER_REGFLG(1,:)
+!   MER_REGFLG2 - sets MER_REGFLG(2,:)
+!   MER_REGFLG3 - sets MER_REGFLG(3,:)
+!   MER_REGFLG4 - sets MER_REGFLG(4,:)
 
+! To see a full documentation of the namelist variables - see $RUNDIR/ocn_in.readme
+!----------------------------------------------------------------------------------
  
