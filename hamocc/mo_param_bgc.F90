@@ -63,8 +63,7 @@ module mo_param_bgc
 
   public :: ini_parambgc
 
-  ! Module-wide parameters (used in more than one subroutine)
-  REAL :: dustd1, dustd2, dustsink !AGG
+  ! Module-wide variables used in more than one subroutine
   REAL :: beta13, alpha14, d14cat, d13c_atm  ! cisonew
 
   contains
