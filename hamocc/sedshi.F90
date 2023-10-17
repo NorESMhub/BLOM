@@ -53,9 +53,8 @@
 
       use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu 
       use mo_biomod,     only: rcar 
-      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra 
-      ! cisonew
-      use mo_param1_bgc,  only: isssc13,isssc14,issso13,issso14 
+      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra, &
+                               isssc13,isssc14,issso13,issso14 
       use mo_control_bgc, only: use_cisonew
 
       implicit none

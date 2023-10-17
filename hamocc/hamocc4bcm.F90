@@ -75,31 +75,27 @@
 !  *REAL*    *psao*       - salinity [psu.].
 !  *REAL*    *patmco2*    - atmospheric CO2 concentration [ppm] used in 
 !                           fully coupled mode (prognostic/diagnostic CO2).
-!  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
 !  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
+!  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
 !  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
 !                           fully coupled mode.
-!  *REAL*    *pflxbromo*  - Bromoform flux [kg/m^2/s].
 !
 !******************************************************************************
       use mod_xc,         only: mnproc
-      use mo_carbch,      only: atmflx,ocetra,atm
+      use mo_carbch,      only: atmflx,ocetra,atm,&
+                                atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
-                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc
-      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv
+                                do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc, &
+                                use_PROGCO2,use_DIAGCO2,use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,&
+                                use_BOXATM, use_sedbypass
+      use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv,iatmbromo 
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
       use mo_apply_rivin, only: apply_rivin
       use mo_apply_ndep,  only: apply_ndep
       use mo_apply_oafx,  only: apply_oafx
-      ! BOXATM
       use mo_boxatm,      only: update_boxatm
-      ! BROMO
-      use mo_param1_bgc,  only: iatmbromo
-      ! CFC
-      use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
-      use mo_control_bgc, only: ocn_co2_type, use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,use_BOXATM, use_sedbypass
 
       implicit none
 
@@ -266,8 +262,7 @@
       end if
 
       CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
-                  psicomo,ppao,pfu10,ptho,psao,&
-                  pflxdms,pflxbromo)
+                  psicomo,ppao,pfu10,ptho,psao)
 
       if (use_PBGC_CK_TIMESTEP   ) then
          IF (mnproc.eq.1) THEN

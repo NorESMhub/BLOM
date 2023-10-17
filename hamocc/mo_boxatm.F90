@@ -54,14 +54,10 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 !******************************************************************************
   use mod_xc,         only: mnproc,nbdy,ips,xcsum
   use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
-  use mo_carbch,      only: atmflx, atm
-  use mo_param1_bgc,  only: iatmco2
-  ! cisonew
-  use mo_param1_bgc,  only: iatmc13,iatmc14,isco214,idet14,icalc14,idoc14
-  use mo_param1_bgc,  only: iphy14,izoo14,ipowc14,issso14,isssc14
-  use mo_carbch,      only: c14dec, ocetra
+  use mo_carbch,      only: atmflx, atm, c14dec, ocetra
+  use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14, &
+                            iphy14,izoo14,ipowc14,issso14,isssc14
   use mo_biomod,      only: rcar
-  ! sedbypass
   use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
   implicit none
@@ -71,15 +67,13 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
   REAL,   intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
 
   REAL, PARAMETER    :: pg2ppm = 1.0/2.13  ! conversion factor PgC -> ppm CO2
-
   INTEGER            :: i,j,k
   REAL               :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
   REAL               :: co2flux, co2flux_ppm
-  ! cisonew
-  REAL               :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-  REAL               :: co213flux, co213flux_ppm
-  REAL               :: co214flux, co214flux_ppm
-  REAL               :: totc14dec, vol
+  REAL               :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
+  REAL               :: co213flux, co213flux_ppm ! cisonew
+  REAL               :: co214flux, co214flux_ppm ! cisonew
+  REAL               :: totc14dec, vol ! cisonew
 
   co2flux      = 0.0
 

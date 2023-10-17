@@ -52,17 +52,17 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     none.
 !
 !**********************************************************************
-      use mod_xc,         only: mnproc,ips,nbdy,xcsum    
+      use mod_xc,         only: mnproc,ips,nbdy,xcsum
       use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
       use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
-      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
-      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
+      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
+      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
                               & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
                               & irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
       use mo_vgrid,       only: dp_min
-  
+
       ! NOT sedbypass
       use mo_param1_bgc,  only: ks
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
@@ -100,8 +100,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   real :: zsedlayto(nsedtra)       ! Sum : Sediment layer tracers
   real :: zburial(nsedtra)         ! Sum : Sediment burial tracers
   !--- oceanic tracers
-  real :: zocetratot(-1:nocetra)   ! Sum : Ocean tracers
-  real :: zocetratoc(-1:nocetra)   ! Mean concentration of ocean racers
+  real :: zocetratot(nocetra)      ! Sum : Ocean tracers
+  real :: zocetratoc(nocetra)      ! Mean concentration of ocean racers
   !--- additional ocean tracer
   real :: zhito                    ! Total hydrogen ion tracer
   real :: zco3to                   ! Total dissolved carbonate (CO3) tracer
@@ -149,7 +149,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
            ENDDO
         ENDDO
      ENDDO
-     
+
      CALL xcsum(zsedtotvol,ztmp1,ips)
 
      DO l=1,npowtra
@@ -162,7 +162,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
               ENDDO
            ENDDO
         ENDDO
-        
+
         CALL xcsum(zpowtratot(l),ztmp1,ips)
         zpowtratoc(l) = zpowtratot(l)/zsedtotvol
      ENDDO
@@ -170,7 +170,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      !=== non aqueous sediment tracer
      !----------------------------------------------------------------------
      zburial = sum2d_array(burial, nsedtra)
-     
+
      DO l=1,nsedtra
         ztmp1(:,:)=0.0
         DO k=1,ks
@@ -181,10 +181,10 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
               ENDDO
            ENDDO
         ENDDO
-        
+
         CALL xcsum(zsedlayto(l),ztmp1,ips)
      ENDDO
-     
+
      ztmp1(:,:)=0.0
      DO k=1,ks
         DO j=1,kpje
@@ -194,7 +194,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
            ENDDO
         ENDDO
      ENDDO
-     
+
      CALL xcsum(zsedhplto,ztmp1,ips)
 
   end if ! not sedbypass
@@ -353,97 +353,78 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
 !     & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)
 
+
+  totalcarbon=                                                           &
+         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+        + zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)   &
+        + zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
+        + zburial(isssc12)+zburial(issso12)*rcar                         &
+        + zprorca*rcar+zprcaca
+
   if (use_BOXATM) then
-     totalcarbon=                                                                 &
-          & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                   &
-          & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
-          & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
-          & +zburial(isssc12)+zburial(issso12)*rcar                               &
-          & +zprorca*rcar+zprcaca                                                 &
-          & +zatmco2*ppm2con
+     totalcarbon = totalcarbon + zatmco2*ppm2con
   else
-     totalcarbon=                                                                 &
-          & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                   &
-          & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
-          & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
-          & +zburial(isssc12)+zburial(issso12)*rcar                               &
-          & +zprorca*rcar+zprcaca                                                 &
-          & +co2flux
+     totalcarbon = totalcarbon + co2flux
   end if
 
+  totalnitr=                                                              &
+          (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+         + zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2 &
+         + zpowtratot(ipowno3)+zpowtratot(ipown2)*2                       &
+         + zsedlayto(issso12)*rnit+zburial(issso12)*rnit                  &
+         + zocetratot(ian2o)*2                                            &
+         - sndepflux                                                      &
+         + zprorca*rnit
+
   if (use_BOXATM) then
-     totalnitr=                                                                   &
-          &   (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                 &
-          &  +zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2      &
-          &  +zpowtratot(ipowno3)+zpowtratot(ipown2)*2                            &
-          &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
-          &  +zocetratot(ian2o)*2                                                 &
-          &  - sndepflux                                                          &
-          &  +zprorca*rnit                                                        &
-          &  +zatmn2*ppm2con*2
+     totalnitr = totalnitr + zatmn2*ppm2con*2
   else
-     totalnitr=                                                                   &
-          &   (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                 &
-          &  +zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2      &
-          &  +zpowtratot(ipowno3)+zpowtratot(ipown2)*2                            &
-          &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
-          &  +zocetratot(ian2o)*2                                                 &
-          &  - sndepflux                                                          &
-          &  +zprorca*rnit                                                        &
-          &  +sn2flux*2+sn2oflux*2
+     totalnitr = totalnitr + sn2flux*2+sn2oflux*2
   end if
 
-  totalphos=                                                                   &
-       &   zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
-       &  +zocetratot(izoo)+zocetratot(iphosph)                                &
-       &  +zpowtratot(ipowaph)+zsedlayto(issso12)                              &
-       &  +zburial(issso12)                                                    &
-       &  +zprorca
+  totalphos=                                                &
+         zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy) &
+       + zocetratot(izoo)+zocetratot(iphosph)               &
+       + zpowtratot(ipowaph)+zsedlayto(issso12)             &
+       + zburial(issso12)                                   &
+       + zprorca
 
-  totalsil=                                                                    &
-       &   zocetratot(isilica)+zocetratot(iopal)                               &
-       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)             &
-       &  +zsilpro
+  totalsil=                                                      &
+         zocetratot(isilica)+zocetratot(iopal)                   &
+       + zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil) &
+       + zsilpro
+
+  totaloxy=                                                           &
+        (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)           &
+       + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                 &
+       + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc) &
+       + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                  &
+       + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)               &
+      !+ zburial(issso12)*(-24.)   +   zburial(isssc12)               &
+       + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                  &
+       + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                    &
+       - sndepflux*1.5                                                &
+       + zprorca*(-24.)+zprcaca
 
   if (use_BOXATM) then
-     totaloxy=                                                                    &
-          &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
-          &  +zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                        &
-          &  +zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)        &
-          &  +zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                         &
-          &  +zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                      &
-         !&  +zburial(issso12)*(-24.)   +   zburial(isssc12)                      &
-          &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
-          &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
-          &  - sndepflux*1.5                                                      &
-          &  +zprorca*(-24.)+zprcaca                                              &
-          &  +zatmo2*ppm2con+zatmco2*ppm2con
+     totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
   else
-     totaloxy=                                                                    &
-          &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
-          &  +zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                        &
-          &  +zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)        &
-          &  +zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                         &
-          &  +zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                      &
-         !&  +zburial(issso12)*(-24.)   +   zburial(isssc12)                      &
-          &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
-          &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
-          &  - sndepflux*1.5                                                      &
-          &  +zprorca*(-24.)+zprcaca                                              &
-          &  +so2flux+sn2oflux*0.5+co2flux
+     totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
   end if
 
   IF (do_rivinpt) THEN
-     totalcarbon = totalcarbon - (srivflux(irdoc)+srivflux(irdet))*rcar        &
-          &             -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip))     ! =sco212
-     totalnitr = totalnitr - (srivflux(irdoc)+srivflux(irdet))*rnit            &
-          &             - srivflux(irdin)
-     totalphos = totalphos                                                     &
-          &             -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
-     totalsil = totalsil - srivflux(irsi)
-     totaloxy = totaloxy - (srivflux(irdoc)+srivflux(irdet))*(-24.)            &
-          &             - srivflux(irdin)*1.5 - srivflux(irdip)*2.             &
-          &             - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
+     totalcarbon = totalcarbon &
+          - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
+     totalnitr = totalnitr &
+          - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
+     totalphos = totalphos &
+          -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+     totalsil = totalsil &
+          - srivflux(irsi)
+     totaloxy = totaloxy                             &
+          - (srivflux(irdoc)+srivflux(irdet))*(-24.) &
+          - srivflux(irdin)*1.5 - srivflux(irdip)*2. &
+          - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
   ENDIF
 
 !=== Compute sediment fluxes
@@ -544,7 +525,7 @@ subroutine write_stdout
              &     '  ',zpowtratoc(l),'  ',zsedtotvol
      ENDDO
      WRITE(io_stdo_bgc,*) ' '
-     
+
      !=== non aqueous sediment tracer
      !------------------------------------------------------------------
      WRITE(io_stdo_bgc,*) ' '
@@ -553,7 +534,7 @@ subroutine write_stdout
      WRITE(io_stdo_bgc,*)                                                         &
           &     '----------------------------------------------------'
      WRITE(io_stdo_bgc,*) '        [kmol]'
-     
+
      DO l=1,nsedtra
         WRITE(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
         WRITE(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
@@ -1920,4 +1901,3 @@ end subroutine nccheck
 
 
 END SUBROUTINE INVENTORY_BGC
-
