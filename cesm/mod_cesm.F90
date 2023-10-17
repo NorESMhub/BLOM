@@ -29,10 +29,14 @@ module mod_cesm
    use mod_xc
    use mod_forcing, only: trxday, srxday, swa, nsf, lip, sop, eva, rnf, rfi, &
                           fmltfz, sfl, ztx, mty, ustarw, slp, abswnd, &
-                          lamult, lasl, ustokes, vstokes, atmco2, atmbrf
+                          lamult, lasl, ustokes, vstokes, atmco2, atmbrf, &
+                          flxdms, flxbrf
    use mod_ben02, only: initai, rdcsic, rdctsf, fnlzai
    use mod_seaice, only: ficem
    use mod_checksum, only: csdiag, chksummsk
+#ifdef HAMOCC
+   use mo_control_bgc, only: use_bromo
+#endif
 
    implicit none
 
@@ -76,7 +80,9 @@ module mod_cesm
       ustokes_da, &      ! u-component of surface Stokes drift [m s-1].
       vstokes_da, &      ! v-component of surface Stokes drift [m s-1].
       atmco2_da, &       ! Atmospheric CO2 concentration [ppm].
-      atmbrf_da          ! Atmospheric bromoform concentration [ppt].
+      atmbrf_da, &       ! Atmospheric bromoform concentration [ppt].
+      flxdms_da, &       ! dms surface flux computed by mediator [kg m-2 s-1]
+      flxbrf_da          ! brf surface flux computed by mediator [kg m-2 s-1]
 
    logical :: &
       smtfrc             ! If true, time smooth CESM forcing fields.
@@ -87,10 +93,9 @@ module mod_cesm
    public :: runid_cesm, runtyp_cesm, ocn_cpl_dt_cesm, nstep_in_cpl, hmlt, &
              frzpot, mltpot, swa_da, nsf_da, hmlt_da, lip_da, sop_da, eva_da, &
              rnf_da, rfi_da, fmltfz_da, sfl_da, ztx_da, mty_da, ustarw_da, &
-             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, &
+             slp_da, abswnd_da, ficem_da, lamult_da, lasl_da, flxdms_da, flxbrf_da, &
              ustokes_da, vstokes_da, atmco2_da, atmbrf_da, smtfrc, l1ci, l2ci, &
              inicon_cesm, inifrc_cesm, getfrc_cesm
-
 contains
 
    subroutine inicon_cesm
@@ -208,7 +213,7 @@ contains
       call ncfopn('getfrc_cesm.nc', 'w', 'c', 1, iotype)
       call ncdims('x', itdm)
       call ncdims('y', jtdm)
-      call ncdefvar('ustarw_da', 'x y', ndouble, 8) 
+      call ncdefvar('ustarw_da', 'x y', ndouble, 8)
       call ncdefvar('lip_da', 'x y', ndouble, 8)
       call ncdefvar('sop_da', 'x y', ndouble, 8)
       call ncdefvar('eva_da', 'x y', ndouble, 8)

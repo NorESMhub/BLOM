@@ -63,23 +63,25 @@ module mo_intfcblom
 !   *atm2*       *REAL*     - two time-level copy of atm
 !
 !******************************************************************************
+  use mo_control_bgc, only: use_sedbypass,use_BOXATM
+
   implicit none
 
-  integer, parameter      :: nphys=2
+  integer, parameter :: nphys=2
 
-  real, allocatable, save :: bgc_dx(:,:),bgc_dy(:,:)
-  real, allocatable, save :: bgc_dp(:,:,:)
-  real, allocatable, save :: bgc_rho(:,:,:)
-  real, allocatable, save :: omask(:,:)
+  real, allocatable :: bgc_dx(:,:),bgc_dy(:,:)
+  real, allocatable :: bgc_dp(:,:,:)
+  real, allocatable :: bgc_rho(:,:,:)
+  real, allocatable :: omask(:,:)
 
   ! Two time-level copy of sediment fields
-  real, allocatable, save :: sedlay2(:,:,:,:)
-  real, allocatable, save :: powtra2(:,:,:,:)
-  real, allocatable, save :: burial2(:,:,:,:)
+  real, allocatable :: sedlay2(:,:,:,:)
+  real, allocatable :: powtra2(:,:,:,:)
+  real, allocatable :: burial2(:,:,:,:)
 
   ! Two time level copy of prognostic atmosphere field
   ! used if BOXATM is activated
-  real, allocatable, save :: atm2(:,:,:,:)
+  real, allocatable :: atm2(:,:,:,:)
 
 contains
 !******************************************************************************
@@ -157,59 +159,58 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   if(errstat.ne.0) stop 'not enough memory omask'
   omask(:,:) = 0.0
 
-#ifndef sedbypass
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
-    WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-  ENDIF
+  if (.not. use_sedbypass) then
+     IF(mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
+        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
+     ENDIF
+     
+     ALLOCATE (sedlay2(kpie,kpje,2*ks,nsedtra),stat=errstat)
+     if(errstat.ne.0) stop 'not enough memory sedlay2'
+     sedlay2(:,:,:,:) = 0.0
 
-  ALLOCATE (sedlay2(kpie,kpje,2*ks,nsedtra),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory sedlay2'
-  sedlay2(:,:,:,:) = 0.0
+     IF(mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
+        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',npowtra
+     ENDIF
+
+     ALLOCATE (powtra2(kpie,kpje,2*ks,npowtra),stat=errstat)
+     if(errstat.ne.0) stop 'not enough memory powtra2'
+     powtra2(:,:,:,:) = 0.0
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
-    WRITE(io_stdo_bgc,*)'Fourth dimension   : ',npowtra
-  ENDIF
+     IF(mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',2
+        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
+     ENDIF
 
-  ALLOCATE (powtra2(kpie,kpje,2*ks,npowtra),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory powtra2'
-  powtra2(:,:,:,:) = 0.0
+     ALLOCATE (burial2(kpie,kpje,2,nsedtra),stat=errstat)
+     if(errstat.ne.0) stop 'not enough memory burial2'
+     burial2(:,:,:,:) = 0.0
+  end if
 
+  if (use_BOXATM) then
+     IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Third dimension    : ',2
+        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',natm
+     ENDIF
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',2
-    WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-  ENDIF
-
-  ALLOCATE (burial2(kpie,kpje,2,nsedtra),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory burial2'
-  burial2(:,:,:,:) = 0.0
-#endif
-
-#if defined(BOXATM)
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',2
-    WRITE(io_stdo_bgc,*)'Fourth dimension   : ',natm
-  ENDIF
-
-  ALLOCATE (atm2(kpie,kpje,2,natm),stat=errstat)
-  if(errstat.ne.0) stop 'not enough memory atm2'
-  atm2(:,:,:,:) = 0.0
-#endif
+     ALLOCATE (atm2(kpie,kpje,2,natm),stat=errstat)
+     if(errstat.ne.0) stop 'not enough memory atm2'
+     atm2(:,:,:,:) = 0.0
+  end if
 
 end subroutine alloc_mem_intfcblom
 !******************************************************************************
@@ -369,39 +370,39 @@ subroutine blom2hamocc(m,n,mm,nn)
 ! --- is kept outside HAMOCC)
 ! --- ------------------------------------------------------------------
 
-#ifndef sedbypass
-  nns=(n-1)*ks
+  if (.not. use_sedbypass) then
+     nns=(n-1)*ks
 
-!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-  do k=1,ks
-     kn=k+nns
-     do j=1,jj
-     do l=1,isp(j)
-     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-        sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
-        powtra(i,j,k,:) = powtra2(i,j,kn,:)
-        burial(i,j,:)   = burial2(i,j,n,:)
+     !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+     do k=1,ks
+        kn=k+nns
+        do j=1,jj
+           do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                 sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
+                 powtra(i,j,k,:) = powtra2(i,j,kn,:)
+                 burial(i,j,:)   = burial2(i,j,n,:)
+              enddo
+           enddo
+        enddo
      enddo
-     enddo
-     enddo
-  enddo
-!$OMP END PARALLEL DO
-#endif
+     !$OMP END PARALLEL DO
+  end if
 
 ! --- ------------------------------------------------------------------
 ! --- pass atmosphere fields if required (a two time-level copy of
 ! --- atmosphere fields is kept outside HAMOCC)
 ! --- ------------------------------------------------------------------
 
-#if defined(BOXATM)
-!$OMP PARALLEL DO PRIVATE(i)
-  do j=1,jj
-  do i=1,ii
-     atm(i,j,:) = atm2(i,j,n,:)
-  enddo
-  enddo
-!$OMP END PARALLEL DO
-#endif
+  if (use_BOXATM) then
+     !$OMP PARALLEL DO PRIVATE(i)
+     do j=1,jj
+        do i=1,ii
+           atm(i,j,:) = atm2(i,j,n,:)
+        enddo
+     enddo
+     !$OMP END PARALLEL DO
+  end if
 
 end subroutine blom2hamocc
 !******************************************************************************
@@ -472,71 +473,71 @@ subroutine hamocc2blom(m,n,mm,nn)
 ! --- apply time smoothing for sediment fields and pass them back
 ! --- ------------------------------------------------------------------
 
-#ifndef sedbypass
-  nns=(n-1)*ks
-  mms=(m-1)*ks
+  if (.not. use_sedbypass) then
+     nns=(n-1)*ks
+     mms=(m-1)*ks
 
-!$OMP PARALLEL DO PRIVATE(k,km,kn,l,i)
-  do k=1,ks
-     km=k+mms
-     kn=k+nns
-     do j=1,jj
-     do l=1,isp(j)
-     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
-        sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
-             + wts2*sedlay2(i,j,kn,:)                &  ! old timelevel
-             + wts2*sedlay(i,j,k,:)                     ! new timelevel
-        powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
-             + wts2*powtra2(i,j,kn,:)                &
-             + wts2*powtra(i,j,k,:)
-        burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
-             + wts2*burial2(i,j,n,:)                 &
-             + wts2*burial(i,j,:)
+     !$OMP PARALLEL DO PRIVATE(k,km,kn,l,i)
+     do k=1,ks
+        km=k+mms
+        kn=k+nns
+        do j=1,jj
+           do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+                 sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
+                      + wts2*sedlay2(i,j,kn,:)                &  ! old timelevel
+                      + wts2*sedlay(i,j,k,:)                     ! new timelevel
+                 powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
+                      + wts2*powtra2(i,j,kn,:)                &
+                      + wts2*powtra(i,j,k,:)
+                 burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
+                      + wts2*burial2(i,j,n,:)                 &
+                      + wts2*burial(i,j,:)
+              enddo
+           enddo
+        enddo
      enddo
-     enddo
-     enddo
-  enddo
-!$OMP END PARALLEL DO
+     !$OMP END PARALLEL DO
 
-!$OMP PARALLEL DO PRIVATE(k,kn,l,i)
-  do k=1,ks
-     kn=k+nns
-     do j=1,jj
-     do l=1,isp(j)
-     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-        sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
-        powtra2(i,j,kn,:) = powtra(i,j,k,:)
-        burial2(i,j,n,:)  = burial(i,j,:)
+     !$OMP PARALLEL DO PRIVATE(k,kn,l,i)
+     do k=1,ks
+        kn=k+nns
+        do j=1,jj
+           do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+                 sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
+                 powtra2(i,j,kn,:) = powtra(i,j,k,:)
+                 burial2(i,j,n,:)  = burial(i,j,:)
+              enddo
+           enddo
+        enddo
      enddo
-     enddo
-     enddo
-  enddo
-!$OMP END PARALLEL DO
-#endif
+     !$OMP END PARALLEL DO
+  end if
 
 ! --- ------------------------------------------------------------------
 ! --- apply time smoothing for atmosphere fields if required
 ! --- ------------------------------------------------------------------
 
-#if defined(BOXATM)
-!$OMP PARALLEL DO PRIVATE(i)
-  do j=1,jj
-  do i=1,ii                                   ! time smoothing (analog to tmsmt2.F)
-     atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
-          + wts2*atm2(i,j,n,:)            &   ! old timelevel
-          + wts2*atm(i,j,:)                   ! new timelevel
-  enddo
-  enddo
-!$OMP END PARALLEL DO
+  if (use_BOXATM) then
+     !$OMP PARALLEL DO PRIVATE(i)
+     do j=1,jj
+        do i=1,ii                                   ! time smoothing (analog to tmsmt2.F)
+           atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
+                + wts2*atm2(i,j,n,:)            &   ! old timelevel
+                + wts2*atm(i,j,:)                   ! new timelevel
+        enddo
+     enddo
+     !$OMP END PARALLEL DO
 
-!$OMP PARALLEL DO PRIVATE(i)
-  do j=1,jj
-  do i=1,ii
-     atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
-  enddo
-  enddo
-!$OMP END PARALLEL DO
-#endif
+     !$OMP PARALLEL DO PRIVATE(i)
+     do j=1,jj
+        do i=1,ii
+           atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
+        enddo
+     enddo
+     !$OMP END PARALLEL DO
+  end if
 
 end subroutine hamocc2blom
 !******************************************************************************

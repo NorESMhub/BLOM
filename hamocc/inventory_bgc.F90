@@ -52,22 +52,21 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     none.
 !
 !**********************************************************************
-      use mod_xc,         only: mnproc,ips,nbdy,xcsum    
+      use mod_xc,         only: mnproc,ips,nbdy,xcsum
       use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
       use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
-      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc 
-      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory 
+      use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
+      use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
                               & iphy,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isco212,isilica,isssc12,issso12,issssil,izoo,  &
                               & irdin,irdip,irsi,iralk,irdoc,irdet,nocetra,npowtra,nsedtra,nriv
       use mo_vgrid,       only: dp_min
-  
-# ifndef sedbypass
+
+      ! NOT sedbypass
       use mo_param1_bgc,  only: ks
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
-#endif
-
+      use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
   implicit none
 
@@ -130,71 +129,75 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
 !=== aqueous sediment tracer
 !----------------------------------------------------------------------
-#ifdef sedbypass
-  zsedtotvol = 0.0
-  zpowtratot(:)=0.0
-  zpowtratoc(:)=0.0
-  zsedlayto(:)=0.0
-  zburial(:)=0.0
-  zsedhplto=0.0
-#else
-  ztmp1(:,:)=0.0
-  DO k=1,ks
-     DO j=1,kpje
-        DO i=1,kpie
-           ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
-                &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
-        ENDDO
-     ENDDO
-  ENDDO
+  if (use_sedbypass) then
 
-  CALL xcsum(zsedtotvol,ztmp1,ips)
+     zsedtotvol = 0.0
+     zpowtratot(:)=0.0
+     zpowtratoc(:)=0.0
+     zsedlayto(:)=0.0
+     zburial(:)=0.0
+     zsedhplto=0.0
 
-  DO l=1,npowtra
+  else
+
      ztmp1(:,:)=0.0
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
-              vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
-              ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
+              ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
+                   &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
            ENDDO
         ENDDO
      ENDDO
 
-     CALL xcsum(zpowtratot(l),ztmp1,ips)
-     zpowtratoc(l) = zpowtratot(l)/zsedtotvol
-  ENDDO
+     CALL xcsum(zsedtotvol,ztmp1,ips)
 
-!=== non aqueous sediment tracer
-!----------------------------------------------------------------------
-  zburial = sum2d_array(burial, nsedtra)
+     DO l=1,npowtra
+        ztmp1(:,:)=0.0
+        DO k=1,ks
+           DO j=1,kpje
+              DO i=1,kpie
+                 vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
+                 ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
+              ENDDO
+           ENDDO
+        ENDDO
 
-  DO l=1,nsedtra
+        CALL xcsum(zpowtratot(l),ztmp1,ips)
+        zpowtratoc(l) = zpowtratot(l)/zsedtotvol
+     ENDDO
+
+     !=== non aqueous sediment tracer
+     !----------------------------------------------------------------------
+     zburial = sum2d_array(burial, nsedtra)
+
+     DO l=1,nsedtra
+        ztmp1(:,:)=0.0
+        DO k=1,ks
+           DO j=1,kpje
+              DO i=1,kpie
+                 vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
+                 ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
+              ENDDO
+           ENDDO
+        ENDDO
+
+        CALL xcsum(zsedlayto(l),ztmp1,ips)
+     ENDDO
+
      ztmp1(:,:)=0.0
      DO k=1,ks
         DO j=1,kpje
            DO i=1,kpie
               vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
-              ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
+              ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
            ENDDO
         ENDDO
      ENDDO
 
-     CALL xcsum(zsedlayto(l),ztmp1,ips)
-  ENDDO
+     CALL xcsum(zsedhplto,ztmp1,ips)
 
-  ztmp1(:,:)=0.0
-  DO k=1,ks
-     DO j=1,kpje
-        DO i=1,kpie
-           vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
-           ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
-        ENDDO
-     ENDDO
-  ENDDO
-
-  CALL xcsum(zsedhplto,ztmp1,ips)
-#endif
+  end if ! not sedbypass
 
 !=== oceanic tracers
 !----------------------------------------------------------------------
@@ -297,45 +300,45 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   ENDDO
   CALL xcsum(ztotarea,ztmp1,ips)
 
-#ifdef PBGC_CK_TIMESTEP
-  ! only consider instantaneous fluxes in debugging mode
-  co2flux = sum2d(atmflx(:,:,iatmco2))
-  so2flux = sum2d(atmflx(:,:,iatmo2))
-  sn2flux = sum2d(atmflx(:,:,iatmn2))
-  sn2oflux = sum2d(atmflx(:,:,iatmn2o))
+  if (use_PBGC_CK_TIMESTEP) then
+     ! only consider instantaneous fluxes in debugging mode
+     co2flux = sum2d(atmflx(:,:,iatmco2))
+     so2flux = sum2d(atmflx(:,:,iatmo2))
+     sn2flux = sum2d(atmflx(:,:,iatmn2))
+     sn2oflux = sum2d(atmflx(:,:,iatmn2o))
 
-  ! nitrogen deposition
-  if(do_ndep) then
-     sndepflux = sum2d(ndepflx)
-  endif
+     ! nitrogen deposition
+     if(do_ndep) then
+        sndepflux = sum2d(ndepflx)
+     endif
 
-  ! river fluxes
-  if(do_rivinpt) then
-     srivflux = sum2d_array(rivinflx, nriv)
-  endif
-#else
-  ! consider accumulated fluxes in the regular mode
-  co2flux = sum2d(bgct2d(:,:,jco2flux))
-  so2flux = sum2d(bgct2d(:,:,jo2flux))
-  sn2flux = sum2d(bgct2d(:,:,jn2flux))
-  sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
+     ! river fluxes
+     if(do_rivinpt) then
+        srivflux = sum2d_array(rivinflx, nriv)
+     endif
+  else
+     ! consider accumulated fluxes in the regular mode
+     co2flux = sum2d(bgct2d(:,:,jco2flux))
+     so2flux = sum2d(bgct2d(:,:,jo2flux))
+     sn2flux = sum2d(bgct2d(:,:,jn2flux))
+     sn2oflux = sum2d(bgct2d(:,:,jn2oflux))
 
-  ! nitrogen deposition fluxes
-  if(do_ndep) then
-     sndepflux = sum2d(bgct2d(:,:,jndep))
-  endif
+     ! nitrogen deposition fluxes
+     if(do_ndep) then
+        sndepflux = sum2d(bgct2d(:,:,jndep))
+     endif
 
-  ! River fluxes
-  if(do_rivinpt) then
-     srivflux = sum2d_array(bgct2d(:,:,jirdin:jirdin+nriv-1), nriv)
-  endif
-#endif
+     ! River fluxes
+     if(do_rivinpt) then
+        srivflux = sum2d_array(bgct2d(:,:,jirdin:jirdin+nriv-1), nriv)
+     endif
+  end if
 
-#if defined(BOXATM)
-  zatmco2 = sum2d(atm(:,:,iatmco2))
-  zatmo2 = sum2d(atm(:,:,iatmo2))
-  zatmn2 = sum2d(atm(:,:,iatmn2))
-#endif
+  if (use_BOXATM) then
+     zatmco2 = sum2d(atm(:,:,iatmco2))
+     zatmo2 = sum2d(atm(:,:,iatmo2))
+     zatmn2 = sum2d(atm(:,:,iatmn2))
+  end if
 
   !--- Complete sum of inventory in between bgc.f90
   zprorca = sum2d(prorca)
@@ -350,73 +353,78 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !     & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)               &
 !     & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)
 
-  totalcarbon=                                                                 &
-       & (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                   &
-       & +zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)         &
-       & +zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar       &
-       & +zburial(isssc12)+zburial(issso12)*rcar                               &
-       & +zprorca*rcar+zprcaca                                                 &
-#if defined(BOXATM)
-       & +zatmco2*ppm2con
-#else
-       & +co2flux
-#endif
 
-  totalnitr=                                                                   &
-       &   (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                 &
-       &  +zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2      &
-       &  +zpowtratot(ipowno3)+zpowtratot(ipown2)*2                            &
-       &  +zsedlayto(issso12)*rnit+zburial(issso12)*rnit                       &
-       &  +zocetratot(ian2o)*2                                                 &
-       &  - sndepflux                                                          &
-       &  +zprorca*rnit                                                        &
-#if defined(BOXATM)
-       &  +zatmn2*ppm2con*2
-#else
+  totalcarbon=                                                           &
+         (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+        + zocetratot(izoo))*rcar+zocetratot(isco212)+zocetratot(icalc)   &
+        + zpowtratot(ipowaic)+zsedlayto(isssc12)+zsedlayto(issso12)*rcar &
+        + zburial(isssc12)+zburial(issso12)*rcar                         &
+        + zprorca*rcar+zprcaca
 
-       &  +sn2flux*2+sn2oflux*2
-#endif
+  if (use_BOXATM) then
+     totalcarbon = totalcarbon + zatmco2*ppm2con
+  else
+     totalcarbon = totalcarbon + co2flux
+  end if
 
-  totalphos=                                                                   &
-       &   zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
-       &  +zocetratot(izoo)+zocetratot(iphosph)                                &
-       &  +zpowtratot(ipowaph)+zsedlayto(issso12)                              &
-       &  +zburial(issso12)                                                    &
-       &  +zprorca
+  totalnitr=                                                              &
+          (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
+         + zocetratot(izoo))*rnit+zocetratot(iano3)+zocetratot(igasnit)*2 &
+         + zpowtratot(ipowno3)+zpowtratot(ipown2)*2                       &
+         + zsedlayto(issso12)*rnit+zburial(issso12)*rnit                  &
+         + zocetratot(ian2o)*2                                            &
+         - sndepflux                                                      &
+         + zprorca*rnit
 
-  totalsil=                                                                    &
-       &   zocetratot(isilica)+zocetratot(iopal)                               &
-       &  +zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil)             &
-       &  +zsilpro
+  if (use_BOXATM) then
+     totalnitr = totalnitr + zatmn2*ppm2con*2
+  else
+     totalnitr = totalnitr + sn2flux*2+sn2oflux*2
+  end if
 
-  totaloxy=                                                                    &
-       &  (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)                  &
-       &  +zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                        &
-       &  +zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc)        &
-       &  +zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                         &
-       &  +zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)                      &
-!       &  +zburial(issso12)*(-24.)   +   zburial(isssc12)                      &
-       &  +zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                         &
-       &  +zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                           &
-       &  - sndepflux*1.5                                                      &
-       &  +zprorca*(-24.)+zprcaca                                              &
-#if defined(BOXATM)
-       &  +zatmo2*ppm2con+zatmco2*ppm2con
-#else
-       &  +so2flux+sn2oflux*0.5+co2flux
-#endif
+  totalphos=                                                &
+         zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy) &
+       + zocetratot(izoo)+zocetratot(iphosph)               &
+       + zpowtratot(ipowaph)+zsedlayto(issso12)             &
+       + zburial(issso12)                                   &
+       + zprorca
+
+  totalsil=                                                      &
+         zocetratot(isilica)+zocetratot(iopal)                   &
+       + zpowtratot(ipowasi)+zsedlayto(issssil)+zburial(issssil) &
+       + zsilpro
+
+  totaloxy=                                                           &
+        (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)           &
+       + zocetratot(izoo))*(-24.)+zocetratot(ioxygen)                 &
+       + zocetratot(iphosph)*2 +zocetratot(isco212)+zocetratot(icalc) &
+       + zocetratot(iano3)*1.5+zocetratot(ian2o)*0.5                  &
+       + zsedlayto(issso12)*(-24.) + zsedlayto(isssc12)               &
+      !+ zburial(issso12)*(-24.)   +   zburial(isssc12)               &
+       + zpowtratot(ipowno3)*1.5+zpowtratot(ipowaic)                  &
+       + zpowtratot(ipowaox)+zpowtratot(ipowaph)*2                    &
+       - sndepflux*1.5                                                &
+       + zprorca*(-24.)+zprcaca
+
+  if (use_BOXATM) then
+     totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
+  else
+     totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
+  end if
 
   IF (do_rivinpt) THEN
-     totalcarbon = totalcarbon - (srivflux(irdoc)+srivflux(irdet))*rcar        &
-          &             -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip))     ! =sco212
-     totalnitr = totalnitr - (srivflux(irdoc)+srivflux(irdet))*rnit            &
-          &             - srivflux(irdin)
-     totalphos = totalphos                                                     &
-          &             -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
-     totalsil = totalsil - srivflux(irsi)
-     totaloxy = totaloxy - (srivflux(irdoc)+srivflux(irdet))*(-24.)            &
-          &             - srivflux(irdin)*1.5 - srivflux(irdip)*2.             &
-          &             - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
+     totalcarbon = totalcarbon &
+          - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
+     totalnitr = totalnitr &
+          - (srivflux(irdoc)+srivflux(irdet))*rnit - srivflux(irdin)
+     totalphos = totalphos &
+          -(srivflux(irdoc)+srivflux(irdet)+srivflux(irdip))
+     totalsil = totalsil &
+          - srivflux(irsi)
+     totaloxy = totaloxy                             &
+          - (srivflux(irdoc)+srivflux(irdet))*(-24.) &
+          - srivflux(irdin)*1.5 - srivflux(irdip)*2. &
+          - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
   ENDIF
 
 !=== Compute sediment fluxes
@@ -505,35 +513,35 @@ subroutine write_stdout
 
   integer :: l
 
-#ifndef sedbypass
-  !=== aqueous sediment tracer
-  !------------------------------------------------------------------
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*)'Global inventory of aqueous sediment tracer'
-  WRITE(io_stdo_bgc,*)'-------------------------------------------'
-  WRITE(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
-  DO l=1,npowtra
-     WRITE(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
-          &     '  ',zpowtratoc(l),'  ',zsedtotvol
-  ENDDO
-  WRITE(io_stdo_bgc,*) ' '
+  if (.not. use_sedbypass) then
+     !=== aqueous sediment tracer
+     !------------------------------------------------------------------
+     WRITE(io_stdo_bgc,*) ' '
+     WRITE(io_stdo_bgc,*)'Global inventory of aqueous sediment tracer'
+     WRITE(io_stdo_bgc,*)'-------------------------------------------'
+     WRITE(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
+     DO l=1,npowtra
+        WRITE(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
+             &     '  ',zpowtratoc(l),'  ',zsedtotvol
+     ENDDO
+     WRITE(io_stdo_bgc,*) ' '
 
-  !=== non aqueous sediment tracer
-  !------------------------------------------------------------------
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*)                                                         &
-       &     'Global inventory of solid sediment constituents'
-  WRITE(io_stdo_bgc,*)                                                         &
-       &     '----------------------------------------------------'
-  WRITE(io_stdo_bgc,*) '        [kmol]'
+     !=== non aqueous sediment tracer
+     !------------------------------------------------------------------
+     WRITE(io_stdo_bgc,*) ' '
+     WRITE(io_stdo_bgc,*)                                                         &
+          &     'Global inventory of solid sediment constituents'
+     WRITE(io_stdo_bgc,*)                                                         &
+          &     '----------------------------------------------------'
+     WRITE(io_stdo_bgc,*) '        [kmol]'
 
-  DO l=1,nsedtra
-     WRITE(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
-     WRITE(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
-  ENDDO
-  WRITE(io_stdo_bgc,*) 'hpl ', zsedhplto
-  WRITE(io_stdo_bgc,*) ' '
-#endif
+     DO l=1,nsedtra
+        WRITE(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
+        WRITE(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
+     ENDDO
+     WRITE(io_stdo_bgc,*) 'hpl ', zsedhplto
+     WRITE(io_stdo_bgc,*) ' '
+  end if
 
   !=== oceanic tracers
   !------------------------------------------------------------------
@@ -581,14 +589,14 @@ subroutine write_stdout
   ! WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
   ! WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
   ! WRITE(io_stdo_bgc,*) ' '
-#if defined(BOXATM)
-  ! WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
-  !      &               zatmco2/ztotarea,zatmco2*ppm2con
-  ! WRITE(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',                 &
-  !      &               zatmo2/ztotarea,zatmo2*ppm2con
-  ! WRITE(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',                 &
-  !      &               zatmn2/ztotarea,zatmn2*ppm2con
-#endif
+  if (use_BOXATM) then
+     ! WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
+     !      &               zatmco2/ztotarea,zatmco2*ppm2con
+     ! WRITE(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',                 &
+     !      &               zatmo2/ztotarea,zatmo2*ppm2con
+     ! WRITE(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',                 &
+     !      &               zatmn2/ztotarea,zatmn2*ppm2con
+  end if
   ! WRITE(io_stdo_bgc,*) ' '
   ! WRITE(io_stdo_bgc,*) 'Should be zero at the end: '
   ! WRITE(io_stdo_bgc,*) 'prorca, prcaca, silpro  ',                      &
@@ -659,23 +667,18 @@ subroutine write_netcdf(iogrp)
   use mo_bgcmean,    only: filefq_bgc, fileann_bgc, filemon_bgc,glb_fnametag
   use mo_param1_bgc, only: idicsat,idms,ifdust,iiron,iprefalk,iprefdic,iprefo2,    &
                          & iprefpo4
-#ifdef AGG
+  ! AGG
   use mo_param1_bgc, only: iadust,inos
-#endif
-#ifdef BROMO
+  ! BROMO
   use mo_param1_bgc, only: ibromo
-#endif
-#ifdef CFC
+  ! CFC
   use mo_param1_bgc, only: icfc11,icfc12,isf6
-#endif
-#ifdef cisonew
+  ! cisonew
   use mo_param1_bgc, only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,           &
                          & iphy13,iphy14,isco213,isco214,izoo13,izoo14
-#endif
-#ifdef natDIC
+  ! natDIC
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
-#endif
-
+  use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
   implicit none
 
@@ -701,7 +704,8 @@ subroutine write_netcdf(iogrp)
   !--- time: dimension and variable id
   integer :: time_dimid
   integer :: time_varid
-#ifndef sedbypass
+
+  ! NOT sedbypass
   !--- aqueous sediment tracers
   integer :: npowtra_dimid         ! id: aqueous sediments
   integer :: zpowtra_dimids(2)     ! aqueous sediment dimensions
@@ -718,7 +722,7 @@ subroutine write_netcdf(iogrp)
   integer :: zsedlayto_varid       ! id: sediment layer tracers
   integer :: zburial_varid         ! id: sediment burial tracers
   integer :: zsedhplto_varid       ! id: accumulated hydrogen ions
-#endif
+
   !--- oceanic tracers
   !--- Write total sum zt_<variable>_varid, and mean concentration zc_<variable>_varid
   integer :: ztotvol_varid                            ! Total ocean volume
@@ -744,7 +748,8 @@ subroutine write_netcdf(iogrp)
   integer :: zt_prefalk_varid,   zc_prefalk_varid     ! Preformed alkalinity
   integer :: zt_prefdic_varid,   zc_prefdic_varid     ! Preformed DIC
   integer :: zt_dicsat_varid,    zc_dicsat_varid      ! Saturated DIC
-#ifdef cisonew
+
+  ! cisonew
   integer :: zt_sco213_varid,    zc_sco213_varid      ! Dissolved CO2-C13
   integer :: zt_sco214_varid,    zc_sco214_varid      ! Dissolved CO2-C14
   integer :: zt_doc13_varid,     zc_doc13_varid       ! Dissolved organic carbon-C13
@@ -757,24 +762,24 @@ subroutine write_netcdf(iogrp)
   integer :: zt_grazer14_varid,  zc_grazer14_varid    ! Zooplankton concentration-C14
   integer :: zt_calciu13_varid,  zc_calciu13_varid    ! Calcium carbonate-C13
   integer :: zt_calciu14_varid,  zc_calciu14_varid    ! Calcium carbonate-C14
-#endif
-#ifdef AGG
+
+  ! AGG
   integer :: zt_snos_varid,      zc_snos_varid        ! Marine snow aggregates per g sea water
   integer :: zt_adust_varid,     zc_adust_varid       ! Aggregated dust
-#endif
-#ifdef CFC
+
+  ! CFC
   integer :: zt_cfc11_varid,     zc_cfc11_varid       ! CFC-11 : Trichlorofluoromethane
   integer :: zt_cfc12_varid,     zc_cfc12_varid       ! CFC-12 : Dichlorodifluoromethane
   integer :: zt_sf6_varid,       zc_sf6_varid         ! SF6    : Sulfur hexafluoride
-#endif
-#ifdef natDIC
+
+  ! natDIC
   integer :: zt_natsco212_varid, zc_natsco212_varid   ! Natural dissolved CO2
   integer :: zt_natalkali_varid, zc_natalkali_varid   ! Natural alkalinity
   integer :: zt_natcalciu_varid, zc_natcalciu_varid   ! Natural calcium carbonate
-#endif
-#ifdef BROMO
+
+  ! BROMO
   integer :: zt_bromo_varid,     zc_bromo_varid       ! Bromoform
-#endif
+
   !--- sum of inventory
   integer :: totcarb_varid, totphos_varid, totsili_varid, totnitr_varid
   integer :: totoxyg_varid
@@ -818,63 +823,63 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_PUT_ATT(ncid, NF90_GLOBAL, 'date', timeunits) )
 
      !--- Define dimensions
-#ifndef sedbypass
-     call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
-     call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
-#endif
+     if (.not. use_sedbypass) then
+        call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
+        call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
+     end if
      call nccheck( NF90_DEF_DIM(ncid, 'time', NF90_UNLIMITED, time_dimid) )
 
      !--- Dimensions for arrays.
      !--- The unlimited "time" dimension must come last in the list of dimensions.
-#ifndef sedbypass
-     zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
-     zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
-#endif
+     if (.not. use_sedbypass) then
+        zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
+        zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
+     end if
 
      !--- Define variables : time
      call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,         &
           &    time_varid) )
      call nccheck( NF90_PUT_ATT(ncid, time_varid, 'units', 'days') )
 
-#ifndef sedbypass
-     !--- aqueous sediment tracers
-     call nccheck( NF90_DEF_VAR(ncid, 'zsedtotvol', NF90_DOUBLE, time_dimid,   &
-          &    zsedtotvol_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'long_name',           &
-          &    'Total sediment volume') )
-     call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'L') )
+     if (.not. use_sedbypass) then
+        !--- aqueous sediment tracers
+        call nccheck( NF90_DEF_VAR(ncid, 'zsedtotvol', NF90_DOUBLE, time_dimid,   &
+             &    zsedtotvol_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'long_name',           &
+             &    'Total sediment volume') )
+        call nccheck( NF90_PUT_ATT(ncid, zsedtotvol_varid, 'units', 'L') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zpowtratot', NF90_DOUBLE,               &
-          &    zpowtra_dimids, zpowtratot_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'long_name',           &
-          &    'Total aqueous sediment tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zpowtratot', NF90_DOUBLE,               &
+             &    zpowtra_dimids, zpowtratot_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'long_name',           &
+             &    'Total aqueous sediment tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zpowtratot_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zpowtratoc', NF90_DOUBLE,               &
-          &    zpowtra_dimids, zpowtratoc_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'long_name',           &
-          &    'Aqueous sediment concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/L') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zpowtratoc', NF90_DOUBLE,               &
+             &    zpowtra_dimids, zpowtratoc_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'long_name',           &
+             &    'Aqueous sediment concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zpowtratoc_varid, 'units', 'kmol/L') )
 
-     !--- non-aqueous sediment tracers
-     call nccheck( NF90_DEF_VAR(ncid, 'zsedlayto', NF90_DOUBLE,                &
-          &    zsedtra_dimids, zsedlayto_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'long_name',            &
-          &    'Sediment layer tracers') )
-     call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'units', 'kmol') )
+        !--- non-aqueous sediment tracers
+        call nccheck( NF90_DEF_VAR(ncid, 'zsedlayto', NF90_DOUBLE,                &
+             &    zsedtra_dimids, zsedlayto_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'long_name',            &
+             &    'Sediment layer tracers') )
+        call nccheck( NF90_PUT_ATT(ncid, zsedlayto_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zburial', NF90_DOUBLE,                  &
-          &    zsedtra_dimids, zburial_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'long_name',              &
-          &    'Sediment burial tracers') )
-     call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zburial', NF90_DOUBLE,                  &
+             &    zsedtra_dimids, zburial_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'long_name',              &
+             &    'Sediment burial tracers') )
+        call nccheck( NF90_PUT_ATT(ncid, zburial_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zsedhplto', NF90_DOUBLE, time_dimid,    &
-          &    zsedhplto_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
-          &    'Total sediment accumulated hydrogen ions') )
-     call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zsedhplto', NF90_DOUBLE, time_dimid,    &
+             &    zsedhplto_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
+             &    'Total sediment accumulated hydrogen ions') )
+        call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
+     end if
 
      !--- Define variables : oceanic tracers
      call nccheck( NF90_DEF_VAR(ncid, 'ztotvol', NF90_DOUBLE, time_dimid,      &
@@ -1147,272 +1152,272 @@ subroutine write_netcdf(iogrp)
           &    'Mean saturated DIC concentration') )
      call nccheck( NF90_PUT_ATT(ncid, zc_dicsat_varid, 'units', 'kmol/m^3') )
 
-#ifdef cisonew
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_sco213', NF90_DOUBLE,                &
-          &    time_dimid, zt_sco213_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sco213_varid, 'long_name',            &
-          &    'Total dissolved CO2-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sco213_varid, 'units', 'kmol') )
+     if (use_cisonew) then
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_sco213', NF90_DOUBLE,                &
+             &    time_dimid, zt_sco213_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sco213_varid, 'long_name',            &
+             &    'Total dissolved CO2-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sco213_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_sco213', NF90_DOUBLE,                &
-          &    time_dimid, zc_sco213_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sco213_varid, 'long_name',            &
-          &    'Mean dissolved CO2-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sco213_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_sco213', NF90_DOUBLE,                &
+             &    time_dimid, zc_sco213_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sco213_varid, 'long_name',            &
+             &    'Mean dissolved CO2-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sco213_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_sco214', NF90_DOUBLE,                &
-          &    time_dimid, zt_sco214_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sco214_varid, 'long_name',            &
-          &    'Total dissolved CO2-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sco214_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_sco214', NF90_DOUBLE,                &
+             &    time_dimid, zt_sco214_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sco214_varid, 'long_name',            &
+             &    'Total dissolved CO2-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sco214_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_sco214', NF90_DOUBLE,                &
-          &    time_dimid, zc_sco214_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sco214_varid, 'long_name',            &
-          &    'Mean dissolved CO2-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sco214_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_sco214', NF90_DOUBLE,                &
+             &    time_dimid, zc_sco214_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sco214_varid, 'long_name',            &
+             &    'Mean dissolved CO2-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sco214_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_doc13', NF90_DOUBLE,                 &
-          &    time_dimid, zt_doc13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_doc13_varid, 'long_name',             &
-          &    'Total dissolved organic carbon-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_doc13_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_doc13', NF90_DOUBLE,                 &
+             &    time_dimid, zt_doc13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_doc13_varid, 'long_name',             &
+             &    'Total dissolved organic carbon-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_doc13_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_doc13', NF90_DOUBLE,                 &
-          &    time_dimid, zc_doc13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_doc13_varid, 'long_name',             &
-          &    'Mean dissolved organic carbon-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_doc13_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_doc13', NF90_DOUBLE,                 &
+             &    time_dimid, zc_doc13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_doc13_varid, 'long_name',             &
+             &    'Mean dissolved organic carbon-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_doc13_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_doc14', NF90_DOUBLE,                 &
-          &    time_dimid, zt_doc14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_doc14_varid, 'long_name',             &
-          &    'Total dissolved organic carbon-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_doc14_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_doc14', NF90_DOUBLE,                 &
+             &    time_dimid, zt_doc14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_doc14_varid, 'long_name',             &
+             &    'Total dissolved organic carbon-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_doc14_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_doc14', NF90_DOUBLE,                 &
-          &    time_dimid, zc_doc14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_doc14_varid, 'long_name',             &
-          &    'Mean dissolved organic carbon-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_doc14_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_doc14', NF90_DOUBLE,                 &
+             &    time_dimid, zc_doc14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_doc14_varid, 'long_name',             &
+             &    'Mean dissolved organic carbon-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_doc14_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_poc13', NF90_DOUBLE,                 &
-          &    time_dimid, zt_poc13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_poc13_varid, 'long_name',             &
-          &    'Total particulate organic carbon-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_poc13_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_poc13', NF90_DOUBLE,                 &
+             &    time_dimid, zt_poc13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_poc13_varid, 'long_name',             &
+             &    'Total particulate organic carbon-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_poc13_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_poc13', NF90_DOUBLE,                 &
-          &    time_dimid, zc_poc13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_poc13_varid, 'long_name',             &
-          &    'Mean particulate organic carbon-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_poc13_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_poc13', NF90_DOUBLE,                 &
+             &    time_dimid, zc_poc13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_poc13_varid, 'long_name',             &
+             &    'Mean particulate organic carbon-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_poc13_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_poc14', NF90_DOUBLE,                 &
-          &    time_dimid, zt_poc14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_poc14_varid, 'long_name',             &
-          &    'Total particulate organic carbon-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_poc14_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_poc14', NF90_DOUBLE,                 &
+             &    time_dimid, zt_poc14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_poc14_varid, 'long_name',             &
+             &    'Total particulate organic carbon-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_poc14_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_poc14', NF90_DOUBLE,                 &
-          &    time_dimid, zc_poc14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_poc14_varid, 'long_name',             &
-          &    'Mean particulate organic carbon-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_poc14_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_poc14', NF90_DOUBLE,                 &
+             &    time_dimid, zc_poc14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_poc14_varid, 'long_name',             &
+             &    'Mean particulate organic carbon-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_poc14_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_phyto13', NF90_DOUBLE,               &
-          &    time_dimid, zt_phyto13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_phyto13_varid, 'long_name',           &
-          &    'Total phytoplankton-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_phyto13_varid, 'units', 'kmolP') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_phyto13', NF90_DOUBLE,               &
+             &    time_dimid, zt_phyto13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phyto13_varid, 'long_name',           &
+             &    'Total phytoplankton-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phyto13_varid, 'units', 'kmolP') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_phyto13', NF90_DOUBLE,               &
-          &    time_dimid, zc_phyto13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_phyto13_varid, 'long_name',           &
-          &    'Mean phytoplankton-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_phyto13_varid, 'units', 'kmolP/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_phyto13', NF90_DOUBLE,               &
+             &    time_dimid, zc_phyto13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phyto13_varid, 'long_name',           &
+             &    'Mean phytoplankton-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phyto13_varid, 'units', 'kmolP/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_phyto14', NF90_DOUBLE,               &
-          &    time_dimid, zt_phyto14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_phyto14_varid, 'long_name',           &
-          &    'Total phytoplankton-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_phyto14_varid, 'units', 'kmolP') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_phyto14', NF90_DOUBLE,               &
+             &    time_dimid, zt_phyto14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phyto14_varid, 'long_name',           &
+             &    'Total phytoplankton-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_phyto14_varid, 'units', 'kmolP') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_phyto14', NF90_DOUBLE,               &
-          &    time_dimid, zc_phyto14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_phyto14_varid, 'long_name',           &
-          &    'Mean phytoplankton-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_phyto14_varid, 'units', 'kmolP/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_phyto14', NF90_DOUBLE,               &
+             &    time_dimid, zc_phyto14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phyto14_varid, 'long_name',           &
+             &    'Mean phytoplankton-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_phyto14_varid, 'units', 'kmolP/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_grazer13', NF90_DOUBLE,              &
-          &    time_dimid, zt_grazer13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_grazer13_varid, 'long_name',          &
-          &    'Total zooplankton-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_grazer13_varid, 'units', 'kmolP') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_grazer13', NF90_DOUBLE,              &
+             &    time_dimid, zt_grazer13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_grazer13_varid, 'long_name',          &
+             &    'Total zooplankton-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_grazer13_varid, 'units', 'kmolP') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_grazer13', NF90_DOUBLE,              &
-          &    time_dimid, zc_grazer13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_grazer13_varid, 'long_name',          &
-          &    'Mean zooplankton-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_grazer13_varid, 'units',              &
-          &    'kmolP/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_grazer13', NF90_DOUBLE,              &
+             &    time_dimid, zc_grazer13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_grazer13_varid, 'long_name',          &
+             &    'Mean zooplankton-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_grazer13_varid, 'units',              &
+             &    'kmolP/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_grazer14', NF90_DOUBLE,              &
-          &    time_dimid, zt_grazer14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_grazer14_varid, 'long_name',          &
-          &    'Total zooplankton-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_grazer14_varid, 'units', 'kmolP') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_grazer14', NF90_DOUBLE,              &
+             &    time_dimid, zt_grazer14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_grazer14_varid, 'long_name',          &
+             &    'Total zooplankton-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_grazer14_varid, 'units', 'kmolP') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_grazer14', NF90_DOUBLE,              &
-          &    time_dimid, zc_grazer14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_grazer14_varid, 'long_name',          &
-          &    'Mean zooplankton-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_grazer14_varid, 'units',              &
-          &    'kmolP/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_grazer14', NF90_DOUBLE,              &
+             &    time_dimid, zc_grazer14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_grazer14_varid, 'long_name',          &
+             &    'Mean zooplankton-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_grazer14_varid, 'units',              &
+             &    'kmolP/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_calciu13', NF90_DOUBLE,              &
-          &    time_dimid, zt_calciu13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_calciu13_varid, 'long_name',          &
-          &    'Total calcium carbonate-C13 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_calciu13_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_calciu13', NF90_DOUBLE,              &
+             &    time_dimid, zt_calciu13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_calciu13_varid, 'long_name',          &
+             &    'Total calcium carbonate-C13 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_calciu13_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_calciu13', NF90_DOUBLE,              &
-          &    time_dimid, zc_calciu13_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_calciu13_varid, 'long_name',          &
-          &    'Mean calcium carbonate-C13 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_calciu13_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_calciu13', NF90_DOUBLE,              &
+             &    time_dimid, zc_calciu13_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_calciu13_varid, 'long_name',          &
+             &    'Mean calcium carbonate-C13 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_calciu13_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_calciu14', NF90_DOUBLE,              &
-          &    time_dimid, zt_calciu14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_calciu14_varid, 'long_name',          &
-          &    'Total calcium carbonate-C14 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_calciu14_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_calciu14', NF90_DOUBLE,              &
+             &    time_dimid, zt_calciu14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_calciu14_varid, 'long_name',          &
+             &    'Total calcium carbonate-C14 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_calciu14_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_calciu14', NF90_DOUBLE,              &
-          &    time_dimid, zc_calciu14_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'long_name',          &
-          &    'Mean calcium carbonate-C14 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'units', 'kmol/m^3') )
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_calciu14', NF90_DOUBLE,              &
+             &    time_dimid, zc_calciu14_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'long_name',          &
+             &    'Mean calcium carbonate-C14 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'units', 'kmol/m^3') )
+     end if
 
-#ifdef AGG
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_snos', NF90_DOUBLE,                  &
-          &    time_dimid, zt_snos_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_snos_varid, 'long_name',              &
-          &    'Total marine snow aggrerates tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_snos_varid, 'units', '---') )           ! What is the unit?
+     if (use_AGG) then
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_snos', NF90_DOUBLE,                  &
+             &    time_dimid, zt_snos_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_snos_varid, 'long_name',              &
+             &    'Total marine snow aggrerates tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_snos_varid, 'units', '---') )           ! What is the unit?
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_snos', NF90_DOUBLE,                  &
-          &    time_dimid, zc_snos_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_snos_varid, 'long_name',              &
-          &    'Mean marine snow aggregates concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_snos_varid, 'units', '---/m^3') )       ! What is the unit?
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_snos', NF90_DOUBLE,                  &
+             &    time_dimid, zc_snos_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_snos_varid, 'long_name',              &
+             &    'Mean marine snow aggregates concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_snos_varid, 'units', '---/m^3') )       ! What is the unit?
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_adust', NF90_DOUBLE,                 &
-          &    time_dimid, zt_adust_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_adust_varid, 'long_name',             &
-          &    'Total aggregated dust tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_adust_varid, 'units', '---') )          ! What is the unit?
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_adust', NF90_DOUBLE,                 &
+             &    time_dimid, zt_adust_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_adust_varid, 'long_name',             &
+             &    'Total aggregated dust tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_adust_varid, 'units', '---') )          ! What is the unit?
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_adust', NF90_DOUBLE,                 &
-          &    time_dimid, zc_adust_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'long_name',             &
-          &    'Mean aggregated dust concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'units', '---/m^3') )      ! What is the unit?
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_adust', NF90_DOUBLE,                 &
+             &    time_dimid, zc_adust_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'long_name',             &
+             &    'Mean aggregated dust concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'units', '---/m^3') )      ! What is the unit?
+     end if
 
-#ifdef CFC
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_cfc11', NF90_DOUBLE,                 &
-          &    time_dimid, zt_cfc11_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_cfc11_varid, 'long_name',             &
-          &    'Total CFC-11 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_cfc11_varid, 'units', 'kmol') )
+     if (use_CFC) then
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_cfc11', NF90_DOUBLE,                 &
+             &    time_dimid, zt_cfc11_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_cfc11_varid, 'long_name',             &
+             &    'Total CFC-11 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_cfc11_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_cfc11', NF90_DOUBLE,                 &
-          &    time_dimid, zc_cfc11_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_cfc11_varid, 'long_name',             &
-          &    'Mean CFC-11 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_cfc11_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_cfc11', NF90_DOUBLE,                 &
+             &    time_dimid, zc_cfc11_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_cfc11_varid, 'long_name',             &
+             &    'Mean CFC-11 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_cfc11_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_cfc12', NF90_DOUBLE,                 &
-          &    time_dimid, zt_cfc12_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_cfc12_varid, 'long_name',             &
-          &    'Total CFC-12 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_cfc12_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_cfc12', NF90_DOUBLE,                 &
+             &    time_dimid, zt_cfc12_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_cfc12_varid, 'long_name',             &
+             &    'Total CFC-12 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_cfc12_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_cfc12', NF90_DOUBLE,                 &
-          &    time_dimid, zc_cfc12_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_cfc12_varid, 'long_name',             &
-          &    'Mean CFC-12 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_cfc12_varid, 'units', 'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_cfc12', NF90_DOUBLE,                 &
+             &    time_dimid, zc_cfc12_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_cfc12_varid, 'long_name',             &
+             &    'Mean CFC-12 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_cfc12_varid, 'units', 'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_sf6', NF90_DOUBLE,                   &
-          &    time_dimid, zt_sf6_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sf6_varid, 'long_name',               &
-          &    'Total SF6 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_sf6_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_sf6', NF90_DOUBLE,                   &
+             &    time_dimid, zt_sf6_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sf6_varid, 'long_name',               &
+             &    'Total SF6 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_sf6_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_sf6', NF90_DOUBLE,                   &
-          &    time_dimid, zc_sf6_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'long_name',               &
-          &    'Mean SF6 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'units', 'kmol/m^3') )
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_sf6', NF90_DOUBLE,                   &
+             &    time_dimid, zc_sf6_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'long_name',               &
+             &    'Mean SF6 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'units', 'kmol/m^3') )
+     end if
 
-#ifdef natDIC
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_natsco212', NF90_DOUBLE,             &
-          &    time_dimid, zt_natsco212_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natsco212_varid, 'long_name',         &
-          &    'Total natural dissolved CO2 tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natsco212_varid, 'units', 'kmol') )
+     if (use_natDIC) then
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_natsco212', NF90_DOUBLE,             &
+             &    time_dimid, zt_natsco212_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natsco212_varid, 'long_name',         &
+             &    'Total natural dissolved CO2 tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natsco212_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_natsco212', NF90_DOUBLE,             &
-          &    time_dimid, zc_natsco212_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natsco212_varid, 'long_name',         &
-          &    'Mean natural dissolved CO2 concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natsco212_varid, 'units',             &
-          &    'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_natsco212', NF90_DOUBLE,             &
+             &    time_dimid, zc_natsco212_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natsco212_varid, 'long_name',         &
+             &    'Mean natural dissolved CO2 concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natsco212_varid, 'units',             &
+             &    'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_natalkali', NF90_DOUBLE,             &
-          &    time_dimid, zt_natalkali_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natalkali_varid, 'long_name',         &
-          &    'Total natural alkalinity tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natalkali_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_natalkali', NF90_DOUBLE,             &
+             &    time_dimid, zt_natalkali_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natalkali_varid, 'long_name',         &
+             &    'Total natural alkalinity tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natalkali_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_natalkali', NF90_DOUBLE,             &
-          &    time_dimid, zc_natalkali_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natalkali_varid, 'long_name',         &
-          &    'Mean natural alkalinity concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natalkali_varid, 'units',             &
-          &    'kmol/m^3') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_natalkali', NF90_DOUBLE,             &
+             &    time_dimid, zc_natalkali_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natalkali_varid, 'long_name',         &
+             &    'Mean natural alkalinity concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natalkali_varid, 'units',             &
+             &    'kmol/m^3') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_natcalciu', NF90_DOUBLE,             &
-          &    time_dimid, zt_natcalciu_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natcalciu_varid, 'long_name',         &
-          &    'Total natural calcium carbonate tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_natcalciu_varid, 'units', 'kmol') )
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_natcalciu', NF90_DOUBLE,             &
+             &    time_dimid, zt_natcalciu_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natcalciu_varid, 'long_name',         &
+             &    'Total natural calcium carbonate tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_natcalciu_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_natcalciu', NF90_DOUBLE,             &
-          &    time_dimid, zc_natcalciu_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natcalciu_varid, 'long_name',         &
-          &    'Mean natural calcium carbonate concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_natcalciu_varid, 'units',             &
-          &    'kmol/m^3') )
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_natcalciu', NF90_DOUBLE,             &
+             &    time_dimid, zc_natcalciu_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natcalciu_varid, 'long_name',         &
+             &    'Mean natural calcium carbonate concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_natcalciu_varid, 'units',             &
+             &    'kmol/m^3') )
+     end if
 
-#ifdef BROMO
-     call nccheck( NF90_DEF_VAR(ncid, 'zt_bromo', NF90_DOUBLE,                 &
-          &    time_dimid, zt_bromo_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zt_bromo_varid, 'long_name',             &
-          &    'Total bromoform tracer') )
-     call nccheck( NF90_PUT_ATT(ncid, zt_bromo_varid, 'units', 'kmol') )
+     if (use_BROMO) then
+        call nccheck( NF90_DEF_VAR(ncid, 'zt_bromo', NF90_DOUBLE,                 &
+             &    time_dimid, zt_bromo_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zt_bromo_varid, 'long_name',             &
+             &    'Total bromoform tracer') )
+        call nccheck( NF90_PUT_ATT(ncid, zt_bromo_varid, 'units', 'kmol') )
 
-     call nccheck( NF90_DEF_VAR(ncid, 'zc_bromo', NF90_DOUBLE,                 &
-          &    time_dimid, zc_bromo_varid) )
-     call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'long_name',             &
-          &    'Mean bromoform concentration') )
-     call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
-#endif
+        call nccheck( NF90_DEF_VAR(ncid, 'zc_bromo', NF90_DOUBLE,                 &
+             &    time_dimid, zc_bromo_varid) )
+        call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'long_name',             &
+             &    'Mean bromoform concentration') )
+        call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
+     end if
 
      !--- Define variables : sum of inventory
      call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
@@ -1492,22 +1497,24 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_OPEN(trim(fname_inv(iogrp)), NF90_WRITE, ncid) )
      !--- Inquire dimid
      call nccheck( NF90_INQ_DIMID(ncid, "time", time_dimid) )
-#ifndef sedbypass
-     call nccheck( NF90_INQ_DIMID(ncid, 'npowtra', npowtra_dimid) )
-     call nccheck( NF90_INQ_DIMID(ncid, 'nsedtra', nsedtra_dimid) )
-#endif
+     if (.not. use_sedbypass) then
+        call nccheck( NF90_INQ_DIMID(ncid, 'npowtra', npowtra_dimid) )
+        call nccheck( NF90_INQ_DIMID(ncid, 'nsedtra', nsedtra_dimid) )
+     end if
      !--- Inquire varid : time
      call nccheck( NF90_INQ_VARID(ncid, "time", time_varid) )
-#ifndef sedbypass
-     !--- aqueous sediment tracers
-     call nccheck( NF90_INQ_VARID(ncid, 'zsedtotvol', zsedtotvol_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, 'zpowtratot', zpowtratot_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, 'zpowtratoc', zpowtratoc_varid) )
-     !--- non-aqueous sediment tracers
-     call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
-#endif
+
+     if (.not. use_sedbypass) then
+        !--- aqueous sediment tracers
+        call nccheck( NF90_INQ_VARID(ncid, 'zsedtotvol', zsedtotvol_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, 'zpowtratot', zpowtratot_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, 'zpowtratoc', zpowtratoc_varid) )
+        !--- non-aqueous sediment tracers
+        call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
+     end if
+
      !--- Inquire varid : ocean tracers
      call nccheck( NF90_INQ_VARID(ncid, "ztotvol", ztotvol_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zt_sco212", zt_sco212_varid) )
@@ -1554,58 +1561,58 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_INQ_VARID(ncid, "zc_prefdic", zc_prefdic_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zt_dicsat", zt_dicsat_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "zc_dicsat", zc_dicsat_varid) )
-#ifdef cisonew
-     call nccheck( NF90_INQ_VARID(ncid, "zt_sco213", zt_sco213_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_sco213", zc_sco213_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_sco214", zt_sco214_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_sco214", zc_sco214_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_doc13", zt_doc13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_doc13", zc_doc13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_doc14", zt_doc14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_doc14", zc_doc14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_poc13", zt_poc13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_poc13", zc_poc13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_poc14", zt_poc14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_poc14", zc_poc14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_phyto13", zt_phyto13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_phyto13", zc_phyto13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_phyto14", zt_phyto14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_phyto14", zc_phyto14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_grazer13", zt_grazer13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_grazer13", zc_grazer13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_grazer14", zt_grazer14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_grazer14", zc_grazer14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_calciu13", zt_calciu13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_calciu13", zc_calciu13_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_calciu14", zt_calciu14_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_calciu14", zc_calciu14_varid) )
-#endif
-#ifdef AGG
-     call nccheck( NF90_INQ_VARID(ncid, "zt_snos", zt_snos_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_snos", zc_snos_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_adust", zt_adust_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_adust", zc_adust_varid) )
-#endif
-#ifdef CFC
-     call nccheck( NF90_INQ_VARID(ncid, "zt_cfc11", zt_cfc11_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_cfc11", zc_cfc11_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_cfc12", zt_cfc12_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_cfc12", zc_cfc12_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_sf6", zt_sf6_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_sf6", zc_sf6_varid) )
-#endif
-#ifdef natDIC
-     call nccheck( NF90_INQ_VARID(ncid, "zt_natsco212", zt_natsco212_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_natsco212", zc_natsco212_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_natalkali", zt_natalkali_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_natalkali", zc_natalkali_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zt_natcalciu", zt_natcalciu_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_natcalciu", zc_natcalciu_varid) )
-#endif
-#ifdef BROMO
-     call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
-     call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
-#endif
+     if (use_cisonew) then
+        call nccheck( NF90_INQ_VARID(ncid, "zt_sco213", zt_sco213_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_sco213", zc_sco213_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_sco214", zt_sco214_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_sco214", zc_sco214_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_doc13", zt_doc13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_doc13", zc_doc13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_doc14", zt_doc14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_doc14", zc_doc14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_poc13", zt_poc13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_poc13", zc_poc13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_poc14", zt_poc14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_poc14", zc_poc14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_phyto13", zt_phyto13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_phyto13", zc_phyto13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_phyto14", zt_phyto14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_phyto14", zc_phyto14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_grazer13", zt_grazer13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_grazer13", zc_grazer13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_grazer14", zt_grazer14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_grazer14", zc_grazer14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_calciu13", zt_calciu13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_calciu13", zc_calciu13_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_calciu14", zt_calciu14_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_calciu14", zc_calciu14_varid) )
+     end if
+     if (use_AGG) then
+        call nccheck( NF90_INQ_VARID(ncid, "zt_snos", zt_snos_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_snos", zc_snos_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_adust", zt_adust_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_adust", zc_adust_varid) )
+     end if
+     if (use_CFC) then
+        call nccheck( NF90_INQ_VARID(ncid, "zt_cfc11", zt_cfc11_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_cfc11", zc_cfc11_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_cfc12", zt_cfc12_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_cfc12", zc_cfc12_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_sf6", zt_sf6_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_sf6", zc_sf6_varid) )
+     end if
+     if (use_natDIC) then
+        call nccheck( NF90_INQ_VARID(ncid, "zt_natsco212", zt_natsco212_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_natsco212", zc_natsco212_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_natalkali", zt_natalkali_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_natalkali", zc_natalkali_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zt_natcalciu", zt_natcalciu_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_natcalciu", zc_natcalciu_varid) )
+     end if
+     if (use_BROMO) then
+        call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
+        call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
+     end if
      !--- Inquire varid : sum of inventory
      call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "totphos", totphos_varid) )
@@ -1624,33 +1631,33 @@ subroutine write_netcdf(iogrp)
   !=== Increment record by 1, reset start and count arrays
   ncrec(iogrp) = ncrec(iogrp) + 1
   wrstart = (/ ncrec(iogrp) /)
-#ifndef sedbypass
-  zpowtra_wrstart = (/ 1, ncrec(iogrp) /)
-  zpowtra_count = (/ npowtra, 1 /)
-  zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
-  zsedtra_count = (/ nsedtra, 1 /)
-#endif
+  if (.not. use_sedbypass) then
+     zpowtra_wrstart = (/ 1, ncrec(iogrp) /)
+     zpowtra_count = (/ npowtra, 1 /)
+     zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
+     zsedtra_count = (/ nsedtra, 1 /)
+  end if
 
   !=== Write output data to netCDF file
   !--- Write data : time
   datenum = time - time0
   call nccheck( NF90_PUT_VAR(ncid, time_varid, datenum, start = wrstart) )
-#ifndef sedbypass
-  !--- aqueous sediment tracers
-  call nccheck( NF90_PUT_VAR(ncid, zsedtotvol_varid, zsedtotvol,                &
-       &     start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zpowtratot_varid, zpowtratot,                &
-       &     start = zpowtra_wrstart, count = zpowtra_count) )
-  call nccheck( NF90_PUT_VAR(ncid, zpowtratoc_varid, zpowtratoc,                &
-       &     start = zpowtra_wrstart, count = zpowtra_count) )
-  !--- non-aqueous sediment tracers
-  call nccheck( NF90_PUT_VAR(ncid, zsedlayto_varid, zsedlayto,                  &
-       &     start = zsedtra_wrstart, count = zsedtra_count) )
-  call nccheck( NF90_PUT_VAR(ncid, zburial_varid, zburial,                      &
-       &     start = zsedtra_wrstart, count = zsedtra_count) )
-  call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
-       &     start = wrstart) )
-#endif
+  if (.not. use_sedbypass) then
+     !--- aqueous sediment tracers
+     call nccheck( NF90_PUT_VAR(ncid, zsedtotvol_varid, zsedtotvol,                &
+          &     start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zpowtratot_varid, zpowtratot,                &
+          &     start = zpowtra_wrstart, count = zpowtra_count) )
+     call nccheck( NF90_PUT_VAR(ncid, zpowtratoc_varid, zpowtratoc,                &
+          &     start = zpowtra_wrstart, count = zpowtra_count) )
+     !--- non-aqueous sediment tracers
+     call nccheck( NF90_PUT_VAR(ncid, zsedlayto_varid, zsedlayto,                  &
+          &     start = zsedtra_wrstart, count = zsedtra_count) )
+     call nccheck( NF90_PUT_VAR(ncid, zburial_varid, zburial,                      &
+          &     start = zsedtra_wrstart, count = zsedtra_count) )
+     call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
+          &     start = wrstart) )
+  end if
   !--- Write data : ocean tracers
   call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, zt_sco212_varid,                            &
@@ -1741,100 +1748,100 @@ subroutine write_netcdf(iogrp)
        &    zocetratot(idicsat), start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, zc_dicsat_varid,                            &
        &    zocetratoc(idicsat), start = wrstart) )
-#ifdef cisonew
-  call nccheck( NF90_PUT_VAR(ncid, zt_sco213_varid,                            &
-       &    zocetratot(isco213), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_sco213_varid,                            &
-       &    zocetratoc(isco213), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_sco214_varid,                            &
-       &    zocetratot(isco214), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_sco214_varid,                            &
-       &    zocetratoc(isco214), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_doc13_varid,                             &
-       &    zocetratot(idoc13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_doc13_varid,                             &
-       &    zocetratoc(idoc13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_doc14_varid,                             &
-       &    zocetratot(idoc14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_doc14_varid,                             &
-       &    zocetratoc(idoc14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_poc13_varid,                             &
-       &    zocetratot(idet13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_poc13_varid,                             &
-       &    zocetratoc(idet13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_poc14_varid,                             &
-       &    zocetratot(idet14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_poc14_varid,                             &
-       &    zocetratoc(idet14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_phyto13_varid,                           &
-       &    zocetratot(iphy13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_phyto13_varid,                           &
-       &    zocetratoc(iphy13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_phyto14_varid,                           &
-       &    zocetratot(iphy14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_phyto14_varid,                           &
-       &    zocetratoc(iphy14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_grazer13_varid,                          &
-       &    zocetratot(izoo13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_grazer13_varid,                          &
-       &    zocetratoc(izoo13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_grazer14_varid,                          &
-       &    zocetratot(izoo14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_grazer14_varid,                          &
-       &    zocetratoc(izoo14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_calciu13_varid,                          &
-       &    zocetratot(icalc13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_calciu13_varid,                          &
-       &    zocetratoc(icalc13), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_calciu14_varid,                          &
-       &    zocetratot(icalc14), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_calciu14_varid,                          &
-       &    zocetratoc(icalc14), start = wrstart) )
-#endif
-#ifdef AGG
-  call nccheck( NF90_PUT_VAR(ncid, zt_snos_varid,                              &
-       &    zocetratot(inos), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_snos_varid,                              &
-       &    zocetratoc(inos), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_adust_varid,                             &
-       &    zocetratot(iadust), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_adust_varid,                             &
-       &    zocetratoc(iadust), start = wrstart) )
-#endif
-#ifdef CFC
-  call nccheck( NF90_PUT_VAR(ncid, zt_cfc11_varid,                             &
-       &    zocetratot(icfc11), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_cfc11_varid,                             &
-       &    zocetratoc(icfc11), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_cfc12_varid,                             &
-       &    zocetratot(icfc12), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_cfc12_varid,                             &
-       &    zocetratoc(icfc12), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_sf6_varid,                               &
-       &    zocetratot(isf6), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_sf6_varid,                               &
-       &    zocetratoc(isf6), start = wrstart) )
-#endif
-#ifdef natDIC
-  call nccheck( NF90_PUT_VAR(ncid, zt_natsco212_varid,                         &
-       &    zocetratot(inatsco212), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_natsco212_varid,                         &
-       &    zocetratoc(inatsco212), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_natalkali_varid,                         &
-       &    zocetratot(inatalkali), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_natalkali_varid,                         &
-       &    zocetratoc(inatalkali), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zt_natcalciu_varid,                         &
-       &    zocetratot(inatcalc), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_natcalciu_varid,                         &
-       &    zocetratoc(inatcalc), start = wrstart) )
-#endif
-#ifdef BROMO
-  call nccheck( NF90_PUT_VAR(ncid, zt_bromo_varid,                             &
-       &    zocetratot(ibromo), start = wrstart) )
-  call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
-       &    zocetratoc(ibromo), start = wrstart) )
-#endif
+  if (use_cisonew) then
+     call nccheck( NF90_PUT_VAR(ncid, zt_sco213_varid,                            &
+          &    zocetratot(isco213), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_sco213_varid,                            &
+          &    zocetratoc(isco213), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_sco214_varid,                            &
+          &    zocetratot(isco214), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_sco214_varid,                            &
+          &    zocetratoc(isco214), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_doc13_varid,                             &
+          &    zocetratot(idoc13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_doc13_varid,                             &
+          &    zocetratoc(idoc13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_doc14_varid,                             &
+          &    zocetratot(idoc14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_doc14_varid,                             &
+          &    zocetratoc(idoc14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_poc13_varid,                             &
+          &    zocetratot(idet13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_poc13_varid,                             &
+          &    zocetratoc(idet13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_poc14_varid,                             &
+          &    zocetratot(idet14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_poc14_varid,                             &
+          &    zocetratoc(idet14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_phyto13_varid,                           &
+          &    zocetratot(iphy13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_phyto13_varid,                           &
+          &    zocetratoc(iphy13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_phyto14_varid,                           &
+          &    zocetratot(iphy14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_phyto14_varid,                           &
+          &    zocetratoc(iphy14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_grazer13_varid,                          &
+          &    zocetratot(izoo13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_grazer13_varid,                          &
+          &    zocetratoc(izoo13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_grazer14_varid,                          &
+          &    zocetratot(izoo14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_grazer14_varid,                          &
+          &    zocetratoc(izoo14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_calciu13_varid,                          &
+          &    zocetratot(icalc13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_calciu13_varid,                          &
+          &    zocetratoc(icalc13), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_calciu14_varid,                          &
+          &    zocetratot(icalc14), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_calciu14_varid,                          &
+          &    zocetratoc(icalc14), start = wrstart) )
+  end if
+  if (use_AGG) then
+     call nccheck( NF90_PUT_VAR(ncid, zt_snos_varid,                              &
+          &    zocetratot(inos), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_snos_varid,                              &
+          &    zocetratoc(inos), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_adust_varid,                             &
+          &    zocetratot(iadust), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_adust_varid,                             &
+          &    zocetratoc(iadust), start = wrstart) )
+  end if
+  if (use_CFC) then
+     call nccheck( NF90_PUT_VAR(ncid, zt_cfc11_varid,                             &
+          &    zocetratot(icfc11), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_cfc11_varid,                             &
+          &    zocetratoc(icfc11), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_cfc12_varid,                             &
+          &    zocetratot(icfc12), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_cfc12_varid,                             &
+          &    zocetratoc(icfc12), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_sf6_varid,                               &
+          &    zocetratot(isf6), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_sf6_varid,                               &
+          &    zocetratoc(isf6), start = wrstart) )
+  end if
+  if (use_natDIC) then
+     call nccheck( NF90_PUT_VAR(ncid, zt_natsco212_varid,                         &
+          &    zocetratot(inatsco212), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_natsco212_varid,                         &
+          &    zocetratoc(inatsco212), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_natalkali_varid,                         &
+          &    zocetratot(inatalkali), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_natalkali_varid,                         &
+          &    zocetratoc(inatalkali), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zt_natcalciu_varid,                         &
+          &    zocetratot(inatcalc), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_natcalciu_varid,                         &
+          &    zocetratoc(inatcalc), start = wrstart) )
+  end if
+  if (use_BROMO) then
+     call nccheck( NF90_PUT_VAR(ncid, zt_bromo_varid,                             &
+          &    zocetratot(ibromo), start = wrstart) )
+     call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
+          &    zocetratoc(ibromo), start = wrstart) )
+  end if
   !--- Write data : sum of inventory
   call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
        &    start = wrstart) )
@@ -1894,4 +1901,3 @@ end subroutine nccheck
 
 
 END SUBROUTINE INVENTORY_BGC
-

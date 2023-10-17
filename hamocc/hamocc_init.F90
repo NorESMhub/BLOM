@@ -38,15 +38,16 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 !
 !******************************************************************************
   use mod_time,       only: date,baclin
-  use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,              &
-       &                    mnproc,lp,nfu,xchalt
+  use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,        &
+                            mnproc,lp,nfu,xchalt
   use mod_grid,       only: plon,plat
   use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
-  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                      &
-       &                    do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
-       &                    sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
-       &                    dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
-       &                    ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor
+  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                &
+                            do_ndep,do_rivinpt,do_oalk,do_sedspinup,      &
+                            sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,       &
+                            dtb,dtbgc,io_stdo_bgc,ldtbgc,                 &
+                            ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor, &
+                            use_BROMO,use_sedbypass,use_BOXATM
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_param_bgc,   only: ini_parambgc
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -61,16 +62,12 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
   use mo_read_sedpor, only: read_sedpor,sedporfile
   use mo_clim_swa,    only: ini_swa_clim,swaclimfile
-  use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,                 &
-       &                    inisil,inid13c,inid14c
-  use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,                          &
-       &                    bgc_dx,bgc_dy,bgc_dp,bgc_rho,                       &
-       &                    omask,sedlay2,powtra2,burial2,                      &
-       &                    blom2hamocc
-#ifdef BOXATM
-  use mo_intfcblom,   only: atm2
-#endif
-
+  use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,           &
+                            inisil,inid13c,inid14c
+  use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,                    &
+                            bgc_dx,bgc_dy,bgc_dp,bgc_rho,                 &
+                            omask,sedlay2,powtra2,burial2,                &
+                            blom2hamocc,atm2
   implicit none
 
   integer,          intent(in) :: read_rest
@@ -81,7 +78,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   real    :: sed_por(idm,jdm,ks) = 0.
 
   namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,    &
-       &   do_oalk,do_sedspinup,sedspin_yr_s,                 &
+       &   do_oalk,do_sedspinup,sedspin_yr_s,                                   &
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
@@ -197,9 +194,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   CALL ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
 
-#ifdef BROMO
-  CALL ini_swa_clim(idm,jdm,omask)
-#endif
+  if (use_BROMO) then
+     CALL ini_swa_clim(idm,jdm,omask)
+  end if
 
   call ini_pi_ph(idm,jdm,omask)
   !
@@ -216,18 +213,18 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
           &   ocetra(:,:,:,:)
      trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) =                      &
           &   ocetra(:,:,:,:)
-#ifndef sedbypass
-     sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
-     sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
-     powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
-     powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
-     burial2(:,:,1,:)         = burial(:,:,:)
-     burial2(:,:,2,:)         = burial(:,:,:)
-#endif
-#if defined(BOXATM)
-     atm2(:,:,1,:)            = atm(:,:,:)
-     atm2(:,:,2,:)            = atm(:,:,:)
-#endif
+     if (.not. use_sedbypass) then
+        sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
+        sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
+        powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
+        powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
+        burial2(:,:,1,:)         = burial(:,:,:)
+        burial2(:,:,2,:)         = burial(:,:,:)
+     end if
+     if (use_BOXATM) then
+        atm2(:,:,1,:)            = atm(:,:,:)
+        atm2(:,:,2,:)            = atm(:,:,:)
+     end if
   ENDIF
 
   if (mnproc.eq.1) then

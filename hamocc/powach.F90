@@ -62,18 +62,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
-                          & sed_denit,disso_caco3
+                            sed_denit,disso_caco3,pror13,pror14,prca13,prca14
   use mo_biomod,      only: rnit,ro2ut
-  use mo_control_bgc, only: dtbgc 
+  use mo_control_bgc, only: dtbgc,use_cisonew
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
-                          & issster, ks 
+                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv 
   use mo_vgrid,       only: kbo,bolay
-
-#ifdef cisonew
-  use mo_param1_bgc,  only: ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
-  use mo_sedmnt,      only: pror13,pror14,prca13,prca14
-#endif
-
 
   implicit none
 
@@ -85,22 +79,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
   ! Local variables
   integer :: i,j,k,l
-
   real :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
   real :: solrat(kpie,ks),powcar(kpie,ks)
   real :: aerob(kpie,ks),anaerob(kpie,ks)
-#ifdef cisonew
-  real :: aerob13(kpie,ks),anaerob13(kpie,ks)
-  real :: aerob14(kpie,ks),anaerob14(kpie,ks)
-#endif
+  real :: aerob13(kpie,ks),anaerob13(kpie,ks) ! cisonew
+  real :: aerob14(kpie,ks),anaerob14(kpie,ks) ! cisonew
   real :: dissot, undsa, posol
   real :: umfa, denit, saln, rrho, alk, c, sit, pt
   real :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
   real :: ah1, ac, cu, cb, cc, satlev
   real :: ratc13, ratc14, rato13, rato14, poso13, poso14
-
-  ! number of iterations for carchm_solve
-  integer, parameter :: niter = 5
+  integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
 !******************************************************************************
 ! accelerated sediment
@@ -133,12 +122,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         powcar(i,k) = 0.
         anaerob(i,k)= 0.
         aerob(i,k)  = 0.
-#ifdef cisonew
-        anaerob13(i,k)=0.
-        aerob13(i,k)  =0.
-        anaerob14(i,k)=0.
-        aerob14(i,k)  =0.
-#endif
+        if (use_cisonew) then
+           anaerob13(i,k)=0.
+           aerob13(i,k)  =0.
+           anaerob14(i,k)=0.
+           aerob14(i,k)  =0.
+        end if
      enddo
   enddo
 
@@ -288,12 +277,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         endif
         sedlay(i,j,1,issso12) =                                                &
              &   sedlay(i,j,1,issso12) + prorca(i,j) / (porsol(i,j,1)*seddw(1))
-#ifdef cisonew
-        sedlay(i,j,1,issso13) =                                                &
-             &   sedlay(i,j,1,issso13) + pror13(i,j) / (porsol(i,j,1)*seddw(1))
-        sedlay(i,j,1,issso14) =                                                &
-             &   sedlay(i,j,1,issso14) + pror14(i,j) / (porsol(i,j,1)*seddw(1))
-#endif
+        if (use_cisonew) then
+           sedlay(i,j,1,issso13) =                                                &
+                &   sedlay(i,j,1,issso13) + pror13(i,j) / (porsol(i,j,1)*seddw(1))
+           sedlay(i,j,1,issso14) =                                                &
+                &   sedlay(i,j,1,issso14) + pror14(i,j) / (porsol(i,j,1)*seddw(1))
+        end if
      endif
   enddo
 
@@ -309,25 +298,25 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1. + dissot*sediso(i,k))
            posol = sediso(i,k)*solrat(i,k)
            aerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
-#ifdef cisonew
-           rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
-           rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12) + safediv)
-           poso13 = posol*rato13
-           poso14 = posol*rato14
-           aerob13(i,k) = poso13*umfa  !this has P units: kmol P/m3 of pore water
-           aerob14(i,k) = poso14*umfa  !this has P units: kmol P/m3 of pore water
-#endif
+           if (use_cisonew) then
+              rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
+              rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12) + safediv)
+              poso13 = posol*rato13
+              poso14 = posol*rato14
+              aerob13(i,k) = poso13*umfa  !this has P units: kmol P/m3 of pore water
+              aerob14(i,k) = poso14*umfa  !this has P units: kmol P/m3 of pore water
+           end if
            sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
            powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
            powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*rnit*umfa
            powtra(i,j,k,ipowaox) = sediso(i,k)
-#ifdef cisonew
-           sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
-           sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-           ! is this correct? no correspondance in the lines above
-           powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-           powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
-#endif
+           if (use_cisonew) then
+              sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
+              sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
+              ! is this correct? no correspondance in the lines above
+              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
+              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
+           end if
         endif
      enddo
   enddo
@@ -345,25 +334,25 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
                    &                sedlay(i,j,k,issso12))
               umfa = porsol(i,j,k)/porwat(i,j,k)
               anaerob(i,k) = posol*umfa     !this has P units: kmol P/m3 of pore water
-#ifdef cisonew
-              rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
-              rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12) + safediv)
-              poso13 = posol * rato13
-              poso14 = posol * rato14
-              anaerob13(i,k) = poso13*umfa  !this has P units: kmol P/m3 of pore water
-              anaerob14(i,k) = poso14*umfa  !this has P units: kmol P/m3 of pore water
-#endif
+              if (use_cisonew) then
+                 rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12) + safediv)
+                 rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12) + safediv)
+                 poso13 = posol * rato13
+                 poso14 = posol * rato14
+                 anaerob13(i,k) = poso13*umfa  !this has P units: kmol P/m3 of pore water
+                 anaerob14(i,k) = poso14*umfa  !this has P units: kmol P/m3 of pore water
+              end if
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
               powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) - 98.*posol*umfa
               powtra(i,j,k,ipown2)  = powtra(i,j,k,ipown2)  + 57.*posol*umfa
-#ifdef cisonew
-              sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
-              sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-              ! is this correct? no corresponance in the lines above
-              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
-#endif
+              if (use_cisonew) then
+                 sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
+                 sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
+                 ! is this correct? no corresponance in the lines above
+                 powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
+                 powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
+              end if
            endif
         endif
      enddo
@@ -379,21 +368,21 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
               umfa = porsol(i,j,k) / porwat(i,j,k)
               !this overwrites anaerob from denitrification. added =anaerob+..., works
               anaerob(i,k) = anaerob(i,k) + posol*umfa      !this has P units: kmol P/m3 of pore water
-#ifdef cisonew
-              rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12)+safediv)
-              rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12)+safediv)
-              poso13 = posol * rato13
-              poso14 = posol * rato14
-              anaerob13(i,k) = anaerob13(i,k) + poso13*umfa !this has P units: kmol P/m3 of pore water
-              anaerob14(i,k) = anaerob13(i,k) + poso14*umfa !this has P units: kmol P/m3 of pore water
-#endif
+              if (use_cisonew) then
+                 rato13 = sedlay(i,j,k,issso13) / (sedlay(i,j,k,issso12)+safediv)
+                 rato14 = sedlay(i,j,k,issso14) / (sedlay(i,j,k,issso12)+safediv)
+                 poso13 = posol * rato13
+                 poso14 = posol * rato14
+                 anaerob13(i,k) = anaerob13(i,k) + poso13*umfa !this has P units: kmol P/m3 of pore water
+                 anaerob14(i,k) = anaerob13(i,k) + poso14*umfa !this has P units: kmol P/m3 of pore water
+              end if
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
               powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*umfa*rno3
-#ifdef cisonew
-              sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
-              sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-#endif
+              if (use_cisonew) then
+                 sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
+                 sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
+              end if
            endif
         endif
      enddo
@@ -491,12 +480,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      if(omask(i,j) > 0.5) then
         sedlay(i,j,1,isssc12) =                                                &
              &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
-#ifdef cisonew
-        sedlay(i,j,1,isssc13) =                                                &
-             &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
-        sedlay(i,j,1,isssc14) =                                                &
-             &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(i,j,1)*seddw(1))
-#endif
+        if (use_cisonew) then
+           sedlay(i,j,1,isssc13) =                                                &
+                &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
+           sedlay(i,j,1,isssc14) =                                                &
+                &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(i,j,1)*seddw(1))
+        end if
      endif
   enddo
 
@@ -513,25 +502,25 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            solrat(i,k) = sedlay(i,j,k,isssc12)                                 &
                 &   * dissot / (1. + dissot * sediso(i,k))
            posol = sediso(i,k) * solrat(i,k)
-#ifdef cisonew
-           ratc13 = sedlay(i,j,k,isssc13) / (sedlay(i,j,k,isssc12) + safediv)
-           ratc14 = sedlay(i,j,k,isssc14) / (sedlay(i,j,k,isssc12) + safediv)
-           poso13 = posol * ratc13
-           poso14 = posol * ratc14
-#endif
+           if (use_cisonew) then
+              ratc13 = sedlay(i,j,k,isssc13) / (sedlay(i,j,k,isssc12) + safediv)
+              ratc14 = sedlay(i,j,k,isssc14) / (sedlay(i,j,k,isssc12) + safediv)
+              poso13 = posol * ratc13
+              poso14 = posol * ratc14
+           end if
            sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12) - posol
            powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                       &
                 &   + posol * umfa + (aerob(i,k) + anaerob(i,k)) * 122.
            powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                       &
                 &   + 2. * posol * umfa - 16. * (aerob(i,k) + anaerob(i,k))
-#ifdef cisonew
-           sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
-           sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
-           powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa       &
-                &   + (aerob13(i,k) + anaerob13(i,k)) * 122.
-           powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa       &
-                &   + (aerob14(i,k) + anaerob14(i,k)) * 122.
-#endif
+           if (use_cisonew) then
+              sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
+              sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
+              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa       &
+                   &   + (aerob13(i,k) + anaerob13(i,k)) * 122.
+              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa       &
+                   &   + (aerob14(i,k) + anaerob14(i,k)) * 122.
+           end if
         endif
      enddo
   enddo
@@ -564,12 +553,12 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         silpro(i,j) = 0.
         prorca(i,j) = 0.
         prcaca(i,j) = 0.
-#ifdef cisonew
-        pror13(i,j) = 0.
-        pror14(i,j) = 0.
-        prca13(i,j) = 0.
-        prca14(i,j) = 0.
-#endif
+        if (use_cisonew) then
+           pror13(i,j) = 0.
+           pror14(i,j) = 0.
+           prca13(i,j) = 0.
+           prca14(i,j) = 0.
+        end if
         produs(i,j) = 0.
      enddo
   enddo

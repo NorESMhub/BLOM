@@ -54,39 +54,18 @@
 
       use mo_carbch,      only: co2star,co3,hi,ocetra 
       use mo_biomod,      only: fesoly 
-      use mo_control_bgc, only: rmasks
+      use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
+                                iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, & 
+                                iadust,inos,ibromo,icfc11,icfc12,isf6, & 
+                                icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, & 
+                                inatcalc, & 
+                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
+                                ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
       use mo_vgrid,       only: kmle,kbo
-
-#ifdef AGG
-      use mo_biomod,      only: cellmass,fractdim
-      use mo_param1_bgc,  only: iadust,inos
-#endif
-#ifdef BROMO
-      use mo_param1_bgc,  only: ibromo
-#endif
-#ifdef CFC
-      use mo_param1_bgc,  only: icfc11,icfc12,isf6
-#endif
-#ifdef cisonew
-      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to
-      use mo_param1_bgc,  only: icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv
-#ifndef sedbypass
-      use mo_param1_bgc,  only: ipowc13,ipowc14,issso13,issso14,isssc13,isssc14
-#endif
-#endif
-#ifdef natDIC
-      use mo_param1_bgc,  only: inatcalc
+      use mo_biomod,      only: cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to,abs_oce
       use mo_carbch,      only: nathi,natco3
-#endif
-#ifndef sedbypass
-      use mo_param1_bgc,  only: ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
-#endif
-#ifdef FB_BGC_OCE
-      use mo_biomod,      only: abs_oce
-#endif 
 
       implicit none
 
@@ -99,24 +78,18 @@
 
       ! local variables
       INTEGER :: i,j,k,l
-#ifdef cisonew
-      REAL :: rco213,rco214,beta13,beta14
-#endif
-#ifdef AGG
-      REAL :: snow
-#endif
+      REAL :: rco213,rco214,beta13,beta14 ! cisonew
+      REAL :: snow ! AGG
 
-
-#ifdef FB_BGC_OCE
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-        abs_oce(i,j,k)=1.
-      ENDDO
-      ENDDO
-      ENDDO
-#endif
-
+      if (use_FB_BGC_OCE) then
+         DO k=1,kpke
+         DO j=1,kpje
+         DO i=1,kpie
+            abs_oce(i,j,k)=1.
+         ENDDO
+         ENDDO
+         ENDDO
+      end if
 !
 ! Initialisation of ocean tracers and sediment
 !
@@ -141,18 +114,18 @@
           ocetra(i,j,k,ioxygen) = ocetra(i,j,k,ioxygen)/prho(i,j,k)
           ocetra(i,j,k,iano3)   = ocetra(i,j,k,iano3)  /prho(i,j,k)
           ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)/prho(i,j,k)
-#ifdef cisonew
-          ! d13C based on Eide data is read in above (profile_gd)                        
-          ! Convert to 13C using model initial (ie GLODAP) total C
-          ! If restarting, this is redone with model total C from restart in aufr_bgc.F90 
-          beta13=ocetra(i,j,k,isco213)/1000.+1.
-          ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
+          if (use_cisonew) then
+             ! d13C based on Eide data is read in above (profile_gd)                        
+             ! Convert to 13C using model initial (ie GLODAP) total C
+             ! If restarting, this is redone with model total C from restart in aufr_bgc.F90 
+             beta13=ocetra(i,j,k,isco213)/1000.+1.
+             ocetra(i,j,k,isco213) = ocetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
 
-          ! 14C is read in as small delta14C (calculated from R. Key, 2003 and Eide et al. 2017)
-          ! Convert to 14C using model total C, and normalize by c14fac to prevent numerical errors
-          beta14=ocetra(i,j,k,isco214)/1000.+1.
-          ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
-#endif
+             ! 14C is read in as small delta14C (calculated from R. Key, 2003 and Eide et al. 2017)
+             ! Convert to 14C using model total C, and normalize by c14fac to prevent numerical errors
+             beta14=ocetra(i,j,k,isco214)/1000.+1.
+             ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
+          end if
         ENDIF
       ENDDO
       ENDDO
@@ -182,40 +155,40 @@
           hi(i,j,k)            =1.e-8
           co3(i,j,k)           =0.
           co2star(i,j,k)       =20.e-6
-#ifdef AGG
-! calculate initial numbers from mass, to start with appropriate size distribution
-          snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
-          ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1.)
-          ocetra(i,j,k,iadust) =0. 
-#endif /*AGG*/
-#ifdef CFC
-          ocetra(i,j,k,icfc11)   =0.
-          ocetra(i,j,k,icfc12)   =0.
-          ocetra(i,j,k,isf6)     =0.
-#endif
-#ifdef natDIC
-          nathi(i,j,k)           =1.e-8
-          natco3(i,j,k)          =0.
-          ocetra(i,j,k,inatcalc) =0. 
-#endif
-#ifdef cisonew
-          rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
-          rco214=ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv)
-          ocetra(i,j,k,iphy13) =ocetra(i,j,k,iphy)*rco213*bifr13
-          ocetra(i,j,k,iphy14) =ocetra(i,j,k,iphy)*rco214*bifr14
-          ocetra(i,j,k,izoo13) =ocetra(i,j,k,izoo)*rco213*bifr13
-          ocetra(i,j,k,izoo14) =ocetra(i,j,k,izoo)*rco214*bifr14
-          ocetra(i,j,k,idoc13) =ocetra(i,j,k,idoc)*rco213*bifr13
-          ocetra(i,j,k,idoc14) =ocetra(i,j,k,idoc)*rco214*bifr14
-          ocetra(i,j,k,idet13) =ocetra(i,j,k,idet)*rco213*bifr13
-          ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
-          ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
-          ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
-#endif
-#ifdef BROMO
-! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
-         ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
-#endif
+          if (use_AGG) then
+             ! calculate initial numbers from mass, to start with appropriate size distribution
+             snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
+             ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1.)
+             ocetra(i,j,k,iadust) =0. 
+          end if
+          if (use_CFC) then
+             ocetra(i,j,k,icfc11)   =0.
+             ocetra(i,j,k,icfc12)   =0.
+             ocetra(i,j,k,isf6)     =0.
+          end if
+          if (use_natDIC) then
+             nathi(i,j,k)           =1.e-8
+             natco3(i,j,k)          =0.
+             ocetra(i,j,k,inatcalc) =0. 
+          end if
+          if (use_cisonew) then
+             rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
+             rco214=ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv)
+             ocetra(i,j,k,iphy13) =ocetra(i,j,k,iphy)*rco213*bifr13
+             ocetra(i,j,k,iphy14) =ocetra(i,j,k,iphy)*rco214*bifr14
+             ocetra(i,j,k,izoo13) =ocetra(i,j,k,izoo)*rco213*bifr13
+             ocetra(i,j,k,izoo14) =ocetra(i,j,k,izoo)*rco214*bifr14
+             ocetra(i,j,k,idoc13) =ocetra(i,j,k,idoc)*rco213*bifr13
+             ocetra(i,j,k,idoc14) =ocetra(i,j,k,idoc)*rco214*bifr14
+             ocetra(i,j,k,idet13) =ocetra(i,j,k,idet)*rco213*bifr13
+             ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
+             ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
+             ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
+          end if
+          if (use_BROMO) then
+             ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
+             ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
+          end if
         ENDIF ! omask > 0.5
       ENDDO
       ENDDO
@@ -236,69 +209,69 @@
 
 
 ! Initial values for sediment
-#ifndef sedbypass
-      DO  k=1,ks
-      DO  j=1,kpje
-      DO  i=1,kpie 
-        IF(omask(i,j) .GT. 0.5) THEN
-          powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
-          powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
-          powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)
-          powtra(i,j,k,ipowaox)=ocetra(i,j,kbo(i,j),ioxygen)
-          powtra(i,j,k,ipown2) =0.
-          powtra(i,j,k,ipowno3)=ocetra(i,j,kbo(i,j),iano3)
-          powtra(i,j,k,ipowasi)=ocetra(i,j,kbo(i,j),isilica)      
-          sedlay(i,j,k,issso12)=1.e-8
-          sedlay(i,j,k,isssc12)=1.e-8
-          sedlay(i,j,k,issster)=30.
-          sedlay(i,j,k,issssil)=1.e-8
-          sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
-#ifdef cisonew
-          rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-          rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-          powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)*rco213*bifr13
-	  powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*rco214*bifr14
-          sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)*rco213*bifr13
-          sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14
-          sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
-          sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
-#endif
-        ELSE
-          powtra(i,j,k,ipowno3)=rmasks
-          powtra(i,j,k,ipown2) =rmasks
-          powtra(i,j,k,ipowaic)=rmasks
-          powtra(i,j,k,ipowaal)=rmasks
-          powtra(i,j,k,ipowaph)=rmasks
-          powtra(i,j,k,ipowaox)=rmasks
-          powtra(i,j,k,ipowasi)=rmasks
-          sedlay(i,j,k,issso12)=rmasks
-          sedlay(i,j,k,isssc12)=rmasks
-          sedlay(i,j,k,issssil)=rmasks
-          sedlay(i,j,k,issster)=rmasks
-          sedlay(i,j,k,issssil)=rmasks
-          sedhpl(i,j,k)        =rmasks
-#ifdef cisonew
-          powtra(i,j,k,ipowc13)=rmasks
-	  powtra(i,j,k,ipowc14)=rmasks
-          sedlay(i,j,k,issso13)=rmasks
-          sedlay(i,j,k,issso14)=rmasks
-          sedlay(i,j,k,isssc13)=rmasks
-          sedlay(i,j,k,isssc14)=rmasks
-#endif
-        ENDIF
-      ENDDO
-      ENDDO
-      ENDDO
+      if (.not. use_sedbypass) then
+         DO  k=1,ks
+         DO  j=1,kpje
+         DO  i=1,kpie 
+            IF(omask(i,j) .GT. 0.5) THEN
+               powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
+               powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
+               powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)
+               powtra(i,j,k,ipowaox)=ocetra(i,j,kbo(i,j),ioxygen)
+               powtra(i,j,k,ipown2) =0.
+               powtra(i,j,k,ipowno3)=ocetra(i,j,kbo(i,j),iano3)
+               powtra(i,j,k,ipowasi)=ocetra(i,j,kbo(i,j),isilica)      
+               sedlay(i,j,k,issso12)=1.e-8
+               sedlay(i,j,k,isssc12)=1.e-8
+               sedlay(i,j,k,issster)=30.
+               sedlay(i,j,k,issssil)=1.e-8
+               sedhpl(i,j,k)        =hi(i,j,kbo(i,j))
+               if (use_cisonew) then
+                  rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                  rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                  powtra(i,j,k,ipowc13)=powtra(i,j,k,ipowaic)*rco213*bifr13
+                  powtra(i,j,k,ipowc14)=powtra(i,j,k,ipowaic)*rco214*bifr14
+                  sedlay(i,j,k,issso13)=sedlay(i,j,k,issso12)*rco213*bifr13
+                  sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14
+                  sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
+                  sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
+               end if
+            ELSE
+               powtra(i,j,k,ipowno3)=rmasks
+               powtra(i,j,k,ipown2) =rmasks
+               powtra(i,j,k,ipowaic)=rmasks
+               powtra(i,j,k,ipowaal)=rmasks
+               powtra(i,j,k,ipowaph)=rmasks
+               powtra(i,j,k,ipowaox)=rmasks
+               powtra(i,j,k,ipowasi)=rmasks
+               sedlay(i,j,k,issso12)=rmasks
+               sedlay(i,j,k,isssc12)=rmasks
+               sedlay(i,j,k,issssil)=rmasks
+               sedlay(i,j,k,issster)=rmasks
+               sedlay(i,j,k,issssil)=rmasks
+               sedhpl(i,j,k)        =rmasks
+               if (use_cisonew) then
+                  powtra(i,j,k,ipowc13)=rmasks
+                  powtra(i,j,k,ipowc14)=rmasks
+                  sedlay(i,j,k,issso13)=rmasks
+                  sedlay(i,j,k,issso14)=rmasks
+                  sedlay(i,j,k,isssc13)=rmasks
+                  sedlay(i,j,k,isssc14)=rmasks
+               end if
+            ENDIF
+         ENDDO
+         ENDDO
+         ENDDO
 
-      ! last and final sediment layer
-      DO  l=1,nsedtra
-      DO  j=1,kpje
-      DO  i=1,kpie
-         burial(i,j,l)=0.
-      ENDDO
-      ENDDO
-      ENDDO
-#endif
+         ! last and final sediment layer
+         DO  l=1,nsedtra
+         DO  j=1,kpje
+         DO  i=1,kpie
+            burial(i,j,l)=0.
+         ENDDO
+         ENDDO
+         ENDDO
+      end if
 
       return
 !******************************************************************************

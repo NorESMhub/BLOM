@@ -53,10 +53,10 @@
 
       use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu 
       use mo_biomod,     only: rcar 
-      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra 
-#ifdef cisonew
-      use mo_param1_bgc, only: isssc13,isssc14,issso13,issso14 
-#endif
+      use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra, &
+                               isssc13,isssc14,issso13,issso14 
+      use mo_control_bgc, only: use_cisonew
+
       implicit none
 
       INTEGER :: kpie,kpje,i,j,k,l,iv
@@ -230,16 +230,17 @@
         sedlay(i,j,ks,issster)=sedlay(i,j,ks,issster)                  &
      &                        +refill*burial(i,j,issster)/frac
 
-#ifdef cisonew
-        sedlay(i,j,ks,issso13)=sedlay(i,j,ks,issso13)                  &
-     &                        +refill*burial(i,j,issso13)/frac
-        sedlay(i,j,ks,isssc13)=sedlay(i,j,ks,isssc13)                  &
-     &                        +refill*burial(i,j,isssc13)/frac
-        sedlay(i,j,ks,issso14)=sedlay(i,j,ks,issso14)                  &
-     &                        +refill*burial(i,j,issso14)/frac
-        sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)                  &
-     &                        +refill*burial(i,j,isssc14)/frac
-#endif
+        if (use_cisonew) then
+           sedlay(i,j,ks,issso13)=sedlay(i,j,ks,issso13)               &
+     &                           +refill*burial(i,j,issso13)/frac
+           sedlay(i,j,ks,isssc13)=sedlay(i,j,ks,isssc13)               &
+     &                           +refill*burial(i,j,isssc13)/frac
+           sedlay(i,j,ks,issso14)=sedlay(i,j,ks,issso14)               &
+     &                           +refill*burial(i,j,issso14)/frac
+           sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)               &
+     &                           +refill*burial(i,j,isssc14)/frac
+        end if
+
 ! account for losses in buried sediment
         burial(i,j,issso12) = burial(i,j,issso12)                      &
      &                      - refill*burial(i,j,issso12)
@@ -249,16 +250,16 @@
      &                      - refill*burial(i,j,issssil)
         burial(i,j,issster) = burial(i,j,issster)                      &
      &                      - refill*burial(i,j,issster)
-#ifdef cisonew
-        burial(i,j,issso13) = burial(i,j,issso13)                      &
-     &                      - refill*burial(i,j,issso13)
-        burial(i,j,isssc13) = burial(i,j,isssc13)                      &
-     &                      - refill*burial(i,j,isssc13)
-        burial(i,j,issso14) = burial(i,j,issso14)                      &
-     &                      - refill*burial(i,j,issso14)
-        burial(i,j,isssc14) = burial(i,j,isssc14)                      &
-     &                      - refill*burial(i,j,isssc14)
-#endif
+        if (use_cisonew) then
+           burial(i,j,issso13) = burial(i,j,issso13)                   &
+     &                         - refill*burial(i,j,issso13)
+           burial(i,j,isssc13) = burial(i,j,isssc13)                   &
+     &                         - refill*burial(i,j,isssc13)
+           burial(i,j,issso14) = burial(i,j,issso14)                   &
+     &                         - refill*burial(i,j,issso14)
+           burial(i,j,isssc14) = burial(i,j,isssc14)                   &
+     &                         - refill*burial(i,j,isssc14)
+        end if
       endif
       enddo !end i-loop
       enddo !end j-loop
@@ -299,6 +300,5 @@
 
       enddo  !end k-loop
 
-
       RETURN
-      END
+    END SUBROUTINE SEDSHI

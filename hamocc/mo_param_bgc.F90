@@ -5,16 +5,16 @@
 ! This file is part of BLOM/iHAMOCC.
 !
 ! BLOM is free software: you can redistribute it and/or modify it under the
-! terms of the GNU Lesser General Public License as published by the Free 
-! Software Foundation, either version 3 of the License, or (at your option) 
-! any later version. 
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
 !
-! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
-! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-! more details. 
+! more details.
 !
-! You should have received a copy of the GNU Lesser General Public License 
+! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 module mo_param_bgc
@@ -28,13 +28,13 @@ module mo_param_bgc
 !  --------
 !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
 !   -split the original BELEG_BGC in two parts, BELEG_PARM and BELEG_VARS
-!  jmaerz 
-!   - rename beleg_parm to mo_param_bgc 
+!  jmaerz
+!   - rename beleg_parm to mo_param_bgc
 !
 !  Purpose
 !  -------
 !  - set bgc parameter values.
-!     
+!
 !
 !  Parameter list:
 !  ---------------
@@ -43,79 +43,59 @@ module mo_param_bgc
 !
 !******************************************************************************
 
-  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar 
+  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar,                                                                      &
+                            atm_bromo,fbro1,fbro2,atm_c13, atm_c14,c14_t_half,c14dec,atm_co2_nat
   use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,            &
-                          & drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
-                          & pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
-                          & ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges 
+                            drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
+                            pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
+                            ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,                                             &
+                            alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
+                            fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmin,wmax,wlin,rbro, &
+                            bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
   use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
-
-#ifdef AGG
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
-                          & fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis
-#elif defined(WLIN)
-  use mo_biomod,      only: wmin,wmax,wlin
-#endif
-#ifdef BROMO
-  use mo_biomod,      only: rbro
-  use mo_carbch,      only: atm_bromo,fbro1,fbro2
-#endif
-#ifdef cisonew
-  use mo_biomod,      only: bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
-  use mo_carbch,      only: atm_c13, atm_c14,c14_t_half,c14dec
-#endif
-#ifdef natDIC
-  use mo_carbch,      only: atm_co2_nat
-#endif
 
   implicit none
 
   private
-   
+
   public :: ini_parambgc
 
-  ! Module-wide parameters (used in more than one subroutine)
-#ifndef AGG
-  REAL :: dustd1, dustd2, dustsink
-#endif
-#ifdef cisonew 
-  REAL :: beta13, alpha14, d14cat, d13c_atm  
-#endif
+  ! Module-wide variables used in more than one subroutine
+  REAL :: beta13, alpha14, d14cat, d13c_atm  ! cisonew
 
   contains
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_parambgc(kpie,kpje)
     !
-    ! First, Initialze parameters of individual components with default values. 
+    ! First, Initialze parameters of individual components with default values.
     ! The order of initialization can matter due to interdependcies.
     ! Then read the namelist and adjust rates to 'per time step'
     ! Re-adjust dependent parameter values
     ! Eventually write out the used parameters to the log file
     !
-    implicit none      
+    implicit none
 
     INTEGER, intent(in) :: kpie,kpje
 
     call ini_param_atm()           ! Initialize default atmospheric parameters
-    call ini_stoichiometry()       ! Initialize fixed stoichiometric parameters 
+    call ini_stoichiometry()       ! Initialize fixed stoichiometric parameters
     call ini_param_biol()          ! initialize biological parameters
-#ifdef AGG
-    call ini_aggregation()         ! Initialize aggregation module of Iris Kriest (no NML read thus far)
-#endif
+    if (use_AGG) then
+       call ini_aggregation()      ! Initialize aggregation module of Iris Kriest (no NML read thus far)
+    end if
 
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
-    call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values 
+    call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values
     call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()        ! Converting rates from /d... to /dtb
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
   end subroutine
-
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_param_atm()
@@ -125,50 +105,49 @@ module mo_param_bgc
     atm_o2      = 196800.
     atm_n2      = 802000.
 
-#ifdef natDIC
-    atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-#endif
-#ifdef BROMO
-    !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
-    !BE UPDATED WITH Ziska et al. (2013) climatology database
-    atm_bromo   = 3.4
-#endif
-#ifdef cisonew
-    ! set standard carbon isotope ratios
-    re1312      = 0.0112372
-    re14to      = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
-    ! set preindustr. d13c and bigd14C in atmosphere
-    prei13      = -6.5
-    prei14      =  0.
-#endif cisonew
+    if (use_natDIC) then
+       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
+    end if
+    if (use_BROMO) then
+       !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+       !BE UPDATED WITH Ziska et al. (2013) climatology database
+       atm_bromo   = 3.4
+    end if
+    if (use_cisonew) then
+       ! set standard carbon isotope ratios
+       re1312      = 0.0112372
+       re14to      = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
+       ! set preindustr. d13c and bigd14C in atmosphere
+       prei13      = -6.5
+       prei14      =  0.
+    end if
   end subroutine
-  
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine calc_param_atm()
     !
     ! AFTER having read the namelist:
-    ! calculate parameters for atmosphere from given parameters 
+    ! calculate parameters for atmosphere from given parameters
     !
-#ifdef cisonew
-    beta13   = (prei13/1000.)+1.
-    alpha14  = 2.*(prei13+25.)
-    d14cat   = (prei14+alpha14)/(1.-alpha14/1000.)
-    ! calculate atm_c13 and atm_c14
-    atm_c13  = beta13*re1312*atm_co2/(1.+beta13*re1312)
-    d13C_atm = (((atm_c13/(atm_co2-atm_c13))/re1312)-1.)*1000.
-    ! absolute 14c concentration in preindustrial atmosphere
-    atm_c14  = ((d14cat/1000.)+1.)*re14to*atm_co2
-    ! factor for normalizing 14C tracers (~1e-12)
-    c14fac   = atm_c14/atm_co2
-#endif
-  end subroutine 
+    if (use_cisonew) then
+       beta13   = (prei13/1000.)+1.
+       alpha14  = 2.*(prei13+25.)
+       d14cat   = (prei14+alpha14)/(1.-alpha14/1000.)
+       ! calculate atm_c13 and atm_c14
+       atm_c13  = beta13*re1312*atm_co2/(1.+beta13*re1312)
+       d13C_atm = (((atm_c13/(atm_co2-atm_c13))/re1312)-1.)*1000.
+       ! absolute 14c concentration in preindustrial atmosphere
+       atm_c14  = ((d14cat/1000.)+1.)*re14to*atm_co2
+       ! factor for normalizing 14C tracers (~1e-12)
+       c14fac   = atm_c14/atm_co2
+    end if
+  end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_fields_atm(kpie,kpje)
-    ! AFTER having read the nml: 
+    ! AFTER having read the nml:
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
-    ! fields for simplicity, even for cases where actually only a scalar value 
+    ! fields for simplicity, even for cases where actually only a scalar value
     ! is used. The overhead of this is small. If an atm-field is present in
     ! restart file (if BOXATM is activated), this will be overwritten later.
 
@@ -176,22 +155,22 @@ module mo_param_bgc
 
     ! local variables
     INTEGER :: i,j
-  
+
     DO j=1,kpje
-    DO i=1,kpie 
+    DO i=1,kpie
       atm(i,j,iatmco2)  = atm_co2
       atm(i,j,iatmo2)   = atm_o2
       atm(i,j,iatmn2)   = atm_n2
-#ifdef natDIC
-      atm(i,j,iatmnco2) = atm_co2_nat
-#endif   
-#ifdef cisonew
-      atm(i,j,iatmc13)  = atm_c13
-      atm(i,j,iatmc14)  = atm_c14/c14fac
-#endif
-#ifdef BROMO
-      atm(i,j,iatmbromo)= atm_bromo
-#endif
+      if (use_natDIC) then
+         atm(i,j,iatmnco2) = atm_co2_nat
+      end if
+      if (use_cisonew) then
+         atm(i,j,iatmc13)  = atm_c13
+         atm(i,j,iatmc14)  = atm_c14/c14fac
+      end if
+      if (use_BROMO) then
+         atm(i,j,iatmbromo)= atm_bromo
+      end if
     ENDDO
     ENDDO
   end subroutine
@@ -204,7 +183,7 @@ module mo_param_bgc
     ! extended redfield ratio declaration
     ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
     ! P:N:C:-O2 + 1:16:122:172
-    ro2ut  = 172. 
+    ro2ut  = 172.
     rcar   = 122.
     rnit   = 16.
     rnoi   = 1./rnit
@@ -231,7 +210,7 @@ module mo_param_bgc
     !
     ! Initialize default biogeochemistry parameters.
     !
-    ! Note that rates are initialized here in /d or equivalent and 
+    ! Note that rates are initialized here in /d or equivalent and
     ! time step adjustment is done after reading the BGCPARAMS namelist
     !
     !********************************************************************
@@ -240,38 +219,38 @@ module mo_param_bgc
     phytomi = 1.e-11        !kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
     pi_alpha= 0.02*0.4      ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
     bkphy   = 4.e-8         !kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
-    dyphy   = 0.004         !1/d -mortality rate of phytoplankton 
+    dyphy   = 0.004         !1/d -mortality rate of phytoplankton
 
     ! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
-    ! Factors tf2, tf1 and tf0 are a polynomial (2nd order) 
+    ! Factors tf2, tf1 and tf0 are a polynomial (2nd order)
     ! approximation to the functional relationship by Breitbarth et al. (2007),
     ! for temperature dependence of Trichodesmium growth, their eq. (2)
     ! The relation will be scaled to their max. growth rate, tff.
     ! Note that the second order approx. is basically similar to their
-    ! function 2 for T-dependent nitrogen fixation multiplied by 4 
+    ! function 2 for T-dependent nitrogen fixation multiplied by 4
     ! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
     bluefix =  0.005         !1/d  ! nitrogen fixation rate by blue green algae (cyanobacteria)
     tf2     = -0.0042
     tf1     =  0.2253
     tf0     = -2.7819
-    tff     =  0.2395  
+    tff     =  0.2395
 
-#ifdef cisonew
-    ! Initial fractionation during photosynthesis
-    bifr13     = 0.98
-    bifr14     = bifr13**2
-    ! Decay parameter for sco214, HalfLive = 5730 years
-    c14_t_half = 5700.*365. ! Half life of 14C [days]	
-#endif
-#ifdef BROMO
-    !Bromoform to phosphate ratio (Hense and Quack, 2009)
-    !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
-    !      rbro=2.*6.72e-7*rnit
-    !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6 
-    rbro  = 2.4e-6*rnit
-    fbro1 = 1.0
-    fbro2 = 1.0
-#endif
+    if (use_cisonew) then
+       ! Initial fractionation during photosynthesis
+       bifr13     = 0.98
+       bifr14     = bifr13**2
+       ! Decay parameter for sco214, HalfLive = 5730 years
+       c14_t_half = 5700.*365. ! Half life of 14C [days]
+    end if
+    if (use_BROMO) then
+       !Bromoform to phosphate ratio (Hense and Quack, 2009)
+       !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
+       !      rbro=2.*6.72e-7*rnit
+       !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
+       rbro  = 2.4e-6*rnit
+       fbro1 = 1.0
+       fbro2 = 1.0
+    end if
 
     !********************************************************************
     !     Zooplankton parameters
@@ -285,43 +264,43 @@ module mo_param_bgc
     gammap  = 0.04          !1/d -exudation rate
     gammaz  = 0.06          !1/d -excretion rate
     ecan    = 0.95          ! fraction of mortality as PO_4
-#ifdef AGG
-    zinges  = 0.5           !dimensionless fraction -assimilation efficiency
-    epsher  = 0.9           !dimensionless fraction -fraction of grazing egested
-#elif defined(WLIN)
-    zinges  = 0.7           !dimensionless fraction -assimilation efficiency
-    epsher  = 0.85          !dimensionless fraction -fraction of grazing egested
-#else
-    zinges  = 0.6           !dimensionless fraction -assimilation efficiency
-    epsher  = 0.8           !dimensionless fraction -fraction of grazing egest      
-#endif
+    if (use_AGG) then
+       zinges  = 0.5        !dimensionless fraction -assimilation efficiency
+       epsher  = 0.9        !dimensionless fraction -fraction of grazing egested
+    else if (use_WLIN) then
+       zinges  = 0.7        !dimensionless fraction -assimilation efficiency
+       epsher  = 0.85       !dimensionless fraction -fraction of grazing egested
+    else
+       zinges  = 0.6        !dimensionless fraction -assimilation efficiency
+       epsher  = 0.8        !dimensionless fraction -fraction of grazing egest
+    end if
 
     !********************************************************************
     !     Shell production (CaCO3 and opal) parameters
-    !******************************************************************** 
-    bkopal = 5.e-6     !kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
-#ifdef AGG
-    rcalc  = 14.  ! calcium carbonate to organic phosphorous production ratio
-    ropal  = 10.5 ! opal to organic phosphorous production ratio      
-    calmax = 0.20
-#elif defined(WLIN)
-    rcalc  = 33.  ! calcium carbonate to organic phosphorous production ratio
-    ropal  = 45.  ! opal to organic phosphorous production ratio      
-#else
-    rcalc  = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
-    ropal  = 30.  ! iris 25 !opal to organic phosphorous production ratio      
-#endif
-    
+    !********************************************************************
+    bkopal = 5.e-6   ! kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
+    if (use_AGG) then
+       rcalc  = 14.  ! calcium carbonate to organic phosphorous production ratio
+       ropal  = 10.5 ! opal to organic phosphorous production ratio
+       calmax = 0.20
+    else if (use_WLIN) then
+       rcalc  = 33.  ! calcium carbonate to organic phosphorous production ratio
+       ropal  = 45.  ! opal to organic phosphorous production ratio
+    else
+       rcalc  = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
+       ropal  = 30.  ! iris 25 !opal to organic phosphorous production ratio
+    end if
+
     !********************************************************************
     !     Remineralization and dissolution parameters (incl. DMS prod.)
     !********************************************************************
     remido   = 0.004    !1/d -remineralization rate (of DOM)
     ! deep sea remineralisation constants
     drempoc  = 0.025    !1/d Aerob remineralization rate detritus
-    dremopal = 0.003    !1/d Dissolution rate for opal 
+    dremopal = 0.003    !1/d Dissolution rate for opal
     dremn2o  = 0.01     !1/d Remineralization rate of detritus on N2O
-    dremsul  = 0.005    !1/d Remineralization rate for sulphate reduction 
-    
+    dremsul  = 0.005    !1/d Remineralization rate for sulphate reduction
+
     ! Set constants for calculation of dms ( mo_carbch )
     ! Parameters are a result from kettle optimisation 02.03.04
     dmspar(6)=0.100000000E-07  !0 half saturation microbial
@@ -337,12 +316,12 @@ module mo_param_bgc
     !********************************************************************
     ! parameters for sw-radiation attenuation
     ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
-    ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl] 
+    ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
     ctochl  = 60.        ! C to Chlorophyl ratio
     atten_w = 0.04       ! yellow substances attenuation in 1/m
-    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m 
-    atten_uv= 0.33       ! 
-    atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer 
+    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
+    atten_uv= 0.33       !
+    atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer
                          ! (only if FB_BGC_OCE) [feedback bgc-ocean]
 
     !********************************************************************
@@ -352,7 +331,7 @@ module mo_param_bgc
     ! the latter three values come from Johnson et al., 1997
     fetune     = 0.6                  ! factor introduced to tune deposition/solubility
     perc_diron = fetune * 0.035 * 0.01 / 55.85
-    fesoly     = 0.5*1.e-9            ! max. diss. iron concentration in deep water 
+    fesoly     = 0.5*1.e-9            ! max. diss. iron concentration in deep water
     relaxfe    = 0.05/365.            ! 1/d complexation rate to relax iron concentration to fesoly
 
     !********************************************************************
@@ -361,19 +340,19 @@ module mo_param_bgc
     wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
     wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
     wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-#if defined(WLIN) && ! defined(AGG)
-    wmin   =  1.       !m/d   minimum sinking speed
-    wmax   = 60.       !m/d   maximum sinking speed
-    wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
-#endif
-#ifndef AGG
-    dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
-    dustd2   = dustd1*dustd1
-    dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
-     &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)
-    wdust = dustsink
-#endif    
+    if (use_WLIN .and. .not. use_AGG) then
+       wmin   =  1.       !m/d   minimum sinking speed
+       wmax   = 60.       !m/d   maximum sinking speed
+       wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
+    end if
+    if (.not. use_AGG) then
+       dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
+       dustd2   = dustd1*dustd1
+       dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
+     &            * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+     &            * dustd2 * 1.e-4)
+       wdust = dustsink
+    end if
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -383,15 +362,12 @@ module mo_param_bgc
     ! Note that afterward, i) rates need to be adjusted for timestep
     ! and some depending parameters need re-calculation
     !
-
     integer  :: iounit
 
-    namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal,              &
-                       & remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,                                              &
-#if defined(WLIN) && ! defined(AGG)
-                       & wmin,wmax,wlin,                                                                                           &
-#endif        
-                       & wcal,wopal
+    namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal, &
+                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,                                 &
+                         wmin,wmax,wlin,                                                                              & ! use_WLIN and use_AGG
+                         wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -404,8 +380,8 @@ module mo_param_bgc
       write(io_stdo_bgc,*) '------------------------------------------'
     endif
 
-  end subroutine 
- 
+  end subroutine
+
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine readjust_param()
     !
@@ -428,14 +404,14 @@ module mo_param_bgc
     !********************************************************************
     !     Phytoplankton parameters (incl. cyanobacteria)
     !********************************************************************
-    dyphy  = dyphy*dtb       !1/d -mortality rate of phytoplankton 
+    dyphy  = dyphy*dtb       !1/d -mortality rate of phytoplankton
 
     ! nitrogen fixation by blue green algae
     bluefix = bluefix*dtb     !1/d
 
-#ifdef cisonew
-    c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
-#endif
+    if (use_cisonew) then
+       c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
+    end if
 
     !********************************************************************
     !     Zooplankton parameters
@@ -446,39 +422,38 @@ module mo_param_bgc
     gammaz = gammaz*dtb      !1/d -excretion rate
 
     !********************************************************************
-    !     Remineralization and dissolution parameters 
+    !     Remineralization and dissolution parameters
     !********************************************************************
     remido   = remido*dtb     !1/d -remineralization rate (of DOM)
     ! deep sea remineralisation constants
     drempoc  = drempoc*dtb    !1/d  Aerob remineralization rate of detritus
-    dremopal = dremopal*dtb   !1/d  Dissolution rate of opal 
+    dremopal = dremopal*dtb   !1/d  Dissolution rate of opal
     dremn2o  = dremn2o*dtb    !1/d  Remineralization rate of detritus on N2O
-    dremsul  = dremsul*dtb    !1/d  Remineralization rate for sulphate reduction 
+    dremsul  = dremsul*dtb    !1/d  Remineralization rate for sulphate reduction
 
     !********************************************************************
     !     Dust deposition and iron solubility parameters
     !********************************************************************
     relaxfe = relaxfe*dtb     !1/d  iron complexation rate
 
-    
+
     !********************************************************************
     !     Sinking parameters
     !********************************************************************
     wpoc  = wpoc*dtb       !m/d  Sinking speed detritusiris : 5.
     wcal  = wcal*dtb       !m/d  Sinking speed CaCO3
     wopal = wopal*dtb      !m/d  Sinking speed opal iris : 60
-#if defined(WLIN) && ! defined(AGG)
-    wmin  = wmin*dtb       !m/d   minimum sinking speed
-    wmax  = wmax*dtb       !m/d   maximum sinking speed
-    wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
-#endif
-#ifndef AGG
-    wdust = wdust*dtb      !m/d   dust sinking speed
-#endif 
+    if (use_WLIN .and. .not. use_AGG) then
+       wmin  = wmin*dtb       !m/d   minimum sinking speed
+       wmax  = wmax*dtb       !m/d   maximum sinking speed
+       wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
+    end if
+    if (.not. use_AGG) then
+       wdust = wdust*dtb      !m/d   dust sinking speed
+    end if
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
-#ifdef AGG
   subroutine ini_aggregation()
     !
     ! parameters needed for the aggregation module
@@ -508,8 +483,8 @@ module mo_param_bgc
     !      alar1 = 1.0 !diameter of largest particle for size dependend aggregation and sinking [cm]
     !      alar1 = 0.75 !diameter of largest particle for size dependend aggregation and sinking [cm]
     alar1   = 0.5 !diameter of largest particle for size dependend aggregation and sinking [cm]
-    vsmall  = 1.e-9 
-    safe    = 1.e-6     
+    vsmall  = 1.e-9
+    safe    = 1.e-6
     pupper  = safe/((FractDim+safe)*cellmass)
     plower  = 1./(1.1*cellmass)
     zdis    = 0.01 / ((FractDim + 0.01)*cellmass)
@@ -524,18 +499,17 @@ module mo_param_bgc
     dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
     dustd2  = dustd1*dustd1
     dustd3  = dustd2*dustd1
-    dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.                 
+    dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.
      &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
      &         * dustd2 * 1.e-4)*dtb
-    if(dustsink.gt.cellsink) then 
+    if(dustsink.gt.cellsink) then
        if (mnproc.eq.1)then
          write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
          write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
        endif
        dustsink = cellsink
     endif
-  end subroutine 
-#endif
+  end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine write_parambgc()
@@ -547,31 +521,31 @@ module mo_param_bgc
     REAL :: dtbinv
     dtbinv = 1./dtb
 
-      IF (mnproc.eq.1) THEN
+    IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
       WRITE(io_stdo_bgc,*) '* '
       WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
-      WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2      
-#ifdef cisonew
-      WRITE(io_stdo_bgc,*) '*          atm_c13      = ',atm_c13      
-      WRITE(io_stdo_bgc,*) '*          d13C_atm     = ',d13C_atm    
-      WRITE(io_stdo_bgc,*) '*          atm_c14      = ',atm_c14  
-      WRITE(io_stdo_bgc,*) '*          bifr13       = ',bifr13 
-      WRITE(io_stdo_bgc,*) '*          bifr14       = ',bifr14
-      WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
-      WRITE(io_stdo_bgc,*) '*          prei13       = ',prei13
-      WRITE(io_stdo_bgc,*) '*          prei14       = ',prei14
-      WRITE(io_stdo_bgc,*) '*          re1312       = ',re1312
-      WRITE(io_stdo_bgc,*) '*          re14to       = ',re14to
-      WRITE(io_stdo_bgc,*) '*          c14_t_half   = ',c14_t_half
-      WRITE(io_stdo_bgc,*) '*          c14dec       = ',c14dec
-      WRITE(io_stdo_bgc,*) '*          beta13       = ',beta13
-      WRITE(io_stdo_bgc,*) '*          alpha14      = ',alpha14
-      WRITE(io_stdo_bgc,*) '*          d14cat       = ',d14cat
-      WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
-#endif
-      WRITE(io_stdo_bgc,*) '*          atm_o2       = ',atm_o2           
-      WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2 
+      WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2
+      if (use_cisonew) then
+         WRITE(io_stdo_bgc,*) '*          atm_c13      = ',atm_c13
+         WRITE(io_stdo_bgc,*) '*          d13C_atm     = ',d13C_atm
+         WRITE(io_stdo_bgc,*) '*          atm_c14      = ',atm_c14
+         WRITE(io_stdo_bgc,*) '*          bifr13       = ',bifr13
+         WRITE(io_stdo_bgc,*) '*          bifr14       = ',bifr14
+         WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
+         WRITE(io_stdo_bgc,*) '*          prei13       = ',prei13
+         WRITE(io_stdo_bgc,*) '*          prei14       = ',prei14
+         WRITE(io_stdo_bgc,*) '*          re1312       = ',re1312
+         WRITE(io_stdo_bgc,*) '*          re14to       = ',re14to
+         WRITE(io_stdo_bgc,*) '*          c14_t_half   = ',c14_t_half
+         WRITE(io_stdo_bgc,*) '*          c14dec       = ',c14dec
+         WRITE(io_stdo_bgc,*) '*          beta13       = ',beta13
+         WRITE(io_stdo_bgc,*) '*          alpha14      = ',alpha14
+         WRITE(io_stdo_bgc,*) '*          d14cat       = ',d14cat
+         WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
+      end if
+      WRITE(io_stdo_bgc,*) '*          atm_o2       = ',atm_o2
+      WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2
       WRITE(io_stdo_bgc,*) '*          phytomi      = ',phytomi
       WRITE(io_stdo_bgc,*) '*          grami        = ',grami
       WRITE(io_stdo_bgc,*) '*          remido       = ',remido*dtbinv
@@ -582,25 +556,25 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          spemor       = ',spemor*dtbinv
       WRITE(io_stdo_bgc,*) '*          gammap       = ',gammap*dtbinv
       WRITE(io_stdo_bgc,*) '*          gammaz       = ',gammaz*dtbinv
-      WRITE(io_stdo_bgc,*) '*          ecan         = ',ecan    
+      WRITE(io_stdo_bgc,*) '*          ecan         = ',ecan
       WRITE(io_stdo_bgc,*) '*          pi_alpha     = ',pi_alpha
       WRITE(io_stdo_bgc,*) '*          bkphy        = ',bkphy
-      WRITE(io_stdo_bgc,*) '*          bkzoo        = ',bkzoo    
-      WRITE(io_stdo_bgc,*) '*          bkopal       = ',bkopal    
+      WRITE(io_stdo_bgc,*) '*          bkzoo        = ',bkzoo
+      WRITE(io_stdo_bgc,*) '*          bkopal       = ',bkopal
       WRITE(io_stdo_bgc,*) '*          wpoc         = ',wpoc*dtbinv
-      WRITE(io_stdo_bgc,*) '*          wcal         = ',wcal*dtbinv    
-      WRITE(io_stdo_bgc,*) '*          wopal        = ',wopal*dtbinv   
-      WRITE(io_stdo_bgc,*) '*          drempoc      = ',drempoc*dtbinv    
-      WRITE(io_stdo_bgc,*) '*          dremopal     = ',dremopal*dtbinv   
-      WRITE(io_stdo_bgc,*) '*          dremn2o      = ',dremn2o*dtbinv   
-      WRITE(io_stdo_bgc,*) '*          dremsul      = ',dremsul*dtbinv   
-      WRITE(io_stdo_bgc,*) '*          bluefix      = ',bluefix*dtbinv   
-      WRITE(io_stdo_bgc,*) '*          tf0          = ',tf0   
-      WRITE(io_stdo_bgc,*) '*          tf1          = ',tf1   
-      WRITE(io_stdo_bgc,*) '*          tf2          = ',tf2   
-      WRITE(io_stdo_bgc,*) '*          tff          = ',tff   
-      WRITE(io_stdo_bgc,*) '*          ro2ut        = ',ro2ut   
-      WRITE(io_stdo_bgc,*) '*          rcar         = ',rcar 
+      WRITE(io_stdo_bgc,*) '*          wcal         = ',wcal*dtbinv
+      WRITE(io_stdo_bgc,*) '*          wopal        = ',wopal*dtbinv
+      WRITE(io_stdo_bgc,*) '*          drempoc      = ',drempoc*dtbinv
+      WRITE(io_stdo_bgc,*) '*          dremopal     = ',dremopal*dtbinv
+      WRITE(io_stdo_bgc,*) '*          dremn2o      = ',dremn2o*dtbinv
+      WRITE(io_stdo_bgc,*) '*          dremsul      = ',dremsul*dtbinv
+      WRITE(io_stdo_bgc,*) '*          bluefix      = ',bluefix*dtbinv
+      WRITE(io_stdo_bgc,*) '*          tf0          = ',tf0
+      WRITE(io_stdo_bgc,*) '*          tf1          = ',tf1
+      WRITE(io_stdo_bgc,*) '*          tf2          = ',tf2
+      WRITE(io_stdo_bgc,*) '*          tff          = ',tff
+      WRITE(io_stdo_bgc,*) '*          ro2ut        = ',ro2ut
+      WRITE(io_stdo_bgc,*) '*          rcar         = ',rcar
       WRITE(io_stdo_bgc,*) '*          rnit         = ',rnit
       WRITE(io_stdo_bgc,*) '*          rnoi         = ',rnoi
       WRITE(io_stdo_bgc,*) '*          rdnit0       = ',rdnit0
@@ -627,60 +601,62 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          dmspar(3)    = ',dmspar(3)
       WRITE(io_stdo_bgc,*) '*          dmspar(4)    = ',dmspar(4)
       WRITE(io_stdo_bgc,*) '*          dmspar(5)    = ',dmspar(5)
-#ifdef BROMO
-      WRITE(io_stdo_bgc,*) '*          rbro         = ',rbro
-      WRITE(io_stdo_bgc,*) '*          atm_bromo    = ',atm_bromo
-      WRITE(io_stdo_bgc,*) '*          fbro1        = ',fbro1
-      WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
-#endif
-#if defined(WLIN) && ! defined(AGG)
-      WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin
-      WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax
-      WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin
-#endif 
-#ifndef AGG
-      WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
-      WRITE(io_stdo_bgc,*) '*          dustd2       = ',dustd2
-      WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink
-      WRITE(io_stdo_bgc,*) '*          wdust        = ',wdust*dtbinv
-#else
-      write(io_stdo_bgc,*)
-      write(io_stdo_bgc,*) '****************************************************************'
-      write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:' 
-      write(io_stdo_bgc,*) '        alar1      = ',alar1
-      write(io_stdo_bgc,*) '        alar2      = ',alar2
-      write(io_stdo_bgc,*) '        alar3      = ',alar3
-      write(io_stdo_bgc,*) '        alow1      = ',alow1
-      write(io_stdo_bgc,*) '        alow2      = ',alow2
-      write(io_stdo_bgc,*) '        alow3      = ',alow3
-      write(io_stdo_bgc,*) '        calmax     = ',calmax
-      write(io_stdo_bgc,*) '        cellmass   = ',cellmass
-      write(io_stdo_bgc,*) '        cellsink   = ',cellsink
-      write(io_stdo_bgc,*) '        dustd1     = ',dustd1
-      write(io_stdo_bgc,*) '        dustd2     = ',dustd2
-      write(io_stdo_bgc,*) '        dustd3     = ',dustd3
-      write(io_stdo_bgc,*) '        fractdim   = ',fractdim
-      write(io_stdo_bgc,*) '        fse        = ',fse
-      write(io_stdo_bgc,*) '        fsh        = ',fsh
-      write(io_stdo_bgc,*) '        nmldmin    = ',nmldmin
-      write(io_stdo_bgc,*) '        plower     = ',plower
-      write(io_stdo_bgc,*) '        pupper     = ',pupper
-      write(io_stdo_bgc,*) '        safe       = ',safe
-      write(io_stdo_bgc,*) '        sinkexp    = ',sinkexp
-      write(io_stdo_bgc,*) '        stick      = ',stick
-      write(io_stdo_bgc,*) '        tmfac      = ',tmfac
-      write(io_stdo_bgc,*) '        tsfac      = ',tsfac
-      write(io_stdo_bgc,*) '        vsmall     = ',vsmall
-      write(io_stdo_bgc,*) '        zdis       = ',zdis
-      write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
-      write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
-      write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
-      write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
-      write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
-      write(io_stdo_bgc,*) '****************************************************************'
-#endif 
+      if (use_BROMO) then
+         WRITE(io_stdo_bgc,*) '*          rbro         = ',rbro
+         WRITE(io_stdo_bgc,*) '*          atm_bromo    = ',atm_bromo
+         WRITE(io_stdo_bgc,*) '*          fbro1        = ',fbro1
+         WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
+      end if
+      if (use_WLIN .and. .not. use_AGG) then
+         WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin
+         WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax
+         WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin
+      end if
+      if (.not. use_AGG) then
+         WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
+         WRITE(io_stdo_bgc,*) '*          dustd2       = ',dustd2
+         WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink
+         WRITE(io_stdo_bgc,*) '*          wdust        = ',wdust*dtbinv
+      else
+         write(io_stdo_bgc,*)
+         write(io_stdo_bgc,*) '****************************************************************'
+         write(io_stdo_bgc,*) 'HAMOCC aggregate sinking scheme:'
+         write(io_stdo_bgc,*) '        alar1      = ',alar1
+         write(io_stdo_bgc,*) '        alar2      = ',alar2
+         write(io_stdo_bgc,*) '        alar3      = ',alar3
+         write(io_stdo_bgc,*) '        alow1      = ',alow1
+         write(io_stdo_bgc,*) '        alow2      = ',alow2
+         write(io_stdo_bgc,*) '        alow3      = ',alow3
+         write(io_stdo_bgc,*) '        calmax     = ',calmax
+         write(io_stdo_bgc,*) '        cellmass   = ',cellmass
+         write(io_stdo_bgc,*) '        cellsink   = ',cellsink
+         write(io_stdo_bgc,*) '        dustd1     = ',dustd1
+         write(io_stdo_bgc,*) '        dustd2     = ',dustd2
+         write(io_stdo_bgc,*) '        dustd3     = ',dustd3
+         write(io_stdo_bgc,*) '        fractdim   = ',fractdim
+         write(io_stdo_bgc,*) '        fse        = ',fse
+         write(io_stdo_bgc,*) '        fsh        = ',fsh
+         write(io_stdo_bgc,*) '        nmldmin    = ',nmldmin
+         write(io_stdo_bgc,*) '        plower     = ',plower
+         write(io_stdo_bgc,*) '        pupper     = ',pupper
+         write(io_stdo_bgc,*) '        safe       = ',safe
+         write(io_stdo_bgc,*) '        sinkexp    = ',sinkexp
+         write(io_stdo_bgc,*) '        stick      = ',stick
+         write(io_stdo_bgc,*) '        tmfac      = ',tmfac
+         write(io_stdo_bgc,*) '        tsfac      = ',tsfac
+         write(io_stdo_bgc,*) '        vsmall     = ',vsmall
+         write(io_stdo_bgc,*) '        zdis       = ',zdis
+         write(io_stdo_bgc,*) ' Maximum sinking speed for aggregates of '
+         write(io_stdo_bgc,*) ' maximum size ', alar1, ' cm is '
+         write(io_stdo_bgc,*)   cellsink/dtb*(alar1/alow1)**SinkExp, ' m/day'
+         write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
+         write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
+         write(io_stdo_bgc,*) '****************************************************************'
+      end if
       WRITE(io_stdo_bgc,*) '*          claydens     = ',claydens
       WRITE(io_stdo_bgc,*) '****************************************************************'
-      ENDIF
-  end subroutine
+   ENDIF
+
+ end subroutine write_parambgc
+
 end module mo_param_bgc

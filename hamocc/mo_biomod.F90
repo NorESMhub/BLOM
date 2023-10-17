@@ -51,9 +51,9 @@
       implicit none
 
       REAL, DIMENSION (:,:),   ALLOCATABLE :: strahl
-#ifdef FB_BGC_OCE     
+      ! FB_BGC_OCE     
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
-#endif 
+      !
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoor
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoca
       REAL, DIMENSION (:,:),   ALLOCATABLE :: exposi
@@ -82,16 +82,16 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx4000
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx_bot
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: phosy3d
-#ifdef AGG
+
+      ! AGG
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wmass
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wnumb
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: eps3d
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: asize3d
-#endif
-#ifdef BROMO
+
+      ! BROMO
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_prod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_uv
-#endif
 
       REAL :: phytomi,grami,grazra,pi_alpha
       REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
@@ -102,25 +102,21 @@
       REAL :: drempoc,dremopal,dremn2o,dremsul
       REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
       REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
-#ifdef cisonew
+      ! cisonew
       REAL :: c14fac
       REAL :: re1312,re14to,prei13,prei14
       REAL :: bifr13,bifr14,growth_co2,bifr13_perm
-#endif
-#ifdef AGG
+      ! AGG
       REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
       REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
       REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
       REAL :: dustd1,dustd2,dustd3,dustsink,calmax
-#elif defined(WLIN)
+      ! WLIN
       REAL :: wmin,wmax,wlin
-#endif
-#ifdef BROMO
+      ! BROMO
       REAL :: rbro
-#endif
 
       CONTAINS
-
 
       SUBROUTINE ALLOC_MEM_BIOMOD(kpie,kpje,kpke)
 !******************************************************************************
@@ -128,6 +124,7 @@
 !******************************************************************************
       use mod_xc,         only: mnproc
       use mo_control_bgc, only: io_stdo_bgc
+      use mo_control_bgc, only: use_FB_BGC_OCE,use_AGG,use_BROMO
 
       INTEGER, intent(in) :: kpie,kpje,kpke
       INTEGER             :: errstat
@@ -151,20 +148,18 @@
       if(errstat.ne.0) stop 'not enough memory strahl'
       strahl(:,:) = 0.0
 
+      if (use_FB_BGC_OCE ) then
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable abs_oce'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
-#ifdef FB_BGC_OCE 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable abs_oce'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
-
-      ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory abs_oce'
-      abs_oce(:,:,:) = 0.0
-#endif 
-
+         ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory abs_oce'
+         abs_oce(:,:,:) = 0.0
+      end if
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable expoor ...'
@@ -321,69 +316,65 @@
       if(errstat.ne.0) stop 'not enough memory phosy3d'
       phosy3d(:,:,:) = 0.0
          
+      if (use_AGG) then
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable wmass ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
-#ifdef AGG
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable wmass ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
+         ALLOCATE (wmass(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory eps3d'
+         wmass(:,:,:) = 0.0
 
-      ALLOCATE (wmass(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory eps3d'
-      wmass(:,:,:) = 0.0
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable wnumb ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
+         ALLOCATE (wnumb(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory eps3d'
+         wnumb(:,:,:) = 0.0
+         
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable eps3d ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable wnumb ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
+         ALLOCATE (eps3d(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory eps3d'
+         eps3d(:,:,:) = 0.0
 
-      ALLOCATE (wnumb(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory eps3d'
-      wnumb(:,:,:) = 0.0
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable asize3d ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
+         ENDIF
 
+         ALLOCATE (asize3d(kpie,kpje,kpke),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory asize3d'
+         asize3d(:,:,:) = 0.0
+      end if
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable eps3d ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
+      if (use_BROMO) then
+         IF (mnproc.eq.1) THEN
+         WRITE(io_stdo_bgc,*)'Memory allocation for variable int_chbr3_prod, int_chbr3_uv ...'
+         WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+         WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+         ENDIF
 
-      ALLOCATE (eps3d(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory eps3d'
-      eps3d(:,:,:) = 0.0
-
-
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable asize3d ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      ENDIF
-
-      ALLOCATE (asize3d(kpie,kpje,kpke),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory asize3d'
-      asize3d(:,:,:) = 0.0
-#endif
-
-#ifdef BROMO
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable int_chbr3_prod, int_chbr3_uv ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
-
-      ALLOCATE (int_chbr3_prod(kpie,kpje),stat=errstat)
-      ALLOCATE (int_chbr3_uv(kpie,kpje),stat=errstat)
-      if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
-      int_chbr3_prod(:,:) = 0.0
-      int_chbr3_uv(:,:) = 0.0
-#endif
+         ALLOCATE (int_chbr3_prod(kpie,kpje),stat=errstat)
+         ALLOCATE (int_chbr3_uv(kpie,kpje),stat=errstat)
+         if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
+         int_chbr3_prod(:,:) = 0.0
+         int_chbr3_uv(:,:) = 0.0
+      end if
 
 !******************************************************************************
      END SUBROUTINE ALLOC_MEM_BIOMOD
