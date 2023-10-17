@@ -71,6 +71,7 @@ jobs:
       matrix:
         mpi: [true, false]
         openmp: ['enabled', 'disabled']
+        ecosys: [true, false]
     # Tell Meson to use Intel compilers
     env:
       CC: icc
