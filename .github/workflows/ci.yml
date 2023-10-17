@@ -141,7 +141,7 @@ jobs:
       - name: Build with Intel compilers
         run: |
           source /opt/intel/oneapi/setvars.sh
-          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
+          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} -Decosys=${{ matrix.ecosys }} --buildtype=debugoptimized
           meson compile -C builddir
 
       - name: Test code
