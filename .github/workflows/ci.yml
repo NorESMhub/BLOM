@@ -14,10 +14,14 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         mpi: [true, false]
         openmp: ['enabled', 'disabled']
+        ecosys: [true, false]
         exclude:
           # Do not build on macOS with MPI as that is having some dependency issues
           - os: macos-latest
             mpi: true
+          # Run test (fuk95 executed with mpi=false) fails with ecosys
+          - ecosys: true
+            mpi: false
     steps:
       - name: Install dependencies - Ubuntu
         run: |
@@ -47,7 +51,7 @@ jobs:
           CC: gcc-12
           FC: gfortran-12
         run: |
-          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} --buildtype=debugoptimized
+          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} -Decosys=${{ matrix.ecosys }} ---buildtype=debugoptimized
           meson compile -C builddir
 
       - name: Test code
