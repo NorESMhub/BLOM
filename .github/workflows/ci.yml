@@ -72,6 +72,10 @@ jobs:
         mpi: [true, false]
         openmp: ['enabled', 'disabled']
         ecosys: [true, false]
+        exclude:
+          # Run test (fuk95 executed with mpi=false) fails with ecosys
+          - ecosys: true
+            mpi: false
     # Tell Meson to use Intel compilers
     env:
       CC: icc
