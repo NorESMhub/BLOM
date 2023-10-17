@@ -51,7 +51,7 @@ jobs:
           CC: gcc-12
           FC: gfortran-12
         run: |
-          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} -Decosys=${{ matrix.ecosys }} ---buildtype=debugoptimized
+          meson setup builddir -Dmpi=${{ matrix.mpi }} -Dopenmp=${{ matrix.openmp }} -Decosys=${{ matrix.ecosys }} --buildtype=debugoptimized
           meson compile -C builddir
 
       - name: Test code
