@@ -149,8 +149,7 @@ jobs:
           meson compile -C builddir
 
       - name: Test code
-        # Test fuk95 frequently times out when openmp='disabled'
-        if: ${{ matrix.mpi == false }} && ${{ matrix.openmp == 'enabled' }}
+        if: ${{ matrix.mpi == false }}
         run: |
           source /opt/intel/oneapi/setvars.sh
           meson test -C builddir
