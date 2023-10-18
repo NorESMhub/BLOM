@@ -98,21 +98,18 @@
 !**************************************************************************
       use netcdf,         only: nf90_64bit_offset,nf90_global,nf90_noerr,nf90_nofill,nf90_def_dim,nf90_enddef,nf90_close, &
                                 nf90_create,nf90_put_att,nf90_set_fill
-      use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
-      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko, &
-                                use_cisonew, use_AGG, use_BOXATM, use_BROMO, use_CFC, use_natDIC, use_sedbypass
-      use mo_sedmnt,      only: sedhpl
-      use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
       use mod_dia,        only: iotype
-      use mo_control_bgc, only: rmasks
+      use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass
+      use mo_sedmnt,      only: sedhpl
+      use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
                                 iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,ks,nocetra, &
                                 iadust, inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6, &
                                 icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14, &
                                 issso13,issso14,isssc13,isssc14,ipowc13,ipowc14, &
-                                iatmnco2,iatmc13,iatmc14, &
-                                inatalkali,inatcalc,inatsco212, &
+                                iatmnco2,iatmc13,iatmc14,inatalkali,inatcalc,inatsco212, &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
 
       implicit none
@@ -377,7 +374,7 @@
                stop '(AUFW: Problem with PnetCDF10)'
       ENDIF
       clen=5
-      ncstat = NFMPI_PUT_ATT_INT(ncid, NF_GLOBAL, 'date',              &
+      ncstat = NFMPI_PUT_ATT_INT(ncid, NF_GLOBAL, 'date',             &
      &                           nf_int, clen, idate)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF11)')
@@ -397,173 +394,173 @@
       ncdimst(4) = 0
    ENDIF
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdimst,ncvarid,          &
+   CALL NETCDF_DEF_VARDB(ncid,6,'sco212',3,ncdimst,ncvarid,                    &
         &    6,'mol/kg',13, 'Dissolved CO2',rmissing,10,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'alkali',3,ncdimst,ncvarid,          &
+   CALL NETCDF_DEF_VARDB(ncid,6,'alkali',3,ncdimst,ncvarid,                    &
         &    6,'mol/kg',10,'Alkalinity',rmissing,11,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'phosph',3,ncdimst,ncvarid,          &
+   CALL NETCDF_DEF_VARDB(ncid,6,'phosph',3,ncdimst,ncvarid,                    &
         &    6,'mol/kg',19,'Dissolved phosphate',rmissing,12,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'oxygen',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',16,'Dissolved oxygen',                             &
+   CALL NETCDF_DEF_VARDB(ncid,6,'oxygen',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',16,'Dissolved oxygen',                                 &
         rmissing,13,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'gasnit',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',21,'Gaseous nitrogen (N2)',                        &
+   CALL NETCDF_DEF_VARDB(ncid,6,'gasnit',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',21,'Gaseous nitrogen (N2)',                            &
         rmissing,14,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,4,'ano3',3,ncdimst,ncvarid,            &
-        &    6,'mol/kg',17,'Dissolved nitrate',                            &
+   CALL NETCDF_DEF_VARDB(ncid,4,'ano3',3,ncdimst,ncvarid,                      &
+        &    6,'mol/kg',17,'Dissolved nitrate',                                &
         rmissing,15,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'silica',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',22,'Silicid acid (Si(OH)4)',                       &
+   CALL NETCDF_DEF_VARDB(ncid,6,'silica',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',22,'Silicid acid (Si(OH)4)',                           &
         rmissing,16,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,3,'doc',3,ncdimst,ncvarid,             &
-        &    6,'mol/kg',24,'Dissolved organic carbon',                     &
+   CALL NETCDF_DEF_VARDB(ncid,3,'doc',3,ncdimst,ncvarid,                       &
+        &    6,'mol/kg',24,'Dissolved organic carbon',                         &
         &    rmissing,17,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdimst,ncvarid,             &
-        &    6,'mol/kg',25,'Particulate organic carbon',                   &
+   CALL NETCDF_DEF_VARDB(ncid,3,'poc',3,ncdimst,ncvarid,                       &
+        &    6,'mol/kg',25,'Particulate organic carbon',                       &
         &    rmissing,18,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdimst,ncvarid,           &
-        &    7,'molP/kg',27,'Phytoplankton concentration',                 &
+   CALL NETCDF_DEF_VARDB(ncid,5,'phyto',3,ncdimst,ncvarid,                     &
+        &    7,'molP/kg',27,'Phytoplankton concentration',                     &
         &    rmissing,19,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'grazer',3,ncdimst,ncvarid,          &
-        &    7,'molP/kg',25,'Zooplankton concentration',                   &
+   CALL NETCDF_DEF_VARDB(ncid,6,'grazer',3,ncdimst,ncvarid,                    &
+        &    7,'molP/kg',25,'Zooplankton concentration',                       &
         &    rmissing,20,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'calciu',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',17,'Calcium carbonate',                            &
+   CALL NETCDF_DEF_VARDB(ncid,6,'calciu',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',17,'Calcium carbonate',                                &
         &    rmissing,21,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,4,'opal',3,ncdimst,ncvarid,            &
-        &    6,'mol/kg',15,'Biogenic silica',                              &
+   CALL NETCDF_DEF_VARDB(ncid,4,'opal',3,ncdimst,ncvarid,                      &
+        &    6,'mol/kg',15,'Biogenic silica',                                  &
         &    rmissing,22,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,3,'n2o',3,ncdimst,ncvarid,             &
-        &    6,'mol/kg',12,'laughing gas',                                 &
+   CALL NETCDF_DEF_VARDB(ncid,3,'n2o',3,ncdimst,ncvarid,                       &
+        &    6,'mol/kg',12,'laughing gas',                                     &
         &    rmissing,23,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,3,'dms',3,ncdimst,ncvarid,             &
-        &    6,'mol/kg',15 ,'DiMethylSulfide',                             &
+   CALL NETCDF_DEF_VARDB(ncid,3,'dms',3,ncdimst,ncvarid,                       &
+        &    6,'mol/kg',15 ,'DiMethylSulfide',                                 &
         &    rmissing,24,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,5,'fdust',3,ncdimst,ncvarid,           &
-        &    5,'kg/kg',19,'Non-aggregated dust',                           &
+   CALL NETCDF_DEF_VARDB(ncid,5,'fdust',3,ncdimst,ncvarid,                     &
+        &    5,'kg/kg',19,'Non-aggregated dust',                               &
         &    rmissing,25,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdimst,ncvarid,            &
-        &    6,'mol/kg',14,'Dissolved iron',                               &
+   CALL NETCDF_DEF_VARDB(ncid,4,'iron',3,ncdimst,ncvarid,                      &
+        &    6,'mol/kg',14,'Dissolved iron',                                   &
         &    rmissing,26,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',16,'Preformed oxygen',                             &
+   CALL NETCDF_DEF_VARDB(ncid,6,'prefo2',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',16,'Preformed oxygen',                                 &
         rmissing,27,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,         &
-        &    6,'mol/kg',19,'Preformed phosphate',                          &
+   CALL NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,                   &
+        &    6,'mol/kg',19,'Preformed phosphate',                              &
         rmissing,28,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,         &
-        &    6,'mol/kg',20,'Preformed alkalinity',                         &
+   CALL NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,                   &
+        &    6,'mol/kg',20,'Preformed alkalinity',                             &
         rmissing,29,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,7,'prefdic',3,ncdimst,ncvarid,         &
-        &    6,'mol/kg',13,'Preformed dic',                                &
+   CALL NETCDF_DEF_VARDB(ncid,7,'prefdic',3,ncdimst,ncvarid,                   &
+        &    6,'mol/kg',13,'Preformed dic',                                    &
         rmissing,30,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'dicsat',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',13,'Saturated dic',                                &
+   CALL NETCDF_DEF_VARDB(ncid,6,'dicsat',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',13,'Saturated dic',                                    &
         rmissing,31,io_stdo_bgc)
 
    if (use_cisonew) then
-      CALL NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdimst,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sco213',3,ncdimst,ncvarid,                 &
            &    6,'mol/kg',15, 'Dissolved CO213',rmissing,32,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sco214',3,ncdimst,ncvarid,          &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sco214',3,ncdimst,ncvarid,                 &
            &    6,'mol/kg',15, 'Dissolved CO214',rmissing,33,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'doc13',3,ncdimst,ncvarid,           &
-           &    6,'mol/kg',24,'Dissolved organic carb13',                     &
+      CALL NETCDF_DEF_VARDB(ncid,5,'doc13',3,ncdimst,ncvarid,                  &
+           &    6,'mol/kg',24,'Dissolved organic carb13',                      &
            &    rmissing,34,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'doc14',3,ncdimst,ncvarid,           &
-           &    6,'mol/kg',24,'Dissolved organic carb14',                     &
+      CALL NETCDF_DEF_VARDB(ncid,5,'doc14',3,ncdimst,ncvarid,                  &
+           &    6,'mol/kg',24,'Dissolved organic carb14',                      &
            &    rmissing,35,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdimst,ncvarid,           &
-           &    7,'molC/kg',28,'Particulate organic carbon13',                &
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc13',3,ncdimst,ncvarid,                  &
+           &    7,'molC/kg',28,'Particulate organic carbon13',                 &
            &    rmissing,36,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdimst,ncvarid,           &
-           &    7,'molC/kg',28,'Particulate organic carbon14',                &
+      CALL NETCDF_DEF_VARDB(ncid,5,'poc14',3,ncdimst,ncvarid,                  &
+           &    7,'molC/kg',28,'Particulate organic carbon14',                 &
            &    rmissing,37,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'phyto13',3,ncdimst,ncvarid,         &
-           &    7,'molP/kg',27,'Phytoplankton concentr. 13c',                 &
+      CALL NETCDF_DEF_VARDB(ncid,7,'phyto13',3,ncdimst,ncvarid,                &
+           &    7,'molP/kg',27,'Phytoplankton concentr. 13c',                  &
            &    rmissing,38,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'phyto14',3,ncdimst,ncvarid,        &
-           &    7,'molP/kg',27,'Phytoplankton concentr. 14c',                 &
+      CALL NETCDF_DEF_VARDB(ncid,7,'phyto14',3,ncdimst,ncvarid,                &
+           &    7,'molP/kg',27,'Phytoplankton concentr. 14c',                  &
            &    rmissing,39,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'grazer13',3,ncdimst,ncvarid,        &
-           &    7,'molP/kg',25,'Zooplankton concentr. 13c',                   &
+      CALL NETCDF_DEF_VARDB(ncid,8,'grazer13',3,ncdimst,ncvarid,               &
+           &    7,'molP/kg',25,'Zooplankton concentr. 13c',                    &
            &    rmissing,40,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'grazer14',3,ncdimst,ncvarid,        &
-           &    7,'molP/kg',25,'Zooplankton concentr. 14c',                   &
+      CALL NETCDF_DEF_VARDB(ncid,8,'grazer14',3,ncdimst,ncvarid,               &
+           &    7,'molP/kg',25,'Zooplankton concentr. 14c',                    &
            &    rmissing,41,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'calciu13',3,ncdimst,ncvarid,        &
-           &    7,'molC/kg',19,'Calcium carbonate13',                         &
+      CALL NETCDF_DEF_VARDB(ncid,8,'calciu13',3,ncdimst,ncvarid,               &
+           &    7,'molC/kg',19,'Calcium carbonate13',                          &
            &    rmissing,42,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdimst,ncvarid,        &
-           &    7,'molC/kg',19,'Calcium carbonate14',                         &
+      CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdimst,ncvarid,               &
+           &    7,'molC/kg',19,'Calcium carbonate14',                          &
            &    rmissing,43,io_stdo_bgc)
    end if
    if (use_AGG) then
-      CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdimst,ncvarid,            &
-           &    3,'1/g',38,'marine snow aggregates per g sea water',          &
+      CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdimst,ncvarid,                   &
+           &    3,'1/g',38,'marine snow aggregates per g sea water',           &
            &    rmissing,44,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdimst,ncvarid,           &
-           &    4,'g/kg',15,'Aggregated dust',                                &
+      CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdimst,ncvarid,                  &
+           &    4,'g/kg',15,'Aggregated dust',                                 &
            &    rmissing,45,io_stdo_bgc)
    end if
    if (use_CFC) then
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,           &
-           &    6,'mol/kg',5,'CFC11',                                         &
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,                  &
+           &    6,'mol/kg',5,'CFC11',                                          &
            &    rmissing,47,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdimst,ncvarid,           &
-           &    6,'mol/kg',5,'CFC12',                                         &
+      CALL NETCDF_DEF_VARDB(ncid,5,'cfc12',3,ncdimst,ncvarid,                  &
+           &    6,'mol/kg',5,'CFC12',                                          &
            &    rmissing,48,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,             &
-           &    6,'mol/kg',4,'SF-6',                                          &
+      CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,                    &
+           &    6,'mol/kg',4,'SF-6',                                           &
            &    rmissing,49,io_stdo_bgc)
    end if
    if (use_natDIC) then
-      CALL NETCDF_DEF_VARDB(ncid,9,'natsco212',3,ncdimst,ncvarid,       &
+      CALL NETCDF_DEF_VARDB(ncid,9,'natsco212',3,ncdimst,ncvarid,              &
            &   6,'mol/kg',21, 'Natural dissolved CO2',rmissing,50,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,9,'natalkali',3,ncdimst,ncvarid,       &
+      CALL NETCDF_DEF_VARDB(ncid,9,'natalkali',3,ncdimst,ncvarid,              &
            &    6,'mol/kg',18,'Natural alkalinity',rmissing,51,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,9,'natcalciu',3,ncdimst,ncvarid,       &
-           &    6,'mol/kg',25,'Natural calcium carbonate',                    &
+      CALL NETCDF_DEF_VARDB(ncid,9,'natcalciu',3,ncdimst,ncvarid,              &
+           &    6,'mol/kg',25,'Natural calcium carbonate',                     &
            &    rmissing,52,io_stdo_bgc)
    end if
    if (use_BROMO) then
-      CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,           &
+      CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,                  &
            &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
    end if
 
@@ -578,25 +575,25 @@
       ncdimst(4) = 0
    ENDIF
 
-   CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,              &
-        &    6,'mol/kg',26,'Hydrogen ion concentration',                   &
+   CALL NETCDF_DEF_VARDB(ncid,2,'hi',3,ncdimst,ncvarid,                        &
+        &    6,'mol/kg',26,'Hydrogen ion concentration',                       &
         &    rmissing,60,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,3,'co3',3,ncdimst,ncvarid,             &
-        &    6,'mol/kg',25,'Dissolved carbonate (CO3)',                    &
+   CALL NETCDF_DEF_VARDB(ncid,3,'co3',3,ncdimst,ncvarid,                       &
+        &    6,'mol/kg',25,'Dissolved carbonate (CO3)',                        &
         &    rmissing,61,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,7,'co2star',3,ncdimst,ncvarid,         &
-        &    6,'mol/kg',20,'Dissolved CO2 (CO2*)',                         &
+   CALL NETCDF_DEF_VARDB(ncid,7,'co2star',3,ncdimst,ncvarid,                   &
+        &    6,'mol/kg',20,'Dissolved CO2 (CO2*)',                             &
         &    rmissing,62,io_stdo_bgc)
 
-   CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdimst,ncvarid,          &
-        &    6,'mol/kg',16 ,'Saturated oxygen',                            &
+   CALL NETCDF_DEF_VARDB(ncid,6,'satoxy',3,ncdimst,ncvarid,                    &
+        &    6,'mol/kg',16 ,'Saturated oxygen',                                &
         &    rmissing,63,io_stdo_bgc)
 
    if (use_natDIC) then
-      CALL NETCDF_DEF_VARDB(ncid,5,'nathi',3,ncdimst,ncvarid,           &
-           &    6,'mol/kg',34,'Natural hydrogen ion concentration',           &
+      CALL NETCDF_DEF_VARDB(ncid,5,'nathi',3,ncdimst,ncvarid,                  &
+           &    6,'mol/kg',34,'Natural hydrogen ion concentration',            &
            &    rmissing,64,io_stdo_bgc)
    end if
    !
@@ -612,78 +609,75 @@
          ncdimst(4) = 0
       ENDIF
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',35,'Sediment accumulated organic carbon',       &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssso12',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',35,'Sediment accumulated organic carbon',        &
            &    rmissing,70,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sssc12',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',38,'Sediment accumulated calcium carbonate',    &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sssc12',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',38,'Sediment accumulated calcium carbonate',     &
            &    rmissing,71,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssssil',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',25,'Sediment accumulated opal',                 &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssssil',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',25,'Sediment accumulated opal',                  &
            &    rmissing,72,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdimst,ncvarid,          &
-           &    7,'kg/m**3',25,'Sediment accumulated clay',                   &
+      CALL NETCDF_DEF_VARDB(ncid,6,'ssster',3,ncdimst,ncvarid,                 &
+           &    7,'kg/m**3',25,'Sediment accumulated clay',                    &
            &    rmissing,73,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',23,'Sediment pore water CO2',                   &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaic',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',23,'Sediment pore water CO2',                    &
            &    rmissing,74,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaal',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',30,'Sediment pore water alkalinity',            &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaal',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',30,'Sediment pore water alkalinity',             &
            &    rmissing,75,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaph',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',29,'Sediment pore water phosphate',             &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaph',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',29,'Sediment pore water phosphate',              &
            &    rmissing,76,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powaox',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',26,'Sediment pore water oxygen',                &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powaox',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',26,'Sediment pore water oxygen',                 &
            &    rmissing,77,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'pown2',3,ncdimst,ncvarid,           &
-           &    9,'kmol/m**3',36,'Sediment pore water gaseous nitrogen',      &
+      CALL NETCDF_DEF_VARDB(ncid,5,'pown2',3,ncdimst,ncvarid,                  &
+           &    9,'kmol/m**3',36,'Sediment pore water gaseous nitrogen',       &
            &    rmissing,78,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powno3',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',33,'Sediment pore water nitrate (NO3)',         &
+      CALL NETCDF_DEF_VARDB(ncid,6,'powno3',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',33,'Sediment pore water nitrate (NO3)',          &
            &    rmissing,79,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'powasi',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**3',42,'Sediment pore water silicid acid (Si(OH)4)',&
+      CALL NETCDF_DEF_VARDB(ncid,6,'powasi',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**3',42,'Sediment pore water silicid acid (Si(OH)4)', &
            &    rmissing,80,io_stdo_bgc)
 
       if (use_cisonew) then
-         CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',37,'Sediment accumulated organic carbon13',     &
+         CALL NETCDF_DEF_VARDB(ncid,6,'ssso13',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',37,'Sediment accumulated organic carbon13',   &
               &    rmissing,81,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',37,'Sediment accumulated organic carbon14',     &
+         CALL NETCDF_DEF_VARDB(ncid,6,'ssso14',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',37,'Sediment accumulated organic carbon14',   &
               &    rmissing,82,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate13',  &
+         CALL NETCDF_DEF_VARDB(ncid,6,'sssc13',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate13',&
               &    rmissing,83,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate14',  &
+         CALL NETCDF_DEF_VARDB(ncid,6,'sssc14',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',40,'Sediment accumulated calcium carbonate14',&
               &    rmissing,84,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',25,'Sediment pore water DIC13',                 &
+         CALL NETCDF_DEF_VARDB(ncid,6,'powc13',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',25,'Sediment pore water DIC13',               &
               &    rmissing,85,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
+         CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,              &
+              &    9,'kmol/m**3',25,'Sediment pore water DIC14',               &
               &    rmissing,86,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,6,'powc14',3,ncdimst,ncvarid,          &
-              &    9,'kmol/m**3',25,'Sediment pore water DIC14',                 &
-              &    rmasks,86,io_stdo_bgc)
       end if
 
       IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
@@ -693,8 +687,8 @@
          ncdimst(4) = 0
       ENDIF
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdimst,ncvarid,          &
-           &    9,'kmol/m**2',34,'Sediment accumulated hydrogen ions',        &
+      CALL NETCDF_DEF_VARDB(ncid,6,'sedhpl',3,ncdimst,ncvarid,                 &
+           &    9,'kmol/m**2',34,'Sediment accumulated hydrogen ions',         &
            &    rmissing,87,io_stdo_bgc)
       !
       ! Define variables : sediment burial
@@ -707,37 +701,37 @@
          ncdimst(4) = 0
       ENDIF
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_o12',3,ncdimst,ncvarid,         &
-           &    9,'kmol/m**2',30,'Burial layer of organic carbon',            &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_o12',3,ncdimst,ncvarid,                &
+           &    9,'kmol/m**2',30,'Burial layer of organic carbon',             &
            &    rmissing,90,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_c12',3,ncdimst,ncvarid,         &
-           &    9,'kmol/m**2',33,'Burial layer of calcium carbonate',         &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_c12',3,ncdimst,ncvarid,                &
+           &    9,'kmol/m**2',33,'Burial layer of calcium carbonate',          &
            &    rmissing,91,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,7,'bur_sil',3,ncdimst,ncvarid,         &
-           &    9,'kmol/m**2',20,'Burial layer of opal',                      &
+      CALL NETCDF_DEF_VARDB(ncid,7,'bur_sil',3,ncdimst,ncvarid,                &
+           &    9,'kmol/m**2',20,'Burial layer of opal',                       &
            &    rmissing,92,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,        &
-           &    7,'kg/m**2',20,'Burial layer of clay',                        &
+      CALL NETCDF_DEF_VARDB(ncid,8,'bur_clay',3,ncdimst,ncvarid,               &
+           &    7,'kg/m**2',20,'Burial layer of clay',                         &
            &    rmissing,93,io_stdo_bgc)
 
       if (use_cisonew) then
-         CALL NETCDF_DEF_VARDB(ncid,8,'bur_o13',3,ncdimst,ncvarid,         &
-              &    9,'kmol/m**2',27,'Burial layer of organic 13C',               &
+         CALL NETCDF_DEF_VARDB(ncid,8,'bur_o13',3,ncdimst,ncvarid,             &
+              &    9,'kmol/m**2',27,'Burial layer of organic 13C',             &
               &    rmissing,94,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,8,'bur_o14',3,ncdimst,ncvarid,         &
-              &    9,'kmol/m**2',27,'Burial layer of organic 14C',               &
+         CALL NETCDF_DEF_VARDB(ncid,8,'bur_o14',3,ncdimst,ncvarid,             &
+              &    9,'kmol/m**2',27,'Burial layer of organic 14C',             &
               &    rmissing,95,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,8,'bur_c13',3,ncdimst,ncvarid,         &
-              &    9,'kmol/m**2',23,'Burial layer of Ca13CO3',                   &
+         CALL NETCDF_DEF_VARDB(ncid,8,'bur_c13',3,ncdimst,ncvarid,             &
+              &    9,'kmol/m**2',23,'Burial layer of Ca13CO3',                 &
               &    rmissing,96,io_stdo_bgc)
 
-         CALL NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,         &
-              &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',                   &
+         CALL NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,             &
+              &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',                 &
               &    rmissing,97,io_stdo_bgc)
       end if
 
@@ -755,29 +749,29 @@
          ncdimst(4) = 0
       ENDIF
 
-      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',3,ncdimst,ncvarid,          &
-           &    3,'ppm',15,'atmospheric CO2',                                 &
+      CALL NETCDF_DEF_VARDB(ncid,6,'atmco2',3,ncdimst,ncvarid,                 &
+           &    3,'ppm',15,'atmospheric CO2',                                  &
            &    rmissing,101,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',3,ncdimst,ncvarid,           &
-           &    3,'ppm',14,'atmospheric O2',                                  &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmo2',3,ncdimst,ncvarid,                  &
+           &    3,'ppm',14,'atmospheric O2',                                   &
            &    rmissing,102,io_stdo_bgc)
 
-      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',3,ncdimst,ncvarid,           &
-           &    3,'ppm',14,'atmospheric N2',                                  &
+      CALL NETCDF_DEF_VARDB(ncid,5,'atmn2',3,ncdimst,ncvarid,                  &
+           &    3,'ppm',14,'atmospheric N2',                                   &
            &    rmissing,103,io_stdo_bgc)
 
       if (use_cisonew) then
-         CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',3,ncdimst,ncvarid,          &
-              &    3,'ppm',17,'atmospheric 13CO2',                               &
+         CALL NETCDF_DEF_VARDB(ncid,6,'atmc13',3,ncdimst,ncvarid,              &
+              &    3,'ppm',17,'atmospheric 13CO2',                             &
               &    rmissing,104,io_stdo_bgc)
-         CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',3,ncdimst,ncvarid,          &
-              &    3,'ppm',17,'atmospheric 14CO2',                               &
+         CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',3,ncdimst,ncvarid,              &
+              &    3,'ppm',17,'atmospheric 14CO2',                             &
               &    rmissing,105,io_stdo_bgc)
       end if
       if (use_natDIC) then
-         CALL NETCDF_DEF_VARDB(ncid,7,'atmnco2',3,ncdimst,ncvarid,         &
-              &    3,'ppm',23,'natural atmospheric CO2',                         &
+         CALL NETCDF_DEF_VARDB(ncid,7,'atmnco2',3,ncdimst,ncvarid,             &
+              &    3,'ppm',23,'natural atmospheric CO2',                       &
               &    rmissing,106,io_stdo_bgc)
       end if
    end if ! if (use_BOXATM)

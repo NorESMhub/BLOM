@@ -228,11 +228,6 @@ def buildnml(case, caseroot, compname):
         if pg_blom.get_value('inid14c') == 'UNSET':
             pg_blom.set_value('inid14c', value='')
 
-        if pg_blom.get_value('use_cisonew') == ".true.":
-            if pg_blom.bet_value("use_SEDBYPASS") == ".false.":
-                expect(False,
-                       "HAMOCC C-isotopes currently not supported in the sediment module. Set use_SEDBYPASS to .true.")
-
         #---------------------------
         # Write out Fortran namelist:
         #---------------------------
