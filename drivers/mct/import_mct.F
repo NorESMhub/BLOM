@@ -58,6 +58,10 @@
       integer i, j, l, n
       real(r8) :: utmp, vtmp
 
+#ifndef HAMOCC
+      character(len=16) :: ocn_co2_type = 'unset'
+#endif
+
       !-----------------------------------------------------------------
       ! unpermute in-place before unpacking
       !-----------------------------------------------------------------
