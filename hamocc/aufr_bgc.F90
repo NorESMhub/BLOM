@@ -103,26 +103,21 @@
 !**************************************************************************
 
       use netcdf,         only: nf90_global,nf90_noerr,nf90_nowrite,nf90_close,nf90_open,nf90_get_att,nf90_inq_varid
-      use mo_carbch,      only: co2star,co3,hi,satoxy
-      use mo_carbch,      only: ocetra
-      use mo_carbch,      only: atm
-      use mo_carbch,      only: nathi
+      use mod_xc,         only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
+      use mod_dia,        only: iotype
+      use mo_carbch,      only: co2star,co3,hi,satoxy,ocetra,atm,nathi
       use mo_control_bgc, only: io_stdo_bgc,ldtbgc,use_cisonew,use_AGG,use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,&
-                                iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra
+                                iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra,                                 &
+                                iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,                                     &
+                                icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
+                                issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                                                 &
+                                iatmc13,iatmc14,iatmnco2,inatalkali,inatcalc,inatsco212,                                         &
+                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
       use mo_vgrid,       only: kbo
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
-      use mod_xc,         only: nbdy,mnproc,iqr,jqr,xcbcst,xchalt
-      use mod_dia,        only: iotype
-      use mo_bgcmean,     only: jatmo2,jatmn2
       use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
-      use mo_param1_bgc,  only: iadust,inos,iatmco2,iatmn2,iatmo2,ibromo,icfc11,icfc12,isf6,                                     &
-                                icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
-                                issso13,issso14,isssc13,isssc14,ipowc13,ipowc14,                                                 &
-                                iatmc13,iatmc14,iatmnco2,                                                                        &
-                                inatalkali,inatcalc,inatsco212,                                                                  &
-                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks
 
       implicit none
 
@@ -570,13 +565,12 @@
             ENDDO
 
             if (.not. use_sedbypass) then
-               ! Burial fields for c-isotopes still missing
                DO  k=1,2*ks
                DO  j=1,kpje
                DO  i=1,kpie
                   IF(omask(i,j) .GT. 0.5) THEN
-                     rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-                     rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                     rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                     rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                      powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
                      powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
                      sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
@@ -592,8 +586,8 @@
                DO  j=1,kpje
                DO  i=1,kpie
                   IF(omask(i,j) .GT. 0.5) THEN
-                     rco213=ocetra(i,j,kbo(i,j),isco213)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
-                     rco214=ocetra(i,j,kbo(i,j),isco214)/(ocetra(i,j,kbo(i,j),isco212)+safediv)
+                     rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                     rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                      burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
                      burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
                      burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
