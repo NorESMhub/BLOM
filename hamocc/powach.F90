@@ -59,14 +59,14 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !     none.
 !
 !******************************************************************************
+  use mo_control_bgc, only: dtbgc,use_cisonew
+  use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
+                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv 
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
                             sed_denit,disso_caco3,pror13,pror14,prca13,prca14
   use mo_biomod,      only: rnit,ro2ut
-  use mo_control_bgc, only: dtbgc,use_cisonew
-  use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
-                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv 
   use mo_vgrid,       only: kbo,bolay
 
   implicit none
@@ -161,7 +161,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         sedb1(i,0) = bolay(i,j) * (silsat - ocetra(i,j,kbo(i,j),isilica))      &
              &   * bolven(i)
         solrat(i,1) = ( sedlay(i,j,1,issssil)                                  &
-             &   + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                      &
+             &   + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                  &
              &   * dissot / (1. + dissot * undsa) * porsol(i,j,1) / porwat(i,j,1)
      endif
   enddo
@@ -238,7 +238,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         undsa = powtra(i,j,1,ipowaox)
         sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen) * bolven(i)
         solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
-             &   / (porsol(i,j,1) * seddw(1)) )                                    &
+             &   / (porsol(i,j,1) * seddw(1)) )                                &
              &   * ro2ut * dissot / (1. + dissot * undsa)                      &
              &   * porsol(i,j,1) / porwat(i,j,1)
      endif
@@ -278,9 +278,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         sedlay(i,j,1,issso12) =                                                &
              &   sedlay(i,j,1,issso12) + prorca(i,j) / (porsol(i,j,1)*seddw(1))
         if (use_cisonew) then
-           sedlay(i,j,1,issso13) =                                                &
+           sedlay(i,j,1,issso13) =                                             &
                 &   sedlay(i,j,1,issso13) + pror13(i,j) / (porsol(i,j,1)*seddw(1))
-           sedlay(i,j,1,issso14) =                                                &
+           sedlay(i,j,1,issso14) =                                             &
                 &   sedlay(i,j,1,issso14) + pror14(i,j) / (porsol(i,j,1)*seddw(1))
         end if
      endif
@@ -313,9 +313,6 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            if (use_cisonew) then
               sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
               sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-              ! is this correct? no correspondance in the lines above
-              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
            end if
         endif
      enddo
@@ -349,9 +346,6 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
               if (use_cisonew) then
                  sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
                  sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
-                 ! is this correct? no corresponance in the lines above
-                 powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13*umfa
-                 powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14*umfa
               end if
            endif
         endif
@@ -448,7 +442,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         undsa = MAX( satlev-powcar(i,1), 0. )
         sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j))) * bolven(i)
         solrat(i,1) = (sedlay(i,j,1,isssc12)                                   &
-             &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                         &
+             &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                     &
              &   * dissot / (1.+dissot*undsa) * porsol(i,j,1) / porwat(i,j,1)
      endif
   enddo
@@ -481,9 +475,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
         sedlay(i,j,1,isssc12) =                                                &
              &   sedlay(i,j,1,isssc12) + prcaca(i,j) / (porsol(i,j,1)*seddw(1))
         if (use_cisonew) then
-           sedlay(i,j,1,isssc13) =                                                &
+           sedlay(i,j,1,isssc13) =                                             &
                 &   sedlay(i,j,1,isssc13) + prca13(i,j) / (porsol(i,j,1)*seddw(1))
-           sedlay(i,j,1,isssc14) =                                                &
+           sedlay(i,j,1,isssc14) =                                             &
                 &   sedlay(i,j,1,isssc14) + prca14(i,j) / (porsol(i,j,1)*seddw(1))
         end if
      endif
@@ -516,9 +510,9 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            if (use_cisonew) then
               sedlay(i,j,k,isssc13) = sedlay(i,j,k,isssc13) - poso13
               sedlay(i,j,k,isssc14) = sedlay(i,j,k,isssc14) - poso14
-              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa       &
+              powtra(i,j,k,ipowc13) = powtra(i,j,k,ipowc13) + poso13 * umfa    &
                    &   + (aerob13(i,k) + anaerob13(i,k)) * 122.
-              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa       &
+              powtra(i,j,k,ipowc14) = powtra(i,j,k,ipowc14) + poso14 * umfa    &
                    &   + (aerob14(i,k) + anaerob14(i,k)) * 122.
            end if
         endif
