@@ -3698,8 +3698,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>''</value>
-      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3709,8 +3708,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>''</value>
-      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
   </entry>

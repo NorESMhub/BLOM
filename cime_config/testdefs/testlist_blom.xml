@@ -10,12 +10,12 @@
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINYOC" testmods="blom/hamocc1">
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc1">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
   </test>
-  <test name="ERS_Ld3" grid="T62_tn14_wtn14nw" compset="NOINYOC" testmods="blom/hamocc2">
+  <test name="ERS_Ld3" grid="T62_tn14" compset="NOINYOC" testmods="blom/hamocc2">
     <machines>
       <machine name="betzy" compiler="intel" category="aux_blom_noresm"/>
     </machines>
