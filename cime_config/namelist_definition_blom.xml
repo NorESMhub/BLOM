@@ -3771,7 +3771,7 @@
 
   <!-- hamocc configuration -->
 
-  <entry id="use_WLIN">
+  <entry id="use_wlin">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3781,7 +3781,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="use_CFC">
+  <entry id="use_cfc">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3793,7 +3793,7 @@
     <desc>activates HAMOCC CFC code</desc>
   </entry>
 
-  <entry id="use_natDIC">
+  <entry id="use_natdic">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3805,7 +3805,7 @@
     <desc>activates HAMOCC natural tracer code</desc>
   </entry>
 
-  <entry id="use_PBGC_OCNP_TIMESTEP">
+  <entry id="use_pbgc_ocnp_timestep">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3815,7 +3815,7 @@
     <desc>HAMOCC debug mode flag</desc>
   </entry>
 
-  <entry id="use_PBGC_CK_TIMESTEP">
+  <entry id="use_pbgc_ck_timestep">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3825,7 +3825,7 @@
     <desc>HAMOCC debug mode flag</desc>
   </entry>
 
-  <entry id="use_BROMO">
+  <entry id="use_bromo">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
@@ -3833,10 +3833,11 @@
       <value>.false.</value>
       <value ocn_grid="tnx1v4"> .true.</value>
     </values>
-    <desc>add desc</desc>
+    <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid 
+    (no swa-climatology has been created for other grid configurations)</desc>
   </entry>
 
-  <entry id="use_SEDBYPASS">
+  <entry id="use_sedbypass">
     <type>logical</type>
     <category>config_bgc</category>
     <group>config_bgc</group>
