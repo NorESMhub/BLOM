@@ -101,7 +101,8 @@
       use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
       use mod_dia,        only: iotype
       use mo_carbch,      only: co2star,co3,hi,satoxy,nathi
-      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,use_BROMO,use_CFC,use_natDIC,use_sedbypass
+      use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasks,rmasko,use_cisonew,use_AGG,use_BOXATM,use_BROMO,use_CFC,use_natDIC,      &
+                              & use_sedbypass
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
