@@ -87,7 +87,7 @@ def buildnml(case, caseroot, compname):
 
     blom_vcoord = case.get_value("BLOM_VCOORD")
     turbclo = case.get_value("BLOM_TURBULENT_CLOSURE")
-    expect(blom_vcoord != "cntiso_hybrid" or not turbclo, 
+    expect(blom_vcoord != "cntiso_hybrid" or not turbclo,
            f"BLOM_VCOORD == {blom_vcoord} and BLOM_TURBULENT_CLOSURE == {turbclo} is not a valid combination")
 
     #--------------------------
@@ -199,12 +199,15 @@ def buildnml(case, caseroot, compname):
         #---------------------------------
         # Set all ParamGen namelist values:
         #---------------------------------
+        # Note - the following are $CASEROOT xml variables that are used
+        # in namelist_definition_blom.xml in order to do variable substitution
+        # for the final namelist value
 
         case_dict = CaseDict()
-        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD',
-                    'CCSM_CO2_PPMV', 'HAMOCC_SEDSPINUP_YR_START',
-                    'HAMOCC_SEDSPINUP_YR_END', 'OCN_CO2_TYPE')
-
+        var_list = ('DIN_LOC_ROOT', 'RUN_TYPE', 'BLOM_VCOORD','BLOM_NDEP_SCENARIO',
+                    'CCSM_CO2_PPMV','OCN_CO2_TYPE',
+                    'HAMOCC_SEDSPINUP_YR_START','HAMOCC_SEDSPINUP_YR_END',
+		    'HAMOCC_SEDSPINUP_NCYCLE')
         for item in var_list:
             case_dict[item] = case.get_value(item)
 
