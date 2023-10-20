@@ -52,7 +52,8 @@
       use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
                                 calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
                                 expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d,             &
-                                asize3d,eps3d,wnumb,wmass, int_chbr3_prod,int_chbr3_uv, c14fac,re1312,re14to
+                                int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass
+      use mo_param_bgc,   only: c14fac,re1312,re14to
       use mo_bgcmean,     only: domassfluxes,jalkali,jano3,jasize,jatmco2,jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,         &
                                 jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,jcalflx1000,jcalflx2000,jcalflx4000,         &
                                 jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,               &

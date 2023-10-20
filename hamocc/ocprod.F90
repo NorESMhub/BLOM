@@ -80,14 +80,18 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
-  use mo_carbch,      only: dmspar,ocetra,satoxy,hi,fbro1,fbro2,co2star
+  use mo_carbch,      only: ocetra,satoxy,hi,co2star
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
-  use mo_biomod,      only: atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
+  use mo_param_bgc,   only: drempoc,dremn2o,dremopal,dremsul,dyphy,ecan,epsher,fesoly,gammap,gammaz,grami,grazra,pi_alpha,phytomi, &
+                            rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,       &
+                            spemor,wcal,wdust,wopal,wpoc,zinges,alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,       &
+                            cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,     &
+                            tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,   &
+                            atten_f,dmspar,fbro1,fbro2,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
+  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
                             bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
-                            carflx1000,carflx2000,carflx4000,carflx_bot,dremn2o,dremopal,drempoc,dremsul,dyphy,ecan,epsher,fesoly, &
-                            gammap,gammaz,grami,grazra,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,      &
-                            phosy3d,pi_alpha,phytomi,rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,                 &
-                            riron,rnit,strahl,rnoi,ro2ut,ropal,spemor,wcal,wdust,wopal,wpoc,zinges
+                            carflx1000,carflx2000,carflx4000,carflx_bot,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,        &
+                            intdms_uv,intphosy,phosy3d,int_chbr3_prod,int_chbr3_uv,abs_oce,strahl,asize3d,wmass,wnumb
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                             isilica,izoo,iadust,inos,ibromo,                                                                       &
                             icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,       &
@@ -97,9 +101,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                             use_WLIN,use_sedbypass
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
   use mod_xc,         only: mnproc
-  use mo_biomod,      only: alar1,alar2,alar3,alow1,alow2,alow3,asize3d,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,    &
-                            eps3d,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmass,wnumb,        &
-                            wmin,wmax,wlin,int_chbr3_prod,int_chbr3_uv,rbro,bifr13,bifr13_perm,bifr14,growth_co2,abs_oce,atten_f
+  use mo_biomod,      only: eps3d,bifr13_perm,growth_co2
   use mo_vgrid,       only: kmle
   use mo_clim_swa,    only: swa_clim
 

@@ -52,20 +52,20 @@
 !        Allocate memory for inorganic carbon variables
 !
 !
-!**********************************************************************     
+!**********************************************************************
       implicit none
-      
+
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: ndepflx
       REAL, DIMENSION (:,:),     ALLOCATABLE :: oalkflx
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: rivinflx 
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: rivinflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star   
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co2star
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: hi
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaA 
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC 
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaA
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: OmegaC
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: keqb
 
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: satoxy
@@ -86,20 +86,15 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: co213fxu
       REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxd
       REAL, DIMENSION (:,:),     ALLOCATABLE :: co214fxu
-      REAL :: dmspar(6)
-      REAL                                   :: atm_co2_nat
       REAL, DIMENSION (:,:),     ALLOCATABLE :: natpco2d
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: nathi
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
-      REAL :: atm_co2, atm_o2, atm_n2 
-      REAL :: atm_c13, atm_c14  
-      REAL :: c14_t_half, c14dec
+      REAL :: atm_co2
       REAL :: atm_cfc11_nh,atm_cfc11_sh
       REAL :: atm_cfc12_nh,atm_cfc12_sh
       REAL :: atm_sf6_nh,atm_sf6_sh
-      REAL :: atm_bromo, fbro1, fbro2
 
       CONTAINS
 

@@ -51,24 +51,24 @@
       implicit none
 
       REAL, DIMENSION (:,:),   ALLOCATABLE :: strahl
-      ! FB_BGC_OCE     
+      ! FB_BGC_OCE
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
       !
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoor
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoca
       REAL, DIMENSION (:,:),   ALLOCATABLE :: exposi
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: intphosy 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdnit 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: intnfix 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdmsprod 
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: intphosy
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdnit
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: intnfix
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdmsprod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: intdms_bac
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdms_uv 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx0100 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx0500 
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: intdms_uv
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx0100
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx0500
       REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx1000
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx2000 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx4000 
-      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx_bot 
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx2000
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx4000
+      REAL, DIMENSION (:,:),   ALLOCATABLE :: carflx_bot
       REAL, DIMENSION (:,:),   ALLOCATABLE :: bsiflx0100
       REAL, DIMENSION (:,:),   ALLOCATABLE :: bsiflx0500
       REAL, DIMENSION (:,:),   ALLOCATABLE :: bsiflx1000
@@ -93,28 +93,12 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_prod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_uv
 
-      REAL :: phytomi,grami,grazra,pi_alpha
-      REAL :: remido,dyphy,zinges,epsher,spemor,gammap,gammaz,ecan
-      REAL :: ro2ut,rcar,rnit,rnoi,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rcalc,ropal
-      REAL :: bluefix,tf2,tf1,tf0,tff  
-      REAL :: bkphy,bkzoo,bkopal
-      REAL :: wpoc,wcal,wopal
-      REAL :: drempoc,dremopal,dremn2o,dremsul
-      REAL :: perc_diron, riron, fesoly, relaxfe, fetune, wdust
-      REAL :: ctochl, atten_w, atten_c, atten_uv, atten_f
-      ! cisonew
-      REAL :: c14fac
-      REAL :: re1312,re14to,prei13,prei14
-      REAL :: bifr13,bifr14,growth_co2,bifr13_perm
+      REAL :: growth_co2,bifr13_perm
       ! AGG
-      REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
-      REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
-      REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
-      REAL :: dustd1,dustd2,dustd3,dustsink,calmax
-      ! WLIN
-      REAL :: wmin,wmax,wlin
-      ! BROMO
-      REAL :: rbro
+!      REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
+!      REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
+!      REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
+!      REAL :: dustd1,dustd2,dustd3,dustsink,calmax
 
       CONTAINS
 

@@ -53,7 +53,8 @@
 !******************************************************************************
 
       use mo_carbch,      only: co2star,co3,hi,ocetra 
-      use mo_biomod,      only: fesoly 
+      use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to
+      use mo_biomod,      only: abs_oce
       use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
                                 iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, & 
@@ -63,7 +64,6 @@
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
                                 ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
       use mo_vgrid,       only: kmle,kbo
-      use mo_biomod,      only: cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to,abs_oce
       use mo_carbch,      only: nathi,natco3
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
 

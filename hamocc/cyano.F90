@@ -61,13 +61,12 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !     .
 !**********************************************************************
 
-  use mo_carbch,     only: ocetra
-  use mo_biomod,     only: bluefix,intnfix,rnit,tf0,tf1,tf2,tff
-  use mo_param1_bgc, only: ialkali,iano3,igasnit,iphosph,ioxygen
-  use mo_vgrid,      only: kmle
-  ! natDIC
-  use mo_param1_bgc, only: inatalkali
-  use mo_control_bgc, only : use_natDIC
+  use mo_vgrid,       only: kmle
+  use mo_carbch,      only: ocetra
+  use mo_param_bgc,   only: bluefix,rnit,tf0,tf1,tf2,tff
+  use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali
+  use mo_biomod,      only: intnfix
+  use mo_control_bgc, only: use_natDIC
 
   implicit none
 

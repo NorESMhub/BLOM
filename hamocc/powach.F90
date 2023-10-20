@@ -66,7 +66,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_chemcon,     only: calcon
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
                             sed_denit,disso_caco3,pror13,pror14,prca13,prca14
-  use mo_biomod,      only: rnit,ro2ut
+  use mo_param_bgc,   only: rnit,ro2ut
   use mo_vgrid,       only: kbo,bolay
 
   implicit none
