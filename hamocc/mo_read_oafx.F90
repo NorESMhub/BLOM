@@ -74,14 +74,14 @@ module mo_read_oafx
   implicit none
 
   private
-  public :: ini_read_oafx,get_oafx,oalkscen,oalkfile
+  public :: ini_read_oafx,get_oafx,oalkscen,oalkfile,thrh_omegaa
  
-  character(len=128), save :: oalkscen   =''
-  character(len=512), save :: oalkfile   =''
-  real,allocatable,   save :: oalkflx(:,:)
-  integer,            save :: startyear,endyear
+  character(len=128), protected :: oalkscen   =''
+  character(len=512), protected :: oalkfile   =''
+  real,allocatable,   protected :: oalkflx(:,:)
+  integer,            protected :: startyear,endyear
 
-  real, parameter          :: Pmol2kmol  = 1.0e12
+  real, parameter               :: Pmol2kmol  = 1.0e12
   
   ! Parameter used in the definition of alkalinization scenarios not based on
   ! an input file. The following scenarios are defined in this module:
@@ -92,19 +92,26 @@ module mo_read_oafx
   !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
   !
-  real, protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the
-                                           ! scenarios. Read from namelist file
-                                           ! to overwrite default value.
-  real, protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
-  real, protected :: cdrmip_latmin = -60.0 ! alkalinity is added according
-                                           ! to the CDRMIP protocol. Read from
-                                           ! namelist file to overwrite default
-                                           ! value.
-  integer, protected :: ramp_start = 2025  ! In 'ramp' scenario, start at
-  integer, protected :: ramp_end   = 2035  ! 0 Pmol/yr in ramp_start, and max
-                                           ! addalk Pmol/yr in ramp_end.
-                                           ! Read from namelist file to
-                                           ! overwrite default value.
+  ! Values are read from namelist bgcoafx, which overwrites default values set
+  ! here
+  real,    protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the
+                                              ! scenarios. 
+  real,    protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
+  real,    protected :: cdrmip_latmin = -60.0 ! alkalinity is added according
+                                              ! to the CDRMIP protocol.
+  integer, protected :: ramp_start    = 2025  ! In 'ramp' scenario, start at
+  integer, protected :: ramp_end      = 2035  ! 0 Pmol/yr at ramp_start, and
+                                              ! arrive at addalk Pmol/yr in 
+                                              ! year ramp_end
+
+  ! Parameter used for ALL alkalinization scenarios, read through namelist
+  ! namelist bgcoafx, which overwrites default values set here
+  real,    protected :: thrh_omegaa   =-1.0  ! Limit the input of alkalinity by 
+                                             ! setting alkalinity-flux to zero 
+                                             ! for grid cells where Omegaa > 
+                                             ! thrh_omegaa (negative values mean
+                                             ! no threshold considered)
+
 
   logical,   save :: lini = .false.
 
@@ -136,9 +143,9 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 !
 !******************************************************************************
   use mod_xc,         only: xcsum,xchalt,mnproc,nbdy,ips
-  use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
   use mod_dia,        only: iotype
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
+  use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
 
   implicit none
 
@@ -154,7 +161,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
   real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
 
   namelist /bgcoafx/ oalkscen,oalkfile,addalk,cdrmip_latmax,cdrmip_latmin,    &
-       &             ramp_start,ramp_end
+       &             ramp_start,ramp_end,thrh_omegaa
 
   ! Read parameters for alkalinization fluxes from namelist file
   if(.not. allocated(bgc_namelist)) call get_bgc_namelist
@@ -248,6 +255,12 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
             write(io_stdo_bgc,*)'             ramping-up from ', ramp_start, ' to ', ramp_end
           endif
         endif
+        
+        if(mnproc.eq.1 .and. thrh_omegaa > 0.0) then
+          write(io_stdo_bgc,*)' alkalinity flux will be limited by a threshold for Omega_a of ',thrh_omegaa
+          write(io_stdo_bgc,*)' '
+        endif
+        
   
         do j=1,kpje
         do i=1,kpie

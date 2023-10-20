@@ -3836,6 +3836,16 @@
     <desc>End   year for ramp up in 'ramp' scenario</desc>
   </entry>
 
+  <entry id="thrh_omegaa">
+    <type>real</type>
+    <category>bgcoafx</category>
+    <group>bgcoafx</group>
+    <values>
+      <value>-1.0</value>
+    </values>
+    <desc>OmegaA threshold for application of OA, negative = no threshold</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: bgcparams -->
   <!-- ========================= -->

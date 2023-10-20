@@ -70,8 +70,9 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 !
 !******************************************************************************
   use mo_control_bgc, only: dtb,do_oalk
-  use mo_carbch,      only: ocetra,oalkflx
   use mo_param1_bgc,  only: ialkali
+  use mo_carbch,      only: ocetra,oalkflx,OmegaA
+  use mo_read_oafx,   only: thrh_omegaa
 
   implicit none
 
@@ -93,6 +94,7 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   do j=1,kpje
   do i=1,kpie
     if (omask(i,j).gt.0.5) then
+      if (thrh_omegaa > 0.0 .and. OmegaA(i,j,1) > thrh_omegaa) cycle
       oalkflx(i,j) = oafx(i,j)*dtb/365.
       ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)+oalkflx(i,j)/pddpo(i,j,1)
     endif
