@@ -3853,6 +3853,36 @@
     <desc>activate the HAMOCC carbon isotope code</desc>
   </entry>
 
+  <entry id="use_boxatm">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>use 1d scalar box atm</desc>
+  </entry>
+
+  <entry id="use_agg">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="use_fb_bgc_oce">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
   <!-- ========================= -->
   <!-- namelist group: bgcoafx -->
   <!-- These options can be activated by expert users via user namelist. -->
