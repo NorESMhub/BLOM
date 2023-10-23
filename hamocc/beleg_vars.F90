@@ -56,7 +56,7 @@
       use mo_biomod,      only: fesoly 
       use mo_control_bgc, only: rmasks
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo 
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,iprefsilica 
       use mo_vgrid,       only: kmle,kbo
 
 #ifdef AGG
@@ -175,6 +175,7 @@
           ocetra(i,j,k,iiron)  =fesoly
           ocetra(i,j,k,iprefo2)=0.
           ocetra(i,j,k,iprefpo4)=0.
+          ocetra(i,j,k,iprefsilica)=0.
           ocetra(i,j,k,iprefalk)=0.
           ocetra(i,j,k,iprefdic)=0.
           ocetra(i,j,k,idicsat)=1.e-8
@@ -233,6 +234,7 @@
         IF(omask(i,j) .GT. 0.5) THEN
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
+          ocetra(i,j,1:kmle(i,j),iprefsilica)= ocetra(i,j,1:kmle(i,j),isilica)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
         ENDIF

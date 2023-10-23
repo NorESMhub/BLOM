@@ -106,7 +106,7 @@
       use mo_carbch,      only: co2star,co3,hi,satoxy
       use mo_control_bgc, only: io_stdo_bgc,ldtbgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,&
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,nocetra,iprefsilica
       use mo_vgrid,       only: kbo
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
@@ -157,7 +157,7 @@
       INTEGER   :: restday                           !  day of restart file
       INTEGER   :: restdtoce                         !  time step number from bgc ocean file
       INTEGER   :: idate(5),i,j,k
-      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn
+      logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro,lread_extn,lread_pref
 #ifdef cisonew
       REAL :: rco213,rco214,alpha14,beta13,beta14,d14cat
 #endif
@@ -403,6 +403,24 @@
       ENDIF
 #endif
 
+
+      lread_pref=.true.
+      IF(IOTYPE==0) THEN
+        if(mnproc==1) ncstat=nf90_inq_varid(ncid,'prefsilica',ncvarid)
+        call xcbcst(ncstat)
+        if(ncstat.ne.nf90_noerr) lread_pref=.false.
+      ELSE IF(IOTYPE==1) THEN
+#ifdef PNETCDF
+        ncstat=nfmpi_inq_varid(ncid,'prefsilica',ncvarid)
+        if(ncstat.ne.nf_noerr) lread_pref=.false.
+#endif
+      ENDIF
+      IF(mnproc==1 .and. .not. lread_pref) THEN
+        WRITE(io_stdo_bgc,*) ' '
+        WRITE(io_stdo_bgc,*) 'AUFR_BGC info: preformed silica not in restart file '
+        WRITE(io_stdo_bgc,*) 'Initialising preformed tracer from scratch'
+      ENDIF
+
 !
 ! Read restart data : ocean aquateous tracer
 !                
@@ -428,7 +446,9 @@
       CALL read_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0,iotype)
-
+      IF(lread_pref) THEN
+      CALL read_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0,iotype)
+      ENDIF
 #ifdef cisonew
       IF(lread_iso) THEN
       CALL read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)

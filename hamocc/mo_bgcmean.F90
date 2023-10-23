@@ -121,6 +121,7 @@
      & LYR_EPS       =0    ,LYR_ASIZE     =0    ,LYR_N2O       =0    ,  &
      & LYR_PREFO2    =0    ,LYR_O2SAT     =0    ,LYR_PREFPO4   =0    ,  &
      & LYR_PREFALK   =0    ,LYR_PREFDIC   =0    ,LYR_DICSAT    =0    ,  &
+     & LYR_PREFSILICA=0    ,                                            &
      & LYR_CFC11     =0    ,LYR_CFC12     =0    ,LYR_SF6       =0    ,  &
      & LYR_NATDIC    =0    ,LYR_NATALKALI =0    ,LYR_NATCALC   =0    ,  &
      & LYR_NATPH     =0    ,LYR_NATOMEGAA =0    ,LYR_NATOMEGAC =0    ,  &
@@ -153,6 +154,7 @@
      & LVL_ASIZE     =0    ,LVL_N2O       =0    ,LVL_PREFO2    =0    ,  &
      & LVL_O2SAT     =0    ,LVL_PREFPO4   =0    ,LVL_PREFALK   =0    ,  &
      & LVL_PREFDIC   =0    ,LVL_DICSAT    =0    ,                       &
+     & LVL_PREFSILICA=0    ,                                            &
      & LVL_CFC11     =0    ,LVL_CFC12     =0    ,LVL_SF6       =0    ,  &
      & LVL_NATDIC    =0    ,LVL_NATALKALI =0    ,LVL_NATCALC   =0    ,  &
      & LVL_NATPH     =0    ,LVL_NATOMEGAA =0    ,LVL_NATOMEGAC =0    ,  &
@@ -237,6 +239,7 @@
      & LYR_EPS           ,LYR_ASIZE         ,LYR_N2O           ,        &
      & LYR_PREFO2        ,LYR_O2SAT         ,LYR_PREFPO4       ,        &
      & LYR_PREFALK       ,LYR_PREFDIC       ,LYR_DICSAT        ,        &
+     & LYR_PREFSILICA    ,                                              &
      & LYR_CFC11         ,LYR_CFC12         ,LYR_SF6           ,        &
      & LYR_NATDIC        ,LYR_NATALKALI     ,LYR_NATCALC       ,        &
      & LYR_NATPH         ,LYR_NATOMEGAA     ,LYR_NATOMEGAC     ,        &
@@ -266,6 +269,7 @@
      & LVL_ASIZE         ,LVL_N2O           ,LVL_PREFO2        ,        &
      & LVL_O2SAT         ,LVL_PREFPO4       ,LVL_PREFALK       ,        &
      & LVL_PREFDIC       ,LVL_DICSAT        ,                           &
+     & LVL_PREFSILICA    ,                                              &
      & LVL_CFC11         ,LVL_CFC12         ,LVL_SF6           ,        &
      & LVL_NATDIC        ,LVL_NATALKALI     ,LVL_NATCALC       ,        &
      & LVL_NATPH         ,LVL_NATOMEGAA     ,LVL_NATOMEGAC     ,        &
@@ -471,6 +475,7 @@
      &          jprefo2    = 0 ,                                        &
      &          jo2sat     = 0 ,                                        &
      &          jprefpo4   = 0 ,                                        &
+     &          jprefsilica= 0 ,                                        &
      &          jprefalk   = 0 ,                                        &
      &          jprefdic   = 0 ,                                        &
      &          jdicsat    = 0 ,                                        &
@@ -499,6 +504,7 @@
      &          jlvlprefo2 = 0 ,                                        &
      &          jlvlo2sat  = 0 ,                                        &
      &          jlvlprefpo4= 0 ,                                        &
+     &          jlvlprefsilica= 0 ,                                     &
      &          jlvlprefalk= 0 ,                                        &
      &          jlvlprefdic= 0 ,                                        &
      &          jlvldicsat = 0 ,                                        &
@@ -1014,6 +1020,8 @@
         jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
         IF (LYR_PREFPO4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
+        IF (LYR_PREFSILICA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        jprefsilica(n)=i_bsc_m3d*min(1,LYR_PREFSILICA(n))
         IF (LYR_PREFALK(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
         IF (LYR_PREFDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
@@ -1191,6 +1199,8 @@
         jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
         IF (LVL_PREFPO4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
+        IF (LVL_PREFSILICA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        jlvlprefsilica(n)=ilvl_bsc_m3d*min(1,LVL_PREFSILICA(n))
         IF (LVL_PREFALK(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
         IF (LVL_PREFDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1

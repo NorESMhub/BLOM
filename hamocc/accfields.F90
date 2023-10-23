@@ -76,11 +76,12 @@
                               & jlvl_remin_aerob,jlvl_remin_sulf,                                                                  &
                               & jagg_ws,jdynvis,jagg_stick,jagg_stickf,jagg_dmax,jagg_avdp,jagg_avrhop,jagg_avdC,jagg_df,jagg_b,   &
                               & jagg_Vrhof,jagg_Vpor,jlvl_agg_ws,jlvl_dynvis,jlvl_agg_stick,jlvl_agg_stickf,jlvl_agg_dmax,         &
-                              & jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor
+                              & jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor,   &
+                              & jprefsilica,jlvlprefsilica
       use mo_control_bgc, only: io_stdo_bgc
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
-                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet,issso12,isssc12,issssil,issster
+                              & irdin,irdip,irsi,iralk,iriron,irdoc,irdet,issso12,isssc12,issssil,issster,iprefsilica
       use mo_m4ago,       only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,kstickiness_agg,kb_agg,             &
                               & kstickiness_frustule,kLmax_agg,kdynvis,kav_rhof_V,kav_por_V   
 #ifdef AGG
@@ -377,6 +378,7 @@
       call acclyr(jo2sat,satoxy,pddpo,1) 
       call acclyr(jprefo2,ocetra(1,1,1,iprefo2),pddpo,1)
       call acclyr(jprefpo4,ocetra(1,1,1,iprefpo4),pddpo,1)
+      call acclyr(jprefsilica,ocetra(1,1,1,iprefsilica),pddpo,1)
       call acclyr(jprefalk,ocetra(1,1,1,iprefalk),pddpo,1)
       call acclyr(jprefdic,ocetra(1,1,1,iprefdic),pddpo,1)
       call acclyr(jdicsat,ocetra(1,1,1,idicsat),pddpo,1)
@@ -454,6 +456,7 @@
      &  jlvlano3+jlvlalkali+jlvlsilica+jlvldic+jlvldoc+jlvlpoc+jlvlcalc+&
      &  jlvlopal+jlvln2o+jlvlco3+jlvlph+jlvlomegaa+jlvlomegac+jlvlphosy+&
      &  jlvlo2sat+jlvlprefo2+jlvlprefpo4+jlvlprefalk+jlvlprefdic+       &
+     &  jlvlprefsilica+                                                 &
      &  jlvldicsat+jlvlnatdic+jlvlnatalkali+jlvlnatcalc+jlvlnatco3+     &
      &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+       &
      &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
@@ -491,6 +494,7 @@
           call acclvl(jlvlo2sat,satoxy,k,ind1,ind2,wghts)          
           call acclvl(jlvlprefo2,ocetra(1,1,1,iprefo2),k,ind1,ind2,wghts)
           call acclvl(jlvlprefpo4,ocetra(1,1,1,iprefpo4),k,ind1,ind2,wghts)
+          call acclvl(jlvlprefsilica,ocetra(1,1,1,iprefsilica),k,ind1,ind2,wghts)
           call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
           call acclvl(jlvlprefdic,ocetra(1,1,1,iprefdic),k,ind1,ind2,wghts)
           call acclvl(jlvldicsat,ocetra(1,1,1,idicsat),k,ind1,ind2,wghts)

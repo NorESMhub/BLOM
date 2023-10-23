@@ -101,7 +101,7 @@
       use mo_carbch,      only: co2star,co3, hi,satoxy
       use mo_control_bgc, only: io_stdo_bgc,ldtbgc,rmasko
       use mo_param1_bgc,  only: ialkali, ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
-                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,ks,nocetra
+                              & iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo,ks,nocetra,iprefsilica
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mod_xc,         only: nbdy,itdm,jtdm,mnproc,iqr,jqr,xchalt
@@ -483,6 +483,10 @@
 
       CALL NETCDF_DEF_VARDB(ncid,7,'prefpo4',3,ncdimst,ncvarid,         &
      &    6,'mol/kg',19,'Preformed phosphate',                          &
+          rmissing,28,io_stdo_bgc)
+      
+      CALL NETCDF_DEF_VARDB(ncid,10,'prefsilica',3,ncdimst,ncvarid,     &
+     &    6,'mol/kg',16,'Preformed silica',                             &
           rmissing,28,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,7,'prefalk',3,ncdimst,ncvarid,         &
@@ -866,6 +870,7 @@
       CALL write_netcdf_var(ncid,'iron',locetra(1,1,1,iiron),2*kpke,0)
       CALL write_netcdf_var(ncid,'prefo2',locetra(1,1,1,iprefo2),2*kpke,0)
       CALL write_netcdf_var(ncid,'prefpo4',locetra(1,1,1,iprefpo4),2*kpke,0)
+      CALL write_netcdf_var(ncid,'prefsilica',locetra(1,1,1,iprefsilica),2*kpke,0)
       CALL write_netcdf_var(ncid,'prefalk',locetra(1,1,1,iprefalk),2*kpke,0)
       CALL write_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0)
       CALL write_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0)

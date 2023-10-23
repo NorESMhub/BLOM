@@ -45,7 +45,7 @@
       REAL,    PARAMETER :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
 
 ! Tracer indices
-      INTEGER, PARAMETER :: i_base=22,                                  &
+      INTEGER, PARAMETER :: i_base=23,                                  &
      &                      isco212  =1,                                &
      &                      ialkali  =2,                                &
      &                      iphosph  =3,                                &
@@ -67,7 +67,8 @@
      &                      iprefpo4 =19,                               &
      &                      iprefalk =20,                               &
      &                      iprefdic =21,                               &
-     &                      idicsat  =22  
+     &                      idicsat  =22,                               &
+     &                      iprefsilica  =23
 #ifdef cisonew
       INTEGER, PARAMETER :: i_iso=12,                                   &
      &                      isco213  = i_base+1,                        &
