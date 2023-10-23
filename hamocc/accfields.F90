@@ -78,7 +78,7 @@
                               & jagg_Vrhof,jagg_Vpor,jlvl_agg_ws,jlvl_dynvis,jlvl_agg_stick,jlvl_agg_stickf,jlvl_agg_dmax,         &
                               & jlvl_agg_avdp,jlvl_agg_avrhop,jlvl_agg_avdC,jlvl_agg_df,jlvl_agg_b,jlvl_agg_Vrhof,jlvl_agg_Vpor,   &
                               & jprefsilica,jlvlprefsilica
-      use mo_control_bgc, only: io_stdo_bgc
+      use mo_control_bgc, only: io_stdo_bgc,lm4ago
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                               & ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      & 
                               & irdin,irdip,irsi,iralk,iriron,irdoc,irdet,issso12,isssc12,issssil,issster,iprefsilica
@@ -437,19 +437,21 @@
       call acclyr(jremin_aerob,remin_aerob,pddpo,1)
       call acclyr(jremin_sulf,remin_sulf,pddpo,1)
 #endif
-      ! M4AGO
-      call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
-      call acclyr(jdynvis,aggregate_diagnostics(1,1,1,kdynvis),pddpo,1)
-      call acclyr(jagg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),pddpo,1)
-      call acclyr(jagg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),pddpo,1)
-      call acclyr(jagg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),pddpo,1)
-      call acclyr(jagg_avdp,aggregate_diagnostics(1,1,1,kav_dp),pddpo,1)
-      call acclyr(jagg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),pddpo,1)
-      call acclyr(jagg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),pddpo,1)
-      call acclyr(jagg_df,aggregate_diagnostics(1,1,1,kdf_agg),pddpo,1)
-      call acclyr(jagg_b,aggregate_diagnostics(1,1,1,kb_agg),pddpo,1)
-      call acclyr(jagg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),pddpo,1)
-      call acclyr(jagg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),pddpo,1)
+      if (lm4ago) then
+        ! M4AGO
+        call acclyr(jagg_ws,aggregate_diagnostics(1,1,1,kws_agg),pddpo,1)
+        call acclyr(jdynvis,aggregate_diagnostics(1,1,1,kdynvis),pddpo,1)
+        call acclyr(jagg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),pddpo,1)
+        call acclyr(jagg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),pddpo,1)
+        call acclyr(jagg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),pddpo,1)
+        call acclyr(jagg_avdp,aggregate_diagnostics(1,1,1,kav_dp),pddpo,1)
+        call acclyr(jagg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),pddpo,1)
+        call acclyr(jagg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),pddpo,1)
+        call acclyr(jagg_df,aggregate_diagnostics(1,1,1,kdf_agg),pddpo,1)
+        call acclyr(jagg_b,aggregate_diagnostics(1,1,1,kb_agg),pddpo,1)
+        call acclyr(jagg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),pddpo,1)
+        call acclyr(jagg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),pddpo,1)
+      endif
 
 ! Accumulate level diagnostics
       IF (SUM(jlvlphyto+jlvlgrazer+jlvlphosph+jlvloxygen+jlvliron+      &
@@ -554,19 +556,21 @@
            call acclvl(jlvl_remin_aerob,remin_aerob,k,ind1,ind2,wghts)
            call acclvl(jlvl_remin_sulf,remin_sulf,k,ind1,ind2,wghts)
 #endif
-          !M4AGO
-          call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)
-          call acclvl(jlvl_dynvis,aggregate_diagnostics(1,1,1,kdynvis),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_avdp,aggregate_diagnostics(1,1,1,kav_dp),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_df,aggregate_diagnostics(1,1,1,kdf_agg),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_b,aggregate_diagnostics(1,1,1,kb_agg),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),k,ind1,ind2,wghts)
-          call acclvl(jlvl_agg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),k,ind1,ind2,wghts)
+          if (lm4ago) then
+            !M4AGO
+            call acclvl(jlvl_agg_ws,aggregate_diagnostics(1,1,1,kws_agg),k,ind1,ind2,wghts)
+            call acclvl(jlvl_dynvis,aggregate_diagnostics(1,1,1,kdynvis),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_stick,aggregate_diagnostics(1,1,1,kstickiness_agg),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_stickf,aggregate_diagnostics(1,1,1,kstickiness_frustule),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_dmax,aggregate_diagnostics(1,1,1,kLmax_agg),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_avdp,aggregate_diagnostics(1,1,1,kav_dp),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_avrhop,aggregate_diagnostics(1,1,1,kav_rho_p),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_avdC,aggregate_diagnostics(1,1,1,kav_d_C),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_df,aggregate_diagnostics(1,1,1,kdf_agg),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_b,aggregate_diagnostics(1,1,1,kb_agg),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_Vrhof,aggregate_diagnostics(1,1,1,kav_rhof_V),k,ind1,ind2,wghts)
+            call acclvl(jlvl_agg_Vpor,aggregate_diagnostics(1,1,1,kav_por_V),k,ind1,ind2,wghts)
+          endif
         ENDDO
       ENDIF
 

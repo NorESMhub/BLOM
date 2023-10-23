@@ -29,7 +29,7 @@ subroutine ncwrt_bgc(iogrp)
   use mod_grid,       only: depths
   use mod_dia,        only: diafnm,sigmar1,iotype,ddm,depthslev,                &
        &                    depthslev_bnds
-  use mo_control_bgc, only: dtbgc
+  use mo_control_bgc, only: dtbgc,lm4ago
   use mo_vgrid,       only: k0100,k0500,k1000,k2000,k4000
   use mo_param1_bgc,  only: ks
   use mod_nctools,    only: ncwrt1,ncdims,nctime,ncfcls,ncfopn,                 &
@@ -390,19 +390,21 @@ subroutine ncwrt_bgc(iogrp)
   call finlyr(jremin_aerob(iogrp),jdp(iogrp))
   call finlyr(jremin_sulf(iogrp),jdp(iogrp))
 #endif
-  !  M4AGO
-  call finlyr(jagg_ws(iogrp),jdp(iogrp))
-  call finlyr(jdynvis(iogrp),jdp(iogrp))
-  call finlyr(jagg_stick(iogrp),jdp(iogrp))
-  call finlyr(jagg_stickf(iogrp),jdp(iogrp))
-  call finlyr(jagg_dmax(iogrp),jdp(iogrp))
-  call finlyr(jagg_avdp(iogrp),jdp(iogrp))
-  call finlyr(jagg_avrhop(iogrp),jdp(iogrp))
-  call finlyr(jagg_avdC(iogrp),jdp(iogrp))
-  call finlyr(jagg_df(iogrp),jdp(iogrp))
-  call finlyr(jagg_b(iogrp),jdp(iogrp))
-  call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
-  call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
+  if(lm4ago)then
+    !  M4AGO
+    call finlyr(jagg_ws(iogrp),jdp(iogrp))
+    call finlyr(jdynvis(iogrp),jdp(iogrp))
+    call finlyr(jagg_stick(iogrp),jdp(iogrp))
+    call finlyr(jagg_stickf(iogrp),jdp(iogrp))
+    call finlyr(jagg_dmax(iogrp),jdp(iogrp))
+    call finlyr(jagg_avdp(iogrp),jdp(iogrp))
+    call finlyr(jagg_avrhop(iogrp),jdp(iogrp))
+    call finlyr(jagg_avdC(iogrp),jdp(iogrp))
+    call finlyr(jagg_df(iogrp),jdp(iogrp))
+    call finlyr(jagg_b(iogrp),jdp(iogrp))
+    call finlyr(jagg_Vrhof(iogrp),jdp(iogrp))
+    call finlyr(jagg_Vpor(iogrp),jdp(iogrp))
+  endif
 
   ! --- Mask sea floor in mass fluxes
   call msksrf(jcarflx0100(iogrp),k0100)
@@ -503,19 +505,21 @@ subroutine ncwrt_bgc(iogrp)
   call msklvl(jlvl_remin_aerob(iogrp),depths)
   call msklvl(jlvl_remin_sulf(iogrp),depths)
 #endif
-  !   M4AGO
-  call msklvl(jlvl_agg_ws(iogrp),depths)
-  call msklvl(jlvl_dynvis(iogrp),depths)
-  call msklvl(jlvl_agg_stick(iogrp),depths)
-  call msklvl(jlvl_agg_stickf(iogrp),depths)
-  call msklvl(jlvl_agg_dmax(iogrp),depths)
-  call msklvl(jlvl_agg_avdp(iogrp),depths)
-  call msklvl(jlvl_agg_avrhop(iogrp),depths)
-  call msklvl(jlvl_agg_avdC(iogrp),depths)
-  call msklvl(jlvl_agg_df(iogrp),depths)
-  call msklvl(jlvl_agg_b(iogrp),depths)
-  call msklvl(jlvl_agg_Vrhof(iogrp),depths)
-  call msklvl(jlvl_agg_Vpor(iogrp),depths)
+  if(lm4ago)then
+    !   M4AGO
+    call msklvl(jlvl_agg_ws(iogrp),depths)
+    call msklvl(jlvl_dynvis(iogrp),depths)
+    call msklvl(jlvl_agg_stick(iogrp),depths)
+    call msklvl(jlvl_agg_stickf(iogrp),depths)
+    call msklvl(jlvl_agg_dmax(iogrp),depths)
+    call msklvl(jlvl_agg_avdp(iogrp),depths)
+    call msklvl(jlvl_agg_avrhop(iogrp),depths)
+    call msklvl(jlvl_agg_avdC(iogrp),depths)
+    call msklvl(jlvl_agg_df(iogrp),depths)
+    call msklvl(jlvl_agg_b(iogrp),depths)
+    call msklvl(jlvl_agg_Vrhof(iogrp),depths)
+    call msklvl(jlvl_agg_Vpor(iogrp),depths)
+  endif
 
   ! --- Compute log10 of pH
   if (SRF_PH(iogrp).ne.0) call logsrf(jsrfph(iogrp),rnacc,0.)
@@ -725,20 +729,21 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlyr(jremin_aerob(iogrp), LYR_remin_aerob(iogrp),1e3/dtbgc,    0.,cmpflg,'remina')
   call wrtlyr(jremin_sulf(iogrp),  LYR_remin_sulf(iogrp),1e3/dtbgc,     0.,cmpflg,'remins')
 #endif
-!      M4AGO
-  call wrtlyr(jagg_ws(iogrp),      LYR_agg_ws(iogrp),   1.,             0.,cmpflg,'agg_ws')
-  call wrtlyr(jdynvis(iogrp),      LYR_dynvis(iogrp),   1.,             0.,cmpflg,'dynvis')
-  call wrtlyr(jagg_stick(iogrp),   LYR_agg_stick(iogrp),1.,             0.,cmpflg,'agg_stick')
-  call wrtlyr(jagg_stickf(iogrp),  LYR_agg_stickf(iogrp),1.,            0.,cmpflg,'agg_stickf')
-  call wrtlyr(jagg_dmax(iogrp),    LYR_agg_dmax(iogrp), 1.,             0.,cmpflg,'agg_dmax')
-  call wrtlyr(jagg_avdp(iogrp),    LYR_agg_avdp(iogrp), 1.,             0.,cmpflg,'agg_avdp')
-  call wrtlyr(jagg_avrhop(iogrp),  LYR_agg_avrhop(iogrp),1.,            0.,cmpflg,'agg_avrhop')
-  call wrtlyr(jagg_avdC(iogrp),    LYR_agg_avdC(iogrp), 1.,             0.,cmpflg,'agg_avdC')
-  call wrtlyr(jagg_df(iogrp),      LYR_agg_df(iogrp),   1.,             0.,cmpflg,'agg_df')
-  call wrtlyr(jagg_b(iogrp),       LYR_agg_b(iogrp),    1.,             0.,cmpflg,'agg_b')
-  call wrtlyr(jagg_Vrhof(iogrp),   LYR_agg_Vrhof(iogrp),1.,             0.,cmpflg,'agg_Vrhof')
-  call wrtlyr(jagg_Vpor(iogrp),    LYR_agg_Vpor(iogrp), 1.,             0.,cmpflg,'agg_Vpor')
-
+  if(lm4ago)then
+    !      M4AGO
+    call wrtlyr(jagg_ws(iogrp),      LYR_agg_ws(iogrp),   1.,             0.,cmpflg,'agg_ws')
+    call wrtlyr(jdynvis(iogrp),      LYR_dynvis(iogrp),   1.,             0.,cmpflg,'dynvis')
+    call wrtlyr(jagg_stick(iogrp),   LYR_agg_stick(iogrp),1.,             0.,cmpflg,'agg_stick')
+    call wrtlyr(jagg_stickf(iogrp),  LYR_agg_stickf(iogrp),1.,            0.,cmpflg,'agg_stickf')
+    call wrtlyr(jagg_dmax(iogrp),    LYR_agg_dmax(iogrp), 1.,             0.,cmpflg,'agg_dmax')
+    call wrtlyr(jagg_avdp(iogrp),    LYR_agg_avdp(iogrp), 1.,             0.,cmpflg,'agg_avdp')
+    call wrtlyr(jagg_avrhop(iogrp),  LYR_agg_avrhop(iogrp),1.,            0.,cmpflg,'agg_avrhop')
+    call wrtlyr(jagg_avdC(iogrp),    LYR_agg_avdC(iogrp), 1.,             0.,cmpflg,'agg_avdC')
+    call wrtlyr(jagg_df(iogrp),      LYR_agg_df(iogrp),   1.,             0.,cmpflg,'agg_df')
+    call wrtlyr(jagg_b(iogrp),       LYR_agg_b(iogrp),    1.,             0.,cmpflg,'agg_b')
+    call wrtlyr(jagg_Vrhof(iogrp),   LYR_agg_Vrhof(iogrp),1.,             0.,cmpflg,'agg_Vrhof')
+    call wrtlyr(jagg_Vpor(iogrp),    LYR_agg_Vpor(iogrp), 1.,             0.,cmpflg,'agg_Vpor')
+  endif
   ! --- Store 3d level fields
   call wrtlvl(jlvldic(iogrp),      LVL_DIC(iogrp),      rnacc*1e3,      0.,cmpflg,'dissiclvl')
   call wrtlvl(jlvlalkali(iogrp),   LVL_ALKALI(iogrp),   rnacc*1e3,      0.,cmpflg,'talklvl')
@@ -821,20 +826,21 @@ subroutine ncwrt_bgc(iogrp)
   call wrtlvl(jlvl_remin_aerob(iogrp),  LVL_remin_aerob(iogrp),  rnacc*1e3/dtbgc,0.,cmpflg,'reminalvl')
   call wrtlvl(jlvl_remin_sulf(iogrp),   LVL_remin_sulf(iogrp),   rnacc*1e3/dtbgc,0.,cmpflg,'reminslvl')
 #endif
-!      M4AGO
-  call wrtlvl(jlvl_agg_ws(iogrp),       LVL_agg_ws(iogrp),       rnacc,          0.,cmpflg,'agg_wslvl')
-  call wrtlvl(jlvl_dynvis(iogrp),       LVL_dynvis(iogrp),       rnacc,          0.,cmpflg,'dynvislvl')
-  call wrtlvl(jlvl_agg_stick(iogrp),    LVL_agg_stick(iogrp),    rnacc,          0.,cmpflg,'agg_sticklvl')
-  call wrtlvl(jlvl_agg_stickf(iogrp),   LVL_agg_stickf(iogrp),   rnacc,          0.,cmpflg,'agg_stickflvl')
-  call wrtlvl(jlvl_agg_dmax(iogrp),     LVL_agg_dmax(iogrp),     rnacc,          0.,cmpflg,'agg_dmaxlvl')
-  call wrtlvl(jlvl_agg_avdp(iogrp),     LVL_agg_avdp(iogrp),     rnacc,          0.,cmpflg,'agg_avdplvl')
-  call wrtlvl(jlvl_agg_avrhop(iogrp),   LVL_agg_avrhop(iogrp),   rnacc,          0.,cmpflg,'agg_avrhoplvl')
-  call wrtlvl(jlvl_agg_avdC(iogrp),     LVL_agg_avdC(iogrp),     rnacc,          0.,cmpflg,'agg_avdClvl')
-  call wrtlvl(jlvl_agg_df(iogrp),       LVL_agg_df(iogrp),       rnacc,          0.,cmpflg,'agg_dflvl')
-  call wrtlvl(jlvl_agg_b(iogrp),        LVL_agg_b(iogrp),        rnacc,          0.,cmpflg,'agg_blvl')
-  call wrtlvl(jlvl_agg_Vrhof(iogrp),    LVL_agg_Vrhof(iogrp),    rnacc,          0.,cmpflg,'agg_Vrhoflvl')
-  call wrtlvl(jlvl_agg_Vpor(iogrp),     LVL_agg_Vpor(iogrp),     rnacc,          0.,cmpflg,'agg_Vporlvl')
-
+  if(lm4ago)then
+    !      M4AGO
+    call wrtlvl(jlvl_agg_ws(iogrp),       LVL_agg_ws(iogrp),       rnacc,          0.,cmpflg,'agg_wslvl')
+    call wrtlvl(jlvl_dynvis(iogrp),       LVL_dynvis(iogrp),       rnacc,          0.,cmpflg,'dynvislvl')
+    call wrtlvl(jlvl_agg_stick(iogrp),    LVL_agg_stick(iogrp),    rnacc,          0.,cmpflg,'agg_sticklvl')
+    call wrtlvl(jlvl_agg_stickf(iogrp),   LVL_agg_stickf(iogrp),   rnacc,          0.,cmpflg,'agg_stickflvl')
+    call wrtlvl(jlvl_agg_dmax(iogrp),     LVL_agg_dmax(iogrp),     rnacc,          0.,cmpflg,'agg_dmaxlvl')
+    call wrtlvl(jlvl_agg_avdp(iogrp),     LVL_agg_avdp(iogrp),     rnacc,          0.,cmpflg,'agg_avdplvl')
+    call wrtlvl(jlvl_agg_avrhop(iogrp),   LVL_agg_avrhop(iogrp),   rnacc,          0.,cmpflg,'agg_avrhoplvl')
+    call wrtlvl(jlvl_agg_avdC(iogrp),     LVL_agg_avdC(iogrp),     rnacc,          0.,cmpflg,'agg_avdClvl')
+    call wrtlvl(jlvl_agg_df(iogrp),       LVL_agg_df(iogrp),       rnacc,          0.,cmpflg,'agg_dflvl')
+    call wrtlvl(jlvl_agg_b(iogrp),        LVL_agg_b(iogrp),        rnacc,          0.,cmpflg,'agg_blvl')
+    call wrtlvl(jlvl_agg_Vrhof(iogrp),    LVL_agg_Vrhof(iogrp),    rnacc,          0.,cmpflg,'agg_Vrhoflvl')
+    call wrtlvl(jlvl_agg_Vpor(iogrp),     LVL_agg_Vpor(iogrp),     rnacc,          0.,cmpflg,'agg_Vporlvl')
+  endif
   ! --- Store sediment fields
 #ifndef sedbypass
   call wrtsdm(jpowaic(iogrp),      SDM_POWAIC(iogrp),   rnacc*1e3,      0.,cmpflg,'powdic')
@@ -1075,20 +1081,21 @@ subroutine ncwrt_bgc(iogrp)
   call inilyr(jremin_aerob(iogrp),0.)
   call inilyr(jremin_sulf(iogrp),0.) 
 #endif
-  !   M4AGO
-  call inilyr(jagg_ws(iogrp),0.)
-  call inilyr(jdynvis(iogrp),0.)
-  call inilyr(jagg_stick(iogrp),0.)
-  call inilyr(jagg_stickf(iogrp),0.)
-  call inilyr(jagg_dmax(iogrp),0.)
-  call inilyr(jagg_avdp(iogrp),0.)
-  call inilyr(jagg_avrhop(iogrp),0.)
-  call inilyr(jagg_avdC(iogrp),0.)
-  call inilyr(jagg_df(iogrp),0.)
-  call inilyr(jagg_b(iogrp),0.)
-  call inilyr(jagg_Vrhof(iogrp),0.)
-  call inilyr(jagg_Vpor(iogrp),0.)
-
+  if(lm4ago)then
+    !   M4AGO
+    call inilyr(jagg_ws(iogrp),0.)
+    call inilyr(jdynvis(iogrp),0.)
+    call inilyr(jagg_stick(iogrp),0.)
+    call inilyr(jagg_stickf(iogrp),0.)
+    call inilyr(jagg_dmax(iogrp),0.)
+    call inilyr(jagg_avdp(iogrp),0.)
+    call inilyr(jagg_avrhop(iogrp),0.)
+    call inilyr(jagg_avdC(iogrp),0.)
+    call inilyr(jagg_df(iogrp),0.)
+    call inilyr(jagg_b(iogrp),0.)
+    call inilyr(jagg_Vrhof(iogrp),0.)
+    call inilyr(jagg_Vpor(iogrp),0.)
+  endif
   call inilvl(jlvldic(iogrp),0.)
   call inilvl(jlvlalkali(iogrp),0.)
   call inilvl(jlvlphosy(iogrp),0.)
@@ -1170,20 +1177,21 @@ subroutine ncwrt_bgc(iogrp)
   call inilvl(jlvl_remin_aerob(iogrp),0.)
   call inilvl(jlvl_remin_sulf(iogrp),0.) 
 #endif
-  !  M4AGO
-  call inilvl(jlvl_agg_ws(iogrp),0.)
-  call inilvl(jlvl_dynvis(iogrp),0.)
-  call inilvl(jlvl_agg_stick(iogrp),0.)
-  call inilvl(jlvl_agg_stickf(iogrp),0.)
-  call inilvl(jlvl_agg_dmax(iogrp),0.)
-  call inilvl(jlvl_agg_avdp(iogrp),0.)
-  call inilvl(jlvl_agg_avrhop(iogrp),0.)
-  call inilvl(jlvl_agg_avdC(iogrp),0.)
-  call inilvl(jlvl_agg_df(iogrp),0.)
-  call inilvl(jlvl_agg_b(iogrp),0.)
-  call inilvl(jlvl_agg_Vrhof(iogrp),0.)
-  call inilvl(jlvl_agg_Vpor(iogrp),0.)
-
+  if(lm4ago)then
+    !  M4AGO
+    call inilvl(jlvl_agg_ws(iogrp),0.)
+    call inilvl(jlvl_dynvis(iogrp),0.)
+    call inilvl(jlvl_agg_stick(iogrp),0.)
+    call inilvl(jlvl_agg_stickf(iogrp),0.)
+    call inilvl(jlvl_agg_dmax(iogrp),0.)
+    call inilvl(jlvl_agg_avdp(iogrp),0.)
+    call inilvl(jlvl_agg_avrhop(iogrp),0.)
+    call inilvl(jlvl_agg_avdC(iogrp),0.)
+    call inilvl(jlvl_agg_df(iogrp),0.)
+    call inilvl(jlvl_agg_b(iogrp),0.)
+    call inilvl(jlvl_agg_Vrhof(iogrp),0.)
+    call inilvl(jlvl_agg_Vpor(iogrp),0.)
+  endif
 #ifndef sedbypass
   call inisdm(jpowaic(iogrp),0.)
   call inisdm(jpowaal(iogrp),0.)
@@ -1229,7 +1237,7 @@ end subroutine ncwrt_bgc
 subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   use mod_nctools, only:ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                   &
        &   nctime,ncfcls,ncedef,ncdefvar3d,ndouble
-
+  use mo_control_bgc,only:lm4ago
   use mo_bgcmean, only: srf_kwco2,srf_pco2,srf_dmsflux,srf_co2fxd,              &
        &   srf_kwco2khm,srf_co2kh,srf_co2khm,srf_pco2m,                         &
        &   srf_co2fxu,srf_oxflux,srf_niflux,srf_pn2om,srf_dms,srf_dmsprod,      &
@@ -1749,32 +1757,33 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   call ncdefvar3d(LYR_remin_sulf(iogrp),cmpflg,'p',                             &
        &  'remins','Sulfate remineralization rate',' ','mol P m-3 s-1',1)
 #endif
-  !      M4AGO
-  call ncdefvar3d(LYR_agg_ws(iogrp),cmpflg,'p',                                 &
-       &  'agg_ws','aggregate mean settling velocity',' ','m d-1',1)
-  call ncdefvar3d(LYR_dynvis(iogrp),cmpflg,'p',                                 &
-       &  'dynvis','dynamic viscosity of sea water',' ','kg m-1 s-1',1)
-  call ncdefvar3d(LYR_agg_stick(iogrp),cmpflg,'p',                              &
-       &  'agg_stick','aggregate mean stickiness',' ','-',1)
-  call ncdefvar3d(LYR_agg_stickf(iogrp),cmpflg,'p',                             &
-       &  'agg_stickf','opal frustule stickiness',' ','-',1)
-  call ncdefvar3d(LYR_agg_dmax(iogrp),cmpflg,'p',                               &
-       &  'agg_dmax','aggregate maximum diameter',' ','m',1)
-  call ncdefvar3d(LYR_agg_avdp(iogrp),cmpflg,'p',                               &
-       &  'agg_avdp','mean primary particle diameter',' ','m',1)
-  call ncdefvar3d(LYR_agg_avrhop(iogrp),cmpflg,'p',                             &
-       &  'agg_avrhop','mean primary particle density',' ','kg m-3',1)
-  call ncdefvar3d(LYR_agg_avdC(iogrp),cmpflg,'p',                               &
-       &  'agg_avdC','Conc.-weighted mean aggregate diameter',' ','m',1)
-  call ncdefvar3d(LYR_agg_df(iogrp),cmpflg,'p',                                 &
-       &  'agg_df','aggregate fractal dimension',' ','-',1)
-  call ncdefvar3d(LYR_agg_b(iogrp),cmpflg,'p',                                  &
-       &  'agg_b','aggregate number distribution slope',' ','-',1)
-  call ncdefvar3d(LYR_agg_Vrhof(iogrp),cmpflg,'p',                              &
-       &  'agg_Vrhof','V-weighted aggregate mean density',' ','kg m-3',1)
-  call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',                               &
-       &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
-
+  if(lm4ago)then
+    !      M4AGO
+    call ncdefvar3d(LYR_agg_ws(iogrp),cmpflg,'p',                                 &
+         &  'agg_ws','aggregate mean settling velocity',' ','m d-1',1)
+    call ncdefvar3d(LYR_dynvis(iogrp),cmpflg,'p',                                 &
+         &  'dynvis','dynamic viscosity of sea water',' ','kg m-1 s-1',1)
+    call ncdefvar3d(LYR_agg_stick(iogrp),cmpflg,'p',                              &
+         &  'agg_stick','aggregate mean stickiness',' ','-',1)
+    call ncdefvar3d(LYR_agg_stickf(iogrp),cmpflg,'p',                             &
+         &  'agg_stickf','opal frustule stickiness',' ','-',1)
+    call ncdefvar3d(LYR_agg_dmax(iogrp),cmpflg,'p',                               &
+         &  'agg_dmax','aggregate maximum diameter',' ','m',1)
+    call ncdefvar3d(LYR_agg_avdp(iogrp),cmpflg,'p',                               &
+         &  'agg_avdp','mean primary particle diameter',' ','m',1)
+    call ncdefvar3d(LYR_agg_avrhop(iogrp),cmpflg,'p',                             &
+         &  'agg_avrhop','mean primary particle density',' ','kg m-3',1)
+    call ncdefvar3d(LYR_agg_avdC(iogrp),cmpflg,'p',                               &
+         &  'agg_avdC','Conc.-weighted mean aggregate diameter',' ','m',1)
+    call ncdefvar3d(LYR_agg_df(iogrp),cmpflg,'p',                                 &
+         &  'agg_df','aggregate fractal dimension',' ','-',1)
+    call ncdefvar3d(LYR_agg_b(iogrp),cmpflg,'p',                                  &
+         &  'agg_b','aggregate number distribution slope',' ','-',1)
+    call ncdefvar3d(LYR_agg_Vrhof(iogrp),cmpflg,'p',                              &
+         &  'agg_Vrhof','V-weighted aggregate mean density',' ','kg m-3',1)
+    call ncdefvar3d(LYR_agg_Vpor(iogrp),cmpflg,'p',                               &
+         &  'agg_Vpor','V-weighted aggregate mean porosity',' ','-',1)
+  endif
   ! --- define 3d level fields
   call ncdefvar3d(LVL_DIC(iogrp),cmpflg,'p',                                    &
        &   'dissiclvl','Dissolved inorganic carbon',' ','mol C m-3',2)
@@ -1935,35 +1944,36 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
        &  'reminslvl','Sulfate remineralization rate',' ',                      &
        &  'mol P m-3 s-1',2)
 #endif
-  !      M4AGO
-  call ncdefvar3d(LVL_agg_ws(iogrp),cmpflg,'p',                                 &
-       &  'agg_wslvl','aggregate mean settling velocity',' ','m d-1',2)
-  call ncdefvar3d(LVL_dynvis(iogrp),cmpflg,'p',                                 &
-       &  'dynvislvl','dynamic viscosity of sea water',' ','kg m-1 s-1',        &
-       &   2)
-  call ncdefvar3d(LVL_agg_stick(iogrp),cmpflg,'p',                              &
-       &  'agg_sticklvl','aggregate mean stickiness',' ','-',2)
-  call ncdefvar3d(LVL_agg_stickf(iogrp),cmpflg,'p',                             &
-       &  'agg_stickflvl','opal frustule stickiness',' ','-',2)
-  call ncdefvar3d(LVL_agg_dmax(iogrp),cmpflg,'p',                               &
-       &  'agg_dmaxlvl','aggregate maximum diameter',' ','m',2)
-  call ncdefvar3d(LVL_agg_avdp(iogrp),cmpflg,'p',                               &
-       &  'agg_avdplvl','mean primary particle diameter',' ','m',2)
-  call ncdefvar3d(LVL_agg_avrhop(iogrp),cmpflg,'p',                             &
-       &  'agg_avrhoplvl','mean primary particle density',' ','kg m-3',2)
-  call ncdefvar3d(LVL_agg_avdC(iogrp),cmpflg,'p',                               &
-       &  'agg_avdClvl','Conc.-weighted mean aggregate diameter',' ',           &
-       &  'm',2)
-  call ncdefvar3d(LVL_agg_df(iogrp),cmpflg,'p',                                 &
-       &  'agg_dflvl','aggregate fractal dimension',' ','-',2)
-  call ncdefvar3d(LVL_agg_b(iogrp),cmpflg,'p',                                  &
-       &  'agg_blvl','aggregate number distribution slope',' ','-',2)
-  call ncdefvar3d(LVL_agg_Vrhof(iogrp),cmpflg,'p',                              &
-       &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ',               &
-       &  'kg m-3',2)
-  call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',                               &
-       &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
-
+  if(lm4ago)then
+    !      M4AGO
+    call ncdefvar3d(LVL_agg_ws(iogrp),cmpflg,'p',                                 &
+         &  'agg_wslvl','aggregate mean settling velocity',' ','m d-1',2)
+    call ncdefvar3d(LVL_dynvis(iogrp),cmpflg,'p',                                 &
+         &  'dynvislvl','dynamic viscosity of sea water',' ','kg m-1 s-1',        &
+         &   2)
+    call ncdefvar3d(LVL_agg_stick(iogrp),cmpflg,'p',                              &
+         &  'agg_sticklvl','aggregate mean stickiness',' ','-',2)
+    call ncdefvar3d(LVL_agg_stickf(iogrp),cmpflg,'p',                             &
+         &  'agg_stickflvl','opal frustule stickiness',' ','-',2)
+    call ncdefvar3d(LVL_agg_dmax(iogrp),cmpflg,'p',                               &
+         &  'agg_dmaxlvl','aggregate maximum diameter',' ','m',2)
+    call ncdefvar3d(LVL_agg_avdp(iogrp),cmpflg,'p',                               &
+         &  'agg_avdplvl','mean primary particle diameter',' ','m',2)
+    call ncdefvar3d(LVL_agg_avrhop(iogrp),cmpflg,'p',                             &
+         &  'agg_avrhoplvl','mean primary particle density',' ','kg m-3',2)
+    call ncdefvar3d(LVL_agg_avdC(iogrp),cmpflg,'p',                               &
+         &  'agg_avdClvl','Conc.-weighted mean aggregate diameter',' ',           &
+         &  'm',2)
+    call ncdefvar3d(LVL_agg_df(iogrp),cmpflg,'p',                                 &
+         &  'agg_dflvl','aggregate fractal dimension',' ','-',2)
+    call ncdefvar3d(LVL_agg_b(iogrp),cmpflg,'p',                                  &
+         &  'agg_blvl','aggregate number distribution slope',' ','-',2)
+    call ncdefvar3d(LVL_agg_Vrhof(iogrp),cmpflg,'p',                              &
+         &  'agg_Vrhoflvl','V-weighted aggregate mean density',' ',               &
+         &  'kg m-3',2)
+    call ncdefvar3d(LVL_agg_Vpor(iogrp),cmpflg,'p',                               &
+         &  'agg_Vporlvl','V-weighted aggregate mean porosity',' ','-',2)
+  endif
   ! --- define sediment fields
 #ifndef sedbypass
   call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',                                 &
