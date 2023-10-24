@@ -3511,7 +3511,7 @@
     <desc>'File name (incl. full path) for iron (dust) deposition data'</desc>
   </entry>
 
-  <entry id="swaclimfile">
+  <entry id="swaclimfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3533,7 +3533,7 @@
     <desc>Logical switch to activate riverine input</desc>
   </entry>
 
-  <entry id="rivinfile">
+  <entry id="rivinfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3559,7 +3559,7 @@
     <desc>Logical switch to activate N-deposition</desc>
   </entry>
 
-  <entry id="ndepfile">
+  <entry id="ndepfile" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3590,7 +3590,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="do_sedspinup">
+  <entry id="do_sedspinup" modify_via_xml="HAMOCC_SEDSPINUP">
     <type>logical</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3606,8 +3606,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>-1</value>
-      <value hamocc_sedspinup="yes">$HAMOCC_SEDSPINUP_YR_START</value>
+      <value>$HAMOCC_SEDSPINUP_YR_START</value>
     </values>
     <desc>Start year for sediment spinup</desc>
   </entry>
@@ -3617,18 +3616,17 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>-1</value>
-      <value hamocc_sedspinup="yes">$HAMOCC_SEDSPINUP_YR_END</value>
+      <value>$HAMOCC_SEDSPINUP_YR_END</value>
     </values>
     <desc>End year for sediment spinup</desc>
   </entry>
 
-  <entry id="sedspin_ncyc">
+  <entry id="sedspin_ncyc" modify_via_xml="HAMOCC_SEDSPINUP_NCYCLE">
     <type>integer</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>-1</value>
+      <value>$HAMOCC_SEDSPINUP_NCYCLE</value>
     </values>
     <desc>Number of subcyles per time-step for sediment spinup</desc>
   </entry>
@@ -3643,7 +3641,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="inialk">
+  <entry id="inialk" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3653,7 +3651,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="inipo4">
+  <entry id="inipo4" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3663,7 +3661,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="inioxy">
+  <entry id="inioxy" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3673,7 +3671,7 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="inino3">
+  <entry id="inino3" is_inputdata="yes">
     <type>char</type>
     <category>bgcnml</category>
     <group>bgcnml</group>
@@ -3698,8 +3696,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>''</value>
-      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d13C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3709,8 +3706,7 @@
     <category>bgcnml</category>
     <group>bgcnml</group>
     <values>
-      <value>''</value>
-      <value hamocc_ciso="yes">$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
+      <value>$DIN_LOC_ROOT/ocn/blom/inicon/d14C_permil_20180609.nc</value>
     </values>
     <desc>add desc</desc>
   </entry>
@@ -3757,6 +3753,134 @@
     <desc>
       File name (incl. full path) for sediment porosity
     </desc>
+  </entry>
+
+  <entry id="ocn_co2_type" modify_via_xml="OCN_CO2_TYPE">
+    <type>char</type>
+    <category>config_bgc</category>
+    <group>bgcnml</group>
+    <values>
+      <value>$OCN_CO2_TYPE</value>
+    </values>
+    <desc>Determines provenance of atmospheric CO2 for gas flux computation.</desc>
+  </entry>
+
+  <!-- hamocc configuration -->
+
+  <entry id="use_wlin">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.true.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="use_cfc">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">.true.</value>
+      <value compset="20TR_DATM.*_BLOM%ECO">.true.</value>
+    </values>
+    <desc>activates HAMOCC CFC code</desc>
+  </entry>
+
+  <entry id="use_natdic">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value compset="HIST_CAM60%NORESM.*">.true.</value>
+      <value compset="20TR_DATM.*">.true.</value>
+    </values>
+    <desc>activates HAMOCC natural tracer code</desc>
+  </entry>
+
+  <entry id="use_pbgc_ocnp_timestep">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>HAMOCC debug mode flag</desc>
+  </entry>
+
+  <entry id="use_pbgc_ck_timestep">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>HAMOCC debug mode flag</desc>
+  </entry>
+
+  <entry id="use_bromo">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+      <value ocn_grid="tnx1v4"> .true.</value>
+    </values>
+    <desc>NOTE: HAMOCC bromoform scheme currently only supported on the tnx1v4 grid 
+    (no swa-climatology has been created for other grid configurations)</desc>
+  </entry>
+
+  <entry id="use_sedbypass">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>Bypass the HAMOCC sediment code</desc>
+  </entry>
+
+  <entry id="use_cisonew">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>activate the HAMOCC carbon isotope code</desc>
+  </entry>
+
+  <entry id="use_boxatm">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>use 1d scalar box atm</desc>
+  </entry>
+
+  <entry id="use_agg">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="use_fb_bgc_oce">
+    <type>logical</type>
+    <category>config_bgc</category>
+    <group>config_bgc</group>
+    <values>
+      <value>.false.</value>
+    </values>
+    <desc>add desc</desc>
   </entry>
 
   <!-- ========================= -->

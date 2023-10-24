@@ -42,12 +42,12 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
                             mnproc,lp,nfu,xchalt
   use mod_grid,       only: plon,plat
   use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
-  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                &
-                            do_ndep,do_rivinpt,do_oalk,do_sedspinup,      &
-                            sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,       &
-                            dtb,dtbgc,io_stdo_bgc,ldtbgc,                 &
-                            ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor, &
-                            use_BROMO,use_sedbypass,use_BOXATM
+  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                      &
+                            do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
+                            sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
+                            dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
+                            ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,       &
+                            ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_param_bgc,   only: ini_parambgc
   use mo_carbch,      only: alloc_mem_carbch,ocetra,atm,atm_co2
@@ -82,7 +82,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
        &   sedspin_yr_e,sedspin_ncyc,                                           &
        &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
        &   inid13c,inid14c,swaclimfile,                                         &
-       &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile
+       &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,                      &
+       &   ocn_co2_type
   !
   ! --- Set io units and some control parameters
   !
@@ -107,19 +108,17 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   ! --- Read the HAMOCC BGCNML namelist and check the value of some variables.
   !
   if(.not. allocated(bgc_namelist)) call get_bgc_namelist
-  open (newunit=iounit, file=bgc_namelist, status='old'                         &
-       &   ,action='read')
+  open (newunit=iounit, file=bgc_namelist, status='old', action='read')
   read (unit=iounit, nml=BGCNML)
   close (unit=iounit)
-  IF (mnproc.eq.1) THEN
 
+  IF (mnproc.eq.1) THEN
      write(io_stdo_bgc,*)
      write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
      write(io_stdo_bgc,nml=BGCNML)
 
      if(do_sedspinup) then
-        if(sedspin_yr_s<0 .or. sedspin_yr_e<0 .or.                              &
-             &   sedspin_yr_s>sedspin_yr_e) then
+        if(sedspin_yr_s<0 .or. sedspin_yr_e<0 .or. sedspin_yr_s>sedspin_yr_e) then
            call xchalt('(invalid sediment spinup start/end year)')
            stop        '(invalid sediment spinup start/end year)'
         endif
@@ -128,11 +127,10 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
            stop        '(invalid nb. of sediment spinup subcycles)'
         endif
      endif
-
   ENDIF
+
   ! init the index-mapping between pore water and ocean tracers
   CALL init_por2octra_mapping()
-
   !
   ! --- Memory allocation
   !
