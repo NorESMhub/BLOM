@@ -2,7 +2,7 @@ sources += files(
   'accfields.F90',
   'aufr_bgc.F90',
   'aufw_bgc.F90',
-  'beleg_vars.F90',
+  'mo_ini_fields.F90',
   'carchm.F90',
   'carchm_kequi.F90',
   'carchm_solve.F90',

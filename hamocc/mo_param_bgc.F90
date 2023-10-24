@@ -43,12 +43,12 @@ module mo_param_bgc
 !
 !******************************************************************************
 
-  use mo_carbch,      only: atm,atm_co2
+  use mo_carbch,      only: atm_co2
   use mo_sedmnt,      only: claydens
   use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
                           & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
                           & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
-  use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
+!  use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
   implicit none
@@ -268,7 +268,6 @@ module mo_param_bgc
 
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
-    call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values
     call calc_param_biol()          ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()        ! Converting rates from /d... to /dtb
 
@@ -294,38 +293,6 @@ module mo_param_bgc
        c14fac   = atm_c14/atm_co2
     end if
   end subroutine calc_param_atm
-
-  !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_fields_atm(kpie,kpje)
-    !
-    ! AFTER having read the nml:
-    ! Initialise atmosphere fields. We use a 2D representation of atmospheric
-    ! fields for simplicity, even for cases where actually only a scalar value
-    ! is used. The overhead of this is small. If an atm-field is present in
-    ! restart file (if BOXATM is activated), this will be overwritten later.
-    !
-
-    INTEGER, intent(in) :: kpie,kpje
-    INTEGER             :: i,j
-
-    DO j=1,kpje
-    DO i=1,kpie
-      atm(i,j,iatmco2)  = atm_co2
-      atm(i,j,iatmo2)   = atm_o2
-      atm(i,j,iatmn2)   = atm_n2
-      if (use_natDIC) then
-         atm(i,j,iatmnco2) = atm_co2_nat
-      end if
-      if (use_cisonew) then
-         atm(i,j,iatmc13)  = atm_c13
-         atm(i,j,iatmc14)  = atm_c14/c14fac
-      end if
-      if (use_BROMO) then
-         atm(i,j,iatmbromo)= atm_bromo
-      end if
-    ENDDO
-    ENDDO
-  end subroutine ini_fields_atm
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_param_biol()
