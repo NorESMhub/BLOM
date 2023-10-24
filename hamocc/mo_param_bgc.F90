@@ -47,7 +47,7 @@ module mo_param_bgc
   use mo_sedmnt,      only: claydens
   use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
                           & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
-                          & use_PROGCO2,use_DIAGCO2,use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP
+                          & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
@@ -128,9 +128,9 @@ module mo_param_bgc
   ! parameters for sw-radiation attenuation
   ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
   ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
-  real, protected :: ctochl     = 60.             ! C to Chlorophyl ratio
+  real, parameter :: ctochl     = 60.             ! C to Chlorophyl ratio
   real, protected :: atten_w    = 0.04            ! yellow substances attenuation in 1/m
-  real, protected :: atten_c                      ! phytoplankton attenuation in 1/m
+  real, protected :: atten_c    = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
   real, protected :: atten_uv   = 0.33
   real, protected :: atten_f    = 0.4             ! fraction of sw-radiation directly absorbed in surface layer
                                                   ! (only if FB_BGC_OCE) [feedback bgc-ocean]
@@ -172,7 +172,7 @@ module mo_param_bgc
   real :: bifr14
 
   ! Decay parameter for sco214, HalfLive = 5730 years
-  real, protected :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
+  real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
   !Bromoform to phosphate ratio (Hense and Quack, 2009)
   !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
@@ -235,8 +235,9 @@ module mo_param_bgc
   real, protected :: dustd3                       ! dust diameter cubed
   real, protected :: dustsink                     ! sinking speed of dust (used use_AGG)
 
-  real, protected ::  SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,     &
+  real, protected ::  SinkExp, FractDim, Stick, cellmass, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,     &
                       vsmall,safe,pupper,plower,zdis,nmldmin
+  real, protected :: cellsink = 9999.
 
   !=================================================================================================================================
   !=================================================================================================================================
@@ -405,7 +406,6 @@ module mo_param_bgc
     ! AFTER reading the namelist:
     ! calulate parameters that depend on other tunable parameters
     !
-    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
     bifr14  = bifr13**2
 
     perc_diron = fetune * 0.035 * 0.01 / 55.85
@@ -551,8 +551,7 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
       WRITE(io_stdo_bgc,*) '*          use_BOXATM             = ',use_BOXATM
       WRITE(io_stdo_bgc,*) '*          use_sedbypass          = ',use_sedbypass
-      WRITE(io_stdo_bgc,*) '*          use_PROGCO2            = ',use_PROGCO2
-      WRITE(io_stdo_bgc,*) '*          use_DIAGCO2            = ',use_DIAGCO2
+      WRITE(io_stdo_bgc,*) '*          ocn_co2_type           = ',ocn_co2_type
       WRITE(io_stdo_bgc,*) '*          do_ndep                = ',do_ndep
       WRITE(io_stdo_bgc,*) '*          do_rivinpt             = ',do_rivinpt
       WRITE(io_stdo_bgc,*) '*          do_oalk                = ',do_oalk
