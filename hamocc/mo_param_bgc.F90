@@ -172,12 +172,12 @@ module mo_param_bgc
   real :: bifr13 = 0.98
   real :: bifr14
   ! Decay parameter for sco214, HalfLive = 5730 years
-  real, protected :: c14_t_half  ! Half life of 14C [days]
+  real, protected :: c14_t_half  = 5700.*365.  ! Half life of 14C [days]
   !Bromoform to phosphate ratio (Hense and Quack, 2009)
   !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
   !      rbro=2.*6.72e-7*rnit
   !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
-  real, protected :: rbro
+  real, protected :: rbro = 2.4e-6*rnit
   real, protected :: fbro1 = 1.0
   real, protected :: fbro2 = 1.0
 
@@ -268,7 +268,7 @@ module mo_param_bgc
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
     call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values
-    call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
+    call calc_param_biol()          ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()        ! Converting rates from /d... to /dtb
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
@@ -414,14 +414,14 @@ module mo_param_bgc
 !       bifr13     = 0.98
        bifr14     = bifr13**2
        ! Decay parameter for sco214, HalfLive = 5730 years
-       c14_t_half = 5700.*365. ! Half life of 14C [days]
+!       c14_t_half = 5700.*365. ! Half life of 14C [days]
 !    end if
 !    if (use_BROMO) then
        !Bromoform to phosphate ratio (Hense and Quack, 2009)
        !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
        !      rbro=2.*6.72e-7*rnit
        !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
-       rbro  = 2.4e-6*rnit
+!       rbro  = 2.4e-6*rnit
 !       fbro1 = 1.0
 !       fbro2 = 1.0
  !   end if
@@ -493,7 +493,7 @@ module mo_param_bgc
     ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
 !    ctochl  = 60.        ! C to Chlorophyl ratio
 !    atten_w = 0.04       ! yellow substances attenuation in 1/m
-    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
+!    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
 !    atten_uv= 0.33       !
 !    atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer
                          ! (only if FB_BGC_OCE) [feedback bgc-ocean]
@@ -504,7 +504,7 @@ module mo_param_bgc
     !ik weight percent iron in dust deposition times Fe solubility
     ! the latter three values come from Johnson et al., 1997
 !    fetune     = 0.6                  ! factor introduced to tune deposition/solubility
-    perc_diron = fetune * 0.035 * 0.01 / 55.85
+!    perc_diron = fetune * 0.035 * 0.01 / 55.85
 !    fesoly     = 0.5*1.e-9            ! max. diss. iron concentration in deep water
 !    relaxfe    = 0.05/365.            ! 1/d complexation rate to relax iron concentration to fesoly
 
@@ -521,11 +521,11 @@ module mo_param_bgc
 !    end if
 !    if (.not. use_AGG) then
 !       dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
-       dustd2   = dustd1*dustd1
-       dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
-     &            * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
-     &            * dustd2 * 1.e-4)
-       wdust = dustsink
+!       dustd2   = dustd1*dustd1
+!       dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
+!     &            * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+!     &            * dustd2 * 1.e-4)
+!       wdust = dustsink
 !    end if
   end subroutine
 
@@ -540,7 +540,7 @@ module mo_param_bgc
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal, &
                          remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,                                      &
-                         wmin,wmax,wlin                                                                               ! use_WLIN and use_AGG
+                         wmin,wmax,wlin
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -556,12 +556,18 @@ module mo_param_bgc
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine readjust_param()
+  subroutine calc_param_biol()
     !
     !  AFTER reading the namelist:
     ! re-adjust parameters that depend on tuning parameters
-    !
+    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
+
     perc_diron = fetune * 0.035 * 0.01 / 55.85
+
+    dustd2   = dustd1*dustd1
+    dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
+             &   * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+             &      * dustd2 * 1.e-4) !m/d
 
   end subroutine
 
@@ -622,7 +628,16 @@ module mo_param_bgc
        wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
 !    end if
 !    if (.not. use_AGG) then
-       wdust = wdust*dtb      !m/d   dust sinking speed
+    dustsink = dustsink*dtb
+    wdust    = dustsink
+    if(dustsink.gt.cellsink .and. use_AGG) then
+       if (mnproc.eq.1)then
+         write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
+         write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
+       endif
+       dustsink = cellsink
+    endif
+!       wdust = wdust*dtb      !m/d   dust sinking speed
 !    end if
   end subroutine
 
@@ -670,18 +685,18 @@ module mo_param_bgc
 
     ! for shear aggregation of dust:
 !    dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
-    dustd2  = dustd1*dustd1
-    dustd3  = dustd2*dustd1
-    dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.
-     &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)*dtb
-    if(dustsink.gt.cellsink) then
-       if (mnproc.eq.1)then
-         write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
-         write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
-       endif
-       dustsink = cellsink
-    endif
+!    dustd2  = dustd1*dustd1
+!    dustd3  = dustd2*dustd1
+!    dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.
+!     &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
+!     &         * dustd2 * 1.e-4)*dtb
+!    if(dustsink.gt.cellsink) then
+!       if (mnproc.eq.1)then
+!         write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
+!         write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
+!       endif
+!       dustsink = cellsink
+!    endif
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
