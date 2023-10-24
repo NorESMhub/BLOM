@@ -330,7 +330,9 @@ module mo_param_bgc
        ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     end if
 
-    ! Set constants for calculation of dms ( mo_carbch )
+    !********************************************************************
+    ! Set constants for calculation of dms
+    !********************************************************************
     ! Parameters are a result from kettle optimisation 02.03.04
     dmspar(6) = 0.100000000E-07 ! 0 half saturation microbial
     dmspar(5) = 1.25*0.02       ! production with delsil, following Kloster et al., 06 Table 1, but increased by a factor of ~2
@@ -352,7 +354,7 @@ module mo_param_bgc
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal, &
                          remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,                                      &
-                         wmin,wmax,wlin
+                         wmin,wmax,wlin,wpoc,wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -361,7 +363,7 @@ module mo_param_bgc
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) '------------------------------------------'
       write(io_stdo_bgc,*) 'iHAMOCC: read namelist bgcparams'
-!      write(io_stdo_bgc,nml=BGCPARAMS)
+      write(io_stdo_bgc,nml=BGCPARAMS)
       write(io_stdo_bgc,*) '------------------------------------------'
     endif
 
@@ -591,7 +593,6 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          atten_c      = ',atten_c
       WRITE(io_stdo_bgc,*) '*          atten_f      = ',atten_f
       WRITE(io_stdo_bgc,*) '*          atten_uv     = ',atten_uv
- !     WRITE(io_stdo_bgc,*) '*          o2ut         = ',o2ut
       WRITE(io_stdo_bgc,*) '*          rno3         = ',rno3
       WRITE(io_stdo_bgc,*) '*          fetune       = ',fetune
       WRITE(io_stdo_bgc,*) '*          perc_diron   = ',perc_diron
