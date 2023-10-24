@@ -99,14 +99,16 @@ module mo_param_bgc
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
   real, protected :: atm_n2 = 802000. ! atmosphere dinitrogen concentration
   real, protected :: atm_o2 = 196800. ! atmosphere oxygen concentration
-  real, protected :: atm_co2_nat      ! atmosphere CO2 concentration CMIP6 pre-industrial reference
-  real, protected :: atm_bromo        ! atmosphere bromophorme concentration
+  real, protected :: atm_co2_nat = 284.32       ! atmosphere CO2 concentration CMIP6 pre-industrial reference
+  real, protected :: atm_bromo = 3.4       ! atmosphere bromophorme concentration
+                                           !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+                                           !BE UPDATED WITH Ziska et al. (2013) climatology database
   ! set standard carbon isotope ratios
-  real, protected :: re1312
-  real, protected :: re14to  ! Karlen et al. 1965 / Orr et al. 2017
+  real, protected :: re1312     = 0.0112372
+  real, protected :: re14to   = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
   ! set preindustr. d13c and bigd14C in atmosphere
-  real, protected :: prei13
-  real, protected :: prei14
+  real, protected :: prei13   = -6.5
+  real, protected :: prei14   = 0.
   real, protected :: c14fac
   real, protected :: c14dec
   ! calculate atm_c13 and atm_c14
@@ -167,7 +169,7 @@ module mo_param_bgc
   real, protected :: tf0     = -2.7819
   real, protected :: tff     =  0.2395
   ! Initial fractionation during photosynthesis
-  real :: bifr13
+  real :: bifr13 = 0.98
   real :: bifr14
   ! Decay parameter for sco214, HalfLive = 5730 years
   real, protected :: c14_t_half  ! Half life of 14C [days]
@@ -176,8 +178,8 @@ module mo_param_bgc
   !      rbro=2.*6.72e-7*rnit
   !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
   real, protected :: rbro
-  real, protected :: fbro1
-  real, protected :: fbro2
+  real, protected :: fbro1 = 1.0
+  real, protected :: fbro2 = 1.0
 
   !********************************************************************
   !     Zooplankton parameters
@@ -223,10 +225,10 @@ module mo_param_bgc
   real :: wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
   real :: wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
   real :: wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-  real, protected :: wmin       !m/d   minimum sinking speed
-  real, protected :: wmax       !m/d   maximum sinking speed
-  real, protected :: wlin        !m/d/m constant describing incr. with depth, r/a=1.0
-  real, protected :: dustd1     ! diameter of clay/dust
+  real, protected :: wmin   =  1.       !m/d   minimum sinking speed
+  real, protected :: wmax   = 60.       !m/d   maximum sinking speed
+  real, protected :: wlin   = 60./2400.      !m/d/m constant describing incr. with depth, r/a=1.0
+  real, protected :: dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
   real, protected :: dustd2
   real, protected :: dustd3
   real, protected :: dustsink ! sinking speed of dust
@@ -234,7 +236,6 @@ module mo_param_bgc
 
   real, protected ::  SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,     &
                       vsmall,safe,pupper,plower,zdis,nmldmin
-
 
   !=================================================================================================================================
   !=================================================================================================================================
@@ -257,7 +258,7 @@ module mo_param_bgc
 
     INTEGER, intent(in) :: kpie,kpje
 
-    call ini_param_atm()           ! Initialize default atmospheric parameters
+!    call ini_param_atm()           ! Initialize default atmospheric parameters
    ! call ini_stoichiometry()       ! Initialize fixed stoichiometric parameters
     call ini_param_biol()          ! initialize biological parameters
     if (use_AGG) then
@@ -278,22 +279,22 @@ module mo_param_bgc
     !
     ! Atmospheric concentrations (atm_co2 is set via BGCNML namelist).
     !
-    if (use_natDIC) then
-       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-    end if
-    if (use_BROMO) then
+!    if (use_natDIC) then
+!       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
+!    end if
+!    if (use_BROMO) then
        !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
        !BE UPDATED WITH Ziska et al. (2013) climatology database
-       atm_bromo   = 3.4
-    end if
-    if (use_cisonew) then
-       ! set standard carbon isotope ratios
-       re1312      = 0.0112372
-       re14to      = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
-       ! set preindustr. d13c and bigd14C in atmosphere
-       prei13      = -6.5
-       prei14      =  0.
-    end if
+!       atm_bromo   = 3.4
+!    end if
+!    if (use_cisonew) then
+!       ! set standard carbon isotope ratios
+!       re1312      = 0.0112372
+!       re14to      = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
+!       ! set preindustr. d13c and bigd14C in atmosphere
+!       prei13      = -6.5
+!       prei14      =  0.
+!    end if
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -408,22 +409,22 @@ module mo_param_bgc
 !    tf0     = -2.7819
 !    tff     =  0.2395
 
-    if (use_cisonew) then
+!    if (use_cisonew) then
        ! Initial fractionation during photosynthesis
-       bifr13     = 0.98
+!       bifr13     = 0.98
        bifr14     = bifr13**2
        ! Decay parameter for sco214, HalfLive = 5730 years
        c14_t_half = 5700.*365. ! Half life of 14C [days]
-    end if
-    if (use_BROMO) then
+!    end if
+!    if (use_BROMO) then
        !Bromoform to phosphate ratio (Hense and Quack, 2009)
        !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
        !      rbro=2.*6.72e-7*rnit
        !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
        rbro  = 2.4e-6*rnit
-       fbro1 = 1.0
-       fbro2 = 1.0
-    end if
+!       fbro1 = 1.0
+!       fbro2 = 1.0
+ !   end if
 
     !********************************************************************
     !     Zooplankton parameters
@@ -513,19 +514,19 @@ module mo_param_bgc
 !    wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
 !    wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
 !    wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-    if (use_WLIN .and. .not. use_AGG) then
-       wmin   =  1.       !m/d   minimum sinking speed
-       wmax   = 60.       !m/d   maximum sinking speed
-       wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
-    end if
-    if (.not. use_AGG) then
-       dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
+!    if (use_WLIN .and. .not. use_AGG) then
+!       wmin   =  1.       !m/d   minimum sinking speed
+!       wmax   = 60.       !m/d   maximum sinking speed
+!       wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
+!    end if
+!    if (.not. use_AGG) then
+!       dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
        dustd2   = dustd1*dustd1
        dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
      &            * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
      &            * dustd2 * 1.e-4)
        wdust = dustsink
-    end if
+!    end if
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -615,14 +616,14 @@ module mo_param_bgc
     wpoc  = wpoc*dtb       !m/d  Sinking speed detritusiris : 5.
     wcal  = wcal*dtb       !m/d  Sinking speed CaCO3
     wopal = wopal*dtb      !m/d  Sinking speed opal iris : 60
-    if (use_WLIN .and. .not. use_AGG) then
+!    if (use_WLIN .and. .not. use_AGG) then
        wmin  = wmin*dtb       !m/d   minimum sinking speed
        wmax  = wmax*dtb       !m/d   maximum sinking speed
        wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
-    end if
-    if (.not. use_AGG) then
+!    end if
+!    if (.not. use_AGG) then
        wdust = wdust*dtb      !m/d   dust sinking speed
-    end if
+!    end if
   end subroutine
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -668,7 +669,7 @@ module mo_param_bgc
     TMFac   = (alar1/alow1)**FractDim
 
     ! for shear aggregation of dust:
-    dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
+!    dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
     dustd2  = dustd1*dustd1
     dustd3  = dustd2*dustd1
     dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.
