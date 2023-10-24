@@ -24,8 +24,8 @@
       <value compset="_DATM%CPLHIST.*_BLOM%ECO">diagnostic</value>
       <value compset="20TR_DATM%IAF.*_BLOM%ECO">diagnostic</value>
     </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
+    <group>run_component_blom</group>
+    <file>env_run.xml</file>
     <desc>Determines provenance of atmospheric CO2 for gas flux computation.
       This option is used in the BLOM ecosystem model.
       The default is constant.</desc>
@@ -36,7 +36,7 @@
     <valid_values>isopyc_bulkml,cntiso_hybrid</valid_values>
     <default_value>isopyc_bulkml</default_value>
     <group>build_component_blom</group>
-    <file>env_build.xml</file>
+    <file>env_run.xml</file>
     <desc>Vertical coordinate type of BLOM</desc>
   </entry>
 
@@ -113,50 +113,6 @@
     <desc>Scenario for nitrogen deposition data. Requires module ecosys</desc>
   </entry>
 
-  <entry id="HAMOCC_CFC">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
-    </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate CFC code. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_NATTRC">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <values>
-      <value compset="HIST_CAM60%NORESM.*_BLOM%ECO">TRUE</value>
-      <value compset="20TR_DATM.*_BLOM%ECO">TRUE</value>
-    </values>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate natural tracer code. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_SEDBYPASS">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to bypass the sediment code. Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_CISO">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate the carbon isotope code. Requires module ecosys</desc>
-  </entry>
-
   <entry id="HAMOCC_SEDSPINUP">
     <type>logical</type>
     <valid_values>TRUE,FALSE</valid_values>
@@ -195,15 +151,6 @@
     <file>env_run.xml</file>
     <desc>Set the number of sub-cycles for HAMOCC sediment spin-up if HAMOCC_SEDSPINUP == TRUE. 
       Requires module ecosys</desc>
-  </entry>
-
-  <entry id="HAMOCC_DEBUG">
-    <type>logical</type>
-    <valid_values>TRUE,FALSE</valid_values>
-    <default_value>FALSE</default_value>
-    <group>build_component_blom</group>
-    <file>env_build.xml</file>
-    <desc>Set preprocessor option to activate the debugging mode for iHAMOCC. Requires module ecosys</desc>
   </entry>
 
   <entry id="BLOM_TURBULENT_CLOSURE">

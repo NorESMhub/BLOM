@@ -1,0 +1,4 @@
+use_cfc = .true.
+use_wlin = .true.
+use_cisonew = .true.
+use_natdic = .true.

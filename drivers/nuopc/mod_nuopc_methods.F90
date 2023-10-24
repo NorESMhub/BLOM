@@ -43,7 +43,7 @@ module mod_nuopc_methods
    use shr_const_mod,  only: SHR_CONST_RHOSW, SHR_CONST_LATICE, SHR_CONST_TKFRZ
 #ifdef HAMOCC
    use mo_carbch,      only: ocetra
-   use mo_control_bgc, only: use_BROMO, use_DIAGCO2, use_PROGCO2
+   use mo_control_bgc, only: use_BROMO, ocn_co2_type
 #endif
 
    implicit none
@@ -858,9 +858,9 @@ contains
 
       index_co2 = -1
 #ifdef HAMOCC
-      if (use_DIAGCO2 .and. index_Sa_co2diag > 0) then
+      if (ocn_co2_type == 'diagnostic' .and. index_Sa_co2diag > 0) then
          index_co2 = index_Sa_co2diag
-      else if (use_PROGCO2 .and. index_Sa_co2prog > 0) then
+      else if (ocn_co2_type == 'prognostic' .and. index_Sa_co2prog > 0) then
          index_co2 = index_Sa_co2prog
       end if
 #endif

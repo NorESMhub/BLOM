@@ -87,8 +87,8 @@
       use mo_biomod,      only: strahl
       use mo_control_bgc, only: ldtrunbgc,dtbgc,ldtbgc,io_stdo_bgc,dtbgc,ndtdaybgc, &
                                 do_sedspinup,sedspin_yr_s,sedspin_yr_e,sedspin_ncyc, &
-                                use_PROGCO2,use_DIAGCO2,use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,&
-                                use_BOXATM, use_sedbypass
+                                use_BROMO, use_CFC, use_PBGC_CK_TIMESTEP,&
+                                use_BOXATM, use_sedbypass,ocn_co2_type
       use mo_param1_bgc,  only: iatmco2,iatmdms,nocetra,nriv,iatmbromo 
       use mo_vgrid,       only: set_vgrid
       use mo_apply_fedep, only: apply_fedep
@@ -166,7 +166,7 @@
 !--------------------------------------------------------------------
 ! Pass atmospheric co2 if coupled to an active atmosphere model
 !
-      if (use_PROGCO2 .or. use_DIAGCO2) then
+      if (trim(ocn_co2_type) == 'diagnostic' .or. trim(ocn_co2_type) == 'prognostic') then
          !$OMP PARALLEL DO PRIVATE(i)
          DO  j=1,kpje
             DO  i=1,kpie
