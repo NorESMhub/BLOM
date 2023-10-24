@@ -45,7 +45,9 @@ module mo_param_bgc
 
   use mo_carbch,      only: atm,atm_co2
   use mo_sedmnt,      only: claydens
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
+                          & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
+                          & use_PROGCO2,use_DIAGCO2,use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP
   use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
@@ -221,9 +223,9 @@ module mo_param_bgc
   real :: wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
   real :: wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
   real :: wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-  real, protected :: wmin=-1       !m/d   minimum sinking speed
-  real, protected :: wmax=-1       !m/d   maximum sinking speed
-  real, protected :: wlin=-1       !m/d/m constant describing incr. with depth, r/a=1.0
+  real, protected :: wmin       !m/d   minimum sinking speed
+  real, protected :: wmax       !m/d   maximum sinking speed
+  real, protected :: wlin        !m/d/m constant describing incr. with depth, r/a=1.0
   real, protected :: dustd1     ! diameter of clay/dust
   real, protected :: dustd2
   real, protected :: dustd3
@@ -694,6 +696,27 @@ module mo_param_bgc
     IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
       WRITE(io_stdo_bgc,*) '* '
+      WRITE(io_stdo_bgc,*) '* Configuration: '
+      WRITE(io_stdo_bgc,*) '*          use_BROMO              = ',use_BROMO
+      WRITE(io_stdo_bgc,*) '*          use_AGG                = ',use_AGG
+      WRITE(io_stdo_bgc,*) '*          use_WLIN               = ',use_WLIN
+      WRITE(io_stdo_bgc,*) '*          use_natDIC             = ',use_natDIC
+      WRITE(io_stdo_bgc,*) '*          use_CFC                = ',use_CFC
+      WRITE(io_stdo_bgc,*) '*          use_cisonew            = ',use_cisonew
+      WRITE(io_stdo_bgc,*) '*          use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
+      WRITE(io_stdo_bgc,*) '*          use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
+      WRITE(io_stdo_bgc,*) '*          use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
+      WRITE(io_stdo_bgc,*) '*          use_BOXATM             = ',use_BOXATM
+      WRITE(io_stdo_bgc,*) '*          use_sedbypass          = ',use_sedbypass
+      WRITE(io_stdo_bgc,*) '*          use_PROGCO2            = ',use_PROGCO2
+      WRITE(io_stdo_bgc,*) '*          use_DIAGCO2            = ',use_DIAGCO2
+      WRITE(io_stdo_bgc,*) '*          do_ndep                = ',do_ndep
+      WRITE(io_stdo_bgc,*) '*          do_rivinpt             = ',do_rivinpt
+      WRITE(io_stdo_bgc,*) '*          do_oalk                = ',do_oalk
+      WRITE(io_stdo_bgc,*) '*          with_dmsph             = ',with_dmsph
+      WRITE(io_stdo_bgc,*) '*          do_sedspinup           = ',do_sedspinup
+      WRITE(io_stdo_bgc,*) '*          l_3Dvarsedpor          = ',l_3Dvarsedpor
+      WRITE(io_stdo_bgc,*) '* '
       WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
       WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2
       if (use_cisonew) then
@@ -778,9 +801,9 @@ module mo_param_bgc
          WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
       end if
       if (use_WLIN .and. .not. use_AGG) then
-         WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin
-         WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax
-         WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin
+         WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin*dtbinv
+         WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax*dtbinv
+         WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin*dtbinv
       end if
       if (.not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
