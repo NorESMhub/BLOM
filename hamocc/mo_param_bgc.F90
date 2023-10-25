@@ -44,7 +44,7 @@ module mo_param_bgc
 !******************************************************************************
 
   use mo_carbch,      only: atm_co2
-  use mo_sedmnt,      only: claydens
+  use mo_sedmnt,      only: claydens,rno3
   use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
                           & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
                           & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
@@ -58,7 +58,7 @@ module mo_param_bgc
   !---------------------------------------------------------------------------------------------------------------------------------
   !Model parameters
   public :: ini_parambgc
-  public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,rno3,atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,    &
+  public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,              &
             re14to,prei13,prei14,ctochl,atten_w,atten_c,atten_uv,atten_f,fetune,perc_diron,fesoly,relaxfe,phytomi,pi_alpha,bkphy,  &
             dyphy,bluefix,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half,rbro,fbro1,fbro2,grami,bkzoo,grazra,spemor,gammap,gammaz,ecan,  &
             zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,dmspar,wpoc,wcal,wopal,wmin,wmax,wlin, &
@@ -91,7 +91,7 @@ module mo_param_bgc
 
   !ik for interaction with sediment module
   !real, parameter :: o2ut   = 172.               ! oxygen utilization
-  real, parameter :: rno3   = 16.                 ! mol N per mol P (once used in sediment)
+  !real, parameter :: rno3   = 16.                 ! mol N per mol P (once used in sediment)
 
 
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -340,7 +340,7 @@ module mo_param_bgc
     dmspar(3) = 0.0864          ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
     dmspar(2) = 0.0011          ! following Kloster et al., 06 Table 1
     dmspar(1) = 10.             ! 2*5. production with temp
-
+    rno3      = rnit
   end subroutine ini_param_biol
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -618,7 +618,7 @@ module mo_param_bgc
       if (.not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
          WRITE(io_stdo_bgc,*) '*          dustd2       = ',dustd2
-         WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink
+         WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink*dtbinv
          WRITE(io_stdo_bgc,*) '*          wdust        = ',wdust*dtbinv
       else
          write(io_stdo_bgc,*)

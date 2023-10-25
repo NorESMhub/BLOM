@@ -61,7 +61,6 @@
 !     *rno3*           *REAL*  - .
 !     *calcon*         *REAL*  - .
 !     *ansed*          *REAL*  - .
-!     *o2ut*           *REAL*  - .
 !
 !     -subroutine ini_sedmnt
 !         Initialize sediment parameters (some are also used in water column)
@@ -100,7 +99,7 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: produs
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: burial
 
-      REAL :: sedict,rno3,o2ut,ansed
+      REAL :: sedict,rno3,ansed
       REAL :: calcwei, opalwei, orgwei
       REAL :: calcdens, opaldens, orgdens, claydens
       REAL :: calfa, oplfa, orgfa, clafa
