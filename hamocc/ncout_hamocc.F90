@@ -149,7 +149,7 @@ subroutine ncwrt_bgc(iogrp)
                            bur_sssc12,bur_ssssil,bur_ssster,bur_ssso12,          &
                            inisdm,inibur,wrtsdm,accbur,accsdm,wrtbur,            &
                            jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2
-  use mo_biomod, only: c14fac
+  use mo_param_bgc, only: c14fac
 
   implicit none
 

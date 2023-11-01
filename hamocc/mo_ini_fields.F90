@@ -16,9 +16,57 @@
 !
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
+module mo_ini_fields
 
-      SUBROUTINE BELEG_VARS(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,      &
-                            pglon,pglat)
+  implicit none
+
+  private
+
+  public :: ini_fields_ocean,ini_fields_atm
+
+  contains
+
+  !---------------------------------------------------------------------------------------------------------------------------------
+  subroutine ini_fields_atm(kpie,kpje)
+    use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
+    use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
+    use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
+    use mo_carbch,      only: atm,atm_co2
+
+    implicit none
+
+    !
+    ! Initialise atmosphere fields. We use a 2D representation of atmospheric
+    ! fields for simplicity, even for cases where actually only a scalar value
+    ! is used. The overhead of this is small. If an atm-field is present in
+    ! restart file (if BOXATM is activated), this will be overwritten later.
+    !
+
+    INTEGER, intent(in) :: kpie,kpje
+    INTEGER             :: i,j
+
+    DO j=1,kpje
+    DO i=1,kpie
+      atm(i,j,iatmco2)  = atm_co2
+      atm(i,j,iatmo2)   = atm_o2
+      atm(i,j,iatmn2)   = atm_n2
+      if (use_natDIC) then
+         atm(i,j,iatmnco2) = atm_co2_nat
+      end if
+      if (use_cisonew) then
+         atm(i,j,iatmc13)  = atm_c13
+         atm(i,j,iatmc14)  = atm_c14/c14fac
+      end if
+      if (use_BROMO) then
+         atm(i,j,iatmbromo)= atm_bromo
+      end if
+    ENDDO
+    ENDDO
+  end subroutine ini_fields_atm
+
+
+
+  SUBROUTINE ini_fields_ocean(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
 !******************************************************************************
 !
 ! BELEG_VARS - initialize bgc variables.
@@ -53,7 +101,8 @@
 !******************************************************************************
 
       use mo_carbch,      only: co2star,co3,hi,ocetra 
-      use mo_biomod,      only: fesoly 
+      use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to
+      use mo_biomod,      only: abs_oce
       use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
                                 iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, & 
@@ -63,7 +112,6 @@
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
                                 ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14 
       use mo_vgrid,       only: kmle,kbo
-      use mo_biomod,      only: cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to,abs_oce
       use mo_carbch,      only: nathi,natco3
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
 
@@ -275,6 +323,6 @@
 
       return
 !******************************************************************************
-      end subroutine beleg_vars
+  end subroutine ini_fields_ocean
 
-
+end module mo_ini_fields

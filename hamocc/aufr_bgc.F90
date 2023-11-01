@@ -117,7 +117,7 @@
       use mo_vgrid,       only: kbo
       use mo_sedmnt,      only: sedhpl
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
-      use mo_biomod,      only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
+      use mo_param_bgc,   only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
 
       implicit none
 

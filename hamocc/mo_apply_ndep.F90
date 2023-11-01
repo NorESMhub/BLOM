@@ -84,8 +84,7 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 !  *REAL*      *ndep*    - N-deposition field to apply
 !
 !******************************************************************************
-  use mod_xc,         only: mnproc
-  use mo_control_bgc, only: io_stdo_bgc,dtb,do_ndep
+  use mo_control_bgc, only: dtb,do_ndep
   use mo_carbch,      only: ocetra,ndepflx
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
   use mo_control_bgc, only: use_natDIC

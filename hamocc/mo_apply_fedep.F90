@@ -74,7 +74,7 @@ subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 !--------------------------------------------------------------------------------
   use mo_control_bgc, only: dtb
   use mo_param1_bgc,  only: ifdust,iiron
-  use mo_biomod,      only: perc_diron
+  use mo_param_bgc,   only: perc_diron
   use mo_carbch,      only: ocetra
 
   implicit none

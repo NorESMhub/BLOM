@@ -68,6 +68,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
                             bgc_dx,bgc_dy,bgc_dp,bgc_rho,                 &
                             omask,sedlay2,powtra2,burial2,                &
                             blom2hamocc,atm2
+  use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
   implicit none
 
   integer,          intent(in) :: read_rest
@@ -179,8 +180,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   ! --- Initialize parameters, sediment and ocean tracer.
   !
   CALL ini_parambgc(idm,jdm)
-  CALL BELEG_VARS(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,              &
-       &   plon,plat)
+  call ini_fields_atm(idm,jdm) ! initialize atmospheric fields with (updated) parameter values
+  CALL ini_fields_ocean(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,plon,plat)
   !
   ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
   !

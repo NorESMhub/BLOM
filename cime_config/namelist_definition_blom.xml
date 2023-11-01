@@ -324,7 +324,7 @@
     <values>
       <value>.002</value>
     </values>
-    <desc>Nondiemnsional coefficient of quadratic bottom friction (f)</desc>
+    <desc>Nondimensional coefficient of quadratic bottom friction (f)</desc>
   </entry>
 
   <entry id="cwbdts">
@@ -337,7 +337,7 @@
       <value ocn_grid="tnx0.25v4" >0.75e-4</value>
       <value ocn_grid="tnx0.125v4">.75e-4</value>
     </values>
-    <desc>Coastal wave breaking damping resiprocal time scale (1/s) (f)</desc>
+    <desc>Coastal wave breaking damping reciprocal time scale (1/s) (f)</desc>
   </entry>
 
   <entry id="cwbdls">

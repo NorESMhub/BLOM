@@ -43,28 +43,207 @@ module mo_param_bgc
 !
 !******************************************************************************
 
-  use mo_carbch,      only: atm,atm_co2,atm_n2,atm_o2,dmspar,                                                                      &
-                            atm_bromo,fbro1,fbro2,atm_c13, atm_c14,c14_t_half,c14dec,atm_co2_nat
-  use mo_biomod,      only: atten_c,atten_f,atten_uv,atten_w,bkopal,bkphy,bkopal,bkzoo,bluefix,ctochl,dremn2o,dremopal,            &
-                            drempoc,dremsul,dyphy,ecan,epsher,fesoly,fetune,gammap,gammaz,grami,grazra,perc_diron,phytomi,         &
-                            pi_alpha,rcalc,rcar, rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,          &
-                            ropal,spemor,tf0,tf1,tf2,tff,wcal,wdust,wopal,wpoc,zinges,                                             &
-                            alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,cellsink,dustd1,dustd2,dustd3,dustsink,            &
-                            fractdim,fse,fsh,nmldmin,plower,pupper,safe,sinkexp,stick,tmfac,tsfac,vsmall,zdis,wmin,wmax,wlin,rbro, &
-                            bifr13,bifr14,c14fac,prei13,prei14,re1312,re14to
-  use mo_sedmnt,      only: claydens,o2ut,rno3
-  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN
-  use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
+  use mo_carbch,      only: atm_co2
+  use mo_sedmnt,      only: claydens,rno3
+  use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
+                          & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
+                          & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
+!  use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
   implicit none
 
   private
-
+  !---------------------------------------------------------------------------------------------------------------------------------
+  !---------------------------------------------------------------------------------------------------------------------------------
+  !Model parameters
   public :: ini_parambgc
+  public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,              &
+            re14to,prei13,prei14,ctochl,atten_w,atten_c,atten_uv,atten_f,fetune,perc_diron,fesoly,relaxfe,phytomi,pi_alpha,bkphy,  &
+            dyphy,bluefix,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half,rbro,fbro1,fbro2,grami,bkzoo,grazra,spemor,gammap,gammaz,ecan,  &
+            zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,dmspar,wpoc,wcal,wopal,wmin,wmax,wlin, &
+            dustd1,dustd2,dustd3,dustsink,wdust,SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,   &
+            alar2,alar3,TSFac,TMFac,vsmall,safe,pupper,plower,zdis,nmldmin,beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
+
+  !.................................................................................................................................
+  !.................................................................................................................................
+  ! Stoichiometry and fixed parameters
+  !.................................................................................................................................
+  ! extended redfield ratio declaration
+  ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
+  ! P:N:C:-O2 + 1:16:122:172
+  real, parameter :: ro2ut  = 172.                ! Oxygen utilization
+  real, parameter :: rcar   = 122.                ! mol C per mol P
+  real, parameter :: rnit   = 16.                 ! mol N per mol P
+  real, parameter :: rnoi   = 1./rnit             ! mol P per mol N
+  real, parameter :: riron  = 5.*rcar*1.e-6       ! fe to P ratio in organic matter
+
+  ! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
+  ! equation 18. Note that their R_0=ro2ut-2*rnit.
+  real, parameter :: rdnit0 = 0.8*ro2ut           ! moles nitrate lost for remineralisation of 1 mole P
+  real, parameter :: rdnit1 = 0.8*ro2ut - rnit    ! moles nitrate net  for remineralisation of 1 mole P
+  real, parameter :: rdnit2 = 0.4*ro2ut           ! moles N2 released  for remineralisation of 1 mole P
+
+  ! stoichiometric ratios for N2O loss by "intermediate dinitrification". Note that there
+  ! is no nitrate created by this process, organic N is released as N2
+  real, parameter :: rdn2o1 = 2*ro2ut - 2.5*rnit  ! moles N2O used for remineralisation of 1 mole P
+  real, parameter :: rdn2o2 = 2*ro2ut - 2*rnit    ! moles N2 released  for remineralisation of 1 mole P
+
+  !ik for interaction with sediment module
+  !real, parameter :: o2ut   = 172.               ! oxygen utilization
+  !real, parameter :: rno3   = 16.                 ! mol N per mol P (once used in sediment)
+
+
+  !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  ! Atmosphere:
+  !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  real, protected :: atm_n2      = 802000.        ! atmosphere dinitrogen concentration
+  real, protected :: atm_o2      = 196800.        ! atmosphere oxygen concentration
+  real, protected :: atm_co2_nat = 284.32         ! atmosphere CO2 concentration CMIP6 pre-industrial reference
+  real, protected :: atm_bromo   = 3.4            ! atmosphere bromophorme concentration
+                                                  ! For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+                                                  !BE UPDATED WITH Ziska et al. (2013) climatology database
+  ! set standard carbon isotope ratios
+  real, protected :: re1312     = 0.0112372
+  real, protected :: re14to     = 1.170e-12       ! Karlen et al. 1965 / Orr et al. 2017
+  ! set preindustr. d13c and bigd14C in atmosphere
+  real, protected :: prei13     = -6.5
+  real, protected :: prei14     = 0.
+  real, protected :: c14fac                       ! factor for normalizing 14C tracers (~1e-12)
+  real, protected :: c14dec
+  ! calculate atm_c13 and atm_c14
+  real, protected :: atm_c13
+  real, protected :: atm_c14                      ! absolute 14c concentration in preindustrial atmosphere
+
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! Water column biogeochemistry
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! Initialize default biogeochemistry parameters
+  ! Note that rates are initialized here in /d or equivalent and
+  ! time step adjustment is done after reading the BGCPARAMS namelist
+
+  !********************************************************************
+  !     Radiation and attenuation parameters
+  !********************************************************************
+  ! parameters for sw-radiation attenuation
+  ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
+  ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
+  real, parameter :: ctochl     = 60.             ! C to Chlorophyl ratio
+  real, protected :: atten_w    = 0.04            ! yellow substances attenuation in 1/m
+  real, protected :: atten_c    = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
+  real, protected :: atten_uv   = 0.33
+  real, protected :: atten_f    = 0.4             ! fraction of sw-radiation directly absorbed in surface layer
+                                                  ! (only if FB_BGC_OCE) [feedback bgc-ocean]
+
+  !********************************************************************
+  !     Dust deposition and iron solubility parameters
+  !********************************************************************
+  !ik weight percent iron in dust deposition times Fe solubility
+  ! the latter three values come from Johnson et al., 1997
+  real, protected :: fetune     = 0.6             ! factor introduced to tune deposition/solubility
+  real, protected :: perc_diron
+  real, protected :: fesoly     = 0.5*1.e-9       ! max. diss. iron concentration in deep water
+  real, protected :: relaxfe    = 0.05/365.       ! 1/d complexation rate to relax iron concentration to fesoly
+
+  !********************************************************************
+  !     Phytoplankton parameters (incl. cyanobacteria)
+  !********************************************************************
+  real, protected :: phytomi    = 1.e-11          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
+  real, protected :: pi_alpha   = 0.02*0.4        ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
+  real, protected :: bkphy      = 4.e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
+  real, protected :: dyphy      = 0.004           ! 1/d -mortality rate of phytoplankton
+
+  ! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
+  ! Factors tf2, tf1 and tf0 are a polynomial (2nd order)
+  ! approximation to the functional relationship by Breitbarth et al. (2007),
+  ! for temperature dependence of Trichodesmium growth, their eq. (2)
+  ! The relation will be scaled to their max. growth rate, tff.
+  ! Note that the second order approx. is basically similar to their
+  ! function 2 for T-dependent nitrogen fixation multiplied by 4
+  ! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
+  real, protected :: bluefix    =  0.005          ! 1/d  ! nitrogen fixation rate by blue green algae (cyanobacteria)
+  real, protected :: tf2        = -0.0042
+  real, protected :: tf1        =  0.2253
+  real, protected :: tf0        = -2.7819
+  real, protected :: tff        =  0.2395
+
+  ! Initial fractionation during photosynthesis
+  real :: bifr13 = 0.98
+  real :: bifr14
+
+  ! Decay parameter for sco214, HalfLive = 5730 years
+  real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
+
+  !Bromoform to phosphate ratio (Hense and Quack, 2009)
+  !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
+  !      rbro=2.*6.72e-7*rnit
+  !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
+  real, protected :: rbro       = 2.4e-6*rnit
+  real, protected :: fbro1      = 1.0
+  real, protected :: fbro2      = 1.0
+
+  !********************************************************************
+  !     Zooplankton parameters
+  !********************************************************************
+  real, protected :: grami      = 1.e-10          ! kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
+  real, protected :: bkzoo      = 8.e-8           ! kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
+
+  !ik addded parameter definition; taken from OCPROD.F
+  real, protected :: grazra     = 1.2             ! 1/d - grazing rate
+  real, protected :: spemor     = 3.*1.e6         ! 1/d - mortality rate
+  real, protected :: gammap     = 0.04            ! 1/d - exudation rate
+  real, protected :: gammaz     = 0.06            ! 1/d - excretion rate
+  real, protected :: ecan       = 0.95            ! fraction of mortality as PO_4
+  real, protected :: zinges                       ! dimensionless fraction - assimilation efficiency
+  real, protected :: epsher                       ! dimensionless fraction - fraction of grazing egested
+
+  !********************************************************************
+  !     Shell production (CaCO3 and opal) parameters
+  !********************************************************************
+  real, protected :: bkopal     = 5.e-6           ! kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
+  real, protected :: rcalc                        ! calcium carbonate to organic phosphorous production ratio
+  real, protected :: ropal                        ! opal to organic phosphorous production ratio
+  real, protected :: calmax                       ! maximum CaCO3 production fraction
+
+  !********************************************************************
+  !     Remineralization and dissolution parameters (incl. DMS prod.)
+  !********************************************************************
+  real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
+  ! deep sea remineralisation constants
+  real, protected :: drempoc    = 0.025           ! 1/d Aerob remineralization rate detritus
+  real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
+  real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
+  real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+
+  ! Set constants for calculation of dms ( mo_carbch )
+  ! Parameters are a result from kettle optimisation 02.03.04
+  real, protected :: dmspar(6)
+  !.................................................................................................................................
+
+  !********************************************************************
+  !     Sinking parameters
+  !********************************************************************
+  real :: wpoc                  =  5.             ! m/d   Sinking speed of detritus iris : 5.
+  real :: wcal                  = 30.             ! m/d   Sinking speed of CaCO3 shell material
+  real :: wopal                 = 30.             ! m/d   Sinking speed of opal iris : 60
+  real :: wdust                                   ! m/d   Sinking speed of dust
+  real, protected :: wmin       =  1.             ! m/d   minimum sinking speed
+  real, protected :: wmax       = 60.             ! m/d   maximum sinking speed
+  real, protected :: wlin       = 60./2400.       ! m/d/m constant describing incr. with depth, r/a=1.0
+  real, protected :: dustd1     = 0.0001          ! cm = 1 um, boundary between clay and silt
+  real, protected :: dustd2                       ! dust diameter squared
+  real, protected :: dustd3                       ! dust diameter cubed
+  real, protected :: dustsink                     ! sinking speed of dust (used use_AGG)
+
+  real, protected ::  SinkExp, FractDim, Stick, cellmass, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,     &
+                      vsmall,safe,pupper,plower,zdis,nmldmin
+  real, protected :: cellsink = 9999.
+
+  !=================================================================================================================================
+  !=================================================================================================================================
 
   ! Module-wide variables used in more than one subroutine
-  REAL :: beta13, alpha14, d14cat, d13c_atm  ! cisonew
+  real :: beta13, alpha14, d14cat, d13c_atm
 
   contains
 
@@ -73,16 +252,15 @@ module mo_param_bgc
     !
     ! First, Initialze parameters of individual components with default values.
     ! The order of initialization can matter due to interdependcies.
-    ! Then read the namelist and adjust rates to 'per time step'
-    ! Re-adjust dependent parameter values
+    ! Then read the namelist and initialize dependent parameter values
+    ! adjust rates to 'per time step'
     ! Eventually write out the used parameters to the log file
     !
+
     implicit none
 
     INTEGER, intent(in) :: kpie,kpje
 
-    call ini_param_atm()           ! Initialize default atmospheric parameters
-    call ini_stoichiometry()       ! Initialize fixed stoichiometric parameters
     call ini_param_biol()          ! initialize biological parameters
     if (use_AGG) then
        call ini_aggregation()      ! Initialize aggregation module of Iris Kriest (no NML read thus far)
@@ -90,38 +268,11 @@ module mo_param_bgc
 
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
-    call ini_fields_atm(kpie,kpje) ! initialize atmospheric fields with (updated) parameter values
-    call readjust_param()          ! potentially readjust namlist parameter-dependent parameters
+    call calc_param_biol()          ! potentially readjust namlist parameter-dependent parameters
     call rates_2_timestep()        ! Converting rates from /d... to /dtb
 
     call write_parambgc()          ! write out used parameters and calculate back rates from /dtb to /d..
-  end subroutine
-
-  !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_param_atm()
-    !
-    ! Atmospheric concentrations (atm_co2 is set via BGCNML namelist).
-    !
-    atm_o2      = 196800.
-    atm_n2      = 802000.
-
-    if (use_natDIC) then
-       atm_co2_nat = 284.32 ! CMIP6 pre-industrial reference
-    end if
-    if (use_BROMO) then
-       !For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
-       !BE UPDATED WITH Ziska et al. (2013) climatology database
-       atm_bromo   = 3.4
-    end if
-    if (use_cisonew) then
-       ! set standard carbon isotope ratios
-       re1312      = 0.0112372
-       re14to      = 1.170e-12  ! Karlen et al. 1965 / Orr et al. 2017
-       ! set preindustr. d13c and bigd14C in atmosphere
-       prei13      = -6.5
-       prei14      =  0.
-    end if
-  end subroutine
+  end subroutine ini_parambgc
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine calc_param_atm()
@@ -141,219 +292,56 @@ module mo_param_bgc
        ! factor for normalizing 14C tracers (~1e-12)
        c14fac   = atm_c14/atm_co2
     end if
-  end subroutine
-
-  !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_fields_atm(kpie,kpje)
-    ! AFTER having read the nml:
-    ! Initialise atmosphere fields. We use a 2D representation of atmospheric
-    ! fields for simplicity, even for cases where actually only a scalar value
-    ! is used. The overhead of this is small. If an atm-field is present in
-    ! restart file (if BOXATM is activated), this will be overwritten later.
-
-    INTEGER, intent(in) :: kpie,kpje
-
-    ! local variables
-    INTEGER :: i,j
-
-    DO j=1,kpje
-    DO i=1,kpie
-      atm(i,j,iatmco2)  = atm_co2
-      atm(i,j,iatmo2)   = atm_o2
-      atm(i,j,iatmn2)   = atm_n2
-      if (use_natDIC) then
-         atm(i,j,iatmnco2) = atm_co2_nat
-      end if
-      if (use_cisonew) then
-         atm(i,j,iatmc13)  = atm_c13
-         atm(i,j,iatmc14)  = atm_c14/c14fac
-      end if
-      if (use_BROMO) then
-         atm(i,j,iatmbromo)= atm_bromo
-      end if
-    ENDDO
-    ENDDO
-  end subroutine
-
-  !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_stoichiometry()
-    !
-    ! Initialize FIXED stoichiometric parameters for iHAMOCC
-    !
-    ! extended redfield ratio declaration
-    ! Note: stoichiometric ratios are based on Takahashi etal. (1985)
-    ! P:N:C:-O2 + 1:16:122:172
-    ro2ut  = 172.
-    rcar   = 122.
-    rnit   = 16.
-    rnoi   = 1./rnit
-    riron  = 5.*rcar*1.e-6       ! fe to P ratio in organic matter
-
-    ! stoichiometric ratios for denitrification from Paulmier et al. 2009, Table 1 and
-    ! equation 18. Note that their R_0=ro2ut-2*rnit.
-    rdnit0 = 0.8*ro2ut           ! moles nitrate lost for remineralisation of 1 mole P
-    rdnit1 = 0.8*ro2ut - rnit    ! moles nitrate net  for remineralisation of 1 mole P
-    rdnit2 = 0.4*ro2ut           ! moles N2 released  for remineralisation of 1 mole P
-
-    ! stoichiometric ratios for N2O loss by "intermediate dinitrification". Note that there
-    ! is no nitrate created by this process, organic N is released as N2
-    rdn2o1 = 2*ro2ut - 2.5*rnit  ! moles N2O used for remineralisation of 1 mole P
-    rdn2o2 = 2*ro2ut - 2*rnit    ! moles N2 released  for remineralisation of 1 mole P
-
-    !ik for interaction with sediment module
-    o2ut   = 172.
-    rno3   = 16.
-  end subroutine
+  end subroutine calc_param_atm
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_param_biol()
     !
-    ! Initialize default biogeochemistry parameters.
+    ! BEFORE reading the namelist:
+    ! Default parameters that depend on use case
     !
-    ! Note that rates are initialized here in /d or equivalent and
-    ! time step adjustment is done after reading the BGCPARAMS namelist
-    !
-    !********************************************************************
-    !     Phytoplankton parameters (incl. cyanobacteria)
-    !********************************************************************
-    phytomi = 1.e-11        !kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of phyto plankton (?js)
-    pi_alpha= 0.02*0.4      ! initial slope of production vs irradiance curve (alpha) (0.002 for 10 steps per day)
-    bkphy   = 4.e-8         !kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
-    dyphy   = 0.004         !1/d -mortality rate of phytoplankton
-
-    ! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
-    ! Factors tf2, tf1 and tf0 are a polynomial (2nd order)
-    ! approximation to the functional relationship by Breitbarth et al. (2007),
-    ! for temperature dependence of Trichodesmium growth, their eq. (2)
-    ! The relation will be scaled to their max. growth rate, tff.
-    ! Note that the second order approx. is basically similar to their
-    ! function 2 for T-dependent nitrogen fixation multiplied by 4
-    ! (2 [N atoms per mole] * 12 [light hrs per day]/6 [C-atoms per N-atoms])
-    bluefix =  0.005         !1/d  ! nitrogen fixation rate by blue green algae (cyanobacteria)
-    tf2     = -0.0042
-    tf1     =  0.2253
-    tf0     = -2.7819
-    tff     =  0.2395
-
-    if (use_cisonew) then
-       ! Initial fractionation during photosynthesis
-       bifr13     = 0.98
-       bifr14     = bifr13**2
-       ! Decay parameter for sco214, HalfLive = 5730 years
-       c14_t_half = 5700.*365. ! Half life of 14C [days]
-    end if
-    if (use_BROMO) then
-       !Bromoform to phosphate ratio (Hense and Quack, 2009)
-       !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
-       !      rbro=2.*6.72e-7*rnit
-       !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
-       rbro  = 2.4e-6*rnit
-       fbro1 = 1.0
-       fbro2 = 1.0
-    end if
 
     !********************************************************************
     !     Zooplankton parameters
     !********************************************************************
-    grami   = 1.e-10        !kmol/m3 - i.e. 1e-5 mmol P/m3 minimum concentration of zooplankton
-    bkzoo   = 8.e-8         !kmol/m3 - i.e. 0.08 mmol P/m3 half saturation constant
-
-    !ik addded parameter definition; taken from OCPROD.F
-    grazra  = 1.2           !1/d -grazing rate
-    spemor  = 3.*1.e6       !1/d -mortality rate
-    gammap  = 0.04          !1/d -exudation rate
-    gammaz  = 0.06          !1/d -excretion rate
-    ecan    = 0.95          ! fraction of mortality as PO_4
     if (use_AGG) then
-       zinges  = 0.5        !dimensionless fraction -assimilation efficiency
-       epsher  = 0.9        !dimensionless fraction -fraction of grazing egested
+       zinges  = 0.5        ! dimensionless fraction -assimilation efficiency
+       epsher  = 0.9        ! dimensionless fraction -fraction of grazing egested
     else if (use_WLIN) then
-       zinges  = 0.7        !dimensionless fraction -assimilation efficiency
-       epsher  = 0.85       !dimensionless fraction -fraction of grazing egested
+       zinges  = 0.7        ! dimensionless fraction -assimilation efficiency
+       epsher  = 0.85       ! dimensionless fraction -fraction of grazing egested
     else
-       zinges  = 0.6        !dimensionless fraction -assimilation efficiency
-       epsher  = 0.8        !dimensionless fraction -fraction of grazing egest
+       zinges  = 0.6        ! dimensionless fraction -assimilation efficiency
+       epsher  = 0.8        ! dimensionless fraction -fraction of grazing egest
     end if
 
     !********************************************************************
     !     Shell production (CaCO3 and opal) parameters
     !********************************************************************
-    bkopal = 5.e-6   ! kmol/m3 - i.e. 4.0 mmol Si/m3 half saturation constant
     if (use_AGG) then
-       rcalc  = 14.  ! calcium carbonate to organic phosphorous production ratio
-       ropal  = 10.5 ! opal to organic phosphorous production ratio
+       rcalc  = 14.         ! calcium carbonate to organic phosphorous production ratio
+       ropal  = 10.5        ! opal to organic phosphorous production ratio
        calmax = 0.20
     else if (use_WLIN) then
-       rcalc  = 33.  ! calcium carbonate to organic phosphorous production ratio
-       ropal  = 45.  ! opal to organic phosphorous production ratio
+       rcalc  = 33.         ! calcium carbonate to organic phosphorous production ratio
+       ropal  = 45.         ! opal to organic phosphorous production ratio
     else
-       rcalc  = 40.  ! iris 40 !calcium carbonate to organic phosphorous production ratio
-       ropal  = 30.  ! iris 25 !opal to organic phosphorous production ratio
+       rcalc  = 40.         ! iris 40 !calcium carbonate to organic phosphorous production ratio
+       ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     end if
 
     !********************************************************************
-    !     Remineralization and dissolution parameters (incl. DMS prod.)
+    ! Set constants for calculation of dms
     !********************************************************************
-    remido   = 0.004    !1/d -remineralization rate (of DOM)
-    ! deep sea remineralisation constants
-    drempoc  = 0.025    !1/d Aerob remineralization rate detritus
-    dremopal = 0.003    !1/d Dissolution rate for opal
-    dremn2o  = 0.01     !1/d Remineralization rate of detritus on N2O
-    dremsul  = 0.005    !1/d Remineralization rate for sulphate reduction
-
-    ! Set constants for calculation of dms ( mo_carbch )
     ! Parameters are a result from kettle optimisation 02.03.04
-    dmspar(6)=0.100000000E-07  !0 half saturation microbial
-    dmspar(5)=1.25*0.02  ! production with delsil, following Kloster et al., 06 Table 1, but increased by a factor of ~2
-    dmspar(4)=1.25*0.10  ! production with delcar, following Kloster et al., 06 Table 1, but reduced by ~7%
-    dmspar(3)=0.0864     ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
-    dmspar(2)=0.0011     ! following Kloster et al., 06 Table 1
-    dmspar(1)=10.        ! 2*5. production with temp
-
-
-    !********************************************************************
-    !     Radiation and attenuation parameters
-    !********************************************************************
-    ! parameters for sw-radiation attenuation
-    ! Analog to Moore et al., Deep-Sea Research II 49 (2002), 403-462
-    ! 1 kmolP = (122*12/60)*10^6 mg[Chlorophyl]
-    ctochl  = 60.        ! C to Chlorophyl ratio
-    atten_w = 0.04       ! yellow substances attenuation in 1/m
-    atten_c = 0.03*rcar*(12./ctochl)*1.e6  ! phytoplankton attenuation in 1/m
-    atten_uv= 0.33       !
-    atten_f = 0.4        ! fraction of sw-radiation directly absorbed in surface layer
-                         ! (only if FB_BGC_OCE) [feedback bgc-ocean]
-
-    !********************************************************************
-    !     Dust deposition and iron solubility parameters
-    !********************************************************************
-    !ik weight percent iron in dust deposition times Fe solubility
-    ! the latter three values come from Johnson et al., 1997
-    fetune     = 0.6                  ! factor introduced to tune deposition/solubility
-    perc_diron = fetune * 0.035 * 0.01 / 55.85
-    fesoly     = 0.5*1.e-9            ! max. diss. iron concentration in deep water
-    relaxfe    = 0.05/365.            ! 1/d complexation rate to relax iron concentration to fesoly
-
-    !********************************************************************
-    !     Sinking parameters
-    !********************************************************************
-    wpoc   =  5.       !m/d   Sinking speed of detritus iris : 5.
-    wcal   = 30.       !m/d   Sinking speed of CaCO3 shell material
-    wopal  = 30.       !m/d   Sinking speed of opal iris : 60
-    if (use_WLIN .and. .not. use_AGG) then
-       wmin   =  1.       !m/d   minimum sinking speed
-       wmax   = 60.       !m/d   maximum sinking speed
-       wlin   = 60./2400. !m/d/m constant describing incr. with depth, r/a=1.0
-    end if
-    if (.not. use_AGG) then
-       dustd1   = 0.0001 !cm = 1 um, boundary between clay and silt
-       dustd2   = dustd1*dustd1
-       dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
-     &            * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
-     &            * dustd2 * 1.e-4)
-       wdust = dustsink
-    end if
-  end subroutine
+    dmspar(6) = 0.100000000E-07 ! 0 half saturation microbial
+    dmspar(5) = 1.25*0.02       ! production with delsil, following Kloster et al., 06 Table 1, but increased by a factor of ~2
+    dmspar(4) = 1.25*0.10       ! production with delcar, following Kloster et al., 06 Table 1, but reduced by ~7%
+    dmspar(3) = 0.0864          ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
+    dmspar(2) = 0.0011          ! following Kloster et al., 06 Table 1
+    dmspar(1) = 10.             ! 2*5. production with temp
+    rno3      = rnit
+  end subroutine ini_param_biol
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine read_bgcnamelist()
@@ -365,9 +353,8 @@ module mo_param_bgc
     integer  :: iounit
 
     namelist /bgcparams/ bkphy,dyphy,bluefix,bkzoo,grazra,spemor,gammap,gammaz,ecan,zinges,epsher,bkopal,rcalc,ropal, &
-                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,wpoc,                                 &
-                         wmin,wmax,wlin,                                                                              & ! use_WLIN and use_AGG
-                         wcal,wopal
+                         remido,drempoc,dremopal,dremn2o,dremsul,fetune,relaxfe,                                      &
+                         wmin,wmax,wlin,wpoc,wcal,wopal
 
     open (newunit=iounit, file=bgc_namelist, status='old',action='read')
     read (unit=iounit, nml=BGCPARAMS)
@@ -380,17 +367,24 @@ module mo_param_bgc
       write(io_stdo_bgc,*) '------------------------------------------'
     endif
 
-  end subroutine
+  end subroutine read_bgcnamelist
 
   !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine readjust_param()
+  subroutine calc_param_biol()
     !
-    !  AFTER reading the namelist:
-    ! re-adjust parameters that depend on tuning parameters
+    ! AFTER reading the namelist:
+    ! calulate parameters that depend on other tunable parameters
     !
+    bifr14  = bifr13**2
+
     perc_diron = fetune * 0.035 * 0.01 / 55.85
 
-  end subroutine
+    dustd2   = dustd1*dustd1
+    dustsink = (9.81 * 86400. / 18.                    &  ! g * sec per day / 18.
+             &   * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
+             &      * dustd2 * 1.e-4) !m/d
+
+  end subroutine calc_param_biol
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine rates_2_timestep()
@@ -399,15 +393,15 @@ module mo_param_bgc
     !
     use mo_control_bgc, only: dtb
 
-!    implicit none
+    implicit none
 
     !********************************************************************
     !     Phytoplankton parameters (incl. cyanobacteria)
     !********************************************************************
-    dyphy  = dyphy*dtb       !1/d -mortality rate of phytoplankton
+    dyphy    = dyphy*dtb       ! 1/d -mortality rate of phytoplankton
 
     ! nitrogen fixation by blue green algae
-    bluefix = bluefix*dtb     !1/d
+    bluefix  = bluefix*dtb     ! 1/d
 
     if (use_cisonew) then
        c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
@@ -416,42 +410,46 @@ module mo_param_bgc
     !********************************************************************
     !     Zooplankton parameters
     !********************************************************************
-    grazra = grazra*dtb      !1/d -grazing rate
-    spemor = spemor*dtb      !1/d -mortality rate
-    gammap = gammap*dtb      !1/d -exudation rate
-    gammaz = gammaz*dtb      !1/d -excretion rate
+    grazra   = grazra*dtb      ! 1/d to 1/time step - grazing rate
+    spemor   = spemor*dtb      ! 1/d to 1/time step - mortality rate
+    gammap   = gammap*dtb      ! 1/d to 1/time step - exudation rate
+    gammaz   = gammaz*dtb      ! 1/d to 1/time step - excretion rate
 
     !********************************************************************
     !     Remineralization and dissolution parameters
     !********************************************************************
-    remido   = remido*dtb     !1/d -remineralization rate (of DOM)
+    remido   = remido*dtb     ! 1/d to 1/time step - remineralization rate (of DOM)
     ! deep sea remineralisation constants
-    drempoc  = drempoc*dtb    !1/d  Aerob remineralization rate of detritus
-    dremopal = dremopal*dtb   !1/d  Dissolution rate of opal
-    dremn2o  = dremn2o*dtb    !1/d  Remineralization rate of detritus on N2O
-    dremsul  = dremsul*dtb    !1/d  Remineralization rate for sulphate reduction
+    drempoc  = drempoc*dtb    ! 1/d to 1/time step  Aerob remineralization rate of detritus
+    dremopal = dremopal*dtb   ! 1/d to 1/time step  Dissolution rate of opal
+    dremn2o  = dremn2o*dtb    ! 1/d to 1/time step  Remineralization rate of detritus on N2O
+    dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
 
     !********************************************************************
     !     Dust deposition and iron solubility parameters
     !********************************************************************
-    relaxfe = relaxfe*dtb     !1/d  iron complexation rate
-
+    relaxfe  = relaxfe*dtb    ! 1/d to 1/time step  iron complexation rate
 
     !********************************************************************
     !     Sinking parameters
     !********************************************************************
-    wpoc  = wpoc*dtb       !m/d  Sinking speed detritusiris : 5.
-    wcal  = wcal*dtb       !m/d  Sinking speed CaCO3
-    wopal = wopal*dtb      !m/d  Sinking speed opal iris : 60
-    if (use_WLIN .and. .not. use_AGG) then
-       wmin  = wmin*dtb       !m/d   minimum sinking speed
-       wmax  = wmax*dtb       !m/d   maximum sinking speed
-       wlin  = wlin*dtb       !m/d/m constant describing incr. with depth, r/a=1.0
-    end if
-    if (.not. use_AGG) then
-       wdust = wdust*dtb      !m/d   dust sinking speed
-    end if
-  end subroutine
+    wpoc     = wpoc*dtb       ! m/d to m/time step      Sinking speed detritusiris : 5.
+    wcal     = wcal*dtb       ! m/d to m/time step      Sinking speed CaCO3
+    wopal    = wopal*dtb      ! m/d to m/time step      Sinking speed opal iris : 60
+    wmin     = wmin*dtb       ! m/d to m/time step      minimum sinking speed
+    wmax     = wmax*dtb       ! m/d to m/time step      maximum sinking speed
+    wlin     = wlin*dtb       ! m/d/m to m/time step/m  constant describing incr. with depth, r/a=1.0
+    dustsink = dustsink*dtb   ! m/d to m/time step      Sinking speed dust (used in use_AGG)
+    wdust    = dustsink       ! m/d to m/time step      Sinking speed dust
+
+    if(dustsink.gt.cellsink .and. use_AGG) then
+       if (mnproc.eq.1)then
+         write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
+         write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
+       endif
+       dustsink = cellsink
+    endif
+  end subroutine rates_2_timestep
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine ini_aggregation()
@@ -495,21 +493,7 @@ module mo_param_bgc
     TSFac   = (alar1/alow1)**SinkExp
     TMFac   = (alar1/alow1)**FractDim
 
-    ! for shear aggregation of dust:
-    dustd1  = 0.0001 !cm = 1 um, boundary between clay and silt
-    dustd2  = dustd1*dustd1
-    dustd3  = dustd2*dustd1
-    dustsink = (9.81 * 86400. / 18.                & ! g * sec per day / 18.
-     &         * (claydens - 1025.) / 1.567 * 1000.  & !excess density / dyn. visc.
-     &         * dustd2 * 1.e-4)*dtb
-    if(dustsink.gt.cellsink) then
-       if (mnproc.eq.1)then
-         write(io_stdo_bgc,*) ' dust sinking speed greater than cellsink'
-         write(io_stdo_bgc,*) ' set dust sinking speed to cellsink'
-       endif
-       dustsink = cellsink
-    endif
-  end subroutine
+  end subroutine ini_aggregation
 
   !---------------------------------------------------------------------------------------------------------------------------------
   subroutine write_parambgc()
@@ -523,6 +507,26 @@ module mo_param_bgc
 
     IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
+      WRITE(io_stdo_bgc,*) '* '
+      WRITE(io_stdo_bgc,*) '* Configuration: '
+      WRITE(io_stdo_bgc,*) '*          use_BROMO              = ',use_BROMO
+      WRITE(io_stdo_bgc,*) '*          use_AGG                = ',use_AGG
+      WRITE(io_stdo_bgc,*) '*          use_WLIN               = ',use_WLIN
+      WRITE(io_stdo_bgc,*) '*          use_natDIC             = ',use_natDIC
+      WRITE(io_stdo_bgc,*) '*          use_CFC                = ',use_CFC
+      WRITE(io_stdo_bgc,*) '*          use_cisonew            = ',use_cisonew
+      WRITE(io_stdo_bgc,*) '*          use_PBGC_OCNP_TIMESTEP = ',use_PBGC_OCNP_TIMESTEP
+      WRITE(io_stdo_bgc,*) '*          use_PBGC_CK_TIMESTEP   = ',use_PBGC_CK_TIMESTEP
+      WRITE(io_stdo_bgc,*) '*          use_FB_BGC_OCE BROMO   = ',use_FB_BGC_OCE
+      WRITE(io_stdo_bgc,*) '*          use_BOXATM             = ',use_BOXATM
+      WRITE(io_stdo_bgc,*) '*          use_sedbypass          = ',use_sedbypass
+      WRITE(io_stdo_bgc,*) '*          ocn_co2_type           = ',ocn_co2_type
+      WRITE(io_stdo_bgc,*) '*          do_ndep                = ',do_ndep
+      WRITE(io_stdo_bgc,*) '*          do_rivinpt             = ',do_rivinpt
+      WRITE(io_stdo_bgc,*) '*          do_oalk                = ',do_oalk
+      WRITE(io_stdo_bgc,*) '*          with_dmsph             = ',with_dmsph
+      WRITE(io_stdo_bgc,*) '*          do_sedspinup           = ',do_sedspinup
+      WRITE(io_stdo_bgc,*) '*          l_3Dvarsedpor          = ',l_3Dvarsedpor
       WRITE(io_stdo_bgc,*) '* '
       WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC variables : '
       WRITE(io_stdo_bgc,*) '*          atm_co2      = ',atm_co2
@@ -589,7 +593,6 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          atten_c      = ',atten_c
       WRITE(io_stdo_bgc,*) '*          atten_f      = ',atten_f
       WRITE(io_stdo_bgc,*) '*          atten_uv     = ',atten_uv
-      WRITE(io_stdo_bgc,*) '*          o2ut         = ',o2ut
       WRITE(io_stdo_bgc,*) '*          rno3         = ',rno3
       WRITE(io_stdo_bgc,*) '*          fetune       = ',fetune
       WRITE(io_stdo_bgc,*) '*          perc_diron   = ',perc_diron
@@ -608,14 +611,14 @@ module mo_param_bgc
          WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
       end if
       if (use_WLIN .and. .not. use_AGG) then
-         WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin
-         WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax
-         WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin
+         WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin*dtbinv
+         WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax*dtbinv
+         WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin*dtbinv
       end if
       if (.not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
          WRITE(io_stdo_bgc,*) '*          dustd2       = ',dustd2
-         WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink
+         WRITE(io_stdo_bgc,*) '*          dustsink     = ',dustsink*dtbinv
          WRITE(io_stdo_bgc,*) '*          wdust        = ',wdust*dtbinv
       else
          write(io_stdo_bgc,*)

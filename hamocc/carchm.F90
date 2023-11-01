@@ -107,10 +107,11 @@
                                 iatmnco2,inatalkali,inatcalc,inatsco212, &
                                 ks,issso14,isssc14,ipowc14, &
                                 iatmbromo,ibromo
+      use mo_param_bgc,   only: c14dec,atm_co2_nat
       use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
       use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh, &
-                                co213fxd,co213fxu,co214fxd,co214fxu,c14dec, &
-                                atm_co2_nat,nathi,natco3,natpco2d,natomegaa,natomegac
+                                co213fxd,co213fxu,co214fxd,co214fxu, &
+                                nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_sedmnt,      only: sedlay,powtra,burial
 
       implicit none

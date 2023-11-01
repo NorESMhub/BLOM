@@ -54,10 +54,10 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 !******************************************************************************
   use mod_xc,         only: mnproc,nbdy,ips,xcsum
   use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
-  use mo_carbch,      only: atmflx, atm, c14dec, ocetra
+  use mo_carbch,      only: atmflx, atm, ocetra
+  use mo_param_bgc,   only: rcar,c14dec
   use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14, &
                             iphy14,izoo14,ipowc14,issso14,isssc14
-  use mo_biomod,      only: rcar
   use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
   implicit none

@@ -55,7 +55,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mod_xc,         only: mnproc,ips,nbdy,xcsum
       use mo_carbch,      only: atm,atmflx,co3,hi,ndepflx,rivinflx,ocetra,sedfluxo
       use mo_sedmnt,      only: prcaca,prorca,silpro
-      use mo_biomod,      only: expoor,expoca,exposi,rcar,rnit
+      use mo_biomod,      only: expoor,expoca,exposi
+      use mo_param_bgc,   only: rcar,rnit
       use mo_control_bgc, only: do_ndep,do_rivinpt,io_stdo_bgc
       use mo_bgcmean,     only: bgct2d,jco2flux,jirdin,jn2flux,jn2oflux,jndep,jo2flux,jprcaca,jprorca,jsilpro,nbgcmax,glb_inventory
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmn2,iatmn2o,iatmo2,icalc,idet,idoc,igasnit,iopal,ioxygen,iphosph,   &
