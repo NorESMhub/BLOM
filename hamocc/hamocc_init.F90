@@ -172,16 +172,20 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   !
   call set_vgrid(idm,jdm,kdm,bgc_dp)
   !
-  ! --- Initialize sediment layering
-  ! First read the porosity, then apply it in ini_sedmnt
-  CALL read_sedpor(idm,jdm,ks,omask,sed_por)
-  CALL ini_sedmnt(idm,jdm,kdm,omask,sed_por)
-  !
-  ! --- Initialize parameters, sediment and ocean tracer.
+  ! --- Initialize parameters
   !
   CALL ini_parambgc(idm,jdm)
-  call ini_fields_atm(idm,jdm) ! initialize atmospheric fields with (updated) parameter values
+
+  ! --- Initialize atmospheric fields with (updated) parameter values
+  call ini_fields_atm(idm,jdm)
+
+  ! --- Initialize sediment and ocean tracers
   CALL ini_fields_ocean(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,plon,plat)
+
+  ! --- Initialize sediment layering
+  !     First, read the porosity and potentially apply it in ini_sedimnt
+  CALL read_sedpor(idm,jdm,ks,omask,sed_por)
+  CALL ini_sedmnt(idm,jdm,kdm,omask,sed_por)
   !
   ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
   !

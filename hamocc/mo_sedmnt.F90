@@ -28,7 +28,7 @@
 !     --------
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
 !     - added sediment bypass preprocessor option
-!     
+!
 !     Purpose
 !     -------
 !     - declaration and memory allocation
@@ -57,27 +57,24 @@
 !     *dzs*            *REAL*  - .
 !     *porwah*         *REAL*  - .
 !     *seddw*          *REAL*  - .
-!     *sedict*         *REAL*  - .
-!     *rno3*           *REAL*  - .
 !     *calcon*         *REAL*  - .
-!     *ansed*          *REAL*  - .
 !
 !     -subroutine ini_sedmnt
-!         Initialize sediment parameters (some are also used in water column)
+!         Initialize sediment parameters and sediment vertical grid
 !     -subroutine ini_sedmnt_fields
 !         Initialize 2D and 3D sediment fields
 !
 !******************************************************************************
- use mo_param1_bgc, only: ks,ksp,nsedtra,npowtra
+ use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
  use mo_control_bgc, only: io_stdo_bgc
  use mod_xc,         only: mnproc
  use mo_control_bgc, only: use_sedbypass,use_cisonew
 
       implicit none
 
-      REAL, save :: dzs(ksp)    = 0.0
-      REAL, save :: seddzi(ksp) = 0.0
-      REAL, save :: seddw(ks)   = 0.0
+      REAL, protected :: dzs(ksp)    = 0.0
+      REAL, protected :: seddzi(ksp) = 0.0
+      REAL, protected :: seddw(ks)   = 0.0
 
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: sedlay
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: powtra
@@ -99,17 +96,14 @@
       REAL, DIMENSION (:,:),     ALLOCATABLE :: produs
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: burial
 
-      REAL :: sedict,rno3,ansed
-      REAL :: calcwei, opalwei, orgwei
-      REAL :: calcdens, opaldens, orgdens, claydens
-      REAL :: calfa, oplfa, orgfa, clafa
-      REAL :: disso_sil,silsat,disso_poc,sed_denit,disso_caco3
+      real, protected :: calfa, oplfa, orgfa, clafa
 
  CONTAINS
-     
+
       !========================================================================
  SUBROUTINE ini_sedmnt(kpie,kpje,kpke,omask,sed_por)
-      use mo_control_bgc, only: dtbgc
+
+      use mo_param_bgc,   only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
 
       implicit none
 
@@ -118,41 +112,6 @@
       real,    intent(in) :: sed_por(kpie,kpje,ks)
 
       integer :: k
-
-      sedict = 1.e-9 * dtbgc ! Molecular diffusion coefficient
-      ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
-      ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
-      ! FOR BACKWARDS COMPATIBILITY
-      !disso_sil = 3.e-8*dtbgc  ! (2011-01-04) EMR
-      !disso_sil = 1.e-6*dtbgc  ! test vom 03.03.04 half live sil ca. 20.000 yr 
-      disso_sil = 1.e-6*dtbgc
-      ! Silicate saturation concentration is 1 mol/m3
-      silsat    = 0.001
-
-      ! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
-      disso_poc = 0.01 / 86400. * dtbgc  !  disso=3.e-5 was quite high
-
-      ! Denitrification rate constant of POP (disso) [1/sec]
-      sed_denit =  0.01/86400. * dtbgc 
-
-      ! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
-      disso_caco3 = 1.e-7 * dtbgc
-
-      ! ******************************************************************
-      ! densities etc. for SEDIMENT SHIFTING
-
-      ! define weight of calcium carbonate, opal, and poc [kg/kmol]
-      calcwei = 100.           ! 40+12+3*16 kg/kmol C
-      opalwei = 60.            ! 28 + 2*16  kg/kmol Si
-      orgwei  = 30.            ! from 12 kg/kmol * 2.5 POC[kg]/DW[kg]
-                           ! after Alldredge, 1998:
-                           ! POC(g)/DW(g) = 0.4 of diatom marine snow, size 1mm3
-
-      ! define densities of opal, caco3, poc [kg/m3]
-      calcdens = 2600.
-      opaldens = 2200.
-      orgdens  = 1000.
-      claydens = 2600.         !quartz
 
       ! define volumes occupied by solid constituents [m3/kmol]
       calfa = calcwei / calcdens
@@ -204,6 +163,7 @@
       !   - vertical molecular diffusion coefficients scaled with porosity
       !
       use mo_control_bgc, only: l_3Dvarsedpor
+      use mo_param_bgc,   only: sedict
 
       implicit none
 

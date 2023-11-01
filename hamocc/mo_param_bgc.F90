@@ -44,16 +44,15 @@ module mo_param_bgc
 !******************************************************************************
 
   use mo_carbch,      only: atm_co2
-  use mo_sedmnt,      only: claydens,rno3
   use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,use_AGG,use_natDIC,use_BROMO,use_cisonew,use_WLIN,use_FB_BGC_OCE,             &
                           & do_ndep,do_oalk,do_rivinpt,do_sedspinup,l_3Dvarsedpor,use_BOXATM,use_CFC,use_PBGC_CK_TIMESTEP,         &
                           & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
-!  use mo_param1_bgc,  only: iatmco2,iatmnco2,iatmo2,iatmn2,iatmc13,iatmc14,iatmbromo
   use mod_xc,         only: mnproc
 
   implicit none
 
   private
+
   !---------------------------------------------------------------------------------------------------------------------------------
   !---------------------------------------------------------------------------------------------------------------------------------
   !Model parameters
@@ -63,7 +62,8 @@ module mo_param_bgc
             dyphy,bluefix,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half,rbro,fbro1,fbro2,grami,bkzoo,grazra,spemor,gammap,gammaz,ecan,  &
             zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,dmspar,wpoc,wcal,wopal,wmin,wmax,wlin, &
             dustd1,dustd2,dustd3,dustsink,wdust,SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,   &
-            alar2,alar3,TSFac,TMFac,vsmall,safe,pupper,plower,zdis,nmldmin,beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec
+            alar2,alar3,TSFac,TMFac,vsmall,safe,pupper,plower,zdis,nmldmin,beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec,           &
+            sedict,silsat,disso_poc,disso_sil,disso_caco3,sed_denit,calcwei,opalwei,orgwei,calcdens,opaldens,orgdens,claydens
 
   !.................................................................................................................................
   !.................................................................................................................................
@@ -88,11 +88,6 @@ module mo_param_bgc
   ! is no nitrate created by this process, organic N is released as N2
   real, parameter :: rdn2o1 = 2*ro2ut - 2.5*rnit  ! moles N2O used for remineralisation of 1 mole P
   real, parameter :: rdn2o2 = 2*ro2ut - 2*rnit    ! moles N2 released  for remineralisation of 1 mole P
-
-  !ik for interaction with sediment module
-  !real, parameter :: o2ut   = 172.               ! oxygen utilization
-  !real, parameter :: rno3   = 16.                 ! mol N per mol P (once used in sediment)
-
 
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
   ! Atmosphere:
@@ -235,9 +230,42 @@ module mo_param_bgc
   real, protected :: dustd3                       ! dust diameter cubed
   real, protected :: dustsink                     ! sinking speed of dust (used use_AGG)
 
-  real, protected ::  SinkExp, FractDim, Stick, cellmass, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,     &
-                      vsmall,safe,pupper,plower,zdis,nmldmin
+  real, protected :: SinkExp, FractDim, Stick, cellmass, fsh, fse,alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac,                &
+                     vsmall,safe,pupper,plower,zdis,nmldmin
   real, protected :: cellsink = 9999.
+
+
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! Sediment biogeochemistry
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! Note that the rates in the sediment are given in per second here!
+  !
+  real, protected :: sedict      = 1.e-9          ! m2/s Molecular diffusion coefficient
+  real, protected :: silsat      = 0.001          ! kmol/m3 Silicate saturation concentration is 1 mol/m3
+  real, protected :: disso_poc   = 0.01 / 86400.  ! 1/(kmol O2/m3 s) disso=3.e-5 was quite high - Degradation rate constant of POP
+  real, protected :: disso_sil   = 1.e-6          ! 1/(kmol Si(OH)4/m3 s) Dissolution rate constant of opal
+                                                  ! THIS NEEDS TO BE CHANGED TO disso=3.e-8! THIS IS ONLY KEPT FOR THE MOMENT
+                                                  ! FOR BACKWARDS COMPATIBILITY
+                                                  ! disso_sil = 3.e-8*dtbgc  ! (2011-01-04) EMR
+                                                  ! disso_sil = 1.e-6*dtbgc  ! test vom 03.03.04 half live sil ca. 20.000 yr
+  real, protected :: disso_caco3 = 1.e-7          ! 1/(kmol CO3--/m3 s) Dissolution rate constant of CaCO3
+  real, protected :: sed_denit   = 0.01/86400.    ! 1/s Denitrification rate constant of POP
+
+  !********************************************************************
+  !     Densities etc. for SEDIMENT SHIFTING
+  !********************************************************************
+  ! define weight of calcium carbonate, opal, and poc [kg/kmol]
+  real, parameter :: calcwei = 100.    ! 40+12+3*16 kg/kmol C
+  real, parameter :: opalwei = 60.     ! 28 + 2*16  kg/kmol Si
+  real, parameter :: orgwei  = 30.     ! from 12 kg/kmol * 2.5 POC[kg]/DW[kg]
+                                       ! after Alldredge, 1998:
+                                       ! POC(g)/DW(g) = 0.4 of diatom marine snow, size 1mm3
+
+  ! define densities of opal, caco3, poc [kg/m3]
+  real, parameter :: calcdens = 2600.
+  real, parameter :: opaldens = 2200.
+  real, parameter :: orgdens  = 1000.
+  real, parameter :: claydens = 2600.  ! quartz
 
   !=================================================================================================================================
   !=================================================================================================================================
@@ -340,7 +368,7 @@ module mo_param_bgc
     dmspar(3) = 0.0864          ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
     dmspar(2) = 0.0011          ! following Kloster et al., 06 Table 1
     dmspar(1) = 10.             ! 2*5. production with temp
-    rno3      = rnit
+
   end subroutine ini_param_biol
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -391,7 +419,7 @@ module mo_param_bgc
     !
     ! AFTER potential update of rates, convert them to rates per timestep
     !
-    use mo_control_bgc, only: dtb
+    use mo_control_bgc, only: dtb,dtbgc
 
     implicit none
 
@@ -449,6 +477,16 @@ module mo_param_bgc
        endif
        dustsink = cellsink
     endif
+
+    !********************************************************************
+    !     Sediment rates
+    !********************************************************************
+    sedict      = sedict      * dtbgc ! m2/time step                  Molecular diffusion coefficient
+    disso_sil   = disso_sil   * dtbgc ! 1/(kmol Si(OH)4/m3 time step) Dissolution rate constant of opal
+    disso_poc   = disso_poc   * dtbgc ! 1/(kmol O2/m3 time step)      Degradation rate constant of POP
+    disso_caco3 = disso_caco3 * dtbgc ! 1/(kmol CO3--/m3 time step)   Dissolution rate constant of CaCO3
+    sed_denit   = sed_denit   * dtbgc ! 1/time step                   Denitrification rate constant of POP
+
   end subroutine rates_2_timestep
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -500,10 +538,11 @@ module mo_param_bgc
     !
     ! Write parameters
     !
-    use mo_control_bgc, only: dtb
+    use mo_control_bgc, only: dtb,dtbgc
 
-    REAL :: dtbinv
-    dtbinv = 1./dtb
+    REAL :: dtbinv,dtbgcinv
+    dtbinv    = 1./dtb
+    dtbgcinv  = 1./dtbgc
 
     IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*) '****************************************************************'
@@ -593,7 +632,6 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          atten_c      = ',atten_c
       WRITE(io_stdo_bgc,*) '*          atten_f      = ',atten_f
       WRITE(io_stdo_bgc,*) '*          atten_uv     = ',atten_uv
-      WRITE(io_stdo_bgc,*) '*          rno3         = ',rno3
       WRITE(io_stdo_bgc,*) '*          fetune       = ',fetune
       WRITE(io_stdo_bgc,*) '*          perc_diron   = ',perc_diron
       WRITE(io_stdo_bgc,*) '*          riron        = ',riron
@@ -656,6 +694,20 @@ module mo_param_bgc
          write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
          write(io_stdo_bgc,*) '****************************************************************'
       end if
+      WRITE(io_stdo_bgc,*) '* '
+      WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
+      WRITE(io_stdo_bgc,*) '*          sedict       = ',sedict      * dtbgcinv
+      WRITE(io_stdo_bgc,*) '*          disso_poc    = ',disso_poc   * dtbgcinv
+      WRITE(io_stdo_bgc,*) '*          disso_sil    = ',disso_sil   * dtbgcinv
+      WRITE(io_stdo_bgc,*) '*          disso_caco3  = ',disso_caco3 * dtbgcinv
+      WRITE(io_stdo_bgc,*) '*          sed_denit    = ',sed_denit   * dtbgcinv
+      WRITE(io_stdo_bgc,*) '*          silsat       = ',silsat
+      WRITE(io_stdo_bgc,*) '*          orgwei       = ',orgwei
+      WRITE(io_stdo_bgc,*) '*          opalwei      = ',opalwei
+      WRITE(io_stdo_bgc,*) '*          calcwei      = ',calcwei
+      WRITE(io_stdo_bgc,*) '*          orgdens      = ',orgdens
+      WRITE(io_stdo_bgc,*) '*          opaldens     = ',opaldens
+      WRITE(io_stdo_bgc,*) '*          calcdens     = ',calcdens
       WRITE(io_stdo_bgc,*) '*          claydens     = ',claydens
       WRITE(io_stdo_bgc,*) '****************************************************************'
    ENDIF

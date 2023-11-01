@@ -61,12 +61,11 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !******************************************************************************
   use mo_control_bgc, only: dtbgc,use_cisonew
   use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil,        &
-                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv 
+                            issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
   use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
   use mo_chemcon,     only: calcon
-  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,rno3,seddw,sedhpl,sedlay,silpro,disso_sil,silsat,disso_poc,  &
-                            sed_denit,disso_caco3,pror13,pror14,prca13,prca14
-  use mo_param_bgc,   only: rnit,ro2ut
+  use mo_param_bgc,   only: rnit,ro2ut,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
+  use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
   use mo_vgrid,       only: kbo,bolay
 
   implicit none
@@ -372,7 +371,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
               end if
               sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12) - posol
               powtra(i,j,k,ipowaph) = powtra(i,j,k,ipowaph) + posol*umfa
-              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*umfa*rno3
+              powtra(i,j,k,ipowno3) = powtra(i,j,k,ipowno3) + posol*umfa*rnit
               if (use_cisonew) then
                  sedlay(i,j,k,issso13) = sedlay(i,j,k,issso13) - poso13
                  sedlay(i,j,k,issso14) = sedlay(i,j,k,issso14) - poso14
