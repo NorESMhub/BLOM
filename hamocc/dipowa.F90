@@ -56,8 +56,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !**********************************************************************
 
   use mo_carbch,     only: ocetra, sedfluxo
-  use mo_sedmnt,     only: powtra,porwat,porwah,seddw,seddzi,zcoefsu,zcoeflo
-  use mo_param_bgc,  only: sedict
+  use mo_sedmnt,     only: powtra,porwat,porwah,seddw,zcoefsu,zcoeflo
   use mo_param1_bgc, only: ks,npowtra,map_por2octra
   use mo_vgrid,      only: kbo,bolay
   ! cisonew
