@@ -79,8 +79,7 @@
                                 jsrfnatalk,jsrfnatdic,jsrfnatph,                                                                   &
                                 jbursssc12,jburssso12,jburssssil,jburssster,jpowaal,jpowaic,jpowaox,jpowaph,jpowaph,jpowasi,jpown2,&
                                 jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm, jatmco2,jatmn2,jatmo2
-      use mo_control_bgc, only: io_stdo_bgc,                                                                                       &
-                                dtb, use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC, use_sedbypass, use_cisonew, use_BOXATM 
+      use mo_control_bgc, only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_sedbypass,use_cisonew,use_BOXATM 
       use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
                                 ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      &
                                 irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,                                   &
@@ -127,7 +126,7 @@
          enddo
          enddo
          enddo
-      end if
+      endif
 
 
       ! Accumulated fluxes for inventory.F90. Note that these are currently not written to restart!
@@ -154,7 +153,7 @@
            bgct2d(i,j,jpodin2)  = bgct2d(i,j,jpodin2)  + sedfluxo(i,j,ipown2)/2.0
            bgct2d(i,j,jpodino3) = bgct2d(i,j,jpodino3) + sedfluxo(i,j,ipowno3)/2.0
            bgct2d(i,j,jpodisi)  = bgct2d(i,j,jpodisi)  + sedfluxo(i,j,ipowasi)/2.0
-        end if
+        endif
         ! N-deposition, ocean alkalinization, and riverine input fluxes
         bgct2d(i,j,jndep)    = bgct2d(i,j,jndep)    + ndepflx(i,j)/2.0
         bgct2d(i,j,joalk)    = bgct2d(i,j,joalk)    + oalkflx(i,j)/2.0
@@ -175,7 +174,7 @@
       if (use_BOXATM) then
          call accsrf(jatmo2 ,atm(1,1,iatmo2),omask,0)
          call accsrf(jatmn2 ,atm(1,1,iatmn2),omask,0)
-      end if
+      endif
       call accsrf(joxflux,atmflx(1,1,iatmo2),omask,0)
       call accsrf(jniflux,atmflx(1,1,iatmn2),omask,0)
       call accsrf(jn2ofx,atmflx(1,1,iatmn2o),omask,0)
@@ -442,7 +441,7 @@
          call accbur(jburssssil,burial(1,1,issssil))
          call accbur(jbursssc12,burial(1,1,isssc12))
          call accbur(jburssster,burial(1,1,issster))
-      end if
+      endif
 
       ! Write output if requested
       DO l=1,nbgc

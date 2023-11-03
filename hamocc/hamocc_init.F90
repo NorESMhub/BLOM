@@ -38,15 +38,15 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 !
 !******************************************************************************
   use mod_time,       only: date,baclin
-  use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,        &
+  use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,isp,ifp,ilp,             &
                             mnproc,lp,nfu,xchalt
   use mod_grid,       only: plon,plat
   use mod_tracers,    only: ntrbgc,ntr,itrbgc,trc
-  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                      &
-                            do_ndep,do_rivinpt,do_oalk,do_sedspinup,            &
-                            sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,             &
-                            dtb,dtbgc,io_stdo_bgc,ldtbgc,                       &
-                            ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,       &
+  use mo_control_bgc, only: bgc_namelist,get_bgc_namelist,                     &
+                            do_ndep,do_rivinpt,do_oalk,do_sedspinup,           &
+                            sedspin_yr_s,sedspin_yr_e,sedspin_ncyc,            &
+                            dtb,dtbgc,io_stdo_bgc,ldtbgc,                      &
+                            ldtrunbgc,ndtdaybgc,with_dmsph,l_3Dvarsedpor,      &
                             ocn_co2_type, use_sedbypass, use_BOXATM, use_BROMO
   use mo_param1_bgc,  only: ks,init_por2octra_mapping
   use mo_param_bgc,   only: ini_parambgc
@@ -62,11 +62,11 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   use mo_read_pi_ph,  only: ini_pi_ph,pi_ph_file
   use mo_read_sedpor, only: read_sedpor,sedporfile
   use mo_clim_swa,    only: ini_swa_clim,swaclimfile
-  use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,           &
+  use mo_Gdata_read,  only: inidic,inialk,inipo4,inioxy,inino3,                &
                             inisil,inid13c,inid14c
-  use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,                    &
-                            bgc_dx,bgc_dy,bgc_dp,bgc_rho,                 &
-                            omask,sedlay2,powtra2,burial2,                &
+  use mo_intfcblom,   only: alloc_mem_intfcblom,nphys,                         &
+                            bgc_dx,bgc_dy,bgc_dp,bgc_rho,                      &
+                            omask,sedlay2,powtra2,burial2,                     &
                             blom2hamocc,atm2
   use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
   implicit none
@@ -78,12 +78,12 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   integer :: iounit
   real    :: sed_por(idm,jdm,ks) = 0.
 
-  namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,    &
-       &   do_oalk,do_sedspinup,sedspin_yr_s,                                   &
-       &   sedspin_yr_e,sedspin_ncyc,                                           &
-       &   inidic,inialk,inipo4,inioxy,inino3,inisil,                           &
-       &   inid13c,inid14c,swaclimfile,                                         &
-       &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,                      &
+  namelist /bgcnml/ atm_co2,fedepfile,do_rivinpt,rivinfile,do_ndep,ndepfile,   &
+       &   do_oalk,do_sedspinup,sedspin_yr_s,                                  &
+       &   sedspin_yr_e,sedspin_ncyc,                                          &
+       &   inidic,inialk,inipo4,inioxy,inino3,inisil,                          &
+       &   inid13c,inid14c,swaclimfile,                                        &
+       &   with_dmsph,pi_ph_file,l_3Dvarsedpor,sedporfile,                     &
        &   ocn_co2_type
   !
   ! --- Set io units and some control parameters
@@ -146,11 +146,11 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   !
   do nt=itrbgc,itrbgc+ntrbgc-1
      do k=1,2*kk
-        do j=1,jj
-           do i=1,ii
-              trc(i,j,k,nt)=0.0
-           enddo
-        enddo
+     do j=1,jj
+     do i=1,ii
+        trc(i,j,k,nt)=0.0
+     enddo
+     enddo
      enddo
   enddo
   !
@@ -158,9 +158,9 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   !
   do j=1,jj
      do l=1,isp(j)
-        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+     do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
            omask(i,j)=1.
-        enddo
+     enddo
      enddo
   enddo
   !
@@ -199,7 +199,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   if (use_BROMO) then
      CALL ini_swa_clim(idm,jdm,omask)
-  end if
+  endif
 
   call ini_pi_ph(idm,jdm,omask)
   !
@@ -223,11 +223,11 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
         powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
         burial2(:,:,1,:)         = burial(:,:,:)
         burial2(:,:,2,:)         = burial(:,:,:)
-     end if
+     endif
      if (use_BOXATM) then
         atm2(:,:,1,:)            = atm(:,:,:)
         atm2(:,:,2,:)            = atm(:,:,:)
-     end if
+     endif
   ENDIF
 
   if (mnproc.eq.1) then

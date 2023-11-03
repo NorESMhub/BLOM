@@ -304,7 +304,7 @@ module mo_param_bgc
     call ini_param_biol()          ! initialize biological parameters
     if (use_AGG) then
        call ini_aggregation()      ! Initialize aggregation module of Iris Kriest (no NML read thus far)
-    end if
+    endif
 
     call read_bgcnamelist()        ! read the BGCPARAMS namelist
     call calc_param_atm()          ! calculate atmospheric parameters after updating parameters via nml
@@ -331,7 +331,7 @@ module mo_param_bgc
        atm_c14  = ((d14cat/1000.)+1.)*re14to*atm_co2
        ! factor for normalizing 14C tracers (~1e-12)
        c14fac   = atm_c14/atm_co2
-    end if
+    endif
   end subroutine calc_param_atm
 
   !---------------------------------------------------------------------------------------------------------------------------------
@@ -353,7 +353,7 @@ module mo_param_bgc
     else
        zinges  = 0.6        ! dimensionless fraction -assimilation efficiency
        epsher  = 0.8        ! dimensionless fraction -fraction of grazing egest
-    end if
+    endif
 
     !********************************************************************
     !     Shell production (CaCO3 and opal) parameters
@@ -368,7 +368,7 @@ module mo_param_bgc
     else
        rcalc  = 40.         ! iris 40 !calcium carbonate to organic phosphorous production ratio
        ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
-    end if
+    endif
 
 
   end subroutine ini_param_biol
@@ -435,7 +435,7 @@ module mo_param_bgc
 
     if (use_cisonew) then
        c14dec = 1.-(log(2.)/c14_t_half)*dtb   ! lambda [1/day]; c14dec[-]
-    end if
+    endif
 
     !********************************************************************
     !     Zooplankton parameters
@@ -588,7 +588,7 @@ module mo_param_bgc
          WRITE(io_stdo_bgc,*) '*          alpha14      = ',alpha14
          WRITE(io_stdo_bgc,*) '*          d14cat       = ',d14cat
          WRITE(io_stdo_bgc,*) '*          c14fac       = ',c14fac
-      end if
+      endif
       WRITE(io_stdo_bgc,*) '*          atm_o2       = ',atm_o2
       WRITE(io_stdo_bgc,*) '*          atm_n2       = ',atm_n2
       WRITE(io_stdo_bgc,*) '*          phytomi      = ',phytomi
@@ -650,12 +650,12 @@ module mo_param_bgc
          WRITE(io_stdo_bgc,*) '*          atm_bromo    = ',atm_bromo
          WRITE(io_stdo_bgc,*) '*          fbro1        = ',fbro1
          WRITE(io_stdo_bgc,*) '*          fbro2        = ',fbro2
-      end if
+      endif
       if (use_WLIN .and. .not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          wmin         = ',wmin*dtbinv
          WRITE(io_stdo_bgc,*) '*          wmax         = ',wmax*dtbinv
          WRITE(io_stdo_bgc,*) '*          wlin         = ',wlin*dtbinv
-      end if
+      endif
       if (.not. use_AGG) then
          WRITE(io_stdo_bgc,*) '*          dustd1       = ',dustd1
          WRITE(io_stdo_bgc,*) '*          dustd2       = ',dustd2
@@ -696,7 +696,7 @@ module mo_param_bgc
          write(io_stdo_bgc,*) ' dust diameter (cm)', dustd1
          write(io_stdo_bgc,*) ' dust sinking speed (m/d)', dustsink / dtb
          write(io_stdo_bgc,*) '****************************************************************'
-      end if
+      endif
       WRITE(io_stdo_bgc,*) '* '
       WRITE(io_stdo_bgc,*) '* Values of MO_PARAM_BGC sediment variables : '
       WRITE(io_stdo_bgc,*) '*          sedict       = ',sedict      * dtbgcinv

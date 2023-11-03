@@ -18,8 +18,8 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
- SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,              &
-                          kplyear,kplmon,kplday,kpldtoce,omask,rstfnm)
+ SUBROUTINE AUFW_BGC(kpie,kpje,kpke,ntr,ntrbgc,itrbgc,trc,                    &
+                     kplyear,kplmon,kplday,kpldtoce,omask,rstfnm)
 !******************************************************************************
 !
 !**** *AUFW_BGC* - write marine bgc restart data.
@@ -163,8 +163,7 @@
       idate(5) = ldtbgc
       IF (mnproc.eq.1) THEN
          WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'Writing restart file at date :'             &
-              &,'YY=',idate(1),' MM=',idate(2),' day=',idate(3)
+         WRITE(io_stdo_bgc,*) 'Writing restart file at date : YY=',idate(1),' MM=',idate(2),' day=',idate(3)
          WRITE(io_stdo_bgc,*) 'Ocean model step number is ',idate(4)
          WRITE(io_stdo_bgc,*) 'Bgc   model step number is ',idate(5)
       ENDIF
@@ -178,7 +177,7 @@
          ncstat = NF90_CREATE(rstfnm,NF90_64BIT_OFFSET,ncid)
          IF ( ncstat .NE. NF90_NOERR ) THEN
             call xchalt('(AUFW: Problem with netCDF1)')
-            stop '(AUFW: Problem with netCDF1)'
+            stop        '(AUFW: Problem with netCDF1)'
          ENDIF
       ELSE IF (IOTYPE==1) THEN
 #ifdef PNETCDF
@@ -194,13 +193,13 @@
          ncstat = NFMPI_CREATE(mpicomm,rstfnm,                          &
               &       IOR(nf_clobber,nf_64bit_offset),info,ncid)
          IF ( ncstat .NE. NF_NOERR ) THEN
-            call xchalt('(AUFW: Problem with netCDF1)')
-            stop '(AUFW: Problem with netCDF1)'
+            call xchalt('(AUFW: Problem with PnetCDF1)')
+            stop        '(AUFW: Problem with PnetCDF1)'
          ENDIF
 #endif
          if(testio .eq. 0) then
             CALL xchalt('(AUFW: Problem with namelist iotype)')
-            stop '(AUFW: Problem with namelist iotype)'
+            stop        '(AUFW: Problem with namelist iotype)'
          endif
 
       ENDIF
@@ -209,99 +208,101 @@
       ! ----------------------------------------------------------------------
       !
       IF(mnproc==1 .AND. IOTYPE==0) THEN
+      
          ncstat = NF90_DEF_DIM(ncid, 'lon', itdm, nclonid)
          IF ( ncstat .NE. NF90_NOERR ) THEN
             call xchalt('(AUFW: Problem with netCDF2)')
-            stop '(AUFW: Problem with netCDF2)'
-      ENDIF
+            stop        '(AUFW: Problem with netCDF2)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'lat', jtdm, nclatid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF3)')
-               stop '(AUFW: Problem with netCDF3)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'lat', jtdm, nclatid)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF3)')
+            stop        '(AUFW: Problem with netCDF3)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'depth', kpke, nclevid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF4)')
-               stop '(AUFW: Problem with netCDF4)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'depth', kpke, nclevid)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF4)')
+            stop        '(AUFW: Problem with netCDF4)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'depth2', 2*kpke, nclev2id)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF4)')
-               stop '(AUFW: Problem with netCDF4)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'depth2', 2*kpke, nclev2id)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF5)')
+            stop        '(AUFW: Problem with netCDF5)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'nks', ks, ncksid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF7)')
-               stop '(AUFW: Problem with netCDF7)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'nks', ks, ncksid)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF6)')
+            stop        '(AUFW: Problem with netCDF6)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'nks2', 2*ks, ncks2id)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF7)')
-               stop '(AUFW: Problem with netCDF7)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'nks2', 2*ks, ncks2id)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF7)')
+            stop        '(AUFW: Problem with netCDF7)'
+         ENDIF
 
-      ncstat = NF90_DEF_DIM(ncid, 'tlvl2', 2, nctlvl2id)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF7)')
-               stop '(AUFW: Problem with netCDF7)'
-      ENDIF
+         ncstat = NF90_DEF_DIM(ncid, 'tlvl2', 2, nctlvl2id)
+         IF ( ncstat .NE. NF90_NOERR ) THEN
+            call xchalt('(AUFW: Problem with netCDF8)')
+            stop        '(AUFW: Problem with netCDF8)'
+         ENDIF
+
       ELSE IF (IOTYPE==1) THEN
 #ifdef PNETCDF
-      clen=itdm
-      ncstat = NFMPI_DEF_DIM(ncid, 'lon', clen, nclonid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF2)')
-               stop '(AUFW: Problem with PnetCDF2)'
-      ENDIF
+         clen=itdm
+         ncstat = NFMPI_DEF_DIM(ncid, 'lon', clen, nclonid)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF2)')
+            stop        '(AUFW: Problem with PnetCDF2)'
+         ENDIF
 
-      clen=jtdm
-      ncstat = NFMPI_DEF_DIM(ncid, 'lat', clen, nclatid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF3)')
-               stop '(AUFW: Problem with PnetCDF3)'
-      ENDIF
+         clen=jtdm
+         ncstat = NFMPI_DEF_DIM(ncid, 'lat', clen, nclatid)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF3)')
+            stop        '(AUFW: Problem with PnetCDF3)'
+         ENDIF
 
-      clen=kpke
-      ncstat = NFMPI_DEF_DIM(ncid, 'depth', clen, nclevid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF4)')
-               stop '(AUFW: Problem with PnetCDF4)'
-      ENDIF
+         clen=kpke
+         ncstat = NFMPI_DEF_DIM(ncid, 'depth', clen, nclevid)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF4)')
+            stop        '(AUFW: Problem with PnetCDF4)'
+         ENDIF
 
-      clen=2*kpke
-      ncstat = NFMPI_DEF_DIM(ncid, 'depth2', clen, nclev2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF4)')
-               stop '(AUFW: Problem with PnetCDF4)'
-      ENDIF
+         clen=2*kpke
+         ncstat = NFMPI_DEF_DIM(ncid, 'depth2', clen, nclev2id)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF5)')
+            stop        '(AUFW: Problem with PnetCDF5)'
+         ENDIF
 
-      clen=ks
-      ncstat = NFMPI_DEF_DIM(ncid, 'nks', clen, ncksid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF5)')
-               stop '(AUFW: Problem with PnetCDF5)'
-      ENDIF
+         clen=ks
+         ncstat = NFMPI_DEF_DIM(ncid, 'nks', clen, ncksid)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF6)')
+            stop        '(AUFW: Problem with PnetCDF6)'
+         ENDIF
 
-      clen=2*ks
-      ncstat = NFMPI_DEF_DIM(ncid, 'nks2', clen, ncks2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF6)')
-               stop '(AUFW: Problem with PnetCDF6)'
-      ENDIF
+         clen=2*ks
+         ncstat = NFMPI_DEF_DIM(ncid, 'nks2', clen, ncks2id)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF7)')
+            stop        '(AUFW: Problem with PnetCDF7)'
+         ENDIF
 
-      clen=2
-      ncstat = NFMPI_DEF_DIM(ncid, 'tlvl2', clen, nctlvl2id)
-      IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF7)')
-               stop '(AUFW: Problem with PnetCDF7)'
-      ENDIF
+         clen=2
+         ncstat = NFMPI_DEF_DIM(ncid, 'tlvl2', clen, nctlvl2id)
+         IF ( ncstat .NE. NF_NOERR ) THEN
+            call xchalt('(AUFW: Problem with PnetCDF8)')
+            stop        '(AUFW: Problem with PnetCDF8)'
+         ENDIF
 #endif
-   ENDIF  !mnproc==1 .AND. IOTYPE==0
+      ENDIF  !mnproc==1 .AND. IOTYPE==0
 
    !
    ! Define global attributes
@@ -313,73 +314,76 @@
      &, 'Restart data for marine bgc modules')
       IF ( ncstat .NE. NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF9)')
-               stop '(AUFW: Problem with netCDF9)'
+        stop        '(AUFW: Problem with netCDF9)'
       ENDIF
 
       ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'history'             &
      &, 'Restart data for marine bgc modules')
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF9)')
-               stop '(AUFW: Problem with netCDF9)'
+        call xchalt('(AUFW: Problem with netCDF10)')
+        stop        '(AUFW: Problem with netCDF10)'
       ENDIF
 
       ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'conventions'         &
      &,'COARDS')
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF9)')
-               stop '(AUFW: Problem with netCDF9)'
+        call xchalt('(AUFW: Problem with netCDF11)')
+        stop        '(AUFW: Problem with netCDF11)'
       ENDIF
 
       ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL,'source'              &
      &, 'Marine bgc model output HOPC68/grob')
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF10)')
-               stop '(AUFW: Problem with netCDF10)'
+        call xchalt('(AUFW: Problem with netCDF12)')
+        stop        '(AUFW: Problem with netCDF12)'
       ENDIF
 
       ncstat = NF90_PUT_ATT(ncid, NF90_GLOBAL, 'date', idate)
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF11)')
-               stop '(AUFW: Problem with netCDF11)'
+        call xchalt('(AUFW: Problem with netCDF13)')
+        stop        '(AUFW: Problem with netCDF13)'
       ENDIF
 
    ELSE IF (IOTYPE==1) THEN
-
 #ifdef PNETCDF
       clen=len('Restart data for marine bgc modules')
       ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'title'             &
      &, clen,'Restart data for marine bgc modules')
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with PnetCDF9)')
-               stop '(AUFW: Problem with PnetCDF9)'
+        stop        '(AUFW: Problem with PnetCDF9)'
       ENDIF
+      
       clen=len('Restart data for marine bgc modules')
       ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'history'           &
      &, clen,'Restart data for marine bgc modules')
       IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF9)')
-               stop '(AUFW: Problem with PnetCDF9)'
+        call xchalt('(AUFW: Problem with PnetCDF10)')
+        stop        '(AUFW: Problem with PnetCDF10)'
       ENDIF
+      
       clen=6
       ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'conventions'       &
      &,clen, 'COARDS')
       IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF9)')
-               stop '(AUFW: Problem with PnetCDF9)'
+        call xchalt('(AUFW: Problem with PnetCDF11)')
+        stop        '(AUFW: Problem with PnetCDF11)'
       ENDIF
+      
       clen=len('Marine bgc model output HOPC68/grob')
       ncstat = NFMPI_PUT_ATT_TEXT(ncid, NF_GLOBAL,'source'            &
      &,clen, 'Marine bgc model output HOPC68/grob')
       IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with PnetCDF10)')
-               stop '(AUFW: Problem with PnetCDF10)'
+        call xchalt('(AUFW: Problem with PnetCDF12)')
+        stop        '(AUFW: Problem with PnetCDF12)'
       ENDIF
+      
       clen=5
       ncstat = NFMPI_PUT_ATT_INT(ncid, NF_GLOBAL, 'date',             &
      &                           nf_int, clen, idate)
       IF ( ncstat .NE. NF_NOERR ) THEN
-        call xchalt('(AUFW: Problem with netCDF11)')
-               stop '(AUFW: Problem with netCDF11)'
+        call xchalt('(AUFW: Problem with netCDF13)')
+        stop        '(AUFW: Problem with netCDF13)'
 
       ENDIF
 #endif
@@ -526,7 +530,7 @@
       CALL NETCDF_DEF_VARDB(ncid,8,'calciu14',3,ncdimst,ncvarid,               &
            &    7,'molC/kg',19,'Calcium carbonate14',                          &
            &    rmissing,43,io_stdo_bgc)
-   end if
+   endif
    if (use_AGG) then
       CALL NETCDF_DEF_VARDB(ncid,4,'snos',3,ncdimst,ncvarid,                   &
            &    3,'1/g',38,'marine snow aggregates per g sea water',           &
@@ -535,7 +539,7 @@
       CALL NETCDF_DEF_VARDB(ncid,5,'adust',3,ncdimst,ncvarid,                  &
            &    4,'g/kg',15,'Aggregated dust',                                 &
            &    rmissing,45,io_stdo_bgc)
-   end if
+   endif
    if (use_CFC) then
       CALL NETCDF_DEF_VARDB(ncid,5,'cfc11',3,ncdimst,ncvarid,                  &
            &    6,'mol/kg',5,'CFC11',                                          &
@@ -548,7 +552,7 @@
       CALL NETCDF_DEF_VARDB(ncid,3,'sf6',3,ncdimst,ncvarid,                    &
            &    6,'mol/kg',4,'SF-6',                                           &
            &    rmissing,49,io_stdo_bgc)
-   end if
+   endif
    if (use_natDIC) then
       CALL NETCDF_DEF_VARDB(ncid,9,'natsco212',3,ncdimst,ncvarid,              &
            &   6,'mol/kg',21, 'Natural dissolved CO2',rmissing,50,io_stdo_bgc)
@@ -559,11 +563,11 @@
       CALL NETCDF_DEF_VARDB(ncid,9,'natcalciu',3,ncdimst,ncvarid,              &
            &    6,'mol/kg',25,'Natural calcium carbonate',                     &
            &    rmissing,52,io_stdo_bgc)
-   end if
+   endif
    if (use_BROMO) then
       CALL NETCDF_DEF_VARDB(ncid,5,'bromo',3,ncdimst,ncvarid,                  &
            &    6,'mol/kg',9,'Bromoform',rmissing,47,io_stdo_bgc)
-   end if
+   endif
 
    !
    ! Define variables : diagnostic ocean fields
@@ -596,7 +600,7 @@
       CALL NETCDF_DEF_VARDB(ncid,5,'nathi',3,ncdimst,ncvarid,                  &
            &    6,'mol/kg',34,'Natural hydrogen ion concentration',            &
            &    rmissing,64,io_stdo_bgc)
-   end if
+   endif
    !
    ! Define variables : sediment
    ! ----------------------------------------------------------------------
@@ -679,7 +683,7 @@
               &    9,'kmol/m**3',25,'Sediment pore water DIC14',               &
               &    rmissing,86,io_stdo_bgc)
 
-      end if
+      endif
 
       IF((mnproc==1 .AND. IOTYPE==0) .OR. IOTYPE==1) THEN
          ncdimst(1) = nclonid
@@ -734,9 +738,9 @@
          CALL NETCDF_DEF_VARDB(ncid,8,'bur_c14',3,ncdimst,ncvarid,             &
               &    9,'kmol/m**2',23,'Burial layer of Ca14CO3',                 &
               &    rmissing,97,io_stdo_bgc)
-      end if
+      endif
 
-   end if ! not sedbypass
+   endif ! not sedbypass
    !
    ! Define variables: atmosphere
    ! ----------------------------------------------------------------------
@@ -769,20 +773,20 @@
          CALL NETCDF_DEF_VARDB(ncid,6,'atmc14',3,ncdimst,ncvarid,              &
               &    3,'ppm',17,'atmospheric 14CO2',                             &
               &    rmissing,105,io_stdo_bgc)
-      end if
+      endif
       if (use_natDIC) then
          CALL NETCDF_DEF_VARDB(ncid,7,'atmnco2',3,ncdimst,ncvarid,             &
               &    3,'ppm',23,'natural atmospheric CO2',                       &
               &    rmissing,106,io_stdo_bgc)
-      end if
-   end if ! if (use_BOXATM)
+      endif
+   endif ! if (use_BOXATM)
 
    IF (mnproc==1 .AND. IOTYPE==0) THEN
 
       ncstat = NF90_ENDDEF(ncid)
       IF ( ncstat .NE. NF90_NOERR ) THEN
          call xchalt('(AUFW: Problem with netCDF00)')
-         stop '(AUFW: Problem with netCDF00)'
+         stop        '(AUFW: Problem with netCDF00)'
       ENDIF
       !
       ! Set fill mode
@@ -791,7 +795,7 @@
       ncstat = NF90_SET_FILL(ncid,NF90_NOFILL, ncoldmod)
       IF ( ncstat .NE. NF90_NOERR ) THEN
          call xchalt('(AUFW: Problem with netCDF97)')
-               stop '(AUFW: Problem with netCDF97)'
+         stop        '(AUFW: Problem with netCDF97)'
       ENDIF
 
    ELSE IF (IOTYPE==1) THEN
@@ -800,7 +804,7 @@
       ncstat = NFMPI_ENDDEF(ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN
         call xchalt('(AUFW: Problem with PnetCDF00)')
-               stop '(AUFW: Problem with PnetCDF00)'
+        stop        '(AUFW: Problem with PnetCDF00)'
       ENDIF
 #endif
 
@@ -844,24 +848,24 @@
       CALL write_netcdf_var(ncid,'grazer14' ,locetra(1,1,1,izoo14)  ,2*kpke,0)
       CALL write_netcdf_var(ncid,'calciu13' ,locetra(1,1,1,icalc13) ,2*kpke,0)
       CALL write_netcdf_var(ncid,'calciu14' ,locetra(1,1,1,icalc14) ,2*kpke,0)
-   end if
+   endif
    if (use_AGG) then
       CALL write_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0)
       CALL write_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0)
-   end if
+   endif
    if (use_CFC) then
       CALL write_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0)
       CALL write_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0)
       CALL write_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0)
-   end if
+   endif
    if (use_natDIC) then
       CALL write_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0)
       CALL write_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0)
       CALL write_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0)
-   end if
+   endif
    if (use_BROMO) then
       CALL write_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0)
-   end if
+   endif
 
    !
    ! Write restart data : diagtnostic ocean fields
@@ -872,7 +876,7 @@
    CALL write_netcdf_var(ncid,'satoxy',satoxy(1,1,1),kpke,0)
    if (use_natDIC) then
       CALL write_netcdf_var(ncid,'nathi',nathi(1,1,1),kpke,0)
-   end if
+   endif
    !
    ! Write restart data : sediment variables.
    !
@@ -904,8 +908,8 @@
          CALL write_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0)
          CALL write_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0)
          CALL write_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0)
-      end if
-   end if
+      endif
+   endif
    !
    ! Write restart data: atmosphere.
    !
@@ -916,24 +920,24 @@
       if (use_cisonew) then
          CALL write_netcdf_var(ncid,'atmc13',atm2(1,1,1,iatmc13),2,0)
          CALL write_netcdf_var(ncid,'atmc14',atm2(1,1,1,iatmc14),2,0)
-      end if
+      endif
       if (use_natDIC) then
          CALL write_netcdf_var(ncid,'atmnco2',atm2(1,1,1,iatmnco2),2,0)
-      end if
-   end if
+      endif
+   endif
 
    IF(mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_CLOSE(ncid)
       IF ( ncstat .NE. NF90_NOERR ) THEN
          call xchalt('(AUFW: netCDF200)')
-            stop '(AUFW: netCDF200)'
+         stop        '(AUFW: netCDF200)'
       ENDIF
    ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
       ncstat = NFMPI_CLOSE(ncid)
       IF ( ncstat .NE. NF_NOERR ) THEN
          call xchalt('(AUFW: PnetCDF200)')
-         stop '(AUFW: PnetCDF200)'
+         stop        '(AUFW: PnetCDF200)'
       ENDIF
 #endif
    ENDIF

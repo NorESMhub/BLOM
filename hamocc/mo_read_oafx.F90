@@ -165,8 +165,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 
   ! Read parameters for alkalinization fluxes from namelist file
   if(.not. allocated(bgc_namelist)) call get_bgc_namelist
-  open (newunit=iounit, file=bgc_namelist, status='old'                   &
-       &   ,action='read')
+  open (newunit=iounit, file=bgc_namelist, status='old',action='read')
   read (unit=iounit, nml=BGCOAFX)
   close (unit=iounit)
 
@@ -177,7 +176,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
       write(io_stdo_bgc,*) 'ini_read_oafx: ocean alkalinization is not activated.'
     endif
     return
-  end if
+  endif
 
   ! Initialise the module
   if(.not. lini) then 

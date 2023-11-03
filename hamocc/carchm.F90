@@ -161,12 +161,6 @@
        atmflx (:,:,:)=0.
        co2fxd   (:,:)=0.
        co2fxu   (:,:)=0.
-       if (use_cisonew) then
-          co213fxd (:,:)=0.
-          co213fxu (:,:)=0.
-          co214fxd (:,:)=0.
-          co214fxu (:,:)=0.
-       end if
        pco2d    (:,:)=0.
        pco2m    (:,:)=0.
        kwco2d   (:,:)=0.
@@ -178,12 +172,18 @@
        satoxy (:,:,:)=0.
        omegaA (:,:,:)=0.
        omegaC (:,:,:)=0.
+       if (use_cisonew) then
+          co213fxd (:,:)=0.
+          co213fxu (:,:)=0.
+          co214fxd (:,:)=0.
+          co214fxu (:,:)=0.
+       endif
        if (use_natDIC) then
           natpco2d   (:,:)=0. 
           natco3   (:,:,:)=0.
           natomegaA(:,:,:)=0.
           natomegaC(:,:,:)=0.
-       end if
+       endif
 
 !$OMP PARALLEL DO PRIVATE(t,t2,t3,t4,tk,tk100,s,rs,prb,Kh,Khd,K1,K2   &
 !$OMP  ,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa,tc,ta,sit,pt,ah1,ac    &
@@ -259,7 +259,7 @@
          natcc = K2 * natcb / ah1
          ! Natural carbonate ion concentration, convert from mol/kg to kmol/m^3 
          natco3(i,j,k) = natcc * rrho
-      end if
+      endif
 
 ! solubility of O2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -272,7 +272,7 @@
       pco2 = cu * 1.e6 / Kh
       if (use_natDIC) then
          natpco2 = natcu * 1.e6 / Kh
-      end if
+      endif
 
 
 ! Schmidt numbers according to Wanninkhof (2014), Table 1
@@ -282,15 +282,15 @@
       scdms = 2855.7 - 177.63*t + 6.0438*t2 - 0.11645 *t3 + 0.00094743*t4 
       scn2o = 2356.2 - 166.38*t + 6.3952*t2 - 0.13422 *t3 + 0.0011506 *t4
       if (use_CFC) then
-         sch_11= 3579.2 - 222.63*t + 7.5749*t2 - 0.14595 *t3 + 0.0011874 *t4
-         sch_12= 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
-         sch_sf= 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
-      end if
+         sch_11 = 3579.2 - 222.63*t + 7.5749*t2 - 0.14595 *t3 + 0.0011874 *t4
+         sch_12 = 3828.1 - 249.86*t + 8.7603*t2 - 0.1716  *t3 + 0.001408  *t4
+         sch_sf = 3177.5 - 200.57*t + 6.8865*t2 - 0.13335 *t3 + 0.0010877 *t4
+      endif
       if (use_BROMO) then
          ! Stemmler et al. (2015; Biogeosciences) Eq. (9); Quack and Wallace
          ! (2003; GBC)
-         sch_bromo= 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
-      end if
+         sch_bromo = 4662.8 - 319.45*t + 9.9012*t2 - 0.1159*t3
+      endif
 
 ! solubility of N2 (Weiss, R.F. 1970, Deep-Sea Res., 17, 721-735) for moist air
 ! at 1 atm; multiplication with oxyco converts to kmol/m^3/atm
@@ -306,23 +306,23 @@
 ! solubility of cfc11,12 (mol/(l*atm)) (Warner and Weiss 1985) and
 ! sf6 from eq. 6 of Bullister et al. (2002)
 ! These are the alpha in (1b) of the ocmpic2 howto
-          a_11 = exp(-229.9261 + 319.6552*(100/tk) + 119.4471*log(tk100)  &
-               &         -1.39165*(tk100)**2 + s*(-0.142382 + 0.091459*(tk100)  &
-               &         -0.0157274*(tk100)**2)) 
-          a_12 = exp(-218.0971 + 298.9702*(100/tk) + 113.8049*log(tk100)  &
-               &         -1.39165*(tk100)**2 + s*(-0.143566 + 0.091015*(tk100)  &
-               &         -0.0153924*(tk100)**2)) 
-          a_sf = exp(-80.0343  + 117.232 *(100/tk) +  29.5817*log(tk100)  &
-               &         +s*(0.033518-0.0373942*(tk100)+0.00774862*(tk100)**2)) 
+          a_11 = exp(-229.9261 + 319.6552*(100/tk) + 119.4471*log(tk100)       &
+               &     -1.39165*(tk100)**2 + s*(-0.142382 + 0.091459*(tk100)     &
+               &     -0.0157274*(tk100)**2)) 
+          a_12 = exp(-218.0971 + 298.9702*(100/tk) + 113.8049*log(tk100)       &
+               &     -1.39165*(tk100)**2 + s*(-0.143566 + 0.091015*(tk100)     &
+               &     -0.0153924*(tk100)**2)) 
+          a_sf = exp(-80.0343  + 117.232 *(100/tk) +  29.5817*log(tk100)       &
+               &     +s*(0.033518-0.0373942*(tk100)+0.00774862*(tk100)**2)) 
           ! conversion from mol/(l * atm) to kmol/(m3 * pptv) 
           a_11 = 1e-12 * a_11 
           a_12 = 1e-12 * a_12
           a_sf = 1e-12 * a_sf
-       end if
+       endif
        if (use_BROMO) then
 !Henry's law constant [dimensionless] for Bromoform from Quack and Wallace (2003; GBC)
           a_bromo = exp(13.16 - 4973*(1/tk))
-       end if
+       endif
 
 ! Transfer (piston) velocity kw according to Wanninkhof (2014), in units of ms-1 
        Xconvxa = 6.97e-07   ! Wanninkhof's a=0.251 converted from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2 
@@ -335,13 +335,13 @@
           kw_11 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_11)**0.5
           kw_12 = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_12)**0.5
           kw_sf = (1.-psicomo(i,j)) * Xconvxa * pfu10(i,j)**2*(660./sch_sf)**0.5
-       end if
+       endif
        if (use_BROMO) then
 ! Stemmler et al. (2015; Biogeosciences) Eq. (8) 
 !  1.e-2/3600 = conversion from [cm hr-1]/[m s-1]^2 to [ms-1]/[m s-1]^2
           kw_bromo=(1.-psicomo(i,j)) * 1.e-2/3600. *                       &
                &     (0.222*pfu10(i,j)**2+0.33*pfu10(i,j))*(660./sch_bromo)**0.5
-       end if
+       endif
 
        atco2 = atm(i,j,iatmco2)
        ato2  = atm(i,j,iatmo2)
@@ -349,10 +349,10 @@
        if (use_cisonew) then
           atco213 = atm(i,j,iatmc13)
           atco214 = atm(i,j,iatmc14)
-       end if
+       endif
        if (use_BROMO) then
           atbrf = atm(i,j,iatmbromo)
-       end if
+       endif
 
 ! Ratio P/P_0, where P is the local SLP and P_0 is standard pressure (1 atm). This is
 ! used in all surface flux calculations where atmospheric concentration is given as a
@@ -367,7 +367,7 @@
           natfluxd=atm_co2_nat*rpp0*kwco2*dtbgc*Kh*1e-6*rrho
           natfluxu=natpco2         *kwco2*dtbgc*Kh*1e-6*rrho 
           natfluxu=min(natfluxu,natfluxd-(1e-5 - ocetra(i,j,k,inatsco212))*pddpo(i,j,1))
-       end if
+       endif
 
 ! Calculate saturation DIC concentration in mixed layer
        ta = ocetra(i,j,k,ialkali) / rrho
@@ -391,17 +391,17 @@
           flux13u=pco213      *kwco2*dtbgc*Kh*1.e-6*rrho*frac_aqg*frac_k/frac_dicg   
           flux14d=atco214*rpp0*kwco2*dtbgc*Kh*1.e-6*rrho*(frac_aqg**2)*(frac_k**2)           
           flux14u=pco214      *kwco2*dtbgc*Kh*1.e-6*rrho*(frac_aqg**2)*(frac_k**2)/(frac_dicg**2)  
-       end if
+       endif
 
 ! Update DIC
        ocetra(i,j,1,isco212)=ocetra(i,j,1,isco212)+(fluxd-fluxu)/pddpo(i,j,1)
        if (use_natDIC) then
           ocetra(i,j,1,inatsco212)=ocetra(i,j,1,inatsco212)+(natfluxd-natfluxu)/pddpo(i,j,1)
-       end if
+       endif
        if (use_cisonew) then
           ocetra(i,j,1,isco213)=ocetra(i,j,1,isco213)+(flux13d-flux13u)/pddpo(i,j,1)
           ocetra(i,j,1,isco214)=ocetra(i,j,1,isco214)+(flux14d-flux14u)/pddpo(i,j,1)
-       end if
+       endif
 
 ! Surface flux of oxygen
        oxflux=kwo2*dtbgc*(ocetra(i,j,1,ioxygen)-satoxy(i,j,1)*(ato2/196800)*rpp0)
@@ -438,18 +438,15 @@
 
 ! Use conversion of 9.86923e-6 [std atm / Pascal]
 ! Surface flux of cfc11
-          flx11=kw_11*dtbgc*                                               &
-               & (a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))
+          flx11=kw_11*dtbgc*(a_11*atm_cfc11*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc11))
           ocetra(i,j,1,icfc11)=ocetra(i,j,1,icfc11)+flx11/pddpo(i,j,1)
 ! Surface flux of cfc12
-          flx12=kw_12*dtbgc*                                               &
-               & (a_12*atm_cfc12*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc12))
+          flx12=kw_12*dtbgc*(a_12*atm_cfc12*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,icfc12))
           ocetra(i,j,1,icfc12)=ocetra(i,j,1,icfc12)+flx12/pddpo(i,j,1)
 ! Surface flux of sf6
-          flxsf=kw_sf*dtbgc*                                               &
-               & (a_sf*atm_sf6*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,isf6))
+          flxsf=kw_sf*dtbgc*(a_sf*atm_sf6*ppao(i,j)*9.86923*1e-6-ocetra(i,j,1,isf6))
           ocetra(i,j,1,isf6)=ocetra(i,j,1,isf6)+flxsf/pddpo(i,j,1)
-       end if
+       endif
 
 ! Surface flux of dms
       ! Note that kwdms already has the open ocean fraction in the term
@@ -465,11 +462,10 @@
 !  [ppp]     to [mol L-1]  by multiplying with pressure[bar]/(SST[K]*R[L bar K-1 mol-1]); R=0,083
 !  [mol L-1] to [kmol m-3] by multiplying with 1 
          
-         flx_bromo = kw_bromo*dtbgc* &
-              (atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
+         flx_bromo = kw_bromo*dtbgc*(atbrf/a_bromo*1e-12*ppao(i,j)*1e-5/(tk*0.083) - ocetra(i,j,1,ibromo))
          ocetra(i,j,1,ibromo) = ocetra(i,j,1,ibromo) + flx_bromo/pddpo(i,j,1)
          atmflx(i,j,iatmbromo) = -flx_bromo
-      end if
+      endif
 
 ! Save surface fluxes 
        atmflx(i,j,iatmco2)=fluxu-fluxd
@@ -479,15 +475,15 @@
        if (use_cisonew) then
           atmflx(i,j,iatmc13)=flux13u-flux13d
           atmflx(i,j,iatmc14)=flux14u-flux14d
-       end if
+       endif
        if (use_CFC) then
           atmflx(i,j,iatmf11)=flx11
           atmflx(i,j,iatmf12)=flx12
           atmflx(i,j,iatmsf6)=flxsf
-       end if
+       endif
        if (use_natDIC) then
           atmflx(i,j,iatmnco2)=natfluxu-natfluxd
-       end if
+       endif
 
 ! Save up- and downward components of carbon fluxes for output
        co2fxd(i,j)  = fluxd 
@@ -497,7 +493,7 @@
           co213fxu(i,j)= flux13u 
           co214fxd(i,j)= flux14d 
           co214fxu(i,j)= flux14u 
-       end if
+       endif
 
 ! Save pco2 w.r.t. dry air for output
        pco2d(i,j) = cu * 1.e6 / Khd
@@ -505,7 +501,7 @@
        pco2m(i,j) = cu * 1.e6 / Kh
        if (use_natDIC) then
           natpco2d(i,j) = natcu * 1.e6 / Khd
-       end if
+       endif
 
 ! Save product of piston velocity and solubility for output
        kwco2sol(i,j) = kwco2*Kh*1e-6 !m/s mol/kg/muatm 
@@ -523,7 +519,7 @@
 ! Degradation to halogen substitution (Eq. 5-6 of Stemmler et al., 2015)
          lsub=7.33e-10*exp(1.250713e4*(1/298.-1/tk))*dtbgc
          ocetra(i,j,k,ibromo)=ocetra(i,j,k,ibromo)*(1.-lsub)
-      end if
+      endif
 ! -----------------------------------------------------------------
 ! Deep ocean processes
 
@@ -544,11 +540,11 @@
          natsupsat=natco3(i,j,k)-natco3(i,j,k)/natOmegaC(i,j,k)
          natundsa=MAX(0.,-natsupsat)
          natdissol=MIN(natundsa,0.05*ocetra(i,j,k,inatcalc))
-      end if
+      endif
       if (use_cisonew) then
          dissol13=dissol*ocetra(i,j,k,icalc13)/(ocetra(i,j,k,icalc)+safediv)
          dissol14=dissol*ocetra(i,j,k,icalc14)/(ocetra(i,j,k,icalc)+safediv)
-      end if
+      endif
       ocetra(i,j,k,icalc)=ocetra(i,j,k,icalc)-dissol
       ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)+2.*dissol
       ocetra(i,j,k,isco212)=ocetra(i,j,k,isco212)+dissol
@@ -556,13 +552,13 @@
          ocetra(i,j,k,inatcalc)=ocetra(i,j,k,inatcalc)-natdissol
          ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)+2.*natdissol
          ocetra(i,j,k,inatsco212)=ocetra(i,j,k,inatsco212)+natdissol
-      end if
+      endif
       if (use_cisonew) then
          ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc13)-dissol13
          ocetra(i,j,k,isco213)=ocetra(i,j,k,isco213)+dissol13
          ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc14)-dissol14
          ocetra(i,j,k,isco214)=ocetra(i,j,k,isco214)+dissol14
-      end if
+      endif
 
 
       if (use_cisonew) then
@@ -573,7 +569,7 @@
          ocetra(i,j,k,idoc14)  = ocetra(i,j,k,idoc14)*c14dec
          ocetra(i,j,k,iphy14)  = ocetra(i,j,k,iphy14)*c14dec
          ocetra(i,j,k,izoo14)  = ocetra(i,j,k,izoo14)*c14dec
-      end if
+      endif
 
       ! Save bottom level dissociation konstants for use in sediment module
       if( k==kbo(i,j) ) then
@@ -590,7 +586,7 @@
         keqb(10,i,j)  = K3p
         keqb(11,i,j)  = Kspc
 
-      end if
+      endif
 
       ENDIF ! omask>0.5
       ENDDO
@@ -624,7 +620,7 @@
          enddo
          enddo
          !$OMP END PARALLEL DO
-      end if ! end of use_cisonew and not use_sedbypass
+      endif ! end of use_cisonew and not use_sedbypass
 
       RETURN
     END SUBROUTINE CARCHM

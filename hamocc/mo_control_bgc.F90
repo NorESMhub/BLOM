@@ -94,8 +94,7 @@ contains
     if (.not. allocated(bgc_namelist)) then
        inquire (file='ocn_in'//trim(inst_suffix), exist=exists)
        if (exists) then
-          allocate(character(len=len('ocn_in'//trim(inst_suffix))) ::       &
-               bgc_namelist)
+          allocate(character(len=len('ocn_in'//trim(inst_suffix))) :: bgc_namelist)
           bgc_namelist = 'ocn_in'//trim(inst_suffix)
        else
           inquire (file='limits', exist=exists)

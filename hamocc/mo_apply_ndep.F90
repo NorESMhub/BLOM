@@ -115,7 +115,7 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
       ocetra(i,j,1,ialkali)=ocetra(i,j,1,ialkali)-ndepflx(i,j)/pddpo(i,j,1)
       if (use_natDIC) then
          ocetra(i,j,1,inatalkali)=ocetra(i,j,1,inatalkali)-ndepflx(i,j)/pddpo(i,j,1)
-      end if
+      endif
     endif
   enddo
   enddo

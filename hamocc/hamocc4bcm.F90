@@ -169,26 +169,26 @@
       if (trim(ocn_co2_type) == 'diagnostic' .or. trim(ocn_co2_type) == 'prognostic') then
          !$OMP PARALLEL DO PRIVATE(i)
          DO  j=1,kpje
-            DO  i=1,kpie
-               atm(i,j,iatmco2)=patmco2(i,j)
-            ENDDO
+         DO  i=1,kpie
+            atm(i,j,iatmco2)=patmco2(i,j)
+         ENDDO
          ENDDO
          !$OMP END PARALLEL DO
          !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
-      end if
+      endif
 
       if (use_BROMO) then
          !$OMP PARALLEL DO PRIVATE(i)
          DO  j=1,kpje
-            DO  i=1,kpie
-               IF (patmbromo(i,j).gt.0.) THEN
-                  atm(i,j,iatmbromo)=patmbromo(i,j)
-               ENDIF
-            ENDDO
+         DO  i=1,kpie
+            IF (patmbromo(i,j).gt.0.) THEN
+               atm(i,j,iatmbromo)=patmbromo(i,j)
+            ENDIF
+         ENDDO
          ENDDO
          !$OMP END PARALLEL DO
          if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
-      end if
+      endif
 
 !--------------------------------------------------------------------
 ! Read atmospheric cfc concentrations
@@ -196,7 +196,7 @@
       if (use_CFC) then
          call get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,        &
               atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
-      end if
+      endif
 
       if (use_PBGC_CK_TIMESTEP) then
          IF (mnproc.eq.1) THEN
@@ -204,7 +204,7 @@
             WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
 
 !---------------------------------------------------------------------
@@ -225,7 +225,7 @@
             WRITE(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
  
       do l=1,nocetra
@@ -248,7 +248,7 @@
             WRITE(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
 
       CALL CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
@@ -259,7 +259,7 @@
             WRITE(io_stdo_bgc,*)'after CYANO: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
       CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
                   psicomo,ppao,pfu10,ptho,psao)
@@ -270,7 +270,7 @@
             WRITE(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
 
       ! Apply n-deposition
@@ -282,7 +282,7 @@
             WRITE(io_stdo_bgc,*)'after N deposition: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
       ! Apply riverine input of carbon and nutrients
       call apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
@@ -293,7 +293,7 @@
             WRITE(io_stdo_bgc,*)'after river input: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
       ! Apply alkalinity flux due to ocean alkalinization
       call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
@@ -304,12 +304,12 @@
             WRITE(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
       ! Update atmospheric pCO2 [ppm]
       if (use_BOXATM) then
          CALL update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
-      end if
+      endif
 
       if (use_PBGC_CK_TIMESTEP ) then
          IF (mnproc.eq.1) THEN
@@ -317,7 +317,7 @@
             WRITE(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
       ! update preformed tracers
       CALL PREFTRC(kpie,kpje,omask)
@@ -330,13 +330,11 @@
 
          ! jump over sediment if sedbypass is defined
 
-         if(do_sedspinup .and. kplyear>=sedspin_yr_s                              &
-                         .and. kplyear<=sedspin_yr_e) then
+         if(do_sedspinup .and. kplyear>=sedspin_yr_s .and. kplyear<=sedspin_yr_e) then
             nspin = sedspin_ncyc
             if(mnproc == 1) then
                write(io_stdo_bgc,*)
-               write(io_stdo_bgc,*) 'iHAMOCC: sediment spinup activated with ',     &
-                    nspin, ' subcycles' 
+               write(io_stdo_bgc,*) 'iHAMOCC: sediment spinup activated with ',nspin, ' subcycles' 
             endif
          else
             nspin = 1
@@ -361,19 +359,18 @@
                WRITE(io_stdo_bgc,*)'after POWACH: call INVENTORY'
             ENDIF
             CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-         end if
+         endif
 
-         !     sediment is shifted once a day (on both time levels!)
+         ! Sediment is shifted once a day (on both time levels!)
          IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
             IF (mnproc.eq.1) THEN
-               WRITE(io_stdo_bgc,*)                                           &
-                    &   'Sediment shifting ...'
+               WRITE(io_stdo_bgc,*)' '
+               WRITE(io_stdo_bgc,*) 'Sediment shifting ...'
             ENDIF
-            
             CALL SEDSHI(kpie,kpje,omask)
-            
          ENDIF
-      end if
+         
+      endif ! .not. use_sedbypass
 
       if (use_PBGC_CK_TIMESTEP ) then
          IF (mnproc.eq.1) THEN
@@ -381,7 +378,7 @@
             WRITE(io_stdo_bgc,*)'after BGC: call INVENTORY'
          ENDIF
          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      end if
+      endif
 
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
@@ -416,7 +413,7 @@
             if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
          else
             if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
-         end if
+         endif
       ENDDO
       ENDDO
 !$OMP END PARALLEL DO

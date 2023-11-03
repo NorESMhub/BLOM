@@ -119,7 +119,7 @@ subroutine ini_read_ndep(kpie,kpje)
       write(io_stdo_bgc,*) 'ini_read_ndep: N deposition is not activated.'
     endif
     return
-  end if
+  endif
 
   ! Initialise the module
   if (.not. lini) then 

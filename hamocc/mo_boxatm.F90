@@ -137,7 +137,7 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
            vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(i,j,k)*omask(i,j) ! sediment volume
            ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
            ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
-        end if
+        endif
      ENDDO
      ENDDO
      ENDDO
@@ -162,7 +162,7 @@ subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
         WRITE(io_stdo_bgc,*) ' '
      ENDIF
 
-  end if ! end of use_cisonew
+  endif ! end of use_cisonew
 
 end subroutine update_boxatm
 

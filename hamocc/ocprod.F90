@@ -80,6 +80,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !     *REAL*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
+  use mod_xc,         only: mnproc
   use mo_carbch,      only: ocetra,satoxy,hi,co2star
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
   use mo_param_bgc,   only: drempoc,dremn2o,dremopal,dremsul,dyphy,ecan,epsher,fesoly,gammap,gammaz,grami,grazra,pi_alpha,phytomi, &
@@ -88,10 +89,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                             cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,     &
                             tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,     &
                             fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
-  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,                                                &
-                            bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
-                            carflx1000,carflx2000,carflx4000,carflx_bot,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,        &
-                            intdms_uv,intphosy,phosy3d,int_chbr3_prod,int_chbr3_uv,abs_oce,strahl,asize3d,wmass,wnumb
+  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot,                                     &
+                            calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,                                     &
+                            carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot,                                     &
+                            expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,int_chbr3_prod,int_chbr3_uv,     &
+                            phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,bifr13_perm,growth_co2
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                             isilica,izoo,iadust,inos,ibromo,                                                                       &
                             icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,       &
@@ -100,8 +102,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                             use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,use_AGG,use_cisonew,use_natDIC,                &
                             use_WLIN,use_sedbypass
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
-  use mod_xc,         only: mnproc
-  use mo_biomod,      only: eps3d,bifr13_perm,growth_co2
   use mo_vgrid,       only: kmle
   use mo_clim_swa,    only: swa_clim
 
@@ -203,7 +203,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   if (use_AGG) then
      eps3d(:,:,:)    = 0.
      asize3d(:,:,:)  = 0.
-  end if
+  endif
 
 
   if (use_PBGC_OCNP_TIMESTEP) then
@@ -212,14 +212,14 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)'beginning of OCRPOD '
      endif
      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-  end if
+  endif
 
 ! Calculate swr absorption by water and phytoplankton
 
   abs_bgc(:,:,:) = 0.
   if (use_BROMO) then
      abs_uv(:,:,:) = 0.
-  end if
+  endif
   if (use_FB_BGC_OCE) then
      abs_oce(:,:,:) = 0.
      abs_oce(:,:,1) = 1.
@@ -289,7 +289,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
         if (use_AGG) then
            avmass = ocetra(i,j,k,iphy) + ocetra(i,j,k,idet)
-        end if
+        endif
 
         temp = min(40.,max(-3.,ptho(i,j,k)))
         phofa = pi_alpha * strahl(i,j) * abs_bgc(i,j,k)
@@ -380,7 +380,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
            export13 = zoomor13*(1.-ecan) + phymor13 + gratpoc13
            export14 = zoomor14*(1.-ecan) + phymor14 + gratpoc14
-        end if
+        endif
 
         if (use_AGG) then
            delsil = MIN(ropal*phosy*avsil/(avsil+bkopal),0.5*avsil)
@@ -392,8 +392,8 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            if (use_cisonew) then
               delcar13 = rcalc * export13 * bkopal/(avsil+bkopal)
               delcar14 = rcalc * export14 * bkopal/(avsil+bkopal)
-           end if
-        end if
+           endif
+        endif
 
         if(with_dmsph) then
            dms_ph  = 1. + (-log10(hi(i,j,1)) - pi_ph(i,j))*dms_gamma
@@ -435,12 +435,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            ocetra(i,j,k,idoc14) = ocetra(i,j,k,idoc14)-bacfra14+excdoc14+exud14
            ocetra(i,j,k,icalc13) = ocetra(i,j,k,icalc13)+delcar13
            ocetra(i,j,k,icalc14) = ocetra(i,j,k,icalc14)+delcar14
-        end if
+        endif
         if (use_natDIC) then
            ocetra(i,j,k,inatsco212) = ocetra(i,j,k,inatsco212)-delcar+rcar*dtr
            ocetra(i,j,k,inatalkali) = ocetra(i,j,k,inatalkali)-2.*delcar-(rnit+1)*dtr
            ocetra(i,j,k,inatcalc) = ocetra(i,j,k,inatcalc)+delcar
-        end if
+        endif
         ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)-delsil+dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iopal) = ocetra(i,j,k,iopal)+delsil-dremopal*ocetra(i,j,k,iopal)
         ocetra(i,j,k,iiron) = ocetra(i,j,k,iiron)+dtr*riron                     &
@@ -461,7 +461,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               bro_uv = 0.0
            endif
            ocetra(i,j,k,ibromo) = ocetra(i,j,k,ibromo)+bro_beta*phosy-bro_uv
-        end if
+        endif
 
         if (use_AGG) then
 
@@ -491,7 +491,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
            zmornos = zoomor * (1.-ecan) * zdis * 1.e+6
            ocetra(i,j,k,inos) = ocetra(i,j,k,inos)+zmornos
-        end if
+        endif
 
         ! add up for total inventory and output
         dz = pddpo(i,j,k)
@@ -506,7 +506,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         if (use_BROMO) then
            int_chbr3_uv(i,j)  = int_chbr3_uv (i,j) + bro_uv*dz
            int_chbr3_prod(i,j)  = int_chbr3_prod (i,j) + bro_beta*phosy*dz
-        end if
+        endif
 
         intphosy(i,j)   = intphosy(i,j)  +phosy*rcar*dz  ! primary production in kmol C m-2
         phosy3d(i,j,k)  = phosy*rcar                     ! primary production in kmol C m-3
@@ -860,135 +860,133 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
      dustagg(:,:,:)   = 0.0
 
      do k = 1,kpke
-        do j = 1,kpje
-           do i = 1,kpie
+     do j = 1,kpje
+     do i = 1,kpie
 
-              if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
+        if(pddpo(i,j,k) > dp_min .and. omask(i,j) > 0.5) then
 
-                 !***********************************************************************
-                 !  Have a special resetting for numbers, that fixes their conc. to one
-                 !  depending on mass of marine snow:
-                 !  Compartments have already been set to 0 in
-                 !  ADVECTION_BGC.h and OCTDIFF_BGC.h.
-                 !  Ensure that if there is no mass, there are no particles, and
-                 !  that the number of particles is in the right range (this is crude, but
-                 !  is supposed to happen only due to numerical errors such as truncation or
-                 !  overshoots during advection)
-                 ! (1) avnos<<avmass, such that eps = FractDim + 1: increase numbers
-                 !     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in BELEG_PARM)
-                 ! (2) avnos>>avmass, such that  Nbar (=Mass/Nos/cellmass) <=1: decrease numbers
-                 !     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in BELEG_PARM)
-                 !************************************************************************
-                 avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
-                 snow  = avmass*1.e+6
+           !***********************************************************************
+           !  Have a special resetting for numbers, that fixes their conc. to one
+           !  depending on mass of marine snow:
+           !  Compartments have already been set to 0 in
+           !  ADVECTION_BGC.h and OCTDIFF_BGC.h.
+           !  Ensure that if there is no mass, there are no particles, and
+           !  that the number of particles is in the right range (this is crude, but
+           !  is supposed to happen only due to numerical errors such as truncation or
+           !  overshoots during advection)
+           ! (1) avnos<<avmass, such that eps = FractDim + 1: increase numbers
+           !     such that eps = FractDim + 1 + safe (currently set to 1.e-6 in BELEG_PARM)
+           ! (2) avnos>>avmass, such that  Nbar (=Mass/Nos/cellmass) <=1: decrease numbers
+           !     such that Nbar=1.1 (i.e. 1.1 cells per aggregate, set in BELEG_PARM)
+           !************************************************************************
+           avmass = ocetra(i,j,k,iphy)+ocetra(i,j,k,idet)
+           snow  = avmass*1.e+6
 
-                 if(avmass > 0.) then
+           if(avmass > 0.) then
+              ! Set minimum particle number to nmldmin in the mixed layer. This is to prevent
+              ! very small values of nos (and asscociated high sinking speed if there is mass)
+              ! in high latitudes during winter
+              if ( k <= kmle(i,j) ) then
+                 ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos))
+              endif
 
-                    ! Set minimum particle number to nmldmin in the mixed layer. This is to prevent
-                    ! very small values of nos (and asscociated high sinking speed if there is mass)
-                    ! in high latitudes during winter
-                    if ( k <= kmle(i,j) ) then
-                       ocetra(i,j,k,inos) = MAX(nmldmin,ocetra(i,j,k,inos))
-                    endif
+              ocetra(i,j,k,inos) = MAX(snow*pupper,ocetra(i,j,k,inos))
+              ocetra(i,j,k,inos) = MIN(snow*plower,ocetra(i,j,k,inos))
 
-                    ocetra(i,j,k,inos) = MAX(snow*pupper,ocetra(i,j,k,inos))
-                    ocetra(i,j,k,inos) = MIN(snow*plower,ocetra(i,j,k,inos))
+              avnos = ocetra(i,j,k,inos)
+              eps   = ((1.+ FractDim)*snow-avnos*cellmass)/(snow-avnos*cellmass)
 
-                    avnos = ocetra(i,j,k,inos)
-                    eps   = ((1.+ FractDim)*snow-avnos*cellmass)/(snow-avnos*cellmass)
+              ! prevent epsilon from becoming exactly one of the values which are
+              ! needed for the division (guide from??js)
+              if (abs(eps-3.) < 1.e-15) eps = 3.+ vsmall
+              if (abs(eps-4.) < 1.e-15) eps = 4.+ vsmall
+              if (abs(eps-3.-SinkExp) < 1.e-15)          eps = 3.+SinkExp+vsmall
+              if (abs(eps-1.-SinkExp-FractDim) < 1.e-15) eps = 1.+SinkExp+FractDim+vsmall
 
-                    ! prevent epsilon from becoming exactly one of the values which are
-                    ! needed for the division (guide from??js)
-                    if (abs(eps-3.) < 1.e-15) eps = 3.+ vsmall
-                    if (abs(eps-4.) < 1.e-15) eps = 4.+ vsmall
-                    if (abs(eps-3.-SinkExp) < 1.e-15) eps = 3.+SinkExp+vsmall
-                    if (abs(eps-1.-SinkExp-FractDim) < 1.e-15)                   &
-                         &        eps = 1.+SinkExp+FractDim+vsmall
+              e1 = 1. - eps
+              e2 = 2. - eps
+              e3 = 3. - eps
+              e4 = 4. - eps
+              es1 = e1 + SinkExp
+              es3 = e3 + SinkExp
+              TopF = (alar1/alow1)**e1
+              TopM = TopF * TMFac
 
-                    e1 = 1. - eps
-                    e2 = 2. - eps
-                    e3 = 3. - eps
-                    e4 = 4. - eps
-                    es1 = e1 + SinkExp
-                    es3 = e3 + SinkExp
-                    TopF = (alar1/alow1)**e1
-                    TopM = TopF * TMFac
+              ! SINKING SPEED FOR THIS LAYER
+              wmass(i,j,k) = cellsink * ( (FractDim+e1)/ (FractDim+es1)    &
+                   &         + TopM * TSFac * SinkExp / (FractDim+es1))
+              wnumb(i,j,k) = cellsink * (e1/es1 + TopF*TSFac*SinkExp/es1)
 
-                    ! SINKING SPEED FOR THIS LAYER
-                    wmass(i,j,k) = cellsink * ( (FractDim+e1)/ (FractDim+es1)    &
-                         &         + TopM * TSFac * SinkExp / (FractDim+es1))
-                    wnumb(i,j,k) = cellsink * (e1/es1 + TopF*TSFac*SinkExp/es1)
+              ! AGGREGATION
 
-                    ! AGGREGATION
-
-                    ! As a first step, assume that shear in the mixed layer is high and
-                    ! zero below.
-                    if ( k <= kmle(i,j) ) then
-                       fshear = fsh
-                    else
-                       fshear = 0.
-                    endif
+              ! As a first step, assume that shear in the mixed layer is high and
+              ! zero below.
+              if ( k <= kmle(i,j) ) then
+                 fshear = fsh
+              else
+                 fshear = 0.
+              endif
 
 
-                    ! shear kernel:
-                    sagg1 = (TopF-1.) * (TopF*alar3-alow3) * e1 / e4                     &
-                         &  + 3. * (TopF*alar1-alow1)                                    &
-                         &  * (TopF*alar2-alow2) * e1 * e1 / (e2*e3)
-                    sagg2 = TopF*((alar3 + 3.                                            &
-                         &  * (alar2*alow1*e1/e2 + alar1*alow2*e1/e3) + alow3*e1/e4)     &
-                         &  - TopF*alar3*(1.+3*(       e1/e2+       e1/e3)+     e1/e4))
-                    sagg4 = TopF * TopF * 4. * alar3
-                    shear_agg = (sagg1+sagg2+sagg4) * fshear
+              ! shear kernel:
+              sagg1 = (TopF-1.) * (TopF*alar3-alow3) * e1 / e4                     &
+                   &  + 3. * (TopF*alar1-alow1)                                    &
+                   &  * (TopF*alar2-alow2) * e1 * e1 / (e2*e3)
+              sagg2 = TopF*((alar3 + 3.                                            &
+                   &  * (alar2*alow1*e1/e2 + alar1*alow2*e1/e3) + alow3*e1/e4)     &
+                   &  - TopF*alar3*(1.+3*(       e1/e2+       e1/e3)+     e1/e4))
+              sagg4 = TopF * TopF * 4. * alar3
+              shear_agg = (sagg1+sagg2+sagg4) * fshear
 
-                    ! settlement kernel:
-                    sagg1 = (TopF * TopF * alar2 * TSFac - alow2)                        &
-                         &   * SinkExp / (es3 * e3 * (es3 + e1))                         &
-                         &   + alow2 * ((1. - TopF * TSFac) / (e3 * es1)                 &
-                         &   - (1. - TopF) / (es3*e1))
-                    sagg2 = TopF * e1 * (TSFac * ( alow2 - TopF * alar2) / e3            &
-                         &   - (alow2 - TopF * alar2 * TSFac) / es3)
-                    sett_agg =  (e1*e1*sagg1+sagg2) * fse
+              ! settlement kernel:
+              sagg1 = (TopF * TopF * alar2 * TSFac - alow2)                        &
+                   &   * SinkExp / (es3 * e3 * (es3 + e1))                         &
+                   &   + alow2 * ((1. - TopF * TSFac) / (e3 * es1)                 &
+                   &   - (1. - TopF) / (es3*e1))
+              sagg2 = TopF * e1 * (TSFac * ( alow2 - TopF * alar2) / e3            &
+                   &   - (alow2 - TopF * alar2 * TSFac) / es3)
+              sett_agg =  (e1*e1*sagg1+sagg2) * fse
 
-                    effsti = Stick * (ocetra(i,j,k,iopal)*1.e+6/ropal)/                  &
-                         &  ((ocetra(i,j,k,iopal) * 1.e+6 / ropal) + snow)
+              effsti = Stick * (ocetra(i,j,k,iopal)*1.e+6/ropal)/                  &
+                   &  ((ocetra(i,j,k,iopal) * 1.e+6 / ropal) + snow)
 
-                    aggregate(i,j,k) = (shear_agg+sett_agg) * effsti * avnos * avnos
+              aggregate(i,j,k) = (shear_agg+sett_agg) * effsti * avnos * avnos
 
-                    ! dust aggregation:
-                    ! shear kernel:
-                    dfirst = dustd3 + 3. * dustd2 * alar1 + 3. * dustd1 * alar2 + alar3
-                    dshagg = e1 * fsh * (dfirst * TopF / e1 - (                          &
-                         &   (TopF-1.)/e1*dustd3 + 3.*(TopF*alar1-alow1)/e2*dustd2       &
-                         &   + 3.*(TopF*alar2-alow2)/e3*dustd1 + (TopF*alar3-alow3)/e4))
+              ! dust aggregation:
+              ! shear kernel:
+              dfirst = dustd3 + 3. * dustd2 * alar1 + 3. * dustd1 * alar2 + alar3
+              dshagg = e1 * fsh * (dfirst * TopF / e1 - (                          &
+                   &   (TopF-1.)/e1*dustd3 + 3.*(TopF*alar1-alow1)/e2*dustd2       &
+                   &   + 3.*(TopF*alar2-alow2)/e3*dustd1 + (TopF*alar3-alow3)/e4))
 
-                    ! settlement kernel:
-                    dsett = fse * dustd2 * ((e1+SinkExp*TopF*TSFac)/es1-dustsink/cellsink)
+              ! settlement kernel:
+              dsett = fse * dustd2 * ((e1+SinkExp*TopF*TSFac)/es1-dustsink/cellsink)
 
-                    dustagg(i,j,k) = effsti * avnos * ocetra(i,j,k,ifdust)               &
-                         &           * (dshagg+dsett)
+              dustagg(i,j,k) = effsti * avnos * ocetra(i,j,k,ifdust)               &
+                  &           * (dshagg+dsett)
 
-                    eps3d(i,j,k)   = eps
-                    asize3d(i,j,k) = snow / avnos / cellmass
+              eps3d(i,j,k)   = eps
+              asize3d(i,j,k) = snow / avnos / cellmass
 
-                 else
+           else
 
-                    wmass(i,j,k) = cellsink
-                    wnumb(i,j,k) = 0.
-                    aggregate(i,j,k) = 0.
-                    dustagg(i,j,k) = 0.
-                    ocetra(i,j,k,inos) = 0.
+              wmass(i,j,k) = cellsink
+              wnumb(i,j,k) = 0.
+              aggregate(i,j,k) = 0.
+              dustagg(i,j,k) = 0.
+              ocetra(i,j,k,inos) = 0.
 
-                    eps3d(i,j,k)   = 1.
-                    asize3d(i,j,k) = 0.
+              eps3d(i,j,k)   = 1.
+              asize3d(i,j,k) = 0.
 
-                 endif ! avmass > 0
+           endif ! avmass > 0
 
-              endif ! pddpo > dp_min .and. omask > 0.5
-           enddo ! i=1,kpie
-        enddo ! j=1,kpje
+        endif ! pddpo > dp_min .and. omask > 0.5
+     enddo ! i=1,kpie
+     enddo ! j=1,kpje
      enddo ! k=1,kpke
 
-  endif
+  endif ! use_AGG
 
 
 !
@@ -1058,7 +1056,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                  wcald  = wcal
                  wopald = wopal
                  dagg   = 0.0
-              end if
+              endif
 
               if( k == 1 ) then
                  wpocd  = 0.0
@@ -1068,50 +1066,50 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                     wnosd  = 0.0
                  else if (use_WLIN) then
                     wpoc   = wmin
-                 end if
+                 endif
               endif
 
-              ocetra(i,j,k,idet)    = (ocetra(i,j,k   ,idet) * pddpo(i,j,k)     &
-                   &                  + ocetra(i,j,kdonor,idet)*wpocd)/         &
-                   &                  (pddpo(i,j,k)+wpoc)
-              ocetra(i,j,k,icalc)   = (ocetra(i,j,k   ,icalc) * pddpo(i,j,k)    &
-                   &                  + ocetra(i,j,kdonor,icalc)*wcald)/        &
-                   &                  (pddpo(i,j,k)+wcal)
+              ocetra(i,j,k,iopal)  = (ocetra(i,j,k     ,iopal)*pddpo(i,j,k)        &
+                                    + ocetra(i,j,kdonor,iopal)*wopald)/            &
+                                     (pddpo(i,j,k)+wopal)
+              ocetra(i,j,k,ifdust) = (ocetra(i,j,k     ,ifdust)*pddpo(i,j,k)       &
+                                    + ocetra(i,j,kdonor,ifdust)*wdust)/            &
+                                     (pddpo(i,j,k)+wdust) - dagg
+              ocetra(i,j,k,idet)   = (ocetra(i,j,k     ,idet)*pddpo(i,j,k)         &
+                                    + ocetra(i,j,kdonor,idet)*wpocd)/              &
+                                     (pddpo(i,j,k)+wpoc)
+              ocetra(i,j,k,icalc)  = (ocetra(i,j,k     ,icalc)*pddpo(i,j,k)        &
+                                    + ocetra(i,j,kdonor,icalc)*wcald)/             &
+                                     (pddpo(i,j,k)+wcal)
               if (use_cisonew) then
-                 ocetra(i,j,k,idet13)  = (ocetra(i,j,k   ,idet13) * pddpo(i,j,k)   &
-                      &	                + ocetra(i,j,kdonor,idet13)*wpocd)/       &
-                      &                  (pddpo(i,j,k)+wpoc)
-                 ocetra(i,j,k,idet14)  = (ocetra(i,j,k   ,idet14) * pddpo(i,j,k)   &
-                      &	                + ocetra(i,j,kdonor,idet14)*wpocd)/       &
-                      &                  (pddpo(i,j,k)+wpoc)
-                 ocetra(i,j,k,icalc13) = (ocetra(i,j,k   ,icalc13) * pddpo(i,j,k)  &
-                      &	                + ocetra(i,j,kdonor,icalc13)*wcald)/      &
-                      &                  (pddpo(i,j,k)+wcal)
-                 ocetra(i,j,k,icalc14) = (ocetra(i,j,k   ,icalc14) * pddpo(i,j,k)  &
-                      &	                + ocetra(i,j,kdonor,icalc14)*wcald)/      &
-                      &                  (pddpo(i,j,k)+wcal)
+                 ocetra(i,j,k,idet13)  = (ocetra(i,j,k     ,idet13)*pddpo(i,j,k)   &
+                                        + ocetra(i,j,kdonor,idet13)*wpocd)/        &
+                                         (pddpo(i,j,k)+wpoc)
+                 ocetra(i,j,k,idet14)  = (ocetra(i,j,k     ,idet14)*pddpo(i,j,k)   &
+                                        + ocetra(i,j,kdonor,idet14)*wpocd)/        &
+                                         (pddpo(i,j,k)+wpoc)
+                 ocetra(i,j,k,icalc13) = (ocetra(i,j,k     ,icalc13)*pddpo(i,j,k)  &
+                                        + ocetra(i,j,kdonor,icalc13)*wcald)/       &
+                                         (pddpo(i,j,k)+wcal)
+                 ocetra(i,j,k,icalc14) = (ocetra(i,j,k     ,icalc14)*pddpo(i,j,k)  &
+                      	                 + ocetra(i,j,kdonor,icalc14)*wcald)/       &
+                                         (pddpo(i,j,k)+wcal)
               endif
               if (use_natDIC) then
-                 ocetra(i,j,k,inatcalc) = (ocetra(i,j,k,inatcalc) * pddpo(i,j,k)   &
-                      &	                 + ocetra(i,j,kdonor,inatcalc)*wcald)/    &
-                      &                   (pddpo(i,j,k)+wcal)
+                 ocetra(i,j,k,inatcalc)= (ocetra(i,j,k,     inatcalc)*pddpo(i,j,k) &
+                                        + ocetra(i,j,kdonor,inatcalc)*wcald)/      &
+                                         (pddpo(i,j,k)+wcal)
               endif
-              ocetra(i,j,k,iopal)  = (ocetra(i,j,k    ,iopal) * pddpo(i,j,k)    &
-                   &                 + ocetra(i,j,kdonor,iopal)*wopald)/        &
-                   &                 (pddpo(i,j,k)+wopal)
-              ocetra(i,j,k,ifdust) = (ocetra(i,j,k    ,ifdust) * pddpo(i,j,k)   &
-                   &                 + ocetra(i,j,kdonor,ifdust)*wdust)/        &
-                   &                 (pddpo(i,j,k)+wdust) - dagg
               if (use_AGG) then
-                 ocetra(i,j,k,iphy)   = (ocetra(i,j,k    ,iphy) * pddpo(i,j,k)     &
-                      &	               + ocetra(i,j,kdonor,iphy)*wpocd)/          &
-                      &                 (pddpo(i,j,k)+wpoc)
-                 ocetra(i,j,k,inos)   = (ocetra(i,j,k    ,inos)*pddpo(i,j,k)       &
-                      &	               + ocetra(i,j,kdonor,inos)*wnosd)/          &
-                      &                 (pddpo(i,j,k)+wnos) - aggregate(i,j,k)
-                 ocetra(i,j,k,iadust) = (ocetra(i,j,k    ,iadust) * pddpo(i,j,k)   &
-                      &	               + ocetra(i,j,kdonor,iadust)*wpocd)/        &
-                      &                 (pddpo(i,j,k)+wpoc)  + dagg
+                 ocetra(i,j,k,iphy)    = (ocetra(i,j,k     ,iphy)*pddpo(i,j,k)     &
+                                        + ocetra(i,j,kdonor,iphy)*wpocd)/          &
+                                         (pddpo(i,j,k)+wpoc)
+                 ocetra(i,j,k,inos)    = (ocetra(i,j,k     ,inos)*pddpo(i,j,k)     &
+                                        + ocetra(i,j,kdonor,inos)*wnosd)/          &
+                                         (pddpo(i,j,k)+wnos) - aggregate(i,j,k)
+                 ocetra(i,j,k,iadust)  = (ocetra(i,j,k     ,iadust)*pddpo(i,j,k)   &
+                                        + ocetra(i,j,kdonor,iadust)*wpocd)/        &
+                                         (pddpo(i,j,k)+wpoc)  + dagg
               endif
               kdonor = k
 
@@ -1217,20 +1215,20 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! layer thicker than dp_min_sink.
         if (use_AGG) then
            prorca(i,j) = ocetra(i,j,kdonor,iphy  )*wpoc                    &
-                &        + ocetra(i,j,kdonor,idet  )*wpoc
+                       + ocetra(i,j,kdonor,idet  )*wpoc
            prcaca(i,j) = ocetra(i,j,kdonor,icalc )*wcal
            silpro(i,j) = ocetra(i,j,kdonor,iopal )*wopal
            produs(i,j) = ocetra(i,j,kdonor,ifdust)*wdust                   &
-                &        + ocetra(i,j,kdonor,iadust)*wpoc
+                       + ocetra(i,j,kdonor,iadust)*wpoc
 
            if (use_cisonew) then
-              pror13(i,j) = ocetra(i,j,kdonor,iphy13)*wpoc                    &
-                   &        + ocetra(i,j,kdonor,idet13)*wpoc
-              pror14(i,j) = ocetra(i,j,kdonor,iphy14)*wpoc                    &
-                   &        + ocetra(i,j,kdonor,idet14)*wpoc
+              pror13(i,j) = ocetra(i,j,kdonor,iphy13)*wpoc                 &
+                          + ocetra(i,j,kdonor,idet13)*wpoc
+              pror14(i,j) = ocetra(i,j,kdonor,iphy14)*wpoc                 &
+                          + ocetra(i,j,kdonor,idet14)*wpoc
               prca13(i,j) = ocetra(i,j,kdonor,icalc13)*wcal
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
-           end if
+           endif
         else
            prorca(i,j) = ocetra(i,j,kdonor,idet  )*wpoc
            prcaca(i,j) = ocetra(i,j,kdonor,icalc )*wcal
@@ -1242,7 +1240,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               pror14(i,j) = ocetra(i,j,kdonor,idet14 )*wpoc
               prca14(i,j) = ocetra(i,j,kdonor,icalc14)*wcal
            endif
-        end if
+        endif
 
      endif  ! omask > 0.5
   enddo    ! loop i=1,kpie
@@ -1269,13 +1267,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wopal = wmass(i,j,k)
            else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-           end if
+           endif
 
            if (use_AGG) then
               carflx0100(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
            else
               carflx0100(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
-           end if
+           endif
            bsiflx0100(i,j) = ocetra(i,j,k,iopal)*wopal
            calflx0100(i,j) = ocetra(i,j,k,icalc)*wcal
         endif
@@ -1289,13 +1287,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wopal = wmass(i,j,k)
            else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-           end if
+           endif
 
            if (use_AGG) then
               carflx0500(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
            else
               carflx0500(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
-           end if
+           endif
            bsiflx0500(i,j) = ocetra(i,j,k,iopal)*wopal
            calflx0500(i,j) = ocetra(i,j,k,icalc)*wcal
         endif
@@ -1309,13 +1307,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wopal = wmass(i,j,k)
            else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-           end if
+           endif
 
            if (use_AGG) then
               carflx1000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
            else
               carflx1000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
-           end if
+           endif
            bsiflx1000(i,j) = ocetra(i,j,k,iopal)*wopal
            calflx1000(i,j) = ocetra(i,j,k,icalc)*wcal
         endif
@@ -1329,13 +1327,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wopal = wmass(i,j,k)
            else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-           end if
+           endif
 
            if (use_AGG) then
               carflx2000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
            else
               carflx2000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
-           end if
+           endif
            bsiflx2000(i,j) = ocetra(i,j,k,iopal)*wopal
            calflx2000(i,j) = ocetra(i,j,k,icalc)*wcal
         endif
@@ -1349,13 +1347,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
               wopal = wmass(i,j,k)
            else if (use_WLIN) then
               wpoc  = min(wmin+wlin*ptiestu(i,j,k), wmax)
-           end if
+           endif
 
            if (use_AGG) then
               carflx4000(i,j) = (ocetra(i,j,k,idet)+ocetra(i,j,k,iphy))*rcar*wpoc
            else
               carflx4000(i,j) = ocetra(i,j,k,idet)*rcar*wpoc
-           end if
+           endif
            bsiflx4000(i,j) = ocetra(i,j,k,iopal)*wopal
            calflx4000(i,j) = ocetra(i,j,k,icalc)*wcal
         endif
@@ -1381,53 +1379,54 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
      !$OMP ,flor13,flor14,flca13,flca14                                      &
      !$OMP ,i,k)
      do j=1,kpje
-        do i = 1,kpie
-           if(omask(i,j) > 0.5) then
+     do i = 1,kpie
+        if(omask(i,j) > 0.5) then
 
-              ! calculate depth of water column
-              dz = 0.0
-              do k = 1,kpke
+           ! calculate depth of water column
+           dz = 0.0
+           do k = 1,kpke
 
-                 if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
+              if( pddpo(i,j,k) > dp_min ) dz = dz+pddpo(i,j,k)
 
-              enddo
+           enddo
 
-              florca = prorca(i,j)/dz
-              flcaca = prcaca(i,j)/dz
-              flsil = silpro(i,j)/dz
-              prorca(i,j) = 0.
-              prcaca(i,j) = 0.
-              silpro(i,j) = 0.
+           florca = prorca(i,j)/dz
+           flcaca = prcaca(i,j)/dz
+           flsil = silpro(i,j)/dz
+           prorca(i,j) = 0.
+           prcaca(i,j) = 0.
+           silpro(i,j) = 0.
+           if (use_cisonew) then
+              flor13 = pror13(i,j)/dz
+              flor14 = pror13(i,j)/dz
+              flca13 = prca13(i,j)/dz
+              flca14 = prca14(i,j)/dz
+              pror13(i,j) = 0.
+              pror14(i,j) = 0.
+              prca13(i,j) = 0.
+              prca14(i,j) = 0.
+           endif
+
+           do k = 1,kpke
+              if( pddpo(i,j,k) <= dp_min ) cycle
+
+              ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+florca
+              ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+2.*flcaca
+              ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+flcaca
+              ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+flsil
               if (use_cisonew) then
-                 flor13 = pror13(i,j)/dz
-                 flor14 = pror13(i,j)/dz
-                 flca13 = prca13(i,j)/dz
-                 flca14 = prca14(i,j)/dz
-                 pror13(i,j) = 0.
-                 pror14(i,j) = 0.
-                 prca13(i,j) = 0.
-                 prca14(i,j) = 0.
+                 ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)+flor13
+                 ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)+flor14
+                 ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+flca13
+                 ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+flca14
               endif
+           enddo ! k=1,kpke
 
-              do k = 1,kpke
-                 if( pddpo(i,j,k) <= dp_min ) cycle
-
-                 ocetra(i,j,k,idet) = ocetra(i,j,k,idet)+florca
-                 ocetra(i,j,k,ialkali) = ocetra(i,j,k,ialkali)+2.*flcaca
-                 ocetra(i,j,k,isco212) = ocetra(i,j,k,isco212)+flcaca
-                 ocetra(i,j,k,isilica) = ocetra(i,j,k,isilica)+flsil
-                 if (use_cisonew) then
-                    ocetra(i,j,k,idet13) = ocetra(i,j,k,idet13)+flor13
-                    ocetra(i,j,k,idet14) = ocetra(i,j,k,idet14)+flor14
-                    ocetra(i,j,k,isco213) = ocetra(i,j,k,isco213)+flca13
-                    ocetra(i,j,k,isco214) = ocetra(i,j,k,isco214)+flca14
-                 endif
-              enddo ! k=1,kpke
-
-           endif ! omask > 0.5
-        enddo
+        endif ! omask > 0.5
      enddo
-  end if
+     enddo
+	 
+  endif ! use_sedbypass
 
   if (use_PBGC_OCNP_TIMESTEP) then
      if (mnproc == 1) then
