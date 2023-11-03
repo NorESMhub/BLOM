@@ -83,12 +83,12 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   use mo_carbch,      only: ocetra,satoxy,hi,co2star
   use mo_sedmnt,      only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
   use mo_param_bgc,   only: drempoc,dremn2o,dremopal,dremsul,dyphy,ecan,epsher,fesoly,gammap,gammaz,grami,grazra,pi_alpha,phytomi, &
-                            rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,       &
-                            spemor,wcal,wdust,wopal,wpoc,zinges,alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,       &
+                            rcalc,rcar,rdn2o1,rdn2o2,rdnit0,rdnit1,rdnit2,relaxfe,remido,riron,rnit,rnoi,ro2ut,ropal,              &
+                            spemor,wcal,wdust,wopal,wpoc,zinges,alar1,alar2,alar3,alow1,alow2,alow3,calmax,cellmass,               &
                             cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,     &
-                            tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,   &
-                            atten_f,dmspar,fbro1,fbro2,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
-  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,    &
+                            tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,     &
+                            fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
+  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,                                                &
                             bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
                             carflx1000,carflx2000,carflx4000,carflx_bot,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,        &
                             intdms_uv,intphosy,phosy3d,int_chbr3_prod,int_chbr3_uv,abs_oce,strahl,asize3d,wmass,wnumb
@@ -116,12 +116,10 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
   ! Local varaibles
   integer, parameter :: nsinkmax = 12
-  real   , parameter :: dms_gamma = 0.87       ! dms_ph scaling factor
   integer :: i,j,k,l
   integer :: is,kdonor
   real :: abs_bgc(kpie,kpje,kpke)
   real :: tco(nsinkmax),tcn(nsinkmax),q(nsinkmax)
-  real :: dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_ph
   real :: atten,avphy,avanut,avanfe,pho,xa,xn,ya,yn,phosy
   real :: avgra,grazing,avsil,avdic,graton
   real :: gratpoc,grawa,bacfra,phymor,zoomor,excdoc,exud
@@ -130,7 +128,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   real :: zoothresh,phythresh
   real :: temp,temfa,phofa                  ! temperature and irradiation factor for photosynthesis
   real :: absorption,absorption_uv
-  real :: dmsprod,dms_bac,dms_uv
+  real :: dmsprod,dms_bac,dms_uv,dms_ph
   real :: dtr,dz
   real :: wpocd,wcald,wopald,dagg
   ! sedbypass
@@ -199,21 +197,13 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   phosy3d (:,:,:) = 0.
 
   if (use_BROMO) then
-     int_chbr3_uv (:,:) = 0.
-     int_chbr3_prod (:,:) = 0.
+     int_chbr3_uv  (:,:) = 0.
+     int_chbr3_prod(:,:) = 0.
   end if
   if (use_AGG) then
      eps3d(:,:,:)    = 0.
      asize3d(:,:,:)  = 0.
   end if
-
-! parameter for DMS scheme (dmspar defined in MO_PARAM_BGC)
-  dmsp6 = dmspar(6)
-  dmsp5 = dmspar(5)
-  dmsp4 = dmspar(4)
-  dmsp3 = dmspar(3)
-  dmsp2 = dmspar(2)
-  dmsp1 = dmspar(1)
 
 
   if (use_PBGC_OCNP_TIMESTEP) then

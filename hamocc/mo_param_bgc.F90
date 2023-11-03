@@ -60,10 +60,11 @@ module mo_param_bgc
   public :: ro2ut,rcar,rnit,rnoi,riron,rdnit0,rdnit1,rdnit2,rdn2o1,rdn2o2,atm_n2,atm_o2,atm_co2_nat,atm_bromo,re1312,              &
             re14to,prei13,prei14,ctochl,atten_w,atten_c,atten_uv,atten_f,fetune,perc_diron,fesoly,relaxfe,phytomi,pi_alpha,bkphy,  &
             dyphy,bluefix,tf2,tf1,tf0,tff,bifr13,bifr14,c14_t_half,rbro,fbro1,fbro2,grami,bkzoo,grazra,spemor,gammap,gammaz,ecan,  &
-            zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,dmspar,wpoc,wcal,wopal,wmin,wmax,wlin, &
+            zinges,epsher,bkopal,rcalc,ropal,calmax,remido,drempoc,dremopal,dremn2o,dremsul,wpoc,wcal,wopal,wmin,wmax,wlin,        &
             dustd1,dustd2,dustd3,dustsink,wdust,SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse,alow1, alow2,alow3,alar1,   &
             alar2,alar3,TSFac,TMFac,vsmall,safe,pupper,plower,zdis,nmldmin,beta13,alpha14,atm_c13,atm_c14,c14fac,c14dec,           &
-            sedict,silsat,disso_poc,disso_sil,disso_caco3,sed_denit,calcwei,opalwei,orgwei,calcdens,opaldens,orgdens,claydens
+            sedict,silsat,disso_poc,disso_sil,disso_caco3,sed_denit,calcwei,opalwei,orgwei,calcdens,opaldens,orgdens,claydens,     &
+            dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma
 
   !.................................................................................................................................
   !.................................................................................................................................
@@ -88,6 +89,12 @@ module mo_param_bgc
   ! is no nitrate created by this process, organic N is released as N2
   real, parameter :: rdn2o1 = 2*ro2ut - 2.5*rnit  ! moles N2O used for remineralisation of 1 mole P
   real, parameter :: rdn2o2 = 2*ro2ut - 2*rnit    ! moles N2 released  for remineralisation of 1 mole P
+
+  ! Decay parameter for C14, HalfLive = 5700 years
+  real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
+
+  ! Scaling factor for pH dependency (used if with_dmsph=.true.)
+  real, parameter :: dms_gamma = 0.87
 
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
   ! Atmosphere:
@@ -148,6 +155,10 @@ module mo_param_bgc
   real, protected :: bkphy      = 4.e-8           ! kmol/m3 - i.e. 0.04 mmol P/m3 half saturation constant
   real, protected :: dyphy      = 0.004           ! 1/d -mortality rate of phytoplankton
 
+  ! Initial fractionation during photosynthesis
+  real :: bifr13 = 0.98
+  real :: bifr14
+
   ! N2-Fixation following the parameterization in Kriest and Oschlies, 2015.
   ! Factors tf2, tf1 and tf0 are a polynomial (2nd order)
   ! approximation to the functional relationship by Breitbarth et al. (2007),
@@ -162,12 +173,13 @@ module mo_param_bgc
   real, protected :: tf0        = -2.7819
   real, protected :: tff        =  0.2395
 
-  ! Initial fractionation during photosynthesis
-  real :: bifr13 = 0.98
-  real :: bifr14
-
-  ! Decay parameter for sco214, HalfLive = 5730 years
-  real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
+  ! Set constants for dms scheme following Kloster et al. (2006), Table 1
+  real, protected :: dmsp6 = 0.100000000E-07 ! 0 half saturation microbial
+  real, protected :: dmsp5 = 1.25*0.02       ! production with delsil, but increased by a factor of ~2
+  real, protected :: dmsp4 = 1.25*0.10       ! production with delcar, but reduced by ~7%
+  real, protected :: dmsp3 = 0.0864          ! 50% reduction to reduce bacterial removal and increase dms emissions
+  real, protected :: dmsp2 = 0.0011
+  real, protected :: dmsp1 = 10.             ! 2*5. production with temp
 
   !Bromoform to phosphate ratio (Hense and Quack, 2009)
   !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
@@ -201,7 +213,7 @@ module mo_param_bgc
   real, protected :: calmax                       ! maximum CaCO3 production fraction
 
   !********************************************************************
-  !     Remineralization and dissolution parameters (incl. DMS prod.)
+  !     Remineralization and dissolution parameters
   !********************************************************************
   real, protected :: remido     = 0.004           ! 1/d - remineralization rate (of DOM)
   ! deep sea remineralisation constants
@@ -210,9 +222,6 @@ module mo_param_bgc
   real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
   real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
 
-  ! Set constants for calculation of dms ( mo_carbch )
-  ! Parameters are a result from kettle optimisation 02.03.04
-  real, protected :: dmspar(6)
   !.................................................................................................................................
 
   !********************************************************************
@@ -358,16 +367,6 @@ module mo_param_bgc
        ropal  = 30.         ! iris 25 !opal to organic phosphorous production ratio
     end if
 
-    !********************************************************************
-    ! Set constants for calculation of dms
-    !********************************************************************
-    ! Parameters are a result from kettle optimisation 02.03.04
-    dmspar(6) = 0.100000000E-07 ! 0 half saturation microbial
-    dmspar(5) = 1.25*0.02       ! production with delsil, following Kloster et al., 06 Table 1, but increased by a factor of ~2
-    dmspar(4) = 1.25*0.10       ! production with delcar, following Kloster et al., 06 Table 1, but reduced by ~7%
-    dmspar(3) = 0.0864          ! following Kloster et al., 06 Table 1 with 50% reduction to reduce bacterial removal and increase dms emissions
-    dmspar(2) = 0.0011          ! following Kloster et al., 06 Table 1
-    dmspar(1) = 10.             ! 2*5. production with temp
 
   end subroutine ini_param_biol
 
@@ -637,11 +636,12 @@ module mo_param_bgc
       WRITE(io_stdo_bgc,*) '*          riron        = ',riron
       WRITE(io_stdo_bgc,*) '*          fesoly       = ',fesoly
       WRITE(io_stdo_bgc,*) '*          relaxfe      = ',relaxfe*dtbinv
-      WRITE(io_stdo_bgc,*) '*          dmspar(1)    = ',dmspar(1)
-      WRITE(io_stdo_bgc,*) '*          dmspar(2)    = ',dmspar(2)
-      WRITE(io_stdo_bgc,*) '*          dmspar(3)    = ',dmspar(3)
-      WRITE(io_stdo_bgc,*) '*          dmspar(4)    = ',dmspar(4)
-      WRITE(io_stdo_bgc,*) '*          dmspar(5)    = ',dmspar(5)
+      WRITE(io_stdo_bgc,*) '*          dmsp1        = ',dmsp1
+      WRITE(io_stdo_bgc,*) '*          dmsp2        = ',dmsp2
+      WRITE(io_stdo_bgc,*) '*          dmsp3        = ',dmsp3
+      WRITE(io_stdo_bgc,*) '*          dmsp4        = ',dmsp4
+      WRITE(io_stdo_bgc,*) '*          dmsp5        = ',dmsp5
+      WRITE(io_stdo_bgc,*) '*          dmsp6        = ',dmsp6
       if (use_BROMO) then
          WRITE(io_stdo_bgc,*) '*          rbro         = ',rbro
          WRITE(io_stdo_bgc,*) '*          atm_bromo    = ',atm_bromo
