@@ -196,7 +196,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
      ALLOCATE (burial2(kpie,kpje,2,nsedtra),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory burial2'
      burial2(:,:,:,:) = 0.0
-  end if
+  endif
 
   if (use_BOXATM) then
      IF (mnproc.eq.1) THEN
@@ -210,7 +210,7 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
      ALLOCATE (atm2(kpie,kpje,2,natm),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory atm2'
      atm2(:,:,:,:) = 0.0
-  end if
+  endif
 
 end subroutine alloc_mem_intfcblom
 !******************************************************************************
@@ -280,7 +280,7 @@ subroutine blom2hamocc(m,n,mm,nn)
         rp(i,j,k+1) = rp(i,j,k) + dp(i,j,kn)
      enddo
      enddo
-  enddo
+     enddo
   enddo
 !$OMP END PARALLEL DO
 
@@ -329,7 +329,7 @@ subroutine blom2hamocc(m,n,mm,nn)
            ldp = dp(i,j,kn)
            p2  = p1+ldp
            pa  = p_alpha(p1,p2,th,s)
-        end if
+        endif
 !
 ! --- - density in g/cm^3
         bgc_rho(i,j,k)=ldp/pa
@@ -377,17 +377,18 @@ subroutine blom2hamocc(m,n,mm,nn)
      do k=1,ks
         kn=k+nns
         do j=1,jj
-           do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                 sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
-                 powtra(i,j,k,:) = powtra2(i,j,kn,:)
-                 burial(i,j,:)   = burial2(i,j,n,:)
-              enddo
-           enddo
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           sedlay(i,j,k,:) = sedlay2(i,j,kn,:)
+           powtra(i,j,k,:) = powtra2(i,j,kn,:)
+           burial(i,j,:)   = burial2(i,j,n,:)
+        enddo
+        enddo
         enddo
      enddo
      !$OMP END PARALLEL DO
-  end if
+	 
+  endif
 
 ! --- ------------------------------------------------------------------
 ! --- pass atmosphere fields if required (a two time-level copy of
@@ -397,12 +398,12 @@ subroutine blom2hamocc(m,n,mm,nn)
   if (use_BOXATM) then
      !$OMP PARALLEL DO PRIVATE(i)
      do j=1,jj
-        do i=1,ii
-           atm(i,j,:) = atm2(i,j,n,:)
-        enddo
+     do i=1,ii
+        atm(i,j,:) = atm2(i,j,n,:)
+     enddo
      enddo
      !$OMP END PARALLEL DO
-  end if
+  endif
 
 end subroutine blom2hamocc
 !******************************************************************************
@@ -482,17 +483,17 @@ subroutine hamocc2blom(m,n,mm,nn)
         km=k+mms
         kn=k+nns
         do j=1,jj
-           do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
-                 sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
-                      + wts2*sedlay2(i,j,kn,:)                &  ! old timelevel
-                      + wts2*sedlay(i,j,k,:)                     ! new timelevel
-                 powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
-                      + wts2*powtra2(i,j,kn,:)                &
-                      + wts2*powtra(i,j,k,:)
-                 burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
-                      + wts2*burial2(i,j,n,:)                 &
-                      + wts2*burial(i,j,:)
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))              ! time smoothing (analog to tmsmt2.F)
+           sedlay2(i,j,km,:) = wts1*sedlay2(i,j,km,:)   &  ! mid timelevel
+                             + wts2*sedlay2(i,j,kn,:)   &  ! old timelevel
+                             + wts2*sedlay(i,j,k,:)        ! new timelevel
+           powtra2(i,j,km,:) = wts1*powtra2(i,j,km,:)   &
+                             + wts2*powtra2(i,j,kn,:)   &
+                             + wts2*powtra(i,j,k,:)
+           burial2(i,j,m,:)  = wts1*burial2(i,j,m,:)    &
+                             + wts2*burial2(i,j,n,:)    &
+                             + wts2*burial(i,j,:)
               enddo
            enddo
         enddo
@@ -503,17 +504,18 @@ subroutine hamocc2blom(m,n,mm,nn)
      do k=1,ks
         kn=k+nns
         do j=1,jj
-           do l=1,isp(j)
-              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                 sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
-                 powtra2(i,j,kn,:) = powtra(i,j,k,:)
-                 burial2(i,j,n,:)  = burial(i,j,:)
-              enddo
-           enddo
+        do l=1,isp(j)
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           sedlay2(i,j,kn,:) = sedlay(i,j,k,:)  ! new time level replaces old time level here
+           powtra2(i,j,kn,:) = powtra(i,j,k,:)
+           burial2(i,j,n,:)  = burial(i,j,:)
+        enddo
+        enddo
         enddo
      enddo
      !$OMP END PARALLEL DO
-  end if
+	 
+  endif ! .not. use_sedbypass
 
 ! --- ------------------------------------------------------------------
 ! --- apply time smoothing for atmosphere fields if required
@@ -522,22 +524,22 @@ subroutine hamocc2blom(m,n,mm,nn)
   if (use_BOXATM) then
      !$OMP PARALLEL DO PRIVATE(i)
      do j=1,jj
-        do i=1,ii                                   ! time smoothing (analog to tmsmt2.F)
-           atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
-                + wts2*atm2(i,j,n,:)            &   ! old timelevel
-                + wts2*atm(i,j,:)                   ! new timelevel
-        enddo
+     do i=1,ii                                   ! time smoothing (analog to tmsmt2.F)
+        atm2(i,j,m,:) = wts1*atm2(i,j,m,:)   &   ! mid timelevel
+                      + wts2*atm2(i,j,n,:)   &   ! old timelevel
+                      + wts2*atm(i,j,:)          ! new timelevel
+     enddo
      enddo
      !$OMP END PARALLEL DO
 
      !$OMP PARALLEL DO PRIVATE(i)
      do j=1,jj
-        do i=1,ii
-           atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
-        enddo
+     do i=1,ii
+        atm2(i,j,n,:) = atm(i,j,:)  ! new time level replaces old time level here
+     enddo
      enddo
      !$OMP END PARALLEL DO
-  end if
+  endif
 
 end subroutine hamocc2blom
 !******************************************************************************

@@ -90,11 +90,11 @@ subroutine ini_read_fedep(kpie,kpje,omask)
 
   implicit none
 
-  integer,          intent(in) :: kpie,kpje
-  real,             intent(in) :: omask(kpie,kpje)
+  integer, intent(in) :: kpie,kpje
+  real,    intent(in) :: omask(kpie,kpje)
 
-  integer :: i,j,l
-  integer :: ncid,ncstat,ncvarid,errstat
+  integer             :: i,j,l
+  integer             :: ncid,ncstat,ncvarid,errstat
 
 
   ! allocate field to hold iron deposition fluxes
@@ -181,8 +181,8 @@ subroutine get_fedep(kpie,kpje,kplmon,dust)
 
 !
 !******************************************************************************
-  integer,          intent(in)  :: kpie,kpje,kplmon
-  real,             intent(out) :: dust(kpie,kpje)
+  integer, intent(in)  :: kpie,kpje,kplmon
+  real,    intent(out) :: dust(kpie,kpje)
 
   dust = dustflx(:,:,kplmon)
 

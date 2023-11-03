@@ -198,7 +198,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
      CALL xcsum(zsedhplto,ztmp1,ips)
 
-  end if ! not sedbypass
+  endif ! not sedbypass
 
 !=== oceanic tracers
 !----------------------------------------------------------------------
@@ -333,13 +333,13 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      if(do_rivinpt) then
         srivflux = sum2d_array(bgct2d(:,:,jirdin:jirdin+nriv-1), nriv)
      endif
-  end if
+  endif
 
   if (use_BOXATM) then
      zatmco2 = sum2d(atm(:,:,iatmco2))
      zatmo2 = sum2d(atm(:,:,iatmo2))
      zatmn2 = sum2d(atm(:,:,iatmn2))
-  end if
+  endif
 
   !--- Complete sum of inventory in between bgc.f90
   zprorca = sum2d(prorca)
@@ -366,7 +366,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      totalcarbon = totalcarbon + zatmco2*ppm2con
   else
      totalcarbon = totalcarbon + co2flux
-  end if
+  endif
 
   totalnitr=                                                              &
           (zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy)             &
@@ -381,7 +381,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      totalnitr = totalnitr + zatmn2*ppm2con*2
   else
      totalnitr = totalnitr + sn2flux*2+sn2oflux*2
-  end if
+  endif
 
   totalphos=                                                &
          zocetratot(idet)+zocetratot(idoc)+zocetratot(iphy) &
@@ -411,7 +411,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      totaloxy = totaloxy + zatmo2*ppm2con+zatmco2*ppm2con
   else
      totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
-  end if
+  endif
 
   IF (do_rivinpt) THEN
      totalcarbon = totalcarbon &
@@ -449,8 +449,8 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
         call write_netcdf(iogrp)
      else                                       ! default
         call write_stdout
-     end if
-  end if
+     endif
+  endif
 
   return
 
@@ -502,7 +502,7 @@ function sum2d_array(var3d, narr) result(total)
         enddo
      enddo
      call xcsum(total(k),ztmp,ips)
-  end do
+  enddo
 end function sum2d_array
 
 
@@ -542,7 +542,7 @@ subroutine write_stdout
      ENDDO
      WRITE(io_stdo_bgc,*) 'hpl ', zsedhplto
      WRITE(io_stdo_bgc,*) ' '
-  end if
+  endif
 
   !=== oceanic tracers
   !------------------------------------------------------------------
@@ -597,7 +597,7 @@ subroutine write_stdout
      !      &               zatmo2/ztotarea,zatmo2*ppm2con
      ! WRITE(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',                 &
      !      &               zatmn2/ztotarea,zatmn2*ppm2con
-  end if
+  endif
   ! WRITE(io_stdo_bgc,*) ' '
   ! WRITE(io_stdo_bgc,*) 'Should be zero at the end: '
   ! WRITE(io_stdo_bgc,*) 'prorca, prcaca, silpro  ',                      &
@@ -827,7 +827,7 @@ subroutine write_netcdf(iogrp)
      if (.not. use_sedbypass) then
         call nccheck( NF90_DEF_DIM(ncid, 'npowtra', npowtra, npowtra_dimid) )
         call nccheck( NF90_DEF_DIM(ncid, 'nsedtra', nsedtra, nsedtra_dimid) )
-     end if
+     endif
      call nccheck( NF90_DEF_DIM(ncid, 'time', NF90_UNLIMITED, time_dimid) )
 
      !--- Dimensions for arrays.
@@ -835,7 +835,7 @@ subroutine write_netcdf(iogrp)
      if (.not. use_sedbypass) then
         zpowtra_dimids = (/ npowtra_dimid, time_dimid /)
         zsedtra_dimids = (/ nsedtra_dimid, time_dimid /)
-     end if
+     endif
 
      !--- Define variables : time
      call nccheck( NF90_DEF_VAR(ncid, 'time', NF90_DOUBLE, time_dimid,         &
@@ -880,7 +880,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'long_name',            &
              &    'Total sediment accumulated hydrogen ions') )
         call nccheck( NF90_PUT_ATT(ncid, zsedhplto_varid, 'units', 'kmol') )
-     end if
+     endif
 
      !--- Define variables : oceanic tracers
      call nccheck( NF90_DEF_VAR(ncid, 'ztotvol', NF90_DOUBLE, time_dimid,      &
@@ -1299,7 +1299,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'long_name',          &
              &    'Mean calcium carbonate-C14 concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_calciu14_varid, 'units', 'kmol/m^3') )
-     end if
+     endif
 
      if (use_AGG) then
         call nccheck( NF90_DEF_VAR(ncid, 'zt_snos', NF90_DOUBLE,                  &
@@ -1325,7 +1325,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'long_name',             &
              &    'Mean aggregated dust concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_adust_varid, 'units', '---/m^3') )      ! What is the unit?
-     end if
+     endif
 
      if (use_CFC) then
         call nccheck( NF90_DEF_VAR(ncid, 'zt_cfc11', NF90_DOUBLE,                 &
@@ -1363,7 +1363,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'long_name',               &
              &    'Mean SF6 concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_sf6_varid, 'units', 'kmol/m^3') )
-     end if
+     endif
 
      if (use_natDIC) then
         call nccheck( NF90_DEF_VAR(ncid, 'zt_natsco212', NF90_DOUBLE,             &
@@ -1404,7 +1404,7 @@ subroutine write_netcdf(iogrp)
              &    'Mean natural calcium carbonate concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_natcalciu_varid, 'units',             &
              &    'kmol/m^3') )
-     end if
+     endif
 
      if (use_BROMO) then
         call nccheck( NF90_DEF_VAR(ncid, 'zt_bromo', NF90_DOUBLE,                 &
@@ -1418,7 +1418,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'long_name',             &
              &    'Mean bromoform concentration') )
         call nccheck( NF90_PUT_ATT(ncid, zc_bromo_varid, 'units', 'kmol/m^3') )
-     end if
+     endif
 
      !--- Define variables : sum of inventory
      call nccheck( NF90_DEF_VAR(ncid, 'totcarb', NF90_DOUBLE, time_dimid,      &
@@ -1501,7 +1501,7 @@ subroutine write_netcdf(iogrp)
      if (.not. use_sedbypass) then
         call nccheck( NF90_INQ_DIMID(ncid, 'npowtra', npowtra_dimid) )
         call nccheck( NF90_INQ_DIMID(ncid, 'nsedtra', nsedtra_dimid) )
-     end if
+     endif
      !--- Inquire varid : time
      call nccheck( NF90_INQ_VARID(ncid, "time", time_varid) )
 
@@ -1514,7 +1514,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_INQ_VARID(ncid, 'zsedlayto', zsedlayto_varid) )
         call nccheck( NF90_INQ_VARID(ncid, 'zburial', zburial_varid) )
         call nccheck( NF90_INQ_VARID(ncid, 'zsedhplto', zsedhplto_varid) )
-     end if
+     endif
 
      !--- Inquire varid : ocean tracers
      call nccheck( NF90_INQ_VARID(ncid, "ztotvol", ztotvol_varid) )
@@ -1587,13 +1587,13 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_INQ_VARID(ncid, "zc_calciu13", zc_calciu13_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_calciu14", zt_calciu14_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_calciu14", zc_calciu14_varid) )
-     end if
+     endif
      if (use_AGG) then
         call nccheck( NF90_INQ_VARID(ncid, "zt_snos", zt_snos_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_snos", zc_snos_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_adust", zt_adust_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_adust", zc_adust_varid) )
-     end if
+     endif
      if (use_CFC) then
         call nccheck( NF90_INQ_VARID(ncid, "zt_cfc11", zt_cfc11_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_cfc11", zc_cfc11_varid) )
@@ -1601,7 +1601,7 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_INQ_VARID(ncid, "zc_cfc12", zc_cfc12_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_sf6", zt_sf6_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_sf6", zc_sf6_varid) )
-     end if
+     endif
      if (use_natDIC) then
         call nccheck( NF90_INQ_VARID(ncid, "zt_natsco212", zt_natsco212_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_natsco212", zc_natsco212_varid) )
@@ -1609,11 +1609,11 @@ subroutine write_netcdf(iogrp)
         call nccheck( NF90_INQ_VARID(ncid, "zc_natalkali", zc_natalkali_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zt_natcalciu", zt_natcalciu_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_natcalciu", zc_natcalciu_varid) )
-     end if
+     endif
      if (use_BROMO) then
         call nccheck( NF90_INQ_VARID(ncid, "zt_bromo", zt_bromo_varid) )
         call nccheck( NF90_INQ_VARID(ncid, "zc_bromo", zc_bromo_varid) )
-     end if
+     endif
      !--- Inquire varid : sum of inventory
      call nccheck( NF90_INQ_VARID(ncid, "totcarb", totcarb_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "totphos", totphos_varid) )
@@ -1627,7 +1627,7 @@ subroutine write_netcdf(iogrp)
      call nccheck( NF90_INQ_VARID(ncid, "sum_expoor", sum_expoor_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "sum_expoca", sum_expoca_varid) )
      call nccheck( NF90_INQ_VARID(ncid, "sum_exposi", sum_exposi_varid) )
-  end if
+  endif
 
   !=== Increment record by 1, reset start and count arrays
   ncrec(iogrp) = ncrec(iogrp) + 1
@@ -1637,7 +1637,7 @@ subroutine write_netcdf(iogrp)
      zpowtra_count = (/ npowtra, 1 /)
      zsedtra_wrstart = (/ 1, ncrec(iogrp) /)
      zsedtra_count = (/ nsedtra, 1 /)
-  end if
+  endif
 
   !=== Write output data to netCDF file
   !--- Write data : time
@@ -1658,7 +1658,7 @@ subroutine write_netcdf(iogrp)
           &     start = zsedtra_wrstart, count = zsedtra_count) )
      call nccheck( NF90_PUT_VAR(ncid, zsedhplto_varid, zsedhplto,                  &
           &     start = wrstart) )
-  end if
+  endif
   !--- Write data : ocean tracers
   call nccheck( NF90_PUT_VAR(ncid, ztotvol_varid, ztotvol, start = wrstart) )
   call nccheck( NF90_PUT_VAR(ncid, zt_sco212_varid,                            &
@@ -1798,7 +1798,7 @@ subroutine write_netcdf(iogrp)
           &    zocetratot(icalc14), start = wrstart) )
      call nccheck( NF90_PUT_VAR(ncid, zc_calciu14_varid,                          &
           &    zocetratoc(icalc14), start = wrstart) )
-  end if
+  endif
   if (use_AGG) then
      call nccheck( NF90_PUT_VAR(ncid, zt_snos_varid,                              &
           &    zocetratot(inos), start = wrstart) )
@@ -1808,7 +1808,7 @@ subroutine write_netcdf(iogrp)
           &    zocetratot(iadust), start = wrstart) )
      call nccheck( NF90_PUT_VAR(ncid, zc_adust_varid,                             &
           &    zocetratoc(iadust), start = wrstart) )
-  end if
+  endif
   if (use_CFC) then
      call nccheck( NF90_PUT_VAR(ncid, zt_cfc11_varid,                             &
           &    zocetratot(icfc11), start = wrstart) )
@@ -1822,7 +1822,7 @@ subroutine write_netcdf(iogrp)
           &    zocetratot(isf6), start = wrstart) )
      call nccheck( NF90_PUT_VAR(ncid, zc_sf6_varid,                               &
           &    zocetratoc(isf6), start = wrstart) )
-  end if
+  endif
   if (use_natDIC) then
      call nccheck( NF90_PUT_VAR(ncid, zt_natsco212_varid,                         &
           &    zocetratot(inatsco212), start = wrstart) )
@@ -1836,13 +1836,13 @@ subroutine write_netcdf(iogrp)
           &    zocetratot(inatcalc), start = wrstart) )
      call nccheck( NF90_PUT_VAR(ncid, zc_natcalciu_varid,                         &
           &    zocetratoc(inatcalc), start = wrstart) )
-  end if
+  endif
   if (use_BROMO) then
      call nccheck( NF90_PUT_VAR(ncid, zt_bromo_varid,                             &
           &    zocetratot(ibromo), start = wrstart) )
      call nccheck( NF90_PUT_VAR(ncid, zc_bromo_varid,                             &
           &    zocetratoc(ibromo), start = wrstart) )
-  end if
+  endif
   !--- Write data : sum of inventory
   call nccheck( NF90_PUT_VAR(ncid, totcarb_varid, totalcarbon,                 &
        &    start = wrstart) )
@@ -1896,8 +1896,8 @@ subroutine nccheck(status)
 
   if (status /= nf90_noerr) then
      call xchalt('(inventory_bgc: Problem with netCDF)')
-     stop '(inventory_bgc: Problem with netCDF)'
-  end if
+     stop        '(inventory_bgc: Problem with netCDF)'
+  endif
 end subroutine nccheck
 
 

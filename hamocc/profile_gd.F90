@@ -87,14 +87,14 @@ vname( 1:nflds) = (/ 'dic',  'alk',  'pho',  'nit','sil',  'oxy'  /)
     nflds = nflds+nread_ndic
     vname(no:nflds) = (/'dic',     'alk'/)
     ifld(no:nflds) = (/inatsco212,inatalkali/)
- end if
+ endif
 
  if (use_cisonew) then
     no    = nflds+1
     nflds = nflds+nread_ciso
     vname(no:nflds) = (/'d13', 'd14'/)
     ifld(no:nflds) = (/isco213,isco214/)
- end if
+ endif
 
 
 do n = 1, nflds  ! Loop over tracer
@@ -180,7 +180,7 @@ do n = 1, nflds  ! Loop over tracer
 
    call clean_Gdata()
 
-end do  ! Loop over fields
+enddo  ! Loop over fields
 
 RETURN
 

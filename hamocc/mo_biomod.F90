@@ -51,9 +51,6 @@
       implicit none
 
       REAL, DIMENSION (:,:),   ALLOCATABLE :: strahl
-      ! FB_BGC_OCE
-      REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
-      !
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoor
       REAL, DIMENSION (:,:),   ALLOCATABLE :: expoca
       REAL, DIMENSION (:,:),   ALLOCATABLE :: exposi
@@ -83,22 +80,21 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx_bot
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: phosy3d
 
-      ! AGG
+      ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.ture.)
+      REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
+	  
+	  ! Variables for aggregation scheme (use_AGG=.true.)
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wmass
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wnumb
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: eps3d
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: asize3d
 
-      ! BROMO
+      ! Variables for bromoform scheme (use_BROMO=.true.)
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_prod
       REAL, DIMENSION (:,:),   ALLOCATABLE :: int_chbr3_uv
 
       REAL :: growth_co2,bifr13_perm
-      ! AGG
-!      REAL :: SinkExp, FractDim, Stick, cellmass, cellsink, fsh, fse
-!      REAL :: alow1, alow2,alow3,alar1,alar2,alar3,TSFac,TMFac
-!      REAL :: vsmall,safe,pupper,plower,zdis,nmldmin
-!      REAL :: dustd1,dustd2,dustd3,dustsink,calmax
+	  
 
       CONTAINS
 
@@ -143,7 +139,7 @@
          ALLOCATE (abs_oce(kpie,kpje,kpke),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory abs_oce'
          abs_oce(:,:,:) = 0.0
-      end if
+      endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable expoor ...'
@@ -344,7 +340,7 @@
          ALLOCATE (asize3d(kpie,kpje,kpke),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory asize3d'
          asize3d(:,:,:) = 0.0
-      end if
+      endif
 
       if (use_BROMO) then
          IF (mnproc.eq.1) THEN
@@ -358,9 +354,9 @@
          if(errstat.ne.0) stop 'not enough memory int_chbr3_prod, int_chbr3_uv'
          int_chbr3_prod(:,:) = 0.0
          int_chbr3_uv(:,:) = 0.0
-      end if
+      endif
 
 !******************************************************************************
-     END SUBROUTINE ALLOC_MEM_BIOMOD
+      END SUBROUTINE ALLOC_MEM_BIOMOD
 
       END MODULE mo_biomod

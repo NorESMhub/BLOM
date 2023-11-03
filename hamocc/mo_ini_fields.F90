@@ -52,14 +52,14 @@ module mo_ini_fields
       atm(i,j,iatmn2)   = atm_n2
       if (use_natDIC) then
          atm(i,j,iatmnco2) = atm_co2_nat
-      end if
+      endif
       if (use_cisonew) then
          atm(i,j,iatmc13)  = atm_c13
          atm(i,j,iatmc14)  = atm_c14/c14fac
-      end if
+      endif
       if (use_BROMO) then
          atm(i,j,iatmbromo)= atm_bromo
-      end if
+      endif
     ENDDO
     ENDDO
   end subroutine ini_fields_atm
@@ -137,7 +137,7 @@ module mo_ini_fields
          ENDDO
          ENDDO
          ENDDO
-      end if
+      endif
 !
 ! Initialisation of ocean tracers and sediment
 !
@@ -173,7 +173,7 @@ module mo_ini_fields
              ! Convert to 14C using model total C, and normalize by c14fac to prevent numerical errors
              beta14=ocetra(i,j,k,isco214)/1000.+1.
              ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
-          end if
+          endif
         ENDIF
       ENDDO
       ENDDO
@@ -208,17 +208,17 @@ module mo_ini_fields
              snow = (ocetra(i,j,k,iphy)+ocetra(i,j,k,idet))*1.e+6
              ocetra(i,j,k,inos)   = snow / cellmass / (FractDim+1.)
              ocetra(i,j,k,iadust) =0. 
-          end if
+          endif
           if (use_CFC) then
              ocetra(i,j,k,icfc11)   =0.
              ocetra(i,j,k,icfc12)   =0.
              ocetra(i,j,k,isf6)     =0.
-          end if
+          endif
           if (use_natDIC) then
              nathi(i,j,k)           =1.e-8
              natco3(i,j,k)          =0.
              ocetra(i,j,k,inatcalc) =0. 
-          end if
+          endif
           if (use_cisonew) then
              rco213=ocetra(i,j,k,isco213)/(ocetra(i,j,k,isco212)+safediv)
              rco214=ocetra(i,j,k,isco214)/(ocetra(i,j,k,isco212)+safediv)
@@ -232,11 +232,11 @@ module mo_ini_fields
              ocetra(i,j,k,idet14) =ocetra(i,j,k,idet)*rco214*bifr14
              ocetra(i,j,k,icalc13)=ocetra(i,j,k,icalc)*rco213
              ocetra(i,j,k,icalc14)=ocetra(i,j,k,icalc)*rco214
-          end if
+          endif
           if (use_BROMO) then
              ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
              ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
-          end if
+          endif
         ENDIF ! omask > 0.5
       ENDDO
       ENDDO
@@ -283,7 +283,7 @@ module mo_ini_fields
                   sedlay(i,j,k,issso14)=sedlay(i,j,k,issso12)*rco214*bifr14
                   sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                   sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
-               end if
+               endif
             ELSE
                powtra(i,j,k,ipowno3)=rmasks
                powtra(i,j,k,ipown2) =rmasks
@@ -305,7 +305,7 @@ module mo_ini_fields
                   sedlay(i,j,k,issso14)=rmasks
                   sedlay(i,j,k,isssc13)=rmasks
                   sedlay(i,j,k,isssc14)=rmasks
-               end if
+               endif
             ENDIF
          ENDDO
          ENDDO
@@ -319,7 +319,7 @@ module mo_ini_fields
          ENDDO
          ENDDO
          ENDDO
-      end if
+      endif
 
       return
 !******************************************************************************

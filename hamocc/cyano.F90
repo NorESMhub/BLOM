@@ -114,7 +114,7 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
         ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
         if (use_natDIC) then
            ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
-        end if
+        endif
 
         intnfix(i,j) = intnfix(i,j) +                                           &
              &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)

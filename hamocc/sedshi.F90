@@ -239,7 +239,7 @@
      &                           +refill*burial(i,j,issso14)/frac
            sedlay(i,j,ks,isssc14)=sedlay(i,j,ks,isssc14)               &
      &                           +refill*burial(i,j,isssc14)/frac
-        end if
+        endif
 
 ! account for losses in buried sediment
         burial(i,j,issso12) = burial(i,j,issso12)                      &
@@ -259,7 +259,7 @@
      &                         - refill*burial(i,j,issso14)
            burial(i,j,isssc14) = burial(i,j,isssc14)                   &
      &                         - refill*burial(i,j,isssc14)
-        end if
+        endif
       endif
       enddo !end i-loop
       enddo !end j-loop

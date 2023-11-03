@@ -191,13 +191,13 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
                 &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
            if (use_natDIC) then
               ! workaround as long as natDIC is not implemented throughout the sediment module 
-              if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =               &
-                   &  ocetra(i,j,kbo(i,j),inatsco212) +                           &
+              if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =            &
+                   &  ocetra(i,j,kbo(i,j),inatsco212) +                        &
                    &  ocetra(i,j,kbo(i,j),isco212) - aprior
-              if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =               &
-                   &  ocetra(i,j,kbo(i,j),inatalkali) +                           &
+              if (iv_oc==ialkali) ocetra(i,j,kbo(i,j),inatalkali) =            &
+                   &  ocetra(i,j,kbo(i,j),inatalkali) +                        &
                    &  ocetra(i,j,kbo(i,j),ialkali) - aprior
-           end if
+           endif
         endif
      enddo
   enddo

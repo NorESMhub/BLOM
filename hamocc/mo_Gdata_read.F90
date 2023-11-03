@@ -391,7 +391,7 @@ if( clon < 0 ) then
 else
    clon_tmp=clon
    clat_tmp=clat
-end if
+endif
 
 ! Try to obtain a mean profile for a region centered at clon/clat
 call calc_mean_profile(clon_tmp,clat_tmp,ddeg,ddeg,prf,npts)
@@ -406,7 +406,7 @@ if( npts(1) < 3 ) then
    prf = rg(idx)%mprf
    !write(*,*) 'Region is ', rg(idx)%name, clon, clat
 
-end if
+endif
 
 
 !--------------------------------------------------------------------------------
@@ -473,18 +473,18 @@ do i=1,nreg
 
       if( clon < ll_lon .or. clon > ur_lon ) cycle
 
-   end if
+   endif
 
    found = .true.
    exit
 
-end do
+enddo
 
 if( found ) then
    get_region = rg(i)%idx
 else
    get_region = 0
-end if
+endif
 
 
 !--------------------------------------------------------------------------------
@@ -516,7 +516,7 @@ do i=0,nreg
    !write(*,*) rg(i)%mprf
    !write(*,*) '==============='
 
-end do
+enddo
 
 !--------------------------------------------------------------------------------
 end subroutine set_regional_profiles
@@ -642,7 +642,7 @@ end select
 do i=1,nlon
    if(lon(i)<  0.0) lon(i)=lon(i)+360.0
    if(lon(i)>360.0) lon(i)=lon(i)-360.0
-end do
+enddo
 
 ! Fillvalues are assumed to be < 0 currently, otherwise the below code would fail
 if(fval > 0.0) call moderr(routinestr,'FillValue > 0 found in data')  
@@ -725,14 +725,14 @@ else
    ! Find index of nearest gridpoint (not exact but okay for this purpose)
    do ilonc=1,nlon
       if( clon < lon(ilonc) ) exit
-   end do
+   enddo
    if( ilonc > nlon ) ilonc = nlon
    if( lon(ilonc)-clon > dres/2.0 ) ilonc=ilonc-1
    if( ilonc < 1 ) ilonc = 1
    
    do ilatc=1,nlat
       if( clat < lat(ilatc) ) exit
-   end do
+   enddo
    if( ilatc > nlat ) ilatc = nlat
    if( lat(ilatc)-clat > dres/2.0 ) ilatc=ilatc-1
    if( ilatc < 1 ) ilatc = 1
@@ -760,7 +760,7 @@ else
    if( ilons < -dnmax      ) call moderr(routinestr,'error: data array too small')  
    if( ilone >  dnmax+nlon ) call moderr(routinestr,'error: data array too small')  
 
-end if
+endif
 
 
 ! Calculate mean profile:
@@ -772,9 +772,9 @@ do l=1,nz
       prf(l) = prf(l)/npts(l)
    else
       prf(l) = fillval
-   end if
+   endif
 
-end do
+enddo
 
 
 !write(*,*) '================'
@@ -784,7 +784,7 @@ end do
 !   write(*,*) dnlon,dnlat
 !   write(*,*) ilonc,ilons,ilone,lon(ilonc)
 !   write(*,*) ilatc,ilats,ilate,lat(ilatc)
-!end if
+!endif
 !write(*,*) '================'
 
 !--------------------------------------------------------------------------------

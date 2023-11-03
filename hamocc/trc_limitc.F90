@@ -67,10 +67,9 @@ subroutine trc_limitc(nn)
 !$OMP PARALLEL DO PRIVATE(l,i)
      do j=1,jj
         do l=1,isp(j)
-           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              util1(i,j) = util1(i,j)                                    &
-                   &       +trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
-           enddo
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           util1(i,j) = util1(i,j)+trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
+        enddo
         enddo
      enddo
 !$OMP END PARALLEL DO
@@ -87,9 +86,9 @@ subroutine trc_limitc(nn)
   do nt=itrbgc,itrbgc+ntrbgc-1
      do j=1,jj
         do l=1,isp(j)
-           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,kn,nt) = max(trc(i,j,kn,nt),0.0)
-           enddo
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           trc(i,j,kn,nt) = max(trc(i,j,kn,nt),0.0)
+        enddo
         enddo
      enddo
   enddo
@@ -106,10 +105,9 @@ subroutine trc_limitc(nn)
 !$OMP PARALLEL DO PRIVATE(l,i)
      do j=1,jj
         do l=1,isp(j)
-           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              util1(i,j) = util1(i,j)                                    &
-                   &       +trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
-           enddo
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           util1(i,j) = util1(i,j)+trc(i,j,kn,itrbgc+nt-1)*dp(i,j,kn)*scp2(i,j)
+        enddo
         enddo
      enddo
 !$OMP END PARALLEL DO
@@ -120,9 +118,9 @@ subroutine trc_limitc(nn)
 !$OMP PARALLEL DO PRIVATE(l,i)
      do j=1,jj
         do l=1,isp(j)
-           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              trc(i,j,kn,itrbgc+nt-1) = trc(i,j,kn,itrbgc+nt-1)*q
-           enddo
+        do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+           trc(i,j,kn,itrbgc+nt-1) = trc(i,j,kn,itrbgc+nt-1)*q
+        enddo
         enddo
      enddo
 !$OMP END PARALLEL DO

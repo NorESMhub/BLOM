@@ -129,42 +129,42 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
       if (use_cisonew) then
          ocetra(i,j,1:kmle(i,j),isco213)    = ocetra(i,j,1:kmle(i,j),isco213)    +                   &
-              ocetra(i,j,1:kmle(i,j),isco213)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*            &
+              ocetra(i,j,1:kmle(i,j),isco213)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*             &
               (rivin(i,j,iralk)*fdt/volij + rivin(i,j,irdin)*fdt/volij + rivin(i,j,irdip)*fdt/volij)
          ocetra(i,j,1:kmle(i,j),isco214)    = ocetra(i,j,1:kmle(i,j),isco214)    +                   &
-              ocetra(i,j,1:kmle(i,j),isco214)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*            &
+              ocetra(i,j,1:kmle(i,j),isco214)/(ocetra(i,j,1:kmle(i,j),isco212)+safediv)*             &
               (rivin(i,j,iralk)*fdt/volij + rivin(i,j,irdin)*fdt/volij + rivin(i,j,irdip)*fdt/volij)
 
          ocetra(i,j,1:kmle(i,j),idoc13)     = ocetra(i,j,1:kmle(i,j),idoc13)     +                   &
-              ocetra(i,j,1:kmle(i,j),idoc13)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                &
+              ocetra(i,j,1:kmle(i,j),idoc13)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                 &
               rivin(i,j,irdoc)*fdt/volij
          ocetra(i,j,1:kmle(i,j),idoc14)     = ocetra(i,j,1:kmle(i,j),idoc14)     +                   &
-              ocetra(i,j,1:kmle(i,j),idoc14)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                &
+              ocetra(i,j,1:kmle(i,j),idoc14)/(ocetra(i,j,1:kmle(i,j),idoc)+safediv)*                 &
               rivin(i,j,irdoc)*fdt/volij
 
          ocetra(i,j,1:kmle(i,j),idet13)     = ocetra(i,j,1:kmle(i,j),idet13)     +                   &
-              ocetra(i,j,1:kmle(i,j),idet13)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                &
+              ocetra(i,j,1:kmle(i,j),idet13)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                 &
               rivin(i,j,irdet)*fdt/volij
          ocetra(i,j,1:kmle(i,j),idet14)     = ocetra(i,j,1:kmle(i,j),idet14)     +                   &
-              ocetra(i,j,1:kmle(i,j),idet14)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                &
+              ocetra(i,j,1:kmle(i,j),idet14)/(ocetra(i,j,1:kmle(i,j),idet)+safediv)*                 &
               rivin(i,j,irdet)*fdt/volij
-      end if
+      endif
 
       ! DIC is updated using the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total 
       ! alkalinity, a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t). 
       ocetra(i,j,1:kmle(i,j),iano3)      = ocetra(i,j,1:kmle(i,j),iano3)      + rivin(i,j,irdin)*fdt/volij
       ocetra(i,j,1:kmle(i,j),iphosph)    = ocetra(i,j,1:kmle(i,j),iphosph)    + rivin(i,j,irdip)*fdt/volij
       ocetra(i,j,1:kmle(i,j),isilica)    = ocetra(i,j,1:kmle(i,j),isilica)    + rivin(i,j,irsi) *fdt/volij
-      ocetra(i,j,1:kmle(i,j),isco212)    = ocetra(i,j,1:kmle(i,j),isco212)    + rivin(i,j,iralk)*fdt/volij  &
-                                                                    + rivin(i,j,irdin)*fdt/volij  &
-                                                                    + rivin(i,j,irdip)*fdt/volij
+      ocetra(i,j,1:kmle(i,j),isco212)    = ocetra(i,j,1:kmle(i,j),isco212)    + rivin(i,j,iralk)*fdt/volij    &
+                                                                              + rivin(i,j,irdin)*fdt/volij    &
+                                                                              + rivin(i,j,irdip)*fdt/volij
       ocetra(i,j,1:kmle(i,j),ialkali)    = ocetra(i,j,1:kmle(i,j),ialkali)    + rivin(i,j,iralk)*fdt/volij
       if (use_natDIC) then
-         ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212) + rivin(i,j,iralk)*fdt/volij  &
-              + rivin(i,j,irdin)*fdt/volij  &
-              + rivin(i,j,irdip)*fdt/volij
+         ocetra(i,j,1:kmle(i,j),inatsco212) = ocetra(i,j,1:kmle(i,j),inatsco212) + rivin(i,j,iralk)*fdt/volij &
+                                                                                 + rivin(i,j,irdin)*fdt/volij &
+                                                                                 + rivin(i,j,irdip)*fdt/volij
          ocetra(i,j,1:kmle(i,j),inatalkali) = ocetra(i,j,1:kmle(i,j),inatalkali) + rivin(i,j,iralk)*fdt/volij
-      end if
+      endif
       ocetra(i,j,1:kmle(i,j),iiron)      = ocetra(i,j,1:kmle(i,j),iiron)      + rivin(i,j,iriron)*fdt/volij*dFe_frac
       ocetra(i,j,1:kmle(i,j),idoc)       = ocetra(i,j,1:kmle(i,j),idoc)       + rivin(i,j,irdoc)*fdt/volij
       ocetra(i,j,1:kmle(i,j),idet)       = ocetra(i,j,1:kmle(i,j),idet)       + rivin(i,j,irdet)*fdt/volij

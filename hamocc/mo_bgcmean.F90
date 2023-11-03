@@ -692,7 +692,7 @@
            jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
            IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
-        end if
+        endif
         if (use_cisonew) then
            IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))
@@ -702,7 +702,7 @@
            jco214fxd(n)=i_bsc_m2d*min(1,SRF_CO214FXD(n))
            IF (SRF_CO214FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco214fxu(n)=i_bsc_m2d*min(1,SRF_CO214FXU(n))
-        end if
+        endif
         if (use_CFC) then
            IF (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jcfc11fx(n)=i_bsc_m2d*min(1,SRF_CFC11(n))
@@ -710,7 +710,7 @@
            jcfc12fx(n)=i_bsc_m2d*min(1,SRF_CFC12(n))
            IF (SRF_SF6(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsf6fx(n)=i_bsc_m2d*min(1,SRF_SF6(n))
-        end if
+        endif
         if (use_natDIC) then
            IF (SRF_NATDIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsrfnatdic(n)=i_bsc_m2d*min(1,SRF_NATDIC(n))
@@ -722,7 +722,7 @@
            jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
            IF (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsrfnatph(n)=i_bsc_m2d*min(1,SRF_NATPH(n))
-        end if
+        endif
         if (use_BROMO ) then
            IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
@@ -732,7 +732,7 @@
            jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
            IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
-        end if
+        endif
       ENDDO 
 
       domassfluxes = any(                                    &
@@ -752,17 +752,17 @@
            jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
            IF (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmn2(n)=i_atm_m2d*min(1,SRF_ATMN2(n))
-        end if
+        endif
         if (use_cisonew) then
            IF (SRF_ATMC13(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
            IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
-        end if
+        endif
         if (use_BROMO ) then
            IF (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
-        end if
+        endif
       ENDDO 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
 
@@ -830,7 +830,7 @@
            jcfc12(n)=i_bsc_m3d*min(1,LYR_CFC12(n))
            IF (LYR_SF6(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jsf6(n)=i_bsc_m3d*min(1,LYR_SF6(n))
-        end if
+        endif
         if (use_cisonew) then
            IF (LYR_DIC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jdic13(n)=i_bsc_m3d*min(1,LYR_DIC13(n))
@@ -852,7 +852,7 @@
            jphyto13(n)=i_bsc_m3d*min(1,LYR_PHYTO13(n))
            IF (LYR_GRAZER13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jgrazer13(n)=i_bsc_m3d*min(1,LYR_GRAZER13(n))
-        end if
+        endif
         if (use_AGG) then
            IF (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnos(n)=i_bsc_m3d*min(1,LYR_NOS(n))
@@ -864,7 +864,7 @@
            jeps(n)=i_bsc_m3d*min(1,LYR_EPS(n))
            IF (LYR_ASIZE(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jasize(n)=i_bsc_m3d*min(1,LYR_ASIZE(n))
-        end if
+        endif
         if (use_natDIC) then
            IF (LYR_NATCO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatco3(n)=i_bsc_m3d*min(1,LYR_NATCO3(n))
@@ -880,11 +880,11 @@
            jnatomegaa(n)=i_bsc_m3d*min(1,LYR_NATOMEGAA(n))
            IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
-        end if
+        endif
         if (use_BROMO) then
            IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
-        end if
+        endif
 
         IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
@@ -943,7 +943,7 @@
            jlvlcfc12(n)=ilvl_bsc_m3d*min(1,LVL_CFC12(n))
            IF (LVL_SF6(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlsf6(n)=ilvl_bsc_m3d*min(1,LVL_SF6(n))
-        end if
+        endif
         if (use_cisonew) then
            IF (LVL_DIC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvldic13(n)=ilvl_bsc_m3d*min(1,LVL_DIC13(n))
@@ -965,7 +965,7 @@
            jlvlphyto13(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO13(n))
            IF (LVL_GRAZER13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlgrazer13(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER13(n))
-        end if
+        endif
         if (use_AGG) then
            IF (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
@@ -977,7 +977,7 @@
            jlvleps(n)=ilvl_bsc_m3d*min(1,LVL_EPS(n))
            IF (LVL_ASIZE(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlasize(n)=ilvl_bsc_m3d*min(1,LVL_ASIZE(n))
-        end if
+        endif
         if (use_natDIC) then
            IF (LVL_NATCO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatco3(n)=ilvl_bsc_m3d*min(1,LVL_NATCO3(n))
@@ -993,11 +993,11 @@
            jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
            IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
-        end if
+        endif
         if (use_BROMO) then
            IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
-        end if
+        endif
 
         IF (i_bsc_m3d.NE.0) checkdp(n)=1
       ENDDO 
@@ -1049,7 +1049,7 @@
             IF (BUR_SSSTER(n).GT.0) i_bsc_bur=i_bsc_bur+1
             jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
          ENDDO
-      end if
+      endif
          
       nbgcm2d    = i_bsc_m2d+i_atm_m2d
       nbgcm3d    = i_bsc_m3d
@@ -1142,7 +1142,7 @@
               &  nbgct_bur),stat=errstat)
          IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
          IF (nbgct_bur.NE.0) bgct_bur=0. 
-      end if
+      endif
 
       END SUBROUTINE ALLOC_MEM_BGCMEAN
  

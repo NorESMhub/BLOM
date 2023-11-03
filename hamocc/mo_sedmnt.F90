@@ -65,9 +65,9 @@
 !         Initialize 2D and 3D sediment fields
 !
 !******************************************************************************
+ use mod_xc,         only: mnproc
  use mo_param1_bgc,  only: ks,ksp,nsedtra,npowtra
  use mo_control_bgc, only: io_stdo_bgc
- use mod_xc,         only: mnproc
  use mo_control_bgc, only: use_sedbypass,use_cisonew
 
       implicit none
@@ -100,7 +100,7 @@
 
  CONTAINS
 
-      !========================================================================
+!========================================================================
  SUBROUTINE ini_sedmnt(kpie,kpje,kpke,omask,sed_por)
 
       use mo_param_bgc,   only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
@@ -151,17 +151,18 @@
          ! 2d and 3d fields are not allocated in case of sedbypass
          ! so only initialize them if we are using the sediment
          CALL ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
-      end if
+      endif
+	  
  END SUBROUTINE ini_sedmnt
 
-      !========================================================================
+ !========================================================================
  SUBROUTINE ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
-      !
-      ! Initialization of:
-      !   - 3D porosity field (cell center and cell boundaries)
-      !   - solid volume fraction at cell center
-      !   - vertical molecular diffusion coefficients scaled with porosity
-      !
+!
+! Initialization of:
+!   - 3D porosity field (cell center and cell boundaries)
+!   - solid volume fraction at cell center
+!   - vertical molecular diffusion coefficients scaled with porosity
+!
       use mo_control_bgc, only: l_3Dvarsedpor
       use mo_param_bgc,   only: sedict
 
@@ -177,16 +178,16 @@
       ! this initialization can be done via reading a porosity map
       ! porwat is the poroisty at the (pressure point) center of the grid cell
       if (l_3Dvarsedpor)then
-       ! lon-lat variable sediment porosity from input file
-       do k=1,ks
-       do j=1,kpje
-       do i=1,kpie
-        if(omask(i,j).gt. 0.5)then
-          porwat(i,j,k) = sed_por(i,j,k)
-        endif
-       enddo
-       enddo
-       enddo
+        ! lon-lat variable sediment porosity from input file
+        do k=1,ks
+        do j=1,kpje
+        do i=1,kpie
+           if(omask(i,j).gt. 0.5) then
+              porwat(i,j,k) = sed_por(i,j,k)
+           endif
+        enddo
+        enddo
+        enddo
       else
         porwat(:,:,1) = 0.85
         porwat(:,:,2) = 0.83
@@ -246,7 +247,7 @@
  END SUBROUTINE ini_sedmnt_por
 
 
-      !========================================================================
+ !========================================================================
  SUBROUTINE ALLOC_MEM_SEDMNT(kpie,kpje)
  !******************************************************************************
  ! ALLOC_MEM_SEDMNT - Allocate variables in this module
@@ -287,7 +288,7 @@
          ALLOCATE (pror14(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory pror14'
          pror14(:,:) = 0.0
-      end if
+      endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
@@ -305,7 +306,7 @@
          ALLOCATE (prca14(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory prca14'
          prca14(:,:) = 0.0
-      end if
+      endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable produs ...'
@@ -430,7 +431,7 @@
          ALLOCATE (powtra(kpie,kpje,ks,npowtra),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory powtra'
          powtra(:,:,:,:) = 0.0
-      end if
+      endif
 
 
 !******************************************************************************

@@ -163,18 +163,19 @@
       !
       testio=0
       IF(mnproc==1 .AND. IOTYPE==0) THEN
+      
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
-             CALL xchalt('(AUFR: Problem with netCDF1)')
-                    stop '(AUFR: Problem with netCDF1)'
+           CALL xchalt('(AUFR: Problem with netCDF1)')
+                  stop '(AUFR: Problem with netCDF1)'
         ENDIF
         !
         ! Read restart data : date
         !
         ncstat = NF90_GET_ATT(ncid, NF90_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF90_NOERR ) THEN
-          CALL xchalt('(AUFR: Problem reading date of restart file)')
-          stop '(AUFR: Problem reading date of restart file)'
+           CALL xchalt('(AUFR: Problem reading date of restart file)')
+                  stop '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -202,8 +203,8 @@
 
         ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,INFO, ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
-             CALL xchalt('(AUFR: Problem with netCDF1)')
-                    stop '(AUFR: Problem with netCDF1)'
+           CALL xchalt('(AUFR: Problem with netCDF1)')
+                  stop '(AUFR: Problem with netCDF1)'
         ENDIF
 
         !
@@ -211,8 +212,8 @@
         !
         ncstat = NFMPI_GET_ATT_INT(ncid, NF_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF_NOERR ) THEN
-          CALL xchalt('(AUFR: Problem reading date of restart file)')
-          stop '(AUFR: Problem reading date of restart file)'
+           CALL xchalt('(AUFR: Problem reading date of restart file)')
+                  stop '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -230,34 +231,26 @@
         WRITE(io_stdo_bgc,*) ' '
         ENDIF
 #endif
-      if(testio .eq. 0) then
-      CALL xchalt('(AUFR: Problem with namelist iotype)')
-                    stop '(AUFR: Problem with namelist iotype)'
-      endif
-      ENDIF
+        if(testio .eq. 0) then
+           CALL xchalt('(AUFR: Problem with namelist iotype)')
+                  stop '(AUFR: Problem with namelist iotype)'
+        endif
+
+      ENDIF ! mnproc==1 .AND. IOTYPE==0
 
       !
       ! Compare with date read from ocean restart file
       !
       IF (mnproc.eq.1) THEN
 
-         IF ( kplyear  .NE. restyear  ) THEN
-            WRITE(io_stdo_bgc,*)                                     &
-     &      'WARNING: restart years in oce/bgc are not the same : '  &
-     &      ,kplyear,'/',restyear,' !!!'
-         ENDIF
+         IF ( kplyear .NE. restyear  ) WRITE(io_stdo_bgc,*)                                      &
+            'WARNING: restart years in oce/bgc are not the same : ', kplyear,'/',restyear,' !!!'
 
-         IF ( kplmon .NE. restmonth ) THEN
-            WRITE(io_stdo_bgc,*)                                     &
-     &      'WARNING: restart months in oce/bgc are not the same : ' &
-     &      ,kplmon,'/',restmonth,' !!!'
-         ENDIF
+         IF ( kplmon  .NE. restmonth ) WRITE(io_stdo_bgc,*)                                      &
+            'WARNING: restart months in oce/bgc are not the same : ',kplmon,'/',restmonth,' !!!'
 
-         IF ( kplday   .NE. restday   ) THEN
-            WRITE(io_stdo_bgc,*)                                     &
-     &      'WARNING: restart days in oce/bgc are not the same : '   &
-     &      ,kplday,'/',restday,' !!!'
-         ENDIF
+         IF ( kplday  .NE. restday   ) WRITE(io_stdo_bgc,*)                                      &
+            'WARNING: restart days in oce/bgc are not the same : ',  kplday,'/',restday,' !!!'
 
       ENDIF
 
@@ -275,11 +268,11 @@
 #endif
          ENDIF
          IF(mnproc==1 .and. .not. lread_cfc) THEN
-         WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
-         WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*) 'AUFR_BGC info: CFC tracers not in restart file, '
+            WRITE(io_stdo_bgc,*) ' CFCs initialised to zero.'
          ENDIF
-      end if
+      endif
 
       ! Find out whether to restart natural tracers
       if (use_natDIC) then
@@ -295,12 +288,12 @@
 #endif
          ENDIF
          IF(mnproc==1 .and. .not. lread_nat) THEN
-         WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: natural tracers not in restart file. '
-         WRITE(io_stdo_bgc,*) ' Initialising natural tracers with their non-natural '
-         WRITE(io_stdo_bgc,*) ' counterpart.'
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*) 'AUFR_BGC info: natural tracers not in restart file. '
+            WRITE(io_stdo_bgc,*) ' Initialising natural tracers with their non-natural '
+            WRITE(io_stdo_bgc,*) ' counterpart.'
          ENDIF
-      end if
+      endif
 
       ! Find out whether to restart marine carbon isotopes
       if (use_cisonew) then
@@ -316,11 +309,11 @@
 #endif
          ENDIF
          IF(mnproc==1 .and. .not. lread_iso) THEN
-         WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: carbon isotopes not in restart file. '
-         WRITE(io_stdo_bgc,*) ' Initialising carbon isotopes from scratch '
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*) 'AUFR_BGC info: carbon isotopes not in restart file. '
+            WRITE(io_stdo_bgc,*) ' Initialising carbon isotopes from scratch '
          ENDIF
-      end if
+      endif
 
       ! Find out whether to restart Bromoform
       if (use_BROMO) then
@@ -336,11 +329,11 @@
 #endif
          ENDIF
          IF(mnproc==1 .and. .not. lread_bro) THEN
-         WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: Bromoform tracer not in restart file, '
-         WRITE(io_stdo_bgc,*) 'Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*) 'AUFR_BGC info: Bromoform tracer not in restart file, '
+            WRITE(io_stdo_bgc,*) 'Initialised to 0.01 pmol L-1 (Stemmler et al., 2015).'
          ENDIF
-      end if
+      endif
 
       ! Find out whether to restart atmosphere
       if (use_BOXATM) then
@@ -356,11 +349,11 @@
 #endif
          ENDIF
          IF(mnproc==1 .and. .not. lread_atm) THEN
-         WRITE(io_stdo_bgc,*) ' '
-         WRITE(io_stdo_bgc,*) 'AUFR_BGC info: atmosphere fields not in restart file. '
-         WRITE(io_stdo_bgc,*) ' Initialising atmosphere from scratch '
+            WRITE(io_stdo_bgc,*) ' '
+            WRITE(io_stdo_bgc,*) 'AUFR_BGC info: atmosphere fields not in restart file. '
+            WRITE(io_stdo_bgc,*) ' Initialising atmosphere from scratch '
          ENDIF
-      end if
+      endif
       !
       ! Read restart data : ocean aquateous tracer
       !
@@ -387,51 +380,45 @@
       CALL read_netcdf_var(ncid,'prefdic',locetra(1,1,1,iprefdic),2*kpke,0,iotype)
       CALL read_netcdf_var(ncid,'dicsat',locetra(1,1,1,idicsat),2*kpke,0,iotype)
 
-      if (use_cisonew) then
-         IF(lread_iso) THEN
-            CALL read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'doc13',locetra(1,1,1,idoc13),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'doc14',locetra(1,1,1,idoc14),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'phyto13',locetra(1,1,1,iphy13),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'phyto14',locetra(1,1,1,iphy14),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'grazer13',locetra(1,1,1,izoo13),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'grazer14',locetra(1,1,1,izoo14),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'poc13',locetra(1,1,1,idet13),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0,iotype)
-         ENDIF
+      if (use_cisonew .and. lread_iso) then
+         CALL read_netcdf_var(ncid,'sco213',locetra(1,1,1,isco213),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'sco214',locetra(1,1,1,isco214),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'doc13',locetra(1,1,1,idoc13),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'doc14',locetra(1,1,1,idoc14),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'phyto13',locetra(1,1,1,iphy13),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'phyto14',locetra(1,1,1,iphy14),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'grazer13',locetra(1,1,1,izoo13),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'grazer14',locetra(1,1,1,izoo14),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'poc13',locetra(1,1,1,idet13),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'poc14',locetra(1,1,1,idet14),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'calciu13',locetra(1,1,1,icalc13),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'calciu14',locetra(1,1,1,icalc14),2*kpke,0,iotype)
       endif
       if (use_AGG)then
          CALL read_netcdf_var(ncid,'snos',locetra(1,1,1,inos),2*kpke,0,iotype)
          CALL read_netcdf_var(ncid,'adust',locetra(1,1,1,iadust),2*kpke,0,iotype)
-      end if
-      if (use_CFC) then
-         IF(lread_cfc) THEN
-            CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
-            CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
-         ENDIF
+      endif
+      if (use_CFC .and. lread_cfc) then
+         CALL read_netcdf_var(ncid,'cfc11',locetra(1,1,1,icfc11),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'cfc12',locetra(1,1,1,icfc12),2*kpke,0,iotype)
+         CALL read_netcdf_var(ncid,'sf6',locetra(1,1,1,isf6),2*kpke,0,iotype)
       endif
       if (use_natDIC) then
-         IF(lread_nat) THEN
+         if (lread_nat) then
             CALL read_netcdf_var(ncid,'natsco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'natalkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'natcalciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'nathi',nathi(1,1,1),kpke,0,iotype)
-         ELSE
+         else
             CALL read_netcdf_var(ncid,'sco212',locetra(1,1,1,inatsco212),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'alkali',locetra(1,1,1,inatalkali),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'calciu',locetra(1,1,1,inatcalc),2*kpke,0,iotype)
             CALL read_netcdf_var(ncid,'hi',nathi(1,1,1),kpke,0,iotype)
-         ENDIF
-      end if
-      if (use_BROMO) then
-         IF(lread_bro) THEN
-            CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
-         ENDIF
-      end if
+         endif
+      endif
+      if (use_BROMO .and. lread_bro) then
+         CALL read_netcdf_var(ncid,'bromo',locetra(1,1,1,ibromo),2*kpke,0,iotype)
+      endif
       !
       ! Read restart data : diagnostic ocean fields (needed for bit to bit reproducability)
       !
@@ -459,21 +446,19 @@
          CALL read_netcdf_var(ncid,'pown2',powtra2(1,1,1,ipown2),2*ks,0,iotype)
          CALL read_netcdf_var(ncid,'powno3',powtra2(1,1,1,ipowno3),2*ks,0,iotype)
          CALL read_netcdf_var(ncid,'powasi',powtra2(1,1,1,ipowasi),2*ks,0,iotype)
-         if (use_cisonew) then
-            IF(lread_iso) THEN
-               CALL read_netcdf_var(ncid,'ssso13',sedlay2(1,1,1,issso13),2*ks,0,iotype)
-               CALL read_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0,iotype)
-               CALL read_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0,iotype)
-               CALL read_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0,iotype)
-               CALL read_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0,iotype)
-               CALL read_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0,iotype)
-               CALL read_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0,iotype)
-               CALL read_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0,iotype)
-               CALL read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
-               CALL read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
-            ENDIF
+         if (use_cisonew .and. lread_iso) then
+            CALL read_netcdf_var(ncid,'ssso13',sedlay2(1,1,1,issso13),2*ks,0,iotype)
+            CALL read_netcdf_var(ncid,'ssso14',sedlay2(1,1,1,issso14),2*ks,0,iotype)
+            CALL read_netcdf_var(ncid,'sssc13',sedlay2(1,1,1,isssc13),2*ks,0,iotype)
+            CALL read_netcdf_var(ncid,'sssc14',sedlay2(1,1,1,isssc14),2*ks,0,iotype)
+            CALL read_netcdf_var(ncid,'bur_o13',burial2(1,1,1,issso13),2,0,iotype)
+            CALL read_netcdf_var(ncid,'bur_o14',burial2(1,1,1,issso14),2,0,iotype)
+            CALL read_netcdf_var(ncid,'bur_c13',burial2(1,1,1,isssc13),2,0,iotype)
+            CALL read_netcdf_var(ncid,'bur_c14',burial2(1,1,1,isssc14),2,0,iotype)
+            CALL read_netcdf_var(ncid,'powc13',powtra2(1,1,1,ipowc13),2*ks,0,iotype)
+            CALL read_netcdf_var(ncid,'powc14',powtra2(1,1,1,ipowc14),2*ks,0,iotype)
          endif
-      end if
+      endif
       !
       ! Read restart data: atmosphere
       !
@@ -514,7 +499,7 @@
             atm2(:,:,1,:) = atm(:,:,:)
             atm2(:,:,2,:) = atm(:,:,:)
          ENDIF
-      end if
+      endif
 
       IF(mnproc==1 .AND. IOTYPE==0) THEN
          ncstat = NF90_CLOSE(ncid)
@@ -524,82 +509,80 @@
 #endif
       ENDIF
 
-      if (use_cisonew) then
-         IF(.NOT. lread_iso) THEN
-            ! If carbon isotope fields are not read from restart file, copy the d13C
-            ! d14C fields (initialised in beleg.F90) into both timelevels of locetra.
-            locetra(:,:,1:kpke,       isco213)=ocetra(:,:,:,isco213)
-            locetra(:,:,kpke+1:2*kpke,isco213)=ocetra(:,:,:,isco213)
-            locetra(:,:,1:kpke,       isco214)=ocetra(:,:,:,isco214)
-            locetra(:,:,kpke+1:2*kpke,isco214)=ocetra(:,:,:,isco214)
-            ! Initialise 13C and 14C fields in the same way as in beleg.F90
-            DO k=1,2*kpke
-            DO j=1,kpje
-            DO i=1,kpie
+      if (use_cisonew .and. .not. lread_iso) THEN
+         ! If carbon isotope fields are not read from restart file, copy the d13C
+         ! d14C fields (initialised in beleg.F90) into both timelevels of locetra.
+         locetra(:,:,1:kpke,       isco213)=ocetra(:,:,:,isco213)
+         locetra(:,:,kpke+1:2*kpke,isco213)=ocetra(:,:,:,isco213)
+         locetra(:,:,1:kpke,       isco214)=ocetra(:,:,:,isco214)
+         locetra(:,:,kpke+1:2*kpke,isco214)=ocetra(:,:,:,isco214)
+         ! Initialise 13C and 14C fields in the same way as in beleg.F90
+         DO k=1,2*kpke
+         DO j=1,kpje
+         DO i=1,kpie
+            IF(omask(i,j) .GT. 0.5) THEN
+               ! 13C is read in as delta13C, convert to 13C using model restart total C
+               beta13=locetra(i,j,k,isco213)/1000.+1.
+               locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
+
+               ! 14C is read in as delta14C, convert to 14C using model restart total C,
+               ! normalize 14C by c14fac to prevent numerical errors
+               beta14=locetra(i,j,k,isco214)/1000.+1.
+               locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
+
+               ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
+               rco213=locetra(i,j,k,isco213)/(locetra(i,j,k,isco212)+safediv)
+               rco214=locetra(i,j,k,isco214)/(locetra(i,j,k,isco212)+safediv)
+               locetra(i,j,k,idoc13)=locetra(i,j,k,idoc)*rco213*bifr13
+               locetra(i,j,k,idoc14)=locetra(i,j,k,idoc)*rco214*bifr14
+               locetra(i,j,k,iphy13)=locetra(i,j,k,iphy)*rco213*bifr13
+               locetra(i,j,k,iphy14)=locetra(i,j,k,iphy)*rco214*bifr14
+               locetra(i,j,k,izoo13)=locetra(i,j,k,izoo)*rco213*bifr13
+               locetra(i,j,k,izoo14)=locetra(i,j,k,izoo)*rco214*bifr14
+               locetra(i,j,k,idet13)=locetra(i,j,k,idet)*rco213*bifr13
+               locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14
+               locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
+               locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
+            ENDIF
+         ENDDO
+         ENDDO
+         ENDDO
+
+         if (.not. use_sedbypass) then
+            DO  k=1,2*ks
+            DO  j=1,kpje
+            DO  i=1,kpie
                IF(omask(i,j) .GT. 0.5) THEN
-                  ! 13C is read in as delta13C, convert to 13C using model restart total C
-                  beta13=locetra(i,j,k,isco213)/1000.+1.
-                  locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
-
-                  ! 14C is read in as delta14C, convert to 14C using model restart total C,
-                  ! normalize 14C by c14fac to prevent numerical errors
-                  beta14=locetra(i,j,k,isco214)/1000.+1.
-                  locetra(i,j,k,isco214)=locetra(i,j,k,isco212)*beta14*re14to/c14fac
-
-                  ! Initialise the remaining 13C and 14C fields, using the restart isco212 field
-                  rco213=locetra(i,j,k,isco213)/(locetra(i,j,k,isco212)+safediv)
-                  rco214=locetra(i,j,k,isco214)/(locetra(i,j,k,isco212)+safediv)
-                  locetra(i,j,k,idoc13)=locetra(i,j,k,idoc)*rco213*bifr13
-                  locetra(i,j,k,idoc14)=locetra(i,j,k,idoc)*rco214*bifr14
-                  locetra(i,j,k,iphy13)=locetra(i,j,k,iphy)*rco213*bifr13
-                  locetra(i,j,k,iphy14)=locetra(i,j,k,iphy)*rco214*bifr14
-                  locetra(i,j,k,izoo13)=locetra(i,j,k,izoo)*rco213*bifr13
-                  locetra(i,j,k,izoo14)=locetra(i,j,k,izoo)*rco214*bifr14
-                  locetra(i,j,k,idet13)=locetra(i,j,k,idet)*rco213*bifr13
-                  locetra(i,j,k,idet14)=locetra(i,j,k,idet)*rco214*bifr14
-                  locetra(i,j,k,icalc13)=locetra(i,j,k,icalc)*rco213
-                  locetra(i,j,k,icalc14)=locetra(i,j,k,icalc)*rco214
+                  rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                  rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                  powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
+                  powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
+                  sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
+                  sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
+                  sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
+                  sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc12)*rco214
                ENDIF
             ENDDO
             ENDDO
             ENDDO
 
-            if (.not. use_sedbypass) then
-               DO  k=1,2*ks
-               DO  j=1,kpje
-               DO  i=1,kpie
-                  IF(omask(i,j) .GT. 0.5) THEN
-                     rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
-                     rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
-                     powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
-                     powtra2(i,j,k,ipowc14)=powtra2(i,j,k,ipowaic)*rco214
-                     sedlay2(i,j,k,issso13)=sedlay2(i,j,k,issso12)*rco213*bifr13
-                     sedlay2(i,j,k,issso14)=sedlay2(i,j,k,issso12)*rco214*bifr14
-                     sedlay2(i,j,k,isssc13)=sedlay2(i,j,k,isssc12)*rco213
-                     sedlay2(i,j,k,isssc14)=sedlay2(i,j,k,isssc12)*rco214
-                  ENDIF
-               ENDDO
-               ENDDO
-               ENDDO
+            DO  k=1,2
+            DO  j=1,kpje
+            DO  i=1,kpie
+               IF(omask(i,j) .GT. 0.5) THEN
+                  rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                  rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
+                  burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
+                  burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
+                  burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
+                  burial2(i,j,k,isssc14)=burial2(i,j,k,isssc12)*rco214
+               ENDIF
+            ENDDO
+            ENDDO
+            ENDDO
 
-               DO  k=1,2
-               DO  j=1,kpje
-               DO  i=1,kpie
-                  IF(omask(i,j) .GT. 0.5) THEN
-                     rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
-                     rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
-                     burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
-                     burial2(i,j,k,issso14)=burial2(i,j,k,issso12)*rco214*bifr14
-                     burial2(i,j,k,isssc13)=burial2(i,j,k,isssc12)*rco213
-                     burial2(i,j,k,isssc14)=burial2(i,j,k,isssc12)*rco214
-                  ENDIF
-               ENDDO
-               ENDDO
-               ENDDO
-
-            end if  ! .NOT. use_sedbypass
-         ENDIF ! .NOT. lread_iso
-      end if ! use_cisonew
+         endif  ! .NOT. use_sedbypass
+      endif ! use_cisonew .and. .NOT. lread_iso
 
       ! return tracer fields to ocean model (both timelevels); No unit
       ! conversion here, since tracers in the restart file are in

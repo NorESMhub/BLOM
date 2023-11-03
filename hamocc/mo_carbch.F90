@@ -91,6 +91,7 @@
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natco3
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaA
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: natOmegaC
+	  
       REAL :: atm_co2
       REAL :: atm_cfc11_nh,atm_cfc11_sh
       REAL :: atm_cfc12_nh,atm_cfc12_sh
@@ -222,7 +223,7 @@
          if(errstat.ne.0) stop 'not enough memory natOmegaA, natOmegaC'
          natOmegaA(:,:,:) = 0.0
          natOmegaC(:,:,:) = 0.0
-      end if
+      endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)'Memory allocation for variable sedfluxo ..'
@@ -413,7 +414,7 @@
          co213fxu(:,:) = 0.0
          co214fxd(:,:) = 0.0
          co214fxu(:,:) = 0.0
-      end if
+      endif
 
 !******************************************************************************
       END SUBROUTINE ALLOC_MEM_CARBCH

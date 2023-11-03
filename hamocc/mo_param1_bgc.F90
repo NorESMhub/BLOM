@@ -74,7 +74,7 @@
       integer, protected :: iprefdic
       integer, protected :: idicsat
 
-      ! cisonew
+      ! Indices for C-isotope tracers
       integer, protected :: i_iso
       integer, protected :: isco213
       integer, protected :: isco214
@@ -89,28 +89,28 @@
       integer, protected :: icalc13
       integer, protected :: icalc14
 
-      !CFC
+      ! Indices for CFCs
       integer, protected :: i_cfc
       integer, protected :: icfc11
       integer, protected :: icfc12
       integer, protected :: isf6
 
-      ! AGG
+      ! Indices for tracers related to aggregation scheme
       integer, protected :: i_agg
       integer, protected :: inos
       integer, protected :: iadust
 
-      ! natDIC
+      ! Indices for tracers related to natural DIC
       integer, protected :: i_nat_dic
       integer, protected :: inatsco212
       integer, protected :: inatalkali
       integer, protected :: inatcalc
 
-      ! BROMO
+      ! Indices for bromoform tracer
       integer, protected :: i_bromo
       integer, protected :: ibromo
 
-      ! total number of advected tracers(set by allocate_tracers in mod_tracers.F90)
+      ! total number of advected tracers (set by allocate_tracers in mod_tracers.F90)
       integer :: nocetra
 
       ! ------------------
@@ -124,22 +124,22 @@
       integer, protected :: iatmn2o
       integer, protected :: iatmdms
 
-      ! cisonew atm
+      ! Indices of C-isotope tracers in atm
       integer, protected :: i_iso_atm
       integer, protected :: iatmc13
       integer, protected :: iatmc14
 
-      ! CFC atm
+      ! Indices of CFCs in atm
       integer, protected :: i_cfc_atm
       integer, protected :: iatmf11
       integer, protected :: iatmf12
       integer, protected :: iatmsf6
 
-      ! natDIC atm
+      ! Indices for tracers related to natDIC scheme in atm
       integer, protected :: i_ndic_atm
       integer, protected :: iatmnco2
 
-      ! BROMO atm
+      ! Indices for bromoform tracer in atm
       integer, protected :: i_bromo_atm
       integer, protected :: iatmbromo
 
@@ -161,14 +161,14 @@
       ! ------------------
       ! sediment
       ! ------------------
-      ! sediment solid components
+      ! Indices for solid sediment components
       integer, protected :: i_sed_base
       integer, protected :: issso12
       integer, protected :: isssc12
       integer, protected :: issssil
       integer, protected :: issster
 
-      ! ciso sediment
+      ! Indices for C-isotope tracers in sediment
       integer, protected :: i_sed_cisonew
       integer, protected :: issso13
       integer, protected :: issso14
@@ -176,7 +176,7 @@
       integer, protected :: isssc14
       integer, protected :: nsedtra
 
-      ! sediment pore water components
+      ! Indices for tracers in sediment pore water
       integer, protected :: i_pow_base
       integer, protected :: ipowaic
       integer, protected :: ipowaal
@@ -185,6 +185,8 @@
       integer, protected :: ipown2
       integer, protected :: ipowno3
       integer, protected :: ipowasi
+	  
+	  ! Indices for C-isotope tracers in sediment pore water
       integer, protected :: i_pow_cisonew
       integer, protected :: ipowc13
       integer, protected :: ipowc14
@@ -208,7 +210,7 @@
         if (use_cisonew) then
            map_por2octra(ipowc13) = isco213
            map_por2octra(ipowc14) = isco214
-        end if
+        endif
       end subroutine init_por2octra_mapping
 
       ! ===========================================================================
@@ -237,7 +239,7 @@
            write(io_stdo_bgc,*)
            write(io_stdo_bgc,*) 'iHAMOCC: reading namelist CONFIG_BGC'
            write(io_stdo_bgc,nml=config_bgc)
-        end IF
+        endif
 
         ! Tracer indices
         i_base   = 22
@@ -291,7 +293,7 @@
            idet14   = -1
            icalc13  = -1
            icalc14  = -1
-        end if
+        endif
         if (use_CFC) then
            i_cfc=3
            icfc11   = i_base+i_iso+1
@@ -302,7 +304,7 @@
            icfc11   = -1
            icfc12   = -1
            isf6     = -1
-        end if
+        endif
         if (use_AGG) then
            i_agg=2
            inos     = i_base+i_iso+i_cfc+1
@@ -311,7 +313,7 @@
            i_agg=0
            inos     = -1
            iadust   = -1
-        end if
+        endif
         if (use_natDIC) then
            i_nat_dic=3
            inatsco212 = i_base+i_iso+i_cfc+i_agg+1
@@ -322,14 +324,14 @@
            inatsco212 = -1
            inatalkali = -1
            inatcalc   = -1
-        end if
+        endif
         if (use_BROMO) then
            i_bromo=1
            ibromo=i_base+i_iso+i_cfc+i_agg+i_nat_dic+1
         else
            i_bromo=0
            ibromo=-1
-        end if
+        endif
 
         ! total number of advected tracers
         nocetra=i_base+i_iso+i_cfc+i_agg+i_nat_dic +i_bromo
@@ -349,7 +351,7 @@
            i_iso_atm = 0
            iatmc13 = -1
            iatmc14 = -1
-        end if
+        endif
         if (use_CFC) then
            i_cfc_atm = 3
            iatmf11 = i_base_atm+i_iso_atm+1
@@ -360,21 +362,21 @@
            iatmf11 = -1
            iatmf12 = -1
            iatmsf6 = -1
-        end if
+        endif
         if (use_natDIC) then
            i_ndic_atm = 1
            iatmnco2 = i_base_atm+i_iso_atm+i_cfc_atm+1
         else
            i_ndic_atm = 0
            iatmnco2 = -1
-        end if
+        endif
         if (use_BROMO) then
            i_bromo_atm=1
            iatmbromo=i_base_atm+i_iso_atm+i_cfc_atm+ i_ndic_atm+1
         else
            i_bromo_atm=0
            iatmbromo=-1
-        end if
+        endif
 
         ! total number of atmosphere tracers
         natm=i_base_atm+i_iso_atm+i_cfc_atm+i_ndic_atm+i_bromo_atm
@@ -408,7 +410,7 @@
            issso14 = -1
            isssc13 = -1
            isssc14 = -1
-        end if
+        endif
         nsedtra = i_sed_base + i_sed_cisonew
 
         ! sediment pore water components
@@ -428,7 +430,7 @@
            i_pow_cisonew = 0
            ipowc13 = -1
            ipowc14 = -1
-        end if
+        endif
         npowtra = i_pow_base + i_pow_cisonew
 
         allocate(map_por2octra(-1:npowtra))
