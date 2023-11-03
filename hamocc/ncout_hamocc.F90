@@ -44,7 +44,7 @@ subroutine ncwrt_bgc(iogrp)
                             flx_bsi2000,flx_bsi4000,flx_bsi_bot,               &
                             flx_sediffic,flx_sediffal,flx_sediffph,            &
                             flx_sediffox,flx_sediffn2,flx_sediffno3,           &
-							flx_sediffsi,                                      &
+                            flx_sediffsi,                                      &
                             jsediffic,jsediffal,jsediffph,jsediffox,           &
                             jsediffn2,jsediffno3,jsediffsi,                    &
                             jalkali,jano3,jasize,jatmco2,                      &
@@ -1116,7 +1116,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
           &   'atmbromo','Atmospheric bromoform',' ','ppt',0)
   endif
 
-  call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',                                 &
+  call ncdefvar3d(SRF_ATMCO2(iogrp),cmpflg,'p',                                    &
        &   'atmco2','Atmospheric CO2',' ','ppm',0)
   if (use_BOXATM) then
      call ncdefvar3d(SRF_ATMO2(iogrp),cmpflg,'p',                                  &

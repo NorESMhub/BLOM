@@ -1083,33 +1083,33 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                                      (pddpo(i,j,k)+wcal)
               if (use_cisonew) then
                  ocetra(i,j,k,idet13)  = (ocetra(i,j,k     ,idet13)*pddpo(i,j,k)   &
-                       					+ ocetra(i,j,kdonor,idet13)*wpocd)/        &
+                                        + ocetra(i,j,kdonor,idet13)*wpocd)/        &
                                          (pddpo(i,j,k)+wpoc)
                  ocetra(i,j,k,idet14)  = (ocetra(i,j,k     ,idet14)*pddpo(i,j,k)   &
-                       	                + ocetra(i,j,kdonor,idet14)*wpocd)/        &
+                                        + ocetra(i,j,kdonor,idet14)*wpocd)/        &
                                          (pddpo(i,j,k)+wpoc)
                  ocetra(i,j,k,icalc13) = (ocetra(i,j,k     ,icalc13)*pddpo(i,j,k)  &
-                       	                + ocetra(i,j,kdonor,icalc13)*wcald)/       &
+                                        + ocetra(i,j,kdonor,icalc13)*wcald)/       &
                                          (pddpo(i,j,k)+wcal)
                  ocetra(i,j,k,icalc14) = (ocetra(i,j,k     ,icalc14)*pddpo(i,j,k)  &
-                       	                + ocetra(i,j,kdonor,icalc14)*wcald)/       &
+                      	                 + ocetra(i,j,kdonor,icalc14)*wcald)/       &
                                          (pddpo(i,j,k)+wcal)
               endif
               if (use_natDIC) then
                  ocetra(i,j,k,inatcalc)= (ocetra(i,j,k,     inatcalc)*pddpo(i,j,k) &
-                       	                + ocetra(i,j,kdonor,inatcalc)*wcald)/      &
+                                        + ocetra(i,j,kdonor,inatcalc)*wcald)/      &
                                          (pddpo(i,j,k)+wcal)
               endif
               if (use_AGG) then
                  ocetra(i,j,k,iphy)    = (ocetra(i,j,k     ,iphy)*pddpo(i,j,k)     &
-                      &	                + ocetra(i,j,kdonor,iphy)*wpocd)/          &
-                      &                  (pddpo(i,j,k)+wpoc)
+                                        + ocetra(i,j,kdonor,iphy)*wpocd)/          &
+                                         (pddpo(i,j,k)+wpoc)
                  ocetra(i,j,k,inos)    = (ocetra(i,j,k     ,inos)*pddpo(i,j,k)     &
-                      &	                + ocetra(i,j,kdonor,inos)*wnosd)/          &
-                      &                  (pddpo(i,j,k)+wnos) - aggregate(i,j,k)
+                                        + ocetra(i,j,kdonor,inos)*wnosd)/          &
+                                         (pddpo(i,j,k)+wnos) - aggregate(i,j,k)
                  ocetra(i,j,k,iadust)  = (ocetra(i,j,k     ,iadust)*pddpo(i,j,k)   &
-                      &	                + ocetra(i,j,kdonor,iadust)*wpocd)/        &
-                      &                  (pddpo(i,j,k)+wpoc)  + dagg
+                                        + ocetra(i,j,kdonor,iadust)*wpocd)/        &
+                                         (pddpo(i,j,k)+wpoc)  + dagg
               endif
               kdonor = k
 

@@ -80,10 +80,10 @@
       REAL, DIMENSION (:,:),   ALLOCATABLE :: calflx_bot
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: phosy3d
 
-      ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.ture.)
+      ! Variables for interactive phytoplanktion absorption (use_FB_BGC_OCE=.true.)
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: abs_oce
 	  
-	  ! Variables for aggregation scheme (use_AGG=.true.)
+      ! Variables for aggregation scheme (use_AGG=.true.)
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wmass
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: wnumb
       REAL, DIMENSION (:,:,:), ALLOCATABLE :: eps3d
