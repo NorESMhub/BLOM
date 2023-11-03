@@ -89,10 +89,11 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                             cellsink,dustd1,dustd2,dustd3,dustsink,fractdim,fse,fsh,nmldmin,plower,pupper,sinkexp,stick,tmfac,     &
                             tsfac,vsmall,zdis,wmin,wmax,wlin,rbro,bifr13,bifr14,dmsp1,dmsp2,dmsp3,dmsp4,dmsp5,dmsp6,dms_gamma,     &
                             fbro1,fbro2,atten_f,atten_c,atten_uv,atten_w,bkopal,bkphy,bkzoo
-  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,                                                &
-                            bsiflx_bot,calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,carflx0100,carflx0500,    &
-                            carflx1000,carflx2000,carflx4000,carflx_bot,expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,        &
-                            intdms_uv,intphosy,phosy3d,int_chbr3_prod,int_chbr3_uv,abs_oce,strahl,asize3d,wmass,wnumb
+  use mo_biomod,      only: bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,bsiflx_bot,                                     &
+                            calflx0100,calflx0500,calflx1000,calflx2000,calflx4000,calflx_bot,                                     &
+                            carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,carflx_bot,                                     &
+                            expoor,exposi,expoca,intdnit,intdms_bac,intdmsprod,intdms_uv,intphosy,int_chbr3_prod,int_chbr3_uv,     &
+                            phosy3d,abs_oce,strahl,asize3d,wmass,wnumb,eps3d,bifr13_perm,growth_co2
   use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,isco212,      &
                             isilica,izoo,iadust,inos,ibromo,                                                                       &
                             icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv,       &
@@ -101,7 +102,6 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
                             use_BROMO,use_AGG,use_PBGC_OCNP_TIMESTEP,use_FB_BGC_OCE,use_AGG,use_cisonew,use_natDIC,                &
                             use_WLIN,use_sedbypass
   use mo_vgrid,       only: dp_min,dp_min_sink,k0100,k0500,k1000,k2000,k4000,kwrbioz,ptiestu
-  use mo_biomod,      only: eps3d,bifr13_perm,growth_co2
   use mo_vgrid,       only: kmle
   use mo_clim_swa,    only: swa_clim
 

@@ -167,7 +167,7 @@
         ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
            CALL xchalt('(AUFR: Problem with netCDF1)')
-                  stop '(AUFR: Problem with netCDF1)'
+           stop        '(AUFR: Problem with netCDF1)'
         ENDIF
         !
         ! Read restart data : date
@@ -175,7 +175,7 @@
         ncstat = NF90_GET_ATT(ncid, NF90_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF90_NOERR ) THEN
            CALL xchalt('(AUFR: Problem reading date of restart file)')
-                  stop '(AUFR: Problem reading date of restart file)'
+           stop        '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -204,7 +204,7 @@
         ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,INFO, ncid)
         IF ( ncstat .NE. NF_NOERR ) THEN
            CALL xchalt('(AUFR: Problem with netCDF1)')
-                  stop '(AUFR: Problem with netCDF1)'
+           stop        '(AUFR: Problem with netCDF1)'
         ENDIF
 
         !
@@ -213,7 +213,7 @@
         ncstat = NFMPI_GET_ATT_INT(ncid, NF_GLOBAL,'date', idate)
         IF ( ncstat .NE. NF_NOERR ) THEN
            CALL xchalt('(AUFR: Problem reading date of restart file)')
-                  stop '(AUFR: Problem reading date of restart file)'
+           stop        '(AUFR: Problem reading date of restart file)'
         ENDIF
         restyear  = idate(1)
         restmonth = idate(2)
@@ -233,7 +233,7 @@
 #endif
         if(testio .eq. 0) then
            CALL xchalt('(AUFR: Problem with namelist iotype)')
-                  stop '(AUFR: Problem with namelist iotype)'
+           stop        '(AUFR: Problem with namelist iotype)'
         endif
 
       ENDIF ! mnproc==1 .AND. IOTYPE==0
