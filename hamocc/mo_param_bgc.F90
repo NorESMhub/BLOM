@@ -93,9 +93,6 @@ module mo_param_bgc
   ! Decay parameter for C14, HalfLive = 5700 years
   real, parameter :: c14_t_half = 5700.*365.      ! Half life of 14C [days]
 
-  ! Scaling factor for pH dependency (used if with_dmsph=.true.)
-  real, parameter :: dms_gamma = 0.87
-
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
   ! Atmosphere:
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -173,22 +170,6 @@ module mo_param_bgc
   real, protected :: tf0        = -2.7819
   real, protected :: tff        =  0.2395
 
-  ! Set constants for dms scheme following Kloster et al. (2006), Table 1
-  real, protected :: dmsp6 = 0.100000000E-07 ! 0 half saturation microbial
-  real, protected :: dmsp5 = 1.25*0.02       ! production with delsil, but increased by a factor of ~2
-  real, protected :: dmsp4 = 1.25*0.10       ! production with delcar, but reduced by ~7%
-  real, protected :: dmsp3 = 0.0864          ! 50% reduction to reduce bacterial removal and increase dms emissions
-  real, protected :: dmsp2 = 0.0011
-  real, protected :: dmsp1 = 10.             ! 2*5. production with temp
-
-  !Bromoform to phosphate ratio (Hense and Quack, 2009)
-  !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
-  !      rbro=2.*6.72e-7*rnit
-  !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
-  real, protected :: rbro       = 2.4e-6*rnit
-  real, protected :: fbro1      = 1.0
-  real, protected :: fbro2      = 1.0
-
   !********************************************************************
   !     Zooplankton parameters
   !********************************************************************
@@ -221,6 +202,28 @@ module mo_param_bgc
   real, protected :: dremopal   = 0.003           ! 1/d Dissolution rate for opal
   real, protected :: dremn2o    = 0.01            ! 1/d Remineralization rate of detritus on N2O
   real, protected :: dremsul    = 0.005           ! 1/d Remineralization rate for sulphate reduction
+
+  !********************************************************************
+  !     Parameters for DMS and BrO schemes
+  !********************************************************************
+  ! Set constants for dms scheme following Kloster et al. (2006), Table 1
+  real, protected :: dmsp1 = 10.             ! 2*5. production with temp
+  real, protected :: dmsp2 = 0.0011
+  real, protected :: dmsp3 = 0.0864          ! bacterial removal, but reduced 50% to increase dms emissions
+  real, protected :: dmsp4 = 1.25*0.10       ! production with delcar, but reduced by ~7%
+  real, protected :: dmsp5 = 1.25*0.02       ! production with delsil, but increased by a factor of ~2
+  real, protected :: dmsp6 = 0.100000000E-07 ! half saturation microbial
+
+  ! Scaling factor for pH dependency (used if with_dmsph=.true.)
+  real, parameter :: dms_gamma = 0.87
+
+  !Bromoform to phosphate ratio (Hense and Quack, 2009)
+  !JT: too little production: 0.25Gmol/yr     rbro=6.72e-7*rnit
+  !      rbro=2.*6.72e-7*rnit
+  !JT Following discussion with B. Quack and D. Booge (01.07.2021), we agree to use 2.4e-6
+  real, protected :: rbro       = 2.4e-6*rnit
+  real, protected :: fbro1      = 1.0
+  real, protected :: fbro2      = 1.0
 
   !.................................................................................................................................
 
