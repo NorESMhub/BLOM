@@ -79,25 +79,17 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   real :: tredsy(kpie,0:kpke,3)        ! redsy for 'reduced system'?
   real :: aprior                       ! start value of oceanic tracer in bottom layer
 
-!ik accelerated sediment
-!ik needed for boundary layer ventilation in fast sediment routine
-  real :: bolven(kpie)                 ! bottom layer ventilation rate
 
 !$OMP PARALLEL DO                            &
-!$OMP&PRIVATE(i,k,iv,l,bolven,tredsy,sedb1,aprior,iv_oc)
+!$OMP&PRIVATE(i,k,iv,l,tredsy,sedb1,aprior,iv_oc)
   j_loop: do j=1,kpje
-
-! calculate bottom ventilation rate for scaling of sediment-water exchange
-  do i = 1,kpie
-     bolven(i) = 1.
-  enddo
 
   k = 0
   do i = 1,kpie
      tredsy(i,k,1) = zcoefsu(i,j,k)
      tredsy(i,k,3) = zcoeflo(i,j,k)
-     tredsy(i,k,2) = bolven(i)*bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
-     !                            dz(kbo) - diff upper    - diff lower
+     tredsy(i,k,2) = bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
+     !                  dz(kbo) - diff upper    - diff lower
   enddo
 
   k = 0
@@ -106,7 +98,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
      do i = 1,kpie
         sedb1(i,k,iv) = 0.
         if (omask(i,j) > 0.5) then
-           sedb1(i,k,iv) = ocetra(i,j,kbo(i,j),iv_oc) * bolay(i,j)*bolven(i)
+           sedb1(i,k,iv) = ocetra(i,j,kbo(i,j),iv_oc) * bolay(i,j)
            !               tracer_concentration(kbo)  * dz(kbo)
         endif
      enddo

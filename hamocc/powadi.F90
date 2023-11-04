@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !**********************************************************************
 !
 !**** *POWADI* - vertical diffusion with simultaneous dissolution.
@@ -66,7 +66,6 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
   integer, intent(in) :: j, kpie, kpje
   real, dimension(kpie,ks),   intent(in)    :: solrat
   real, dimension(kpie,0:ks), intent(inout) :: sedb1, sediso
-  real, dimension(kpie),      intent(in)    :: bolven
   real, dimension(kpie,kpje), intent(in)    :: omask
 
   ! Local variables
@@ -95,8 +94,7 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
      if(omask(i,j) > 0.5) then
         tredsy(i,k,1) = -asu
         tredsy(i,k,3) = -alo
-        tredsy(i,k,2) = bolven(i) * bolay(i,j) - tredsy(i,k,1)                 &
-             &          - tredsy(i,k,3)
+        tredsy(i,k,2) = bolay(i,j) - tredsy(i,k,1) - tredsy(i,k,3)
      else
         tredsy(i,k,1) = 0
         tredsy(i,k,3) = 0
