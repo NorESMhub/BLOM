@@ -456,6 +456,12 @@ module mo_param_bgc
     dremsul  = dremsul*dtb    ! 1/d to 1/time step  Remineralization rate for sulphate reduction
 
     !********************************************************************
+    !     Parameters for DMS and BrO schemes
+    !********************************************************************
+    dmsp2 = dmsp2*dtb
+    dmsp3 = dmsp3*dtb         ! 1/d to 1/time-step bacterial removal
+
+    !********************************************************************
     !     Dust deposition and iron solubility parameters
     !********************************************************************
     relaxfe  = relaxfe*dtb    ! 1/d to 1/time step  iron complexation rate

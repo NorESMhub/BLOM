@@ -402,9 +402,9 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         endif
         dmsprod = (dmsp5*delsil+dmsp4*delcar)                           &
      &           *(1.+1./(temp+dmsp1)**2)*dms_ph
-        dms_bac = dmsp3*dtb*abs(temp+3.)*ocetra(i,j,k,idms)             &
+        dms_bac = dmsp3*abs(temp+3.)*ocetra(i,j,k,idms)                 &
      &             *(ocetra(i,j,k,idms)/(dmsp6+ocetra(i,j,k,idms)))
-        dms_uv  = dmsp2*dtb*phofa/pi_alpha*ocetra(i,j,k,idms)
+        dms_uv  = dmsp2*phofa/pi_alpha*ocetra(i,j,k,idms)
 
         dtr = bacfra-phosy+graton+ecan*zoomor
 
@@ -642,7 +642,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !***********************************************************************
         aou = satoxy(i,j,k)-ocetra(i,j,k,ioxygen)
         refra = 1.+3.*(0.5+sign(0.5,aou-1.97e-4))
-        dms_bac = dmsp3 * dtb * abs(temp+3.) * ocetra(i,j,k,idms)               &
+        dms_bac = dmsp3 * abs(temp+3.) * ocetra(i,j,k,idms)                   &
              &    * (ocetra(i,j,k,idms) / (dmsp6+ocetra(i,j,k,idms)))
         ocetra(i,j,k,ian2o) = ocetra(i,j,k,ian2o)+remin*1.e-4*ro2ut*refra
         ocetra(i,j,k,igasnit) = ocetra(i,j,k,igasnit)-remin*1.e-4*ro2ut*refra

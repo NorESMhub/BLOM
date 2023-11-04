@@ -91,11 +91,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
 !******************************************************************************
-! accelerated sediment
-! needed for boundary layer vertilation in fast sediment routine
 
-  real :: bolven(kpie)
-  
 ! Set array for saving diffusive sediment-water-column fluxes to zero
   sedfluxo(:,:,:) = 0.0
 
@@ -109,7 +105,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !$OMP&        dissot,undsa,posol,                                       &
 !$OMP&        umfa,denit,saln,rrho,alk,c,sit,pt,                        &
 !$OMP&        K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,                       &
-!$OMP&        ah1,ac,cu,cb,cc,satlev,bolven,                            &
+!$OMP&        ah1,ac,cu,cb,cc,satlev,                            &
 !$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14,                &
 !$OMP&        k,i)
 
@@ -128,12 +124,6 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
            aerob14(i,k)  =0.
         endif
      enddo
-  enddo
-
-
-! calculate bottom ventilation rate for scaling of sediment-water exchange
-  do i = 1, kpie
-     bolven(i) = 1.
   enddo
 
   do k = 0, ks
@@ -157,8 +147,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   do i = 1, kpie
      if(omask(i,j) > 0.5) then
         undsa = silsat - powtra(i,j,1,ipowasi)
-        sedb1(i,0) = bolay(i,j) * (silsat - ocetra(i,j,kbo(i,j),isilica))      &
-             &   * bolven(i)
+        sedb1(i,0) = bolay(i,j) * (silsat - ocetra(i,j,kbo(i,j),isilica))
         solrat(i,1) = ( sedlay(i,j,1,issssil)                                  &
              &   + silpro(i,j) / (porsol(i,j,1) * seddw(1)) )                  &
              &   * dissot / (1. + dissot * undsa) * porsol(i,j,1) / porwat(i,j,1)
@@ -184,7 +173,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-  call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+  call powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 
 ! Update water column silicate, and store the flux for budget.
 ! Add sedimentation to first layer.
@@ -235,7 +224,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   do i = 1, kpie
      if(omask(i,j) > 0.5) then
         undsa = powtra(i,j,1,ipowaox)
-        sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen) * bolven(i)
+        sedb1(i,0) = bolay(i,j) * ocetra(i,j,kbo(i,j),ioxygen)
         solrat(i,1) = ( sedlay(i,j,1,issso12) + prorca(i,j)                    &
              &   / (porsol(i,j,1) * seddw(1)) )                                &
              &   * ro2ut * dissot / (1. + dissot * undsa)                      &
@@ -261,7 +250,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Solve for new O2 concentration sediso, from current concentration sedb1,
 ! and first guess of new solid sediment solrat.
 
-  call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+  call powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 
 ! Update water column oxygen, and store the diffusive flux for budget (sedfluxo,
 ! positive downward). Add sedimentation to first layer.
@@ -439,7 +428,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
      if(omask(i,j) > 0.5) then
         satlev = keqb(11,i,j) / calcon + 2.e-5
         undsa = MAX( satlev-powcar(i,1), 0. )
-        sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j))) * bolven(i)
+        sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j)))
         solrat(i,1) = (sedlay(i,j,1,isssc12)                                   &
              &   + prcaca(i,j) / (porsol(i,j,1)*seddw(1)))                     &
              &   * dissot / (1.+dissot*undsa) * porsol(i,j,1) / porwat(i,j,1)
@@ -465,7 +454,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-  call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+  call powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.
