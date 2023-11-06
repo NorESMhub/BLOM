@@ -17,9 +17,9 @@
 
 
 subroutine restart_hamoccwt(rstfnm_ocn)
-!
-! write restart for HAMOCC
-!
+  !
+  ! write restart for HAMOCC
+  !
   use mod_time,      only: date,nstep
   use mod_xc,        only: idm,jdm,kdm
   use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc

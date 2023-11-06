@@ -4,16 +4,16 @@
 ! This file is part of BLOM/iHAMOCC.
 !
 ! BLOM is free software: you can redistribute it and/or modify it under the
-! terms of the GNU Lesser General Public License as published by the Free 
-! Software Foundation, either version 3 of the License, or (at your option) 
-! any later version. 
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
 !
-! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
-! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-! more details. 
+! more details.
 !
-! You should have received a copy of the GNU Lesser General Public License 
+! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 MODULE mo_control_bgc
@@ -27,7 +27,7 @@ MODULE mo_control_bgc
   !     --------
   !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   !     - removed unused variables
-  !     
+  !
   !     Purpose
   !     -------
   !     - declaration
@@ -57,7 +57,7 @@ MODULE mo_control_bgc
   REAL    :: rmasks = 0.0             !  value at wet cells in sediment.
   REAL    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
-                                      ! Logical switches set via namelist
+  ! Logical switches set via namelist
   LOGICAL :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
   LOGICAL :: do_ndep     =.true.      ! apply n-deposition
   LOGICAL :: do_rivinpt  =.true.      ! apply riverine input
@@ -92,20 +92,20 @@ contains
     logical :: exists
 
     if (.not. allocated(bgc_namelist)) then
-       inquire (file='ocn_in'//trim(inst_suffix), exist=exists)
-       if (exists) then
-          allocate(character(len=len('ocn_in'//trim(inst_suffix))) :: bgc_namelist)
-          bgc_namelist = 'ocn_in'//trim(inst_suffix)
-       else
-          inquire (file='limits', exist=exists)
-          if (exists) then
-             allocate(character(len=len('limits')) :: bgc_namelist)
-             bgc_namelist = 'limits'
-          else
-             call xchalt('cannot find limits file')
-             stop 'cannot find limits file'
-          endif
-       endif
+      inquire (file='ocn_in'//trim(inst_suffix), exist=exists)
+      if (exists) then
+        allocate(character(len=len('ocn_in'//trim(inst_suffix))) :: bgc_namelist)
+        bgc_namelist = 'ocn_in'//trim(inst_suffix)
+      else
+        inquire (file='limits', exist=exists)
+        if (exists) then
+          allocate(character(len=len('limits')) :: bgc_namelist)
+          bgc_namelist = 'limits'
+        else
+          call xchalt('cannot find limits file')
+          stop 'cannot find limits file'
+        endif
+      endif
     endif
   end subroutine get_bgc_namelist
 

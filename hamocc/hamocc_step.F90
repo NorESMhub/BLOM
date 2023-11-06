@@ -17,11 +17,11 @@
 
 
 subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
-!
-! --- ------------------------------------------------------------------
-! --- perform one HAMOCC step
-! --- ------------------------------------------------------------------
-!
+  !
+  ! --- ------------------------------------------------------------------
+  ! --- perform one HAMOCC step
+  ! --- ------------------------------------------------------------------
+  !
   use mod_xc,         only: idm,jdm,kdm,nbdy
   use mod_time,       only: date,nday_of_year,nstep,nstep_in_day
   use mod_grid,       only: plat
@@ -47,7 +47,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   integer :: l,ldtday
   real    :: ndep(idm,jdm)
   real    :: dust(idm,jdm)
-  real    :: oafx(idm,jdm)      
+  real    :: oafx(idm,jdm)
 
   call trc_limitc(nn)
 
@@ -56,12 +56,12 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   ldtday = mod(nstep,nstep_in_day)
 
   do l=1,nbgc
-     bgcwrt(l)=.false.
-     if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)               &
-          &   .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.         &
-          &   .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.                      &
-          &   mod(nstep+.5,diagfq_bgc(l)).lt.1.)                                &
-          &   bgcwrt(l)=.true.
+    bgcwrt(l)=.false.
+    if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)               &
+         &   .and.date%day.eq.1).and.mod(nstep,nstep_in_day).eq.0).or.         &
+         &   .not.(diagann_bgc(l).or.diagmon_bgc(l)).and.                      &
+         &   mod(nstep+.5,diagfq_bgc(l)).lt.1.)                                &
+         &   bgcwrt(l)=.true.
   enddo
 
   call get_fedep(idm,jdm,date%month,dust)
