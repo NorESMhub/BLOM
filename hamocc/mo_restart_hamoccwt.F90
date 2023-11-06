@@ -15,22 +15,32 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-
-subroutine restart_hamoccwt(rstfnm_ocn)
-  !
-  ! write restart for HAMOCC
-  !
-  use mod_time,      only: date,nstep
-  use mod_xc,        only: idm,jdm,kdm
-  use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
-  use mo_intfcblom,  only: omask
+MODULE MO_restart_hamoccwt
 
   implicit none
+  private
 
-  character(len=*) :: rstfnm_ocn
+  PUBLIC :: RESTART_HAMOCCWT
 
-  CALL AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc           &
-       &       ,date%year,date%month,date%day,nstep,omask   &
-       &       ,rstfnm_ocn)
+CONTAINS
 
-end subroutine restart_hamoccwt
+  SUBROUTINE RESTART_HAMOCCWT(rstfnm_ocn)
+    !
+    ! write restart for HAMOCC
+    !
+    use mod_time,      only: date,nstep
+    use mod_xc,        only: idm,jdm,kdm
+    use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
+    use mo_intfcblom,  only: omask
+    use mo_aufw_bgc,   only: aufw_bgc
+
+    ! Arguments
+    character(len=*) :: rstfnm_ocn
+
+    call aufw_bgc(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,           &
+                  date%year,date%month,date%day,nstep,omask,   &
+                  rstfnm_ocn)
+
+  END SUBROUTINE RESTART_HAMOCCWT
+
+END MODULE MO_RESTART_HAMOCCWT

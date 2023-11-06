@@ -17,6 +17,7 @@
 
 
 module mo_read_oafx
+
   !******************************************************************************
   !
   !   J.Schwinger             *NORCE Climate, Bergen*             2022-08-24
@@ -71,9 +72,10 @@ module mo_read_oafx
   !
   !
   !******************************************************************************
-  implicit none
 
+  implicit none
   private
+
   public :: ini_read_oafx,get_oafx,oalkscen,oalkfile,thrh_omegaa
 
   character(len=128), protected :: oalkscen   =''
@@ -115,12 +117,10 @@ module mo_read_oafx
 
   logical,   save :: lini = .false.
 
-  !******************************************************************************
 contains
 
-
-
   subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
+
     !******************************************************************************
     !
     !     J.Schwinger               *NORCE Climate, Bergen*         2021-11-15
@@ -142,18 +142,24 @@ contains
     !  *REAL*    *omask*      - land/ocean mask.
     !
     !******************************************************************************
-    use mod_xc,         only: xcsum,xchalt,mnproc,nbdy,ips
-    use mod_dia,        only: iotype
-    use mod_nctools,    only: ncfopn,ncgeti,ncfcls
-    use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
+
+    use mod_xc,             only: xcsum,xchalt,mnproc,nbdy,ips
+    use mod_dia,            only: iotype
+    use mod_nctools,        only: ncfopn,ncgeti,ncfcls
+    use mo_control_bgc,     only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
-    integer, intent(in) :: kpie,kpje
-    real,    intent(in) :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
+    ! Arguments
+    integer, intent(in) :: kpie
+    integer, intent(in) :: kpje
+    real,    intent(in) :: pdlxp(kpie,kpje)
+    real,    intent(in) :: pdlyp(kpie,kpje)
     real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
     real,    intent(in) :: omask(kpie,kpje)
 
+    ! Local variables
     integer :: i,j,errstat
     logical :: file_exists=.false.
     integer :: iounit
@@ -316,13 +322,16 @@ contains
     !  *REAL*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
     !
     !******************************************************************************
-    use mod_xc,         only: xchalt,mnproc
-    use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc, only: io_stdo_bgc,do_oalk
-    use mod_time,       only: nday_of_year
+
+    use mod_xc,             only: xchalt,mnproc
+    use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
+    use mo_control_bgc,     only: io_stdo_bgc,do_oalk
+    use mod_time,           only: nday_of_year
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
+    ! Arguments
     integer, intent(in)  :: kpie,kpje,kplyear,kplmon
     real,    intent(in)  :: omask(kpie,kpje)
     real,    intent(out) :: oafx(kpie,kpje)
@@ -336,17 +345,19 @@ contains
       return
     endif
 
-    !--------------------------------
-    ! Scenarios of constant fluxes
-    !--------------------------------
     if( trim(oalkscen)=='const' ) then
 
+      !--------------------------------
+      ! Scenarios of constant fluxes
+      !--------------------------------
+
       oafx(:,:) = oalkflx(:,:)
+
+    elseif(trim(oalkscen)=='ramp' ) then
 
       !--------------------------------
       ! Scenario of ramping-up fluxes
       !--------------------------------
-    elseif(trim(oalkscen)=='ramp' ) then
 
       if(kplyear.lt.ramp_start ) then
         oafx(:,:) = 0.0
@@ -357,10 +368,11 @@ contains
         oafx(:,:) = oalkflx(:,:) * current_day / ((ramp_end-ramp_start)*365.)
       endif
 
+    elseif(trim(oalkscen)=='file' ) then
+
       !--------------------------------
       ! Scenario from OA file
       !--------------------------------
-    elseif(trim(oalkscen)=='file' ) then
 
       ! read OA data from file
       if (kplmon.ne.oldmonth) then

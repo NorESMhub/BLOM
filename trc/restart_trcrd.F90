@@ -25,6 +25,7 @@ subroutine restart_trcrd(rstfnm_ocn)
 !
   use mod_config, only: expcnf
   use mod_xc
+  use mo_hamocc_init, only: hamocc_init
 
   implicit none
 

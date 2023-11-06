@@ -17,24 +17,25 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine updtrc(m,n,mm,nn,k1m,k1n)
-c
-c --- ------------------------------------------------------------------
-c --- update tracers due to non-passive processes
-c --- ------------------------------------------------------------------
-c
-      use mod_xc
-c
-      implicit none
-c
-      integer m,n,mm,nn,k1m,k1n
-c
+subroutine updtrc(m,n,mm,nn,k1m,k1n)
+  !
+  ! --- ------------------------------------------------------------------
+  ! --- update tracers due to non-passive processes
+  ! --- ------------------------------------------------------------------
+  !
+  use mod_xc
+  use mo_hamocc_step
+  !
+  implicit none
+  !
+  integer m,n,mm,nn,k1m,k1n
+  !
 #ifdef HAMOCC
-      call hamocc_step(m,n,mm,nn,k1m,k1n)
+  call hamocc_step(m,n,mm,nn,k1m,k1n)
 #endif
 #ifdef IDLAGE
-      call idlage_step(m,n,mm,nn,k1m,k1n)
+  call idlage_step(m,n,mm,nn,k1m,k1n)
 #endif
-c
-      return
-      end
+  !
+  return
+end subroutine updtrc

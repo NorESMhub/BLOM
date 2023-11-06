@@ -16,6 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 module mo_read_sedpor
+
   !*****************************************************************************
   ! Purpose
   ! -------
@@ -40,7 +41,6 @@ module mo_read_sedpor
   !*****************************************************************************
 
   implicit none
-
   private
 
   public :: read_sedpor,sedporfile
@@ -50,16 +50,19 @@ module mo_read_sedpor
 contains
 
   subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
-    use mod_xc,         only: mnproc,xchalt
-    use mo_control_bgc, only: io_stdo_bgc,l_3Dvarsedpor
-    use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
 
-
+    use mod_xc,             only: mnproc,xchalt
+    use mo_control_bgc,     only: io_stdo_bgc,l_3Dvarsedpor
+    use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
-    integer, intent(in) :: kpie,kpje,ks
-    real,    intent(in) :: omask(kpie,kpje)
+    ! Arguments
+    integer, intent(in)    :: kpie
+    integer, intent(in)    :: kpje
+    integer, intent(in)    :: ks
+    real,    intent(in)    :: omask(kpie,kpje)
     real,    intent(inout) :: sed_por(kpie,kpje,ks)
 
     !local variables
@@ -114,7 +117,6 @@ contains
       END IF
     END IF
 
-
     do k=1,ks
       do j=1,kpje
         do i=1,kpie
@@ -128,4 +130,5 @@ contains
     enddo
 
   end subroutine read_sedpor
+
 end module mo_read_sedpor

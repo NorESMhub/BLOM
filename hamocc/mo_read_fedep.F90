@@ -17,6 +17,7 @@
 
 
 module mo_read_fedep
+
   !******************************************************************************
   !
   ! MODULE mo_read_fedep - routines for reading iron deposition data
@@ -56,16 +57,14 @@ module mo_read_fedep
   ! File name (incl. full path) for input data, set through namelist
   ! in hamocc_init.F
   character(len=512), save :: fedepfile=''
+
   ! Array to store dust deposition flux after reading from file
   real, allocatable,  save :: dustflx(:,:,:)
 
-
 contains
-  !******************************************************************************
-
-
 
   subroutine ini_read_fedep(kpie,kpje,omask)
+
     !******************************************************************************
     !
     ! INI_FEDEP - initialise the iron deposition module.
@@ -84,18 +83,22 @@ contains
     !   *REAL*      *omask*   - land/ocean mask (1=ocean)
     !
     !******************************************************************************
-    use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
-    use mod_xc,         only: mnproc,xchalt
-    use mo_control_bgc, only: io_stdo_bgc
+
+    use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
+    use mod_xc,             only: mnproc,xchalt
+    use mo_control_bgc,     only: io_stdo_bgc
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
-    integer, intent(in) :: kpie,kpje
+    ! Arguments
+    integer, intent(in) :: kpie
+    integer, intent(in) :: kpje
     real,    intent(in) :: omask(kpie,kpje)
 
+    ! Local variables
     integer             :: i,j,l
     integer             :: ncid,ncstat,ncvarid,errstat
-
 
     ! allocate field to hold iron deposition fluxes
     IF (mnproc.eq.1) THEN

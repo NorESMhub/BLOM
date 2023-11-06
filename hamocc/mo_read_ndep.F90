@@ -17,6 +17,7 @@
 
 
 module mo_read_ndep
+
   !******************************************************************************
   !
   !   S.Gao             *Gfi, Bergen*             2017-08-19
@@ -65,22 +66,22 @@ module mo_read_ndep
   !     Read and return n-deposition data for a given month.
   !
   !******************************************************************************
+
   implicit none
-
   private
-  public :: ini_read_ndep,get_ndep,ndepfile
 
-  character(len=512), save :: ndepfile=''
-  real,  allocatable, save :: ndepread(:,:)
-  integer,            save :: startyear,endyear
-  logical,            save :: lini = .false.
+  public :: ini_read_ndep
+  public :: get_ndep
 
-  !******************************************************************************
+  character(len=512), public  :: ndepfile=''
+  real,  allocatable  :: ndepread(:,:)
+  integer             :: startyear,endyear
+  logical             :: lini = .false.
+
 contains
 
-
-
   subroutine ini_read_ndep(kpie,kpje)
+
     !******************************************************************************
     !
     !     S. Gao               *Gfi, Bergen*    19.08.2017
@@ -99,18 +100,21 @@ contains
     !  *INTEGER* *kpje*       - 2nd dimension of model grid.
     !
     !******************************************************************************
-    use mod_xc,         only: mnproc,xchalt
-    use mo_control_bgc, only: io_stdo_bgc,do_ndep
-    use mod_dia,        only: iotype
-    use mod_nctools,    only: ncfopn,ncgeti,ncfcls
+
+    use mod_xc,             only: mnproc,xchalt
+    use mo_control_bgc,     only: io_stdo_bgc,do_ndep
+    use mod_dia,            only: iotype
+    use mod_nctools,        only: ncfopn,ncgeti,ncfcls
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
+    ! Arguments
     integer, intent(in) :: kpie,kpje
 
+    ! Local variables
     integer :: errstat
     logical :: file_exists=.false.
-
 
     ! Return if N deposition is turned off
     if (.not. do_ndep) then
@@ -166,12 +170,11 @@ contains
 
     endif
 
-
-    !******************************************************************************
   end subroutine ini_read_ndep
 
 
   subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
+
     !******************************************************************************
     !
     !     S. Gao               *Gfi, Bergen*    19.08.2017
@@ -190,12 +193,15 @@ contains
     !  *REAL*      *ndep*    - N-deposition field for current year and month
     !
     !******************************************************************************
-    use mod_xc,         only: mnproc
-    use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
-    use mo_control_bgc, only: io_stdo_bgc,do_ndep
+
+    use mod_xc,             only: mnproc
+    use netcdf,             only: nf90_open,nf90_close,nf90_nowrite
+    use mo_control_bgc,     only: io_stdo_bgc,do_ndep
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
+    ! Arguments
     integer, intent(in)  :: kpie,kpje,kplyear,kplmon
     real,    intent(in)  :: omask(kpie,kpje)
     real,    intent(out) :: ndep(kpie,kpje)
@@ -204,13 +210,11 @@ contains
     integer              :: month_in_file,ncstat,ncid
     integer, save        :: oldmonth=0
 
-
     ! if N-deposition is switched off set ndep to zero and return
     if (.not. do_ndep) then
       ndep(:,:) = 0.0
       return
     endif
-
 
     ! read ndep data from file
     if (kplmon.ne.oldmonth) then
@@ -227,10 +231,6 @@ contains
 
     ndep(:,:) = ndepread
 
-    !******************************************************************************
   end subroutine get_ndep
 
-
-
-  !******************************************************************************
 end module mo_read_ndep

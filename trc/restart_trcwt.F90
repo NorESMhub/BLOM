@@ -25,6 +25,7 @@ subroutine restart_trcwt(rstfnm_ocn)
 !
   use mod_config, only: expcnf
   use mod_xc
+  use mo_restart_hamoccwt, only : restart_hamoccwt
 
   implicit none
 

@@ -23,8 +23,9 @@ MODULE MO_CARCHM
   private
 
   public  :: CARCHM
+  public  :: CARCHM_SOLVE
+
   private :: CARCHM_KEQUI
-  private :: CARCHM_SOLVE
   private :: CARCHM_SOLVE_DICSAT
 
 CONTAINS
@@ -125,8 +126,7 @@ CONTAINS
                               nathi,natco3,natpco2d,natomegaa,natomegac
     use mo_sedmnt,      only: sedlay,powtra,burial
 
-    implicit none
-
+    ! Arguments
     INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
     REAL,    intent(in) :: pdlxp(kpie,kpje)
     REAL,    intent(in) :: pdlyp(kpie,kpje)

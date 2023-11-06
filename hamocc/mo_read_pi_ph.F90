@@ -19,10 +19,11 @@ module mo_read_pi_ph
 
   implicit none
   private
+
   public :: ini_pi_ph,get_pi_ph,pi_ph_file,pi_ph
 
   ! Path to input data, set through namelist in hamocc_init.F
-  character(len=256),save    :: pi_ph_file = ''
+  character(len=256) :: pi_ph_file = ''
 
   ! Length of surface PI pH record from file
   !  - Current implementation only support monthly records.
@@ -36,26 +37,30 @@ module mo_read_pi_ph
 
 CONTAINS
 
-
-  !**********************************************************************
-  ! PUBLIC SUBROUTINE : INI_PI_PH
-  !
-  ! Initialise the PI_PH field from climatology.
-  !**********************************************************************
   subroutine ini_pi_ph(kpie,kpje,omask)
-    use mo_control_bgc, only: io_stdo_bgc,with_dmsph
-    use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
-    use mod_xc,         only: mnproc,xchalt
+
+    !**********************************************************************
+    ! PUBLIC SUBROUTINE : INI_PI_PH
+    !
+    ! Initialise the PI_PH field from climatology.
+    !**********************************************************************
+
+    use mo_control_bgc,     only: io_stdo_bgc,with_dmsph
+    use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
+    use mod_xc,             only: mnproc,xchalt
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
-    INTEGER, INTENT(in) :: kpie,kpje
-    INTEGER ::i,j,l
 
-    REAL,intent(in) ::omask(kpie,kpje)
+    ! Arguments
+    integer, intent(in) :: kpie
+    integer, intent(in) :: kpje
+    real,    intent(in) :: omask(kpie,kpje)
 
-    ! define the fields
-    REAL :: pi_ph_in(kpie,kpje,pi_ph_record)
-    INTEGER ncid,ncstat
+    ! Local variables
+    integer ::i,j,l
+    real    :: pi_ph_in(kpie,kpje,pi_ph_record) ! define the fields
+    integer :: ncid,ncstat
 
     ! Allocate pi_ph field (required argument for hmaocc4bcm)
     if(.not. allocated(pi_ph)) call alloc_pi_ph(kpie,kpje)
@@ -183,6 +188,5 @@ CONTAINS
     pi_ph_clim(:,:,:) = 0.0
 
   end subroutine alloc_pi_ph_clim
-
 
 end module mo_read_pi_ph

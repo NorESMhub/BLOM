@@ -17,22 +17,24 @@
 ! along with BLOM. If not, see <https://www.gnu.org/licenses/>.
 ! ------------------------------------------------------------------------------
 
-      subroutine initrc
-c
-c --- ------------------------------------------------------------------
-c --- initialization of tracers
-c --- ------------------------------------------------------------------
-c
-      implicit none
-c
-      call ocntrc_init
-c
+subroutine initrc
+  !
+  ! --- ------------------------------------------------------------------
+  ! --- initialization of tracers
+  ! --- ------------------------------------------------------------------
+  !
+  use mo_hamocc_init, only: hamocc_init
+
+  implicit none
+  !
+  call ocntrc_init
+  !
 #ifdef HAMOCC
-      call hamocc_init(0,'c')
+  call hamocc_init(0,'c')
 #endif
 #ifdef IDLAGE
-      call idlage_init
+  call idlage_init
 #endif
-c
-      return
-      end
+  !
+  return
+end subroutine initrc

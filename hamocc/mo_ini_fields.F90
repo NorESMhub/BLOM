@@ -16,18 +16,20 @@
 !
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
-module mo_ini_fields
+
+MODULE MO_INI_FIELDS
 
   implicit none
-
   private
 
-  public :: ini_fields_ocean,ini_fields_atm
+  public :: INI_FIELDS_OCEAN
+  public :: INI_FIELDS_ATM
 
 contains
 
-  !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_fields_atm(kpie,kpje)
+  !*******************************************************************************
+  SUBROUTINE INI_FIELDS_ATM(kpie,kpje)
+
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
     use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
     use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
@@ -62,11 +64,12 @@ contains
         endif
       ENDDO
     ENDDO
-  end subroutine ini_fields_atm
+  END SUBROUTINE INI_FIELDS_ATM
 
+  ! ===============================================================================
 
+  SUBROUTINE INI_FIELDS_OCEAN(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
 
-  SUBROUTINE ini_fields_ocean(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
     !******************************************************************************
     !
     ! BELEG_VARS - initialize bgc variables.
@@ -104,30 +107,30 @@ contains
     use mo_param_bgc,   only: fesoly,cellmass,fractdim,bifr13,bifr14,c14fac,re1312,re14to
     use mo_biomod,      only: abs_oce
     use mo_control_bgc, only: rmasks,use_FB_BGC_OCE, use_cisonew, use_AGG, use_CFC, use_natDIC, use_BROMO, use_sedbypass
-    use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy,  &
-         iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, &
-         iadust,inos,ibromo,icfc11,icfc12,isf6, &
-         icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
-         inatcalc, &
-         ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
-         ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14
+    use mo_param1_bgc,  only: ialkali,ian2o,iano3,icalc,idet,idicsat,idms,idoc,ifdust,igasnit,iiron,iopal,ioxygen,iphosph,iphy, &
+                              iprefalk,iprefdic,iprefo2,iprefpo4,isco212,isilica,izoo, &
+                              iadust,inos,ibromo,icfc11,icfc12,isf6, &
+                              icalc13,icalc14,idet13,idet14,idoc13,idoc14,iphy13,iphy14,isco213,isco214,izoo13,izoo14,safediv, &
+                              inatcalc, &
+                              ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster,ks,nsedtra, &
+                              ipowc13,ipowc13,issso13,issso13,isssc13,ipowc14,isssc14,issso14
     use mo_vgrid,       only: kmle,kbo
     use mo_carbch,      only: nathi,natco3
     use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
+    use mo_profile_gd,  only: profile_gd
 
-    implicit none
-
-    INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
-    REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-    REAL,    intent(in) :: prho (kpie,kpje,kpke)
-    REAL,    intent(in) :: omask(kpie,kpje)
-    REAL,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    ! Arguments
+    integer, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)
+    real,    intent(in) :: prho (kpie,kpje,kpke)
+    real,    intent(in) :: omask(kpie,kpje)
+    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
     ! local variables
-    INTEGER :: i,j,k,l
-    REAL :: rco213,rco214,beta13,beta14 ! cisonew
-    REAL :: snow ! AGG
+    integer :: i,j,k,l
+    real    :: rco213,rco214,beta13,beta14 ! cisonew
+    real    :: snow ! agg
 
     if (use_FB_BGC_OCE) then
       DO k=1,kpke
@@ -141,7 +144,6 @@ contains
     !
     ! Initialisation of ocean tracers and sediment
     !
-
     ! Initialise ocean tracers with WOA and GLODAP data. This is done even in case
     ! of a restart since some tracers (e.g. C-isotopes) might not be in the restart
     ! file and aufr.f90 instead expects an initialised field.
@@ -321,8 +323,6 @@ contains
       ENDDO
     endif
 
-    return
-    !******************************************************************************
-  end subroutine ini_fields_ocean
+  END SUBROUTINE INI_FIELDS_OCEAN
 
-end module mo_ini_fields
+END MODULE MO_INI_FIELDS

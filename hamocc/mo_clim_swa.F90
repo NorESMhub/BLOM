@@ -69,12 +69,15 @@ contains
     use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,         only: mnproc,xchalt
     use mo_control_bgc, only: io_stdo_bgc
+    use mo_read_netcdf_var, only: read_netcdf_var
 
     implicit none
 
-    integer,          intent(in) :: kpie,kpje
-    real,             intent(in) :: omask(kpie,kpje)
+    ! Arguments
+    integer, intent(in) :: kpie,kpje
+    real,    intent(in) :: omask(kpie,kpje)
 
+    ! Local variables
     integer :: i,j
     integer :: ncid,ncstat,ncvarid,errstat
 
