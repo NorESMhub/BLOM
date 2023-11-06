@@ -121,7 +121,7 @@ SUBROUTINE ini_read_rivin(kpie,kpje,omask)
   if (mnproc.eq.1) then
     write(io_stdo_bgc,*)' '
     write(io_stdo_bgc,*)'***************************************************'
-    write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_read_rivin:'
+    write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
     write(io_stdo_bgc,*)' '
   endif
 

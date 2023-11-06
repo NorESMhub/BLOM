@@ -40,7 +40,7 @@ MODULE mo_control_bgc
   integer :: io_stdo_bgc        !  standard out.
 
   ! File containing namelists
-  CHARACTER(LEN=:), allocatable, PROTECTED :: bgc_namelist
+  character(LEN=:), allocatable, protected :: bgc_namelist
 
   ! Control variables
   real    :: dtbgc                    !  time step length [sec].

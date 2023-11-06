@@ -57,9 +57,9 @@
 !     *integer*   *klabel*     - label for abort identification.
 !     *integer*   *kunit*      - stdout unit.
 !     *real*      *pmissing*   - missing value.
-!     *CHARACTER* *yshort*     - short name.
-!     *CHARACTER* *yunit*      - unit string.
-!     *CHARACTER* *ylong*      - long name.
+!     *character* *yshort*     - short name.
+!     *character* *yunit*      - unit string.
+!     *character* *ylong*      - long name.
 ! 
 ! 
 !     Externals
@@ -83,9 +83,9 @@
 
       real pmissing
 
-      CHARACTER*(*) yshort, yunit, ylong
+      character*(*) yshort, yunit, ylong
 
-      CHARACTER*24 ystring
+      character*24 ystring
 #ifdef PNETCDF
       integer(kind=MPI_OFFSET_KIND) clen
 #endif

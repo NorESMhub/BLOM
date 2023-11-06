@@ -114,7 +114,7 @@
       if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
-      write(io_stdo_bgc,*)'Memory allocation for carbon chemistry MODULE :'
+      write(io_stdo_bgc,*)'Memory allocation for carbon chemistry module :'
       write(io_stdo_bgc,*)' '
       endif
 

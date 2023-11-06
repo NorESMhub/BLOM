@@ -184,7 +184,7 @@ SUBROUTINE ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
     if(mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
-      write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_read_oafx:'
+      write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_oafx:'
       write(io_stdo_bgc,*)' '
     endif
 

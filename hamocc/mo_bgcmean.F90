@@ -151,7 +151,7 @@
      & BUR_SSSTER    =0                                              ,  &
      & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
      & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0 
-      CHARACTER(LEN=10), dimension(nbgcmax), save :: GLB_FNAMETAG
+      character(LEN=10), dimension(nbgcmax), save :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
      & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
@@ -1649,10 +1649,10 @@
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
-      CHARACTER(LEN=*),intent(in) :: vnm
+      character(LEN=*),intent(in) :: vnm
 !
       integer                     :: n
-      CHARACTER(LEN=100)          :: dims
+      character(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       if (pos.EQ.0 .OR. frmt.EQ.0) return
@@ -1721,10 +1721,10 @@
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
-      CHARACTER(LEN=*),intent(in) :: vnm
+      character(LEN=*),intent(in) :: vnm
 !
       integer                     :: n
-      CHARACTER(LEN=100)          :: dims
+      character(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       if (pos.EQ.0 .OR. frmt.EQ.0) return
@@ -1793,10 +1793,10 @@
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
-      CHARACTER(LEN=*),intent(in) :: vnm
+      character(LEN=*),intent(in) :: vnm
 !
       integer                     :: n
-      CHARACTER(LEN=100)          :: dims
+      character(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       if (pos.EQ.0 .OR. frmt.EQ.0) return
@@ -1865,10 +1865,10 @@
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
-      CHARACTER(LEN=*),intent(in) :: vnm
+      character(LEN=*),intent(in) :: vnm
 !
       integer                     :: n
-      CHARACTER(LEN=100)          :: dims
+      character(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       if (pos.EQ.0 .OR. frmt.EQ.0) return
@@ -1937,10 +1937,10 @@
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
-      CHARACTER(LEN=*),intent(in) :: vnm
+      character(LEN=*),intent(in) :: vnm
 !
       integer                     :: n
-      CHARACTER(LEN=100)          :: dims
+      character(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
       if (pos.EQ.0 .OR. frmt.EQ.0) return

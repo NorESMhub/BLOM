@@ -73,8 +73,8 @@ CONTAINS
           if (ncstat.NE.NF90_NOERR ) then
              call xchalt('(ini_pi_ph: Problem with netCDF1)')
                     stop '(ini_pi_ph: Problem with netCDF1)'
-          END IF
-       END IF
+          endif
+       endif
        !
        ! Read  data
        call read_netcdf_var(ncid,'pH',pi_ph_in(1,1,1),pi_ph_record,0,0)
@@ -85,8 +85,8 @@ CONTAINS
           if ( ncstat .NE. NF90_NOERR ) then
              call xchalt('(ini_pi_ph: Problem with netCDF200)')
                     stop '(ini_pi_ph: Problem with netCDF200)'
-          END IF
-       END IF
+          endif
+       endif
 
        ! set missings over land
        do l=1,pi_ph_record
