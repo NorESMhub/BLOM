@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine trc_limitc(nn)
+SUBROUTINE trc_limitc(nn)
 !***********************************************************************
 !
 !**** *SUBROUTINE trc_limitc* - remove negative tracer values.
@@ -48,7 +48,7 @@ subroutine trc_limitc(nn)
   use mod_tracers, only: ntrbgc, itrbgc, trc
   use mod_utility, only: util1
 
-  implicit none
+  IMPLICIT NONE
 
   integer       :: nn
   integer       :: i,j,l,nt,kn
@@ -127,4 +127,4 @@ subroutine trc_limitc(nn)
 
   enddo
 
-end subroutine trc_limitc
+END SUBROUTINE trc_limitc

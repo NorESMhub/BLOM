@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-module mo_read_sedpor
+MODULE mo_read_sedpor
 !*****************************************************************************
 ! Purpose
 ! -------
@@ -23,9 +23,9 @@ module mo_read_sedpor
 !
 ! Description
 ! -----------
-! Public routines and variable of this module:
+! Public routines and variable of this MODULE:
 !
-!   - subroutine ini_read_sedpor
+!   - SUBROUTINE ini_read_sedpor
 !        read sediment porosity file
 !
 !   L_SED_POR must be set to true in nml to activate 
@@ -39,7 +39,7 @@ module mo_read_sedpor
 !
 !*****************************************************************************
 
-implicit none
+IMPLICIT NONE
 
 private
 
@@ -47,16 +47,16 @@ public :: read_sedpor,sedporfile
 
 character(len=512),save :: sedporfile = ''
 
-contains
+CONTAINS
 
-subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
+SUBROUTINE read_sedpor(kpie,kpje,ks,omask,sed_por)
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc,l_3Dvarsedpor
   use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
 
 
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,ks
   real,    intent(in) :: omask(kpie,kpje)
@@ -94,10 +94,10 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   endif
 
   ! Open netCDF data file     
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_OPEN(trim(sedporfile),NF90_NOWRITE, ncid)
-    IF (ncstat.NE.NF90_NOERR ) THEN
-      CALL xchalt('(read_sedpor: Problem with netCDF1)')
+    if (ncstat.NE.NF90_NOERR ) then
+      call xchalt('(read_sedpor: Problem with netCDF1)')
              stop '(read_sedpor: Problem with netCDF1)'
     END IF
   END IF
@@ -106,10 +106,10 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   call read_netcdf_var(ncid,'sedpor',sed_por_in(1,1,1),ks,0,0)
 
   ! Close file
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_CLOSE(ncid)
-    IF ( ncstat .NE. NF90_NOERR ) THEN
-      CALL xchalt('(read_sedpor: Problem with netCDF200)')
+    if ( ncstat .NE. NF90_NOERR ) then
+      call xchalt('(read_sedpor: Problem with netCDF200)')
              stop '(read_sedpor: Problem with netCDF200)'
     END IF
   END IF
@@ -127,5 +127,5 @@ subroutine read_sedpor(kpie,kpje,ks,omask,sed_por)
   enddo
   enddo
 
-end subroutine read_sedpor
-end module mo_read_sedpor
+END SUBROUTINE read_sedpor
+END MODULE mo_read_sedpor

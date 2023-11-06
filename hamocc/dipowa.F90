@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine dipowa(kpie,kpje,kpke,omask,lspin)
+SUBROUTINE dipowa(kpie,kpje,kpke,omask,lspin)
 !**********************************************************************
 !
 !**** *DIPOWA* - 'diffusion of pore water'
@@ -39,7 +39,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !
 !     Method
 !     -------
-!     implicit formulation;
+!     IMPLICIT formulation;
 !     constant diffusion coefficient : 1.e-9 set in ini_sedmnt in mo_sedmnt
 !     diffusion coefficient : zcoefsu/zcoeflo for upper/lower
 !     sediment layer boundary.
@@ -51,7 +51,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
 
@@ -65,7 +65,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
   use mo_control_bgc, only: use_natDIC
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie, kpje, kpke
   real,    intent(in) :: omask(kpie,kpje)
@@ -166,7 +166,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
      enddo
   enddo
 
-  if(.not. lspin) THEN
+  if(.not. lspin) then
 ! sediment ocean interface
   do iv = 1, npowtra
      iv_oc = map_por2octra(iv)
@@ -182,7 +182,7 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
            sedfluxo(i,j,iv) = sedfluxo(i,j,iv)                                 &
                 &  -(ocetra(i,j,kbo(i,j),iv_oc) - aprior)* bolay(i,j)
            if (use_natDIC) then
-              ! workaround as long as natDIC is not implemented throughout the sediment module 
+              ! workaround as long as natDIC is not implemented throughout the sediment MODULE 
               if (iv_oc==isco212) ocetra(i,j,kbo(i,j),inatsco212) =            &
                    &  ocetra(i,j,kbo(i,j),inatsco212) +                        &
                    &  ocetra(i,j,kbo(i,j),isco212) - aprior
@@ -198,4 +198,4 @@ subroutine dipowa(kpie,kpje,kpke,omask,lspin)
   
   enddo j_loop
 
-end subroutine dipowa
+END SUBROUTINE dipowa

@@ -37,7 +37,7 @@
 !    and hamocc2micom
 !
 !  J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!  - moved accumulation of all output fields to seperate subroutine,
+!  - moved accumulation of all output fields to seperate SUBROUTINE,
 !    related code-restructuring
 !  - added sediment bypass preprocessor option
 !
@@ -49,35 +49,35 @@
 ! Parameter list:
 ! ---------------
 !
-!  *INTEGER* *kpie*       - 1st dimension of model grid.
-!  *INTEGER* *kpje*       - 2nd dimension of model grid.
-!  *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
-!  *INTEGER* *kbnd*       - nb of halo grid points.
-!  *INTEGER* *kplyear*    - current year.
-!  *INTEGER* *kplmon*     - current month.
-!  *INTEGER* *kplday*     - current day.
-!  *INTEGER* *kldtday*    - number of time step in current day.
-!  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
-!  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
-!  *REAL*    *pddpo*      - size of grid cell (depth) [m].
-!  *REAL*    *prho*       - density [kg/m^3].
-!  *REAL*    *pglat*      - latitude of grid cells [deg north].
-!  *REAL*    *omask*      - land/ocean mask.
-!  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
-!  *REAL*    *rivin*      - riverine input [kmol m-2 yr-1].
-!  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-1].
-!  *REAL*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-1]
-!  *REAL*    *pfswr*      - solar radiation [W/m**2].
-!  *REAL*    *psicomo*    - sea ice concentration
-!  *REAL*    *ppao*       - sea level pressure [Pascal].
-!  *REAL*    *pfu10*      - absolute wind speed at 10m height [m/s]
-!  *REAL*    *ptho*       - potential temperature [deg C].
-!  *REAL*    *psao*       - salinity [psu.].
-!  *REAL*    *patmco2*    - atmospheric CO2 concentration [ppm] used in 
+!  *integer* *kpie*       - 1st dimension of model grid.
+!  *integer* *kpje*       - 2nd dimension of model grid.
+!  *integer* *kpke*       - 3rd (vertical) dimension of model grid.
+!  *integer* *kbnd*       - nb of halo grid points.
+!  *integer* *kplyear*    - current year.
+!  *integer* *kplmon*     - current month.
+!  *integer* *kplday*     - current day.
+!  *integer* *kldtday*    - number of time step in current day.
+!  *real*    *pdlxp*      - size of grid cell (longitudinal) [m].
+!  *real*    *pdlyp*      - size of grid cell (latitudinal) [m].
+!  *real*    *pddpo*      - size of grid cell (depth) [m].
+!  *real*    *prho*       - density [kg/m^3].
+!  *real*    *pglat*      - latitude of grid cells [deg north].
+!  *real*    *omask*      - land/ocean mask.
+!  *real*    *dust*       - dust deposition flux [kg/m2/month].
+!  *real*    *rivin*      - riverine input [kmol m-2 yr-1].
+!  *real*    *ndep*       - nitrogen deposition [kmol m-2 yr-1].
+!  *real*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-1]
+!  *real*    *pfswr*      - solar radiation [W/m**2].
+!  *real*    *psicomo*    - sea ice concentration
+!  *real*    *ppao*       - sea level pressure [Pascal].
+!  *real*    *pfu10*      - absolute wind speed at 10m height [m/s]
+!  *real*    *ptho*       - potential temperature [deg C].
+!  *real*    *psao*       - salinity [psu.].
+!  *real*    *patmco2*    - atmospheric CO2 concentration [ppm] used in 
 !                           fully coupled mode (prognostic/diagnostic CO2).
-!  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
-!  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
-!  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
+!  *real*    *pflxdms*    - DMS flux [kg/m^2/s].
+!  *real*    *pflxco2*    - CO2 flux [kg/m^2/s].
+!  *real*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in 
 !                           fully coupled mode.
 !
 !******************************************************************************
@@ -97,40 +97,40 @@
       use mo_apply_oafx,  only: apply_oafx
       use mo_boxatm,      only: update_boxatm
 
-      implicit none
+      IMPLICIT NONE
 
-      INTEGER, intent(in)  :: kpie,kpje,kpke,kbnd
-      INTEGER, intent(in)  :: kplyear,kplmon,kplday,kldtday
-      REAL,    intent(in)  :: pdlxp  (kpie,kpje)
-      REAL,    intent(in)  :: pdlyp  (kpie,kpje)
-      REAL,    intent(in)  :: pddpo  (kpie,kpje,kpke)
-      REAL,    intent(in)  :: prho   (kpie,kpje,kpke)
-      REAL,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)  :: omask  (kpie,kpje)
-      REAL,    intent(in)  :: dust   (kpie,kpje)
-      REAL,    intent(in)  :: rivin  (kpie,kpje,nriv)
-      REAL,    intent(in)  :: ndep   (kpie,kpje)
-      REAL,    intent(in)  :: oafx   (kpie,kpje)
-      REAL,    intent(in)  :: pi_ph  (kpie,kpje)
-      REAL,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-      REAL,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-      REAL,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      integer, intent(in)  :: kpie,kpje,kpke,kbnd
+      integer, intent(in)  :: kplyear,kplmon,kplday,kldtday
+      real,    intent(in)  :: pdlxp  (kpie,kpje)
+      real,    intent(in)  :: pdlyp  (kpie,kpje)
+      real,    intent(in)  :: pddpo  (kpie,kpje,kpke)
+      real,    intent(in)  :: prho   (kpie,kpje,kpke)
+      real,    intent(in)  :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)  :: omask  (kpie,kpje)
+      real,    intent(in)  :: dust   (kpie,kpje)
+      real,    intent(in)  :: rivin  (kpie,kpje,nriv)
+      real,    intent(in)  :: ndep   (kpie,kpje)
+      real,    intent(in)  :: oafx   (kpie,kpje)
+      real,    intent(in)  :: pi_ph  (kpie,kpje)
+      real,    intent(in)  :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)  :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)  :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)  :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)  :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      real,    intent(in)  :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      real,    intent(in)  :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(out) :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
-      INTEGER :: i,j,k,l
-      INTEGER :: nspin,it
-      LOGICAL :: lspin
+      integer :: i,j,k,l
+      integer :: nspin,it
+      logical :: lspin
 
-      IF (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
-      ENDIF
+      endif
 
 
 !--------------------------------------------------------------------
@@ -155,11 +155,11 @@
 ! Pass net solar radiation
 !
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
+      do  j=1,kpje
+      do  i=1,kpie
         strahl(i,j)=pfswr(i,j)
-      ENDDO
-      ENDDO
+      enddo
+      enddo
 !$OMP END PARALLEL DO
 
 
@@ -168,24 +168,24 @@
 !
       if (trim(ocn_co2_type) == 'diagnostic' .or. trim(ocn_co2_type) == 'prognostic') then
          !$OMP PARALLEL DO PRIVATE(i)
-         DO  j=1,kpje
-         DO  i=1,kpie
+         do  j=1,kpje
+         do  i=1,kpie
             atm(i,j,iatmco2)=patmco2(i,j)
-         ENDDO
-         ENDDO
+         enddo
+         enddo
          !$OMP END PARALLEL DO
          !if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting co2 from atm'
       endif
 
       if (use_BROMO) then
          !$OMP PARALLEL DO PRIVATE(i)
-         DO  j=1,kpje
-         DO  i=1,kpie
-            IF (patmbromo(i,j).gt.0.) THEN
+         do  j=1,kpje
+         do  i=1,kpie
+            if (patmbromo(i,j).gt.0.) then
                atm(i,j,iatmbromo)=patmbromo(i,j)
-            ENDIF
-         ENDDO
-         ENDDO
+            endif
+         enddo
+         enddo
          !$OMP END PARALLEL DO
          if (mnproc.eq.1) write (io_stdo_bgc,*) 'iHAMOCC: getting bromoform from atm'
       endif
@@ -199,11 +199,11 @@
       endif
 
       if (use_PBGC_CK_TIMESTEP) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'before BGC: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
 
@@ -215,16 +215,16 @@
       ! external inputs below for consistency. For now we keep it here
       ! to maintain bit-for-bit reproducibility with the CMIP6 version of 
       ! the model
-      CALL apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
+      call apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 
-      CALL OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+      call OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
       if (use_PBGC_CK_TIMESTEP   ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
  
@@ -243,88 +243,88 @@
       enddo
 
       if (use_PBGC_CK_TIMESTEP   ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
 
-      CALL CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+      call CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
       if (use_PBGC_CK_TIMESTEP   ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after CYANO: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after CYANO: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
-      CALL CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
+      call CARCHM(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,prho,pglat,omask,      &
                   psicomo,ppao,pfu10,ptho,psao)
 
       if (use_PBGC_CK_TIMESTEP   ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
 
       ! Apply n-deposition
-      CALL apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
+      call apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 
       if (use_PBGC_CK_TIMESTEP ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after N deposition: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after N deposition: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
       ! Apply riverine input of carbon and nutrients
       call apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
       if (use_PBGC_CK_TIMESTEP ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after river input: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after river input: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
       ! Apply alkalinity flux due to ocean alkalinization
       call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 
       if (use_PBGC_CK_TIMESTEP ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
       ! Update atmospheric pCO2 [ppm]
       if (use_BOXATM) then
-         CALL update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
+         call update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
       endif
 
       if (use_PBGC_CK_TIMESTEP ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
       ! update preformed tracers
-      CALL PREFTRC(kpie,kpje,omask)
+      call PREFTRC(kpie,kpje,omask)
 
 
 !--------------------------------------------------------------------
-!     Sediment module
+!     Sediment MODULE
 
       if (.not. use_sedbypass) then
 
@@ -354,41 +354,41 @@
          enddo
          
          if (use_PBGC_CK_TIMESTEP ) then
-            IF (mnproc.eq.1) THEN
-               WRITE(io_stdo_bgc,*)' '
-               WRITE(io_stdo_bgc,*)'after POWACH: call INVENTORY'
-            ENDIF
-            CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+            if (mnproc.eq.1) then
+               write(io_stdo_bgc,*)' '
+               write(io_stdo_bgc,*)'after POWACH: call INVENTORY'
+            endif
+            call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
          endif
 
          ! Sediment is shifted once a day (on both time levels!)
-         IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
-            IF (mnproc.eq.1) THEN
-               WRITE(io_stdo_bgc,*)' '
-               WRITE(io_stdo_bgc,*) 'Sediment shifting ...'
-            ENDIF
-            CALL SEDSHI(kpie,kpje,omask)
-         ENDIF
+         if (KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) then
+            if (mnproc.eq.1) then
+               write(io_stdo_bgc,*)' '
+               write(io_stdo_bgc,*) 'Sediment shifting ...'
+            endif
+            call SEDSHI(kpie,kpje,omask)
+         endif
          
       endif ! .not. use_sedbypass
 
       if (use_PBGC_CK_TIMESTEP ) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)' '
-            WRITE(io_stdo_bgc,*)'after BGC: call INVENTORY'
-         ENDIF
-         CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)' '
+            write(io_stdo_bgc,*)'after BGC: call INVENTORY'
+         endif
+         call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
 
 !--------------------------------------------------------------------
 ! Pass co2 flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
+      do  j=1,kpje
+      do  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxco2(i,j)=-44.*atmflx(i,j,iatmco2)/dtbgc
-      ENDDO
-      ENDDO
+      enddo
+      enddo
 !$OMP END PARALLEL DO
 
 
@@ -396,27 +396,27 @@
 ! Pass dms flux. Convert unit from kmol/m^2 to kg/m^2/s.
 
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
+      do  j=1,kpje
+      do  i=1,kpie
         if(omask(i,j) .gt. 0.5) pflxdms(i,j)=-62.13*atmflx(i,j,iatmdms)/dtbgc
-      ENDDO
-      ENDDO
+      enddo
+      enddo
 !$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------
 ! Pass bromoform flux. Convert unit from kmol CHBr3/m^2 to kg/m^2/s.
 ! Negative values to the atmosphere
 !$OMP PARALLEL DO PRIVATE(i)
-      DO  j=1,kpje
-      DO  i=1,kpie
+      do  j=1,kpje
+      do  i=1,kpie
          if (use_BROMO) then
             if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=-252.7*atmflx(i,j,iatmbromo)/dtbgc
          else
             if(omask(i,j) .gt. 0.5) pflxbromo(i,j)=0.0
          endif
-      ENDDO
-      ENDDO
+      enddo
+      enddo
 !$OMP END PARALLEL DO
 !--------------------------------------------------------------------
-      RETURN
+      return
     END SUBROUTINE HAMOCC4BCM

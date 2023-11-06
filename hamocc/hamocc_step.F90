@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
+SUBROUTINE hamocc_step(m,n,mm,nn,k1m,k1n)
 !
 ! --- ------------------------------------------------------------------
 ! --- perform one HAMOCC step
@@ -40,7 +40,7 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
   use mo_read_pi_ph,  only: get_pi_ph,pi_ph
   use mo_control_bgc, only: with_dmsph
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: m,n,mm,nn,k1m,k1n
 
@@ -84,4 +84,4 @@ subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
 
   call hamocc2blom(m,n,mm,nn)
 
-end subroutine hamocc_step
+END SUBROUTINE hamocc_step

@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_read_ndep
+MODULE mo_read_ndep
 !******************************************************************************
 !
 !   S.Gao             *Gfi, Bergen*             2017-08-19
@@ -27,16 +27,16 @@ module mo_read_ndep
 !  -add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
 !
 !  J. Schwinger,     *Uni Research, Bergen*    2018-04-12
-!  -re-organised this module into an initialisation routine and a routine that
+!  -re-organised this MODULE into an initialisation routine and a routine that
 !   does the deposition; introduced logical switch to activate N deposition.
 !
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-!  -put reading of a time-slice of n-deposition data into own subroutine
+!  -put reading of a time-slice of n-deposition data into own SUBROUTINE
 !  -removed default file name
 !
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-06-02
-!  -revise structure of this module, split into a module for reading the 
-!   data (mo_read_ndep) and a module that applies the fluxes in core 
+!  -revise structure of this MODULE, split into a MODULE for reading the 
+!   data (mo_read_ndep) and a MODULE that applies the fluxes in core 
 !   hamocc (mo_apply_ndep)
 !
 !
@@ -58,14 +58,14 @@ module mo_read_ndep
 !  (variable ndepfile). If the input file is not found, an error will be issued.
 !  The input data must be already pre-interpolated to the ocean grid.
 !
-!  -subroutine ini_read_ndep
-!     Initialise the module
+!  -SUBROUTINE ini_read_ndep
+!     Initialise the MODULE
 !
-!  -subroutine get_ndep
+!  -SUBROUTINE get_ndep
 !     Read and return n-deposition data for a given month.
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: ini_read_ndep,get_ndep,ndepfile
@@ -76,18 +76,18 @@ module mo_read_ndep
   logical,            save :: lini = .false.
 
 !******************************************************************************
-contains
+CONTAINS
 
 
 
-subroutine ini_read_ndep(kpie,kpje)
+SUBROUTINE ini_read_ndep(kpie,kpje)
 !******************************************************************************
 !
 !     S. Gao               *Gfi, Bergen*    19.08.2017 
 !
 ! Purpose
 ! -------
-!  -Initialise the module, check existence of input file, allocate array
+!  -Initialise the MODULE, check existence of input file, allocate array
 !   for reading the data
 !
 ! Changes: 
@@ -95,8 +95,8 @@ subroutine ini_read_ndep(kpie,kpje)
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER* *kpie*       - 1st dimension of model grid.
-!  *INTEGER* *kpje*       - 2nd dimension of model grid.
+!  *integer* *kpie*       - 1st dimension of model grid.
+!  *integer* *kpje*       - 2nd dimension of model grid.
 !
 !******************************************************************************
   use mod_xc,         only: mnproc,xchalt
@@ -104,7 +104,7 @@ subroutine ini_read_ndep(kpie,kpje)
   use mod_dia,        only: iotype
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
 
-  implicit none 
+  IMPLICIT NONE 
 
   integer, intent(in) :: kpie,kpje
 
@@ -121,15 +121,15 @@ subroutine ini_read_ndep(kpie,kpje)
     return
   endif
 
-  ! Initialise the module
+  ! Initialise the MODULE
   if (.not. lini) then 
 
-    IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'***************************************************'
-      WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_ndep:'
-      WRITE(io_stdo_bgc,*)' '
-    ENDIF
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)'***************************************************'
+      write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_read_ndep:'
+      write(io_stdo_bgc,*)' '
+    endif
 
     ! Check if nitrogen deposition file exists. If not, abort. 
     inquire(file=ndepfile,exist=file_exists)
@@ -141,11 +141,11 @@ subroutine ini_read_ndep(kpie,kpje)
     endif 
 
     ! Allocate field to hold N-deposition fluxes
-    IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    ENDIF
+    if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    endif
    
     ALLOCATE (ndepread(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory ndep'
@@ -168,10 +168,10 @@ subroutine ini_read_ndep(kpie,kpje)
 
 
 !******************************************************************************
-end subroutine ini_read_ndep
+END SUBROUTINE ini_read_ndep
 
 
-subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
+SUBROUTINE get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
 !******************************************************************************
 !
 !     S. Gao               *Gfi, Bergen*    19.08.2017 
@@ -182,19 +182,19 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kplyear* - current year.
-!  *INTEGER*   *kplmon*  - current month.
-!  *REAL*      *omask*   - land/ocean mask (1=ocean)
-!  *REAL*      *ndep*    - N-deposition field for current year and month
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *integer*   *kplyear* - current year.
+!  *integer*   *kplmon*  - current month.
+!  *real*      *omask*   - land/ocean mask (1=ocean)
+!  *real*      *ndep*    - N-deposition field for current year and month
 !
 !******************************************************************************
   use mod_xc,         only: mnproc
   use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
   use mo_control_bgc, only: io_stdo_bgc,do_ndep
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
@@ -228,9 +228,9 @@ subroutine get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
   ndep(:,:) = ndepread
 
 !******************************************************************************
-end subroutine get_ndep
+END SUBROUTINE get_ndep
 
 
 
 !******************************************************************************
-end module mo_read_ndep
+END MODULE mo_read_ndep

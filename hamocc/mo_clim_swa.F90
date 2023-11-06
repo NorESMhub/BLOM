@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_clim_swa
+MODULE mo_clim_swa
 !******************************************************************************
 !
 ! MODULE mo_clim_swa - Variables and routines for climatology short-wave fields
@@ -31,7 +31,7 @@ module mo_clim_swa
 !   Declaration, memory allocation, and routines related to swa_clim fields
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: ini_swa_clim, swaclimfile, swa_clim
@@ -43,34 +43,34 @@ module mo_clim_swa
   real, allocatable,  save :: swa_clim(:,:,:)
 
 
-contains
+CONTAINS
 !******************************************************************************
 
 
 
-subroutine ini_swa_clim(kpie,kpje,omask)
+SUBROUTINE ini_swa_clim(kpie,kpje,omask)
 !******************************************************************************
 !
-! INI_SWA_CLIM - initialise the climatology SWA field module.
+! INI_SWA_CLIM - initialise the climatology SWA field MODULE.
 !
 !  J.Tjiputra             *NORCE Climate, Bergen*       2021-04-15
 !
 !  Purpose
 !  -------
-!   Initialise the climatology swa module, read in the swa (short-wave radiation) data set.
+!   Initialise the climatology swa MODULE, read in the swa (short-wave radiation) data set.
 !
 !  Parameter list:
 !  ---------------
-!   *INTEGER*   *kpie*    - 1st dimension of model grid.
-!   *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!   *REAL*      *omask*   - land/ocean mask (1=ocean)
+!   *integer*   *kpie*    - 1st dimension of model grid.
+!   *integer*   *kpje*    - 2nd dimension of model grid.
+!   *real*      *omask*   - land/ocean mask (1=ocean)
 !
 !******************************************************************************
   use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open 
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
-  implicit none
+  IMPLICIT NONE
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)
@@ -80,28 +80,28 @@ subroutine ini_swa_clim(kpie,kpje,omask)
 
 
   ! allocate field to hold swa fields
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_clim_swa:'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)' '
+    write(io_stdo_bgc,*)'***************************************************'
+    write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_clim_swa:'
+    write(io_stdo_bgc,*)' '
+  endif
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable swa_clim ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable swa_clim ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
    
   ALLOCATE (swa_clim(kpie,kpje,1),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory swa_clim'
   swa_clim(:,:,1) = 0.0
 
   ! Open netCDF data file     
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_OPEN(trim(swaclimfile),NF90_NOWRITE, ncid)
-    IF (ncstat.NE.NF90_NOERR ) THEN
-      CALL xchalt('(ini_swa_clim: Problem with netCDF1)')
+    if (ncstat.NE.NF90_NOERR ) then
+      call xchalt('(ini_swa_clim: Problem with netCDF1)')
              stop '(ini_swa_clim: Problem with netCDF1)'
     END IF
   END IF
@@ -110,10 +110,10 @@ subroutine ini_swa_clim(kpie,kpje,omask)
   call read_netcdf_var(ncid,'swa',swa_clim(1,1,1),1,1,0)
 
   ! Close file
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_CLOSE(ncid)
-    IF ( ncstat .NE. NF90_NOERR ) THEN
-      CALL xchalt('(ini_swa_clim: Problem with netCDF200)')
+    if ( ncstat .NE. NF90_NOERR ) then
+      call xchalt('(ini_swa_clim: Problem with netCDF200)')
              stop '(ini_swa_clim: Problem with netCDF200)'
     END IF
   END IF
@@ -133,12 +133,12 @@ subroutine ini_swa_clim(kpie,kpje,omask)
   enddo
 
 
-  RETURN
+  return
 
 !******************************************************************************
-end subroutine ini_swa_clim
+END SUBROUTINE ini_swa_clim
 
 
 !******************************************************************************
-end module mo_clim_swa
+END MODULE mo_clim_swa
 

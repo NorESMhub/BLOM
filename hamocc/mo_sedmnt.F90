@@ -20,7 +20,7 @@
  MODULE mo_sedmnt
 !******************************************************************************
 !
-! MODULE mo_sedmnt - Variables for sediment modules.
+! MODULE mo_sedmnt - Variables for sediment MODULEs.
 !
 !     S.Legutke,        *MPI-MaD, HH*    31.10.01
 !
@@ -36,32 +36,32 @@
 !
 !     Description:
 !     ------------
-!     Public routines and variable of this module:
+!     Public routines and variable of this MODULE:
 !
-!     -subroutine alloc_mem_sedmnt
+!     -SUBROUTINE alloc_mem_sedmnt
 !        Allocate memory for sediment variables
 !
-!     *sedlay*         *REAL*  - .
-!     *sedla1*         *REAL*  - .
-!     *sedtot*         *REAL*  - .
-!     *sedtoa*         *REAL*  - .
-!     *seffel*         *REAL*  - .
-!     *sedhpl*         *REAL*  - .
-!     *powtra*         *REAL*  - .
-!     *prorca*         *REAL*  - .
-!     *prcaca*         *REAL*  - .
-!     *silpro*         *REAL*  - .
-!     *porwat*         *REAL*  - .
-!     *porsol*         *REAL*  - .
-!     *seddzi*         *REAL*  - .
-!     *dzs*            *REAL*  - .
-!     *porwah*         *REAL*  - .
-!     *seddw*          *REAL*  - .
-!     *calcon*         *REAL*  - .
+!     *sedlay*         *real*  - .
+!     *sedla1*         *real*  - .
+!     *sedtot*         *real*  - .
+!     *sedtoa*         *real*  - .
+!     *seffel*         *real*  - .
+!     *sedhpl*         *real*  - .
+!     *powtra*         *real*  - .
+!     *prorca*         *real*  - .
+!     *prcaca*         *real*  - .
+!     *silpro*         *real*  - .
+!     *porwat*         *real*  - .
+!     *porsol*         *real*  - .
+!     *seddzi*         *real*  - .
+!     *dzs*            *real*  - .
+!     *porwah*         *real*  - .
+!     *seddw*          *real*  - .
+!     *calcon*         *real*  - .
 !
-!     -subroutine ini_sedmnt
+!     -SUBROUTINE ini_sedmnt
 !         Initialize sediment parameters and sediment vertical grid
-!     -subroutine ini_sedmnt_fields
+!     -SUBROUTINE ini_sedmnt_fields
 !         Initialize 2D and 3D sediment fields
 !
 !******************************************************************************
@@ -70,31 +70,31 @@
  use mo_control_bgc, only: io_stdo_bgc
  use mo_control_bgc, only: use_sedbypass,use_cisonew
 
-      implicit none
+      IMPLICIT NONE
 
-      REAL, protected :: dzs(ksp)    = 0.0
-      REAL, protected :: seddzi(ksp) = 0.0
-      REAL, protected :: seddw(ks)   = 0.0
+      real, protected :: dzs(ksp)    = 0.0
+      real, protected :: seddzi(ksp) = 0.0
+      real, protected :: seddw(ks)   = 0.0
 
-      REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: sedlay
-      REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: powtra
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: sedhpl
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porsol
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwah
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: porwat
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: solfu
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: zcoefsu
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: zcoeflo
+      real, dimension (:,:,:,:), allocatable :: sedlay
+      real, dimension (:,:,:,:), allocatable :: powtra
+      real, dimension (:,:,:),   allocatable :: sedhpl
+      real, dimension (:,:,:),   allocatable :: porsol
+      real, dimension (:,:,:),   allocatable :: porwah
+      real, dimension (:,:,:),   allocatable :: porwat
+      real, dimension (:,:),     allocatable :: solfu
+      real, dimension (:,:,:),   allocatable :: zcoefsu
+      real, dimension (:,:,:),   allocatable :: zcoeflo
 
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: silpro
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: prorca
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: pror13
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: prca13
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: pror14
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: prca14
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: prcaca
-      REAL, DIMENSION (:,:),     ALLOCATABLE :: produs
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: burial
+      real, dimension (:,:),     allocatable :: silpro
+      real, dimension (:,:),     allocatable :: prorca
+      real, dimension (:,:),     allocatable :: pror13
+      real, dimension (:,:),     allocatable :: prca13
+      real, dimension (:,:),     allocatable :: pror14
+      real, dimension (:,:),     allocatable :: prca14
+      real, dimension (:,:),     allocatable :: prcaca
+      real, dimension (:,:),     allocatable :: produs
+      real, dimension (:,:,:),   allocatable :: burial
 
       real, protected :: calfa, oplfa, orgfa, clafa
 
@@ -105,7 +105,7 @@
 
       use mo_param_bgc,   only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
 
-      implicit none
+      IMPLICIT NONE
 
       integer, intent(in) :: kpie,kpje,kpke
       real,    intent(in) :: omask(kpie,kpje)
@@ -150,7 +150,7 @@
       if (.not. use_sedbypass) then
          ! 2d and 3d fields are not allocated in case of sedbypass
          ! so only initialize them if we are using the sediment
-         CALL ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
+         call ini_sedmnt_por(kpie,kpje,kpke,omask,sed_por)
       endif
 	  
  END SUBROUTINE ini_sedmnt
@@ -166,7 +166,7 @@
       use mo_control_bgc, only: l_3Dvarsedpor
       use mo_param_bgc,   only: sedict
 
-      implicit none
+      IMPLICIT NONE
 
       integer, intent(in) :: kpie,kpje,kpke
       real,    intent(in) :: omask(kpie,kpje)
@@ -250,33 +250,33 @@
  !========================================================================
  SUBROUTINE ALLOC_MEM_SEDMNT(kpie,kpje)
  !******************************************************************************
- ! ALLOC_MEM_SEDMNT - Allocate variables in this module
+ ! ALLOC_MEM_SEDMNT - Allocate variables in this MODULE
  !******************************************************************************
-      INTEGER, intent(in) :: kpie,kpje
-      INTEGER             :: errstat
+      integer, intent(in) :: kpie,kpje
+      integer             :: errstat
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'***************************************************'
-      WRITE(io_stdo_bgc,*)'Memory allocation for sediment module :'
-      WRITE(io_stdo_bgc,*)' '
-      ENDIF
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)'***************************************************'
+      write(io_stdo_bgc,*)'Memory allocation for sediment MODULE :'
+      write(io_stdo_bgc,*)' '
+      endif
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable silpro ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable silpro ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
 
       ALLOCATE (silpro(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory silpro'
       silpro(:,:) = 0.0
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable prorca ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable prorca ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
 
       ALLOCATE (prorca(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prorca'
@@ -290,11 +290,11 @@
          pror14(:,:) = 0.0
       endif
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
 
       ALLOCATE (prcaca(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory prcaca'
@@ -308,11 +308,11 @@
          prca14(:,:) = 0.0
       endif
 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable produs ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      ENDIF
+      if (mnproc.eq.1) then
+      write(io_stdo_bgc,*)'Memory allocation for variable produs ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      endif
 
       ALLOCATE (produs(kpie,kpje),stat=errstat)
       if(errstat.ne.0) stop 'not enough memory produs'
@@ -320,113 +320,113 @@
 
 
       if (.not. use_sedbypass) then
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-            WRITE(io_stdo_bgc,*)'Forth dimension    : ',nsedtra
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable sedlay ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+            write(io_stdo_bgc,*)'Forth dimension    : ',nsedtra
+         endif
 
          ALLOCATE (sedlay(kpie,kpje,ks,nsedtra),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory sedlay'
          sedlay(:,:,:,:) = 0.0
 
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (sedhpl(kpie,kpje,ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory sedhpl'
          sedhpl(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable porsol ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable porsol ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (porsol(kpie,kpje,ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory porsol'
          porsol(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable porwah ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable porwah ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (porwah(kpie,kpje,ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory porwah'
          porwah(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable porwat ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable porwat ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (porwat(kpie,kpje,ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory porwat'
          porwat(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable solfu ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable solfu ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+         endif
 
          ALLOCATE (solfu(kpie,kpje),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory solfu'
          solfu(:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable zcoefsu ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable zcoefsu ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (zcoefsu(kpie,kpje,0:ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory zcoefsu'
          zcoefsu(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable zcoeflo ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable zcoeflo ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+         endif
 
          ALLOCATE (zcoeflo(kpie,kpje,0:ks),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory zcoeflo'
          zcoeflo(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable burial ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',nsedtra
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable burial ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',nsedtra
+         endif
 
          ALLOCATE (burial(kpie,kpje,nsedtra),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory burial'
          burial(:,:,:) = 0.0
 
-         IF (mnproc.eq.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-            WRITE(io_stdo_bgc,*)'Forth dimension    : ',npowtra
-         ENDIF
+         if (mnproc.eq.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+            write(io_stdo_bgc,*)'Forth dimension    : ',npowtra
+         endif
 
          ALLOCATE (powtra(kpie,kpje,ks,npowtra),stat=errstat)
          if(errstat.ne.0) stop 'not enough memory powtra'

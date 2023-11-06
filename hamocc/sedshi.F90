@@ -47,7 +47,7 @@
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
 
@@ -57,13 +57,13 @@
                                isssc13,isssc14,issso13,issso14 
       use mo_control_bgc, only: use_cisonew
 
-      implicit none
+      IMPLICIT NONE
 
-      INTEGER :: kpie,kpje,i,j,k,l,iv
-      REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)
-      REAL :: wsed(kpie,kpje), fulsed(kpie,kpje)
-      REAL :: sedlo,uebers,seddef,spresent,buried
-      REAL :: refill,frac
+      integer :: kpie,kpje,i,j,k,l,iv
+      real :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)
+      real :: wsed(kpie,kpje), fulsed(kpie,kpje)
+      real :: sedlo,uebers,seddef,spresent,buried
+      real :: refill,frac
 
 ! DOWNWARD SHIFTING	 
 ! shift solid sediment sediment downwards, if layer is full, i.e., if 
@@ -300,5 +300,5 @@
 
       enddo  !end k-loop
 
-      RETURN
+      return
     END SUBROUTINE SEDSHI

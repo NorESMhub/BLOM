@@ -16,37 +16,37 @@
 !
 ! You should have received a copy of the GNU Lesser General Public License 
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
-module mo_ini_fields
+MODULE mo_ini_fields
 
-  implicit none
+  IMPLICIT NONE
 
   private
 
   public :: ini_fields_ocean,ini_fields_atm
 
-  contains
+  CONTAINS
 
   !---------------------------------------------------------------------------------------------------------------------------------
-  subroutine ini_fields_atm(kpie,kpje)
+  SUBROUTINE ini_fields_atm(kpie,kpje)
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
     use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
     use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
     use mo_carbch,      only: atm,atm_co2
 
-    implicit none
+    IMPLICIT NONE
 
     !
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
-    ! fields for simplicity, even for cases where actually only a scalar value
+    ! fields for sIMPLICITy, even for cases where actually only a scalar value
     ! is used. The overhead of this is small. If an atm-field is present in
     ! restart file (if BOXATM is activated), this will be overwritten later.
     !
 
-    INTEGER, intent(in) :: kpie,kpje
-    INTEGER             :: i,j
+    integer, intent(in) :: kpie,kpje
+    integer             :: i,j
 
-    DO j=1,kpje
-    DO i=1,kpie
+    do j=1,kpje
+    do i=1,kpie
       atm(i,j,iatmco2)  = atm_co2
       atm(i,j,iatmo2)   = atm_o2
       atm(i,j,iatmn2)   = atm_n2
@@ -60,9 +60,9 @@ module mo_ini_fields
       if (use_BROMO) then
          atm(i,j,iatmbromo)= atm_bromo
       endif
-    ENDDO
-    ENDDO
-  end subroutine ini_fields_atm
+    enddo
+    enddo
+  END SUBROUTINE ini_fields_atm
 
 
 
@@ -86,16 +86,16 @@ module mo_ini_fields
 !
 !  Parameter list:
 !  ---------------
-!     *INTEGER*   *kpaufr*  - 1/0 flag, 1 indicating a restart run
-!     *INTEGER*   *kpie*    - 1st dimension of model grid.
-!     *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER*   *kbnd*    - nb of halo grid points
-!     *REAL*      *pddpo*   - size of grid cell (3rd dimension) [m].
-!     *REAL*      *prho*    - density [g/cm^3].
-!     *REAL*      *omask*   - ocean mask.
-!     *REAL*      *pglon*   - longitude of grid cell [deg].
-!     *REAL*      *pglat*   - latitude  of grid cell [deg].
+!     *integer*   *kpaufr*  - 1/0 flag, 1 indicating a restart run
+!     *integer*   *kpie*    - 1st dimension of model grid.
+!     *integer*   *kpje*    - 2nd dimension of model grid.
+!     *integer*   *kpke*    - 3rd (vertical) dimension of model grid.
+!     *integer*   *kbnd*    - nb of halo grid points
+!     *real*      *pddpo*   - size of grid cell (3rd dimension) [m].
+!     *real*      *prho*    - density [g/cm^3].
+!     *real*      *omask*   - ocean mask.
+!     *real*      *pglon*   - longitude of grid cell [deg].
+!     *real*      *pglat*   - latitude  of grid cell [deg].
 !
 !
 !******************************************************************************
@@ -115,28 +115,28 @@ module mo_ini_fields
       use mo_carbch,      only: nathi,natco3
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
 
-      implicit none
+      IMPLICIT NONE
 
-      INTEGER, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
-      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-      REAL,    intent(in) :: prho (kpie,kpje,kpke)
-      REAL,    intent(in) :: omask(kpie,kpje)
-      REAL,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      integer, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
+      real,    intent(in) :: pddpo(kpie,kpje,kpke)
+      real,    intent(in) :: prho (kpie,kpje,kpke)
+      real,    intent(in) :: omask(kpie,kpje)
+      real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
 
       ! local variables
-      INTEGER :: i,j,k,l
-      REAL :: rco213,rco214,beta13,beta14 ! cisonew
-      REAL :: snow ! AGG
+      integer :: i,j,k,l
+      real :: rco213,rco214,beta13,beta14 ! cisonew
+      real :: snow ! AGG
 
       if (use_FB_BGC_OCE) then
-         DO k=1,kpke
-         DO j=1,kpje
-         DO i=1,kpie
+         do k=1,kpke
+         do j=1,kpje
+         do i=1,kpie
             abs_oce(i,j,k)=1.
-         ENDDO
-         ENDDO
-         ENDDO
+         enddo
+         enddo
+         enddo
       endif
 !
 ! Initialisation of ocean tracers and sediment
@@ -148,12 +148,12 @@ module mo_ini_fields
       call profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
 ! If this is a restart run initialisation is done in aufr.F90 
-      IF(kpaufr.EQ.1) RETURN
+      if (kpaufr.EQ.1) return
 
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-        IF (omask(i,j) .GT. 0.5 ) THEN
+      do k=1,kpke
+      do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) .GT. 0.5 ) then
           ! convert WOA tracers kmol/m^3 -> mol/kg; GLODAP dic and alk
           ! are already in mol/kg. We need these units here, since after 
           ! initialisation the tracer field is passed to the ocean model
@@ -174,16 +174,16 @@ module mo_ini_fields
              beta14=ocetra(i,j,k,isco214)/1000.+1.
              ocetra(i,j,k,isco214) = ocetra(i,j,k,isco212)*beta14*re14to/c14fac
           endif
-        ENDIF
-      ENDDO
-      ENDDO
-      ENDDO
+        endif
+      enddo
+      enddo
+      enddo
 
 ! Initialise remaining ocean tracers 
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j) .GT. 0.5) THEN
+      do k=1,kpke
+      do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) .GT. 0.5) then
           ocetra(i,j,k,igasnit)=1.e-10
           ocetra(i,j,k,idoc)   =1.e-8
           ocetra(i,j,k,iphy)   =1.e-8 
@@ -237,31 +237,31 @@ module mo_ini_fields
              ! Initialise to 0,01 pmol L-1 (Stemmler et al., 2015) => mol/kg
              ocetra(i,j,k,ibromo)= 1.e-14/prho(i,j,k)
           endif
-        ENDIF ! omask > 0.5
-      ENDDO
-      ENDDO
-      ENDDO
+        endif ! omask > 0.5
+      enddo
+      enddo
+      enddo
 
 ! Initialise preformed tracers in the mixed layer; note that the 
 ! whole field has been initialised to zero above
-      DO j=1,kpje
-      DO i=1,kpie
-        IF(omask(i,j) .GT. 0.5) THEN
+      do j=1,kpje
+      do i=1,kpie
+        if (omask(i,j) .GT. 0.5) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
           ocetra(i,j,1:kmle(i,j),iprefdic) = ocetra(i,j,1:kmle(i,j),isco212)
-        ENDIF
-      ENDDO
-      ENDDO
+        endif
+      enddo
+      enddo
 
 
 ! Initial values for sediment
       if (.not. use_sedbypass) then
-         DO  k=1,ks
-         DO  j=1,kpje
-         DO  i=1,kpie 
-            IF(omask(i,j) .GT. 0.5) THEN
+         do  k=1,ks
+         do  j=1,kpje
+         do  i=1,kpie 
+            if (omask(i,j) .GT. 0.5) then
                powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
                powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
                powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)
@@ -284,7 +284,7 @@ module mo_ini_fields
                   sedlay(i,j,k,isssc13)=sedlay(i,j,k,isssc12)*rco213
                   sedlay(i,j,k,isssc14)=sedlay(i,j,k,isssc12)*rco214
                endif
-            ELSE
+            else
                powtra(i,j,k,ipowno3)=rmasks
                powtra(i,j,k,ipown2) =rmasks
                powtra(i,j,k,ipowaic)=rmasks
@@ -306,23 +306,23 @@ module mo_ini_fields
                   sedlay(i,j,k,isssc13)=rmasks
                   sedlay(i,j,k,isssc14)=rmasks
                endif
-            ENDIF
-         ENDDO
-         ENDDO
-         ENDDO
+            endif
+         enddo
+         enddo
+         enddo
 
          ! last and final sediment layer
-         DO  l=1,nsedtra
-         DO  j=1,kpje
-         DO  i=1,kpie
+         do  l=1,nsedtra
+         do  j=1,kpje
+         do  i=1,kpie
             burial(i,j,l)=0.
-         ENDDO
-         ENDDO
-         ENDDO
+         enddo
+         enddo
+         enddo
       endif
 
       return
 !******************************************************************************
-  end subroutine ini_fields_ocean
+  END SUBROUTINE ini_fields_ocean
 
-end module mo_ini_fields
+END MODULE mo_ini_fields

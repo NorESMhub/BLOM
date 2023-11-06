@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine hamocc_init(read_rest,rstfnm_hamocc)
+SUBROUTINE hamocc_init(read_rest,rstfnm_hamocc)
 !******************************************************************************
 !
 !  HAMOCC_INIT - initialize HAMOCC and its interface to BLOM.
@@ -33,8 +33,8 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 !
 !  Interface to ocean model (parameter list):
 !  -----------------------------------------
-!  *INTEGER*   *read_rest*     - flag indicating whether to read restart files.
-!  *INTEGER*   *rstfnm_hamocc* - restart filename.
+!  *integer*   *read_rest*     - flag indicating whether to read restart files.
+!  *integer*   *rstfnm_hamocc* - restart filename.
 !
 !******************************************************************************
   use mod_time,       only: date,baclin
@@ -69,7 +69,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
                             omask,sedlay2,powtra2,burial2,                     &
                             blom2hamocc,atm2
   use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
-  implicit none
+  IMPLICIT NONE
 
   integer,          intent(in) :: read_rest
   character(len=*), intent(in) :: rstfnm_hamocc
@@ -97,7 +97,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
 
   if (mnproc.eq.1) then
      write(io_stdo_bgc,*)
-     WRITE(io_stdo_bgc,*)'********************************************'
+     write(io_stdo_bgc,*)'********************************************'
      write(io_stdo_bgc,*) 'iHAMOCC: initialisation'
      write(io_stdo_bgc,*)
      write(io_stdo_bgc,*) 'restart',read_rest
@@ -113,7 +113,7 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   read (unit=iounit, nml=BGCNML)
   close (unit=iounit)
 
-  IF (mnproc.eq.1) THEN
+  if (mnproc.eq.1) then
      write(io_stdo_bgc,*)
      write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
      write(io_stdo_bgc,nml=BGCNML)
@@ -128,19 +128,19 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
            stop        '(invalid nb. of sediment spinup subcycles)'
         endif
      endif
-  ENDIF
+  endif
 
   ! init the index-mapping between pore water and ocean tracers
-  CALL init_por2octra_mapping()
+  call init_por2octra_mapping()
   !
   ! --- Memory allocation
   !
-  CALL ALLOC_MEM_INTFCBLOM(idm,jdm,kdm)
-  CALL ALLOC_MEM_BGCMEAN(idm,jdm,kdm)
-  CALL ALLOC_MEM_VGRID(idm,jdm,kdm)
-  CALL ALLOC_MEM_BIOMOD(idm,jdm,kdm)
-  CALL ALLOC_MEM_SEDMNT(idm,jdm)
-  CALL ALLOC_MEM_CARBCH(idm,jdm,kdm)
+  call ALLOC_MEM_INTFCBLOM(idm,jdm,kdm)
+  call ALLOC_MEM_BGCMEAN(idm,jdm,kdm)
+  call ALLOC_MEM_VGRID(idm,jdm,kdm)
+  call ALLOC_MEM_BIOMOD(idm,jdm,kdm)
+  call ALLOC_MEM_SEDMNT(idm,jdm)
+  call ALLOC_MEM_CARBCH(idm,jdm,kdm)
   !
   ! --- initialise trc array (two time levels)
   !
@@ -174,31 +174,31 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   !
   ! --- Initialize parameters
   !
-  CALL ini_parambgc(idm,jdm)
+  call ini_parambgc(idm,jdm)
 
   ! --- Initialize atmospheric fields with (updated) parameter values
   call ini_fields_atm(idm,jdm)
 
   ! --- Initialize sediment and ocean tracers
-  CALL ini_fields_ocean(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,plon,plat)
+  call ini_fields_ocean(read_rest,idm,jdm,kdm,nbdy,bgc_dp,bgc_rho,omask,plon,plat)
 
   ! --- Initialize sediment layering
   !     First, read the porosity and potentially apply it in ini_sedimnt
-  CALL read_sedpor(idm,jdm,ks,omask,sed_por)
-  CALL ini_sedmnt(idm,jdm,kdm,omask,sed_por)
+  call read_sedpor(idm,jdm,ks,omask,sed_por)
+  call ini_sedmnt(idm,jdm,kdm,omask,sed_por)
   !
   ! --- Initialise reading of input data (dust, n-deposition, river, etc.)
   !
-  CALL ini_read_fedep(idm,jdm,omask)
+  call ini_read_fedep(idm,jdm,omask)
 
-  CALL ini_read_ndep(idm,jdm)
+  call ini_read_ndep(idm,jdm)
 
-  CALL ini_read_rivin(idm,jdm,omask)
+  call ini_read_rivin(idm,jdm,omask)
 
-  CALL ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
+  call ini_read_oafx(idm,jdm,bgc_dx,bgc_dy,plat,omask)
 
   if (use_BROMO) then
-     CALL ini_swa_clim(idm,jdm,omask)
+     call ini_swa_clim(idm,jdm,omask)
   endif
 
   call ini_pi_ph(idm,jdm,omask)
@@ -208,10 +208,10 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
   !     initialised in BELEG_VARS) to both timelevels of their respective
   !     two-time-level counterpart
   !
-  IF(read_rest.eq.1) THEN
-     CALL AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
+  if (read_rest.eq.1) then
+     call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
           &   date%year,date%month,date%day,omask,rstfnm_hamocc)
-  ELSE
+  else
      trc(1:idm,1:jdm,1:kdm,      itrbgc:itrbgc+ntrbgc-1) =                      &
           &   ocetra(:,:,:,:)
      trc(1:idm,1:jdm,kdm+1:2*kdm,itrbgc:itrbgc+ntrbgc-1) =                      &
@@ -228,14 +228,14 @@ subroutine hamocc_init(read_rest,rstfnm_hamocc)
         atm2(:,:,1,:)            = atm(:,:,:)
         atm2(:,:,2,:)            = atm(:,:,:)
      endif
-  ENDIF
+  endif
 
   if (mnproc.eq.1) then
      write(io_stdo_bgc,*)
-     WRITE(io_stdo_bgc,*)'********************************************'
+     write(io_stdo_bgc,*)'********************************************'
      write(io_stdo_bgc,*) 'iHAMOCC: finished initialisation'
      write(io_stdo_bgc,*)
   endif
 
 !******************************************************************************
-end subroutine hamocc_init
+END SUBROUTINE hamocc_init

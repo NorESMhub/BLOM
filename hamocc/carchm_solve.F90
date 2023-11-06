@@ -38,47 +38,47 @@ SUBROUTINE CARCHM_SOLVE(saln,tc,ta,sit,pt,                            &
 !
 !**** Parameter list:
 !     ---------------
-!     *REAL*    *saln*    - salinity [psu].
-!     *REAL*    *tc*      - total DIC concentraion [mol/kg].
-!     *REAL*    *ta*      - total alkalinity [eq/kg].
-!     *REAL*    *sit*     - silicate concentration [mol/kg].
-!     *REAL*    *pt*      - phosphate concentration [mol/kg].
-!     *REAL*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
-!     *REAL*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
-!     *REAL*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
-!     *REAL*    *Kw*      - equilibrium constant Kw  = [H][OH].
-!     *REAL*    *Ks1*     - equilibrium constant Ks1 = [H][SO4]/[HSO4].
-!     *REAL*    *Kf*      - equilibrium constant Kf  = [H][F]/[HF].
-!     *REAL*    *Ksi*     - equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
-!     *REAL*    *K1p*     - equilibrium constant K1p = [H][H2PO4]/[H3PO4].
-!     *REAL*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
-!     *REAL*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
-!     *REAL*    *ah1*     - hydrogen ion concentration.
-!     *REAL*    *ac*      - carbonate alkalinity.
-!     *INTEGER* *niter*   - maximum number of iteration
+!     *real*    *saln*    - salinity [psu].
+!     *real*    *tc*      - total DIC concentraion [mol/kg].
+!     *real*    *ta*      - total alkalinity [eq/kg].
+!     *real*    *sit*     - silicate concentration [mol/kg].
+!     *real*    *pt*      - phosphate concentration [mol/kg].
+!     *real*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
+!     *real*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
+!     *real*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
+!     *real*    *Kw*      - equilibrium constant Kw  = [H][OH].
+!     *real*    *Ks1*     - equilibrium constant Ks1 = [H][SO4]/[HSO4].
+!     *real*    *Kf*      - equilibrium constant Kf  = [H][F]/[HF].
+!     *real*    *Ksi*     - equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+!     *real*    *K1p*     - equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+!     *real*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
+!     *real*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
+!     *real*    *ah1*     - hydrogen ion concentration.
+!     *real*    *ac*      - carbonate alkalinity.
+!     *integer* *niter*   - maximum number of iteration
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
 
 use mo_chemcon, only: bor1,bor2,salchl
 
 IMPLICIT NONE
-REAL,    INTENT(IN)    :: saln,tc,ta,sit,pt
-REAL,    INTENT(IN)    :: K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
-REAL,    INTENT(INOUT) :: ah1
-REAL,    INTENT(OUT)   :: ac
-INTEGER, INTENT(IN)    :: niter
+real,    intent(in)    :: saln,tc,ta,sit,pt
+real,    intent(in)    :: K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p
+real,    INTENT(inout) :: ah1
+real,    INTENT(OUT)   :: ac
+integer, intent(in)    :: niter
   
 ! Parameters to set accuracy of iteration 
-REAL,    PARAMETER     :: eps=5.e-5
+real,    parameter     :: eps=5.e-5
 
 ! Local varibles
-INTEGER                :: jit
-REAL                   :: s,scl,borat,sti,ft
-REAL                   :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
+integer                :: jit
+real                   :: s,scl,borat,sti,ft
+real                   :: hso4,hf,hsi,hpo4,ab,aw,ah2o,ah2,erel
 
 
 
@@ -92,7 +92,7 @@ sti = 0.14 * scl / 96.062      ! Morris & Riley (1966)
 ft = 0.000067 * scl / 18.9984  ! Riley (1965)
 
 
-iflag: DO jit = 1,niter
+iflag: do jit = 1,niter
    hso4 = sti / ( 1. + Ks1 / ( ah1 / ( 1. + sti / Ks1 ) ) )
    hf   = 1. / ( 1. + Kf / ah1 )
    hsi  = 1./ ( 1. + ah1 / Ksi )
@@ -109,7 +109,7 @@ iflag: DO jit = 1,niter
    else
       exit iflag
    endif
-ENDDO iflag
+enddo iflag
 
 END SUBROUTINE CARCHM_SOLVE
 

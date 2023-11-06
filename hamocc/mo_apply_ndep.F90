@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_apply_ndep
+MODULE mo_apply_ndep
 !******************************************************************************
 !
 !   S.Gao             *Gfi, Bergen*             2017-08-19
@@ -27,8 +27,8 @@ module mo_apply_ndep
 !  -add 1 mol [H+], per mol [NO3] deposition, to alkalinity (minus 1 mol)
 !
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
-!  -seperate modules into one module that reads a specific data set, and this 
-!   module that applies the n-deposition flux to the surface ocean
+!  -seperate MODULEs into one MODULE that reads a specific data set, and this 
+!   MODULE that applies the n-deposition flux to the surface ocean
 !
 !
 ! Purpose
@@ -45,22 +45,22 @@ module mo_apply_ndep
 !  N deposition is activated through a logical switch 'do_ndep' read from
 !  HAMOCC's bgcnml namelist. 
 !
-!  -subroutine apply_ndep
+!  -SUBROUTINE apply_ndep
 !     Apply n-deposition to the top-most model layer.
 !
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: apply_ndep
 
 
 !******************************************************************************
-contains
+CONTAINS
 
 
-subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
+SUBROUTINE apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 !******************************************************************************
 !
 !     S. Gao               *Gfi, Bergen*    19.08.2017 
@@ -76,12 +76,12 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!  *REAL*      *pddpo*   - size of grid cell (depth) [m].
-!  *REAL*      *omask*   - land/ocean mask (1=ocean)
-!  *REAL*      *ndep*    - N-deposition field to apply
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *integer*   *kpke*    - 3rd (vertical) dimension of model grid.
+!  *real*      *pddpo*   - size of grid cell (depth) [m].
+!  *real*      *omask*   - land/ocean mask (1=ocean)
+!  *real*      *ndep*    - N-deposition field to apply
 !
 !******************************************************************************
   use mo_control_bgc, only: dtb,do_ndep
@@ -89,7 +89,7 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
   use mo_control_bgc, only: use_natDIC
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
@@ -121,9 +121,9 @@ subroutine apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
   enddo
 
 !******************************************************************************
-end subroutine apply_ndep
+END SUBROUTINE apply_ndep
 
 
 !******************************************************************************
-end module mo_apply_ndep
+END MODULE mo_apply_ndep
 

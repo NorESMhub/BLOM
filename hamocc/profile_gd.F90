@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
+SUBROUTINE profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 !*******************************************************************************
 !     J.Schwinger,      *Gfi, Bergen*            2011-05-19
 !
@@ -33,7 +33,7 @@ subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 !     Purpose
 !     -------
 !     - initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP 
-!       data using the module mo_Gdata_read. Note that the routine get_profile
+!       data using the MODULE mo_Gdata_read. Note that the routine get_profile
 !       returns the mean of all data profiles within a rectangular region 
 !       ("smoothing region") of dxy x dxy degrees extent, where dxy is an 
 !       adjustable parameter.
@@ -53,7 +53,7 @@ use mo_param1_bgc,   only: isco213,isco214
 use mo_param1_bgc,   only: inatalkali,inatsco212
 use mo_control_bgc,  only: use_natDIC,use_cisonew
 
-implicit none
+IMPLICIT NONE
 
 integer, intent(in) :: kpie,kpje,kpke,kbnd
 real,    intent(in) :: omask(kpie,kpje)
@@ -104,7 +104,7 @@ do n = 1, nflds  ! Loop over tracer
    do j=1,kpje
       do i=1,kpie
 
-         If(omask(i,j) > 0.5) THEN
+         If(omask(i,j) > 0.5) then
             
             clon = pglon(i,j)
             clat = pglat(i,j)
@@ -171,18 +171,18 @@ do n = 1, nflds  ! Loop over tracer
 
                enddo loop_obs
                
-            ENDDO ! k=1,kpke
+            enddo ! k=1,kpke
             
-         ENDIF ! omask > 0.5
+         endif ! omask > 0.5
 
-      ENDDO 
-   ENDDO
+      enddo 
+   enddo
 
    call clean_Gdata()
 
 enddo  ! Loop over fields
 
-RETURN
+return
 
 !********************************************************************************
-END subroutine profile_gd
+END SUBROUTINE profile_gd

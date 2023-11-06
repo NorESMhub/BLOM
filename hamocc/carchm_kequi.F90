@@ -41,42 +41,42 @@ SUBROUTINE CARCHM_KEQUI(temp,saln,prb,Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,           &
 !**** Parameter list:
 !     ---------------
 !
-!     *REAL*    *temp*    - potential temperature [degr C].
-!     *REAL*    *saln*    - salinity [psu].
-!     *REAL*    *prb*     - pressure [bar].
-!     *REAL*    *Kh*      - equilibrium constant Kh  =  [CO2]/pCO2, moist air.
-!     *REAL*    *Khd*     - equilibrium constant Kh  =  [CO2]/pCO2, dry air.
-!     *REAL*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
-!     *REAL*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
-!     *REAL*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
-!     *REAL*    *Kw*      - equilibrium constant Kw  = [H][OH].
-!     *REAL*    *Ks1*     - equilibrium constant Ks1 = [H][SO4]/[HSO4].
-!     *REAL*    *Kf*      - equilibrium constant Kf  = [H][F]/[HF].
-!     *REAL*    *Ksi*     - equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
-!     *REAL*    *K1p*     - equilibrium constant K1p = [H][H2PO4]/[H3PO4].
-!     *REAL*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
-!     *REAL*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
-!     *REAL*    *Kspc*    - equilibrium constant Kspc= [Ca2+]T [CO3]T.
-!     *REAL*    *Kspa*    - equilibrium constant Kspa= [Ca2+]T [CO3]T.
+!     *real*    *temp*    - potential temperature [degr C].
+!     *real*    *saln*    - salinity [psu].
+!     *real*    *prb*     - pressure [bar].
+!     *real*    *Kh*      - equilibrium constant Kh  =  [CO2]/pCO2, moist air.
+!     *real*    *Khd*     - equilibrium constant Kh  =  [CO2]/pCO2, dry air.
+!     *real*    *K1*      - equilibrium constant K1  = [H][HCO3]/[H2CO3].
+!     *real*    *K2*      - equilibrium constant K2  = [H][CO3]/[HCO3].
+!     *real*    *Kb*      - equilibrium constant Kb  = [H][BO2]/[HBO2].
+!     *real*    *Kw*      - equilibrium constant Kw  = [H][OH].
+!     *real*    *Ks1*     - equilibrium constant Ks1 = [H][SO4]/[HSO4].
+!     *real*    *Kf*      - equilibrium constant Kf  = [H][F]/[HF].
+!     *real*    *Ksi*     - equilibrium constant Ksi = [H][SiO(OH)3]/[Si(OH)4].
+!     *real*    *K1p*     - equilibrium constant K1p = [H][H2PO4]/[H3PO4].
+!     *real*    *K2p*     - equilibrium constant K2p = [H][HPO4]/[H2PO4].
+!     *real*    *K3p*     - equilibrium constant K3p = [H][PO4]/[HPO4].
+!     *real*    *Kspc*    - equilibrium constant Kspc= [Ca2+]T [CO3]T.
+!     *real*    *Kspa*    - equilibrium constant Kspa= [Ca2+]T [CO3]T.
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !*******************************************************************************
 
 use mo_chemcon, only: tzero,rgas,bor1,bor2,salchl,ac1,ac2,ac3,ac4,bc1,bc2,bc3,ad1,ad2,ad3,bd1,bd2,bd3,a0,a1,a2,b0,b1,b2
 
 IMPLICIT NONE
-REAL,    INTENT(IN)    :: temp,saln,prb
-REAL,    INTENT(OUT)   :: Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc,Kspa
+real,    intent(in)    :: temp,saln,prb
+real,    INTENT(OUT)   :: Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p,Kspc,Kspa
 
 ! Local varibles
-INTEGER                :: js
-REAL                   :: tk,tk100,invtk,dlogtk
-REAL                   :: s,is,is2,sqrtis,s15,s2,sqrts,scl
-REAL                   :: nKhwe74,deltav,deltak,zprb,zprb2
-REAL                   :: lnkpok0(11)
+integer                :: js
+real                   :: tk,tk100,invtk,dlogtk
+real                   :: s,is,is2,sqrtis,s15,s2,sqrts,scl
+real                   :: nKhwe74,deltav,deltak,zprb,zprb2
+real                   :: lnkpok0(11)
 
 s = MAX(25.,saln)
 tk = temp + tzero
@@ -156,7 +156,7 @@ DO js = 1,11
    zprb        = prb / ( rgas * tk )
    zprb2       = prb * zprb
    lnkpok0(js) = - ( deltav * zprb + 0.5 * deltak * zprb2 )
-ENDDO
+enddo
 
 K1   = K1   * exp( lnkpok0(1)  )
 K2   = K2   * exp( lnkpok0(2)  )

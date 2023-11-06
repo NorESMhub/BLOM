@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_Gdata_read
+MODULE mo_Gdata_read
 
 !********************************************************************************
 !     J.Schwinger,        *Gfi, Bergen*           2011-05-19
@@ -24,7 +24,7 @@ module mo_Gdata_read
 ! Modified
 ! --------
 !    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
-!    - adapted this module to read the initial conditions for OMIP-BGC.
+!    - adapted this MODULE to read the initial conditions for OMIP-BGC.
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
 !     - adaptions for reading c-isotope initial values as d13C and d14C
@@ -36,24 +36,24 @@ module mo_Gdata_read
 !
 ! Description:
 ! ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine set_Gdata
+!  -SUBROUTINE set_Gdata
 !     Initialise global varibles and read in one data set. Must be
 !     called before the processing of one data set starts.
 !
-!  -subroutine clean_Gdata
-!     Deallocate global fields of this module and reset all global variables.
+!  -SUBROUTINE clean_Gdata
+!     Deallocate global fields of this MODULE and reset all global variables.
 !     Should be called each time, the processing of one data set is finished.
 !
-!  -subroutine get_profile
+!  -SUBROUTINE get_profile
 !     Returns one profile from the currently open data set (opened by a
 !     previous call to set_Gdata). See header of get profile for details.
 !
 !  -function get_region
 !     Returns the index of the region a given point belongs to. If no region
 !     is found get_region returns 0, which is the index of the 'global region'.
-!     Note that the regions are defined below in the module header.
+!     Note that the regions are defined below in the MODULE header.
 !
 !  -nz_woa
 !     Number of z-levels in the WOA data files.
@@ -75,7 +75,7 @@ use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,n
 use mod_xc,         only: mnproc,xchalt
 use mo_control_bgc, only: io_stdo_bgc
 
-implicit none
+IMPLICIT NONE
 
 private
 
@@ -97,7 +97,7 @@ real, parameter             :: dres = 1.0
 integer, parameter          :: dnmax = 100.0
 
 
-! Fill value used in this module, original fill values of data files are
+! Fill value used in this MODULE, original fill values of data files are
 ! replaced by this fill value during read
 real,             parameter :: fillval = -1.e+32
 
@@ -214,16 +214,16 @@ data  rg(10)%global            / .false.      /
 
 
 !********************************************************************************
-contains
+CONTAINS
 
 
-subroutine set_Gdata(vname,inddeg)
+SUBROUTINE set_Gdata(vname,inddeg)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
 ! --------
 !  Initialise global varibles and read data set specified by vname. Must be
-!  called before the first call to any routine of this module.
+!  called before the first call to any routine of this MODULE.
 !
 ! Description:
 ! ------------
@@ -347,11 +347,11 @@ call set_regional_profiles()
 
 
 !--------------------------------------------------------------------------------
-end subroutine set_Gdata
+END SUBROUTINE set_Gdata
 
 
 
-subroutine get_profile(clon,clat,prf)
+SUBROUTINE get_profile(clon,clat,prf)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -410,7 +410,7 @@ endif
 
 
 !--------------------------------------------------------------------------------
-end subroutine get_profile
+END SUBROUTINE get_profile
 
 
 
@@ -423,7 +423,7 @@ function get_region(clon,clat)
 !
 ! Description:
 ! ------------
-!  The rectangular regions as defined in the module header (and stored in the
+!  The rectangular regions as defined in the MODULE header (and stored in the
 !  data type 'rg') are searched. If point clon/clat belongs to region i, the 
 !  index i is the result of this function. If no region is found, get_region
 !  returns 0, which is the index of the 'global' region defined in the header.
@@ -492,10 +492,10 @@ end function get_region
 
 
 
-subroutine set_regional_profiles()
+SUBROUTINE set_regional_profiles()
 !--------------------------------------------------------------------------------
 !
-! Calculate the mean profiles in regions as defined in the module header
+! Calculate the mean profiles in regions as defined in the MODULE header
 !
 !--------------------------------------------------------------------------------
 
@@ -519,11 +519,11 @@ do i=0,nreg
 enddo
 
 !--------------------------------------------------------------------------------
-end subroutine set_regional_profiles
+END SUBROUTINE set_regional_profiles
 
 
 
-subroutine read_Gdata()
+SUBROUTINE read_Gdata()
 !--------------------------------------------------------------------------------
 !
 ! Read the WOA or GLODAP data into variables lon/lat/zlev and rvar
@@ -662,11 +662,11 @@ call ncerr(status)
 
 
 !--------------------------------------------------------------------------------
-end subroutine read_Gdata
+END SUBROUTINE read_Gdata
 
 
 
-subroutine calc_mean_profile(clon,clat,dlon,dlat,prf,npts,global)
+SUBROUTINE calc_mean_profile(clon,clat,dlon,dlat,prf,npts,global)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -788,11 +788,11 @@ enddo
 !write(*,*) '================'
 
 !--------------------------------------------------------------------------------
-end subroutine calc_mean_profile
+END SUBROUTINE calc_mean_profile
 
 
 
-subroutine clean_Gdata()
+SUBROUTINE clean_Gdata()
 !--------------------------------------------------------------------------------
 ! Deallocate fields and reset global variables
 !--------------------------------------------------------------------------------
@@ -814,11 +814,11 @@ nz     = 0
 lset   = .false.
 
 !--------------------------------------------------------------------------------
-end subroutine clean_Gdata
+END SUBROUTINE clean_Gdata
 
 
 
-subroutine ncerr(status)
+SUBROUTINE ncerr(status)
 !--------------------------------------------------------------------------------
 ! Handle netCDF-errors
 !--------------------------------------------------------------------------------
@@ -834,12 +834,12 @@ stop '(Module mo_Gdata_read, ncerr)'
 
 
 !--------------------------------------------------------------------------------
-end subroutine ncerr
+END SUBROUTINE ncerr
 
 
-subroutine moderr(routinestr,errstr)
+SUBROUTINE moderr(routinestr,errstr)
 !--------------------------------------------------------------------------------
-! Handle errors, which occur in this module
+! Handle errors, which occur in this MODULE
 !--------------------------------------------------------------------------------
 character(len=*), intent(in) :: routinestr,errstr
 
@@ -852,8 +852,8 @@ stop '(Module mo_Gdata_read)'
 
 
 !--------------------------------------------------------------------------------
-end subroutine moderr
+END SUBROUTINE moderr
 
 
 !********************************************************************************
-end module mo_Gdata_read
+END MODULE mo_Gdata_read

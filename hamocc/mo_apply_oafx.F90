@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_apply_oafx
+MODULE mo_apply_oafx
 !******************************************************************************
 !
 !   J.Schwinger             *NORCE Climate, Bergen*             2021-11-15
@@ -32,22 +32,22 @@ module mo_apply_oafx
 ! Description:
 ! ------------
 !
-!  -subroutine alkalinization
+!  -SUBROUTINE alkalinization
 !     Apply alkalinization to the top-most model layer.
 !
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: apply_oafx
 
 !******************************************************************************
-contains
+CONTAINS
 
 
 
-subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
+SUBROUTINE apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 !******************************************************************************
 !
 !     J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
@@ -62,11 +62,11 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *REAL*      *pddpo*   - size of grid cell (depth) [m].
-!  *REAL*      *omask*   - land/ocean mask (1=ocean)
-!  *REAL*      *oafx*    - alkalinization field to apply [kmol m-2 yr-1]
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *real*      *pddpo*   - size of grid cell (depth) [m].
+!  *real*      *omask*   - land/ocean mask (1=ocean)
+!  *real*      *oafx*    - alkalinization field to apply [kmol m-2 yr-1]
 !
 !******************************************************************************
   use mo_control_bgc, only: dtb,do_oalk
@@ -74,7 +74,7 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   use mo_carbch,      only: ocetra,oalkflx,OmegaA
   use mo_read_oafx,   only: thrh_omegaa
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)
@@ -102,8 +102,8 @@ subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   enddo
 
 !******************************************************************************
-end subroutine apply_oafx
+END SUBROUTINE apply_oafx
 
 
 !******************************************************************************
-end module mo_apply_oafx
+END MODULE mo_apply_oafx

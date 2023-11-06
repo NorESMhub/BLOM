@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_apply_fedep
+MODULE mo_apply_fedep
 !********************************************************************************
 !
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-19
@@ -29,29 +29,29 @@ module mo_apply_fedep
 !
 ! Description:
 ! ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine apply_fedep
+!  -SUBROUTINE apply_fedep
 !    apply iron deposition to the ocean tracer field
 !
-!  This module replaces code previously found inside the ocprod-routine and 
-!  encapsulates it in a module.
+!  This MODULE replaces code previously found inside the ocprod-routine and 
+!  encapsulates it in a MODULE.
 !
 !  
 ! Changes: 
 ! --------
 !
 !********************************************************************************
-implicit none
+IMPLICIT NONE
 
 private
 public :: apply_fedep
 
 !********************************************************************************
-contains
+CONTAINS
 
 
-subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
+SUBROUTINE apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -64,12 +64,12 @@ subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 !
 ! Arguments:
 ! ----------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!  *REAL*      *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!  *REAL*      *omask*   - ocean mask
-!  *REAL*      *dust*    - dust deposition flux [kg/m2/month].
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *integer*   *kpke*    - 3rd (vertical) dimension of model grid.
+!  *real*      *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!  *real*      *omask*   - ocean mask
+!  *real*      *dust*    - dust deposition flux [kg/m2/month].
 !
 !--------------------------------------------------------------------------------
   use mo_control_bgc, only: dtb
@@ -77,7 +77,7 @@ subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
   use mo_param_bgc,   only: perc_diron
   use mo_carbch,      only: ocetra
 
-  implicit none
+  IMPLICIT NONE
 
   integer,intent(in) :: kpie,kpje,kpke
   real,   intent(in) :: pddpo(kpie,kpje,kpke)
@@ -106,9 +106,9 @@ subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
 
 
 !--------------------------------------------------------------------------------
-end subroutine apply_fedep
+END SUBROUTINE apply_fedep
 
 
 !********************************************************************************
-end module mo_apply_fedep
+END MODULE mo_apply_fedep
 

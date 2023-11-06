@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-      SUBROUTINE WRITE_NETCDF_VAR(ncid,desc,arr,klev,time)
+      SUBROUTINE write_NETCDF_VAR(ncid,desc,arr,klev,time)
 !**************************************************************************
 !
 ! Gathers a global variable from all PEs and writes it to a NETCDF file
@@ -30,7 +30,7 @@
 #ifdef PNETCDF
       use mod_xc,  only: i0,ii,jj,j0,mproc,mpe_1,nproc,xcgetrow
 #endif
-      implicit none
+      IMPLICIT NONE
 #ifdef PNETCDF
 #  include <pnetcdf.inc>
 #  include <mpif.h>
@@ -55,7 +55,7 @@
       else
         ndims=4
       endif
-      IF(IOTYPE==0) THEN
+      if (IOTYPE==0) then
       allocate(start(ndims))
       allocate(count(ndims))
       allocate(arr_l(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,1))
@@ -115,7 +115,7 @@
         endif
       enddo
       deallocate(start,count)
-      ELSE IF(IOTYPE==1) THEN
+      else if (IOTYPE==1) then
 #ifdef PNETCDF
       allocate(istart(ndims))
       allocate(icount(ndims))
@@ -184,6 +184,6 @@
 
           deallocate(istart,icount,arr_g1)
 #endif
-      ENDIF
+      endif
 
       END

@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ncwrt_bgc(iogrp)
+SUBROUTINE ncwrt_bgc(iogrp)
 !
 ! --- -------------------------------------------
 ! --- output routine for HAMOCC diagnostic fields
@@ -152,7 +152,7 @@ subroutine ncwrt_bgc(iogrp)
                             jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2
   use mo_param_bgc,   only: c14fac
 
-  implicit none
+  IMPLICIT NONE
 
   integer                  :: i,j,k,l,nt
   integer                  :: ny,nm,nd,dayfrac,cmpflg,iogrp
@@ -874,10 +874,10 @@ subroutine ncwrt_bgc(iogrp)
 
   nacc_bgc(iogrp)=0
 
-end subroutine ncwrt_bgc
+END SUBROUTINE ncwrt_bgc
 
 
-subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
+SUBROUTINE hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 
   use mod_nctools, only:ncdefvar,ncattr,ncfopn,ncdimc,ncdims,                  &
        nctime,ncfcls,ncedef,ncdefvar3d,ndouble
@@ -926,7 +926,7 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,  &
        use_sedbypass,use_BOXATM
 
-  implicit none
+  IMPLICIT NONE
 
   integer iogrp,cmpflg
   character timeunits*30,calendar*19
@@ -1399,4 +1399,4 @@ subroutine hamoccvardef(iogrp,timeunits,calendar,cmpflg)
 
   ! --- enddef netcdf file
   call ncedef
-end subroutine hamoccvardef
+END SUBROUTINE hamoccvardef

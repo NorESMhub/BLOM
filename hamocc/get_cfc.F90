@@ -28,16 +28,16 @@
       use mo_control_bgc, only: io_stdo_bgc
       use mod_xc,         only: mnproc
 
-      implicit none
+      IMPLICIT NONE
 
-      INTEGER :: i,kplyear,start_yr
-      INTEGER :: yr_dat(105)
-      REAL    :: atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,                  &
+      integer :: i,kplyear,start_yr
+      integer :: yr_dat(105)
+      real    :: atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,                  &
      &           atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
-      REAL    :: cfc_11_nh(105),cfc_12_nh(105),sf_6_nh(105),            &
+      real    :: cfc_11_nh(105),cfc_12_nh(105),sf_6_nh(105),            &
      &           cfc_11_sh(105),cfc_12_sh(105),sf_6_sh(105)
 
-      INTEGER, SAVE :: kplyear_old = 0
+      integer, save :: kplyear_old = 0
 
 ! ******************************************************************
 ! Data from EMil Jeansson (Bullister, 2008; Walker et al. 2000; Maiss and Brenninkmeijer (1998)
@@ -176,13 +176,13 @@
         endif
       enddo
 
-      IF (mnproc.EQ.1 .AND. kplyear.GT.kplyear_old) THEN
+      if (mnproc.EQ.1 .AND. kplyear.GT.kplyear_old) then
         write(io_stdo_bgc,*) 'ATM NH CFC11, CFC12, SF6=',             &
      &    kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh
         write(io_stdo_bgc,*) 'ATM SH CFC11, CFC12, SF6=',             &
      &    kplyear,atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh
         kplyear_old = kplyear
-      ENDIF
+      endif
 
-      RETURN
+      return
       END

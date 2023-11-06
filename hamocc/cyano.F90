@@ -34,7 +34,7 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !     - modified oxygen stoichiometry for N2-Fixation
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!     - moved accumulation of all output fields to seperate subroutine,
+!     - moved accumulation of all output fields to seperate SUBROUTINE,
 !       related code-restructuring
 !     - added reduction of alkalinity through N-fixation
 !
@@ -50,11 +50,11 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*    - nb of halo grid points
-!     *REAL*    *ptho*    - potential temperature.
+!     *integer* *kpie*    - 1st dimension of model grid.
+!     *integer* *kpje*    - 2nd dimension of model grid.
+!     *integer* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *integer* *kbnd*    - nb of halo grid points
+!     *real*    *ptho*    - potential temperature.
 !
 !     Externals
 !     ---------
@@ -68,17 +68,17 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   use mo_biomod,      only: intnfix
   use mo_control_bgc, only: use_natDIC
 
-  implicit none
+  IMPLICIT NONE
 
-  INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
-  REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-  REAL,    intent(in) :: omask(kpie,kpje)
-  REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  integer, intent(in) :: kpie,kpje,kpke,kbnd
+  real,    intent(in) :: pddpo(kpie,kpje,kpke)
+  real,    intent(in) :: omask(kpie,kpje)
+  real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
   ! Local variables
-  INTEGER :: i,j,k
-  REAL :: oldocetra,dano3
-  REAL :: ttemp,nfixtfac
+  integer :: i,j,k
+  real :: oldocetra,dano3
+  real :: ttemp,nfixtfac
 
   intnfix(:,:)=0.0
 
@@ -86,11 +86,11 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 ! N-fixation by cyano bacteria (followed by remineralisation and nitrification),
 ! it is assumed here that this process is limited to the mixed layer
 !
-  DO j=1,kpje
-  DO i=1,kpie
-  IF(omask(i,j).gt.0.5) THEN
-     DO k=1,kmle(i,j)
-     IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+  do j=1,kpje
+  do i=1,kpie
+  if (omask(i,j).gt.0.5) then
+     do k=1,kmle(i,j)
+     if (ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) then
 
         oldocetra = ocetra(i,j,k,iano3)
         ttemp = min(40.,max(-3.,ptho(i,j,k)))
@@ -119,10 +119,10 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
         intnfix(i,j) = intnfix(i,j) +                                           &
              &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
 
-     ENDIF
-     ENDDO
-  ENDIF
-  ENDDO
-  ENDDO
+     endif
+     enddo
+  endif
+  enddo
+  enddo
 
 END SUBROUTINE CYANO

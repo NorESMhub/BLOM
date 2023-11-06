@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
+SUBROUTINE powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !******************************************************************************
 !
 !**** *POWACH* - .
@@ -46,17 +46,17 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*    - nb of halo grid points
-!     *REAL*    *prho*    - seawater density [g/cm^3].
-!     *REAL*    *psao*    - salinity [psu].
-!     *REAL*    *omask*   - land/ocean mask
+!     *integer* *kpie*    - 1st dimension of model grid.
+!     *integer* *kpje*    - 2nd dimension of model grid.
+!     *integer* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *integer* *kbnd*    - nb of halo grid points
+!     *real*    *prho*    - seawater density [g/cm^3].
+!     *real*    *psao*    - salinity [psu].
+!     *real*    *omask*   - land/ocean mask
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !******************************************************************************
   use mo_control_bgc, only: dtbgc,use_cisonew
@@ -68,7 +68,7 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
   use mo_vgrid,       only: kbo,bolay
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: prho(kpie,kpje,kpke)
@@ -547,4 +547,4 @@ subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !$OMP END PARALLEL DO
   endif
   
-end subroutine powach
+END SUBROUTINE powach

@@ -40,11 +40,11 @@
       use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,         &
                                 use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP, &
                                 use_FB_BGC_OCE, use_BOXATM, use_sedbypass
-      implicit none
+      IMPLICIT NONE
       public
 
-      INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
-      REAL,    PARAMETER :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
+      integer, parameter :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
+      real,    parameter :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
 
       ! ------------------
       ! Tracer indices
@@ -196,10 +196,10 @@
       ! water diffusion
       integer, protected, allocatable :: map_por2octra(:)
 
-    contains
+    CONTAINS
 
       ! ===========================================================================
-      subroutine init_por2octra_mapping()
+      SUBROUTINE init_por2octra_mapping()
         map_por2octra(ipowaic) = isco212
         map_por2octra(ipowaal) = ialkali
         map_por2octra(ipowaph) = iphosph
@@ -211,10 +211,10 @@
            map_por2octra(ipowc13) = isco213
            map_por2octra(ipowc14) = isco214
         endif
-      end subroutine init_por2octra_mapping
+      END SUBROUTINE init_por2octra_mapping
 
       ! ===========================================================================
-      subroutine init_indices()
+      SUBROUTINE init_indices()
 
         use mod_xc        , only: lp, mnproc
         use mo_control_bgc, only: bgc_namelist,get_bgc_namelist, io_stdo_bgc
@@ -235,7 +235,7 @@
         read (unit=iounit, nml=config_bgc)
         close (unit=iounit)
 
-        IF (mnproc.eq.1) THEN
+        if (mnproc.eq.1) then
            write(io_stdo_bgc,*)
            write(io_stdo_bgc,*) 'iHAMOCC: reading namelist CONFIG_BGC'
            write(io_stdo_bgc,nml=config_bgc)
@@ -435,7 +435,7 @@
 
         allocate(map_por2octra(-1:npowtra))
 
-      end subroutine init_indices
+      END SUBROUTINE init_indices
 
 !******************************************************************************
     END MODULE mo_param1_bgc

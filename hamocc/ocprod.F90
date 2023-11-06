@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+SUBROUTINE ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !******************************************************************************
 !
 !  OCPROD - biological production, remineralization and particle sinking.
@@ -52,7 +52,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !     - new version of carbon isotope code
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!     - moved accumulation of all output fields to seperate subroutine,
+!     - moved accumulation of all output fields to seperate SUBROUTINE,
 !       related code-restructuring
 !     - added sediment bypass preprocessor option and related code
 !
@@ -69,15 +69,15 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 !
 !     Parameter list:
 !     ---------------
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*    - nb of halo grid points
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-!     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *omask*   - land/ocean mask (1=ocean)
-!     *REAL*    *ptho*    - potential temperature [deg C].
+!     *integer* *kpie*    - 1st dimension of model grid.
+!     *integer* *kpje*    - 2nd dimension of model grid.
+!     *integer* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *integer* *kbnd*    - nb of halo grid points
+!     *real*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
+!     *real*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
+!     *real*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *real*    *omask*   - land/ocean mask (1=ocean)
+!     *real*    *ptho*    - potential temperature [deg C].
 !
 !******************************************************************************
   use mod_xc,         only: mnproc
@@ -105,7 +105,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   use mo_vgrid,       only: kmle
   use mo_clim_swa,    only: swa_clim
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
@@ -211,7 +211,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'beginning of OCRPOD '
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
 ! Calculate swr absorption by water and phytoplankton
@@ -471,7 +471,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            ! exudation deletes POM
            ! grazing deletes POM; but only the fraction that is not egested as
            ! fecal pellets again (grawa remains in zoo, graton goes to po4)
-           ! none of the processes at the current time is assumed to change
+           ! NONE of the processes at the current time is assumed to change
            ! the size distribution (subject to change)
            ! NOTE that phosy, exud etc. are in kmol/m3!
            ! Thus divide by avmass (kmol/m3)
@@ -524,7 +524,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'in OCRPOD after 1st bio prod'
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
 !$OMP PARALLEL DO PRIVATE(phythresh,zoothresh,sterph,sterzo,remin     &
@@ -682,7 +682,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'in OCRPOD after poc remin'
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
 !$OMP PARALLEL DO PRIVATE(remin,remin2o,dz                            &
@@ -754,7 +754,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'in OCRPOD after remin n2o'
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
 
@@ -825,7 +825,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'in OCRPOD after sulphate reduction '
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
 
@@ -990,7 +990,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 
 !
-! implicit method for sinking of particles:
+! IMPLICIT method for sinking of particles:
 ! C(k,T+dt)=C(k,T) + (w*dt/ddpo(k))*(C(k-1,T+1)-C(k,T+1))
 ! -->
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
@@ -1251,7 +1251,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! Calculate mass sinking flux for carbon, opal and calcium carbonate
 ! through the 100 m, 500 m, 1000 m, 2000 m, and 4000 m depth surfaces. These
 ! fluxes are intentionally calculated using values at the NEW timelevel
-! to be fully consistent with the implicit sinking scheme
+! to be fully consistent with the IMPLICIT sinking scheme
 
 !$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal)
   do j = 1,kpje
@@ -1433,7 +1433,7 @@ subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'in OCRPOD after sinking poc '
      endif
-     CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
   endif
 
-end subroutine ocprod
+END SUBROUTINE ocprod

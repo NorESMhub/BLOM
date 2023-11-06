@@ -38,8 +38,8 @@ SUBROUTINE PREFTRC(kpie,kpje,omask)
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
+!     *integer* *kpie*    - 1st dimension of model grid.
+!     *integer* *kpje*    - 2nd dimension of model grid.
 !
 !**************************************************************************
 
@@ -47,12 +47,12 @@ SUBROUTINE PREFTRC(kpie,kpje,omask)
   use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212
   use mo_vgrid,      only: kmle
 
-  implicit none
+  IMPLICIT NONE
 
-  INTEGER :: kpie,kpje
-  REAL    :: omask(kpie,kpje)
+  integer :: kpie,kpje
+  real    :: omask(kpie,kpje)
 
-  INTEGER :: i,j
+  integer :: i,j
 
   do j=1,kpje
      do i=1,kpie

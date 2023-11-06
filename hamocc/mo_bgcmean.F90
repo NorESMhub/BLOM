@@ -66,15 +66,15 @@
       PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
 
 ! --- Averaging and writing frequencies for diagnostic output     
-      INTEGER, SAVE :: nbgc
-      INTEGER, PARAMETER :: nbgcmax=10
-      REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc
-      INTEGER, DIMENSION(nbgcmax), SAVE :: nacc_bgc
-      LOGICAL, DIMENSION(nbgcmax), SAVE :: diagmon_bgc,diagann_bgc,     &
+      integer, save :: nbgc
+      integer, parameter :: nbgcmax=10
+      real, dimension(nbgcmax), save ::  diagfq_bgc,filefq_bgc
+      integer, dimension(nbgcmax), save :: nacc_bgc
+      logical, dimension(nbgcmax), save :: diagmon_bgc,diagann_bgc,     &
      &  filemon_bgc,fileann_bgc,bgcwrt
  
 ! --- Namelist for diagnostic output 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
      & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
      & SRF_PCO2M     =0    ,                                            &
@@ -151,7 +151,7 @@
      & BUR_SSSTER    =0                                              ,  &
      & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
      & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0 
-      CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
+      CHARACTER(LEN=10), dimension(nbgcmax), save :: GLB_FNAMETAG
       namelist /DIABGC/                                                 &
      & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
      & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
@@ -234,7 +234,7 @@
 ! declarations for inventory_bgc.F90
 ! order and increments of river (jir...) indices require to be the same 
 ! as in mo_riverinpt 
-      INTEGER, parameter ::                                             &
+      integer, parameter ::                                             &
      &          jco2flux  =1,                                           &
      &          jo2flux   =2,                                           &
      &          jn2flux   =3,                                           &
@@ -261,8 +261,8 @@
      &          nbgct2d   =23
       
 !----------------------------------------------------------------      
-      INTEGER, SAVE :: i_bsc_m2d 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, save :: i_bsc_m2d 
+      integer, dimension(nbgcmax), save ::                              &
      &          jkwco2     = 0 ,                                        &
      &          jkwco2khm  = 0 ,                                        &
      &          jco2kh     = 0 ,                                        &
@@ -322,7 +322,7 @@
      &          jcalflx4000= 0 ,                                        &
      &          jcalflx_bot= 0
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jsediffic  = 0 ,                                        &
      &          jsediffal  = 0 ,                                        &
      &          jsediffph  = 0 ,                                        &
@@ -331,21 +331,21 @@
      &          jsediffno3 = 0 ,                                        &
                 jsediffsi  = 0
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jsrfnatdic = 0 ,                                        &
      &          jsrfnatalk = 0 ,                                        &
      &          jnatpco2   = 0 ,                                        &
      &          jnatco2fx  = 0 ,                                        &
      &          jsrfnatph  = 0
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jbromofx   = 0 ,                                        &
      &          jsrfbromo  = 0 ,                                        &
      &          jbromo_prod= 0 ,                                        &
      &          jbromo_uv  = 0
 
-      INTEGER, SAVE :: i_atm_m2d  
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, save :: i_atm_m2d  
+      integer, dimension(nbgcmax), save ::                              &
      &          jatmco2  = 0 ,                                          &
      &          jatmo2   = 0 ,                                          &
      &          jatmn2   = 0 ,                                          &
@@ -353,13 +353,13 @@
      &          jatmc14  = 0 ,                                          &
      &          jatmbromo= 0  
 
-      INTEGER, SAVE :: nbgcm2d 
+      integer, save :: nbgcm2d 
 
-      LOGICAL, SAVE :: domassfluxes = .false.
+      logical, save :: domassfluxes = .false.
 
 !----------------------------------------------------------------
-      INTEGER, SAVE :: i_bsc_m3d,ilvl_bsc_m3d 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, save :: i_bsc_m3d,ilvl_bsc_m3d 
+      integer, dimension(nbgcmax), save ::                              &
      &          jdp        = 0 ,                                        &
      &          jphyto     = 0 ,                                        &
      &          jgrazer    = 0 ,                                        &
@@ -418,7 +418,7 @@
      &          jlvlcfc12  = 0 ,                                        &
      &          jlvlsf6    = 0
     
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jdic13     = 0 ,                                        &
      &          jdic14     = 0 ,                                        &
      &          jd13c      = 0 ,                                        &
@@ -440,7 +440,7 @@
      &          jlvlphyto13 = 0,                                        &
      &          jlvlgrazer13= 0                                                                                        
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jnos       = 0 ,                                        &
      &          jwphy      = 0 ,                                        &
      &          jwnos      = 0 ,                                        &
@@ -452,7 +452,7 @@
      &          jlvleps    = 0 ,                                        &
      &          jlvlasize  = 0
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jnatco3       = 0 ,                                     &
      &          jnatalkali    = 0 ,                                     &
      &          jnatdic       = 0 ,                                     &
@@ -468,16 +468,16 @@
      &          jlvlnatomegaa = 0 ,                                     &
      &          jlvlnatomegac = 0 
 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, dimension(nbgcmax), save ::                              &
      &          jbromo     = 0 ,                                        &
      &          jlvlbromo  = 0               
 
-      INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl 
+      integer, save :: nbgcm3d,nbgcm3dlvl 
 
 !----------------------------------------------------------------
 ! sediment
-      INTEGER, SAVE :: i_bsc_sed 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, save :: i_bsc_sed 
+      integer, dimension(nbgcmax), save ::                              &
      &          jpowaic = 0 ,                                           &
      &          jpowaal = 0 ,                                           &
      &          jpowaph = 0 ,                                           &
@@ -491,27 +491,27 @@
      &          jssster = 0              
 
 
-      INTEGER, SAVE :: nbgct_sed    
+      integer, save :: nbgct_sed    
 
 !----------------------------------------------------------------
 !  burial
-      INTEGER, SAVE :: i_bsc_bur 
-      INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+      integer, save :: i_bsc_bur 
+      integer, dimension(nbgcmax), save ::                              &
      &          jburssso12 = 0 ,                                        &
      &          jbursssc12 = 0 ,                                        &
      &          jburssssil = 0 ,                                        &
      &          jburssster = 0
 
 
-      INTEGER, SAVE :: nbgct_bur
+      integer, save :: nbgct_bur
 
 !----------------------------------------------------------------
 
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgct2d
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgcm2d
-      REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgcm3d,bgcm3dlvl
-      REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgct_sed 
-      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgct_bur 
+      real, dimension (:,:,:),   allocatable :: bgct2d
+      real, dimension (:,:,:),   allocatable :: bgcm2d
+      real, dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
+      real, dimension (:,:,:,:), allocatable :: bgct_sed 
+      real, dimension (:,:,:),   allocatable :: bgct_bur 
      
  
       CONTAINS
@@ -523,9 +523,9 @@
 
       IMPLICIT NONE 
      
-      INTEGER, intent(in) :: kpie,kpje,kpke
+      integer, intent(in) :: kpie,kpje,kpke
 
-      INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
+      integer             :: m,n,errstat,iounit,checkdp(nbgcmax)
 
 !     Read namelist for diagnostic output
       GLB_AVEPERIO=0
@@ -537,203 +537,203 @@
 
 !     Determine number of output groups 
       nbgc=0 
-      DO n=1,nbgcmax
-        IF (GLB_AVEPERIO(n).NE.0) THEN 
+      do n=1,nbgcmax
+        if (GLB_AVEPERIO(n).NE.0) then 
           nbgc=nbgc+1
           nacc_bgc(n)=0 
-        ENDIF
-      ENDDO
+        endif
+      enddo
 
-      DO n=1,nbgc
+      do n=1,nbgc
         GLB_FILEFREQ(n)=max(GLB_AVEPERIO(n),GLB_FILEFREQ(n))
-        IF (GLB_AVEPERIO(n).LT.0) THEN
+        if (GLB_AVEPERIO(n).LT.0) then
           diagfq_bgc(n)=-real(nstepinday)/GLB_AVEPERIO(n)
-        ELSE
+        else
           diagfq_bgc(n)=nstepinday*max(1,GLB_AVEPERIO(n))
-        ENDIF
+        endif
         diagmon_bgc(n)=.false.
         diagann_bgc(n)=.false.
-        IF (GLB_AVEPERIO(n).EQ.30) THEN
+        if (GLB_AVEPERIO(n).EQ.30) then
           diagmon_bgc(n)=.true.
-        ELSEIF (GLB_AVEPERIO(n).EQ.365) THEN
+        elseIF (GLB_AVEPERIO(n).EQ.365) then
           diagann_bgc(n)=.true.
-        ENDIF
-        IF (GLB_FILEFREQ(n).LT.0) THEN
+        endif
+        if (GLB_FILEFREQ(n).LT.0) then
           filefq_bgc(n)=-real(nstepinday)/GLB_FILEFREQ(n)
-        ELSE
+        else
           filefq_bgc(n)=nstepinday*max(1,GLB_FILEFREQ(n))
-        ENDIF
+        endif
         filemon_bgc(n)=.false.
         fileann_bgc(n)=.false.
-        IF (GLB_FILEFREQ(n).EQ.30) THEN
+        if (GLB_FILEFREQ(n).EQ.30) then
           filemon_bgc(n)=.true.
-        ELSEIF (GLB_FILEFREQ(n).EQ.365) THEN
+        elseIF (GLB_FILEFREQ(n).EQ.365) then
           fileann_bgc(n)=.true.
-        ENDIF
-      ENDDO
+        endif
+      enddo
 
 !     Re-define index variables according to namelist 
       i_bsc_m2d=0 
-      DO n=1,nbgc  
-        IF (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+      do n=1,nbgc  
+        if (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jkwco2(n)=i_bsc_m2d*min(1,SRF_KWCO2(n))
-        IF (SRF_KWCO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_KWCO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jkwco2khm(n)=i_bsc_m2d*min(1,SRF_KWCO2KHM(n))
-        IF (SRF_CO2KH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_CO2KH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco2kh(n)=i_bsc_m2d*min(1,SRF_CO2KH(n))
-        IF (SRF_CO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_CO2KHM(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco2khm(n)=i_bsc_m2d*min(1,SRF_CO2KHM(n))
-        IF (SRF_PCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_PCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jpco2(n)=i_bsc_m2d*min(1,SRF_PCO2(n))
-        IF (SRF_PCO2M(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_PCO2M(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jpco2m(n)=i_bsc_m2d*min(1,SRF_PCO2M(n))
-        IF (SRF_DMSFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_DMSFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdmsflux(n)=i_bsc_m2d*min(1,SRF_DMSFLUX(n))
-        IF (SRF_CO2FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_CO2FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco2fxd(n)=i_bsc_m2d*min(1,SRF_CO2FXD(n))
-        IF (SRF_CO2FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_CO2FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jco2fxu(n)=i_bsc_m2d*min(1,SRF_CO2FXU(n))
-        IF (SRF_OXFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_OXFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         joxflux(n)=i_bsc_m2d*min(1,SRF_OXFLUX(n))
-        IF (SRF_NIFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_NIFLUX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jniflux(n)=i_bsc_m2d*min(1,SRF_NIFLUX(n))
-        IF (SRF_DMS(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_DMS(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdms(n)=i_bsc_m2d*min(1,SRF_DMS(n))
-        IF (SRF_DMSPROD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_DMSPROD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdmsprod(n)=i_bsc_m2d*min(1,SRF_DMSPROD(n))
-        IF (SRF_DMS_BAC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_DMS_BAC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdms_bac(n)=i_bsc_m2d*min(1,SRF_DMS_BAC(n))
-        IF (SRF_DMS_UV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_DMS_UV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jdms_uv(n)=i_bsc_m2d*min(1,SRF_DMS_UV(n))
-        IF (SRF_EXPORT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_EXPORT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jexport(n)=i_bsc_m2d*min(1,SRF_EXPORT(n))
-        IF (SRF_EXPOCA(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_EXPOCA(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jexpoca(n)=i_bsc_m2d*min(1,SRF_EXPOCA(n))
-        IF (SRF_EXPOSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_EXPOSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jexposi(n)=i_bsc_m2d*min(1,SRF_EXPOSI(n))
-        IF (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (SRF_N2OFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jn2ofx(n)=i_bsc_m2d*min(1,SRF_N2OFX(n))
-        IF (SRF_PHOSPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_PHOSPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfphosph(n)=i_bsc_m2d*min(1,SRF_PHOSPH(n))
-        IF (SRF_OXYGEN(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_OXYGEN(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfoxygen(n)=i_bsc_m2d*min(1,SRF_OXYGEN(n))
-        IF (SRF_IRON(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_IRON(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfiron(n)=i_bsc_m2d*min(1,SRF_IRON(n))
-        IF (SRF_ANO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_ANO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfano3(n)=i_bsc_m2d*min(1,SRF_ANO3(n))
-        IF (SRF_ALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_ALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfalkali(n)=i_bsc_m2d*min(1,SRF_ALKALI(n))
-        IF (SRF_SILICA(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_SILICA(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfsilica(n)=i_bsc_m2d*min(1,SRF_SILICA(n))
-        IF (SRF_DIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_DIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfdic(n)=i_bsc_m2d*min(1,SRF_DIC(n))
-        IF (SRF_PHYTO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_PHYTO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfphyto(n)=i_bsc_m2d*min(1,SRF_PHYTO(n))
-        IF (SRF_PH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (SRF_PH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jsrfph(n)=i_bsc_m2d*min(1,SRF_PH(n))
-        IF (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (INT_PHOSY(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintphosy(n)=i_bsc_m2d*min(1,INT_PHOSY(n))
-        IF (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (INT_NFIX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintnfix(n)=i_bsc_m2d*min(1,INT_NFIX(n))
-        IF (INT_DNIT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+        if (INT_DNIT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
         jintdnit(n)=i_bsc_m2d*min(1,INT_DNIT(n))
-        IF (FLX_NDEP(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_NDEP(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jndepfx(n)=i_bsc_m2d*min(1,FLX_NDEP(n))
-        IF (FLX_OALK(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_OALK(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         joalkfx(n)=i_bsc_m2d*min(1,FLX_OALK(n))
-        IF (FLX_CAR0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx0100(n)=i_bsc_m2d*min(1,FLX_CAR0100(n))
-        IF (FLX_CAR0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx0500(n)=i_bsc_m2d*min(1,FLX_CAR0500(n))
-        IF (FLX_CAR1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx1000(n)=i_bsc_m2d*min(1,FLX_CAR1000(n))
-        IF (FLX_CAR2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx2000(n)=i_bsc_m2d*min(1,FLX_CAR2000(n))
-        IF (FLX_CAR4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx4000(n)=i_bsc_m2d*min(1,FLX_CAR4000(n))
-        IF (FLX_CAR_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAR_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcarflx_bot(n)=i_bsc_m2d*min(1,FLX_CAR_BOT(n))
-        IF (FLX_BSI0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx0100(n)=i_bsc_m2d*min(1,FLX_BSI0100(n))
-        IF (FLX_BSI0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx0500(n)=i_bsc_m2d*min(1,FLX_BSI0500(n))
-        IF (FLX_BSI1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx1000(n)=i_bsc_m2d*min(1,FLX_BSI1000(n))
-        IF (FLX_BSI2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx2000(n)=i_bsc_m2d*min(1,FLX_BSI2000(n))
-        IF (FLX_BSI4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx4000(n)=i_bsc_m2d*min(1,FLX_BSI4000(n))
-        IF (FLX_BSI_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_BSI_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jbsiflx_bot(n)=i_bsc_m2d*min(1,FLX_BSI_BOT(n))
-        IF (FLX_CAL0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL0100(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx0100(n)=i_bsc_m2d*min(1,FLX_CAL0100(n))
-        IF (FLX_CAL0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL0500(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx0500(n)=i_bsc_m2d*min(1,FLX_CAL0500(n))
-        IF (FLX_CAL1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL1000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx1000(n)=i_bsc_m2d*min(1,FLX_CAL1000(n))
-        IF (FLX_CAL2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL2000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx2000(n)=i_bsc_m2d*min(1,FLX_CAL2000(n))
-        IF (FLX_CAL4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL4000(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx4000(n)=i_bsc_m2d*min(1,FLX_CAL4000(n))
-        IF (FLX_CAL_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+        if (FLX_CAL_BOT(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
         jcalflx_bot(n)=i_bsc_m2d*min(1,FLX_CAL_BOT(n))
         if (.not. use_sedbypass) then
-           IF (FLX_SEDIFFIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffic(n)=i_bsc_m2d*min(1,FLX_SEDIFFIC(n))
-           IF (FLX_SEDIFFAL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFAL(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffal(n)=i_bsc_m2d*min(1,FLX_SEDIFFAL(n))
-           IF (FLX_SEDIFFPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffph(n)=i_bsc_m2d*min(1,FLX_SEDIFFph(n))
-           IF (FLX_SEDIFFOX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFOX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffox(n)=i_bsc_m2d*min(1,FLX_SEDIFFOX(n))
-           IF (FLX_SEDIFFN2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFN2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffn2(n)=i_bsc_m2d*min(1,FLX_SEDIFFN2(n))
-           IF (FLX_SEDIFFNO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFNO3(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffno3(n)=i_bsc_m2d*min(1,FLX_SEDIFFNO3(n))
-           IF (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (FLX_SEDIFFSI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsediffsi(n)=i_bsc_m2d*min(1,FLX_SEDIFFSI(n))
         endif
         if (use_cisonew) then
-           IF (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CO213FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco213fxd(n)=i_bsc_m2d*min(1,SRF_CO213FXD(n))
-           IF (SRF_CO213FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CO213FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco213fxu(n)=i_bsc_m2d*min(1,SRF_CO213FXU(n))
-           IF (SRF_CO214FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CO214FXD(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco214fxd(n)=i_bsc_m2d*min(1,SRF_CO214FXD(n))
-           IF (SRF_CO214FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CO214FXU(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jco214fxu(n)=i_bsc_m2d*min(1,SRF_CO214FXU(n))
         endif
         if (use_CFC) then
-           IF (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CFC11(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jcfc11fx(n)=i_bsc_m2d*min(1,SRF_CFC11(n))
-           IF (SRF_CFC12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_CFC12(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jcfc12fx(n)=i_bsc_m2d*min(1,SRF_CFC12(n))
-           IF (SRF_SF6(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_SF6(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsf6fx(n)=i_bsc_m2d*min(1,SRF_SF6(n))
         endif
         if (use_natDIC) then
-           IF (SRF_NATDIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_NATDIC(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsrfnatdic(n)=i_bsc_m2d*min(1,SRF_NATDIC(n))
-           IF (SRF_NATALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_NATALKALI(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsrfnatalk(n)=i_bsc_m2d*min(1,SRF_NATALKALI(n))
-           IF (SRF_NATPCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_NATPCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jnatpco2(n)=i_bsc_m2d*min(1,SRF_NATPCO2(n))
-           IF (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_NATCO2FX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jnatco2fx(n)=i_bsc_m2d*min(1,SRF_NATCO2FX(n))
-           IF (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
+           if (SRF_NATPH(n).GT.0) i_bsc_m2d=i_bsc_m2d+1 
            jsrfnatph(n)=i_bsc_m2d*min(1,SRF_NATPH(n))
         endif
         if (use_BROMO ) then
-           IF (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+           if (SRF_BROMO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jsrfbromo(n)=i_bsc_m2d*min(1,SRF_BROMO(n))
-           IF (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+           if (SRF_BROMOFX(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jbromofx(n)=i_bsc_m2d*min(1,SRF_BROMOFX(n))
-           IF (INT_BROMOPRO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+           if (INT_BROMOPRO(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jbromo_prod(n)=i_bsc_m2d*min(1,INT_BROMOPRO(n))
-           IF (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
+           if (INT_BROMOUV(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
            jbromo_uv(n)=i_bsc_m2d*min(1,INT_BROMOUV(n))
         endif
-      ENDDO 
+      enddo 
 
       domassfluxes = any(                                    &
         jcarflx0100+jcarflx0500+jcarflx1000+                 &
@@ -744,311 +744,311 @@
         jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
 
       i_atm_m2d=i_bsc_m2d
-      DO n=1,nbgc
-        IF (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
+      do n=1,nbgc
+        if (SRF_ATMCO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
         jatmco2(n)=i_atm_m2d*min(1,SRF_ATMCO2(n))
         if (use_BOXATM) then
-           IF (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
+           if (SRF_ATMO2(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmo2(n)=i_atm_m2d*min(1,SRF_ATMO2(n))
-           IF (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
+           if (SRF_ATMN2(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmn2(n)=i_atm_m2d*min(1,SRF_ATMN2(n))
         endif
         if (use_cisonew) then
-           IF (SRF_ATMC13(n).GT.0) i_atm_m2d=i_atm_m2d+1
+           if (SRF_ATMC13(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmc13(n)=i_atm_m2d*min(1,SRF_ATMC13(n))
-           IF (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
+           if (SRF_ATMC14(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmc14(n)=i_atm_m2d*min(1,SRF_ATMC14(n))
         endif
         if (use_BROMO ) then
-           IF (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
+           if (SRF_ATMBROMO(n).GT.0) i_atm_m2d=i_atm_m2d+1
            jatmbromo(n)=i_atm_m2d*min(1,SRF_ATMBROMO(n))
         endif
-      ENDDO 
+      enddo 
       i_atm_m2d=i_atm_m2d-i_bsc_m2d
 
       i_bsc_m3d=0 
       ilvl_bsc_m3d=0 
-      DO n=1,nbgc 
+      do n=1,nbgc 
         checkdp(n)=0
 
-        IF (LYR_PHYTO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PHYTO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jphyto(n)=i_bsc_m3d*min(1,LYR_PHYTO(n))
-        IF (LYR_GRAZER(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_GRAZER(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jgrazer(n)=i_bsc_m3d*min(1,LYR_GRAZER(n))
-        IF (LYR_DOC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_DOC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdoc(n)=i_bsc_m3d*min(1,LYR_DOC(n))
-        IF (LYR_PHOSY(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PHOSY(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jphosy(n)=i_bsc_m3d*min(1,LYR_PHOSY(n))
-        IF (LYR_PHOSPH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PHOSPH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jphosph(n)=i_bsc_m3d*min(1,LYR_PHOSPH(n))
-        IF (LYR_OXYGEN(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_OXYGEN(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         joxygen(n)=i_bsc_m3d*min(1,LYR_OXYGEN(n))
-        IF (LYR_IRON(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_IRON(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jiron(n)=i_bsc_m3d*min(1,LYR_IRON(n))
-        IF (LYR_ANO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_ANO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jano3(n)=i_bsc_m3d*min(1,LYR_ANO3(n))
-        IF (LYR_ALKALI(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_ALKALI(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jalkali(n)=i_bsc_m3d*min(1,LYR_ALKALI(n))
-        IF (LYR_SILICA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_SILICA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jsilica(n)=i_bsc_m3d*min(1,LYR_SILICA(n))
-        IF (LYR_DIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_DIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdic(n)=i_bsc_m3d*min(1,LYR_DIC(n))
-        IF (LYR_POC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_POC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jpoc(n)=i_bsc_m3d*min(1,LYR_POC(n))
-        IF (LYR_CALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_CALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jcalc(n)=i_bsc_m3d*min(1,LYR_CALC(n))
-        IF (LYR_OPAL(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_OPAL(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jopal(n)=i_bsc_m3d*min(1,LYR_OPAL(n))
-        IF (LYR_CO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_CO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jco3(n)=i_bsc_m3d*min(1,LYR_CO3(n))
-        IF (LYR_PH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jph(n)=i_bsc_m3d*min(1,LYR_PH(n))
-        IF (LYR_OMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_OMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jomegaa(n)=i_bsc_m3d*min(1,LYR_OMEGAA(n))
-        IF (LYR_OMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_OMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jomegac(n)=i_bsc_m3d*min(1,LYR_OMEGAC(n))
-        IF (LYR_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_N2O(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jn2o(n)=i_bsc_m3d*min(1,LYR_N2O(n))
-        IF (LYR_PREFO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PREFO2(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefo2(n)=i_bsc_m3d*min(1,LYR_PREFO2(n))
-        IF (LYR_O2SAT(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_O2SAT(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jo2sat(n)=i_bsc_m3d*min(1,LYR_O2SAT(n))
-        IF (LYR_PREFPO4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PREFPO4(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefpo4(n)=i_bsc_m3d*min(1,LYR_PREFPO4(n))
-        IF (LYR_PREFALK(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PREFALK(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefalk(n)=i_bsc_m3d*min(1,LYR_PREFALK(n))
-        IF (LYR_PREFDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_PREFDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jprefdic(n)=i_bsc_m3d*min(1,LYR_PREFDIC(n))
-        IF (LYR_DICSAT(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_DICSAT(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdicsat(n)=i_bsc_m3d*min(1,LYR_DICSAT(n))
-        IF (LYR_DP(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+        if (LYR_DP(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
         jdp(n)=i_bsc_m3d*min(1,LYR_DP(n))
         if (use_CFC) then
-           IF (LYR_CFC11(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_CFC11(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jcfc11(n)=i_bsc_m3d*min(1,LYR_CFC11(n))
-           IF (LYR_CFC12(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_CFC12(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jcfc12(n)=i_bsc_m3d*min(1,LYR_CFC12(n))
-           IF (LYR_SF6(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_SF6(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jsf6(n)=i_bsc_m3d*min(1,LYR_SF6(n))
         endif
         if (use_cisonew) then
-           IF (LYR_DIC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_DIC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jdic13(n)=i_bsc_m3d*min(1,LYR_DIC13(n))
-           IF (LYR_DIC14(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_DIC14(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jdic14(n)=i_bsc_m3d*min(1,LYR_DIC14(n))
-           IF (LYR_D13C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_D13C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jd13c(n)=i_bsc_m3d*min(1,LYR_D13C(n))
-           IF (LYR_D14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_D14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jd14c(n)=i_bsc_m3d*min(1,LYR_D14C(n))
-           IF (LYR_BIGD14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_BIGD14C(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jbigd14c(n)=i_bsc_m3d*min(1,LYR_BIGD14C(n))
-           IF (LYR_POC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_POC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jpoc13(n)=i_bsc_m3d*min(1,LYR_POC13(n))
-           IF (LYR_DOC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_DOC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jdoc13(n)=i_bsc_m3d*min(1,LYR_DOC13(n))
-           IF (LYR_CALC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_CALC13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jcalc13(n)=i_bsc_m3d*min(1,LYR_CALC13(n))
-           IF (LYR_PHYTO13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_PHYTO13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jphyto13(n)=i_bsc_m3d*min(1,LYR_PHYTO13(n))
-           IF (LYR_GRAZER13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_GRAZER13(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jgrazer13(n)=i_bsc_m3d*min(1,LYR_GRAZER13(n))
         endif
         if (use_AGG) then
-           IF (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnos(n)=i_bsc_m3d*min(1,LYR_NOS(n))
-           IF (LYR_WPHY(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_WPHY(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jwphy(n)=i_bsc_m3d*min(1,LYR_WPHY(n))
-           IF (LYR_WNOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_WNOS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jwnos(n)=i_bsc_m3d*min(1,LYR_WNOS(n))
-           IF (LYR_EPS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_EPS(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jeps(n)=i_bsc_m3d*min(1,LYR_EPS(n))
-           IF (LYR_ASIZE(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_ASIZE(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jasize(n)=i_bsc_m3d*min(1,LYR_ASIZE(n))
         endif
         if (use_natDIC) then
-           IF (LYR_NATCO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATCO3(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatco3(n)=i_bsc_m3d*min(1,LYR_NATCO3(n))
-           IF (LYR_NATALKALI(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATALKALI(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatalkali(n)=i_bsc_m3d*min(1,LYR_NATALKALI(n))
-           IF (LYR_NATDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATDIC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatdic(n)=i_bsc_m3d*min(1,LYR_NATDIC(n))
-           IF (LYR_NATCALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATCALC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatcalc(n)=i_bsc_m3d*min(1,LYR_NATCALC(n))
-           IF (LYR_NATPH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATPH(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatph(n)=i_bsc_m3d*min(1,LYR_NATPH(n))
-           IF (LYR_NATOMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATOMEGAA(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatomegaa(n)=i_bsc_m3d*min(1,LYR_NATOMEGAA(n))
-           IF (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_NATOMEGAC(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jnatomegac(n)=i_bsc_m3d*min(1,LYR_NATOMEGAC(n))
         endif
         if (use_BROMO) then
-           IF (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
+           if (LYR_BROMO(n).GT.0) i_bsc_m3d=i_bsc_m3d+1
            jbromo(n)=i_bsc_m3d*min(1,LYR_BROMO(n))
         endif
 
-        IF (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PHYTO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphyto(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO(n))
-        IF (LVL_GRAZER(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_GRAZER(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlgrazer(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER(n))
-        IF (LVL_DOC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_DOC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvldoc(n)=ilvl_bsc_m3d*min(1,LVL_DOC(n))
-        IF (LVL_PHOSY(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PHOSY(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphosy(n)=ilvl_bsc_m3d*min(1,LVL_PHOSY(n))
-        IF (LVL_PHOSPH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PHOSPH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlphosph(n)=ilvl_bsc_m3d*min(1,LVL_PHOSPH(n))
-        IF (LVL_OXYGEN(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_OXYGEN(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvloxygen(n)=ilvl_bsc_m3d*min(1,LVL_OXYGEN(n))
-        IF (LVL_IRON(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_IRON(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvliron(n)=ilvl_bsc_m3d*min(1,LVL_IRON(n))
-        IF (LVL_ANO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_ANO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlano3(n)=ilvl_bsc_m3d*min(1,LVL_ANO3(n))
-        IF (LVL_ALKALI(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_ALKALI(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlalkali(n)=ilvl_bsc_m3d*min(1,LVL_ALKALI(n))
-        IF (LVL_SILICA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_SILICA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlsilica(n)=ilvl_bsc_m3d*min(1,LVL_SILICA(n))
-        IF (LVL_DIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_DIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvldic(n)=ilvl_bsc_m3d*min(1,LVL_DIC(n))
-        IF (LVL_POC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_POC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlpoc(n)=ilvl_bsc_m3d*min(1,LVL_POC(n))
-        IF (LVL_CALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_CALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlcalc(n)=ilvl_bsc_m3d*min(1,LVL_CALC(n))
-        IF (LVL_OPAL(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_OPAL(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlopal(n)=ilvl_bsc_m3d*min(1,LVL_OPAL(n))
-        IF (LVL_CO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_CO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlco3(n)=ilvl_bsc_m3d*min(1,LVL_CO3(n))
-        IF (LVL_PH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlph(n)=ilvl_bsc_m3d*min(1,LVL_PH(n))
-        IF (LVL_OMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_OMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlomegaa(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAA(n))
-        IF (LVL_OMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_OMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlomegac(n)=ilvl_bsc_m3d*min(1,LVL_OMEGAC(n))
-        IF (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_N2O(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvln2o(n)=ilvl_bsc_m3d*min(1,LVL_N2O(n))
-        IF (LVL_PREFO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PREFO2(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefo2(n)=ilvl_bsc_m3d*min(1,LVL_PREFO2(n))
-        IF (LVL_O2SAT(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_O2SAT(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlo2sat(n)=ilvl_bsc_m3d*min(1,LVL_O2SAT(n))
-        IF (LVL_PREFPO4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PREFPO4(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefpo4(n)=ilvl_bsc_m3d*min(1,LVL_PREFPO4(n))
-        IF (LVL_PREFALK(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PREFALK(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefalk(n)=ilvl_bsc_m3d*min(1,LVL_PREFALK(n))
-        IF (LVL_PREFDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_PREFDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvlprefdic(n)=ilvl_bsc_m3d*min(1,LVL_PREFDIC(n))
-        IF (LVL_DICSAT(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+        if (LVL_DICSAT(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
         jlvldicsat(n)=ilvl_bsc_m3d*min(1,LVL_DICSAT(n))
         if (use_CFC) then
-           IF (LVL_CFC11(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_CFC11(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlcfc11(n)=ilvl_bsc_m3d*min(1,LVL_CFC11(n))
-           IF (LVL_CFC12(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_CFC12(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlcfc12(n)=ilvl_bsc_m3d*min(1,LVL_CFC12(n))
-           IF (LVL_SF6(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_SF6(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlsf6(n)=ilvl_bsc_m3d*min(1,LVL_SF6(n))
         endif
         if (use_cisonew) then
-           IF (LVL_DIC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_DIC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvldic13(n)=ilvl_bsc_m3d*min(1,LVL_DIC13(n))
-           IF (LVL_DIC14(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_DIC14(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvldic14(n)=ilvl_bsc_m3d*min(1,LVL_DIC14(n))
-           IF (LVL_D13C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_D13C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvld13c(n)=ilvl_bsc_m3d*min(1,LVL_D13C(n))
-           IF (LVL_D14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_D14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvld14c(n)=ilvl_bsc_m3d*min(1,LVL_D14C(n))
-           IF (LVL_BIGD14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_BIGD14C(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlbigd14c(n)=ilvl_bsc_m3d*min(1,LVL_BIGD14C(n))
-           IF (LVL_POC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_POC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlpoc13(n)=ilvl_bsc_m3d*min(1,LVL_POC13(n))
-           IF (LVL_DOC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_DOC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvldoc13(n)=ilvl_bsc_m3d*min(1,LVL_DOC13(n))
-           IF (LVL_CALC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_CALC13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlcalc13(n)=ilvl_bsc_m3d*min(1,LVL_CALC13(n))
-           IF (LVL_PHYTO13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_PHYTO13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlphyto13(n)=ilvl_bsc_m3d*min(1,LVL_PHYTO13(n))
-           IF (LVL_GRAZER13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_GRAZER13(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlgrazer13(n)=ilvl_bsc_m3d*min(1,LVL_GRAZER13(n))
         endif
         if (use_AGG) then
-           IF (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnos(n)=ilvl_bsc_m3d*min(1,LVL_NOS(n))
-           IF (LVL_WPHY(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_WPHY(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlwphy(n)=ilvl_bsc_m3d*min(1,LVL_WPHY(n))
-           IF (LVL_WNOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_WNOS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlwnos(n)=ilvl_bsc_m3d*min(1,LVL_WNOS(n))
-           IF (LVL_EPS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_EPS(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvleps(n)=ilvl_bsc_m3d*min(1,LVL_EPS(n))
-           IF (LVL_ASIZE(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_ASIZE(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlasize(n)=ilvl_bsc_m3d*min(1,LVL_ASIZE(n))
         endif
         if (use_natDIC) then
-           IF (LVL_NATCO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATCO3(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatco3(n)=ilvl_bsc_m3d*min(1,LVL_NATCO3(n))
-           IF (LVL_NATALKALI(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATALKALI(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatalkali(n)=ilvl_bsc_m3d*min(1,LVL_NATALKALI(n))
-           IF (LVL_NATDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATDIC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatdic(n)=ilvl_bsc_m3d*min(1,LVL_NATDIC(n))
-           IF (LVL_NATCALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATCALC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatcalc(n)=ilvl_bsc_m3d*min(1,LVL_NATCALC(n))
-           IF (LVL_NATPH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATPH(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatph(n)=ilvl_bsc_m3d*min(1,LVL_NATPH(n))
-           IF (LVL_NATOMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATOMEGAA(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatomegaa(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAA(n))
-           IF (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_NATOMEGAC(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlnatomegac(n)=ilvl_bsc_m3d*min(1,LVL_NATOMEGAC(n))
         endif
         if (use_BROMO) then
-           IF (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
+           if (LVL_BROMO(n).GT.0) ilvl_bsc_m3d=ilvl_bsc_m3d+1
            jlvlbromo(n)=ilvl_bsc_m3d*min(1,LVL_BROMO(n))
         endif
 
-        IF (i_bsc_m3d.NE.0) checkdp(n)=1
-      ENDDO 
+        if (i_bsc_m3d.NE.0) checkdp(n)=1
+      enddo 
       
 
 !     add dp required 
-      DO n=1,nbgc
-        IF (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) THEN 
+      do n=1,nbgc
+        if (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) then 
           i_bsc_m3d=i_bsc_m3d+1
           jdp(n)=i_bsc_m3d
-        ENDIF
-      ENDDO 
+        endif
+      enddo 
   
       i_bsc_sed=0
       i_bsc_bur=0
       if (.not. use_sedbypass) then
-         DO n=1,nbgc
-            IF (SDM_POWAIC(n).GT.0) i_bsc_sed=i_bsc_sed+1
+         do n=1,nbgc
+            if (SDM_POWAIC(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowaic(n)=i_bsc_sed*min(1,SDM_POWAIC(n))
-            IF (SDM_POWAAL(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWAAL(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowaal(n)=i_bsc_sed*min(1,SDM_POWAAL(n))
-            IF (SDM_POWAPH(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWAPH(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowaph(n)=i_bsc_sed*min(1,SDM_POWAPH(n))
-            IF (SDM_POWAOX(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWAOX(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowaox(n)=i_bsc_sed*min(1,SDM_POWAOX(n))
-            IF (SDM_POWN2(n) .GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWN2(n) .GT.0) i_bsc_sed=i_bsc_sed+1
             jpown2(n) =i_bsc_sed*min(1,SDM_POWN2(n))
-            IF (SDM_POWNO3(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWNO3(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowno3(n)=i_bsc_sed*min(1,SDM_POWNO3(n))
-            IF (SDM_POWASI(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_POWASI(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jpowasi(n)=i_bsc_sed*min(1,SDM_POWASI(n))
-            IF (SDM_SSSO12(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_SSSO12(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jssso12(n)=i_bsc_sed*min(1,SDM_SSSO12(n))
-            IF (SDM_SSSSIL(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_SSSSIL(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jssssil(n)=i_bsc_sed*min(1,SDM_SSSSIL(n))
-            IF (SDM_SSSC12(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_SSSC12(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jsssc12(n)=i_bsc_sed*min(1,SDM_SSSC12(n))
-            IF (SDM_SSSTER(n).GT.0) i_bsc_sed=i_bsc_sed+1
+            if (SDM_SSSTER(n).GT.0) i_bsc_sed=i_bsc_sed+1
             jssster(n)=i_bsc_sed*min(1,SDM_SSSTER(n))
-         ENDDO
+         enddo
 
-         DO n=1,nbgc
-            IF (BUR_SSSO12(n).GT.0) i_bsc_bur=i_bsc_bur+1
+         do n=1,nbgc
+            if (BUR_SSSO12(n).GT.0) i_bsc_bur=i_bsc_bur+1
             jburssso12(n)=i_bsc_bur*min(1,BUR_SSSO12(n))
-            IF (BUR_SSSC12(n).GT.0) i_bsc_bur=i_bsc_bur+1
+            if (BUR_SSSC12(n).GT.0) i_bsc_bur=i_bsc_bur+1
             jbursssc12(n)=i_bsc_bur*min(1,BUR_SSSC12(n))
-            IF (BUR_SSSSIL(n).GT.0) i_bsc_bur=i_bsc_bur+1
+            if (BUR_SSSSIL(n).GT.0) i_bsc_bur=i_bsc_bur+1
             jburssssil(n)=i_bsc_bur*min(1,BUR_SSSSIL(n))
-            IF (BUR_SSSTER(n).GT.0) i_bsc_bur=i_bsc_bur+1
+            if (BUR_SSSTER(n).GT.0) i_bsc_bur=i_bsc_bur+1
             jburssster(n)=i_bsc_bur*min(1,BUR_SSSTER(n))
-         ENDDO
+         enddo
       endif
          
       nbgcm2d    = i_bsc_m2d+i_atm_m2d
@@ -1059,89 +1059,89 @@
 
 !     Allocate buffers 
 
-      IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'***************************************************'
-        WRITE(io_stdo_bgc,*)'Memory allocation for averaging model output :'
-        WRITE(io_stdo_bgc,*)' '
-      ENDIF
+      if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'***************************************************'
+        write(io_stdo_bgc,*)'Memory allocation for averaging model output :'
+        write(io_stdo_bgc,*)' '
+      endif
 
 
-      IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgct2d
-      ENDIF
+      if (mnproc.EQ.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',nbgct2d
+      endif
 
       ALLOCATE (bgct2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct2d),      &
      &  stat=errstat)
-      IF (errstat.NE.0) STOP 'not enough memory bgct2d'
-      IF (nbgct2d.NE.0) bgct2d=0.     
+      if (errstat.NE.0) STOP 'not enough memory bgct2d'
+      if (nbgct2d.NE.0) bgct2d=0.     
  
-      IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgcm2d
-      ENDIF
+      if (mnproc.EQ.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',nbgcm2d
+      endif
 
       ALLOCATE (bgcm2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgcm2d),      &
      &  stat=errstat)
-      IF (errstat.NE.0) STOP 'not enough memory bgcm2d'
-      IF (nbgcm2d.NE.0) bgcm2d=0.
+      if (errstat.NE.0) STOP 'not enough memory bgcm2d'
+      if (nbgcm2d.NE.0) bgcm2d=0.
 
-      IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3d
-      ENDIF
+      if (mnproc.EQ.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',kpke
+        write(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3d
+      endif
 
       ALLOCATE (bgcm3d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,nbgcm3d), &
      &  stat=errstat)
-      IF (errstat.NE.0) STOP 'not enough memory bgcm3d'
-      IF (nbgcm3d.NE.0) bgcm3d=0.
+      if (errstat.NE.0) STOP 'not enough memory bgcm3d'
+      if (nbgcm3d.NE.0) bgcm3d=0.
 
-      IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3dlvl
-      ENDIF
+      if (mnproc.EQ.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',kpke
+        write(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3dlvl
+      endif
 
       ALLOCATE (bgcm3dlvl(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ddm,        &
      &  nbgcm3dlvl),stat=errstat)
-      IF (errstat.NE.0) STOP 'not enough memory bgcm3dlvl'
-      IF (nbgcm3dlvl.NE.0) bgcm3dlvl=0.
+      if (errstat.NE.0) STOP 'not enough memory bgcm3dlvl'
+      if (nbgcm3dlvl.NE.0) bgcm3dlvl=0.
 
       if (.not. use_sedbypass) then
-         IF (mnproc.EQ.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable bgctsed ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-            WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgct_sed
-         ENDIF
+         if (mnproc.EQ.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable bgctsed ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',ks
+            write(io_stdo_bgc,*)'Forth dimension    : ',nbgct_sed
+         endif
 
          ALLOCATE (bgct_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,          &
               &  nbgct_sed),stat=errstat)
-         IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
-         IF (nbgct_sed.NE.0) bgct_sed=0. 
+         if (errstat.NE.0) STOP 'not enough memory bgct_sed'
+         if (nbgct_sed.NE.0) bgct_sed=0. 
 
-         IF (mnproc.EQ.1) THEN
-            WRITE(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
-            WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-            WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-            WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgct_bur
-         ENDIF
+         if (mnproc.EQ.1) then
+            write(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
+            write(io_stdo_bgc,*)'First dimension    : ',kpie
+            write(io_stdo_bgc,*)'Second dimension   : ',kpje
+            write(io_stdo_bgc,*)'Third dimension    : ',nbgct_bur
+         endif
 
          ALLOCATE (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,             &
               &  nbgct_bur),stat=errstat)
-         IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
-         IF (nbgct_bur.NE.0) bgct_bur=0. 
+         if (errstat.NE.0) STOP 'not enough memory bgct_sed'
+         if (nbgct_bur.NE.0) bgct_bur=0. 
       endif
 
       END SUBROUTINE ALLOC_MEM_BGCMEAN
@@ -1160,22 +1160,22 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos
-      REAL ::inival
+      integer :: pos
+      real ::inival
 ! 
-      INTEGER :: i,j,l
+      integer :: i,j,l
 !
 ! --- Check whether field should be initialised
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             bgcm2d(i,j,pos)=inival
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE inisrf
@@ -1194,25 +1194,25 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos
-      REAL ::inival
+      integer :: pos
+      real ::inival
 ! 
-      INTEGER :: i,j,k,l
+      integer :: i,j,k,l
 !
 ! --- Check whether field should be initialised
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,kdm
+      do k=1,kdm
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               bgcm3d(i,j,k,pos)=inival
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !
       END SUBROUTINE inilyr
 
@@ -1230,25 +1230,25 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos
-      REAL ::inival
+      integer :: pos
+      real ::inival
 ! 
-      INTEGER :: i,j,k,l
+      integer :: i,j,k,l
 !
 ! --- Check whether field should be initialised
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,ddm
+      do k=1,ddm
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               bgcm3dlvl(i,j,k,pos)=inival
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !
       END SUBROUTINE inilvl
 
@@ -1266,25 +1266,25 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos
-      REAL ::inival
+      integer :: pos
+      real ::inival
 ! 
-      INTEGER :: i,j,k,l
+      integer :: i,j,k,l
 !
 ! --- Check whether field should be initialised
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,ks
+      do k=1,ks
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               bgct_sed(i,j,k,pos)=inival
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !
       END SUBROUTINE inisdm
 
@@ -1302,22 +1302,22 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos
-      REAL ::inival
+      integer :: pos
+      real ::inival
 ! 
-      INTEGER :: i,j,l
+      integer :: i,j,l
 !
 ! --- Check whether field should be initialised
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             bgct_bur(i,j,pos)=inival
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE inibur
@@ -1337,39 +1337,39 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos(nbgcmax),wghtsflg
-      REAL, DIMENSION(idm,jdm) :: fld,wghts
+      integer :: pos(nbgcmax),wghtsflg
+      real, dimension(idm,jdm) :: fld,wghts
 ! 
-      INTEGER :: i,j,l,o
+      integer :: i,j,l,o
 !
 ! --- Check whether field should be accumulated
-      DO o=1,nbgc
-        IF (pos(o).EQ.0) cycle
+      do o=1,nbgc
+        if (pos(o).EQ.0) cycle
 !
-          IF (wghtsflg.eq.0) then 
+          if (wghtsflg.eq.0) then 
 !$OMP PARALLEL DO PRIVATE(l,i)
-            DO j=1,jj
-              DO l=1,isp(j)
-                DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            do j=1,jj
+              do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                   bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o))+fld(i,j)
-                ENDDO
-              ENDDO
-            ENDDO
+                enddo
+              enddo
+            enddo
 !$OMP END PARALLEL DO
-          ELSE
+          else
 !$OMP PARALLEL DO PRIVATE(l,i)
-            DO j=1,jj
-              DO l=1,isp(j)
-                DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            do j=1,jj
+              do l=1,isp(j)
+                do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                   bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o))+fld(i,j)*       &
      &              wghts(i,j)
-                ENDDO
-              ENDDO
-            ENDDO
+                enddo
+              enddo
+            enddo
 !$OMP END PARALLEL DO
-          ENDIF 
+          endif 
 !
-      ENDDO
+      enddo
 !   
       END SUBROUTINE accsrf
 
@@ -1388,44 +1388,44 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos(nbgcmax),wghtsflg
-      REAL, DIMENSION(idm,jdm,kdm) :: fld,wghts
+      integer :: pos(nbgcmax),wghtsflg
+      real, dimension(idm,jdm,kdm) :: fld,wghts
 ! 
-      INTEGER :: i,j,k,l,o
+      integer :: i,j,k,l,o
 !
 ! --- Check whether field should be accumulated
-      DO o=1,nbgc
-        IF (pos(o).EQ.0) cycle
+      do o=1,nbgc
+        if (pos(o).EQ.0) cycle
 !
-          IF (wghtsflg.eq.0) then 
-            DO k=1,kk
+          if (wghtsflg.eq.0) then 
+            do k=1,kk
 !$OMP PARALLEL DO PRIVATE(l,i)
-              DO j=1,jj
-                DO l=1,isp(j)
-                  DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              do j=1,jj
+                do l=1,isp(j)
+                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o))+          &
      &                fld(i,j,k)
-                  ENDDO
-                ENDDO
-              ENDDO
+                  enddo
+                enddo
+              enddo
 !$OMP END PARALLEL DO
-            ENDDO
-          ELSE
-            DO k=1,kk
+            enddo
+          else
+            do k=1,kk
 !$OMP PARALLEL DO PRIVATE(l,i)
-              DO j=1,jj
-                DO l=1,isp(j)
-                  DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              do j=1,jj
+                do l=1,isp(j)
+                  do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                     bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o))+          &
      &                fld(i,j,k)*wghts(i,j,k)
-                  ENDDO
-                ENDDO
-              ENDDO
+                  enddo
+                enddo
+              enddo
 !$OMP END PARALLEL DO
-            ENDDO
-          ENDIF
+            enddo
+          endif
 !
-      ENDDO
+      enddo
       END SUBROUTINE acclyr
 
 
@@ -1446,30 +1446,30 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos(nbgcmax),k
-      INTEGER, DIMENSION(idm,jdm) :: ind1,ind2
-      REAL, DIMENSION(idm,jdm,ddm) :: wghts
-      REAL, DIMENSION(idm,jdm,kdm) :: fld
+      integer :: pos(nbgcmax),k
+      integer, dimension(idm,jdm) :: ind1,ind2
+      real, dimension(idm,jdm,ddm) :: wghts
+      real, dimension(idm,jdm,kdm) :: fld
 ! 
-      INTEGER :: d,i,j,l,o
+      integer :: d,i,j,l,o
 !
 ! --- Check whether field should be accumulated
-      DO o=1,nbgc
-        IF (pos(o).EQ.0) cycle
+      do o=1,nbgc
+        if (pos(o).EQ.0) cycle
 !
 !$OMP PARALLEL DO PRIVATE(l,i,d)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              DO d=ind1(i,j),ind2(i,j)
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              do d=ind1(i,j),ind2(i,j)
                 bgcm3dlvl(i,j,d,pos(o))=bgcm3dlvl(i,j,d,pos(o))+        &
      &            fld(i,j,k)*wghts(i,j,d)
-              ENDDO
-            ENDDO
-          ENDDO
-        ENDDO
+              enddo
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !     
       END SUBROUTINE acclvl
 
@@ -1487,27 +1487,27 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos(nbgcmax)
-      REAL, DIMENSION(idm,jdm,ks) :: fld
+      integer :: pos(nbgcmax)
+      real, dimension(idm,jdm,ks) :: fld
 ! 
-      INTEGER :: i,j,k,l,o
+      integer :: i,j,k,l,o
 !
 ! --- Check whether field should be accumulated
-      DO o=1,nbgc
-        IF (pos(o).EQ.0) cycle
+      do o=1,nbgc
+        if (pos(o).EQ.0) cycle
 !
-        DO k=1,ks
+        do k=1,ks
 !$OMP PARALLEL DO PRIVATE(l,i)
-          DO j=1,jj
-            DO l=1,isp(j)
-              DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          do j=1,jj
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 bgct_sed(i,j,k,pos(o))=bgct_sed(i,j,k,pos(o))+fld(i,j,k)
-              ENDDO
-            ENDDO
-          ENDDO
+              enddo
+            enddo
+          enddo
 !$OMP END PARALLEL DO
-        ENDDO
-      ENDDO
+        enddo
+      enddo
 !   
       END SUBROUTINE accsdm
 
@@ -1525,25 +1525,25 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: pos(nbgcmax)
-      REAL, DIMENSION(idm,jdm) :: fld
+      integer :: pos(nbgcmax)
+      real, dimension(idm,jdm) :: fld
 ! 
-      INTEGER :: i,j,l,o
+      integer :: i,j,l,o
 !
 ! --- Check whether field should be accumulated
-      DO o=1,nbgc
-        IF (pos(o).EQ.0) cycle
+      do o=1,nbgc
+        if (pos(o).EQ.0) cycle
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               bgct_bur(i,j,pos(o))=bgct_bur(i,j,pos(o))+fld(i,j)
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !   
       END SUBROUTINE accbur
 
@@ -1561,23 +1561,23 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: posacc,poswgt
+      integer :: posacc,poswgt
 ! 
-      INTEGER :: i,j,l
-      REAL, parameter :: epsil=1e-11
+      integer :: i,j,l
+      real, parameter :: epsil=1e-11
 !
 ! --- Check whether field should be initialised
-      IF (posacc.EQ.0) RETURN
+      if (posacc.EQ.0) return
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             bgcm2d(i,j,posacc)=bgcm2d(i,j,posacc)/                      &
      &        max(epsil,bgcm2d(i,j,poswgt))
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !     
       END SUBROUTINE finsrf
@@ -1596,30 +1596,30 @@
 !
       IMPLICIT NONE
 ! 
-      INTEGER :: posacc,poswgt
+      integer :: posacc,poswgt
 ! 
-      INTEGER :: i,j,k,l
-      REAL, parameter :: epsil=1e-11
+      integer :: i,j,k,l
+      real, parameter :: epsil=1e-11
 !
 ! --- Check whether field should be initialised
-      IF (posacc.EQ.0) RETURN
+      if (posacc.EQ.0) return
 !
-      DO k=1,kk
+      do k=1,kk
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              IF (bgcm3d(i,j,k,poswgt).GT.epsil) THEN
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (bgcm3d(i,j,k,poswgt).GT.epsil) then
                 bgcm3d(i,j,k,posacc)=bgcm3d(i,j,k,posacc)/              &
      &            bgcm3d(i,j,k,poswgt) 
-              ELSE 
+              else 
                 bgcm3d(i,j,k,posacc)=nf90_fill_double
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
+              endif
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !     
       END SUBROUTINE finlyr
 
@@ -1641,57 +1641,57 @@
 ! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
 ! ---   real offs     (in)     : user def.NE. offset to be added 
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
-! ---                            written IF flag is set to 1 
+! ---                            written if flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL,            intent(in) :: sfac,offs
-      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      real,            intent(in) :: sfac,offs
+      integer,         intent(in) :: frmt,cmpflg,pos
       CHARACTER(LEN=*),intent(in) :: vnm
 !
-      INTEGER                     :: n
+      integer                     :: n
       CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+      if (pos.EQ.0 .OR. frmt.EQ.0) return
 !
 ! --- Create dimension string 
-      IF (cmpflg.EQ.1) THEN
+      if (cmpflg.EQ.1) then
         dims='pcomp time'
-      ELSE
+      else
         dims='x y time'
-      ENDIF
+      endif
 !
 ! --- Check output format
-      IF (frmt.EQ.2) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
+      if (frmt.EQ.2) then
+        if (cmpflg.EQ.1) then
+          call nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs)
-        ELSE
-          CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
+        else
+          call ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
      &      sfac,offs)
-        ENDIF
-      ELSEIF (frmt.EQ.4) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
+        endif
+      elseIF (frmt.EQ.4) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,4)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+        else
+          call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
      &      sfac,offs,4)
-        ENDIF
-      ELSEIF (frmt.EQ.8) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
+        endif
+      elseIF (frmt.EQ.8) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
      &      offs,8)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
+        else
+          call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
      &      sfac,offs,8)
-        ENDIF
-      ELSE
+        endif
+      else
         STOP 'unknown output format '
-      ENDIF
+      endif
 !
       END SUBROUTINE wrtsrf
 
@@ -1713,57 +1713,57 @@
 ! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
 ! ---   real offs     (in)     : user def.NE. offset to be added 
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
-! ---                            written IF flag is set to 1 
+! ---                            written if flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL,            intent(in) :: sfac,offs
-      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      real,            intent(in) :: sfac,offs
+      integer,         intent(in) :: frmt,cmpflg,pos
       CHARACTER(LEN=*),intent(in) :: vnm
 !
-      INTEGER                     :: n
+      integer                     :: n
       CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+      if (pos.EQ.0 .OR. frmt.EQ.0) return
 !
 ! --- Create dimension string 
-      IF (cmpflg.EQ.1) THEN
+      if (cmpflg.EQ.1) then
         dims='pcomp sigma time'
-      ELSE
+      else
         dims='x y sigma time'
-      ENDIF
+      endif
 !
 ! --- Check output format
-      IF (frmt.EQ.2) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccopa(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
+      if (frmt.EQ.2) then
+        if (cmpflg.EQ.1) then
+          call nccopa(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
      &      offs)
-        ELSE
-          CALL ncpack(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
+        else
+          call ncpack(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
      &      sfac,offs)
-        ENDIF
-      ELSEIF (frmt.EQ.4) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
+        endif
+      elseIF (frmt.EQ.4) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
      &      offs,4)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
+        else
+          call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
      &      sfac,offs,4)
-        ENDIF
-      ELSEIF (frmt.EQ.8) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
+        endif
+      elseIF (frmt.EQ.8) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
      &      offs,8)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
+        else
+          call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
      &      sfac,offs,8)
-        ENDIF
-      ELSE
+        endif
+      else
         STOP 'unknown output format '
-      ENDIF
+      endif
 !
       END SUBROUTINE wrtlyr
 
@@ -1785,57 +1785,57 @@
 ! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
 ! ---   real offs     (in)     : user def.NE. offset to be added 
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
-! ---                            written IF flag is set to 1 
+! ---                            written if flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL,            intent(in) :: sfac,offs
-      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      real,            intent(in) :: sfac,offs
+      integer,         intent(in) :: frmt,cmpflg,pos
       CHARACTER(LEN=*),intent(in) :: vnm
 !
-      INTEGER                     :: n
+      integer                     :: n
       CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+      if (pos.EQ.0 .OR. frmt.EQ.0) return
 !
 ! --- Create dimension string 
-      IF (cmpflg.EQ.1) THEN
+      if (cmpflg.EQ.1) then
         dims='pcomp depth time'
-      ELSE
+      else
         dims='x y depth time'
-      ENDIF
+      endif
 !
 ! --- Check output format
-      IF (frmt.EQ.2) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccopa(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
+      if (frmt.EQ.2) then
+        if (cmpflg.EQ.1) then
+          call nccopa(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
      &      offs)
-        ELSE
-          CALL ncpack(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
+        else
+          call ncpack(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
      &      sfac,offs)
-        ENDIF
-      ELSEIF (frmt.EQ.4) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
+        endif
+      elseIF (frmt.EQ.4) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
      &      offs,4)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
+        else
+          call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
      &      sfac,offs,4)
-        ENDIF
-      ELSEIF (frmt.EQ.8) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
+        endif
+      elseIF (frmt.EQ.8) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
      &      offs,8)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
+        else
+          call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
      &      sfac,offs,8)
-        ENDIF
-      ELSE
+        endif
+      else
         STOP 'unknown output format '
-      ENDIF
+      endif
 !
       END SUBROUTINE wrtlvl
 
@@ -1857,57 +1857,57 @@
 ! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
 ! ---   real offs     (in)     : user def.NE. offset to be added 
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
-! ---                            written IF flag is set to 1 
+! ---                            written if flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL,            intent(in) :: sfac,offs
-      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      real,            intent(in) :: sfac,offs
+      integer,         intent(in) :: frmt,cmpflg,pos
       CHARACTER(LEN=*),intent(in) :: vnm
 !
-      INTEGER                     :: n
+      integer                     :: n
       CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+      if (pos.EQ.0 .OR. frmt.EQ.0) return
 !
 ! --- Create dimension string 
-      IF (cmpflg.EQ.1) THEN
+      if (cmpflg.EQ.1) then
         dims='pcomp ks time'
-      ELSE
+      else
         dims='x y ks time'
-      ENDIF
+      endif
 !
 ! --- Check output format
-      IF (frmt.EQ.2) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
+      if (frmt.EQ.2) then
+        if (cmpflg.EQ.1) then
+          call nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs)
-        ELSE
-          CALL ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
+        else
+          call ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs)
-        ENDIF
-      ELSEIF (frmt.EQ.4) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
+        endif
+      elseIF (frmt.EQ.4) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs,4)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
+        else
+          call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs,4)
-        ENDIF
-      ELSEIF (frmt.EQ.8) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
+        endif
+      elseIF (frmt.EQ.8) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
      &      offs,8)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
+        else
+          call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
      &      sfac,offs,8)
-        ENDIF
-      ELSE
+        endif
+      else
         STOP 'unknown output format '
-      ENDIF
+      endif
 !
       END SUBROUTINE wrtsdm
 
@@ -1929,57 +1929,57 @@
 ! ---   real sfac     (in)     : user def.NE. scale factor to be applied   
 ! ---   real offs     (in)     : user def.NE. offset to be added 
 ! ---   int  cmpflg   (in)     : compression flag; only wet points are 
-! ---                            written IF flag is set to 1 
+! ---                            written if flag is set to 1 
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
       IMPLICIT NONE
 ! 
-      REAL,            intent(in) :: sfac,offs
-      INTEGER,         intent(in) :: frmt,cmpflg,pos
+      real,            intent(in) :: sfac,offs
+      integer,         intent(in) :: frmt,cmpflg,pos
       CHARACTER(LEN=*),intent(in) :: vnm
 !
-      INTEGER                     :: n
+      integer                     :: n
       CHARACTER(LEN=100)          :: dims
 !
 ! --- Check whether field should be written
-      IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
+      if (pos.EQ.0 .OR. frmt.EQ.0) return
 !
 ! --- Create dimension string 
-      IF (cmpflg.EQ.1) THEN
+      if (cmpflg.EQ.1) then
         dims='pcomp time'
-      ELSE
+      else
         dims='x y time'
-      ENDIF
+      endif
 !
 ! --- Check output format
-      IF (frmt.EQ.2) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+      if (frmt.EQ.2) then
+        if (cmpflg.EQ.1) then
+          call nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
      &      offs)
-        ELSE
-          CALL ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+        else
+          call ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
      &      sfac,offs)
-        ENDIF
-      ELSEIF (frmt.EQ.4) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+        endif
+      elseIF (frmt.EQ.4) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
      &      offs,4)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+        else
+          call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
      &      sfac,offs,4)
-        ENDIF
-      ELSEIF (frmt.EQ.8) THEN
-        IF (cmpflg.EQ.1) THEN
-          CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
+        endif
+      elseIF (frmt.EQ.8) then
+        if (cmpflg.EQ.1) then
+          call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
      &      offs,8)
-        ELSE
-          CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
+        else
+          call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
      &      sfac,offs,8)
-        ENDIF
-      ELSE
+        endif
+      else
         STOP 'unknown output format '
-      ENDIF
+      endif
 !
       END SUBROUTINE wrtbur
 
@@ -1998,27 +1998,27 @@
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: pos
+      real ::sfac,offs
+      integer :: pos
 ! 
-      INTEGER :: i,j,l
-      REAL ::epsil=1e-11
+      integer :: i,j,l
+      real ::epsil=1e-11
 !
 ! --- Check whether field should be processed
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            IF (bgcm2d(i,j,pos).LT.epsil) THEN
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (bgcm2d(i,j,pos).LT.epsil) then
               bgcm2d(i,j,pos)=0.
-            ELSE
+            else
               bgcm2d(i,j,pos)=log10(bgcm2d(i,j,pos)*sfac+offs)
-            ENDIF
-          ENDDO
-        ENDDO
-      ENDDO
+            endif
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE logsrf
@@ -2038,30 +2038,30 @@
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: pos
+      real ::sfac,offs
+      integer :: pos
 ! 
-      INTEGER :: i,j,k,l
-      REAL ::epsil=1e-11
+      integer :: i,j,k,l
+      real ::epsil=1e-11
 !
 ! --- Check whether field should be processed
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,kdm
+      do k=1,kdm
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              IF (bgcm3d(i,j,k,pos).LT.epsil) THEN
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (bgcm3d(i,j,k,pos).LT.epsil) then
                 bgcm3d(i,j,k,pos)=0.
-              ELSEIF (bgcm3d(i,j,k,pos).NE.nf90_fill_double) THEN
+              elseIF (bgcm3d(i,j,k,pos).NE.nf90_fill_double) then
                 bgcm3d(i,j,k,pos)=log10(bgcm3d(i,j,k,pos)*sfac+offs)
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
+              endif
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO 
+      enddo 
 !
       END SUBROUTINE loglyr
 
@@ -2080,31 +2080,31 @@
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: pos
+      real ::sfac,offs
+      integer :: pos
 ! 
-      INTEGER :: i,j,k,l
-      REAL ::epsil=1e-11
+      integer :: i,j,k,l
+      real ::epsil=1e-11
 !
 ! --- Check whether field should be processed
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,ddm
+      do k=1,ddm
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              IF (bgcm3dlvl(i,j,k,pos).LT.epsil) THEN
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (bgcm3dlvl(i,j,k,pos).LT.epsil) then
                 bgcm3dlvl(i,j,k,pos)=0.
-              ELSEIF (bgcm3dlvl(i,j,k,pos).NE.nf90_fill_double) THEN
+              elseIF (bgcm3dlvl(i,j,k,pos).NE.nf90_fill_double) then
                 bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+   &
      &            offs)
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
+              endif
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !
       END SUBROUTINE loglvl
 
@@ -2123,30 +2123,30 @@
 !
       IMPLICIT NONE
 ! 
-      REAL ::sfac,offs
-      INTEGER :: pos
+      real ::sfac,offs
+      integer :: pos
 ! 
-      INTEGER :: i,j,k,l
-      REAL ::epsil=1e-11
+      integer :: i,j,k,l
+      real ::epsil=1e-11
 !
 ! --- Check whether field should be processed
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
-      DO k=1,ks
+      do k=1,ks
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              IF (bgct_sed(i,j,k,pos).LT.epsil) THEN
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+              if (bgct_sed(i,j,k,pos).LT.epsil) then
                 bgct_sed(i,j,k,pos)=0.
-              ELSE
+              else
                 bgct_sed(i,j,k,pos)=log10(bgct_sed(i,j,k,pos)*sfac+offs)
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
+              endif
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-      ENDDO
+      enddo
 !
       END SUBROUTINE logsdm
 
@@ -2164,23 +2164,23 @@
 !
       IMPLICIT NONE
 !
-      INTEGER :: pos
-      INTEGER, DIMENSION(idm,jdm) :: idepth 
+      integer :: pos
+      integer, dimension(idm,jdm) :: idepth 
 ! 
-      INTEGER :: i,j,l
-      REAL, parameter :: mskval=nf90_fill_double
+      integer :: i,j,l
+      real, parameter :: mskval=nf90_fill_double
 !
 ! --- Check whether field should be initia
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
 !$OMP PARALLEL DO PRIVATE(l,i)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             if( idepth(i,j) <= 0 ) bgcm2d(i,j,pos)=mskval
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE msksrf
@@ -2198,49 +2198,49 @@
 !
       IMPLICIT NONE
 !
-      INTEGER :: pos
-      REAL, DIMENSION(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: depths 
+      integer :: pos
+      real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: depths 
 ! 
-      INTEGER :: i,j,k,l
-      LOGICAL :: iniflg=.true.
-      INTEGER, DIMENSION(idm,jdm) :: kmax
-      REAL, parameter :: mskval=nf90_fill_double
+      integer :: i,j,k,l
+      logical :: iniflg=.true.
+      integer, dimension(idm,jdm) :: kmax
+      real, parameter :: mskval=nf90_fill_double
 !
-      SAVE iniflg,kmax
+      save iniflg,kmax
 !     
 ! --- Check whether field should be processed
-      IF (pos.EQ.0) RETURN
+      if (pos.EQ.0) return
 !
 ! --- Prepare index fields for masking
 
-      IF (iniflg) THEN
+      if (iniflg) then
 !$OMP PARALLEL DO PRIVATE(i)
-        DO j=1,jj
-          DO i=1,ii
+        do j=1,jj
+          do i=1,ii
             kmax(i,j)=0
-          ENDDO
-        ENDDO
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-        DO k=1,ddm
+        do k=1,ddm
 !$OMP PARALLEL DO PRIVATE(i)
-          DO j=1,jj
-            DO i=1,ii
-              IF (depths(i,j).GT.depthslev_bnds(1,k)) kmax(i,j)=k
-            ENDDO
-          ENDDO
+          do j=1,jj
+            do i=1,ii
+              if (depths(i,j).GT.depthslev_bnds(1,k)) kmax(i,j)=k
+            enddo
+          enddo
 !$OMP END PARALLEL DO
-        ENDDO
+        enddo
         iniflg=.false.
-      ENDIF
+      endif
 !
 !$OMP PARALLEL DO PRIVATE(i,k)
-      DO j=1,jj
-        DO i=1,ii
-          DO k=kmax(i,j)+1,ddm
+      do j=1,jj
+        do i=1,ii
+          do k=kmax(i,j)+1,ddm
             bgcm3dlvl(i,j,k,pos)=mskval
-          ENDDO
-        ENDDO
-      ENDDO
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE msklvl
@@ -2253,104 +2253,104 @@
 !
       IMPLICIT NONE
 !
-      INTEGER :: d,i,j,k,l,kin
-      INTEGER, DIMENSION(idm,jdm) :: ind1,ind2
+      integer :: d,i,j,k,l,kin
+      integer, dimension(idm,jdm) :: ind1,ind2
 ! 
-      REAL, PARAMETER :: eps=1e-10
-      REAL, DIMENSION(idm,jdm,kdm) :: pddpo,ztop,zbot
-      REAL, DIMENSION(idm,jdm,ddm) :: weights,dlev
+      real, parameter :: eps=1e-10
+      real, dimension(idm,jdm,kdm) :: pddpo,ztop,zbot
+      real, dimension(idm,jdm,ddm) :: weights,dlev
 !
-      LOGICAL :: iniflg=.true.
+      logical :: iniflg=.true.
 !
-      SAVE ztop,zbot,dlev,iniflg
+      save ztop,zbot,dlev,iniflg
 !
 ! --- Adjust bounds of levitus levels according to model bathymetry
-      IF (iniflg) THEN
-        DO d=1,ddm
+      if (iniflg) then
+        do d=1,ddm
 !$OMP PARALLEL DO PRIVATE(l,i)
-          DO j=1,jj
-            DO l=1,isp(j)
-              DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          do j=1,jj
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                  dlev(i,j,d)=max(eps,min(pbath(i,j),                    &
      &             depthslev_bnds(2,d))-depthslev_bnds(1,d))
-              ENDDO
-            ENDDO
-          ENDDO
+              enddo
+            enddo
+          enddo
 !$OMP END PARALLEL DO
-        ENDDO
+        enddo
         iniflg=.false.
-      ENDIF
+      endif
 !
 ! --- Compute top and bottom depths of density layers 
-      IF (kin.EQ.1) THEN       
+      if (kin.EQ.1) then       
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               zbot(i,j,1)=pddpo(i,j,1)
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-        DO k=2,kk
+        do k=2,kk
 !$OMP PARALLEL DO PRIVATE(l,i)
-          DO j=1,jj
-            DO l=1,isp(j)
-              DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          do j=1,jj
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 zbot(i,j,k)=zbot(i,j,k-1)+pddpo(i,j,k)
-              ENDDO
-            ENDDO
-          ENDDO
+              enddo
+            enddo
+          enddo
 !$OMP END PARALLEL DO
-        ENDDO
+        enddo
 !$OMP PARALLEL DO PRIVATE(l,i)
-        DO j=1,jj
-          DO l=1,isp(j)
-            DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+        do j=1,jj
+          do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
               zbot(i,j,1)=zbot(i,j,1)*pbath(i,j)/zbot(i,j,kk)
               ztop(i,j,1)=0.
               ind1(i,j)=1
-            ENDDO
-          ENDDO
-        ENDDO
+            enddo
+          enddo
+        enddo
 !$OMP END PARALLEL DO
-        DO k=2,kk
+        do k=2,kk
 !$OMP PARALLEL DO PRIVATE(l,i)
-          DO j=1,jj
-            DO l=1,isp(j)
-              DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+          do j=1,jj
+            do l=1,isp(j)
+              do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
                 zbot(i,j,k)=zbot(i,j,k)*pbath(i,j)/zbot(i,j,kk)
                 ztop(i,j,k)=zbot(i,j,k-1)
-              ENDDO
-            ENDDO
-          ENDDO
+              enddo
+            enddo
+          enddo
 !$OMP END PARALLEL DO
-        ENDDO
-      ENDIF
+        enddo
+      endif
 !
 ! --- Compute interpolation weights 
 !$OMP PARALLEL DO PRIVATE(l,i,d)
-      DO j=1,jj
-        DO l=1,isp(j)
-          DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+      do j=1,jj
+        do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             ind2(i,j)=0
-            IF (pddpo(i,j,kin).GT.eps) THEN
-              DO d=ind1(i,j),ddm
-                IF (depthslev_bnds(2,d).LE.ztop(i,j,kin)) THEN
+            if (pddpo(i,j,kin).GT.eps) then
+              do d=ind1(i,j),ddm
+                if (depthslev_bnds(2,d).LE.ztop(i,j,kin)) then
                   ind1(i,j)=d+1
                   CYCLE
-                ELSEIF (depthslev_bnds(1,d).GE.zbot(i,j,kin)) THEN
+                elseIF (depthslev_bnds(1,d).GE.zbot(i,j,kin)) then
                   EXIT
-                ENDIF
+                endif
                 ind2(i,j)=d
                 weights(i,j,d)=(min(zbot(i,j,kin),                      &
      &            depthslev_bnds(2,d))-max(ztop(i,j,kin),               &
      &            depthslev_bnds(1,d)))/dlev(i,j,d)
-              ENDDO
-            ENDIF
-          ENDDO
-        ENDDO
-      ENDDO
+              enddo
+            endif
+          enddo
+        enddo
+      enddo
 !$OMP END PARALLEL DO
 !
       END SUBROUTINE bgczlv

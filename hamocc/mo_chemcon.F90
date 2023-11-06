@@ -32,12 +32,12 @@
 !     Purpose
 !     -------
 !     - declare chemical parameters previously defined in
-!       subroutine chemcon
+!       SUBROUTINE chemcon
 !
 !**********************************************************************
 
 
-      implicit none
+      IMPLICIT NONE
 
 
 !      real, parameter :: ZERO=0.
@@ -180,7 +180,7 @@
 !     Constants needed for pressure correction of equilibrium constants
 !     F. Millero, Thermodynamics of the carbon dioxide system in the oceans,
 !     Geochimica et Cosmochimica Acta, Vol. 59, No. 4, pp. 661-677, 1995
-      REAL, DIMENSION(11) :: a0, a1, a2, b0, b1, b2
+      real, dimension(11) :: a0, a1, a2, b0, b1, b2
       DATA a0 /-25.5, -15.82, -29.48, -25.60, -18.03, -9.78, -48.76, &
                -46., -14.51, -23.12, -26.57/
       DATA a1 /0.1271, -0.0219, 0.1622, 0.2324, 0.0466, -0.0090,     &

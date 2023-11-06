@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_vgrid
+MODULE mo_vgrid
 !******************************************************************************
 !
 ! MODULE mo_vgrid - Variables and routines related to vertical grid 
@@ -35,49 +35,49 @@ module mo_vgrid
 !
 !  Description:
 !  ------------
-!  Public routines and variables of this module:
+!  Public routines and variables of this MODULE:
 !
-!  -subroutine set_vgrid
+!  -SUBROUTINE set_vgrid
 !     Calculate variables related to the vertical grid structure.
 !
-!  -subroutine alloc_mem_vgrid
+!  -SUBROUTINE alloc_mem_vgrid
 !     Allocate memory for vertical grid variables
 !
-!   *kbo*         *INTEGER*  - number of wet cells in column.
-!   *kwrbioz*     *INTEGER*  - last k-index of euphotic zone.
-!   *kxxxx*       *INTEGER*  - k-index of gridbox comprising xxxx m depth.
-!   *bolay*       *REAL*     - height of bottom cell.
-!   *ptiestu*     *REAL*     - depth of layer centres.
-!   *ptiestw*     *REAL*     - depth of layer interfaces.
+!   *kbo*         *integer*  - number of wet cells in column.
+!   *kwrbioz*     *integer*  - last k-index of euphotic zone.
+!   *kxxxx*       *integer*  - k-index of gridbox comprising xxxx m depth.
+!   *bolay*       *real*     - height of bottom cell.
+!   *ptiestu*     *real*     - depth of layer centres.
+!   *ptiestw*     *real*     - depth of layer interfaces.
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
-  INTEGER, PARAMETER :: kmle_static = 2   ! k-end index for layers that
+  integer, parameter :: kmle_static = 2   ! k-end index for layers that
                                           ! represent the mixed layer in BLOM.
                                           ! Default value used for isopycnic coordinates.
-  REAL,    PARAMETER :: dp_ez  = 100.0    ! depth of euphotic zone
-  REAL,    PARAMETER :: dp_min = 1.0E-12  ! min layer thickness layers thinner
+  real,    parameter :: dp_ez  = 100.0    ! depth of euphotic zone
+  real,    parameter :: dp_min = 1.0E-12  ! min layer thickness layers thinner
                                           ! than this are ignored by HAMOCC
-  REAL,    PARAMETER :: dp_min_sink = 1.0 ! min layer thickness for sinking (layers thinner than 
+  real,    parameter :: dp_min_sink = 1.0 ! min layer thickness for sinking (layers thinner than 
                                           ! this are ignored and set to the concentration of the 
                                           ! layer above). Note that the bottom layer index kbo(i,j)
                                           ! is defined as the lowermost layer thicker than dp_min_sink.
 
-  INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kmle
-  INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kbo
-  INTEGER, DIMENSION(:,:),   ALLOCATABLE :: kwrbioz
-  INTEGER, DIMENSION(:,:),   ALLOCATABLE :: k0100,k0500,k1000,k2000,k4000
-  REAL,    DIMENSION(:,:),   ALLOCATABLE :: bolay
-  REAL,    DIMENSION(:,:,:), ALLOCATABLE :: ptiestu
-  REAL,    DIMENSION(:,:,:), ALLOCATABLE :: ptiestw
+  integer, dimension(:,:),   allocatable :: kmle
+  integer, dimension(:,:),   allocatable :: kbo
+  integer, dimension(:,:),   allocatable :: kwrbioz
+  integer, dimension(:,:),   allocatable :: k0100,k0500,k1000,k2000,k4000
+  real,    dimension(:,:),   allocatable :: bolay
+  real,    dimension(:,:,:), allocatable :: ptiestu
+  real,    dimension(:,:,:), allocatable :: ptiestw
 
-contains
+CONTAINS
 !******************************************************************************
 
 
 
-subroutine set_vgrid(kpie,kpje,kpke,pddpo)
+SUBROUTINE set_vgrid(kpie,kpje,kpke,pddpo)
 !******************************************************************************
 !
 ! SET_VGRID - Calculate variables related to the vertical grid structure. This
@@ -93,16 +93,16 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
 !
 !  Parameter list:
 !  ---------------
-!     *INTEGER*   *kpie*    - 1st dimension of model grid.
-!     *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*      *pddpo*   - size of grid cell (3rd dimension) [m].
+!     *integer*   *kpie*    - 1st dimension of model grid.
+!     *integer*   *kpje*    - 2nd dimension of model grid.
+!     *integer*   *kpke*    - 3rd (vertical) dimension of model grid.
+!     *real*      *pddpo*   - size of grid cell (3rd dimension) [m].
 !
 !******************************************************************************
-  INTEGER, intent(in) :: kpie,kpje,kpke
-  REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
+  integer, intent(in) :: kpie,kpje,kpke
+  real,    intent(in) :: pddpo(kpie,kpje,kpke)
 
-  INTEGER             :: i,j,k
+  integer             :: i,j,k
 
 
   ! --- set depth of surface interface to zero
@@ -130,31 +130,31 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   bolay(:,:)=0.0
 
 !$OMP PARALLEL DO PRIVATE(i,k)
-  DO j=1,kpje
-  DO i=1,kpie
+  do j=1,kpje
+  do i=1,kpie
 
-    DO k=kpke,1,-1
-      IF(pddpo(i,j,k).GT.dp_min_sink) THEN
+    do k=kpke,1,-1
+      if (pddpo(i,j,k).GT.dp_min_sink) then
         bolay(i,j)=pddpo(i,j,k)
         kbo(i,j)=k
         exit
-      ENDIF
-    ENDDO
+      endif
+    enddo
 
-  ENDDO
-  ENDDO
+  enddo
+  enddo
 !$OMP END PARALLEL DO
 
 
 !$OMP PARALLEL DO PRIVATE(i,k)
-  DO j=1,kpje
-  DO i=1,kpie
+  do j=1,kpje
+  do i=1,kpie
 
     kwrbioz(i,j)=1
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) then
         kwrbioz(i,j)=k
-       ENDIF
+       endif
     END DO
 
   END DO
@@ -169,59 +169,59 @@ subroutine set_vgrid(kpie,kpje,kpke,pddpo)
   k4000(:,:)=0
 
 !$OMP PARALLEL DO PRIVATE(i,k)
-  DO j=1,kpje
-  DO i=1,kpie
+  do j=1,kpje
+  do i=1,kpie
 
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) then
         k0100(i,j)=k
         exit
-      ENDIF
+      endif
     END DO
 
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) then
         k0500(i,j)=k
         exit
-      ENDIF
+      endif
     END DO
 
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) then
         k1000(i,j)=k
         exit
-      ENDIF
+      endif
     END DO
 
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) then
         k2000(i,j)=k
         exit
-      ENDIF
+      endif
     END DO
 
-    DO k=2,kpke
-      IF(pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) THEN
+    do k=2,kpke
+      if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) then
         k4000(i,j)=k
         exit
-      ENDIF
+      endif
     END DO
 
   END DO
   END DO
 !$OMP END PARALLEL DO
 
-  RETURN
+  return
 
 !******************************************************************************
-end subroutine set_vgrid
+END SUBROUTINE set_vgrid
 
 
 
-subroutine alloc_mem_vgrid(kpie,kpje,kpke)
+SUBROUTINE alloc_mem_vgrid(kpie,kpje,kpke)
 !******************************************************************************
 !
-! ALLOC_MEM_VGRID - Allocate variables in this module
+! ALLOC_MEM_VGRID - Allocate variables in this MODULE
 !
 !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
 !
@@ -229,80 +229,80 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
   use mod_xc,         only: mnproc
   use mo_control_bgc, only: io_stdo_bgc
 
-  INTEGER, intent(in) :: kpie,kpje,kpke
-  INTEGER             :: errstat
+  integer, intent(in) :: kpie,kpje,kpke
+  integer             :: errstat
 
       
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_vgrid :'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)' '
+    write(io_stdo_bgc,*)'***************************************************'
+    write(io_stdo_bgc,*)'Memory allocation for MODULE mo_vgrid :'
+    write(io_stdo_bgc,*)' '
+  endif
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable ptiestu ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke+1
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable ptiestu ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third dimension    : ',kpke+1
+  endif
 
   ALLOCATE (ptiestu(kpie,kpje,kpke+1),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory ptiestu'
   ptiestu(:,:,:) = 0.0
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable ptiestw ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke+1
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable ptiestw ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third dimension    : ',kpke+1
+  endif
 
   ALLOCATE (ptiestw(kpie,kpje,kpke+1),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory ptiestw'
   ptiestw(:,:,:) = 0.0
 
 
-  IF(mnproc.eq.1) THEN
-     WRITE(io_stdo_bgc,*)'Memory allocation for variable kmle ...'
-     WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-     WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+     write(io_stdo_bgc,*)'Memory allocation for variable kmle ...'
+     write(io_stdo_bgc,*)'First dimension    : ',kpie
+     write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE(kmle(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory kmle'
   kmle(:,:) = kmle_static
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE(kbo(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory kbo'
   kbo(:,:) = 0
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE(kwrbioz(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory kwrbioz'
   kwrbioz(:,:) = 0
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE(k0100(kpie,kpje),stat=errstat)
   ALLOCATE(k0500(kpie,kpje),stat=errstat)
@@ -317,11 +317,11 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
   k4000(:,:) = 0
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE (bolay(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory bolay'
@@ -329,8 +329,8 @@ subroutine alloc_mem_vgrid(kpie,kpje,kpke)
 
 
 !******************************************************************************
-end subroutine alloc_mem_vgrid
+END SUBROUTINE alloc_mem_vgrid
 
 
 !******************************************************************************
-end module mo_vgrid
+END MODULE mo_vgrid

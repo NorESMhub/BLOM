@@ -34,35 +34,35 @@ MODULE mo_control_bgc
   !
   !
   !**********************************************************************
-  implicit none
+  IMPLICIT NONE
 
   ! Logical unit number for I/O.
-  INTEGER :: io_stdo_bgc        !  standard out.
+  integer :: io_stdo_bgc        !  standard out.
 
   ! File containing namelists
-  CHARACTER(LEN=:), ALLOCATABLE, PROTECTED :: bgc_namelist
+  CHARACTER(LEN=:), allocatable, PROTECTED :: bgc_namelist
 
   ! Control variables
-  REAL    :: dtbgc                    !  time step length [sec].
-  REAL    :: dtb                      !  time step length [days].
-  INTEGER :: ndtdaybgc                !  time steps per day.
+  real    :: dtbgc                    !  time step length [sec].
+  real    :: dtb                      !  time step length [days].
+  integer :: ndtdaybgc                !  time steps per day.
 
-  INTEGER :: ldtbgc                   !  time step number from bgc restart file
-  INTEGER :: ldtrunbgc                !  actual time steps of run.
+  integer :: ldtbgc                   !  time step number from bgc restart file
+  integer :: ldtrunbgc                !  actual time steps of run.
 
-  INTEGER :: sedspin_yr_s = -1
-  INTEGER :: sedspin_yr_e = -1
-  INTEGER :: sedspin_ncyc = -1
+  integer :: sedspin_yr_s = -1
+  integer :: sedspin_yr_e = -1
+  integer :: sedspin_ncyc = -1
 
-  REAL    :: rmasks = 0.0             !  value at wet cells in sediment.
-  REAL    :: rmasko = 99999.00        !  value at wet cells in ocean.
+  real    :: rmasks = 0.0             !  value at wet cells in sediment.
+  real    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
                                       ! Logical switches set via namelist
-  LOGICAL :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
-  LOGICAL :: do_ndep     =.true.      ! apply n-deposition
-  LOGICAL :: do_rivinpt  =.true.      ! apply riverine input
-  LOGICAL :: do_sedspinup=.false.     ! apply sediment spin-up
-  LOGICAL :: do_oalk     =.false.     ! apply ocean alkalinization
+  logical :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
+  logical :: do_ndep     =.true.      ! apply n-deposition
+  logical :: do_rivinpt  =.true.      ! apply riverine input
+  logical :: do_sedspinup=.false.     ! apply sediment spin-up
+  logical :: do_oalk     =.false.     ! apply ocean alkalinization
   logical :: with_dmsph  =.false.     ! apply DMS with pH dependence
 
   logical :: use_BROMO              = .false.
@@ -78,16 +78,16 @@ MODULE mo_control_bgc
   logical :: use_sedbypass          = .false.
   character(len=64) :: ocn_co2_type
 
-contains
+CONTAINS
 
-  subroutine get_bgc_namelist
+  SUBROUTINE get_bgc_namelist
     !-------------------------------------------------------------------------
     ! Get filename for namelist file
     !-------------------------------------------------------------------------
     use mod_config, only: inst_suffix
     use mod_xc,     only: xchalt
 
-    implicit none
+    IMPLICIT NONE
 
     logical :: exists
 
@@ -107,6 +107,6 @@ contains
           endif
        endif
     endif
-  end subroutine get_bgc_namelist
+  END SUBROUTINE get_bgc_namelist
 
 END MODULE mo_control_bgc

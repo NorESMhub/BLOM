@@ -49,7 +49,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
       use mod_xc,         only: mnproc,ips,nbdy,xcsum
@@ -69,7 +69,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
       use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje,kpke
   integer, intent(in) :: iogrp
@@ -142,61 +142,61 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   else
 
      ztmp1(:,:)=0.0
-     DO k=1,ks
-        DO j=1,kpje
-           DO i=1,kpie
+     do k=1,ks
+        do j=1,kpje
+           do i=1,kpie
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*seddw(k)                       &
                    &       *dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
-           ENDDO
-        ENDDO
-     ENDDO
+           enddo
+        enddo
+     enddo
 
-     CALL xcsum(zsedtotvol,ztmp1,ips)
+     call xcsum(zsedtotvol,ztmp1,ips)
 
-     DO l=1,npowtra
+     do l=1,npowtra
         ztmp1(:,:)=0.0
-        DO k=1,ks
-           DO j=1,kpje
-              DO i=1,kpie
+        do k=1,ks
+           do j=1,kpje
+              do i=1,kpie
                  vol    = seddw(k)*dlxp(i,j)*dlyp(i,j)*porwat(i,j,k)
                  ztmp1(i,j)= ztmp1(i,j) + omask(i,j)*powtra(i,j,k,l)*vol
-              ENDDO
-           ENDDO
-        ENDDO
+              enddo
+           enddo
+        enddo
 
-        CALL xcsum(zpowtratot(l),ztmp1,ips)
+        call xcsum(zpowtratot(l),ztmp1,ips)
         zpowtratoc(l) = zpowtratot(l)/zsedtotvol
-     ENDDO
+     enddo
 
      !=== non aqueous sediment tracer
      !----------------------------------------------------------------------
      zburial = sum2d_array(burial, nsedtra)
 
-     DO l=1,nsedtra
+     do l=1,nsedtra
         ztmp1(:,:)=0.0
-        DO k=1,ks
-           DO j=1,kpje
-              DO i=1,kpie
+        do k=1,ks
+           do j=1,kpje
+              do i=1,kpie
                  vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
                  ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedlay(i,j,k,l)*vol
-              ENDDO
-           ENDDO
-        ENDDO
+              enddo
+           enddo
+        enddo
 
-        CALL xcsum(zsedlayto(l),ztmp1,ips)
-     ENDDO
+        call xcsum(zsedlayto(l),ztmp1,ips)
+     enddo
 
      ztmp1(:,:)=0.0
-     DO k=1,ks
-        DO j=1,kpje
-           DO i=1,kpie
+     do k=1,ks
+        do j=1,kpje
+           do i=1,kpie
               vol = porsol(i,j,k)*seddw(k)*dlxp(i,j)*dlyp(i,j)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*sedhpl(i,j,k)*vol
-           ENDDO
-        ENDDO
-     ENDDO
+           enddo
+        enddo
+     enddo
 
-     CALL xcsum(zsedhplto,ztmp1,ips)
+     call xcsum(zsedhplto,ztmp1,ips)
 
   endif ! not sedbypass
 
@@ -207,38 +207,38 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   zocetratoc = 0.
 
   ztmp1(:,:)=0.0
-  DO k=1,kpke
-     DO j=1,kpje
-        DO i=1,kpie
-           IF(ddpo(i,j,k).gt.dp_min) THEN
+  do k=1,kpke
+     do j=1,kpje
+        do i=1,kpie
+           if (ddpo(i,j,k).gt.dp_min) then
               ztmp1(i,j) = ztmp1(i,j)                                          &
                    &       + omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
-           ENDIF
-        ENDDO
-     ENDDO
-  ENDDO
+           endif
+        enddo
+     enddo
+  enddo
 
-  CALL xcsum(ztotvol,ztmp1,ips)
+  call xcsum(ztotvol,ztmp1,ips)
 
-  DO l=1,nocetra
+  do l=1,nocetra
      ztmp1(:,:)=0.0
-     DO k=1,kpke
-        DO j=1,kpje
-           DO i=1,kpie
-              IF(ddpo(i,j,k).gt.dp_min) THEN
+     do k=1,kpke
+        do j=1,kpje
+           do i=1,kpie
+              if (ddpo(i,j,k).gt.dp_min) then
                  vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
                  ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
 !             if (ocetra(i,j,k,l).lt.0.0) then
-!      WRITE(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
+!      write(io_stdo_bgc,*) 'ocetra -ve', l,ocetra(i,j,k,l)
 !             endif
-              ENDIF
-           ENDDO
-        ENDDO
-     ENDDO
+              endif
+           enddo
+        enddo
+     enddo
 
-     CALL xcsum(zocetratot(l),ztmp1,ips)
+     call xcsum(zocetratot(l),ztmp1,ips)
      zocetratoc(l) = zocetratot(l)/ztotvol
-  ENDDO
+  enddo
 
 !=== additional ocean tracer
 !----------------------------------------------------------------------
@@ -247,20 +247,20 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   ztmp1(:,:)=0.0
   ztmp2(:,:)=0.0
-  DO k=1,kpke
-     DO j=1,kpje
-        DO i=1,kpie
-           IF(ddpo(i,j,k).gt.dp_min) THEN
+  do k=1,kpke
+     do j=1,kpje
+        do i=1,kpie
+           if (ddpo(i,j,k).gt.dp_min) then
               vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*hi(i,j,k) *vol
               ztmp2(i,j) = ztmp2(i,j) + omask(i,j)*co3(i,j,k)*vol
-           ENDIF
-        ENDDO
-     ENDDO
-  ENDDO
+           endif
+        enddo
+     enddo
+  enddo
 
-  CALL xcsum(zhito ,ztmp1,ips)
-  CALL xcsum(zco3to,ztmp2,ips)
+  call xcsum(zhito ,ztmp1,ips)
+  call xcsum(zco3to,ztmp2,ips)
 
 !=== alkalinity of the first layer
 !--------------------------------------------------------------------
@@ -270,15 +270,15 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   k=1
   ztmp1(:,:)=0.0
   ztmp2(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
+  do j=1,kpje
+     do i=1,kpie
         ztmp1(i,j) = omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
         ztmp2(i,j) = ocetra(i,j,k,ialkali)*ztmp1(i,j)
-     ENDDO
-  ENDDO
+     enddo
+  enddo
 
-  CALL xcsum(zvoltop,ztmp1,ips)
-  CALL xcsum(zalkali,ztmp2,ips)
+  call xcsum(zvoltop,ztmp1,ips)
+  call xcsum(zalkali,ztmp2,ips)
 
 !=== atmosphere flux and atmospheric CO2
 !--------------------------------------------------------------------
@@ -294,12 +294,12 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
   zatmn2   =0.
 
   ztmp1(:,:)=0.0
-  DO j=1,kpje
-     DO i=1,kpie
+  do j=1,kpje
+     do i=1,kpie
         ztmp1(i,j) = dlxp(i,j)*dlyp(i,j)
-     ENDDO
-  ENDDO
-  CALL xcsum(ztotarea,ztmp1,ips)
+     enddo
+  enddo
+  call xcsum(ztotarea,ztmp1,ips)
 
   if (use_PBGC_CK_TIMESTEP) then
      ! only consider instantaneous fluxes in debugging mode
@@ -413,7 +413,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
      totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
   endif
 
-  IF (do_rivinpt) THEN
+  if (do_rivinpt) then
      totalcarbon = totalcarbon &
           - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
      totalnitr = totalnitr &
@@ -426,7 +426,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
           - (srivflux(irdoc)+srivflux(irdet))*(-24.) &
           - srivflux(irdin)*1.5 - srivflux(irdip)*2. &
           - (srivflux(iralk)+srivflux(irdin)+srivflux(irdip))    ! =sco212
-  ENDIF
+  endif
 
 !=== Compute sediment fluxes
 !----------------------------------------------------------------------
@@ -454,14 +454,14 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 
   return
 
-contains
+CONTAINS
 
 
 function sum2d(var2d) result(total)
 !**********************************************************************
 !**** Sum 2D scalar fields
 !**********************************************************************
-  implicit none
+  IMPLICIT NONE
   real, dimension(kpie,kpje), intent(in) :: var2d
   real :: total
 
@@ -484,7 +484,7 @@ function sum2d_array(var3d, narr) result(total)
 !**********************************************************************
 !**** Sum 2D array fields
 !**********************************************************************
-  implicit none
+  IMPLICIT NONE
   integer, intent(in) :: narr
   real, dimension(kpie,kpje,narr), intent(in) :: var3d
   real, dimension(narr) :: total
@@ -506,154 +506,154 @@ function sum2d_array(var3d, narr) result(total)
 end function sum2d_array
 
 
-subroutine write_stdout
+SUBROUTINE write_stdout
 !**********************************************************************
 !**** Write inventory to log file.
 !**********************************************************************
-  implicit none
+  IMPLICIT NONE
 
   integer :: l
 
   if (.not. use_sedbypass) then
      !=== aqueous sediment tracer
      !------------------------------------------------------------------
-     WRITE(io_stdo_bgc,*) ' '
-     WRITE(io_stdo_bgc,*)'Global inventory of aqueous sediment tracer'
-     WRITE(io_stdo_bgc,*)'-------------------------------------------'
-     WRITE(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
-     DO l=1,npowtra
-        WRITE(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
+     write(io_stdo_bgc,*) ' '
+     write(io_stdo_bgc,*)'Global inventory of aqueous sediment tracer'
+     write(io_stdo_bgc,*)'-------------------------------------------'
+     write(io_stdo_bgc,*) '       total[kmol]    concentration[mol/L]'
+     do l=1,npowtra
+        write(io_stdo_bgc,*)'No. ',l,' ',zpowtratot(l),                           &
              &     '  ',zpowtratoc(l),'  ',zsedtotvol
-     ENDDO
-     WRITE(io_stdo_bgc,*) ' '
+     enddo
+     write(io_stdo_bgc,*) ' '
 
      !=== non aqueous sediment tracer
      !------------------------------------------------------------------
-     WRITE(io_stdo_bgc,*) ' '
-     WRITE(io_stdo_bgc,*)                                                         &
+     write(io_stdo_bgc,*) ' '
+     write(io_stdo_bgc,*)                                                         &
           &     'Global inventory of solid sediment constituents'
-     WRITE(io_stdo_bgc,*)                                                         &
+     write(io_stdo_bgc,*)                                                         &
           &     '----------------------------------------------------'
-     WRITE(io_stdo_bgc,*) '        [kmol]'
+     write(io_stdo_bgc,*) '        [kmol]'
 
-     DO l=1,nsedtra
-        WRITE(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
-        WRITE(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
-     ENDDO
-     WRITE(io_stdo_bgc,*) 'hpl ', zsedhplto
-     WRITE(io_stdo_bgc,*) ' '
+     do l=1,nsedtra
+        write(io_stdo_bgc,*) 'Sediment No. ',l,' ', zsedlayto(l)
+        write(io_stdo_bgc,*) 'Burial No. ',l,' ', zburial(l)
+     enddo
+     write(io_stdo_bgc,*) 'hpl ', zsedhplto
+     write(io_stdo_bgc,*) ' '
   endif
 
   !=== oceanic tracers
   !------------------------------------------------------------------
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global inventory of advected ocean tracers'
-  WRITE(io_stdo_bgc,*) '------------------------------------------'
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'ztotvol',ztotvol
-  DO l=1,nocetra
-     WRITE(io_stdo_bgc,*) 'No. ',l, zocetratot(l), zocetratoc(l)
-  ENDDO
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global inventory of advected ocean tracers'
+  write(io_stdo_bgc,*) '------------------------------------------'
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'ztotvol',ztotvol
+  do l=1,nocetra
+     write(io_stdo_bgc,*) 'No. ',l, zocetratot(l), zocetratoc(l)
+  enddo
 
   !=== additional ocean tracer
   !------------------------------------------------------------------
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) 'Glob. inventory of additional ocean tracer'
-  ! WRITE(io_stdo_bgc,*) '------------------------------------------'
-  ! WRITE(io_stdo_bgc,*) '      total[kmol]  concentration[kmol/m^3]'
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) ' hi', zhito, zhito/ztotvol
-  ! WRITE(io_stdo_bgc,*) ' co3', zco3to, zco3to/ztotvol
-  ! WRITE(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) 'Glob. inventory of additional ocean tracer'
+  ! write(io_stdo_bgc,*) '------------------------------------------'
+  ! write(io_stdo_bgc,*) '      total[kmol]  concentration[kmol/m^3]'
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) ' hi', zhito, zhito/ztotvol
+  ! write(io_stdo_bgc,*) ' co3', zco3to, zco3to/ztotvol
+  ! write(io_stdo_bgc,*) ' '
 
   !=== alkalinity of the first layer
   !------------------------------------------------------------------
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) 'Global inventory of first layer alkalinity'
-  ! WRITE(io_stdo_bgc,*) '------------------------------------------'
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) zalkali, zalkali/zvoltop
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) 'Global inventory of first layer alkalinity'
+  ! write(io_stdo_bgc,*) '------------------------------------------'
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) '       total[kmol]  concentration[kmol/m^3]'
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) zalkali, zalkali/zvoltop
 
   !=== atmosphere flux and atmospheric CO2
   !------------------------------------------------------------------
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) 'Global fluxes into atmosphere'
-  ! WRITE(io_stdo_bgc,*) '-----------------------------'
-  ! WRITE(io_stdo_bgc,*) '        [kmol]'
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) 'CO2Flux  :',co2flux
-  ! WRITE(io_stdo_bgc,*) 'O2 Flux  :',so2flux
-  ! WRITE(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
-  ! WRITE(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
-  ! WRITE(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) 'Global fluxes into atmosphere'
+  ! write(io_stdo_bgc,*) '-----------------------------'
+  ! write(io_stdo_bgc,*) '        [kmol]'
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) 'CO2Flux  :',co2flux
+  ! write(io_stdo_bgc,*) 'O2 Flux  :',so2flux
+  ! write(io_stdo_bgc,*) 'N2 Flux  :',sn2flux
+  ! write(io_stdo_bgc,*) 'N2O Flux :',sn2oflux
+  ! write(io_stdo_bgc,*) ' '
   if (use_BOXATM) then
-     ! WRITE(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
+     ! write(io_stdo_bgc,*) 'global atm. CO2[ppm] / kmol: ',                 &
      !      &               zatmco2/ztotarea,zatmco2*ppm2con
-     ! WRITE(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',                 &
+     ! write(io_stdo_bgc,*) 'global atm. O2[ppm] / kmol : ',                 &
      !      &               zatmo2/ztotarea,zatmo2*ppm2con
-     ! WRITE(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',                 &
+     ! write(io_stdo_bgc,*) 'global atm. N2[ppm] / kmol : ',                 &
      !      &               zatmn2/ztotarea,zatmn2*ppm2con
   endif
-  ! WRITE(io_stdo_bgc,*) ' '
-  ! WRITE(io_stdo_bgc,*) 'Should be zero at the end: '
-  ! WRITE(io_stdo_bgc,*) 'prorca, prcaca, silpro  ',                      &
+  ! write(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) 'Should be zero at the end: '
+  ! write(io_stdo_bgc,*) 'prorca, prcaca, silpro  ',                      &
   !      &               zprorca, zprcaca, zsilpro
-  ! WRITE(io_stdo_bgc,*) ' '
+  ! write(io_stdo_bgc,*) ' '
 
-  IF(do_ndep) WRITE(io_stdo_bgc,*) 'NdepFlux :',sndepflux
+  if (do_ndep) write(io_stdo_bgc,*) 'NdepFlux :',sndepflux
 
   ! riverine fluxes
   !------------------------------------------------------------------
-  IF(do_rivinpt)THEN
-     WRITE(io_stdo_bgc,*) 'Riverine fluxes:'
-     DO l=1,nriv
-        WRITE(io_stdo_bgc,*) 'No. ',l,srivflux(l)
-     ENDDO
-  ENDIF
+  if (do_rivinpt)THEN
+     write(io_stdo_bgc,*) 'Riverine fluxes:'
+     do l=1,nriv
+        write(io_stdo_bgc,*) 'No. ',l,srivflux(l)
+     enddo
+  endif
 
   !=== Sum of inventory
   !------------------------------------------------------------------
   ! Units in P have a C:P Ratio of 122:1
-  WRITE(io_stdo_bgc,*) 'Global total[kmol] of carbon   : ', totalcarbon
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global total[kmol] of phosph.  : ', totalphos
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global total[kmol] of silicate : ', totalsil
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global total[kmol] of nitrogen. : ', totalnitr
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global total[kmol] of oxygen.  : ', totaloxy
+  write(io_stdo_bgc,*) 'Global total[kmol] of carbon   : ', totalcarbon
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global total[kmol] of phosph.  : ', totalphos
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global total[kmol] of silicate : ', totalsil
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global total[kmol] of nitrogen. : ', totalnitr
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global total[kmol] of oxygen.  : ', totaloxy
 
   !=== Write sediment fluxes
   !------------------------------------------------------------------
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global fluxes into and out of the sediment'
-  WRITE(io_stdo_bgc,*) '------------------------------------------'
-  WRITE(io_stdo_bgc,*) '        [kmol]'
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Detritus, Calcium Carbonate, Silicate  ',              &
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global fluxes into and out of the sediment'
+  write(io_stdo_bgc,*) '------------------------------------------'
+  write(io_stdo_bgc,*) '        [kmol]'
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Detritus, Calcium Carbonate, Silicate  ',              &
        &               sum_zprorca, sum_zprcaca, sum_zsilpro
-  WRITE(io_stdo_bgc,*) ' '
-  DO l=1,npowtra
-     WRITE(io_stdo_bgc,*) 'No. ',l,' ',sum_sedfluxo(l)
-  ENDDO
-  WRITE(io_stdo_bgc,*) ' '
-  WRITE(io_stdo_bgc,*) 'Global total export production'
-  WRITE(io_stdo_bgc,*) '------------------------------'
-  WRITE(io_stdo_bgc,*) '        [kmol]'
-  WRITE(io_stdo_bgc,*) 'carbon   : ',sum_expoor
-  WRITE(io_stdo_bgc,*) 'carbonate: ',sum_expoca
-  WRITE(io_stdo_bgc,*) 'silicate : ',sum_exposi
-  WRITE(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) ' '
+  do l=1,npowtra
+     write(io_stdo_bgc,*) 'No. ',l,' ',sum_sedfluxo(l)
+  enddo
+  write(io_stdo_bgc,*) ' '
+  write(io_stdo_bgc,*) 'Global total export production'
+  write(io_stdo_bgc,*) '------------------------------'
+  write(io_stdo_bgc,*) '        [kmol]'
+  write(io_stdo_bgc,*) 'carbon   : ',sum_expoor
+  write(io_stdo_bgc,*) 'carbonate: ',sum_expoca
+  write(io_stdo_bgc,*) 'silicate : ',sum_exposi
+  write(io_stdo_bgc,*) ' '
 
-end subroutine write_stdout
+END SUBROUTINE write_stdout
 
 
-subroutine write_netcdf(iogrp)
+SUBROUTINE write_netcdf(iogrp)
 !**********************************************************************
 !**** Write inventory to netCDF file.
 !**********************************************************************
@@ -681,7 +681,7 @@ subroutine write_netcdf(iogrp)
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
   use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: iogrp
 
@@ -1884,13 +1884,13 @@ subroutine write_netcdf(iogrp)
      append2file_inv(iogrp) = .true.
   endif
 
-end subroutine write_netcdf
+END SUBROUTINE write_netcdf
 
 
-subroutine nccheck(status)
+SUBROUTINE nccheck(status)
   use netcdf, only: nf90_noerr
   use mod_xc, only: xchalt
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: status
 
@@ -1898,7 +1898,7 @@ subroutine nccheck(status)
      call xchalt('(inventory_bgc: Problem with netCDF)')
      stop        '(inventory_bgc: Problem with netCDF)'
   endif
-end subroutine nccheck
+END SUBROUTINE nccheck
 
 
 END SUBROUTINE INVENTORY_BGC

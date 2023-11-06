@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine restart_hamoccwt(rstfnm_ocn)
+SUBROUTINE restart_hamoccwt(rstfnm_ocn)
 !
 ! write restart for HAMOCC
 !
@@ -25,12 +25,12 @@ subroutine restart_hamoccwt(rstfnm_ocn)
   use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
   use mo_intfcblom,  only: omask
 
-  implicit none
+  IMPLICIT NONE
 
   character(len=*) :: rstfnm_ocn
 
-  CALL AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc           &
+  call AUFW_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc           &
        &       ,date%year,date%month,date%day,nstep,omask   &
        &       ,rstfnm_ocn)
 
-end subroutine restart_hamoccwt
+END SUBROUTINE restart_hamoccwt

@@ -56,7 +56,7 @@
 !     - added preformed and saturated DIC tracers
 !
 !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!     - moved accumulation of all output fields to seperate subroutine,
+!     - moved accumulation of all output fields to seperate SUBROUTINE,
 !       related code-restructuring
 !     - dissolution of CaCO3 moved into main loop
 !     - added sediment bypass preprocessor option
@@ -74,25 +74,25 @@
 !**** Parameter list:
 !     ---------------
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*    - nb of halo grid points
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-!     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *prho*    - density [g/cm^3].
-!     *REAL*    *pglat*   - latitude of grid cells [deg north].
-!     *REAL*    *omask*   - ocean mask.
-!     *REAL*    *psicomo* - sea ice.
-!     *REAL*    *ppao*    - sea level presure [Pascal].
-!     *REAL*    *pfu10*   - forcing field wind speed.
-!     *REAL*    *ptho*    - potential temperature.
-!     *REAL*    *psao*    - salinity [psu].
+!     *integer* *kpie*    - 1st dimension of model grid.
+!     *integer* *kpje*    - 2nd dimension of model grid.
+!     *integer* *kpke*    - 3rd (vertical) dimension of model grid.
+!     *integer* *kbnd*    - nb of halo grid points
+!     *real*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
+!     *real*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
+!     *real*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *real*    *prho*    - density [g/cm^3].
+!     *real*    *pglat*   - latitude of grid cells [deg north].
+!     *real*    *omask*   - ocean mask.
+!     *real*    *psicomo* - sea ice.
+!     *real*    *ppao*    - sea level presure [Pascal].
+!     *real*    *pfu10*   - forcing field wind speed.
+!     *real*    *ptho*    - potential temperature.
+!     *real*    *psao*    - salinity [psu].
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
@@ -114,48 +114,48 @@
                                 nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_sedmnt,      only: sedlay,powtra,burial
 
-      implicit none
+      IMPLICIT NONE
 
-      INTEGER, intent(in) :: kpie,kpje,kpke,kbnd     
-      REAL,    intent(in) :: pdlxp(kpie,kpje)
-      REAL,    intent(in) :: pdlyp(kpie,kpje)
-      REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-      REAL,    intent(in) :: prho(kpie,kpje,kpke)
-      REAL,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: omask(kpie,kpje)
-      REAL,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-      REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-      REAL,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      integer, intent(in) :: kpie,kpje,kpke,kbnd     
+      real,    intent(in) :: pdlxp(kpie,kpje)
+      real,    intent(in) :: pdlyp(kpie,kpje)
+      real,    intent(in) :: pddpo(kpie,kpje,kpke)
+      real,    intent(in) :: prho(kpie,kpje,kpke)
+      real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in) :: omask(kpie,kpje)
+      real,    intent(in) :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in) :: ppao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in) :: pfu10(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+      real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+      real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
 
       ! Local variables
-      INTEGER :: i,j,k,l,js
-      INTEGER, parameter :: niter=20
-      REAL    :: supsat, undsa, dissol
-      REAL    :: rpp0,fluxd,fluxu
-      REAL    :: kwco2,kwo2,kwn2,kwdms,kwn2o
-      REAL    :: scco2,sco2,scn2,scdms,scn2o
-      REAL    :: Xconvxa
-      REAL    :: oxflux,niflux,dmsflux,n2oflux
-      REAL    :: ato2,atn2,atco2,pco2
-      REAL    :: oxy,ani,anisa 
-      REAL    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
-      REAL    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
-      REAL    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc,tc_sat
-      REAL    :: omega
-      REAL    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
-      REAL    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf              ! CFC
-      REAL    :: flx11,flx12,flxsf,a_11,a_12,a_sf                    ! CFC
-      REAL    :: natcu,natcb,natcc                                   ! natDIC
-      REAL    :: natpco2,natfluxd,natfluxu,natomega                  ! natDIC
-      REAL    :: natsupsat,natundsa,natdissol                        ! natDIC
-      REAL    :: rco213,rco214                                       ! cisonew
-      REAL    :: dissol13,dissol14                                   ! cisonew
-      REAL    :: flux14d,flux14u,flux13d,flux13u                     ! cisonew
-      REAL    :: atco213,atco214,pco213,pco214                       ! cisonew
-      REAL    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
-      REAL    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
+      integer :: i,j,k,l,js
+      integer, parameter :: niter=20
+      real    :: supsat, undsa, dissol
+      real    :: rpp0,fluxd,fluxu
+      real    :: kwco2,kwo2,kwn2,kwdms,kwn2o
+      real    :: scco2,sco2,scn2,scdms,scn2o
+      real    :: Xconvxa
+      real    :: oxflux,niflux,dmsflux,n2oflux
+      real    :: ato2,atn2,atco2,pco2
+      real    :: oxy,ani,anisa 
+      real    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
+      real    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
+      real    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc,tc_sat
+      real    :: omega
+      real    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
+      real    :: sch_11,sch_12,sch_sf,kw_11,kw_12,kw_sf              ! CFC
+      real    :: flx11,flx12,flxsf,a_11,a_12,a_sf                    ! CFC
+      real    :: natcu,natcb,natcc                                   ! natDIC
+      real    :: natpco2,natfluxd,natfluxu,natomega                  ! natDIC
+      real    :: natsupsat,natundsa,natdissol                        ! natDIC
+      real    :: rco213,rco214                                       ! cisonew
+      real    :: dissol13,dissol14                                   ! cisonew
+      real    :: flux14d,flux14u,flux13d,flux13u                     ! cisonew
+      real    :: atco213,atco214,pco213,pco214                       ! cisonew
+      real    :: frac_k,frac_aqg,frac_dicg                           ! cisonew
+      real    :: flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub ! BROMO
 
 ! set variables for diagnostic output to zero
        atmflx (:,:,:)=0.
@@ -198,11 +198,11 @@
 !$OMP  ,frac_dicg,flux13d,flux13u,flux14d,flux14u,dissol13,dissol14   &
 !$OMP  ,flx_bromo,sch_bromo,kw_bromo,a_bromo,atbrf,Kb1,lsub           &
 !$OMP  ,j,i)
-      DO k=1,kpke
-      DO j=1,kpje
-      DO i=1,kpie
+      do k=1,kpke
+      do j=1,kpje
+      do i=1,kpie
 
-      IF(omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
+      if (omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) then
 
 ! Carbon chemistry: Calculate equilibrium constants and solve for [H+] and
 ! carbonate alkalinity (ac)
@@ -222,10 +222,10 @@
       pt   = ocetra(i,j,k,iphosph) / rrho
       ah1  = hi(i,j,k)
 
-      CALL CARCHM_KEQUI(t,s,prb,Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,             &
+      call CARCHM_KEQUI(t,s,prb,Kh,Khd,K1,K2,Kb,Kw,Ks1,Kf,Ksi,             &
                         K1p,K2p,K3p,Kspc,Kspa)
 
-      CALL CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
+      call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
                         ah1,ac,niter)
 
       if(ah1.gt.0.) then 
@@ -246,7 +246,7 @@
          ta   = ocetra(i,j,k,inatalkali) / rrho
          ah1  = nathi(i,j,k)
 
-         CALL CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
+         call CARCHM_SOLVE(s,tc,ta,sit,pt,K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
               ah1,ac,niter)
 
          if(ah1.gt.0.) then 
@@ -371,7 +371,7 @@
 
 ! Calculate saturation DIC concentration in mixed layer
        ta = ocetra(i,j,k,ialkali) / rrho
-       CALL carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
+       call carchm_solve_DICsat(s,atco2*rpp0,ta,sit,pt,Kh,K1,K2,Kb,Kw,Ks1,Kf, &
                                Ksi,K1p,K2p,K3p,tc_sat,niter)
        ocetra(i,j,1:kmle(i,j),idicsat) = tc_sat * rrho ! convert mol/kg to kmlo/m^3
 
@@ -421,20 +421,20 @@
 !      unit of [cfc11_atm(i,j)*ppair/p0] should be in [pptv]
 !      unit of [flx11-12] is in [kmol / m2]
           
-          IF (pglat(i,j).GE.10) THEN
+          if (pglat(i,j).GE.10) then
              atm_cfc11=atm_cfc11_nh
              atm_cfc12=atm_cfc12_nh
              atm_sf6=atm_sf6_nh
-          ELSE IF (pglat(i,j).LE.-10) THEN
+          else if (pglat(i,j).LE.-10) then
              atm_cfc11=atm_cfc11_sh
              atm_cfc12=atm_cfc12_sh
              atm_sf6=atm_sf6_sh
-          ELSE
+          else
              fact=(pglat(i,j)-(-10))/20.
              atm_cfc11=fact*atm_cfc11_nh+(1-fact)*atm_cfc11_sh
              atm_cfc12=fact*atm_cfc12_nh+(1-fact)*atm_cfc12_sh
              atm_sf6=fact*atm_sf6_nh+(1-fact)*atm_sf6_sh
-          ENDIF
+          endif
 
 ! Use conversion of 9.86923e-6 [std atm / Pascal]
 ! Surface flux of cfc11
@@ -571,7 +571,7 @@
          ocetra(i,j,k,izoo14)  = ocetra(i,j,k,izoo14)*c14dec
       endif
 
-      ! Save bottom level dissociation konstants for use in sediment module
+      ! Save bottom level dissociation konstants for use in sediment MODULE
       if( k==kbo(i,j) ) then
 
         keqb( 1,i,j)  = K1
@@ -588,10 +588,10 @@
 
       endif
 
-      ENDIF ! omask>0.5
-      ENDDO
-      ENDDO
-      ENDDO
+      endif ! omask>0.5
+      enddo
+      enddo
+      enddo
 !$OMP END PARALLEL DO
 
       ! C14 decay in the sediment (could be moved to sediment part)
@@ -622,6 +622,6 @@
          !$OMP END PARALLEL DO
       endif ! end of use_cisonew and not use_sedbypass
 
-      RETURN
+      return
     END SUBROUTINE CARCHM
 

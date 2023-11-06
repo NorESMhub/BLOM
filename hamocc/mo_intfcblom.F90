@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_intfcblom
+MODULE mo_intfcblom
 !******************************************************************************
 !
 ! MODULE mo_intfcblom - Variables for BLOM-iHAMOCC interface
@@ -33,39 +33,39 @@ module mo_intfcblom
 !
 !  Description:
 !  ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine alloc_mem_intfcblom
+!  -SUBROUTINE alloc_mem_intfcblom
 !     Allocate memory for BLOM interface variables
 !
-!  -subroutine blom2hamocc
+!  -SUBROUTINE blom2hamocc
 !     Transfer fields from BLOM to HAMOCC
 !
-!  -subroutine hamocc2blom
+!  -SUBROUTINE hamocc2blom
 !     Transfer fields from HAMOCC to BLOM
 !
 !
-!   *nphys*      *INTEGER*  - number of bgc timesteps per ocean timestep.
-!   *bgc_dx*     *REAL*     - size of grid cell (longitudinal) [m].
-!   *bgc_dx*     *REAL*     - size of grid cell (latitudinal) [m].
-!   *bgc_dp*     *REAL*     - size of grid cell (depth) [m].
-!   *bgc_rho*    *REAL*     - sea water density [kg/m^3].
-!   *omask*      *REAL*     - land ocean mask.
+!   *nphys*      *integer*  - number of bgc timesteps per ocean timestep.
+!   *bgc_dx*     *real*     - size of grid cell (longitudinal) [m].
+!   *bgc_dx*     *real*     - size of grid cell (latitudinal) [m].
+!   *bgc_dp*     *real*     - size of grid cell (depth) [m].
+!   *bgc_rho*    *real*     - sea water density [kg/m^3].
+!   *omask*      *real*     - land ocean mask.
 !
 ! The following arrays are used to keep a two time-level copy of sediment
 ! and prognostic atmosphere fields. These arrays are copied back and forth 
 ! in blom2hamocc.F and hamocc2blom.F in the same manner as the tracer field.
 ! Also, they written/read to and from restart files:
 !
-!   *sedlay2*    *REAL*     - two time-level copy of sedlay
-!   *powtra2*    *REAL*     - two time-level copy of powtra
-!   *burial2*    *REAL*     - two time-level copy of burial
-!   *atm2*       *REAL*     - two time-level copy of atm
+!   *sedlay2*    *real*     - two time-level copy of sedlay
+!   *powtra2*    *real*     - two time-level copy of powtra
+!   *burial2*    *real*     - two time-level copy of burial
+!   *atm2*       *real*     - two time-level copy of atm
 !
 !******************************************************************************
   use mo_control_bgc, only: use_sedbypass,use_BOXATM
 
-  implicit none
+  IMPLICIT NONE
 
   integer, parameter :: nphys=2
 
@@ -83,15 +83,15 @@ module mo_intfcblom
   ! used if BOXATM is activated
   real, allocatable :: atm2(:,:,:,:)
 
-contains
+CONTAINS
 !******************************************************************************
 
 
 
-subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
+SUBROUTINE alloc_mem_intfcblom(kpie,kpje,kpke)
 !******************************************************************************
 !
-! ALLOC_MEM_VGRID - Allocate variables in this module
+! ALLOC_MEM_VGRID - Allocate variables in this MODULE
 !
 !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
 !
@@ -100,23 +100,23 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   use mo_control_bgc, only: io_stdo_bgc
   use mo_param1_bgc,  only: ks,nsedtra,npowtra,natm
 
-  INTEGER, intent(in) :: kpie,kpje,kpke
-  INTEGER             :: errstat
+  integer, intent(in) :: kpie,kpje,kpke
+  integer             :: errstat
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'Memory allocation for module mo_intfcblom :'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)' '
+    write(io_stdo_bgc,*)'***************************************************'
+    write(io_stdo_bgc,*)'Memory allocation for MODULE mo_intfcblom :'
+    write(io_stdo_bgc,*)' '
+  endif
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable bgc_dx, bgc_dy ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable bgc_dx, bgc_dy ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE (bgc_dx(kpie,kpje),stat=errstat)
   ALLOCATE (bgc_dy(kpie,kpje),stat=errstat)
@@ -125,73 +125,73 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   bgc_dy(:,:) = 0.0
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable bgc_dp ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable bgc_dp ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third dimension    : ',kpke
+  endif
 
   ALLOCATE (bgc_dp(kpie,kpje,kpke),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory bgc_dp'
   bgc_dp(:,:,:) = 0.0
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable bgc_rho ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable bgc_rho ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third dimension    : ',kpke
+  endif
 
   ALLOCATE (bgc_rho(kpie,kpje,kpke),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory bgc_dp'
   bgc_rho(:,:,:) = 0.0
 
 
-  IF(mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable omask ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable omask ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+  endif
 
   ALLOCATE(omask(kpie,kpje),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory omask'
   omask(:,:) = 0.0
 
   if (.not. use_sedbypass) then
-     IF(mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
-        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-     ENDIF
+     if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',2*ks
+        write(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
+     endif
      
      ALLOCATE (sedlay2(kpie,kpje,2*ks,nsedtra),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory sedlay2'
      sedlay2(:,:,:,:) = 0.0
 
-     IF(mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',2*ks
-        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',npowtra
-     ENDIF
+     if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',2*ks
+        write(io_stdo_bgc,*)'Fourth dimension   : ',npowtra
+     endif
 
      ALLOCATE (powtra2(kpie,kpje,2*ks,npowtra),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory powtra2'
      powtra2(:,:,:,:) = 0.0
 
 
-     IF(mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',2
-        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
-     ENDIF
+     if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',2
+        write(io_stdo_bgc,*)'Fourth dimension   : ',nsedtra
+     endif
 
      ALLOCATE (burial2(kpie,kpje,2,nsedtra),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory burial2'
@@ -199,25 +199,25 @@ subroutine alloc_mem_intfcblom(kpie,kpje,kpke)
   endif
 
   if (use_BOXATM) then
-     IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',2
-        WRITE(io_stdo_bgc,*)'Fourth dimension   : ',natm
-     ENDIF
+     if (mnproc.eq.1) then
+        write(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',2
+        write(io_stdo_bgc,*)'Fourth dimension   : ',natm
+     endif
 
      ALLOCATE (atm2(kpie,kpje,2,natm),stat=errstat)
      if(errstat.ne.0) stop 'not enough memory atm2'
      atm2(:,:,:,:) = 0.0
   endif
 
-end subroutine alloc_mem_intfcblom
+END SUBROUTINE alloc_mem_intfcblom
 !******************************************************************************
 
 
 
-subroutine blom2hamocc(m,n,mm,nn)
+SUBROUTINE blom2hamocc(m,n,mm,nn)
 !******************************************************************************
 !
 !**** *SUBROUTINE blom2hammoc* - Interface between BLOM and HAMOCC.
@@ -236,7 +236,7 @@ subroutine blom2hamocc(m,n,mm,nn)
 !     - changed ocean model from MICOM to BLOM
 !
 !     T. Torsvik,       *University of Bergen*   2021-08-26
-!     - integrate subroutine into module mo_intfcblom
+!     - integrate SUBROUTINE into MODULE mo_intfcblom
 !
 !     Purpose
 !     -------
@@ -256,7 +256,7 @@ subroutine blom2hamocc(m,n,mm,nn)
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
   use mo_vgrid,      only: kmle, kmle_static
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: m,n,mm,nn
 
@@ -405,12 +405,12 @@ subroutine blom2hamocc(m,n,mm,nn)
      !$OMP END PARALLEL DO
   endif
 
-end subroutine blom2hamocc
+END SUBROUTINE blom2hamocc
 !******************************************************************************
 
 
 
-subroutine hamocc2blom(m,n,mm,nn)
+SUBROUTINE hamocc2blom(m,n,mm,nn)
 !******************************************************************************
 !
 !**** *SUBROUTINE hamocc2blom* - Interface between BLOM and HAMOCC.
@@ -427,7 +427,7 @@ subroutine hamocc2blom(m,n,mm,nn)
 !     - changed ocean model from MICOM to BLOM
 !
 !     T. Torsvik,       *University of Bergen*   2021-08-26
-!     - integrate subroutine into module mo_intfcblom
+!     - integrate SUBROUTINE into MODULE mo_intfcblom
 !
 !     Purpose
 !     -------
@@ -448,7 +448,7 @@ subroutine hamocc2blom(m,n,mm,nn)
   use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: m,n,mm,nn
   integer             :: i,j,k,l,nns,mms,kn,km
@@ -541,7 +541,7 @@ subroutine hamocc2blom(m,n,mm,nn)
      !$OMP END PARALLEL DO
   endif
 
-end subroutine hamocc2blom
+END SUBROUTINE hamocc2blom
 !******************************************************************************
 
-end module mo_intfcblom
+END MODULE mo_intfcblom

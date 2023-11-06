@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_read_fedep
+MODULE mo_read_fedep
 !******************************************************************************
 !
 ! MODULE mo_read_fedep - routines for reading iron deposition data
@@ -27,8 +27,8 @@ module mo_read_fedep
 !  Modified
 !  --------
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-06-02
-!  -revise structure of this module, split into a module for reading the 
-!   data (mo_read_fedep) and a module that applies the fluxes in core 
+!  -revise structure of this MODULE, split into a MODULE for reading the 
+!   data (mo_read_fedep) and a MODULE that applies the fluxes in core 
 !   hamocc (mo_apply_fedep)
 !
 !  Purpose
@@ -38,17 +38,17 @@ module mo_read_fedep
 !
 !  Description:
 !  ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine ini_read_fedep
-!     Initialise the module for reading iron deposition data
+!  -SUBROUTINE ini_read_fedep
+!     Initialise the MODULE for reading iron deposition data
 !
-!  -subroutine get_fedep
+!  -SUBROUTINE get_fedep
 !     Get the iron (dust) deposition for a given month
 !
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: ini_read_fedep,get_fedep,fedepfile
@@ -60,35 +60,35 @@ module mo_read_fedep
   real, allocatable,  save :: dustflx(:,:,:)
 
 
-contains
+CONTAINS
 !******************************************************************************
 
 
 
-subroutine ini_read_fedep(kpie,kpje,omask)
+SUBROUTINE ini_read_fedep(kpie,kpje,omask)
 !******************************************************************************
 !
-! INI_FEDEP - initialise the iron deposition module.
+! INI_FEDEP - initialise the iron deposition MODULE.
 !
 !
 !  J.Schwinger            *NORCE Climate, Bergen*       2020-05-19
 !
 !  Purpose
 !  -------
-!   Initialise the iron deposition module, read in the iron (dust) data set.
+!   Initialise the iron deposition MODULE, read in the iron (dust) data set.
 !
 !  Parameter list:
 !  ---------------
-!   *INTEGER*   *kpie*    - 1st dimension of model grid.
-!   *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!   *REAL*      *omask*   - land/ocean mask (1=ocean)
+!   *integer*   *kpie*    - 1st dimension of model grid.
+!   *integer*   *kpje*    - 2nd dimension of model grid.
+!   *real*      *omask*   - land/ocean mask (1=ocean)
 !
 !******************************************************************************
   use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje
   real,    intent(in) :: omask(kpie,kpje)
@@ -98,29 +98,29 @@ subroutine ini_read_fedep(kpie,kpje,omask)
 
 
   ! allocate field to hold iron deposition fluxes
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_fedep:'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)' '
+    write(io_stdo_bgc,*)'***************************************************'
+    write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_fedep:'
+    write(io_stdo_bgc,*)' '
+  endif
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third dimension    :  12'
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable dustflx ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third dimension    :  12'
+  endif
    
   ALLOCATE (dustflx(kpie,kpje,12),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory dustflx'
   dustflx(:,:,:) = 0.0
 
   ! Open netCDF data file     
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
-    IF (ncstat.NE.NF90_NOERR ) THEN
-      CALL xchalt('(get_dust: Problem with netCDF1)')
+    if (ncstat.NE.NF90_NOERR ) then
+      call xchalt('(get_dust: Problem with netCDF1)')
              stop '(get_dust: Problem with netCDF1)'
     END IF
   END IF
@@ -129,10 +129,10 @@ subroutine ini_read_fedep(kpie,kpje,omask)
   call read_netcdf_var(ncid,'DUST',dustflx(1,1,1),12,0,0)
 
   ! Close file
-  IF(mnproc==1) THEN
+  if (mnproc==1) then
     ncstat = NF90_CLOSE(ncid)
-    IF ( ncstat .NE. NF90_NOERR ) THEN
-      CALL xchalt('(get_dust: Problem with netCDF200)')
+    if ( ncstat .NE. NF90_NOERR ) then
+      call xchalt('(get_dust: Problem with netCDF200)')
              stop '(get_dust: Problem with netCDF200)'
     END IF
   END IF
@@ -154,13 +154,13 @@ subroutine ini_read_fedep(kpie,kpje,omask)
   enddo
 
 
-  RETURN
+  return
 
 !******************************************************************************
-end subroutine ini_read_fedep
+END SUBROUTINE ini_read_fedep
 
 
-subroutine get_fedep(kpie,kpje,kplmon,dust)
+SUBROUTINE get_fedep(kpie,kpje,kplmon,dust)
 !******************************************************************************
 !
 ! GET_FEDEP - get iron (dust) deposition for current month
@@ -170,14 +170,14 @@ subroutine get_fedep(kpie,kpje,kplmon,dust)
 !
 !  Purpose
 !  -------
-!   Initialise the iron deposition module, read in the iron (dust) data set.
+!   Initialise the iron deposition MODULE, read in the iron (dust) data set.
 !
 !  Parameter list:
 !  ---------------
-!   *INTEGER*   *kpie*    - 1st dimension of model grid.
-!   *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!   *INTEGER*   *kplmon*  - current month.
-!   *REAL*      *dust*    - dust flux for current month
+!   *integer*   *kpie*    - 1st dimension of model grid.
+!   *integer*   *kpje*    - 2nd dimension of model grid.
+!   *integer*   *kplmon*  - current month.
+!   *real*      *dust*    - dust flux for current month
 
 !
 !******************************************************************************
@@ -188,8 +188,8 @@ subroutine get_fedep(kpie,kpje,kplmon,dust)
 
 
 !******************************************************************************
-end subroutine get_fedep
+END SUBROUTINE get_fedep
 
 
 !******************************************************************************
-end module mo_read_fedep
+END MODULE mo_read_fedep

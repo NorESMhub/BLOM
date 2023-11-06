@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_read_rivin
+MODULE mo_read_rivin
 !********************************************************************************
 !
 !     S. Gao,              *Gfi, Bergen*    19.08.2017
@@ -28,9 +28,9 @@ module mo_read_rivin
 !
 ! Description:
 ! ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine ini_read_rivin
+!  -SUBROUTINE ini_read_rivin
 !    read gnews riverine nutrient and carbon data 
 !
 !
@@ -54,18 +54,18 @@ module mo_read_rivin
 ! Changes: 
 ! --------
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-!  - re-structured this module such that riverine input can be passed as an 
+!  - re-structured this MODULE such that riverine input can be passed as an 
 !    argument to iHAMOCC's main routine
 ! 
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
-!  - re-structured and renamed this module such that reading and application of 
-!    data are seperated into two distinct modules
+!  - re-structured and renamed this MODULE such that reading and application of 
+!    data are seperated into two distinct MODULEs
 !
 !********************************************************************************
 use dimensions, only: idm,jdm
 use mod_xc ,    only: nbdy
 
-implicit none
+IMPLICIT NONE
 
 private
 public :: ini_read_rivin,rivinfile,rivflx
@@ -84,11 +84,11 @@ real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   
                                                         riv_DFe2d
 
 !********************************************************************************
-contains
+CONTAINS
 
 
 
-subroutine ini_read_rivin(kpie,kpje,omask)
+SUBROUTINE ini_read_rivin(kpie,kpje,omask)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -98,9 +98,9 @@ subroutine ini_read_rivin(kpie,kpje,omask)
 !
 ! Arguments:
 ! ----------
-!  *INTEGER*     *kpie*    - 1st dimension of model grid.
-!  *INTEGER*     *kpje*    - 2nd dimension of model grid.
-!  *REAL*        *omask*   - ocean mask
+!  *integer*     *kpie*    - 1st dimension of model grid.
+!  *integer*     *kpje*    - 2nd dimension of model grid.
+!  *real*        *omask*   - ocean mask
 !
 !--------------------------------------------------------------------------------
   use mod_xc,         only: mnproc
@@ -109,7 +109,7 @@ subroutine ini_read_rivin(kpie,kpje,omask)
   use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
   use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
-  implicit none
+  IMPLICIT NONE
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)
@@ -118,20 +118,20 @@ subroutine ini_read_rivin(kpie,kpje,omask)
   integer :: i,j,errstat,dummymask(2)
 
 
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)' '
-    WRITE(io_stdo_bgc,*)'***************************************************'
-    WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
-    WRITE(io_stdo_bgc,*)' '
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)' '
+    write(io_stdo_bgc,*)'***************************************************'
+    write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_read_rivin:'
+    write(io_stdo_bgc,*)' '
+  endif
 
   ! Allocate field to hold river fluxes
-  IF (mnproc.eq.1) THEN
-    WRITE(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
-    WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-    WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-    WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
-  ENDIF
+  if (mnproc.eq.1) then
+    write(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
+    write(io_stdo_bgc,*)'First dimension    : ',kpie
+    write(io_stdo_bgc,*)'Second dimension   : ',kpje
+    write(io_stdo_bgc,*)'Third  dimension   : ',nriv
+  endif
 
   ALLOCATE (rivflx(kpie,kpje,nriv),stat=errstat)
   if(errstat.ne.0) stop 'not enough memory rivflx'
@@ -165,9 +165,9 @@ subroutine ini_read_rivin(kpie,kpje,omask)
 
 
 
-  DO j=1,kpje
-  DO i=1,kpie
-    IF(omask(i,j).GT.0.5) THEN
+  do j=1,kpje
+  do i=1,kpie
+    if (omask(i,j).GT.0.5) then
 
     rivflx(i,j,irdin)    = riv_DIN2d(i,j)
     rivflx(i,j,irdip)    = riv_DIP2d(i,j)
@@ -177,14 +177,14 @@ subroutine ini_read_rivin(kpie,kpje,omask)
     rivflx(i,j,irdoc)    = riv_idoc2d(i,j)
     rivflx(i,j,irdet)    = riv_idet2d(i,j)
 
-    ENDIF
-  ENDDO
-  ENDDO
+    endif
+  enddo
+  enddo
 
 !--------------------------------------------------------------------------------
-end subroutine ini_read_rivin 
+END SUBROUTINE ini_read_rivin 
 
 
 
 !********************************************************************************
-end module mo_read_rivin
+END MODULE mo_read_rivin

@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_apply_rivin
+MODULE mo_apply_rivin
 !********************************************************************************
 !
 !     S. Gao,              *Gfi, Bergen*    19.08.2017
@@ -28,9 +28,9 @@ module mo_apply_rivin
 !
 ! Description:
 ! ------------
-!  Public routines and variable of this module:
+!  Public routines and variable of this MODULE:
 !
-!  -subroutine apply_rivin
+!  -SUBROUTINE apply_rivin
 !    apply riverine input to the ocean tracer field
 !
 !  BLOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate 
@@ -40,15 +40,15 @@ module mo_apply_rivin
 ! Changes: 
 ! --------
 !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
-!  - re-structured this module such that riverine input can be passed as an 
+!  - re-structured this MODULE such that riverine input can be passed as an 
 !    argument to iHAMOCC's main routine
 ! 
 !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
-!  - re-structured and renamed this module such that reading and application of 
-!    data are seperated into two distinct modules
+!  - re-structured and renamed this MODULE such that reading and application of 
+!    data are seperated into two distinct MODULEs
 !
 !********************************************************************************
-implicit none
+IMPLICIT NONE
 
 private
 public :: apply_rivin
@@ -61,11 +61,11 @@ real, parameter :: dFe_frac = 0.01  ! assume 99% loss of dissolved iron
 
 
 !********************************************************************************
-contains
+CONTAINS
 
 
 
-subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
+SUBROUTINE apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 !--------------------------------------------------------------------------------
 !
 ! Purpose:
@@ -78,12 +78,12 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 !
 ! Arguments:
 ! ----------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-!  *REAL*      *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!  *REAL*      *omask*   - ocean mask
-!  *REAL*      *rivin*   - riverine input field [kmol m-2 yr-1]
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *integer*   *kpke*    - 3rd (vertical) dimension of model grid.
+!  *real*      *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!  *real*      *omask*   - ocean mask
+!  *real*      *rivin*   - riverine input field [kmol m-2 yr-1]
 !
 !--------------------------------------------------------------------------------
   use mo_control_bgc, only: dtb,do_rivinpt,use_cisonew
@@ -96,7 +96,7 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
   use mo_carbch,      only: ocetra,rivinflx
   use mo_control_bgc, only: use_natDIC
 
-  implicit none
+  IMPLICIT NONE
 
   integer,intent(in) :: kpie,kpje,kpke
   real,   intent(in) :: pddpo(kpie,kpje,kpke)
@@ -117,15 +117,15 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
   fdt = dtb/365.
 
 !$OMP PARALLEL DO PRIVATE(i,k,volij)
-  DO j=1,kpje
-  DO i=1,kpie
-    IF(omask(i,j).GT.0.5) THEN
+  do j=1,kpje
+  do i=1,kpie
+    if (omask(i,j).GT.0.5) then
 
       ! Distribute riverine inputs over the model mixed layer
       volij = 0.
-      DO k=1,kmle(i,j)
+      do k=1,kmle(i,j)
         volij=volij+pddpo(i,j,k)
-      ENDDO
+      enddo
 
       if (use_cisonew) then
          ocetra(i,j,1:kmle(i,j),isco213)    = ocetra(i,j,1:kmle(i,j),isco213)    +                   &
@@ -176,15 +176,15 @@ subroutine apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
       rivinflx(i,j,iriron)   = rivin(i,j,iriron)*fdt*dFe_frac
       rivinflx(i,j,irdoc)    = rivin(i,j,irdoc)*fdt
       rivinflx(i,j,irdet)    = rivin(i,j,irdet)*fdt 
-    ENDIF
-  ENDDO
-  ENDDO
+    endif
+  enddo
+  enddo
 !$OMP END PARALLEL DO
 
 !--------------------------------------------------------------------------------
-end subroutine apply_rivin
+END SUBROUTINE apply_rivin
 
 
 !********************************************************************************
-end module mo_apply_rivin
+END MODULE mo_apply_rivin
 

@@ -17,7 +17,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
+SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !**********************************************************************
 !
 !**** *POWADI* - vertical diffusion with simultaneous dissolution.
@@ -34,7 +34,7 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !
 !     Method
 !     -------
-!     implicit discretisation.
+!     IMPLICIT discretisation.
 !
 !**   Interface.
 !     ----------
@@ -48,11 +48,11 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !     Output: sediso: diffused tracer at exit
 !     ======
 !
-!     *PARAMETER*     *PARAM1_BGC.h* - declaration of ocean/sediment tracer.
+!     *parameter*     *PARAM1_BGC.h* - declaration of ocean/sediment tracer.
 !
 !     Externals
 !     ---------
-!     none.
+!     NONE.
 !
 !**********************************************************************
 
@@ -61,7 +61,7 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
   use mo_param1_bgc, only: ks
   use mo_vgrid,      only: bolay
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: j, kpie, kpje
   real, dimension(kpie,ks),   intent(in)    :: solrat
@@ -133,4 +133,4 @@ subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
      enddo
   enddo
 
-end subroutine powadi
+END SUBROUTINE powadi

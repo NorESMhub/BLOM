@@ -16,7 +16,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-module mo_read_oafx
+MODULE mo_read_oafx
 !******************************************************************************
 !
 !   J.Schwinger             *NORCE Climate, Bergen*             2022-08-24
@@ -44,7 +44,7 @@ module mo_read_oafx
 !
 !  Ocean alkalinization is activated through a logical switch 'do_oalk' read
 !  from HAMOCC's bgcnml namelist. If ocean alkalinization is activated, a valid
-!  name of an alkalinisation scenario (defined in this module, see below) needs
+!  name of an alkalinisation scenario (defined in this MODULE, see below) needs
 !  to be provided via HAMOCC's bgcnml namelist (variable oalkscen). For the
 !  'file' scenario, the file name (including the full path) of the
 !  corresponding OA-scenario input file needs to be provided (variable
@@ -63,15 +63,15 @@ module mo_read_oafx
 !    -'file':         Read monthly 2D field in kmol ALK m-2 yr-1 from a file
 !                     defined with the variable oalkfile.
 !
-!  -subroutine ini_read_oafx
-!     Initialise the module
+!  -SUBROUTINE ini_read_oafx
+!     Initialise the MODULE
 !
-!  -subroutine get_oafx
+!  -SUBROUTINE get_oafx
 !     Gets the alkalinity flux to apply at a given time.
 !
 !
 !******************************************************************************
-  implicit none
+  IMPLICIT NONE
 
   private
   public :: ini_read_oafx,get_oafx,oalkscen,oalkfile,thrh_omegaa
@@ -84,7 +84,7 @@ module mo_read_oafx
   real, parameter               :: Pmol2kmol  = 1.0e12
   
   ! Parameter used in the definition of alkalinization scenarios not based on
-  ! an input file. The following scenarios are defined in this module:
+  ! an input file. The following scenarios are defined in this MODULE:
   !
   !  const         Constant homogeneous addition of alkalinity between latitude
   !                cdrmip_latmin and latitude cdrmip_latmax
@@ -116,30 +116,30 @@ module mo_read_oafx
   logical,   save :: lini = .false.
 
 !******************************************************************************
-contains
+CONTAINS
 
 
 
-subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
+SUBROUTINE ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 !******************************************************************************
 !
 !     J.Schwinger               *NORCE Climate, Bergen*         2021-11-15
 !
 ! Purpose
 ! -------
-!  -Initialise the alkalinization module.
+!  -Initialise the alkalinization MODULE.
 !
 ! Changes: 
 ! --------
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER* *kpie*       - 1st dimension of model grid.
-!  *INTEGER* *kpje*       - 2nd dimension of model grid.
-!  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
-!  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
-!  *REAL*    *pglat*      - latitude grid cell centres [degree N].
-!  *REAL*    *omask*      - land/ocean mask.
+!  *integer* *kpie*       - 1st dimension of model grid.
+!  *integer* *kpje*       - 2nd dimension of model grid.
+!  *real*    *pdlxp*      - size of grid cell (longitudinal) [m].
+!  *real*    *pdlyp*      - size of grid cell (latitudinal) [m].
+!  *real*    *pglat*      - latitude grid cell centres [degree N].
+!  *real*    *omask*      - land/ocean mask.
 !
 !******************************************************************************
   use mod_xc,         only: xcsum,xchalt,mnproc,nbdy,ips
@@ -147,7 +147,7 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
   use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in) :: kpie,kpje
   real,    intent(in) :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
@@ -178,13 +178,13 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
     return
   endif
 
-  ! Initialise the module
+  ! Initialise the MODULE
   if(.not. lini) then 
 
     if(mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
-      write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_oafx:'
+      write(io_stdo_bgc,*)'iHAMOCC: Initialization of MODULE mo_read_oafx:'
       write(io_stdo_bgc,*)' '
     endif
 
@@ -290,10 +290,10 @@ subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 
 
 !******************************************************************************
-end subroutine ini_read_oafx
+END SUBROUTINE ini_read_oafx
 
 
-subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
+SUBROUTINE get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
 !******************************************************************************
 !
 !     J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
@@ -308,12 +308,12 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
 !
 ! Parameter list:
 ! ---------------
-!  *INTEGER*   *kpie*    - 1st dimension of model grid.
-!  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-!  *INTEGER*   *kplyear* - current year.
-!  *INTEGER*   *kplmon*  - current month.
-!  *REAL*      *omask*   - land/ocean mask (1=ocean)
-!  *REAL*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
+!  *integer*   *kpie*    - 1st dimension of model grid.
+!  *integer*   *kpje*    - 2nd dimension of model grid.
+!  *integer*   *kplyear* - current year.
+!  *integer*   *kplmon*  - current month.
+!  *real*      *omask*   - land/ocean mask (1=ocean)
+!  *real*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
 !
 !******************************************************************************
   use mod_xc,         only: xchalt,mnproc
@@ -321,7 +321,7 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   use mo_control_bgc, only: io_stdo_bgc,do_oalk
   use mod_time,       only: nday_of_year
 
-  implicit none
+  IMPLICIT NONE
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
@@ -386,9 +386,9 @@ subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   endif
 
 !******************************************************************************
-end subroutine get_oafx
+END SUBROUTINE get_oafx
 
 
 
 !******************************************************************************
-end module mo_read_oafx
+END MODULE mo_read_oafx
