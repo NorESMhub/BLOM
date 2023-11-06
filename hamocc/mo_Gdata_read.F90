@@ -75,7 +75,7 @@ use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,n
 use mod_xc,         only: mnproc,xchalt
 use mo_control_bgc, only: io_stdo_bgc
 
-IMPLICIT NONE
+implicit none
 
 private
 

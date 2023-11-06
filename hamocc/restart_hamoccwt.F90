@@ -25,7 +25,7 @@ SUBROUTINE restart_hamoccwt(rstfnm_ocn)
   use mod_tracers,   only: ntrbgc,ntr,itrbgc,trc
   use mo_intfcblom,  only: omask
 
-  IMPLICIT NONE
+  implicit none
 
   character(len=*) :: rstfnm_ocn
 

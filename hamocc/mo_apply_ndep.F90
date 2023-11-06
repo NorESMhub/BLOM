@@ -50,7 +50,7 @@ MODULE mo_apply_ndep
 !
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: apply_ndep
@@ -89,7 +89,7 @@ SUBROUTINE apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
   use mo_param1_bgc,  only: iano3,ialkali,inatalkali
   use mo_control_bgc, only: use_natDIC
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)

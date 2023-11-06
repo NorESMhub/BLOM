@@ -37,7 +37,7 @@ MODULE mo_apply_oafx
 !
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: apply_oafx
@@ -74,7 +74,7 @@ SUBROUTINE apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
   use mo_carbch,      only: ocetra,oalkflx,OmegaA
   use mo_read_oafx,   only: thrh_omegaa
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke
   real,    intent(in) :: pddpo(kpie,kpje,kpke)

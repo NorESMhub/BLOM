@@ -48,7 +48,7 @@ MODULE mo_apply_rivin
 !    data are seperated into two distinct MODULEs
 !
 !********************************************************************************
-IMPLICIT NONE
+implicit none
 
 private
 public :: apply_rivin
@@ -96,7 +96,7 @@ SUBROUTINE apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
   use mo_carbch,      only: ocetra,rivinflx
   use mo_control_bgc, only: use_natDIC
 
-  IMPLICIT NONE
+  implicit none
 
   integer,intent(in) :: kpie,kpje,kpke
   real,   intent(in) :: pddpo(kpie,kpje,kpke)

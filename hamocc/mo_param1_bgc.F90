@@ -40,7 +40,7 @@
       use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,         &
                                 use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP, &
                                 use_FB_BGC_OCE, use_BOXATM, use_sedbypass
-      IMPLICIT NONE
+      implicit none
       public
 
       integer, parameter :: ks=12,ksp=ks+1    ! ks: nb of sediment layers

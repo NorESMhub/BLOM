@@ -48,7 +48,7 @@ MODULE mo_read_fedep
 !
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: ini_read_fedep,get_fedep,fedepfile
@@ -88,7 +88,7 @@ SUBROUTINE ini_read_fedep(kpie,kpje,omask)
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje
   real,    intent(in) :: omask(kpie,kpje)

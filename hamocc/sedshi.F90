@@ -47,7 +47,7 @@
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !**********************************************************************
 
@@ -57,7 +57,7 @@
                                isssc13,isssc14,issso13,issso14 
       use mo_control_bgc, only: use_cisonew
 
-      IMPLICIT NONE
+      implicit none
 
       integer :: kpie,kpje,i,j,k,l,iv
       real :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)

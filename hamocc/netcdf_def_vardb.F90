@@ -64,13 +64,13 @@
 ! 
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 ! 
 ! **************************************************************************
       use netcdf,  only: nf90_double,nf90_noerr,nf90_put_att,nf90_def_var 
       use mod_xc,  only: mnproc,xchalt 
       use mod_dia, only:iotype
-      IMPLICIT NONE
+      implicit none
 #ifdef PNETCDF
 #include <pnetcdf.inc>
 #include <mpif.h>      

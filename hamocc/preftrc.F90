@@ -47,7 +47,7 @@ SUBROUTINE PREFTRC(kpie,kpje,omask)
   use mo_param1_bgc, only: ialkali,ioxygen,iphosph,iprefalk,iprefdic,iprefo2,iprefpo4,isco212
   use mo_vgrid,      only: kmle
 
-  IMPLICIT NONE
+  implicit none
 
   integer :: kpie,kpje
   real    :: omask(kpie,kpje)

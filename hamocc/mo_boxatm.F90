@@ -60,7 +60,7 @@ SUBROUTINE update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
                             iphy14,izoo14,ipowc14,issso14,isssc14
   use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
-  IMPLICIT NONE
+  implicit none
 
   integer,intent(in) :: kpie,kpje,kpke
   real,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)

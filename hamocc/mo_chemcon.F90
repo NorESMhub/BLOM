@@ -37,7 +37,7 @@
 !**********************************************************************
 
 
-      IMPLICIT NONE
+      implicit none
 
 
 !      real, parameter :: ZERO=0.

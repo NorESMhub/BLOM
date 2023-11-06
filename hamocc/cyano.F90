@@ -68,7 +68,7 @@ SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
   use mo_biomod,      only: intnfix
   use mo_control_bgc, only: use_natDIC
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: pddpo(kpie,kpje,kpke)

@@ -65,7 +65,7 @@ MODULE mo_read_ndep
 !     Read and return n-deposition data for a given month.
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: ini_read_ndep,get_ndep,ndepfile
@@ -104,7 +104,7 @@ SUBROUTINE ini_read_ndep(kpie,kpje)
   use mod_dia,        only: iotype
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
 
-  IMPLICIT NONE 
+  implicit none 
 
   integer, intent(in) :: kpie,kpje
 
@@ -194,7 +194,7 @@ SUBROUTINE get_ndep(kpie,kpje,kplyear,kplmon,omask,ndep)
   use netcdf,         only: nf90_open,nf90_close,nf90_nowrite
   use mo_control_bgc, only: io_stdo_bgc,do_ndep
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)

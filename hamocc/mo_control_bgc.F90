@@ -34,7 +34,7 @@ MODULE mo_control_bgc
   !
   !
   !**********************************************************************
-  IMPLICIT NONE
+  implicit none
 
   ! Logical unit number for I/O.
   integer :: io_stdo_bgc        !  standard out.
@@ -87,7 +87,7 @@ CONTAINS
     use mod_config, only: inst_suffix
     use mod_xc,     only: xchalt
 
-    IMPLICIT NONE
+    implicit none
 
     logical :: exists
 

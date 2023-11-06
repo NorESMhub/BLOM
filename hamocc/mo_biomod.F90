@@ -48,7 +48,7 @@
 !
 !
 !******************************************************************************
-      IMPLICIT NONE
+      implicit none
 
       real, dimension (:,:),   allocatable :: strahl
       real, dimension (:,:),   allocatable :: expoor

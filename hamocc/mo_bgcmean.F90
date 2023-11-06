@@ -60,7 +60,7 @@
       use mo_param1_bgc,  only: ks
       use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,use_AGG
 
-      IMPLICIT NONE
+      implicit none
 
       PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp                
       PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
@@ -521,7 +521,7 @@
 
       use mo_control_bgc, only: io_stdo_bgc,bgc_namelist,get_bgc_namelist
 
-      IMPLICIT NONE 
+      implicit none 
      
       integer, intent(in) :: kpie,kpje,kpke
 
@@ -1158,7 +1158,7 @@
 ! ---   real inival   (in)     : value used for initalisation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos
       real ::inival
@@ -1192,7 +1192,7 @@
 ! ---   real inival   (in)     : value used for initalisation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos
       real ::inival
@@ -1228,7 +1228,7 @@
 ! ---   real inival   (in)     : value used for initalisation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos
       real ::inival
@@ -1264,7 +1264,7 @@
 ! ---   real inival   (in)     : value used for initalisation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos
       real ::inival
@@ -1300,7 +1300,7 @@
 ! ---   real inival   (in)     : value used for initalisation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos
       real ::inival
@@ -1335,7 +1335,7 @@
 ! ---   real wghts    (in)     : weights used for accumulation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos(nbgcmax),wghtsflg
       real, dimension(idm,jdm) :: fld,wghts
@@ -1386,7 +1386,7 @@
 ! ---   real wghts    (in)     : weights used for accumulation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos(nbgcmax),wghtsflg
       real, dimension(idm,jdm,kdm) :: fld,wghts
@@ -1444,7 +1444,7 @@
 ! ---   real wghts    (in)     : weights used for accumulation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos(nbgcmax),k
       integer, dimension(idm,jdm) :: ind1,ind2
@@ -1485,7 +1485,7 @@
 ! ---   real fld      (in)     : input data used for accumulation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos(nbgcmax)
       real, dimension(idm,jdm,ks) :: fld
@@ -1523,7 +1523,7 @@
 ! ---   real fld      (in)     : input data used for accumulation
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: pos(nbgcmax)
       real, dimension(idm,jdm) :: fld
@@ -1559,7 +1559,7 @@
 ! ---   real poswgt   (in)     : position of accumulated weights 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: posacc,poswgt
 ! 
@@ -1594,7 +1594,7 @@
 ! ---   real poswgt)  (in)     : position of accumulated weights 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       integer :: posacc,poswgt
 ! 
@@ -1645,7 +1645,7 @@
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
@@ -1717,7 +1717,7 @@
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
@@ -1789,7 +1789,7 @@
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
@@ -1861,7 +1861,7 @@
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
@@ -1933,7 +1933,7 @@
 ! ---   char vnm      (in)     : variable name used in nc-file 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real,            intent(in) :: sfac,offs
       integer,         intent(in) :: frmt,cmpflg,pos
@@ -1996,7 +1996,7 @@
 ! ---   real offs     (in)     : offset to be added before log10   
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real ::sfac,offs
       integer :: pos
@@ -2036,7 +2036,7 @@
 ! ---   real offs     (in)     : offset to be added before log10   
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real ::sfac,offs
       integer :: pos
@@ -2078,7 +2078,7 @@
 ! ---   real offs     (in)     : offset to be added before log10   
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real ::sfac,offs
       integer :: pos
@@ -2121,7 +2121,7 @@
 ! ---   real offs     (in)     : offset to be added before log10   
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 ! 
       real ::sfac,offs
       integer :: pos
@@ -2162,7 +2162,7 @@
 ! ---                            depth surface
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 !
       integer :: pos
       integer, dimension(idm,jdm) :: idepth 
@@ -2196,7 +2196,7 @@
 ! ---   int  depths   (in)     : bathymetry field 
 ! --- ------------------------------------------------------------------
 !
-      IMPLICIT NONE
+      implicit none
 !
       integer :: pos
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: depths 
@@ -2251,7 +2251,7 @@
 !-----------------------------------------------------------------------
 !
 !
-      IMPLICIT NONE
+      implicit none
 !
       integer :: d,i,j,k,l,kin
       integer, dimension(idm,jdm) :: ind1,ind2

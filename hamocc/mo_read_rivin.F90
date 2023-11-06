@@ -65,7 +65,7 @@ MODULE mo_read_rivin
 use dimensions, only: idm,jdm
 use mod_xc ,    only: nbdy
 
-IMPLICIT NONE
+implicit none
 
 private
 public :: ini_read_rivin,rivinfile,rivflx
@@ -109,7 +109,7 @@ SUBROUTINE ini_read_rivin(kpie,kpje,omask)
   use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
   use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
-  IMPLICIT NONE
+  implicit none
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)

@@ -113,7 +113,7 @@
                                 iatmnco2,iatmc13,iatmc14,inatalkali,inatcalc,inatsco212, &
                                 ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
 
-      IMPLICIT NONE
+      implicit none
 
       integer,          intent(in) :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       real,             intent(in) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)

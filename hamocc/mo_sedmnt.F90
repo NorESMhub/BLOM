@@ -70,7 +70,7 @@
  use mo_control_bgc, only: io_stdo_bgc
  use mo_control_bgc, only: use_sedbypass,use_cisonew
 
-      IMPLICIT NONE
+      implicit none
 
       real, protected :: dzs(ksp)    = 0.0
       real, protected :: seddzi(ksp) = 0.0
@@ -105,7 +105,7 @@
 
       use mo_param_bgc,   only: claydens,calcwei,calcdens,opalwei,opaldens,orgwei,orgdens,sedict
 
-      IMPLICIT NONE
+      implicit none
 
       integer, intent(in) :: kpie,kpje,kpke
       real,    intent(in) :: omask(kpie,kpje)
@@ -166,7 +166,7 @@
       use mo_control_bgc, only: l_3Dvarsedpor
       use mo_param_bgc,   only: sedict
 
-      IMPLICIT NONE
+      implicit none
 
       integer, intent(in) :: kpie,kpje,kpke
       real,    intent(in) :: omask(kpie,kpje)

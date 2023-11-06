@@ -92,7 +92,7 @@
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !**********************************************************************
       use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
@@ -114,7 +114,7 @@
                                 nathi,natco3,natpco2d,natomegaa,natomegac
       use mo_sedmnt,      only: sedlay,powtra,burial
 
-      IMPLICIT NONE
+      implicit none
 
       integer, intent(in) :: kpie,kpje,kpke,kbnd     
       real,    intent(in) :: pdlxp(kpie,kpje)

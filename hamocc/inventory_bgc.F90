@@ -49,7 +49,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !**********************************************************************
       use mod_xc,         only: mnproc,ips,nbdy,xcsum
@@ -69,7 +69,7 @@ SUBROUTINE INVENTORY_BGC(kpie,kpje,kpke,dlxp,dlyp,ddpo,omask,iogrp)
       use mo_sedmnt,      only: porwat,seddw,sedlay,burial,sedhpl,powtra,porsol
       use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke
   integer, intent(in) :: iogrp
@@ -461,7 +461,7 @@ function sum2d(var2d) result(total)
 !**********************************************************************
 !**** Sum 2D scalar fields
 !**********************************************************************
-  IMPLICIT NONE
+  implicit none
   real, dimension(kpie,kpje), intent(in) :: var2d
   real :: total
 
@@ -484,7 +484,7 @@ function sum2d_array(var3d, narr) result(total)
 !**********************************************************************
 !**** Sum 2D array fields
 !**********************************************************************
-  IMPLICIT NONE
+  implicit none
   integer, intent(in) :: narr
   real, dimension(kpie,kpje,narr), intent(in) :: var3d
   real, dimension(narr) :: total
@@ -510,7 +510,7 @@ SUBROUTINE write_stdout
 !**********************************************************************
 !**** Write inventory to log file.
 !**********************************************************************
-  IMPLICIT NONE
+  implicit none
 
   integer :: l
 
@@ -681,7 +681,7 @@ SUBROUTINE write_netcdf(iogrp)
   use mo_param1_bgc, only: inatalkali,inatcalc,inatsco212
   use mo_control_bgc, only: use_PBGC_CK_TIMESTEP,use_BOXATM,use_sedbypass,use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: iogrp
 
@@ -1890,7 +1890,7 @@ END SUBROUTINE write_netcdf
 SUBROUTINE nccheck(status)
   use netcdf, only: nf90_noerr
   use mod_xc, only: xchalt
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: status
 

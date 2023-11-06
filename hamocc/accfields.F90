@@ -90,7 +90,7 @@
       use mo_sedmnt,      only: powtra,sedlay,burial
       use mo_vgrid,       only: dp_min
 
-      IMPLICIT NONE
+      implicit none
 
       integer , intent(in) :: kpie,kpje,kpke
       real    , intent(in) :: pdlxp(kpie,kpje)

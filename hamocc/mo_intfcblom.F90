@@ -65,7 +65,7 @@ MODULE mo_intfcblom
 !******************************************************************************
   use mo_control_bgc, only: use_sedbypass,use_BOXATM
 
-  IMPLICIT NONE
+  implicit none
 
   integer, parameter :: nphys=2
 
@@ -256,7 +256,7 @@ SUBROUTINE blom2hamocc(m,n,mm,nn)
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
   use mo_vgrid,      only: kmle, kmle_static
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: m,n,mm,nn
 
@@ -448,7 +448,7 @@ SUBROUTINE hamocc2blom(m,n,mm,nn)
   use mo_param1_bgc, only: ks,nsedtra,npowtra,natm
   use mo_sedmnt,     only: sedlay,powtra,sedhpl,burial
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: m,n,mm,nn
   integer             :: i,j,k,l,nns,mms,kn,km

@@ -39,7 +39,7 @@ MODULE mo_read_sedpor
 !
 !*****************************************************************************
 
-IMPLICIT NONE
+implicit none
 
 private
 
@@ -56,7 +56,7 @@ SUBROUTINE read_sedpor(kpie,kpje,ks,omask,sed_por)
 
 
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,ks
   real,    intent(in) :: omask(kpie,kpje)

@@ -97,7 +97,7 @@
       use mo_apply_oafx,  only: apply_oafx
       use mo_boxatm,      only: update_boxatm
 
-      IMPLICIT NONE
+      implicit none
 
       integer, intent(in)  :: kpie,kpje,kpke,kbnd
       integer, intent(in)  :: kplyear,kplmon,kplday,kldtday

@@ -39,7 +39,7 @@ SUBROUTINE dipowa(kpie,kpje,kpke,omask,lspin)
 !
 !     Method
 !     -------
-!     IMPLICIT formulation;
+!     implicit formulation;
 !     constant diffusion coefficient : 1.e-9 set in ini_sedmnt in mo_sedmnt
 !     diffusion coefficient : zcoefsu/zcoeflo for upper/lower
 !     sediment layer boundary.
@@ -51,7 +51,7 @@ SUBROUTINE dipowa(kpie,kpje,kpke,omask,lspin)
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !**********************************************************************
 
@@ -65,7 +65,7 @@ SUBROUTINE dipowa(kpie,kpje,kpke,omask,lspin)
   use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
   use mo_control_bgc, only: use_natDIC
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie, kpje, kpke
   real,    intent(in) :: omask(kpie,kpje)

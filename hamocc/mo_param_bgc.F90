@@ -49,7 +49,7 @@ MODULE mo_param_bgc
                           & use_sedbypass,with_dmsph,use_PBGC_OCNP_TIMESTEP,ocn_co2_type
   use mod_xc,         only: mnproc
 
-  IMPLICIT NONE
+  implicit none
 
   private
 
@@ -297,7 +297,7 @@ MODULE mo_param_bgc
     ! Eventually write out the used parameters to the log file
     !
 
-    IMPLICIT NONE
+    implicit none
 
     integer, intent(in) :: kpie,kpje
 
@@ -423,7 +423,7 @@ MODULE mo_param_bgc
     !
     use mo_control_bgc, only: dtb,dtbgc
 
-    IMPLICIT NONE
+    implicit none
 
     !********************************************************************
     !     Phytoplankton parameters (incl. cyanobacteria)

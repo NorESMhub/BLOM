@@ -51,7 +51,7 @@ MODULE mo_vgrid
 !   *ptiestw*     *real*     - depth of layer interfaces.
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   integer, parameter :: kmle_static = 2   ! k-end index for layers that
                                           ! represent the mixed layer in BLOM.

@@ -56,7 +56,7 @@ SUBROUTINE powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !******************************************************************************
   use mo_control_bgc, only: dtbgc,use_cisonew
@@ -68,7 +68,7 @@ SUBROUTINE powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
   use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
   use mo_vgrid,       only: kbo,bolay
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: prho(kpie,kpje,kpke)

@@ -119,7 +119,7 @@
       use mo_intfcblom,   only: sedlay2,powtra2,burial2,atm2
       use mo_param_bgc,   only: bifr13,bifr14,c14fac,re1312,re14to,prei13,prei14
 
-      IMPLICIT NONE
+      implicit none
 
       integer,          intent(in)    :: kpie,kpje,kpke,ntr,ntrbgc,itrbgc
       real,             intent(inout) :: trc(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,2*kpke,ntr)

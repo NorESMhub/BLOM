@@ -53,7 +53,7 @@ use mo_param1_bgc,   only: isco213,isco214
 use mo_param1_bgc,   only: inatalkali,inatsco212
 use mo_control_bgc,  only: use_natDIC,use_cisonew
 
-IMPLICIT NONE
+implicit none
 
 integer, intent(in) :: kpie,kpje,kpke,kbnd
 real,    intent(in) :: omask(kpie,kpje)

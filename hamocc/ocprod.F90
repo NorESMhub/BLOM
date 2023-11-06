@@ -105,7 +105,7 @@ SUBROUTINE ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
   use mo_vgrid,       only: kmle
   use mo_clim_swa,    only: swa_clim
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje,kpke,kbnd
   real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
@@ -471,7 +471,7 @@ SUBROUTINE ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
            ! exudation deletes POM
            ! grazing deletes POM; but only the fraction that is not egested as
            ! fecal pellets again (grawa remains in zoo, graton goes to po4)
-           ! NONE of the processes at the current time is assumed to change
+           ! none of the processes at the current time is assumed to change
            ! the size distribution (subject to change)
            ! NOTE that phosy, exud etc. are in kmol/m3!
            ! Thus divide by avmass (kmol/m3)
@@ -990,7 +990,7 @@ SUBROUTINE ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
 
 !
-! IMPLICIT method for sinking of particles:
+! implicit method for sinking of particles:
 ! C(k,T+dt)=C(k,T) + (w*dt/ddpo(k))*(C(k-1,T+1)-C(k,T+1))
 ! -->
 ! C(k,T+dt)=(ddpo(k)*C(k,T)+w*dt*C(k-1,T+dt))/(ddpo(k)+w*dt)
@@ -1251,7 +1251,7 @@ SUBROUTINE ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 ! Calculate mass sinking flux for carbon, opal and calcium carbonate
 ! through the 100 m, 500 m, 1000 m, 2000 m, and 4000 m depth surfaces. These
 ! fluxes are intentionally calculated using values at the NEW timelevel
-! to be fully consistent with the IMPLICIT sinking scheme
+! to be fully consistent with the implicit sinking scheme
 
 !$OMP PARALLEL DO PRIVATE(i,k,wpoc,wcal,wopal)
   do j = 1,kpje

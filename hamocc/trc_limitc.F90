@@ -48,7 +48,7 @@ SUBROUTINE trc_limitc(nn)
   use mod_tracers, only: ntrbgc, itrbgc, trc
   use mod_utility, only: util1
 
-  IMPLICIT NONE
+  implicit none
 
   integer       :: nn
   integer       :: i,j,l,nt,kn

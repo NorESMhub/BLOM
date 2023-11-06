@@ -30,7 +30,7 @@
 #ifdef PNETCDF
       use mod_xc,  only: i0,ii,jj,j0,mproc,mpe_1,nproc,xcgetrow
 #endif
-      IMPLICIT NONE
+      implicit none
 #ifdef PNETCDF
 #  include <pnetcdf.inc>
 #  include <mpif.h>

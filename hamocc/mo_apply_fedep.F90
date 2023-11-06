@@ -42,7 +42,7 @@ MODULE mo_apply_fedep
 ! --------
 !
 !********************************************************************************
-IMPLICIT NONE
+implicit none
 
 private
 public :: apply_fedep
@@ -77,7 +77,7 @@ SUBROUTINE apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
   use mo_param_bgc,   only: perc_diron
   use mo_carbch,      only: ocetra
 
-  IMPLICIT NONE
+  implicit none
 
   integer,intent(in) :: kpie,kpje,kpke
   real,   intent(in) :: pddpo(kpie,kpje,kpke)

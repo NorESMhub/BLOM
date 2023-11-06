@@ -40,7 +40,7 @@ SUBROUTINE hamocc_step(m,n,mm,nn,k1m,k1n)
   use mo_read_pi_ph,  only: get_pi_ph,pi_ph
   use mo_control_bgc, only: with_dmsph
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: m,n,mm,nn,k1m,k1n
 

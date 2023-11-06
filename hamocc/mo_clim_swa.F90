@@ -31,7 +31,7 @@ MODULE mo_clim_swa
 !   Declaration, memory allocation, and routines related to swa_clim fields
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: ini_swa_clim, swaclimfile, swa_clim
@@ -70,7 +70,7 @@ SUBROUTINE ini_swa_clim(kpie,kpje,omask)
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
-  IMPLICIT NONE
+  implicit none
 
   integer,          intent(in) :: kpie,kpje
   real,             intent(in) :: omask(kpie,kpje)

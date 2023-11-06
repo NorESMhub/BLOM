@@ -53,7 +53,7 @@
 !
 !
 !**********************************************************************
-      IMPLICIT NONE
+      implicit none
 
       real, dimension (:,:,:,:), allocatable :: ocetra
       real, dimension (:,:,:),   allocatable :: atm

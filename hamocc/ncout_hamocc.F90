@@ -152,7 +152,7 @@ SUBROUTINE ncwrt_bgc(iogrp)
                             jatmco2,jatmn2,jatmo2,srf_atmo2,srf_atmn2
   use mo_param_bgc,   only: c14fac
 
-  IMPLICIT NONE
+  implicit none
 
   integer                  :: i,j,k,l,nt
   integer                  :: ny,nm,nd,dayfrac,cmpflg,iogrp
@@ -926,7 +926,7 @@ SUBROUTINE hamoccvardef(iogrp,timeunits,calendar,cmpflg)
   use mo_control_bgc, only: use_cisonew,use_AGG,use_CFC,use_natDIC,use_BROMO,  &
        use_sedbypass,use_BOXATM
 
-  IMPLICIT NONE
+  implicit none
 
   integer iogrp,cmpflg
   character timeunits*30,calendar*19

@@ -69,7 +69,7 @@ SUBROUTINE hamocc_init(read_rest,rstfnm_hamocc)
                             omask,sedlay2,powtra2,burial2,                     &
                             blom2hamocc,atm2
   use mo_ini_fields,  only: ini_fields_ocean,ini_fields_atm
-  IMPLICIT NONE
+  implicit none
 
   integer,          intent(in) :: read_rest
   character(len=*), intent(in) :: rstfnm_hamocc

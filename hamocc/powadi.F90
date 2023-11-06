@@ -34,7 +34,7 @@ SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !
 !     Method
 !     -------
-!     IMPLICIT discretisation.
+!     implicit discretisation.
 !
 !**   Interface.
 !     ----------
@@ -52,7 +52,7 @@ SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 !
 !     Externals
 !     ---------
-!     NONE.
+!     none.
 !
 !**********************************************************************
 
@@ -61,7 +61,7 @@ SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
   use mo_param1_bgc, only: ks
   use mo_vgrid,      only: bolay
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: j, kpie, kpje
   real, dimension(kpie,ks),   intent(in)    :: solrat

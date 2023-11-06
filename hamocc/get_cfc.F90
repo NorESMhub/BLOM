@@ -28,7 +28,7 @@
       use mo_control_bgc, only: io_stdo_bgc
       use mod_xc,         only: mnproc
 
-      IMPLICIT NONE
+      implicit none
 
       integer :: i,kplyear,start_yr
       integer :: yr_dat(105)

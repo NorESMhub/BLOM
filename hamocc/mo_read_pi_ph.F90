@@ -17,7 +17,7 @@
 
 MODULE mo_read_pi_ph
 
-  IMPLICIT NONE
+  implicit none
   private
   public :: ini_pi_ph,get_pi_ph,pi_ph_file,pi_ph
 
@@ -47,7 +47,7 @@ CONTAINS
     use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,         only: mnproc,xchalt
 
-    IMPLICIT NONE
+    implicit none
     integer, INTENT(in) :: kpie,kpje
     integer ::i,j,l
 
@@ -113,7 +113,7 @@ CONTAINS
   SUBROUTINE get_pi_ph(kpie,kpje,kplmon)
     use mo_control_bgc, only: with_dmsph
 
-    IMPLICIT NONE
+    implicit none
 
     integer, intent(in) :: kpie,kpje,kplmon
     integer, save :: oldmonth=0
@@ -141,7 +141,7 @@ CONTAINS
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 
-    IMPLICIT NONE
+    implicit none
     integer, intent(in) :: kpie,kpje
     integer             :: errstat
 
@@ -167,7 +167,7 @@ CONTAINS
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 
-    IMPLICIT NONE
+    implicit none
     integer, intent(in) :: kpie,kpje
     integer             :: errstat
 

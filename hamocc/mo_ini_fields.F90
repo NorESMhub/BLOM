@@ -18,7 +18,7 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 MODULE mo_ini_fields
 
-  IMPLICIT NONE
+  implicit none
 
   private
 
@@ -33,11 +33,11 @@ MODULE mo_ini_fields
     use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
     use mo_carbch,      only: atm,atm_co2
 
-    IMPLICIT NONE
+    implicit none
 
     !
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
-    ! fields for sIMPLICITy, even for cases where actually only a scalar value
+    ! fields for simplicity, even for cases where actually only a scalar value
     ! is used. The overhead of this is small. If an atm-field is present in
     ! restart file (if BOXATM is activated), this will be overwritten later.
     !
@@ -115,7 +115,7 @@ MODULE mo_ini_fields
       use mo_carbch,      only: nathi,natco3
       use mo_sedmnt,      only: sedhpl,burial,powtra,sedlay
 
-      IMPLICIT NONE
+      implicit none
 
       integer, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
       real,    intent(in) :: pddpo(kpie,kpje,kpke)

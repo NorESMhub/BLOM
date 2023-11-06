@@ -71,7 +71,7 @@ MODULE mo_read_oafx
 !
 !
 !******************************************************************************
-  IMPLICIT NONE
+  implicit none
 
   private
   public :: ini_read_oafx,get_oafx,oalkscen,oalkfile,thrh_omegaa
@@ -147,7 +147,7 @@ SUBROUTINE ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
   use mod_nctools,    only: ncfopn,ncgeti,ncfcls
   use mo_control_bgc, only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in) :: kpie,kpje
   real,    intent(in) :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
@@ -321,7 +321,7 @@ SUBROUTINE get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
   use mo_control_bgc, only: io_stdo_bgc,do_oalk
   use mod_time,       only: nday_of_year
 
-  IMPLICIT NONE
+  implicit none
 
   integer, intent(in)  :: kpie,kpje,kplyear,kplmon
   real,    intent(in)  :: omask(kpie,kpje)
