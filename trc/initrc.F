@@ -23,6 +23,8 @@ c --- ------------------------------------------------------------------
 c --- initialization of tracers
 c --- ------------------------------------------------------------------
 c
+      use mo_hamocc_init, only: hamocc_init
+
       implicit none
 c
       call ocntrc_init

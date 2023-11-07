@@ -4,125 +4,110 @@
 ! This file is part of BLOM/iHAMOCC.
 !
 ! BLOM is free software: you can redistribute it and/or modify it under the
-! terms of the GNU Lesser General Public License as published by the Free 
-! Software Foundation, either version 3 of the License, or (at your option) 
-! any later version. 
+! terms of the GNU Lesser General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
 !
-! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY 
-! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+! BLOM is distributed in the hope that it will be useful, but WITHOUT ANY
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ! FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
-! more details. 
+! more details.
 !
-! You should have received a copy of the GNU Lesser General Public License 
+! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-
-SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
-!**********************************************************************
-!
-!**** *CYANO* -  .
-!
-!     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-!
-!     Modified
-!     --------
-!     S.Legutke,        *MPI-MaD, HH*    10.04.01
-!     - included : surface reduction of gaseous nitrogen
-!
-!     I.Kriest,         *GEOMAR, Kiel*           2016-08-11
-!     - included T-dependence of cyanobacteria growth
-!     - modified oxygen stoichiometry for N2-Fixation
-!
-!     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-!     - moved accumulation of all output fields to seperate subroutine,
-!       related code-restructuring
-!     - added reduction of alkalinity through N-fixation
-!
-!     Purpose
-!     -------
-!     Nitrogen-fixation by cyano bacteria, followed by remineralisation 
-!     and nitrification
-!
-!     Method:
-!     ------
-!
-!
-!**   Interface to ocean model (parameter list):
-!     -----------------------------------------
-!
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kbnd*    - nb of halo grid points
-!     *REAL*    *ptho*    - potential temperature.
-!
-!     Externals
-!     ---------
-!     .
-!**********************************************************************
-
-  use mo_vgrid,       only: kmle
-  use mo_carbch,      only: ocetra
-  use mo_param_bgc,   only: bluefix,rnit,tf0,tf1,tf2,tff
-  use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali
-  use mo_biomod,      only: intnfix
-  use mo_control_bgc, only: use_natDIC
+module mo_cyano
 
   implicit none
+  private
 
-  INTEGER, intent(in) :: kpie,kpje,kpke,kbnd
-  REAL,    intent(in) :: pddpo(kpie,kpje,kpke)
-  REAL,    intent(in) :: omask(kpie,kpje)
-  REAL,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+  public :: cyano
 
-  ! Local variables
-  INTEGER :: i,j,k
-  REAL :: oldocetra,dano3
-  REAL :: ttemp,nfixtfac
+contains
 
-  intnfix(:,:)=0.0
+  subroutine cyano(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
-!
-! N-fixation by cyano bacteria (followed by remineralisation and nitrification),
-! it is assumed here that this process is limited to the mixed layer
-!
-  DO j=1,kpje
-  DO i=1,kpie
-  IF(omask(i,j).gt.0.5) THEN
-     DO k=1,kmle(i,j)
-     IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+    !**********************************************************************
+    ! Nitrogen-fixation by cyano bacteria, followed by remineralisation
+    ! and nitrification
+    !
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified
+    ! S.Legutke,        *MPI-MaD, HH*    10.04.01
+    ! - included : surface reduction of gaseous nitrogen
+    ! I.Kriest,         *GEOMAR, Kiel*           2016-08-11
+    ! - included T-dependence of cyanobacteria growth
+    ! - modified oxygen stoichiometry for N2-Fixation
+    ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+    ! - moved accumulation of all output fields to seperate subroutine,
+    !   related code-restructuring
+    ! - added reduction of alkalinity through N-fixation
+    !**********************************************************************
 
-        oldocetra = ocetra(i,j,k,iano3)
-        ttemp = min(40.,max(-3.,ptho(i,j,k)))
+    use mo_vgrid,       only: kmle
+    use mo_carbch,      only: ocetra
+    use mo_param_bgc,   only: bluefix,rnit,tf0,tf1,tf2,tff
+    use mo_param1_bgc,  only: ialkali,iano3,igasnit,iphosph,ioxygen,inatalkali
+    use mo_biomod,      only: intnfix
+    use mo_control_bgc, only: use_natDIC
 
-! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
-        nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
+    ! Arguments
+    integer, intent(in) :: kpie                                          ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                          ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                          ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                          ! nb of halo grid points
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)
+    real,    intent(in) :: omask(kpie,kpje)
+    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)  ! potential temperature.
 
-        ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac)            &
-             &    + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
+    ! Local variables
+    integer :: i,j,k
+    real    :: oldocetra,dano3
+    real    :: ttemp,nfixtfac
 
-        dano3=ocetra(i,j,k,iano3)-oldocetra
+    intnfix(:,:)=0.0
+    !
+    ! N-fixation by cyano bacteria (followed by remineralisation and nitrification),
+    ! it is assumed here that this process is limited to the mixed layer
+    !
+    DO j=1,kpje
+      DO i=1,kpie
+        IF(omask(i,j).gt.0.5) THEN
+          DO k=1,kmle(i,j)
+            IF(ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
 
-        ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
+              oldocetra = ocetra(i,j,k,iano3)
+              ttemp = min(40.,max(-3.,ptho(i,j,k)))
 
-! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
-! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
-        ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
+              ! Temperature dependence of nitrogen fixation, Kriest and Oschlies 2015.
+              nfixtfac = MAX(0.0,tf2*ttemp*ttemp + tf1*ttemp + tf0)/tff
 
-! Nitrogen fixation followed by remineralisation and nitrification decreases
-! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
-        ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
-        if (use_natDIC) then
-           ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
-        endif
+              ocetra(i,j,k,iano3)=ocetra(i,j,k,iano3)*(1-bluefix*nfixtfac)  &
+                                + bluefix*nfixtfac*rnit*ocetra(i,j,k,iphosph)
 
-        intnfix(i,j) = intnfix(i,j) +                                           &
-             &         (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
+              dano3=ocetra(i,j,k,iano3)-oldocetra
 
-     ENDIF
-     ENDDO
-  ENDIF
-  ENDDO
-  ENDDO
+              ocetra(i,j,k,igasnit)=ocetra(i,j,k,igasnit)-dano3*(1./2.)
 
-END SUBROUTINE CYANO
+              ! Note: to fix one mole N2 requires: N2+H2O+y*O2 = 2* HNO3 <-> y=2.5 mole O2.
+              ! I.e., to release one mole HNO3 = H+ + NO3- requires 1.25 mole O2
+              ocetra(i,j,k,ioxygen)=ocetra(i,j,k,ioxygen)-dano3*1.25
+
+              ! Nitrogen fixation followed by remineralisation and nitrification decreases
+              ! alkalinity by 1 mole per mole nitrogen fixed (Wolf-Gladrow et al. 2007)
+              ocetra(i,j,k,ialkali)=ocetra(i,j,k,ialkali)-dano3
+              if (use_natDIC) then
+                ocetra(i,j,k,inatalkali)=ocetra(i,j,k,inatalkali)-dano3
+              endif
+
+              intnfix(i,j) = intnfix(i,j) + (ocetra(i,j,k,iano3)-oldocetra)*pddpo(i,j,k)
+
+            ENDIF
+          ENDDO
+        ENDIF
+      ENDDO
+    ENDDO
+
+  end subroutine cyano
+
+end module mo_cyano

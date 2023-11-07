@@ -18,152 +18,143 @@
 
 
 module mo_boxatm
-!******************************************************************************
-!  A. Moree,            *GFI, Bergen*      Oct 2019
-!
-!
-! Modified
-! --------
-!  A. Moree,            *GFI, Bergen*      2019-10
-!  - 14C source added to atmosphere as the sum of all 14C loss (decay)
-!
-!  J. Schwinger,        *NORCE, Bergen*    2023-08-02
-!  - ported into NorESM2 code, no functional changes
-!
-!
-! Purpose
-! -------
-!  - This module contains the routine update_boxatm for updating a
-!    1-D/scalar/box atmosphere
-!
-!
-! Description
-! -----------
-!  The global sum of the air-sea C fluxes is calculated, then converted to ppm
-!  and added to the global atmospheric concentration. For C14, an atmospheric
-!  production term corresponding to the total decay in the ocean (plus sediment
-!  if activated) is assumed.
-!
-!
-!******************************************************************************
+  !******************************************************************************
+  ! This module contains the routine update_boxatm for updating a
+  ! 1-D/scalar/box atmosphere
+  ! The global sum of the air-sea C fluxes is calculated, then converted to ppm
+  ! and added to the global atmospheric concentration. For C14, an atmospheric
+  ! production term corresponding to the total decay in the ocean (plus sediment
+  ! if activated) is assumed.
+  !
+  ! A. Moree,            *GFI, Bergen*      Oct 2019
+  ! Modified
+  ! A. Moree,            *GFI, Bergen*      2019-10
+  ! - 14C source added to atmosphere as the sum of all 14C loss (decay)
+  ! J. Schwinger,        *NORCE, Bergen*    2023-08-02
+  ! - ported into NorESM2 code, no functional changes
+  !******************************************************************************
+
+  implicit none
+  private
+
+  public :: update_boxatm
 
 contains
 
+  subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 
-subroutine update_boxatm(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
-!******************************************************************************
-  use mod_xc,         only: mnproc,nbdy,ips,xcsum
-  use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
-  use mo_carbch,      only: atmflx, atm, ocetra
-  use mo_param_bgc,   only: rcar,c14dec
-  use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14, &
-                            iphy14,izoo14,ipowc14,issso14,isssc14
-  use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
+    use mod_xc,         only: mnproc,nbdy,ips,xcsum
+    use mo_control_bgc, only: io_stdo_bgc, use_cisonew, use_sedbypass
+    use mo_carbch,      only: atmflx, atm, ocetra
+    use mo_param_bgc,   only: rcar,c14dec
+    use mo_param1_bgc,  only: iatmco2,iatmc13,iatmc14,isco214,idet14,icalc14,idoc14, &
+                              iphy14,izoo14,ipowc14,issso14,isssc14
+    use mo_sedmnt,      only: powtra,sedlay,seddw,porwat,porsol
 
-  implicit none
+    ! Arguments
+    integer,intent(in) :: kpie,kpje,kpke
+    real,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
+    real,   intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
 
-  INTEGER,intent(in) :: kpie,kpje,kpke
-  REAL,   intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-  REAL,   intent(in) :: pddpo(kpie,kpje,kpke),omask(kpie,kpje)
+    ! Local variables
+    real, parameter :: pg2ppm = 1.0/2.13  ! conversion factor PgC -> ppm CO2
+    integer :: i,j,k
+    real    :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
+    real    :: co2flux, co2flux_ppm
+    real    :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
+    real    :: co213flux, co213flux_ppm ! cisonew
+    real    :: co214flux, co214flux_ppm ! cisonew
+    real    :: totc14dec, vol ! cisonew
 
-  REAL, PARAMETER    :: pg2ppm = 1.0/2.13  ! conversion factor PgC -> ppm CO2
-  INTEGER            :: i,j,k
-  REAL               :: ztmp1(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-  REAL               :: co2flux, co2flux_ppm
-  REAL               :: ztmp2(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! cisonew
-  REAL               :: co213flux, co213flux_ppm ! cisonew
-  REAL               :: co214flux, co214flux_ppm ! cisonew
-  REAL               :: totc14dec, vol ! cisonew
+    co2flux      = 0.0
 
-  co2flux      = 0.0
+    ! Calculate global total air-sea flux [kmol]
+    ztmp1(:,:)   = 0.0
+    DO j=1,kpje
+      DO i=1,kpie
+        ztmp1(i,j) = atmflx(i,j,iatmco2)*pdlxp(i,j)*pdlyp(i,j) ![kmol CO2/ m2] * [m] * [m]
+      ENDDO
+    ENDDO
 
-  ! Calculate global total air-sea flux [kmol]
-  ztmp1(:,:)   = 0.0
-  DO j=1,kpje
-  DO i=1,kpie
-    ztmp1(i,j) = atmflx(i,j,iatmco2)*pdlxp(i,j)*pdlyp(i,j) ![kmol CO2/ m2] * [m] * [m]
-  ENDDO
-  ENDDO
+    call xcsum(co2flux,ztmp1,ips)
 
-  CALL xcsum(co2flux,ztmp1,ips)
+    ! Convert global CO2 flux to ppm
+    co2flux_ppm  = co2flux*12.*1.e-12*pg2ppm ! [kmol C] -> [ppm]
 
-  ! Convert global CO2 flux to ppm
-  co2flux_ppm  = co2flux*12.*1.e-12*pg2ppm ! [kmol C] -> [ppm]
+    ! Update atmospheric pCO2
+    DO  j=1,kpje
+      DO  i=1,kpie
+        atm(i,j,iatmco2)=atm(i,j,iatmco2) + co2flux_ppm
+      ENDDO
+    ENDDO
 
-  ! Update atmospheric pCO2
-  DO  j=1,kpje
-  DO  i=1,kpie
-    atm(i,j,iatmco2)=atm(i,j,iatmco2) + co2flux_ppm
-  ENDDO
-  ENDDO
+    if (use_cisonew) then
+      co213flux    = 0.0
+      co214flux    = 0.0
 
-  if (use_cisonew) then
-     co213flux    = 0.0
-     co214flux    = 0.0
+      ! Calculate global total air-sea flux for C isotopes [kmol]
+      ztmp1(:,:)   = 0.0
+      ztmp2(:,:)   = 0.0
+      DO j=1,kpje
+        DO i=1,kpie
+          ztmp1(i,j) = atmflx(i,j,iatmc13)*pdlxp(i,j)*pdlyp(i,j) ![kmol 13CO2/ m2] * [m] * [m]
+          ztmp2(i,j) = atmflx(i,j,iatmc14)*pdlxp(i,j)*pdlyp(i,j) ![kmol 14CO2/ m2] * [m] * [m]
+        ENDDO
+      ENDDO
 
-     ! Calculate global total air-sea flux for C isotopes [kmol]
-     ztmp1(:,:)   = 0.0
-     ztmp2(:,:)   = 0.0
-     DO j=1,kpje
-     DO i=1,kpie
-        ztmp1(i,j) = atmflx(i,j,iatmc13)*pdlxp(i,j)*pdlyp(i,j) ![kmol 13CO2/ m2] * [m] * [m]
-        ztmp2(i,j) = atmflx(i,j,iatmc14)*pdlxp(i,j)*pdlyp(i,j) ![kmol 14CO2/ m2] * [m] * [m]
-     ENDDO
-     ENDDO
+      call xcsum(co213flux,ztmp1,ips)
+      call xcsum(co214flux,ztmp2,ips)
 
-     CALL xcsum(co213flux,ztmp1,ips)
-     CALL xcsum(co214flux,ztmp2,ips)
+      ! Convert global CO2 isotope fluxes to ppm isotope fluxes
+      co213flux_ppm  = co213flux*13.*1.e-12*pg2ppm*12./13. ! [kmol 13CO2] -> [ppm]
+      co214flux_ppm  = co214flux*14.*1.e-12*pg2ppm*12./14. ! [kmol 14CO2] -> [ppm]
 
-     ! Convert global CO2 isotope fluxes to ppm isotope fluxes
-     co213flux_ppm  = co213flux*13.*1.e-12*pg2ppm*12./13. ! [kmol 13CO2] -> [ppm]
-     co214flux_ppm  = co214flux*14.*1.e-12*pg2ppm*12./14. ! [kmol 14CO2] -> [ppm]
+      ! Calculate sum of 14C decay. Only decay in ocean, so only ocean tracers.
+      totc14dec    = 0.0
+      ztmp1(:,:)   = 0.0
+      DO k=1,kpke
+        DO j=1,kpje
+          DO i=1,kpie
+            vol        = pdlxp(i,j)*pdlyp(i,j)*pddpo(i,j,k)*omask(i,j) ! ocean volume
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,isco214)*vol*(1.0-c14dec)
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idet14) *vol*(1.0-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,icalc14)*vol*(1.0-c14dec)
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idoc14) *vol*(1.0-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,iphy14) *vol*(1.0-c14dec)*rcar
+            ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,izoo14) *vol*(1.0-c14dec)*rcar
+            if (.not. use_sedbypass) then
+              vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porwat(i,j,k)*omask(i,j) ! porewater volume
+              ztmp1(i,j) = ztmp1(i,j)+powtra(i,j,k,ipowc14) *vol*(1.0-c14dec)
+              vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(i,j,k)*omask(i,j) ! sediment volume
+              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
+              ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
+            endif
+          ENDDO
+        ENDDO
+      ENDDO
 
-     ! Calculate sum of 14C decay. Only decay in ocean, so only ocean tracers.
-     totc14dec    = 0.0
-     ztmp1(:,:)   = 0.0
-     DO k=1,kpke
-     DO j=1,kpje
-     DO i=1,kpie
-        vol        = pdlxp(i,j)*pdlyp(i,j)*pddpo(i,j,k)*omask(i,j) ! ocean volume
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,isco214)*vol*(1.0-c14dec)
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idet14) *vol*(1.0-c14dec)*rcar
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,icalc14)*vol*(1.0-c14dec)
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,idoc14) *vol*(1.0-c14dec)*rcar
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,iphy14) *vol*(1.0-c14dec)*rcar
-        ztmp1(i,j) = ztmp1(i,j)+ocetra(i,j,k,izoo14) *vol*(1.0-c14dec)*rcar
-        if (.not. use_sedbypass) then
-           vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porwat(i,j,k)*omask(i,j) ! porewater volume
-           ztmp1(i,j) = ztmp1(i,j)+powtra(i,j,k,ipowc14) *vol*(1.0-c14dec)
-           vol        = seddw(k)*pdlxp(i,j)*pdlyp(i,j)*porsol(i,j,k)*omask(i,j) ! sediment volume
-           ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,issso14) *vol*(1.0-c14dec)*rcar
-           ztmp1(i,j) = ztmp1(i,j)+sedlay(i,j,k,isssc14) *vol*(1.0-c14dec)
-        endif
-     ENDDO
-     ENDDO
-     ENDDO
+      call xcsum(totc14dec,ztmp1,ips)
 
-     CALL xcsum(totc14dec,ztmp1,ips)
+      ! Update atmospheric p13CO2 and p14CO2
+      DO  j=1,kpje
+        DO  i=1,kpie
+          atm(i,j,iatmc13)=atm(i,j,iatmc13) + co213flux_ppm
+          atm(i,j,iatmc14)=atm(i,j,iatmc14) + co214flux_ppm
+          atm(i,j,iatmc14)=atm(i,j,iatmc14) + totc14dec*14.*1.e-12*pg2ppm*12./14. ! add 14C decay (ppm)
+        ENDDO
+      ENDDO
 
-     ! Update atmospheric p13CO2 and p14CO2
-     DO  j=1,kpje
-     DO  i=1,kpie
-        atm(i,j,iatmc13)=atm(i,j,iatmc13) + co213flux_ppm
-        atm(i,j,iatmc14)=atm(i,j,iatmc14) + co214flux_ppm
-        atm(i,j,iatmc14)=atm(i,j,iatmc14) + totc14dec*14.*1.e-12*pg2ppm*12./14. ! add 14C decay (ppm)
-     ENDDO
-     ENDDO
+      IF (mnproc.eq.1) THEN
+        write(io_stdo_bgc,*) ' '
+        write(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
+        write(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm
+        write(io_stdo_bgc,*) ' co214flux_ppm: ',co214flux_ppm
+        write(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
+        write(io_stdo_bgc,*) ' '
+      ENDIF
 
-     IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*) ' '
-        WRITE(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
-        WRITE(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm
-        WRITE(io_stdo_bgc,*) ' co214flux_ppm: ',co214flux_ppm
-        WRITE(io_stdo_bgc,*) ' totc14dec (ppm): ',(totc14dec*14.*1.e-12*pg2ppm*12./14.)
-        WRITE(io_stdo_bgc,*) ' '
-     ENDIF
+    endif ! end of use_cisonew
 
-  endif ! end of use_cisonew
-
-end subroutine update_boxatm
+  end subroutine update_boxatm
 
 end module mo_boxatm
