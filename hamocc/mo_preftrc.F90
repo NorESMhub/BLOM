@@ -15,41 +15,26 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_PREFTRC
+module mo_preftrc
 
   implicit none
   private
 
-  public :: PREFTRC
+  public :: preftrc
 
-CONTAINS
+contains
 
-  SUBROUTINE PREFTRC(kpie,kpje,omask)
+  subroutine preftrc(kpie,kpje,omask)
 
     !****************************************************************
+    ! update preformed tracers in the mixed layer.
+    ! Preformed tracers are set to the value of their full counterparts
+    ! in the mixed layer.
     !
-    !**** *PREFTRC* - update preformed tracers in the mixed layer.
-    !
-    !     J. Tjiputra, J.Schwinger,    *BCCR, Bergen*   2015-01-23
-    !
-    !     Modified
-    !     --------
-    !     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
-    !     - added preformed DIC tracer
-    !
-    !
-    !     Method
-    !     -------
-    !     Preformed tracers are set to the value of their full counterparts
-    !     in the mixed layer.
-    !
-    !
-    !**   Interface to ocean model (parameter list):
-    !     -----------------------------------------
-    !
-    !     *INTEGER* *kpie*    - 1st dimension of model grid.
-    !     *INTEGER* *kpje*    - 2nd dimension of model grid.
-    !
+    ! J. Tjiputra, J.Schwinger,    *BCCR, Bergen*   2015-01-23
+    ! Modified
+    ! J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+    ! - added preformed DIC tracer
     !**************************************************************************
 
     use mo_carbch,     only: ocetra
@@ -57,7 +42,8 @@ CONTAINS
     use mo_vgrid,      only: kmle
 
     ! Arguments
-    integer :: kpie,kpje
+    integer :: kpie ! 1st dimension of model grid.
+    integer :: kpje ! 2nd dimension of model grid.
     real    :: omask(kpie,kpje)
 
     ! Local variables
@@ -74,7 +60,6 @@ CONTAINS
       enddo
     enddo
 
+  end subroutine preftrc
 
-  END SUBROUTINE PREFTRC
-
-END MODULE MO_PREFTRC
+end module mo_preftrc

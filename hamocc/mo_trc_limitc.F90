@@ -15,41 +15,31 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_TRC_LIMITC
+module mo_trc_limitc
 
   implicit none
   private
 
-  public :: TRC_LIMITC
+  public :: trc_limitc
 
-CONTAINS
+contains
 
-  SUBROUTINE TRC_LIMITC(nn)
+  subroutine trc_limitc(nn)
 
     !***********************************************************************
+    ! Remove negative tracer values.
+    ! Remove negative tracer values in the first layer in a mass
+    ! conservative fashion (i.e. the mass deficit removed is
+    ! transfered to non-negative points by a multiplicative
+    ! correction). This is done since the virtual tracer fluxes
+    ! (applied in mxlayr.F directly before HAMOCC is called) can
+    ! cause negative tracer values in regions with low concentration
+    ! and strong precipitation.
     !
-    !**** *SUBROUTINE trc_limitc* - remove negative tracer values.
-    !
-    !     J. Schwinger      *GFI, UiB        initial version, 2014-06-17
-    !      -
-    !
-    !     Modified
-    !     --------
-    !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    !     - fixed a bug related to the 2 time-level scheme
-    !
-    !
-    !
-    !     Purpose
-    !     -------
-    !      Remove negative tracer values in the first layer in a mass
-    !      conservative fashion (i.e. the mass deficit removed is
-    !      transfered to non-negative points by a multiplicative
-    !      correction). This is done since the virtual tracer fluxes
-    !      (applied in mxlayr.F directly before HAMOCC is called) can
-    !      cause negative tracer values in regions with low concentration
-    !      and strong precipitation.
-    !
+    ! J. Schwinger      *GFI, UiB        initial version, 2014-06-17
+    ! Modified
+    ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+    ! - fixed a bug related to the 2 time-level scheme
     !***********************************************************************
 
     use mod_xc,      only: ii,jj,ips,ifp,isp,ilp,xcsum
@@ -140,4 +130,4 @@ CONTAINS
 
   end subroutine trc_limitc
 
-END MODULE MO_trc_limitc
+end module mo_trc_limitc

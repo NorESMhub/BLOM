@@ -19,25 +19,7 @@
 module mo_read_oafx
 
   !******************************************************************************
-  !
-  !   J.Schwinger             *NORCE Climate, Bergen*             2022-08-24
-  !
-  ! Modified
-  ! --------
-  !  T. Bourgeois,     *NORCE climate, Bergen*   2023-01-31
-  !  - add ramping-up scenario
-  !  - add ability to define parameters from BLOM namelist
-  !
-  !  T. Bourgeois,     *NORCE climate, Bergen*   2023-02-09
-  !  - add ability to use an OA input file
-  !
-  ! Purpose
-  ! -------
-  !  -Routines for reading ocean alkalinization fluxes from netcdf files
-  !
-  !
-  ! Description:
-  ! ------------
+  ! Routines for reading ocean alkalinization fluxes from netcdf files
   !  The routine get_oafx reads a flux of alkalinity from file (or, for simple
   !  cases, constructs an alkalinity flux field from scratch). The alkalinity
   !  flux is then passed to hamocc4bcm where it is applied to the top-most model
@@ -64,22 +46,27 @@ module mo_read_oafx
   !    -'file':         Read monthly 2D field in kmol ALK m-2 yr-1 from a file
   !                     defined with the variable oalkfile.
   !
-  !  -subroutine ini_read_oafx
-  !     Initialise the module
-  !
-  !  -subroutine get_oafx
-  !     Gets the alkalinity flux to apply at a given time.
-  !
-  !
+  ! J.Schwinger             *NORCE Climate, Bergen*             2022-08-24
+  ! Modified:
+  ! T. Bourgeois,     *NORCE climate, Bergen*   2023-01-31
+  ! - add ramping-up scenario
+  ! - add ability to define parameters from BLOM namelist
+  ! T. Bourgeois,     *NORCE climate, Bergen*   2023-02-09
+  ! - add ability to use an OA input file
   !******************************************************************************
 
   implicit none
   private
 
-  public :: ini_read_oafx,get_oafx,oalkscen,oalkfile,thrh_omegaa
+  ! Routines
 
-  character(len=128), protected :: oalkscen   =''
-  character(len=512), protected :: oalkfile   =''
+  public :: ini_read_oafx ! Initialise the module
+  public :: get_oafx      ! Gets the alkalinity flux to apply at a given time.
+
+  ! Module variables
+
+  character(len=128), protected, public  :: oalkscen   =''
+  character(len=512), protected, public  :: oalkfile   =''
   real,allocatable,   protected :: oalkflx(:,:)
   integer,            protected :: startyear,endyear
 
@@ -93,54 +80,33 @@ module mo_read_oafx
   !  ramp          Linear increase of homogeneous addition from 0 to addalk
   !                Pmol ALK/yr-1 from year ramp_start to year ramp_end between
   !                latitude cdrmip_latmin and latitude cdrmip_latmax
-  !
-  ! Values are read from namelist bgcoafx, which overwrites default values set
-  ! here
-  real,    protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the
-  ! scenarios.
+
+  ! Values are read from namelist bgcoafx, which overwrites default values set here
+  real,    protected :: addalk        = 0.135 ! Pmol alkalinity/yr added in the scenarios.
   real,    protected :: cdrmip_latmax =  70.0 ! Min and max latitude where
-  real,    protected :: cdrmip_latmin = -60.0 ! alkalinity is added according
-  ! to the CDRMIP protocol.
+  real,    protected :: cdrmip_latmin = -60.0 ! alkalinity is added according to the CDRMIP protocol.
   integer, protected :: ramp_start    = 2025  ! In 'ramp' scenario, start at
-  integer, protected :: ramp_end      = 2035  ! 0 Pmol/yr at ramp_start, and
-  ! arrive at addalk Pmol/yr in
-  ! year ramp_end
+  integer, protected :: ramp_end      = 2035  ! 0 Pmol/yr at ramp_start, and arrive at addalk Pmol/yr
+                                              ! in year ramp_end
 
   ! Parameter used for ALL alkalinization scenarios, read through namelist
   ! namelist bgcoafx, which overwrites default values set here
-  real,    protected :: thrh_omegaa   =-1.0  ! Limit the input of alkalinity by
-  ! setting alkalinity-flux to zero
-  ! for grid cells where Omegaa >
-  ! thrh_omegaa (negative values mean
-  ! no threshold considered)
+  ! Limit the input of alkalinity by setting alkalinity-flux to zero
+  ! for grid cells where Omegaa > thrh_omegaa (negative values mean no threshold considered)
+  real, protected, public  :: thrh_omegaa   =-1.0
 
+  logical :: lini = .false.
 
-  logical,   save :: lini = .false.
+  integer :: oldmonth=0
 
 contains
 
   subroutine ini_read_oafx(kpie,kpje,pdlxp,pdlyp,pglat,omask)
 
     !******************************************************************************
+    ! Initialise the alkalinization module.
     !
-    !     J.Schwinger               *NORCE Climate, Bergen*         2021-11-15
-    !
-    ! Purpose
-    ! -------
-    !  -Initialise the alkalinization module.
-    !
-    ! Changes:
-    ! --------
-    !
-    ! Parameter list:
-    ! ---------------
-    !  *INTEGER* *kpie*       - 1st dimension of model grid.
-    !  *INTEGER* *kpje*       - 2nd dimension of model grid.
-    !  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
-    !  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
-    !  *REAL*    *pglat*      - latitude grid cell centres [degree N].
-    !  *REAL*    *omask*      - land/ocean mask.
-    !
+    ! J.Schwinger               *NORCE Climate, Bergen*         2021-11-15
     !******************************************************************************
 
     use mod_xc,             only: xcsum,xchalt,mnproc,nbdy,ips
@@ -149,15 +115,13 @@ contains
     use mo_control_bgc,     only: io_stdo_bgc,do_oalk,bgc_namelist,get_bgc_namelist
     use mo_read_netcdf_var, only: read_netcdf_var
 
-    implicit none
-
     ! Arguments
-    integer, intent(in) :: kpie
-    integer, intent(in) :: kpje
-    real,    intent(in) :: pdlxp(kpie,kpje)
-    real,    intent(in) :: pdlyp(kpie,kpje)
-    real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy)
-    real,    intent(in) :: omask(kpie,kpje)
+    integer, intent(in) :: kpie                                     ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                     ! 2nd dimension of model grid.
+    real,    intent(in) :: pdlxp(kpie,kpje)                         ! size of grid cell (longitudinal) [m].
+    real,    intent(in) :: pdlyp(kpie,kpje)                         ! size of grid cell (latitudinal) [m].
+    real,    intent(in) :: pglat(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy) ! latitude grid cell centres [degree N].
+    real,    intent(in) :: omask(kpie,kpje)                         ! land/ocean mask.
 
     ! Local variables
     integer :: i,j,errstat
@@ -194,8 +158,7 @@ contains
         write(io_stdo_bgc,*)' '
       endif
 
-      if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' .or.              &
-           trim(oalkscen)=='file' ) then
+      if( trim(oalkscen)=='const' .or. trim(oalkscen)=='ramp' .or. trim(oalkscen)=='file' ) then
 
         if(mnproc.eq.1) then
           write(io_stdo_bgc,*)'Using alkalinization scenario ', trim(oalkscen)
@@ -222,7 +185,6 @@ contains
           write(io_stdo_bgc,*)'First dimension    : ',kpie
           write(io_stdo_bgc,*)'Second dimension   : ',kpje
         endif
-
         allocate(oalkflx(kpie,kpje),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory oalkflx'
         oalkflx(:,:) = 0.0
@@ -242,7 +204,7 @@ contains
           do j=1,kpje
             do i=1,kpie
               if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
-                   .and. pglat(i,j)>cdrmip_latmin ) then
+                                    .and. pglat(i,j)>cdrmip_latmin ) then
                 ztmp1(i,j)=ztmp1(i,j)+pdlxp(i,j)*pdlyp(i,j)
               endif
             enddo
@@ -270,7 +232,7 @@ contains
           do j=1,kpje
             do i=1,kpie
               if( omask(i,j).gt.0.5 .and. pglat(i,j)<cdrmip_latmax                  &
-                   .and. pglat(i,j)>cdrmip_latmin ) then
+                                    .and. pglat(i,j)>cdrmip_latmin ) then
                 oalkflx(i,j) = avflx
               endif
             enddo
@@ -294,33 +256,15 @@ contains
 
     endif ! not lini
 
-
-    !******************************************************************************
   end subroutine ini_read_oafx
 
 
   subroutine get_oafx(kpie,kpje,kplyear,kplmon,omask,oafx)
+
     !******************************************************************************
+    ! Return ocean alkalinization flux.
     !
-    !     J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
-    !
-    ! Purpose
-    ! -------
-    !  -return ocean alkalinization flux.
-    !
-    ! Changes:
-    ! --------
-    !
-    !
-    ! Parameter list:
-    ! ---------------
-    !  *INTEGER*   *kpie*    - 1st dimension of model grid.
-    !  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-    !  *INTEGER*   *kplyear* - current year.
-    !  *INTEGER*   *kplmon*  - current month.
-    !  *REAL*      *omask*   - land/ocean mask (1=ocean)
-    !  *REAL*      *oaflx*   - alkalinization flux [kmol m-2 yr-1]
-    !
+    ! J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
     !******************************************************************************
 
     use mod_xc,             only: xchalt,mnproc
@@ -329,16 +273,16 @@ contains
     use mod_time,           only: nday_of_year
     use mo_read_netcdf_var, only: read_netcdf_var
 
-    implicit none
-
     ! Arguments
-    integer, intent(in)  :: kpie,kpje,kplyear,kplmon
-    real,    intent(in)  :: omask(kpie,kpje)
-    real,    intent(out) :: oafx(kpie,kpje)
+    integer, intent(in)  :: kpie               ! 1st dimension of model grid.
+    integer, intent(in)  :: kpje               ! 2nd dimension of model grid.
+    integer, intent(in)  :: kplyear            ! current year.
+    integer, intent(in)  :: kplmon             ! current month.
+    real,    intent(in)  :: omask(kpie,kpje)   ! land/ocean mask (1=ocean)
+    real,    intent(out) :: oafx(kpie,kpje)    ! alkalinization flux [kmol m-2 yr-1]
 
     ! local variables
-    integer              :: month_in_file,ncstat,ncid,current_day
-    integer, save        :: oldmonth=0
+    integer :: month_in_file,ncstat,ncid,current_day
 
     if (.not. do_oalk) then
       oafx(:,:) = 0.0
@@ -397,10 +341,6 @@ contains
 
     endif
 
-    !******************************************************************************
   end subroutine get_oafx
 
-
-
-  !******************************************************************************
 end module mo_read_oafx

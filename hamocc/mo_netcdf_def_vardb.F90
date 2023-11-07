@@ -16,88 +16,45 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_NETCDF_DEF_VARDB
+module mo_netcdf_def_vardb
 
   implicit none
   private
 
-  public :: NETCDF_DEF_VARDB
+  public :: netcdf_def_vardb
 
-CONTAINS
+contains
 
-  SUBROUTINE NETCDF_DEF_VARDB                    &
-       (kcid,kshort,yshort,kdims,kcdims,kcvarid, &
-       kunitl,yunit,klong,ylong,pmissing,klabel,kunit)
+  subroutine netcdf_def_vardb (kcid,kshort,yshort,kdims,kcdims,kcvarid, &
+                               kunitl,yunit,klong,ylong,pmissing,klabel,kunit)
 
     ! ****************************************************************
+    !  Interface to NETCDF routines - define NetCDF variable.
     !
-    ! **** *NETCDF_DEF_VAR* - define NetCDF variable.
-    !
-    !     S.Legutke,        *MPI-MaD, HH*    10.10.01
-    !
-    !     Modified
-    !     --------
-    !
-    !     Purpose
-    !     -------
-    !     Interface to NETCDF routines.
-    !
-    !     Method
-    !     -------
-    !
-    !
-    !**   Interface.
-    !     ----------
-    !
-    !     *CALL*       *NETCDF_DEF_VARDB(kcid,kshort,yshort,kdims,kcdims,kcvarid,
-    !                              kunitl,yunit,klong,ylong,pmissing,klabel,kunit)*
-    !
-    !
-    ! **   Interface to calling routine (parameter list):
-    !     ----------------------------------------------
-    !
-    !     *INTEGER*   *kcid*       - file ID.
-    !     *INTEGER*   *kshort*     - length of short name.
-    !     *INTEGER*   *kdims*      - number of dimensions.
-    !     *INTEGER*   *kcdims*     - dimensions.
-    !     *INTEGER*   *kcvarid*    - variable ID.
-    !     *INTEGER*   *kunitl*     - length of unit string.
-    !     *INTEGER*   *klong*      - length of long name.
-    !     *INTEGER*   *klabel*     - label for abort identification.
-    !     *INTEGER*   *kunit*      - stdout unit.
-    !     *REAL*      *pmissing*   - missing value.
-    !     *CHARACTER* *yshort*     - short name.
-    !     *CHARACTER* *yunit*      - unit string.
-    !     *CHARACTER* *ylong*      - long name.
-    !
-    !
-    !     Externals
-    !     ---------
-    !     none.
-    !
+    !  S.Legutke,        *MPI-MaD, HH*    10.10.01
     ! **************************************************************************
+
     use netcdf,  only: nf90_double,nf90_noerr,nf90_put_att,nf90_def_var
     use mod_xc,  only: mnproc,xchalt
     use mod_dia, only: iotype
-
 #ifdef PNETCDF
 #include <pnetcdf.inc>
 #include <mpif.h>
 #endif
 
     ! Arguments
-    integer,          intent(in)  :: kcid
-    integer,          intent(in)  :: kshort
-    integer,          intent(in)  :: kdims
-    integer,          intent(in)  :: kcdims(kdims)
-    integer,          intent(out) :: kcvarid
-    integer,          intent(in)  :: kunitl
-    integer,          intent(in)  :: klong
-    integer,          intent(in)  :: klabel
-    integer,          intent(in)  :: kunit
-    character(len=*), intent(in)  :: yshort
-    character(len=*), intent(in)  :: yunit
-    character(len=*), intent(in)  :: ylong
+    integer,          intent(in)  :: kcid          ! file ID.
+    integer,          intent(in)  :: kshort        ! length of short name.
+    integer,          intent(in)  :: kdims         ! number of dimensions.
+    integer,          intent(in)  :: kcdims(kdims) ! dimensions.
+    integer,          intent(out) :: kcvarid       ! variable ID.
+    integer,          intent(in)  :: kunitl        ! length of unit string.
+    integer,          intent(in)  :: klong         ! length of long name.
+    integer,          intent(in)  :: klabel        ! label for abort identification.
+    integer,          intent(in)  :: kunit         ! stdout unit.
+    character(len=*), intent(in)  :: yshort        ! short name.
+    character(len=*), intent(in)  :: yunit         ! unit string.
+    character(len=*), intent(in)  :: ylong         ! long name.
 
     ! Local variables
     integer           :: k
@@ -116,16 +73,16 @@ CONTAINS
     IF(mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_DEF_VAR(kcid,yshort(1:kshort),NF90_DOUBLE,kcdims,kcvarid)
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of NetCDF variable:'
-        WRITE(kunit,*) 'kcid           : ',kcid
-        WRITE(kunit,*) 'kshort         : ',kshort
-        WRITE(kunit,*) 'yshort(kshort) : ',yshort(1:kshort),'---'
-        WRITE(kunit,*) 'kdims          : ',kdims
-        WRITE(kunit,*) 'kcdims         : ',(kcdims(k),k=1,kdims)
-        WRITE(kunit,*) 'kcvarid        : ',kcvarid
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(netcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of NetCDF variable:'
+        write(kunit,*) 'kcid           : ',kcid
+        write(kunit,*) 'kshort         : ',kshort
+        write(kunit,*) 'yshort(kshort) : ',yshort(1:kshort),'---'
+        write(kunit,*) 'kdims          : ',kdims
+        write(kunit,*) 'kcdims         : ',(kcdims(k),k=1,kdims)
+        write(kunit,*) 'kcvarid        : ',kcvarid
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
       ENDIF
       !
@@ -133,14 +90,14 @@ CONTAINS
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'units',yunit(1:kunitl))
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of unit:'
-        WRITE(kunit,*) 'kcid          : ',kcid
-        WRITE(kunit,*) 'kcvarid       : ',kcvarid
-        WRITE(kunit,*) 'kunitl        : ',kunitl
-        WRITE(kunit,*) 'yunit(kunitl) : ',yunit(1:kunitl),'---'
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(netcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of unit:'
+        write(kunit,*) 'kcid          : ',kcid
+        write(kunit,*) 'kcvarid       : ',kcvarid
+        write(kunit,*) 'kunitl        : ',kunitl
+        write(kunit,*) 'yunit(kunitl) : ',yunit(1:kunitl),'---'
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
       ENDIF
       !
@@ -148,14 +105,14 @@ CONTAINS
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'long_name',ylong(1:klong))
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of long name:'
-        WRITE(kunit,*) 'kcid         : ',kcid
-        WRITE(kunit,*) 'kcvarid      : ',kcvarid
-        WRITE(kunit,*) 'klong        : ',klong
-        WRITE(kunit,*) 'ylong(klong) : ',ylong(1:klong),'---'
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(netcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of long name:'
+        write(kunit,*) 'kcid         : ',kcid
+        write(kunit,*) 'kcvarid      : ',kcvarid
+        write(kunit,*) 'klong        : ',klong
+        write(kunit,*) 'ylong(klong) : ',ylong(1:klong),'---'
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
       ENDIF
       !
@@ -163,13 +120,13 @@ CONTAINS
       !
       ncstat = NF90_PUT_ATT(kcid,kcvarid,'missing_value',pmissing)
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of missing value:'
-        WRITE(kunit,*) 'kcid     : ',kcid
-        WRITE(kunit,*) 'kcvarid  : ',kcvarid
-        WRITE(kunit,*) 'pmissing : ',pmissing
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(netcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of missing value:'
+        write(kunit,*) 'kcid     : ',kcid
+        write(kunit,*) 'kcvarid  : ',kcvarid
+        write(kunit,*) 'pmissing : ',pmissing
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(netcdf_def_vardb)')
         stop '(netcdf_def_vardb)'
       ENDIF
     ELSE IF(IOTYPE==1) THEN
@@ -179,16 +136,16 @@ CONTAINS
       !
       ncstat = nfmpi_def_var(kcid,yshort(1:kshort),nf_double,kdims,kcdims,kcvarid)
       IF ( ncstat .NE. NF_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of NetCDF variable:'
-        WRITE(kunit,*) 'kcid           : ',kcid
-        WRITE(kunit,*) 'kshort         : ',kshort
-        WRITE(kunit,*) 'yshort(kshort) : ',yshort(1:kshort),'---'
-        WRITE(kunit,*) 'kdims          : ',kdims
-        WRITE(kunit,*) 'kcdims         : ',(kcdims(k),k=1,kdims)
-        WRITE(kunit,*) 'kcvarid        : ',kcvarid
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(pnetcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of NetCDF variable:'
+        write(kunit,*) 'kcid           : ',kcid
+        write(kunit,*) 'kshort         : ',kshort
+        write(kunit,*) 'yshort(kshort) : ',yshort(1:kshort),'---'
+        write(kunit,*) 'kdims          : ',kdims
+        write(kunit,*) 'kcdims         : ',(kcdims(k),k=1,kdims)
+        write(kunit,*) 'kcvarid        : ',kcvarid
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
       ENDIF
       !
@@ -197,14 +154,14 @@ CONTAINS
       clen=len(trim(yunit(1:kunitl)))
       ncstat = NFMPI_PUT_ATT_TEXT(kcid,kcvarid,'units',clen,yunit(1:kunitl))
       IF ( ncstat .NE. NF_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of unit:'
-        WRITE(kunit,*) 'kcid          : ',kcid
-        WRITE(kunit,*) 'kcvarid       : ',kcvarid
-        WRITE(kunit,*) 'kunitl        : ',kunitl
-        WRITE(kunit,*) 'yunit(kunitl) : ',yunit(1:kunitl),'---'
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(pnetcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of unit:'
+        write(kunit,*) 'kcid          : ',kcid
+        write(kunit,*) 'kcvarid       : ',kcvarid
+        write(kunit,*) 'kunitl        : ',kunitl
+        write(kunit,*) 'yunit(kunitl) : ',yunit(1:kunitl),'---'
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
       ENDIF
       !
@@ -213,14 +170,14 @@ CONTAINS
       clen=len(trim(ylong(1:klong)))
       ncstat = NFMPI_PUT_ATT_TEXT(kcid,kcvarid,'long_name',clen,ylong(1:klong))
       IF ( ncstat .NE. NF_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of long name:'
-        WRITE(kunit,*) 'kcid         : ',kcid
-        WRITE(kunit,*) 'kcvarid      : ',kcvarid
-        WRITE(kunit,*) 'klong        : ',klong
-        WRITE(kunit,*) 'ylong(klong) : ',ylong(1:klong),'---'
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(pnetcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of long name:'
+        write(kunit,*) 'kcid         : ',kcid
+        write(kunit,*) 'kcvarid      : ',kcvarid
+        write(kunit,*) 'klong        : ',klong
+        write(kunit,*) 'ylong(klong) : ',ylong(1:klong),'---'
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
       ENDIF
       !
@@ -229,18 +186,18 @@ CONTAINS
       clen=1
       ncstat = NFMPI_PUT_ATT_DOUBLE(kcid,kcvarid,'missing_value',NF_DOUBLE,clen,pmissing)
       IF ( ncstat .NE. NF_NOERR ) THEN
-        WRITE(kunit,*) 'Problems with definition of missing value:'
-        WRITE(kunit,*) 'kcid     : ',kcid
-        WRITE(kunit,*) 'kcvarid  : ',kcvarid
-        WRITE(kunit,*) 'pmissing : ',pmissing
-        WRITE(ystring(22:24),'(I3)') klabel
-        WRITE(kunit,*) ystring
-        CALL xchalt('(pnetcdf_def_vardb)')
+        write(kunit,*) 'Problems with definition of missing value:'
+        write(kunit,*) 'kcid     : ',kcid
+        write(kunit,*) 'kcvarid  : ',kcvarid
+        write(kunit,*) 'pmissing : ',pmissing
+        write(ystring(22:24),'(I3)') klabel
+        write(kunit,*) ystring
+        call xchalt('(pnetcdf_def_vardb)')
         stop '(pnetcdf_def_vardb)'
       ENDIF
 #endif
     ENDIF
 
-  END SUBROUTINE NETCDF_DEF_VARDB
+  end subroutine netcdf_def_vardb
 
-END MODULE MO_NETCDF_DEF_VARDB
+end module mo_netcdf_def_vardb

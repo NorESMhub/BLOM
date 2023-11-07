@@ -17,78 +17,51 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_OCPROD
+module mo_ocprod
 
   implicit none
   private
 
-  public :: OCPROD
+  public :: ocprod
 
-CONTAINS
+contains
 
-  SUBROUTINE OCPROD(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
+  subroutine ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
     !******************************************************************************
+    !  Biological production, remineralization and particle sinking.
+    !  compute biological production, settling of debris, and related biogeochemistry
     !
-    !  OCPROD - biological production, remineralization and particle sinking.
+    !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !  Modified
+    !  S.Legutke,             *MPI-MaD, HH*    2010-04-01
+    !  J.Schwinger,           *GFI, UiB*       2013-04-22
+    !   - Corrected bug in light penetration formulation
+    !   - Cautious code clean-up
+    !  J.Tjiputra,            *UNI-RESEARCH*   2015-11-25
+    !   - Implemented natural DIC/ALK/CALC
+    !  I.Kriest,              *GEOMAR*         2016-08-11
+    !   - Modified stoichiometry for denitrification (affects NO3, N2, Alk)
+    !  J.Schwinger,           *UNI-RESEARCH*   2017-08-30
+    !   - Removed split of the layer that only partly falls into the
+    !     euphotic zone. Loops are now calculated over
+    !     (1) layers that are completely or partly in the euphotoc zone
+    !     (2) layers that do not lie within the euphotic zone.
+    !   - Moved the accumulation of global fields for output to routine
+    !     hamocc4bgc. The accumulation of local fields has been moved to
+    !     the end of this routine.
+    !  A.Moree,          *GFI, Bergen*   2018-04-12
+    !  - new version of carbon isotope code
+    !  J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+    !  - moved accumulation of all output fields to seperate subroutine,
+    !    related code-restructuring
+    !  - added sediment bypass preprocessor option and related code
     !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,             *MPI-MaD, HH*    2010-04-01
-    !
-    !     J.Schwinger,           *GFI, UiB*       2013-04-22
-    !      - Corrected bug in light penetration formulation
-    !      - Cautious code clean-up
-    !
-    !     J.Tjiputra,            *UNI-RESEARCH*   2015-11-25
-    !      - Implemented natural DIC/ALK/CALC
-    !
-    !     I.Kriest,              *GEOMAR*         2016-08-11
-    !      - Modified stoichiometry for denitrification (affects NO3, N2, Alk)
-    !
-    !     J.Schwinger,           *UNI-RESEARCH*   2017-08-30
-    !      - Removed split of the layer that only partly falls into the
-    !        euphotic zone. Loops are now calculated over
-    !        (1) layers that are completely or partly in the euphotoc zone
-    !        (2) layers that do not lie within the euphotic zone.
-    !      - Moved the accumulation of global fields for output to routine
-    !        hamocc4bgc. The accumulation of local fields has been moved to
-    !        the end of this routine.
-    !
-    !     A.Moree,          *GFI, Bergen*   2018-04-12
-    !     - new version of carbon isotope code
-    !
-    !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    !     - moved accumulation of all output fields to seperate subroutine,
-    !       related code-restructuring
-    !     - added sediment bypass preprocessor option and related code
-    !
-    !     J.Schwinger,      *NORCE Climate, Bergen*   2020-05-29
-    !     - Cleaned up parameter list
-    !     - Dust deposition field now passed as an argument
-    !
-    !     Purpose
-    !     -------
-    !     compute biological production, settling of debris, and related
-    !     biogeochemistry
-    !
-    !
-    !
-    !     Parameter list:
-    !     ---------------
-    !     *INTEGER* *kpie*    - 1st dimension of model grid.
-    !     *INTEGER* *kpje*    - 2nd dimension of model grid.
-    !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-    !     *INTEGER* *kbnd*    - nb of halo grid points
-    !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-    !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-    !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-    !     *REAL*    *omask*   - land/ocean mask (1=ocean)
-    !     *REAL*    *ptho*    - potential temperature [deg C].
-    !
+    !  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-29
+    !  - Cleaned up parameter list
+    !  - Dust deposition field now passed as an argument
     !******************************************************************************
+
     use mod_xc,           only: mnproc
     use mo_carbch,        only: ocetra,satoxy,hi,co2star
     use mo_sedmnt,        only: prcaca,produs,prorca,silpro,pror13,pror14,prca13,prca14
@@ -116,16 +89,19 @@ CONTAINS
     use mo_clim_swa,      only: swa_clim
     use mo_inventory_bgc, only: inventory_bgc
 
-
     ! Arguments
-    integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    integer, intent(in) :: kpie                                         ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                         ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                         ! nb of halo grid points
+    real,    intent(in) :: pdlxp(kpie,kpje)                             ! size of scalar grid cell (1st dimension) [m].
+    real,    intent(in) :: pdlyp(kpie,kpje)                             ! size of scalar grid cell (2nd dimension) [m].
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)                        ! size of scalar grid cell (3rd dimension) [m].
+    real,    intent(in) :: omask(kpie,kpje)                             ! land/ocean mask (1=ocean)
+    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
     real,    intent(in) :: pi_ph(kpie,kpje)
 
-    ! Local varaibles
+    ! Local variables
     integer, parameter :: nsinkmax = 12
     integer :: i,j,k,l
     integer :: is,kdonor
@@ -1449,4 +1425,4 @@ CONTAINS
 
   end subroutine ocprod
 
-END MODULE MO_OCPROD
+end module mo_ocprod

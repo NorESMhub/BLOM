@@ -18,34 +18,25 @@
 module mo_read_sedpor
 
   !*****************************************************************************
-  ! Purpose
-  ! -------
-  !   - Routine for reading sediment porosity from netcdf file
+  ! Routine for reading sediment porosity from netcdf file
+  ! L_SED_POR must be set to true in nml to activate
+  ! lon-lat variable sediment porosity.
   !
-  ! Description
-  ! -----------
-  ! Public routines and variable of this module:
+  ! The model attempts to read lon-lat-sediment depth variable porosity
+  ! from the input file 'SEDPORFILE' (incl. full path)
   !
-  !   - subroutine ini_read_sedpor
-  !        read sediment porosity file
-  !
-  !   L_SED_POR must be set to true in nml to activate
-  !   lon-lat variable sediment porosity.
-  !
-  !   The model attempts to read lon-lat-sediment depth variable porosity
-  !   from the input file 'SEDPORFILE' (incl. full path)
-  !
-  !   sed_por holds then the porosity that can be applied later
-  !   via mo_apply_sedpor
-  !
+  ! sed_por holds then the porosity that can be applied later
+  ! via mo_apply_sedpor
   !*****************************************************************************
 
   implicit none
   private
 
-  public :: read_sedpor,sedporfile
+  ! Routintes
+  public :: read_sedpor ! read sediment porosity file
 
-  character(len=512),save :: sedporfile = ''
+  ! Module variables
+  character(len=512), public :: sedporfile = ''
 
 contains
 
@@ -100,7 +91,7 @@ contains
     IF(mnproc==1) THEN
       ncstat = NF90_OPEN(trim(sedporfile),NF90_NOWRITE, ncid)
       IF (ncstat.NE.NF90_NOERR ) THEN
-        CALL xchalt('(read_sedpor: Problem with netCDF1)')
+        call xchalt('(read_sedpor: Problem with netCDF1)')
         stop '(read_sedpor: Problem with netCDF1)'
       END IF
     END IF
@@ -112,7 +103,7 @@ contains
     IF(mnproc==1) THEN
       ncstat = NF90_CLOSE(ncid)
       IF ( ncstat .NE. NF90_NOERR ) THEN
-        CALL xchalt('(read_sedpor: Problem with netCDF200)')
+        call xchalt('(read_sedpor: Problem with netCDF200)')
         stop '(read_sedpor: Problem with netCDF200)'
       END IF
     END IF

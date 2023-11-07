@@ -16,35 +16,27 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
+module mo_param1_bgc
 
-MODULE mo_param1_bgc
   !******************************************************************************
-  !
-  ! MODULE mo_param1_bgc - bgc tracer parameters.
+  ! bgc tracer parameters.
+  ! - To facilitate easier use of 'only-lists' in use statements, make indices
+  ! always defined also in case they are inside a #ifdef directive.
+  ! - definition of indices in tracer arrays
   !
   !  Patrick Wetzel    *MPI-Met, HH*    01.09.03
-  !
-  !
   !  Modified
-  !  --------
   !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-26
-  !
-  !  - To facilitate easier use of 'only-lists' in use statements, make indices
-  !    always defined also in case they are inside a #ifdef directive.
-  !
-  !  Purpose
-  !  -------
-  !  - definition of indices in tracer arrays
-  !
   !******************************************************************************
+
   use mo_control_bgc, only: use_BROMO, use_AGG, use_WLIN, use_natDIC, use_CFC,         &
-       use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP, &
-       use_FB_BGC_OCE, use_BOXATM, use_sedbypass
+                            use_cisonew, use_PBGC_OCNP_TIMESTEP, use_PBGC_CK_TIMESTEP, &
+                            use_FB_BGC_OCE, use_BOXATM, use_sedbypass
   implicit none
   public
 
-  INTEGER, PARAMETER :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
-  REAL,    PARAMETER :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
+  integer, parameter :: ks=12,ksp=ks+1    ! ks: nb of sediment layers
+  real,    parameter :: safediv = 1.0e-25 ! added to the denominator of isotopic ratios (avoid div. by zero)
 
   ! ------------------
   ! Tracer indices
@@ -437,5 +429,4 @@ contains
 
   end subroutine init_indices
 
-  !******************************************************************************
-END MODULE mo_param1_bgc
+end module mo_param1_bgc

@@ -16,16 +16,16 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_NCWRT_BGC
+module mo_ncwrt_bgc
 
   implicit none
   private
 
-  public :: NCWRT_BGC
+  public :: ncwrt_bgc
 
-CONTAINS
+contains
 
-  SUBROUTINE NCWRT_BGC(iogrp)
+  subroutine ncwrt_bgc(iogrp)
     !
     ! --- -------------------------------------------
     ! --- output routine for HAMOCC diagnostic fields
@@ -1410,4 +1410,4 @@ CONTAINS
 
   end subroutine hamoccvardef
 
-END MODULE MO_NCWRT_BGC
+end module mo_ncwrt_bgc

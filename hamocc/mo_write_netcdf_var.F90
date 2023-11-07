@@ -16,23 +16,22 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-MODULE MO_WRITE_NETCDF_VAR
+module mo_write_netcdf_var
 
   implicit none
   private
 
-  public :: WRITE_NETCDF_VAR
+  public :: write_netcdf_var
 
-CONTAINS
+contains
 
-  SUBROUTINE WRITE_NETCDF_VAR(ncid,desc,arr,klev,time)
+  subroutine write_netcdf_var(ncid,desc,arr,klev,time)
+
     !**************************************************************************
-    !
     ! Gathers a global variable from all PEs and writes it to a NETCDF file
-    !
     ! The NETCDF File is only accessed by mnproc=1
-    !
     !**************************************************************************
+
     use netcdf,  only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_put_var
     use mod_xc,  only: itdm,jtdm,jdm,lp,mnproc,nbdy,idm,xchalt,xcaget
     use mod_dia, only: iotype
@@ -207,6 +206,6 @@ CONTAINS
 #endif
     ENDIF
 
-  END SUBROUTINE WRITE_NETCDF_VAR
+  end subroutine write_netcdf_var
 
-END MODULE MO_WRITE_NETCDF_VAR
+end module mo_write_netcdf_var

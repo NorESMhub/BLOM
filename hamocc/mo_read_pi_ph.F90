@@ -20,13 +20,23 @@ module mo_read_pi_ph
   implicit none
   private
 
-  public :: ini_pi_ph,get_pi_ph,pi_ph_file,pi_ph
+  ! Routines
+
+  public :: ini_pi_ph
+  public :: get_pi_ph
+  public :: pi_ph_file
+  public :: pi_ph
+
+  private :: alloc_pi_ph
+  private :: alloc_pi_ph_clim
+
+  ! Module variables
 
   ! Path to input data, set through namelist in hamocc_init.F
   character(len=256) :: pi_ph_file = ''
 
   ! Length of surface PI pH record from file
-  !  - Current implementation only support monthly records.
+  ! Current implementation only support monthly records.
   integer, parameter :: pi_ph_record = 12
 
   ! surface PI pH climatology
@@ -35,22 +45,18 @@ module mo_read_pi_ph
   ! surface PI pH monthly data
   real, dimension(:,:), allocatable :: pi_ph
 
-CONTAINS
+  integer :: oldmonth=0
+
+contains
 
   subroutine ini_pi_ph(kpie,kpje,omask)
 
-    !**********************************************************************
-    ! PUBLIC SUBROUTINE : INI_PI_PH
-    !
     ! Initialise the PI_PH field from climatology.
-    !**********************************************************************
 
     use mo_control_bgc,     only: io_stdo_bgc,with_dmsph
     use netcdf,             only: nf90_noerr,nf90_nowrite,nf90_close,nf90_open
     use mod_xc,             only: mnproc,xchalt
     use mo_read_netcdf_var, only: read_netcdf_var
-
-    implicit none
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -76,7 +82,7 @@ CONTAINS
         ncstat = NF90_OPEN(trim(pi_ph_file), NF90_NOWRITE, ncid)
         write(io_stdo_bgc,*) 'HAMOCC: opening PI_PH climatology file'
         IF (ncstat.NE.NF90_NOERR ) THEN
-          CALL xchalt('(ini_pi_ph: Problem with netCDF1)')
+          call xchalt('(ini_pi_ph: Problem with netCDF1)')
           stop '(ini_pi_ph: Problem with netCDF1)'
         END IF
       END IF
@@ -88,7 +94,7 @@ CONTAINS
       IF(mnproc==1) THEN
         ncstat = NF90_CLOSE(ncid)
         IF ( ncstat .NE. NF90_NOERR ) THEN
-          CALL xchalt('(ini_pi_ph: Problem with netCDF200)')
+          call xchalt('(ini_pi_ph: Problem with netCDF200)')
           stop '(ini_pi_ph: Problem with netCDF200)'
         END IF
       END IF
@@ -109,19 +115,14 @@ CONTAINS
 
   end subroutine ini_pi_ph
 
-
-  !**********************************************************************
-  ! PUBLIC SUBROUTINE : GET_PI_PH
-  !
-  ! Return PI_PH field for a given month.
   !**********************************************************************
   subroutine get_pi_ph(kpie,kpje,kplmon)
     use mo_control_bgc, only: with_dmsph
 
-    implicit none
+    ! Return PI_PH field for a given month.
 
+    ! Arguments
     integer, intent(in) :: kpie,kpje,kplmon
-    integer, save :: oldmonth=0
 
     ! Ensure that pi_ph is allocated
     if(.not. allocated(pi_ph)) call alloc_pi_ph(kpie,kpje)
@@ -136,54 +137,47 @@ CONTAINS
 
   end subroutine get_pi_ph
 
-
-  !**********************************************************************
-  ! PRIVATE SUBROUTINE : ALLOC_PI_PH
-  !
-  ! Allocate the PI_PH field.
   !**********************************************************************
   subroutine alloc_pi_ph(kpie,kpje)
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 
-    implicit none
+    ! Arguments
     integer, intent(in) :: kpie,kpje
-    integer             :: errstat
+    ! Local variables
+    integer :: errstat
 
     IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
     ENDIF
 
-    ALLOCATE (pi_ph(kpie,kpje),stat=errstat)
+    allocate (pi_ph(kpie,kpje),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph'
     pi_ph(:,:) = 0.0
 
   end subroutine alloc_pi_ph
 
-
-  !**********************************************************************
-  ! PRIVATE SUBROUTINE : ALLOC_PI_PH_CLIM
-  !
-  ! Allocate the PI_PH_CLIM field.
   !**********************************************************************
   subroutine alloc_pi_ph_clim(kpie,kpje)
     use mod_xc,         only: mnproc
     use mo_control_bgc, only: io_stdo_bgc
 
-    implicit none
+    ! Arguments
     integer, intent(in) :: kpie,kpje
-    integer             :: errstat
+
+    ! Local variables
+    integer :: errstat
 
     IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable pi_ph_clim ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',pi_ph_record
+      write(io_stdo_bgc,*)'Memory allocation for variable pi_ph_clim ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',pi_ph_record
     ENDIF
 
-    ALLOCATE (pi_ph_clim(kpie,kpje,pi_ph_record),stat=errstat)
+    allocate (pi_ph_clim(kpie,kpje,pi_ph_record),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory pi_ph_clim'
     pi_ph_clim(:,:,:) = 0.0
 

@@ -16,75 +16,44 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_POWACH
+module mo_powach
 
   implicit none
   private
 
-  public :: POWACH
+  public :: powach
 
-CONTAINS
+contains
 
   subroutine powach(kpie,kpje,kpke,kbnd,prho,omask,psao,lspin)
 
     !******************************************************************************
-    !
-    !**** *POWACH* - .
-    !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,        *MPI-MaD, HH*    10.04.01
-    !
-    !     Purpose
-    !     -------
-    !     .
-    !
-    !     Method
-    !     -------
-    !     .
-    !
-    !**   Interface.
-    !     ----------
-    !
-    !     *CALL*       *POWACH*
-    !
-    !     *COMMON*     *PARAM1_BGC.h* - declaration of ocean/sediment tracer.
-    !
-    !**   Interface to ocean model (parameter list):
-    !     -----------------------------------------
-    !
-    !     *INTEGER* *kpie*    - 1st dimension of model grid.
-    !     *INTEGER* *kpje*    - 2nd dimension of model grid.
-    !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-    !     *INTEGER* *kbnd*    - nb of halo grid points
-    !     *REAL*    *prho*    - seawater density [g/cm^3].
-    !     *REAL*    *psao*    - salinity [psu].
-    !     *REAL*    *omask*   - land/ocean mask
-    !
-    !     Externals
-    !     ---------
-    !     none.
-    !
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified: S.Legutke,   *MPI-MaD, HH*    10.04.01
     !******************************************************************************
+
     use mo_control_bgc, only: dtbgc,use_cisonew
-    use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isilica,isssc12,issso12,issssil, &
+    use mo_param1_bgc,  only: ioxygen,ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,&
+                              isilica,isssc12,issso12,issssil, &
                               issster,ks,ipowc13,ipowc14,isssc13,isssc14,issso13,issso14,safediv
     use mo_carbch,      only: co3,keqb,ocetra,sedfluxo
     use mo_chemcon,     only: calcon
     use mo_param_bgc,   only: rnit,ro2ut,disso_sil,silsat,disso_poc,sed_denit,disso_caco3
-    use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
+    use mo_sedmnt,      only: porwat,porsol,powtra,produs,prcaca,prorca,&
+                              seddw,sedhpl,sedlay,silpro,pror13,pror14,prca13,prca14
     use mo_vgrid,       only: kbo,bolay
     use mo_powadi,      only: powadi
     use mo_carchm,      only: carchm_solve
     use mo_dipowa,      only: dipowa
 
     ! Arguments
-    integer, intent(in) :: kpie,kpje,kpke,kbnd
-    real,    intent(in) :: prho(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    integer, intent(in) :: kpie                                         ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                         ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                         ! nb of halo grid points
+    real,    intent(in) :: prho(kpie,kpje,kpke)                         ! seawater density [g/cm^3].
+    real,    intent(in) :: omask(kpie,kpje)                             ! salinity [psu].
+    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! land/ocean mask
     logical, intent(in) :: lspin
 
     ! Local variables
@@ -101,9 +70,9 @@ CONTAINS
     real    :: ratc13, ratc14, rato13, rato14, poso13, poso14
     integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
-    !******************************************************************************
-
     ! Set array for saving diffusive sediment-water-column fluxes to zero
+    !********************************************************************
+
     sedfluxo(:,:,:) = 0.0
 
     ! A LOOP OVER J
@@ -374,7 +343,6 @@ CONTAINS
       ! Calculate CaCO3-CO3 cycle and simultaneous CO3-undersaturation diffusion
       !*************************************************************************
 
-
       ! Compute new powcar, carbonate ion concentration in the sediment
       ! from changed alkalinity (nitrate production during remineralisation)
       ! and DIC gain. Iterate 5 times. This changes pH (sedhpl) of sediment.
@@ -548,4 +516,4 @@ CONTAINS
 
   end subroutine powach
 
-END MODULE MO_powach
+end module mo_powach

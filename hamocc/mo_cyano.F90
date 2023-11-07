@@ -16,58 +16,32 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_CYANO
+module mo_cyano
 
   implicit none
   private
 
-  public :: CYANO
+  public :: cyano
 
-CONTAINS
+contains
 
-  SUBROUTINE CYANO(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
+  subroutine cyano(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
     !**********************************************************************
+    ! Nitrogen-fixation by cyano bacteria, followed by remineralisation
+    ! and nitrification
     !
-    !**** *CYANO* -  .
-    !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,        *MPI-MaD, HH*    10.04.01
-    !     - included : surface reduction of gaseous nitrogen
-    !
-    !     I.Kriest,         *GEOMAR, Kiel*           2016-08-11
-    !     - included T-dependence of cyanobacteria growth
-    !     - modified oxygen stoichiometry for N2-Fixation
-    !
-    !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    !     - moved accumulation of all output fields to seperate subroutine,
-    !       related code-restructuring
-    !     - added reduction of alkalinity through N-fixation
-    !
-    !     Purpose
-    !     -------
-    !     Nitrogen-fixation by cyano bacteria, followed by remineralisation
-    !     and nitrification
-    !
-    !     Method:
-    !     ------
-    !
-    !
-    !**   Interface to ocean model (parameter list):
-    !     -----------------------------------------
-    !
-    !     *INTEGER* *kpie*    - 1st dimension of model grid.
-    !     *INTEGER* *kpje*    - 2nd dimension of model grid.
-    !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-    !     *INTEGER* *kbnd*    - nb of halo grid points
-    !     *REAL*    *ptho*    - potential temperature.
-    !
-    !     Externals
-    !     ---------
-    !     .
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified
+    ! S.Legutke,        *MPI-MaD, HH*    10.04.01
+    ! - included : surface reduction of gaseous nitrogen
+    ! I.Kriest,         *GEOMAR, Kiel*           2016-08-11
+    ! - included T-dependence of cyanobacteria growth
+    ! - modified oxygen stoichiometry for N2-Fixation
+    ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+    ! - moved accumulation of all output fields to seperate subroutine,
+    !   related code-restructuring
+    ! - added reduction of alkalinity through N-fixation
     !**********************************************************************
 
     use mo_vgrid,       only: kmle
@@ -78,10 +52,13 @@ CONTAINS
     use mo_control_bgc, only: use_natDIC
 
     ! Arguments
-    integer, intent(in) :: kpie,kpje,kpke,kbnd
+    integer, intent(in) :: kpie                                          ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                          ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                          ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                          ! nb of halo grid points
     real,    intent(in) :: pddpo(kpie,kpje,kpke)
     real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
+    real,    intent(in) :: ptho(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)  ! potential temperature.
 
     ! Local variables
     integer :: i,j,k
@@ -131,6 +108,6 @@ CONTAINS
       ENDDO
     ENDDO
 
-  END SUBROUTINE CYANO
+  end subroutine cyano
 
-END MODULE MO_CYANO
+end module mo_cyano

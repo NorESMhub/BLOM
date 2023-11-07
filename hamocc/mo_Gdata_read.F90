@@ -15,86 +15,76 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-
 module mo_Gdata_read
 
   !********************************************************************************
-  !     J.Schwinger,        *Gfi, Bergen*           2011-05-19
-  !
+  ! J.Schwinger,        *Gfi, Bergen*           2011-05-19
   ! Modified
   ! --------
   !    J.Schwinger,         *Uni Climate, BCCR*     2017-07-07
   !    - adapted this module to read the initial conditions for OMIP-BGC.
-  !
-  !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+  !    J.Schwinger,      *Uni Research, Bergen*   2018-04-12
   !     - adaptions for reading c-isotope initial values as d13C and d14C
-  !
   ! Purpose
   ! -------
   !  - Routines for reading initial condition files for OMIP-BGC, which are based
   !    on WOA 2013 and GLODAPv2 gridded data netCDF files
-  !
   ! Description:
   ! ------------
   !  Public routines and variable of this module:
-  !
   !  -subroutine set_Gdata
   !     Initialise global varibles and read in one data set. Must be
   !     called before the processing of one data set starts.
-  !
   !  -subroutine clean_Gdata
   !     Deallocate global fields of this module and reset all global variables.
   !     Should be called each time, the processing of one data set is finished.
-  !
   !  -subroutine get_profile
   !     Returns one profile from the currently open data set (opened by a
   !     previous call to set_Gdata). See header of get profile for details.
-  !
   !  -function get_region
   !     Returns the index of the region a given point belongs to. If no region
   !     is found get_region returns 0, which is the index of the 'global region'.
   !     Note that the regions are defined below in the module header.
-  !
-  !  -nz_woa
-  !     Number of z-levels in the WOA data files.
-  !
-  !  -nz_glo
-  !     Number of z-levels in the GLODAP data files.
-  !
-  !  -nzmax
-  !     Max nuber of z-levels (=nzwoa)
-  !
-  !  -zlev
-  !     Depth of each z-level [m] in the current data file.
-  !
-  !
   !********************************************************************************
 
-  use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid,nf90_inquire_dimension,nf90_inq_varid,nf90_get_var, &
-       & nf90_inquire_variable,nf90_get_att,nf90_close,nf90_open
+  use netcdf,         only: nf90_noerr,nf90_nowrite,nf90_strerror,nf90_inq_dimid, &
+                            nf90_inquire_dimension,nf90_inq_varid,nf90_get_var,   &
+                            nf90_inquire_variable,nf90_get_att,nf90_close,nf90_open
   use mod_xc,         only: mnproc,xchalt
   use mo_control_bgc, only: io_stdo_bgc
 
   implicit none
-
   private
 
-  public :: set_Gdata,clean_Gdata,get_profile,get_region,nzmax,nz,zlev,zlev_bnds,fillval
+  ! routines
+  public :: set_Gdata
+  public :: get_profile
+  public :: get_region
+  public :: clean_Gdata
+
+  private :: set_regional_profiles
+  private :: read_Gdata
+  private :: calc_mean_profile
+
+  ! module variables
+  public :: zlev ! Depth of each z-level [m] in the current data file.
+  public :: zlev_bnds
+  public :: nzmax,nz,fillval
   public :: inidic,inialk,inipo4,inioxy,inino3,inisil,inid13c,inid14c
 
   ! Number of latitudes, longitudes, and z-levels in the WOA and GLODAP data
-  integer, parameter          :: nlon   = 360
-  integer, parameter          :: nlat   = 180
-  integer, parameter          :: nz_woa = 102
-  integer, parameter          :: nz_glo = 33
-  integer, parameter          :: nzmax  = nz_woa
-  ! Resolution of data in degree
-  real, parameter             :: dres = 1.0
+  integer, parameter :: nlon   = 360
+  integer, parameter :: nlat   = 180
+  integer, parameter :: nz_woa = 102 ! Number of z-levels in the WOA data files.
+  integer, parameter :: nz_glo = 33  ! Number of z-levels in the GLODAP data files.
+  integer, parameter :: nzmax  = nz_woa ! Max nuber of z-levels (=nzwoa)
 
+  ! Resolution of data in degree
+  real, parameter    :: dres = 1.0
 
   ! Max number of gridpoints to select around the center for averaging in
   ! longitude direction
-  integer, parameter          :: dnmax = 100.0
+  integer, parameter :: dnmax = 100.0
 
 
   ! Fill value used in this module, original fill values of data files are
@@ -102,29 +92,28 @@ module mo_Gdata_read
   real,             parameter :: fillval = -1.e+32
 
   ! Input file names (incl. full path) set through namelist
-  character(len=256), save                    :: inidic  = ''
-  character(len=256), save                    :: inialk  = ''
-  character(len=256), save                    :: inipo4  = ''
-  character(len=256), save                    :: inioxy  = ''
-  character(len=256), save                    :: inino3  = ''
-  character(len=256), save                    :: inisil  = ''
-  character(len=256), save                    :: inid13c = ''
-  character(len=256), save                    :: inid14c = ''
-  character(len=256), save                    :: inic13 = ''   ! currently not used
-  character(len=256), save                    :: inic14 = ''   ! currently not used
+  character(len=256) :: inidic  = ''
+  character(len=256) :: inialk  = ''
+  character(len=256) :: inipo4  = ''
+  character(len=256) :: inioxy  = ''
+  character(len=256) :: inino3  = ''
+  character(len=256) :: inisil  = ''
+  character(len=256) :: inid13c = ''
+  character(len=256) :: inid14c = ''
+  character(len=256) :: inic13 = ''   ! currently not used
+  character(len=256) :: inic14 = ''   ! currently not used
 
   ! Variables set by call to Gdata_set
-  integer, save                               :: nz
-  real, save                                  :: cfac, ddeg
-  real, save, dimension(:),       allocatable :: lon,lat,zlev
-  real, save, dimension(:,:),     allocatable :: zlev_bnds
-  real, save, dimension(:, :, :), allocatable :: rvar,gdata
-  character(len=16),  save                    :: var,ncname
-  character(len=3) ,  save                    :: dsrc
-  character(len=256), save                    :: infile
+  integer                               :: nz
+  real                                  :: cfac, ddeg
+  real, dimension(:),       allocatable :: lon,lat,zlev
+  real, dimension(:,:),     allocatable :: zlev_bnds
+  real, dimension(:, :, :), allocatable :: rvar,gdata
+  character(len=16)                     :: var,ncname
+  character(len=3)                      :: dsrc
+  character(len=256)                    :: infile
 
-  logical, save :: lset  = .false.
-
+  logical :: lset  = .false.
 
   !-----------------------------------------
   ! Definitions for regional mean profiles:
@@ -141,7 +130,6 @@ module mo_Gdata_read
 
   integer, parameter    :: nreg=10
   type(region)          :: rg(0:nreg)
-
 
   ! Set regions for fall-back profiles
 
@@ -205,52 +193,39 @@ module mo_Gdata_read
   data  rg(9)%dlon, rg(9)%dlat / 180.0,  30.0 /
   data  rg(9)%global           / .false.      /
 
-
   ! Southern Ocean
   data  rg(10)%idx,  rg(10)%name / 10, 'Southern Ocean'  /
   data  rg(10)%clon, rg(10)%clat / 180.0, -70.0 /
   data  rg(10)%dlon, rg(10)%dlat / 360.0,  40.0 /
   data  rg(10)%global            / .false.      /
 
-
-  !********************************************************************************
 contains
-
 
   subroutine set_Gdata(vname,inddeg)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Initialise global varibles and read data set specified by vname. Must be
     !  called before the first call to any routine of this module.
-    !
-    ! Description:
-    ! ------------
-    !
-    !
-    ! Arguments:
-    ! ----------
-    !  vname:        data set name to read in; valid names are
-    !                'pho' - WOA phosphate
-    !                'nit' - WOA nitrate
-    !                'sil' - WOA silicate
-    !                'oxy' - WOA dissolved oxygen
-    !                'alk' - GLODAP alkalinity
-    !                'dic' - GLODAP dissolved inorganic carbon
-    !                'C13' - Dissolved inorganic 13C carbon isotope
-    !                'd13' - delta13C of dissolved inorganic carbon
-    !                'C14' - Dissolved inorganic 14C carbon isotope
-    !                'd14' - delta14C of dissolved inorganic carbon
-    !  inddeg:       extent (in degrees) of region used for averaging
-    !
     !--------------------------------------------------------------------------------
-    character(len=*), intent(in) :: vname
-    real,             intent(in) :: inddeg
+
+    ! Arguments
+    character(len=*), intent(in) :: vname  ! data set name to read in
+    real,             intent(in) :: inddeg ! extent (in degrees) of region used for averaging
+
+    ! Valid values of vname are:
+    !   'pho' - WOA phosphate
+    !   'nit' - WOA nitrate
+    !   'sil' - WOA silicate
+    !   'oxy' - WOA dissolved oxygen
+    !   'alk' - GLODAP alkalinity
+    !   'dic' - GLODAP dissolved inorganic carbon
+    !   'C13' - Dissolved inorganic 13C carbon isotope
+    !   'd13' - delta13C of dissolved inorganic carbon
+    !   'C14' - Dissolved inorganic 14C carbon isotope
+    !   'd14' - delta14C of dissolved inorganic carbon
+
 
     ! Local variables
     character(len=*), parameter  :: routinestr = 'set_Gdata'
-
 
     if( allocated(lon)       ) deallocate( lon  )
     if( allocated(lat)       ) deallocate( lat  )
@@ -344,46 +319,32 @@ contains
     lset  = .true.
 
     call set_regional_profiles()
-
-
-    !--------------------------------------------------------------------------------
   end subroutine set_Gdata
-
 
 
   subroutine get_profile(clon,clat,prf)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Return a profile suitable for initialisation of HAMCC at point clon/clat.
-    !
-    ! Description:
-    ! ------------
     !  A mean profile is calculated by calling calc_mean_profile with the settings
     !  defined by a previous call to set_Gdata. If no valid data is found for the
     !  point clon/clat, it is tried to obtain a mean regional profile (e.g. for the
     !  north atlantic area). These mean profiles are initialised as part of
     !  set_Gdata.
-    !
-    !
-    ! Arguments:
-    ! ----------
-    !  clon, clat:   center lon/lat of mean profile
-    !  prf:          mean profile for initialisation
-    !
     !--------------------------------------------------------------------------------
-    real,              intent(in)  :: clon, clat
-    real,              intent(out) :: prf(nzmax)
+
+    ! Arguments
+    real, intent(in)  :: clon       ! center lon of mean profile
+    real, intent(in)  :: clat       ! center lat of mean profile
+    real, intent(out) :: prf(nzmax) ! mean profile for initialisation
 
     ! Local variables
     integer                        :: idx, npts(nzmax)
     real                           :: clon_tmp,clat_tmp
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_profile'
 
-
-    if( .not. lset ) call moderr(routinestr, ' Module not initialised yet')
-
+    if( .not. lset ) then
+      call moderr(routinestr, ' Module not initialised yet')
+    end if
 
     if( clon < 0 ) then
       clon_tmp=clon+360.0
@@ -396,7 +357,6 @@ contains
     ! Try to obtain a mean profile for a region centered at clon/clat
     call calc_mean_profile(clon_tmp,clat_tmp,ddeg,ddeg,prf,npts)
 
-
     ! Fall back to regional profile if number of valid data points is smaller
     ! than 3 for the surface layer. A global mean profile is used if
     ! get_region returns 0.
@@ -407,47 +367,33 @@ contains
       !write(*,*) 'Region is ', rg(idx)%name, clon, clat
 
     endif
-
-
-    !--------------------------------------------------------------------------------
   end subroutine get_profile
-
 
 
   function get_region(clon,clat)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Return index of region the point clon/clat belongs to
-    !
-    ! Description:
-    ! ------------
     !  The rectangular regions as defined in the module header (and stored in the
     !  data type 'rg') are searched. If point clon/clat belongs to region i, the
     !  index i is the result of this function. If no region is found, get_region
     !  returns 0, which is the index of the 'global' region defined in the header.
-    !
-    ! Arguments:
-    ! ----------
-    !  clon, clat:   lon/lat of point
-    !
     !--------------------------------------------------------------------------------
-    real, intent(in)               :: clon,clat
-    integer                        :: get_region
+
+    ! ARGUMENTS
+    real, intent(in) :: clon,clat ! lon/lat of point
 
     ! Local variables
-    integer                        :: i
-    real                           :: ll_lon, ur_lon
-    real                           :: ll_lat, ur_lat
-    logical                        :: boundwithin, found
+    integer :: get_region
+    integer :: i
+    real    :: ll_lon, ur_lon
+    real    :: ll_lat, ur_lat
+    logical :: boundwithin, found
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, get_region'
-
 
     if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
     if( clon > 360.0 ) call moderr(routinestr, ' clon must be in the range [0,360]')
 
-    found       = .false.
+    found = .false.
 
     do i=1,nreg
 
@@ -485,18 +431,12 @@ contains
     else
       get_region = 0
     endif
-
-
-    !--------------------------------------------------------------------------------
   end function get_region
-
 
 
   subroutine set_regional_profiles()
     !--------------------------------------------------------------------------------
-    !
     ! Calculate the mean profiles in regions as defined in the module header
-    !
     !--------------------------------------------------------------------------------
 
     ! Local variables
@@ -517,17 +457,12 @@ contains
       !write(*,*) '==============='
 
     enddo
-
-    !--------------------------------------------------------------------------------
   end subroutine set_regional_profiles
-
 
 
   subroutine read_Gdata()
     !--------------------------------------------------------------------------------
-    !
     ! Read the WOA or GLODAP data into variables lon/lat/zlev and rvar
-    !
     !--------------------------------------------------------------------------------
 
     ! Local variables
@@ -539,7 +474,6 @@ contains
     real                        :: fval
     character(len=16)           :: lonstr,latstr,depthstr,depthbndsstr,fvalstr
     character(len=*), parameter :: routinestr = 'mo_Gdata_read, read_Gdata'
-
 
     lonstr   = 'lon'
     latstr   = 'lat'
@@ -564,11 +498,9 @@ contains
 
     end select
 
-
     ! Open file
     if(mnproc == 1) write(io_stdo_bgc,*) 'Reading ', trim(infile)
     status = nf90_open(infile,nf90_nowrite,ncid); call ncerr(status)
-
 
     ! Get dimensions
     status = nf90_inq_dimid(ncid, trim(lonstr), dId)
@@ -655,54 +587,36 @@ contains
       rvar = rvar*cfac
     end where
 
-
     ! Close data file
     status = nf90_close(ncid)
     call ncerr(status)
 
-
-    !--------------------------------------------------------------------------------
   end subroutine read_Gdata
-
 
 
   subroutine calc_mean_profile(clon,clat,dlon,dlat,prf,npts,global)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Return mean profile around the center point clon/clat.
-    !
-    ! Description:
-    ! ------------
     !  The mean profile is calculated from valid data points in the square defined
     !  by clon+/-dlon/2 clat+/-dlat/2. The number of valid data points per depth
     !  level is returned in npts. By setting the optional argument global to true,
     !  all valid data points are used to calculate a global mean profile. clon, clat,
     !  dlon, and dlat are ignored in this case.
-    !
-    ! Arguments:
-    ! ----------
-    !  clon, clat:   center lon/lat of mean profile
-    !  dlon, dlat:   lon/lat extent of region to select for averaging
-    !  prf:          mean profile calculated from all data in selected region
-    !  npts:         nb of valid data points found for each depth level
-    !  global:       if set to true, calculate mean over the whole data set
-    !
     !--------------------------------------------------------------------------------
-    real,              intent(in)  :: clon, clat
-    real,              intent(in)  :: dlon, dlat
-    real,              intent(out) :: prf(nzmax)
-    integer,           intent(out) :: npts(nzmax)
-    logical, optional, intent(in)  :: global
+
+    ! Arguments
+    real,              intent(in)  :: clon, clat  !  center lon/lat of mean profile
+    real,              intent(in)  :: dlon, dlat  !  lon/lat extent of region to select for averaging
+    real,              intent(out) :: prf(nzmax)  !  mean profile calculated from all data in selected region
+    integer,           intent(out) :: npts(nzmax) !  nb of valid data points found for each depth level
+    logical, optional, intent(in)  :: global      !  if set to true, calculate mean over the whole data set
 
     ! Local variables
-    integer                        :: ilonc, ilons, ilone, dnlon
-    integer                        :: ilatc, ilats, ilate, dnlat
-    integer                        :: l, nelmlon,nelmlat
-    logical                        :: gl = .false.
+    integer :: ilonc, ilons, ilone, dnlon
+    integer :: ilatc, ilats, ilate, dnlat
+    integer :: l, nelmlon,nelmlat
+    logical :: gl
     character(len=*), parameter    :: routinestr = 'mo_Gdata_read, calc_mean_profile'
-
 
     if( .not. lset   ) call moderr(routinestr, ' Module not initialised yet')
     if( clon < 0     ) call moderr(routinestr, ' clon must be in the range [0,360]')
@@ -711,6 +625,7 @@ contains
     prf(:)  = fillval
     npts(:) = 0.0
 
+    gl = .false.
     if( present(global) ) gl=global
 
     if( gl ) then
@@ -762,7 +677,6 @@ contains
 
     endif
 
-
     ! Calculate mean profile:
     do l=1,nz
 
@@ -776,7 +690,6 @@ contains
 
     enddo
 
-
     !write(*,*) '================'
     !if( gl ) then
     !   write(*,*) 'global'
@@ -786,10 +699,8 @@ contains
     !   write(*,*) ilatc,ilats,ilate,lat(ilatc)
     !endif
     !write(*,*) '================'
-
     !--------------------------------------------------------------------------------
   end subroutine calc_mean_profile
-
 
 
   subroutine clean_Gdata()
@@ -812,10 +723,8 @@ contains
     ddeg   = 0.0
     nz     = 0
     lset   = .false.
-
     !--------------------------------------------------------------------------------
   end subroutine clean_Gdata
-
 
 
   subroutine ncerr(status)
@@ -831,8 +740,6 @@ contains
     call flush(io_stdo_bgc)
     call xchalt('(Module mo_Gdata_read, ncerr)')
     stop '(Module mo_Gdata_read, ncerr)'
-
-
     !--------------------------------------------------------------------------------
   end subroutine ncerr
 
@@ -849,11 +756,7 @@ contains
     call flush(io_stdo_bgc)
     call xchalt('(Module mo_Gdata_read)')
     stop '(Module mo_Gdata_read)'
-
-
     !--------------------------------------------------------------------------------
   end subroutine moderr
 
-
-  !********************************************************************************
 end module mo_Gdata_read

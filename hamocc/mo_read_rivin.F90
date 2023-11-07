@@ -17,22 +17,9 @@
 
 
 module mo_read_rivin
+
   !********************************************************************************
-  !
-  !     S. Gao,              *Gfi, Bergen*    19.08.2017
-  !
-  ! Purpose
-  ! -------
-  !  - Routines for reading riverine nutrient and carbon input data
-  !
-  !
-  ! Description:
-  ! ------------
-  !  Public routines and variable of this module:
-  !
-  !  -subroutine ini_read_rivin
-  !    read gnews riverine nutrient and carbon data
-  !
+  !  Routines for reading riverine nutrient and carbon input data
   !
   !  BLOM_RIVER_NUTRIENTS must be set to TRUE in env_run.xml to activate
   !  riverine nutrients.
@@ -51,92 +38,78 @@ module mo_read_rivin
   !  the assumtions that a_t=a_c+a_n and DIC=a_c (a_t: total alkalinity,
   !  a_c: carbonate alkalinity, a_n: contribution of nutrients to a_t).
   !
+  !
+  ! S. Gao,              *Gfi, Bergen*    19.08.2017
   ! Changes:
-  ! --------
   !  J. Schwinger,     *NORCE climate, Bergen*   2020-05-27
   !  - re-structured this module such that riverine input can be passed as an
   !    argument to iHAMOCC's main routine
-  !
   !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-18
   !  - re-structured and renamed this module such that reading and application of
   !    data are seperated into two distinct modules
-  !
   !********************************************************************************
+
   use dimensions, only: idm,jdm
   use mod_xc ,    only: nbdy
 
   implicit none
-
   private
-  public :: ini_read_rivin,rivinfile,rivflx
 
+  ! Routines
+  public :: ini_read_rivin ! read gnews riverine nutrient and carbon data
 
-
-  ! File name (incl. full path) for input data, set through namelist
-  ! in hamocc_init.F
-  character(len=256),save :: rivinfile = ''
-  real,save,allocatable   :: rivflx(:,:,:) ! holds input data as read from file
+  ! File name (incl. full path) for input data, set through namelist in mo_hamocc_init
+  character(len=256), public :: rivinfile = ''
+  real, allocatable,  public :: rivflx(:,:,:) ! holds input data as read from file
 
   ! arrays for reading riverine inputs on the model grid
-  real,save,dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d, riv_DIP2d,   &
-       riv_DSI2d, riv_DIC2d,   &
-       riv_idet2d,riv_idoc2d,  &
-       riv_DFe2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIN2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIP2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DSI2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DIC2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_DFe2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idet2d
+  real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: riv_idoc2d
 
-  !********************************************************************************
 contains
-
-
 
   subroutine ini_read_rivin(kpie,kpje,omask)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Initialise reading of riverine input data (GNEWS 2000)
-    !
-    !
-    ! Arguments:
-    ! ----------
-    !  *INTEGER*     *kpie*    - 1st dimension of model grid.
-    !  *INTEGER*     *kpje*    - 2nd dimension of model grid.
-    !  *REAL*        *omask*   - ocean mask
-    !
     !--------------------------------------------------------------------------------
+
     use mod_xc,         only: mnproc
     use mod_dia,        only: iotype
     use mod_nctools,    only: ncfopn,ncread,ncfcls
     use mo_control_bgc, only: io_stdo_bgc,do_rivinpt
     use mo_param1_bgc,  only: nriv,irdin,irdip,irsi,iralk,iriron,irdoc,irdet
 
-    implicit none
-
-    integer,          intent(in) :: kpie,kpje
-    real,             intent(in) :: omask(kpie,kpje)
+    ! Arguments
+    integer,  intent(in) :: kpie             ! 1st dimension of model grid.
+    integer , intent(in) :: kpje             ! 2nd dimension of model grid.
+    real,     intent(in) :: omask(kpie,kpje) ! ocean mask
 
     ! local variables
     integer :: i,j,errstat,dummymask(2)
 
-
     IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'***************************************************'
-      WRITE(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
-      WRITE(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)'***************************************************'
+      write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
+      write(io_stdo_bgc,*)' '
     ENDIF
 
     ! Allocate field to hold river fluxes
     IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third  dimension   : ',nriv
+      write(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third  dimension   : ',nriv
     ENDIF
 
-    ALLOCATE (rivflx(kpie,kpje,nriv),stat=errstat)
+    allocate (rivflx(kpie,kpje,nriv),stat=errstat)
     if(errstat.ne.0) stop 'not enough memory rivflx'
     rivflx(:,:,:) = 0.0
-
 
     ! Return if riverine input is turned off
     if (.not. do_rivinpt) then
@@ -150,20 +123,17 @@ contains
     ! read riverine nutrient fluxes from file
     if (mnproc.eq.1) then
       write(io_stdo_bgc,*) ''
-      write(io_stdo_bgc,*) 'ini_read_rivin: read riverine nutrients from ',       &
-           trim(rivinfile)
+      write(io_stdo_bgc,'(a)') 'ini_read_rivin: read riverine nutrients from ',trim(rivinfile)
     endif
     call ncfopn(trim(rivinfile),'r',' ',1,iotype)
     call ncread('DIN',riv_DIN2d,dummymask,0,0.)
     call ncread('DIP',riv_DIP2d,dummymask,0,0.)
     call ncread('DSi',riv_DSI2d,dummymask,0,0.)
     call ncread('DIC',riv_DIC2d,dummymask,0,0.) ! It is actually alkalinity that is observed
-    call ncread('Fe',riv_DFe2d,dummymask,0,0.)
+    call ncread('Fe' ,riv_DFe2d,dummymask,0,0.)
     call ncread('DOC',riv_idoc2d,dummymask,0,0.)
     call ncread('DET',riv_idet2d,dummymask,0,0.)
     call ncfcls
-
-
 
     DO j=1,kpje
       DO i=1,kpie
@@ -181,10 +151,6 @@ contains
       ENDDO
     ENDDO
 
-    !--------------------------------------------------------------------------------
   end subroutine ini_read_rivin
 
-
-
-  !********************************************************************************
 end module mo_read_rivin

@@ -17,76 +17,42 @@
 
 
 module mo_apply_fedep
+
   !********************************************************************************
-  !
-  !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-19
-  !
-  !
-  ! Purpose
-  ! -------
-  !  - Routines for applying iron deposition data
-  !
-  !
-  ! Description:
-  ! ------------
-  !  Public routines and variable of this module:
-  !
-  !  -subroutine apply_fedep
-  !    apply iron deposition to the ocean tracer field
-  !
+  !  Routines for applying iron deposition data
   !  This module replaces code previously found inside the ocprod-routine and
   !  encapsulates it in a module.
   !
-  !
-  ! Changes:
-  ! --------
-  !
+  !  J. Schwinger,     *NORCE climate, Bergen*   2022-05-19
   !********************************************************************************
+
   implicit none
-
   private
-  public :: apply_fedep
 
-  !********************************************************************************
+  public :: apply_fedep ! apply iron deposition to the ocean tracer field
+
 contains
-
 
   subroutine apply_fedep(kpie,kpje,kpke,pddpo,omask,dust)
     !--------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! --------
     !  Apply dust deposition input to oceanic tracer fields
-    !
-    ! Description:
-    ! ------------
-    !
-    !
-    ! Arguments:
-    ! ----------
-    !  *INTEGER*   *kpie*    - 1st dimension of model grid.
-    !  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-    !  *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-    !  *REAL*      *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-    !  *REAL*      *omask*   - ocean mask
-    !  *REAL*      *dust*    - dust deposition flux [kg/m2/month].
-    !
     !--------------------------------------------------------------------------------
+
     use mo_control_bgc, only: dtb
     use mo_param1_bgc,  only: ifdust,iiron
     use mo_param_bgc,   only: perc_diron
     use mo_carbch,      only: ocetra
 
-    implicit none
-
-    integer,intent(in) :: kpie,kpje,kpke
-    real,   intent(in) :: pddpo(kpie,kpje,kpke)
-    real,   intent(in) :: omask(kpie,kpje)
-    real,   intent(in) :: dust(kpie,kpje)
+    integer,intent(in) :: kpie                      ! 1st dimension of model grid.
+    integer,intent(in) :: kpje                      ! 2nd dimension of model grid.
+    integer,intent(in) :: kpke                      ! 3rd (vertical) dimension of model grid.
+    real,   intent(in) :: pddpo(kpie,kpje,kpke)     ! size of scalar grid cell (3rd dimension) [m].
+    real,   intent(in) :: omask(kpie,kpje)          ! ocean mask
+    real,   intent(in) :: dust(kpie,kpje)           ! dust deposition flux [kg/m2/month].
 
     ! local variables
-    integer            :: i,j
-    real               :: dustinp
+    integer :: i,j
+    real    :: dustinp
 
     ! dust flux from the atmosphere to the surface layer; dust fields are
     ! monthly mean values (kg/m2/month - assume 30 days per month here)
@@ -104,10 +70,6 @@ contains
     enddo
     !$OMP END PARALLEL DO
 
-
-    !--------------------------------------------------------------------------------
   end subroutine apply_fedep
 
-
-  !********************************************************************************
 end module mo_apply_fedep

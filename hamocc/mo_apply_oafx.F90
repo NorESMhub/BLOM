@@ -17,68 +17,39 @@
 
 
 module mo_apply_oafx
+
   !******************************************************************************
+  ! Routines for applying ocean alkalinization
   !
-  !   J.Schwinger             *NORCE Climate, Bergen*             2021-11-15
-  !
-  ! Modified
-  ! --------
-  !
-  ! Purpose
-  ! -------
-  !  -Routines for applying ocean alkalinization
-  !
-  !
-  ! Description:
-  ! ------------
-  !
-  !  -subroutine alkalinization
-  !     Apply alkalinization to the top-most model layer.
-  !
-  !
+  ! J.Schwinger             *NORCE Climate, Bergen*             2021-11-15
   !******************************************************************************
+
   implicit none
-
   private
-  public :: apply_oafx
 
-  !******************************************************************************
+  public :: apply_oafx ! Apply alkalinization to the top-most model layer.
+
 contains
 
-
-
   subroutine apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
+
     !******************************************************************************
+    ! Apply alkalinization to the top-most model layer.
     !
-    !     J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
-    !
-    ! Purpose
-    ! -------
-    !  -apply alkalinization to the top-most model layer.
-    !
-    ! Changes:
-    ! --------
-    !
-    !
-    ! Parameter list:
-    ! ---------------
-    !  *INTEGER*   *kpie*    - 1st dimension of model grid.
-    !  *INTEGER*   *kpje*    - 2nd dimension of model grid.
-    !  *REAL*      *pddpo*   - size of grid cell (depth) [m].
-    !  *REAL*      *omask*   - land/ocean mask (1=ocean)
-    !  *REAL*      *oafx*    - alkalinization field to apply [kmol m-2 yr-1]
-    !
+    ! J. Schwinger            *NORCE Climate, Bergen*     2021-11-15
     !******************************************************************************
+
     use mo_control_bgc, only: dtb,do_oalk
     use mo_param1_bgc,  only: ialkali
     use mo_carbch,      only: ocetra,oalkflx,OmegaA
     use mo_read_oafx,   only: thrh_omegaa
 
-    implicit none
-
-    integer, intent(in) :: kpie,kpje,kpke
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
+    ! Arguments
+    integer, intent(in) :: kpie                       ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                       ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                       ! size of grid cell (depth) [m].
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)      ! land/ocean mask (1=ocean)
+    real,    intent(in) :: omask(kpie,kpje)           ! alkalinization field to apply [kmol m-2 yr-1]
     real,    intent(in) :: oafx(kpie,kpje)
 
     ! local variables
@@ -101,9 +72,6 @@ contains
       enddo
     enddo
 
-    !******************************************************************************
   end subroutine apply_oafx
 
-
-  !******************************************************************************
 end module mo_apply_oafx

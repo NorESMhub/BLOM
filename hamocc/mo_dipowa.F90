@@ -16,78 +16,53 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_DIPOWA
+module mo_dipowa
 
   implicit none
   private
 
-  public :: DIPOWA
+  public :: dipowa
 
-CONTAINS
+contains
 
-  SUBROUTINE DIPOWA(kpie,kpje,kpke,omask,lspin)
+  subroutine dipowa(kpie,kpje,kpke,omask,lspin)
 
     !**********************************************************************
+    ! diffusion of pore water
+    ! vertical diffusion of sediment pore water tracers
+    ! calculate vertical diffusion of sediment pore water properties
+    ! and diffusive flux through the ocean/sediment interface.
+    ! method is implicit formulation;
+    ! constant diffusion coefficient : 1.e-9 set in ini_sedmnt in mo_sedmnt
+    ! diffusion coefficient : zcoefsu/zcoeflo for upper/lower
+    ! sediment layer boundary.
     !
-    !**** *DIPOWA* - 'diffusion of pore water'
-    !      vertical diffusion of sediment pore water tracers
-    !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,        *MPI-MaD, HH*    10.04.01
-    !     - all npowtra-1 properties are diffused in 1 go.
-    !     js: not mass conserving check c13/powtra/ocetra
-    !
-    !     Purpose
-    !     -------
-    !     calculate vertical diffusion of sediment pore water properties
-    !     and diffusive flux through the ocean/sediment interface.
-    !     integration.
-    !
-    !     Method
-    !     -------
-    !     implicit formulation;
-    !     constant diffusion coefficient : 1.e-9 set in ini_sedmnt in mo_sedmnt
-    !     diffusion coefficient : zcoefsu/zcoeflo for upper/lower
-    !     sediment layer boundary.
-    !
-    !**   Interface.
-    !     ----------
-    !
-    !     *CALL*       *DIPOWA*
-    !
-    !     Externals
-    !     ---------
-    !     none.
-    !
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified
+    ! S.Legutke,        *MPI-MaD, HH*    10.04.01
+    ! - all npowtra-1 properties are diffused in 1 go.
+    ! js: not mass conserving check c13/powtra/ocetra
     !**********************************************************************
 
-    use mo_carbch,     only: ocetra, sedfluxo
-    use mo_sedmnt,     only: powtra,porwat,porwah,seddw,zcoefsu,zcoeflo
-    use mo_param1_bgc, only: ks,npowtra,map_por2octra
-    use mo_vgrid,      only: kbo,bolay
-    ! cisonew
-    use mo_param1_bgc, only: ipowc13,ipowc14,isco213,isco214
-    ! natDIC
-    use mo_param1_bgc, only: ialkali,inatalkali,inatsco212,isco212
+    use mo_carbch,      only: ocetra, sedfluxo
+    use mo_sedmnt,      only: powtra,porwat,porwah,seddw,zcoefsu,zcoeflo
+    use mo_param1_bgc,  only: ks,npowtra,map_por2octra
+    use mo_vgrid,       only: kbo,bolay
+    use mo_param1_bgc,  only: ipowc13,ipowc14,isco213,isco214
+    use mo_param1_bgc,  only: ialkali,inatalkali,inatsco212,isco212
     use mo_control_bgc, only: use_natDIC
 
-    implicit none
-
+    ! Arguments
     integer, intent(in) :: kpie, kpje, kpke
     real,    intent(in) :: omask(kpie,kpje)
     logical, intent(in) :: lspin
 
     ! Local variables
     integer :: i,j,k,l,iv
-    integer :: iv_oc                     ! index of ocetra in powtra loop
-
-    real :: sedb1(kpie,0:ks,npowtra)     ! ????
-    real :: tredsy(kpie,0:kpke,3)        ! redsy for 'reduced system'?
-    real :: aprior                       ! start value of oceanic tracer in bottom layer
-
+    integer :: iv_oc                    ! index of ocetra in powtra loop
+    real    :: sedb1(kpie,0:ks,npowtra) ! ????
+    real    :: tredsy(kpie,0:kpke,3)    ! redsy for 'reduced system'?
+    real    :: aprior                   ! start value of oceanic tracer in bottom layer
 
     !$OMP PARALLEL DO                            &
     !$OMP&PRIVATE(i,k,iv,l,tredsy,sedb1,aprior,iv_oc)
@@ -207,6 +182,6 @@ CONTAINS
 
     enddo j_loop
 
-  END SUBROUTINE DIPOWA
+  end subroutine dipowa
 
-END MODULE MO_DIPOWA
+end module mo_dipowa

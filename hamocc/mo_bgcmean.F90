@@ -18,41 +18,33 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-MODULE mo_bgcmean
+module mo_bgcmean
+
   !***********************************************************************
+  ! Variables for bgcmean.
+  ! - declaration and memory allocation
+  ! - declaration of auxiliary functions
   !
-  !**** *MODULE mo_bgcmean* - Variables for bgcmean.
-  !
-  !
-  !     Patrick Wetzel    *MPI-Met, HH*    09.12.02
-  !     Ingo Bethke       *Bjer.NE. C.*    05.11.09
-  !     J. Schwinger      *GFI, UiB        10.02.12
-  !      - added variables and functions for sediment burial
-  !      - added variables for CFC output
-  !      - added initialisation of namelist variables and
-  !        index arrays
-  !
-  !     Tjiputra          *UNI-RESEARCH    25.11.15
-  !      - added natural DIC/ALK/CALC/OMEGAC variables
-  !
-  !     A.Moree,          *GFI, Bergen*   2018-04-12
-  !     - new version of carbon isotope code
-  !
-  !     J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
-  !     - added preformed and saturated DIC tracers
-  !
-  !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-  !     - changed naming of particle fluxes
-  !     - removed output of AOU and added O2_sat instead
-  !     - added output of omegaA
-  !     - added sediment bypass preprocessor option
-  !
-  !     Purpose
-  !     -------
-  !     - declaration and memory allocation
-  !     - declaration of auxiliary functions
-  !
+  ! Patrick Wetzel    *MPI-Met, HH*    09.12.02
+  ! Ingo Bethke       *Bjer.NE. C.*    05.11.09
+  ! J. Schwinger      *GFI, UiB        10.02.12
+  !  - added variables and functions for sediment burial
+  !  - added variables for CFC output
+  !  - added initialisation of namelist variables and
+  !    index arrays
+  ! Tjiputra          *UNI-RESEARCH    25.11.15
+  !  - added natural DIC/ALK/CALC/OMEGAC variables
+  ! A.Moree,          *GFI, Bergen*   2018-04-12
+  ! - new version of carbon isotope code
+  ! J.Tjiputra,       *Uni Research, Bergen*   2018-04-12
+  ! - added preformed and saturated DIC tracers
+  ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+  ! - changed naming of particle fluxes
+  ! - removed output of AOU and added O2_sat instead
+  ! - added output of omegaA
+  ! - added sediment bypass preprocessor option
   !**********************************************************************
+
   use mod_xc,         only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp,mnproc,ip
   use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath
   use mod_nctools,    only: ncpack,nccomp,nccopa,ncwrtr
@@ -60,21 +52,48 @@ MODULE mo_bgcmean
   use mo_param1_bgc,  only: ks
   use mo_control_bgc, only: use_sedbypass,use_cisonew,use_CFC,use_natDIC,use_BROMO,use_BOXATM,use_AGG
 
-  IMPLICIT NONE
+  implicit NONE
 
-  PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
-  PUBLIC  :: ks,ddm,depthslev,depthslev_bnds
+  ! routines
+  public :: alloc_mem_bgcmean
+  public :: inisrf ! initialise 2d diagnostic field
+  public :: inilyr ! initialise layer diagnostic field
+  public :: inilvl ! initialise level diagnostic field
+  public :: inisdm ! initialise sediment diagnostic field
+  public :: inibur ! initialise sediment burial diagnostic field
+  public :: accsrf ! accumulate 2d fields
+  public :: acclyr ! accumulate layer fields
+  public :: acclvl ! accumulate 3d level fields
+  public :: accsdm ! accumulate sediment fields
+  public :: accbur ! accumulate sediment burial fields
+  public :: finsrf ! finalise accumulation of weighted 2d fields
+  public :: finlyr ! finalise accumulation of weighted 3d layer fields
+  public :: wrtsrf ! writes diagnostic 2d field to file
+  public :: wrtlyr ! writes diagnostic layer field to file
+  public :: wrtlvl ! writes diagnostic level field to file
+  public :: wrtsdm ! writes diagnostic sediment field to file
+  public :: wrtbur ! writes diagnostic sediment burial field to file
+  public :: logsrf ! replace 2d field with log10(field)
+  public :: loglyr ! replace layer field with log10(field)
+  public :: loglvl ! replace level field with log10(field)
+  public :: logsdm ! replace sediment field with log10(field)
+  public :: msksrf ! set sea floor points to NaN in mass flux fields
+  public :: msklvl ! set sea floor points to NaN in level fields
+  public :: bgczlv
+
+  private :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
+
+  public  :: ks,ddm,depthslev,depthslev_bnds
 
   ! --- Averaging and writing frequencies for diagnostic output
-  INTEGER, SAVE :: nbgc
-  INTEGER, PARAMETER :: nbgcmax=10
-  REAL, DIMENSION(nbgcmax), SAVE ::  diagfq_bgc,filefq_bgc
-  INTEGER, DIMENSION(nbgcmax), SAVE :: nacc_bgc
-  LOGICAL, DIMENSION(nbgcmax), SAVE :: diagmon_bgc,diagann_bgc,     &
-       &  filemon_bgc,fileann_bgc,bgcwrt
+  integer :: nbgc
+  integer, parameter :: nbgcmax=10
+  real,    dimension(nbgcmax) ::  diagfq_bgc,filefq_bgc
+  integer, dimension(nbgcmax) :: nacc_bgc
+  logical, dimension(nbgcmax) :: diagmon_bgc,diagann_bgc,filemon_bgc,fileann_bgc,bgcwrt
 
   ! --- Namelist for diagnostic output
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        & SRF_KWCO2     =0    ,SRF_PCO2      =0    ,SRF_DMSFLUX   =0    ,  &
        & SRF_KWCO2KHM  =0    ,SRF_CO2KHM    =0    ,SRF_CO2KH     =0    ,  &
        & SRF_PCO2M     =0    ,                                            &
@@ -151,8 +170,9 @@ MODULE mo_bgcmean
        & BUR_SSSTER    =0                                              ,  &
        & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0    ,  &
        & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
-  CHARACTER(LEN=10), DIMENSION(nbgcmax), SAVE :: GLB_FNAMETAG
-  namelist /DIABGC/                                                 &
+
+  character(len=10), dimension(nbgcmax) :: glb_fnametag
+  namelist /diabgc/                                                       &
        & SRF_KWCO2         ,SRF_PCO2          ,SRF_DMSFLUX       ,        &
        & SRF_KWCO2KHM      ,SRF_CO2KHM        ,SRF_CO2KH         ,        &
        & SRF_PCO2M         ,                                              &
@@ -234,7 +254,7 @@ MODULE mo_bgcmean
   ! declarations for inventory_bgc.F90
   ! order and increments of river (jir...) indices require to be the same
   ! as in mo_riverinpt
-  INTEGER, parameter ::                                             &
+  integer, parameter ::                                                   &
        &          jco2flux  =1,                                           &
        &          jo2flux   =2,                                           &
        &          jn2flux   =3,                                           &
@@ -261,8 +281,8 @@ MODULE mo_bgcmean
        &          nbgct2d   =23
 
   !----------------------------------------------------------------
-  INTEGER, SAVE :: i_bsc_m2d
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer :: i_bsc_m2d
+  integer, dimension(nbgcmax) ::                                          &
        &          jkwco2     = 0 ,                                        &
        &          jkwco2khm  = 0 ,                                        &
        &          jco2kh     = 0 ,                                        &
@@ -322,7 +342,7 @@ MODULE mo_bgcmean
        &          jcalflx4000= 0 ,                                        &
        &          jcalflx_bot= 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jsediffic  = 0 ,                                        &
        &          jsediffal  = 0 ,                                        &
        &          jsediffph  = 0 ,                                        &
@@ -331,21 +351,21 @@ MODULE mo_bgcmean
        &          jsediffno3 = 0 ,                                        &
        jsediffsi  = 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jsrfnatdic = 0 ,                                        &
        &          jsrfnatalk = 0 ,                                        &
        &          jnatpco2   = 0 ,                                        &
        &          jnatco2fx  = 0 ,                                        &
        &          jsrfnatph  = 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jbromofx   = 0 ,                                        &
        &          jsrfbromo  = 0 ,                                        &
        &          jbromo_prod= 0 ,                                        &
        &          jbromo_uv  = 0
 
-  INTEGER, SAVE :: i_atm_m2d
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer :: i_atm_m2d
+  integer, dimension(nbgcmax) ::                                          &
        &          jatmco2  = 0 ,                                          &
        &          jatmo2   = 0 ,                                          &
        &          jatmn2   = 0 ,                                          &
@@ -353,13 +373,13 @@ MODULE mo_bgcmean
        &          jatmc14  = 0 ,                                          &
        &          jatmbromo= 0
 
-  INTEGER, SAVE :: nbgcm2d
+  integer :: nbgcm2d
 
-  LOGICAL, SAVE :: domassfluxes = .false.
+  logical :: domassfluxes = .false.
 
   !----------------------------------------------------------------
-  INTEGER, SAVE :: i_bsc_m3d,ilvl_bsc_m3d
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer :: i_bsc_m3d,ilvl_bsc_m3d
+  integer, dimension(nbgcmax) ::                                          &
        &          jdp        = 0 ,                                        &
        &          jphyto     = 0 ,                                        &
        &          jgrazer    = 0 ,                                        &
@@ -418,7 +438,7 @@ MODULE mo_bgcmean
        &          jlvlcfc12  = 0 ,                                        &
        &          jlvlsf6    = 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jdic13     = 0 ,                                        &
        &          jdic14     = 0 ,                                        &
        &          jd13c      = 0 ,                                        &
@@ -440,7 +460,7 @@ MODULE mo_bgcmean
        &          jlvlphyto13 = 0,                                        &
        &          jlvlgrazer13= 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jnos       = 0 ,                                        &
        &          jwphy      = 0 ,                                        &
        &          jwnos      = 0 ,                                        &
@@ -452,7 +472,7 @@ MODULE mo_bgcmean
        &          jlvleps    = 0 ,                                        &
        &          jlvlasize  = 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jnatco3       = 0 ,                                     &
        &          jnatalkali    = 0 ,                                     &
        &          jnatdic       = 0 ,                                     &
@@ -468,16 +488,16 @@ MODULE mo_bgcmean
        &          jlvlnatomegaa = 0 ,                                     &
        &          jlvlnatomegac = 0
 
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer, dimension(nbgcmax) ::                                          &
        &          jbromo     = 0 ,                                        &
        &          jlvlbromo  = 0
 
-  INTEGER, SAVE :: nbgcm3d,nbgcm3dlvl
+  integer :: nbgcm3d,nbgcm3dlvl
 
   !----------------------------------------------------------------
   ! sediment
-  INTEGER, SAVE :: i_bsc_sed
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer :: i_bsc_sed
+  integer, dimension(nbgcmax) ::                                          &
        &          jpowaic = 0 ,                                           &
        &          jpowaal = 0 ,                                           &
        &          jpowaph = 0 ,                                           &
@@ -491,31 +511,28 @@ MODULE mo_bgcmean
        &          jssster = 0
 
 
-  INTEGER, SAVE :: nbgct_sed
+  integer :: nbgct_sed
 
   !----------------------------------------------------------------
   !  burial
-  INTEGER, SAVE :: i_bsc_bur
-  INTEGER, DIMENSION(nbgcmax), SAVE ::                              &
+  integer :: i_bsc_bur
+  integer, dimension(nbgcmax) ::                                          &
        &          jburssso12 = 0 ,                                        &
        &          jbursssc12 = 0 ,                                        &
        &          jburssssil = 0 ,                                        &
        &          jburssster = 0
 
 
-  INTEGER, SAVE :: nbgct_bur
+  integer :: nbgct_bur
 
   !----------------------------------------------------------------
-
-  REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgct2d
-  REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgcm2d
-  REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgcm3d,bgcm3dlvl
-  REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: bgct_sed
-  REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgct_bur
-
+  real, dimension (:,:,:),   allocatable :: bgct2d
+  real, dimension (:,:,:),   allocatable :: bgcm2d
+  real, dimension (:,:,:,:), allocatable :: bgcm3d,bgcm3dlvl
+  real, dimension (:,:,:,:), allocatable :: bgct_sed
+  real, dimension (:,:,:),   allocatable :: bgct_bur
 
 CONTAINS
-
 
   SUBROUTINE ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
@@ -523,19 +540,20 @@ CONTAINS
 
     IMPLICIT NONE
 
-    INTEGER, intent(in) :: kpie,kpje,kpke
+    ! Arguments
+    integer, intent(in) :: kpie,kpje,kpke
 
-    INTEGER             :: m,n,errstat,iounit,checkdp(nbgcmax)
+    ! Local variables
+    INTEGER :: m,n,errstat,iounit,checkdp(nbgcmax)
 
-    !     Read namelist for diagnostic output
+    ! Read namelist for diagnostic output
     GLB_AVEPERIO=0
     if(.not. allocated(bgc_namelist)) call get_bgc_namelist
-    OPEN (newunit=iounit, file=bgc_namelist,                          &
-         status='old', action='read', recl=80)
-    READ (iounit,nml=diabgc)
-    CLOSE (iounit)
+    open (newunit=iounit, file=bgc_namelist, status='old', action='read', recl=80)
+    read (iounit,nml=diabgc)
+    close (iounit)
 
-    !     Determine number of output groups
+    ! Determine number of output groups
     nbgc=0
     DO n=1,nbgcmax
       IF (GLB_AVEPERIO(n).NE.0) THEN
@@ -572,7 +590,7 @@ CONTAINS
       ENDIF
     ENDDO
 
-    !     Re-define index variables according to namelist
+    ! Re-define index variables according to namelist
     i_bsc_m2d=0
     DO n=1,nbgc
       IF (SRF_KWCO2(n).GT.0) i_bsc_m2d=i_bsc_m2d+1
@@ -735,12 +753,12 @@ CONTAINS
       endif
     ENDDO
 
-    domassfluxes = any(                                    &
-         jcarflx0100+jcarflx0500+jcarflx1000+                 &
-         jcarflx2000+jcarflx4000+jcarflx_bot+                 &
-         jbsiflx0100+jbsiflx0500+jbsiflx1000+                 &
-         jbsiflx2000+jbsiflx4000+jbsiflx_bot+                 &
-         jcalflx0100+jcalflx0500+jcalflx1000+                 &
+    domassfluxes = any(                       &
+         jcarflx0100+jcarflx0500+jcarflx1000+ &
+         jcarflx2000+jcarflx4000+jcarflx_bot+ &
+         jbsiflx0100+jbsiflx0500+jbsiflx1000+ &
+         jbsiflx2000+jbsiflx4000+jbsiflx_bot+ &
+         jcalflx0100+jcalflx0500+jcalflx1000+ &
          jcalflx2000+jcalflx4000+jcalflx_bot  > 0)
 
     i_atm_m2d=i_bsc_m2d
@@ -1003,7 +1021,7 @@ CONTAINS
     ENDDO
 
 
-    !     add dp required
+    ! add dp required
     DO n=1,nbgc
       IF (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) THEN
         i_bsc_m3d=i_bsc_m3d+1
@@ -1057,89 +1075,83 @@ CONTAINS
     nbgct_sed  = i_bsc_sed
     nbgct_bur  = i_bsc_bur
 
-    !     Allocate buffers
+    ! Allocate buffers
 
     IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'***************************************************'
-      WRITE(io_stdo_bgc,*)'Memory allocation for averaging model output :'
-      WRITE(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)' '
+      write(io_stdo_bgc,*)'***************************************************'
+      write(io_stdo_bgc,*)'Memory allocation for averaging model output :'
+      write(io_stdo_bgc,*)' '
     ENDIF
 
 
     IF (mnproc.EQ.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgct2d
+      write(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',nbgct2d
     ENDIF
 
-    ALLOCATE (bgct2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct2d),      &
-         &  stat=errstat)
+    allocate (bgct2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct2d),stat=errstat)
     IF (errstat.NE.0) STOP 'not enough memory bgct2d'
     IF (nbgct2d.NE.0) bgct2d=0.
 
     IF (mnproc.EQ.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgcm2d
+      write(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',nbgcm2d
     ENDIF
 
-    ALLOCATE (bgcm2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgcm2d),      &
-         &  stat=errstat)
+    allocate (bgcm2d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgcm2d),stat=errstat)
     IF (errstat.NE.0) STOP 'not enough memory bgcm2d'
     IF (nbgcm2d.NE.0) bgcm2d=0.
 
     IF (mnproc.EQ.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3d
+      write(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      write(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3d
     ENDIF
 
-    ALLOCATE (bgcm3d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,nbgcm3d), &
-         &  stat=errstat)
+    allocate (bgcm3d(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,kpke,nbgcm3d),stat=errstat)
     IF (errstat.NE.0) STOP 'not enough memory bgcm3d'
     IF (nbgcm3d.NE.0) bgcm3d=0.
 
     IF (mnproc.EQ.1) THEN
-      WRITE(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
-      WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-      WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-      WRITE(io_stdo_bgc,*)'Third dimension    : ',kpke
-      WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3dlvl
+      write(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
+      write(io_stdo_bgc,*)'First dimension    : ',kpie
+      write(io_stdo_bgc,*)'Second dimension   : ',kpje
+      write(io_stdo_bgc,*)'Third dimension    : ',kpke
+      write(io_stdo_bgc,*)'Forth dimension    : ',nbgcm3dlvl
     ENDIF
 
-    ALLOCATE (bgcm3dlvl(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ddm,        &
-         &  nbgcm3dlvl),stat=errstat)
+    allocate (bgcm3dlvl(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ddm,nbgcm3dlvl),stat=errstat)
     IF (errstat.NE.0) STOP 'not enough memory bgcm3dlvl'
     IF (nbgcm3dlvl.NE.0) bgcm3dlvl=0.
 
     if (.not. use_sedbypass) then
       IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgctsed ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',ks
-        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nbgct_sed
+        write(io_stdo_bgc,*)'Memory allocation for variable bgctsed ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+        write(io_stdo_bgc,*)'Forth dimension    : ',nbgct_sed
       ENDIF
 
-      ALLOCATE (bgct_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,          &
-           &  nbgct_sed),stat=errstat)
+      allocate (bgct_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,nbgct_sed),stat=errstat)
       IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
       IF (nbgct_sed.NE.0) bgct_sed=0.
 
       IF (mnproc.EQ.1) THEN
-        WRITE(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
-        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
-        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
-        WRITE(io_stdo_bgc,*)'Third dimension    : ',nbgct_bur
+        write(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',nbgct_bur
       ENDIF
 
-      ALLOCATE (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,             &
-           &  nbgct_bur),stat=errstat)
+      allocate (bgct_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,nbgct_bur),stat=errstat)
       IF (errstat.NE.0) STOP 'not enough memory bgct_sed'
       IF (nbgct_bur.NE.0) bgct_bur=0.
     endif
@@ -1152,18 +1164,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: initialise 2d diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   real inival   (in)     : value used for initalisation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos    ! position in common buffer
+    real,    intent(in) :: inival ! value used for initalisation
     !
-    INTEGER :: pos
-    REAL ::inival
-    !
-    INTEGER :: i,j,l
+    ! Local variables
+    integer :: i,j,l
     !
     ! --- Check whether field should be initialised
     IF (pos.EQ.0) RETURN
@@ -1186,18 +1194,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: initialise layer diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   real inival   (in)     : value used for initalisation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos    ! position in common buffer
+    real,    intent(in) :: inival ! value used for initalisation
     !
-    INTEGER :: pos
-    REAL ::inival
-    !
-    INTEGER :: i,j,k,l
+    ! Local variables
+    integer :: i,j,k,l
     !
     ! --- Check whether field should be initialised
     IF (pos.EQ.0) RETURN
@@ -1222,18 +1226,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: initialise level diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   real inival   (in)     : value used for initalisation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos    ! position in common buffer
+    real,    intent(in) :: inival ! value used for initalisation
     !
-    INTEGER :: pos
-    REAL ::inival
-    !
-    INTEGER :: i,j,k,l
+    ! Local variables
+    integer :: i,j,k,l
     !
     ! --- Check whether field should be initialised
     IF (pos.EQ.0) RETURN
@@ -1258,18 +1258,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: initialise sediment diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   real inival   (in)     : value used for initalisation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos    ! position in common buffer
+    real,    intent(in) :: inival ! value used for initalisation
     !
-    INTEGER :: pos
-    REAL ::inival
-    !
-    INTEGER :: i,j,k,l
+    ! Local variables
+    integer :: i,j,k,l
     !
     ! --- Check whether field should be initialised
     IF (pos.EQ.0) RETURN
@@ -1294,18 +1290,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: initialise sediment burial diagnostic field
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in common buffer
-    ! ---   real inival   (in)     : value used for initalisation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos    ! position in common buffer
+    real,    intent(in) :: inival ! value used for initalisation
     !
-    INTEGER :: pos
-    REAL ::inival
-    !
-    INTEGER :: i,j,l
+    ! Local variables
+    integer :: i,j,k,l
     !
     ! --- Check whether field should be initialised
     IF (pos.EQ.0) RETURN
@@ -1328,19 +1320,16 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: accumulate 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 2d buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   real wghts    (in)     : weights used for accumulation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos(nbgcmax)   ! position in 2d buffer
+    real,    intent(in) :: fld(idm,jdm)   ! input data used for accumulation
+    real,    intent(in) :: wghts(idm,jdm) ! weights used for accumulation
+    integer, intent(in) :: wghtsflg
     !
-    INTEGER :: pos(nbgcmax),wghtsflg
-    REAL, DIMENSION(idm,jdm) :: fld,wghts
-    !
-    INTEGER :: i,j,l,o
+    ! Local variables
+    integer :: i,j,l,o
     !
     ! --- Check whether field should be accumulated
     DO o=1,nbgc
@@ -1351,7 +1340,7 @@ CONTAINS
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o))+fld(i,j)
+              bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o)) + fld(i,j)
             ENDDO
           ENDDO
         ENDDO
@@ -1361,14 +1350,12 @@ CONTAINS
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o))+fld(i,j)*       &
-                   &              wghts(i,j)
+              bgcm2d(i,j,pos(o))=bgcm2d(i,j,pos(o))+fld(i,j)*wghts(i,j)
             ENDDO
           ENDDO
         ENDDO
         !$OMP END PARALLEL DO
       ENDIF
-      !
     ENDDO
     !
   END SUBROUTINE accsrf
@@ -1379,19 +1366,16 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: accumulate layer fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 3d layer buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   real wghts    (in)     : weights used for accumulation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos(nbgcmax)       ! position in 2d buffer
+    real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
+    real,    intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
+    integer, intent(in) :: wghtsflg
     !
-    INTEGER :: pos(nbgcmax),wghtsflg
-    REAL, DIMENSION(idm,jdm,kdm) :: fld,wghts
-    !
-    INTEGER :: i,j,k,l,o
+    ! Local variables
+    integer :: i,j,l,o,k
     !
     ! --- Check whether field should be accumulated
     DO o=1,nbgc
@@ -1403,8 +1387,7 @@ CONTAINS
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o))+          &
-                     &                fld(i,j,k)
+                bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o)) + fld(i,j,k)
               ENDDO
             ENDDO
           ENDDO
@@ -1416,8 +1399,7 @@ CONTAINS
           DO j=1,jj
             DO l=1,isp(j)
               DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-                bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o))+          &
-                     &                fld(i,j,k)*wghts(i,j,k)
+                bgcm3d(i,j,k,pos(o))=bgcm3d(i,j,k,pos(o))+fld(i,j,k)*wghts(i,j,k)
               ENDDO
             ENDDO
           ENDDO
@@ -1434,24 +1416,18 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: accumulate 3d level fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in buffer
-    ! ---   real fld      (in)     : input data used for accumulation
-    ! ---   int  k        (in)     : layer index of fld
-    ! ---   int  ind1     (in)     : index field for first accumulated level
-    ! ---   int  ind2     (in)     : index field for last accumulated level
-    ! ---   real wghts    (in)     : weights used for accumulation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos(nbgcmax)       ! position in buffer
+    real,    intent(in) :: fld(idm,jdm,ddm)   ! input data used for accumulation
+    integer, intent(in) :: k                  ! layer index of fld
+    integer, intent(in) :: ind1(idm,jdm)      ! index field for first accumulated level
+    integer, intent(in) :: ind2(idm,jdm)      ! index field for last accumulated level
+    real,    intent(in) :: wghts(idm,jdm,ddm) ! weights used for accumulation
     !
-    INTEGER :: pos(nbgcmax),k
-    INTEGER, DIMENSION(idm,jdm) :: ind1,ind2
-    REAL, DIMENSION(idm,jdm,ddm) :: wghts
-    REAL, DIMENSION(idm,jdm,kdm) :: fld
-    !
-    INTEGER :: d,i,j,l,o
+    ! Local variables
+    integer :: d,i,j,l,o
     !
     ! --- Check whether field should be accumulated
     DO o=1,nbgc
@@ -1462,8 +1438,7 @@ CONTAINS
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             DO d=ind1(i,j),ind2(i,j)
-              bgcm3dlvl(i,j,d,pos(o))=bgcm3dlvl(i,j,d,pos(o))+        &
-                   &            fld(i,j,k)*wghts(i,j,d)
+              bgcm3dlvl(i,j,d,pos(o))=bgcm3dlvl(i,j,d,pos(o))+fld(i,j,k)*wghts(i,j,d)
             ENDDO
           ENDDO
         ENDDO
@@ -1479,18 +1454,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: accumulate sediment fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 3d layer buffer
-    ! ---   real fld      (in)     : input data used for accumulation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos(nbgcmax)    ! position in 3d layer buffer
+    real,    intent(in) :: fld(idm,jdm,ks) ! input data used for accumulation
     !
-    INTEGER :: pos(nbgcmax)
-    REAL, DIMENSION(idm,jdm,ks) :: fld
-    !
-    INTEGER :: i,j,k,l,o
+    ! Local variables
+    integer :: i,j,k,l,o
     !
     ! --- Check whether field should be accumulated
     DO o=1,nbgc
@@ -1517,18 +1488,14 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: accumulate sediment burial fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : position in 3d layer buffer
-    ! ---   real fld      (in)     : input data used for accumulation
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos(nbgcmax) ! position in 3d layer buffer
+    real,    intent(in) :: fld(idm,jdm) ! input data used for accumulation
     !
-    INTEGER :: pos(nbgcmax)
-    REAL, DIMENSION(idm,jdm) :: fld
-    !
-    INTEGER :: i,j,l,o
+    ! Local varaibles
+    integer :: i,j,l,o
     !
     ! --- Check whether field should be accumulated
     DO o=1,nbgc
@@ -1548,23 +1515,19 @@ CONTAINS
   END SUBROUTINE accbur
 
 
-
   SUBROUTINE finsrf(posacc,poswgt)
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: finalise accumulation of weighted 2d fields
-    ! ---
-    ! --- Arguments:
-    ! ---   real posacc   (in)     : position of accumulated field in buffer
-    ! ---   real poswgt   (in)     : position of accumulated weights
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in)  :: posacc ! position of accumulated field in buffer
+    integer, intent(in)  :: poswgt ! position of accumulated weights
     !
-    INTEGER :: posacc,poswgt
-    !
-    INTEGER :: i,j,l
-    REAL, parameter :: epsil=1e-11
+    ! Local variables
+    integer :: i,j,l
+    real, parameter :: epsil=1e-11
     !
     ! --- Check whether field should be initialised
     IF (posacc.EQ.0) RETURN
@@ -1573,8 +1536,7 @@ CONTAINS
     DO j=1,jj
       DO l=1,isp(j)
         DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          bgcm2d(i,j,posacc)=bgcm2d(i,j,posacc)/                      &
-               &        max(epsil,bgcm2d(i,j,poswgt))
+          bgcm2d(i,j,posacc)=bgcm2d(i,j,posacc)/max(epsil,bgcm2d(i,j,poswgt))
         ENDDO
       ENDDO
     ENDDO
@@ -1588,18 +1550,15 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: finalise accumulation of weighted 3d layer fields
-    ! ---
-    ! --- Arguments:
-    ! ---   real posacc   (in)     : position of accumulated field in buffer
-    ! ---   real poswgt)  (in)     : position of accumulated weights
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in)  :: posacc ! position of accumulated field in buffer
+    integer, intent(in)  :: poswgt ! position of accumulated weights
     !
-    INTEGER :: posacc,poswgt
-    !
-    INTEGER :: i,j,k,l
-    REAL, parameter :: epsil=1e-11
+    ! Local variables
+    integer :: i,j,k,l
+    real, parameter :: epsil=1e-11
     !
     ! --- Check whether field should be initialised
     IF (posacc.EQ.0) RETURN
@@ -1610,8 +1569,7 @@ CONTAINS
         DO l=1,isp(j)
           DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             IF (bgcm3d(i,j,k,poswgt).GT.epsil) THEN
-              bgcm3d(i,j,k,posacc)=bgcm3d(i,j,k,posacc)/              &
-                   &            bgcm3d(i,j,k,poswgt)
+              bgcm3d(i,j,k,posacc)=bgcm3d(i,j,k,posacc)/bgcm3d(i,j,k,poswgt)
             ELSE
               bgcm3d(i,j,k,posacc)=nf90_fill_double
             ENDIF
@@ -1629,30 +1587,23 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: writes diagnostic 2d field to file
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : variable position in common buffer
-    ! ---   int  frmt     (in)     : format/precision of output
-    ! ---                            0=field is not written
-    ! ---                            2=field is written as int2 with scale
-    ! ---                              factor and offset
-    ! ---                            4=field is written as real4
-    ! ---                            8=field is written as real8
-    ! ---   real sfac     (in)     : user def.NE. scale factor to be applied
-    ! ---   real offs     (in)     : user def.NE. offset to be added
-    ! ---   int  cmpflg   (in)     : compression flag; only wet points are
-    ! ---                            written IF flag is set to 1
-    ! ---   char vnm      (in)     : variable name used in nc-file
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac         ! variable position in common buffer
+    real,    intent(in) :: offs         ! format/precision of output
+                                        !  0=field is not written
+                                        !  2=field is written as int2 with scale factor and offset
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
+    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
+    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
+    character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
-    REAL,            intent(in) :: sfac,offs
-    INTEGER,         intent(in) :: frmt,cmpflg,pos
-    CHARACTER(LEN=*),intent(in) :: vnm
-    !
-    INTEGER                     :: n
-    CHARACTER(LEN=100)          :: dims
+    ! Local variables
+    integer            :: n
+    character(LEN=100) :: dims
     !
     ! --- Check whether field should be written
     IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1667,27 +1618,21 @@ CONTAINS
     ! --- Check output format
     IF (frmt.EQ.2) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
-             &      offs)
+        call nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs)
       ELSE
-        CALL ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,          &
-             &      sfac,offs)
+        call ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,sfac,offs)
       ENDIF
     ELSEIF (frmt.EQ.4) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
-             &      offs,4)
+        call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs,4)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
-             &      sfac,offs,4)
+        call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,4)
       ENDIF
     ELSEIF (frmt.EQ.8) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,       &
-             &      offs,8)
+        call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs,8)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,          &
-             &      sfac,offs,8)
+        call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,8)
       ENDIF
     ELSE
       STOP 'unknown output format '
@@ -1701,30 +1646,23 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: writes diagnostic layer field to file
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : variable position in common buffer
-    ! ---   int  frmt     (in)     : format/precision of output
-    ! ---                            0=field is not written
-    ! ---                            2=field is written as int2 with scale
-    ! ---                              factor and offset
-    ! ---                            4=field is written as real4
-    ! ---                            8=field is written as real8
-    ! ---   real sfac     (in)     : user def.NE. scale factor to be applied
-    ! ---   real offs     (in)     : user def.NE. offset to be added
-    ! ---   int  cmpflg   (in)     : compression flag; only wet points are
-    ! ---                            written IF flag is set to 1
-    ! ---   char vnm      (in)     : variable name used in nc-file
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac         ! variable position in common buffer
+    real,    intent(in) :: offs         ! format/precision of output
+                                        !  0=field is not written
+                                        !  2=field is written as int2 with scale factor and offset
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
+    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
+    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
+    character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
-    REAL,            intent(in) :: sfac,offs
-    INTEGER,         intent(in) :: frmt,cmpflg,pos
-    CHARACTER(LEN=*),intent(in) :: vnm
-    !
-    INTEGER                     :: n
-    CHARACTER(LEN=100)          :: dims
+    ! Local variables
+    integer            :: n
+    character(LEN=100) :: dims
     !
     ! --- Check whether field should be written
     IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1739,27 +1677,21 @@ CONTAINS
     ! --- Check output format
     IF (frmt.EQ.2) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccopa(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
-             &      offs)
+        call nccopa(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       ELSE
-        CALL ncpack(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
-             &      sfac,offs)
+        call ncpack(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs)
       ENDIF
     ELSEIF (frmt.EQ.4) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
-             &      offs,4)
+        call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
-             &      sfac,offs,4)
+        call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,4)
       ENDIF
     ELSEIF (frmt.EQ.8) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,     &
-             &      offs,8)
+        call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,        &
-             &      sfac,offs,8)
+        call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,8)
       ENDIF
     ELSE
       STOP 'unknown output format '
@@ -1773,30 +1705,23 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: writes diagnostic level field to file
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : variable position in common buffer
-    ! ---   int  frmt     (in)     : format/precision of output
-    ! ---                            0=field is not written
-    ! ---                            2=field is written as int2 with scale
-    ! ---                              factor and offset
-    ! ---                            4=field is written as real4
-    ! ---                            8=field is written as real8
-    ! ---   real sfac     (in)     : user def.NE. scale factor to be applied
-    ! ---   real offs     (in)     : user def.NE. offset to be added
-    ! ---   int  cmpflg   (in)     : compression flag; only wet points are
-    ! ---                            written IF flag is set to 1
-    ! ---   char vnm      (in)     : variable name used in nc-file
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac         ! variable position in common buffer
+    real,    intent(in) :: offs         ! format/precision of output
+                                        !  0=field is not written
+                                        !  2=field is written as int2 with scale factor and offset
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
+    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
+    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
+    character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
-    REAL,            intent(in) :: sfac,offs
-    INTEGER,         intent(in) :: frmt,cmpflg,pos
-    CHARACTER(LEN=*),intent(in) :: vnm
-    !
-    INTEGER                     :: n
-    CHARACTER(LEN=100)          :: dims
+    ! Local variables
+    integer            :: n
+    character(LEN=100) :: dims
     !
     ! --- Check whether field should be written
     IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1811,27 +1736,21 @@ CONTAINS
     ! --- Check output format
     IF (frmt.EQ.2) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccopa(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
-             &      offs)
+        call nccopa(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       ELSE
-        CALL ncpack(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
-             &      sfac,offs)
+        call ncpack(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs)
       ENDIF
     ELSEIF (frmt.EQ.4) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
-             &      offs,4)
+        call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
-             &      sfac,offs,4)
+        call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,4)
       ENDIF
     ELSEIF (frmt.EQ.8) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,  &
-             &      offs,8)
+        call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       ELSE
-        CALL ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,     &
-             &      sfac,offs,8)
+        call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,8)
       ENDIF
     ELSE
       STOP 'unknown output format '
@@ -1845,30 +1764,23 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: writes diagnostic sediment field to file
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : variable position in common buffer
-    ! ---   int  frmt     (in)     : format/precision of output
-    ! ---                            0=field is not written
-    ! ---                            2=field is written as int2 with scale
-    ! ---                              factor and offset
-    ! ---                            4=field is written as real4
-    ! ---                            8=field is written as real8
-    ! ---   real sfac     (in)     : user def.NE. scale factor to be applied
-    ! ---   real offs     (in)     : user def.NE. offset to be added
-    ! ---   int  cmpflg   (in)     : compression flag; only wet points are
-    ! ---                            written IF flag is set to 1
-    ! ---   char vnm      (in)     : variable name used in nc-file
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac         ! variable position in common buffer
+    real,    intent(in) :: offs         ! format/precision of output
+                                        !  0=field is not written
+                                        !  2=field is written as int2 with scale factor and offset
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
+    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
+    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
+    character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
-    REAL,            intent(in) :: sfac,offs
-    INTEGER,         intent(in) :: frmt,cmpflg,pos
-    CHARACTER(LEN=*),intent(in) :: vnm
-    !
-    INTEGER                     :: n
-    CHARACTER(LEN=100)          :: dims
+    ! Local variables
+    integer            :: n
+    character(LEN=100) :: dims
     !
     ! --- Check whether field should be written
     IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1883,27 +1795,21 @@ CONTAINS
     ! --- Check output format
     IF (frmt.EQ.2) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
-             &      offs)
+        call nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       ELSE
-        CALL ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
-             &      sfac,offs)
+        call ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs)
       ENDIF
     ELSEIF (frmt.EQ.4) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
-             &      offs,4)
+        call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       ELSE
-        CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
-             &      sfac,offs,4)
+        call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,4)
       ENDIF
     ELSEIF (frmt.EQ.8) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,   &
-             &      offs,8)
+        call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       ELSE
-        CALL ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,      &
-             &      sfac,offs,8)
+        call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,8)
       ENDIF
     ELSE
       STOP 'unknown output format '
@@ -1917,30 +1823,23 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: writes diagnostic sediment burial field to file
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : variable position in common buffer
-    ! ---   int  frmt     (in)     : format/precision of output
-    ! ---                            0=field is not written
-    ! ---                            2=field is written as int2 with scale
-    ! ---                              factor and offset
-    ! ---                            4=field is written as real4
-    ! ---                            8=field is written as real8
-    ! ---   real sfac     (in)     : user def.NE. scale factor to be applied
-    ! ---   real offs     (in)     : user def.NE. offset to be added
-    ! ---   int  cmpflg   (in)     : compression flag; only wet points are
-    ! ---                            written IF flag is set to 1
-    ! ---   char vnm      (in)     : variable name used in nc-file
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac         ! variable position in common buffer
+    real,    intent(in) :: offs         ! format/precision of output
+                                        !  0=field is not written
+                                        !  2=field is written as int2 with scale factor and offset
+                                        !  4=field is written as real4
+                                        !  8=field is written as real8
+    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
+    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
+    character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
-    REAL,            intent(in) :: sfac,offs
-    INTEGER,         intent(in) :: frmt,cmpflg,pos
-    CHARACTER(LEN=*),intent(in) :: vnm
-    !
-    INTEGER                     :: n
-    CHARACTER(LEN=100)          :: dims
+    ! Local variables
+    integer            :: n
+    character(LEN=100) :: dims
     !
     ! --- Check whether field should be written
     IF (pos.EQ.0 .OR. frmt.EQ.0) RETURN
@@ -1955,27 +1854,21 @@ CONTAINS
     ! --- Check output format
     IF (frmt.EQ.2) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
-             &      offs)
+        call nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs)
       ELSE
-        CALL ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
-             &      sfac,offs)
+        call ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs)
       ENDIF
     ELSEIF (frmt.EQ.4) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
-             &      offs,4)
+        call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,4)
       ELSE
-        CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
-             &      sfac,offs,4)
+        call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,4)
       ENDIF
     ELSEIF (frmt.EQ.8) THEN
       IF (cmpflg.EQ.1) THEN
-        CALL nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,     &
-             &      offs,8)
+        call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,8)
       ELSE
-        CALL ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,        &
-             &      sfac,offs,8)
+        call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,8)
       ENDIF
     ELSE
       STOP 'unknown output format '
@@ -1989,20 +1882,16 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: replace 2d field with log10(field)
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in layer buffer
-    ! ---   real sfac     (in)     : scale factor to be applied before log10
-    ! ---   real offs     (in)     : offset to be added before log10
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac ! field position in layer buffer
+    real,    intent(in) :: offs ! scale factor to be applied before log10
+    integer, intent(in) :: pos  ! offset to be added before log10
     !
-    REAL ::sfac,offs
-    INTEGER :: pos
-    !
-    INTEGER :: i,j,l
-    REAL ::epsil=1e-11
+    ! Local variables
+    integer :: i,j,l
+    real    :: epsil=1e-11
     !
     ! --- Check whether field should be processed
     IF (pos.EQ.0) RETURN
@@ -2029,20 +1918,16 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: replace layer field with log10(field)
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in layer buffer
-    ! ---   real sfac     (in)     : scale factor to be applied before log10
-    ! ---   real offs     (in)     : offset to be added before log10
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac ! field position in layer buffer
+    real,    intent(in) :: offs ! scale factor to be applied before log10
+    integer, intent(in) :: pos  ! offset to be added before log10
     !
-    REAL ::sfac,offs
-    INTEGER :: pos
-    !
-    INTEGER :: i,j,k,l
-    REAL ::epsil=1e-11
+    ! Local variable
+    integer :: i,j,k,l
+    real    :: epsil=1e-11
     !
     ! --- Check whether field should be processed
     IF (pos.EQ.0) RETURN
@@ -2066,25 +1951,20 @@ CONTAINS
   END SUBROUTINE loglyr
 
 
-
   SUBROUTINE loglvl(pos,sfac,offs)
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: replace level field with log10(field)
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in layer buffer
-    ! ---   real sfac     (in)     : scale factor to be applied before log10
-    ! ---   real offs     (in)     : offset to be added before log10
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac ! field position in layer buffer
+    real,    intent(in) :: offs ! scale factor to be applied before log10
+    integer, intent(in) :: pos  ! offset to be added before log10
     !
-    REAL ::sfac,offs
-    INTEGER :: pos
-    !
-    INTEGER :: i,j,k,l
-    REAL ::epsil=1e-11
+    ! Local variable
+    integer :: i,j,k,l
+    real    :: epsil=1e-11
     !
     ! --- Check whether field should be processed
     IF (pos.EQ.0) RETURN
@@ -2097,8 +1977,7 @@ CONTAINS
             IF (bgcm3dlvl(i,j,k,pos).LT.epsil) THEN
               bgcm3dlvl(i,j,k,pos)=0.
             ELSEIF (bgcm3dlvl(i,j,k,pos).NE.nf90_fill_double) THEN
-              bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+   &
-                   &            offs)
+              bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+offs)
             ENDIF
           ENDDO
         ENDDO
@@ -2114,20 +1993,16 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: replace sediment field with log10(field)
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in layer buffer
-    ! ---   real sfac     (in)     : scale factor to be applied before log10
-    ! ---   real offs     (in)     : offset to be added before log10
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    real,    intent(in) :: sfac ! field position in layer buffer
+    real,    intent(in) :: offs ! scale factor to be applied before log10
+    integer, intent(in) :: pos  ! offset to be added before log10
     !
-    REAL ::sfac,offs
-    INTEGER :: pos
-    !
-    INTEGER :: i,j,k,l
-    REAL ::epsil=1e-11
+    ! Local variable
+    integer :: i,j,k,l
+    real    :: epsil=1e-11
     !
     ! --- Check whether field should be processed
     IF (pos.EQ.0) RETURN
@@ -2155,20 +2030,15 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: set sea floor points to NaN in mass flux fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in level buffer
-    ! ---   int  idepth   (in)     : k-index field used to define the
-    ! ---                            depth surface
     ! --- ------------------------------------------------------------------
     !
-    IMPLICIT NONE
+    ! Arguments
+    integer, intent(in) :: pos             ! field position in level buffer
+    integer, intent(in) :: idepth(idm,jdm) ! k-index field used to define the depth surface
     !
-    INTEGER :: pos
-    INTEGER, DIMENSION(idm,jdm) :: idepth
-    !
-    INTEGER :: i,j,l
-    REAL, parameter :: mskval=nf90_fill_double
+    ! Local variables
+    integer :: i,j,l
+    real, parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be initia
     IF (pos.EQ.0) RETURN
@@ -2190,23 +2060,17 @@ CONTAINS
     !
     ! --- ------------------------------------------------------------------
     ! --- Description: set sea floor points to NaN in level fields
-    ! ---
-    ! --- Arguments:
-    ! ---   int  pos      (in)     : field position in level buffer
-    ! ---   int  depths   (in)     : bathymetry field
     ! --- ------------------------------------------------------------------
+
+    ! Arguments
+    integer, intent(in)  :: pos                                     ! field position in level buffer
+    real,    intent(in)  :: depths(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ! bathymetry field
     !
-    IMPLICIT NONE
-    !
-    INTEGER :: pos
-    REAL, DIMENSION(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: depths
-    !
-    INTEGER :: i,j,k,l
-    LOGICAL :: iniflg=.true.
-    INTEGER, DIMENSION(idm,jdm) :: kmax
-    REAL, parameter :: mskval=nf90_fill_double
-    !
-    SAVE iniflg,kmax
+    ! Local variables
+    integer         :: i,j,k,l
+    logical, save   :: iniflg=.true.
+    integer, save   :: kmax(idm,jdm)
+    real, parameter :: mskval=nf90_fill_double
     !
     ! --- Check whether field should be processed
     IF (pos.EQ.0) RETURN
@@ -2250,19 +2114,21 @@ CONTAINS
   SUBROUTINE bgczlv(pddpo,kin,ind1,ind2,weights)
     !-----------------------------------------------------------------------
     !
+    ! Arguments
+    real,    intent(in)    :: pddpo(idm,jdm,kdm)
+    integer, intent(in)    :: kin
+    integer, intent(inout) :: ind1(idm,jdm)
+    integer, intent(inout) :: ind2(idm,jdm)
+    real,    intent(inout) :: weights(idm,jdm,ddm)
     !
-    IMPLICIT NONE
-    !
-    INTEGER :: d,i,j,k,l,kin
-    INTEGER, DIMENSION(idm,jdm) :: ind1,ind2
-    !
-    REAL, PARAMETER :: eps=1e-10
-    REAL, DIMENSION(idm,jdm,kdm) :: pddpo,ztop,zbot
-    REAL, DIMENSION(idm,jdm,ddm) :: weights,dlev
-    !
-    LOGICAL :: iniflg=.true.
-    !
-    SAVE ztop,zbot,dlev,iniflg
+    ! Local variables
+    ! TODO: why do the following have save attributes?
+    integer         :: d,i,j,k,l
+    real,    save   :: dlev(idm,jdm,ddm)
+    real,    save   :: ztop(idm,jdm,kdm)
+    real,    save   :: zbot(idm,jdm,kdm)
+    logical, save   :: iniflg=.true.
+    real, parameter :: eps=1e-10
     !
     ! --- Adjust bounds of levitus levels according to model bathymetry
     IF (iniflg) THEN
@@ -2271,8 +2137,7 @@ CONTAINS
         DO j=1,jj
           DO l=1,isp(j)
             DO i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              dlev(i,j,d)=max(eps,min(pbath(i,j),                    &
-                   &             depthslev_bnds(2,d))-depthslev_bnds(1,d))
+              dlev(i,j,d)=max(eps, min(pbath(i,j),depthslev_bnds(2,d))-depthslev_bnds(1,d))
             ENDDO
           ENDDO
         ENDDO
@@ -2328,7 +2193,7 @@ CONTAINS
       ENDDO
     ENDIF
     !
-    ! --- Compute interpolation weights
+    !--- Compute interpolation weights
     !$OMP PARALLEL DO PRIVATE(l,i,d)
     DO j=1,jj
       DO l=1,isp(j)
@@ -2343,9 +2208,8 @@ CONTAINS
                 EXIT
               ENDIF
               ind2(i,j)=d
-              weights(i,j,d)=(min(zbot(i,j,kin),                      &
-                   &            depthslev_bnds(2,d))-max(ztop(i,j,kin),               &
-                   &            depthslev_bnds(1,d)))/dlev(i,j,d)
+              weights(i,j,d)=(min(zbot(i,j,kin), depthslev_bnds(2,d)) - &
+                              max(ztop(i,j,kin), depthslev_bnds(1,d)))/dlev(i,j,d)
             ENDDO
           ENDIF
         ENDDO
@@ -2353,6 +2217,6 @@ CONTAINS
     ENDDO
     !$OMP END PARALLEL DO
     !
-  END SUBROUTINE bgczlv
+  end subroutine bgczlv
 
-END MODULE mo_bgcmean
+end module mo_bgcmean

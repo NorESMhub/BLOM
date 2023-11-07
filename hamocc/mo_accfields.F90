@@ -15,20 +15,18 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_ACCFIELDS
+module mo_accfields
 
   implicit none
   private
 
   public :: ACCFIELDS
 
-CONTAINS
+contains
 
-  SUBROUTINE ACCFIELDS(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
+  subroutine accfields(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask)
 
     !*******************************************************************************
-    !
-    !**** *ACCFIELDS* - .
     !
     !     J.Schwinger,    *UNI-RESEARCH*    2018-03-22
     !
@@ -39,20 +37,8 @@ CONTAINS
     !     -------
     !     Accumulate fields for time-avaraged output and write output
     !
-    !
-    !
-    !**** Parameter list:
-    !     ---------------
-    !
-    !  *INTEGER* *kpie*    - 1st dimension of model grid.
-    !  *INTEGER* *kpje*    - 2nd dimension of model grid.
-    !  *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-    !  *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-    !  *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-    !  *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-    !  *REAL*    *omask*   - land/ocean mask
-    !
     !*******************************************************************************
+
     use mod_xc,         only: mnproc
     use mod_dia,        only: ddm
     use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,      &
@@ -102,11 +88,13 @@ CONTAINS
     use mo_ncwrt_bgc    , only: ncwrt_bgc
 
     ! Arguments
-    integer , intent(in) :: kpie,kpje,kpke
-    real    , intent(in) :: pdlxp(kpie,kpje)
-    real    , intent(in) :: pdlyp(kpie,kpje)
-    real    , intent(in) :: pddpo(kpie,kpje,kpke)
-    real    , intent(in) :: omask(kpie,kpje)
+    integer , intent(in) :: kpie                  ! 1st dimension of model grid.
+    integer , intent(in) :: kpje                  ! 1st dimension of model grid.
+    integer , intent(in) :: kpke                  ! 1st dimension of model grid.
+    real    , intent(in) :: pdlxp(kpie,kpje)      ! size of scalar grid cell (1st dimension) [m].
+    real    , intent(in) :: pdlyp(kpie,kpje)      ! size of scalar grid cell (2nd dimension) [m].
+    real    , intent(in) :: pddpo(kpie,kpje,kpke) ! size of scalar grid cell (3rd dimension) [m].
+    real    , intent(in) :: omask(kpie,kpje)      ! land/ocean mask
 
     ! Local variables
     integer :: i,j,k,l
@@ -458,7 +446,7 @@ CONTAINS
       nacc_bgc(l)=nacc_bgc(l)+1
       if (bgcwrt(l)) then
         if (GLB_INVENTORY(l).ne.0) then
-          CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,l)
+          call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,l)
         endif
         call ncwrt_bgc(l)
         nacc_bgc(l)=0
@@ -470,6 +458,6 @@ CONTAINS
     oalkflx=0.
     rivinflx=0.
 
-  END SUBROUTINE ACCFIELDS
+  end subroutine accfields
 
-END MODULE MO_ACCFIELDS
+end module mo_accfields

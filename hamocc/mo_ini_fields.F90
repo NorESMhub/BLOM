@@ -17,35 +17,33 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_INI_FIELDS
+module mo_ini_fields
 
   implicit none
   private
 
-  public :: INI_FIELDS_OCEAN
-  public :: INI_FIELDS_ATM
+  public :: ini_fields_ocean
+  public :: ini_fields_atm
 
 contains
 
-  !*******************************************************************************
-  SUBROUTINE INI_FIELDS_ATM(kpie,kpje)
+  subroutine ini_fields_atm(kpie,kpje)
 
     use mo_control_bgc, only: use_natDIC,use_cisonew,use_BROMO
     use mo_param1_bgc,  only: iatmco2,iatmo2,iatmn2,iatmnco2,iatmc13,iatmc14,iatmbromo
     use mo_param_bgc,   only: atm_o2,atm_n2,atm_co2_nat,atm_c13,atm_c14,c14fac,atm_bromo
     use mo_carbch,      only: atm,atm_co2
 
-    implicit none
-
-    !
     ! Initialise atmosphere fields. We use a 2D representation of atmospheric
     ! fields for simplicity, even for cases where actually only a scalar value
     ! is used. The overhead of this is small. If an atm-field is present in
     ! restart file (if BOXATM is activated), this will be overwritten later.
-    !
 
-    INTEGER, intent(in) :: kpie,kpje
-    INTEGER             :: i,j
+    ! Arguments
+    integer, intent(in) :: kpie,kpje
+
+    ! local variables
+    integer             :: i,j
 
     DO j=1,kpje
       DO i=1,kpie
@@ -66,41 +64,17 @@ contains
     ENDDO
   END SUBROUTINE INI_FIELDS_ATM
 
-  ! ===============================================================================
 
   SUBROUTINE INI_FIELDS_OCEAN(kpaufr,kpie,kpje,kpke,kbnd,pddpo,prho,omask,pglon,pglat)
 
     !******************************************************************************
-    !
-    ! BELEG_VARS - initialize bgc variables.
-    !
-    !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !  Modified
-    !  --------
-    !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
-    !   -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
-    !
-    !
-    !  Purpose
-    !  -------
+    ! Initialize bgc variables.
     !  - set initial values for bgc variables.
     !
-    !
-    !  Parameter list:
-    !  ---------------
-    !     *INTEGER*   *kpaufr*  - 1/0 flag, 1 indicating a restart run
-    !     *INTEGER*   *kpie*    - 1st dimension of model grid.
-    !     *INTEGER*   *kpje*    - 2nd dimension of model grid.
-    !     *INTEGER*   *kpke*    - 3rd (vertical) dimension of model grid.
-    !     *INTEGER*   *kbnd*    - nb of halo grid points
-    !     *REAL*      *pddpo*   - size of grid cell (3rd dimension) [m].
-    !     *REAL*      *prho*    - density [g/cm^3].
-    !     *REAL*      *omask*   - ocean mask.
-    !     *REAL*      *pglon*   - longitude of grid cell [deg].
-    !     *REAL*      *pglat*   - latitude  of grid cell [deg].
-    !
-    !
+    !  Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    !  Modified
+    !  J.Schwinger,        *NORCE Climate, Bergen*    2020-05-19
+    !  -split the original BELEG_BGC in two parts, BELEG_PARM (NOW MO_PARAM_BGC) and BELEG_VARS
     !******************************************************************************
 
     use mo_carbch,      only: co2star,co3,hi,ocetra
@@ -120,12 +94,16 @@ contains
     use mo_profile_gd,  only: profile_gd
 
     ! Arguments
-    integer, intent(in) :: kpaufr,kpie,kpje,kpke,kbnd
-    real,    intent(in) :: pddpo(kpie,kpje,kpke)
-    real,    intent(in) :: prho (kpie,kpje,kpke)
-    real,    intent(in) :: omask(kpie,kpje)
-    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    integer, intent(in) :: kpaufr                                   ! 1/0 flag, 1 indicating a restart run
+    integer, intent(in) :: kpie                                     ! 1st dimension of model grid.
+    integer, intent(in) :: kpje                                     ! 2nd dimension of model grid.
+    integer, intent(in) :: kpke                                     ! 3rd (vertical) dimension of model grid.
+    integer, intent(in) :: kbnd                                     ! nb of halo grid points
+    real,    intent(in) :: pddpo(kpie,kpje,kpke)                    ! size of grid cell (3rd dimension) [m].
+    real,    intent(in) :: prho (kpie,kpje,kpke)                    ! density [g/cm^3].
+    real,    intent(in) :: omask(kpie,kpje)                         ! ocean mask.
+    real,    intent(in) :: pglon(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! longitude of grid cell [deg].
+    real,    intent(in) :: pglat(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd) ! latitude  of grid cell [deg].
 
     ! local variables
     integer :: i,j,k,l
@@ -323,6 +301,6 @@ contains
       ENDDO
     endif
 
-  END SUBROUTINE INI_FIELDS_OCEAN
+  end subroutine ini_fields_ocean
 
-END MODULE MO_INI_FIELDS
+end module mo_ini_fields

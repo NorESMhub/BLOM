@@ -17,53 +17,23 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-MODULE MO_POWADI
+module mo_powadi
 
   implicit none
   private
 
   public :: powadi
 
-CONTAINS
+contains
 
-  SUBROUTINE POWADI(j,kpie,kpje,solrat,sedb1,sediso,omask)
+  subroutine powadi(j,kpie,kpje,solrat,sedb1,sediso,omask)
 
     !**********************************************************************
+    ! vertical diffusion with simultaneous dissolution.
     !
-    !**** *POWADI* - vertical diffusion with simultaneous dissolution.
-    !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,        *MPI-MaD, HH*    10.04.01
-    !
-    !     Purpose
-    !     -------
-    !     .
-    !
-    !     Method
-    !     -------
-    !     implicit discretisation.
-    !
-    !**   Interface.
-    !     ----------
-    !
-    !     *CALL*       *POWADI(j,solrat,sedb1,sediso)*
-    !
-    !     Input  solrat : dissolution rate
-    !     =====       j : zonal grid index
-    !             sedb1 : tracer at entry
-    !
-    !     Output: sediso: diffused tracer at exit
-    !     ======
-    !
-    !     *PARAMETER*     *PARAM1_BGC.h* - declaration of ocean/sediment tracer.
-    !
-    !     Externals
-    !     ---------
-    !     none.
-    !
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified:  S.Legutke,  *MPI-MaD, HH*    10.04.01
+    ! Method: implicit discretisation.
     !**********************************************************************
 
     use mo_sedmnt,     only: porwah,porwat,seddw,seddzi
@@ -72,17 +42,18 @@ CONTAINS
     use mo_vgrid,      only: bolay
 
     ! Arguments
-    integer,                    intent(in)    :: j, kpie, kpje
-    real, dimension(kpie,ks),   intent(in)    :: solrat
-    real, dimension(kpie,0:ks), intent(inout) :: sedb1, sediso
+    integer,                    intent(in)    :: j      ! j zonal grid index
+    integer,                    intent(in)    :: kpie
+    integer,                    intent(in)    :: kpje
+    real, dimension(kpie,ks),   intent(in)    :: solrat ! dissolution rate
+    real, dimension(kpie,0:ks), intent(inout) :: sedb1  ! tracer at entry
+    real, dimension(kpie,0:ks), intent(inout) :: sediso ! diffused tracer at exit
     real, dimension(kpie,kpje), intent(in)    :: omask
 
     ! Local variables
     integer :: i,k,l
     real    :: asu, alo
     real, dimension(kpie,0:ks,3) :: tredsy
-
-    !**********************************************************************
 
     do k = 1, ks
       do i = 1, kpie
@@ -142,4 +113,4 @@ CONTAINS
 
   end subroutine powadi
 
-END MODULE MO_POWADI
+end module mo_powadi

@@ -2,7 +2,7 @@ sources += files(
   'mo_accfields.F90',
   'mo_aufr_bgc.F90',
   'mo_aufw_bgc.F90',
-  'mo_mo_ini_fields.F90',
+  'mo_ini_fields.F90',
   'mo_carchm.F90',
   'mo_cyano.F90',
   'mo_dipowa.F90',

@@ -15,16 +15,16 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_HAMOCC_STEP
+module mo_hamocc_step
 
   implicit none
   private
 
-  public :: HAMOCC_STEP
+  public :: hamocc_step
 
-CONTAINS
+contains
 
-  SUBROUTINE HAMOCC_STEP(m,n,mm,nn,k1m,k1n)
+  subroutine hamocc_step(m,n,mm,nn,k1m,k1n)
     !
     ! --- ------------------------------------------------------------------
     ! --- perform one HAMOCC step
@@ -96,6 +96,6 @@ CONTAINS
 
     call hamocc2blom(m,n,mm,nn)
 
-  END SUBROUTINE HAMOCC_STEP
+  end subroutine hamocc_step
 
-END MODULE MO_HAMOCC_STEP
+end module mo_hamocc_step

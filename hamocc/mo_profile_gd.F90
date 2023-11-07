@@ -16,39 +16,32 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-MODULE MO_PROFILE_GD
+module mo_profile_gd
 
   implicit none
   private
 
-  public :: PROFILE_GD
+  public :: profile_gd
 
-CONTAINS
+contains
 
-  SUBROUTINE PROFILE_GD(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
+  subroutine profile_gd(kpie,kpje,kpke,kbnd,pglon,pglat,omask)
 
     !*******************************************************************************
-    !     J.Schwinger,      *Gfi, Bergen*            2011-05-19
+    ! Initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP
+    ! data using the module mo_Gdata_read. Note that the routine get_profile
+    ! returns the mean of all data profiles within a rectangular region
+    ! ("smoothing region") of dxy x dxy degrees extent, where dxy is an
+    ! adjustable parameter.
     !
-    !     Modified
-    !     --------
-    !     J.Schwinger,      *Uni Climate, BCCR*      2017-07-07
-    !     - moved conversion from mumol to mol to mod_gdata_read
-    !     - changed linear interpolation from data-levels to model levels to propper
-    !       mapping of data profile to model-levels
-    !
-    !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-    !     - adaptions for reading c-isotope initial values as d13C and d14C
-    !
-    !     Purpose
-    !     -------
-    !     - initialise HAMOCC fields with gridded (1x1 deg) WOA and GLODAP
-    !       data using the module mo_Gdata_read. Note that the routine get_profile
-    !       returns the mean of all data profiles within a rectangular region
-    !       ("smoothing region") of dxy x dxy degrees extent, where dxy is an
-    !       adjustable parameter.
-    !
-    !
+    ! J.Schwinger,      *Gfi, Bergen*            2011-05-19
+    ! Modified
+    ! J.Schwinger,      *Uni Climate, BCCR*      2017-07-07
+    ! - moved conversion from mumol to mol to mod_gdata_read
+    ! - changed linear interpolation from data-levels to model levels to propper
+    !   mapping of data profile to model-levels
+    ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+    ! - adaptions for reading c-isotope initial values as d13C and d14C
     !*******************************************************************************
 
     use mod_xc,          only: xchalt
@@ -183,7 +176,6 @@ CONTAINS
 
     enddo  ! Loop over fields
 
-    !********************************************************************************
-  END SUBROUTINE profile_gd
+  end subroutine profile_gd
 
-END MODULE MO_PROFILE_GD
+end module mo_profile_gd

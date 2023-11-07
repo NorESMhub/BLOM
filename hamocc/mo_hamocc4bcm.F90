@@ -16,80 +16,40 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_HAMOCC4BCM
+module mo_hamocc4bcm
 
   implicit none
   private
 
   public :: HAMOCC4BCM
 
-CONTAINS
+contains
 
-  SUBROUTINE HAMOCC4BCM(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
+  subroutine hamocc4bcm(kpie,kpje,kpke,kbnd,kplyear,kplmon,kplday,kldtday,&
                         pdlxp,pdlyp,pddpo,prho,pglat,omask,               &
                         dust,rivin,ndep,oafx,pi_ph,                       &
                         pfswr,psicomo,ppao,pfu10,ptho,psao,               &
                         patmco2,pflxco2,pflxdms,patmbromo,pflxbromo)
 
     !******************************************************************************
-    !
-    ! HAMOCC4BGC - main routine of iHAMOCC.
-    !
-    ! Modified
-    ! --------
+    ! main routine of iHAMOCC.
+    ! Modified:
     !  J.Schwinger       *GFI, Bergen*    2013-10-21
     !  - added GNEWS2 option for riverine input of carbon and nutrients
     !  - code cleanup
-    !
     !  J.Schwinger       *GFI, Bergen*    2014-05-21
     !  - moved copying of tracer field to ocetra to micom2hamocc
     !    and hamocc2micom
-    !
     !  J.Schwinger,      *Uni Research, Bergen*   2018-04-12
     !  - moved accumulation of all output fields to seperate subroutine,
     !    related code-restructuring
     !  - added sediment bypass preprocessor option
-    !
     !  J.Schwinger,      *NORCE Climate, Bergen*   2020-05-28
     !  - restructuring of iHAMOCC code, cleanup parameter list
     !  - boundary conditions (dust, riverinput, N-deposition) are now passed as
     !    an argument
-    !
-    ! Parameter list:
-    ! ---------------
-    !
-    !  *INTEGER* *kpie*       - 1st dimension of model grid.
-    !  *INTEGER* *kpje*       - 2nd dimension of model grid.
-    !  *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
-    !  *INTEGER* *kbnd*       - nb of halo grid points.
-    !  *INTEGER* *kplyear*    - current year.
-    !  *INTEGER* *kplmon*     - current month.
-    !  *INTEGER* *kplday*     - current day.
-    !  *INTEGER* *kldtday*    - number of time step in current day.
-    !  *REAL*    *pdlxp*      - size of grid cell (longitudinal) [m].
-    !  *REAL*    *pdlyp*      - size of grid cell (latitudinal) [m].
-    !  *REAL*    *pddpo*      - size of grid cell (depth) [m].
-    !  *REAL*    *prho*       - density [kg/m^3].
-    !  *REAL*    *pglat*      - latitude of grid cells [deg north].
-    !  *REAL*    *omask*      - land/ocean mask.
-    !  *REAL*    *dust*       - dust deposition flux [kg/m2/month].
-    !  *REAL*    *rivin*      - riverine input [kmol m-2 yr-1].
-    !  *REAL*    *ndep*       - nitrogen deposition [kmol m-2 yr-1].
-    !  *REAL*    *oaflx*      - alkalinity flux from alkalinization [kmol m-2 yr-1]
-    !  *REAL*    *pfswr*      - solar radiation [W/m**2].
-    !  *REAL*    *psicomo*    - sea ice concentration
-    !  *REAL*    *ppao*       - sea level pressure [Pascal].
-    !  *REAL*    *pfu10*      - absolute wind speed at 10m height [m/s]
-    !  *REAL*    *ptho*       - potential temperature [deg C].
-    !  *REAL*    *psao*       - salinity [psu.].
-    !  *REAL*    *patmco2*    - atmospheric CO2 concentration [ppm] used in
-    !                           fully coupled mode (prognostic/diagnostic CO2).
-    !  *REAL*    *pflxdms*    - DMS flux [kg/m^2/s].
-    !  *REAL*    *pflxco2*    - CO2 flux [kg/m^2/s].
-    !  *REAL*    *patmbromo*  - atmospheric bromoform concentration [ppt] used in
-    !                           fully coupled mode.
-    !
     !******************************************************************************
+
     use mod_xc,           only: mnproc
     use mo_carbch,        only: atmflx,ocetra,atm,&
                                 atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh
@@ -115,30 +75,36 @@ CONTAINS
     use mo_carchm,        only: carchm
 
     ! Arguments
-    integer, intent(in)    :: kpie,kpje,kpke,kbnd
-    integer, intent(in)    :: kplyear,kplmon,kplday,kldtday
-    real,    intent(in)    :: pdlxp  (kpie,kpje)
-    real,    intent(in)    :: pdlyp  (kpie,kpje)
-    real,    intent(in)    :: pddpo  (kpie,kpje,kpke)
-    real,    intent(in)    :: prho   (kpie,kpje,kpke)
-    real,    intent(in)    :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: omask  (kpie,kpje)
-    real,    intent(in)    :: dust   (kpie,kpje)
-    real,    intent(in)    :: rivin  (kpie,kpje,nriv)
-    real,    intent(in)    :: ndep   (kpie,kpje)
+    integer, intent(in)    :: kpie                                            ! 1st dimension of model grid.
+    integer, intent(in)    :: kpje                                            ! 2nd dimension of model grid.
+    integer, intent(in)    :: kpke                                            ! 3rd (vertical) dimension of model grid.
+    integer, intent(in)    :: kbnd                                            ! number of halo grid points.
+    integer, intent(in)    :: kplyear                                         ! current year.
+    integer, intent(in)    :: kplmon                                          ! current month.
+    integer, intent(in)    :: kplday                                          ! current day.
+    integer, intent(in)    :: kldtday                                         ! number of time step in current day.
+    real,    intent(in)    :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
+    real,    intent(in)    :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
+    real,    intent(in)    :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
+    real,    intent(in)    :: prho   (kpie,kpje,kpke)                         ! density [kg/m^3].
+    real,    intent(in)    :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
+    real,    intent(in)    :: omask  (kpie,kpje)                              ! land/ocean mask.
+    real,    intent(in)    :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
+    real,    intent(in)    :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
+    real,    intent(in)    :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
     real,    intent(in)    :: oafx   (kpie,kpje)
-    real,    intent(in)    :: pi_ph  (kpie,kpje)
-    real,    intent(in)    :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-    real,    intent(in)    :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke)
-    real,    intent(in)    :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(out)   :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
-    real,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)
+    real,    intent(in)    :: pi_ph  (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real,    intent(in)    :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
+    real,    intent(in)    :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
+    real,    intent(in)    :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].
+    real,    intent(in)    :: pfu10  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! absolute wind speed at 10m height [m/s]
+    real,    intent(in)    :: ptho   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! potential temperature [deg C].
+    real,    intent(in)    :: psao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu.].
+    real,    intent(in)    :: patmco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! atmospheric CO2 concentration [ppm] used in fully coupled mode
+    real,    intent(out)   :: pflxco2(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! CO2 flux [kg/m^2/s].
+    real,    intent(inout) :: pflxdms(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! DMS flux [kg/m^2/s].
+    real,    intent(in)    :: patmbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! atmospheric bromoform concentration [ppt] used in fully coupled mode.
+    real,    intent(inout) :: pflxbromo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)    ! Bromoform flux [kg/m^2/s].
 
     ! Local variables
     integer :: i,j,k,l
@@ -148,7 +114,6 @@ CONTAINS
     IF (mnproc.eq.1) THEN
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
     ENDIF
-
 
     !--------------------------------------------------------------------
     ! Increment bgc time step counter of run (initialized in HAMOCC_INIT).
@@ -213,8 +178,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'before BGC: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'before BGC: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -233,12 +198,11 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP   ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
-
 
     do l=1,nocetra
       do K=1,kpke
@@ -256,8 +220,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP   ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -266,8 +230,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP   ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after CYANO: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after CYANO: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -277,8 +241,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP   ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -288,8 +252,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after N deposition: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after N deposition: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -299,8 +263,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after river input: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after river input: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -310,8 +274,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -323,8 +287,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -364,8 +328,8 @@ CONTAINS
 
       if (use_PBGC_CK_TIMESTEP ) then
         IF (mnproc.eq.1) THEN
-          WRITE(io_stdo_bgc,*)' '
-          WRITE(io_stdo_bgc,*)'after POWACH: call INVENTORY'
+          write(io_stdo_bgc,*)' '
+          write(io_stdo_bgc,*)'after POWACH: call INVENTORY'
         ENDIF
         call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
       endif
@@ -373,8 +337,8 @@ CONTAINS
       ! Sediment is shifted once a day (on both time levels!)
       IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
         IF (mnproc.eq.1) THEN
-          WRITE(io_stdo_bgc,*)' '
-          WRITE(io_stdo_bgc,*) 'Sediment shifting ...'
+          write(io_stdo_bgc,*)' '
+          write(io_stdo_bgc,*) 'Sediment shifting ...'
         ENDIF
         call sedshi(kpie,kpje,omask)
       ENDIF
@@ -383,8 +347,8 @@ CONTAINS
 
     if (use_PBGC_CK_TIMESTEP ) then
       IF (mnproc.eq.1) THEN
-        WRITE(io_stdo_bgc,*)' '
-        WRITE(io_stdo_bgc,*)'after BGC: call INVENTORY'
+        write(io_stdo_bgc,*)' '
+        write(io_stdo_bgc,*)'after BGC: call INVENTORY'
       ENDIF
       call inventory_bgc(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
     endif
@@ -428,6 +392,6 @@ CONTAINS
     !$OMP END PARALLEL DO
     !--------------------------------------------------------------------
 
-  END SUBROUTINE HAMOCC4BCM
+  end subroutine hamocc4bcm
 
-END MODULE MO_HAMOCC4BCM
+end module mo_hamocc4bcm

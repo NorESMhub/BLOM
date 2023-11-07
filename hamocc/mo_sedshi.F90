@@ -18,47 +18,25 @@
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
 
-MODULE MO_SEDSHI
+module mo_sedshi
 
   implicit none
   private
 
-  public :: SEDSHI
+  public :: sedshi
 
-CONTAINS
+contains
 
-  SUBROUTINE SEDSHI(kpie,kpje,omask)
+  subroutine sedshi(kpie,kpje,omask)
 
     !**********************************************************************
+    ! Change specific weights for opal, CaCO3, POC include upward transport
     !
-    !**** *SEDSHI* - .
-    !
-    !     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
-    !
-    !     Modified
-    !     --------
-    !     S.Legutke,        *MPI-MaD, HH*    10.04.01
-    !     - rename ssssil(i,j,k)=sedlay(i,j,k,issssil) etc.
-    !     I. Kriest         *MPI-Met, HH*,   27.05.03
-    !     - change specific weights for opal, CaCO3, POC
-    !     - include upward transport
-    !     Purpose
-    !     -------
-    !     .
-    !
-    !     Method
-    !     -------
-    !     .
-    !
-    !**   Interface.
-    !     ----------
-    !
-    !     *CALL*       *SEDSHI*
-    !
-    !     Externals
-    !     ---------
-    !     none.
-    !
+    ! Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+    ! Modified:
+    ! S.Legutke,        *MPI-MaD, HH*    10.04.01
+    ! - rename ssssil(i,j,k)=sedlay(i,j,k,issssil) etc.
+    ! I. Kriest         *MPI-Met, HH*,   27.05.03
     !**********************************************************************
 
     use mo_sedmnt,     only: burial,calfa,clafa,oplfa,orgfa,porsol,sedlay,seddw,solfu
@@ -66,8 +44,6 @@ CONTAINS
     use mo_param1_bgc, only: isssc12,issssil,issso12,issster,ks,nsedtra, &
                              isssc13,isssc14,issso13,issso14
     use mo_control_bgc, only: use_cisonew
-
-    implicit none
 
     ! Arguments
     integer, intent(in) :: kpie
@@ -315,6 +291,6 @@ CONTAINS
 
     enddo  !end k-loop
 
-  END SUBROUTINE SEDSHI
+  end subroutine sedshi
 
-END MODULE MO_SEDSHI
+end module mo_sedshi

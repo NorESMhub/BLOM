@@ -15,23 +15,20 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_READ_NETCDF_VAR
+module mo_read_netcdf_var
 
   implicit none
   private
 
-  public :: READ_NETCDF_VAR
+  public :: read_netcdf_var
 
-CONTAINS
+contains
 
-  SUBROUTINE READ_NETCDF_VAR(ncid,desc,arr,klev,time,typeio)
+  subroutine read_netcdf_var(ncid,desc,arr,klev,time,typeio)
 
     !**************************************************************************
-    !
     ! Reads a variable from a NETCDF file and distributes it to all PEs
-    !
     ! The NETCDF File is only accessed by mnproc=1
-    !
     !**************************************************************************
 
     use netcdf, only: nf90_noerr,nf90_inq_varid,nf90_strerror,nf90_get_var
@@ -169,6 +166,6 @@ CONTAINS
       call xchalt('(read_pnetcdf_var) WRONG IOTYPE')
     ENDIF
 
-  END SUBROUTINE READ_NETCDF_VAR
+  end subroutine read_netcdf_var
 
-END MODULE MO_READ_NETCDF_VAR
+end module mo_read_netcdf_var

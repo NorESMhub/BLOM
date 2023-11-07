@@ -16,53 +16,51 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE mo_control_bgc
+module mo_control_bgc
+
   !***********************************************************************
+  ! Control variables for bgc modules.
+  ! - declaration
   !
-  !**** *MODULE mo_control_bgc* - control variables for bgc modules.
-  !
-  !     S.Legutke,        *MPI-MaD, HH*    28.02.02
-  !
-  !     Modified
-  !     --------
-  !     J.Schwinger,      *Uni Research, Bergen*   2018-04-12
-  !     - removed unused variables
-  !
-  !     Purpose
-  !     -------
-  !     - declaration
-  !
-  !
+  ! S.Legutke,        *MPI-MaD, HH*    28.02.02
+  ! Modified
+  ! J.Schwinger,      *Uni Research, Bergen*   2018-04-12
+  ! - removed unused variables
   !**********************************************************************
+
   implicit none
+  public
+
+  ! Routines
+  public :: get_bgc_namelist
 
   ! Logical unit number for I/O.
-  INTEGER :: io_stdo_bgc        !  standard out.
+  integer :: io_stdo_bgc        !  standard out.
 
   ! File containing namelists
-  CHARACTER(LEN=:), ALLOCATABLE, PROTECTED :: bgc_namelist
+  character(len=:), allocatable, protected :: bgc_namelist
 
   ! Control variables
-  REAL    :: dtbgc                    !  time step length [sec].
-  REAL    :: dtb                      !  time step length [days].
-  INTEGER :: ndtdaybgc                !  time steps per day.
+  real    :: dtbgc                    !  time step length [sec].
+  real    :: dtb                      !  time step length [days].
+  integer :: ndtdaybgc                !  time steps per day.
 
-  INTEGER :: ldtbgc                   !  time step number from bgc restart file
-  INTEGER :: ldtrunbgc                !  actual time steps of run.
+  integer :: ldtbgc                   !  time step number from bgc restart file
+  integer :: ldtrunbgc                !  actual time steps of run.
 
-  INTEGER :: sedspin_yr_s = -1
-  INTEGER :: sedspin_yr_e = -1
-  INTEGER :: sedspin_ncyc = -1
+  integer :: sedspin_yr_s = -1
+  integer :: sedspin_yr_e = -1
+  integer :: sedspin_ncyc = -1
 
-  REAL    :: rmasks = 0.0             !  value at wet cells in sediment.
-  REAL    :: rmasko = 99999.00        !  value at wet cells in ocean.
+  real    :: rmasks = 0.0             !  value at wet cells in sediment.
+  real    :: rmasko = 99999.00        !  value at wet cells in ocean.
 
   ! Logical switches set via namelist
-  LOGICAL :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
-  LOGICAL :: do_ndep     =.true.      ! apply n-deposition
-  LOGICAL :: do_rivinpt  =.true.      ! apply riverine input
-  LOGICAL :: do_sedspinup=.false.     ! apply sediment spin-up
-  LOGICAL :: do_oalk     =.false.     ! apply ocean alkalinization
+  logical :: l_3Dvarsedpor = .false.  ! apply lon-lat-depth variable sediment porosity via input file
+  logical :: do_ndep     =.true.      ! apply n-deposition
+  logical :: do_rivinpt  =.true.      ! apply riverine input
+  logical :: do_sedspinup=.false.     ! apply sediment spin-up
+  logical :: do_oalk     =.false.     ! apply ocean alkalinization
   logical :: with_dmsph  =.false.     ! apply DMS with pH dependence
 
   logical :: use_BROMO              = .false.
@@ -87,8 +85,6 @@ contains
     use mod_config, only: inst_suffix
     use mod_xc,     only: xchalt
 
-    implicit none
-
     logical :: exists
 
     if (.not. allocated(bgc_namelist)) then
@@ -109,4 +105,4 @@ contains
     endif
   end subroutine get_bgc_namelist
 
-END MODULE mo_control_bgc
+end module mo_control_bgc

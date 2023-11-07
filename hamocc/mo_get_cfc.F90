@@ -15,24 +15,22 @@
 ! You should have received a copy of the GNU Lesser General Public License
 ! along with BLOM. If not, see https://www.gnu.org/licenses/.
 
-MODULE MO_GET_CFC
+module mo_get_cfc
 
   implicit none
   private
 
-  public :: GET_CFC
+  public :: get_cfc
 
-CONTAINS
+contains
 
-  SUBROUTINE GET_CFC(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,  &
+  subroutine get_cfc(kplyear,atm_cfc11_nh,atm_cfc12_nh,atm_sf6_nh,  &
                      atm_cfc11_sh,atm_cfc12_sh,atm_sf6_sh)
-    !
+
     !**********************************************************************
-    !
-    !**** *GET_CFC* - .
-    !
     !     Jerry Tjiputra         *BCCR*          05.12.2012
-    !
+    !**********************************************************************
+
     use mo_control_bgc, only: io_stdo_bgc
     use mod_xc,         only: mnproc
 
@@ -194,6 +192,6 @@ CONTAINS
       kplyear_old = kplyear
     ENDIF
 
-  END SUBROUTINE get_cfc
+  end subroutine get_cfc
 
-END MODULE MO_GET_CFC
+end module mo_get_cfc
