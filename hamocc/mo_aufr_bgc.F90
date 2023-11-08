@@ -120,7 +120,7 @@ CONTAINS
     integer   :: restdtoce                         !  time step number from bgc ocean file
     integer   :: idate(5),i,j,k
     logical   :: lread_cfc,lread_nat,lread_iso,lread_atm,lread_bro
-    real      :: rco213,rco214,alpha14,beta13,beta14,d13c_atm,d14cat ! cisonew
+    real      :: rco213,rco214,alpha14,beta13,beta14,d13C_atm,d14cat
     integer   :: ncid,ncstat,ncvarid
 
 #ifdef PNETCDF
