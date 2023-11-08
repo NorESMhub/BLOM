@@ -67,22 +67,28 @@ contains
     !  - added sediment bypass preprocessor option
     !**********************************************************************
 
-    use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,ocetra,omegaa,omegac,pco2d,satn2o,satoxy,    &
+    use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co2star,co3,hi,keqb,kwco2sol,     &
+                              ocetra,omegaa,omegac,pco2d,satn2o,satoxy,                  &
                               pco2m,kwco2d,co2sold,co2solm
-    use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,  &
+    use mo_chemcon,     only: al1,al2,al3,al4,an0,an1,an2,an3,an4,an5,an6,atn2o,         &
+                              bl1,bl2,bl3,calcon,ox0,ox1,ox2,ox3,ox4,ox5,ox6,            &
                               oxyco,tzero
-    use mo_control_bgc, only: dtbgc,use_cisonew,use_natDIC,use_CFC,use_BROMO,use_cisonew,use_sedbypass
-    use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc,idicsat,idms,igasnit,ioxygen,iphosph,    &
-                              isco212,isilica, &
-                              iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6, &
-                              iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,isco213,isco214,izoo14,safediv, &
-                              iatmnco2,inatalkali,inatcalc,inatsco212, &
-                              ks,issso14,isssc14,ipowc14, &
+    use mo_control_bgc, only: dtbgc,use_cisonew,use_natDIC,use_CFC,use_BROMO,            &
+                              use_cisonew,use_sedbypass
+    use mo_param1_bgc,  only: ialkali,iatmo2,iatmco2,iatmdms,iatmn2,iatmn2o,ian2o,icalc, &
+                              idicsat,idms,igasnit,ioxygen,iphosph,                      &
+                              isco212,isilica,                                           &
+                              iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                &
+                              iatmc13,iatmc14,icalc13,icalc14,idet14,idoc14,iphy14,      &
+                              isco213,isco214,izoo14,safediv,                            &
+                              iatmnco2,inatalkali,inatcalc,inatsco212,                   &
+                              ks,issso14,isssc14,ipowc14,                                &
                               iatmbromo,ibromo
     use mo_param_bgc,   only: c14dec,atm_co2_nat
     use mo_vgrid,       only: dp_min,kmle,kbo,ptiestu
-    use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,atm_sf6_nh,atm_sf6_sh, &
-                              co213fxd,co213fxu,co214fxd,co214fxu, &
+    use mo_carbch,      only: atm_cfc11_nh,atm_cfc11_sh,atm_cfc12_nh,atm_cfc12_sh,       &
+                              atm_sf6_nh,atm_sf6_sh,                                     &
+                              co213fxd,co213fxu,co214fxd,co214fxu,                       &
                               nathi,natco3,natpco2d,natomegaa,natomegac
     use mo_sedmnt,      only: sedlay,powtra,burial
 

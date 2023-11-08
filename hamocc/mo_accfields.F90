@@ -39,51 +39,83 @@ contains
     !
     !*******************************************************************************
 
-    use mod_xc,         only: mnproc
-    use mod_dia,        only: ddm
-    use mo_carbch,      only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,ndepflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,      &
-                              satoxy,sedfluxo,pco2m,kwco2d,co2sold,co2solm,                                                      &
-                              co213fxd,co213fxu,co214fxd,co214fxu, natco3,nathi,natomegaa,natomegac,natpco2d
-    use mo_biomod,      only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,&
-                              calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,carflx0500,carflx1000,carflx2000,carflx4000,&
-                              expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,intdnit,intnfix,intphosy,phosy3d,             &
-                              int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass
-    use mo_param_bgc,   only: c14fac,re1312,re14to
-    use mo_bgcmean,     only: domassfluxes,jalkali,jano3,jasize,jatmco2,jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,         &
-                              jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,jcalflx1000,jcalflx2000,jcalflx4000,         &
-                              jcalflx_bot,jcarflx0100,jcarflx0500,jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,               &
-                              jsediffic,jsediffal,jsediffph,jsediffox,jsediffn2,jsediffno3,jsediffsi,jco2flux,                   &
-                              jco2fxd,jco2fxu,jco3,jdic,jdicsat,jdms,jdms_bac,jdms_uv,jdmsflux,jdmsprod,jdoc,jdp,jeps,jexpoca,   &
-                              jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,    &
-                              jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,        &
-                              jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,jlvld14c,jlvldic,jlvldic13,jlvldic14,jlvldicsat,jlvldoc,      &
-                              jlvldoc13,jlvleps,jlvlgrazer,jlvlgrazer13,jlvliron,jlvln2o,jlvlnatalkali,jlvlnatcalc,jlvlnatco3,   &
-                              jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,jlvlo2sat,jlvlomegaa,jlvlomegac,jlvlopal,jlvloxygen,&
-                              jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,       &
-                              jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,          &
-                              jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,jpodiox,jpodin2,jpodino3,jpodisi,jndep,joalk,      &
-                              jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,  &
-                              jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,       &
-                              jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepfx,   &
-                              joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,bgct2d,acclvl,acclyr,accsrf,bgczlv,                     &
-                              jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo,                                         &
-                              jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                                                       &
-                              jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,jco213fxu,jco214fxd,jco214fxu,jd13c,jd14c,jdic13,jdic14,&
-                              jdoc13,jgrazer13,jphyto13,jpoc13,                                                                  &
-                              jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,jnatco3,jnatdic,jnatomegaa,jnatomegac,jnatpco2,jnatph,     &
-                              jsrfnatalk,jsrfnatdic,jsrfnatph,                                                                   &
-                              jbursssc12,jburssso12,jburssssil,jburssster,jpowaal,jpowaic,jpowaox,jpowaph,jpowaph,jpowasi,jpown2,&
-                              jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm, jatmco2,jatmn2,jatmo2
-    use mo_control_bgc, only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,use_CFC,use_sedbypass,use_cisonew,use_BOXATM
-    use mo_param1_bgc,  only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,icalc,idet,idms,idicsat,idoc,iiron,iopal,&
-                              ioxygen,iphosph,iphy,iprefalk,iprefdic,iprefpo4,iprefo2,isco212,isilica,izoo,                      &
-                              irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo,                                   &
-                              iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                                                        &
-                              iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,izoo13,safediv,                       &
-                              iatmnco2,inatalkali,inatcalc,inatsco212,                                                           &
-                              ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,ipown2,ipowno3,isssc12,issso12,issssil,issster
-    use mo_sedmnt,      only: powtra,sedlay,burial
-    use mo_vgrid,       only: dp_min
+    use mod_xc,           only: mnproc
+    use mod_dia,          only: ddm
+    use mo_carbch,        only: atm,atmflx,co2fxd,co2fxu,co3,hi,kwco2sol,                        &
+                                ndepflx,rivinflx,oalkflx,ocetra,omegaa,omegac,pco2d,             &
+                                satoxy,sedfluxo,pco2m,kwco2d,co2sold,co2solm,                    &
+                                co213fxd,co213fxu,co214fxd,co214fxu,                             &
+                                natco3,nathi,natomegaa,natomegac,natpco2d
+    use mo_biomod,        only: bsiflx_bot,bsiflx0100,bsiflx0500,bsiflx1000,                     &
+                                bsiflx2000,bsiflx4000,calflx_bot,calflx0100,calflx0500,          &
+                                calflx1000,calflx2000,calflx4000,carflx_bot,carflx0100,          &
+                                carflx0500,carflx1000,carflx2000,carflx4000,                     &
+                                expoca,expoor,exposi,intdms_bac,intdms_uv,intdmsprod,            &
+                                intdnit,intnfix,intphosy,phosy3d,                                &
+                                int_chbr3_prod,int_chbr3_uv,asize3d,eps3d,wnumb,wmass
+    use mo_param_bgc,     only: c14fac,re1312,re14to
+    use mo_bgcmean,       only: domassfluxes,jalkali,jano3,jasize,jatmco2,                       &
+                                jbsiflx0100,jbsiflx0500,jbsiflx1000,jbsiflx2000,                 &
+                                jbsiflx4000,jbsiflx_bot,jcalc,jcalflx0100,jcalflx0500,           &
+                                jcalflx1000,jcalflx2000,jcalflx4000,                             &
+                                jcalflx_bot,jcarflx0100,jcarflx0500,                             &
+                                jcarflx1000,jcarflx2000,jcarflx4000,jcarflx_bot,                 &
+                                jsediffic,jsediffal,jsediffph,jsediffox,                         &
+                                jsediffn2,jsediffno3,jsediffsi,jco2flux,                         &
+                                jco2fxd,jco2fxu,jco3,jdic,jdicsat,                               &
+                                jdms,jdms_bac,jdms_uv,jdmsflux,                                  &
+                                jdmsprod,jdoc,jdp,jeps,jexpoca,                                  &
+                                jexport,jexposi,jgrazer,jintdnit,jintnfix,jintphosy,             &
+                                jiralk,jirdet,jirdin,jirdip,jirdoc,jiriron,                      &
+                                jiron,jirsi,jkwco2,jlvlalkali,jlvlano3,jlvlasize,                &
+                                jlvlbigd14c,jlvlbromo,jlvlcalc,jlvlcalc13,                       &
+                                jlvlcfc11,jlvlcfc12,jlvlco3,jlvld13c,jlvld14c,                   &
+                                jlvldic,jlvldic13,jlvldic14,jlvldicsat,jlvldoc,                  &
+                                jlvldoc13,jlvleps,jlvlgrazer,jlvlgrazer13,jlvliron,              &
+                                jlvln2o,jlvlnatalkali,jlvlnatcalc,jlvlnatco3,                    &
+                                jlvlnatdic,jlvlnatomegaa,jlvlnatomegac,jlvlnos,                  &
+                                jlvlo2sat,jlvlomegaa,jlvlomegac,jlvlopal,jlvloxygen,             &
+                                jlvlph,jlvlphosph,jlvlphosy,jlvlphyto,jlvlphyto13,               &
+                                jlvlpoc,jlvlpoc13,jlvlprefalk,jlvlprefdic,                       &
+                                jlvlprefo2,jlvlprefpo4,jlvlsf6,jlvlsilica,                       &
+                                jlvlwnos,jlvlwphy,jn2flux,jn2o,jn2oflux,jn2ofx,                  &
+                                jprorca,jprcaca,jsilpro,jpodiic,jpodial,jpodiph,                 &
+                                jpodiox,jpodin2,jpodino3,jpodisi,jndep,joalk,                    &
+                                jniflux,jnos,jo2flux,jo2sat,jomegaa,jomegac,jopal,               &
+                                joxflux,joxygen,jpco2,jpco2m,jkwco2khm,jco2khm,                  &
+                                jco2kh,jph,jphosph,jphosy,jphyto,jpoc,jprefalk,                  &
+                                jprefdic,jprefo2,jprefpo4,jsilica,jsrfalkali,                    &
+                                jsrfano3,jsrfdic,jsrfiron,jsrfoxygen,jsrfphosph,                 &
+                                jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepfx,                 &
+                                joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                      &
+                                bgct2d,acclvl,acclyr,accsrf,bgczlv,                              &
+                                jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo,       &
+                                jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                     &
+                                jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,jco213fxu,            &
+                                jco214fxd,jco214fxu,jd13c,jd14c,jdic13,jdic14,                   &
+                                jdoc13,jgrazer13,jphyto13,jpoc13,                                &
+                                jlvlnatph,jnatalkali,jnatcalc,jnatco2fx,jnatco3,                 &
+                                jnatdic,jnatomegaa,jnatomegac,jnatpco2,jnatph,                   &
+                                jsrfnatalk,jsrfnatdic,jsrfnatph,                                 &
+                                jbursssc12,jburssso12,jburssssil,jburssster,                     &
+                                jpowaal,jpowaic,jpowaox,jpowaph,jpowaph,jpowasi,jpown2,          &
+                                jpowno3,jsssc12,jssso12,jssssil,jssster,accbur,accsdm,           &
+                                jatmco2,jatmn2,jatmo2
+    use mo_control_bgc,   only: io_stdo_bgc,dtb,use_BROMO,use_AGG,use_WLIN,use_natDIC,           &
+                                use_CFC,use_sedbypass,use_cisonew,use_BOXATM
+    use mo_param1_bgc,    only: ialkali,ian2o,iano3,iatmco2,iatmdms,iatmn2,iatmn2o,iatmo2,       &
+                                icalc,idet,idms,idicsat,idoc,iiron,iopal,                        &
+                                ioxygen,iphosph,iphy,iprefalk,iprefdic,                          &
+                                iprefpo4,iprefo2,isco212,isilica,izoo,                           &
+                                irdin,irdip,irsi,iralk,iriron,irdoc,irdet,inos,iatmbromo,ibromo, &
+                                iatmf11,iatmf12,iatmsf6,icfc11,icfc12,isf6,                      &
+                                iatmc13,iatmc14,icalc13,idet13,idoc13,iphy13,isco213,isco214,    &
+                                izoo13,safediv,                                                  &
+                                iatmnco2,inatalkali,inatcalc,inatsco212,                         &
+                                ipowaal,ipowaic,ipowaox,ipowaph,ipowasi,                         &
+                                ipown2,ipowno3,isssc12,issso12,issssil,issster
+    use mo_sedmnt,        only: powtra,sedlay,burial
+    use mo_vgrid,         only: dp_min
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
 
