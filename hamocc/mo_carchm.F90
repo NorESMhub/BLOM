@@ -115,7 +115,7 @@ contains
     real    :: ato2,atn2,atco2,pco2
     real    :: oxy,ani,anisa
     real    :: rrho,t,t2,t3,t4,tk,tk100,prb,s,rs
-    real    :: kh,khd,k1,k2,kb,k1p,k2p,k3p,ksi,kw,ks1,kf,kspc,kspa
+    real    :: Kh,Khd,K1,K2,Kb,K1p,K2p,K3p,Ksi,Kw,Ks1,Kf,Kspc,Kspa
     real    :: tc,ta,sit,pt,ah1,ac,cu,cb,cc,tc_sat
     real    :: omega
     real    :: atm_cfc11,atm_cfc12,atm_sf6,fact                    ! CFC
