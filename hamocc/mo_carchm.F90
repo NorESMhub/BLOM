@@ -614,7 +614,7 @@ contains
     real,    intent(in)    :: saln   ! salinity [psu].
     real,    intent(in)    :: prb    ! pressure [bar].
     real,    intent(out)   :: Kh     ! equilibrium constant Kh  =  [CO2]/pCO2, moist air.
-    real,    intent(out)   :: Khd    ! equilibrium constant Kh  =  [CO2]/pCO2, dry air.
+    real,    intent(out)   :: Khd    ! equilibrium constant Khd =  [CO2]/pCO2, dry air.
     real,    intent(out)   :: K1     ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
     real,    intent(out)   :: K2     ! equilibrium constant K2  = [H][CO3]/[HCO3].
     real,    intent(out)   :: Kb     ! equilibrium constant Kb  = [H][BO2]/[HBO2].
