@@ -108,7 +108,7 @@ contains
     ! local variables
     integer :: i,j,k,l
     real    :: rco213,rco214,beta13,beta14 ! cisonew
-    real    :: snow ! agg
+    real    :: snow ! AGG
 
     if (use_FB_BGC_OCE) then
       do k=1,kpke

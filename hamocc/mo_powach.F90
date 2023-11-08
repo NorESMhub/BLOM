@@ -52,8 +52,8 @@ contains
     integer, intent(in) :: kpke                                         ! 3rd (vertical) dimension of model grid.
     integer, intent(in) :: kbnd                                         ! nb of halo grid points
     real,    intent(in) :: prho(kpie,kpje,kpke)                         ! seawater density [g/cm^3].
-    real,    intent(in) :: omask(kpie,kpje)                             ! salinity [psu].
-    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! land/ocean mask
+    real,    intent(in) :: omask(kpie,kpje)                             ! land/ocean mask.
+    real,    intent(in) :: psao(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd,kpke) ! salinity [psu].
     logical, intent(in) :: lspin
 
     ! Local variables

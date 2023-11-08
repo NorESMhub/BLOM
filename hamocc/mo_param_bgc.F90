@@ -92,12 +92,12 @@ module mo_param_bgc
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
   ! Atmosphere:
   !'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-  real, protected :: atm_n2      = 802000.        ! atmosphere dinitrogen concentration
-  real, protected :: atm_o2      = 196800.        ! atmosphere oxygen concentration
-  real, protected :: atm_co2_nat = 284.32         ! atmosphere CO2 concentration CMIP6 pre-industrial reference
-  real, protected :: atm_bromo   = 3.4            ! atmosphere bromophorme concentration
-  ! For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
-  !BE UPDATED WITH Ziska et al. (2013) climatology database
+  real, protected :: atm_n2      = 802000. ! atmosphere dinitrogen concentration
+  real, protected :: atm_o2      = 196800. ! atmosphere oxygen concentration
+  real, protected :: atm_co2_nat = 284.32  ! atmosphere CO2 concentration CMIP6 pre-industrial reference
+  real, protected :: atm_bromo   = 3.4     ! atmosphere bromophorme concentration
+                                           ! For now use 3.4ppt from Hense and Quack (2009; Biogeosciences) NEED TO
+                                           ! BE UPDATED WITH Ziska et al. (2013) climatology database
   ! set standard carbon isotope ratios
   real, protected :: re1312     = 0.0112372
   real, protected :: re14to     = 1.170e-12       ! Karlen et al. 1965 / Orr et al. 2017

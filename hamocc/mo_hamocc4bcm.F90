@@ -86,14 +86,14 @@ contains
     real,    intent(in)    :: pdlxp  (kpie,kpje)                              ! size of grid cell (longitudinal) [m].
     real,    intent(in)    :: pdlyp  (kpie,kpje)                              ! size of grid cell (latitudinal) [m].
     real,    intent(in)    :: pddpo  (kpie,kpje,kpke)                         ! size of grid cell (depth) [m].
-    real,    intent(in)    :: prho   (kpie,kpje,kpke)                         ! density [kg/m^3].
+    real,    intent(in)    :: prho   (kpie,kpje,kpke)                         ! density [g/cm^3].
     real,    intent(in)    :: pglat  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! latitude of grid cells [deg north].
     real,    intent(in)    :: omask  (kpie,kpje)                              ! land/ocean mask.
     real,    intent(in)    :: dust   (kpie,kpje)                              ! dust deposition flux [kg/m2/month].
     real,    intent(in)    :: rivin  (kpie,kpje,nriv)                         ! riverine input [kmol m-2 yr-1].
     real,    intent(in)    :: ndep   (kpie,kpje)                              ! nitrogen deposition [kmol m-2 yr-1].
-    real,    intent(in)    :: oafx   (kpie,kpje)
-    real,    intent(in)    :: pi_ph  (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real,    intent(in)    :: oafx   (kpie,kpje)                              ! alkalinity flux from alkalinization [kmol m-2 yr-1]
+    real,    intent(in)    :: pi_ph  (kpie,kpje)
     real,    intent(in)    :: pfswr  (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! solar radiation [W/m**2].
     real,    intent(in)    :: psicomo(1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea ice concentration
     real,    intent(in)    :: ppao   (1-kbnd:kpie+kbnd,1-kbnd:kpje+kbnd)      ! sea level pressure [Pascal].

@@ -818,7 +818,7 @@ contains
     real,    intent(in)  :: ta     ! total alkalinity [eq/kg].
     real,    intent(in)  :: sit    ! silicate concentration [mol/kg].
     real,    intent(in)  :: pt     ! phosphate concentration [mol/kg].
-    real,    intent(in)  :: KH     ! equilibrium constant K0  = [H2CO3]/pCO2.
+    real,    intent(in)  :: Kh     ! equilibrium constant Kh  = [H2CO3]/pCO2.
     real,    intent(in)  :: K1     ! equilibrium constant K1  = [H][HCO3]/[H2CO3].
     real,    intent(in)  :: K2     ! equilibrium constant K2  = [H][CO3]/[HCO3].
     real,    intent(in)  :: Kb     ! equilibrium constant Kb  = [H][BO2]/[HBO2].

@@ -54,11 +54,11 @@ module mo_vgrid
   real,    dimension(:,:),   allocatable, public :: bolay   ! height of bottom cell.
   real,    dimension(:,:,:), allocatable, public :: ptiestu ! depth of layer centres.
   real,    dimension(:,:,:), allocatable, public :: ptiestw ! depth of layer interfaces.
-  integer, dimension(:,:),   allocatable, public :: k0100
-  integer, dimension(:,:),   allocatable, public :: k0500
-  integer, dimension(:,:),   allocatable, public :: k1000
-  integer, dimension(:,:),   allocatable, public :: k2000
-  integer, dimension(:,:),   allocatable, public :: k4000
+  integer, dimension(:,:),   allocatable, public :: k0100   ! k-index of gridbox comprising 100 m depth
+  integer, dimension(:,:),   allocatable, public :: k0500   ! k-index of gridbox comprising 500 m depth
+  integer, dimension(:,:),   allocatable, public :: k1000   ! k-index of gridbox comprising 1000 m depth
+  integer, dimension(:,:),   allocatable, public :: k2000   ! k-index of gridbox comprising 2000 m depth
+  integer, dimension(:,:),   allocatable, public :: k4000   ! k-index of gridbox comprising 4000 m depth
 
 contains
 
