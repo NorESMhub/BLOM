@@ -20,8 +20,6 @@ module mo_param1_bgc
 
   !******************************************************************************
   ! bgc tracer parameters.
-  ! - To facilitate easier use of 'only-lists' in use statements, make indices
-  ! always defined also in case they are inside a #ifdef directive.
   ! - definition of indices in tracer arrays
   !
   !  Patrick Wetzel    *MPI-Met, HH*    01.09.03
