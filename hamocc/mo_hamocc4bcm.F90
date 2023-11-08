@@ -111,7 +111,7 @@ contains
     integer :: nspin,it
     logical :: lspin
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*) 'iHAMOCC',KLDTDAY,LDTRUNBGC,NDTDAYBGC
     endif
 
@@ -159,7 +159,7 @@ contains
       !$OMP PARALLEL DO PRIVATE(i)
       do  j=1,kpje
         do  i=1,kpie
-          if (patmbromo(i,j).gt.0.) THEN
+          if (patmbromo(i,j).gt.0.) then
             atm(i,j,iatmbromo)=patmbromo(i,j)
           endif
         enddo
@@ -177,7 +177,7 @@ contains
     endif
 
     if (use_PBGC_CK_TIMESTEP) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'before BGC: call INVENTORY'
       endif
@@ -197,7 +197,7 @@ contains
     call ocprod(kpie,kpje,kpke,kbnd,pdlxp,pdlyp,pddpo,omask,ptho,pi_ph)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after OCPROD: call INVENTORY'
       endif
@@ -219,7 +219,7 @@ contains
     enddo
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after LIMIT: call INVENTORY'
       endif
@@ -229,7 +229,7 @@ contains
     call cyano(kpie,kpje,kpke,kbnd,pddpo,omask,ptho)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after CYANO: call INVENTORY'
       endif
@@ -240,7 +240,7 @@ contains
          psicomo,ppao,pfu10,ptho,psao)
 
     if (use_PBGC_CK_TIMESTEP   ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after CARCHM: call INVENTORY'
       endif
@@ -251,7 +251,7 @@ contains
     call apply_ndep(kpie,kpje,kpke,pddpo,omask,ndep)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after N deposition: call INVENTORY'
       endif
@@ -262,7 +262,7 @@ contains
     call apply_rivin(kpie,kpje,kpke,pddpo,omask,rivin)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after river input: call INVENTORY'
       endif
@@ -273,7 +273,7 @@ contains
     call apply_oafx(kpie,kpje,kpke,pddpo,omask,oafx)
 
     if (use_PBGC_CK_TIMESTEP ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after ocean alkalinization: call INVENTORY'
       endif
@@ -286,7 +286,7 @@ contains
     endif
 
     if (use_PBGC_CK_TIMESTEP ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after ATMOTR: call INVENTORY'
       endif
@@ -327,7 +327,7 @@ contains
       enddo
 
       if (use_PBGC_CK_TIMESTEP ) then
-        if (mnproc.eq.1) THEN
+        if (mnproc.eq.1) then
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*)'after POWACH: call INVENTORY'
         endif
@@ -335,8 +335,8 @@ contains
       endif
 
       ! Sediment is shifted once a day (on both time levels!)
-      if (KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
-        if (mnproc.eq.1) THEN
+      if (KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) then
+        if (mnproc.eq.1) then
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'
         endif
@@ -346,7 +346,7 @@ contains
     endif ! .not. use_sedbypass
 
     if (use_PBGC_CK_TIMESTEP ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'after BGC: call INVENTORY'
       endif

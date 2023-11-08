@@ -72,9 +72,9 @@ contains
     !
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).gt.0.5) THEN
+        if (omask(i,j).gt.0.5) then
           do k=1,kmle(i,j)
-            if (ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) THEN
+            if (ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) then
 
               oldocetra = ocetra(i,j,k,iano3)
               ttemp = min(40.,max(-3.,ptho(i,j,k)))

@@ -98,7 +98,7 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          If(omask(i,j) > 0.5) THEN
+          If(omask(i,j) > 0.5) then
 
             clon = pglon(i,j)
             clat = pglat(i,j)

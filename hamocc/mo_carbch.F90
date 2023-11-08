@@ -108,14 +108,14 @@ contains
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for carbon chemistry module :'
       write(io_stdo_bgc,*)' '
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable ocetra ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -126,7 +126,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory ocetra'
     ocetra(:,:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable hi ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -136,7 +136,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory hi'
     hi(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co3 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -146,7 +146,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory co3'
     co3(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2star ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -156,7 +156,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory co2star'
     co2star(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable OmegaA, OmegaC ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -169,7 +169,7 @@ contains
     OmegaC(:,:,:) = 0.0
 
     if (use_natDIC) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable natpco2d ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -178,7 +178,7 @@ contains
       if(errstat.ne.0) stop 'not enough memory natpco2d'
       natpco2d(:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable nathi ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -188,7 +188,7 @@ contains
       if(errstat.ne.0) stop 'not enough memory nathi'
       nathi(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable natco3 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -198,7 +198,7 @@ contains
       if(errstat.ne.0) stop 'not enough memory natco3'
       natco3(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable natOmegaA, natOmegaC ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -211,7 +211,7 @@ contains
       natOmegaC(:,:,:) = 0.0
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable sedfluxo ..'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -221,7 +221,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory sedfluxo'
     sedfluxo(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satn2o ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -230,7 +230,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory satn2o'
     satn2o(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable keqb ...'
       write(io_stdo_bgc,*)'First dimension    : ',11
       write(io_stdo_bgc,*)'Second dimension   : ',kpie
@@ -240,7 +240,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory keqb'
     keqb(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable satoxy ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -250,7 +250,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory satoxy'
     satoxy(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable atm ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -261,7 +261,7 @@ contains
     atm(:,:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable atmflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -273,7 +273,7 @@ contains
 
     ! Allocate field to hold N-deposition fluxes per timestep for
     ! inventory calculations and output
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable ndepflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -284,7 +284,7 @@ contains
 
     ! Allocate field to hold OA alkalinity fluxes per timestep for
     ! inventory calculations and output
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable oalkflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -294,7 +294,7 @@ contains
     oalkflx(:,:) = 0.0
 
     ! Allocate field to hold riverine fluxes per timestep for inventory calculations
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable rivinflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -304,7 +304,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory rivinflx'
     rivinflx(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pco2d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -313,7 +313,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory pco2d'
     pco2d(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pco2m ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -322,7 +322,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory pco2m'
     pco2m(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwco2d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -331,7 +331,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory kwco2d'
     kwco2d(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwco2sol ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -340,7 +340,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory co2fxd,co2fxu'
     kwco2sol(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2sold ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -349,7 +349,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory co2sold'
     co2sold(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2solm ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -358,7 +358,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory co2solm'
     co2solm(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable co2fxd, co2fxu ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -370,7 +370,7 @@ contains
     co2fxu(:,:) = 0.0
 
     if (use_cisonew) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable co213fxd,..., co214fxu ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje

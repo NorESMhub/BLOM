@@ -133,7 +133,7 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (omask(i,j) .GT. 0.5 ) THEN
+          if (omask(i,j) .GT. 0.5 ) then
             ! convert WOA tracers kmol/m^3 -> mol/kg; GLODAP dic and alk
             ! are already in mol/kg. We need these units here, since after
             ! initialisation the tracer field is passed to the ocean model
@@ -163,7 +163,7 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (omask(i,j) .GT. 0.5) THEN
+          if (omask(i,j) .GT. 0.5) then
             ocetra(i,j,k,igasnit)=1.e-10
             ocetra(i,j,k,idoc)   =1.e-8
             ocetra(i,j,k,iphy)   =1.e-8
@@ -226,7 +226,7 @@ contains
     ! whole field has been initialised to zero above
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j) .GT. 0.5) THEN
+        if (omask(i,j) .GT. 0.5) then
           ocetra(i,j,1:kmle(i,j),iprefo2)  = ocetra(i,j,1:kmle(i,j),ioxygen)
           ocetra(i,j,1:kmle(i,j),iprefpo4) = ocetra(i,j,1:kmle(i,j),iphosph)
           ocetra(i,j,1:kmle(i,j),iprefalk) = ocetra(i,j,1:kmle(i,j),ialkali)
@@ -241,7 +241,7 @@ contains
       do  k=1,ks
         do  j=1,kpje
           do  i=1,kpie
-            if (omask(i,j) .GT. 0.5) THEN
+            if (omask(i,j) .GT. 0.5) then
               powtra(i,j,k,ipowaic)=ocetra(i,j,kbo(i,j),isco212)
               powtra(i,j,k,ipowaal)=ocetra(i,j,kbo(i,j),ialkali)
               powtra(i,j,k,ipowaph)=ocetra(i,j,kbo(i,j),iphosph)

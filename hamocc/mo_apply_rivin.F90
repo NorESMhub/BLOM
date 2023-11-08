@@ -85,7 +85,7 @@ contains
     !$OMP PARALLEL DO PRIVATE(i,k,volij)
     do j=1,kpje
       do i=1,kpie
-        if(omask(i,j).GT.0.5) THEN
+        if(omask(i,j).GT.0.5) then
 
           ! Distribute riverine inputs over the model mixed layer
           volij = 0.

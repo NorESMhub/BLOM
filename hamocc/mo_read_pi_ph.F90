@@ -78,10 +78,10 @@ contains
       if(.not. allocated(pi_ph_clim)) call alloc_pi_ph_clim(kpie,kpje)
 
       ! Open netCDF data file
-      if (mnproc==1) THEN
+      if (mnproc==1) then
         ncstat = NF90_OPEN(trim(pi_ph_file), NF90_NOWRITE, ncid)
         write(io_stdo_bgc,*) 'HAMOCC: opening PI_PH climatology file'
-        if (ncstat.NE.NF90_NOERR ) THEN
+        if (ncstat.NE.NF90_NOERR ) then
           call xchalt('(ini_pi_ph: Problem with netCDF1)')
           stop '(ini_pi_ph: Problem with netCDF1)'
         END IF
@@ -91,9 +91,9 @@ contains
       call read_netcdf_var(ncid,'pH',pi_ph_in(1,1,1),pi_ph_record,0,0)
       !
       ! Close file
-      if (mnproc==1) THEN
+      if (mnproc==1) then
         ncstat = NF90_CLOSE(ncid)
-        if ( ncstat .NE. NF90_NOERR ) THEN
+        if ( ncstat .NE. NF90_NOERR ) then
           call xchalt('(ini_pi_ph: Problem with netCDF200)')
           stop '(ini_pi_ph: Problem with netCDF200)'
         END IF
@@ -147,7 +147,7 @@ contains
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pi_ph ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -170,7 +170,7 @@ contains
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable pi_ph_clim ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje

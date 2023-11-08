@@ -547,7 +547,7 @@ contains
     dtbinv    = 1./dtb
     dtbgcinv  = 1./dtbgc
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*) '****************************************************************'
       write(io_stdo_bgc,*) '* '
       write(io_stdo_bgc,*) '* Configuration: '

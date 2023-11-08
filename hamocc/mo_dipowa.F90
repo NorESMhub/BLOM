@@ -150,7 +150,7 @@ contains
         enddo
       enddo
 
-      if(.not. lspin) THEN
+      if(.not. lspin) then
         ! sediment ocean interface
         do iv = 1, npowtra
           iv_oc = map_por2octra(iv)

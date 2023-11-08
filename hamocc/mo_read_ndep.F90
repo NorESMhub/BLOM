@@ -95,7 +95,7 @@ contains
     ! Initialise the module
     if (.not. lini) then
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)' '
         write(io_stdo_bgc,*)'***************************************************'
         write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_ndep:'
@@ -112,7 +112,7 @@ contains
       endif
 
       ! Allocate field to hold N-deposition fluxes
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable ndepread ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje

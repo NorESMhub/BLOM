@@ -554,7 +554,7 @@ CONTAINS
     ! Determine number of output groups
     nbgc=0
     do n=1,nbgcmax
-      if (GLB_AVEPERIO(n).NE.0) THEN
+      if (GLB_AVEPERIO(n).NE.0) then
         nbgc=nbgc+1
         nacc_bgc(n)=0
       endif
@@ -562,28 +562,28 @@ CONTAINS
 
     do n=1,nbgc
       GLB_FILEFREQ(n)=max(GLB_AVEPERIO(n),GLB_FILEFREQ(n))
-      if (GLB_AVEPERIO(n).LT.0) THEN
+      if (GLB_AVEPERIO(n).LT.0) then
         diagfq_bgc(n)=-real(nstepinday)/GLB_AVEPERIO(n)
       else
         diagfq_bgc(n)=nstepinday*max(1,GLB_AVEPERIO(n))
       endif
       diagmon_bgc(n)=.false.
       diagann_bgc(n)=.false.
-      if (GLB_AVEPERIO(n).EQ.30) THEN
+      if (GLB_AVEPERIO(n).EQ.30) then
         diagmon_bgc(n)=.true.
-      elseif (GLB_AVEPERIO(n).EQ.365) THEN
+      elseif (GLB_AVEPERIO(n).EQ.365) then
         diagann_bgc(n)=.true.
       endif
-      if (GLB_FILEFREQ(n).LT.0) THEN
+      if (GLB_FILEFREQ(n).LT.0) then
         filefq_bgc(n)=-real(nstepinday)/GLB_FILEFREQ(n)
       else
         filefq_bgc(n)=nstepinday*max(1,GLB_FILEFREQ(n))
       endif
       filemon_bgc(n)=.false.
       fileann_bgc(n)=.false.
-      if (GLB_FILEFREQ(n).EQ.30) THEN
+      if (GLB_FILEFREQ(n).EQ.30) then
         filemon_bgc(n)=.true.
-      elseif (GLB_FILEFREQ(n).EQ.365) THEN
+      elseif (GLB_FILEFREQ(n).EQ.365) then
         fileann_bgc(n)=.true.
       endif
     enddo
@@ -1021,7 +1021,7 @@ CONTAINS
 
     ! add dp required
     do n=1,nbgc
-      if (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) THEN
+      if (checkdp(n).NE.0.AND.LYR_DP(n).EQ.0) then
         i_bsc_m3d=i_bsc_m3d+1
         jdp(n)=i_bsc_m3d
       endif
@@ -1075,7 +1075,7 @@ CONTAINS
 
     ! Allocate buffers
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for averaging model output :'
@@ -1083,7 +1083,7 @@ CONTAINS
     endif
 
 
-    if (mnproc.EQ.1) THEN
+    if (mnproc.EQ.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgct2d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1094,7 +1094,7 @@ CONTAINS
     if (errstat.NE.0) STOP 'not enough memory bgct2d'
     if (nbgct2d.NE.0) bgct2d=0.
 
-    if (mnproc.EQ.1) THEN
+    if (mnproc.EQ.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm2d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1105,7 +1105,7 @@ CONTAINS
     if (errstat.NE.0) STOP 'not enough memory bgcm2d'
     if (nbgcm2d.NE.0) bgcm2d=0.
 
-    if (mnproc.EQ.1) THEN
+    if (mnproc.EQ.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1117,7 +1117,7 @@ CONTAINS
     if (errstat.NE.0) STOP 'not enough memory bgcm3d'
     if (nbgcm3d.NE.0) bgcm3d=0.
 
-    if (mnproc.EQ.1) THEN
+    if (mnproc.EQ.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgcm3dlvl '
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1130,7 +1130,7 @@ CONTAINS
     if (nbgcm3dlvl.NE.0) bgcm3dlvl=0.
 
     if (.not. use_sedbypass) then
-      if (mnproc.EQ.1) THEN
+      if (mnproc.EQ.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable bgctsed ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1142,7 +1142,7 @@ CONTAINS
       if (errstat.NE.0) STOP 'not enough memory bgct_sed'
       if (nbgct_sed.NE.0) bgct_sed=0.
 
-      if (mnproc.EQ.1) THEN
+      if (mnproc.EQ.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable bgctbur ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -1367,7 +1367,7 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    integer, intent(in) :: pos(nbgcmax)       ! position in 2d buffer
+    integer, intent(in) :: pos(nbgcmax)       ! position in 3d layer buffer
     real,    intent(in) :: fld(idm,jdm,kdm)   ! input data used for accumulation
     real,    intent(in) :: wghts(idm,jdm,kdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
@@ -1566,7 +1566,7 @@ CONTAINS
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (bgcm3d(i,j,k,poswgt).GT.epsil) THEN
+            if (bgcm3d(i,j,k,poswgt).GT.epsil) then
               bgcm3d(i,j,k,posacc)=bgcm3d(i,j,k,posacc)/bgcm3d(i,j,k,poswgt)
             else
               bgcm3d(i,j,k,posacc)=nf90_fill_double
@@ -1588,14 +1588,14 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac         ! variable position in common buffer
-    real,    intent(in) :: offs         ! format/precision of output
+    integer, intent(in) :: pos          ! variable position in common buffer
+    real,    intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
-    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    real,    intent(in) :: sfac         ! user def.NE. scale factor to be applied
+    integer, intent(in) :: offs         ! user def.ne. offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -1607,27 +1607,27 @@ CONTAINS
     if (pos.EQ.0 .OR. frmt.EQ.0) RETURN
     !
     ! --- Create dimension string
-    if (cmpflg.EQ.1) THEN
+    if (cmpflg.EQ.1) then
       dims='pcomp time'
     else
       dims='x y time'
     endif
     !
     ! --- Check output format
-    if (frmt.EQ.2) THEN
-      if (cmpflg.EQ.1) THEN
+    if (frmt.EQ.2) then
+      if (cmpflg.EQ.1) then
         call nccopa(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs)
       else
         call ncpack(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,2,sfac,offs)
       endif
-    elseif (frmt.EQ.4) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.4) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs,4)
       else
         call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,4)
       endif
-    elseif (frmt.EQ.8) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.8) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,sfac,offs,8)
       else
         call ncwrtr(vnm,dims,bgcm2d(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,8)
@@ -1647,14 +1647,14 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac         ! variable position in common buffer
-    real,    intent(in) :: offs         ! format/precision of output
+    integer, intent(in) :: pos          ! variable position in common buffer
+    real,    intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
-    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    real,    intent(in) :: sfac         ! user def.NE. scale factor to be applied
+    integer, intent(in) :: offs         ! user def.ne. offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -1666,27 +1666,27 @@ CONTAINS
     if (pos.EQ.0 .OR. frmt.EQ.0) RETURN
     !
     ! --- Create dimension string
-    if (cmpflg.EQ.1) THEN
+    if (cmpflg.EQ.1) then
       dims='pcomp sigma time'
     else
       dims='x y sigma time'
     endif
     !
     ! --- Check output format
-    if (frmt.EQ.2) THEN
-      if (cmpflg.EQ.1) THEN
+    if (frmt.EQ.2) then
+      if (cmpflg.EQ.1) then
         call nccopa(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       else
         call ncpack(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs)
       endif
-    elseif (frmt.EQ.4) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.4) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       else
         call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,4)
       endif
-    elseif (frmt.EQ.8) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.8) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       else
         call ncwrtr(vnm,dims,bgcm3d(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,8)
@@ -1706,14 +1706,14 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac         ! variable position in common buffer
-    real,    intent(in) :: offs         ! format/precision of output
+    integer, intent(in) :: pos          ! variable position in common buffer
+    real,    intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
-    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    real,    intent(in) :: sfac         ! user def.NE. scale factor to be applied
+    integer, intent(in) :: offs         ! user def.ne. offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -1725,27 +1725,27 @@ CONTAINS
     if (pos.EQ.0 .OR. frmt.EQ.0) RETURN
     !
     ! --- Create dimension string
-    if (cmpflg.EQ.1) THEN
+    if (cmpflg.EQ.1) then
       dims='pcomp depth time'
     else
       dims='x y depth time'
     endif
     !
     ! --- Check output format
-    if (frmt.EQ.2) THEN
-      if (cmpflg.EQ.1) THEN
+    if (frmt.EQ.2) then
+      if (cmpflg.EQ.1) then
         call nccopa(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       else
         call ncpack(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs)
       endif
-    elseif (frmt.EQ.4) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.4) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       else
         call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,4)
       endif
-    elseif (frmt.EQ.8) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.8) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       else
         call ncwrtr(vnm,dims,bgcm3dlvl(1-nbdy,1-nbdy,1,pos),ip,2,sfac,offs,8)
@@ -1765,14 +1765,14 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac         ! variable position in common buffer
-    real,    intent(in) :: offs         ! format/precision of output
+    integer, intent(in) :: pos          ! variable position in common buffer
+    real,    intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
-    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    real,    intent(in) :: sfac         ! user def.NE. scale factor to be applied
+    integer, intent(in) :: offs         ! user def.ne. offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -1784,27 +1784,27 @@ CONTAINS
     if (pos.EQ.0 .OR. frmt.EQ.0) RETURN
     !
     ! --- Create dimension string
-    if (cmpflg.EQ.1) THEN
+    if (cmpflg.EQ.1) then
       dims='pcomp ks time'
     else
       dims='x y ks time'
     endif
     !
     ! --- Check output format
-    if (frmt.EQ.2) THEN
-      if (cmpflg.EQ.1) THEN
+    if (frmt.EQ.2) then
+      if (cmpflg.EQ.1) then
         call nccopa(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
       else
         call ncpack(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs)
       endif
-    elseif (frmt.EQ.4) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.4) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
       else
         call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,4)
       endif
-    elseif (frmt.EQ.8) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.8) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
       else
         call ncwrtr(vnm,dims,bgct_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,8)
@@ -1824,14 +1824,14 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac         ! variable position in common buffer
-    real,    intent(in) :: offs         ! format/precision of output
+    integer, intent(in) :: pos          ! variable position in common buffer
+    real,    intent(in) :: frmt         ! format/precision of output
                                         !  0=field is not written
                                         !  2=field is written as int2 with scale factor and offset
                                         !  4=field is written as real4
                                         !  8=field is written as real8
-    integer, intent(in) :: frmt         ! user def.ne. scale factor to be applied
-    integer, intent(in) :: pos          ! user def.ne. offset to be added
+    real,    intent(in) :: sfac         ! user def.NE. scale factor to be applied
+    integer, intent(in) :: offs         ! user def.ne. offset to be added
     integer, intent(in) :: cmpflg       ! compression flag; only wet points are written if flag is set to 1
     character(len=*), intent(in) :: vnm ! variable name used in nc-file
     !
@@ -1843,27 +1843,27 @@ CONTAINS
     if (pos.EQ.0 .OR. frmt.EQ.0) RETURN
     !
     ! --- Create dimension string
-    if (cmpflg.EQ.1) THEN
+    if (cmpflg.EQ.1) then
       dims='pcomp time'
     else
       dims='x y time'
     endif
     !
     ! --- Check output format
-    if (frmt.EQ.2) THEN
-      if (cmpflg.EQ.1) THEN
+    if (frmt.EQ.2) then
+      if (cmpflg.EQ.1) then
         call nccopa(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs)
       else
         call ncpack(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs)
       endif
-    elseif (frmt.EQ.4) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.4) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,4)
       else
         call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,4)
       endif
-    elseif (frmt.EQ.8) THEN
-      if (cmpflg.EQ.1) THEN
+    elseif (frmt.EQ.8) then
+      if (cmpflg.EQ.1) then
         call nccomp(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,8)
       else
         call ncwrtr(vnm,dims,bgct_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,8)
@@ -1883,9 +1883,9 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac ! field position in layer buffer
-    real,    intent(in) :: offs ! scale factor to be applied before log10
-    integer, intent(in) :: pos  ! offset to be added before log10
+    integer, intent(in) :: pos  ! field position in layer buffer
+    real,    intent(in) :: sfac ! scale factor to be applied before log10
+    real,    intent(in) :: offs ! offset to be added before log10
     !
     ! Local variables
     integer :: i,j,l
@@ -1898,7 +1898,7 @@ CONTAINS
     do j=1,jj
       do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (bgcm2d(i,j,pos).LT.epsil) THEN
+          if (bgcm2d(i,j,pos).LT.epsil) then
             bgcm2d(i,j,pos)=0.
           else
             bgcm2d(i,j,pos)=log10(bgcm2d(i,j,pos)*sfac+offs)
@@ -1919,9 +1919,9 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac ! field position in layer buffer
-    real,    intent(in) :: offs ! scale factor to be applied before log10
-    integer, intent(in) :: pos  ! offset to be added before log10
+    integer, intent(in) :: pos  ! field position in layer buffer
+    real,    intent(in) :: sfac ! scale factor to be applied before log10
+    real,    intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
@@ -1935,9 +1935,9 @@ CONTAINS
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (bgcm3d(i,j,k,pos).LT.epsil) THEN
+            if (bgcm3d(i,j,k,pos).LT.epsil) then
               bgcm3d(i,j,k,pos)=0.
-            elseif (bgcm3d(i,j,k,pos).NE.nf90_fill_double) THEN
+            elseif (bgcm3d(i,j,k,pos).NE.nf90_fill_double) then
               bgcm3d(i,j,k,pos)=log10(bgcm3d(i,j,k,pos)*sfac+offs)
             endif
           enddo
@@ -1972,9 +1972,9 @@ CONTAINS
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (bgcm3dlvl(i,j,k,pos).LT.epsil) THEN
+            if (bgcm3dlvl(i,j,k,pos).LT.epsil) then
               bgcm3dlvl(i,j,k,pos)=0.
-            elseif (bgcm3dlvl(i,j,k,pos).NE.nf90_fill_double) THEN
+            elseif (bgcm3dlvl(i,j,k,pos).NE.nf90_fill_double) then
               bgcm3dlvl(i,j,k,pos)=log10(bgcm3dlvl(i,j,k,pos)*sfac+offs)
             endif
           enddo
@@ -1994,9 +1994,9 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    real,    intent(in) :: sfac ! field position in layer buffer
-    real,    intent(in) :: offs ! scale factor to be applied before log10
-    integer, intent(in) :: pos  ! offset to be added before log10
+    integer, intent(in) :: pos  ! field position in layer buffer
+    real,    intent(in) :: sfac ! scale factor to be applied before log10
+    real,    intent(in) :: offs ! offset to be added before log10
     !
     ! Local variable
     integer :: i,j,k,l
@@ -2010,7 +2010,7 @@ CONTAINS
       do j=1,jj
         do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            if (bgct_sed(i,j,k,pos).LT.epsil) THEN
+            if (bgct_sed(i,j,k,pos).LT.epsil) then
               bgct_sed(i,j,k,pos)=0.
             else
               bgct_sed(i,j,k,pos)=log10(bgct_sed(i,j,k,pos)*sfac+offs)
@@ -2075,7 +2075,7 @@ CONTAINS
     !
     ! --- Prepare index fields for masking
 
-    if (iniflg) THEN
+    if (iniflg) then
       !$OMP PARALLEL DO PRIVATE(i)
       do j=1,jj
         do i=1,ii
@@ -2129,7 +2129,7 @@ CONTAINS
     real, parameter :: eps=1e-10
     !
     ! --- Adjust bounds of levitus levels according to model bathymetry
-    if (iniflg) THEN
+    if (iniflg) then
       do d=1,ddm
         !$OMP PARALLEL DO PRIVATE(l,i)
         do j=1,jj
@@ -2145,7 +2145,7 @@ CONTAINS
     endif
     !
     ! --- Compute top and bottom depths of density layers
-    if (kin.EQ.1) THEN
+    if (kin.EQ.1) then
       !$OMP PARALLEL DO PRIVATE(l,i)
       do j=1,jj
         do l=1,isp(j)
@@ -2197,17 +2197,18 @@ CONTAINS
       do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           ind2(i,j)=0
-          if (pddpo(i,j,kin).GT.eps) THEN
+          if (pddpo(i,j,kin).GT.eps) then
             do d=ind1(i,j),ddm
-              if (depthslev_bnds(2,d).LE.ztop(i,j,kin)) THEN
+              if (depthslev_bnds(2,d).LE.ztop(i,j,kin)) then
                 ind1(i,j)=d+1
                 CYCLE
-              elseif (depthslev_bnds(1,d).GE.zbot(i,j,kin)) THEN
+              elseif (depthslev_bnds(1,d).GE.zbot(i,j,kin)) then
                 EXIT
               endif
               ind2(i,j)=d
-              weights(i,j,d)=(min(zbot(i,j,kin), depthslev_bnds(2,d)) - &
-                              max(ztop(i,j,kin), depthslev_bnds(1,d)))/dlev(i,j,d)
+              weights(i,j,d)=(min(zbot(i,j,kin),         &
+                 depthslev_bnds(2,d))-max(ztop(i,j,kin), &
+                 depthslev_bnds(1,d)))/dlev(i,j,d)
             enddo
           endif
         enddo

@@ -225,7 +225,7 @@ contains
     read (unit=iounit, nml=config_bgc)
     close (unit=iounit)
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'iHAMOCC: reading namelist CONFIG_BGC'
       write(io_stdo_bgc,nml=config_bgc)

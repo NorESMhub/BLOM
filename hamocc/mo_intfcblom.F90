@@ -81,14 +81,14 @@ contains
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for module mo_intfcblom :'
       write(io_stdo_bgc,*)' '
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_dx, bgc_dy ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -99,7 +99,7 @@ contains
     bgc_dx(:,:) = 0.0
     bgc_dy(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_dp ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -109,7 +109,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
     bgc_dp(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bgc_rho ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -119,7 +119,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory bgc_dp'
     bgc_rho(:,:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable omask ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -129,7 +129,7 @@ contains
     omask(:,:) = 0.0
 
     if (.not. use_sedbypass) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sedlay2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -140,7 +140,7 @@ contains
       if(errstat.ne.0) stop 'not enough memory sedlay2'
       sedlay2(:,:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable powtra2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -151,7 +151,7 @@ contains
       if(errstat.ne.0) stop 'not enough memory powtra2'
       powtra2(:,:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable burial2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -164,7 +164,7 @@ contains
     endif
 
     if (use_BOXATM) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable atm2 ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje

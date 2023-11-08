@@ -190,7 +190,7 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (ddpo(i,j,k).gt.dp_min) THEN
+          if (ddpo(i,j,k).gt.dp_min) then
             ztmp1(i,j) = ztmp1(i,j)                                          &
                  &       + omask(i,j)*dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
           endif
@@ -205,7 +205,7 @@ contains
       do k=1,kpke
         do j=1,kpje
           do i=1,kpie
-            if (ddpo(i,j,k).gt.dp_min) THEN
+            if (ddpo(i,j,k).gt.dp_min) then
               vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
               ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*ocetra(i,j,k,l)*vol
               !             if (ocetra(i,j,k,l).lt.0.0) then
@@ -230,7 +230,7 @@ contains
     do k=1,kpke
       do j=1,kpje
         do i=1,kpie
-          if (ddpo(i,j,k).gt.dp_min) THEN
+          if (ddpo(i,j,k).gt.dp_min) then
             vol = dlxp(i,j)*dlyp(i,j)*ddpo(i,j,k)
             ztmp1(i,j) = ztmp1(i,j) + omask(i,j)*hi(i,j,k) *vol
             ztmp2(i,j) = ztmp2(i,j) + omask(i,j)*co3(i,j,k)*vol
@@ -393,7 +393,7 @@ contains
       totaloxy = totaloxy + so2flux+sn2oflux*0.5+co2flux
     endif
 
-    if (do_rivinpt) THEN
+    if (do_rivinpt) then
       totalcarbon = totalcarbon &
            - (srivflux(irdoc)+srivflux(irdet))*rcar -(srivflux(iralk)+srivflux(irdin)+srivflux(irdip)) ! =sco212
       totalnitr = totalnitr &
@@ -587,7 +587,7 @@ contains
 
       ! riverine fluxes
       !------------------------------------------------------------------
-      if (do_rivinpt)THEN
+      if (do_rivinpt)then
         write(io_stdo_bgc,*) 'Riverine fluxes:'
         do l=1,nriv
           write(io_stdo_bgc,*) 'No. ',l,srivflux(l)

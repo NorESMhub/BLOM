@@ -105,14 +105,14 @@ CONTAINS
     ! local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for marine biology module :'
       write(io_stdo_bgc,*)' '
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable strahl ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -123,7 +123,7 @@ CONTAINS
     strahl(:,:) = 0.0
 
     if (use_FB_BGC_OCE ) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable abs_oce'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -135,7 +135,7 @@ CONTAINS
       abs_oce(:,:,:) = 0.0
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable expoor ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -145,7 +145,7 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory expoor'
     expoor(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable expoca ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -156,7 +156,7 @@ CONTAINS
     expoca(:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable exposi ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -167,7 +167,7 @@ CONTAINS
     exposi(:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intphosy ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -178,7 +178,7 @@ CONTAINS
     intphosy(:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intdnit ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -188,7 +188,7 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory intdnit'
     intdnit(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intnfix ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -198,7 +198,7 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory intnfix'
     intnfix(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable intdmsprod, intdms_bac, intdms_uv ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -212,7 +212,7 @@ CONTAINS
     intdms_bac(:,:) = 0.0
     intdms_uv(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable carflx* ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -232,7 +232,7 @@ CONTAINS
     carflx4000(:,:) = 0.0
     carflx_bot(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bsiflx* ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -252,7 +252,7 @@ CONTAINS
     bsiflx4000(:,:) = 0.0
     bsiflx_bot(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable calflx* ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -272,7 +272,7 @@ CONTAINS
     calflx4000(:,:) = 0.0
     calflx_bot(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable phosy3d ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -284,7 +284,7 @@ CONTAINS
     phosy3d(:,:,:) = 0.0
 
     if (use_AGG) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable wmass ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -295,7 +295,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory eps3d'
       wmass(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable wnumb ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -306,7 +306,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory eps3d'
       wnumb(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable eps3d ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -317,7 +317,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory eps3d'
       eps3d(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable asize3d ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -330,7 +330,7 @@ CONTAINS
     endif
 
     if (use_BROMO) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable int_chbr3_prod, int_chbr3_uv ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje

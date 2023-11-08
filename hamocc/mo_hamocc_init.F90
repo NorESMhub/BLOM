@@ -113,7 +113,7 @@ contains
     read (unit=iounit, nml=BGCNML)
     close (unit=iounit)
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)
       write(io_stdo_bgc,*) 'iHAMOCC: reading namelist BGCNML'
       write(io_stdo_bgc,nml=BGCNML)
@@ -208,7 +208,7 @@ contains
     !     initialised in BELEG_VARS) to both timelevels of their respective
     !     two-time-level counterpart
     !
-    if (read_rest.eq.1) THEN
+    if (read_rest.eq.1) then
       call AUFR_BGC(idm,jdm,kdm,ntr,ntrbgc,itrbgc,trc,                           &
            &   date%year,date%month,date%day,omask,rstfnm_hamocc)
     else

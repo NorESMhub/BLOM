@@ -92,7 +92,7 @@ contains
     ! local variables
     integer :: i,j,errstat,dummymask(2)
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'iHAMOCC: Initialization of module mo_read_rivin:'
@@ -100,7 +100,7 @@ contains
     endif
 
     ! Allocate field to hold river fluxes
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable rivflx ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -137,7 +137,7 @@ contains
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).GT.0.5) THEN
+        if (omask(i,j).GT.0.5) then
 
           rivflx(i,j,irdin)    = riv_DIN2d(i,j)
           rivflx(i,j,irdip)    = riv_DIP2d(i,j)

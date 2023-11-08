@@ -176,7 +176,7 @@ contains
       do j=1,kpje
         do i=1,kpie
 
-          if (omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) THEN
+          if (omask(i,j).gt.0.5.and.pddpo(i,j,k).GT.dp_min) then
 
             ! Carbon chemistry: Calculate equilibrium constants and solve for [H+] and
             ! carbonate alkalinity (ac)
@@ -394,11 +394,11 @@ contains
                 !      unit of [cfc11_atm(i,j)*ppair/p0] should be in [pptv]
                 !      unit of [flx11-12] is in [kmol / m2]
 
-                if (pglat(i,j).GE.10) THEN
+                if (pglat(i,j).GE.10) then
                   atm_cfc11=atm_cfc11_nh
                   atm_cfc12=atm_cfc12_nh
                   atm_sf6=atm_sf6_nh
-                else if (pglat(i,j).LE.-10) THEN
+                else if (pglat(i,j).LE.-10) then
                   atm_cfc11=atm_cfc11_sh
                   atm_cfc12=atm_cfc12_sh
                   atm_sf6=atm_sf6_sh

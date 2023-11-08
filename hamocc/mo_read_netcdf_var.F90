@@ -62,7 +62,7 @@ contains
 
     ! Read NETCDF data
 
-    if (TYPEIO==0) THEN
+    if (TYPEIO==0) then
 
       start=1
       count=0
@@ -115,7 +115,7 @@ contains
         enddo
       enddo
 
-    else if (TYPEIO==1) THEN
+    else if (TYPEIO==1) then
 
 #ifdef PNETCDF
       allocate(arr_l(ii,jj,klev))

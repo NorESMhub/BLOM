@@ -116,7 +116,7 @@ contains
       do i=1,kpie
 
         do k=kpke,1,-1
-          if (pddpo(i,j,k).GT.dp_min_sink) THEN
+          if (pddpo(i,j,k).GT.dp_min_sink) then
             bolay(i,j)=pddpo(i,j,k)
             kbo(i,j)=k
             exit
@@ -133,7 +133,7 @@ contains
 
         kwrbioz(i,j)=1
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k) .lt. dp_ez ) then
             kwrbioz(i,j)=k
           endif
         enddo
@@ -153,35 +153,35 @@ contains
       do i=1,kpie
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 100.0 ) then
             k0100(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 500.0 ) then
             k0500(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 1000.0 ) then
             k1000(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 2000.0 ) then
             k2000(i,j)=k
             exit
           endif
         enddo
 
         do k=2,kpke
-          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) THEN
+          if (pddpo(i,j,k) .gt. dp_min .and. ptiestw(i,j,k+1) .gt. 4000.0 ) then
             k4000(i,j)=k
             exit
           endif
@@ -211,14 +211,14 @@ contains
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for module mo_vgrid :'
       write(io_stdo_bgc,*)' '
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable ptiestu ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -230,7 +230,7 @@ contains
     ptiestu(:,:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable ptiestw ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -242,7 +242,7 @@ contains
     ptiestw(:,:,:) = 0.0
 
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kmle ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -252,7 +252,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory kmle'
     kmle(:,:) = kmle_static
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kbo ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -262,7 +262,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory kbo'
     kbo(:,:) = 0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable kwrbioz...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -272,7 +272,7 @@ contains
     if(errstat.ne.0) stop 'not enough memory kwrbioz'
     kwrbioz(:,:) = 0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variables k0100, k0500, k1000, k2000 ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -290,7 +290,7 @@ contains
     k2000(:,:) = 0
     k4000(:,:) = 0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable bolay ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje

@@ -247,7 +247,7 @@ contains
     call accsrf(joalkfx,oalkflx,omask,0)
 
     ! Accumulate the diagnostic mass sinking field
-    if( domassfluxes ) THEN
+    if( domassfluxes ) then
       call accsrf(jcarflx0100,carflx0100,omask,0)
       call accsrf(jbsiflx0100,bsiflx0100,omask,0)
       call accsrf(jcalflx0100,calflx0100,omask,0)
@@ -352,7 +352,7 @@ contains
          &  jlvlnatomegaa+jlvlnatomegac+jlvldic13+jlvldic14+jlvld13c+       &
          &  jlvld14c+jlvlbigd14c+jlvlpoc13+jlvldoc13+jlvlcalc13+jlvlphyto13+&
          &  jlvlgrazer13+jlvlnos+jlvlwphy+jlvlwnos+jlvleps+jlvlasize+       &
-         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo).NE.0) THEN
+         &  jlvlcfc11+jlvlcfc12+jlvlsf6+jlvlbromo).NE.0) then
       do k=1,kpke
         call bgczlv(pddpo,k,ind1,ind2,wghts)
         call acclvl(jlvlphyto,ocetra(1,1,1,iphy),k,ind1,ind2,wghts)

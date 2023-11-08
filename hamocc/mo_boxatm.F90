@@ -144,7 +144,7 @@ contains
         enddo
       enddo
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*) ' '
         write(io_stdo_bgc,*) 'Boxatm fluxes (ppm)'
         write(io_stdo_bgc,*) ' co213flux_ppm: ',co213flux_ppm

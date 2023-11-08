@@ -229,14 +229,14 @@ CONTAINS
     ! Local variables
     integer :: errstat
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'***************************************************'
       write(io_stdo_bgc,*)'Memory allocation for sediment module :'
       write(io_stdo_bgc,*)' '
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable silpro ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -245,7 +245,7 @@ CONTAINS
     if(errstat.ne.0) stop 'not enough memory silpro'
     silpro(:,:) = 0.0
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable prorca ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -262,7 +262,7 @@ CONTAINS
       pror14(:,:) = 0.0
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable prcaca ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -279,7 +279,7 @@ CONTAINS
       prca14(:,:) = 0.0
     endif
 
-    if (mnproc.eq.1) THEN
+    if (mnproc.eq.1) then
       write(io_stdo_bgc,*)'Memory allocation for variable produs ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -289,7 +289,7 @@ CONTAINS
     produs(:,:) = 0.0
 
     if (.not. use_sedbypass) then
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sedlay ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -300,7 +300,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory sedlay'
       sedlay(:,:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable sedhpl ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -310,7 +310,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory sedhpl'
       sedhpl(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porsol ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -320,7 +320,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory porsol'
       porsol(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porwah ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -330,7 +330,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory porwah'
       porwah(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable porwat ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -340,7 +340,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory porwat'
       porwat(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable solfu ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -349,7 +349,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory solfu'
       solfu(:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable zcoefsu ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -359,7 +359,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory zcoefsu'
       zcoefsu(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable zcoeflo ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -369,7 +369,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory zcoeflo'
       zcoeflo(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable burial ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -379,7 +379,7 @@ CONTAINS
       if(errstat.ne.0) stop 'not enough memory burial'
       burial(:,:,:) = 0.0
 
-      if (mnproc.eq.1) THEN
+      if (mnproc.eq.1) then
         write(io_stdo_bgc,*)'Memory allocation for variable powtra ...'
         write(io_stdo_bgc,*)'First dimension    : ',kpie
         write(io_stdo_bgc,*)'Second dimension   : ',kpje
