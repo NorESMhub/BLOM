@@ -145,10 +145,10 @@ CONTAINS
     ! Open netCDF data file
     !
     testio=0
-    if(mnproc==1 .AND. IOTYPE==0) then
+    if(mnproc==1 .and. IOTYPE==0) then
 
       ncstat = NF90_OPEN(rstfnm,NF90_NOWRITE, ncid)
-      if ( ncstat .NE. NF90_NOERR ) then
+      if ( ncstat  /=  NF90_NOERR ) then
         call xchalt('(AUFR: Problem with netCDF1)')
         stop        '(AUFR: Problem with netCDF1)'
       endif
@@ -156,7 +156,7 @@ CONTAINS
       ! Read restart data : date
       !
       ncstat = NF90_GET_ATT(ncid, NF90_GLOBAL,'date', idate)
-      if ( ncstat .NE. NF90_NOERR ) then
+      if ( ncstat  /=  NF90_NOERR ) then
         call xchalt('(AUFR: Problem reading date of restart file)')
         stop        '(AUFR: Problem reading date of restart file)'
       endif
@@ -187,7 +187,7 @@ CONTAINS
       call mpi_info_set(info,"striping_unit",stripestr2,ierr)
 
       ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,INFO, ncid)
-      if ( ncstat .NE. NF_NOERR ) then
+      if ( ncstat  /=  NF_NOERR ) then
         call xchalt('(AUFR: Problem with netCDF1)')
         stop        '(AUFR: Problem with netCDF1)'
       endif
@@ -195,7 +195,7 @@ CONTAINS
       ! Read restart data : date
       !
       ncstat = NFMPI_GET_ATT_INT(ncid, NF_GLOBAL,'date', idate)
-      if ( ncstat .NE. NF_NOERR ) then
+      if ( ncstat  /=  NF_NOERR ) then
         call xchalt('(AUFR: Problem reading date of restart file)')
         stop        '(AUFR: Problem reading date of restart file)'
       endif
@@ -220,20 +220,20 @@ CONTAINS
         stop        '(AUFR: Problem with namelist iotype)'
       endif
 
-    endif ! mnproc==1 .AND. IOTYPE==0
+    endif ! mnproc==1 .and. IOTYPE==0
 
     !
     ! Compare with date read from ocean restart file
     !
     if (mnproc.eq.1) then
 
-      if ( kplyear .NE. restyear  ) write(io_stdo_bgc,*)                                      &
+      if ( kplyear  /=  restyear  ) write(io_stdo_bgc,*)                                      &
            'WARNING: restart years in oce/bgc are not the same : ', kplyear,'/',restyear,' !!!'
 
-      if ( kplmon  .NE. restmonth ) write(io_stdo_bgc,*)                                      &
+      if ( kplmon   /=  restmonth ) write(io_stdo_bgc,*)                                      &
            'WARNING: restart months in oce/bgc are not the same : ',kplmon,'/',restmonth,' !!!'
 
-      if ( kplday  .NE. restday   ) write(io_stdo_bgc,*)                                      &
+      if ( kplday   /=  restday   ) write(io_stdo_bgc,*)                                      &
            'WARNING: restart days in oce/bgc are not the same : ',  kplday,'/',restday,' !!!'
 
     endif
@@ -485,7 +485,7 @@ CONTAINS
       endif
     endif
 
-    if(mnproc==1 .AND. IOTYPE==0) then
+    if(mnproc==1 .and. IOTYPE==0) then
       ncstat = NF90_CLOSE(ncid)
     else if(IOTYPE==1) then
 #ifdef PNETCDF
@@ -504,7 +504,7 @@ CONTAINS
       do k=1,2*kpke
         do j=1,kpje
           do i=1,kpie
-            if(omask(i,j) .GT. 0.5) then
+            if(omask(i,j)  >  0.5) then
               ! 13C is read in as delta13C, convert to 13C using model restart total C
               beta13=locetra(i,j,k,isco213)/1000.+1.
               locetra(i,j,k,isco213)=locetra(i,j,k,isco212)*beta13*re1312/(1.+beta13*re1312)
@@ -536,7 +536,7 @@ CONTAINS
         do  k=1,2*ks
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j) .GT. 0.5) then
+              if(omask(i,j)  >  0.5) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 powtra2(i,j,k,ipowc13)=powtra2(i,j,k,ipowaic)*rco213
@@ -553,7 +553,7 @@ CONTAINS
         do  k=1,2
           do  j=1,kpje
             do  i=1,kpie
-              if(omask(i,j) .GT. 0.5) then
+              if(omask(i,j)  >  0.5) then
                 rco213=locetra(i,j,kbo(i,j),isco213)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 rco214=locetra(i,j,kbo(i,j),isco214)/(locetra(i,j,kbo(i,j),isco212)+safediv)
                 burial2(i,j,k,issso13)=burial2(i,j,k,issso12)*rco213*bifr13
@@ -565,8 +565,8 @@ CONTAINS
           enddo
         enddo
 
-      endif  ! .NOT. use_sedbypass
-    endif ! use_cisonew .and. .NOT. lread_iso
+      endif  ! .not. use_sedbypass
+    endif ! use_cisonew .and. .not. lread_iso
 
     ! return tracer fields to ocean model (both timelevels); No unit
     ! conversion here, since tracers in the restart file are in

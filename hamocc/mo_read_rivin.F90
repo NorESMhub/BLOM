@@ -137,7 +137,7 @@ contains
 
     do j=1,kpje
       do i=1,kpie
-        if (omask(i,j).GT.0.5) then
+        if (omask(i,j) > 0.5) then
 
           rivflx(i,j,irdin)    = riv_DIN2d(i,j)
           rivflx(i,j,irdip)    = riv_DIP2d(i,j)

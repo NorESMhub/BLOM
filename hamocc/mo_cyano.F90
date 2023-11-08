@@ -74,7 +74,7 @@ contains
       do i=1,kpie
         if (omask(i,j).gt.0.5) then
           do k=1,kmle(i,j)
-            if (ocetra(i,j,k,iano3).LT.(rnit*ocetra(i,j,k,iphosph))) then
+            if (ocetra(i,j,k,iano3) < (rnit*ocetra(i,j,k,iphosph))) then
 
               oldocetra = ocetra(i,j,k,iano3)
               ttemp = min(40.,max(-3.,ptho(i,j,k)))

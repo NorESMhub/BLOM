@@ -335,7 +335,7 @@ contains
       endif
 
       ! Sediment is shifted once a day (on both time levels!)
-      if (KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) then
+      if (KLDTDAY == 1 .OR. KLDTDAY == 2) then
         if (mnproc.eq.1) then
           write(io_stdo_bgc,*)' '
           write(io_stdo_bgc,*) 'Sediment shifting ...'

@@ -499,7 +499,7 @@ contains
     !
     use mo_control_bgc, only: dtb
 
-    REAL :: shear
+    real :: shear
 
     SinkExp  = 0.62
     FractDim = 1.62
@@ -543,7 +543,9 @@ contains
     !
     use mo_control_bgc, only: dtb,dtbgc
 
-    REAL :: dtbinv,dtbgcinv
+    ! Local variables
+    real :: dtbinv,dtbgcinv
+
     dtbinv    = 1./dtb
     dtbgcinv  = 1./dtbgc
 

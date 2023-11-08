@@ -116,7 +116,7 @@ contains
       do i=1,kpie
 
         do k=kpke,1,-1
-          if (pddpo(i,j,k).GT.dp_min_sink) then
+          if (pddpo(i,j,k) > dp_min_sink) then
             bolay(i,j)=pddpo(i,j,k)
             kbo(i,j)=k
             exit

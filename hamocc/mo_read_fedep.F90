@@ -89,7 +89,7 @@ contains
     ! Open netCDF data file
     if (mnproc==1) then
       ncstat = NF90_OPEN(trim(fedepfile),NF90_NOWRITE, ncid)
-      if (ncstat.NE.NF90_NOERR ) then
+      if (ncstat /= NF90_NOERR ) then
         call xchalt('(get_dust: Problem with netCDF1)')
         stop '(get_dust: Problem with netCDF1)'
       END IF
@@ -101,7 +101,7 @@ contains
     ! Close file
     if (mnproc==1) then
       ncstat = NF90_CLOSE(ncid)
-      if ( ncstat .NE. NF90_NOERR ) then
+      if ( ncstat /=  NF90_NOERR ) then
         call xchalt('(get_dust: Problem with netCDF200)')
         stop '(get_dust: Problem with netCDF200)'
       END IF
