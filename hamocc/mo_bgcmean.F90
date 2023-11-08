@@ -1321,7 +1321,7 @@ CONTAINS
     ! --- ------------------------------------------------------------------
     !
     ! Arguments
-    integer, intent(in) :: pos(nbgcmax)   ! position in 2d buffer
+    integer, intent(in) :: pos(nbgcmax)   ! position in 3d buffer
     real,    intent(in) :: fld(idm,jdm)   ! input data used for accumulation
     real,    intent(in) :: wghts(idm,jdm) ! weights used for accumulation
     integer, intent(in) :: wghtsflg
